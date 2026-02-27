@@ -4,48 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Con Edison | 2024 Disadvantaged Communities Report</title>
-
-<script>
-(function () {
-  const PASSWORD = "dacdemo";
-  const entered = window.prompt("Enter password to access this demo:");
-
-  if (entered !== PASSWORD) {
-    document.open();
-    document.write(`
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Access Denied</title>
-        <style>
-          body{font-family:Arial, sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#111;color:#fff}
-          .box{max-width:520px;padding:24px;border:1px solid rgba(255,255,255,.2);border-radius:12px;background:rgba(255,255,255,.06);text-align:center}
-          h1{font-size:22px;margin:0 0 10px}
-          p{margin:0;color:rgba(255,255,255,.7);line-height:1.4}
-        </style>
-      </head>
-      <body>
-        <div class="box">
-          <h1>Access denied</h1>
-          <p>Incorrect password.</p>
-        </div>
-      </body>
-      </html>
-    `);
-    document.close();
-    throw new Error("Unauthorized");
-  }
-})();
-</script>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--blue:#069BD7;--white:#fff;--gray:#f7f8fa;--border:#e5e7eb;--text:#222;--text-mid:#555;--text-light:#888;--orange:#F7901E}
 body{font-family:'Open Sans',sans-serif;color:var(--text);background:var(--white);overflow-x:hidden}
+
+/* Password gate */
+body.locked{overflow:hidden}
+.gate{
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;
+  background:rgba(0,0,0,.65);
+  backdrop-filter: blur(6px);
+}
+.gate-card{
+  width:min(520px,100%);
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.10);
+  box-shadow:0 18px 50px rgba(0,0,0,.35);
+  padding:24px 24px 20px;
+  color:#fff;
+}
+.gate-title{font-size:1.15rem;font-weight:800;margin-bottom:.35rem}
+.gate-sub{color:rgba(255,255,255,.75);line-height:1.55;font-size:.92rem;margin-bottom:14px}
+.gate-row{display:flex;gap:10px}
+.gate-input{
+  flex:1;
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.22);
+  background:rgba(0,0,0,.18);
+  color:#fff;
+  outline:none;
+  font-size:.95rem;
+}
+.gate-input::placeholder{color:rgba(255,255,255,.55)}
+.gate-btn{
+  padding:12px 14px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(6,155,215,.92);
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
+  white-space:nowrap;
+}
+.gate-btn:hover{filter:brightness(1.05)}
+.gate-btn:active{transform:translateY(1px)}
+.gate-error{display:none;margin-top:10px;font-size:.88rem;color:#ffd0d0}
+
 nav{position:fixed;top:0;width:100%;z-index:1000;padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between;transition:.3s;background:transparent}
 nav.scrolled{background:var(--white);box-shadow:0 1px 8px rgba(0,0,0,.08)}
 nav.scrolled .nav-brand{color:var(--text)}
@@ -107,47 +119,332 @@ section{padding:5rem 2rem}
 .footer a{color:var(--blue);text-decoration:none}
 .fade-in{opacity:0;transform:translateY(15px);transition:.5s}
 .fade-in.visible{opacity:1;transform:translateY(0)}
-@media(max-width:768px){.hero-stats{flex-direction:column;align-items:center}.nav-links{display:none}.grid-2{grid-template-columns:1fr}.grid-3{grid-template-columns:1fr}section{padding:3rem 1rem}}
+@media(max-width:768px){
+  .hero-stats{flex-direction:column;align-items:center}
+  .nav-links{display:none}
+  .grid-2{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:1fr}
+  section{padding:3rem 1rem}
+  .gate-card{padding:20px}
+}
 </style>
 </head>
-<body>
+
+<body class="locked">
+
+<!-- Password Gate -->
+<div class="gate" id="gate" aria-label="Demo access gate">
+  <div class="gate-card">
+    <div class="gate-title">Enter password</div>
+    <div class="gate-sub">This page is for demo purposes. Please enter the password to continue.</div>
+    <form id="gateForm" autocomplete="off">
+      <div class="gate-row">
+        <input class="gate-input" id="gatePass" type="password" placeholder="Password" aria-label="Password" />
+        <button class="gate-btn" type="submit">Continue</button>
+      </div>
+      <div class="gate-error" id="gateError">Incorrect password. Please try again.</div>
+    </form>
+  </div>
+</div>
+
 <nav id="nav">
-<div class="nav-brand">
-<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 20c0-4.4 3.6-8 8-8h4v4h-4c-2.2 0-4 1.8-4 4s1.8 4 4 4h4v4h-4c-4.4 0-8-3.6-8-8z" fill="currentColor"/></svg>
-Con Edison
-</div>
-<div class="nav-links">
-<a href="#clean-energy">Clean Energy</a>
-<a href="#ev">EV Charging</a>
-<a href="#demand">Demand Response</a>
-<a href="#der">DER</a>
-<a href="#infrastructure">Infrastructure</a>
-<a href="#jobs">Jobs</a>
-<a href="#customers">Customers</a>
-</div>
+  <div class="nav-brand">
+    <svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="3"/><path d="M12 20c0-4.4 3.6-8 8-8h4v4h-4c-2.2 0-4 1.8-4 4s1.8 4 4 4h4v4h-4c-4.4 0-8-3.6-8-8z" fill="currentColor"/></svg>
+    Con Edison
+  </div>
+  <div class="nav-links">
+    <a href="#clean-energy">Clean Energy</a>
+    <a href="#ev">EV Charging</a>
+    <a href="#demand">Demand Response</a>
+    <a href="#der">DER</a>
+    <a href="#infrastructure">Infrastructure</a>
+    <a href="#jobs">Jobs</a>
+    <a href="#customers">Customers</a>
+  </div>
 </nav>
 
 <section class="hero">
-<div class="hero-content">
-<h1>2024 Disadvantaged Communities <span>Impact Report</span></h1>
-<p>Tracking how Con Edison's operations and programs deliver benefits to disadvantaged communities across New York City and Westchester County.</p>
-<div class="hero-stats">
-<div class="hero-stat"><div class="num">44%</div><div class="label">Electric Meters in DACs</div></div>
-<div class="hero-stat"><div class="num">54%</div><div class="label">Clean Energy $ to DACs</div></div>
-<div class="hero-stat"><div class="num">$380M</div><div class="label">Total Clean Energy Spend</div></div>
-<div class="hero-stat"><div class="num">3.7M</div><div class="label">Customers Served</div></div>
-</div>
-</div>
-<div class="scroll-hint">&#8595; Scroll to explore</div>
+  <div class="hero-content">
+    <h1>2024 Disadvantaged Communities <span>Impact Report</span></h1>
+    <p>Tracking how Con Edison's operations and programs deliver benefits to disadvantaged communities across New York City and Westchester County.</p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">44%</div><div class="label">Electric Meters in DACs</div></div>
+      <div class="hero-stat"><div class="num">54%</div><div class="label">Clean Energy $ to DACs</div></div>
+      <div class="hero-stat"><div class="num">$380M</div><div class="label">Total Clean Energy Spend</div></div>
+      <div class="hero-stat"><div class="num">3.7M</div><div class="label">Customers Served</div></div>
+    </div>
+  </div>
+  <div class="scroll-hint">&#8595; Scroll to explore</div>
 </section>
 
-<!-- the rest of your HTML remains unchanged -->
-<!-- ... -->
+<section id="clean-energy">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">A. Clean Energy Spending</span>
+      <h2>Investing in a Cleaner Future</h2>
+      <p>Building energy use is the leading source of emissions in NYC. Con Edison's clean energy programs incentivize efficiency upgrades and electrification — with 54% of incentive dollars going to disadvantaged communities in 2024.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">$380.3M</div><div class="lbl">Total Incentives</div></div>
+      <div class="kpi"><div class="val">$204.8M</div><div class="lbl">To DACs (54%)</div></div>
+      <div class="kpi"><div class="val">4.36M</div><div class="lbl">MMBtu Saved</div></div>
+      <div class="kpi"><div class="val">298,607</div><div class="lbl">Measures Installed</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Incentive Spending — DAC vs Non-DAC</h4><div class="chart-wrap"><canvas id="chartCES"></canvas></div></div>
+      <div class="chart-card"><h4>Year-over-Year Growth (2023 → 2024)</h4><div class="chart-wrap"><canvas id="chartYoY"></canvas></div></div>
+    </div>
+    <div style="margin-top:1.5rem" class="grid-3">
+      <div class="card"><h3>AMEEP Program</h3><div class="big-num">$77.6M</div><div class="sub">Affordable Multifamily Energy Efficiency</div><div class="pct">92% in DACs</div></div>
+      <div class="card"><h3>DAC Incentive Growth</h3><div class="big-num">+58%</div><div class="sub">Year-over-year increase in DAC dollars</div><div class="pct">$129.7M → $204.8M</div></div>
+      <div class="card"><h3>DAC Installations</h3><div class="big-num">51%</div><div class="sub">Of all measures installed in DACs</div><div class="pct">Up from 38% in 2023</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="ev" class="section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">B. Electric Vehicle Make-Ready</span>
+      <h2>Building the Charging Network</h2>
+      <p>On-road transportation accounts for 26% of NYC's greenhouse gas emissions. PowerReady doubled DAC charging plugs in 2024, with enhanced incentives covering up to 100% of eligible costs in disadvantaged communities.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">$42.8M</div><div class="lbl">Total EV Incentives</div></div>
+      <div class="kpi"><div class="val">$18.3M</div><div class="lbl">In DACs (43%)</div></div>
+      <div class="kpi"><div class="val">4,312</div><div class="lbl">Total Plugs Installed</div></div>
+      <div class="kpi"><div class="val">1,850</div><div class="lbl">DAC Plugs (2x vs 2023)</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Charging Plugs — DAC vs Non-DAC</h4><div class="chart-wrap"><canvas id="chartEV"></canvas></div></div>
+      <div>
+        <div class="card" style="margin-bottom:1.2rem"><h3>Plug Breakdown</h3>
+          <div class="metric-bar"><div class="bar-label"><span>L2 in DACs</span><span>1,732 of 4,118 (42%)</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:42%"></div></div></div>
+          <div class="metric-bar"><div class="bar-label"><span>DCFC in DACs</span><span>118 of 194 (61%)</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:61%"></div></div></div>
+        </div>
+        <div class="card"><h3>Fleet Charging in DACs</h3><p style="font-size:.85rem;color:var(--text-mid);line-height:1.6">Many DCFC incentives support fleet charging. Fleet depots tend to be located in DACs — communities disproportionately impacted by traffic-related air pollution.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demand">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">C. Demand Response</span>
+      <h2>Reducing Peak Demand Together</h2>
+      <p>Over 104,000 customers enrolled in demand response programs in 2024, providing cost-effective load relief during peak periods. DAC participation grew 14% year-over-year.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">104,025</div><div class="lbl">Total Participants</div></div>
+      <div class="kpi"><div class="val">32,919</div><div class="lbl">DAC Participants (32%)</div></div>
+      <div class="kpi"><div class="val">998 MW</div><div class="lbl">Committed Load Relief</div></div>
+      <div class="kpi"><div class="val">767 MW</div><div class="lbl">Delivered Load Relief</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Participation by Program</h4><div class="chart-wrap"><canvas id="chartDR"></canvas></div></div>
+      <div class="chart-card"><h4>MW Committed — DAC vs Total</h4><div class="chart-wrap"><canvas id="chartDRmw"></canvas></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="der" class="section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">D. Distributed Energy Resources</span>
+      <h2>Expanding Clean Energy Access</h2>
+      <p>Customer-owned solar, storage, and wind projects continue to grow. Community solar enables participation for customers without rooftop access, with the new Solar for All program auto-enrolling EAP customers.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">76,991</div><div class="lbl">Cumulative Projects</div></div>
+      <div class="kpi"><div class="val">10,555</div><div class="lbl">New in 2024</div></div>
+      <div class="kpi"><div class="val">1,096 MW</div><div class="lbl">Total MW Installed</div></div>
+      <div class="kpi"><div class="val">34%</div><div class="lbl">2024 Projects in DACs</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>DER Projects — DAC vs Non-DAC</h4><div class="chart-wrap"><canvas id="chartDER"></canvas></div></div>
+      <div class="card"><h3>Community Solar & Low-Income Access</h3>
+        <div class="metric-bar"><div class="bar-label"><span>CDG/RC Subscribers in DACs (2024)</span><span>56.3%</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:56.3%"></div></div></div>
+        <div class="metric-bar"><div class="bar-label"><span>Low-Income CDG/RC Subscribers (2024)</span><span>22.3%</span></div><div class="bar-bg"><div class="bar-fill orange" style="width:22.3%"></div></div></div>
+        <div class="metric-bar"><div class="bar-label"><span>Net Metering Projects in DACs (2024)</span><span>40%</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:40%"></div></div></div>
+        <p style="margin-top:1rem;font-size:.83rem;color:var(--text-mid);line-height:1.6">Low-income subscriber share in community solar jumped from 4.9% cumulative to 22.3% in 2024 alone, reflecting growing access to clean energy credits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="infrastructure">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">E. Strategic Electric Capital Investments</span>
+      <h2>Strengthening the Grid</h2>
+      <p>Nearly $1 billion in strategic investments in 2024. Half of all investment activity affected disadvantaged communities — a 10-point increase from 2023.</p>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Investment by Category — % Affecting DACs</h4><div class="chart-wrap"><canvas id="chartCapital"></canvas></div></div>
+      <div class="card"><h3>$976.6M Total Investment</h3>
+        <div class="metric-bar"><div class="bar-label"><span>Risk Reduction</span><span>$514.6M — 52% DAC</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:53%"></div></div></div>
+        <div class="metric-bar"><div class="bar-label"><span>System Expansion</span><span>$367.1M — 46% DAC</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:38%"></div></div></div>
+        <div class="metric-bar"><div class="bar-label"><span>Environmental</span><span>$70.8M — 53% DAC</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:7%"></div></div></div>
+        <div class="metric-bar"><div class="bar-label"><span>Safety & Security</span><span>$24.1M — 54% DAC</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:2.5%"></div></div></div>
+        <p style="margin-top:1rem;font-size:.83rem;color:var(--text-mid);line-height:1.6">DAC share increased from 40% in 2023 to 50% in 2024.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">F. Customer Outages</span>
+      <h2>Industry-Leading Reliability</h2>
+      <p>Con Edison's underground network is nine times more reliable than the national average. In 2024, DAC customers experienced outages at a lower rate than non-DAC customers.</p>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Customer Interruptions per 1,000 Served</h4><div class="chart-wrap"><canvas id="chartOutage"></canvas></div></div>
+      <div>
+        <div class="card" style="margin-bottom:1.2rem"><h3>Outage Equity</h3>
+          <div class="metric-bar"><div class="bar-label"><span>DAC customers with outage</span><span>10%</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:10%"></div></div></div>
+          <div class="metric-bar"><div class="bar-label"><span>Non-DAC customers with outage</span><span>15%</span></div><div class="bar-bg"><div class="bar-fill light" style="width:15%"></div></div></div>
+        </div>
+        <div class="card"><h3>2024 Summary</h3><p style="font-size:.85rem;color:var(--text-mid);line-height:1.6">480,464 total customer outages. DAC customers accounted for 34% of interruptions — below their 44% share of meters. 89% of outages occurred in non-network (overhead) areas.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">G. Main Replacement Program</span>
+      <h2>Replacing Leak-Prone Pipe</h2>
+      <p>78 miles of leak-prone pipe replaced in 2024, reducing methane emissions and improving safety. DACs accounted for 46% of replacement and 52% of emissions reductions.</p>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Pipe Replacement by County (Feet)</h4><div class="chart-wrap"><canvas id="chartPipe"></canvas></div></div>
+      <div>
+        <div class="card" style="margin-bottom:1.2rem"><h3>Methane Reduced</h3><div class="big-num">241.2 mT CH&#8324;</div><div class="sub">Total methane eliminated</div>
+          <div class="metric-bar" style="margin-top:.8rem"><div class="bar-label"><span>In DACs</span><span>125.2 mT (52%)</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:52%"></div></div></div>
+          <div class="metric-bar"><div class="bar-label"><span>Non-DACs</span><span>116.0 mT (48%)</span></div><div class="bar-bg"><div class="bar-fill light" style="width:48%"></div></div></div>
+        </div>
+        <div class="card"><h3>Bronx County</h3><p style="font-size:.85rem;color:var(--text-mid);line-height:1.6">83% of Bronx pipe replacement occurred in DACs. The borough saw the highest DAC methane reduction at 47 mT — 89% of its county total.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">H. Leak Repairs</span>
+      <h2>Finding and Fixing Every Leak</h2>
+      <p>Con Edison repaired 8,302 leaking components in 2024 — including Type 3 leaks that pose no safety risk but contribute to greenhouse gas emissions.</p>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Leaks Repaired by Borough/County</h4><div class="chart-wrap"><canvas id="chartLeak"></canvas></div></div>
+      <div class="card"><h3>Repair Summary</h3><div class="big-num">8,302</div><div class="sub">Components repaired across 3,709 tickets</div>
+        <div class="metric-bar" style="margin-top:1rem"><div class="bar-label"><span>DAC Repairs</span><span>3,198 (39%)</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:39%"></div></div></div>
+        <div class="metric-bar"><div class="bar-label"><span>Non-DAC Repairs</span><span>5,104 (61%)</span></div><div class="bar-bg"><div class="bar-fill light" style="width:61%"></div></div></div>
+        <p style="margin-top:1rem;font-size:.83rem;color:var(--text-mid);line-height:1.6">The Bronx had the highest DAC repair share at 77%.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="community-banner">
+  <div class="content">
+    <h2>Workforce Development & Customer Affordability</h2>
+    <p>Con Edison invests in the people behind the clean energy transition — training community members for careers and helping customers manage energy costs.</p>
+  </div>
+</div>
+
+<section id="jobs">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">I. Clean Energy Jobs</span>
+      <h2>Training the Clean Energy Workforce</h2>
+      <p>The Clean Energy Academy has graduated over 1,000 students since 2020. Full-time job placements doubled in 2024.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">390</div><div class="lbl">Students Enrolled</div></div>
+      <div class="kpi"><div class="val">290</div><div class="lbl">Graduates</div></div>
+      <div class="kpi"><div class="val">87</div><div class="lbl">Full-Time Jobs Placed</div></div>
+      <div class="kpi"><div class="val">59%</div><div class="lbl">Hires from DACs</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>Academy Outcomes (2024)</h4><div class="chart-wrap"><canvas id="chartJobs"></canvas></div></div>
+      <div class="card"><h3>Broader Workforce Impact</h3>
+        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin-bottom:.8rem">In 2024, Con Edison hired <strong>1,376 new employees</strong> — nearly half from disadvantaged communities.</p>
+        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7;margin-bottom:.8rem"><strong>241 college interns</strong> were onboarded, including 95 from DACs.</p>
+        <p style="font-size:.9rem;color:var(--text-mid);line-height:1.7">A new mentorship program launched in Q4 2024, pairing 24 Academy alumni with Con Edison professionals.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="customers" class="section-alt">
+  <div class="container">
+    <div class="section-header">
+      <span class="tag">J. Customer Operations</span>
+      <h2>Supporting Customer Affordability</h2>
+      <p>The Energy Affordability Program provided over $310 million in bill discounts in 2024. Customer Outreach attended events in 159 DACs — twice as many as 2023 — with materials in nine languages.</p>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">450K+</div><div class="lbl">EAP Customers</div></div>
+      <div class="kpi"><div class="val">66%</div><div class="lbl">EAP in DACs</div></div>
+      <div class="kpi"><div class="val">$310M+</div><div class="lbl">EAP Discounts</div></div>
+      <div class="kpi"><div class="val">159</div><div class="lbl">DAC Events Attended</div></div>
+    </div>
+    <div class="grid-2">
+      <div class="chart-card"><h4>EAP Discount Spending ($M)</h4><div class="chart-wrap"><canvas id="chartEAP"></canvas></div></div>
+      <div>
+        <div class="card" style="margin-bottom:1.2rem"><h3>Average Monthly Usage</h3>
+          <div class="metric-bar"><div class="bar-label"><span>Electric — DAC</span><span>353 kWh</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:85%"></div></div></div>
+          <div class="metric-bar"><div class="bar-label"><span>Electric — Non-DAC</span><span>417 kWh</span></div><div class="bar-bg"><div class="bar-fill light" style="width:100%"></div></div></div>
+          <div class="metric-bar"><div class="bar-label"><span>Gas — DAC</span><span>56.2 ccf</span></div><div class="bar-bg"><div class="bar-fill blue" style="width:59%"></div></div></div>
+          <div class="metric-bar"><div class="bar-label"><span>Gas — Non-DAC</span><span>95.3 ccf</span></div><div class="bar-bg"><div class="bar-fill light" style="width:100%"></div></div></div>
+        </div>
+        <div class="card"><h3>Arrears & Assistance</h3><p style="font-size:.85rem;color:var(--text-mid);line-height:1.6">Over 200,000 customers participated in Deferred Payment Agreements (60% in DACs). EnergyShare provided $510,000+ in additional bill assistance to 2,794 customers.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <footer class="footer">
-<p>&copy; 2025 Consolidated Edison Company of New York, Inc. | <a href="https://www.coned.com" target="_blank">coned.com</a></p>
-<p style="margin-top:.4rem;font-size:.72rem;opacity:.6">Data sourced from the 2024 Disadvantaged Communities Report filed with the NY Public Service Commission.</p>
+  <p>&copy; 2025 Consolidated Edison Company of New York, Inc. | <a href="https://www.coned.com" target="_blank">coned.com</a></p>
+  <p style="margin-top:.4rem;font-size:.72rem;opacity:.6">Data sourced from the 2024 Disadvantaged Communities Report filed with the NY Public Service Commission.</p>
 </footer>
+
+<script>
+/* Password gate logic */
+(function(){
+  var PASSWORD="dacdemo";
+  var gate=document.getElementById("gate");
+  var form=document.getElementById("gateForm");
+  var pass=document.getElementById("gatePass");
+  var error=document.getElementById("gateError");
+
+  function unlock(){
+    gate.style.display="none";
+    document.body.classList.remove("locked");
+    error.style.display="none";
+    pass.value="";
+  }
+
+  form.addEventListener("submit",function(e){
+    e.preventDefault();
+    var entered=(pass.value||"").trim();
+    if(entered===PASSWORD){ unlock(); }
+    else{
+      error.style.display="block";
+      pass.focus();
+      pass.select();
+    }
+  });
+
+  setTimeout(function(){ pass.focus(); }, 50);
+})();
+</script>
 
 <script>
 window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('scrolled',window.scrollY>50)});
@@ -172,5 +469,6 @@ new Chart(document.getElementById('chartEAP'),{type:'bar',data:{labels:['Electri
 var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.1});
 document.querySelectorAll('.card,.chart-card,.kpi').forEach(function(el){el.classList.add('fade-in');obs.observe(el)});
 </script>
+
 </body>
 </html>
