@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>CLCPA DAC Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%}
+  body{font-family:'Inter',ui-sans-serif,system-ui,sans-serif;background:#f3f4f6;color:#111827;display:flex;min-height:100vh;overflow-x:hidden}
+
+  /* ─────────────────────────────────────────────────────────────
+     Password Gate (client-side)
+     ───────────────────────────────────────────────────────────── */
+  #pw-gate{
+    position:fixed;inset:0;z-index:9999;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(17,24,39,0.70);
+    backdrop-filter:blur(10px);
+    padding:24px;
+  }
+  #pw-gate .pw-card{
+    width:min(420px,100%);
+    background:rgba(255,255,255,0.92);
+    border-radius:18px;
+    box-shadow:0 10px 40px rgba(0,0,0,.18);
+    border:1px solid rgba(255,255,255,0.7);
+    padding:22px;
+  }
+  #pw-gate .pw-title{
+    font-size:16px;font-weight:700;color:#111827;letter-spacing:-0.01em;
+  }
+  #pw-gate .pw-sub{
+    font-size:12.5px;color:#6b7280;margin-top:6px;line-height:1.5;
+  }
+  #pw-gate .pw-row{display:flex;gap:10px;margin-top:14px}
+  #pw-gate input{
+    flex:1;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    border-radius:12px;
+    padding:10px 12px;
+    font-size:13px;
+    outline:none;
+  }
+  #pw-gate input:focus{border-color:#A5BECB;box-shadow:0 0 0 4px rgba(165,190,203,0.22)}
+  #pw-gate button{
+    border:none;cursor:pointer;font-family:inherit;
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:13px;font-weight:700;
+    background:#A5BECB;color:#111827;
+    transition:filter .12s ease;
+    white-space:nowrap;
+  }
+  #pw-gate button:hover{filter:brightness(0.97)}
+  #pw-gate .pw-err{
+    display:none;margin-top:10px;
+    font-size:12px;font-weight:600;color:#b91c1c;
+  }
+  #protected-content{width:100%;height:100%;display:none}
+
+  /* ── Sidebar ── */
+  #sidebar{
+    flex-shrink:0;width:72px;background:rgba(255,255,255,0.82);backdrop-filter:blur(8px);
+    box-shadow:2px 0 12px rgba(0,0,0,.06);display:flex;flex-direction:column;
+    padding:14px 10px;border-radius:16px;margin:14px 0 14px 14px;
+    transition:width .22s ease;overflow:hidden;
+  }
+  #sidebar.expanded{width:240px}
+  .sb-logo{margin-bottom:20px;padding:8px 6px;color:#4b5563}
+  .sb-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+  .sb-item{
+    display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;
+    cursor:pointer;color:#374151;transition:background .13s,color .13s;
+    border:none;background:transparent;text-align:left;font-family:inherit;width:100%;
+  }
+  .sb-item:hover{background:rgba(165,190,203,0.25)}
+  .sb-item.active{background:#A5BECB;color:#fff}
+  .sb-item svg{flex-shrink:0}
+  .sb-label{font-size:12.5px;font-weight:500;opacity:0;transition:opacity .18s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #sidebar.expanded .sb-label{opacity:1}
+  .sb-bottom{margin-top:auto;padding-top:14px}
+  .sb-tour{background:rgba(165,190,203,0.22);border-radius:12px;padding:12px 10px;cursor:pointer;transition:background .13s;display:flex;align-items:center;justify-content:center;gap:0}
+  .sb-tour:hover{background:rgba(165,190,203,0.38)}
+  .sb-tour-text{display:none;flex-direction:column;gap:3px;overflow:hidden}
+  #sidebar.expanded .sb-tour-text{display:flex}
+  #sidebar.expanded .sb-tour svg{display:none}
+  .sb-tour-title{font-size:12.5px;font-weight:600;color:#1f2937;white-space:nowrap}
+  .sb-tour-sub{font-size:11px;color:#6b7280;line-height:1.4}
+
+  /* ── Main ── */
+  #main{flex:1;min-width:0;padding:20px 24px;overflow-y:auto;overflow-x:hidden}
+  .main-header{margin-bottom:22px}
+  .main-header h1{font-size:26px;font-weight:700;color:#1f2937;letter-spacing:-0.02em}
+  .main-header p{font-size:13px;color:#6b7280;margin-top:3px}
+
+  /* ── Sections ── */
+  .page-section{display:none;flex-direction:column;gap:20px}
+  .page-section.active{display:flex}
+
+  /* ── Cards ── */
+  .glass-card{background:rgba(255,255,255,0.8);backdrop-filter:blur(8px);border-radius:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);padding:24px}
+  .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .card-header h2{font-size:17px;font-weight:600;color:#1f2937}
+  .card-header h3{font-size:16px;font-weight:600;color:#1f2937}
+  .card-header p,.card-subhead{font-size:12.5px;color:#6b7280;margin-top:3px}
+  .badge{font-size:11px;color:#9ca3af;font-weight:500;padding-top:4px}
+
+  /* Capital grid */
+  .cap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:900px){.cap-grid{grid-template-columns:1fr}}
+  .cap-card{border-radius:18px;padding:20px;border:1px solid rgba(255,255,255,0.4)}
+  .cap-card-0{background:rgba(47,111,137,0.50)}
+  .cap-card-1{background:rgba(47,111,137,0.28)}
+  .cap-card-2{background:rgba(47,111,137,0.10)}
+  .cap-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .cap-label{font-size:11px;font-weight:700;letter-spacing:.05em}
+  .cap-sub{font-size:11px;margin-top:3px}
+  .cap-right{text-align:right;flex-shrink:0}
+  .cap-val{font-size:26px;font-weight:700;line-height:1}
+  .cap-sec{font-size:11px;margin-top:5px}
+  .cap-delta{font-size:11px;font-weight:700;margin-top:3px}
+  .cap-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+  .cap-mini{border-radius:12px;padding:10px}
+  .cap-mini-label{font-size:11px;margin-bottom:3px}
+  .cap-mini-val{font-size:13px;font-weight:700}
+
+  /* Exec overview block */
+  #exec-overview{border-radius:18px;padding:24px;box-shadow:0 1px 8px rgba(0,0,0,.07);background:#A5BECB}
+  .toggle-wrap{display:flex;align-items:center;gap:4px;border-radius:10px;background:rgba(255,255,255,0.18);padding:3px;flex-shrink:0}
+  .toggle-btn{padding:5px 13px;font-size:12px;font-weight:600;border-radius:7px;border:none;cursor:pointer;font-family:inherit;transition:all .13s;background:transparent;color:#fff}
+  .toggle-btn.on{background:#fff;color:#111827}
+
+  /* Exec cards */
+  .exec-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  @media(max-width:1100px){.exec-cards{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:700px){.exec-cards{grid-template-columns:repeat(2,1fr)}}
+  .exec-card{background:#fff;border-radius:14px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.05);transition:transform .13s,box-shadow .13s;cursor:default}
+  .exec-card:hover{transform:scale(1.02);box-shadow:0 4px 14px rgba(0,0,0,.09)}
+  .exec-card-inner{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+  .exec-card-title{font-size:11px;color:#6b7280;font-weight:600;letter-spacing:.02em;line-height:1.4}
+  .exec-card-kpi{font-size:12.5px;font-weight:500;margin-top:6px;color:#374151}
+  .exec-card-val{font-size:24px;font-weight:700;color:#495057;line-height:1;white-space:nowrap;text-align:right}
+  .exec-card-yoy{font-size:11px;font-weight:700;margin-top:5px;text-align:right}
+  .yoy-up{color:#15803d}.yoy-down{color:#b91c1c}.yoy-flat{color:#6b7280}
+
+  /* Table */
+  .table-scroll{overflow-x:auto;margin-top:2px}
+  .data-table{width:100%;border-collapse:separate;border-spacing:0 3px;min-width:520px}
+  .data-table th{font-size:11px;font-weight:600;color:rgba(255,255,255,.85);padding:8px 12px;text-align:left}
+  .data-table th:nth-child(3),.data-table td:nth-child(3),
+  .data-table th:nth-child(4),.data-table td:nth-child(4){text-align:right}
+  .data-table tr.even td{background:rgba(255,255,255,.88)}
+  .data-table tr.odd td{background:#fff}
+  .data-table td{padding:10px 12px;font-size:12.5px;font-weight:500;color:#1f2937}
+  .data-table td:first-child{font-weight:600;border-radius:10px 0 0 10px}
+  .data-table td:last-child{border-radius:0 10px 10px 0}
+  .export-row{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .btn-export{padding:6px 14px;border-radius:10px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:inherit;transition:background .13s}
+  .btn-export.csv{background:rgba(255,255,255,.2);color:#fff}
+  .btn-export.csv:hover{background:rgba(255,255,255,.32)}
+  .btn-export.xls{background:#fff;color:#111827}
+  .btn-export.xls:hover{background:rgba(255,255,255,.88)}
+
+  /* Charts */
+  .charts-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .charts-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  @media(max-width:900px){.charts-3,.charts-2{grid-template-columns:1fr}}
+  .chart-box{background:#f9fafb;border-radius:14px;padding:18px;border:1px dashed #d1d5db}
+  .chart-box h4{font-size:13px;font-weight:600;color:#374151}
+  .chart-box .chart-desc{font-size:11px;color:#6b7280;margin-top:3px}
+  .chart-canvas-wrap{position:relative;width:100%;height:170px;margin-top:12px}
+  .chart-canvas-wrap canvas{position:absolute;inset:0;width:100%!important;height:100%!important}
+  .chart-note{font-size:11px;color:#6b7280;margin-top:10px}
+  .donut-legend{display:flex;justify-content:space-between;font-size:11px;color:#6b7280;margin-top:8px}
+  .mini-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .mini-stat{background:#fff;border-radius:12px;padding:12px}
+  .mini-stat p:first-child{font-size:11px;color:#6b7280}
+  .mini-stat p:last-child{font-size:16px;font-weight:600;color:#495057;margin-top:3px}
+
+  /* Placeholder */
+  .placeholder-page{background:rgba(255,255,255,.8);backdrop-filter:blur(8px);border-radius:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);padding:48px;text-align:center}
+  .placeholder-page h2{font-size:19px;font-weight:600;margin-bottom:8px;color:#1f2937}
+  .placeholder-page p{color:#6b7280;font-size:13px}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div id="pw-gate" aria-label="Password gate">
+  <div class="pw-card">
+    <div class="pw-title">Enter password</div>
+    <div class="pw-sub">This demo is restricted. Please enter the password to continue.</div>
+    <div class="pw-row">
+      <input id="pw-input" type="password" autocomplete="current-password" placeholder="Password" />
+      <button id="pw-btn" type="button">Unlock</button>
+    </div>
+    <div id="pw-err" class="pw-err">Incorrect password. Please try again.</div>
+  </div>
+</div>
+
+<div id="protected-content">
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sb-logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+  </div>
+  <div class="sb-nav" id="sb-nav"></div>
+  <div class="sb-bottom">
+    <div class="sb-tour" id="sb-tour">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <div class="sb-tour-text">
+        <span class="sb-tour-title">Take a Tour</span>
+        <span class="sb-tour-sub">Explore dashboard features and learn how to navigate insights across DAC programs.</span>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div id="main">
+  <div class="main-header">
+    <h1>CLCPA DAC Dashboard</h1>
+    <p>Consolidated 2023 – 2024</p>
+  </div>
+
+  <!-- Executive Summary -->
+  <div id="page-executive" class="page-section active">
+
+    <!-- Page header -->
+    <div class="glass-card">
+      <div class="card-header" style="margin-bottom:0">
+        <div><h2>Executive Summary</h2><p>Consolidated 2023–2024</p></div>
+        <span class="badge">Demo</span>
+      </div>
+    </div>
+
+    <!-- Capital Deployment -->
+    <div class="glass-card">
+      <div style="margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:600;color:#1f2937">Capital Deployment Overview</h3>
+        <p class="card-subhead">Top-level consolidated totals and DAC-directed capital.</p>
+      </div>
+      <div class="cap-grid" id="cap-grid"></div>
+    </div>
+
+    <!-- Exec overview -->
+    <div id="exec-overview">
+      <div class="card-header">
+        <div>
+          <h3 style="color:#fff;font-size:16px;font-weight:600">Executive Overview by Section</h3>
+          <p style="color:#e5e7eb;font-size:12.5px;margin-top:3px">One KPI per section • Toggle cards ↔ table</p>
+        </div>
+        <div class="toggle-wrap">
+          <button class="toggle-btn on" id="btn-cards" onclick="setView('cards')">Cards</button>
+          <button class="toggle-btn" id="btn-table" onclick="setView('table')">Table</button>
+        </div>
+      </div>
+      <div id="exec-cards-wrap" class="exec-cards"></div>
+      <div id="exec-table-wrap" style="display:none">
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Section</th><th>KPI</th><th>2024</th><th>YoY</th></tr></thead>
+            <tbody id="exec-tbody"></tbody>
+          </table>
+        </div>
+        <div class="export-row">
+          <button class="btn-export csv" onclick="exportCSV()">Export CSV</button>
+          <button class="btn-export xls" onclick="exportExcel()">Export Excel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- YoY Visual -->
+    <div class="glass-card">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#1f2937">Year-over-Year Visual Analysis</h3>
+      <div class="charts-3">
+        <div class="chart-box">
+          <h4>Incentives: Total vs DAC</h4>
+          <p class="chart-desc">2023 vs 2024</p>
+          <div class="chart-canvas-wrap"><canvas id="chart-incentives"></canvas></div>
+          <p class="chart-note">Shows DAC portion and remainder of total incentives.</p>
+        </div>
+        <div class="chart-box">
+          <h4>DAC Energy Savings</h4>
+          <p class="chart-desc">MMBtu (2023 → 2024)</p>
+          <div class="chart-canvas-wrap"><canvas id="chart-savings"></canvas></div>
+          <p class="chart-note">Bar = total savings; line = DAC savings.</p>
+        </div>
+        <div class="chart-box">
+          <h4>Strategic Investment Impact</h4>
+          <p class="chart-desc">% Affecting DACs</p>
+          <div class="chart-canvas-wrap"><canvas id="chart-donut"></canvas></div>
+          <div class="donut-legend"><span>2023: 40%</span><span style="font-weight:700">2024: 50%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Operational Impact -->
+    <div class="glass-card">
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:16px;color:#1f2937">Operational & Community Impact Snapshot</h3>
+      <div class="charts-2">
+        <div class="chart-box">
+          <h4>Reliability</h4>
+          <p class="chart-desc">Customer interruption rates</p>
+          <div class="chart-canvas-wrap"><canvas id="chart-reliability"></canvas></div>
+          <div class="mini-stats">
+            <div class="mini-stat"><p>DAC customers interrupted (2024)</p><p>164.7K</p></div>
+            <div class="mini-stat"><p>Gap (Non-DAC − DAC) in 2024</p><p>5 pp</p></div>
+          </div>
+        </div>
+        <div class="chart-box">
+          <h4>Infrastructure & Workforce</h4>
+          <p class="chart-desc">Main replacement + clean energy jobs</p>
+          <div class="chart-canvas-wrap"><canvas id="chart-infra"></canvas></div>
+          <div class="mini-stats">
+            <div class="mini-stat"><p>Methane reduction in DACs (2024)</p><p>125.19 mT CH₄</p></div>
+            <div class="mini-stat"><p>DAC residents in jobs program (2024)</p><p>59%</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /exec page -->
+
+  <!-- Placeholder -->
+  <div id="page-placeholder" class="page-section">
+    <div class="placeholder-page">
+      <h2 id="placeholder-title">Section</h2>
+      <p>Section content and visualizations go here.</p>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+</div><!-- /protected-content -->
+
+<script>
+  (function(){
+    const PASS = 'dacdemo';
+    const KEY = 'cf_demo_unlocked_v1';
+
+    const gate = document.getElementById('pw-gate');
+    const content = document.getElementById('protected-content');
+    const input = document.getElementById('pw-input');
+    const btn = document.getElementById('pw-btn');
+    const err = document.getElementById('pw-err');
+
+    function showApp(){
+      gate.style.display = 'none';
+      content.style.display = 'flex';
+    }
+
+    function showGate(){
+      gate.style.display = 'flex';
+      content.style.display = 'none';
+      setTimeout(()=>{ try{ input.focus(); }catch(e){} }, 0);
+    }
+
+    function tryUnlock(){
+      const val = (input.value || '').trim();
+      if(val === PASS){
+        try{ localStorage.setItem(KEY,'1'); }catch(e){}
+        err.style.display = 'none';
+        showApp();
+      }else{
+        err.style.display = 'block';
+        input.value = '';
+        try{ input.focus(); }catch(e){}
+      }
+    }
+
+    btn.addEventListener('click', tryUnlock);
+    input.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ tryUnlock(); }
+    });
+
+    let unlocked = false;
+    try{ unlocked = localStorage.getItem(KEY) === '1'; }catch(e){}
+    if(unlocked){ showApp(); } else { showGate(); }
+  })();
+</script>
+
+<script>
+const ICONS={
+  BarChart3:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+  Zap:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  Car:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="9" width="22" height="11" rx="2"/><path d="M5.5 9L7 4h10l1.5 5"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>`,
+  Activity:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
+  Sun:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  Building2:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`,
+  AlertTriangle:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`,
+  Wrench:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
+  Briefcase:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>`,
+  Database:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>`,
+};
+
+const menuItems=[
+  {name:"Executive Summary",icon:"BarChart3"},
+  {name:"Clean Energy Spending",icon:"Zap"},
+  {name:"EV Make Ready",icon:"Car"},
+  {name:"Demand Response",icon:"Activity"},
+  {name:"Distributed Energy Resources",icon:"Sun"},
+  {name:"Strategic Electric Capital Investments",icon:"Building2"},
+  {name:"Customer Outages",icon:"AlertTriangle"},
+  {name:"Main Replacement Program",icon:"Wrench"},
+  {name:"Leak Repairs",icon:"Wrench"},
+  {name:"Clean Energy Jobs",icon:"Briefcase"},
+  {name:"Customer Operations Data",icon:"Database"},
+];
+
+// helpers
+const fmtM=n=>{const a=Math.abs(n);return a>=1e9?`$${(n/1e9).toFixed(2)}B`:a>=1e6?`$${(n/1e6).toFixed(1)}M`:a>=1e3?`$${(n/1e3).toFixed(0)}K`:`$${n.toLocaleString()}`};
+const fmtN=n=>{const a=Math.abs(n);return a>=1e6?`${(n/1e6).toFixed(2)}M`:a>=1e3?`${(n/1e3).toFixed(1)}K`:`${n.toLocaleString()}`};
+const fmtP=(p,d=1)=>p==null?'—':`${p.toFixed(d)}%`;
+const pctCh=(n,o)=>(o==null||o===0||n==null)?null:((n-o)/o)*100;
+const shr=(d,t)=>{const dn=Number(d),tn=Number(t);return(isNaN(dn)||isNaN(tn)||tn===0)?null:(dn/tn)*100};
+const ppD=(np,op,d=1)=>{
+  if(np==null||op==null)return{text:'YoY: n/a',cls:'yoy-flat'};
+  const diff=Number(np)-Number(op),arrow=diff>0?'▲':diff<0?'▼':'•',cls=diff>0?'yoy-up':diff<0?'yoy-down':'yoy-flat';
+  return{text:`YoY: ${arrow} ${diff>=0?'+':''}${diff.toFixed(d)} pp`,cls};
+};
+const yoyL=(nv,ov,fmt=fmtN,suf='')=>{
+  if(nv==null||ov==null)return{text:'YoY: n/a',cls:'yoy-flat'};
+  const d=Number(nv)-Number(ov),p=pctCh(Number(nv),Number(ov));
+  const arrow=d>0?'▲':d<0?'▼':'•',cls=d>0?'yoy-up':d<0?'yoy-down':'yoy-flat';
+  const pt=p==null?'':` (${p>=0?'+':''}${p.toFixed(1)}%)`;
+  return{text:`YoY: ${arrow} ${d>=0?'+':''}${fmt(d)}${suf}${pt}`,cls};
+};
+
+// data
+const cesS24=shr(204785586,380265714),cesS23=shr(129680235,262524921);
+const execCards=[
+  {title:"Clean Energy Spending",kpi:"DAC Share (Incentives)",value2024:fmtP(cesS24),yoy:ppD(cesS24,cesS23)},
+  {title:"EV Make Ready",kpi:"DAC Share of Plugs",value2024:fmtP(40,0),yoy:ppD(40,30,0)},
+  {title:"Demand Response",kpi:"DAC Delivered MW",value2024:"303.07",yoy:yoyL(303.07,259,x=>`${Number(x).toFixed(2)}`," MW")},
+  {title:"Distributed Energy Resources",kpi:"DAC Share of Projects",value2024:fmtP(32.3),yoy:ppD(32.3,32.0)},
+  {title:"Strategic Electric Capital",kpi:"% Affecting DACs",value2024:fmtP(50,0),yoy:ppD(50,40,0)},
+  {title:"Customer Outages",kpi:"DAC Interruption Rate",value2024:fmtP(10,0),yoy:ppD(10,9,0)},
+  {title:"Main Replacement",kpi:"% in DACs",value2024:fmtP(46,0),yoy:ppD(46,43,0)},
+  {title:"Leak Repairs",kpi:"DAC Share of Repairs",value2024:fmtP(36,0),yoy:ppD(36,35,0)},
+  {title:"Clean Energy Jobs",kpi:"DAC Share of Residents",value2024:fmtP(59,0),yoy:ppD(59,55,0)},
+  {title:"Customer Operations Data",kpi:"DAC Share (Electric Usage)",value2024:fmtP(40,0),yoy:ppD(40,39,0)},
+];
+
+const ce23=262524921,sec23=880000000,ev23=31000000,total23=ce23+sec23+ev23;
+const ce24=380265714,sec24=976600000,ev24=42800000,total24=ce24+sec24+ev24;
+const ceDac23=129680235,secDac23=352000000,evDac23=18300000,dac23=ceDac23+secDac23+evDac23;
+const ceDac24=204785586,secDac24=sec24*0.5,evDac24=18300000,dac24=ceDac24+secDac24+evDac24;
+const alloc23=(dac23/total23)*100,alloc24=(dac24/total24)*100;
+
+const capCards=[
+  {idx:0,title:"TOTAL CAPITAL DEPLOYED",sub:"Consolidated 2023 vs 2024",
+   val:"$1.40B",sec:"2023: $1.17B • 2024: $1.40B",delta:"▲ $226.1M increase • +19% YoY",deltaColor:"#38B000",
+   ce:ce24,sc:sec24,ev:ev24,
+   lCls:"color:#fff",sCls:"color:#e5e7eb",vCls:"color:#fff",secCls:"color:#e5e7eb",
+   miniCls:"background:#2d4f63",miniLCls:"color:#e5e7eb",miniVCls:"color:#fff"},
+  {idx:1,title:"TOTAL CAPITAL DIRECTED TO DACs",sub:"DAC portion (approx.)",
+   val:fmtM(dac24),sec:`2023: ${fmtM(dac23)} • 2024: ${fmtM(dac24)}`,delta:`▲ ${fmtM(dac24-dac23)} increase`,deltaColor:"#007200",
+   ce:ceDac24,sc:secDac24,ev:evDac24,
+   lCls:"color:#1f2937",sCls:"color:#374151",vCls:"color:#111827",secCls:"color:#374151",
+   miniCls:"background:rgba(255,255,255,0.6)",miniLCls:"color:#374151",miniVCls:"color:#111827"},
+  {idx:2,title:"DAC ALLOCATION OF TOTAL",sub:"Share of total capital",
+   val:`${alloc24.toFixed(0)}%`,sec:`2023: ~${alloc23.toFixed(0)}% → 2024: ~${alloc24.toFixed(0)}%`,
+   delta:`▲ +${(alloc24-alloc23).toFixed(0)} pp (≈${alloc23.toFixed(0)}% → ${alloc24.toFixed(0)}%)`,deltaColor:"#006400",
+   ce:ceDac24,sc:secDac24,ev:evDac24,
+   lCls:"color:#1f2937",sCls:"color:#4b5563",vCls:"color:#1f2937",secCls:"color:#4b5563",
+   miniCls:"background:rgba(255,255,255,0.4)",miniLCls:"color:#374151",miniVCls:"color:#111827"},
+];
+
+// build sidebar
+let activeMenu='Executive Summary';
+const nav=document.getElementById('sb-nav');
+menuItems.forEach(item=>{
+  const btn=document.createElement('button');
+  btn.className='sb-item'+(item.name===activeMenu?' active':'');
+  btn.dataset.name=item.name;
+  btn.innerHTML=`${ICONS[item.icon]}<span class="sb-label">${item.name}</span>`;
+  btn.addEventListener('click',()=>setPage(item.name));
+  nav.appendChild(btn);
+});
+
+const sidebar=document.getElementById('sidebar');
+let hoverTimer=null;
+sidebar.addEventListener('mouseenter',()=>{clearTimeout(hoverTimer);sidebar.classList.add('expanded')});
+sidebar.addEventListener('mouseleave',()=>{hoverTimer=setTimeout(()=>sidebar.classList.remove('expanded'),180)});
+
+function setPage(name){
+  activeMenu=name;
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.toggle('active',b.dataset.name===name));
+  const exec=document.getElementById('page-executive');
+  const ph=document.getElementById('page-placeholder');
+  if(name==='Executive Summary'){exec.classList.add('active');ph.classList.remove('active')}
+  else{exec.classList.remove('active');ph.classList.add('active');document.getElementById('placeholder-title').textContent=name}
+}
+
+// build capital cards
+const capGrid=document.getElementById('cap-grid');
+capCards.forEach(c=>{
+  const el=document.createElement('div');
+  el.className=`cap-card cap-card-${c.idx}`;
+  el.innerHTML=`
+    <div class="cap-top">
+      <div><p class="cap-label" style="${c.lCls}">${c.title}</p><p class="cap-sub" style="${c.sCls}">${c.sub}</p></div>
+      <div class="cap-right">
+        <p class="cap-val" style="${c.vCls}">${c.val}</p>
+        <p class="cap-sec" style="${c.secCls}">${c.sec}</p>
+        <p class="cap-delta" style="color:${c.deltaColor}">${c.delta}</p>
+      </div>
+    </div>
+    <div class="cap-breakdown">
+      ${[['Clean Energy',c.ce],['Strategic Capital',c.sc],['EV Make-Ready',c.ev]].map(([lbl,val])=>`
+        <div class="cap-mini" style="${c.miniCls}">
+          <p class="cap-mini-label" style="${c.miniLCls}">${lbl}</p>
+          <p class="cap-mini-val" style="${c.miniVCls}">${fmtM(val)}</p>
+        </div>`).join('')}
+    </div>`;
+  capGrid.appendChild(el);
+});
+
+// build exec cards
+const cardsWrap=document.getElementById('exec-cards-wrap');
+execCards.forEach(c=>{
+  const el=document.createElement('div');
+  el.className='exec-card';
+  el.innerHTML=`
+    <div class="exec-card-inner">
+      <div style="min-width:0;flex:1">
+        <p class="exec-card-title">${c.title}</p>
+        <p class="exec-card-kpi">${c.kpi}</p>
+      </div>
+      <div style="flex-shrink:0">
+        <p class="exec-card-val">${c.value2024}</p>
+        <p class="exec-card-yoy ${c.yoy.cls}">${c.yoy.text}</p>
+      </div>
+    </div>`;
+  cardsWrap.appendChild(el);
+});
+
+// build exec table
+const tbody=document.getElementById('exec-tbody');
+execCards.forEach((r,i)=>{
+  const tr=document.createElement('tr');
+  tr.className=i%2===0?'even':'odd';
+  tr.innerHTML=`<td>${r.title}</td><td>${r.kpi}</td><td>${r.value2024}</td>
+    <td><span class="exec-card-yoy ${r.yoy.cls}">${r.yoy.text}</span></td>`;
+  tbody.appendChild(tr);
+});
+
+function setView(v){
+  document.getElementById('exec-cards-wrap').style.display=v==='cards'?'grid':'none';
+  document.getElementById('exec-table-wrap').style.display=v==='table'?'block':'none';
+  document.getElementById('btn-cards').classList.toggle('on',v==='cards');
+  document.getElementById('btn-table').classList.toggle('on',v==='table');
+}
+
+function exportCSV(){
+  const lines=[['Section','KPI','2024','YoY'].join(',')];
+  execCards.forEach(r=>lines.push([r.title,r.kpi,r.value2024,r.yoy.text].map(v=>{
+    const s=String(v??'');return/[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:`${s}`;
+  }).join(',')));
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'}));
+  a.download='executive_overview.csv';document.body.appendChild(a);a.click();a.remove();
+}
+function exportExcel(){
+  const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const rows=execCards.map(r=>`<tr><td>${esc(r.title)}</td><td>${esc(r.kpi)}</td><td>${esc(r.value2024)}</td><td>${esc(r.yoy.text)}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"/></head><body><table border="1"><thead><tr><th>Section</th><th>KPI</th><th>2024</th><th>YoY</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([html],{type:'application/vnd.ms-excel'}));
+  a.download='executive_overview.xls';document.body.appendChild(a);a.click();a.remove();
+}
+
+// charts
+const BLUE='#2F6F89',LBLUE='#A5BECB';
+const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Inter',size:11},boxWidth:12,padding:10}}},scales:{x:{ticks:{font:{family:'Inter',size:11}},grid:{display:false}},y:{ticks:{font:{family:'Inter',size:11}},grid:{color:'#f1f5f9'}}}};
+
+new Chart(document.getElementById('chart-incentives'),{
+  type:'bar',
+  data:{labels:['2023','2024'],datasets:[
+    {label:'DAC',data:[129680235,204785586],backgroundColor:BLUE,borderRadius:6,stack:'a'},
+    {label:'Non-DAC',data:[132844686,175480128],backgroundColor:LBLUE,borderRadius:6,stack:'a'},
+  ]},
+  options:{...baseOpts,scales:{x:{stacked:true,ticks:{font:{family:'Inter',size:11}},grid:{display:false}},y:{stacked:true,ticks:{font:{family:'Inter',size:11},callback:v=>v>=1e6?`${Math.round(v/1e6)}M`:v},grid:{color:'#f1f5f9'}}}}
+});
+
+new Chart(document.getElementById('chart-savings'),{
+  type:'bar',
+  data:{labels:['2023','2024'],datasets:[
+    {label:'Total',data:[4019790,4360879],backgroundColor:LBLUE,borderRadius:6,order:2},
+    {label:'DAC',data:[1659904,2486965],type:'line',borderColor:BLUE,backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:BLUE,order:1},
+  ]},
+  options:{...baseOpts,scales:{x:{ticks:{font:{family:'Inter',size:11}},grid:{display:false}},y:{ticks:{font:{family:'Inter',size:11},callback:v=>v>=1e6?`${(v/1e6).toFixed(1)}M`:v},grid:{color:'#f1f5f9'}}}}
+});
+
+new Chart(document.getElementById('chart-donut'),{
+  type:'doughnut',
+  data:{labels:['Affecting DACs (2024)','Other (2024)'],datasets:[{data:[50,50],backgroundColor:[BLUE,LBLUE],borderWidth:0,hoverOffset:4}]},
+  options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{family:'Inter',size:11},boxWidth:12,padding:8}}}}
+});
+
+new Chart(document.getElementById('chart-reliability'),{
+  type:'bar',
+  data:{labels:['2024','2023'],datasets:[
+    {label:'DAC',data:[10,9],backgroundColor:BLUE,borderRadius:6},
+    {label:'Non-DAC',data:[15,14],backgroundColor:LBLUE,borderRadius:6},
+  ]},
+  options:{...baseOpts,scales:{x:{ticks:{font:{family:'Inter',size:11}},grid:{display:false}},y:{ticks:{font:{family:'Inter',size:11},callback:v=>`${v}%`},grid:{color:'#f1f5f9'}}}}
+});
+
+new Chart(document.getElementById('chart-infra'),{
+  type:'bar',
+  data:{labels:['2023','2024'],datasets:[
+    {label:'Main miles replaced',data:[70,78],backgroundColor:LBLUE,borderRadius:6,order:2,yAxisID:'y'},
+    {label:'Job placements',data:[43,87],backgroundColor:'#E6F2F8',borderRadius:6,order:2,yAxisID:'y'},
+    {label:'% in DACs',data:[43,46],type:'line',borderColor:BLUE,backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:BLUE,order:1,yAxisID:'y2'},
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{font:{family:'Inter',size:11},boxWidth:12,padding:10}}},
+    scales:{
+      x:{ticks:{font:{family:'Inter',size:11}},grid:{display:false}},
+      y:{ticks:{font:{family:'Inter',size:11}},grid:{color:'#f1f5f9'}},
+      y2:{position:'right',ticks:{font:{family:'Inter',size:11},callback:v=>`${v}%`},grid:{display:false}}
+    }
+  }
+});
+</script>
+</body>
+</html>
