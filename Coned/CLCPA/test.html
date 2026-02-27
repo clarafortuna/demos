@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison | 2024 Disadvantaged Communities Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&family=Nunito+Sans:wght@400;600;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#069BD7;--blue-dark:#0481b3;--blue-light:#e8f6fd;
+  --white:#fff;--gray:#eef1f5;--border:#e0e3e8;
+  --text:#141414;--text-mid:#5a5a6e;--text-light:#9a9aaa;--orange:#F7901E;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Open Sans',sans-serif;color:var(--text);background:var(--white);overflow-x:hidden}
+body.locked{overflow:hidden}
+.gate{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.7);backdrop-filter:blur(8px)}
+.gate-card{width:min(480px,100%);border-radius:16px;border:1px solid rgba(255,255,255,.15);background:rgba(20,20,30,.8);box-shadow:0 24px 60px rgba(0,0,0,.5);padding:28px;color:#fff}
+.gate-title{font-size:1.1rem;font-weight:800;margin-bottom:.3rem}
+.gate-sub{color:rgba(255,255,255,.55);line-height:1.6;font-size:.85rem;margin-bottom:16px}
+.gate-row{display:flex;gap:10px}
+.gate-input{flex:1;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;outline:none;font-size:.9rem;font-family:inherit;transition:.2s}
+.gate-input:focus{border-color:rgba(6,155,215,.6);background:rgba(6,155,215,.06)}
+.gate-input::placeholder{color:rgba(255,255,255,.35)}
+.gate-btn{padding:12px 20px;border-radius:10px;border:none;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;font-family:inherit;font-size:.88rem}
+.gate-btn:hover{background:var(--blue-dark)}
+.gate-error{display:none;margin-top:10px;font-size:.82rem;color:#ffb3b3}
+nav{position:fixed;top:0;width:100%;z-index:1000;padding:1rem 3rem;display:flex;align-items:center;justify-content:space-between;transition:.4s}
+nav.scrolled{background:rgba(255,255,255,.97);box-shadow:0 1px 0 var(--border),0 4px 24px rgba(0,0,0,.06)}
+nav.scrolled .nav-brand{color:var(--text)}
+nav.scrolled .nav-links a{color:var(--text-mid)}
+.nav-brand{display:flex;align-items:center;gap:.6rem;color:#fff;font-weight:800;font-size:1rem;transition:.4s}
+.nav-brand svg{width:30px;height:30px}
+.nav-links{display:flex;gap:1.8rem}
+.nav-links a{color:rgba(255,255,255,.7);text-decoration:none;font-size:.65rem;text-transform:uppercase;letter-spacing:1px;font-weight:700;transition:.3s}
+.nav-links a:hover{color:var(--blue)}
+.hero{position:relative;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#08111a}
+.hero-bg{position:fixed;top:0;left:0;width:100%;height:100vh;z-index:0;overflow:hidden;background:#08111a}
+.hero-bg video{width:100%;height:100%;object-fit:cover;opacity:.25}
+.hero-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 30%,rgba(8,17,26,.85) 100%);z-index:1}
+.hero-gradient{position:absolute;inset:0;background:linear-gradient(170deg,rgba(6,155,215,.12) 0%,transparent 50%,rgba(8,17,26,.6) 100%);z-index:1}
+.hero-content{position:relative;z-index:2;text-align:center;padding:2rem;max-width:900px}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:.6rem;background:rgba(6,155,215,.12);border:1px solid rgba(6,155,215,.3);border-radius:100px;padding:.5rem 1.2rem;margin-bottom:2rem}
+.hero-eyebrow::before{content:'';width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 2.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.5)}}
+.hero-eyebrow span{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blue)}
+.hero h1{font-size:clamp(2.8rem,5.5vw,4.4rem);color:#fff;font-weight:800;line-height:1.08;margin-bottom:1.4rem;letter-spacing:-.8px}
+.hero h1 em{font-style:normal;color:var(--blue)}
+.hero p{font-size:1.1rem;color:rgba(255,255,255,.55);max-width:560px;margin:0 auto 3.5rem;line-height:1.9}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);border-radius:18px;overflow:hidden;max-width:740px;margin:0 auto}
+.hero-stat{padding:2rem 1.2rem;text-align:center}
+.hero-stat .num{font-size:2.2rem;font-weight:800;color:#fff;letter-spacing:-1.5px;line-height:1}
+.hero-stat .lbl{font-family:'Nunito Sans',sans-serif;font-size:.64rem;color:rgba(255,255,255,.45);text-transform:capitalize;letter-spacing:.3px;margin-top:.5rem;line-height:1.4;font-weight:600}
+.scroll-hint{position:absolute;bottom:3rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;color:rgba(255,255,255,.25);font-size:.6rem;letter-spacing:2px;text-transform:uppercase;animation:bob 3s ease-in-out infinite;z-index:2}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
+.scroll-hint::after{content:'';width:1px;height:36px;background:linear-gradient(to bottom,rgba(255,255,255,.25),transparent)}
+.page-section{position:relative;z-index:2;background:var(--white)}
+.page-section.gray-bg{background:var(--gray);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.cinematic{position:relative;height:520px;overflow:hidden}
+.cin-bg{position:absolute;inset:-15% 0;background-size:cover;background-position:center}
+.cin-overlay{position:absolute;inset:0}
+.cin-caption{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:4rem 5rem}
+.cin-caption.right{align-items:flex-end;text-align:right}
+.sec-pill{display:inline-flex;align-items:center;gap:.5rem;background:rgba(6,155,215,.9);backdrop-filter:blur(8px);border-radius:100px;padding:.4rem 1rem;margin-bottom:1rem}
+.sec-pill span{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1.8px;color:#fff}
+.cin-caption h2{font-size:clamp(2rem,3.5vw,3rem);color:#fff;font-weight:800;line-height:1.12;letter-spacing:-.4px;margin-bottom:.8rem;max-width:560px;text-shadow:0 2px 24px rgba(0,0,0,.5)}
+.cin-caption p{font-size:1.05rem;color:rgba(255,255,255,.85);line-height:1.85;max-width:500px;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.data-band{padding:3.5rem 5rem;display:flex;flex-direction:column;gap:2rem}
+.data-band.gray{background:var(--gray)}
+.twin{display:grid;grid-template-columns:1fr 1fr;align-items:stretch;min-height:600px}
+.twin.flip{direction:rtl}.twin.flip>*{direction:ltr}
+.twin-img{position:relative;overflow:hidden}
+/* image zoom */
+@keyframes zoomOut{from{transform:scale(1.12)}to{transform:scale(1)}}
+@keyframes zoomIn{from{transform:scale(1)}to{transform:scale(1.12)}}
+.vis-zoom-out{animation:zoomOut 22s cubic-bezier(.25,.46,.45,.94) forwards}
+.vis-zoom-in{animation:zoomIn 22s cubic-bezier(.25,.46,.45,.94) forwards}
+.twin-img img,.accent-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scale(1.12)}
+.cin-bg{transform:scale(1.12)}
+.mid-banner-bg{transform:scale(1.12)}
+.twin-body{padding:3.5rem 4rem;display:flex;flex-direction:column;justify-content:center;gap:1.8rem;background:var(--white)}
+.twin-body.gray{background:var(--gray)}
+.accent{display:grid;grid-template-columns:400px 1fr;align-items:stretch;min-height:480px;gap:3px}
+.accent.flip{direction:rtl}.accent.flip>*{direction:ltr}
+.accent-img{position:relative;overflow:hidden}
+.accent-body{padding:3rem 3.5rem;display:flex;flex-direction:column;justify-content:center;gap:1.5rem;background:var(--white)}
+.accent-body.gray{background:var(--gray)}
+.stag{display:inline-flex;align-items:center;gap:.5rem;margin-bottom:.6rem}
+.stag span{font-family:'Nunito Sans',sans-serif;font-size:.68rem;font-weight:700;text-transform:capitalize;letter-spacing:.5px;color:var(--blue)}
+.stag::before{content:'';width:24px;height:3px;background:var(--blue);border-radius:2px;flex-shrink:0}
+.sec-h2{font-size:clamp(1.5rem,2.2vw,2rem);font-weight:800;color:var(--text);line-height:1.18;letter-spacing:-.3px;margin-bottom:.5rem}
+.sec-p{font-size:.95rem;color:var(--text-mid);line-height:1.85}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:.8rem}
+.kpi-row .kpi{min-width:0}
+.kpi{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.4rem 1.3rem;position:relative;overflow:hidden;transition:box-shadow .3s,transform .3s}
+.kpi:hover{box-shadow:0 8px 32px rgba(6,155,215,.18);transform:translateY(-3px)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--blue),#4ec8f0);transform:scaleX(0);transform-origin:left;transition:.9s .1s cubic-bezier(.25,.46,.45,.94)}
+.kpi.visible::before{transform:scaleX(1)}
+.kpi .val{font-size:2rem;font-weight:800;color:var(--text);letter-spacing:-1.5px;line-height:1.1;display:block}
+.kpi .lbl{font-family:'Nunito Sans',sans-serif;font-size:.68rem;text-transform:capitalize;letter-spacing:.3px;color:#6b6b7a;margin-top:.45rem;line-height:1.4;font-weight:700}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+.grid-2.asymmetric{grid-template-columns:1.2fr 0.8fr}
+.chart-card{background:var(--white);border-radius:14px;padding:1.5rem;border:1px solid var(--border)}
+.chart-card h4{font-family:'Nunito Sans',sans-serif;font-size:.72rem;color:#6b6b7a;font-weight:700;margin-bottom:1rem;text-transform:capitalize;letter-spacing:.3px}
+.chart-wrap{position:relative}
+.chart-wrap.h200{height:200px}
+.chart-wrap.h260{height:260px}
+.chart-wrap.h300{height:300px}
+.donut-container{position:relative}
+.donut-center-label{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;z-index:5}
+.donut-center-label .dc-num{font-size:2.4rem;font-weight:800;color:var(--text);letter-spacing:-1.5px;line-height:1}
+.donut-center-label .dc-lbl{font-family:'Nunito Sans',sans-serif;font-size:.56rem;text-transform:capitalize;letter-spacing:.3px;color:#6b6b7a;margin-top:.2rem;max-width:100px;line-height:1.3;font-weight:700}
+.card{background:var(--white);border-radius:14px;padding:1.5rem;border:1px solid var(--border)}
+.card h3{font-family:'Nunito Sans',sans-serif;font-size:.72rem;color:#6b6b7a;margin-bottom:.5rem;font-weight:700;text-transform:capitalize;letter-spacing:.3px}
+.card .big-num{font-size:2.2rem;font-weight:800;color:var(--text);line-height:1;letter-spacing:-1px}
+.card .sub{font-family:'Nunito Sans',sans-serif;font-size:.78rem;color:#6b6b7a;margin-top:.3rem;line-height:1.45}
+.card .pct{display:inline-block;background:var(--blue-light);color:var(--blue);padding:.25rem .7rem;border-radius:8px;font-size:.66rem;font-weight:700;margin-top:.5rem}
+.note{font-size:.82rem;color:var(--text-mid);line-height:1.8}
+.stat-showcase{display:flex;align-items:baseline;gap:.4rem;margin:.2rem 0}
+.stat-showcase .ss-num{font-size:3.5rem;font-weight:800;letter-spacing:-2px;color:var(--blue);line-height:1}
+.stat-showcase .ss-suf{font-size:1.6rem;font-weight:800;color:var(--blue);letter-spacing:-1px}
+.stat-showcase .ss-lbl{font-size:.78rem;color:var(--text-mid);line-height:1.4;max-width:180px}
+.metric-bar{margin:.6rem 0}
+.metric-bar .bar-label{display:flex;justify-content:space-between;font-family:'Nunito Sans',sans-serif;font-size:.75rem;margin-bottom:.3rem}
+.metric-bar .bar-label span:first-child{font-weight:600;color:var(--text)}
+.metric-bar .bar-label span:last-child{font-weight:700;color:var(--text-mid)}
+.bar-bg{height:7px;background:#eaecf0;border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;width:0;transition:width 1.5s cubic-bezier(.25,.46,.45,.94)}
+.bar-fill.blue{background:linear-gradient(90deg,var(--blue),#4ec8f0)}
+.bar-fill.orange{background:var(--orange)}
+.bar-fill.light{background:#c8e8f5}
+/* skyline */
+.skyline-card{background:linear-gradient(180deg,#0b1a26 0%,#0d2235 100%);border-radius:14px;padding:1.5rem 1.5rem 0;border:1px solid #1a3a52;overflow:hidden}
+.skyline-card h4{color:rgba(255,255,255,.45);font-family:'Nunito Sans',sans-serif;font-size:.72rem;font-weight:700;text-transform:capitalize;letter-spacing:.3px;margin-bottom:1.5rem}
+.skyline-scene{display:flex;align-items:flex-start;justify-content:space-around;gap:1rem;height:220px;padding:0 .5rem;position:relative}
+.skyline-scene::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(6,155,215,.4),transparent)}
+.skyline-scene::before{content:'';position:absolute;inset:0;background-image:radial-gradient(1px 1px at 15% 20%,rgba(255,255,255,.5) 100%,transparent),radial-gradient(1px 1px at 35% 10%,rgba(255,255,255,.4) 100%,transparent),radial-gradient(1px 1px at 60% 15%,rgba(255,255,255,.6) 100%,transparent),radial-gradient(1px 1px at 80% 8%,rgba(255,255,255,.35) 100%,transparent);pointer-events:none}
+.sky-group{display:flex;flex-direction:column;align-items:center;flex:1}
+.sky-pair{display:flex;align-items:flex-start;gap:4px;width:100%}
+.sky-bld{position:relative;flex:1;border-radius:0 0 2px 2px;height:0;overflow:hidden;transition:height 1.4s cubic-bezier(.22,.61,.36,1);min-width:14px}
+.sky-bld::after{content:'';position:absolute;inset:0 3px;background-image:repeating-linear-gradient(180deg,transparent,transparent 7px,rgba(255,255,255,.06) 7px,rgba(255,255,255,.06) 8px),repeating-linear-gradient(90deg,transparent,transparent 7px,rgba(255,255,255,.06) 7px,rgba(255,255,255,.06) 8px)}
+.sky-bld::before{content:'';position:absolute;inset:4px 5px;background-image:radial-gradient(circle 1.5px at 4px 6px,rgba(255,220,100,.7) 100%,transparent),radial-gradient(circle 1.5px at 10px 6px,rgba(255,220,100,.4) 100%,transparent),radial-gradient(circle 1.5px at 4px 14px,rgba(255,220,100,.5) 100%,transparent),radial-gradient(circle 1.5px at 10px 20px,rgba(255,220,100,.65) 100%,transparent),radial-gradient(circle 1.5px at 4px 28px,rgba(255,220,100,.3) 100%,transparent),radial-gradient(circle 1.5px at 10px 34px,rgba(255,220,100,.55) 100%,transparent);background-repeat:repeat-y}
+.sky-bld.dac{background:linear-gradient(180deg,#1a6fa3 0%,#069BD7 40%,#0481b3 100%)}
+.sky-bld.nondac{background:linear-gradient(180deg,#1a3550 0%,#1e4a6e 100%)}
+.sky-bld:hover{filter:brightness(1.2)}
+.sky-bld.dac::after{background-image:repeating-linear-gradient(180deg,transparent,transparent 7px,rgba(6,155,215,.12) 7px,rgba(6,155,215,.12) 8px),repeating-linear-gradient(90deg,transparent,transparent 7px,rgba(6,155,215,.12) 7px,rgba(6,155,215,.12) 8px)}
+.sky-lbl{font-family:'Nunito Sans',sans-serif;font-size:.64rem;font-weight:700;color:rgba(255,255,255,.5);text-align:center;line-height:1.3;padding:8px 0 10px;white-space:nowrap}
+.sky-val{font-size:.74rem;font-weight:800;color:rgba(255,255,255,.75);text-align:center;padding-top:6px}
+.sky-legend{display:flex;gap:1.4rem;justify-content:center;padding:1rem 0 1.4rem;font-family:'Nunito Sans',sans-serif;font-size:.68rem;color:rgba(255,255,255,.45)}
+.sky-legend span{display:flex;align-items:center;gap:.4rem}
+.sky-legend span::before{content:'';width:11px;height:11px;border-radius:2px;flex-shrink:0}
+.sky-legend .sl-dac::before{background:var(--blue)}
+.sky-legend .sl-nd::before{background:#1e4a6e}
+/* waffle */
+.waffle-grid{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;width:100%;max-width:320px;margin:0 auto}
+.waffle-cell{aspect-ratio:1;border-radius:3px;transition:transform .15s,opacity .15s;display:flex;align-items:center;justify-content:center}
+.waffle-cell:hover{transform:scale(1.25);z-index:2;position:relative}
+.waffle-cell svg{width:100%;height:100%}
+.waffle-legend{display:flex;gap:1.2rem;margin-top:.9rem;font-family:'Nunito Sans',sans-serif;font-size:.7rem;color:var(--text-mid)}
+/* gauges */
+.gauge-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+.gauge-wrap{display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.gauge-svg{width:100%;max-width:150px}
+.gauge-label{font-family:'Nunito Sans',sans-serif;font-size:.72rem;font-weight:700;text-transform:capitalize;letter-spacing:.3px;color:#6b6b7a;text-align:center;line-height:1.3}
+/* outage towers */
+.outage-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:.3rem}
+.outage-tower{width:100%;max-width:70px;border-radius:8px 8px 4px 4px;position:relative;overflow:hidden;transition:height 1.6s cubic-bezier(.22,.61,.36,1);height:0}
+.outage-tower::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,transparent,transparent 8px,rgba(255,255,255,.12) 8px,rgba(255,255,255,.12) 9px)}
+.outage-val{font-size:1.1rem;font-weight:800;color:var(--text);letter-spacing:-.5px;line-height:1;margin-top:.3rem}
+.outage-lbl{font-family:'Nunito Sans',sans-serif;font-size:.62rem;font-weight:600;color:#6b6b7a;text-align:center;line-height:1.3;max-width:80px}
+.outage-bulb{width:28px;height:28px;margin-bottom:.2rem;opacity:.7}
+.outage-col.highlight .outage-val{color:var(--blue)}
+.outage-col.highlight .outage-bulb{opacity:1}
+.outage-col.best .outage-val{color:#04c48a}
+.outage-col.best .outage-bulb{opacity:1}
+.callout{background:linear-gradient(135deg,#069BD7,#0566a3);border-radius:14px;padding:1.8rem;color:#fff;display:flex;flex-direction:column;gap:.4rem}
+.callout .big{font-size:3rem;font-weight:800;letter-spacing:-2px;line-height:1}
+.callout .desc{font-size:.85rem;color:rgba(255,255,255,.78);line-height:1.8}
+.mid-banner{position:relative;padding:9rem 5rem;overflow:hidden;text-align:center;z-index:2}
+.mid-banner-bg{position:absolute;inset:0;background:url('https://inhabit.corcoran.com/wp-content/uploads/2021/11/brownstone_thumb.jpg') center/cover;filter:brightness(.22)}
+.mid-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(6,155,215,.18) 0%,transparent 60%)}
+.mid-banner .inner{position:relative;z-index:2;max-width:680px;margin:0 auto}
+.mid-pill{display:inline-flex;align-items:center;gap:.5rem;background:rgba(6,155,215,.18);border:1px solid rgba(6,155,215,.35);border-radius:100px;padding:.4rem 1rem;margin-bottom:1.2rem}
+.mid-pill span{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--blue)}
+.mid-banner h2{color:#fff;font-size:clamp(2rem,4vw,3.2rem);font-weight:800;line-height:1.12;margin-bottom:1rem;letter-spacing:-.5px}
+.mid-banner p{color:rgba(255,255,255,.55);line-height:1.9;font-size:1.05rem}
+.footer{background:#0c0e12;color:rgba(255,255,255,.35);padding:3.5rem 5rem;display:flex;align-items:center;justify-content:space-between;gap:2rem;position:relative;z-index:2}
+.footer-brand{display:flex;align-items:center;gap:.6rem;color:rgba(255,255,255,.5);font-weight:800;font-size:.95rem}
+.footer-right{text-align:right;font-size:.78rem;line-height:1.8}
+.footer a{color:var(--blue);text-decoration:none}
+.fade-up{opacity:0;transform:translateY(32px);transition:opacity .95s cubic-bezier(.25,.46,.45,.94),transform .95s cubic-bezier(.25,.46,.45,.94)}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+.fade-left{opacity:0;transform:translateX(-36px);transition:opacity .95s cubic-bezier(.25,.46,.45,.94),transform .95s cubic-bezier(.25,.46,.45,.94)}
+.fade-left.visible{opacity:1;transform:translateX(0)}
+.fade-right{opacity:0;transform:translateX(36px);transition:opacity .95s cubic-bezier(.25,.46,.45,.94),transform .95s cubic-bezier(.25,.46,.45,.94)}
+.fade-right.visible{opacity:1;transform:translateX(0)}
+.stagger>*{opacity:0;transform:translateY(22px);transition:opacity .7s cubic-bezier(.25,.46,.45,.94),transform .7s cubic-bezier(.25,.46,.45,.94)}
+.stagger.visible>*:nth-child(1){opacity:1;transform:none;transition-delay:.05s}
+.stagger.visible>*:nth-child(2){opacity:1;transform:none;transition-delay:.15s}
+.stagger.visible>*:nth-child(3){opacity:1;transform:none;transition-delay:.25s}
+.stagger.visible>*:nth-child(4){opacity:1;transform:none;transition-delay:.35s}
+.grid-cards-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+@media(max-width:1024px){
+  .twin,.twin.flip,.accent,.accent.flip{grid-template-columns:1fr;direction:ltr;min-height:auto}
+  .twin-img,.accent-img{min-height:320px;position:relative}
+  .twin-img img,.accent-img img{position:relative;height:320px;width:100%}
+  .cinematic{height:380px}
+  .cin-caption,.cin-caption.right{padding:2.5rem;align-items:flex-start;text-align:left}
+  .data-band,.twin-body,.accent-body{padding:2.5rem 2rem}
+  .mid-banner{padding:7rem 2rem}
+  .footer{flex-direction:column;text-align:center;padding:2.5rem 2rem}
+  .footer-right{text-align:center}
+  .nav-links{display:none}
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .grid-2,.grid-2.asymmetric,.grid-cards-3{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:1fr 1fr}
+  nav{padding:.9rem 1.5rem}
+  .kpi .val{font-size:1.8rem}
+  .skyline-scene{height:180px}
+}
+</style>
+</head>
+<body class="locked">
+<div class="gate" id="gate"><div class="gate-card"><div class="gate-title">Enter password</div><div class="gate-sub">This page is for demo purposes only.</div><form id="gateForm" autocomplete="off"><div class="gate-row"><input class="gate-input" id="gatePass" type="password" placeholder="Password"/><button class="gate-btn" type="submit">Continue</button></div><div class="gate-error" id="gateError">Incorrect password. Please try again.</div></form></div></div>
+<nav id="nav"><div class="nav-brand"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 20c0-4.4 3.6-8 8-8h4v4h-4c-2.2 0-4 1.8-4 4s1.8 4 4 4h4v4h-4c-4.4 0-8-3.6-8-8z" fill="currentColor"/></svg>Con Edison</div><div class="nav-links"><a href="#clean-energy">Clean Energy</a><a href="#ev">EV Charging</a><a href="#demand">Demand Response</a><a href="#der">Local Energy</a><a href="#infrastructure">Grid</a><a href="#outages">Outages</a><a href="#main-replacement">Pipes</a><a href="#leaks">Leaks</a><a href="#jobs">Jobs</a><a href="#customers">Customers</a></div></nav>
+<div class="hero-bg">
+  <video autoplay muted loop playsinline>
+    <source src="https://demo.clarafortuna.com/Coned/CLCPA/background.mp4" type="video/mp4">
+  </video>
+</div>
+<section class="hero"><div class="hero-vignette"></div><div class="hero-gradient"></div><div class="hero-content"><div class="hero-eyebrow"><span>2024 Annual Impact Report</span></div><h1>Powering Progress in<br><em>Disadvantaged Communities</em></h1><p>Every dollar invested, every plug installed, every job created. A measurable commitment to the communities that need it most.</p><div class="hero-stats"><div class="hero-stat"><div class="num">44%</div><div class="lbl">Electric Meters in<br>Disadvantaged Communities</div></div><div class="hero-stat"><div class="num">54%</div><div class="lbl">Clean Energy Dollars<br>to These Communities</div></div><div class="hero-stat"><div class="num">$380M</div><div class="lbl">Total Clean<br>Energy Spend</div></div><div class="hero-stat"><div class="num">3.7M</div><div class="lbl">Customers<br>Served</div></div></div></div><div class="scroll-hint">Scroll</div></section>
+
+<!-- A. CLEAN ENERGY -->
+<section class="page-section" id="clean-energy">
+  <div class="cinematic fade-up"><div class="cin-bg" style="background-image:url('https://demo.clarafortuna.com/Coned/CLCPA/stock1.jpeg')"></div><div class="cin-overlay" style="background:linear-gradient(to right,rgba(5,15,25,.82) 0%,rgba(5,15,25,.35) 55%,transparent 100%)"></div><div class="cin-caption"><div class="sec-pill"><span>Clean Energy Spending</span></div><h2>Putting Clean Energy Dollars<br>Where They Matter Most</h2><p>Over half of Con Edison's $380 million in clean energy incentives went directly into disadvantaged communities in 2024.</p></div></div>
+  <div class="data-band">
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="380.3" data-suffix="M" data-prefix="$">$380.3M</div><div class="lbl">Total Incentives</div></div>
+      <div class="kpi"><div class="val count-up" data-target="204.8" data-suffix="M" data-prefix="$">$204.8M</div><div class="lbl">To Disadvantaged Communities (54%)</div></div>
+      <div class="kpi"><div class="val count-up" data-target="4.36" data-suffix="M">4.36M</div><div class="lbl">Energy Saved (Heat Units)</div></div>
+      <div class="kpi"><div class="val count-up" data-target="298607" data-comma="1">298,607</div><div class="lbl">Upgrades Installed</div></div>
+    </div>
+    <div class="grid-2 asymmetric fade-up">
+      <div class="chart-card">
+        <h4>Disadvantaged vs Other Community Spending</h4>
+        <div id="splitBarCES" style="display:flex;flex-direction:column;gap:1.8rem;padding:1rem 0">
+          <div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem"><div style="font-family:'Nunito Sans',sans-serif;font-size:.82rem;font-weight:700;color:var(--text)">Disadvantaged Communities</div><div style="font-size:1.6rem;font-weight:800;color:var(--blue);letter-spacing:-1px">$204.8M</div></div><div style="height:38px;background:#eaecf0;border-radius:8px;overflow:hidden"><div class="split-fill" data-w="54" style="height:100%;width:0;background:linear-gradient(90deg,var(--blue),#3ab8e8);border-radius:8px;transition:width 1.8s cubic-bezier(.25,.46,.45,.94);display:flex;align-items:center;justify-content:center"><span style="color:#fff;font-weight:800;font-size:.88rem;letter-spacing:-.5px">54%</span></div></div></div>
+          <div><div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:.5rem"><div style="font-family:'Nunito Sans',sans-serif;font-size:.82rem;font-weight:700;color:var(--text)">Other Communities</div><div style="font-size:1.6rem;font-weight:800;color:var(--text-mid);letter-spacing:-1px">$175.5M</div></div><div style="height:38px;background:#eaecf0;border-radius:8px;overflow:hidden"><div class="split-fill" data-w="46" style="height:100%;width:0;background:linear-gradient(90deg,#c8e8f5,#a8d8ef);border-radius:8px;transition:width 1.8s cubic-bezier(.25,.46,.45,.94) .2s;display:flex;align-items:center;justify-content:center"><span style="color:var(--text-mid);font-weight:800;font-size:.88rem;letter-spacing:-.5px">46%</span></div></div></div>
+          <div style="display:flex;align-items:center;gap:.8rem;padding-top:.4rem"><div style="height:2px;flex:1;background:linear-gradient(90deg,var(--blue),transparent);border-radius:1px"></div><div style="font-family:'Nunito Sans',sans-serif;font-size:.78rem;color:var(--text-mid);white-space:nowrap;font-weight:600">$380.3M Total</div><div style="height:2px;flex:1;background:linear-gradient(90deg,transparent,#c8e8f5);border-radius:1px"></div></div>
+        </div>
+      </div>
+      <div class="chart-card"><h4>Year-over-Year Growth (2023 to 2024)</h4><div class="chart-wrap h300"><canvas id="chartYoY"></canvas></div></div>
+    </div>
+    <div class="fade-up grid-cards-3">
+      <div class="card"><h3>Affordable Multifamily Program</h3><div class="big-num">$77.6M</div><div class="sub">Energy efficiency for affordable apartment buildings</div><div class="pct">92% in Disadvantaged Communities</div></div>
+      <div class="card" style="background:linear-gradient(135deg,var(--blue) 0%,#0566a3 100%);border-color:transparent"><h3 style="color:rgba(255,255,255,.6)">Incentive Growth</h3><div class="big-num" style="color:#fff;font-size:3.2rem;letter-spacing:-2px">+58%</div><div class="sub" style="color:rgba(255,255,255,.65)">Year-over-year increase</div><div style="margin-top:.6rem;font-size:.8rem;color:rgba(255,255,255,.5)">$129.7M to $204.8M</div></div>
+      <div class="card"><h3>Installations</h3><div class="big-num">51%</div><div class="sub">Of all upgrades installed in disadvantaged communities</div><div class="pct">Up from 38% in 2023</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- B. EV -->
+<section class="page-section" id="ev">
+  <div class="twin"><div class="twin-body fade-left"><div><div class="stag"><span>Electric Vehicle Charging</span></div><div class="sec-h2">Driving Cleaner Air Into Every Neighborhood</div><p class="sec-p" style="margin-top:.6rem">Transportation produces 26% of New York City's greenhouse gas emissions, and the burden falls hardest on communities near highways and bus depots. Con Edison's charging program doubled plug installations in disadvantaged communities in 2024.</p></div>
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="42.8" data-prefix="$" data-suffix="M">$42.8M</div><div class="lbl">Total Charging Incentives</div></div>
+      <div class="kpi"><div class="val count-up" data-target="18.3" data-prefix="$" data-suffix="M">$18.3M</div><div class="lbl">In Disadvantaged Communities (43%)</div></div>
+      <div class="kpi"><div class="val count-up" data-target="4312" data-comma="1">4,312</div><div class="lbl">Total Plugs Installed</div></div>
+      <div class="kpi"><div class="val count-up" data-target="1850" data-comma="1">1,850</div><div class="lbl">Plugs in Disadvantaged Communities (2x)</div></div>
+    </div>
+    <div class="chart-card fade-up"><h4>Standard Charging Plugs: Each Icon = 1% of Total</h4><div style="display:flex;flex-direction:column;align-items:center;gap:1.2rem"><div class="waffle-grid" id="waffleEV"></div><div style="display:flex;flex-direction:column;align-items:center;text-align:center;gap:.4rem"><div style="font-size:2.4rem;font-weight:800;color:var(--blue);letter-spacing:-1px;line-height:1">42%</div><div style="font-family:'Nunito Sans',sans-serif;font-size:.82rem;color:var(--text-mid);line-height:1.6;max-width:200px">of standard plugs installed in disadvantaged communities</div></div></div><div class="waffle-legend" style="margin-top:.8rem;justify-content:center"><span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:var(--blue);margin-right:.35rem"></span>Disadvantaged Communities (42%)</span><span><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#c8e8f5;margin-right:.35rem"></span>Other Communities (58%)</span></div></div>
+    <div class="fade-up"><div class="metric-bar"><div class="bar-label"><span>Standard Chargers in Disadvantaged Communities</span><span>1,732 of 4,118 (42%)</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="42"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Fast Chargers in Disadvantaged Communities</span><span>118 of 194 (61%)</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="61"></div></div></div><p class="note" style="margin-top:.8rem">Fleet depots in disadvantaged communities face disproportionate traffic-related air pollution, making fast-charge access especially impactful.</p></div>
+  </div><div class="twin-img fade-right"><img src="https://demo.clarafortuna.com/Coned/CLCPA/stock2.jpeg" alt="EV charging"/></div></div>
+</section>
+
+<!-- C. DEMAND RESPONSE -->
+<section class="page-section gray-bg" id="demand">
+  <div class="cinematic fade-up"><div class="cin-bg" style="background-image:url('https://demo.clarafortuna.com/Coned/CLCPA/stock3.jpeg')"></div><div class="cin-overlay" style="background:linear-gradient(to left,rgba(5,15,25,.82) 0%,rgba(5,15,25,.3) 55%,transparent 100%)"></div><div class="cin-caption right"><div class="sec-pill"><span>Demand Response</span></div><h2>Communities Powering<br>the Grid Together</h2><p>Over 104,000 customers enrolled in programs that reduce energy use during peak hours, delivering nearly 1,000 megawatts of load relief.</p></div></div>
+  <div class="data-band gray">
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="104025" data-comma="1">104,025</div><div class="lbl">Total Participants</div></div>
+      <div class="kpi"><div class="val count-up" data-target="32919" data-comma="1">32,919</div><div class="lbl">Disadvantaged Community Participants (32%)</div></div>
+      <div class="kpi"><div class="val">998 MW</div><div class="lbl">Committed Energy Relief</div></div>
+      <div class="kpi"><div class="val">767 MW</div><div class="lbl">Delivered Energy Relief</div></div>
+    </div>
+    <div class="grid-2 fade-up">
+      <div class="chart-card"><h4>Disadvantaged Community Share by Program</h4><div class="gauge-row" id="gaugeRow"></div></div>
+      <div class="chart-card"><h4>Energy Relief Committed: Disadvantaged vs Other</h4><div class="chart-wrap h260"><canvas id="chartDRarea"></canvas></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- D. DER -->
+<section class="page-section gray-bg" id="der">
+  <div class="accent fade-up"><div class="accent-img"><img src="https://demo.clarafortuna.com/Coned/CLCPA/stock4.jpeg" alt="Distributed energy resources"/></div><div class="accent-body gray"><div><div class="stag"><span>Local Energy Projects</span></div><div class="sec-h2">Clean Energy Is for Everyone,<br>Not Just Rooftop Owners</div><p class="sec-p" style="margin-top:.6rem">In 2024, 34% of new local clean energy projects like solar panels, batteries, and community solar were in disadvantaged communities. Low-income community solar subscriptions surged from 4.9% to 22.3%.</p></div>
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="76991" data-comma="1">76,991</div><div class="lbl">Total Projects to Date</div></div>
+      <div class="kpi"><div class="val count-up" data-target="10555" data-comma="1">10,555</div><div class="lbl">New in 2024</div></div>
+      <div class="kpi"><div class="val">1,096 MW</div><div class="lbl">Total Clean Power Installed</div></div>
+      <div class="kpi"><div class="val">34%</div><div class="lbl">2024 Projects in Disadvantaged Communities</div></div>
+    </div>
+    <div class="grid-2 fade-up">
+      <div class="chart-card"><h4>Local Energy Projects: Disadvantaged vs Other</h4><div class="donut-container"><div class="chart-wrap h260"><canvas id="chartDER"></canvas></div><div class="donut-center-label"><div class="dc-num">34%</div><div class="dc-lbl">Disadvantaged Communities</div></div></div></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:.7rem"><div class="metric-bar"><div class="bar-label"><span>Community Solar Subscribers in Disadv. Comm.</span><span>56.3%</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="56.3"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Low-Income Community Solar Subscribers</span><span>22.3%</span></div><div class="bar-bg"><div class="bar-fill orange" data-w="22.3"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Rooftop Solar in Disadvantaged Communities</span><span>40%</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="40"></div></div></div><p class="note" style="margin-top:.4rem">Low-income subscriber share jumped from 4.9% to 22.3% in 2024 alone, a breakthrough in clean energy access.</p></div>
+    </div>
+  </div></div>
+</section>
+
+<!-- E. INFRASTRUCTURE -->
+<section class="page-section" id="infrastructure">
+  <div class="twin"><div class="twin-img fade-left"><img src="https://demo.clarafortuna.com/Coned/CLCPA/stock5.jpeg" alt="Grid infrastructure"/></div><div class="twin-body fade-right"><div><div class="stag"><span>Electric Grid Investments</span></div><div class="sec-h2">Building a Grid as Strong as the Communities It Serves</div><p class="sec-p" style="margin-top:.6rem">Nearly $1 billion invested in the electric grid in 2024. For the first time, half of all investment activity reached disadvantaged communities, a 10-point leap from 2023.</p></div>
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="976.6" data-prefix="$" data-suffix="M">$976.6M</div><div class="lbl">Total Investment</div></div>
+      <div class="kpi"><div class="val count-up" data-target="50" data-suffix="%">50%</div><div class="lbl">Reaching Disadvantaged Communities</div></div>
+      <div class="kpi"><div class="val">+10 pts</div><div class="lbl">Increase vs 2023</div></div>
+    </div>
+    <div class="skyline-card fade-up" id="skylineSection"><h4>Investment by Category, Millions of Dollars</h4><div class="skyline-scene" id="skylineChart"></div><div class="sky-legend"><span class="sl-dac">Disadvantaged Communities</span><span class="sl-nd">Other Communities</span></div></div>
+    <div class="fade-up"><div class="metric-bar"><div class="bar-label"><span>Risk Reduction</span><span>$514.6M, 52% Disadvantaged</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="52"></div></div></div><div class="metric-bar"><div class="bar-label"><span>System Expansion</span><span>$367.1M, 46% Disadvantaged</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="46"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Environmental</span><span>$70.8M, 53% Disadvantaged</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="53"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Safety & Security</span><span>$24.1M, 54% Disadvantaged</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="54"></div></div></div></div>
+  </div></div>
+</section>
+
+<!-- F. OUTAGES -->
+<section class="page-section gray-bg" id="outages">
+  <div class="cinematic fade-up" style="height:440px"><div class="cin-bg" style="background-image:url('https://demo.clarafortuna.com/Coned/CLCPA/stock6.jpeg')"></div><div class="cin-overlay" style="background:linear-gradient(to right,rgba(5,15,25,.82) 0%,rgba(5,15,25,.3) 55%,transparent 100%)"></div><div class="cin-caption"><div class="sec-pill"><span>Customer Outages</span></div><h2>Reliability That<br>Reaches Every Block</h2><p>Con Edison's network is nine times more reliable than the national average. In 2024, customers in disadvantaged communities experienced outages at a lower rate.</p></div></div>
+  <div class="data-band gray">
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="106">106</div><div class="lbl">Outages per 1,000 Customers</div></div>
+      <div class="kpi"><div class="val">15.6</div><div class="lbl">Outages per 1,000 (Underground Network)</div></div>
+      <div class="kpi"><div class="val">10%</div><div class="lbl">Disadvantaged Community Customers Affected</div></div>
+      <div class="kpi"><div class="val">9x</div><div class="lbl">More Reliable than National Average</div></div>
+    </div>
+    <div class="grid-2 fade-up">
+      <div class="chart-card"><h4>Outages per 1,000 Customers (Lower Is Better)</h4><div id="outageViz" style="display:flex;align-items:flex-end;justify-content:space-around;gap:.8rem;padding:1.5rem 0 .5rem;height:280px"></div></div>
+      <div style="display:flex;flex-direction:column;gap:1.1rem">
+        <div class="card" style="flex:1"><h3>Outage Fairness</h3><div class="metric-bar"><div class="bar-label"><span>Disadvantaged communities with outage</span><span>10%</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="10"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Other communities with outage</span><span>15%</span></div><div class="bar-bg"><div class="bar-fill light" data-w="15"></div></div></div><p class="note" style="margin-top:.7rem">480,464 total outages in 2024. Disadvantaged community customers accounted for 34% of interruptions, well below their 44% meter share.</p></div>
+        <div class="callout"><div class="big">89%</div><div class="desc">of outages occurred in above-ground areas, where the grid is most exposed to weather and trees</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- G. MAIN REPLACEMENT -->
+<section class="page-section" id="main-replacement">
+  <div class="accent flip fade-up"><div class="accent-img"><img src="https://demo.clarafortuna.com/Coned/CLCPA/stock7.jpeg" alt="Gas main replacement"/></div><div class="accent-body"><div><div class="stag"><span>Gas Pipe Replacement</span></div><div class="sec-h2">Replacing Old Pipes,<br>Breathing New Life Into Neighborhoods</div><p class="sec-p" style="margin-top:.6rem">78 miles of leak-prone gas pipe replaced in 2024. Disadvantaged communities received 46% of replacements and 52% of the resulting methane emission cuts.</p></div>
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val">78 mi</div><div class="lbl">Pipe Replaced</div></div>
+      <div class="kpi"><div class="val">46%</div><div class="lbl">In Disadvantaged Communities</div></div>
+      <div class="kpi"><div class="val">241.2 mT</div><div class="lbl">Methane Emissions Eliminated</div></div>
+      <div class="kpi"><div class="val">52%</div><div class="lbl">Emissions Cut in Disadvantaged Comm.</div></div>
+    </div>
+    <div class="chart-card fade-up"><h4>Pipe Replacement by County (Feet)</h4><div class="chart-wrap h200"><canvas id="chartPipe"></canvas></div></div>
+    <div class="fade-up"><div class="metric-bar"><div class="bar-label"><span>Methane Reduced, Disadvantaged Communities</span><span>125.2 mT (52%)</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="52"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Methane Reduced, Other Communities</span><span>116.0 mT (48%)</span></div><div class="bar-bg"><div class="bar-fill light" data-w="48"></div></div></div><p class="note" style="margin-top:.7rem">83% of Bronx pipe replacement occurred in disadvantaged communities, reducing 47 metric tons of methane, or 89% of the borough total.</p></div>
+  </div></div>
+</section>
+
+<!-- H. LEAK REPAIRS -->
+<section class="page-section gray-bg" id="leaks">
+  <div class="accent fade-up"><div class="accent-img"><img src="https://demo.clarafortuna.com/Coned/CLCPA/stock8.jpeg" alt="Leak detection"/></div><div class="accent-body gray"><div><div class="stag"><span>Gas Leak Repairs</span></div><div class="sec-h2">No Leak Too Small,<br>No Street Too Far</div><p class="sec-p" style="margin-top:.6rem">8,302 leaking gas components repaired in 2024, including slow leaks invisible to residents but steadily warming our planet.</p></div>
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="8302" data-comma="1">8,302</div><div class="lbl">Components Repaired</div></div>
+      <div class="kpi"><div class="val count-up" data-target="3709" data-comma="1">3,709</div><div class="lbl">Repair Jobs Completed</div></div>
+      <div class="kpi"><div class="val count-up" data-target="3198" data-comma="1">3,198</div><div class="lbl">Repairs in Disadvantaged Comm. (39%)</div></div>
+      <div class="kpi"><div class="val">77%</div><div class="lbl">Bronx Repairs in Disadvantaged Comm.</div></div>
+    </div>
+    <div class="grid-2 fade-up">
+      <div class="chart-card"><h4>Leaks Repaired, Disadvantaged Community Share by Borough</h4><div class="donut-container"><div class="chart-wrap h260"><canvas id="chartLeak"></canvas></div><div class="donut-center-label"><div class="dc-num">39%</div><div class="dc-lbl">Disadvantaged Community Share</div></div></div></div>
+      <div style="display:flex;flex-direction:column;justify-content:center;gap:.5rem"><div class="metric-bar"><div class="bar-label"><span>Disadvantaged Community Repairs</span><span>3,198 (39%)</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="39"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Other Community Repairs</span><span>5,104 (61%)</span></div><div class="bar-bg"><div class="bar-fill light" data-w="61"></div></div></div><p class="note" style="margin-top:.6rem">The Bronx had the highest disadvantaged community repair share at 77%.</p><div style="margin-top:1rem;padding:1.4rem;background:var(--white);border-radius:14px;border:1px solid var(--border)"><div style="font-family:'Nunito Sans',sans-serif;font-size:.64rem;font-weight:700;letter-spacing:.3px;color:#6b6b7a;margin-bottom:.4rem">Bronx Repairs</div><div class="stat-showcase"><div class="ss-num count-up" data-target="77" style="color:var(--blue)">77</div><div class="ss-suf" style="color:var(--blue)">%</div><div class="ss-lbl">of all Bronx repairs were in disadvantaged communities</div></div></div></div>
+    </div>
+  </div></div>
+</section>
+
+<div class="mid-banner"><div class="mid-banner-bg"></div><div class="inner"><div class="mid-pill"><span>People & Community</span></div><h2>People Are the Power<br>Behind the Transition</h2><p>The clean energy future isn't built by technology alone. It's built by trained hands, supported families, and communities empowered to thrive.</p></div></div>
+
+<!-- I. JOBS -->
+<section class="page-section" id="jobs">
+  <div class="cinematic fade-up" style="height:480px"><div class="cin-bg" style="background-image:url('https://demo.clarafortuna.com/Coned/CLCPA/stock9.jpeg')"></div><div class="cin-overlay" style="background:linear-gradient(to right,rgba(5,15,25,.82) 0%,rgba(5,15,25,.25) 55%,transparent 100%)"></div><div class="cin-caption"><div class="sec-pill"><span>Clean Energy Jobs</span></div><h2>Opening the Door to Careers,<br>Not Just Employment</h2><p>The Clean Energy Academy has graduated over 1,000 students since 2020, with 59% from disadvantaged communities. Full-time job placements doubled in 2024.</p></div></div>
+  <div class="data-band">
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val count-up" data-target="390">390</div><div class="lbl">Students Enrolled</div></div>
+      <div class="kpi"><div class="val count-up" data-target="290">290</div><div class="lbl">Graduates</div></div>
+      <div class="kpi"><div class="val count-up" data-target="87">87</div><div class="lbl">Full-Time Jobs Placed</div></div>
+      <div class="kpi"><div class="val">59%</div><div class="lbl">Hires from Disadvantaged Communities</div></div>
+    </div>
+    <div class="grid-2 fade-up">
+      <div class="chart-card"><h4>Academy Outcomes (2024), Each Figure = 1 Graduate</h4><div id="peopleGrid" style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;padding:.5rem 0"></div><div style="display:flex;gap:1.2rem;justify-content:center;flex-wrap:wrap;margin-top:1rem;font-family:'Nunito Sans',sans-serif;font-size:.72rem;color:var(--text-mid)"><span style="display:flex;align-items:center;gap:.35rem"><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#069BD7"></span>Full-Time Jobs (87)</span><span style="display:flex;align-items:center;gap:.35rem"><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#F7901E"></span>Apprenticeships (30)</span><span style="display:flex;align-items:center;gap:.35rem"><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#4ec8f0"></span>Internships (6)</span><span style="display:flex;align-items:center;gap:.35rem"><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:#d0d5de"></span>Other Outcomes (167)</span></div><div style="text-align:center;margin-top:.8rem"><span style="font-size:2rem;font-weight:800;color:var(--text);letter-spacing:-1px">290</span><span style="font-family:'Nunito Sans',sans-serif;font-size:.78rem;color:#6b6b7a;margin-left:.4rem;font-weight:600">Graduates</span></div></div>
+      <div style="display:flex;flex-direction:column;gap:1.1rem">
+        <div class="callout"><div class="big count-up" data-target="1376" data-comma="1">1,376</div><div class="desc">new employees hired in 2024, with nearly half from disadvantaged communities</div></div>
+        <div class="card"><h3>Interns & Mentorship</h3><p class="note">241 college interns onboarded, including 95 from disadvantaged communities. A new mentorship program launched in late 2024, pairing 24 Academy alumni with Con Edison professionals.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- J. CUSTOMERS -->
+<section class="page-section gray-bg" id="customers">
+  <div class="twin"><div class="twin-body gray fade-left"><div><div class="stag"><span>Customer Affordability</span></div><div class="sec-h2">Keeping the Lights On for Those Who Need It Most</div><p class="sec-p" style="margin-top:.6rem">The Energy Affordability Program delivered over $310 million in bill discounts in 2024, with 66% going to customers in disadvantaged communities. Outreach spanned nine languages and 159 community events.</p></div>
+    <div class="kpi-row stagger">
+      <div class="kpi"><div class="val">450K+</div><div class="lbl">Customers Receiving Discounts</div></div>
+      <div class="kpi"><div class="val">66%</div><div class="lbl">Discounts in Disadvantaged Comm.</div></div>
+      <div class="kpi"><div class="val">$310M+</div><div class="lbl">Total Bill Discounts</div></div>
+      <div class="kpi"><div class="val count-up" data-target="159">159</div><div class="lbl">Community Events Attended</div></div>
+    </div>
+    <div class="chart-card fade-up"><h4>Assistance Programs: Bubble Size = Total Dollars, Position = Community Reach</h4><div class="chart-wrap h260"><canvas id="chartBubble"></canvas></div></div>
+    <div class="fade-up"><div class="metric-bar"><div class="bar-label"><span>Electric Use: Disadvantaged Communities</span><span>353 kWh avg/month</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="85"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Electric Use: Other Communities</span><span>417 kWh avg/month</span></div><div class="bar-bg"><div class="bar-fill light" data-w="100"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Gas Use: Disadvantaged Communities</span><span>56.2 ccf avg/month</span></div><div class="bar-bg"><div class="bar-fill blue" data-w="59"></div></div></div><div class="metric-bar"><div class="bar-label"><span>Gas Use: Other Communities</span><span>95.3 ccf avg/month</span></div><div class="bar-bg"><div class="bar-fill light" data-w="100"></div></div></div><p class="note" style="margin-top:.8rem">Over 200,000 customers enrolled in payment plans (60% in disadvantaged communities). An additional $510,000+ in emergency bill assistance was provided to 2,794 customers.</p></div>
+  </div><div class="twin-img fade-right"><img src="https://demo.clarafortuna.com/Coned/CLCPA/stock10.jpeg" alt="Customer outreach"/></div></div>
+</section>
+
+<footer class="footer"><div class="footer-brand"><svg width="22" height="22" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 20c0-4.4 3.6-8 8-8h4v4h-4c-2.2 0-4 1.8-4 4s1.8 4 4 4h4v4h-4c-4.4 0-8-3.6-8-8z" fill="currentColor"/></svg>Con Edison</div><div class="footer-right"><div>&copy; 2025 Consolidated Edison Company of New York, Inc. &nbsp;|&nbsp; <a href="https://www.coned.com" target="_blank">coned.com</a></div><div style="margin-top:.3rem;font-size:.7rem;opacity:.4">Data sourced from the 2024 Disadvantaged Communities Report filed with the NY Public Service Commission.</div></div></footer>
+
+<script>
+/* gate */
+(function(){var PW="dacdemo",gate=document.getElementById("gate"),form=document.getElementById("gateForm"),pass=document.getElementById("gatePass"),err=document.getElementById("gateError");
+  form.addEventListener("submit",function(e){e.preventDefault();if((pass.value||"").trim()===PW){gate.style.display="none";document.body.classList.remove("locked")}else{err.style.display="block";pass.focus();pass.select()}});
+  setTimeout(function(){pass.focus()},50);
+})();
+window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('scrolled',window.scrollY>50)},{passive:true});
+
+/* waffle */
+(function(){var g=document.getElementById('waffleEV');var plugSVG=function(color){return'<svg viewBox="0 0 24 24" fill="'+color+'"><path d="M14.5 2v4h1.5a.5.5 0 0 1 .5.5v3a3.5 3.5 0 0 1-2.5 3.36V17a3 3 0 0 1-6 0v-4.14A3.5 3.5 0 0 1 5.5 9.5v-3a.5.5 0 0 1 .5-.5h1.5V2h2v4h2V2h2.5zM8 13.14V17a2 2 0 1 0 4 0v-3.86a3.5 3.5 0 0 1-4 0zM7 7v2.5a2.5 2.5 0 0 0 5 0V7H7z"/></svg>'};for(var i=0;i<100;i++){var c=document.createElement('div');c.className='waffle-cell';c.innerHTML=plugSVG(i<42?'#069BD7':'#c8e8f5');c.style.opacity='0';c.style.transform='scale(0)';g.appendChild(c)}})();
+function animateWaffle(){document.querySelectorAll('#waffleEV .waffle-cell').forEach(function(c,i){if(c._w)return;c._w=true;setTimeout(function(){c.style.transition='opacity .3s, transform .3s';c.style.opacity='1';c.style.transform='scale(1)'},i*12)})}
+
+/* gauges */
+var gaugeData=[{label:'Commercial',pct:35.6,color:'#069BD7'},{label:'Direct Load',pct:34.8,color:'#069BD7'},{label:'Smart Thermostat',pct:20.3,color:'#F7901E'},{label:'Term Load',pct:21.5,color:'#04c48a'}];
+function buildGauges(){var row=document.getElementById('gaugeRow');gaugeData.forEach(function(d){var r=40,cx=55,cy=55,sw=8,circ=2*Math.PI*r,arcLen=circ*0.75,gapLen=circ*0.25,offset=circ*0.625;var w=document.createElement('div');w.className='gauge-wrap';w.innerHTML='<svg class="gauge-svg" viewBox="0 0 110 110"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#eaecf0" stroke-width="'+sw+'" stroke-dasharray="'+arcLen+' '+gapLen+'" stroke-dashoffset="-'+offset+'" stroke-linecap="round"/><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+d.color+'" stroke-width="'+sw+'" stroke-dasharray="0 '+circ+'" stroke-dashoffset="-'+offset+'" stroke-linecap="round" class="gauge-arc" data-pct="'+d.pct+'" data-circ="'+circ+'" data-arclen="'+arcLen+'"/><text x="'+cx+'" y="'+(cy+7)+'" text-anchor="middle" font-size="20" font-weight="800" fill="#141414" font-family="Open Sans">'+d.pct+'%</text></svg><div class="gauge-label">'+d.label+'</div>';row.appendChild(w)})}
+buildGauges();
+function animateGauges(){document.querySelectorAll('.gauge-arc').forEach(function(arc){if(arc._done)return;arc._done=true;var pct=parseFloat(arc.dataset.pct)/100,circ=parseFloat(arc.dataset.circ),arcLen=parseFloat(arc.dataset.arclen),target=arcLen*pct,start=null;function step(ts){if(!start)start=ts;var p=Math.min((ts-start)/1400,1),ease=1-Math.pow(1-p,3);arc.setAttribute('stroke-dasharray',target*ease+' '+(circ-target*ease));if(p<1)requestAnimationFrame(step)}requestAnimationFrame(step)})}
+
+/* skyline */
+var skyData=[{label:'Risk<br>Reduction',dac:267.6,nd:247.0,total:514.6},{label:'System<br>Expansion',dac:169.0,nd:198.1,total:367.1},{label:'Environ-<br>mental',dac:37.5,nd:33.3,total:70.8},{label:'Safety &<br>Security',dac:13.0,nd:11.1,total:24.1}];
+var SKY_MAX=267.6,SKY_H=180;
+function buildSkyline(){var scene=document.getElementById('skylineChart');skyData.forEach(function(d){var dacH=Math.round((d.dac/SKY_MAX)*SKY_H),ndH=Math.round((d.nd/SKY_MAX)*SKY_H);scene.insertAdjacentHTML('beforeend','<div class="sky-group"><div class="sky-pair"><div class="sky-bld dac" data-h="'+dacH+'" title="Disadvantaged: $'+d.dac+'M"></div><div class="sky-bld nondac" data-h="'+ndH+'" title="Other: $'+d.nd+'M"></div></div><div class="sky-val">$'+d.total+'M</div><div class="sky-lbl">'+d.label+'</div></div>')})}
+buildSkyline();
+function animateSkyline(){document.querySelectorAll('.sky-bld[data-h]').forEach(function(b,i){if(b._g)return;b._g=true;setTimeout(function(){b.style.transition='height 1.4s cubic-bezier(.22,.61,.36,1)';b.style.height=b.dataset.h+'px'},i*55)})}
+
+/* outage viz */
+(function(){var viz=document.getElementById('outageViz');var maxH=200;var items=[{label:'National Average',val:940,color:'#d0d5de',cls:''},{label:'NY State (without Con Edison)',val:940,color:'#c0c7d4',cls:''},{label:'Con Edison Above-Ground',val:373,color:'#c8e8f5',cls:''},{label:'Con Edison Overall',val:106,color:'#069BD7',cls:'highlight'},{label:'Con Edison Underground',val:15.6,color:'#04c48a',cls:'best'}];
+var boltIcon='<svg class="outage-bulb" viewBox="0 0 24 24" fill="CCC" stroke="none"><path d="M13 2L4.5 13H11l-1 9 8.5-11H12l1-9z"/><line x1="4" y1="20" x2="20" y2="4" stroke="SSS" stroke-width="2.5" stroke-linecap="round"/></svg>';
+items.forEach(function(d){var h=Math.max(Math.round((d.val/940)*maxH),8);var col=document.createElement('div');col.className='outage-col'+(d.cls?' '+d.cls:'');var strokeCol=d.cls==='best'?'#04c48a':d.cls==='highlight'?'#069BD7':'#aab';var slashCol=d.cls==='best'?'#04c48a':d.cls==='highlight'?'#069BD7':'#b0b3ba';col.innerHTML=boltIcon.replace(/CCC/g,strokeCol).replace(/SSS/g,slashCol)+'<div class="outage-tower" data-h="'+h+'" style="background:'+d.color+'"></div><div class="outage-val">'+d.val+'</div><div class="outage-lbl">'+d.label+'</div>';viz.appendChild(col)})})();
+function animateOutage(){document.querySelectorAll('.outage-tower[data-h]').forEach(function(t,i){if(t._a)return;t._a=true;setTimeout(function(){t.style.height=t.dataset.h+'px'},i*120)})}
+
+/* people grid */
+(function(){var grid=document.getElementById('peopleGrid');var groups=[{count:87,color:'#069BD7'},{count:30,color:'#F7901E'},{count:6,color:'#4ec8f0'},{count:167,color:'#d0d5de'}];var personSVG='<svg viewBox="0 0 16 24" width="14" height="20"><circle cx="8" cy="5" r="4" fill="CCC"/><path d="M2 24v-7a6 6 0 0 1 12 0v7" fill="CCC"/></svg>';var idx=0;groups.forEach(function(g){for(var i=0;i<g.count;i++){var el=document.createElement('div');el.style.cssText='opacity:0;transform:scale(0);transition:opacity .3s,transform .3s;cursor:default;';el.dataset.idx=idx++;el.innerHTML=personSVG.replace(/CCC/g,g.color);grid.appendChild(el)}})})();
+function animatePeople(){document.querySelectorAll('#peopleGrid > div').forEach(function(el){if(el._p)return;el._p=true;var d=parseInt(el.dataset.idx)*8;if(d>800)d=800+Math.random()*400;setTimeout(function(){el.style.opacity='1';el.style.transform='scale(1)'},d)})}
+
+/* count-up */
+function animateCount(el){if(el._counted)return;el._counted=true;var target=parseFloat(el.dataset.target)||0,prefix=el.dataset.prefix||'',suffix=el.dataset.suffix||'',comma=el.dataset.comma==='1';var decimals=target%1!==0?1:0,dur=1900,start=null;function fmt(v){var s=v.toFixed(decimals);if(comma)s=parseFloat(s).toLocaleString('en-US',{minimumFractionDigits:decimals,maximumFractionDigits:decimals});return prefix+s+suffix}function step(ts){if(!start)start=ts;var p=Math.min((ts-start)/dur,1),ease=1-Math.pow(1-p,3);el.textContent=fmt(target*ease);if(p<1)requestAnimationFrame(step);else el.textContent=fmt(target)}requestAnimationFrame(step)}
+function animateBars(scope){(scope||document).querySelectorAll('.bar-fill[data-w],.split-fill[data-w]').forEach(function(b){if(b._a)return;b._a=true;setTimeout(function(){b.style.width=b.dataset.w+'%'},120)})}
+
+/* donut center positioning */
+function positionDonutLabels(){document.querySelectorAll('.donut-container').forEach(function(container){var canvas=container.querySelector('canvas');var label=container.querySelector('.donut-center-label');if(!canvas||!label)return;var ch=Chart.getChart(canvas);if(!ch)return;var meta=ch.getDatasetMeta(0);if(!meta||!meta.data||!meta.data[0])return;var arc=meta.data[0];if(arc.y>0){label.style.top=arc.y+'px';label.style.left=arc.x+'px';label.style.transform='translate(-50%,-50%)'}})}
+function scheduleDonutPositioning(){[100,300,600,1000,2000].forEach(function(d){setTimeout(positionDonutLabels,d)})}
+scheduleDonutPositioning();
+
+/* Chart.js */
+Chart.defaults.font.family="'Open Sans',sans-serif";Chart.defaults.font.size=11;Chart.defaults.plugins.legend.labels.usePointStyle=true;Chart.defaults.plugins.legend.labels.padding=14;Chart.defaults.plugins.legend.labels.font={size:11,family:"'Nunito Sans',sans-serif"};Chart.defaults.color='#5a5a6e';
+var B='#069BD7',BLs='#c8e8f5',O='#F7901E',pending={};
+function reg(id,cfg){pending[id]=cfg}
+
+reg('chartYoY',{type:'bar',data:{labels:['Total Incentives','Energy Savings','Avg per Participant','Disadvantaged Savings'],datasets:[{label:'Overall Growth %',data:[45,8,62,50],backgroundColor:'rgba(6,155,215,.2)',borderRadius:7,borderWidth:0},{label:'Disadvantaged Community Growth %',data:[58,50,68,60],backgroundColor:B,borderRadius:7,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1400,easing:'easeOutQuart'},scales:{y:{ticks:{callback:function(v){return v+'%'},font:{size:10}},grid:{color:'#eef0f3'},beginAtZero:true},x:{grid:{display:false},ticks:{font:{size:10}}}},plugins:{legend:{position:'bottom'}}}});
+
+reg('chartDRarea',{type:'line',data:{labels:['Commercial','Direct Load','Smart Thermostat','Term Load','Auto Load'],datasets:[{label:'Total Megawatts',data:[466.2,472.5,27.5,11.5,20.4],fill:true,backgroundColor:'rgba(200,232,245,.5)',borderColor:BLs,borderWidth:2,tension:.4,pointRadius:4,pointBackgroundColor:BLs},{label:'Disadvantaged Community Megawatts',data:[191.4,193.2,4.7,4.1,11.5],fill:true,backgroundColor:'rgba(6,155,215,.18)',borderColor:B,borderWidth:2.5,tension:.4,pointRadius:4,pointBackgroundColor:B}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1400},scales:{y:{beginAtZero:true,grid:{color:'#eef0f3'},ticks:{callback:function(v){return v+' MW'},font:{size:10}}},x:{grid:{display:false},ticks:{font:{size:10}}}},plugins:{legend:{position:'bottom'}}}});
+
+reg('chartDER',{type:'doughnut',data:{labels:['Disadvantaged Community Projects','Other Community Projects'],datasets:[{data:[3584,6971],backgroundColor:[B,BLs],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',animation:{animateRotate:true,duration:1400},plugins:{legend:{position:'bottom'}}}});
+
+reg('chartPipe',{type:'bar',data:{labels:['Bronx','Manhattan','Queens','Westchester'],datasets:[{label:'Disadvantaged Communities (ft)',data:[75057,17450,18752,83741],backgroundColor:B,borderRadius:6,borderWidth:0},{label:'Other Communities (ft)',data:[16126,24160,64075,122361],backgroundColor:BLs,borderRadius:6,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1400,easing:'easeOutQuart'},scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#eef0f3'},beginAtZero:true,ticks:{callback:function(v){return(v/1000)+'k'},font:{size:10}}}},plugins:{legend:{position:'bottom'}}}});
+
+reg('chartLeak',{type:'doughnut',data:{labels:['Bronx, Disadvantaged','Manhattan, Disadvantaged','Queens, Disadvantaged','Westchester, Disadvantaged','Other Communities'],datasets:[{data:[1212,462,245,1279,5104],backgroundColor:[B,'#0481b3','#04a0c5',BLs,'#e0edf5'],borderWidth:0,hoverOffset:8}]},options:{responsive:true,maintainAspectRatio:false,cutout:'62%',animation:{animateRotate:true,duration:1400},plugins:{legend:{position:'bottom'}}}});
+
+reg('chartBubble',{type:'bubble',data:{datasets:[{label:'Electric Bill Discounts',data:[{x:66,y:162.5,r:28}],backgroundColor:'rgba(6,155,215,.75)',borderColor:B,borderWidth:1.5},{label:'Gas Bill Discounts',data:[{x:66,y:29.0,r:14}],backgroundColor:'rgba(6,155,215,.45)',borderColor:B,borderWidth:1.5},{label:'Payment Plans',data:[{x:60,y:18,r:20}],backgroundColor:'rgba(247,144,30,.65)',borderColor:O,borderWidth:1.5},{label:'Emergency Bill Help',data:[{x:72,y:0.51,r:7}],backgroundColor:'rgba(4,196,138,.65)',borderColor:'#04c48a',borderWidth:1.5}]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:1400},scales:{x:{title:{display:true,text:'Disadvantaged Community Customer Share (%)',font:{size:10}},min:40,max:90,grid:{color:'#eef0f3'},ticks:{callback:function(v){return v+'%'},font:{size:10}}},y:{title:{display:true,text:'Total Dollars (Millions)',font:{size:10}},beginAtZero:true,grid:{color:'#eef0f3'},ticks:{callback:function(v){return'$'+v+'M'},font:{size:10}}}},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:function(ctx){var d=ctx.raw;return ctx.dataset.label+': $'+d.y+'M, '+d.x+'% Disadvantaged'}}}}}});
+
+/* intersection observer */
+var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;el.classList.add('visible');if(el.tagName==='CANVAS'&&pending[el.id]){new Chart(el,pending[el.id]);delete pending[el.id];scheduleDonutPositioning()}if(el.classList.contains('count-up')||el.tagName!=='CANVAS'&&el.classList.contains('big'))animateCount(el);animateBars(el);if(el.id==='skylineSection')animateSkyline()})},{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.fade-up,.fade-left,.fade-right,.stagger,.kpi,canvas,.count-up,.mid-banner,#skylineSection').forEach(function(el){obs.observe(el)});
+
+/* IMAGE ZOOM: observe visible parent containers, apply animation to child images */
+(function(){
+  var pairs=[];
+  // all section-level containers and their image children
+  document.querySelectorAll('.twin-img').forEach(function(el){var img=el.querySelector('img');if(img)pairs.push({watch:el,target:img})});
+  document.querySelectorAll('.accent-img').forEach(function(el){var img=el.querySelector('img');if(img)pairs.push({watch:el,target:img})});
+  document.querySelectorAll('.cinematic').forEach(function(el){var bg=el.querySelector('.cin-bg');if(bg)pairs.push({watch:el,target:bg})});
+  var mb=document.querySelector('.mid-banner-bg');if(mb)pairs.push({watch:mb.parentElement,target:mb});
+  // alternate zoom directions
+  pairs.forEach(function(p,i){p._cls=i%2===0?'vis-zoom-out':'vis-zoom-in'});
+  var zObs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(!e.isIntersecting)return;pairs.forEach(function(p){if(p.watch===e.target&&!p._done){p._done=true;p.target.classList.add(p._cls)}})})},{threshold:0.02});
+  pairs.forEach(function(p){zObs.observe(p.watch)});
+})();
+
+/* secondary observers */
+var skyObs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)animateSkyline()})},{threshold:.15});
+var waffleObs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)animateWaffle()})},{threshold:.1});
+var gaugeObs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)animateGauges()})},{threshold:.1});
+var outageObs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)animateOutage()})},{threshold:.15});
+var peopleObs=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)animatePeople()})},{threshold:.1});
+var skyEl=document.getElementById('skylineSection'),waffleEl=document.getElementById('waffleEV'),gaugeEl=document.getElementById('gaugeRow'),outageEl=document.getElementById('outageViz'),peopleEl=document.getElementById('peopleGrid');
+if(skyEl)skyObs.observe(skyEl);
+if(waffleEl)waffleObs.observe(waffleEl.parentElement);
+if(gaugeEl)gaugeObs.observe(gaugeEl.parentElement);
+if(outageEl)outageObs.observe(outageEl);
+if(peopleEl)peopleObs.observe(peopleEl);
+
+/* bar fallback */
+window.addEventListener('scroll',function(){document.querySelectorAll('.bar-fill[data-w],.split-fill[data-w]').forEach(function(b){if(b._a)return;if(b.getBoundingClientRect().top<window.innerHeight){b._a=true;setTimeout(function(){b.style.width=b.dataset.w+'%'},120)}})},{passive:true});
+setTimeout(function(){document.querySelectorAll('.bar-fill[data-w],.split-fill[data-w]').forEach(function(b){if(b._a)return;if(b.getBoundingClientRect().top<window.innerHeight){b._a=true;b.style.width=b.dataset.w+'%'}})},400);
+window.addEventListener('resize',function(){setTimeout(positionDonutLabels,200);setTimeout(positionDonutLabels,600)});
+</script>
+</body>
+</html>
