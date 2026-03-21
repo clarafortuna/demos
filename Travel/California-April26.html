@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team Mad Kids · Ultimate Roadtrip 2026</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+:root{--bg:#fff;--bg2:#f5f7fa;--teal:#175e6b;--td:#124a55;--amber:#e8a525;--cyan:#4bc5c9;--purple:#6d5acd;--blue:#2a7fff;--tx:#1a2332;--dm:#6b7a8d;--bd:#e2e7ee;--sh:0 2px 10px rgba(0,0,0,.05);--sh2:0 8px 28px rgba(0,0,0,.08);--r:18px}
+*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:var(--bg);color:var(--tx);-webkit-font-smoothing:antialiased}
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:.5rem 1rem;display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--bd)}.nav b{font-size:.85rem;color:var(--teal);font-weight:800}.nav span{font-size:.5rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--teal);background:rgba(75,197,201,.1);padding:.13rem .4rem;border-radius:5px;margin-left:.35rem}.nav a{font-size:.6rem;color:var(--teal);text-decoration:none;font-weight:700}
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.hero-img{position:absolute;inset:0;background:url('https://images.pexels.com/photos/3264723/pexels-photo-3264723.jpeg?auto=compress&cs=tinysrgb&w=1400&fit=crop') center/cover no-repeat;opacity:.28}.hero-grad{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(255,255,255,.5),rgba(255,255,255,.95) 70%,#fff)}.hero-bg{position:absolute;inset:0;pointer-events:none}.hero-bg div{position:absolute;border-radius:50%;filter:blur(80px);opacity:.22}.o1{width:380px;height:380px;background:var(--cyan);top:-10%;left:-6%;animation:fl 14s ease-in-out infinite}.o2{width:300px;height:300px;background:var(--amber);bottom:-6%;right:-4%;animation:fl 17s ease-in-out infinite reverse}@keyframes fl{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-15px)}}.hero::after{content:'';position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(to top,#fff,transparent)}
+.hc{position:relative;text-align:center;padding:5rem 1.2rem 3rem;z-index:2}.hc>*{opacity:0;transform:translateY(16px);animation:fu .5s forwards}.hc>:nth-child(1){animation-delay:.1s}.hc>:nth-child(2){animation-delay:.18s}.hc>:nth-child(3){animation-delay:.28s}.hc>:nth-child(4){animation-delay:.38s}.hc>:nth-child(5){animation-delay:.48s}.hc>:nth-child(6){animation-delay:.58s}@keyframes fu{to{opacity:1;transform:none}}
+.htag{font-weight:700;font-size:.58rem;letter-spacing:4px;text-transform:uppercase;color:var(--teal);margin-bottom:.5rem}.hero h1{font-size:clamp(2.4rem,9vw,5rem);font-weight:800;line-height:1.06;color:var(--td);letter-spacing:-.02em;margin-bottom:.4rem}.hero h1 em{font-style:normal;background:linear-gradient(135deg,var(--amber),#f0bc4a);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.hsub{font-size:clamp(.8rem,2vw,.95rem);color:var(--dm);margin-bottom:1.5rem}
+.hstats{display:flex;gap:.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem}.st{text-align:center;background:rgba(255,255,255,.85);border:1px solid var(--bd);border-radius:11px;padding:.42rem .65rem;min-width:60px;box-shadow:var(--sh)}.st b{display:block;font-size:clamp(1.2rem,3.5vw,1.6rem);font-weight:800;color:var(--teal)}.st small{font-size:.46rem;text-transform:uppercase;letter-spacing:2px;color:var(--dm);font-weight:700}
+.hbtn{display:inline-flex;align-items:center;gap:.3rem;padding:.5rem 1.3rem;border-radius:40px;background:var(--teal);color:#fff;font-weight:700;font-size:.65rem;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border:0;box-shadow:0 4px 14px rgba(23,94,107,.25);transition:all .3s}.hbtn:hover{background:var(--td);transform:translateY(-2px)}
+.sec-t{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:800;text-align:center;color:var(--td)}.sec-d{width:36px;height:3px;background:linear-gradient(90deg,var(--amber),var(--cyan));margin:.4rem auto .5rem;border-radius:3px}.sec-s{text-align:center;color:var(--dm);margin-bottom:1.5rem;font-size:.78rem}
+.ms{padding:2.8rem 1rem 2.2rem;background:var(--td);color:#fff}.ms .sec-t{color:#fff}.ms .sec-s{color:rgba(255,255,255,.55)}.ms .sec-d{background:linear-gradient(90deg,var(--amber),var(--cyan))}.mc{background:#fff;border-radius:var(--r);border:2px solid rgba(255,255,255,.2);box-shadow:0 0 0 1px rgba(255,255,255,.08),0 12px 36px rgba(0,0,0,.25);outline:4px solid rgba(75,197,201,.12);outline-offset:3px}.mtt{background:rgba(18,74,85,.95);border:1px solid rgba(255,255,255,.15);color:#fff;box-shadow:0 8px 24px rgba(0,0,0,.3)}.mtt strong{color:var(--cyan)}.ml{background:var(--cyan);color:var(--td);box-shadow:0 3px 12px rgba(75,197,201,.3)}.ml:hover{background:#6dd8db;transform:translateY(-2px)}.mw{max-width:800px;margin:0 auto}.mc{background:#fff;border-radius:var(--r);border:1px solid rgba(255,255,255,.15);box-shadow:0 12px 36px rgba(0,0,0,.25);outline:2px solid rgba(75,197,201,.1);outline-offset:2px;position:relative;overflow:hidden}.mi{position:relative;width:100%;padding-bottom:100%}.mi canvas{position:absolute;inset:0;width:100%;height:100%}.mtt{position:absolute;background:rgba(255,255,255,.97);border:1px solid var(--bd);border-radius:9px;padding:.35rem .6rem;pointer-events:none;opacity:0;transition:opacity .2s;z-index:10;max-width:180px;font-size:.66rem;line-height:1.3;box-shadow:var(--sh2)}.mtt.show{opacity:1}.mtt strong{display:block;color:var(--teal);font-size:.7rem}
+.mleg{display:flex;justify-content:center;gap:.7rem;flex-wrap:wrap;margin-top:.75rem;font-size:.58rem;color:#fff;font-weight:700}.mleg i{display:flex;align-items:center;gap:.22rem;font-style:normal}.mleg i::before{content:'';width:7px;height:7px;border-radius:50%}.l1::before{background:var(--amber)}.l2::before{background:var(--purple)}.l3::before{background:var(--blue)}.l4::before{background:#e8567d}
+.ml{display:block;text-align:center;margin:.75rem auto 0;padding:.48rem 1rem;background:var(--teal);color:#fff;font-weight:700;font-size:.62rem;border-radius:40px;text-decoration:none;letter-spacing:.8px;text-transform:uppercase;max-width:250px;transition:all .3s;box-shadow:0 3px 12px rgba(23,94,107,.2)}.ml:hover{background:var(--td);transform:translateY(-2px)}
+.replay-inner{position:absolute;bottom:10px;right:10px;z-index:5;padding:.3rem .7rem;border-radius:8px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);border:1px solid rgba(0,0,0,.08);color:var(--td);font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:.56rem;font-weight:700;letter-spacing:.5px;cursor:pointer;transition:all .3s;box-shadow:0 2px 8px rgba(0,0,0,.1)}.replay-inner:hover{background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.15)}
+.itin{padding:2.2rem 1rem 1.2rem;max-width:880px;margin:0 auto}.bb{margin-bottom:2.2rem;opacity:0;transform:translateY(24px);transition:all .7s}.bb.v{opacity:1;transform:none}.bb.v .dc{opacity:1;transform:none}.bb .dc{opacity:0;transform:translateY(16px);transition:opacity .5s,transform .5s,box-shadow .3s,border-color .3s}.bb.v .dc:nth-child(3){transition-delay:.06s}.bb.v .dc:nth-child(4){transition-delay:.12s}.bb.v .dc:nth-child(5){transition-delay:.18s}
+.bh{display:flex;align-items:center;gap:.6rem;margin-bottom:.2rem;flex-wrap:wrap}.bic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:.95rem;font-weight:800;letter-spacing:.5px;color:#fff;text-transform:uppercase}.btxt{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}.bname{font-size:clamp(.95rem,2.8vw,1.2rem);font-weight:800;color:#999;line-height:1}.bname em{font-style:normal;color:#222;font-weight:800}.bnote{font-size:.65rem;color:var(--dm);font-weight:700;background:var(--bg2);border:1px solid var(--bd);padding:.18rem .55rem;border-radius:10px;display:inline-flex;align-items:center}.bdesc{color:var(--dm);font-size:.74rem;line-height:1.55;margin-bottom:.7rem;padding-left:calc(36px + .6rem);max-width:620px}
+.dc{background:#fff;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin-bottom:.8rem;cursor:pointer;transition:all .4s cubic-bezier(.25,.46,.45,.94);-webkit-tap-highlight-color:transparent}.dc:hover{box-shadow:0 12px 36px rgba(0,0,0,.1);transform:translateY(-3px)}.dc.a{border-color:var(--teal);box-shadow:0 12px 40px rgba(23,94,107,.12);transform:translateY(-2px)}
+.cv{position:relative;overflow:hidden;flex-shrink:0;background:var(--bg2)}.cv img{width:100%;height:200px;object-fit:cover;display:block;transition:transform .7s cubic-bezier(.25,.46,.45,.94),filter .5s}.dc:hover .cv img,.dc.a .cv img{transform:scale(1.06);filter:brightness(1.05)}.cv::after{content:'';position:absolute;bottom:0;left:0;right:0;height:60%;background:linear-gradient(to top,rgba(0,0,0,.45),transparent);pointer-events:none}.cv .cl{position:absolute;bottom:8px;left:10px;z-index:2;font-size:.58rem;font-weight:700;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);letter-spacing:.4px;transition:transform .4s}.dc:hover .cv .cl{transform:translateY(-2px)}
+.db{padding:.8rem 1rem}.dh{display:flex;align-items:center;gap:.35rem;margin-bottom:.15rem;flex-wrap:wrap}.bdg{font-weight:700;font-size:.48rem;padding:.12rem .4rem;border-radius:11px;letter-spacing:.7px;text-transform:uppercase;color:#fff}.ddt{color:var(--dm);font-size:.64rem;font-weight:500}.dt{font-size:clamp(.88rem,2.4vw,1.02rem);font-weight:800;color:#999;margin-bottom:.12rem;letter-spacing:-.01em}.dt em{font-style:normal;color:#222;font-weight:800}.dd{color:var(--dm);line-height:1.5;font-size:.73rem}
+.tgs{margin-top:.2rem}.tg{display:inline-block;font-size:.48rem;padding:.1rem .32rem;border-radius:5px;font-weight:700;margin-right:.08rem}.tp{background:rgba(75,197,201,.1);color:var(--teal)}.tc{background:rgba(42,127,255,.07);color:var(--blue)}.tf{background:rgba(232,165,37,.1);color:#996d10}.ts{background:rgba(109,90,205,.07);color:var(--purple)}.te{background:rgba(200,50,50,.06);color:#b03a3a}
+.eh{display:inline-block;color:var(--teal);font-size:.6rem;font-weight:700;margin-top:.15rem}.dc.a .eh{display:none}.det{max-height:0;overflow:hidden;transition:max-height .4s ease}.dc.a .det{max-height:400px;margin-top:.3rem}.dg{display:grid;grid-template-columns:1fr;gap:.22rem;padding-top:.35rem;border-top:1px solid var(--bd)}.di{display:flex;gap:.35rem;padding:.2rem .3rem;border-radius:6px;transition:background .15s}.di:hover{background:var(--bg2)}.dii{font-size:.82rem;flex-shrink:0;margin-top:1px}.dit{font-size:.68rem;color:var(--dm);line-height:1.3}.dit strong{color:var(--tx);display:block;font-weight:700}
+.ww{position:relative}.ww::before{content:'';position:absolute;inset:-2px;border-radius:calc(var(--r) + 2px);background:linear-gradient(135deg,var(--purple),var(--cyan));opacity:.12;pointer-events:none}.ww .dc{position:relative;z-index:1;border-color:rgba(109,90,205,.25)}.ww .dc:hover,.ww .dc.a{border-color:rgba(109,90,205,.4);box-shadow:0 6px 24px rgba(109,90,205,.12)}.wf{display:inline-flex;align-items:center;gap:.15rem;background:linear-gradient(135deg,var(--purple),#8b7ae0);color:#fff;font-size:.48rem;font-weight:700;padding:.12rem .42rem;border-radius:10px}.gf{position:absolute;top:5px;right:7px;font-size:1.1rem;z-index:3;animation:gfl 3s ease-in-out infinite;pointer-events:none}@keyframes gfl{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
+.info{padding:2.2rem 1rem;background:var(--td);color:#fff}.info .sec-t{color:#fff}.info .sec-s{color:rgba(255,255,255,.55)}.info .sec-d{background:linear-gradient(90deg,var(--amber),var(--cyan))}.ig{display:grid;grid-template-columns:1fr;gap:.7rem;max-width:880px;margin:.7rem auto 0}.ic{background:#fff;border:1px solid var(--bd);border-radius:13px;padding:.8rem;box-shadow:var(--sh);transition:all .3s}.ic:hover{transform:translateY(-2px);box-shadow:var(--sh2)}.ic h3{font-size:.82rem;font-weight:800;color:var(--td);margin-bottom:.2rem}.ic ul{list-style:none;color:var(--dm);font-size:.68rem;line-height:1.75;font-weight:500}.ic li::before{content:'→ ';color:var(--teal);font-weight:800}
+footer{text-align:center;padding:1.4rem 1rem;border-top:1px solid var(--bd)}footer p{color:var(--dm);font-size:.55rem}footer a{color:var(--teal);text-decoration:none;font-weight:700;font-size:.64rem}
+.rv{opacity:0;transform:translateY(16px);transition:all .55s}.rv.v{opacity:1;transform:none}.rv1{transition-delay:.06s}.rv2{transition-delay:.12s}.rv3{transition-delay:.18s}
+@media(min-width:640px){.dg{grid-template-columns:1fr 1fr}.ig{grid-template-columns:repeat(3,1fr)}.dc{display:grid;grid-template-columns:240px 1fr}.cv,.cv img{height:100%;min-height:200px}.mi{padding-bottom:80%}}@media(min-width:900px){.mi{padding-bottom:66%}.dc{grid-template-columns:280px 1fr}}
+</style>
+</head>
+<body>
+<nav class="nav"><div><b>Clara Fortuna</b><span>Trip Planner</span></div><a href="https://clarafortuna.com" target="_blank">clarafortuna.com</a></nav>
+<section class="hero"><div class="hero-img"></div><div class="hero-grad"></div><div class="hero-bg"><div class="o1"></div><div class="o2"></div></div><div class="hc">
+<div class="htag">Team Mad Kids · Ultimate Roadtrip</div><h1><em>California</em><br>Getaway 2026</h1><div class="hsub">April 4 – 12 | Anaheim | Central Coast | San Francisco | Scenic Return</div>
+<div class="hstats"><div class="st"><b>9</b><small>Days</small></div><div class="st"><b>~1,500</b><small>Miles</small></div><div class="st"><b>3</b><small>Bases</small></div><div class="st"><b>4</b><small>Parks</small></div></div>
+<button class="hbtn" onclick="document.querySelector('.ms').scrollIntoView({behavior:'smooth'})">↓ Explore the Route</button>
+</div></section>
+
+<section class="ms rv"><div class="sec-t">The Route</div><div class="sec-d"></div><p class="sec-s">A 9-day loop through Southern California deserts, giant sequoia forests, the iconic Pacific Coast Highway, and San Francisco, all from just 3 home bases</p>
+<div class="mw"><div class="mc"><div class="mi"><canvas id="rMap"></canvas></div><div class="mtt" id="tt"></div><button class="replay-inner" id="replayBtn">&#9654; Replay</button></div>
+<div class="mleg"><i class="l1">Base 1 · Anaheim · Days 1–2</i><i class="l2">Base 2 · Central Coast · Days 3–5</i><i class="l3">Base 3 · SF · Days 6–8</i><i class="l4">Home · Day 9</i></div>
+<a class="ml" href="https://www.google.com/maps/dir/Carlsbad,+CA/Disneyland+Park,+Anaheim,+CA/Joshua+Tree+National+Park/Sequoia+National+Park,+CA/Hearst+Castle,+San+Simeon,+CA/Big+Sur,+CA/Monterey+Bay+Aquarium/Winchester+Mystery+House,+San+Jose,+CA/San+Francisco,+CA/Pinnacles+National+Park/Morro+Bay,+CA/Solvang,+CA/Carlsbad,+CA" target="_blank">Open in Google Maps ↗</a>
+</div></section>
+
+<section class="itin"><div class="sec-t rv">The Itinerary</div><div class="sec-d rv"></div><p class="sec-s rv">Tap each day for details</p>
+
+<div class="bb" id="base1"><div class="bh"><div class="bic" style="background:var(--amber)">01</div><div class="btxt"><span class="bname">Where It All Begins : <em>Anaheim</em></span><span class="bnote">2 nights · Apr 4–5</span></div></div>
+<p class="bdesc"></p>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://images.pexels.com/photos/19167420/pexels-photo-19167420.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Sleeping Beauty Castle Disneyland"><span class="cl">Disneyland · Anaheim</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--amber)">Day 1</span><span class="ddt">Sat, Apr 4</span></div><div class="dt">The Magical Kickoff : <em>Disneyland</em></div><div class="dd">Short drive from Carlsbad to the Happiest Place on Earth. Full day of rides, parades &amp; fireworks.</div><div class="tgs"><span class="tg tf">Theme Park</span><span class="tg tc">Anaheim</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🚗</span><div class="dit"><strong>Drive</strong>Carlsbad → Anaheim · ~55 mi, 1 hr</div></div><div class="di"><span class="dii">🏰</span><div class="dit"><strong>Disneyland Park</strong>Full day — rides, shows &amp; fireworks</div></div><div class="di"><span class="dii">🌙</span><div class="dit"><strong>Stay</strong>Anaheim Airbnb (Night 1 of 2)</div></div><div class="di"><span class="dii">💡</span><div class="dit"><strong>Tip</strong>Book Lightning Lane in advance</div></div></div></div></div></div>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://images.pexels.com/photos/20181146/pexels-photo-20181146.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Skull Rock Joshua Tree NP"><span class="cl">Joshua Tree National Park</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--amber)">Day 2</span><span class="ddt">Sun, Apr 5</span></div><div class="dt">Desert Wonderland : <em>Joshua Tree</em></div><div class="dd">Day trip into surreal rock formations, Skull Rock, Cholla Cactus Garden &amp; a desert sunset.</div><div class="tgs"><span class="tg tp">National Park</span><span class="tg ts">Desert</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🚗</span><div class="dit"><strong>Day Trip</strong>Anaheim ↔ Joshua Tree · ~260 mi RT</div></div><div class="di"><span class="dii">🪨</span><div class="dit"><strong>Skull Rock</strong>Iconic boulder formation</div></div><div class="di"><span class="dii">🌵</span><div class="dit"><strong>Cholla Cactus Garden</strong>Surreal "teddy bear" cacti</div></div><div class="di"><span class="dii">🌅</span><div class="dit"><strong>Keys View</strong>Sunset over Coachella Valley</div></div></div></div></div></div></div>
+
+<div class="bb" id="base2"><div class="bh"><div class="bic" style="background:var(--purple)">02</div><div class="btxt"><span class="bname">Where Giants Meet the Sea : <em>Central Coast</em></span><span class="bnote">3 nights · Apr 6–8</span></div></div>
+<p class="bdesc"></p>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://images.pexels.com/photos/10693844/pexels-photo-10693844.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Giant sequoia Sequoia NP"><span class="cl">Sequoia National Park</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--purple)">Day 3</span><span class="ddt">Mon, Apr 6</span></div><div class="dt">Among Giants : <em>Sequoia &amp; Kings Canyon</em></div><div class="dd">Sierra foothills to the world's largest trees, then west to coastal Cambria.</div><div class="tgs"><span class="tg tp">National Park</span><span class="tg tp">National Park</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🚗</span><div class="dit"><strong>Drive</strong>Anaheim → Sequoia · ~230 mi, 4 hr</div></div><div class="di"><span class="dii">🌲</span><div class="dit"><strong>General Sherman</strong>Largest tree on Earth</div></div><div class="di"><span class="dii">🏔️</span><div class="dit"><strong>Kings Canyon</strong>Deepest canyon in N. America</div></div><div class="di"><span class="dii">🌙</span><div class="dit"><strong>Stay</strong>Cambria Airbnb · Night 1 of 3</div></div></div></div></div></div>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://images.pexels.com/photos/4340823/pexels-photo-4340823.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Bixby Bridge Big Sur"><span class="cl">Bixby Bridge · Big Sur</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--purple)">Day 4</span><span class="ddt">Tue, Apr 7</span></div><div class="dt">Castle &amp; Cliffs : <em>Hearst Castle &amp; Big Sur</em></div><div class="dd">Morning at Hearst Castle, then Highway 1 — Bixby Bridge, McWay Falls, dramatic cliffs.</div><div class="tgs"><span class="tg tf">Landmark</span><span class="tg ts">Pacific Coast</span><span class="tg ts">Big Sur</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🏛️</span><div class="dit"><strong>Hearst Castle</strong>9 AM–4 PM · Grand Rooms tour</div></div><div class="di"><span class="dii">🌉</span><div class="dit"><strong>Bixby Bridge</strong>Most photographed bridge in CA</div></div><div class="di"><span class="dii">🌊</span><div class="dit"><strong>McWay Falls</strong>80-ft waterfall onto beach</div></div><div class="di"><span class="dii">🌙</span><div class="dit"><strong>Stay</strong>Cambria Airbnb · Night 2</div></div></div></div></div></div>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://images.pexels.com/photos/3616252/pexels-photo-3616252.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Jellyfish Monterey Aquarium"><span class="cl">Monterey Bay Aquarium</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--purple)">Day 5</span><span class="ddt">Wed, Apr 8</span></div><div class="dt">Ocean Wonders : <em>Monterey</em></div><div class="dd">Must-be-in-Monterey day! Aquarium, sea otters at Point Lobos, Cannery Row seafood.</div><div class="tgs"><span class="tg tc">Monterey</span><span class="tg tf">Aquarium</span><span class="tg ts">Coastal</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🚗</span><div class="dit"><strong>Day Trip</strong>Cambria ↔ Monterey · ~180 mi RT</div></div><div class="di"><span class="dii">🐙</span><div class="dit"><strong>Monterey Aquarium</strong>10 AM–5 PM · Otters &amp; jellyfish</div></div><div class="di"><span class="dii">🦦</span><div class="dit"><strong>Point Lobos</strong>"Crown jewel" of state parks</div></div><div class="di"><span class="dii">🦐</span><div class="dit"><strong>Cannery Row</strong>Waterfront dining</div></div></div></div></div></div></div>
+
+<div class="bb" id="base3"><div class="bh"><div class="bic" style="background:var(--blue)">03</div><div class="btxt"><span class="bname">The City by the Bay : <em>San Francisco</em></span><span class="bnote">3 nights · Apr 9–11</span></div></div>
+<p class="bdesc"></p>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://images.pexels.com/photos/1784583/pexels-photo-1784583.jpeg?auto=compress&cs=tinysrgb&w=600&h=400&fit=crop" alt="Golden Gate Bridge SF"><span class="cl">Golden Gate Bridge · San Francisco</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--blue)">Day 6</span><span class="ddt">Thu, Apr 9</span></div><div class="dt">Into the City : <em>San Francisco</em></div><div class="dd">Morning on 17-Mile Drive, then north to SF. Walk the Golden Gate at sunset.</div><div class="tgs"><span class="tg ts">17-Mile Drive</span><span class="tg tc">San Francisco</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🚗</span><div class="dit"><strong>Drive</strong>Cambria → 17-Mile → SF · ~250 mi</div></div><div class="di"><span class="dii">🌊</span><div class="dit"><strong>17-Mile Drive</strong>Lone Cypress, Pebble Beach</div></div><div class="di"><span class="dii">🌁</span><div class="dit"><strong>Golden Gate</strong>Walk the iconic span at sunset</div></div><div class="di"><span class="dii">🦀</span><div class="dit"><strong>Fisherman's Wharf</strong>Chowder &amp; sea lions</div></div></div></div></div></div>
+<div class="ww"><div class="gf">👻</div><div class="dc" onclick="T(this)"><div class="cv"><img src="https://cdn.pixabay.com/photo/2021/04/24/05/08/winchester-mystery-house-6203274_640.jpg" alt="Winchester Mystery House at night San Jose" style="filter:brightness(.92) saturate(1.1)"><span class="cl">Winchester Mystery House · San Jose</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--blue)">Day 7</span><span class="wf">✦ Featured</span><span class="ddt">Fri, Apr 10</span></div><div class="dt">Doors to Nowhere : <em>Winchester Mystery House</em></div><div class="dd">Morning at the infamous Winchester Mystery House, 160 rooms of staircases to nowhere &amp; Victorian madness. Afternoon: cable cars, Mission burritos &amp; Twin Peaks sunset.</div><div class="tgs"><span class="tg ts">Haunted</span><span class="tg tf">Must-See</span><span class="tg tc">San Francisco</span><span class="tg te">Foodie</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">👻</span><div class="dit"><strong>Winchester House</strong>San Jose · 160 rooms of madness</div></div><div class="di"><span class="dii">🚋</span><div class="dit"><strong>Cable Cars</strong>Powell-Hyde line views</div></div><div class="di"><span class="dii">🌮</span><div class="dit"><strong>Mission District</strong>Best burritos &amp; murals</div></div><div class="di"><span class="dii">🌇</span><div class="dit"><strong>Twin Peaks</strong>360° sunset panorama</div></div></div></div></div></div></div>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://cdn.pixabay.com/photo/2019/10/29/15/39/pinnacles-national-park-4587067_640.jpg" alt="Pinnacles National Park rock spires California"><span class="cl">Pinnacles National Park</span></div><div class="db"><div class="dh"><span class="bdg" style="background:var(--blue)">Day 8</span><span class="ddt">Sat, Apr 11</span></div><div class="dt">Volcanic Spires : <em>Pinnacles National Park</em></div><div class="dd">Day trip to volcanic spires, talus caves &amp; California condors. Farewell dinner in SF.</div><div class="tgs"><span class="tg tp">National Park</span><span class="tg ts">Hiking</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🚗</span><div class="dit"><strong>Day Trip</strong>SF ↔ Pinnacles · ~250 mi RT</div></div><div class="di"><span class="dii">🦅</span><div class="dit"><strong>Pinnacles NP</strong>Talus caves &amp; condors</div></div><div class="di"><span class="dii">🧗</span><div class="dit"><strong>High Peaks Trail</strong>Volcanic formations</div></div><div class="di"><span class="dii">🌙</span><div class="dit"><strong>Evening</strong>Last SF dinner!</div></div></div></div></div></div></div>
+
+<div class="bb" id="home"><div class="bh"><div class="bic" style="background:#e8567d">→</div><div class="btxt"><span class="bname">The Final Stretch : <em>Home</em></span><span class="bnote">Sun, Apr 12</span></div></div>
+<p class="bdesc"></p>
+<div class="dc" onclick="T(this)"><div class="cv"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Solvang_California.jpg/640px-Solvang_California.jpg" alt="Solvang Danish Village"><span class="cl">Solvang · Danish Village</span></div><div class="db"><div class="dh"><span class="bdg" style="background:#e8567d;color:#fff">Day 9</span><span class="ddt">Sun, Apr 12</span></div><div class="dt">The Scenic Homestretch : <em>Morro Bay, Solvang &amp; Home</em></div><div class="dd">Scenic 101 south with fish tacos in Morro Bay, Danish pastries in Solvang, then home to Carlsbad.</div><div class="tgs"><span class="tg ts">Coastal Drive</span><span class="tg te">Foodie Stops</span><span class="tg tc">Solvang</span></div><span class="eh">Tap for details ↓</span><div class="det"><div class="dg"><div class="di"><span class="dii">🪨</span><div class="dit"><strong>Morro Rock</strong>576-ft volcanic plug</div></div><div class="di"><span class="dii">🥐</span><div class="dit"><strong>Solvang</strong>Danish aebleskiver &amp; windmills</div></div><div class="di"><span class="dii">🌴</span><div class="dit"><strong>Santa Barbara</strong>Optional lunch stop</div></div><div class="di"><span class="dii">🏠</span><div class="dit"><strong>Carlsbad</strong>Home · ~350 mi total</div></div></div></div></div></div></div>
+</section>
+
+<section class="info"><div class="sec-t rv">Trip Essentials</div><div class="sec-d rv"></div><div class="ig">
+<div class="ic rv rv1"><h3>🎒 Pack List</h3><ul><li>Hiking shoes &amp; layers for all ages</li><li>Sunscreen, hats &amp; sunglasses</li><li>Refillable water bottles &amp; snacks</li><li>Camera / binoculars</li><li>Light rain jackets (kids too!)</li><li>Car games, tablets &amp; headphones</li><li>Stroller or carrier for little ones</li></ul></div>
+<div class="ic rv rv2"><h3>🎫 Book Ahead</h3><ul><li><a href="https://store.usgs.gov/pass/index.html" target="_blank" style="color:var(--teal)">America the Beautiful Pass ($80)</a></li><li><a href="https://disneyland.disney.go.com/tickets/" target="_blank" style="color:var(--teal)">Disneyland + Lightning Lane</a></li><li><a href="https://www.montereybayaquarium.org/visit/tickets" target="_blank" style="color:var(--teal)">Monterey Bay Aquarium</a></li><li><a href="https://www.parks.ca.gov/?page_id=29969" target="_blank" style="color:var(--teal)">Hearst Castle tour</a></li><li><a href="https://winchestermysteryhouse.com/" target="_blank" style="color:var(--teal)">Winchester Mystery House</a></li></ul></div>
+<div class="ic rv rv3"><h3>🍽️ Must-Try Eats</h3><ul><li><a href="https://disneyland.disney.go.com/dining/" target="_blank" style="color:var(--teal)">Dole Whip at Disneyland</a></li><li><a href="https://www.canneryrow.com/restaurants/" target="_blank" style="color:var(--teal)">Clam chowder, Cannery Row</a></li><li><a href="https://www.yelp.com/search?find_desc=burritos&find_loc=Mission+District%2C+San+Francisco%2C+CA" target="_blank" style="color:var(--teal)">Mission District burritos</a></li><li><a href="https://www.solvangusa.com/restaurants/" target="_blank" style="color:var(--teal)">Aebleskiver in Solvang</a></li><li><a href="https://www.yelp.com/search?find_desc=fish+tacos&find_loc=Morro+Bay%2C+CA" target="_blank" style="color:var(--teal)">Fish tacos in Morro Bay</a></li></ul></div></div></section>
+<footer><p>Team Mad Kids · California Getaway 2026</p><a href="https://clarafortuna.com" target="_blank">clarafortuna.com</a></footer>
+
+<script>
+function T(e){var a=e.classList.contains('a');document.querySelectorAll('.dc').forEach(function(c){c.classList.remove('a')});if(!a)e.classList.add('a')}
+new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.05}).observe.bind(new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.05}));
+var OB=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('v')})},{threshold:.05});
+document.querySelectorAll('.rv,.bb').forEach(function(e){OB.observe(e)});
+
+// === MAP ===
+var canvas=document.getElementById('rMap');
+var ctx=canvas.getContext('2d');
+var tooltip=document.getElementById('tt');
+var dpr=window.devicePixelRatio||1;
+var W=0,H=0;
+var BOUNDS={latMin:31.8,latMax:39.5,lngMin:-124.5,lngMax:-114.0};
+
+var STOPS=[
+{n:'Carlsbad',lat:33.158,lng:-117.35,col:'#1a7a6d',rad:5,ring:1,ox:0,oy:18,sec:'base1'},
+{n:'Disneyland',lat:33.812,lng:-117.919,col:'#e8a525',rad:6,ring:1,ox:-8,oy:-12,sec:'base1'},
+{n:'Joshua Tree',lat:33.873,lng:-115.901,col:'#e8a525',rad:5,ox:8,oy:-6,sec:'base1'},
+{n:'Sequoia',lat:36.486,lng:-118.566,col:'#6d5acd',rad:5,ox:8,oy:4,sec:'base2'},
+{n:'Cambria',lat:35.563,lng:-121.08,col:'#6d5acd',rad:7,ring:1,ox:10,oy:20,sec:'base2'},
+{n:'Hearst Castle',lat:35.685,lng:-121.17,col:'#6d5acd',rad:5,ox:-10,oy:-14,sec:'base2'},
+{n:'Big Sur',lat:36.27,lng:-121.808,col:'#6d5acd',rad:4,ox:-10,oy:-32,sec:'base2'},
+{n:'Monterey',lat:36.618,lng:-121.902,col:'#6d5acd',rad:5,ox:-10,oy:-20,sec:'base2'},
+{n:'17-Mile',lat:36.573,lng:-121.949,col:'#2a7fff',rad:4,ox:-10,oy:20,sec:'base3'},
+{n:'San Francisco',lat:37.78,lng:-122.42,col:'#2a7fff',rad:8,ring:1,ox:8,oy:-8,sec:'base3'},
+{n:'Winchester',lat:37.318,lng:-121.951,col:'#2a7fff',rad:7,ring:1,feat:1,ox:8,oy:4,sec:'base3'},
+{n:'Pinnacles',lat:36.491,lng:-121.182,col:'#2a7fff',rad:5,ox:8,oy:-8,sec:'base3'},
+{n:'Morro Bay',lat:35.366,lng:-120.85,col:'#e8567d',rad:4,ox:10,oy:18,sec:'home'},
+{n:'Solvang',lat:34.596,lng:-120.138,col:'#e8567d',rad:4,ox:8,oy:-8,sec:'home'}
+];
+
+var SEGS=[
+{a:0,b:1,col:'#e8a525'},{a:1,b:2,col:'#e8a525'},
+{a:2,b:3,col:'#6d5acd'},{a:3,b:4,col:'#6d5acd'},{a:4,b:5,col:'#6d5acd'},{a:5,b:6,col:'#6d5acd'},{a:6,b:7,col:'#6d5acd'},
+{a:7,b:8,col:'#2a7fff'},{a:8,b:9,col:'#2a7fff'},{a:9,b:10,col:'#2a7fff'},{a:10,b:11,col:'#2a7fff'},
+{a:11,b:12,col:'#e8567d'},{a:12,b:13,col:'#e8567d'},{a:13,b:0,col:'#e8567d'}
+];
+
+var COAST=[[42,-124.2],[41.5,-124.1],[40.4,-124.4],[39.8,-123.8],[38.9,-123.6],[38.3,-123.1],[37.8,-122.5],[37.6,-122.5],[37.1,-122.4],[36.95,-122],[36.6,-121.9],[36.2,-121.8],[35.7,-121.3],[35.4,-120.9],[35,-120.6],[34.7,-120.6],[34.45,-120],[34,-118.6],[33.75,-118.3],[33.5,-117.8],[33.2,-117.4],[32.8,-117.25],[32.55,-117.1]];
+
+var animProg=0, animGo=false, animT0=0, ANIM_MS=10000;
+var pathPts=[];
+
+function geo2px(lat,lng){
+  return{
+    x:((lng-BOUNDS.lngMin)/(BOUNDS.lngMax-BOUNDS.lngMin))*W,
+    y:((BOUNDS.latMax-lat)/(BOUNDS.latMax-BOUNDS.latMin))*H
+  };
+}
+
+function buildPath(){
+  pathPts=[];
+  var order=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,0];
+  for(var i=0;i<order.length;i++){
+    var s=STOPS[order[i]], p=geo2px(s.lat,s.lng);
+    pathPts.push({x:p.x,y:p.y});
+  }
+}
+
+function lerp(t){
+  var n=pathPts.length-1;
+  var seg=Math.min(Math.floor(t*n),n-1);
+  var frac=t*n-seg;
+  return{x:pathPts[seg].x+(pathPts[seg+1].x-pathPts[seg].x)*frac, y:pathPts[seg].y+(pathPts[seg+1].y-pathPts[seg].y)*frac, seg:seg};
+}
+
+function resize(){
+  var rect=canvas.parentElement.getBoundingClientRect();
+  W=rect.width; H=rect.height;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  buildPath(); draw();
+}
+
+function draw(){
+  var c=ctx;
+  c.clearRect(0,0,W,H);
+  c.fillStyle='#eef3f8'; c.fillRect(0,0,W,H);
+
+  // Ocean
+  c.beginPath(); COAST.forEach(function(p,i){var q=geo2px(p[0],p[1]);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});
+  c.lineTo(0,H);c.lineTo(0,0);c.closePath();c.fillStyle='rgba(59,130,200,.06)';c.fill();
+  // Land
+  c.beginPath(); COAST.forEach(function(p,i){var q=geo2px(p[0],p[1]);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});
+  c.lineTo(W,0);c.lineTo(W,H);c.closePath();c.fillStyle='#f0f4ee';c.fill();
+  // Sierra
+  var SR=[[38,-119.8],[37.8,-119.5],[37.2,-118.8],[36.8,-118.6],[36.4,-118.5],[36,-118.6],[35.5,-118.2],[35,-118]];
+  c.beginPath();SR.forEach(function(p,i){var q=geo2px(p[0],p[1]);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.strokeStyle='rgba(23,94,107,.07)';c.lineWidth=16;c.lineCap='round';c.stroke();
+  c.beginPath();SR.forEach(function(p,i){var q=geo2px(p[0],p[1]);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.strokeStyle='rgba(23,94,107,.03)';c.lineWidth=36;c.stroke();c.lineCap='butt';
+  // Desert
+  var dp=geo2px(34,-116.5);c.beginPath();c.arc(dp.x,dp.y,W*.16,0,Math.PI*2);c.fillStyle='rgba(210,180,130,.05)';c.fill();
+  // Coastline
+  c.beginPath();COAST.forEach(function(p,i){var q=geo2px(p[0],p[1]);i?c.lineTo(q.x,q.y):c.moveTo(q.x,q.y)});c.strokeStyle='rgba(23,94,107,.16)';c.lineWidth=1.5;c.stroke();
+
+  // Route segments colored by base
+  SEGS.forEach(function(seg){
+    var pa=geo2px(STOPS[seg.a].lat,STOPS[seg.a].lng);
+    var pb=geo2px(STOPS[seg.b].lat,STOPS[seg.b].lng);
+    c.beginPath();c.moveTo(pa.x,pa.y);c.lineTo(pb.x,pb.y);c.strokeStyle=seg.col+'10';c.lineWidth=10;c.stroke();
+    c.beginPath();c.moveTo(pa.x,pa.y);c.lineTo(pb.x,pb.y);c.strokeStyle=seg.col+'45';c.lineWidth=2.5;c.setLineDash([9,5]);c.lineCap='round';c.stroke();c.setLineDash([]);c.lineCap='butt';
+  });
+
+  // Stop dots
+  var fontSize=Math.max(8,Math.min(11,W/58));
+  STOPS.forEach(function(s){
+    var p=geo2px(s.lat,s.lng);
+    var r=Math.max(3,Math.min(11,s.rad*(W/460)));
+    if(s.feat){c.beginPath();c.arc(p.x,p.y,r*3.2,0,Math.PI*2);c.fillStyle='rgba(109,90,205,.05)';c.fill();c.beginPath();c.arc(p.x,p.y,r*2.3,0,Math.PI*2);c.fillStyle='rgba(109,90,205,.09)';c.fill();}
+    c.beginPath();c.arc(p.x,p.y,r*1.8,0,Math.PI*2);c.fillStyle=s.col+'14';c.fill();
+    c.beginPath();c.arc(p.x,p.y,r,0,Math.PI*2);c.fillStyle=s.col+'30';c.fill();
+    c.beginPath();c.arc(p.x,p.y,r*.5,0,Math.PI*2);c.fillStyle=s.col;c.fill();
+    if(s.ring){c.beginPath();c.arc(p.x,p.y,r*1.4,0,Math.PI*2);c.strokeStyle=s.col+'45';c.lineWidth=s.feat?2.2:1.5;c.stroke();}
+    // Label
+    var tx=p.x+(s.ox<0?-(r*1.8+4):(r*1.8+4))+s.ox*0.5;
+    var ty=p.y+s.oy;
+    c.textAlign=s.ox<0?'right':'left';
+    c.font='700 '+fontSize+'px "Plus Jakarta Sans",system-ui';
+    c.fillStyle='#1a2e45';
+    c.fillText(s.n,tx,ty);
+  });
+
+  // === ANIMATED ARROW CURSOR ===
+  if(animProg>0){
+    var pr=Math.min(animProg,1);
+    var pt=lerp(pr);
+    // Colored trail
+    var totalSegs=pathPts.length-1;
+    var doneSeg=Math.floor(pr*totalSegs);
+    for(var j=0;j<=doneSeg&&j<totalSegs;j++){
+      var sc=SEGS[Math.min(j,SEGS.length-1)].col;
+      var pA=pathPts[j], pB=pathPts[j+1];
+      c.beginPath();
+      if(j<doneSeg){
+        c.moveTo(pA.x,pA.y);c.lineTo(pB.x,pB.y);
+      }else{
+        var frac=pr*totalSegs-j;
+        c.moveTo(pA.x,pA.y);c.lineTo(pA.x+(pB.x-pA.x)*frac, pA.y+(pB.y-pA.y)*frac);
+      }
+      c.strokeStyle=sc;c.lineWidth=3.5;c.lineCap='round';c.stroke();c.lineCap='butt';
+    }
+    // Direction
+    var pr2=Math.min(pr+0.006,1);
+    var pt2=lerp(pr2);
+    var angle=Math.atan2(pt2.y-pt.y, pt2.x-pt.x);
+    var sz=Math.max(5,Math.min(9,W/65));
+    // Draw directional arrow marker
+    c.save();
+    c.translate(pt.x, pt.y);
+    c.rotate(angle);
+    // White border
+    c.beginPath(); c.arc(0,0,sz+3,0,Math.PI*2); c.fillStyle='rgba(255,255,255,.9)'; c.fill();
+    // Teal fill
+    c.beginPath(); c.arc(0,0,sz+1,0,Math.PI*2); c.fillStyle='#175e6b'; c.fill();
+    // Arrow
+    c.beginPath();
+    c.moveTo(sz*0.55, 0);
+    c.lineTo(-sz*0.35, -sz*0.4);
+    c.lineTo(-sz*0.15, 0);
+    c.lineTo(-sz*0.35, sz*0.4);
+    c.closePath();
+    c.fillStyle='#ffffff'; c.fill();
+    c.restore();
+  }
+}
+
+function animFrame(ts){
+  if(!animT0) animT0=ts;
+  var elapsed=ts-animT0;
+  animProg=Math.min(elapsed/ANIM_MS,1);
+  animProg=1-Math.pow(1-animProg,2.2); // ease out
+  draw();
+  if(elapsed<ANIM_MS) requestAnimationFrame(animFrame);
+  else animGo=false;
+}
+
+function startAnim(){
+  if(animGo) return;
+  animGo=true; animT0=0; animProg=0;
+  requestAnimationFrame(animFrame);
+}
+
+// Auto-start when map visible
+var mapObs=new IntersectionObserver(function(entries){
+  entries.forEach(function(e){if(e.isIntersecting){startAnim();mapObs.unobserve(e.target);}});
+},{threshold:0.25});
+mapObs.observe(canvas.parentElement.parentElement);
+
+// Replay button
+document.getElementById('replayBtn').onclick=function(){startAnim()};
+
+// Click on stop → scroll to section
+function hitTest(ex,ey){
+  var rect=canvas.getBoundingClientRect();
+  var mx=ex-rect.left, my=ey-rect.top;
+  for(var i=0;i<STOPS.length;i++){
+    var s=STOPS[i], p=geo2px(s.lat,s.lng);
+    if(Math.sqrt((mx-p.x)*(mx-p.x)+(my-p.y)*(my-p.y))<22) return s;
+  }
+  return null;
+}
+
+canvas.onclick=function(e){
+  var hit=hitTest(e.clientX,e.clientY);
+  if(hit&&hit.sec){
+    var el=document.getElementById(hit.sec);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }else{
+    startAnim();
+  }
+};
+
+// Tooltip
+canvas.onmousemove=function(e){
+  var hit=hitTest(e.clientX,e.clientY);
+  if(hit){
+    tooltip.innerHTML='<strong>'+hit.n+'</strong>';
+    var rect=canvas.getBoundingClientRect();
+    tooltip.style.left=Math.min(e.clientX-rect.left+12,W-180)+'px';
+    tooltip.style.top=(e.clientY-rect.top-38)+'px';
+    tooltip.classList.add('show');
+    canvas.style.cursor='pointer';
+  }else{
+    tooltip.classList.remove('show');
+    canvas.style.cursor='default';
+  }
+};
+
+canvas.addEventListener('touchstart',function(e){
+  var t=e.touches[0];
+  var hit=hitTest(t.clientX,t.clientY);
+  if(hit){
+    if(hit.sec){var el=document.getElementById(hit.sec);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});}
+  }
+},{passive:true});
+
+window.onresize=resize;
+resize();
+</script>
+</body>
+</html>
