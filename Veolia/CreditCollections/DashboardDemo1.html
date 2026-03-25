@@ -4,6 +4,15 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Veolia Water — Arrears Command Center</title>
+  <script>
+    (function(){
+      if(sessionStorage.getItem('vcDemo_auth')==='1'){
+        document.addEventListener('DOMContentLoaded',function(){
+          document.getElementById('pw-gate').style.display='none';
+        });
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -1026,6 +1035,173 @@
       }
     }
   });
+</script>
+
+<!-- ══ PASSWORD GATE ══════════════════════════════════════ -->
+<style>
+  #pw-gate {
+    position:fixed; inset:0; z-index:9999;
+    background:linear-gradient(135deg,#0c1929 0%,#102240 55%,#0c1f3e 100%);
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  #pw-gate::before {
+    content:''; position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:40px 40px;
+  }
+
+  #pw-gate::after {
+    content:''; position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 700px 300px at 80% 0%,rgba(21,88,212,0.28) 0%,transparent 65%),
+      radial-gradient(ellipse 400px 250px at 5% 100%,rgba(8,145,178,0.18) 0%,transparent 60%);
+  }
+
+  .pw-box {
+    position:relative; z-index:2;
+    background:rgba(255,255,255,0.04);
+    border:1px solid rgba(255,255,255,0.10);
+    border-radius:18px;
+    padding:40px 44px;
+    width:100%; max-width:400px;
+    backdrop-filter:blur(12px);
+    box-shadow:0 24px 60px rgba(0,0,0,0.40);
+    text-align:center;
+  }
+
+  .pw-icon {
+    width:48px; height:48px; border-radius:13px;
+    background:linear-gradient(135deg,#1558d4,#0891b2);
+    box-shadow:0 4px 16px rgba(21,88,212,0.45);
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 20px;
+  }
+
+  .pw-icon svg { width:22px; height:22px; }
+
+  .pw-title {
+    font-family:'DM Sans',sans-serif;
+    font-size:20px; font-weight:700;
+    color:#fff; letter-spacing:-0.02em;
+    margin-bottom:6px;
+  }
+
+  .pw-sub {
+    font-family:'DM Sans',sans-serif;
+    font-size:12.5px; color:rgba(255,255,255,0.45);
+    margin-bottom:28px; line-height:1.55;
+  }
+
+  .pw-label {
+    display:block; text-align:left;
+    font-family:'DM Sans',sans-serif;
+    font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:0.08em;
+    color:rgba(255,255,255,0.38);
+    margin-bottom:7px;
+  }
+
+  #pw-input {
+    width:100%;
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,255,255,0.14);
+    color:#fff;
+    border-radius:9px;
+    padding:11px 14px;
+    font-family:'DM Sans',sans-serif;
+    font-size:14px; font-weight:500;
+    outline:none;
+    transition:border-color 0.15s, background 0.15s;
+    letter-spacing:0.04em;
+    margin-bottom:12px;
+  }
+
+  #pw-input::placeholder { color:rgba(255,255,255,0.22); }
+  #pw-input:focus { border-color:rgba(21,88,212,0.70); background:rgba(255,255,255,0.10); }
+
+  #pw-btn {
+    width:100%;
+    background:linear-gradient(135deg,#1558d4,#1044b0);
+    border:none; color:#fff;
+    border-radius:9px; padding:12px;
+    font-family:'DM Sans',sans-serif;
+    font-size:13.5px; font-weight:700;
+    cursor:pointer; letter-spacing:0.01em;
+    box-shadow:0 4px 14px rgba(21,88,212,0.45);
+    transition:opacity 0.15s, transform 0.12s;
+  }
+
+  #pw-btn:hover { opacity:0.88; transform:translateY(-1px); }
+
+  #pw-err {
+    margin-top:12px;
+    font-family:'DM Sans',sans-serif;
+    font-size:12px; font-weight:600;
+    color:#fca5a5; display:none;
+  }
+
+  .pw-foot {
+    margin-top:24px;
+    font-family:'DM Sans',sans-serif;
+    font-size:11px; color:rgba(255,255,255,0.22);
+  }
+
+  .pw-foot a {
+    color:rgba(255,255,255,0.38); text-decoration:none;
+    border-bottom:1px solid rgba(255,255,255,0.15);
+  }
+</style>
+
+<div id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-icon">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M12 3C12 3 6 11 6 15a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="white" opacity=".90"/>
+        <path d="M9.5 16.5c0 0 1 1.5 2.5 1.5" stroke="rgba(8,145,178,.85)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="pw-title">Protected Demo</div>
+    <div class="pw-sub">This dashboard has been shared privately.<br>Enter your access password to continue.</div>
+    <label class="pw-label" for="pw-input">Password</label>
+    <input id="pw-input" type="password" placeholder="Enter password" autocomplete="off"/>
+    <button id="pw-btn" onclick="checkPw()">Access Dashboard</button>
+    <div id="pw-err">Incorrect password. Please try again.</div>
+    <div class="pw-foot">Demo prepared by <a href="https://clarafortuna.com" target="_blank">clarafortuna.com</a></div>
+  </div>
+</div>
+
+<script>
+  // Show gate if not authenticated
+  (function(){
+    if(sessionStorage.getItem('vcDemo_auth')!=='1'){
+      document.getElementById('pw-gate').style.display='flex';
+    }
+  })();
+
+  document.getElementById('pw-input').addEventListener('keydown',function(e){
+    if(e.key==='Enter') checkPw();
+    document.getElementById('pw-err').style.display='none';
+  });
+
+  function checkPw(){
+    var val = document.getElementById('pw-input').value;
+    if(val === 'veoliac&cdemo'){
+      sessionStorage.setItem('vcDemo_auth','1');
+      var gate = document.getElementById('pw-gate');
+      gate.style.transition='opacity 0.4s ease';
+      gate.style.opacity='0';
+      setTimeout(function(){ gate.style.display='none'; }, 400);
+    } else {
+      var err = document.getElementById('pw-err');
+      err.style.display='block';
+      var inp = document.getElementById('pw-input');
+      inp.style.borderColor='rgba(252,165,165,0.60)';
+      setTimeout(function(){ inp.style.borderColor=''; }, 1500);
+    }
+  }
 </script>
 </body>
 </html>
