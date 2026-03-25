@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Veolia Water — Arrears Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --ink:    #0c1929;
+      --ink-2:  #1b3150;
+      --muted:  #5e7898;
+      --subtle: #8ba4be;
+      --bg:     #f0f4f9;
+      --surface:#ffffff;
+      --line:   rgba(12,25,41,0.09);
+      --line2:  rgba(12,25,41,0.05);
+      --blue:   #1558d4;
+      --teal:   #0891b2;
+      --green:  #15803d;
+      --amber:  #b45309;
+      --red:    #b91c1c;
+      --violet: #6d28d9;
+      --r:      13px;
+      --sh:     0 1px 3px rgba(12,25,41,0.07), 0 2px 8px rgba(12,25,41,0.055);
+      --sh2:    0 4px 20px rgba(12,25,41,0.11);
+    }
+
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+
+    body {
+      font-family:'DM Sans', system-ui, sans-serif;
+      background:var(--bg); color:var(--ink); min-height:100vh;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    /* ══════════════ HEADER ══════════════ */
+    .header {
+      background:linear-gradient(132deg,#0c1929 0%,#102240 52%,#0c1f3e 100%);
+      position:relative; overflow:hidden;
+    }
+
+    .header::before {
+      content:''; position:absolute; inset:0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size:40px 40px;
+    }
+
+    .header::after {
+      content:''; position:absolute; inset:0;
+      background:
+        radial-gradient(ellipse 850px 280px at 92% -10%,rgba(21,88,212,.32) 0%,transparent 65%),
+        radial-gradient(ellipse 420px 260px at -2% 105%,rgba(8,145,178,.22) 0%,transparent 60%);
+    }
+
+    .h-inner {
+      position:relative; z-index:2;
+      max-width:1680px; margin:0 auto;
+      padding:24px 32px 0;
+    }
+
+    .h-row1 {
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px; margin-bottom:16px;
+    }
+
+    .brand { display:flex; align-items:center; gap:10px; }
+
+    .brand-icon {
+      width:36px; height:36px; border-radius:9px;
+      background:linear-gradient(135deg,#1558d4,#0891b2);
+      box-shadow:0 3px 12px rgba(21,88,212,.42);
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+
+    .brand-icon svg { width:18px; height:18px; }
+    .brand-name { font-size:13.5px; font-weight:700; color:#fff; letter-spacing:-.01em; }
+    .brand-div  { font-size:10.5px; color:rgba(255,255,255,.38); margin-top:1px; }
+
+    .demo-pill {
+      display:inline-flex; align-items:center; gap:6px;
+      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.11);
+      color:rgba(255,255,255,.52); border-radius:99px;
+      padding:5px 12px 5px 8px;
+      font-size:10px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+    }
+
+    .pulse {
+      width:6px; height:6px; border-radius:50%; background:#f87171;
+      animation:pulse 2.1s ease infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.35;transform:scale(.8)} }
+
+    .h-title {
+      font-size:25px; font-weight:700; color:#fff;
+      letter-spacing:-.03em; line-height:1.1; margin-bottom:7px;
+    }
+
+    .h-desc {
+      font-size:12.5px; color:rgba(255,255,255,.44);
+      max-width:740px; line-height:1.6; margin-bottom:14px;
+    }
+
+    .h-chips { display:flex; flex-wrap:wrap; gap:6px; padding-bottom:0; }
+
+    .hc {
+      background:rgba(255,255,255,.065); border:1px solid rgba(255,255,255,.09);
+      color:rgba(255,255,255,.58); border-radius:6px;
+      padding:4px 10px; font-size:11px; font-weight:500;
+    }
+
+    /* filter shelf */
+    .fshelf {
+      background:rgba(0,0,0,.20); border-top:1px solid rgba(255,255,255,.07);
+      margin-top:16px;
+    }
+
+    .fshelf-in {
+      max-width:1680px; margin:0 auto;
+      padding:10px 32px;
+      display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    }
+
+    .fl { font-size:9.5px; font-weight:700; letter-spacing:.08em;
+          text-transform:uppercase; color:rgba(255,255,255,.26); flex-shrink:0; }
+
+    .fsel {
+      appearance:none; -webkit-appearance:none;
+      background:rgba(255,255,255,.08) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0' fill='none' stroke='rgba(255,255,255,.38)' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 9px center;
+      border:1px solid rgba(255,255,255,.10); color:rgba(255,255,255,.72);
+      border-radius:7px; padding:6px 26px 6px 10px;
+      font-family:'DM Sans',sans-serif; font-size:11.5px; font-weight:500;
+      outline:none; cursor:pointer; min-width:138px; transition:background .14s;
+    }
+
+    .fsel:hover { background-color:rgba(255,255,255,.13); }
+    .fsel option { background:#102240; }
+
+    .ebtn {
+      margin-left:auto; background:#1558d4; border:none; color:#fff;
+      border-radius:7px; padding:7px 15px;
+      font-family:'DM Sans',sans-serif; font-size:11.5px; font-weight:700;
+      cursor:pointer; white-space:nowrap;
+      box-shadow:0 2px 8px rgba(21,88,212,.40);
+      transition:background .15s, transform .12s;
+    }
+
+    .ebtn:hover { background:#1044b0; transform:translateY(-1px); }
+
+    /* ══════════════ PAGE ══════════════ */
+    .page {
+      max-width:1680px; margin:0 auto;
+      padding:18px 32px 36px;
+    }
+
+    /* ══════════════ KPI STRIP ══════════════ */
+    .kpis {
+      display:grid; grid-template-columns:repeat(6,1fr);
+      gap:11px; margin-bottom:14px;
+    }
+
+    .kpi {
+      background:var(--surface); border:1px solid var(--line);
+      border-radius:var(--r); box-shadow:var(--sh);
+      padding:14px 15px 13px; position:relative; overflow:hidden;
+      animation:up .42s ease both;
+      transition:box-shadow .18s, transform .18s;
+    }
+
+    @keyframes up { from{opacity:0;transform:translateY(7px)} to{opacity:1;transform:none} }
+
+    .kpi:nth-child(1){animation-delay:.02s}.kpi:nth-child(2){animation-delay:.06s}
+    .kpi:nth-child(3){animation-delay:.10s}.kpi:nth-child(4){animation-delay:.14s}
+    .kpi:nth-child(5){animation-delay:.18s}.kpi:nth-child(6){animation-delay:.22s}
+
+    .kpi:hover { transform:translateY(-2px); box-shadow:var(--sh2); }
+
+    .kpi::after {
+      content:''; position:absolute;
+      left:0; top:18%; bottom:18%;
+      width:3px; border-radius:0 3px 3px 0;
+    }
+
+    .kpi.c-blue::after  { background:#1558d4; }
+    .kpi.c-red::after   { background:#b91c1c; }
+    .kpi.c-amber::after { background:#d97706; }
+    .kpi.c-green::after { background:#15803d; }
+    .kpi.c-teal::after  { background:#0891b2; }
+    .kpi.c-violet::after{ background:#6d28d9; }
+
+    .kpi-lbl {
+      font-size:9.5px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.07em; color:var(--muted);
+      margin-bottom:5px; line-height:1.3;
+    }
+
+    .kpi-val {
+      font-size:25px; font-weight:700; letter-spacing:-.03em;
+      color:var(--ink); line-height:1; margin-bottom:8px;
+      font-variant-numeric:tabular-nums;
+    }
+
+    .kpi-foot {
+      display:flex; align-items:center; justify-content:space-between;
+      font-size:10.5px; color:var(--muted); gap:5px;
+    }
+
+    .tag {
+      display:inline-flex; align-items:center; gap:2px;
+      border-radius:5px; padding:2px 6px;
+      font-size:9.5px; font-weight:800; flex-shrink:0;
+    }
+
+    .tg { background:#dcfce7; color:#166534; }
+    .tr { background:#fee2e2; color:#991b1b; }
+    .ta { background:#fef3c7; color:#92400e; }
+
+    /* ══════════════ CARDS ══════════════ */
+    .card {
+      background:var(--surface); border:1px solid var(--line);
+      border-radius:var(--r); box-shadow:var(--sh); overflow:hidden;
+      display:flex; flex-direction:column;
+    }
+
+    .ch {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:12px; padding:15px 17px 12px;
+      border-bottom:1px solid var(--line2); flex-shrink:0;
+    }
+
+    .ch-title {
+      font-size:13.5px; font-weight:700; color:var(--ink); letter-spacing:-.02em;
+    }
+
+    .ch-sub { font-size:11px; color:var(--muted); margin-top:2px; }
+
+    .cb { padding:14px 17px 17px; flex:1; display:flex; flex-direction:column; }
+
+    /* chart containers */
+    .cw  { position:relative; height:285px; flex-shrink:0; }
+    .csm { position:relative; height:220px; flex-shrink:0; }
+
+    .cnote {
+      margin-top:10px; padding-top:9px;
+      border-top:1px solid var(--line2);
+      font-size:10.5px; color:var(--muted); line-height:1.55; flex-shrink:0;
+    }
+
+    /* legend */
+    .lgnd { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+
+    .li { display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--muted); }
+    .li-ln { width:14px; height:2px; border-radius:99px; flex-shrink:0; }
+    .li-dt { width:8px;  height:8px; border-radius:50%; flex-shrink:0; }
+
+    /* ══════════════ LAYOUT ROWS ══════════════ */
+    .r2  { display:grid; grid-template-columns:1.65fr 1fr;    gap:13px; margin-bottom:13px; }
+    .r3  { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:13px; margin-bottom:13px; }
+    .r3b { display:grid; grid-template-columns:1.4fr 1fr 1fr; gap:13px; }
+
+    /* ══════════════ AGING PANEL ══════════════ */
+    /* Horizontal split: donut left | breakdown rows right */
+    .aging-layout {
+      display:flex; gap:16px; flex:1; min-height:0;
+    }
+
+    .donut-col {
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      flex-shrink:0; width:168px;
+    }
+
+    .donut-wrap { position:relative; width:160px; height:160px; }
+
+    .donut-ctr {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      text-align:center; pointer-events:none;
+    }
+
+    .dc-ey  { font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:.09em; color:var(--muted); margin-bottom:1px; }
+    .dc-num { font-size:19px; font-weight:700; color:var(--ink); letter-spacing:-.03em; line-height:1; }
+    .dc-cap { font-size:9px; color:var(--muted); margin-top:2px; }
+
+    /* aging breakdown rows */
+    .abr-col {
+      flex:1; display:flex; flex-direction:column;
+      justify-content:center; gap:9px; min-width:0;
+    }
+
+    .abr {}
+
+    .abr-top {
+      display:flex; align-items:center;
+      justify-content:space-between; gap:6px; margin-bottom:4px;
+    }
+
+    .abr-lbl {
+      display:flex; align-items:center; gap:6px;
+      font-size:11.5px; font-weight:600; color:var(--ink);
+    }
+
+    .abr-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+
+    .abr-right { display:flex; align-items:center; gap:9px; flex-shrink:0; }
+
+    .abr-money {
+      font-family:'DM Mono',monospace; font-size:11.5px;
+      font-weight:500; color:var(--ink);
+    }
+
+    .abr-pct { font-size:10px; color:var(--muted); min-width:28px; text-align:right; }
+
+    .abr-track { height:4px; border-radius:99px; background:rgba(12,25,41,.07); overflow:hidden; }
+    .abr-fill  { height:100%; border-radius:99px; }
+
+    /* 4 stats below aging */
+    .aging-stats {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:8px; padding-top:12px;
+      border-top:1px solid var(--line2); flex-shrink:0;
+      margin-top:auto;
+    }
+
+    .as {
+      display:flex; flex-direction:column;
+    }
+
+    .as-lbl {
+      font-size:9.5px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.07em; color:var(--muted); margin-bottom:2px;
+    }
+
+    .as-val {
+      font-size:17px; font-weight:700; color:var(--ink);
+      letter-spacing:-.02em; line-height:1;
+    }
+
+    .as-sub { font-size:10px; color:var(--muted); margin-top:2px; line-height:1.3; }
+
+    /* ══════════════ TABLE ══════════════ */
+    .tbl-wrap {
+      overflow:auto; border-radius:8px; border:1px solid var(--line); flex:1;
+    }
+
+    table { width:100%; border-collapse:collapse; min-width:620px; }
+
+    thead th {
+      background:#f4f7fc; padding:8px 12px;
+      font-size:9.5px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.07em; color:var(--muted); white-space:nowrap;
+      border-bottom:1px solid var(--line); position:sticky; top:0; z-index:1; text-align:left;
+    }
+
+    tbody td {
+      padding:9px 12px; font-size:12.5px; color:var(--ink);
+      border-bottom:1px solid var(--line2);
+    }
+
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover td { background:rgba(21,88,212,.026); }
+
+    .bdg {
+      display:inline-flex; align-items:center; gap:4px;
+      border-radius:5px; padding:2px 8px;
+      font-size:9.5px; font-weight:800;
+    }
+
+    .bdg::before { content:''; width:4px; height:4px; border-radius:50%; background:currentColor; }
+
+    .bhi { background:#fee2e2; color:#991b1b; }
+    .bmd { background:#fef3c7; color:#92400e; }
+    .blo { background:#dcfce7; color:#166534; }
+
+    /* ══════════════ RISK ITEMS ══════════════ */
+    .rl { display:flex; flex-direction:column; gap:9px; flex:1; }
+
+    .ri {
+      background:var(--bg); border:1px solid var(--line);
+      border-radius:9px; padding:12px 13px;
+    }
+
+    .ri-h {
+      display:flex; align-items:flex-start; justify-content:space-between;
+      gap:8px; margin-bottom:5px;
+    }
+
+    .ri-t { font-size:12.5px; font-weight:700; line-height:1.3; }
+
+    .ri-m {
+      display:flex; gap:10px; flex-wrap:wrap;
+      font-size:10.5px; color:var(--muted); margin-bottom:6px;
+    }
+
+    .ri-bar { height:4px; border-radius:99px; background:rgba(12,25,41,.08); overflow:hidden; }
+    .ri-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,#d97706,#b91c1c); }
+
+    /* ══════════════ TERRITORY ══════════════ */
+    .tg { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:9px; }
+
+    .terr {
+      background:var(--bg); border:1px solid var(--line);
+      border-radius:8px; padding:10px 12px;
+    }
+
+    .terr-name { font-size:12.5px; font-weight:700; color:var(--ink); margin-bottom:6px; }
+
+    .trow { display:flex; justify-content:space-between; font-size:10.5px; margin-bottom:2.5px; }
+    .trow .k { color:var(--muted); }
+    .trow .v { font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums; }
+
+    .cg { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+
+    .cstat {
+      background:var(--bg); border:1px solid var(--line);
+      border-radius:8px; padding:10px 12px;
+    }
+
+    .cstat-lbl { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin-bottom:3px; }
+    .cstat-val { font-size:18px; font-weight:700; color:var(--ink); letter-spacing:-.02em; line-height:1; }
+    .cstat-sub { font-size:10px; color:var(--muted); margin-top:2px; line-height:1.3; }
+
+    /* ══════════════ FOOTER ══════════════ */
+    .foot { text-align:right; font-size:10.5px; color:var(--muted); margin-top:6px; }
+
+    /* ══════════════ RESPONSIVE ══════════════ */
+    @media (max-width:1400px) {
+      .kpis { grid-template-columns:repeat(3,1fr); }
+      .r2,.r3,.r3b { grid-template-columns:1fr; }
+    }
+
+    @media (max-width:860px) {
+      .kpis { grid-template-columns:repeat(2,1fr); }
+      .page,.h-inner,.fshelf-in { padding-left:16px; padding-right:16px; }
+      .aging-layout { flex-direction:column; }
+      .donut-col { width:100%; }
+      .tg,.aging-stats,.cg { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BANNER -->
+<div style="background:#0c1929;border-bottom:1px solid rgba(255,255,255,0.08);padding:7px 32px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:'DM Sans',sans-serif;font-size:11.5px;color:rgba(255,255,255,0.45);letter-spacing:0.01em;">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.30)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+  Demo provided by <a href="https://clarafortuna.com" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.70);text-decoration:none;font-weight:600;border-bottom:1px solid rgba(255,255,255,0.22);padding-bottom:1px;transition:color 0.15s;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.70)'">clarafortuna.com</a>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="h-inner">
+    <div class="h-row1">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3C12 3 6 11 6 15a6 6 0 0 0 12 0c0-4-6-12-6-12z" fill="white" opacity=".92"/>
+            <path d="M9.5 16.5c0 0 1 1.5 2.5 1.5" stroke="rgba(8,145,178,.85)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-name">Veolia Water</div>
+          <div class="brand-div">Customer Operations Intelligence</div>
+        </div>
+      </div>
+      <div class="demo-pill"><span class="pulse"></span>Demo · Illustrative Data</div>
+    </div>
+
+    <h1 class="h-title">Arrears &amp; Collections Command Center</h1>
+    <p class="h-desc">Executive-level view of delinquency exposure, aging concentration, collections effectiveness, and promise-to-pay outcomes across Northern New Jersey Water.</p>
+
+    <div class="h-chips">
+      <span class="hc">Demo Utility: Northern NJ Water</span>
+      <span class="hc">Customer Base: 275,184</span>
+      <span class="hc">Delinquent Accounts: 14,286</span>
+      <span class="hc">60+ Day Balance: $6.74M</span>
+      <span class="hc">Total A/R: $16.54M</span>
+      <span class="hc">Refresh: March 2026</span>
+    </div>
+  </div>
+
+  <div class="fshelf">
+    <div class="fshelf-in">
+      <span class="fl">Filters</span>
+      <select class="fsel">
+        <option>All Segments</option><option>Residential</option><option>Commercial</option>
+        <option>Industrial</option><option>Public Sector</option><option>Multi-Family</option>
+      </select>
+      <select class="fsel">
+        <option>All Territories</option><option>Bergen</option><option>Hudson</option>
+        <option>Passaic</option><option>Middlesex</option><option>Monmouth</option>
+      </select>
+      <select class="fsel">
+        <option>All Aging Buckets</option><option>1–30 Days</option><option>31–60 Days</option>
+        <option>61–90 Days</option><option>91–120 Days</option><option>121+ Days</option>
+      </select>
+      <select class="fsel">
+        <option>All Assist Programs</option><option>Enrolled</option>
+        <option>Eligible — Not Enrolled</option><option>Not Eligible</option>
+      </select>
+      <select class="fsel">
+        <option>All Risk Tiers</option><option>High Risk</option>
+        <option>Medium Risk</option><option>Low Risk</option>
+      </select>
+      <button class="ebtn">↓ Export Snapshot</button>
+    </div>
+  </div>
+</header>
+
+<!-- PAGE -->
+<main class="page">
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi c-blue">
+      <div class="kpi-lbl">Total Accounts Receivable</div>
+      <div class="kpi-val">$16.54M</div>
+      <div class="kpi-foot"><span>vs prior month</span><span class="tag tr">▲ 4.8%</span></div>
+    </div>
+    <div class="kpi c-red">
+      <div class="kpi-lbl">Delinquent Balance 60+ Days</div>
+      <div class="kpi-val">$6.74M</div>
+      <div class="kpi-foot"><span>14,286 accounts</span><span class="tag ta">▲ 1.9%</span></div>
+    </div>
+    <div class="kpi c-amber">
+      <div class="kpi-lbl">Arrears Rate</div>
+      <div class="kpi-val">40.8%</div>
+      <div class="kpi-foot"><span>of total A/R</span><span class="tag tr">▲ 1.2 pts</span></div>
+    </div>
+    <div class="kpi c-green">
+      <div class="kpi-lbl">Net Collections This Month</div>
+      <div class="kpi-val">$2.31M</div>
+      <div class="kpi-foot"><span>cash recovery</span><span class="tag tg">▲ 8.6%</span></div>
+    </div>
+    <div class="kpi c-teal">
+      <div class="kpi-lbl">Promise-to-Pay Kept</div>
+      <div class="kpi-val">72.4%</div>
+      <div class="kpi-foot"><span>2,148 active promises</span><span class="tag tg">▲ 3.1 pts</span></div>
+    </div>
+    <div class="kpi c-violet">
+      <div class="kpi-lbl">High-Risk Shutoff Eligible</div>
+      <div class="kpi-val">2,984</div>
+      <div class="kpi-foot"><span>$2.08M exposure</span><span class="tag tg">▼ 4.2%</span></div>
+    </div>
+  </div>
+
+  <!-- Row 1: Trend chart | Aging panel -->
+  <div class="r2">
+
+    <!-- Trend -->
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Arrears Trend, Recoveries &amp; New Roll Rate</div>
+          <div class="ch-sub">Monthly delinquent balance vs. gross cash recovery and new 60+ day roll rate</div>
+        </div>
+        <div class="lgnd">
+          <div class="li"><div class="li-ln" style="background:#3b82f6"></div>60+ Day Arrears</div>
+          <div class="li"><div class="li-dt" style="background:#22c55e"></div>Recovered Cash</div>
+          <div class="li"><div class="li-ln" style="background:#f97316"></div>Roll Rate %</div>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="cw"><canvas id="trendChart"></canvas></div>
+        <div class="cnote"><strong>How to read:</strong> Blue line = total 60+ day arrears. Green bars = monthly cash recovered. Orange line = % of accounts newly rolling into 60+ day delinquency (right axis).</div>
+      </div>
+    </div>
+
+    <!-- Aging — SIDE-BY-SIDE layout fills the card fully -->
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Aging Mix by Balance</div>
+          <div class="ch-sub">Overdue dollars across each delinquency bucket</div>
+        </div>
+      </div>
+      <div class="cb">
+
+        <!-- top zone: donut left + breakdown rows right -->
+        <div class="aging-layout">
+
+          <div class="donut-col">
+            <div class="donut-wrap">
+              <canvas id="agingDonut"></canvas>
+              <div class="donut-ctr">
+                <div class="dc-ey">Overdue</div>
+                <div class="dc-num">$8.0M</div>
+                <div class="dc-cap">all buckets</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="abr-col">
+            <div class="abr">
+              <div class="abr-top">
+                <div class="abr-lbl"><span class="abr-dot" style="background:#38bdf8"></span>1–30 Days</div>
+                <div class="abr-right"><span class="abr-money">$2.16M</span><span class="abr-pct">27%</span></div>
+              </div>
+              <div class="abr-track"><div class="abr-fill" style="width:100%;background:#38bdf8"></div></div>
+            </div>
+            <div class="abr">
+              <div class="abr-top">
+                <div class="abr-lbl"><span class="abr-dot" style="background:#3b82f6"></span>31–60 Days</div>
+                <div class="abr-right"><span class="abr-money">$1.87M</span><span class="abr-pct">23%</span></div>
+              </div>
+              <div class="abr-track"><div class="abr-fill" style="width:87%;background:#3b82f6"></div></div>
+            </div>
+            <div class="abr">
+              <div class="abr-top">
+                <div class="abr-lbl"><span class="abr-dot" style="background:#8b5cf6"></span>61–90 Days</div>
+                <div class="abr-right"><span class="abr-money">$1.71M</span><span class="abr-pct">21%</span></div>
+              </div>
+              <div class="abr-track"><div class="abr-fill" style="width:79%;background:#8b5cf6"></div></div>
+            </div>
+            <div class="abr">
+              <div class="abr-top">
+                <div class="abr-lbl"><span class="abr-dot" style="background:#f59e0b"></span>91–120 Days</div>
+                <div class="abr-right"><span class="abr-money">$1.50M</span><span class="abr-pct">19%</span></div>
+              </div>
+              <div class="abr-track"><div class="abr-fill" style="width:70%;background:#f59e0b"></div></div>
+            </div>
+            <div class="abr">
+              <div class="abr-top">
+                <div class="abr-lbl"><span class="abr-dot" style="background:#ef4444"></span>121+ Days</div>
+                <div class="abr-right"><span class="abr-money">$1.50M</span><span class="abr-pct">19%</span></div>
+              </div>
+              <div class="abr-track"><div class="abr-fill" style="width:70%;background:#ef4444"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-stat grid fills remaining space -->
+        <div class="aging-stats">
+          <div class="as">
+            <div class="as-lbl">Avg Days Past Due</div>
+            <div class="as-val">67</div>
+            <div class="as-sub">weighted across overdue book</div>
+          </div>
+          <div class="as">
+            <div class="as-lbl">Avg Delinquent Balance</div>
+            <div class="as-val">$472</div>
+            <div class="as-sub">per delinquent account</div>
+          </div>
+          <div class="as">
+            <div class="as-lbl">Repeat Delinquency</div>
+            <div class="as-val">31.8%</div>
+            <div class="as-sub">within trailing 12 months</div>
+          </div>
+          <div class="as">
+            <div class="as-lbl">Assist Enrollment Gap</div>
+            <div class="as-val">2,106</div>
+            <div class="as-sub">eligible but not enrolled</div>
+          </div>
+        </div>
+
+        <div class="cnote"><strong>How to read:</strong> Bars show each bucket's share relative to the largest (1–30 days). Donut shows proportional split. Amber/red buckets signal deepest delinquency risk.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Row 2 -->
+  <div class="r3">
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Arrears by Account Type</div>
+          <div class="ch-sub">Total exposure across customer classes</div>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="csm"><canvas id="segmentBar"></canvas></div>
+        <div class="cnote"><strong>How to read:</strong> Compare total arrears by segment to isolate largest balance exposure across customer classes.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Collections Touch Effectiveness</div>
+          <div class="ch-sub">Recovery rate by outbound treatment channel</div>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="csm"><canvas id="treatmentBar"></canvas></div>
+        <div class="cnote"><strong>How to read:</strong> Higher % = stronger payment recovery per touch. Agent calls and field visits drive the most recovery.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Promise-to-Pay Funnel</div>
+          <div class="ch-sub">Set, active, kept, broken, and cured accounts</div>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="csm"><canvas id="ptpFunnel"></canvas></div>
+        <div class="cnote"><strong>How to read:</strong> Monitor drop-off from active promises to broken outcomes for early intervention opportunities.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Row 3 -->
+  <div class="r3b">
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Aging Detail &amp; Operational Segment View</div>
+          <div class="ch-sub">Daily review for collections managers, customer ops, and field service teams</div>
+        </div>
+      </div>
+      <div class="cb" style="padding-top:0">
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Account Type</th><th>Accounts</th><th>Balance</th>
+                <th>1–30</th><th>31–60</th><th>61–90</th><th>91–120</th><th>121+</th>
+                <th>Avg Bal.</th><th>Risk</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Residential Single Family</td><td>8,624</td><td>$3.14M</td>
+                <td>$0.82M</td><td>$0.73M</td><td>$0.61M</td><td>$0.46M</td><td>$0.52M</td>
+                <td>$364</td><td><span class="bdg bmd">Medium</span></td>
+              </tr>
+              <tr>
+                <td>Residential Multi-Family</td><td>1,946</td><td>$1.42M</td>
+                <td>$0.24M</td><td>$0.29M</td><td>$0.31M</td><td>$0.25M</td><td>$0.33M</td>
+                <td>$730</td><td><span class="bdg bhi">High</span></td>
+              </tr>
+              <tr>
+                <td>Commercial Small</td><td>2,371</td><td>$0.96M</td>
+                <td>$0.31M</td><td>$0.22M</td><td>$0.16M</td><td>$0.12M</td><td>$0.15M</td>
+                <td>$405</td><td><span class="bdg blo">Low</span></td>
+              </tr>
+              <tr>
+                <td>Commercial Large</td><td>712</td><td>$2.08M</td>
+                <td>$0.42M</td><td>$0.36M</td><td>$0.37M</td><td>$0.41M</td><td>$0.52M</td>
+                <td>$2,921</td><td><span class="bdg bhi">High</span></td>
+              </tr>
+              <tr>
+                <td>Industrial</td><td>118</td><td>$0.88M</td>
+                <td>$0.16M</td><td>$0.13M</td><td>$0.15M</td><td>$0.18M</td><td>$0.26M</td>
+                <td>$7,458</td><td><span class="bdg bhi">High</span></td>
+              </tr>
+              <tr>
+                <td>Public Sector</td><td>515</td><td>$0.67M</td>
+                <td>$0.21M</td><td>$0.14M</td><td>$0.11M</td><td>$0.08M</td><td>$0.13M</td>
+                <td>$1,301</td><td><span class="bdg blo">Low</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Top Operational Risk Flags</div>
+          <div class="ch-sub">Priority cohorts for targeted treatment or executive review</div>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="rl">
+          <div class="ri">
+            <div class="ri-h">
+              <div class="ri-t">Large Commercial 91+ Days</div>
+              <span class="bdg bhi">High Exposure</span>
+            </div>
+            <div class="ri-m"><span>284 accounts</span><span>$1.14M balance</span><span>18.6% roll to shutoff</span></div>
+            <div class="ri-bar"><div class="ri-fill" style="width:86%"></div></div>
+          </div>
+          <div class="ri">
+            <div class="ri-h">
+              <div class="ri-t">Eligible Not Enrolled in Assistance</div>
+              <span class="bdg bmd">Recovery Opportunity</span>
+            </div>
+            <div class="ri-m"><span>2,106 accounts</span><span>$0.94M balance</span><span>62% residential</span></div>
+            <div class="ri-bar"><div class="ri-fill" style="width:63%"></div></div>
+          </div>
+          <div class="ri">
+            <div class="ri-h">
+              <div class="ri-t">Broken Promise to Pay</div>
+              <span class="bdg bhi">Immediate Attention</span>
+            </div>
+            <div class="ri-m"><span>592 accounts</span><span>$0.61M balance</span><span>34% repeat behavior</span></div>
+            <div class="ri-bar"><div class="ri-fill" style="width:77%"></div></div>
+          </div>
+          <div class="ri">
+            <div class="ri-h">
+              <div class="ri-t">High-Balance Multi-Family</div>
+              <span class="bdg bmd">Tenant Impact Risk</span>
+            </div>
+            <div class="ri-m"><span>148 accounts</span><span>$0.42M balance</span><span>27% in 121+ days</span></div>
+            <div class="ri-bar"><div class="ri-fill" style="width:58%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch">
+        <div>
+          <div class="ch-title">Territory Heat View</div>
+          <div class="ch-sub">Service area pressure points for field coordination</div>
+        </div>
+      </div>
+      <div class="cb">
+        <div class="tg">
+          <div class="terr">
+            <div class="terr-name">Bergen</div>
+            <div class="trow"><span class="k">Delinquent</span><span class="v">5,318</span></div>
+            <div class="trow"><span class="k">60+ Balance</span><span class="v">$2.41M</span></div>
+            <div class="trow"><span class="k">Assist Uptake</span><span class="v">41.2%</span></div>
+            <div class="trow"><span class="k">Shutoff Eligible</span><span class="v">1,083</span></div>
+          </div>
+          <div class="terr">
+            <div class="terr-name">Hudson</div>
+            <div class="trow"><span class="k">Delinquent</span><span class="v">4,284</span></div>
+            <div class="trow"><span class="k">60+ Balance</span><span class="v">$1.94M</span></div>
+            <div class="trow"><span class="k">Assist Uptake</span><span class="v">35.8%</span></div>
+            <div class="trow"><span class="k">Shutoff Eligible</span><span class="v">972</span></div>
+          </div>
+          <div class="terr">
+            <div class="terr-name">Passaic</div>
+            <div class="trow"><span class="k">Delinquent</span><span class="v">1,936</span></div>
+            <div class="trow"><span class="k">60+ Balance</span><span class="v">$0.82M</span></div>
+            <div class="trow"><span class="k">Assist Uptake</span><span class="v">38.4%</span></div>
+            <div class="trow"><span class="k">Shutoff Eligible</span><span class="v">416</span></div>
+          </div>
+          <div class="terr">
+            <div class="terr-name">Monmouth / Middlesex</div>
+            <div class="trow"><span class="k">Delinquent</span><span class="v">2,748</span></div>
+            <div class="trow"><span class="k">60+ Balance</span><span class="v">$1.57M</span></div>
+            <div class="trow"><span class="k">Assist Uptake</span><span class="v">29.6%</span></div>
+            <div class="trow"><span class="k">Shutoff Eligible</span><span class="v">513</span></div>
+          </div>
+        </div>
+        <div class="cg">
+          <div class="cstat">
+            <div class="cstat-lbl">Outbound Contacts This Month</div>
+            <div class="cstat-val">18,944</div>
+            <div class="cstat-sub">SMS, email, IVR, agent outbound, field notices</div>
+          </div>
+          <div class="cstat">
+            <div class="cstat-lbl">Right Party Contact Rate</div>
+            <div class="cstat-val">46.7%</div>
+            <div class="cstat-sub">Best in Bergen, lowest in Hudson multi-family</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <p class="foot">Demo only — values are illustrative and intended for product demonstrations and dashboard concept validation.</p>
+</main>
+
+<!-- CHARTS -->
+<script>
+  Chart.defaults.color = '#5e7898';
+  Chart.defaults.font.family = "'DM Sans', sans-serif";
+  Chart.defaults.font.size = 11;
+  const gc = 'rgba(12,25,41,0.07)';
+
+  function fm(v) {
+    if (v >= 1e6) return '$'+(v/1e6).toFixed(1)+'M';
+    if (v >= 1e3) return '$'+(v/1e3).toFixed(0)+'K';
+    return '$'+v;
+  }
+
+  new Chart(document.getElementById('trendChart'), {
+    type:'bar',
+    data:{
+      labels:['Sep','Oct','Nov','Dec','Jan','Feb','Mar'],
+      datasets:[
+        {
+          type:'line', label:'60+ Day Arrears',
+          data:[5850000,6020000,6180000,6470000,6610000,6620000,6740000],
+          borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.07)',
+          fill:true, tension:0.38, yAxisID:'y',
+          pointRadius:4, pointBackgroundColor:'#3b82f6',
+          pointBorderColor:'#fff', pointBorderWidth:2, borderWidth:2, order:1
+        },
+        {
+          type:'bar', label:'Recovered Cash',
+          data:[1910000,2020000,2050000,2130000,2210000,2270000,2310000],
+          backgroundColor:'rgba(34,197,94,0.55)',
+          borderRadius:6, borderSkipped:false, yAxisID:'y', order:2
+        },
+        {
+          type:'line', label:'New Roll Rate',
+          data:[12.2,12.8,13.1,13.6,13.8,13.5,13.9],
+          borderColor:'#f97316', backgroundColor:'#f97316',
+          tension:0.38, yAxisID:'y1',
+          pointRadius:4, pointBackgroundColor:'#f97316',
+          pointBorderColor:'#fff', pointBorderWidth:2, borderWidth:2, order:0
+        }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index', intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          padding:10, cornerRadius:8,
+          callbacks:{
+            label:c=> c.dataset.label==='New Roll Rate'
+              ? `  ${c.dataset.label}: ${c.parsed.y}%`
+              : `  ${c.dataset.label}: ${fm(c.parsed.y)}`
+          }
+        }
+      },
+      scales:{
+        x:{grid:{color:'transparent'}, ticks:{font:{weight:'600'}}},
+        y:{
+          beginAtZero:true,
+          title:{display:true,text:'Arrears & Recovery ($)',font:{size:10,weight:'600'},padding:{bottom:6}},
+          grid:{color:gc}, ticks:{callback:v=>fm(v)}
+        },
+        y1:{
+          position:'right', beginAtZero:true,
+          title:{display:true,text:'New Roll Rate (%)',font:{size:10,weight:'600'},padding:{bottom:6}},
+          grid:{drawOnChartArea:false}, ticks:{callback:v=>v+'%'}
+        }
+      }
+    }
+  });
+
+  /* Donut — NO built-in legend, we have HTML bars instead */
+  new Chart(document.getElementById('agingDonut'), {
+    type:'doughnut',
+    data:{
+      labels:['1–30','31–60','61–90','91–120','121+'],
+      datasets:[{
+        data:[2160000,1870000,1710000,1500000,1500000],
+        backgroundColor:['#38bdf8','#3b82f6','#8b5cf6','#f59e0b','#ef4444'],
+        borderWidth:3, borderColor:'#ffffff', hoverOffset:5, radius:'96%'
+      }]
+    },
+    options:{
+      cutout:'64%', maintainAspectRatio:true,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>' '+c.label+': '+fm(c.parsed)}}
+      }
+    }
+  });
+
+  new Chart(document.getElementById('segmentBar'), {
+    type:'bar',
+    data:{
+      labels:['Res. SF','Res. MF','Comm. Sm','Comm. Lg','Industrial','Public'],
+      datasets:[{
+        label:'Arrears',
+        data:[3140000,1420000,960000,2080000,880000,670000],
+        backgroundColor:['#3b82f6','#38bdf8','#22c55e','#f59e0b','#f97316','#8b5cf6'],
+        borderRadius:6, borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+fm(c.parsed.y)}}},
+      scales:{
+        x:{grid:{color:'transparent'}, ticks:{font:{size:10.5}}},
+        y:{beginAtZero:true, grid:{color:gc}, ticks:{callback:v=>fm(v)}}
+      }
+    }
+  });
+
+  new Chart(document.getElementById('treatmentBar'), {
+    type:'bar',
+    data:{
+      labels:['SMS','Email','IVR','Agent Call','Letter','Field Visit'],
+      datasets:[{
+        label:'Recovery Rate',
+        data:[9.2,6.8,7.4,21.3,11.1,28.6],
+        backgroundColor:[
+          'rgba(59,130,246,.55)','rgba(59,130,246,.55)','rgba(59,130,246,.55)',
+          'rgba(8,145,178,.75)','rgba(59,130,246,.55)','rgba(21,128,61,.75)'
+        ],
+        borderRadius:6, borderSkipped:false
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.parsed.x+'%'}}},
+      scales:{
+        x:{beginAtZero:true, grid:{color:gc}, ticks:{callback:v=>v+'%'}},
+        y:{grid:{color:'transparent'}, ticks:{font:{size:11}}}
+      }
+    }
+  });
+
+  new Chart(document.getElementById('ptpFunnel'), {
+    type:'bar',
+    data:{
+      labels:['Set','Active','Kept','Broken','Cured 30d'],
+      datasets:[{
+        label:'Accounts',
+        data:[2968,2148,1555,592,1134],
+        backgroundColor:['#3b82f6','#38bdf8','#22c55e','#ef4444','#8b5cf6'],
+        borderRadius:6, borderSkipped:false
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}, tooltip:{callbacks:{label:c=>' '+c.parsed.y.toLocaleString()+' accounts'}}},
+      scales:{
+        x:{grid:{color:'transparent'}, ticks:{font:{size:10.5}}},
+        y:{beginAtZero:true, grid:{color:gc}, ticks:{callback:v=>v.toLocaleString()}}
+      }
+    }
+  });
+</script>
+</body>
+</html>
