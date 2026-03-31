@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Con Edison · CLCPA DAC Intake Form</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ─── TOKENS ─── */
+:root{
+  --blue:       #0099D8;
+  --blue-dark:  #006FA6;
+  --navy:       #00365E;
+  --navy-deep:  #00213A;
+  --blue-light: #E4F5FC;
+  --blue-mid:   #B3DFF3;
+  --bg:         #EDF4F8;
+  --surface:    #FFFFFF;
+  --border:     #D0E4EE;
+  --border-light: #E8F0F5;
+  --text:       #0A1E2E;
+  --text-mid:   #3D5A6E;
+  --text-muted: #7A95A8;
+  --green:      #0DA678;
+  --green-light:#E5F8F2;
+  --shadow-sm:  0 1px 3px rgba(0,54,94,0.08);
+  --shadow-md:  0 4px 12px rgba(0,54,94,0.10);
+  --r:          6px;
+  --r-sm:       4px;
+}
+
+/* ─── RESET ─── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  font-family:'DM Sans',sans-serif;
+  font-size:13.5px;
+  color:var(--text);
+  line-height:1.5;
+}
+
+/* ─── HEADER ─── */
+.site-header{
+  background:var(--navy-deep);
+  height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+  position:sticky;top:0;z-index:100;
+  border-bottom:2px solid var(--blue);
+}
+.header-left{display:flex;align-items:center;gap:16px;}
+.header-logo img{height:28px;filter:brightness(0) invert(1) opacity(0.95);}
+.header-sep{width:1px;height:24px;background:rgba(255,255,255,0.15);}
+.header-label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.55);letter-spacing:0.03em;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.mandate-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--blue);color:#fff;
+  font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;
+  padding:3px 9px;border-radius:3px;
+}
+.staff-tag{
+  display:flex;align-items:center;gap:8px;
+  color:rgba(255,255,255,0.45);font-size:12px;
+}
+.avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:var(--navy);border:1.5px solid rgba(255,255,255,0.2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);
+}
+
+/* ─── HERO BANNER ─── */
+.hero-banner{
+  background:var(--navy);
+  padding:28px 32px;
+  position:relative;overflow:hidden;
+}
+/* subtle grid pattern overlay */
+.hero-banner::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(0,153,216,0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,153,216,0.07) 1px, transparent 1px);
+  background-size:32px 32px;
+  pointer-events:none;
+}
+.hero-inner{
+  max-width:1180px;margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;gap:32px;
+  position:relative;z-index:1;
+}
+.hero-text{}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(0,153,216,0.15);border:1px solid rgba(0,153,216,0.3);
+  color:var(--blue);border-radius:3px;
+  font-size:10.5px;font-weight:700;letter-spacing:0.07em;text-transform:uppercase;
+  padding:3px 9px;margin-bottom:10px;
+}
+.hero-text h1{
+  font-size:22px;font-weight:700;color:#fff;line-height:1.25;
+  margin-bottom:6px;
+}
+.hero-text p{
+  font-size:12.5px;color:rgba(255,255,255,0.5);
+  max-width:520px;line-height:1.65;
+}
+/* community SVG illustration */
+.hero-graphic{
+  flex-shrink:0;opacity:0.18;
+}
+/* progress widget */
+.hero-progress{
+  flex-shrink:0;min-width:200px;
+  background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);
+  border-radius:var(--r);padding:14px 18px;
+}
+.prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;}
+.prog-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:rgba(255,255,255,0.4);}
+.prog-pct{font-size:20px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;}
+.prog-track{height:4px;border-radius:99px;background:rgba(255,255,255,0.12);overflow:hidden;}
+.prog-bar{height:4px;border-radius:99px;background:var(--blue);transition:width .3s ease;width:0;}
+.prog-note{font-size:10.5px;color:rgba(255,255,255,0.3);margin-top:8px;line-height:1.55;}
+
+/* ─── LAYOUT ─── */
+.wrap{max-width:1180px;margin:0 auto;padding:24px 32px 60px;}
+.layout{display:grid;grid-template-columns:244px minmax(0,1fr);gap:18px;align-items:start;}
+
+/* ─── SIDEBAR ─── */
+.sidebar{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--shadow-sm);overflow:hidden;
+  position:sticky;top:72px;
+}
+.sidebar-head{
+  padding:14px 16px 12px;border-bottom:1px solid var(--border-light);
+}
+.sidebar-head-title{font-size:12px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.05em;}
+.sidebar-head-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+.nav-steps{display:flex;flex-direction:column;}
+.nav-step{
+  display:flex;align-items:flex-start;gap:11px;
+  padding:11px 16px;cursor:pointer;border:none;background:none;
+  text-align:left;width:100%;
+  border-left:2px solid transparent;
+  transition:background .12s, border-color .12s;
+}
+.nav-step:hover{background:#F6FAFE;}
+.nav-step.active{background:var(--blue-light);border-left-color:var(--blue);}
+.nav-step.done{border-left-color:var(--green);}
+.nav-step + .nav-step{border-top:1px solid var(--border-light);}
+.step-circle{
+  width:22px;height:22px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;margin-top:1px;
+  background:#EDF1F5;color:var(--text-muted);
+  transition:all .2s;
+}
+.nav-step.active .step-circle{background:var(--blue);color:#fff;}
+.nav-step.done .step-circle{background:var(--green);color:#fff;}
+.step-title{font-size:12.5px;font-weight:600;color:var(--text);}
+.step-desc{font-size:11px;color:var(--text-muted);margin-top:1px;line-height:1.45;}
+.nav-step.active .step-title{color:var(--blue-dark);}
+
+.sidebar-help{
+  padding:12px 16px;border-top:1px solid var(--border-light);
+  background:#F9FBFD;
+}
+.help-head{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.help-body{font-size:11px;color:var(--text-muted);line-height:1.55;margin-bottom:9px;}
+.btn-help{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:5px;
+  padding:7px;border-radius:var(--r-sm);
+  background:var(--navy);border:none;color:#fff;
+  font-size:11.5px;font-weight:600;font-family:inherit;cursor:pointer;
+  transition:background .12s;
+}
+.btn-help:hover{background:var(--navy-deep);}
+
+/* ─── MAIN CARD ─── */
+.main-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden;
+}
+.section{display:none;}
+.section.active{display:block;}
+
+/* section header */
+.sec-head{
+  padding:20px 24px 16px;
+  border-bottom:1px solid var(--border-light);
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+}
+.sec-head-left{}
+.sec-eyebrow{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--blue);margin-bottom:6px;
+}
+.sec-title{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;}
+.sec-sub{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.6;}
+
+/* step section icon */
+.sec-icon{
+  width:36px;height:36px;border-radius:var(--r-sm);flex-shrink:0;
+  background:var(--blue-light);
+  display:flex;align-items:center;justify-content:center;
+}
+.sec-icon svg{color:var(--blue);}
+
+/* body */
+.sec-body{padding:22px 24px;}
+
+/* ─── FORM ELEMENTS ─── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.col-span-2{grid-column:1/-1;}
+
+.field{display:flex;flex-direction:column;}
+.field-label{
+  font-size:11.5px;font-weight:700;color:var(--text);
+  margin-bottom:4px;display:flex;align-items:center;gap:4px;
+}
+.req{color:var(--blue);font-size:13px;}
+.field-hint{font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:6px;}
+
+/* inputs */
+input[type=text],select,textarea{
+  width:100%;border:1px solid var(--border);
+  border-radius:var(--r-sm);background:#FAFCFD;
+  padding:8px 11px;
+  font-size:13px;color:var(--text);
+  font-family:'DM Sans',sans-serif;outline:none;
+  transition:border-color .12s, box-shadow .12s, background .12s;
+}
+input[type=text]:focus,select:focus,textarea:focus{
+  border-color:var(--blue);background:#fff;
+  box-shadow:0 0 0 3px rgba(0,153,216,0.12);
+}
+input[type=text]:disabled{
+  background:#F2F5F8;color:var(--text-muted);cursor:not-allowed;
+}
+select{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%237A95A8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;
+  padding-right:28px;
+}
+textarea{min-height:120px;resize:vertical;line-height:1.6;}
+
+/* hero project name input */
+.hero-input{
+  font-size:15px;font-weight:600;padding:10px 14px;
+  border:1.5px solid var(--border);border-radius:var(--r-sm);
+  background:#FAFCFD;width:100%;outline:none;
+  font-family:'DM Sans',sans-serif;color:var(--text);
+  transition:border-color .12s, box-shadow .12s;
+}
+.hero-input::placeholder{font-weight:400;color:#B0BEC8;}
+.hero-input:focus{border-color:var(--blue);background:#fff;box-shadow:0 0 0 3px rgba(0,153,216,0.12);}
+
+/* field group card */
+.field-card{
+  background:#F7FAFB;border:1px solid var(--border-light);
+  border-radius:var(--r-sm);padding:13px 14px;
+  display:flex;flex-direction:column;
+}
+
+/* inline divider */
+.divider-label{
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0 14px;
+}
+.divider-label span{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.07em;color:var(--text-muted);white-space:nowrap;
+}
+.divider-label::before,.divider-label::after{content:'';flex:1;height:1px;background:var(--border-light);}
+
+/* checkbox */
+.check-row{
+  display:flex;align-items:center;gap:9px;
+  border:1px solid var(--border);border-radius:var(--r-sm);
+  background:#FAFCFD;padding:8px 11px;font-size:12.5px;color:var(--text);
+  cursor:pointer;transition:border-color .12s;
+  margin-top:8px;
+}
+.check-row:hover{border-color:var(--blue);}
+input[type=checkbox]{
+  width:14px;height:14px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;
+}
+
+/* callout */
+.callout{
+  display:flex;gap:10px;
+  border:1px solid var(--blue-mid);border-radius:var(--r-sm);
+  background:var(--blue-light);padding:10px 14px;margin-bottom:18px;
+}
+.callout-text{font-size:11.5px;color:var(--text-mid);line-height:1.6;}
+.callout-text strong{color:var(--text);}
+
+/* ─── UPLOAD ─── */
+.upload-zone{
+  border:1.5px dashed var(--border);border-radius:var(--r-sm);
+  padding:16px;background:#F7FAFB;
+}
+.upload-zone:hover{border-color:var(--blue);}
+.upload-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.upload-hint{font-size:11px;color:var(--text-muted);margin-bottom:12px;line-height:1.5;}
+#docList{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+.btn-upload{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:7px 14px;border-radius:var(--r-sm);
+  background:var(--navy);border:none;color:#fff;
+  font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;
+  transition:background .12s;
+}
+.btn-upload:hover{background:var(--navy-deep);}
+
+/* ─── SPLIT PERCENT ─── */
+.pct-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.pct-wrap{}
+.pct-inner-label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:5px;}
+
+/* ─── NAV FOOTER ─── */
+.sec-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 24px;border-top:1px solid var(--border-light);
+  background:#FAFCFD;
+}
+.step-indicator{font-size:11px;font-weight:600;color:var(--text-muted);}
+.btn-prev{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface);
+  font-size:12.5px;font-weight:600;color:var(--text-mid);
+  font-family:inherit;cursor:pointer;transition:all .12s;
+}
+.btn-prev:disabled{opacity:.3;cursor:not-allowed;}
+.btn-prev:not(:disabled):hover{border-color:var(--blue);color:var(--blue);}
+.btn-next{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 16px;border-radius:var(--r-sm);
+  border:none;background:var(--blue);
+  font-size:12.5px;font-weight:700;color:#fff;
+  font-family:inherit;cursor:pointer;transition:background .12s;
+}
+.btn-next:disabled{opacity:.35;cursor:not-allowed;}
+.btn-next:not(:disabled):hover{background:var(--blue-dark);}
+
+/* ─── REVIEW ─── */
+.review-section{margin-bottom:24px;}
+.review-section-title{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;
+  color:var(--blue);margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.review-section-title::after{content:'';flex:1;height:1px;background:var(--border-light);}
+.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.summary-card{
+  border:1px solid var(--border-light);border-radius:var(--r-sm);
+  padding:10px 12px;background:#FAFCFD;
+}
+.s-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);}
+.s-value{margin-top:5px;font-size:12.5px;color:var(--text);font-weight:600;}
+.s-empty{color:#C5D0DA;font-weight:400;}
+.narrative-cards{display:flex;flex-direction:column;gap:10px;}
+.narrative-card{
+  border:1px solid var(--border-light);border-radius:var(--r-sm);
+  padding:14px 16px;background:#fff;
+}
+.n-label{font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;}
+.n-value{font-size:12.5px;color:var(--text-mid);line-height:1.7;white-space:pre-wrap;}
+
+.submit-box{
+  border:1px solid var(--border);border-radius:var(--r);
+  background:#F7FAFB;padding:18px 22px;
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  margin-top:20px;
+}
+.submit-box h4{font-size:14px;font-weight:700;color:var(--text);}
+.submit-box p{font-size:11.5px;color:var(--text-muted);margin-top:3px;}
+.btn-submit{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:10px 20px;border-radius:var(--r-sm);
+  border:none;background:var(--blue);
+  font-size:13px;font-weight:700;color:#fff;
+  font-family:inherit;cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,153,216,0.25);
+  transition:background .12s;white-space:nowrap;
+}
+.btn-submit:hover{background:var(--blue-dark);}
+.success-badge{
+  display:none;align-items:center;gap:7px;
+  background:var(--green-light);border-radius:var(--r-sm);
+  padding:7px 14px;font-size:12.5px;font-weight:700;color:var(--green);
+}
+.success-badge.show{display:inline-flex;}
+
+/* ─── COMMUNITY GRAPHIC ─── */
+/* inline svg drawn in markup */
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <img src="https://companieslogo.com/img/orig/ED_BIG.D-fb76cf7f.png?t=1740224060" alt="Con Edison"/>
+    </div>
+    <div class="header-sep"></div>
+    <span class="header-label">CLCPA Compliance Portal</span>
+  </div>
+  <div class="header-right">
+    <div class="mandate-pill">
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Regulatory Mandate
+    </div>
+    <div class="staff-tag">
+      <div class="avatar">CE</div>
+      Staff Portal
+    </div>
+  </div>
+</header>
+
+<!-- HERO BANNER -->
+<div class="hero-banner">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-eyebrow">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        DAC Impact Screening · NYSPSC Requirement
+      </div>
+      <h1>CLCPA / Utility Rate<br>Intake Form</h1>
+      <p>Submit project information for CLCPA compliance tracking. Complete all sections to ensure accurate Disadvantaged Community screening and impact documentation.</p>
+    </div>
+
+    <!-- Community illustration (subtle) -->
+    <div class="hero-graphic">
+      <svg width="180" height="90" viewBox="0 0 180 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- House 1 -->
+        <polygon points="20,55 35,38 50,55" fill="#0099D8"/>
+        <rect x="24" y="55" width="22" height="18" fill="#0099D8"/>
+        <rect x="31" y="60" width="8" height="13" fill="white" opacity="0.25"/>
+        <!-- House 2 -->
+        <polygon points="55,52 74,30 93,52" fill="#0099D8" opacity="0.7"/>
+        <rect x="60" y="52" width="28" height="21" fill="#0099D8" opacity="0.7"/>
+        <rect x="69" y="58" width="10" height="15" fill="white" opacity="0.2"/>
+        <!-- House 3 -->
+        <polygon points="98,55 113,40 128,55" fill="#0099D8" opacity="0.5"/>
+        <rect x="102" y="55" width="22" height="18" fill="#0099D8" opacity="0.5"/>
+        <rect x="109" y="61" width="8" height="12" fill="white" opacity="0.15"/>
+        <!-- House 4 small -->
+        <polygon points="133,60 144,48 155,60" fill="#0099D8" opacity="0.35"/>
+        <rect x="136" y="60" width="16" height="13" fill="#0099D8" opacity="0.35"/>
+        <!-- Ground line -->
+        <line x1="8" y1="73" x2="172" y2="73" stroke="#0099D8" stroke-width="1.5" opacity="0.4"/>
+        <!-- People dots -->
+        <circle cx="30" cy="68" r="3" fill="white" opacity="0.3"/>
+        <circle cx="74" cy="68" r="3" fill="white" opacity="0.25"/>
+        <circle cx="113" cy="68" r="3" fill="white" opacity="0.2"/>
+        <!-- Power line -->
+        <line x1="8" y1="22" x2="172" y2="22" stroke="#0099D8" stroke-width="1" opacity="0.2"/>
+        <line x1="30" y1="22" x2="30" y2="38" stroke="#0099D8" stroke-width="1" opacity="0.2"/>
+        <line x1="74" y1="22" x2="74" y2="30" stroke="#0099D8" stroke-width="1" opacity="0.2"/>
+        <line x1="113" y1="22" x2="113" y2="40" stroke="#0099D8" stroke-width="1" opacity="0.2"/>
+      </svg>
+    </div>
+
+    <div class="hero-progress">
+      <div class="prog-top">
+        <span class="prog-label">Completion</span>
+        <span class="prog-pct" id="pct">0%</span>
+      </div>
+      <div class="prog-track"><div class="prog-bar" id="bar"></div></div>
+      <div class="prog-note">Location · customers · burdens · benefits · alternatives · mitigation · engagement</div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE -->
+<div class="wrap">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-head-title">Intake Steps</div>
+        <div class="sidebar-head-sub">Complete all 4 sections to submit.</div>
+      </div>
+      <nav class="nav-steps">
+        <button class="nav-step active" id="step-btn-1" onclick="goTo(1)">
+          <div class="step-circle" id="step-circle-1">1</div>
+          <div><div class="step-title">Project Reference</div><div class="step-desc">Name, case & filing details</div></div>
+        </button>
+        <button class="nav-step" id="step-btn-2" onclick="goTo(2)">
+          <div class="step-circle" id="step-circle-2">2</div>
+          <div><div class="step-title">Location & DAC Screening</div><div class="step-desc">Site, DAC status & impact radius</div></div>
+        </button>
+        <button class="nav-step" id="step-btn-3" onclick="goTo(3)">
+          <div class="step-circle" id="step-circle-3">3</div>
+          <div><div class="step-title">Customers & Community Impact</div><div class="step-desc">Counts, burdens, benefits & mitigation</div></div>
+        </button>
+        <button class="nav-step" id="step-btn-4" onclick="goTo(4)">
+          <div class="step-circle" id="step-circle-4">4</div>
+          <div><div class="step-title">Review & Submit</div><div class="step-desc">Preview and finalize submission</div></div>
+        </button>
+      </nav>
+      <div class="sidebar-help">
+        <div class="help-head">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Need help?
+        </div>
+        <div class="help-body">Questions about DAC screening or CLCPA requirements? Contact the compliance team.</div>
+        <button class="btn-help" onclick="alert('Opening compliance help desk...')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Contact Compliance Team
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-card">
+
+      <!-- ══ STEP 1 ══ -->
+      <div class="section active" id="s1">
+        <div class="sec-head">
+          <div class="sec-head-left">
+            <div class="sec-eyebrow">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Step 1 of 4
+            </div>
+            <div class="sec-title">Project Reference</div>
+            <div class="sec-sub">Start with the project name, then complete the rate case filing identifiers.</div>
+          </div>
+          <div class="sec-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" color="var(--blue)"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+        </div>
+        <div class="sec-body">
+
+          <!-- PROJECT NAME — LEAD FIELD -->
+          <div style="margin-bottom:20px;">
+            <div class="field-label" style="font-size:12px;margin-bottom:5px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              Project / Item Name <span class="req">*</span>
+            </div>
+            <div class="field-hint">Enter the full project name as it appears in the rate case filing.</div>
+            <input class="hero-input" type="text" id="itemName"
+              placeholder="e.g., Substation Modernization — Bronx Zone 4"
+              oninput="updateCompletion()"/>
+          </div>
+
+          <!-- FILING DETAILS -->
+          <div class="divider-label"><span>Rate Case Filing Details</span></div>
+          <div class="grid-2">
+            <div class="field-card">
+              <div class="field-label">Case Number</div>
+              <div class="field-hint">Auto-populated from the rate case system.</div>
+              <input type="text" id="caseNumber" placeholder="e.g., 24-E-0123" readonly
+                style="background:#F2F5F8;color:var(--text-muted);cursor:not-allowed;"/>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Exhibit <span class="req">*</span></div>
+              <div class="field-hint">Exhibit identifier from the filing.</div>
+              <input type="text" id="exhibit" placeholder="e.g., Exhibit A" oninput="updateCompletion()"/>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Item Number <span class="req">*</span></div>
+              <div class="field-hint">Line item on the exhibit.</div>
+              <input type="text" id="itemNumber" placeholder="e.g., 12" oninput="updateCompletion()"/>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Page Number <span class="req">*</span></div>
+              <div class="field-hint">Page in the white paper.</div>
+              <input type="text" id="pageNumber" placeholder="e.g., 47" oninput="updateCompletion()"/>
+            </div>
+          </div>
+
+          <!-- UPLOAD -->
+          <div class="divider-label" style="margin-top:20px;"><span>Supporting Document</span></div>
+          <div class="upload-zone">
+            <div class="upload-label">White Paper / Sanction Paper / Panel Exhibit</div>
+            <div class="upload-hint">Accepted formats: PDF, Word (.docx).</div>
+            <div id="docList"></div>
+            <input type="file" id="docInput" accept=".pdf,.docx" multiple style="display:none" onchange="handleFiles()"/>
+            <button class="btn-upload" onclick="document.getElementById('docInput').click()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Attach Document
+            </button>
+          </div>
+        </div>
+        <div class="sec-nav">
+          <button class="btn-prev" disabled>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Previous
+          </button>
+          <span class="step-indicator">Step 1 of 4</span>
+          <button class="btn-next" onclick="nextStep()">
+            Next: Location & DAC
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 2 ══ -->
+      <div class="section" id="s2">
+        <div class="sec-head">
+          <div class="sec-head-left">
+            <div class="sec-eyebrow">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Step 2 of 4
+            </div>
+            <div class="sec-title">Location & DAC Screening</div>
+            <div class="sec-sub">Identify the site and determine whether Disadvantaged Communities fall within the project or impact area.</div>
+          </div>
+          <div class="sec-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" color="var(--blue)"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          </div>
+        </div>
+        <div class="sec-body">
+          <div class="callout">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div class="callout-text"><strong>DAC Definition:</strong> A Disadvantaged Community is identified pursuant to NYS Environmental Conservation Law §75-0111 and NYSDEC screening criteria. Determinations are based on cumulative environmental burden and community demographics.</div>
+          </div>
+
+          <div class="grid-2" style="gap:14px;">
+            <div class="field-card col-span-2">
+              <div class="field-label">Is the project fully or partially located in a DAC? <span class="req">*</span></div>
+              <div class="field-hint">Indicate whether any portion of the project footprint falls within a designated Disadvantaged Community.</div>
+              <select id="projectLocatedInDAC" onchange="updateCompletion()">
+                <option value="">— Select an answer —</option>
+                <option value="Y">Yes — project is located in a DAC</option>
+                <option value="N">No — project is not in a DAC</option>
+                <option value="N/A">N/A — not applicable</option>
+              </select>
+            </div>
+
+            <div class="field-card col-span-2">
+              <div class="field-label">Physical Address <span class="req">*</span></div>
+              <div class="field-hint">Site address, borough, city, and ZIP. For system-wide projects, check the option below.</div>
+              <input type="text" id="physicalAddress" placeholder="Street address, borough, city, ZIP" oninput="updateCompletion()"/>
+              <label class="check-row">
+                <input type="checkbox" id="noSpecificLocation" onchange="toggleAddress()"/>
+                This project is system-wide and has no specific physical location
+              </label>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">Environmental impact range <span class="req">*</span></div>
+              <div class="field-hint">Radius in miles or descriptive range (air, noise, etc.).</div>
+              <input type="text" id="environmentalImpactRange" placeholder="e.g., 2.5 mile radius" oninput="updateCompletion()"/>
+            </div>
+
+            <div class="field-card">
+              <div class="field-label">DAC within the impact range? <span class="req">*</span></div>
+              <div class="field-hint">Does a DAC fall within the identified impact area?</div>
+              <select id="dacWithinImpactRange" onchange="updateCompletion()">
+                <option value="">— Select an answer —</option>
+                <option value="Y">Yes — a DAC is within range</option>
+                <option value="N">No — no DAC within range</option>
+                <option value="N/A">N/A — not applicable</option>
+              </select>
+            </div>
+
+            <div class="field-card col-span-2">
+              <div class="field-label">DAC Coverage Percentages <span class="req">*</span></div>
+              <div class="field-hint">Percentage of project footprint within DAC and non-DAC areas. Values should total 100%.</div>
+              <div class="pct-row">
+                <div class="pct-wrap">
+                  <div class="pct-inner-label">% DAC</div>
+                  <input type="text" id="dacPercent" placeholder="e.g., 68" oninput="updateCompletion()"/>
+                </div>
+                <div class="pct-wrap">
+                  <div class="pct-inner-label">% Non-DAC</div>
+                  <input type="text" id="nonDacPercent" placeholder="e.g., 32" oninput="updateCompletion()"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="sec-nav">
+          <button class="btn-prev" onclick="prevStep()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Previous
+          </button>
+          <span class="step-indicator">Step 2 of 4</span>
+          <button class="btn-next" onclick="nextStep()">
+            Next: Community Impact
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 3 ══ -->
+      <div class="section" id="s3">
+        <div class="sec-head">
+          <div class="sec-head-left">
+            <div class="sec-eyebrow">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+              Step 3 of 4
+            </div>
+            <div class="sec-title">Customers & Community Impact</div>
+            <div class="sec-sub">Provide customer counts and complete the five narrative assessments required by CLCPA DAC screening guidelines.</div>
+          </div>
+          <div class="sec-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" color="var(--blue)"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+        </div>
+        <div class="sec-body">
+
+          <div class="divider-label" style="margin-top:0;margin-bottom:14px;"><span>Customer Count</span></div>
+          <div class="grid-2" style="gap:14px;margin-bottom:22px;">
+            <div class="field-card">
+              <div class="field-label">Total customers impacted or served <span class="req">*</span></div>
+              <div class="field-hint">All customer segments.</div>
+              <input type="text" id="totalCustomers" placeholder="e.g., 14,500" oninput="updateCompletion()"/>
+            </div>
+            <div class="field-card">
+              <div class="field-label">DAC customers impacted or served <span class="req">*</span></div>
+              <div class="field-hint">Within designated DAC boundaries.</div>
+              <input type="text" id="dacCustomers" placeholder="e.g., 6,200" oninput="updateCompletion()"/>
+            </div>
+          </div>
+
+          <div class="divider-label"><span>Narrative Assessments</span></div>
+          <div class="callout" style="margin-bottom:16px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <div class="callout-text"><strong>PSC Requirement:</strong> Responses to these five fields appear verbatim in the white paper submission. Provide sufficient detail to support Commission review under CLCPA §7(2)(a).</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div class="field-card">
+              <div class="field-label">Assessment of potential burdens on DACs <span class="req">*</span></div>
+              <div class="field-hint">Assess all environmental, health, and economic burdens the project could impose on Disadvantaged Communities.</div>
+              <textarea id="burdensAssessment" placeholder="Describe all potential burdens the project or investment could impose on DACs, including environmental, health, and economic impacts..." oninput="updateCompletion()"></textarea>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Assessment of benefits to DACs <span class="req">*</span></div>
+              <div class="field-hint">Specific and quantifiable benefits for Disadvantaged Communities.</div>
+              <textarea id="benefitsAssessment" placeholder="Describe the specific benefits the project or investment provides to DACs, including reliability, environmental quality, bill savings, or other improvements..." oninput="updateCompletion()"></textarea>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Alternatives considered to avoid burdens <span class="req">*</span></div>
+              <div class="field-hint">All alternatives evaluated that could reduce or eliminate DAC burden and why they were or were not adopted.</div>
+              <textarea id="alternativesAssessment" placeholder="Summarize alternative approaches considered and the rationale for the chosen approach..." oninput="updateCompletion()"></textarea>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Measures to reduce or eliminate burdens <span class="req">*</span></div>
+              <div class="field-hint">Concrete mitigation measures, design modifications, or operational controls.</div>
+              <textarea id="mitigationMeasures" placeholder="Describe mitigation measures, design changes, construction timing, or operational controls to minimize burden on DACs..." oninput="updateCompletion()"></textarea>
+            </div>
+            <div class="field-card">
+              <div class="field-label">Public and stakeholder engagement <span class="req">*</span></div>
+              <div class="field-hint">Engagement conducted with community members, advocacy groups, or local officials, and key feedback received.</div>
+              <textarea id="publicEngagement" placeholder="Describe engagement activities, participants, dates, and a summary of feedback received from DAC community members or stakeholders..." oninput="updateCompletion()"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="sec-nav">
+          <button class="btn-prev" onclick="prevStep()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Previous
+          </button>
+          <span class="step-indicator">Step 3 of 4</span>
+          <button class="btn-next" onclick="nextStep()">
+            Review & Submit
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══ STEP 4 ══ -->
+      <div class="section" id="s4">
+        <div class="sec-head">
+          <div class="sec-head-left">
+            <div class="sec-eyebrow">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              Step 4 of 4
+            </div>
+            <div class="sec-title">Review & Submit</div>
+            <div class="sec-sub">Verify all information before final submission to the CLCPA compliance system.</div>
+          </div>
+          <div class="success-badge" id="successBadge">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Submission captured
+          </div>
+        </div>
+        <div class="sec-body">
+          <div class="review-section">
+            <div class="review-section-title">Project Reference</div>
+            <div class="summary-grid" id="summaryGrid"></div>
+          </div>
+          <div class="review-section">
+            <div class="review-section-title">Community Impact Narratives</div>
+            <div class="narrative-cards" id="narrativeCards"></div>
+          </div>
+          <div class="submit-box">
+            <div>
+              <h4>Ready to submit?</h4>
+              <p>This records your intake in the CLCPA compliance system and notifies the review team.</p>
+            </div>
+            <button class="btn-submit" onclick="submitForm()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              Submit Intake Form
+            </button>
+          </div>
+        </div>
+        <div class="sec-nav">
+          <button class="btn-prev" onclick="prevStep()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            Previous
+          </button>
+          <span class="step-indicator">Step 4 of 4</span>
+          <button class="btn-next" disabled>Done</button>
+        </div>
+      </div>
+
+    </div><!-- /main-card -->
+  </div><!-- /layout -->
+</div><!-- /wrap -->
+
+<script>
+  let current = 1;
+  const total = 4;
+  const trackable = [
+    "caseNumber","exhibit","itemNumber","pageNumber","itemName",
+    "projectLocatedInDAC","environmentalImpactRange","dacWithinImpactRange",
+    "physicalAddress","dacPercent","nonDacPercent",
+    "totalCustomers","dacCustomers",
+    "burdensAssessment","benefitsAssessment","alternativesAssessment",
+    "mitigationMeasures","publicEngagement"
+  ];
+
+  function val(id){
+    const el = document.getElementById(id);
+    if(!el) return "";
+    return el.value || "";
+  }
+
+  function updateCompletion(){
+    const done = trackable.filter(id => val(id).trim() !== "").length;
+    const pct = Math.round((done / trackable.length) * 100);
+    document.getElementById("pct").textContent = pct + "%";
+    document.getElementById("bar").style.width = pct + "%";
+  }
+
+  const checkSVG = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`;
+
+  function goTo(n){
+    if(n === total) buildReview();
+    document.getElementById("s" + current).classList.remove("active");
+    document.getElementById("step-btn-" + current).classList.remove("active");
+
+    for(let i = 1; i <= total; i++){
+      const btn = document.getElementById("step-btn-" + i);
+      const circle = document.getElementById("step-circle-" + i);
+      btn.classList.remove("active","done");
+      if(i < n){
+        btn.classList.add("done");
+        circle.innerHTML = checkSVG;
+      } else if(i === n){
+        btn.classList.add("active");
+        circle.textContent = i;
+      } else {
+        circle.textContent = i;
+      }
+    }
+
+    current = n;
+    document.getElementById("s" + current).classList.add("active");
+    window.scrollTo({top: 0, behavior:'smooth'});
+  }
+
+  function nextStep(){ if(current < total) goTo(current + 1); }
+  function prevStep(){ if(current > 1) goTo(current - 1); }
+
+  function toggleAddress(){
+    const cb = document.getElementById("noSpecificLocation");
+    const addr = document.getElementById("physicalAddress");
+    addr.disabled = cb.checked;
+    if(cb.checked) addr.value = "";
+    updateCompletion();
+  }
+
+  function handleFiles(){
+    const input = document.getElementById("docInput");
+    const list = document.getElementById("docList");
+    Array.from(input.files).forEach(file => {
+      const isPdf = file.name.endsWith(".pdf");
+      const isDocx = file.name.endsWith(".docx");
+      if(!isPdf && !isDocx) return;
+      const id = "doc-" + Date.now() + Math.random();
+      const iconColor = isPdf ? "#D7263D" : "#0099D8";
+      const bgColor = isPdf ? "#FFF0F2" : "#E4F5FC";
+      const typeLabel = isPdf ? "PDF" : "DOCX";
+      const el = document.createElement("div");
+      el.id = id;
+      el.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:1px solid #D0E4EE;border-radius:4px;padding:8px 11px;";
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:9px;">
+          <div style="width:28px;height:28px;border-radius:4px;background:${bgColor};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${iconColor}" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div>
+            <div style="font-size:12.5px;font-weight:600;color:#0A1E2E;">${file.name}</div>
+            <div style="font-size:10.5px;color:#7A95A8;">${typeLabel} · ${(file.size/1024).toFixed(1)} KB</div>
+          </div>
+        </div>
+        <button onclick="document.getElementById('${id}').remove()" style="background:none;border:none;cursor:pointer;color:#7A95A8;padding:3px;display:flex;align-items:center;border-radius:3px;" title="Remove">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>`;
+      list.appendChild(el);
+    });
+    input.value = "";
+  }
+
+  function buildReview(){
+    const addr = document.getElementById("noSpecificLocation").checked
+      ? "System-wide / no specific location" : val("physicalAddress");
+
+    const summaryItems = [
+      ["Project Name", val("itemName")],
+      ["Case Number", val("caseNumber")],
+      ["Exhibit", val("exhibit")],
+      ["Item Number", val("itemNumber")],
+      ["Page Number", val("pageNumber")],
+      ["Located in DAC", val("projectLocatedInDAC")],
+      ["Impact Range", val("environmentalImpactRange")],
+      ["DAC in Range", val("dacWithinImpactRange")],
+      ["Address", addr],
+      ["% DAC", val("dacPercent")],
+      ["% Non-DAC", val("nonDacPercent")],
+      ["Total Customers", val("totalCustomers")],
+      ["DAC Customers", val("dacCustomers")],
+    ];
+
+    const narrativeItems = [
+      ["Potential Burdens on DACs", val("burdensAssessment")],
+      ["Benefits to DACs", val("benefitsAssessment")],
+      ["Alternatives Considered", val("alternativesAssessment")],
+      ["Measures to Reduce / Eliminate Burdens", val("mitigationMeasures")],
+      ["Public & Stakeholder Engagement", val("publicEngagement")],
+    ];
+
+    document.getElementById("summaryGrid").innerHTML = summaryItems.map(([l,v]) => `
+      <div class="summary-card">
+        <div class="s-label">${l}</div>
+        <div class="s-value ${v?'':'s-empty'}">${v || "Not provided"}</div>
+      </div>`).join("");
+
+    document.getElementById("narrativeCards").innerHTML = narrativeItems.map(([l,v]) => `
+      <div class="narrative-card">
+        <div class="n-label">${l}</div>
+        <div class="n-value">${v || '<span style="color:#C5D0DA;font-style:italic;">No response entered.</span>'}</div>
+      </div>`).join("");
+  }
+
+  function submitForm(){
+    document.getElementById("successBadge").classList.add("show");
+    const btn = document.querySelector(".btn-submit");
+    btn.disabled = true;
+    btn.style.opacity = "0.5";
+    btn.style.cursor = "not-allowed";
+  }
+</script>
+</body>
+</html>
