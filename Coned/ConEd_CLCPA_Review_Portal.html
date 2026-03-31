@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Con Edison · CLCPA DAC Review Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --blue:       #0099D8;
+  --blue-dark:  #006FA6;
+  --navy:       #00365E;
+  --navy-deep:  #00213A;
+  --blue-light: #E4F5FC;
+  --blue-mid:   #B3DFF3;
+  --bg:         #EDF4F8;
+  --surface:    #FFFFFF;
+  --border:     #D0E4EE;
+  --border-light:#E8F0F5;
+  --text:       #0A1E2E;
+  --text-mid:   #3D5A6E;
+  --text-muted: #7A95A8;
+  --green:      #0DA678;
+  --green-light:#E5F8F2;
+  --green-dark: #0A7A58;
+  --red:        #D7263D;
+  --red-light:  #FDEDF0;
+  --red-dark:   #A81A2E;
+  --amber:      #D97706;
+  --amber-light:#FEF3C7;
+  --purple:     #7C3AED;
+  --purple-light:#EDE9FE;
+  --r:6px; --r-sm:4px;
+  --shadow-sm:0 1px 3px rgba(0,54,94,0.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;font-size:13.5px;color:var(--text);background:var(--bg);min-height:100vh;display:flex;flex-direction:column;}
+
+/* ─── HEADER ─── */
+.site-header{
+  background:var(--navy-deep);height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;flex-shrink:0;
+  border-bottom:2px solid var(--blue);position:sticky;top:0;z-index:200;
+}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header-logo img{height:27px;filter:brightness(0) invert(1) opacity(0.92);}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,0.15);}
+.header-label{font-size:12px;font-weight:600;color:rgba(255,255,255,0.5);letter-spacing:0.03em;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.badge-mandate{display:inline-flex;align-items:center;gap:5px;background:var(--blue);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:3px;}
+.reviewer-tag{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,0.45);font-size:12px;}
+.avatar{width:26px;height:26px;border-radius:50%;background:var(--navy);border:1.5px solid rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:rgba(255,255,255,0.75);}
+
+/* ─── SUBNAV STATS BAR ─── */
+.stats-bar{
+  background:var(--navy);padding:0 28px;
+  display:flex;align-items:center;gap:0;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+  flex-shrink:0;
+}
+.stat-item{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 20px 12px 0;margin-right:20px;
+  border-right:1px solid rgba(255,255,255,0.08);
+}
+.stat-item:last-child{border-right:none;}
+.stat-icon{width:28px;height:28px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.stat-num{font-size:18px;font-weight:700;color:#fff;font-family:'DM Mono',monospace;line-height:1;}
+.stat-label{font-size:10.5px;color:rgba(255,255,255,0.4);margin-top:2px;letter-spacing:0.02em;}
+
+/* ─── LAYOUT ─── */
+.app-body{flex:1;display:grid;grid-template-columns:360px minmax(0,1fr);overflow:hidden;height:calc(100vh - 56px - 54px);}
+
+/* ─── QUEUE PANEL ─── */
+.queue-panel{
+  background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.queue-head{
+  padding:14px 16px 12px;border-bottom:1px solid var(--border-light);flex-shrink:0;
+}
+.queue-head-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.queue-title{font-size:13px;font-weight:700;color:var(--text);}
+.filter-row{display:flex;gap:6px;}
+.filter-btn{
+  font-size:11px;font-weight:600;padding:4px 9px;border-radius:99px;
+  border:1px solid var(--border);background:var(--surface);color:var(--text-muted);
+  cursor:pointer;transition:all .12s;font-family:inherit;
+}
+.filter-btn.active{background:var(--blue);border-color:var(--blue);color:#fff;}
+.filter-btn:hover:not(.active){border-color:var(--blue);color:var(--blue);}
+.queue-search{
+  display:flex;align-items:center;gap:8px;
+  border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:6px 10px;background:#FAFCFD;
+}
+.queue-search svg{flex-shrink:0;color:var(--text-muted);}
+.queue-search input{border:none;background:none;outline:none;font-family:inherit;font-size:12.5px;color:var(--text);width:100%;}
+.queue-search input::placeholder{color:var(--text-muted);}
+
+.queue-list{overflow-y:auto;flex:1;}
+.queue-item{
+  padding:12px 16px;border-bottom:1px solid var(--border-light);
+  cursor:pointer;transition:background .1s;
+  border-left:3px solid transparent;
+  position:relative;
+}
+.queue-item:hover{background:#F6FAFE;}
+.queue-item.active{background:var(--blue-light);border-left-color:var(--blue);}
+.qi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;}
+.qi-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;flex:1;}
+.qi-status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;padding:2px 7px;border-radius:3px;flex-shrink:0;white-space:nowrap;}
+.status-pending{background:var(--amber-light);color:var(--amber);}
+.status-approved{background:var(--green-light);color:var(--green-dark);}
+.status-denied{background:var(--red-light);color:var(--red-dark);}
+.status-review{background:var(--purple-light);color:var(--purple);}
+.qi-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.qi-case{font-size:10.5px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+.qi-burden{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;}
+.burden-construction{background:#FFF7ED;color:#C2410C;}
+.burden-outage{background:#EFF6FF;color:#1D4ED8;}
+.burden-nomaterial{background:var(--green-light);color:var(--green-dark);}
+.burden-unclassified{background:#F3F4F6;color:#6B7280;}
+.qi-date{font-size:10.5px;color:var(--text-muted);margin-left:auto;}
+
+/* ─── DETAIL PANEL ─── */
+.detail-panel{
+  display:flex;flex-direction:column;overflow:hidden;
+  background:var(--bg);
+}
+.detail-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;color:var(--text-muted);text-align:center;padding:40px;
+}
+.detail-empty svg{opacity:.25;}
+.detail-empty p{font-size:13px;max-width:280px;line-height:1.6;}
+
+.detail-content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* detail header */
+.detail-head{
+  background:var(--surface);padding:18px 24px 16px;
+  border-bottom:1px solid var(--border);flex-shrink:0;
+}
+.dh-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:10px;}
+.dh-eyebrow{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--blue);margin-bottom:5px;display:flex;align-items:center;gap:5px;}
+.dh-name{font-size:18px;font-weight:700;color:var(--text);line-height:1.2;}
+.dh-meta-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
+.dh-meta-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;color:var(--text-mid);
+  background:#F3F6F8;border:1px solid var(--border-light);
+  border-radius:3px;padding:3px 8px;
+}
+.dh-meta-chip svg{color:var(--text-muted);}
+
+/* quick facts */
+.quick-facts{
+  display:flex;gap:0;background:var(--surface);
+  border-bottom:1px solid var(--border);flex-shrink:0;
+  overflow-x:auto;
+}
+.qf-item{
+  flex:1;min-width:100px;padding:10px 16px;
+  border-right:1px solid var(--border-light);
+  text-align:center;
+}
+.qf-item:last-child{border-right:none;}
+.qf-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-muted);margin-bottom:4px;}
+.qf-val{font-size:15px;font-weight:700;color:var(--text);font-family:'DM Mono',monospace;}
+.qf-val.blue{color:var(--blue);}
+.qf-val.green{color:var(--green);}
+.qf-val.amber{color:var(--amber);}
+
+/* scrollable detail body */
+.detail-body{flex:1;overflow-y:auto;padding:20px 24px;}
+.detail-section{margin-bottom:20px;}
+.ds-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--blue);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ds-title::after{content:'';flex:1;height:1px;background:var(--border-light);}
+
+/* narrative block */
+.narrative-block{
+  background:var(--surface);border:1px solid var(--border-light);
+  border-radius:var(--r-sm);padding:13px 15px;margin-bottom:8px;
+}
+.nb-label{font-size:11.5px;font-weight:700;color:var(--text);margin-bottom:5px;display:flex;align-items:center;gap:6px;}
+.nb-text{font-size:12.5px;color:var(--text-mid);line-height:1.7;}
+
+/* facts grid */
+.facts-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.fact-card{background:var(--surface);border:1px solid var(--border-light);border-radius:var(--r-sm);padding:10px 12px;}
+.fc-label{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:4px;}
+.fc-val{font-size:12.5px;font-weight:700;color:var(--text);}
+
+/* ─── BURDEN CLASSIFICATION ─── */
+.burden-section{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:16px;overflow:hidden;
+}
+.burden-section-head{
+  padding:12px 16px;background:#F7FAFB;border-bottom:1px solid var(--border-light);
+  display:flex;align-items:center;gap:8px;
+}
+.burden-section-head-title{font-size:12px;font-weight:700;color:var(--text);}
+.burden-section-head svg{color:var(--amber);}
+.burden-options{display:flex;flex-direction:column;gap:0;}
+.burden-option{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:13px 16px;cursor:pointer;
+  border-bottom:1px solid var(--border-light);
+  transition:background .12s;
+  position:relative;
+}
+.burden-option:last-child{border-bottom:none;}
+.burden-option:hover{background:#F6FAFE;}
+.burden-option.selected{background:var(--blue-light);}
+.burden-option input[type=radio]{
+  width:15px;height:15px;cursor:pointer;accent-color:var(--blue);
+  flex-shrink:0;margin-top:2px;
+}
+.bo-icon{
+  width:30px;height:30px;border-radius:var(--r-sm);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+}
+.bo-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.bo-desc{font-size:11px;color:var(--text-muted);line-height:1.55;}
+.bo-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.bo-tag{
+  font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px;
+  background:#F3F4F6;color:#6B7280;
+}
+
+/* ─── DECISION PANEL ─── */
+.decision-panel{
+  flex-shrink:0;background:var(--surface);border-top:1px solid var(--border);
+  padding:16px 24px;
+}
+.decision-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--text);margin-bottom:12px;}
+.decision-notes{
+  width:100%;border:1px solid var(--border);border-radius:var(--r-sm);
+  background:#FAFCFD;padding:8px 11px;
+  font-family:'DM Sans',sans-serif;font-size:12.5px;color:var(--text);
+  outline:none;resize:none;min-height:64px;
+  transition:border-color .12s, box-shadow .12s;
+  margin-bottom:12px;
+}
+.decision-notes:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,153,216,0.12);}
+.decision-notes::placeholder{color:var(--text-muted);}
+.decision-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.decision-left{display:flex;align-items:center;gap:7px;}
+.decision-hint{font-size:11px;color:var(--text-muted);}
+.btn-approve{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:var(--r-sm);
+  border:none;background:var(--green);color:#fff;
+  font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
+  transition:background .12s;
+}
+.btn-approve:hover{background:var(--green-dark);}
+.btn-deny{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:var(--r-sm);
+  border:none;background:var(--red);color:#fff;
+  font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;
+  transition:background .12s;
+}
+.btn-deny:hover{background:var(--red-dark);}
+.btn-flag{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 14px;border-radius:var(--r-sm);
+  border:1px solid var(--border);background:var(--surface);
+  font-size:12.5px;font-weight:600;color:var(--text-mid);font-family:inherit;cursor:pointer;
+  transition:all .12s;
+}
+.btn-flag:hover{border-color:var(--amber);color:var(--amber);}
+
+/* confirmed state overlay */
+.confirmed-bar{
+  display:none;align-items:center;justify-content:center;gap:10px;
+  padding:14px;border-radius:var(--r-sm);font-size:13px;font-weight:700;
+  margin-bottom:12px;
+}
+.confirmed-bar.approved{background:var(--green-light);color:var(--green-dark);display:flex;}
+.confirmed-bar.denied{background:var(--red-light);color:var(--red-dark);display:flex;}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px;}
+
+/* ─── LEGEND TOOLTIP ─── */
+.legend-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;font-weight:600;color:var(--text-muted);
+  background:none;border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:4px 9px;cursor:pointer;font-family:inherit;
+  transition:all .12s;
+}
+.legend-btn:hover{border-color:var(--blue);color:var(--blue);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-left">
+    <div class="header-logo">
+      <img src="https://companieslogo.com/img/orig/ED_BIG.D-fb76cf7f.png?t=1740224060" alt="Con Edison"/>
+    </div>
+    <div class="header-sep"></div>
+    <span class="header-label">CLCPA Compliance Portal · DAC Review Queue</span>
+  </div>
+  <div class="header-right">
+    <div class="badge-mandate">
+      <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Regulatory Mandate
+    </div>
+    <div class="reviewer-tag">
+      <div class="avatar">JM</div>
+      J. Martinez · DAC Reviewer
+    </div>
+  </div>
+</header>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-icon" style="background:rgba(0,153,216,0.15);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+    </div>
+    <div><div class="stat-num">12</div><div class="stat-label">Total Submissions</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon" style="background:rgba(217,119,6,0.12);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <div><div class="stat-num" style="color:var(--amber);">5</div><div class="stat-label">Awaiting Review</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon" style="background:rgba(13,166,120,0.12);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </div>
+    <div><div class="stat-num" style="color:var(--green);">5</div><div class="stat-label">Approved</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon" style="background:rgba(215,38,61,0.1);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    </div>
+    <div><div class="stat-num" style="color:var(--red);">2</div><div class="stat-label">Denied</div></div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-icon" style="background:rgba(124,58,237,0.1);">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
+    <div><div class="stat-num" style="color:var(--purple);">3</div><div class="stat-label">Under Additional Review</div></div>
+  </div>
+  <div class="stat-item" style="margin-left:auto;border-right:none;">
+    <div style="font-size:11px;color:rgba(255,255,255,0.35);">Cycle · Rate Case 24-E-0488</div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.25);margin-top:2px;">Review window closes Apr 15, 2025</div>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- QUEUE -->
+  <div class="queue-panel">
+    <div class="queue-head">
+      <div class="queue-head-top">
+        <div class="queue-title">Submission Queue</div>
+        <div class="filter-row">
+          <button class="filter-btn active" onclick="filterQueue('all',this)">All</button>
+          <button class="filter-btn" onclick="filterQueue('pending',this)">Pending</button>
+          <button class="filter-btn" onclick="filterQueue('review',this)">Review</button>
+        </div>
+      </div>
+      <div class="queue-search">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search projects..." id="searchInput" oninput="filterSearch()"/>
+      </div>
+    </div>
+    <div class="queue-list" id="queueList"></div>
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-empty" id="emptyState">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <p>Select a submission from the queue to begin your DAC impact review.</p>
+    </div>
+    <div class="detail-content" id="detailContent" style="display:none;"></div>
+  </div>
+
+</div>
+
+<script>
+const BURDEN_TYPES = [
+  {
+    id: "construction",
+    label: "Construction Burden (Short Term)",
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C2410C" stroke-width="2"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    iconBg: "#FFF7ED",
+    badgeClass: "burden-construction",
+    desc: "Short-term physical and operational impact from routine or non-routine construction activities.",
+    tags: ["Noise / dust / vibration", "Access restrictions", "Traffic congestion", "Resident & commuter inconvenience"],
+  },
+  {
+    id: "outage",
+    label: "Localized Service Outage",
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D4ED8" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+    iconBg: "#EFF6FF",
+    badgeClass: "burden-outage",
+    desc: "Temporary disruption of a specific service in a limited geographic area (one building, block, or neighborhood). Does not affect the broader network.",
+    tags: ["Limited geographic scope", "Short-term duration", "No system-wide impact"],
+  },
+  {
+    id: "nomaterial",
+    label: "No Material Impact on DACs",
+    icon: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0DA678" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+    iconBg: "#E5F8F2",
+    badgeClass: "burden-nomaterial",
+    desc: "Project does not anticipate material impact on disadvantaged communities. Nature is limited to routine operations.",
+    tags: ["IT upgrades", "Routine maintenance", "Parts replacement", "Routine inspections"],
+  },
+];
+
+const SUBMISSIONS = [
+  {
+    id: "SUB-001", case: "24-E-0488", exhibit: "A", item: "7", page: "41",
+    name: "Substation Modernization — Bronx Zone 4",
+    status: "pending", burden: null,
+    dacIn: "Y", dacInRange: "Y", address: "1100 River Ave, Bronx, NY 10452",
+    dacPct: "72", nonDacPct: "28", totalCustomers: "18,400", dacCustomers: "13,248",
+    submitted: "Mar 18, 2025",
+    burdens: "The project will require a 12-week construction phase that may result in elevated noise and dust levels in surrounding residential blocks. Temporary lane closures on River Ave are anticipated during off-peak hours. Limited disruption to pedestrian access near the substation entrance.",
+    benefits: "Improved grid reliability will reduce outage frequency for 13,248 DAC customers. Updated equipment will support the integration of distributed energy resources (DERs) in the Bronx Zone 4 feeder area, lowering long-term energy costs.",
+    alternatives: "Three alternative sites were evaluated. The selected site minimizes construction scope within the DAC perimeter. A phased construction schedule was adopted to reduce cumulative burden on nearby residents.",
+    mitigation: "Construction will be restricted to 7am–5pm on weekdays. Dust suppression measures will be in place throughout. Con Edison will maintain a dedicated community liaison throughout the project lifecycle. Temporary access rerouting will be signed and communicated 30 days in advance.",
+    engagement: "Two community board meetings were held in November 2024 (CB4 Bronx). Feedback indicated concern about construction traffic near P.S. 218. Con Edison committed to avoiding peak school arrival/dismissal times during heaviest construction activity.",
+  },
+  {
+    id: "SUB-002", case: "24-E-0488", exhibit: "A", item: "12", page: "55",
+    name: "SCADA System Upgrade — Manhattan Operations Center",
+    status: "approved", burden: "nomaterial",
+    dacIn: "N", dacInRange: "N", address: "4 Irving Place, New York, NY 10003",
+    dacPct: "0", nonDacPct: "100", totalCustomers: "N/A", dacCustomers: "0",
+    submitted: "Mar 12, 2025",
+    burdens: "No physical construction is required. The upgrade is software and hardware replacement within the existing operations center. No external impact is anticipated.",
+    benefits: "Improved system monitoring will support faster outage detection and restoration for all customers including those in DAC areas served by Manhattan feeders.",
+    alternatives: "In-place upgrade was determined to be the least impactful approach. No site relocation considered necessary.",
+    mitigation: "No mitigation measures required. Work is fully contained within the operations center.",
+    engagement: "No community engagement required for this project type.",
+  },
+  {
+    id: "SUB-003", case: "24-E-0488", exhibit: "B", item: "3", page: "72",
+    name: "Gas Main Replacement — East New York Corridor",
+    status: "review", burden: "construction",
+    dacIn: "Y", dacInRange: "Y", address: "Atlantic Ave & Pennsylvania Ave, Brooklyn, NY 11207",
+    dacPct: "88", nonDacPct: "12", totalCustomers: "6,200", dacCustomers: "5,456",
+    submitted: "Mar 20, 2025",
+    burdens: "Approximately 1.4 miles of open-cut excavation along Atlantic Ave and Pennsylvania Ave. Work will span 18 months. This is a high-density residential and commercial corridor. Significant temporary lane and sidewalk closures expected throughout the project.",
+    benefits: "Replacement of aging cast-iron mains reduces leak probability and associated air quality impacts from gas releases. Long-term reliability improvement for 5,456 DAC customers.",
+    alternatives: "Trenchless installation was evaluated but determined infeasible due to existing utility conflicts below the corridor. Partial trenchless sections have been incorporated where feasible.",
+    mitigation: "Phased work segments limited to 300 feet at a time. Local business impact fund established. Bi-weekly community updates via email and posted notices. Emergency excavation response protocol included.",
+    engagement: "Community Board 5 Brooklyn engaged in January and February 2025. Significant feedback from local business owners on Atlantic Ave regarding access disruption. Con Edison committed to maintaining one lane of vehicle access and full pedestrian access during all phases.",
+  },
+  {
+    id: "SUB-004", case: "24-E-0488", exhibit: "B", item: "8", page: "89",
+    name: "Overhead-to-Underground Conversion — Jamaica, Queens",
+    status: "pending", burden: null,
+    dacIn: "Y", dacInRange: "Y", address: "Sutphin Blvd, Jamaica, NY 11435",
+    dacPct: "65", nonDacPct: "35", totalCustomers: "9,100", dacCustomers: "5,915",
+    submitted: "Mar 25, 2025",
+    burdens: "Street excavation and utility pole removal will be required along a 0.8-mile section of Sutphin Blvd. Work duration estimated at 8 months. Temporary lane restrictions near the Jamaica AirTrain interchange.",
+    benefits: "Elimination of overhead lines reduces storm-related outage risk. Estimated 60% reduction in weather-related interruptions for affected DAC customers. Aesthetic and noise improvement for the corridor.",
+    alternatives: "Targeted hardening of overhead assets was evaluated as a lower-cost alternative but determined insufficient to meet reliability targets under current climate projections.",
+    mitigation: "Coordination with MTA and Port Authority for work near AirTrain infrastructure. Dedicated flagging personnel during peak transit hours. Construction communications plan distributed to all building managers on the corridor.",
+    engagement: "Meeting held with Jamaica BID and Queens CB 12 in February 2025. Community expressed strong support for the underground conversion. Concerns raised about project timeline relative to upcoming business district renovation.",
+  },
+  {
+    id: "SUB-005", case: "24-E-0488", exhibit: "C", item: "1", page: "104",
+    name: "Transformer Station — Staten Island South Shore",
+    status: "denied", burden: "construction",
+    dacIn: "N", dacInRange: "Y", address: "Hylan Blvd & Richmond Ave, Staten Island, NY 10312",
+    dacPct: "8", nonDacPct: "92", totalCustomers: "22,000", dacCustomers: "1,760",
+    submitted: "Mar 8, 2025",
+    burdens: "Construction of a new transformer station on a currently vacant lot. 24-month construction period. Limited DAC footprint but one census tract (8%) falls within the impact radius.",
+    benefits: "New capacity to support load growth on the South Shore. Improved voltage regulation. Expected to reduce planned outage frequency for southern Staten Island feeders.",
+    alternatives: "Upgrade of existing Annadale station evaluated but determined insufficient. New greenfield station selected as only viable long-term solution.",
+    mitigation: "Enhanced noise barriers during construction. Air quality monitoring station installed on site perimeter throughout construction. Traffic management plan filed with NYCDOT.",
+    engagement: "Three public hearings held. Local opposition from adjacent homeowners regarding visual impact. Landscaping and buffer zone commitments made in response.",
+  },
+  {
+    id: "SUB-006", case: "24-E-0488", exhibit: "C", item: "5", page: "118",
+    name: "Street Lighting Upgrade — South Bronx",
+    status: "approved", burden: "nomaterial",
+    dacIn: "Y", dacInRange: "Y", address: "Third Ave corridor, South Bronx, NY 10454",
+    dacPct: "94", nonDacPct: "6", totalCustomers: "3,800", dacCustomers: "3,572",
+    submitted: "Mar 5, 2025",
+    burdens: "Minimal disruption expected. Pole-mounted LED fixture replacement does not require excavation. Work is performed from bucket trucks with brief lane closures managed with flaggers.",
+    benefits: "94% of affected customers are in DACs. LED upgrade delivers 40% reduction in energy consumption. Improved nighttime safety and visibility in a high-pedestrian corridor.",
+    alternatives: "No meaningful alternatives — in-place LED retrofit is the standard approach.",
+    mitigation: "Work scheduled overnight (10pm–5am) to minimize pedestrian disruption. Coordination with NYPD for lane closure permits.",
+    engagement: "No formal engagement required. Project was supported by CB 1 Bronx in prior cycle.",
+  },
+  {
+    id: "SUB-007", case: "24-E-0488", exhibit: "D", item: "2", page: "130",
+    name: "EV Charging Infrastructure — Harlem & Washington Heights",
+    status: "review", burden: "construction",
+    dacIn: "Y", dacInRange: "Y", address: "Multiple sites — Manhattan CD9, CD12",
+    dacPct: "81", nonDacPct: "19", totalCustomers: "7,500", dacCustomers: "6,075",
+    submitted: "Mar 22, 2025",
+    burdens: "Installation at 14 curbside locations will require temporary parking elimination and brief sidewalk obstruction at each site. Total installation time per site estimated at 3–5 days.",
+    benefits: "Expanding EV charging access in two of Manhattan's highest-DAC community districts supports equitable transportation electrification. Reduces reliance on fossil-fuel vehicles and improves air quality long-term.",
+    alternatives: "Parking garage siting was explored but cost-prohibitive and less accessible to low-income residents without vehicle ownership. Curbside approach maximizes accessibility.",
+    mitigation: "Temporary parking replacement coordinated with NYC DOT. ADA access maintained throughout. No overnight work in residential zones.",
+    engagement: "CB 9 and CB 12 Manhattan engaged. Strong community support. Request from CB 12 to prioritize sites on 181st St and St. Nicholas Ave — incorporated into final site selection.",
+  },
+  {
+    id: "SUB-008", case: "24-E-0488", exhibit: "D", item: "6", page: "145",
+    name: "Network Protector Replacement — Lower Manhattan Grid",
+    status: "pending", burden: null,
+    dacIn: "N", dacInRange: "N", address: "System-wide / no specific physical location",
+    dacPct: "0", nonDacPct: "100", totalCustomers: "N/A", dacCustomers: "0",
+    submitted: "Mar 28, 2025",
+    burdens: "No external impact. Replacement of network protectors is performed inside existing network vaults with no surface disruption.",
+    benefits: "Improved network reliability indirectly benefits all customers including DAC populations served by feeders connected to the lower Manhattan network.",
+    alternatives: "Routine scheduled replacement — no meaningful alternatives evaluated.",
+    mitigation: "No mitigation measures required.",
+    engagement: "No community engagement conducted or required.",
+  },
+];
+
+let selectedId = null;
+let currentFilter = 'all';
+
+function getBurdenBadge(burden){
+  if(!burden) return `<span class="qi-burden burden-unclassified">Unclassified</span>`;
+  const b = BURDEN_TYPES.find(x=>x.id===burden);
+  return `<span class="qi-burden ${b.badgeClass}">${b.label}</span>`;
+}
+
+function getStatusBadge(status){
+  const map = {
+    pending:'<span class="qi-status-badge status-pending">Pending</span>',
+    approved:'<span class="qi-status-badge status-approved">Approved</span>',
+    denied:'<span class="qi-status-badge status-denied">Denied</span>',
+    review:'<span class="qi-status-badge status-review">In Review</span>',
+  };
+  return map[status]||'';
+}
+
+function renderQueue(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const list = document.getElementById('queueList');
+  const filtered = SUBMISSIONS.filter(s => {
+    if(currentFilter !== 'all' && s.status !== currentFilter) return false;
+    if(search && !s.name.toLowerCase().includes(search) && !s.id.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  list.innerHTML = filtered.map(s => `
+    <div class="queue-item ${selectedId===s.id?'active':''}" onclick="selectSubmission('${s.id}')" id="qi-${s.id}">
+      <div class="qi-top">
+        <div class="qi-name">${s.name}</div>
+        ${getStatusBadge(s.status)}
+      </div>
+      <div class="qi-meta">
+        <span class="qi-case">${s.case} · Ex.${s.exhibit} · Item ${s.item}</span>
+        ${getBurdenBadge(s.burden)}
+        <span class="qi-date">${s.submitted}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterQueue(f, btn){
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderQueue();
+}
+
+function filterSearch(){ renderQueue(); }
+
+function selectSubmission(id){
+  selectedId = id;
+  renderQueue();
+  const s = SUBMISSIONS.find(x=>x.id===id);
+  renderDetail(s);
+}
+
+function renderDetail(s){
+  document.getElementById('emptyState').style.display = 'none';
+  const dc = document.getElementById('detailContent');
+  dc.style.display = 'flex';
+  dc.style.flexDirection = 'column';
+  dc.style.overflow = 'hidden';
+  dc.style.height = '100%';
+
+  const isDecided = s.status === 'approved' || s.status === 'denied';
+  const confirmedHtml = isDecided ? `
+    <div class="confirmed-bar ${s.status}" style="display:flex;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">${s.status==='approved'?'<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>':'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>'}</svg>
+      This submission was <strong>&nbsp;${s.status === 'approved' ? 'Approved' : 'Denied'}&nbsp;</strong> — decisions can be revised by submitting a new review action below.
+    </div>` : '';
+
+  const dacColor = s.dacIn==='Y' ? 'var(--amber)' : (s.dacIn==='N' ? 'var(--green)' : 'var(--text-muted)');
+
+  dc.innerHTML = `
+    <!-- DETAIL HEAD -->
+    <div class="detail-head">
+      <div class="dh-top">
+        <div>
+          <div class="dh-eyebrow">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            DAC Impact Review · ${s.id}
+          </div>
+          <div class="dh-name">${s.name}</div>
+          <div class="dh-meta-row">
+            <div class="dh-meta-chip">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              Case ${s.case}
+            </div>
+            <div class="dh-meta-chip">Exhibit ${s.exhibit} · Item ${s.item} · Pg. ${s.page}</div>
+            <div class="dh-meta-chip">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              ${s.address}
+            </div>
+            <div class="dh-meta-chip">Submitted ${s.submitted}</div>
+            ${getStatusBadge(s.status)}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK FACTS -->
+    <div class="quick-facts">
+      <div class="qf-item">
+        <div class="qf-label">In DAC?</div>
+        <div class="qf-val" style="color:${dacColor};font-size:13px;font-family:'DM Sans',sans-serif;">${s.dacIn==='Y'?'Yes':s.dacIn==='N'?'No':'N/A'}</div>
+      </div>
+      <div class="qf-item">
+        <div class="qf-label">DAC in Range?</div>
+        <div class="qf-val" style="color:${s.dacInRange==='Y'?'var(--amber)':'var(--green)'};font-size:13px;font-family:'DM Sans',sans-serif;">${s.dacInRange==='Y'?'Yes':s.dacInRange==='N'?'No':'N/A'}</div>
+      </div>
+      <div class="qf-item">
+        <div class="qf-label">% DAC</div>
+        <div class="qf-val ${parseFloat(s.dacPct)>50?'amber':''}">${s.dacPct}%</div>
+      </div>
+      <div class="qf-item">
+        <div class="qf-label">Total Customers</div>
+        <div class="qf-val blue" style="font-size:13px;">${s.totalCustomers}</div>
+      </div>
+      <div class="qf-item">
+        <div class="qf-label">DAC Customers</div>
+        <div class="qf-val amber" style="font-size:13px;">${s.dacCustomers}</div>
+      </div>
+      <div class="qf-item">
+        <div class="qf-label">Burden Tag</div>
+        <div style="margin-top:4px;">${getBurdenBadge(s.burden)}</div>
+      </div>
+    </div>
+
+    <!-- SCROLLABLE BODY -->
+    <div class="detail-body" style="flex:1;overflow-y:auto;">
+
+      <!-- NARRATIVE -->
+      <div class="detail-section">
+        <div class="ds-title">Community Impact Narratives</div>
+        <div class="narrative-block">
+          <div class="nb-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2"><polygon points="12 2 22 20 2 20"/></svg>
+            Potential Burdens on DACs
+          </div>
+          <div class="nb-text">${s.burdens}</div>
+        </div>
+        <div class="narrative-block">
+          <div class="nb-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Benefits to DACs
+          </div>
+          <div class="nb-text">${s.benefits}</div>
+        </div>
+        <div class="narrative-block">
+          <div class="nb-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/></svg>
+            Alternatives Considered
+          </div>
+          <div class="nb-text">${s.alternatives}</div>
+        </div>
+        <div class="narrative-block">
+          <div class="nb-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Mitigation Measures
+          </div>
+          <div class="nb-text">${s.mitigation}</div>
+        </div>
+        <div class="narrative-block">
+          <div class="nb-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Public & Stakeholder Engagement
+          </div>
+          <div class="nb-text">${s.engagement}</div>
+        </div>
+      </div>
+
+      <!-- BURDEN CLASSIFICATION -->
+      <div class="detail-section">
+        <div class="ds-title">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          DAC Burden Classification
+        </div>
+        <div class="burden-section">
+          <div class="burden-section-head">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2"><polygon points="12 2 22 20 2 20"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div class="burden-section-head-title">Select the applicable burden classification for this submission</div>
+            <button class="legend-btn" style="margin-left:auto;" onclick="toggleLegend()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="13" rx="2"/><polyline points="16 2 12 6 8 2"/></svg>
+              Legend
+            </button>
+          </div>
+          <div class="burden-options" id="burdenOptions-${s.id}">
+            ${BURDEN_TYPES.map(b => `
+              <label class="burden-option ${s.burden===b.id?'selected':''}" id="bo-${s.id}-${b.id}">
+                <input type="radio" name="burden-${s.id}" value="${b.id}"
+                  ${s.burden===b.id?'checked':''}
+                  onchange="selectBurden('${s.id}','${b.id}')"/>
+                <div class="bo-icon" style="background:${b.iconBg};">${b.icon}</div>
+                <div style="flex:1;">
+                  <div class="bo-title">${b.label}</div>
+                  <div class="bo-desc">${b.desc}</div>
+                  <div class="bo-tags">${b.tags.map(t=>`<span class="bo-tag">${t}</span>`).join('')}</div>
+                </div>
+              </label>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /detail-body -->
+
+    <!-- DECISION PANEL -->
+    <div class="decision-panel">
+      ${confirmedHtml}
+      <div class="decision-title">Reviewer Action</div>
+      <textarea class="decision-notes" id="reviewNotes-${s.id}"
+        placeholder="Add reviewer notes, rationale for decision, or requests for additional information…"></textarea>
+      <div class="decision-actions">
+        <div class="decision-left">
+          <button class="btn-flag" onclick="flagSubmission('${s.id}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            Flag for Additional Review
+          </button>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-deny" onclick="decideSubmission('${s.id}','denied')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            Deny
+          </button>
+          <button class="btn-approve" onclick="decideSubmission('${s.id}','approved')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function selectBurden(subId, burdenId){
+  const s = SUBMISSIONS.find(x=>x.id===subId);
+  if(s){ s.burden = burdenId; }
+  // update visual selection
+  document.querySelectorAll(`[id^="bo-${subId}-"]`).forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById(`bo-${subId}-${burdenId}`);
+  if(el) el.classList.add('selected');
+  renderQueue();
+}
+
+function decideSubmission(subId, decision){
+  const s = SUBMISSIONS.find(x=>x.id===subId);
+  if(!s) return;
+  if(!s.burden){
+    alert('Please select a DAC burden classification before making a decision.');
+    return;
+  }
+  s.status = decision;
+  renderQueue();
+  renderDetail(s);
+}
+
+function flagSubmission(subId){
+  const s = SUBMISSIONS.find(x=>x.id===subId);
+  if(s){ s.status = 'review'; renderQueue(); renderDetail(s); }
+}
+
+function toggleLegend(){
+  alert("CLCPA DAC Burden Legend:\n\n1. Construction Burden (Short Term)\nShort-term physical and operational impact from routine/non-routine construction: noise, dust, vibration, access restrictions, traffic congestion, resident & commuter inconvenience.\n\n2. Localized Service Outage\nTemporary disruption of a specific service in a limited geographic area (building, block, neighborhood). Does not affect the broader network.\n\n3. No Material Impact on DACs\nProject is limited to: IT upgrades, routine maintenance, parts replacement, or routine inspections within existing stations or buildings.");
+}
+
+// init
+renderQueue();
+</script>
+</body>
+</html>
