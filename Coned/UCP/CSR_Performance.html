@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSR Performance Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#F4F5F7;--surface:#fff;--border:#E2E5EA;--text:#1A1D23;--text-muted:#6B7280;
+  --accent:#0F62FE;--accent-light:#E8F0FE;
+  --header-bg:#0D1117;--header-text:#F0F3F6;
+  --score-1:#DC2626;--score-1-bg:#FEF2F2;--score-1-light:#FCA5A5;
+  --score-2:#EA580C;--score-2-bg:#FFF7ED;--score-2-light:#FB923C;
+  --score-3:#374151;--score-3-bg:#FFFFFF;--score-3-border:#D1D5DB;
+  --score-4:#1D4ED8;--score-4-bg:#1D4ED8;
+  --score-5:#059669;--score-5-bg:#059669;
+  --gold:#D4A017;--gold-bg:#FFFBEB;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.1);--shadow-xl:0 8px 24px rgba(0,0,0,.12);
+  --radius:8px;--radius-lg:12px;
+  --font-display:'Plus Jakarta Sans',sans-serif;--font-body:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+/* Header */
+.header{background:#1F6FBA;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-radius:0;box-shadow:var(--shadow);margin:0}
+.header-left{display:flex;align-items:center;gap:14px}
+.header h1{font-family:var(--font-display);color:#FFFFFF;font-size:18px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:10px;margin:0}
+.header h1 .icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.header-meta{color:rgba(255,255,255,.82);font-size:12px;font-weight:600;margin-top:2px}
+
+/* Tabs */
+.tabs{display:flex;background:var(--header-bg);padding:0 32px;border-bottom:1px solid rgba(255,255,255,.08)}
+.tab{padding:12px 24px;color:rgba(240,243,246,.5);cursor:pointer;font-family:var(--font-display);font-size:13px;font-weight:600;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.2px}
+.tab:hover{color:var(--header-text)}.tab.active{color:var(--header-text);border-bottom-color:var(--accent)}
+
+/* Filters */
+.filters{display:flex;gap:16px;padding:16px 32px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-group label{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px}
+.filter-group select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;min-width:200px;background:var(--surface);color:var(--text);transition:border .2s}
+.filter-group select:focus{outline:none;border-color:var(--accent)}
+
+/* Multi-select */
+.multi-select{position:relative;min-width:240px}
+.ms-btn{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;background:var(--surface);cursor:pointer;display:flex;justify-content:space-between;align-items:center;min-height:36px;gap:6px;transition:border .2s;color:var(--text)}
+.ms-btn:hover{border-color:var(--accent)}.ms-btn::after{content:'▾';font-size:9px;color:var(--text-muted)}
+.ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-xl);z-index:100;max-height:280px;overflow-y:auto}
+.multi-select.open .ms-panel{display:block}
+.ms-item{padding:8px 12px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:var(--font-body);transition:background .15s}
+.ms-item:hover{background:var(--bg)}.ms-item input{accent-color:var(--accent);width:14px;height:14px}
+.ms-all{border-bottom:1px solid var(--border);font-weight:600}
+.ms-tag{display:inline-block;background:var(--accent-light);color:var(--accent);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:1px}
+
+/* Content */
+.content{padding:24px 32px}
+
+/* KPI Cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:24px}
+.card{background:var(--surface);padding:18px 16px;border-radius:var(--radius-lg);box-shadow:var(--shadow);border-left:4px solid var(--border);transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.card.overall{border-left-color:var(--gold)}.card.s1{border-left-color:var(--score-1)}.card.s2{border-left-color:var(--score-2)}
+.card.s3{border-left-color:var(--score-3-border)}.card.s4{border-left-color:#6EE7B7}.card.s5{border-left-color:#6EE7B7}
+.card .label{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.card .value{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
+.card .sub{font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:500}
+
+/* Legend */
+.legend-bar{display:flex;align-items:center;gap:16px;padding:12px 20px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:20px;border:1px solid var(--border);flex-wrap:wrap}
+.legend-bar .legend-title{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-right:8px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text)}
+.legend-swatch{width:14px;height:14px;border-radius:3px}
+
+/* Charts */
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-box{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:20px;border:1px solid var(--border)}
+.chart-box h3{font-family:var(--font-display);font-size:12px;font-weight:700;color:var(--text);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px}
+.chart-box.full{grid-column:1/-1}
+canvas{max-height:320px}
+
+/* Tables */
+.grid-section{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:24px;margin-bottom:24px;border:1px solid var(--border)}
+.grid-section h3{font-family:var(--font-display);font-size:13px;font-weight:700;margin-bottom:16px;text-transform:uppercase;letter-spacing:.5px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:10px 12px;text-align:left;font-family:var(--font-display);font-weight:700;color:var(--text-muted);font-size:10px;text-transform:uppercase;letter-spacing:.8px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-weight:500}
+tr{transition:background .1s}tr:hover td{background:var(--bg)}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-family:var(--font-display);font-weight:700;letter-spacing:.3px}
+.badge.b1{background:var(--score-1-bg);color:var(--score-1);border:1px solid var(--score-1-light)}
+.badge.b2{background:var(--score-2-bg);color:var(--score-2);border:1px solid var(--score-2-light)}
+.badge.b3{background:var(--bg);color:var(--score-3);border:1px solid var(--score-3-border)}
+.badge.b4{background:#ECFDF5;color:var(--score-5-bg);border:1px solid #6EE7B7}
+.badge.b5{background:#ECFDF5;color:var(--score-5-bg);border:1px solid #6EE7B7}
+
+/* Value cells in review tracker */
+.val-cell{display:inline-block;border-radius:4px;padding:3px 8px;font-family:var(--font-display);font-weight:700;font-size:11px;min-width:48px;text-align:center}
+.vc1{background:var(--score-1-bg);color:var(--score-1);border:1px solid var(--score-1-light)}
+.vc2{background:var(--score-2-bg);color:var(--score-2);border:1px solid var(--score-2-light)}
+.vc3{background:var(--bg);color:var(--score-3);border:1px solid var(--score-3-border)}
+.vc4{background:#ECFDF5;color:var(--score-5-bg);border:1px solid #6EE7B7}
+.vc5{background:#ECFDF5;color:var(--score-5-bg);border:1px solid #6EE7B7}
+.ov1{background:var(--score-1);color:#fff;border:1px solid var(--score-1)}
+.ov2{background:var(--score-2);color:#fff;border:1px solid var(--score-2)}
+.ov3{background:var(--score-3-bg);color:var(--score-3);border:1px solid var(--score-3-border)}
+.ov4{background:var(--score-4-bg);color:#fff;border:1px solid var(--score-4-bg)}
+.ov5{background:var(--score-5-bg);color:#fff;border:1px solid var(--score-5-bg)}
+
+/* Review button */
+.review-btn{min-width:88px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-family:var(--font-display);font-weight:700;transition:all .2s;margin:0 auto;padding:0 12px;color:var(--text)}
+.review-btn:hover{border-color:var(--accent);background:var(--accent-light)}
+.review-btn.pending{border-color:var(--border);background:var(--surface);color:var(--text-muted)}
+.review-btn.done{border-color:var(--score-5-bg);background:#ECFDF5;color:var(--score-5-bg)}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(13,17,23,.6);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);width:560px;max-width:92vw;max-height:90vh;overflow-y:auto;animation:modalIn .25s ease}
+@keyframes modalIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-family:var(--font-display);font-size:16px;font-weight:700}
+.modal-close{width:32px;height:32px;border:none;background:var(--bg);border-radius:50%;cursor:pointer;font-size:18px;color:var(--text-muted);display:flex;align-items:center;justify-content:center;transition:background .15s}
+.modal-close:hover{background:var(--border)}
+.modal-body{padding:24px}
+.modal-field{margin-bottom:18px}
+.modal-field label{display:block;font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.modal-field input,.modal-field select,.modal-field textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;color:var(--text);transition:border .2s}
+.modal-field input:focus,.modal-field select:focus,.modal-field textarea:focus{outline:none;border-color:var(--accent)}
+.modal-field textarea{resize:vertical;min-height:100px}
+.modal-field .readonly{background:var(--bg);color:var(--text-muted)}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+.btn{padding:10px 20px;border-radius:var(--radius);font-family:var(--font-display);font-size:13px;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:all .15s}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-primary:hover{background:#0B53D9}
+.btn-ghost{background:transparent;color:var(--text-muted)}.btn-ghost:hover{background:var(--bg)}
+
+/* Heatmap */
+.heatmap{width:100%;border-collapse:collapse;font-size:11px}
+.heatmap td,.heatmap th{padding:8px 10px;text-align:center;border:1px solid var(--border)}
+.heatmap th{background:var(--bg);font-weight:700;text-align:left;font-family:var(--font-display);font-size:10px;text-transform:uppercase;letter-spacing:.5px}
+.hm-1{background:var(--score-1-bg);color:var(--score-1);font-weight:700;border:1px solid var(--score-1-light)}
+.hm-2{background:var(--score-2-bg);color:var(--score-2);font-weight:700;border:1px solid var(--score-2-light)}
+.hm-3{background:var(--bg);color:var(--score-3);font-weight:700;border:1px solid var(--score-3-border)}
+.hm-4{background:#ECFDF5;color:var(--score-5-bg);font-weight:700;border:1px solid #6EE7B7}
+.hm-5{background:#ECFDF5;color:var(--score-5-bg);font-weight:700;border:1px solid #6EE7B7}
+
+/* Scoring matrix tab */
+.matrix-container{max-width:1000px}
+.matrix-card{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:24px;margin-bottom:20px;border:1px solid var(--border)}
+.matrix-card h3{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:4px}
+.matrix-card .unit{font-size:12px;color:var(--text-muted);margin-bottom:16px;font-weight:500}
+.matrix-bands{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.matrix-band{border-radius:var(--radius);padding:14px;text-align:center}
+.matrix-band .band-label{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.matrix-band .band-range{font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-.3px}
+.matrix-band .band-sub{font-size:10px;margin-top:4px;opacity:.8;font-weight:500}
+.mb1{background:var(--score-1-bg);color:var(--score-1);border:1px solid var(--score-1-light)}
+.mb2{background:var(--score-2-bg);color:var(--score-2);border:1px solid var(--score-2-light)}
+.mb3{background:var(--bg);color:var(--score-3);border:1px solid var(--score-3-border)}
+.mb4{background:#ECFDF5;color:var(--score-5-bg);border:1px solid #6EE7B7}
+
+.overall-bands{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:24px}
+.ob{border-radius:var(--radius);padding:16px;text-align:center}
+.ob .ob-score{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.3px}
+.ob .ob-label{font-family:var(--font-display);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:6px}
+.ob .ob-range{font-size:11px;margin-top:4px;opacity:.8;font-weight:500}
+.ob1{background:var(--score-1);color:#fff}.ob2{background:var(--score-2);color:#fff}
+.ob3{background:var(--score-3-bg);color:var(--score-3);border:1px solid var(--score-3-border)}
+.ob4{background:var(--score-4-bg);color:#fff}.ob5{background:var(--score-5-bg);color:#fff}
+
+.matrix-note{background:var(--gold-bg);border:1px solid var(--gold);border-radius:var(--radius);padding:14px 18px;margin-bottom:24px;font-size:13px;color:#92400E;font-weight:500;line-height:1.5}
+.matrix-note strong{font-weight:700}
+
+.checkbox-cell{text-align:center}
+@media(max-width:900px){.charts{grid-template-columns:1fr}.matrix-bands{grid-template-columns:1fr 1fr}.overall-bands{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1><span class="icon">✈</span> CSR Performance Tracker</h1>
+    <span class="header-meta">Client Experience · Performance Review Dashboard</span>
+  </div>
+</div>
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)">Individual</div>
+  <div class="tab" onclick="switchTab(1)">Organization</div>
+  <div class="tab" onclick="switchTab(2)">Scoring Matrix</div>
+</div>
+
+<!-- TAB 0: Individual -->
+<div id="tab0">
+<div class="filters">
+  <div class="filter-group"><label>Section</label><div class="multi-select" id="msSecI"></div></div>
+  <div class="filter-group"><label>CSR</label><select id="fEmp"><option value="">Select CSR...</option></select></div>
+  <div class="filter-group"><label>Year</label><select id="fYearI"><option value="">All Years</option></select></div>
+</div>
+<div class="content" id="indContent"><div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:12px;opacity:.3">📊</div><div style="font-family:var(--font-display);font-size:15px;font-weight:600">Select a CSR to view their performance</div><div style="font-size:13px;margin-top:6px">Use the filters above to find and select an employee</div></div></div>
+</div>
+
+<!-- TAB 1: Organization -->
+<div id="tab1" style="display:none">
+<div class="filters">
+  <div class="filter-group"><label>Section</label><div class="multi-select" id="msSecO"></div></div>
+  <div class="filter-group"><label>Year</label><select id="fYearO"><option value="">All Years</option></select></div>
+  <div class="filter-group"><label>Month</label><select id="fMonO"><option value="">All Months</option></select></div>
+</div>
+<div class="content" id="orgContent"></div>
+</div>
+
+<!-- TAB 2: Scoring Matrix -->
+<div id="tab2" style="display:none">
+<div class="content" id="matrixContent"></div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal-overlay" id="reviewModal">
+<div class="modal">
+  <div class="modal-header"><h2 id="modalTitle">Monthly Performance Review</h2><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body">
+    <div class="modal-row">
+      <div class="modal-field"><label>CSR</label><input type="text" id="modEmp" class="readonly" readonly></div>
+      <div class="modal-field"><label>Review Period</label><input type="text" id="modPeriod" class="readonly" readonly></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field"><label>Automated Score</label><input type="text" id="modAutoScore" class="readonly" readonly></div>
+      <div class="modal-field"><label>Overall Rating</label><input type="text" id="modAutoBand" class="readonly" readonly></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-field"><label>Override Rating (optional)</label><select id="modOverride"><option value="">— No Override —</option><option value="1">1 – Unsatisfactory</option><option value="2">2 – Needs Improvement</option><option value="3">3 – Satisfactory</option><option value="4">4 – Exceeds</option><option value="5">5 – Superior</option></select></div>
+      <div class="modal-field"><label>Review Date</label><input type="text" id="modDate" class="readonly" readonly></div>
+    </div>
+    <div class="modal-field"><label>Month KPIs</label><div id="modKpis" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;"></div></div>
+    <div class="modal-field"><label>Supervisor Comments</label><textarea id="modComment" placeholder="Enter notes from the review session..."></textarea></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" onclick="saveReview()">Save Review</button>
+  </div>
+</div>
+</div>
+
+<script>
+const METRICS=['Agreement Compliance','Call Observation Score','Call Work (sec/call)','Calls Per Hour','Hold (sec/call)','Talk (sec/call)','Unavailable (sec/call)'];
+const DV_METRICS=['Agreement Compliant %','Call Observation Score (avg percentile)','Call Work (sec/call)','Calls Per Hour','Hold (sec/call)','Talk (sec/call)','Unavailable (sec/call)'];
+const MKEYS=['Agreement Compliance','Call Obs','Call Work','CPH','Hold','Talk','Unavail'];
+const MUNITS=['%','percentile','sec/call','calls/hr','sec/call','sec/call','sec/call'];
+const OVERALL_BANDS=['','Unsatisfactory','Needs Improvement','Satisfactory','Exceeds','Superior'];
+const SCORE_BANDS=['','Unsatisfactory','Needs Improvement','Satisfactory','Superior'];
+const MONTHS=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MCHARTTYPE=[1,1,0,1,0,0,0];
+const MCHARTCOLOR=['#DC2626','#7C3AED','#059669','#1D4ED8','#EA580C','#0F766E','#D97706'];
+const SEC_COLORS=['#1D4ED8','#2563EB','#3B82F6','#4F46E5','#6366F1','#7C3AED','#8B5CF6','#0EA5E9','#0284C7','#4338CA'];
+
+const TABLE='cf_employeeperformance';
+const FIELDS={
+  emp:'cf_employeefullname',
+  sec:'cf_sectionname',
+  metric:'cf_metricname',
+  val:'cf_metricvalue',
+  year:'cf_year',
+  ym:'cf_yearmonth'
+};
+
+let EMPS=[], SECS=[], ROWS=[], VALS=[];
+let valMap={};
+let empMeta=[]; // [{name, section, years:Set}]
+const reviews={};
+let currentReviewKey=null;
+let charts={};
+let orgHasLoaded=false;
+
+function destroyCharts(){Object.values(charts).forEach(c=>{try{c.destroy()}catch(e){}});charts={};}
+
+function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function odataStr(v){return String(v).replace(/'/g,"''");}
+function fetchXmlQuery(fetchXml){return '?fetchXml='+encodeURIComponent(fetchXml);}
+function fmtYM(ym){return MONTHS[ym%100]+' '+Math.floor(ym/100);}
+function fmtVal(v,i){if(v===null||v===undefined)return'N/A';return i===0?v.toFixed(1)+'%':v.toFixed(1);}
+function fmtRaw(v,i){if(v===null||v===undefined)return'—';return i===0?v.toFixed(1)+'%':v.toFixed(1);}
+function setEmptyState(id, title, sub){
+  document.getElementById(id).innerHTML='<div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)"><div style="font-size:48px;margin-bottom:12px;opacity:.3">📊</div><div style="font-family:var(--font-display);font-size:15px;font-weight:600">'+title+'</div>'+(sub?'<div style="font-size:13px;margin-top:6px">'+sub+'</div>':'')+'</div>';
+}
+function setLoading(id,msg){
+  document.getElementById(id).innerHTML='<div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)"><div style="font-size:14px;font-weight:600">'+msg+'</div></div>';
+}
+
+function ensureXrm(){
+  if(!(window.parent && window.parent.Xrm && window.parent.Xrm.WebApi)) throw new Error('Xrm.WebApi is not available. Open this file as an HTML web resource inside the model-driven app.');
+}
+async function retrieveAll(query){
+  ensureXrm();
+  if(query && query.startsWith('?fetchXml=')){
+    const decode = q => decodeURIComponent(q.replace(/^\?fetchXml=/,''));
+    const encode = x => '?fetchXml=' + encodeURIComponent(x);
+    const parser = new DOMParser();
+    const serializer = new XMLSerializer();
+    const setFetchAttr = (xml, name, value) => {
+      const doc = parser.parseFromString(xml, 'text/xml');
+      const fetch = doc.getElementsByTagName('fetch')[0];
+      fetch.setAttribute(name, value);
+      return serializer.serializeToString(doc);
+    };
+    let page = 1;
+    let fetchXml = decode(query);
+    fetchXml = setFetchAttr(fetchXml, 'count', '5000');
+    fetchXml = setFetchAttr(fetchXml, 'page', String(page));
+    let all = [];
+    while(true){
+      const result = await window.parent.Xrm.WebApi.retrieveMultipleRecords(TABLE, encode(fetchXml));
+      all = all.concat(result.entities || []);
+      if(!result.fetchXmlPagingCookie) break;
+      page += 1;
+      fetchXml = setFetchAttr(fetchXml, 'page', String(page));
+      fetchXml = setFetchAttr(fetchXml, 'paging-cookie', result.fetchXmlPagingCookie);
+    }
+    return all;
+  }
+  let all=[], result=await window.parent.Xrm.WebApi.retrieveMultipleRecords(TABLE, query);
+  all=all.concat(result.entities||[]);
+  while(result.nextLink){
+    const nextQuery=result.nextLink.includes('?')?result.nextLink.substring(result.nextLink.indexOf('?')):result.nextLink;
+    result=await window.parent.Xrm.WebApi.retrieveMultipleRecords(TABLE,nextQuery);
+    all=all.concat(result.entities||[]);
+  }
+  return all;
+}
+
+function legendHTML(){
+  return '<div class="legend-bar"><span class="legend-title">Rating Legend</span>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:var(--score-1-bg);border:1px solid var(--score-1-light)"></div><span style="color:var(--score-1);font-weight:600">Unsatisfactory</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:var(--score-2-bg);border:1px solid var(--score-2-light)"></div><span style="color:var(--score-2);font-weight:600">Needs Improvement</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:var(--bg);border:1px solid var(--score-3-border)"></div><span style="color:var(--score-3);font-weight:600">Satisfactory</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:#EFF6FF;border:1px solid #93C5FD"></div><span style="color:var(--score-4-bg);font-weight:600">Exceeds</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:#ECFDF5;border:1px solid #6EE7B7"></div><span style="color:var(--score-5-bg);font-weight:600">Superior</span></div></div>';
+}
+
+const chartFont={family:"'DM Sans',sans-serif"};
+Chart.defaults.font.family=chartFont.family;Chart.defaults.font.size=11;
+const barValueLabelsPlugin={
+  id:'barValueLabelsPlugin',
+  afterDatasetsDraw(chart,args,pluginOptions){
+    const type=chart.config.type;
+    if(type!=='bar') return;
+    const {ctx}=chart;
+    ctx.save();
+    ctx.font=`600 10px ${chartFont.family}`;
+    ctx.fillStyle='#4B5563';
+    ctx.textAlign='center';
+    ctx.textBaseline='bottom';
+    const indexAxis=(chart.options && chart.options.indexAxis) || 'x';
+    chart.data.datasets.forEach((dataset,di)=>{
+      const meta=chart.getDatasetMeta(di);
+      if(meta.hidden) return;
+      meta.data.forEach((el,i)=>{
+        const val=dataset.data[i];
+        if(val===null||val===undefined||val==='') return;
+        const num=typeof val==='number'?val:Number(val);
+        if(Number.isNaN(num)) return;
+        const label=Math.abs(num-Math.round(num))<0.01?String(Math.round(num)):num.toFixed(1);
+        if(indexAxis==='y'){
+          ctx.textAlign='left';
+          ctx.fillText(label, el.x+6, el.y+4);
+          ctx.textAlign='center';
+        } else {
+          ctx.fillText(label, el.x, el.y-4);
+        }
+      });
+    });
+    ctx.restore();
+  }
+};
+Chart.register(barValueLabelsPlugin);
+
+function lowerBetter(v, thresholds){
+  if(v===null||v===undefined||Number.isNaN(v)) return null;
+  if(v > thresholds[0]) return 1;
+  if(v > thresholds[1]) return 2;
+  if(v > thresholds[2]) return 3;
+  return 4;
+}
+function higherBetter(v, thresholds){
+  if(v===null||v===undefined||Number.isNaN(v)) return null;
+  if(v < thresholds[0]) return 1;
+  if(v < thresholds[1]) return 2;
+  if(v < thresholds[2]) return 3;
+  return 4;
+}
+function metricScore(idx, v){
+  switch(idx){
+    case 0: return higherBetter(v,[38.6,46.6,59.9]);
+    case 1: return higherBetter(v,[84.6,90.0,95.3]);
+    case 2: return lowerBetter(v,[12.1,6.7,0.6]);
+    case 3: return higherBetter(v,[2.5,3.3,4.9]);
+    case 4: return lowerBetter(v,[52.2,25.2,8.5]);
+    case 5: return lowerBetter(v,[743.2,602.9,431.0]);
+    case 6: return lowerBetter(v,[31.3,19.3,7.9]);
+    default: return null;
+  }
+}
+function overallFromScores(scores){
+  const vals=[];
+  scores.forEach((s,i)=>{ if(s===null||s===undefined) return; if(i===0 && s<3) return; vals.push(s); });
+  if(!vals.length) return null;
+  return +(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(4);
+}
+function overallBand(v){
+  if(v===null||v===undefined) return null;
+  if(v<1.5) return 1;
+  if(v<2.5) return 2;
+  if(v<3.15) return 3;
+  if(v<3.5) return 4;
+  return 5;
+}
+
+function createMultiSelect(containerId,items,onChange,defaults){
+  const container=document.getElementById(containerId);
+  container.innerHTML='';
+  const state=new Set();
+  const btn=document.createElement('div');btn.className='ms-btn';
+  const panel=document.createElement('div');panel.className='ms-panel';
+  const allItem=document.createElement('div');allItem.className='ms-item ms-all';
+  const allCb=document.createElement('input');allCb.type='checkbox';allCb.checked=!defaults||defaults.length===0;
+  allItem.appendChild(allCb);allItem.appendChild(document.createTextNode('Select All'));
+  panel.appendChild(allItem);
+  const cbs=[];
+  items.forEach(item=>{
+    const div=document.createElement('div');div.className='ms-item';
+    const isDef=defaults&&defaults.includes(item);
+    const cb=document.createElement('input');cb.type='checkbox';cb.checked=!!isDef;
+    if(isDef)state.add(item);
+    div.appendChild(cb);div.appendChild(document.createTextNode(item.replace('CUST OPS ','')));
+    panel.appendChild(div);cbs.push({item,cb});
+    cb.addEventListener('change',()=>{
+      if(cb.checked)state.add(item);else state.delete(item);
+      allCb.checked=state.size===0; updateLabel(); onChange(state);
+    });
+  });
+  allCb.addEventListener('change',()=>{
+    if(allCb.checked){ state.clear(); cbs.forEach(o=>o.cb.checked=false); }
+    else { items.forEach(i=>state.add(i)); cbs.forEach(o=>o.cb.checked=true); }
+    updateLabel(); onChange(state);
+  });
+  function updateLabel(){
+    if(state.size===0) btn.innerHTML='All Sections';
+    else if(state.size<=2) btn.innerHTML=[...state].map(s=>'<span class="ms-tag">'+esc(s.replace('CUST OPS ',''))+'</span>').join('');
+    else btn.innerHTML='<span class="ms-tag">'+state.size+' sections selected</span>';
+  }
+  if(defaults&&defaults.length>0) updateLabel(); else btn.textContent='All Sections';
+  btn.addEventListener('click',e=>{e.stopPropagation();container.classList.toggle('open');});
+  document.addEventListener('click',()=>container.classList.remove('open'));
+  panel.addEventListener('click',e=>e.stopPropagation());
+  container.appendChild(btn);container.appendChild(panel);
+  return ()=>state;
+}
+
+let secArr=[], yearArr=[];
+const DEF_SECS=['Client Experience North Center','Client Experience Night Center','Client Experience Day Center','Immersive Engagement Group','Immersive Enrichment Center','Client Experience South Center'];
+let getSecI=()=>new Set(), getSecO=()=>new Set();
+
+let DEMO_ENTITIES=[];
+
+function mulberry32(a){
+  return function(){
+    let t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function buildDemoData(){
+  const rand = mulberry32(20260408);
+  const first = ['Avery','Jordan','Taylor','Morgan','Riley','Casey','Parker','Skyler','Dakota','Quinn','Emerson','Finley','Harper','Rowan','Cameron','Logan','Hayden','Reese','Alex','Jamie','Devon','Kendall','Blake','Elliot','Sage'];
+  const last = ['Diaz','Rivera','Morgan','Brooks','Turner','Bennett','Hayes','Perry','Foster','Coleman','Ward','Long','Hughes','Flores','Washington','Price','Sanders','Ross','Kelly','Reed','Bailey','James','Watson','Torres','Gray'];
+  const sections = [
+    'Client Experience North Center',
+    'Client Experience Day Center',
+    'Client Experience Night Center',
+    'Client Experience South Center',
+    'Immersive Engagement Group',
+    'Immersive Enrichment Center',
+    'Executive Support Group',
+    'Retail Choice Operations',
+    'Central Credit',
+    'Queens Walk-In Center'
+  ];
+  const months = [];
+  for(let m=1;m<=12;m++) months.push(202500+m);
+  for(let m=1;m<=6;m++) months.push(202600+m);
+
+  const metricRanges = {
+    0: [[18,35],[39,46],[48,59],[63,88]],      // Agreement high better
+    1: [[78,84.5],[84.7,90],[90.1,95.2],[95.3,99.2]], // Call obs
+    2: [[13,28],[7.2,12],[0.7,6.5],[0.1,0.6]], // Call Work low better
+    3: [[1.4,2.4],[2.5,3.2],[3.3,4.8],[4.9,6.2]], // CPH high better
+    4: [[55,110],[26,52],[9,24],[1.7,8.4]], // Hold
+    5: [[760,980],[610,742],[435,600],[120,430]], // Talk
+    6: [[33,58],[20,31],[8.5,19],[0.4,7.8]] // Unavailable
+  };
+
+  function between(a,b){ return +(a + (b-a)*rand()).toFixed(1); }
+  function highBetterRaw(metricIdx, score){
+    const r = metricRanges[metricIdx][Math.max(0,Math.min(3,score-1))];
+    return between(r[0], r[1]);
+  }
+  function lowBetterRaw(metricIdx, score){
+    const r = metricRanges[metricIdx][4-score];
+    return between(r[0], r[1]);
+  }
+  function toYear(ym){ return Math.floor(ym/100); }
+
+  const ents = [];
+  for(let i=0;i<100;i++){
+    const name = `${last[i % last.length]}, ${first[(i*3) % first.length]} ${String.fromCharCode(65 + (i % 26))}`;
+    const section = sections[i % sections.length];
+    const base = rand(); // 0..1
+    months.forEach((ym, mi) => {
+      if(rand() < 0.05) return; // sparse gaps
+      const season = Math.sin((mi / months.length) * Math.PI * 2) * 0.15;
+      const momentum = (mi / months.length) * 0.2;
+      const perf = Math.max(0, Math.min(1, base*0.75 + momentum + season + (rand()-0.5)*0.18));
+      const center = perf < 0.2 ? 1 : perf < 0.45 ? 2 : perf < 0.72 ? 3 : 4;
+
+      let scores = Array(7).fill(center).map(s => Math.max(1, Math.min(4, s + (rand()<0.18 ? (rand()<0.5?-1:1) : 0))));
+      // make agreement occasionally non-applicable or low
+      if(rand() < 0.12) scores[0] = 1 + Math.floor(rand()*2);
+      if(rand() < 0.08) scores[0] = null;
+      // Call observation tends to be slightly stronger
+      if(scores[1] !== null && rand() < 0.35) scores[1] = Math.min(4, scores[1] + 1);
+
+      const vals = [
+        scores[0]===null?null:highBetterRaw(0,scores[0]),
+        highBetterRaw(1,scores[1]),
+        lowBetterRaw(2,scores[2]),
+        highBetterRaw(3,scores[3]),
+        lowBetterRaw(4,scores[4]),
+        lowBetterRaw(5,scores[5]),
+        lowBetterRaw(6,scores[6])
+      ];
+
+      vals.forEach((v, idx) => {
+        if(v===null || v===undefined) return;
+        ents.push({
+          [FIELDS.emp]: name,
+          [FIELDS.sec]: section,
+          [FIELDS.metric]: DV_METRICS[idx],
+          [FIELDS.val]: v,
+          [FIELDS.year]: toYear(ym),
+          [FIELDS.ym]: ym
+        });
+      });
+    });
+  }
+  return ents;
+}
+
+
+function popSelect(id,items,valFn,lblFn){
+  const s=document.getElementById(id);
+  s.innerHTML=s.querySelector('option')?s.querySelector('option').outerHTML:'';
+  items.forEach(i=>{const o=document.createElement('option');o.value=valFn?valFn(i):i;o.textContent=lblFn?lblFn(i):i;s.appendChild(o);});
+}
+
+
+async function initMetadata(){
+  setLoading('indContent','Loading demo data...');
+  setLoading('orgContent','Loading demo data...');
+  DEMO_ENTITIES = buildDemoData();
+  const metaMap = new Map();
+  const secSet = new Set();
+  const yearSet = new Set();
+  DEMO_ENTITIES.forEach(e=>{
+    const name=e[FIELDS.emp], sec=e[FIELDS.sec], year=parseInt(e[FIELDS.year]);
+    if(!name || !sec || !year) return;
+    secSet.add(sec); yearSet.add(year);
+    if(!metaMap.has(name)) metaMap.set(name,{name, section:sec, years:new Set()});
+    metaMap.get(name).years.add(year);
+  });
+  empMeta=[...metaMap.values()].sort((a,b)=>a.name.localeCompare(b.name));
+  EMPS=empMeta.map(x=>x.name);
+  const secIndex = new Map([...secSet].sort().map((s,i)=>[s,i]));
+  SECS=[...secIndex.keys()];
+  yearArr=[...yearSet].sort((a,b)=>a-b);
+  secArr=[...secSet].sort();
+
+  getSecI=createMultiSelect('msSecI',secArr,()=>{updateEmpList(); renderIndividual();},DEF_SECS.filter(s=>secSet.has(s)));
+  getSecO=createMultiSelect('msSecO',secArr,()=>{orgHasLoaded=false; renderOrg();},DEF_SECS.filter(s=>secSet.has(s)));
+
+  popSelect('fYearI',yearArr);
+  popSelect('fYearO',yearArr);
+  popSelect('fMonO',[1,2,3,4,5,6,7,8,9,10,11,12],null,i=>MONTHS[i]);
+
+  updateEmpList();
+  document.getElementById('fEmp').addEventListener('change',renderIndividual);
+  document.getElementById('fYearI').addEventListener('change',renderIndividual);
+  document.getElementById('fYearO').addEventListener('change',()=>{orgHasLoaded=false; renderOrg();});
+  document.getElementById('fMonO').addEventListener('change',()=>{orgHasLoaded=false; renderOrg();});
+
+  setEmptyState('indContent','Select a CSR to view their performance','Use the filters above to explore the demo experience');
+  setEmptyState('orgContent','Select organization filters to load performance','Choose at least a year or month to load organization analytics');
+}
+
+
+function updateEmpList(){
+  const secs=getSecI(); const sel=document.getElementById('fEmp'); const cur=sel.value;
+  sel.innerHTML='<option value="">Select CSR...</option>';
+  empMeta.filter(m=>secs.size===0 || secs.has(m.section)).forEach((m,idx)=>{
+    const empIdx = EMPS.indexOf(m.name);
+    const o=document.createElement('option'); o.value=empIdx; o.textContent=m.name; sel.appendChild(o);
+  });
+  if(cur && [...sel.options].some(o=>o.value===cur)) sel.value=cur;
+}
+
+
+async function loadIndividualData(empIdx, year){
+  const empName = EMPS[empIdx];
+  if(!empName) return;
+  setLoading('indContent','Loading performance data...');
+  ROWS=[]; VALS=[]; valMap={};
+  let entities = DEMO_ENTITIES.filter(e=>e[FIELDS.emp]===empName && parseInt(e[FIELDS.year])>=2025 && DV_METRICS.includes(e[FIELDS.metric]));
+  if(year) entities = entities.filter(e=>parseInt(e[FIELDS.year])===parseInt(year));
+  transformRawEntities(entities, {mode:'individual'});
+}
+
+
+
+async function loadOrgData(year, month, sections){
+  setLoading('orgContent','Loading organization data...');
+  orgHasLoaded=false;
+  ROWS=[]; VALS=[]; valMap={};
+  let entities = DEMO_ENTITIES.filter(e=>parseInt(e[FIELDS.year])>=2025 && DV_METRICS.includes(e[FIELDS.metric]));
+  if(year) entities = entities.filter(e=>parseInt(e[FIELDS.year])===parseInt(year));
+  if(sections && sections.size) entities = entities.filter(e=>sections.has(e[FIELDS.sec]));
+  if(month){
+    const m = parseInt(month);
+    entities = entities.filter(e=>{
+      const ym = parseInt(e[FIELDS.ym]);
+      return ym && (ym % 100) === m;
+    });
+  }
+  transformRawEntities(entities, {mode:'org'});
+  orgHasLoaded=true;
+}
+
+
+function transformRawEntities(entities){
+  const secIndexMap = new Map(SECS.map((s,i)=>[s,i]));
+  const empIndexMap = new Map(EMPS.map((e,i)=>[e,i]));
+  const metricMap = new Map(DV_METRICS.map((m,i)=>[m,i]));
+  const grouped = new Map();
+
+  entities.forEach(e=>{
+    const empName=e[FIELDS.emp], sec=e[FIELDS.sec], metric=e[FIELDS.metric];
+    const ym=parseInt(e[FIELDS.ym]), val=parseFloat(e[FIELDS.val]);
+    if(!empName || !sec || !metric || !metricMap.has(metric) || !ym || Number.isNaN(val)) return;
+
+    if(!empIndexMap.has(empName)){
+      empIndexMap.set(empName, EMPS.length); EMPS.push(empName);
+    }
+    if(!secIndexMap.has(sec)){
+      secIndexMap.set(sec, SECS.length); SECS.push(sec);
+    }
+    const empIdx=empIndexMap.get(empName), secIdx=secIndexMap.get(sec);
+    const key=ym+'-'+empIdx;
+    if(!grouped.has(key)) grouped.set(key,{ym, empIdx, secIdx, values:Array(7).fill(null)});
+    grouped.get(key).values[metricMap.get(metric)] = val;
+  });
+
+  ROWS=[]; VALS=[]; valMap={};
+  [...grouped.values()].sort((a,b)=>a.ym-b.ym || a.empIdx-b.empIdx).forEach(g=>{
+    const scores = g.values.map((v,i)=>metricScore(i,v));
+    const overall = overallFromScores(scores);
+    const band = overallBand(overall);
+    ROWS.push([g.ym,g.empIdx,g.secIdx,overall,band,...scores]);
+    VALS.push([g.ym,g.empIdx,g.secIdx,...g.values]);
+    valMap[g.ym+'-'+g.empIdx]=g.values.slice();
+  });
+}
+
+function renderIndividual(){
+  destroyCharts();
+  const empIdx=parseInt(document.getElementById('fEmp').value);
+  const yr=document.getElementById('fYearI').value;
+  const cont=document.getElementById('indContent');
+  if(isNaN(empIdx)){setEmptyState('indContent','Select a CSR to view their performance','Use the filters above to find and select an employee');return;}
+  loadAndRenderIndividual(empIdx, yr);
+}
+
+async function loadAndRenderIndividual(empIdx, yr){
+  try{
+    await loadIndividualData(empIdx, yr);
+    const cont=document.getElementById('indContent');
+    let rows=ROWS.filter(r=>r[1]===empIdx);
+    if(yr) rows=rows.filter(r=>Math.floor(r[0]/100)===parseInt(yr));
+    rows.sort((a,b)=>a[0]-b[0]);
+    if(!rows.length){cont.innerHTML='<div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)">No data for selected filters</div>';return;}
+
+    const rawSums=Array(7).fill(0),rawCounts=Array(7).fill(0);
+    let overallSum=0,overallCount=0;
+    rows.forEach(r=>{
+      if(r[3]!==null){overallSum+=r[3];overallCount++;}
+      const rv=valMap[r[0]+'-'+r[1]];
+      if(rv){for(let i=0;i<7;i++){if(rv[i]!==null&&rv[i]!==undefined){rawSums[i]+=rv[i];rawCounts[i]++;}}}
+    });
+
+    const latest=rows[rows.length-1]; const latestBand=latest[4];
+    let html=legendHTML();
+    html+='<div class="cards">';
+    html+='<div class="card overall"><div class="label">Avg Overall Score</div><div class="value">'+(overallCount?(overallSum/overallCount).toFixed(2):'N/A')+'</div><div class="sub">'+OVERALL_BANDS[latestBand||0]+' (latest) · '+rows.length+' months</div></div>';
+    for(let i=0;i<7;i++){
+      const avg=rawCounts[i]?(rawSums[i]/rawCounts[i]):null;
+      const ls=latest[5+i]; const bc=ls?'s'+Math.min(ls,4):'';
+      html+='<div class="card '+bc+'"><div class="label">Avg '+MKEYS[i]+'</div><div class="value">'+(avg!==null?fmtVal(avg,i):'N/A')+'</div></div>';
+    }
+    html+='</div>';
+
+    html+='<div class="charts"><div class="chart-box full"><h3>Overall Score Trend</h3><canvas id="cOverall"></canvas></div>';
+    html+='<div class="chart-box"><h3>Phone Modes</h3><canvas id="cOpsLines"></canvas></div>';
+    [0,1,3].forEach(i=>{html+='<div class="chart-box"><h3>'+METRICS[i]+'</h3><canvas id="cM'+i+'"></canvas></div>';});
+    html+='</div>';
+
+    html+='<div class="grid-section"><h3>Supervisor Review Tracker</h3><div style="overflow-x:auto"><table><thead><tr><th>Month</th>';
+    MKEYS.forEach(m=>{html+='<th>'+m+'</th>';});
+    html+='<th>Overall Score</th><th>Overall Rating</th><th>Override Rating</th><th>Reviewed Date</th><th style="text-align:center">Review Status</th></tr></thead><tbody>';
+    rows.forEach(r=>{
+      const rv=valMap[r[0]+'-'+r[1]];
+      const rk=r[1]+'-'+r[0];
+      const rev=reviews[rk];
+      const isDone=rev&&rev.date;
+      html+='<tr><td style="font-weight:600">'+fmtYM(r[0])+'</td>';
+      for(let i=0;i<7;i++){
+        const score=r[5+i], raw=rv?rv[i]:null, cls=score?'vc'+score:'';
+        html+='<td><span class="val-cell '+cls+'">'+(raw!==null&&raw!==undefined?fmtRaw(raw,i):'—')+'</span></td>';
+      }
+      html+='<td><span class="val-cell '+(r[4]?'ov'+Math.min(r[4],5):'')+'" style="font-size:12px;min-width:52px">'+(r[3]!==null?r[3].toFixed(2):'N/A')+'</span></td>';
+      html+='<td><span class="val-cell '+(r[4]?'ov'+Math.min(r[4],5):'')+'" style="font-size:12px;min-width:120px">'+OVERALL_BANDS[r[4]||0]+'</span></td>';
+      html+='<td>'+(rev&&rev.override?'<span class="val-cell ov'+Math.min(rev.override,5)+'" style="font-size:12px;min-width:120px">'+OVERALL_BANDS[rev.override]+'</span>':'<span style="color:var(--text-muted);font-size:11px">—</span>')+'</td>';
+      html+='<td>'+(isDone?'<span style="font-size:11px;color:var(--text)">'+esc(rev.date)+'</span>':'<span style="color:var(--text-muted);font-size:11px">—</span>')+'</td>';
+      html+='<td class="checkbox-cell"><button class="review-btn '+(isDone?'done':'pending')+'" onclick="openReview('+r[1]+','+r[0]+')" title="'+(isDone?'Reviewed '+rev.date:'Open review')+'">'+(isDone?'Completed':'Pending')+'</button></td></tr>';
+    });
+    html+='</tbody></table></div></div>';
+    cont.innerHTML=html;
+
+    const labels=rows.map(r=>fmtYM(r[0]));
+    charts.overall=new Chart(document.getElementById('cOverall'),{type:'line',data:{labels,datasets:[
+      {label:'Overall Score',data:rows.map(r=>r[3]),borderColor:'#D4A017',backgroundColor:'rgba(212,160,23,.08)',tension:.35,fill:true,pointRadius:3,borderWidth:2.5,borderDash:[8,6]}
+    ]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{min:1,max:4,title:{display:true,text:'Overall Score',font:{family:chartFont.family,size:11,weight:'600'}}},x:{title:{display:true,text:'Month',font:{family:chartFont.family,size:11,weight:'600'}}}}}});
+
+    const combinedIdx=[2,4,5,6];
+    const combinedFill={
+      2:'rgba(29,78,216,.12)',
+      4:'rgba(5,150,105,.12)',
+      5:'rgba(234,88,12,.12)',
+      6:'rgba(107,114,128,.12)'
+    };
+    charts.opsLines=new Chart(document.getElementById('cOpsLines'),{
+      type:'line',
+      data:{labels,datasets:combinedIdx.map((i,idx)=>({
+        label:METRICS[i],
+        data:rows.map(r=>{const rv=valMap[r[0]+'-'+r[1]];return rv?rv[i]:null;}),
+        borderColor:MCHARTCOLOR[i],
+        backgroundColor:combinedFill[i],
+        borderWidth:2,
+        tension:.35,
+        fill:idx===0?'origin':'-1',
+        pointRadius:2,
+        pointHoverRadius:3
+      }))},
+      options:{responsive:true,plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:12}}},interaction:{mode:'index',intersect:false},scales:{y:{beginAtZero:true,stacked:true,title:{display:true,text:'sec/call',font:{family:chartFont.family,size:11,weight:'600'}}},x:{stacked:true,title:{display:true,text:'Month',font:{family:chartFont.family,size:11,weight:'600'}}}}}
+    });
+
+    [0,1,3].forEach(i=>{
+      const ds=rows.map(r=>{const rv=valMap[r[0]+'-'+r[1]];return rv?rv[i]:null;});
+      const type=MCHARTTYPE[i]?'bar':'line';
+      charts['m'+i]=new Chart(document.getElementById('cM'+i),{
+        type,
+        data:{labels,datasets:[{
+          label:METRICS[i],data:ds,borderColor:MCHARTCOLOR[i],backgroundColor:type==='bar'?MCHARTCOLOR[i]+'CC':'rgba(0,0,0,0)',borderWidth:2,
+          tension:.35,fill:false,pointRadius:type==='line'?2:0,borderRadius:type==='bar'?3:0
+        }]},
+        options:{responsive:true,plugins:{legend:{display:false},barValueLabelsPlugin:type==='bar'?{}:undefined},scales:{y:{beginAtZero:i!==1,title:{display:true,text:MUNITS[i],font:{family:chartFont.family,size:11,weight:'600'}}},x:{title:{display:true,text:'Month',font:{family:chartFont.family,size:11,weight:'600'}}}}}
+      });
+    });
+  }catch(err){
+    console.error(err);
+    document.getElementById('indContent').innerHTML='<div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)">Failed to load data</div>';
+  }
+}
+
+// Modal functions
+function openReview(empIdx,ym){
+  currentReviewKey=empIdx+'-'+ym;
+  const rev=reviews[currentReviewKey]||{};
+  const row=ROWS.find(r=>r[1]===empIdx&&r[0]===ym);
+  document.getElementById('modEmp').value=EMPS[empIdx];
+  document.getElementById('modPeriod').value=fmtYM(ym);
+  document.getElementById('modAutoScore').value=row&&row[3]!==null?row[3].toFixed(2):'N/A';
+  document.getElementById('modAutoBand').value=row&&row[4]?OVERALL_BANDS[row[4]]:'N/A';
+  document.getElementById('modOverride').value=rev.override||'';
+  document.getElementById('modComment').value=rev.comment||'';
+  document.getElementById('modDate').value=rev.date||new Date().toLocaleDateString();
+  const vals=valMap[ym+'-'+empIdx]||[];
+  const scoreBoxClass=(s)=>s?('vc'+s):'';
+  document.getElementById('modKpis').innerHTML=MKEYS.map((m,i)=>{
+    const raw=vals[i];
+    const score=row && row[5+i] ? row[5+i] : null;
+    return '<div style="border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:var(--bg)">'+
+      '<div style="font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">'+esc(m)+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px">'+
+        '<div style="font-family:var(--font-display);font-size:16px;font-weight:800;color:var(--text)">'+fmtRaw(raw,i)+'</div>'+
+        '<span class="val-cell '+scoreBoxClass(score)+'" style="min-width:44px">'+(score?OVERALL_BANDS[Math.min(score,4)]:'—')+'</span>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  document.getElementById('reviewModal').classList.add('open');
+}
+function closeModal(){document.getElementById('reviewModal').classList.remove('open');currentReviewKey=null;}
+function saveReview(){
+  if(!currentReviewKey)return;
+  reviews[currentReviewKey]={
+    override:document.getElementById('modOverride').value?parseInt(document.getElementById('modOverride').value):null,
+    comment:document.getElementById('modComment').value.trim(),
+    date:document.getElementById('modDate').value
+  };
+  closeModal(); renderIndividual();
+}
+
+async function renderOrg(){
+  destroyCharts();
+  const cont=document.getElementById('orgContent');
+  const secs=getSecO(); const yr=document.getElementById('fYearO').value; const mo=document.getElementById('fMonO').value;
+  if(!yr && !mo){ setEmptyState('orgContent','Select organization filters to load performance','Choose at least a year or month to load organization analytics'); return; }
+  try{
+    await loadOrgData(yr, mo, secs);
+    let rows=ROWS.slice();
+    if(yr) rows=rows.filter(r=>Math.floor(r[0]/100)===parseInt(yr));
+    if(mo) rows=rows.filter(r=>r[0]%100===parseInt(mo));
+    if(secs.size) rows=rows.filter(r=>secs.has(SECS[r[2]]));
+    if(!rows.length){cont.innerHTML='<div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)">No data for selected filters</div>';return;}
+
+    const latestYM=rows.map(r=>r[0]).sort((a,b)=>a-b).slice(-1)[0];
+    const latestRows=rows.filter(r=>r[0]===latestYM);
+
+    let totalEmps=new Set(rows.map(r=>r[1])).size;
+    let overallSum=0,overallCount=0;
+    rows.forEach(r=>{if(r[3]!==null){overallSum+=r[3];overallCount++;}});
+    const metricAgg=Array.from({length:7},()=>({s:0,c:0}));
+    rows.forEach(r=>{
+      const rv=valMap[r[0]+'-'+r[1]];
+      if(rv){
+        for(let i=0;i<7;i++){
+          const raw=rv[i];
+          if(raw!==null&&raw!==undefined){metricAgg[i].s+=raw; metricAgg[i].c++;}
+        }
+      }
+    });
+
+    let html=legendHTML();
+    html+='<div class="cards">';
+    html+='<div class="card overall"><div class="label">Avg Overall Score</div><div class="value">'+(overallCount?(overallSum/overallCount).toFixed(2):'N/A')+'</div><div class="sub">'+totalEmps+' CSRs across '+([...new Set(rows.map(r=>SECS[r[2]]))].length)+' sections</div></div>';
+    for(let i=0;i<7;i++){
+      const avg=metricAgg[i].c?(metricAgg[i].s/metricAgg[i].c):null;
+      html+='<div class="card"><div class="label">Avg '+MKEYS[i]+'</div><div class="value">'+(avg!==null?fmtVal(avg,i):'N/A')+'</div><div class="sub">'+MUNITS[i]+'</div></div>';
+    }
+    html+='</div>';
+
+    const bySec={}, secYM={}, secYMraw={};
+    rows.forEach(r=>{
+      const s=SECS[r[2]], ym=r[0];
+      if(!s || !ym) return;
+      if(!bySec[s]) bySec[s]={os:0,oc:0,ms:Array.from({length:7},()=>({s:0,c:0})),bands:{1:new Set(),2:new Set(),3:new Set(),4:new Set(),5:new Set()}};
+      if(r[3]!==null && r[3]!==undefined){
+        bySec[s].os+=r[3];
+        bySec[s].oc++;
+        if(r[4] && bySec[s].bands[r[4]]) bySec[s].bands[r[4]].add(r[1]);
+      }
+      for(let i=0;i<7;i++){
+        if(r[5+i]!==null&&r[5+i]!==undefined){
+          bySec[s].ms[i].s+=r[5+i];
+          bySec[s].ms[i].c++;
+        }
+      }
+      if(!secYM[s]) secYM[s]={};
+      if(!secYM[s][ym]) secYM[s][ym]={os:0,oc:0};
+      if(r[3]!==null && r[3]!==undefined){
+        secYM[s][ym].os+=r[3];
+        secYM[s][ym].oc++;
+      }
+      if(!secYMraw[s]) secYMraw[s]={};
+      if(!secYMraw[s][ym]) secYMraw[s][ym]=Array.from({length:7},()=>({s:0,c:0}));
+      const v=valMap[ym+'-'+r[1]];
+      if(v){
+        for(let i=0;i<7;i++){
+          if(v[i]!==null&&v[i]!==undefined){
+            secYMraw[s][ym][i].s+=v[i];
+            secYMraw[s][ym][i].c++;
+          }
+        }
+      }
+    });
+    Object.values(bySec).forEach(g=>{ for(let b=1;b<=5;b++) g.bands[b]=g.bands[b].size; });
+
+    const secNames=Object.keys(bySec).sort();
+    const allYMs=[...new Set(rows.map(r=>r[0]))].sort();
+    const ymLabels=allYMs.map(y=>fmtYM(y));
+
+    html+='<div class="charts">';
+    html+='<div class="chart-box full"><h3>Overall Score Trend by Section</h3><canvas id="cOrgTrend"></canvas></div>';
+    html+='<div class="chart-box"><h3>Avg Overall Score by Section</h3><canvas id="cSecBar"></canvas></div>';
+    html+='<div class="chart-box"><h3>Performance Band Distribution (Distinct CSRs)</h3><canvas id="cBandSec"></canvas></div>';
+    for(let i=0;i<7;i++){html+='<div class="chart-box"><h3>'+METRICS[i]+'</h3><canvas id="cOrg'+i+'"></canvas></div>';}
+    html+='</div>';
+
+    html+='<div class="grid-section"><h3>Section × Metric Heatmap (Avg Score)</h3><div style="overflow-x:auto"><table class="heatmap"><thead><tr><th>Section</th>';
+    MKEYS.forEach(m=>{html+='<th>'+m+'</th>';});
+    html+='<th>Overall</th></tr></thead><tbody>';
+    secNames.forEach(s=>{
+      const g=bySec[s];
+      html+='<tr><th>'+s.replace('CUST OPS ','')+'</th>';
+      for(let i=0;i<7;i++){
+        const avg=g.ms[i].c?(g.ms[i].s/g.ms[i].c):null;
+        if(avg===null) html+='<td>—</td>';
+        else { const b=Math.round(avg); html+='<td class="hm-'+(b>=1&&b<=4?b:'')+'">'+avg.toFixed(1)+'</td>'; }
+      }
+      const oa=g.oc?(g.os/g.oc):null;
+      if(oa===null) html+='<td>—</td>';
+      else { const b=overallBand(oa); html+='<td class="hm-'+b+'">'+oa.toFixed(2)+'</td>'; }
+      html+='</tr>';
+    });
+    html+='</tbody></table></div></div>';
+
+    const byEmp={};
+    rows.forEach(r=>{if(!byEmp[r[1]])byEmp[r[1]]={s:0,c:0,sec:SECS[r[2]]}; if(r[3]!==null){byEmp[r[1]].s+=r[3]; byEmp[r[1]].c++;}});
+    const leaders=Object.entries(byEmp).filter(([,v])=>v.c>0).map(([k,v])=>({emp:EMPS[k],sec:v.sec,avg:v.s/v.c,n:v.c})).sort((a,b)=>b.avg-a.avg);
+    html+='<div class="grid-section"><h3>CSR Leaderboard (Top 50)</h3><div style="overflow-x:auto"><table><thead><tr><th>#</th><th>CSR</th><th>Section</th><th>Avg Score</th><th>Months</th><th>Band</th></tr></thead><tbody>';
+    leaders.slice(0,50).forEach((l,i)=>{
+      let b=overallBand(l.avg);
+      html+='<tr><td style="font-weight:700;color:var(--text-muted)">'+(i+1)+'</td><td style="font-weight:600">'+l.emp+'</td><td>'+l.sec.replace('CUST OPS ','')+'</td><td style="font-weight:700">'+l.avg.toFixed(2)+'</td><td>'+l.n+'</td><td><span class="badge b'+b+'">'+OVERALL_BANDS[b]+'</span></td></tr>';
+    });
+    html+='</tbody></table></div></div>';
+    cont.innerHTML=html;
+
+    const trendDS=secNames.map((s,si)=>({
+      label:s.replace('CUST OPS ',''),
+      data:allYMs.map(ym=>{const g=secYM[s]?.[ym]; return g&&g.oc?+(g.os/g.oc).toFixed(2):null;}),
+      borderColor:SEC_COLORS[si%SEC_COLORS.length], backgroundColor:'transparent',
+      tension:.3, pointRadius:2, borderWidth:2, spanGaps:true, pointBackgroundColor:SEC_COLORS[si%SEC_COLORS.length]
+    }));
+    charts.orgTrend=new Chart(document.getElementById('cOrgTrend'),{type:'line',data:{labels:ymLabels,datasets:trendDS},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:9},usePointStyle:true,padding:12}}},scales:{y:{min:1,max:4,ticks:{stepSize:.5},title:{display:true,text:'Overall Score',font:{family:chartFont.family,size:11,weight:'600'}}},x:{title:{display:true,text:'Month',font:{family:chartFont.family,size:11,weight:'600'}}}},interaction:{mode:'nearest',intersect:false}}});
+
+    const secSorted=secNames.map(s=>({name:s.replace('CUST OPS ',''),avg:bySec[s].oc?bySec[s].os/bySec[s].oc:0})).sort((a,b)=>a.avg-b.avg);
+    charts.secBar=new Chart(document.getElementById('cSecBar'),{type:'bar',data:{
+      labels:secSorted.map(s=>s.name.substring(0,24)),
+      datasets:[{data:secSorted.map(s=>+s.avg.toFixed(2)),backgroundColor:secSorted.map(s=>{const v=s.avg;return v<1.5?'#DC2626':v<2.5?'#EA580C':v<3.15?'#6B7280':v<3.5?'#1D4ED8':'#059669';}),borderRadius:4}]
+    },options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},barValueLabelsPlugin:{}},scales:{x:{min:1,max:4,title:{display:true,text:'Avg Score',font:{family:chartFont.family,size:11,weight:'600'}}}}}});
+
+    const bandLabels=secNames.map(s=>s.replace('CUST OPS ','').substring(0,18));
+    charts.bandSec=new Chart(document.getElementById('cBandSec'),{type:'bar',data:{labels:bandLabels,datasets:[
+      {label:'Unsatisfactory',data:secNames.map(s=>bySec[s].bands[1]),backgroundColor:'#DC2626',borderColor:'#DC2626',borderWidth:1},
+      {label:'Needs Improvement',data:secNames.map(s=>bySec[s].bands[2]),backgroundColor:'#EA580C',borderColor:'#EA580C',borderWidth:1},
+      {label:'Satisfactory',data:secNames.map(s=>bySec[s].bands[3]),backgroundColor:'#FFFFFF',borderColor:'#D1D5DB',borderWidth:1.5},
+      {label:'Exceeds',data:secNames.map(s=>bySec[s].bands[4]),backgroundColor:'#1D4ED8',borderColor:'#1D4ED8',borderWidth:1},
+      {label:'Superior',data:secNames.map(s=>bySec[s].bands[5]),backgroundColor:'#059669',borderColor:'#059669',borderWidth:1}
+    ]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:9},usePointStyle:true,padding:12}},barValueLabelsPlugin:{}},scales:{x:{stacked:true,ticks:{font:{size:8},maxRotation:45}},y:{stacked:true,title:{display:true,text:'Distinct CSRs',font:{family:chartFont.family,size:11,weight:'600'}}}}}});
+
+    for(let mi=0;mi<7;mi++){
+      if(MCHARTTYPE[mi]){
+        const ds=secNames.map((s,si)=>({
+          label:s.replace('CUST OPS ',''),
+          data:allYMs.map(ym=>{const g=secYMraw[s]?.[ym];return g&&g[mi].c?+(g[mi].s/g[mi].c).toFixed(2):null;}),
+          backgroundColor:SEC_COLORS[si%SEC_COLORS.length],borderRadius:2
+        }));
+        charts['org'+mi]=new Chart(document.getElementById('cOrg'+mi),{type:'bar',data:{labels:ymLabels,datasets:ds},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:8},usePointStyle:true,padding:10}},barValueLabelsPlugin:{}},scales:{y:{beginAtZero:mi!==1,title:{display:true,text:MUNITS[mi],font:{family:chartFont.family,size:11,weight:'600'}}},x:{title:{display:true,text:'Month',font:{family:chartFont.family,size:11,weight:'600'}}}},interaction:{mode:'nearest',intersect:false}}});
+      }else{
+        const ds=secNames.map((s,si)=>({
+          label:s.replace('CUST OPS ',''),
+          data:allYMs.map(ym=>{const g=secYMraw[s]?.[ym];return g&&g[mi].c?+(g[mi].s/g[mi].c).toFixed(2):null;}),
+          borderColor:SEC_COLORS[si%SEC_COLORS.length],backgroundColor:'transparent',
+          tension:.3,pointRadius:2,borderWidth:2,spanGaps:true,pointBackgroundColor:SEC_COLORS[si%SEC_COLORS.length]
+        }));
+        charts['org'+mi]=new Chart(document.getElementById('cOrg'+mi),{type:'line',data:{labels:ymLabels,datasets:ds},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:8},usePointStyle:true,padding:10}},barValueLabelsPlugin:{}},scales:{y:{beginAtZero:mi!==1,title:{display:true,text:MUNITS[mi],font:{family:chartFont.family,size:11,weight:'600'}}},x:{title:{display:true,text:'Month',font:{family:chartFont.family,size:11,weight:'600'}}}},interaction:{mode:'nearest',intersect:false}}});
+      }
+    }
+  }catch(err){
+    console.error(err);
+    document.getElementById('orgContent').innerHTML='<div class="no-data" style="text-align:center;padding:60px;color:var(--text-muted)">Failed to load data</div>';
+  }
+}
+
+function renderMatrix(){
+  const cont=document.getElementById('matrixContent');
+  const matrix=[
+    {name:'Agreement Compliance',unit:'%',dir:'Higher is better',bands:['9.6 – 38.6','38.6 – 46.5','46.6 – 59.9','59.9 – 100.0']},
+    {name:'Call Observation Score',unit:'Avg Percentile',dir:'Higher is better',bands:['24.1 – 84.6','84.6 – 90.0','90.0 – 95.2','95.3 – 100.0']},
+    {name:'Call Work',unit:'sec/call',dir:'Lower is better',bands:['12.1 – 45.7','6.7 – 12.1','0.6 – 6.7','0.0 – 0.6']},
+    {name:'Calls Per Hour',unit:'calls/hr',dir:'Higher is better',bands:['0.0 – 2.5','2.5 – 3.3','3.3 – 4.9','4.9 – 10.0']},
+    {name:'Hold',unit:'sec/call',dir:'Lower is better',bands:['52.2 – 836.0','25.2 – 52.2','8.5 – 25.1','1.5 – 8.4']},
+    {name:'Talk',unit:'sec/call',dir:'Lower is better',bands:['743.2 – 1508.5','602.9 – 743.0','431.0 – 602.7','22.0 – 431.0']},
+    {name:'Unavailable',unit:'sec/call',dir:'Lower is better',bands:['31.3 – 180.9','19.3 – 31.2','7.9 – 19.2','0.0 – 7.9']}
+  ];
+  const bandNames=['Unsatisfactory','Needs Improvement','Satisfactory','Superior'];
+  const bandClasses=['mb1','mb2','mb3','mb4'];
+
+  let html='<div class="matrix-container">';
+  html+=legendHTML();
+  html+='<div class="matrix-note"><strong>Note:</strong> Agreement Compliance is only included in the overall score when it reaches Satisfactory (3) or Superior (4). Otherwise it is omitted from the average calculation.</div>';
+  html+='<div class="grid-section"><h3>Overall Score Bands</h3><p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">The overall score is the average of all individual metric scores per month. The final band is determined by the ranges below.</p>';
+  html+='<div class="overall-bands">';
+  const obands=[
+    {score:'1.00 – < 1.50',label:'Unsatisfactory',cls:'ob1'},
+    {score:'1.50 – < 2.50',label:'Needs Improvement',cls:'ob2'},
+    {score:'2.50 – < 3.15',label:'Satisfactory',cls:'ob3'},
+    {score:'3.15 – < 3.50',label:'Exceeds',cls:'ob4'},
+    {score:'≥ 3.50',label:'Superior',cls:'ob5'}
+  ];
+  obands.forEach(b=>{ html+='<div class="ob '+b.cls+'"><div class="ob-score">'+b.score+'</div><div class="ob-label">'+b.label+'</div></div>'; });
+  html+='</div></div>';
+  matrix.forEach(m=>{
+    html+='<div class="matrix-card"><h3>'+m.name+'</h3><div class="unit">'+m.unit+' · '+m.dir+'</div><div class="matrix-bands">';
+    m.bands.forEach((b,bi)=>{ html+='<div class="matrix-band '+bandClasses[bi]+'"><div class="band-label">'+bandNames[bi]+'</div><div class="band-range">'+b+'</div><div class="band-sub">'+m.unit+'</div></div>';});
+    html+='</div></div>';
+  });
+  html+='</div>'; cont.innerHTML=html;
+}
+
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',i===n);});
+  ['tab0','tab1','tab2'].forEach((t,i)=>{document.getElementById(t).style.display=i===n?'':'none';});
+  if(n===1) renderOrg();
+  if(n===2) renderMatrix();
+}
+
+document.addEventListener('DOMContentLoaded', async ()=>{
+  // make override labels text-only and 1-5 overall bands
+  const modOverride=document.getElementById('modOverride');
+  modOverride.innerHTML='<option value="">— No Override —</option><option value="1">Unsatisfactory</option><option value="2">Needs Improvement</option><option value="3">Satisfactory</option><option value="4">Exceeds</option><option value="5">Superior</option>';
+  await initMetadata();
+});
+</script>
+</body>
+</html>
