@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procedure — ERD Creation in Dataverse</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;0,700;1,300&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── VARIABLES ── */
+:root {
+  --ink:        #0d1117;
+  --ink-light:  #3d4450;
+  --ink-muted:  #6b7280;
+  --rule:       #d1d5db;
+  --rule-heavy: #9ca3af;
+  --accent:     #1d4ed8;
+  --accent-bg:  #eff6ff;
+  --warn:       #92400e;
+  --warn-bg:    #fffbeb;
+  --warn-border:#fcd34d;
+  --ok:         #065f46;
+  --ok-bg:      #ecfdf5;
+  --ok-border:  #6ee7b7;
+  --code-bg:    #f3f4f6;
+  --step-num:   #1d4ed8;
+  --page-w:     760px;
+  --ff-body:    'IBM Plex Sans', sans-serif;
+  --ff-mono:    'IBM Plex Mono', monospace;
+}
+
+/* ── RESET ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── BASE ── */
+html { font-size: 14px; }
+body {
+  font-family: var(--ff-body);
+  color: var(--ink);
+  background: #f9fafb;
+  line-height: 1.7;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ── SCREEN WRAPPER ── */
+.page-shell {
+  max-width: var(--page-w);
+  margin: 40px auto;
+  background: #fff;
+  box-shadow: 0 4px 40px rgba(0,0,0,.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* ── COVER ── */
+.cover {
+  background: var(--ink);
+  color: #fff;
+  padding: 52px 56px 44px;
+  position: relative;
+  overflow: hidden;
+}
+.cover::before {
+  content: '';
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: 220px;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent, transparent 12px,
+    rgba(255,255,255,.03) 12px, rgba(255,255,255,.03) 13px
+  );
+}
+.cover-eyebrow {
+  font-size: 10px; font-weight: 600; letter-spacing: .18em;
+  text-transform: uppercase; color: #60a5fa;
+  margin-bottom: 18px;
+}
+.cover h1 {
+  font-size: 28px; font-weight: 700; line-height: 1.25;
+  margin-bottom: 10px; letter-spacing: -.01em;
+}
+.cover h1 em { color: #60a5fa; font-style: normal; }
+.cover-sub {
+  font-size: 13px; color: #9ca3af; font-weight: 300;
+  max-width: 480px; margin-bottom: 32px;
+}
+.cover-meta { display: flex; gap: 32px; flex-wrap: wrap; }
+.cover-meta-item .label {
+  font-size: 9px; letter-spacing: .14em; text-transform: uppercase;
+  color: #6b7280; font-weight: 600;
+}
+.cover-meta-item .value {
+  font-size: 12px; color: #e5e7eb; font-weight: 400; margin-top: 2px;
+}
+
+/* ── BODY ── */
+.doc-body { padding: 48px 56px; }
+
+/* ── TOC ── */
+.toc {
+  background: var(--accent-bg);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  padding: 20px 24px;
+  margin-bottom: 40px;
+}
+.toc-title {
+  font-size: 10px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 12px;
+}
+.toc ol { padding-left: 18px; }
+.toc li { margin-bottom: 4px; }
+.toc a {
+  color: var(--ink); text-decoration: none; font-size: 12.5px;
+  transition: color .15s;
+}
+.toc a:hover { color: var(--accent); }
+.toc .toc-num { color: var(--accent); font-weight: 600; margin-right: 4px; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 44px; }
+.section-header {
+  display: flex; align-items: flex-start; gap: 16px;
+  margin-bottom: 20px; padding-bottom: 12px;
+  border-bottom: 2px solid var(--ink);
+}
+.section-num {
+  font-family: var(--ff-mono);
+  font-size: 11px; font-weight: 600;
+  color: #fff; background: var(--ink);
+  padding: 3px 8px; border-radius: 3px;
+  white-space: nowrap; margin-top: 2px; flex-shrink: 0;
+}
+.section-title {
+  font-size: 17px; font-weight: 700; letter-spacing: -.01em;
+  color: var(--ink);
+}
+.section-title span { color: var(--accent); }
+
+/* ── STEP ── */
+.step {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 0 14px;
+  margin-bottom: 20px;
+}
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.step-content { }
+.step-title { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+.step-body { font-size: 12.5px; color: var(--ink-light); }
+.step-body p { margin-bottom: 6px; }
+.step-connector { grid-column: 1; width: 2px; background: #e5e7eb; margin: 0 auto; height: 16px; }
+.step-connector-spacer { grid-column: 2; }
+
+/* ── CALLOUTS ── */
+.callout {
+  border-radius: 4px; padding: 14px 18px;
+  margin: 16px 0; font-size: 12.5px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-body { }
+.callout-body strong { display: block; margin-bottom: 4px; font-size: 12px; }
+.callout.warn  { background: var(--warn-bg);  border: 1px solid var(--warn-border); color: var(--warn); }
+.callout.info  { background: var(--accent-bg); border: 1px solid #bfdbfe; color: #1e40af; }
+.callout.ok    { background: var(--ok-bg);     border: 1px solid var(--ok-border);   color: var(--ok); }
+
+/* ── CODE ── */
+code {
+  font-family: var(--ff-mono);
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 11.5px;
+  color: #b91c1c;
+}
+.code-block {
+  font-family: var(--ff-mono);
+  background: var(--ink); color: #e5e7eb;
+  border-radius: 6px; padding: 16px 20px;
+  font-size: 11.5px; margin: 12px 0; line-height: 1.6; overflow-x: auto;
+}
+.code-block .cm { color: #6b7280; }
+.code-block .ck { color: #60a5fa; }
+.code-block .cv { color: #34d399; }
+.code-block .cs { color: #fbbf24; }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 16px 0; }
+.data-table th {
+  background: var(--ink); color: #fff;
+  font-weight: 600; text-align: left;
+  padding: 8px 12px; font-size: 11px;
+  letter-spacing: .04em; text-transform: uppercase;
+}
+.data-table td { padding: 8px 12px; border-bottom: 1px solid var(--rule); color: var(--ink-light); vertical-align: top; }
+.data-table tr:nth-child(even) td { background: #f9fafb; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table code { font-size: 11px; }
+.badge { display: inline-block; padding: 2px 7px; border-radius: 99px; font-size: 10px; font-weight: 600; }
+.badge-red   { background:#fee2e2; color:#991b1b; }
+.badge-green { background:#dcfce7; color:#166534; }
+.badge-blue  { background:#dbeafe; color:#1e40af; }
+.badge-amber { background:#fef3c7; color:#92400e; }
+
+/* ── HORIZONTAL RULE ── */
+hr { border: none; border-top: 1px solid var(--rule); margin: 32px 0; }
+
+/* ── PROMPT BOX ── */
+.prompt-box {
+  border: 1.5px dashed var(--accent);
+  border-radius: 6px; padding: 18px 22px;
+  background: var(--accent-bg); margin: 16px 0;
+}
+.prompt-box .prompt-label {
+  font-size: 9px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
+}
+.prompt-box p { font-size: 12.5px; color: #1e3a8a; line-height: 1.6; font-style: italic; }
+
+/* ── COMPARISON GRID ── */
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0;
+}
+.compare-card {
+  border-radius: 6px;
+  border: 1.5px solid var(--rule);
+  overflow: hidden;
+}
+.compare-card-header {
+  padding: 10px 16px;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.compare-card-header .tool-logo {
+  font-size: 16px;
+}
+.compare-card.sharepoint .compare-card-header { background: #e0f2fe; color: #075985; border-bottom: 1.5px solid #bae6fd; }
+.compare-card.confluence .compare-card-header { background: #e0e7ff; color: #3730a3; border-bottom: 1.5px solid #c7d2fe; }
+.compare-section {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.compare-section:last-child { border-bottom: none; }
+.compare-section-label {
+  font-size: 9px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+.compare-section.pros .compare-section-label { color: var(--ok); }
+.compare-section.cons .compare-section-label { color: var(--warn); }
+.compare-section.best  .compare-section-label { color: var(--accent); }
+.compare-item {
+  display: flex; gap: 7px; font-size: 11.5px;
+  color: var(--ink-light); margin-bottom: 4px;
+  align-items: flex-start;
+}
+.compare-item:last-child { margin-bottom: 0; }
+.compare-dot { flex-shrink: 0; margin-top: 5px; width: 5px; height: 5px; border-radius: 50%; }
+.pros .compare-dot { background: var(--ok); }
+.cons .compare-dot { background: #f59e0b; }
+
+/* ── FOOTER ── */
+.doc-footer {
+  border-top: 1px solid var(--rule);
+  padding: 20px 56px;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 11px; color: var(--ink-muted);
+}
+
+/* ════════════════════════════════
+   PRINT STYLES
+════════════════════════════════ */
+@media print {
+  @page { size: A4; margin: 18mm 16mm 18mm 16mm; }
+  html { font-size: 13px; }
+  body { background: #fff; }
+  .page-shell { max-width: 100%; margin: 0; box-shadow: none; border-radius: 0; }
+  .cover { padding: 36px 40px 32px; }
+  .doc-body { padding: 32px 40px; }
+  .doc-footer { padding: 14px 40px; }
+  .section        { page-break-inside: avoid; }
+  .step           { page-break-inside: avoid; }
+  .callout        { page-break-inside: avoid; }
+  .data-table     { page-break-inside: avoid; }
+  .prompt-box     { page-break-inside: avoid; }
+  .code-block     { page-break-inside: avoid; }
+  .compare-grid   { page-break-inside: avoid; }
+  .section-header { page-break-after: avoid; }
+  .section.break-before { page-break-before: always; }
+  a[href]::after  { content: none; }
+  .toc a { color: var(--ink) !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ PASSWORD PROMPT — Clara Fortuna Innovation ══ -->
+<style>
+#cf-lock{position:fixed;inset:0;z-index:99999;background:#0d1f1c;display:flex;align-items:center;justify-content:center;font-family:sans-serif;transition:opacity .5s ease}
+#cf-lock.hidden{opacity:0;pointer-events:none}
+.cf-card{width:340px;text-align:center;padding:0 24px}
+.cf-logo{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#2a9d8f;margin-bottom:28px}
+.cf-title{font-size:28px;color:#fff;margin-bottom:6px;font-weight:300}
+.cf-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:36px;letter-spacing:.05em}
+.cf-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:14px;letter-spacing:.08em;outline:none;transition:border-color .2s;box-sizing:border-box}
+.cf-input:focus{border-color:#2a9d8f}
+.cf-input.err{border-color:#e76f51;animation:cfshake .3s ease}
+.cf-error{font-size:11px;color:#e76f51;height:16px;margin:8px 0}
+.cf-btn{width:100%;padding:13px;background:#2a9d8f;border:none;border-radius:8px;color:#fff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.cf-btn:hover{background:#1a7a6e}
+.cf-hint{margin-top:20px;font-size:10px;color:rgba(255,255,255,.18);letter-spacing:.05em}
+@keyframes cfshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+</style>
+<div id="cf-lock">
+  <div class="cf-card">
+    <div class="cf-logo">Clara Fortuna · Innovation</div>
+    <div class="cf-title">Restricted Access</div>
+    <div class="cf-sub">Enter your password to view this document</div>
+    <input class="cf-input" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')cfCheck()"/>
+    <div class="cf-error" id="cf-err"></div>
+    <button class="cf-btn" onclick="cfCheck()">Access Document</button>
+    <div class="cf-hint">Clara Fortuna · Innovation Department</div>
+  </div>
+</div>
+<script>
+(function(){
+  var PASS={internal:'clarainnov2026\',client:'AILabClient2026'};
+  var KEY='cf_innovation_auth';
+  function unlock(){document.getElementById('cf-lock').classList.add('hidden')}
+  function cfCheck(){
+    var v=document.getElementById('cf-pwd').value.trim();
+    if(v===PASS.internal||v===PASS.client){sessionStorage.setItem(KEY,'1');unlock();}
+    else{
+      var i=document.getElementById('cf-pwd');
+      i.classList.add('err');
+      document.getElementById('cf-err').textContent='Incorrect password. Try again.';
+      i.value='';
+      setTimeout(function(){i.classList.remove('err')},400);
+    }
+  }
+  window.cfCheck=cfCheck;
+  if(sessionStorage.getItem(KEY))unlock();
+})();
+</script>
+<!-- ══ END PASSWORD PROMPT ══ -->
+
+<div class="page-shell">
+
+  <!-- ══ COVER ══ -->
+  <div class="cover">
+    <div class="cover-eyebrow">Technical Procedure · Development Team</div>
+    <h1>Creating an <em>Entity Relationship<br>Diagram</em> in Microsoft Dataverse</h1>
+    <p class="cover-sub">
+      Step-by-step guide to generate, export, and visualize the ERD for any solution
+      built on Dataverse, using XrmToolBox and Claude AI.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="label">Version</div>
+        <div class="value">1.0</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Date</div>
+        <div class="value">April 2026</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Tools</div>
+        <div class="value">XrmToolBox · Draw.IO · Claude AI</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Classification</div>
+        <div class="value">Internal — Technical Use</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ BODY ══ -->
+  <div class="doc-body">
+
+    <!-- TOC -->
+    <div class="toc">
+      <div class="toc-title">Table of Contents</div>
+      <ol>
+        <li><a href="#s1"><span class="toc-num">1.</span> Objective &amp; Scope</a></li>
+        <li><a href="#s2"><span class="toc-num">2.</span> Prerequisites</a></li>
+        <li><a href="#s3"><span class="toc-num">3.</span> Connecting to Dataverse with XrmToolBox</a></li>
+        <li><a href="#s4"><span class="toc-num">4.</span> Installing the ERD Creator Plugin</a></li>
+        <li><a href="#s5"><span class="toc-num">5.</span> Selecting &amp; Filtering Entities</a></li>
+        <li><a href="#s6"><span class="toc-num">6.</span> Excluded Tables — Technical Restriction</a></li>
+        <li><a href="#s7"><span class="toc-num">7.</span> Exporting the Diagram</a></li>
+        <li><a href="#s8"><span class="toc-num">8.</span> Generating the Visual ERD with Claude AI</a></li>
+        <li><a href="#s9"><span class="toc-num">9.</span> ERD Visual Standard</a></li>
+        <li><a href="#s10"><span class="toc-num">10.</span> Final Considerations</a></li>
+      </ol>
+    </div>
+
+    <!-- ══ S1 ══ -->
+    <div class="section" id="s1">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <div><div class="section-title">Objective &amp; <span>Scope</span></div></div>
+      </div>
+      <p style="font-size:12.5px;color:var(--ink-light);margin-bottom:12px;">
+        This procedure establishes the standardized steps that the development team must follow
+        to generate the Entity Relationship Diagram (ERD) for any solution built on Microsoft Dataverse,
+        ensuring a visually consistent, technically accurate result ready to be included in the
+        project's technical documentation.
+      </p>
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">
+          <strong>Scope</strong>
+          Applies to all custom solutions built on Microsoft Dataverse (Power Platform).
+          Does not apply to standard Dynamics 365 entities that have not been modified
+          within the solution.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S2 ══ -->
+    <div class="section" id="s2">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <div><div class="section-title"><span>Prerequisites</span></div></div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr><th>Requirement</th><th>Details</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>XrmToolBox</strong></td>
+            <td>Version 1.2021 or higher installed on the developer's machine</td>
+            <td><span class="badge badge-blue">Required</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dataverse Credentials</strong></td>
+            <td>Access with System Administrator or System Customizer role in the target environment</td>
+            <td><span class="badge badge-blue">Required</span></td>
+          </tr>
+          <tr>
+            <td><strong>ERD Creator Plugin</strong></td>
+            <td>Entity Relation Diagram Creator, available in the XrmToolBox Plugin Store</td>
+            <td><span class="badge badge-blue">Required</span></td>
+          </tr>
+          <tr>
+            <td><strong>Technical Documentation</strong></td>
+            <td>Solution architecture document identifying entities and their relationships</td>
+            <td><span class="badge badge-blue">Required</span></td>
+          </tr>
+          <tr>
+            <td><strong>Claude AI Access</strong></td>
+            <td>Account on claude.ai for generating the visual ERD as an HTML file</td>
+            <td><span class="badge badge-blue">Required</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ S3 ══ -->
+    <div class="section" id="s3">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <div><div class="section-title">Connecting to Dataverse with <span>XrmToolBox</span></div></div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Open XrmToolBox</div>
+          <div class="step-body">
+            <p>Launch the XrmToolBox application from the local machine. On the start screen, click <strong>New Connection</strong> or select a previously saved connection.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Configure the connection</div>
+          <div class="step-body">
+            <p>Select the authentication type that matches the target environment (Office 365 / Azure AD). Enter the Dataverse environment URL in the following format:</p>
+            <div class="code-block"><span class="cv">https://&lt;environment-name&gt;.crm.dynamics.com</span></div>
+            <p>Enter the credentials and click <strong>Login</strong>. Once the connection is established, XrmToolBox will display the organization name in the top bar.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Verify the connection</div>
+          <div class="step-body">
+            <p>Confirm that the connected environment is correct (DEV / QA / PROD) before proceeding. Always work on the development environment unless the procedure explicitly states otherwise.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn" style="margin-top:16px;">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Environment Caution</strong>
+          Always verify that the connection points to the correct environment before starting any operation. An accidental operation on PROD can have unintended consequences.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S4 ══ -->
+    <div class="section" id="s4">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <div><div class="section-title">Installing the <span>ERD Creator Plugin</span></div></div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Access the Plugin Store</div>
+          <div class="step-body">
+            <p>In the XrmToolBox menu bar, navigate to <strong>Tools → Plugin Store</strong>.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Search and install the plugin</div>
+          <div class="step-body">
+            <p>In the Plugin Store search bar, type:</p>
+            <div class="code-block"><span class="cs">Entity Relation Diagram Creator</span></div>
+            <p>Select the plugin from the results and click <strong>Install</strong>. Wait for the download and installation to complete. Restart XrmToolBox if prompted.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Open the plugin</div>
+          <div class="step-body">
+            <p>On the XrmToolBox home screen, find <strong>Entity Relation Diagram Creator</strong> in the tools list and double-click to open it. Ensure the active connection is correct before proceeding.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S5 ══ -->
+    <div class="section break-before" id="s5">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <div><div class="section-title">Selecting &amp; <span>Filtering Entities</span></div></div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Load the solution</div>
+          <div class="step-body">
+            <p>In the plugin panel, click <strong>Load Solutions</strong>. A list of all available solutions in the environment will appear. Select the solution corresponding to the project.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Load the solution's entities</div>
+          <div class="step-body">
+            <p>Once the solution is selected, click <strong>Load Entities</strong>. The plugin will list all entities (tables) belonging to the selected solution.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Identify and select related entities</div>
+          <div class="step-body">
+            <p>Based on the solution's <strong>technical architecture documentation</strong>, identify which entities have relationships with each other and which are auxiliary or configuration tables.</p>
+            <p>Select <strong>only the related entities</strong> that form part of the core data model. Exclude configuration tables, process flags, and technical utilities (see Section 6).</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Configure rendering options</div>
+          <div class="step-body">
+            <p>In the <em>Diagram rendering options</em> panel, the following standard configuration is recommended:</p>
+          </div>
+        </div>
+      </div>
+
+      <table class="data-table" style="margin-top:0;">
+        <thead><tr><th>Option</th><th>Recommended Value</th></tr></thead>
+        <tbody>
+          <tr><td>Number of entities per row</td><td><code>5</code> (adjust based on entity count)</td></tr>
+          <tr><td>Fields to show</td><td><code>Custom fields from all publishers</code></td></tr>
+          <tr><td>Show data types in entities</td><td>✅ Enabled</td></tr>
+          <tr><td>Show Friendly names in entities</td><td>✅ Enabled</td></tr>
+          <tr><td>Show fieldnames in relationships</td><td>✅ Enabled</td></tr>
+          <tr><td>Show name of many-to-many relationship</td><td>✅ Enabled</td></tr>
+          <tr><td>Show collapsed entities</td><td>⬜ Disabled</td></tr>
+          <tr><td>Hide unpublished customizations</td><td>⬜ Disabled</td></tr>
+        </tbody>
+      </table>
+
+      <div class="step" style="margin-top:16px;">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Generate the diagram</div>
+          <div class="step-body">
+            <p>Click the <strong>Create Entity Relation Diagram</strong> button. The plugin will process the selected entities and render the diagram in the main view.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Rendering Error</strong>
+          If the plugin throws the error <code>System.ArgumentOutOfRangeException: Index and length must refer to a location within the string</code>, review Section 6 to identify and exclude the problematic tables. Then click <strong>Continue</strong> to attempt to proceed, or restart the process without the conflicting entities.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S6 ══ -->
+    <div class="section" id="s6">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <div><div class="section-title">Excluded Tables — <span>Technical Restriction</span></div></div>
+      </div>
+
+      <div class="callout warn">
+        <span class="callout-icon">🚫</span>
+        <div class="callout-body">
+          <strong>Root cause of the error</strong>
+          Certain configuration and utility tables in Dataverse contain fields whose metadata
+          presents empty strings (<code>""</code>) or special characters in properties such as
+          the logical name or display name. The <em>Entity Relation Diagram Creator</em> plugin
+          processes these strings using a <code>String.Substring(startIndex, length)</code>
+          operation that assumes a minimum string length. When it encounters a string shorter
+          than expected — or an empty one — it throws a
+          <code>System.ArgumentOutOfRangeException</code>, interrupting the entire
+          diagram rendering process.
+        </div>
+      </div>
+
+      <p style="font-size:12.5px;color:var(--ink-light);margin:16px 0 12px;">
+        The following tables <strong>must be mandatorily excluded</strong> when generating the ERD.
+        They do not represent entities of the core data model — they are technical support,
+        environment configuration, and process flag tables:
+      </p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Table (Logical Name)</th><th>Display Name</th><th>Reason for Exclusion</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>cf_action</code></td>
+            <td>Action</td>
+            <td>System action configuration table. Metadata contains empty fields.</td>
+            <td><span class="badge badge-red">Exclude</span></td>
+          </tr>
+          <tr>
+            <td><code>cf_admin</code></td>
+            <td>Admin</td>
+            <td>Administrative configuration table. Not part of the relational model.</td>
+            <td><span class="badge badge-red">Exclude</span></td>
+          </tr>
+          <tr>
+            <td><code>cf_developer</code></td>
+            <td>Developer</td>
+            <td>Internal development-use table. Has no relationships with the core model.</td>
+            <td><span class="badge badge-red">Exclude</span></td>
+          </tr>
+          <tr>
+            <td><code>cf_override</code></td>
+            <td>Override</td>
+            <td>Configuration override table. Causes metadata conflict in the plugin.</td>
+            <td><span class="badge badge-red">Exclude</span></td>
+          </tr>
+          <tr>
+            <td><code>cf_processphaseflags</code></td>
+            <td>Process Phase Flags</td>
+            <td>Process phase control flags. Incomplete metadata that breaks rendering.</td>
+            <td><span class="badge badge-red">Exclude</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout ok">
+        <span class="callout-icon">✅</span>
+        <div class="callout-body">
+          <strong>Note</strong>
+          If future projects identify additional tables that trigger the same error, they must
+          be documented in this section and added to the permanent exclusion list of this procedure.
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S7 ══ -->
+    <div class="section break-before" id="s7">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <div><div class="section-title">Exporting the <span>Diagram</span></div></div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Export to Draw.IO</div>
+          <div class="step-body">
+            <p>Once the diagram is generated in XrmToolBox, click the <strong>Export to Draw.IO</strong> button in the plugin toolbar. A file with the <code>.drawio</code> or <code>.xml</code> extension will be downloaded.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Rename the file extension</div>
+          <div class="step-body">
+            <p>Locate the downloaded file and <strong>rename its extension</strong> from <code>.drawio</code> (or <code>.xml</code>) to <code>.txt</code>.</p>
+            <div class="code-block">
+<span class="cm"># Rename example:</span>
+<span class="ck">Before:</span> <span class="cv">Unified_CSR_Portal.drawio</span>
+<span class="ck">After:</span>  <span class="cv">Unified_CSR_Portal.txt</span>
+            </div>
+            <p>This step is necessary because Claude AI accepts plain text files. The file content is valid XML and is not modified — only the extension changes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ️</span>
+        <div class="callout-body">
+          <strong>Naming Convention</strong>
+          Name the file following the standard: <code>&lt;SolutionName&gt;_v&lt;version&gt;.txt</code>
+          — for example: <code>Unified_CSR_Portal_v2.txt</code>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S8 ══ -->
+    <div class="section" id="s8">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <div><div class="section-title">Generating the Visual ERD with <span>Claude AI</span></div></div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Access Claude AI</div>
+          <div class="step-body">
+            <p>Go to <strong>claude.ai</strong> using the team credentials. Start a new conversation.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Attach the .txt file</div>
+          <div class="step-body">
+            <p>Click the attach file icon (📎) in the Claude text box and select the <code>.txt</code> file generated in the previous step.</p>
+          </div>
+        </div>
+      </div>
+      <div class="step-connector"></div><div class="step-connector-spacer"></div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Use the standard prompt</div>
+          <div class="step-body">
+            <p>Together with the attached file, send the following standardized prompt (see Section 9 for a reference of the expected output format):</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="prompt-box">
+        <div class="prompt-label">📋 Standard Prompt — copy and paste as-is</div>
+        <p>
+          I am attaching a .txt file exported from XrmToolBox containing the ERD of a Dataverse solution.
+          Please create an interactive HTML ERD diagram following the team's visual standard:
+          entities with fields differentiated by PK (gold) and FK (blue), relationships with Crow's Foot
+          notation (single vertical bar on the "1" side and crow's foot on the "N" side) plus "1" and "N"
+          labels at each end, a pan &amp; zoom canvas with draggable entities, a search bar, minimap,
+          and dark theme. The result must be a single self-contained HTML file, ready to download.
+        </p>
+      </div>
+
+      <div class="step" style="margin-top:16px;">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Download the generated HTML</div>
+          <div class="step-body">
+            <p>Claude will process the file and generate the ERD HTML. Click the download button on the generated artifact. Save the file using the standard name:</p>
+            <div class="code-block"><span class="cv">&lt;SolutionName&gt;_ERD.html</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ S9 ══ -->
+    <div class="section break-before" id="s9">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <div><div class="section-title">ERD <span>Visual Standard</span></div></div>
+      </div>
+
+      <p style="font-size:12.5px;color:var(--ink-light);margin-bottom:16px;">
+        Every ERD generated by the team must comply with the following visual and functional criteria.
+        This standard is kept consistent across projects to facilitate cross-reading of technical documentation.
+      </p>
+
+      <table class="data-table">
+        <thead><tr><th>Element</th><th>Specification</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Output format</strong></td>
+            <td>Single self-contained HTML file (no external dependencies except Google Fonts)</td>
+          </tr>
+          <tr>
+            <td><strong>Theme</strong></td>
+            <td>Dark — background <code>#0f1117</code>, cards <code>#1a1d27</code></td>
+          </tr>
+          <tr>
+            <td><strong>Typography</strong></td>
+            <td>IBM Plex Sans (UI) + IBM Plex Mono (code and data types)</td>
+          </tr>
+          <tr>
+            <td><strong>Entity colors</strong></td>
+            <td>Each functional domain is assigned a distinctive color by the developer</td>
+          </tr>
+          <tr>
+            <td><strong>PK fields</strong></td>
+            <td>Gold badge (<code>#fbbf24</code>) with "PK" label to the left of the field name</td>
+          </tr>
+          <tr>
+            <td><strong>FK fields</strong></td>
+            <td>Blue badge (<code>#60a5fa</code>) with "FK" label to the left of the field name</td>
+          </tr>
+          <tr>
+            <td><strong>Relationship notation</strong></td>
+            <td>Crow's Foot: single vertical bar on the "1" end, crow's foot on the "N" end</td>
+          </tr>
+          <tr>
+            <td><strong>Cardinality labels</strong></td>
+            <td>"1" and "N" text floating at each end of the relationship line</td>
+          </tr>
+          <tr>
+            <td><strong>Interactivity</strong></td>
+            <td>Pan, zoom (mouse wheel), entity dragging, search, relationship highlight on hover</td>
+          </tr>
+          <tr>
+            <td><strong>Minimap</strong></td>
+            <td>Thumbnail view in the bottom-right corner for navigation</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ══ S10 ══ -->
+    <div class="section" id="s10">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <div><div class="section-title">Final <span>Considerations</span></div></div>
+      </div>
+
+      <!-- ERD Versioning -->
+      <div class="callout ok">
+        <span class="callout-icon">📁</span>
+        <div class="callout-body">
+          <strong>ERD Versioning</strong>
+          The HTML ERD file must be versioned alongside the project documentation.
+          Use the following naming convention: <code>&lt;Solution&gt;_ERD_v1.0.html</code>
+        </div>
+      </div>
+
+      <!-- ERD Update -->
+      <div class="callout warn" style="margin-top:12px;">
+        <span class="callout-icon">🔄</span>
+        <div class="callout-body">
+          <strong>ERD Updates</strong>
+          The ERD must be regenerated every time relationships between entities are added,
+          removed, or modified in the solution. An ERD from a previous version is not considered
+          valid documentation for the current state of the solution.
+        </div>
+      </div>
+
+      <!-- New problematic tables -->
+      <div class="callout info" style="margin-top:12px;">
+        <span class="callout-icon">📌</span>
+        <div class="callout-body">
+          <strong>New Problematic Tables</strong>
+          If additional tables that trigger the <code>ArgumentOutOfRangeException</code> error
+          are identified during the process, report them to the technical lead to update
+          the exclusion list in Section 6 of this procedure.
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- ── VERSIONING PLATFORM ── -->
+      <div style="margin-bottom:20px;">
+        <div style="font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;">
+          Documentation Storage &amp; <span style="color:var(--accent);">Version Control Platform</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--ink-light);margin-bottom:14px;">
+          The choice of platform for storing and versioning ERD files and technical documentation
+          is <strong>at the discretion of the Operations team</strong>. However, based on the
+          team's existing toolset and typical enterprise patterns, two platforms are recommended:
+          <strong>Microsoft SharePoint</strong> and <strong>Atlassian Confluence</strong>.
+          Below is a structured comparison to support an informed decision.
+        </p>
+
+        <div class="compare-grid">
+
+          <!-- SHAREPOINT -->
+          <div class="compare-card sharepoint">
+            <div class="compare-card-header">
+              <span class="tool-logo">🔷</span> Microsoft SharePoint
+            </div>
+            <div class="compare-section pros">
+              <div class="compare-section-label">✔ Advantages</div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Native integration with Microsoft 365, Teams, and Dataverse — no additional licensing in most enterprise plans</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Built-in version history for all documents, including HTML files, with restore capability</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Granular permission management aligned with existing Azure Active Directory groups</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>HTML files can be previewed and served directly from SharePoint as web pages</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Familiar to most enterprise users — lower adoption friction</span></div>
+            </div>
+            <div class="compare-section cons">
+              <div class="compare-section-label">✖ Disadvantages</div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Not designed as a documentation wiki — organizing structured technical docs requires manual folder conventions</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>No native inline diagramming or rich technical documentation features (no code blocks, tables, etc.)</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Search across documents can be inconsistent for technical content</span></div>
+            </div>
+            <div class="compare-section best">
+              <div class="compare-section-label">✦ Best for</div>
+              <div class="compare-item"><div class="compare-dot" style="background:var(--accent)"></div><span>Teams already on Microsoft 365 who need a no-cost, low-friction storage solution integrated with their existing ecosystem</span></div>
+            </div>
+          </div>
+
+          <!-- CONFLUENCE -->
+          <div class="compare-card confluence">
+            <div class="compare-card-header">
+              <span class="tool-logo">🔵</span> Atlassian Confluence
+            </div>
+            <div class="compare-section pros">
+              <div class="compare-section-label">✔ Advantages</div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Purpose-built for technical documentation — supports structured spaces, pages, and hierarchical knowledge bases</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Rich editor with native support for code blocks, tables, macros, and inline diagrams (Draw.IO plugin available)</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Seamless integration with Jira — links ERD documentation directly to issues, epics, and sprints</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Full page version history with diff comparison between versions</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Superior full-text search across all documentation content</span></div>
+            </div>
+            <div class="compare-section cons">
+              <div class="compare-section-label">✖ Disadvantages</div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Requires a separate Atlassian license — additional cost if not already part of the tech stack</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Integration with Microsoft 365 requires additional configuration or third-party connectors</span></div>
+              <div class="compare-item"><div class="compare-dot"></div><span>Higher onboarding effort for teams unfamiliar with Atlassian products</span></div>
+            </div>
+            <div class="compare-section best">
+              <div class="compare-section-label">✦ Best for</div>
+              <div class="compare-item"><div class="compare-dot" style="background:var(--accent)"></div><span>Teams that already use Jira or need a robust, wiki-style knowledge base where documentation is a first-class deliverable</span></div>
+            </div>
+          </div>
+
+        </div><!-- /compare-grid -->
+
+        <div class="callout info" style="margin-top:4px;">
+          <span class="callout-icon">🏛️</span>
+          <div class="callout-body">
+            <strong>Decision owner: Operations Team</strong>
+            The final platform decision must be made by the Operations team based on existing
+            licensing, infrastructure, and organizational workflows. Regardless of the platform
+            chosen, the ERD HTML files must be stored in a dedicated folder or space named
+            <code>Technical Documentation / ERD</code>, with access restricted to the
+            development team and technical leads.
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Sign-off -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:8px;">Prepared by</div>
+          <div style="font-size:12px;color:var(--ink-light);">Innovation Team</div>
+          <div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">April 2026</div>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:8px;">Reviewed by</div>
+          <div style="border-bottom:1px solid var(--rule);margin-bottom:4px;height:24px;"></div>
+          <div style="font-size:12px;color:var(--ink-light);">Euris Diaz</div>
+          <div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">Director of Innovation</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /doc-body -->
+
+  <!-- ══ FOOTER ══ -->
+  <div class="doc-footer">
+    <span>Technical Procedure — ERD Creation in Dataverse · v1.0</span>
+    <span>Internal Use — Development Team</span>
+  </div>
+
+</div><!-- /page-shell -->
+
+</body>
+</html>
