@@ -86,8 +86,7 @@
 </style>
 </head>
 <body>
-
-<!-- ══ PASSWORD PROMPT — Clara Fortuna Innovation ══ -->
+<!-- CF LOCK -->
 <style>
 #cf-lock{position:fixed;inset:0;z-index:99999;background:#0d1f1c;display:flex;align-items:center;justify-content:center;font-family:sans-serif;transition:opacity .5s ease}
 #cf-lock.hidden{opacity:0;pointer-events:none}
@@ -109,7 +108,7 @@
     <div class="cf-logo">Clara Fortuna · Innovation</div>
     <div class="cf-title">Restricted Access</div>
     <div class="cf-sub">Enter your password to view this document</div>
-    <input class="cf-input" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')cfCheck()"/>
+    <input class="cf-input" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key===String.fromCharCode(13))cfCheck()"/>
     <div class="cf-error" id="cf-err"></div>
     <button class="cf-btn" onclick="cfCheck()">Access Document</button>
     <div class="cf-hint">Clara Fortuna · Innovation Department</div>
@@ -117,25 +116,27 @@
 </div>
 <script>
 (function(){
-  var PASS={internal:'clarainnov2026\',client:'AILabClient2026'};
-  var KEY='cf_innovation_auth';
-  function unlock(){document.getElementById('cf-lock').classList.add('hidden')}
+  var p1="clarainnov2026";
+  var p2="AILabClient2026";
+  var KEY="cf_innovation_auth";
+  function unlock(){document.getElementById("cf-lock").classList.add("hidden");}
   function cfCheck(){
-    var v=document.getElementById('cf-pwd').value.trim();
-    if(v===PASS.internal||v===PASS.client){sessionStorage.setItem(KEY,'1');unlock();}
+    var v=document.getElementById("cf-pwd").value.trim();
+    if(v===p1||v===p2){sessionStorage.setItem(KEY,"1");unlock();}
     else{
-      var i=document.getElementById('cf-pwd');
-      i.classList.add('err');
-      document.getElementById('cf-err').textContent='Incorrect password. Try again.';
-      i.value='';
-      setTimeout(function(){i.classList.remove('err')},400);
+      var i=document.getElementById("cf-pwd");
+      i.classList.add("err");
+      document.getElementById("cf-err").textContent="Incorrect password. Try again.";
+      i.value="";
+      setTimeout(function(){i.classList.remove("err");},400);
     }
   }
   window.cfCheck=cfCheck;
   if(sessionStorage.getItem(KEY))unlock();
 })();
 </script>
-<!-- ══ END PASSWORD PROMPT ══ -->
+<!-- END CF LOCK -->
+
 
 <div id="progress"><div id="progress-bar"></div></div>
 
