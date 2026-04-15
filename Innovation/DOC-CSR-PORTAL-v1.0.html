@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unified CSR Portal - Master Technical Documentation</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; color: #1a1a1a; background: #f5f5f5; display: flex; }
+
+  /* SIDEBAR */
+  #sidebar { width: 280px; min-width: 280px; height: 100vh; position: fixed; top: 0; left: 0; background: #1e2533; color: #c9d1d9; overflow-y: auto; padding: 0 0 40px 0; z-index: 100; }
+  #sidebar-header { padding: 16px; background: #161b22; border-bottom: 1px solid #30363d; }
+  #sidebar-header h1 { font-size: 12px; font-weight: 600; color: #58a6ff; text-transform: uppercase; letter-spacing: 0.5px; }
+  #sidebar-header p { font-size: 11px; color: #8b949e; margin-top: 4px; }
+  #search-box { width: 100%; padding: 6px 10px; margin: 8px 0 0 0; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; font-size: 12px; }
+  #search-box:focus { outline: none; border-color: #58a6ff; }
+  .nav-section { padding: 8px 0; border-bottom: 1px solid #21262d; }
+  .nav-section-title { padding: 6px 16px; font-size: 10px; font-weight: 700; color: #8b949e; text-transform: uppercase; letter-spacing: 0.8px; }
+  .nav-item { display: block; padding: 5px 16px 5px 24px; font-size: 12px; color: #8b949e; cursor: pointer; text-decoration: none; line-height: 1.4; transition: all 0.15s; border-left: 2px solid transparent; }
+  .nav-item:hover { color: #c9d1d9; background: #21262d; border-left-color: #58a6ff; }
+  .nav-item.active { color: #58a6ff; background: #161b22; border-left-color: #58a6ff; }
+  .nav-item.h3 { padding-left: 36px; font-size: 11px; }
+
+  /* MAIN */
+  #main { margin-left: 280px; flex: 1; min-height: 100vh; }
+  #content { max-width: 960px; margin: 0 auto; padding: 32px 40px 80px; background: #fff; min-height: 100vh; box-shadow: 0 0 0 1px #e1e4e8; }
+
+  /* TYPOGRAPHY */
+  h1 { font-size: 28px; font-weight: 700; color: #0d1117; border-bottom: 2px solid #e1e4e8; padding-bottom: 12px; margin: 32px 0 20px; }
+  h2 { font-size: 20px; font-weight: 600; color: #0d1117; border-bottom: 1px solid #e1e4e8; padding-bottom: 8px; margin: 36px 0 16px; padding-top: 8px; }
+  h3 { font-size: 16px; font-weight: 600; color: #24292f; margin: 24px 0 12px; }
+  h4 { font-size: 14px; font-weight: 600; color: #24292f; margin: 16px 0 8px; }
+  p { margin: 8px 0; line-height: 1.7; color: #24292f; }
+  ul, ol { margin: 8px 0 8px 24px; line-height: 1.7; }
+  li { margin: 3px 0; }
+  code { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 3px; padding: 1px 5px; color: #e36209; }
+  pre { background: #f6f8fa; border: 1px solid #e1e4e8; border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 12px 0; }
+  pre code { background: none; border: none; padding: 0; color: #24292f; font-size: 12px; }
+
+  /* TABLES */
+  .table-wrap { overflow-x: auto; margin: 12px 0; border-radius: 6px; border: 1px solid #e1e4e8; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #f6f8fa; padding: 8px 12px; text-align: left; font-weight: 600; color: #24292f; border-bottom: 1px solid #e1e4e8; white-space: nowrap; }
+  td { padding: 7px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; line-height: 1.5; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #f8faff; }
+
+  /* CALLOUTS */
+  .callout { border-radius: 6px; padding: 10px 14px; margin: 12px 0; font-size: 13px; line-height: 1.6; border-left: 4px solid; }
+  .callout-warn { background: #fffbdd; border-color: #d9a800; color: #735c0f; }
+  .callout-danger { background: #ffeef0; border-color: #d73a49; color: #86181d; }
+  .callout-info { background: #e8f4fd; border-color: #0075ca; color: #044289; }
+  .callout-success { background: #e6ffed; border-color: #28a745; color: #145523; }
+
+  /* BADGES */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-red { background: #ffeef0; color: #86181d; }
+  .badge-yellow { background: #fffbdd; color: #735c0f; }
+  .badge-green { background: #e6ffed; color: #145523; }
+  .badge-blue { background: #e8f4fd; color: #044289; }
+  .badge-gray { background: #f6f8fa; color: #586069; border: 1px solid #e1e4e8; }
+
+  /* RISK FLAGS */
+  .risk-high { color: #d73a49; font-weight: 600; }
+  .risk-warn { color: #d9a800; font-weight: 600; }
+
+  /* SCROLL PROGRESS */
+  #progress { position: fixed; top: 0; left: 280px; right: 0; height: 3px; background: #e1e4e8; z-index: 200; }
+  #progress-bar { height: 100%; background: linear-gradient(90deg, #58a6ff, #3fb950); width: 0%; transition: width 0.1s; }
+
+  /* BACK TO TOP */
+  #back-top { position: fixed; bottom: 24px; right: 24px; background: #0d1117; color: #c9d1d9; border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer; display: none; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.3); z-index: 300; }
+  #back-top:hover { background: #21262d; }
+  #back-top.visible { display: flex; }
+
+  /* HIGHLIGHT */
+  .highlight { background: #fff3cd; border-radius: 2px; padding: 0 2px; }
+
+  @media (max-width: 768px) {
+    #sidebar { display: none; }
+    #main { margin-left: 0; }
+    #content { padding: 16px; }
+    #progress { left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ PASSWORD PROMPT — Clara Fortuna Innovation ══ -->
+<style>
+#cf-lock{position:fixed;inset:0;z-index:99999;background:#0d1f1c;display:flex;align-items:center;justify-content:center;font-family:sans-serif;transition:opacity .5s ease}
+#cf-lock.hidden{opacity:0;pointer-events:none}
+.cf-card{width:340px;text-align:center;padding:0 24px}
+.cf-logo{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#2a9d8f;margin-bottom:28px}
+.cf-title{font-size:28px;color:#fff;margin-bottom:6px;font-weight:300}
+.cf-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:36px;letter-spacing:.05em}
+.cf-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:14px;letter-spacing:.08em;outline:none;transition:border-color .2s;box-sizing:border-box}
+.cf-input:focus{border-color:#2a9d8f}
+.cf-input.err{border-color:#e76f51;animation:cfshake .3s ease}
+.cf-error{font-size:11px;color:#e76f51;height:16px;margin:8px 0}
+.cf-btn{width:100%;padding:13px;background:#2a9d8f;border:none;border-radius:8px;color:#fff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.cf-btn:hover{background:#1a7a6e}
+.cf-hint{margin-top:20px;font-size:10px;color:rgba(255,255,255,.18);letter-spacing:.05em}
+@keyframes cfshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+</style>
+<div id="cf-lock">
+  <div class="cf-card">
+    <div class="cf-logo">Clara Fortuna · Innovation</div>
+    <div class="cf-title">Restricted Access</div>
+    <div class="cf-sub">Enter your password to view this document</div>
+    <input class="cf-input" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key==='Enter')cfCheck()"/>
+    <div class="cf-error" id="cf-err"></div>
+    <button class="cf-btn" onclick="cfCheck()">Access Document</button>
+    <div class="cf-hint">Clara Fortuna · Innovation Department</div>
+  </div>
+</div>
+<script>
+(function(){
+  var PASS={internal:'clarainnov2026\',client:'AILabClient2026'};
+  var KEY='cf_innovation_auth';
+  function unlock(){document.getElementById('cf-lock').classList.add('hidden')}
+  function cfCheck(){
+    var v=document.getElementById('cf-pwd').value.trim();
+    if(v===PASS.internal||v===PASS.client){sessionStorage.setItem(KEY,'1');unlock();}
+    else{
+      var i=document.getElementById('cf-pwd');
+      i.classList.add('err');
+      document.getElementById('cf-err').textContent='Incorrect password. Try again.';
+      i.value='';
+      setTimeout(function(){i.classList.remove('err')},400);
+    }
+  }
+  window.cfCheck=cfCheck;
+  if(sessionStorage.getItem(KEY))unlock();
+})();
+</script>
+<!-- ══ END PASSWORD PROMPT ══ -->
+
+<div id="progress"><div id="progress-bar"></div></div>
+
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>CSR Portal Docs</h1>
+    <p>Master Technical Documentation</p>
+    <input id="search-box" type="text" placeholder="Search sections..." oninput="filterNav(this.value)">
+  </div>
+  <div id="nav-content"></div>
+</nav>
+
+<div id="main">
+  <div id="content">
+
+    <h1 id="top">Unified CSR Portal</h1>
+    <p>Master Technical Documentation — generated from solution package analysis.</p>
+
+    <!-- ==================== GLOBAL INDEX ==================== -->
+    <h2 id="global-index">Global Index</h2>
+
+    <h3 id="env-index">Environment Variables</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Variable Name</th><th>Type</th><th>Criticality</th><th>Used In</th><th>Environments Configured</th></tr>
+      <tr><td><code>cf_ev_app_url</code></td><td>Text</td><td><span class="badge badge-red">High</span></td><td>4</td><td>Current value exported (single)</td></tr>
+      <tr><td><code>cf_ev_notify_bcc_default</code></td><td>Text</td><td><span class="badge badge-yellow">Medium</span></td><td>10</td><td>Current value exported (single)</td></tr>
+      <tr><td><code>cf_ev_notify_compass_to</code></td><td>Text</td><td><span class="badge badge-yellow">Medium</span></td><td>1</td><td><span class="badge badge-gray">[NOT DEFINED]</span></td></tr>
+      <tr><td><code>cf_ev_notify_from_address</code></td><td>Text</td><td><span class="badge badge-red">High</span></td><td>2</td><td><span class="badge badge-gray">[NOT DEFINED]</span></td></tr>
+      <tr><td><code>cf_ev_ucp_daily_email_cc</code></td><td>Text</td><td><span class="badge badge-yellow">Medium</span></td><td>2</td><td><span class="badge badge-gray">[NOT DEFINED]</span></td></tr>
+      <tr><td><code>cf_ev_ucp_daily_email_to</code></td><td>Text</td><td><span class="badge badge-red">High</span></td><td>2</td><td><span class="badge badge-gray">[NOT DEFINED]</span></td></tr>
+      <tr><td><code>cf_ev_environment_mode</code></td><td>Text</td><td><span class="badge badge-yellow">Medium</span></td><td>1 (canvas app)</td><td><span class="badge badge-gray">[NOT DEFINED]</span></td></tr>
+    </table></div>
+
+    <h3 id="flows-index">Power Automate Flows</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Flow Name</th><th>Trigger Type</th><th>Complexity</th><th>Key Dependencies</th></tr>
+      <tr><td><code>UCP_Approval_Notification</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Approval_Denial_Notification</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Approval_Request</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_app_url, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Approval_RequestV2</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_app_url, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Cancel_Notification</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Denial_Notification</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Notification</code></td><td>PowerApps V2</td><td><span class="badge badge-yellow">Medium</span></td><td>O365 Outlook, O365 Users, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Notification_Interactions</code></td><td>PowerApps V2</td><td><span class="badge badge-red">High</span></td><td>O365 Outlook, cf_ev_app_url, cf_ev_notify_compass_to, cf_ev_notify_bcc_default</td></tr>
+      <tr><td><code>UCP_Daily_Leave_Summary_EST</code></td><td>Recurrence (07:00/13:00/17:00 EST)</td><td><span class="badge badge-red">High</span></td><td>Dataverse, O365 Outlook, 4 env vars</td></tr>
+      <tr><td><code>UCP_Daily_Late_Slip_Missing_CSR_Comment_EST</code></td><td>Recurrence (07:00 EST)</td><td><span class="badge badge-red">High</span></td><td>Dataverse, O365 Outlook, 4 env vars</td></tr>
+    </table></div>
+
+    <h3 id="apps-index">Canvas Apps</h3>
+    <div class="table-wrap"><table>
+      <tr><th>App Name</th><th>Screens</th><th>Data Sources</th><th>Primary Users</th><th>Version</th></tr>
+      <tr><td><code>cf_vacationrequest_ab4d8</code> (Unified CSR Portal)</td><td>8</td><td>Dataverse, O365 Outlook, O365 Users, 6 Logic Flow connectors</td><td>CSRs, Supervisors, Admins, Developers</td><td>1.349</td></tr>
+    </table></div>
+
+    <h3 id="dataverse-tables-nav-anchor">Dataverse Tables Index</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Table Name</th><th>Type</th><th>Relationships</th><th>Used By</th></tr>
+      <tr><td><code>cf_accesscontrol</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_action</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_admin</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_closedday</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_customerassistance</code></td><td>Standard</td><td>Yes</td><td>Canvas app, flows</td></tr>
+      <tr><td><code>cf_developer</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_employeefeedback</code></td><td>Standard</td><td>Yes</td><td>[TO BE CONFIRMED]</td></tr>
+      <tr><td><code>cf_employeeinteractionlog</code></td><td>Standard</td><td>Yes</td><td>Canvas app, flows</td></tr>
+      <tr><td><code>cf_employeeinteractions</code></td><td>Standard</td><td>Yes</td><td>[TO BE CONFIRMED]</td></tr>
+      <tr><td><code>cf_entitlement</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_fulldayequivalent</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_functionallotment</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_functiondetailed</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_interactiontype</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_leaverequest</code></td><td>Standard</td><td>Yes</td><td>Canvas app, flows</td></tr>
+      <tr><td><code>cf_leaverequestdetail</code></td><td>Standard</td><td>Yes</td><td>Canvas app, flows</td></tr>
+      <tr><td><code>cf_leavetype</code></td><td>Standard</td><td>Yes</td><td>Canvas app, flows</td></tr>
+      <tr><td><code>cf_masterschedule</code></td><td>Standard</td><td>Yes</td><td>[TO BE CONFIRMED]</td></tr>
+      <tr><td><code>cf_override</code></td><td>Standard</td><td>Yes</td><td>[TO BE CONFIRMED]</td></tr>
+      <tr><td><code>cf_processphaseflags</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_recordstatus</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_requeststatus</code></td><td>Standard</td><td>Yes</td><td>Canvas app, flows</td></tr>
+      <tr><td><code>cf_role</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_sectiondetailed</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+      <tr><td><code>cf_supervisor</code></td><td>Standard</td><td>Yes</td><td>Canvas app</td></tr>
+    </table></div>
+
+    <!-- ==================== ENV VARIABLES ==================== -->
+    <h2 id="env-variables">Environment Variables</h2>
+
+    <h3 id="ev-app-url">cf_ev_app_url</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>Base Power Apps URL for deep links in flow emails</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Default Value</td><td>Exported in definition XML</td></tr>
+    </table></div>
+    <p>Stores the environment-specific Unified CSR Portal application URL. Flows append navigation query parameters to direct users to specific screens.</p>
+    <h4>Used In</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Component</th><th>Type</th><th>Usage</th><th>Notes</th></tr>
+      <tr><td>UCP_Approval_Request</td><td>Flow</td><td>Email body link</td><td><code>&amp;nav=PendingRequest</code></td></tr>
+      <tr><td>UCP_Approval_RequestV2</td><td>Flow</td><td>Email body link</td><td>Same pattern</td></tr>
+      <tr><td>UCP_Notification_Interactions</td><td>Flow</td><td>Email CTA links</td><td><code>?nav=EmployeeInteractionsLog</code></td></tr>
+      <tr><td>Unified CSR Portal</td><td>Canvas App</td><td>Env mode reference</td><td>Present in app formulas</td></tr>
+    </table></div>
+    <h4>Functional Behavior</h4>
+    <pre><code>cf_ev_app_url
++ "&amp;nav=PendingRequest" or "?nav=EmployeeInteractionsLog"
+= deep link URL in outbound email</code></pre>
+    <div class="callout callout-warn">🟡 Warning: Flow files contain explicit fallback URLs as hardcoded parameter defaults.</div>
+    <h4>Impact if Misconfigured</h4>
+    <ul>
+      <li><strong>Missing:</strong> Broken or absent portal links in notification emails.</li>
+      <li><strong>Wrong environment value:</strong> Recipients land in wrong tenant/environment.</li>
+      <li><strong>Invalid format:</strong> Malformed links and navigation failures.</li>
+    </ul>
+
+    <h3 id="ev-notify-bcc">cf_ev_notify_bcc_default</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>Default BCC recipients for all notification flows</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Default Value</td><td>Exported in definition XML</td></tr>
+    </table></div>
+    <p>Central BCC list used by all 10 exported flow JSON files. Allows audit recipients to be managed without editing individual flow actions.</p>
+    <div class="callout callout-danger">🔴 Risk: Multiple flows also include literal BCC addresses hardcoded in Compose actions in addition to this variable. See Hardcoded Values Remediation table.</div>
+
+    <h3 id="ev-compass-to">cf_ev_notify_compass_to</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>Recipient for Customer Compass recognition emails</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Default Value</td><td><code>performancetrackteam@coned.com</code></td></tr>
+    </table></div>
+    <p>Used exclusively in <code>UCP_Notification_Interactions</code> for the <code>CPS_SUPERVISOR_CREATED</code> event case. No exported current value found in package.</p>
+
+    <h3 id="ev-from-address">cf_ev_notify_from_address</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>Sender address for scheduled notification flows</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Default Value</td><td><code>UnifiedCSRPortalNotifications@coned.com</code></td></tr>
+    </table></div>
+    <p>Used by <code>UCP_Daily_Leave_Summary_EST</code> and <code>UCP_Daily_Late_Slip_Missing_CSR_Comment_EST</code>.</p>
+
+    <h3 id="ev-daily-cc">cf_ev_ucp_daily_email_cc</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>CC recipient list for daily scheduled reports</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Default Value</td><td>Exported in definition XML</td></tr>
+    </table></div>
+
+    <h3 id="ev-daily-to">cf_ev_ucp_daily_email_to</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>Primary recipient list for daily scheduled reports</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-red">High</span></td></tr>
+      <tr><td>Default Value</td><td>Exported in definition XML</td></tr>
+    </table></div>
+
+    <h3 id="ev-env-mode">cf_ev_environment_mode</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Type</td><td>Text</td></tr>
+      <tr><td>Primary Purpose</td><td>Determines app behavior mode by environment</td></tr>
+      <tr><td>Criticality</td><td><span class="badge badge-yellow">Medium</span></td></tr>
+      <tr><td>Default Value</td><td><code>Prod</code></td></tr>
+    </table></div>
+    <pre><code>gblEnvironmentMode =
+Coalesce(
+  LookUp('Environment Variable Values', 'Environment Variable Definition'.'Display Name' = "ev_environment_mode").Value,
+  LookUp('Environment Variable Definitions', 'Display Name' = "ev_environment_mode").'Default Value'
+)</code></pre>
+
+    <!-- ==================== DATAVERSE TABLES ==================== -->
+    <h2 id="dataverse-tables">Dataverse Tables — Column Inventory</h2>
+
+    <h3 id="tbl-accesscontrol">cf_accesscontrol</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_accesscontrolid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_name</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_description</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_isactive</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_role</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_user</code></td><td>lookup</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-action">cf_action</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_actionid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_name</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_description</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_isactive</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_role</code></td><td>lookup</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-admin">cf_Admin</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_adminid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_email</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_employeenumber</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_fullname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_roll</code></td><td>picklist</td><td>none</td></tr>
+      <tr><td><code>cf_roll_v2</code></td><td>nvarchar</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-closedday">cf_ClosedDay</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_closeddayid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_closeddaysid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_date</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_holidayname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_reason</code></td><td>nvarchar</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-customerassistance">cf_CustomerAssistance</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_customerassistanceid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_empnumber</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_empfullname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_empemail</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_empdeptname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_empfunction</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_empsectionname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_empsubgroup</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_emptype</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_emphiredate</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_supervisorfullname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_supervisoremail</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_supervisorempnumber</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cr0ac_manualdataload</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-developer">cf_Developer</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_developerid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_email</code></td><td>nvarchar</td><td>required</td></tr>
+    </table></div>
+
+    <h3 id="tbl-employeefeedback">cf_EmployeeFeedback</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_employeefeedbackid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_createdby</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_type</code></td><td>picklist</td><td>required</td></tr>
+      <tr><td><code>cf_comments</code></td><td>ntext</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-interactionlog">cf_employeeinteractionlog</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_employeeinteractionlogid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_name</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_employee</code></td><td>lookup</td><td>required</td></tr>
+      <tr><td><code>cf_interactiontype</code></td><td>lookup</td><td>required</td></tr>
+      <tr><td><code>cf_interactiondate</code></td><td>datetime</td><td>required</td></tr>
+      <tr><td><code>cf_interactionnotes</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_comments</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_compasstype</code></td><td>picklist</td><td>none</td></tr>
+      <tr><td><code>cf_sliptype</code></td><td>picklist</td><td>none</td></tr>
+      <tr><td><code>cf_minuteslate</code></td><td>int</td><td>none</td></tr>
+      <tr><td><code>cf_excused</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_status</code></td><td>picklist</td><td>none</td></tr>
+      <tr><td><code>cf_deletedby</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_deletedon</code></td><td>datetime</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-employeeinteractions">cf_EmployeeInteractions</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_employeeinteractionsid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_employeeinteractionid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_createdby</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_interactiontype</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_interactiondate</code></td><td>datetime</td><td>required</td></tr>
+      <tr><td><code>cf_interactionnotes</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_createddate</code></td><td>datetime</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-entitlement">cf_Entitlement</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_entitlementid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_year</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_employeenumber</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_leavetype</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_entitlementstatus</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_hoursinitial</code></td><td>decimal</td><td>none</td></tr>
+      <tr><td><code>cf_hoursremaining</code></td><td>decimal</td><td>none</td></tr>
+      <tr><td><code>cf_statusreason</code></td><td>nvarchar</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-fde">cf_FullDayEquivalent</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_fulldayequivalentid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_fdeqid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_employeenumber</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_fde</code></td><td>decimal</td><td>none</td></tr>
+      <tr><td><code>cf_year</code></td><td>int</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-functionallotment">cf_FunctionAllotment</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_functionallotmentid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_functionallotment_id</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_functionid</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_leavedate</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_allotment</code></td><td>int</td><td>none</td></tr>
+      <tr><td><code>cf_remaining</code></td><td>int</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-functiondetailed">cf_FunctionDetailed</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_functiondetailedid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_functiondetailed_id</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_function</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_subgroup</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_approvaltype</code></td><td>nvarchar</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-interactiontype">cf_interactiontype</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_interactiontypeid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_name</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_isactive</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-leaverequest">cf_LeaveRequest</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_leaverequestid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_lrequestid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_employeenumber</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_leavetype</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_startdate</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_enddate</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_hours</code></td><td>decimal</td><td>none</td></tr>
+      <tr><td><code>cf_dayportion</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_comment</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_exception</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_includessaturday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_includessunday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_includesweekend</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-leaverequestdetail">cf_LeaveRequestDetail</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_leaverequestdetailid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_lrdetailid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_lrequestid</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_requeststatus</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_functionallotmentid</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_leavedate</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_hours</code></td><td>decimal</td><td>none</td></tr>
+      <tr><td><code>cf_seniority</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_notificationstatus</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-leavetype">cf_LeaveType</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_leavetypeid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_ltypeid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_leavetypecode</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_leavedescription</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_approvalmethod</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_notification</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_notificationsendtime</code></td><td>picklist</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-masterschedule">cf_MasterSchedule</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_masterscheduleid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_masterschedule_id</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_employeenumber</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_effectivedate</code></td><td>datetime</td><td>none</td></tr>
+      <tr><td><code>cf_start</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_end</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_luncs</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_lunce</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_brk1s</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_brk1e</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_brk2s</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_brk2e</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_monday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_tuesday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_wednesday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_thursday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_friday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_saturday</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_sun</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-override">cf_Override</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_overrideid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_id</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_date</code></td><td>datetime</td><td>required</td></tr>
+      <tr><td><code>cf_reason</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_newcapacity</code></td><td>decimal</td><td>none</td></tr>
+      <tr><td><code>cf_timestamp</code></td><td>datetime</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-processphaseflags">cf_ProcessPhaseFlags</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_processphaseflagsid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_id</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_phase1</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_phase2</code></td><td>bit</td><td>none</td></tr>
+      <tr><td><code>cf_phase3</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-recordstatus">cf_RecordStatus</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_recordstatusid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_rstatusid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_statusdescription</code></td><td>nvarchar</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-requeststatus">cf_RequestStatus</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_requeststatusid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_rstatusid</code></td><td>nvarchar</td><td>required</td></tr>
+    </table></div>
+
+    <h3 id="tbl-role">cf_role</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_roleid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_name</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_description</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_isactive</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-sectiondetailed">cf_SectionDetailed</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_sectiondetailedid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_jobrateid</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_functiondetailedid</code></td><td>lookup</td><td>none</td></tr>
+      <tr><td><code>cf_jobratedescription</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_sectionfriendlyname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_sectname</code></td><td>nvarchar</td><td>none</td></tr>
+    </table></div>
+
+    <h3 id="tbl-supervisor">cf_Supervisor</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Column</th><th>Type</th><th>Required</th></tr>
+      <tr><td><code>cf_supervisorid</code></td><td>primarykey</td><td>systemrequired</td></tr>
+      <tr><td><code>cf_supervisorid1</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_supervisorname</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_name</code></td><td>nvarchar</td><td>required</td></tr>
+      <tr><td><code>cf_email</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_firstname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_lastname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_middleinitial</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_phone</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_role</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_deptname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_sectname</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_jobratecd</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_jobratedesc</code></td><td>nvarchar</td><td>none</td></tr>
+      <tr><td><code>cf_manualdataload</code></td><td>bit</td><td>none</td></tr>
+    </table></div>
+
+    <!-- ==================== FLOWS ==================== -->
+    <h2 id="flows">Power Automate Flows</h2>
+
+    <h3 id="flow-approval-notif">UCP_Approval_Notification</h3>
+    <p><strong>Trigger:</strong> PowerApps V2 | <strong>Complexity:</strong> Medium</p>
+    <p>Trigger payload: Name, DateRange, RequestType, CSRFunction, DayPortion, Email, v_ActivePhase, IssuedByMail.</p>
+    <h4>Logic Summary</h4>
+    <ol><li>Resolve employee manager via Office 365 Users.</li><li>Send approval email via Office 365 Outlook.</li><li>Include manager and issuer in CC; BCC from environment variable.</li></ol>
+
+    <h3 id="flow-approval-denial">UCP_Approval_Denial_Notification</h3>
+    <p><strong>Trigger:</strong> PowerApps V2 | <strong>Complexity:</strong> Medium</p>
+    <ol><li>Triggered by app with outcome status.</li><li>Manager lookup.</li><li>Branch by <code>OutcomeStatus</code> (Approved vs else) and send matching email.</li></ol>
+
+    <h3 id="flow-approval-request">UCP_Approval_Request</h3>
+    <p><strong>Trigger:</strong> PowerApps V2 | <strong>Complexity:</strong> Medium</p>
+    <ol><li>Triggered by app on request submission.</li><li>Manager lookup for target user.</li><li>Sends pending approval notification including app link using <code>cf_ev_app_url</code>.</li></ol>
+
+    <h3 id="flow-approval-requestv2">UCP_Approval_RequestV2</h3>
+    <p>Same functional intent as <code>UCP_Approval_Request</code> with revised message body and environment value defaults.</p>
+
+    <h3 id="flow-cancel">UCP_Cancel_Notification</h3>
+    <ol><li>Triggered by app cancellation action.</li><li>Manager lookup.</li><li>Sends cancellation notice to CSR with manager+issuer CC and env BCC.</li></ol>
+
+    <h3 id="flow-denial">UCP_Denial_Notification</h3>
+    <ol><li>Triggered by app denial action.</li><li>Manager lookup.</li><li>Sends denial notice.</li></ol>
+
+    <h3 id="flow-notification">UCP_Notification</h3>
+    <ol><li>Triggered by app for approved notifications.</li><li>Manager lookup.</li><li>Sends approval notice.</li></ol>
+
+    <h3 id="flow-interactions">UCP_Notification_Interactions</h3>
+    <p>Switch-based multi-scenario interaction notifier (create/update/delete/late slip/compass). Payload includes 15+ contextual fields.</p>
+    <pre><code>TRIGGER: PowerApps event payload
+  → Switch on EventType
+     → INT_SUPERVISOR_CREATED: notify employee/supervisor
+     → LS_SUPERVISOR_CREATED: late slip issued + app deep link
+     → INT_SUPERVISOR_UPDATED / LS_SUPERVISOR_UPDATED
+     → LS_CSR_RESPONDED / INT_DELETED / LS_EXCUSED_UPDATED
+     → CPS_SUPERVISOR_CREATED: compass certificate email
+OUTPUT: contextual email notifications</code></pre>
+    <div class="callout callout-danger">🔴 Risk: Very large embedded HTML strings and many branches significantly increase maintenance risk and test surface area.</div>
+
+    <h3 id="flow-daily-leave">UCP_Daily_Leave_Summary_EST</h3>
+    <p><strong>Trigger:</strong> Recurrence daily at 07:00, 13:00, 17:00 EST</p>
+    <div class="table-wrap"><table>
+      <tr><th>Table</th><th>Operation</th><th>Notes</th></tr>
+      <tr><td>cf_requeststatuses</td><td>List rows</td><td>Resolve Approved status ID</td></tr>
+      <tr><td>cf_leaverequestdetails</td><td>List rows (FetchXML)</td><td>Approved records for today</td></tr>
+      <tr><td>cf_leaverequest, cf_customerassistance, cf_leavetype</td><td>Join</td><td>Render grouped summary</td></tr>
+    </table></div>
+    <p><strong>Env vars consumed:</strong> cf_ev_notify_to_default, cf_ev_notify_from_address, cf_ev_ucp_daily_email_cc, cf_ev_notify_bcc_default</p>
+
+    <h3 id="flow-daily-lateslip">UCP_Daily_Late_Slip_Missing_CSR_Comment_EST</h3>
+    <p><strong>Trigger:</strong> Recurrence daily at 07:00 EST</p>
+    <p>Compliance notification for late slips missing CSR comments. Filters <code>cf_employeeinteractionlogs</code> for empty comment fields retaining only Late Slip type records.</p>
+    <div class="callout callout-warn">🟡 Warning: Contains a BCC Compose action with literal email addresses in addition to environment variable usage.</div>
+
+    <!-- ==================== HARDCODED VALUES ==================== -->
+    <h2 id="hardcoded">Hardcoded Values Remediation</h2>
+    <div class="callout callout-danger">🔴 The following hardcoded values were found across flow JSON files. Each should be replaced with its corresponding environment variable.</div>
+    <div class="table-wrap"><table>
+      <tr><th>Flow</th><th>Hardcoded Value (redacted)</th><th>Recommended Variable</th><th>Risk</th></tr>
+      <tr><td>UCP_Approval_Denial_Notification</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Approval_Notification</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Approval_Request</td><td>[HARDCODED APP URL — Prod tenant]</td><td>cf_ev_app_url</td><td>Users directed to wrong app environment</td></tr>
+      <tr><td>UCP_Approval_Request</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Approval_RequestV2</td><td>[HARDCODED APP URL — different tenant]</td><td>cf_ev_app_url</td><td>Users directed to wrong app environment</td></tr>
+      <tr><td>UCP_Approval_RequestV2</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Cancel_Notification</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Daily_Late_Slip_Missing_CSR_Comment_EST</td><td>[INTERNAL RECIPIENTS — 2 occurrences]</td><td>cf_ev_notify_bcc_default</td><td>Static list diverges per environment</td></tr>
+      <tr><td>UCP_Daily_Late_Slip_Missing_CSR_Comment_EST</td><td>[INTERNAL SENDER]</td><td>cf_ev_notify_from_address</td><td>SPF/permission failures possible</td></tr>
+      <tr><td>UCP_Daily_Late_Slip_Missing_CSR_Comment_EST</td><td>[INTERNAL RECIPIENT]</td><td>cf_ev_ucp_daily_email_cc / to</td><td>Incorrect stakeholders receive compliance emails</td></tr>
+      <tr><td>UCP_Daily_Leave_Summary_EST</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Static list diverges per environment</td></tr>
+      <tr><td>UCP_Daily_Leave_Summary_EST</td><td>[INTERNAL SENDER]</td><td>cf_ev_notify_from_address</td><td>SPF/permission failures possible</td></tr>
+      <tr><td>UCP_Denial_Notification</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Notification</td><td>[INTERNAL RECIPIENTS]</td><td>cf_ev_notify_bcc_default</td><td>Notifications sent to unintended recipients</td></tr>
+      <tr><td>UCP_Notification_Interactions</td><td>[HARDCODED APP URL] + [INTERNAL RECIPIENTS — 2 occurrences]</td><td>cf_ev_app_url / cf_ev_notify_bcc_default</td><td>Wrong environment + unintended recipients</td></tr>
+    </table></div>
+
+    <!-- ==================== CANVAS APP ==================== -->
+    <h2 id="canvas-app">Canvas App — Unified CSR Portal</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Field</th><th>Value</th></tr>
+      <tr><td>Schema Name</td><td><code>cf_vacationrequest_ab4d8</code></td></tr>
+      <tr><td>App Type</td><td>Canvas</td></tr>
+      <tr><td>Target Device</td><td>Tablet / Web (DesktopOrTablet)</td></tr>
+      <tr><td>Primary Users</td><td>CSRs, Supervisors, Admins, Developers</td></tr>
+      <tr><td>Version</td><td>1.349</td></tr>
+    </table></div>
+
+    <h3 id="screen-inventory">Screen Inventory</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Screen</th><th>Purpose</th><th>Key Controls</th><th>Navigation Targets</th></tr>
+      <tr><td>Home Page</td><td>Landing / role routing</td><td>Menu cards, images</td><td>All screens (role-based)</td></tr>
+      <tr><td>LeaveRequestScr</td><td>CSR leave requests</td><td>Forms, gallery, calendar</td><td>EmployeeInteractionsLog, Home Page</td></tr>
+      <tr><td>SupervisorPortal</td><td>Supervisor approvals</td><td>Approval buttons, galleries</td><td>EmployeeInteractionsLog, Home Page</td></tr>
+      <tr><td>AdminPortal</td><td>Admin operations</td><td>Bulk actions, tabs, forms</td><td>EmployeeInteractionsLog, Home Page</td></tr>
+      <tr><td>EmployeeInteractionsLog</td><td>Interaction management</td><td>Forms, galleries, tabs</td><td>SupervisorPortal, AdminPortal, LeaveRequestScr, Home Page</td></tr>
+      <tr><td>AccessControl</td><td>Permissions management</td><td>Role/action controls, user gallery</td><td>Home Page</td></tr>
+      <tr><td>Performance View</td><td>Analytics / reporting</td><td>Tables, delete controls</td><td>Home Page</td></tr>
+      <tr><td>UnavailableScreen</td><td>Gated fallback</td><td>Informational label</td><td>N/A</td></tr>
+    </table></div>
+
+    <!-- SCREENS DETAIL -->
+    <h2 id="canvas-formulas">Canvas App — Control-Level Formula Extraction</h2>
+
+    <h3 id="screen-app">Screen: App (OnStart)</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>Access to key areas is determined by whether the signed-in user is registered as Admin, Supervisor, Developer, or CSR in Dataverse tables.</li>
+      <li>Users who do not meet role or phase conditions are routed to UnavailableScreen.</li>
+      <li>The employee function and approval type determine whether leave requests follow automatic or management-approved workflows.</li>
+      <li>Navigation parameters support deep-linking users into specific contexts (pending approvals, interaction logs).</li>
+      <li>Environment mode is read from Dataverse with a fallback to the variable default value.</li>
+    </ul>
+    <h4>Key Variables Set</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Variable</th><th>Scope</th><th>Purpose</th></tr>
+      <tr><td>gblUserEmail</td><td>Global</td><td>Current user email — read by all screens</td></tr>
+      <tr><td>gblSupervisorSectName</td><td>Global</td><td>Supervisor section name for filtering</td></tr>
+      <tr><td>varNavigation</td><td>Context</td><td>Deep-link navigation parameter</td></tr>
+      <tr><td>colMyEmployees</td><td>Collection</td><td>Employees under current supervisor</td></tr>
+      <tr><td>colInteractions</td><td>Collection</td><td>Interaction records for current context</td></tr>
+    </table></div>
+    <div class="callout callout-warn">🟡 Hardcoded value detected: test email address found in App.OnStart (commented out). 🟡 Potential delegation risk in OnStart formula.</div>
+
+    <h3 id="screen-home">Screen: Home Page</h3>
+    <h4>Navigation Logic</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Control</th><th>Destination</th></tr>
+      <tr><td>Image4 / FeatureItemButton1</td><td>LeaveRequestScr</td></tr>
+      <tr><td>Image21 / FeatureItemButton21</td><td>EmployeeInteractionsLog</td></tr>
+      <tr><td>Image31 / FeatureItemButton31</td><td>Performance View</td></tr>
+      <tr><td>Image41</td><td>UnavailableScreen</td></tr>
+      <tr><td>Image51 / FeatureItemButton51</td><td>AdminPortal</td></tr>
+      <tr><td>Image61 / FeatureItemButton61</td><td>SupervisorPortal</td></tr>
+      <tr><td>Image71 / FeatureItemButton71</td><td>AccessControl</td></tr>
+    </table></div>
+
+    <h3 id="screen-leave">Screen: LeaveRequestScr</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>CSRs can only submit leave requests if their profile data is complete; incomplete profiles show an error notification and block submission.</li>
+      <li>Leave type determines whether the request requires manager approval or is auto-approved based on <code>cf_approvalmethod</code>.</li>
+      <li>Date handling references <code>cf_ClosedDay</code> records — non-working dates configured centrally are excluded.</li>
+      <li>Only records in Approved or Pending status are shown in the request gallery.</li>
+      <li>Submitting a leave request triggers <code>UCP_Approval_RequestV2</code> for manager-facing notification.</li>
+      <li>Canceling a leave request triggers <code>UCP_Cancel_Notification</code> and patches the LeaveRequestDetail status in Dataverse.</li>
+      <li>Calendar navigation (prev/next month) adjusts <code>_firstDayOfMonth</code>, <code>_firstDayInView</code>, <code>_lastDayOfMonth</code> global variables.</li>
+      <li>Users with cross-screen dependency on <code>gblUserEmail</code> (set in App.OnStart) — if app starts on this screen directly, role checks may fail.</li>
+    </ul>
+    <h4>Flow Calls</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Trigger Control</th><th>Flow</th></tr>
+      <tr><td>btn_cancelRequest_1</td><td>UCP_Cancel_Notification</td></tr>
+    </table></div>
+    <div class="callout callout-warn">🟡 Delegation risk: Cb_LeaveRequestScr_LeaveType Items formula may exceed delegation limits on large datasets.</div>
+
+    <h3 id="screen-supervisor">Screen: SupervisorPortal</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>Supervisors can approve, deny, or cancel leave requests for their direct reports.</li>
+      <li>Approvals and denials trigger <code>UCP_Approval_Denial_Notification</code> with the outcome status.</li>
+      <li>Cancellations trigger <code>UCP_Cancel_Notification</code> and patch LeaveRequestDetail records directly.</li>
+      <li>Leave request dates reference closed day records — non-working dates are excluded from calculations.</li>
+      <li>Function/Section dropdowns filter the employee gallery to show only relevant team members.</li>
+      <li>The "Select All" toggle (<code>varSelectAll</code>) enables bulk approval/denial across multiple request rows.</li>
+      <li>Only Pending/Approved status records are surfaced for supervisor decision-making.</li>
+    </ul>
+    <h4>Flow Calls</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Trigger Control</th><th>Flow</th></tr>
+      <tr><td>btn_cancelRequest_2</td><td>UCP_Cancel_Notification</td></tr>
+      <tr><td>ButtonCanvas9 (approve)</td><td>UCP_Approval_Denial_Notification</td></tr>
+      <tr><td>ButtonCanvas1_2 (deny)</td><td>UCP_Approval_Denial_Notification</td></tr>
+    </table></div>
+    <div class="callout callout-warn">🟡 Multiple delegation risks: GalleryCSR_SupView, GalleryRequests_CSR_SupView, glrCSR_Sup Items formulas. 🟡 gblUserEmail cross-screen dependency.</div>
+
+    <h3 id="screen-admin">Screen: AdminPortal</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>Admins can submit leave requests on behalf of any CSR in any function/section.</li>
+      <li>Approval and denial actions trigger <code>UCP_Approval_Denial_Notification</code> flow.</li>
+      <li>Cancellation triggers <code>UCP_Cancel_Notification</code> and patches LeaveRequestDetail status.</li>
+      <li>Leave type configuration (notification flag, send time) controls whether automatic notifications fire.</li>
+      <li>Process phase management (Phase 1/2/3) gates certain admin actions via <code>cf_ProcessPhaseFlags</code>.</li>
+      <li>Allotment tracking shows taken/remaining hours per function per date — driven by <code>cf_FunctionAllotment</code>.</li>
+      <li>Closed day, Leave Type, Allotment, CSR Profile, and Supervisor Profile records are all manageable from this screen.</li>
+      <li>Supervisor profile form auto-populates email, number, and full name from the selected supervisor dropdown.</li>
+    </ul>
+    <h4>Flow Calls</h4>
+    <div class="table-wrap"><table>
+      <tr><th>Trigger Control</th><th>Flow</th></tr>
+      <tr><td>ButtonCanvas9_1</td><td>UCP_Approval_Denial_Notification</td></tr>
+      <tr><td>ButtonCanvas1_7</td><td>UCP_Approval_Denial_Notification</td></tr>
+      <tr><td>ButtonCanvas3_24</td><td>UCP_Denial_Notification</td></tr>
+      <tr><td>ButtonCanvas3_23</td><td>UCP_Notification (approval)</td></tr>
+    </table></div>
+    <div class="callout callout-warn">🟡 Multiple delegation risks across 10+ controls. 🟡 gblUserEmail cross-screen dependency.</div>
+
+    <h3 id="screen-interactions">Screen: EmployeeInteractionsLog</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>Access and available actions differ based on whether the user is a CSR, Supervisor, or Admin — controlled by <code>gblIsCSR</code>, <code>gblIsSupervisor</code>, <code>gblIsAdmin</code>.</li>
+      <li>Creating or updating interaction records triggers <code>UCP_Notification_Interactions</code> with the appropriate event type.</li>
+      <li>Late slip records require Slip Type and Minutes Late fields; Compass records require Compass Type.</li>
+      <li>CSRs can respond to late slips via a comment field; the response triggers a notification event.</li>
+      <li>Supervisors can mark late slips as excused, which updates the <code>cf_excused</code> flag and triggers an update notification.</li>
+      <li>Interaction records can be soft-deleted (deletedby/deletedon fields populated) rather than physically removed.</li>
+      <li>The interaction type tab list filters the gallery between General Interactions, Late Slips, and Compass entries.</li>
+    </ul>
+    <div class="callout callout-warn">🟡 Multiple delegation risks in OnVisible, Container3/Visible, grl_MyEmployees/Items. 🟡 Four cross-screen global variable dependencies.</div>
+
+    <h3 id="screen-access">Screen: AccessControl</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>Only users with admin-level access can manage roles and user assignments on this screen.</li>
+      <li>Roles are assigned to users through the <code>cf_accesscontrol</code> table with an active flag.</li>
+      <li>User search is powered by Office 365 Users connector with potential delegation limits on large directories.</li>
+      <li>Role changes trigger a Patch operation that updates both old and new role assignments.</li>
+      <li>Delete confirmation dialogs gate all destructive operations before execution.</li>
+    </ul>
+    <div class="callout callout-warn">🟡 Delegation risk in UserBrowseGallery/Items (O365 Users query).</div>
+
+    <h3 id="screen-performance">Screen: Performance View</h3>
+    <h4>Business Rules Summary</h4>
+    <ul>
+      <li>[TO BE CONFIRMED] — Screen has minimal YAML content. Likely a data table view with delete capability.</li>
+      <li>Delete operations use a confirmation dialog pattern consistent with other screens.</li>
+    </ul>
+
+    <h3 id="screen-unavailable">Screen: UnavailableScreen</h3>
+    <p>Gated fallback screen shown when a user does not meet role or phase conditions evaluated during App.OnStart. No flows or navigation logic present.</p>
+
+    <!-- ==================== GLOBAL VARS ==================== -->
+    <h2 id="global-vars">Global App Variables Reference</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Variable</th><th>Scope</th><th>Set On</th><th>Read On</th></tr>
+      <tr><td>gblUserEmail</td><td>Global</td><td>App</td><td>All screens</td></tr>
+      <tr><td>gblSupervisorSectName</td><td>Global</td><td>App</td><td>App, EmployeeInteractionsLog, Home Page</td></tr>
+      <tr><td>gblIsAdmin</td><td>Global</td><td>App</td><td>EmployeeInteractionsLog</td></tr>
+      <tr><td>gblIsCSR</td><td>Global</td><td>App</td><td>App, EmployeeInteractionsLog</td></tr>
+      <tr><td>gblIsDeveloper</td><td>Global</td><td>App</td><td>App, EmployeeInteractionsLog</td></tr>
+      <tr><td>gblIsSupervisor</td><td>Global</td><td>App</td><td>App, EmployeeInteractionsLog</td></tr>
+      <tr><td>gblEnvironmentMode</td><td>Global</td><td>App</td><td>Home Page</td></tr>
+      <tr><td>gblDefaultSectionRecord</td><td>Global</td><td>Home Page</td><td>App, EmployeeInteractionsLog, Home Page</td></tr>
+      <tr><td>gblDefaultLeaveTypes</td><td>Global</td><td>App</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>varCSRSelected</td><td>Context</td><td>AdminPortal, EmployeeInteractionsLog, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>varEmpNumber</td><td>Context</td><td>EmployeeInteractionsLog, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>vShowApproveConfirm</td><td>Global</td><td>AdminPortal, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>vShowRejectConfirm</td><td>Global</td><td>AdminPortal, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>vShowCancelConfirm</td><td>Global</td><td>AdminPortal, LeaveRequestScr, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>varShowSpinner</td><td>Context</td><td>All operational screens</td><td>All operational screens</td></tr>
+      <tr><td>locIsSaving</td><td>Context</td><td>AdminPortal, LeaveRequestScr, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>locCanSubmit</td><td>Context</td><td>AdminPortal, LeaveRequestScr, SupervisorPortal</td><td>Same screens</td></tr>
+      <tr><td>varSelectedFunctionApprovalType</td><td>Context</td><td>AdminPortal</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>varNavigation</td><td>Context</td><td>App</td><td>App</td></tr>
+      <tr><td>_firstDayOfMonth / _firstDayInView / _lastDayOfMonth</td><td>Global</td><td>LeaveRequestScr</td><td>LeaveRequestScr</td></tr>
+    </table></div>
+
+    <!-- ==================== GLOBAL COLLECTIONS ==================== -->
+    <h2 id="global-collections">Global Collections Reference</h2>
+    <div class="table-wrap"><table>
+      <tr><th>Collection</th><th>Populated On</th><th>Used On</th></tr>
+      <tr><td>colMyEmployees</td><td>App</td><td>App, AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>colInteractions</td><td>App, AdminPortal</td><td>App, AdminPortal, EmployeeInteractionsLog</td></tr>
+      <tr><td>colSelectedLRDIds</td><td>SupervisorPortal</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>col_CSR</td><td>EmployeeInteractionsLog</td><td>AdminPortal, EmployeeInteractionsLog, SupervisorPortal</td></tr>
+      <tr><td>col_DayCsr</td><td>AdminPortal, SupervisorPortal</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>col_WeekAllotments</td><td>AdminPortal, SupervisorPortal</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>col_WeekTaken</td><td>AdminPortal, SupervisorPortal</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>col_Sections</td><td>AdminPortal</td><td>AdminPortal, EmployeeInteractionsLog</td></tr>
+      <tr><td>col_Supervisor</td><td>AdminPortal, SupervisorPortal</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>col_ParentsToNotify</td><td>AdminPortal</td><td>AdminPortal</td></tr>
+      <tr><td>col_EvaluatedDetails_Keyed</td><td>AdminPortal</td><td>AdminPortal</td></tr>
+      <tr><td>col_EvaluatedDetails_NoNotif</td><td>AdminPortal</td><td>AdminPortal</td></tr>
+      <tr><td>col_LeaveTypes</td><td>[NOT DEFINED]</td><td>AdminPortal, SupervisorPortal</td></tr>
+      <tr><td>col_LeaveRequestDailyPlan</td><td>[NOT DEFINED]</td><td>AdminPortal, LeaveRequestScr, SupervisorPortal</td></tr>
+      <tr><td>clt_Roles</td><td>AccessControl</td><td>AccessControl</td></tr>
+      <tr><td>cl_AccessControls</td><td>[NOT DEFINED]</td><td>App</td></tr>
+      <tr><td>clt_AccessValidation</td><td>[NOT DEFINED]</td><td>App</td></tr>
+      <tr><td>clt_Actions / clt_userActions</td><td>[NOT DEFINED]</td><td>App</td></tr>
+      <tr><td>colSelInteractionRows</td><td>[NOT DEFINED]</td><td>EmployeeInteractionsLog</td></tr>
+      <tr><td>colInteractionTypes</td><td>[NOT DEFINED]</td><td>EmployeeInteractionsLog</td></tr>
+    </table></div>
+
+    <!-- ==================== VALIDATION ==================== -->
+    <h2 id="validation">Documentation Validation Checklist</h2>
+
+    <h3>Coverage Checks</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Check</th><th>Result</th></tr>
+      <tr><td>All env variables have full sections</td><td><span class="badge badge-green">✅ None missing</span></td></tr>
+      <tr><td>All flows have full sections</td><td><span class="badge badge-green">✅ None missing</span></td></tr>
+      <tr><td>All Dataverse tables have column inventory</td><td><span class="badge badge-green">✅ None missing</span></td></tr>
+      <tr><td>All screens have Business Rules Summary</td><td><span class="badge badge-green">✅ None missing</span></td></tr>
+    </table></div>
+
+    <h3>Consistency Issues Detected</h3>
+    <div class="callout callout-danger">🔴 The following items require manual review before this documentation can be considered complete.</div>
+    <div class="table-wrap"><table>
+      <tr><th>Type</th><th>Item</th><th>Action Required</th></tr>
+      <tr><td>Missing env var section</td><td><code>cf_ev_notify_to_default</code> — referenced in flows but not in env var definitions</td><td>Confirm if alias of cf_ev_ucp_daily_email_to or separate variable</td></tr>
+      <tr><td>Missing table section</td><td><code>cf_employeeinteractionlogs</code> — referenced in flows as plural form</td><td>Confirm if same as cf_employeeinteractionlog (naming mismatch)</td></tr>
+      <tr><td>Missing flow section</td><td><code>VRSApprovalDenialNotification</code> — called from AdminPortal canvas app but no flow definition found in package</td><td>Determine if legacy flow or missing from export</td></tr>
+      <tr><td>Security roles</td><td>No role definitions exported — <code>&lt;Roles&gt;&lt;/Roles&gt;</code> in customizations.xml</td><td>Must be manually documented from Power Platform Admin Center</td></tr>
+      <tr><td>Custom connectors</td><td>No connector artifacts found — only standard O365 and Dataverse connection references</td><td>Confirm no custom connectors exist in this solution</td></tr>
+    </table></div>
+
+    <h3>Risk Remediation Backlog</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Severity</th><th>Location</th><th>Risk</th></tr>
+      <tr><td><span class="badge badge-red">🔴 High</span></td><td>All notification flows</td><td>Hardcoded BCC email addresses — 19 occurrences across 8 flows</td></tr>
+      <tr><td><span class="badge badge-red">🔴 High</span></td><td>UCP_Approval_Request, UCP_Approval_RequestV2, UCP_Notification_Interactions</td><td>Hardcoded production app URLs — 3 occurrences with tenant IDs exposed</td></tr>
+      <tr><td><span class="badge badge-red">🔴 High</span></td><td>UCP_Notification_Interactions</td><td>Very large embedded HTML + many switch branches — high maintenance risk</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>App.OnStart</td><td>Hardcoded test email address (commented out)</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>AdminPortal — 10+ controls</td><td>Delegation risks in gallery Items and OnChange formulas</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>SupervisorPortal — 5 controls</td><td>Delegation risks in gallery Items formulas</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>EmployeeInteractionsLog — 4 controls</td><td>Delegation risks + 4 cross-screen global variable dependencies</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>LeaveRequestScr — 3 controls</td><td>Delegation risk + gblUserEmail cross-screen dependency</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>AccessControl</td><td>Delegation risk in O365 Users gallery query</td></tr>
+      <tr><td><span class="badge badge-yellow">🟡 Medium</span></td><td>Security Roles</td><td>Not exported in solution package — governance gap</td></tr>
+    </table></div>
+
+  </div>
+</div>
+
+<button id="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+  // Build nav from headings
+  const headings = document.querySelectorAll('#content h2, #content h3');
+  const nav = document.getElementById('nav-content');
+  const sections = {
+    'global-index': 'Global Index',
+    'env-variables': 'Environment Variables',
+    'flows': 'Power Automate Flows',
+    'hardcoded': 'Hardcoded Values',
+    'canvas-app': 'Canvas App',
+    'canvas-formulas': 'Formula Extraction',
+    'global-vars': 'Global Variables',
+    'global-collections': 'Collections',
+    'validation': 'Validation Checklist'
+  };
+
+  let currentSection = '';
+  let navHTML = '';
+  headings.forEach(h => {
+    const id = h.id;
+    const text = h.textContent;
+    const level = h.tagName === 'H2' ? 'h2' : 'h3';
+    if (level === 'h2') {
+      navHTML += `<div class="nav-section"><div class="nav-section-title">${text}</div>`;
+    } else {
+      navHTML += `<a class="nav-item h3" href="#${id}" onclick="scrollTo('${id}')">${text}</a>`;
+    }
+  });
+  nav.innerHTML = navHTML;
+
+  function scrollTo(id) {
+    const el = document.getElementById(id);
+    if (el) { el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+
+  // Nav click for section titles
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      const href = item.getAttribute('href');
+      if (href) {
+        const el = document.querySelector(href);
+        if (el) el.scrollIntoView({behavior:'smooth'});
+      }
+    });
+  });
+
+  // Progress bar & back to top
+  const prog = document.getElementById('progress-bar');
+  const backTop = document.getElementById('back-top');
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.body.scrollHeight - window.innerHeight;
+    prog.style.width = (scrolled / total * 100) + '%';
+    backTop.classList.toggle('visible', scrolled > 400);
+
+    // Highlight active nav item
+    let active = null;
+    headings.forEach(h => {
+      if (h.getBoundingClientRect().top <= 80) active = h.id;
+    });
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.classList.toggle('active', item.getAttribute('href') === '#' + active);
+    });
+  });
+
+  // Search nav
+  function filterNav(q) {
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.style.display = item.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+    });
+  }
+</script>
+</body>
+</html>
