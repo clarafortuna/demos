@@ -1,8 +1,672 @@
 <!DOCTYPE html>
-<html>
-<head><title>Innovation — Clara Fortuna</title></head>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Innovation — Clara Fortuna</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #1a7a6e;
+    --teal-light: #e8f5f3;
+    --teal-mid: #2a9d8f;
+    --gold: #e9c46a;
+    --dark: #0d1f1c;
+    --text: #1a2e2a;
+    --muted: #5a7a74;
+    --surface: #f4faf9;
+    --border: rgba(26,122,110,0.15);
+    --white: #ffffff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── PASSWORD OVERLAY ── */
+  #lock-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  #lock-overlay.hidden { opacity: 0; pointer-events: none; }
+
+  .lock-card {
+    width: 360px;
+    text-align: center;
+    padding: 0 24px;
+  }
+
+  .lock-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 13px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal-mid);
+    margin-bottom: 32px;
+  }
+
+  .lock-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--white);
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .lock-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 40px;
+    letter-spacing: 0.05em;
+  }
+
+  .lock-input-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .lock-input {
+    width: 100%;
+    padding: 14px 18px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    letter-spacing: 0.08em;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .lock-input:focus { border-color: var(--teal-mid); }
+  .lock-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 0.05em; }
+  .lock-input.error { border-color: #e76f51; animation: shake 0.3s ease; }
+
+  @keyframes shake {
+    0%,100%{ transform: translateX(0); }
+    25%{ transform: translateX(-6px); }
+    75%{ transform: translateX(6px); }
+  }
+
+  .lock-error {
+    font-size: 12px;
+    color: #e76f51;
+    margin-bottom: 12px;
+    height: 16px;
+    transition: opacity 0.2s;
+  }
+
+  .lock-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--teal-mid);
+    border: none;
+    border-radius: 8px;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .lock-btn:hover { background: var(--teal); }
+  .lock-btn:active { transform: scale(0.98); }
+
+  .lock-hint {
+    margin-top: 24px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.05em;
+  }
+
+  /* ── MAIN PORTAL ── */
+  #portal { opacity: 0; transition: opacity 0.6s ease; }
+  #portal.visible { opacity: 1; }
+
+  /* Header */
+  header {
+    background: var(--dark);
+    padding: 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .header-brand {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .header-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal-mid);
+  }
+
+  .header-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 15px;
+    color: var(--white);
+    letter-spacing: 0.02em;
+  }
+
+  .header-dept {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .header-lock {
+    font-size: 11px;
+    color: rgba(255,255,255,0.3);
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 6px 14px;
+    border-radius: 4px;
+    transition: all 0.2s;
+  }
+  .header-lock:hover { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.3); }
+
+  /* Hero */
+  .hero {
+    background: var(--dark);
+    padding: 56px 48px 64px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--teal-mid);
+    margin-bottom: 16px;
+  }
+
+  .hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 52px;
+    color: var(--white);
+    line-height: 1.1;
+    margin-bottom: 16px;
+    max-width: 560px;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 15px;
+    color: rgba(255,255,255,0.45);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+
+  .hero-meta {
+    margin-top: 32px;
+    display: flex; gap: 32px;
+  }
+
+  .meta-item { }
+  .meta-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+  }
+
+  /* Filter bar */
+  .filter-bar {
+    padding: 20px 48px;
+    display: flex; gap: 8px; align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--white);
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-right: 8px;
+  }
+
+  .filter-btn {
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.03em;
+  }
+  .filter-btn:hover { border-color: var(--teal-mid); color: var(--teal); }
+  .filter-btn.active {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: var(--white);
+  }
+
+  /* Grid */
+  .grid-section {
+    padding: 40px 48px 64px;
+  }
+
+  .section-header {
+    display: flex; align-items: baseline; gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+  }
+
+  .section-count {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .doc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .doc-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+    position: relative;
+    overflow: hidden;
+  }
+  .doc-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--teal-mid);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+  .doc-card:hover {
+    border-color: rgba(26,122,110,0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26,122,110,0.08);
+  }
+  .doc-card:hover::before { transform: scaleX(1); }
+
+  .doc-card[data-type="demo"] .card-type-dot { background: #2a9d8f; }
+  .doc-card[data-type="tecnica"] .card-type-dot { background: #534AB7; }
+  .doc-card[data-type="erd"] .card-type-dot { background: #e9c46a; }
+  .doc-card[data-type="dashboard"] .card-type-dot { background: #e76f51; }
+  .doc-card[data-type="sop"] .card-type-dot { background: #4a9e6b; }
+
+  .card-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .card-type-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .card-type-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .card-version {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .card-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 17px;
+    color: var(--text);
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .card-audience {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 10px;
+  }
+  .card-audience.internal {
+    background: rgba(42,157,143,0.1);
+    color: var(--teal);
+  }
+  .card-audience.client {
+    background: rgba(233,196,106,0.15);
+    color: #8a6e20;
+  }
+  .card-audience.both {
+    background: rgba(83,74,183,0.08);
+    color: #534AB7;
+  }
+
+  .card-date {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Empty state */
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 48px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* Footer */
+  footer {
+    background: var(--dark);
+    padding: 24px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .footer-text {
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.05em;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .doc-card { animation: fadeUp 0.4s ease both; }
+  .doc-card:nth-child(1){ animation-delay: 0.05s; }
+  .doc-card:nth-child(2){ animation-delay: 0.10s; }
+  .doc-card:nth-child(3){ animation-delay: 0.15s; }
+  .doc-card:nth-child(4){ animation-delay: 0.20s; }
+  .doc-card:nth-child(5){ animation-delay: 0.25s; }
+  .doc-card:nth-child(6){ animation-delay: 0.30s; }
+
+  @media(max-width: 640px){
+    header, .hero, .filter-bar, .grid-section, footer { padding-left: 20px; padding-right: 20px; }
+    .hero-title { font-size: 36px; }
+    .doc-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
 <body>
-<h1>Innovation</h1>
-<p>Clara AI Lab — Director: Euris</p>
+
+<!-- ══ PASSWORD OVERLAY ══ -->
+<div id="lock-overlay">
+  <div class="lock-card">
+    <div class="lock-logo">Clara Fortuna</div>
+    <div class="lock-title">Innovation<br>Portal</div>
+    <div class="lock-sub">Restricted access — enter password to continue</div>
+    <div class="lock-input-wrap">
+      <input
+        class="lock-input"
+        id="pwd-input"
+        type="password"
+        placeholder="Enter password"
+        autocomplete="off"
+        onkeydown="if(event.key==='Enter') checkPassword()"
+      />
+    </div>
+    <div class="lock-error" id="pwd-error"></div>
+    <button class="lock-btn" onclick="checkPassword()">Access Portal</button>
+    <div class="lock-hint">Clara Fortuna · Innovation Department</div>
+  </div>
+</div>
+
+<!-- ══ PORTAL ══ -->
+<div id="portal">
+
+  <header>
+    <div class="header-brand">
+      <div class="header-dot"></div>
+      <div>
+        <div class="header-name">Clara Fortuna</div>
+        <div class="header-dept">Innovation Department</div>
+      </div>
+    </div>
+    <div class="header-lock" onclick="lockPortal()">Lock</div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-eyebrow">Clara AI Lab · Director: Euris</div>
+    <h1 class="hero-title">Innovation<br><em>Document Hub</em></h1>
+    <p class="hero-sub">Central repository for demos, technical docs, ERDs, dashboards, and SOPs produced by the Innovation department.</p>
+    <div class="hero-meta">
+      <div class="meta-item">
+        <div class="meta-label">Department</div>
+        <div class="meta-value">Innovation</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Version</div>
+        <div class="meta-value" id="portal-version">v1.0</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Last updated</div>
+        <div class="meta-value" id="portal-date">—</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="filter-bar">
+    <span class="filter-label">Filter</span>
+    <button class="filter-btn active" onclick="filterDocs('all', this)">All</button>
+    <button class="filter-btn" onclick="filterDocs('demo', this)">Demos</button>
+    <button class="filter-btn" onclick="filterDocs('tecnica', this)">Technical</button>
+    <button class="filter-btn" onclick="filterDocs('erd', this)">ERDs</button>
+    <button class="filter-btn" onclick="filterDocs('dashboard', this)">Dashboards</button>
+    <button class="filter-btn" onclick="filterDocs('sop', this)">SOPs</button>
+  </div>
+
+  <section class="grid-section">
+    <div class="section-header">
+      <span class="section-title">Documents</span>
+      <span class="section-count" id="doc-count">0 documents</span>
+    </div>
+    <div class="doc-grid" id="doc-grid">
+      <!-- Cards injected by JS -->
+    </div>
+  </section>
+
+  <footer>
+    <div class="footer-text">Clara Fortuna · Innovation · Confidential</div>
+    <div class="footer-text">clarafortuna.github.io/demos/Innovation</div>
+  </footer>
+
+</div>
+
+<script>
+  // ── CONFIG: Change passwords here ──
+  const PASSWORDS = {
+    internal: 'clarainnov2026',   // Team Clara password
+    client:   'AILabClient2026'   // Client-facing password
+  };
+
+  // ── CONFIG: Add your documents here ──
+  // type: 'demo' | 'tecnica' | 'erd' | 'dashboard' | 'sop'
+  // audience: 'internal' | 'client' | 'both'
+  const DOCUMENTS = [
+    {
+      type: 'demo',
+      title: 'Clara AI Lab — Overview',
+      desc: 'Interactive demo introducing the Clara AI Lab vision and capabilities to utility clients.',
+      version: 'v1.0',
+      audience: 'client',
+      date: 'Apr 2026',
+      url: 'demos/DEMO-AILAB-v1.0.html'
+    },
+    {
+      type: 'tecnica',
+      title: 'AI Lab Architecture',
+      desc: 'Technical documentation of the Clara AI Lab infrastructure and evaluation framework.',
+      version: 'v1.0',
+      audience: 'internal',
+      date: 'Apr 2026',
+      url: 'tecnica/DOC-ARCHITECTURE-v1.0.html'
+    },
+    {
+      type: 'erd',
+      title: 'Client Assessment ERD',
+      desc: 'Entity-relationship diagram for the client technology assessment data model.',
+      version: 'v1.0',
+      audience: 'internal',
+      date: 'Apr 2026',
+      url: 'erd/ERD-ASSESSMENT-v1.0.html'
+    },
+    {
+      type: 'dashboard',
+      title: 'Innovation KPI Dashboard',
+      desc: 'Live dashboard tracking key performance indicators for the Innovation department.',
+      version: 'v1.0',
+      audience: 'both',
+      date: 'Apr 2026',
+      url: 'dashboards/DASH-KPI-v1.0.html'
+    },
+    {
+      type: 'sop',
+      title: 'AI Evaluation Process',
+      desc: 'Standard operating procedure for evaluating emerging AI technologies with utility clients.',
+      version: 'v1.0',
+      audience: 'internal',
+      date: 'Apr 2026',
+      url: 'sop/SOP-001-EVALUATION-v1.0.html'
+    }
+  ];
+
+  // ── PASSWORD LOGIC ──
+  const SESSION_KEY = 'cf_innovation_auth';
+
+  function checkPassword() {
+    const input = document.getElementById('pwd-input');
+    const val = input.value.trim();
+    if (val === PASSWORDS.internal || val === PASSWORDS.client) {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      unlockPortal();
+    } else {
+      input.classList.add('error');
+      document.getElementById('pwd-error').textContent = 'Incorrect password. Try again.';
+      input.value = '';
+      setTimeout(() => input.classList.remove('error'), 400);
+    }
+  }
+
+  function unlockPortal() {
+    const overlay = document.getElementById('lock-overlay');
+    const portal  = document.getElementById('portal');
+    overlay.classList.add('hidden');
+    portal.classList.add('visible');
+  }
+
+  function lockPortal() {
+    sessionStorage.removeItem(SESSION_KEY);
+    document.getElementById('lock-overlay').classList.remove('hidden');
+    document.getElementById('portal').classList.remove('visible');
+    document.getElementById('pwd-input').value = '';
+    document.getElementById('pwd-error').textContent = '';
+  }
+
+  // ── RENDER DOCS ──
+  let currentFilter = 'all';
+
+  function renderDocs(filter) {
+    const grid = document.getElementById('doc-grid');
+    const count = document.getElementById('doc-count');
+    const docs = filter === 'all' ? DOCUMENTS : DOCUMENTS.filter(d => d.type === filter);
+    if (docs.length === 0) {
+      grid.innerHTML = '<div class="empty-state">No documents in this category yet.</div>';
+      count.textContent = '0 documents';
+      return;
+    }
+    count.textContent = docs.length + ' document' + (docs.length !== 1 ? 's' : '');
+    grid.innerHTML = docs.map(d => `
+      <a class="doc-card" data-type="${d.type}" href="${d.url}">
+        <div class="card-header">
+          <div class="card-type-dot"></div>
+          <span class="card-type-label">${d.type}</span>
+          <span class="card-version">${d.version}</span>
+        </div>
+        <div class="card-title">${d.title}</div>
+        <div class="card-desc">${d.desc}</div>
+        <div class="card-footer">
+          <span class="card-audience ${d.audience}">${d.audience}</span>
+          <span class="card-date">${d.date}</span>
+        </div>
+      </a>
+    `).join('');
+  }
+
+  function filterDocs(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderDocs(type);
+  }
+
+  // ── INIT ──
+  document.getElementById('portal-date').textContent =
+    new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+  if (sessionStorage.getItem(SESSION_KEY)) {
+    unlockPortal();
+  }
+
+  renderDocs('all');
+</script>
 </body>
 </html>
