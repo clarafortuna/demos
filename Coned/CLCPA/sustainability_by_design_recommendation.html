@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sustainability by Design: Platform Assessment</title>
+<style>
+  :root {
+    --bg: #FFFFFF;
+    --bg-alt: #F7F8FA;
+    --bg-sunken: #F0F2F5;
+
+    --gold: #C9941E;
+    --gold-deep: #9E7212;
+    --teal: #0E6B6E;
+    --teal-deep: #074548;
+    --cerulean: #1E7FB8;
+    --terracotta: #B85C3E;
+    --success: #3B6D11;
+
+    --ink: #1A2028;
+    --ink-2: #3A4250;
+    --ink-3: #667080;
+    --ink-4: #98A1B0;
+    --rule: #E4E7EB;
+    --rule-soft: #EEF0F3;
+
+    --font: "Segoe UI", "Segoe UI Web (West European)", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-font-smoothing: antialiased; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-weight: 400;
+    line-height: 1.55;
+    font-size: 16px;
+    overflow-x: hidden;
+  }
+
+  .wrap-wide { max-width: 1280px; margin: 0 auto; padding: 0 40px; position: relative; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 40px; position: relative; }
+
+  /* ========= TOP BAR ========= */
+  .topbar {
+    border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.92);
+  }
+  .topbar-inner {
+    max-width: 1280px; margin: 0 auto; padding: 14px 40px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; color: var(--ink-3); font-weight: 500;
+  }
+  .topbar-logo {
+    display: flex; align-items: center; gap: 10px;
+    color: var(--teal-deep); font-weight: 700; font-size: 15px;
+    letter-spacing: -0.01em;
+  }
+  .topbar-dot { width: 10px; height: 10px; background: var(--teal); border-radius: 50%; }
+  .topbar-meta { display: flex; gap: 24px; }
+  .topbar-meta span::before { content: "·"; margin-right: 8px; color: var(--ink-4); }
+  .topbar-meta span:first-child::before { display: none; }
+
+  /* ========= HERO ========= */
+  .hero {
+    padding: 72px 0 64px;
+    border-bottom: 1px solid var(--rule);
+    position: relative;
+  }
+
+  .hero-label {
+    font-size: 15px; letter-spacing: 0.14em;
+    color: var(--teal); text-transform: uppercase;
+    font-weight: 700; margin-bottom: 24px;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 8px 14px;
+    background: rgba(14, 107, 110, 0.08);
+    border-radius: 4px;
+  }
+  .hero-label svg { width: 18px; height: 18px; }
+
+  h1.hero-title {
+    font-size: clamp(32px, 4.5vw, 48px);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-weight: 700;
+    margin-bottom: 16px;
+    max-width: 820px;
+  }
+
+  h1.hero-title .hero-accent {
+    color: var(--ink-3);
+    font-weight: 400;
+    display: block;
+    margin-top: 4px;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    color: var(--ink-2);
+    max-width: 720px;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin-top: 40px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .meta-item { background: var(--bg-alt); padding: 16px 20px; display: flex; gap: 12px; align-items: center; }
+  .meta-icon {
+    width: 32px; height: 32px; flex-shrink: 0;
+    background: var(--bg); border: 1px solid var(--rule);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--teal);
+  }
+  .meta-icon svg { width: 16px; height: 16px; }
+  .meta-text { min-width: 0; }
+  .meta-label {
+    font-size: 11px; letter-spacing: 0.1em; color: var(--ink-3);
+    text-transform: uppercase; margin-bottom: 3px; font-weight: 600;
+  }
+  .meta-val { font-size: 15px; color: var(--ink); font-weight: 600; }
+
+  /* ========= SECTION ========= */
+  .section { padding: 72px 0; border-bottom: 1px solid var(--rule); }
+  .section-alt { background: var(--bg-alt); }
+
+  .section-header {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 40px;
+    align-items: baseline;
+    margin-bottom: 40px;
+  }
+  .section-num {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    line-height: 1;
+  }
+  .section-num .num-big {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--teal-deep);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .section-num .num-label {
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    color: var(--teal);
+    text-transform: uppercase;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-num .num-label::before {
+    content: "";
+    width: 20px;
+    height: 2px;
+    background: var(--gold);
+    display: inline-block;
+  }
+  .section-title {
+    font-size: clamp(24px, 3vw, 32px);
+    line-height: 1.25;
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .section-body {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 40px;
+  }
+  .sidenote { font-size: 13px; color: var(--ink-3); line-height: 1.6; }
+  .sidenote div { margin-bottom: 18px; padding-left: 12px; border-left: 2px solid var(--rule); }
+  .sidenote strong {
+    display: block; color: var(--ink-2); font-weight: 700;
+    margin-bottom: 5px; letter-spacing: 0.08em;
+    text-transform: uppercase; font-size: 11px;
+  }
+  .content { max-width: 860px; }
+  .content p {
+    font-size: 16px; line-height: 1.65;
+    color: var(--ink-2); margin-bottom: 14px;
+  }
+  .content p:last-child { margin-bottom: 0; }
+  .content strong { color: var(--ink); font-weight: 600; }
+
+  /* ========= CONTEXT KEY POINTS ========= */
+  .key-points {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+  }
+  .key-point {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    padding: 20px;
+    border-radius: 6px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+  .key-icon {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--bg-sunken);
+    color: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .key-icon svg { width: 18px; height: 18px; }
+  .key-body h4 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 5px;
+    letter-spacing: -0.005em;
+  }
+  .key-body p {
+    font-size: 14px;
+    color: var(--ink-3);
+    margin: 0;
+    line-height: 1.55;
+  }
+
+  /* ========= APPROVAL CALLOUT ========= */
+  .approval-callout {
+    margin-top: 24px;
+    background: linear-gradient(135deg, #F4FBF5 0%, #EAF5EC 100%);
+    border: 1px solid #B8D9BD;
+    border-left: 4px solid var(--success);
+    border-radius: 8px;
+    padding: 24px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  .approval-callout::before {
+    content: "";
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(59, 109, 17, 0.08) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .approval-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px 6px 10px;
+    background: var(--success);
+    color: white;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+  .approval-badge svg {
+    width: 14px; height: 14px;
+    stroke-width: 3;
+  }
+  .approval-body { position: relative; z-index: 2; }
+  .approval-body h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 10px;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+  }
+  .approval-body p {
+    font-size: 15px;
+    color: var(--ink-2);
+    line-height: 1.6;
+    margin-bottom: 18px;
+  }
+  .approval-facts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: #C8DFCC;
+    border: 1px solid #C8DFCC;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .approval-fact {
+    background: rgba(255, 255, 255, 0.7);
+    padding: 12px 16px;
+  }
+  .approval-fact-label {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .approval-fact-val {
+    font-size: 14px;
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  /* ========= OPTION CARDS ========= */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .option {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .option-banner {
+    padding: 20px 24px;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .option-icon {
+    flex-shrink: 0;
+    width: 44px; height: 44px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--teal);
+  }
+  .option-icon svg { width: 22px; height: 22px; }
+  .option-tag {
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase; font-weight: 700;
+    color: var(--ink-3); margin-bottom: 3px;
+  }
+  .option-name {
+    font-size: 20px; line-height: 1.2;
+    font-weight: 700; letter-spacing: -0.015em;
+    color: var(--ink);
+  }
+  .option-tagline {
+    font-size: 13px; color: var(--ink-3);
+    font-weight: 500; margin-top: 3px;
+  }
+
+  .option-body { padding: 20px 24px 24px; }
+
+  .pc-block { margin-bottom: 20px; }
+  .pc-block:last-child { margin-bottom: 0; }
+
+  .pc-heading {
+    font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; font-weight: 700;
+    margin-bottom: 14px; color: var(--ink-2);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--rule);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pc-heading svg { width: 14px; height: 14px; }
+
+  .pc-list { list-style: none; }
+  .pc-list li {
+    font-size: 14.5px; line-height: 1.55;
+    color: var(--ink-2);
+    padding: 11px 0 11px 24px;
+    position: relative;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .pc-list li:last-child { border-bottom: none; }
+  .pc-list li::before {
+    position: absolute; left: 0; top: 10px;
+    font-size: 16px; font-weight: 700;
+  }
+  .pc-list.pros li::before { content: "+"; color: var(--teal); }
+  .pc-list.cons li::before { content: "−"; color: var(--terracotta); }
+  .pc-list li strong { color: var(--ink); font-weight: 600; }
+
+  /* ========= SCORECARD ========= */
+  .scorecard {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    margin-top: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .scorecard-header {
+    padding: 16px 24px;
+    background: var(--bg-alt);
+    border-bottom: 1px solid var(--rule);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .scorecard-title {
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .scorecard-title svg { width: 16px; height: 16px; color: var(--teal); }
+  .scorecard-sub {
+    font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.05em; text-transform: uppercase; font-weight: 600;
+  }
+
+  .scorecard-table { width: 100%; border-collapse: collapse; }
+  .scorecard-table th, .scorecard-table td {
+    padding: 13px 20px; text-align: left;
+    font-size: 14px;
+    border-bottom: 1px solid var(--rule-soft);
+  }
+  .scorecard-table th {
+    font-weight: 700; color: var(--ink-3);
+    font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; background: var(--bg-sunken);
+  }
+  .scorecard-table th:nth-child(2), .scorecard-table th:nth-child(3),
+  .scorecard-table td:nth-child(2), .scorecard-table td:nth-child(3) {
+    text-align: center; width: 150px;
+  }
+  .scorecard-table td { color: var(--ink-2); vertical-align: middle; }
+  .scorecard-table td:first-child { font-weight: 600; color: var(--ink); }
+  .scorecard-table tbody tr:hover { background: var(--bg-alt); }
+  .scorecard-table tr:last-child td { border-bottom: none; }
+
+  .pill {
+    display: inline-block; padding: 4px 11px;
+    border-radius: 100px;
+    font-size: 12px; font-weight: 700; letter-spacing: 0.03em;
+  }
+  .pill.strong { background: rgba(14, 107, 110, 0.10); color: var(--teal); }
+  .pill.moderate { background: rgba(201, 148, 30, 0.14); color: var(--gold-deep); }
+  .pill.weak { background: rgba(184, 92, 62, 0.10); color: var(--terracotta); }
+
+  .scorecard-totals {
+    padding: 16px 24px;
+    background: var(--bg-alt);
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: 1fr 150px 150px;
+    font-size: 12px; letter-spacing: 0.08em;
+    text-transform: uppercase; font-weight: 700; color: var(--ink-3);
+  }
+  .scorecard-totals .total-val {
+    text-align: center; color: var(--ink); font-weight: 700; font-size: 14px;
+  }
+
+  /* ========= WORKFLOW (exact SVG layout) ========= */
+  .workflow-wrap {
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 24px;
+    overflow-x: auto;
+  }
+  .workflow-wrap svg { width: 100%; height: auto; min-width: 620px; max-width: 720px; margin: 0 auto; display: block; }
+
+  .wf-phase-legend {
+    display: flex; flex-wrap: wrap; gap: 18px;
+    margin-top: 22px; padding-top: 18px;
+    border-top: 1px solid var(--rule);
+    font-size: 11px; letter-spacing: 0.06em;
+    color: var(--ink-3); text-transform: uppercase; font-weight: 600;
+  }
+  .wf-legend-item { display: flex; align-items: center; gap: 7px; }
+  .wf-legend-dot { width: 11px; height: 11px; border-radius: 50%; }
+
+  .wf-callouts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .wf-callout {
+    padding: 16px 18px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .wf-callout-icon {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wf-callout-icon svg { width: 16px; height: 16px; }
+  .wf-callout-icon.blue { background: rgba(30, 127, 184, 0.12); color: var(--cerulean); }
+  .wf-callout-icon.gold { background: rgba(201, 148, 30, 0.15); color: var(--gold-deep); }
+  .wf-callout-icon.green { background: rgba(59, 109, 17, 0.12); color: var(--success); }
+  .wf-callout h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 3px; }
+  .wf-callout p { font-size: 13px; color: var(--ink-3); margin: 0; line-height: 1.5; }
+
+  /* ========= CONCLUSION ========= */
+  .conclusion-note {
+    margin-top: 28px;
+    padding: 20px 24px;
+    background: var(--bg);
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    display: flex; gap: 16px;
+  }
+  .conclusion-icon {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: rgba(201, 148, 30, 0.12);
+    color: var(--gold-deep);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .conclusion-icon svg { width: 18px; height: 18px; }
+  .conclusion-note p {
+    font-size: 15px; line-height: 1.65;
+    color: var(--ink-2); margin-bottom: 10px;
+  }
+  .conclusion-note p:last-child { margin-bottom: 0; }
+  .conclusion-note strong { color: var(--ink); font-weight: 700; }
+
+  .disclosure {
+    margin-top: 28px;
+    padding: 18px 22px;
+    background: var(--bg-sunken);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--ink-3);
+    line-height: 1.6;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .disclosure-icon {
+    flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px;
+    color: var(--ink-3);
+  }
+  .disclosure strong {
+    display: block; font-size: 11px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-2);
+    margin-bottom: 5px; font-weight: 700;
+  }
+
+  /* ========= FOOTER ========= */
+  footer { padding: 32px 0; background: var(--bg-alt); }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--ink-3);
+    letter-spacing: 0.04em; font-weight: 500;
+  }
+  .footer-inner .brand {
+    color: var(--teal-deep); font-weight: 700;
+    font-size: 14px; letter-spacing: -0.01em;
+  }
+
+  @media (max-width: 880px) {
+    .wrap, .wrap-wide { padding: 0 24px; }
+    .topbar-inner { padding: 14px 24px; }
+    .topbar-meta { display: none; }
+    .hero { padding: 48px 0 48px; }
+    .hero-meta { grid-template-columns: 1fr 1fr; }
+    .section { padding: 48px 0; }
+    .section-header, .section-body { grid-template-columns: 1fr; gap: 20px; }
+    .sidenote { order: 2; }
+    .compare-grid, .key-points, .wf-callouts { grid-template-columns: 1fr; }
+    .approval-facts { grid-template-columns: 1fr; }
+    .approval-callout { padding: 20px 22px; }
+    .approval-body h3 { font-size: 18px; }
+    .scorecard-table th:nth-child(2), .scorecard-table th:nth-child(3),
+    .scorecard-table td:nth-child(2), .scorecard-table td:nth-child(3) { width: 90px; padding: 10px 6px; }
+    .scorecard-table th, .scorecard-table td { font-size: 12px; padding: 10px; }
+    .scorecard-totals { padding: 12px 14px; grid-template-columns: 1fr 90px 90px; font-size: 10px; }
+    .scorecard-header { padding: 12px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Inline icon sprite -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></symbol>
+  <symbol id="i-server" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+  <symbol id="i-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-file-text" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z"/><path d="M7 21h10"/><path d="M12 3v18"/><path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></symbol>
+  <symbol id="i-trending" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></symbol>
+</svg>
+
+<!-- TOP BAR -->
+<nav class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-logo">
+      <span class="topbar-dot"></span>
+      <span>Clara Fortuna</span>
+    </div>
+    <div class="topbar-meta">
+      <span>Platform Assessment</span>
+      <span>v1.0</span>
+      <span>For T. King</span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap-wide">
+    <div class="hero-label">
+      <svg><use href="#i-scale"/></svg>
+      Platform Assessment
+    </div>
+    <h1 class="hero-title">Sustainability by Design. <span class="hero-accent">Two build paths compared.</span></h1>
+    <p class="hero-sub">An objective side-by-side comparison of Power Apps with Dataverse versus extending the existing on-premises C# site.</p>
+
+    <div class="hero-meta">
+      <div class="meta-item">
+        <div class="meta-icon"><svg><use href="#i-target"/></svg></div>
+        <div class="meta-text">
+          <div class="meta-label">Subject</div>
+          <div class="meta-val">Build Path</div>
+        </div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-icon"><svg><use href="#i-user"/></svg></div>
+        <div class="meta-text">
+          <div class="meta-label">Requested by</div>
+          <div class="meta-val">Thomas King</div>
+        </div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-icon"><svg><use href="#i-users"/></svg></div>
+        <div class="meta-text">
+          <div class="meta-label">Audience</div>
+          <div class="meta-val">Leadership</div>
+        </div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-icon"><svg><use href="#i-file-text"/></svg></div>
+        <div class="meta-text">
+          <div class="meta-label">Format</div>
+          <div class="meta-val">Assessment</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 01 — CONTEXT -->
+<section class="section section-alt">
+  <div class="wrap-wide">
+    <div class="section-header">
+      <div class="section-num">
+        <span class="num-big">01</span>
+        <span class="num-label">Context</span>
+      </div>
+      <h2 class="section-title">Both platforms can deliver the application.</h2>
+    </div>
+    <div class="section-body">
+      <aside class="sidenote">
+        <div><strong>Scope</strong>Same end-state application, same users, same workflow.</div>
+      </aside>
+      <div class="content" style="max-width:none;">
+        <p>The question is not <em>"can it be built?"</em> Either can. The question is which platform delivers it with the right total cost of ownership, the right fit to organizational capabilities, and the most durable long-term posture.</p>
+
+        <div class="key-points">
+          <div class="key-point">
+            <div class="key-icon"><svg><use href="#i-cloud"/></svg></div>
+            <div class="key-body">
+              <h4>Option A · Power Apps</h4>
+              <p>Continue the Power Apps &amp; Dataverse build already in progress.</p>
+            </div>
+          </div>
+          <div class="key-point">
+            <div class="key-icon"><svg><use href="#i-server"/></svg></div>
+            <div class="key-body">
+              <h4>Option B · On-Prem C#</h4>
+              <p>Extend the existing on-premises C# site to include the new functionality.</p>
+            </div>
+          </div>
+          <div class="key-point">
+            <div class="key-icon"><svg><use href="#i-target"/></svg></div>
+            <div class="key-body">
+              <h4>The Decision</h4>
+              <p>Pick the platform best suited to deliver the workflow shown in Section 03.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="approval-callout">
+          <div class="approval-badge">
+            <svg><use href="#i-check"/></svg>
+            <span>Already Approved</span>
+          </div>
+          <div class="approval-body">
+            <h3>The CREATE process is already approved on Power Apps.</h3>
+            <p>The Sustainability by Design CREATE process has already received approval to proceed on the Power Apps platform. Continuing on Power Apps is not a new platform decision. The only remaining addition is enabling Dataverse as the application's data backbone to support the screening, generation, review, and filing steps shown in Section 03.</p>
+            <div class="approval-facts">
+              <div class="approval-fact">
+                <div class="approval-fact-label">Platform decision</div>
+                <div class="approval-fact-val">Approved</div>
+              </div>
+              <div class="approval-fact">
+                <div class="approval-fact-label">Build status</div>
+                <div class="approval-fact-val">In progress</div>
+              </div>
+              <div class="approval-fact">
+                <div class="approval-fact-label">Remaining scope</div>
+                <div class="approval-fact-val">Dataverse enablement</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 02 — SIDE BY SIDE -->
+<section class="section">
+  <div class="wrap-wide">
+    <div class="section-header">
+      <div class="section-num">
+        <span class="num-big">02</span>
+        <span class="num-label">Side-by-Side</span>
+      </div>
+      <h2 class="section-title">Advantages and trade-offs.</h2>
+    </div>
+    <div class="section-body">
+      <aside class="sidenote">
+        <div><strong>Method</strong>Symmetric presentation. Both options shown with their actual advantages and honest trade-offs.</div>
+      </aside>
+      <div class="content" style="max-width: none;">
+
+        <div class="compare-grid">
+          <article class="option">
+            <div class="option-banner">
+              <div class="option-icon"><svg><use href="#i-cloud"/></svg></div>
+              <div>
+                <div class="option-tag">Option A</div>
+                <div class="option-name">Power Apps &amp; Dataverse</div>
+                <div class="option-tagline">Low-code · Microsoft Power Platform</div>
+              </div>
+            </div>
+            <div class="option-body">
+              <div class="pc-block">
+                <div class="pc-heading"><svg style="color:var(--teal);"><use href="#i-check"/></svg> Advantages</div>
+                <ul class="pc-list pros">
+                  <li><strong>Build in progress.</strong> Working version already maturing.</li>
+                  <li><strong>Corporate IT supported</strong> today, no new platform to onboard.</li>
+                  <li><strong>Dataverse out of the box:</strong> relational model, row-level security, auditing.</li>
+                  <li><strong>Configured, not coded.</strong> Forms, approvals, workflows ship faster.</li>
+                  <li><strong>Native AI path</strong> via Power Automate and AI Builder.</li>
+                  <li><strong>Citizen-developer friendly.</strong> SMEs can contribute.</li>
+                  <li><strong>Modern UX by default.</strong> Responsive web and mobile.</li>
+                  <li><strong>Microsoft roadmap alignment:</strong> Copilot, agents, model integration.</li>
+                </ul>
+              </div>
+              <div class="pc-block">
+                <div class="pc-heading"><svg style="color:var(--terracotta);"><use href="#i-x"/></svg> Trade-offs</div>
+                <ul class="pc-list cons">
+                  <li><strong>Dataverse storage quota</strong> (5 GB default). SQL connector is available for larger volumes.</li>
+                  <li><strong>Edge-case UI</strong> may require PCF component development.</li>
+                  <li><strong>Governance discipline</strong> (DLP policies, environment strategy) up front.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+
+          <article class="option">
+            <div class="option-banner">
+              <div class="option-icon"><svg><use href="#i-server"/></svg></div>
+              <div>
+                <div class="option-tag">Option B</div>
+                <div class="option-name">On-Premises C# Extension</div>
+                <div class="option-tagline">Custom code · existing internal site</div>
+              </div>
+            </div>
+            <div class="option-body">
+              <div class="pc-block">
+                <div class="pc-heading"><svg style="color:var(--teal);"><use href="#i-check"/></svg> Advantages</div>
+                <ul class="pc-list pros">
+                  <li><strong>Codebase familiarity</strong> on the existing team.</li>
+                  <li><strong>Full on-premises</strong> data residency.</li>
+                  <li><strong>Unlimited UI control.</strong> No framework constraints.</li>
+                  <li><strong>Consolidates</strong> into a site leadership already operates.</li>
+                  <li><strong>Existing database</strong> can hold all data regardless of volume.</li>
+                </ul>
+              </div>
+              <div class="pc-block">
+                <div class="pc-heading"><svg style="color:var(--terracotta);"><use href="#i-x"/></svg> Trade-offs</div>
+                <ul class="pc-list cons">
+                  <li><strong>Starts from scratch.</strong> Existing Power Apps work set aside.</li>
+                  <li><strong>C# developer time</strong> required for every change.</li>
+                  <li><strong>Custom plumbing</strong> for auth, audit, access, workflow, notifications.</li>
+                  <li><strong>AI integration</strong> is a custom build.</li>
+                  <li><strong>Infrastructure obligations</strong> stay with the team.</li>
+                  <li><strong>Mobile / modern UX</strong> requires significant added work.</li>
+                  <li><strong>Tech debt compounds</strong> with site growth.</li>
+                </ul>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- SCORECARD -->
+        <div class="scorecard">
+          <div class="scorecard-header">
+            <div class="scorecard-title"><svg><use href="#i-grid"/></svg> Comparison Matrix</div>
+            <div class="scorecard-sub">Criterion-by-criterion</div>
+          </div>
+          <table class="scorecard-table">
+            <thead>
+              <tr>
+                <th>Criterion</th>
+                <th>Power Apps</th>
+                <th>On-Prem C#</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Current state of the build</td><td><span class="pill strong">In progress</span></td><td><span class="pill weak">Not started</span></td></tr>
+              <tr><td>Corporate IT platform support</td><td><span class="pill strong">Established</span></td><td><span class="pill strong">Established</span></td></tr>
+              <tr><td>Time to first working version</td><td><span class="pill strong">Shorter</span></td><td><span class="pill weak">Longer</span></td></tr>
+              <tr><td>Developer capacity required</td><td><span class="pill strong">Lower</span></td><td><span class="pill weak">Higher</span></td></tr>
+              <tr><td>AI / Copilot integration path</td><td><span class="pill strong">Native</span></td><td><span class="pill weak">Custom build</span></td></tr>
+              <tr><td>Mobile / modern UX readiness</td><td><span class="pill strong">Out of box</span></td><td><span class="pill moderate">Additional work</span></td></tr>
+              <tr><td>Infrastructure ownership burden</td><td><span class="pill strong">Platform absorbs</span></td><td><span class="pill weak">Team owns</span></td></tr>
+              <tr><td>Data residency / on-prem control</td><td><span class="pill moderate">Cloud-hosted</span></td><td><span class="pill strong">Fully on-prem</span></td></tr>
+              <tr><td>Per-user licensing posture</td><td><span class="pill strong">Already licensed</span></td><td><span class="pill strong">None required</span></td></tr>
+              <tr><td>UI customization ceiling</td><td><span class="pill moderate">PCF for edge cases</span></td><td><span class="pill strong">Unlimited</span></td></tr>
+              <tr><td>Data storage flexibility</td><td><span class="pill strong">Dataverse + SQL connector</span></td><td><span class="pill strong">Existing DB</span></td></tr>
+              <tr><td>Long-term maintenance load</td><td><span class="pill strong">Configured</span></td><td><span class="pill weak">Custom code</span></td></tr>
+              <tr><td>Alignment with Microsoft roadmap</td><td><span class="pill strong">Direct</span></td><td><span class="pill moderate">Indirect</span></td></tr>
+            </tbody>
+          </table>
+          <div class="scorecard-totals">
+            <div>Criteria where option is a strong fit</div>
+            <div class="total-val">11 of 13</div>
+            <div class="total-val">5 of 13</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 03 — WORKFLOW (exact reproduction) -->
+<section class="section section-alt">
+  <div class="wrap-wide">
+    <div class="section-header">
+      <div class="section-num">
+        <span class="num-big">03</span>
+        <span class="num-label">Workflow</span>
+      </div>
+      <h2 class="section-title">What the application must do.</h2>
+    </div>
+    <div class="section-body">
+      <aside class="sidenote">
+        <div><strong>Source</strong>Reproduced from the process flow diagram provided by Thomas King.</div>
+      </aside>
+      <div class="content" style="max-width: none;">
+
+        <div class="workflow-wrap">
+
+<!-- EXACT SVG REPRODUCTION -->
+<svg viewBox="0 0 680 820" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="CLCPA process flow">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#73726C" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <!-- Phase bars on the left -->
+  <rect x="18" y="44" width="3" height="144" rx="1.5" fill="#1E7FB8" opacity="0.7"/>
+  <rect x="18" y="228" width="3" height="124" rx="1.5" fill="#0E6B6E" opacity="0.7"/>
+  <rect x="18" y="388" width="3" height="60" rx="1.5" fill="#C9941E" opacity="0.9"/>
+  <rect x="18" y="472" width="3" height="48" rx="1.5" fill="#3B6D11" opacity="0.7"/>
+  <rect x="18" y="552" width="3" height="236" rx="1.5" fill="#B85C3E" opacity="0.7"/>
+
+  <text x="24" y="116" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" fill="#667080" letter-spacing="1">DATA COLLECTION</text>
+  <text x="24" y="290" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" fill="#667080" letter-spacing="1">GENERATION</text>
+  <text x="24" y="418" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" fill="#667080" letter-spacing="1">REVIEW</text>
+  <text x="24" y="496" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" fill="#667080" letter-spacing="1">FINAL</text>
+  <text x="24" y="670" font-family="Segoe UI, sans-serif" font-size="11" font-weight="700" fill="#667080" letter-spacing="1">LEGAL &amp; PUB</text>
+
+  <!-- Step 1: Intake -->
+  <g>
+    <rect x="245" y="44" width="190" height="52" rx="6" fill="#E6F1FB" stroke="#1E7FB8" stroke-width="0.5"/>
+    <text x="340" y="66" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#0C447C">Project intake form</text>
+    <text x="340" y="83" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#1E7FB8">Project name &amp; case no.</text>
+  </g>
+  <line x1="340" y1="96" x2="340" y2="136" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 2: Screening -->
+  <g>
+    <rect x="245" y="136" width="190" height="52" rx="6" fill="#E6F1FB" stroke="#1E7FB8" stroke-width="0.5"/>
+    <text x="340" y="158" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#0C447C">Screening questions</text>
+    <text x="340" y="175" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#1E7FB8">DAC &amp; sustainability</text>
+  </g>
+  <line x1="340" y1="188" x2="340" y2="228" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 3: AI draft generation -->
+  <g>
+    <rect x="245" y="228" width="190" height="52" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text x="340" y="250" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#3C3489">AI draft generation</text>
+    <text x="340" y="267" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#534AB7">From screening inputs</text>
+  </g>
+  <path d="M 340 280 L 340 292 L 185 292 L 185 304" fill="none" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 340 280 L 340 292 L 495 292 L 495 304" fill="none" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 4: Draft white paper (left) -->
+  <g>
+    <rect x="100" y="304" width="170" height="48" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text x="185" y="324" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#3C3489">Draft white paper</text>
+    <text x="185" y="341" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#534AB7">AI narrative draft</text>
+  </g>
+
+  <!-- Step 5: Part 105 Excel (right) -->
+  <g>
+    <rect x="410" y="304" width="170" height="48" rx="6" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+    <text x="495" y="324" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#3C3489">Part 105 Excel</text>
+    <text x="495" y="341" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#534AB7">Regulatory worksheet</text>
+  </g>
+
+  <line x1="185" y1="352" x2="185" y2="388" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="495" y1="352" x2="495" y2="388" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 6: EJ & Sustainability review -->
+  <g>
+    <rect x="100" y="388" width="480" height="60" rx="6" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+    <text x="340" y="411" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#633806">EJ &amp; sustainability review</text>
+    <text x="340" y="430" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#854F0B">Both documents reviewed. Approve or request revisions.</text>
+  </g>
+
+  <!-- Revisions loop back -->
+  <path d="M 100 418 L 30 418 L 30 254 L 245 254" fill="none" stroke="#5A4815" stroke-width="1.2" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <rect x="33" y="312" width="60" height="32" rx="3" fill="#F7F8FA" stroke="#E4E7EB" stroke-width="0.5"/>
+  <text x="63" y="326" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" fill="#5A4815">Revisions</text>
+  <text x="63" y="338" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="10" font-weight="600" fill="#5A4815">requested</text>
+
+  <!-- Approved label -->
+  <text x="352" y="462" font-family="Segoe UI, sans-serif" font-size="11" font-weight="600" fill="#265B19">✓ Approved</text>
+
+  <!-- Branching to finals -->
+  <path d="M 340 448 L 340 458 L 185 458 L 185 472" fill="none" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <path d="M 340 448 L 340 458 L 495 458 L 495 472" fill="none" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 7: Final white paper (left) -->
+  <g>
+    <rect x="100" y="472" width="170" height="48" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+    <text x="185" y="492" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#27500A">Final white paper</text>
+    <text x="185" y="509" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#3B6D11">Approved narrative</text>
+  </g>
+
+  <!-- Step 8: Final Part 105 (right) -->
+  <g>
+    <rect x="410" y="472" width="170" height="48" rx="6" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/>
+    <text x="495" y="492" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#27500A">Final Part 105</text>
+    <text x="495" y="509" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#3B6D11">Approved worksheet</text>
+  </g>
+
+  <line x1="185" y1="520" x2="185" y2="552" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="495" y1="520" x2="495" y2="552" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 9: Filed in casework -->
+  <g>
+    <rect x="100" y="552" width="480" height="52" rx="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
+    <text x="340" y="572" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#0C447C">Filed in casework</text>
+    <text x="340" y="590" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#185FA5">Both docs required before legal review proceeds</text>
+  </g>
+
+  <line x1="340" y1="604" x2="340" y2="644" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 10: Legal review -->
+  <g>
+    <rect x="245" y="644" width="190" height="52" rx="6" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
+    <text x="340" y="664" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#712B13">Legal review</text>
+    <text x="340" y="682" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#993C1D">Regulatory compliance check</text>
+  </g>
+
+  <line x1="340" y1="696" x2="340" y2="736" stroke="#73726C" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Step 11: Public record -->
+  <g>
+    <rect x="245" y="736" width="190" height="52" rx="6" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+    <text x="340" y="756" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="13" font-weight="700" fill="#085041">Public record</text>
+    <text x="340" y="774" text-anchor="middle" font-family="Segoe UI, sans-serif" font-size="11" fill="#0F6E56">Publicly available</text>
+  </g>
+</svg>
+
+          <div class="wf-phase-legend">
+            <div class="wf-legend-item"><span class="wf-legend-dot" style="background:#1E7FB8;"></span>Data input</div>
+            <div class="wf-legend-item"><span class="wf-legend-dot" style="background:#534AB7;"></span>AI generated</div>
+            <div class="wf-legend-item"><span class="wf-legend-dot" style="background:#C9941E;"></span>Review gate</div>
+            <div class="wf-legend-item"><span class="wf-legend-dot" style="background:#3B6D11;"></span>Final output</div>
+            <div class="wf-legend-item"><span class="wf-legend-dot" style="background:#993C1D;"></span>Legal</div>
+            <div class="wf-legend-item"><span class="wf-legend-dot" style="background:#0F6E56;"></span>Public</div>
+          </div>
+        </div>
+
+        <div class="wf-callouts">
+          <div class="wf-callout">
+            <div class="wf-callout-icon blue"><svg><use href="#i-doc"/></svg></div>
+            <div><h4>Forms &amp; data capture</h4><p>Intake and DAC screening fields.</p></div>
+          </div>
+          <div class="wf-callout">
+            <div class="wf-callout-icon gold"><svg><use href="#i-zap"/></svg></div>
+            <div><h4>AI generation</h4><p>White paper &amp; Part 105 Excel from screening data.</p></div>
+          </div>
+          <div class="wf-callout">
+            <div class="wf-callout-icon green"><svg><use href="#i-check"/></svg></div>
+            <div><h4>Review gates</h4><p>EJ / sustainability review, with revision loop-back.</p></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 04 — ASSESSMENT -->
+<section class="section">
+  <div class="wrap-wide">
+    <div class="section-header">
+      <div class="section-num">
+        <span class="num-big">04</span>
+        <span class="num-label">Assessment</span>
+      </div>
+      <h2 class="section-title">Reading the comparison.</h2>
+    </div>
+    <div class="section-body">
+      <aside class="sidenote">
+        <div><strong>Reading</strong>The two options do not come out the same on the criteria most relevant to this application.</div>
+      </aside>
+      <div class="content">
+        <p><strong>On-premises C#</strong> is a strong fit on five criteria: Corporate IT support, data residency, licensing posture, unbounded UI customization, and existing-database storage capacity.</p>
+        <p><strong>Power Apps with Dataverse</strong> is a strong fit on eleven criteria, including everything C# is strong on except data residency and UI ceiling, plus the build already being in progress, faster time to first version, lower developer capacity requirement, native AI path, mobile-ready UX, reduced infrastructure ownership, maintenance load, and Microsoft roadmap alignment. Power Apps is already licensed at the organization, so licensing is not an exposure for either option.</p>
+        <p><strong>On-premises C# would be the stronger choice only if data residency or unlimited UI control were hard requirements;</strong> on the information available, neither is. Dataverse's 5 GB storage default is not a hard limit either. The Power Apps SQL connector supports the existing SQL Server directly if larger data volumes or existing tables are in scope.</p>
+
+        <div class="conclusion-note">
+          <div class="conclusion-icon"><svg><use href="#i-trending"/></svg></div>
+          <div>
+            <p><strong>Summary.</strong> Power Apps is the better-fit platform for Sustainability by Design on the facts presented, and the CREATE process is already approved for this platform. On-premises C# remains a viable alternative with real strengths, particularly if data residency or deep UI customization become hard requirements.</p>
+            <p>If leadership proceeds on Power Apps, our team is available to support the work. We currently develop and administer the Unified CSR Portal, an enterprise-scale Power Platform application. This is offered as context for the decision, not as a basis for it.</p>
+          </div>
+        </div>
+
+        <div class="disclosure">
+          <svg class="disclosure-icon"><use href="#i-info"/></svg>
+          <div>
+            <strong>Disclosure</strong>
+            The authors maintain an active Power Platform practice. Disclosed so the reader can weigh it. Any row of the comparison matrix is open to challenge against local knowledge of the environment.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap-wide">
+    <div class="footer-inner">
+      <span>Prepared for Thomas King · Leadership Review</span>
+      <span class="brand">Clara Fortuna · Platform Advisory</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
