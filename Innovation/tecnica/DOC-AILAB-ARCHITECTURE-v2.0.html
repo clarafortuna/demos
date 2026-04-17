@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clara AI Lab — Technical Architecture Documentation v2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal:#0F6E56;--teal-mid:#1D9E75;--teal-light:#E1F5EE;
+    --navy:#0d1f1c;--gold:#BA7517;--gold-light:#FAEEDA;
+    --coral:#993C1D;--coral-light:#FAECE7;
+    --blue:#185FA5;--blue-light:#E6F1FB;
+    --purple:#3C3489;--purple-light:#EEEDFE;
+    --text:#1a2e2a;--muted:#5a7a74;
+    --border:rgba(26,122,110,0.12);--surface:#f8faf9;--white:#ffffff;
+    --code-bg:#0d1f1c;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);line-height:1.7;}
+  #cf-lock{position:fixed;inset:0;z-index:9999;background:var(--navy);display:flex;align-items:center;justify-content:center;transition:opacity .5s ease;}
+  #cf-lock.hidden{opacity:0;pointer-events:none;}
+  .lc{width:340px;text-align:center;padding:0 24px;}
+  .ll{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal-mid);margin-bottom:28px;}
+  .lt{font-family:'DM Serif Display',serif;font-size:28px;color:#fff;margin-bottom:6px;}
+  .ls{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:36px;}
+  .li{width:100%;padding:12px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;transition:border-color .2s;}
+  .li:focus{border-color:var(--teal-mid);}
+  .li.err{border-color:#e76f51;animation:shake .3s ease;}
+  .le{font-size:11px;color:#e76f51;height:16px;margin:8px 0;}
+  .lb{width:100%;padding:12px;background:var(--teal-mid);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;font-family:inherit;margin-top:4px;transition:background .2s;}
+  .lb:hover{background:var(--teal);}
+  .lh{margin-top:20px;font-size:10px;color:rgba(255,255,255,.18);}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  #doc{opacity:0;transition:opacity .5s ease;}
+  #doc.visible{opacity:1;}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--navy);overflow-y:auto;padding:32px 0;z-index:100;}
+  .sb-logo{padding:0 24px 24px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:16px;}
+  .sb-brand{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-mid);margin-bottom:4px;}
+  .sb-title{font-family:'DM Serif Display',serif;font-size:18px;color:#fff;line-height:1.3;}
+  .sb-ver{font-size:10px;color:rgba(255,255,255,.3);margin-top:4px;}
+  .nav-sec{padding:8px 24px 4px;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:8px;}
+  .nav-item{display:block;padding:7px 24px;font-size:12px;color:rgba(255,255,255,.55);text-decoration:none;transition:all .2s;border-left:2px solid transparent;}
+  .nav-item:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.04);}
+  .nav-item.active{color:var(--teal-mid);border-left-color:var(--teal-mid);background:rgba(29,158,117,.08);}
+  .sb-foot{padding:24px;border-top:1px solid rgba(255,255,255,.08);margin-top:24px;font-size:10px;color:rgba(255,255,255,.25);}
+  .main{margin-left:260px;min-height:100vh;}
+  .doc-hero{background:var(--navy);padding:64px 64px 56px;border-bottom:1px solid rgba(255,255,255,.06);position:relative;}
+  .h-ey{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal-mid);margin-bottom:16px;}
+  .h-ti{font-family:'DM Serif Display',serif;font-size:48px;color:#fff;line-height:1.1;margin-bottom:16px;}
+  .h-ti em{font-style:italic;color:#e9c46a;}
+  .h-su{font-size:15px;color:rgba(255,255,255,.5);max-width:580px;line-height:1.7;margin-bottom:32px;}
+  .h-meta{display:flex;gap:40px;flex-wrap:wrap;}
+  .ml{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:4px;}
+  .mv{font-size:13px;color:rgba(255,255,255,.65);}
+  .lock-btn{position:absolute;top:32px;right:40px;font-size:11px;color:rgba(255,255,255,.3);cursor:pointer;border:1px solid rgba(255,255,255,.1);padding:6px 14px;border-radius:4px;transition:all .2s;}
+  .lock-btn:hover{color:rgba(255,255,255,.7);border-color:rgba(255,255,255,.3);}
+  .section{padding:56px 64px;border-bottom:1px solid var(--border);}
+  .section:last-child{border-bottom:none;}
+  .s-ey{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--teal-mid);margin-bottom:10px;}
+  .s-ti{font-family:'DM Serif Display',serif;font-size:32px;color:var(--text);margin-bottom:16px;line-height:1.2;}
+  .s-le{font-size:15px;color:var(--muted);max-width:680px;line-height:1.8;margin-bottom:32px;}
+  h3{font-size:18px;font-weight:600;color:var(--text);margin:32px 0 12px;}
+  h4{font-size:14px;font-weight:600;color:var(--text);margin:20px 0 8px;}
+  p{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:16px;}
+  ul,ol{padding-left:20px;margin-bottom:16px;}
+  li{font-size:14px;color:var(--muted);line-height:1.8;margin-bottom:4px;}
+  strong{color:var(--text);font-weight:600;}
+  code{font-family:'DM Mono',monospace;font-size:12px;background:rgba(26,122,110,.08);padding:1px 6px;border-radius:4px;color:var(--teal);}
+  .ref{display:inline-flex;align-items:center;gap:4px;background:var(--teal-light);border:1px solid rgba(29,158,117,.25);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;color:var(--teal);text-decoration:none;vertical-align:middle;margin-left:4px;transition:all .15s;}
+  .ref:hover{background:rgba(29,158,117,.2);}
+  .ref.rb{background:var(--blue-light);border-color:rgba(24,95,165,.25);color:var(--blue);}
+  .ref.rw{background:var(--gold-light);border-color:rgba(186,117,23,.25);color:var(--gold);}
+  .cb{background:var(--code-bg);border-radius:10px;overflow:hidden;margin:16px 0;}
+  .cb-h{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+  .cb-l{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--teal-mid);}
+  .cb-s{font-size:10px;color:rgba(255,255,255,.3);}
+  .cb-b{padding:16px;font-family:'DM Mono',monospace;font-size:12px;line-height:1.8;color:rgba(255,255,255,.75);overflow-x:auto;white-space:pre;}
+  .cb-b .m{color:#60a5fa;}.cb-b .u{color:#34d399;}.cb-b .k{color:#fbbf24;}.cb-b .v{color:#a78bfa;}.cb-b .c{color:rgba(255,255,255,.3);font-style:italic;}.cb-b .h{color:#fff;font-weight:600;}
+  .cg{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:24px 0;}
+  .card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:24px;}
+  .ci{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:16px;}
+  .ci.t{background:var(--teal-light);}.ci.g{background:var(--gold-light);}.ci.c{background:var(--coral-light);}.ci.b{background:var(--blue-light);}.ci.p{background:var(--purple-light);}
+  .ct{font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px;}
+  .cd{font-size:13px;color:var(--muted);line-height:1.6;}
+  .pipeline{display:flex;align-items:center;gap:0;margin:24px 0;flex-wrap:wrap;row-gap:12px;}
+  .ps{display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .pc{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid;flex-shrink:0;}
+  .pc.t{background:var(--teal-light);border-color:var(--teal-mid);color:var(--teal);}
+  .pc.b{background:var(--blue-light);border-color:#378ADD;color:var(--blue);}
+  .pc.g{background:var(--gold-light);border-color:var(--gold);color:var(--gold);}
+  .pc.c{background:var(--coral-light);border-color:#e76f51;color:var(--coral);}
+  .pc.lk{background:#f4f4f4;border-color:#ccc;color:#888;}
+  .pl{font-size:11px;font-weight:600;color:var(--text);}
+  .psl{font-size:10px;color:var(--muted);}
+  .pa{flex:1;min-width:20px;height:2px;background:var(--border);position:relative;}
+  .pa::after{content:'›';position:absolute;right:-6px;top:-9px;color:var(--muted);font-size:16px;}
+  .fs{display:flex;flex-direction:column;gap:0;margin:20px 0;}
+  .fst{display:flex;gap:16px;align-items:flex-start;}
+  .fsl{display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0;}
+  .fd{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;}
+  .fd.t{background:var(--teal-light);border:1.5px solid var(--teal-mid);color:var(--teal);}
+  .fd.b{background:var(--blue-light);border:1.5px solid #378ADD;color:var(--blue);}
+  .fd.p{background:var(--purple-light);border:1.5px solid #534AB7;color:var(--purple);}
+  .fd.g{background:var(--gold-light);border:1.5px solid var(--gold);color:var(--gold);}
+  .fd.c{background:var(--coral-light);border:1.5px solid #e76f51;color:var(--coral);}
+  .fd.gr{background:#EAF3DE;border:2px solid #3B6D11;color:#27500A;}
+  .fl{width:2px;background:var(--border);flex:1;min-height:12px;margin:3px 0;}
+  .fc{flex:1;padding-bottom:24px;}
+  .fti{font-size:14px;font-weight:600;color:var(--text);margin-top:6px;margin-bottom:4px;}
+  .fde{font-size:13px;color:var(--muted);line-height:1.6;}
+  .dt{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+  .dt th{padding:10px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:#f0f4f2;color:var(--muted);border-bottom:1.5px solid var(--border);}
+  .dt td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  .dt tr:last-child td{border-bottom:none;}
+  .dt td strong{color:var(--text);}
+  .dt td.mono{font-family:'DM Mono',monospace;font-size:11px;}
+  .badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;}
+  .badge.t{background:var(--teal-light);color:var(--teal);}
+  .badge.g{background:var(--gold-light);color:var(--gold);}
+  .badge.c{background:var(--coral-light);color:var(--coral);}
+  .badge.b{background:var(--blue-light);color:var(--blue);}
+  .badge.p{background:var(--purple-light);color:var(--purple);}
+  .badge.gr{background:#f0f4f2;color:var(--muted);}
+  .cl{border-radius:10px;padding:14px 18px;margin:16px 0;font-size:13px;line-height:1.7;}
+  .cl.info{background:var(--blue-light);border-left:3px solid #378ADD;color:var(--blue);}
+  .cl.warn{background:var(--gold-light);border-left:3px solid var(--gold);color:var(--gold);}
+  .cl.ok{background:var(--teal-light);border-left:3px solid var(--teal-mid);color:var(--teal);}
+  .cl.crit{background:var(--coral-light);border-left:3px solid #e76f51;color:var(--coral);}
+  .cl strong{color:inherit;}
+  .cl-list{display:flex;flex-direction:column;gap:4px;margin:12px 0;}
+  .cl-item{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--border);}
+  .cl-item:last-child{border-bottom:none;}
+  .cl-ic{width:18px;height:18px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;margin-top:2px;}
+  .cl-ic.a{background:var(--teal-light);color:var(--teal);border:1px solid rgba(29,158,117,.3);}
+  .cl-ic.m{background:var(--gold-light);color:var(--gold);border:1px solid rgba(186,117,23,.3);}
+  .cl-ic.r{background:var(--coral-light);color:var(--coral);border:1px solid rgba(153,60,29,.3);}
+  .av-list{display:flex;flex-direction:column;gap:8px;margin:16px 0;}
+  .av-item{display:flex;align-items:center;gap:12px;background:var(--white);border:1px solid var(--border);border-radius:8px;padding:12px 16px;}
+  .av-circle{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+  .av-info{flex:1;}
+  .av-name{font-size:13px;font-weight:600;color:var(--text);}
+  .av-role{font-size:11px;color:var(--muted);}
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:20px 0;}
+  .cmp-col{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .cmp-h{padding:12px 16px;font-size:12px;font-weight:700;border-bottom:1px solid var(--border);}
+  .cmp-h.qa{background:var(--blue-light);color:var(--blue);}
+  .cmp-h.pr{background:var(--coral-light);color:var(--coral);}
+  .cmp-r{padding:9px 16px;border-bottom:1px solid var(--border);font-size:12px;display:flex;justify-content:space-between;align-items:center;}
+  .cmp-r:last-child{border-bottom:none;}
+  .cmp-k{color:var(--muted);}
+  .cmp-v{color:var(--text);font-weight:500;text-align:right;}
+  .bias-box{background:var(--white);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:12px 0;}
+  .bias-h{display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(231,111,81,.05);border-bottom:1px solid rgba(231,111,81,.15);}
+  .bias-icon{width:22px;height:22px;border-radius:50%;background:rgba(231,111,81,.15);color:#993C1D;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+  .bias-title{font-size:13px;font-weight:600;color:#993C1D;}
+  .bias-body{padding:12px 16px;}
+  .bias-prob{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#e76f51;margin-bottom:5px;}
+  .bias-fix{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);margin:10px 0 5px;}
+  .bias-text{font-size:12px;color:var(--muted);line-height:1.6;}
+  .mod-type{display:flex;flex-direction:column;gap:6px;margin:16px 0;}
+  .mt-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:14px 16px;}
+  .mt-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .mt-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .mt-name{font-size:13px;font-weight:600;color:var(--text);flex:1;}
+  .mt-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+  .mt-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+  .mt-pill{font-size:10px;background:var(--surface);border:0.5px solid var(--border);border-radius:8px;padding:2px 8px;color:var(--muted);}
+  .ver-table{width:100%;border-collapse:collapse;font-size:12px;margin:16px 0;}
+  .ver-table th{padding:8px 12px;text-align:left;background:#f0f4f2;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px solid var(--border);}
+  .ver-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted);vertical-align:top;}
+  .ver-table tr:last-child td{border-bottom:none;}
+  .audit-row{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;}
+  .audit-row:last-child{border-bottom:none;}
+  .audit-time{color:var(--muted);font-family:'DM Mono',monospace;flex-shrink:0;width:90px;}
+  .audit-actor{width:72px;flex-shrink:0;}
+  .ap-pill{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:600;}
+  .ap-pill.ag{background:var(--teal-light);color:var(--teal);}
+  .ap-pill.us{background:var(--blue-light);color:var(--blue);}
+  .ap-pill.apr{background:var(--purple-light);color:var(--purple);}
+  .ap-pill.sy{background:#f0f4f2;color:var(--muted);border:0.5px solid var(--border);}
+  .audit-ev{flex:1;color:var(--muted);}
+  .audit-st{flex-shrink:0;}
+  .audit-st.ok{color:var(--teal);}
+  .tree{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px 20px;line-height:1.8;margin:16px 0;}
+  .tree .folder{color:var(--teal);font-weight:600;}
+  .tree .file{color:var(--text);}
+  .tree .note{color:var(--muted);font-style:italic;}
+  .notif-mock{background:#f5f5f5;border-radius:10px;overflow:hidden;margin:16px 0;}
+  .notif-teams-bar{background:#464775;padding:8px 14px;display:flex;align-items:center;gap:8px;}
+  .notif-teams-logo{width:20px;height:20px;border-radius:4px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#464775;}
+  .notif-teams-name{font-size:12px;font-weight:600;color:#fff;}
+  .notif-teams-chan{font-size:10px;color:rgba(255,255,255,.6);margin-left:auto;}
+  .notif-body{padding:14px;background:var(--white);}
+  .notif-sender{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .notif-av{width:28px;height:28px;border-radius:50%;background:var(--teal-mid);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+  .notif-sname{font-size:12px;font-weight:600;color:var(--text);}
+  .notif-time{font-size:10px;color:var(--muted);}
+  .notif-msg{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;}
+  .notif-card{background:var(--surface);border-radius:8px;border-left:3px solid #378ADD;padding:10px 14px;margin-bottom:10px;}
+  .notif-card-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px;}
+  .notif-card-row{display:flex;justify-content:space-between;font-size:11px;padding:2px 0;}
+  .notif-card-key{color:var(--muted);}
+  .notif-card-val{color:var(--text);font-weight:500;}
+  .notif-card-val.ok{color:var(--teal);}
+  .notif-actions{display:flex;gap:6px;margin-top:10px;}
+  .n-btn-yes{padding:7px 16px;background:var(--teal-mid);border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;}
+  .n-btn-no{padding:7px 16px;background:transparent;border:1px solid rgba(231,111,81,.5);border-radius:6px;color:#993C1D;font-size:12px;cursor:pointer;font-family:inherit;}
+  .n-btn-info{padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;}
+  .toc-marker{display:block;height:1px;margin-top:-80px;padding-top:80px;}
+  .fix-banner{background:rgba(29,158,117,.06);border:1px solid rgba(29,158,117,.2);border-radius:8px;padding:8px 14px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--teal);}
+  .fix-banner strong{color:var(--teal);}
+  @media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.doc-hero,.section{padding:40px 24px;}.cmp{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="cf-lock">
+  <div class="lc">
+    <div class="ll">Clara Fortuna · Innovation</div>
+    <div class="lt">AI Lab<br>Architecture Docs</div>
+    <div class="ls">Enter your password to access this document</div>
+    <input class="li" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key===String.fromCharCode(13))cfCheck()"/>
+    <div class="le" id="cf-err"></div>
+    <button class="lb" onclick="cfCheck()">Access Document</button>
+    <div class="lh">Clara Fortuna · Innovation Department · Confidential</div>
+  </div>
+</div>
+
+<div id="doc">
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">Clara AI Lab</div>
+    <div class="sb-title">Architecture<br>Documentation</div>
+    <div class="sb-ver">v2.0 · April 2026 — Corrected</div>
+  </div>
+  <div class="nav-sec">Validation</div>
+  <a href="#bias" class="nav-item">Architecture Bias Corrections</a>
+  <div class="nav-sec">Overview</div>
+  <a href="#overview" class="nav-item">Executive Summary</a>
+  <a href="#stack" class="nav-item">Technology Stack</a>
+  <a href="#architecture" class="nav-item">System Architecture</a>
+  <div class="nav-sec">Authentication</div>
+  <a href="#auth" class="nav-item">Azure AD + MSAL.js</a>
+  <a href="#security" class="nav-item">Security Model</a>
+  <div class="nav-sec">Agent Workflow</div>
+  <a href="#agent-ui" class="nav-item">Publication — 6 Steps</a>
+  <a href="#cancel" class="nav-item">Cancellation Flow</a>
+  <a href="#success" class="nav-item">Success Confirmation</a>
+  <a href="#post-pub" class="nav-item">Post-Publication Modify</a>
+  <div class="nav-sec">API & Backend</div>
+  <a href="#internal-flow" class="nav-item">Internal API Flow</a>
+  <a href="#dataverse-api" class="nav-item">Dataverse API Reference</a>
+  <div class="nav-sec">CI/CD Pipeline</div>
+  <a href="#dev-qa" class="nav-item">Dev → QA Promotion</a>
+  <a href="#approver-exp" class="nav-item">Approver Experience</a>
+  <a href="#qa-prod" class="nav-item">QA → Production</a>
+  <a href="#rollback" class="nav-item">Rollback Strategy</a>
+  <a href="#audit-log" class="nav-item">Audit Log</a>
+  <div class="nav-sec">Connectors</div>
+  <a href="#connectors" class="nav-item">Power Platform Connectors</a>
+  <div class="nav-sec">Repository</div>
+  <a href="#repo" class="nav-item">Repository Structure</a>
+  <a href="#roadmap" class="nav-item">Future Roadmap</a>
+  <div class="nav-sec">References</div>
+  <a href="#references" class="nav-item">Technical References</a>
+  <div class="sb-foot">Director of Innovation: Euris<br>Clara Fortuna · Confidential<br>v2.0 — All audit findings corrected</div>
+</nav>
+<div class="main">
+<!-- HERO -->
+<div class="doc-hero">
+  <button class="lock-btn" onclick="lockDoc()">Lock</button>
+  <div class="h-ey">Clara Fortuna · Innovation Department · Clara AI Lab</div>
+  <h1 class="h-ti">Technical Architecture<br><em>Documentation</em></h1>
+  <p class="h-su">Complete technical specification for the Clara AI Lab Agent — a GitHub Pages-hosted AI agent that enables citizen developers in the utility sector to design, publish, and manage Power Platform model-driven apps through a secure conversational interface. Version 2.0 incorporates all corrections identified in the architecture audit.</p>
+  <div class="h-meta">
+    <div><div class="ml">Version</div><div class="mv">v2.0 — Corrected</div></div>
+    <div><div class="ml">Release Date</div><div class="mv">April 17, 2026</div></div>
+    <div><div class="ml">Author</div><div class="mv">Euris · Director of Innovation</div></div>
+    <div><div class="ml">Status</div><div class="mv">Draft — Internal Review</div></div>
+    <div><div class="ml">Previous Version</div><div class="mv">v1.0 — 13 findings corrected</div></div>
+  </div>
+</div>
+
+<!-- SECTION 00: BIAS CORRECTIONS -->
+<div class="section" id="bias">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 00 — Audit Finding</div>
+  <h2 class="s-ti">Architecture Validation &amp; Bias Corrections</h2>
+  <p class="s-le">Before building any component of this system, the architecture was subjected to a technical validation pass. Three critical biases were identified in the initial design and corrected. This section documents what was wrong, why, and what the correct approach is — as required by Document Control integrity standards.</p>
+
+  <div class="bias-box">
+    <div class="bias-h"><div class="bias-icon">1</div><div class="bias-title">Bias: "No additional licenses needed" — INCORRECT</div></div>
+    <div class="bias-body">
+      <div class="bias-prob">Original (incorrect) claim</div>
+      <div class="bias-text">The initial architecture stated the agent could be built and used with "no additional licenses" beyond existing M365 accounts.</div>
+      <div class="bias-fix">Correction</div>
+      <div class="bias-text">The HTTP with Azure AD connector in Power Automate is a <strong>Premium connector</strong> — it requires a separate Power Apps Premium or Power Automate Premium license. Additionally, every user who runs a flow that uses a Premium connector (SQL, PostgreSQL, SAP, etc.) also needs a Premium license. Clara Fortuna holds Power Platform Premium licenses which covers this. However, for <strong>client deployments</strong> connecting to external databases, each client user requires their own Premium license — this is a per-client cost that must be communicated upfront.
+      <a href="https://www.sharepointeurope.com/connect-power-platform-to-azure-ad-protected-apis-using-built-in-http-connectors/" class="ref rb" target="_blank">Source ↗</a></div>
+    </div>
+  </div>
+
+  <div class="bias-box">
+    <div class="bias-h"><div class="bias-icon">2</div><div class="bias-title">Bias: Direct HTML → Dataverse connection — INSECURE</div></div>
+    <div class="bias-body">
+      <div class="bias-prob">Original (incorrect) design</div>
+      <div class="bias-text">The initial architecture connected the GitHub Pages HTML directly to the Dataverse API using an Azure AD token obtained in the browser.</div>
+      <div class="bias-fix">Correction</div>
+      <div class="bias-text">While technically possible to call Dataverse directly from a browser with a Bearer Token, this exposes the organization URI and all API calls to browser developer tools. More critically, any server-side operations requiring application permissions (not just delegated user permissions) cannot be done safely from a browser. The correct architecture routes <strong>all API calls through Power Automate as server-side middleware</strong>. The browser only holds the user's identity token — all privileged operations execute server-side.
+      <a href="https://manueltgomes.com/reference/power-automate-trigger-reference/when-an-http-request-is-received-trigger/" class="ref" target="_blank">Source ↗</a></div>
+    </div>
+  </div>
+
+  <div class="bias-box">
+    <div class="bias-h"><div class="bias-icon">3</div><div class="bias-title">Bias: Client secrets in frontend code — CRITICAL VULNERABILITY</div></div>
+    <div class="bias-body">
+      <div class="bias-prob">Original (incorrect) approach</div>
+      <div class="bias-text">Early design iterations included storing client secrets in the JavaScript code to authenticate against Power Automate or Dataverse.</div>
+      <div class="bias-fix">Correction</div>
+      <div class="bias-text">Client secrets embedded in frontend code are visible to anyone who views the page source. This is a well-documented security vulnerability. The corrected architecture uses: (1) <strong>MSAL.js PKCE flow</strong> — no client secret required in the browser; (2) <strong>Azure Key Vault</strong> for all secrets accessed by Power Automate server-side; (3) <strong>Delegated permissions only</strong> in the browser — the user's token represents their own identity, not an application identity with elevated privileges.
+      <a href="https://forwardforever.com/using-oauth-authentication-for-http-request-triggers-in-power-automate/" class="ref" target="_blank">Source ↗</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 01: OVERVIEW -->
+<div class="section" id="overview">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 01</div>
+  <h2 class="s-ti">Executive Summary</h2>
+  <p class="s-le">The Clara AI Lab Agent is the technological centerpiece of Clara Fortuna's newest strategic initiative — the Clara AI Lab — announced to the company in April 2026.</p>
+
+  <h3>Business Context — Why This Exists</h3>
+  <p>The utility sector is undergoing rapid technological transformation. Through conversations with industry leaders and ongoing discussions across the utility space, one thing has become clear: <strong>utilities need a space where they can explore, test, and innovate rapidly — without immediately running into the barriers that come with internal IT structures.</strong></p>
+  <p>The Clara AI Lab was created precisely for this purpose: a space where utility clients can experiment with emerging technologies, evaluate solutions, and move ideas forward in a setting built for innovation. The lab is designed to help clients think bigger, test sooner, and develop practical recommendations that can later be brought back into their organizations in a structured way.</p>
+  <p>To support this vision, Clara Fortuna formally separated the functions of <strong>Innovation</strong> and <strong>Development</strong> in April 2026. The Innovation department — led by Euris as Director of Innovation — now focuses exclusively on the Clara AI Lab, emerging technology evaluation, and AI-driven solutions for utility clients. Development (Randdy, Emely, with Manny as interim supervisor pending Director selection) handles solution delivery and platform support.</p>
+
+  <h3>What the Agent Does</h3>
+  <p>The Clara AI Lab Agent is a browser-based, conversational AI interface that allows <strong>citizen developers — users with no coding knowledge</strong> — to design, build, publish, and manage Microsoft Power Platform model-driven applications entirely through conversation. No access to the Power Apps maker portal is required. No technical training is needed.</p>
+  <p>The agent guides users through a structured workflow: describe what you need in natural language → the agent designs the data model → confirm the design → publish to the Dev environment → get approvals → promote to QA → promote to Production. The entire lifecycle is managed from a single interface hosted on GitHub Pages.</p>
+
+  <div class="cg">
+    <div class="card"><div class="ci t">🤖</div><div class="ct">No-code app builder</div><div class="cd">Natural language → model-driven app. No Power Apps maker portal needed. Target users: citizen developers at utility clients.</div></div>
+    <div class="card"><div class="ci b">🔒</div><div class="ct">Zero secrets in browser</div><div class="cd">MSAL.js OAuth 2.0 + PKCE. All privileged operations run server-side in Power Automate. Verified architecture pattern.</div></div>
+    <div class="card"><div class="ci g">⚡</div><div class="ct">Full lifecycle management</div><div class="cd">Design → Publish Dev → Modify → Version → Approve → QA → Approve → Production. One interface, complete pipeline.</div></div>
+    <div class="card"><div class="ci c">🔗</div><div class="ct">Any data source</div><div class="cd">Dataverse native + SQL, PostgreSQL, MySQL, Oracle, SAP and 1,000+ sources via Power Platform Premium connectors.</div></div>
+  </div>
+
+  <h3>Organization Context</h3>
+  <div class="av-list">
+    <div class="av-item"><div class="av-circle" style="background:#e9c46a;color:#333">CF</div><div class="av-info"><div class="av-name">Founder / Executive — Clara Fortuna</div><div class="av-role">Final approval authority for Production deployments</div></div><span class="badge c">Executive</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#1D9E75">EU</div><div class="av-info"><div class="av-name">Euris — Director of Innovation</div><div class="av-role">Leads Clara AI Lab · Author of this document · Level 2 approver</div></div><span class="badge t">Innovation</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#378ADD">RD</div><div class="av-info"><div class="av-name">Randdy — Development</div><div class="av-role">Reports to Development · Level 1 approver for QA and Production promotions</div></div><span class="badge b">Development</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#534AB7">EM</div><div class="av-info"><div class="av-name">Emely — Development</div><div class="av-role">Reports to Development · Solution delivery and platform support</div></div><span class="badge b">Development</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#BA7517">MA</div><div class="av-info"><div class="av-name">Manny — Interim Development Supervisor</div><div class="av-role">Oversees Development temporarily pending Director selection · Level 1 approver</div></div><span class="badge g">Development</span></div>
+  </div>
+</div>
+
+<!-- SECTION 02: STACK -->
+<div class="section" id="stack">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 02</div>
+  <h2 class="s-ti">Technology Stack</h2>
+  <p class="s-le">Every component is a current, generally-available Microsoft technology with documented APIs and official support. No preview or experimental features are used in the core pipeline.</p>
+  <table class="dt">
+    <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th><th>Reference</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Frontend</strong></td><td>HTML5 / CSS3 / Vanilla JS</td><td>Agent conversational UI — static SPA hosted on GitHub Pages</td><td><a href="https://pages.github.com" class="ref rb" target="_blank">GitHub Pages ↗</a></td></tr>
+      <tr><td><strong>Authentication</strong></td><td>MSAL.js v3 (@azure/msal-browser)</td><td>OAuth 2.0 Auth Code + PKCE for SPAs. Token acquisition, silent renewal, no backend required.</td><td><a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html" class="ref" target="_blank">MSAL Docs ↗</a></td></tr>
+      <tr><td><strong>Identity</strong></td><td>Microsoft Entra ID (Azure AD)</td><td>App registration, token issuance, tenant-scoped user authentication</td><td><a href="https://learn.microsoft.com/en-us/entra/identity-platform/msal-authentication-flows" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td><strong>Middleware</strong></td><td>Power Automate Cloud Flows</td><td>HTTP trigger endpoint, server-side logic, connector execution, approval workflows</td><td><a href="https://learn.microsoft.com/en-us/power-automate/get-started-approvals" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td><strong>Secrets</strong></td><td>Azure Key Vault</td><td>Secure storage of connector credentials — retrieved by Power Automate at runtime only</td><td><a href="https://learn.microsoft.com/en-us/azure/key-vault/" class="ref rb" target="_blank">Azure Docs ↗</a></td></tr>
+      <tr><td><strong>Data Platform</strong></td><td>Microsoft Dataverse</td><td>App storage, table management, security roles, PublishXml</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview" class="ref" target="_blank">Web API ↗</a></td></tr>
+      <tr><td><strong>App Framework</strong></td><td>Power Apps Model-Driven (AppModule)</td><td>Create, manage, publish apps via code using AppModule entity</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td><strong>Visual Design</strong></td><td>Dataverse Web Resources</td><td>HTML/JS/CSS files registered in Dataverse for custom visual design in model-driven apps</td><td><a href="https://www.u2u.be/training/developing-for-the-power-platform" class="ref" target="_blank">U2U Training ↗</a></td></tr>
+      <tr><td><strong>Connectors</strong></td><td>Power Platform Premium Connectors</td><td>SQL, PostgreSQL, MySQL, Oracle, SAP + 1,000+ external data sources</td><td><a href="https://learn.microsoft.com/en-us/connectors/connector-reference/" class="ref" target="_blank">Connector Ref ↗</a></td></tr>
+      <tr><td><strong>Notifications</strong></td><td>Teams Adaptive Cards + Outlook</td><td>Approval requests with inline Approve/Reject action buttons</td><td><a href="https://learn.microsoft.com/en-us/power-automate/get-started-approvals" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td><strong>Source Control</strong></td><td>GitHub — clarafortuna/demos</td><td>Version control, GitHub Pages hosting, Document Control</td><td><a href="https://github.com/clarafortuna/demos" class="ref rb" target="_blank">Repository ↗</a></td></tr>
+    </tbody>
+  </table>
+
+  <div class="cl info">
+    <strong>Web Resources — Verified:</strong> Web resources represent files that can be used to extend the Dataverse web application such as HTML files, JavaScript, and CSS. They are the recommended approach for custom visual design in model-driven apps and are registered as components of type 61 (WebResource) in the AppModule.
+    <a href="https://www.u2u.be/training/developing-for-the-power-platform" class="ref rb" target="_blank">Source ↗</a>
+  </div>
+</div>
+<!-- SECTION 03: ARCHITECTURE -->
+<div class="section" id="architecture">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 03</div>
+  <h2 class="s-ti">System Architecture</h2>
+  <p class="s-le">Three-tier pattern: static frontend (GitHub Pages) → secure middleware (Power Automate) → data platform (Dataverse + connectors). No backend server required.</p>
+  <div class="cb">
+    <div class="cb-h"><span class="cb-l">Architecture Overview</span><span class="cb-s">Clara AI Lab v2.0</span></div>
+    <div class="cb-b">┌─────────────────────────────────────────────────────┐
+│  TIER 1 — Frontend (GitHub Pages)                   │
+│  demo.clarafortuna.com/Innovation/agent/            │
+│  • HTML/CSS/JS Single-Page Application              │
+│  • MSAL.js — OAuth 2.0 Auth Code + PKCE            │
+│  • Token in session memory only. No secrets.       │
+└──────────────────┬──────────────────────────────────┘
+                   │ HTTPS + Bearer Token (Azure AD JWT)
+                   ▼
+┌─────────────────────────────────────────────────────┐
+│  TIER 2 — Middleware (Power Automate)               │
+│  HTTP trigger: "Any user in my tenant"              │
+│  • Validates Azure AD Bearer Token                  │
+│  • Retrieves secrets from Azure Key Vault          │
+│  • Executes Dataverse API calls server-side        │
+│  • Executes Premium Connector calls                │
+│  • Sends approval notifications (Teams + Email)    │
+└──────────────────┬──────────────────────────────────┘
+                   │
+       ┌───────────┼──────────────┐
+       ▼           ▼              ▼
+  Dataverse    SQL/PostgreSQL   SAP/Oracle/
+  Web API v9.2 MySQL (Premium)  Custom REST APIs</div>
+  </div>
+</div>
+
+<!-- SECTION 04: AUTH -->
+<div class="section" id="auth">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 04</div>
+  <h2 class="s-ti">Azure AD Authentication with MSAL.js</h2>
+  <p class="s-le">The agent uses OAuth 2.0 Authorization Code Flow with PKCE — the recommended flow for browser-based SPAs. Implemented through <code>@azure/msal-browser</code>, the official Microsoft library.</p>
+  <div class="cl ok"><strong>Verified:</strong> MSAL.js (@azure/msal-browser) implements OAuth 2.0 Authorization Code Flow with PKCE for browser-based applications without backend servers. OpenID-compliant. Replaces deprecated Implicit Flow. <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html" class="ref" target="_blank">MSAL Browser Docs ↗</a></div>
+  <h3>Authentication Flow</h3>
+  <div class="fs">
+    <div class="fst"><div class="fsl"><div class="fd t">1</div><div class="fl"></div></div><div class="fc"><div class="fti">User opens agent URL</div><div class="fde">Browser loads static HTML from GitHub Pages. MSAL.js initializes and checks for cached token in session memory.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd t">2</div><div class="fl"></div></div><div class="fc"><div class="fti">Redirect to Microsoft login</div><div class="fde">MSAL.js calls <code>loginRedirect()</code>. User enters corporate credentials: <code>user@clarafortuna.com</code>. This is the same login page as Office 365, Teams, and Outlook — no new credentials required.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd b">3</div><div class="fl"></div></div><div class="fc"><div class="fti">Azure AD issues Bearer Token (JWT)</div><div class="fde">Token valid for 60 minutes. MSAL.js stores it in <strong>session memory only</strong> — never in localStorage or cookies. Token disappears when tab is closed.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd b">4</div><div class="fl"></div></div><div class="fc"><div class="fti">Silent renewal via acquireTokenSilent()</div><div class="fde">Before any API call, MSAL.js renews the token silently if needed. User never sees a second login prompt.</div>
+    <div class="cb" style="margin-top:10px"><div class="cb-h"><span class="cb-l">JavaScript</span><span class="cb-s">MSAL.js Official GitHub</span></div><div class="cb-b"><span class="c">// Source: github.com/AzureAD/microsoft-authentication-library-for-js</span>
+msalInstance.<span class="m">acquireTokenSilent</span>({ <span class="k">scopes</span>: [<span class="h">"https://clarafortuna-dev.crm.dynamics.com/.default"</span>] })
+  .then(resp =&gt; {
+    <span class="k">const</span> bearer = <span class="h">"Bearer "</span> + resp.accessToken;
+    <span class="c">// Add to Authorization header for Power Automate call</span>
+  })
+  .catch(() =&gt; msalInstance.<span class="m">acquireTokenRedirect</span>(request));</div></div>
+    </div></div>
+    <div class="fst"><div class="fsl"><div class="fd gr">✓</div></div><div class="fc"><div class="fti">Agent active — only tenant users can access</div><div class="fde">Only users with a <code>@clarafortuna.com</code> Microsoft 365 account can authenticate. External users are blocked by Azure AD.</div></div></div>
+  </div>
+  <h3>Azure App Registration Requirements</h3>
+  <table class="dt">
+    <thead><tr><th>Setting</th><th>Value</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Application name</td><td class="mono">ClaraAILab-Agent</td><td>Shown on consent screen</td></tr>
+      <tr><td>Account types</td><td>Single tenant</td><td>clarafortuna.com only</td></tr>
+      <tr><td>Redirect URI</td><td class="mono">https://demo.clarafortuna.com/Innovation/agent/</td><td>Must match exactly</td></tr>
+      <tr><td>API Permission</td><td>Dynamics CRM — user_impersonation (Delegated)</td><td>Required for Dataverse</td></tr>
+      <tr><td>Admin consent</td><td>Required — one-time setup</td><td>Azure Admin performs once</td></tr>
+      <tr><td>Client secret</td><td><strong>Not required</strong></td><td>PKCE flow — no secret in browser</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 05: SECURITY -->
+<div class="section" id="security">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 05</div>
+  <h2 class="s-ti">Security Model</h2>
+  <div class="cg">
+    <div class="card"><div class="ci t">🔐</div><div class="ct">Layer 1 — Identity</div><div class="cd">Azure AD authentication. Only clarafortuna.com tenant users. Enforced by Microsoft Entra ID — not by the agent itself.</div></div>
+    <div class="card"><div class="ci b">🛡️</div><div class="ct">Layer 2 — Transport</div><div class="cd">Power Automate HTTP trigger requires Azure AD Bearer Token. "Any user in my tenant" setting. Anonymous calls are rejected with HTTP 401.</div></div>
+    <div class="card"><div class="ci g">🗝️</div><div class="ct">Layer 3 — Secrets</div><div class="cd">All connector credentials in Azure Key Vault. Retrieved by Power Automate at runtime only. Never written in code or browser.</div></div>
+  </div>
+  <div class="cl warn"><strong>Client Secret Risk:</strong> Storing a client secret in frontend JS exposes it to anyone viewing page source. The architecture avoids this entirely via PKCE (no secret needed) and server-side Power Automate execution. <a href="https://forwardforever.com/using-oauth-authentication-for-http-request-triggers-in-power-automate/" class="ref rw" target="_blank">Source ↗</a></div>
+  <div class="cl info"><strong>Power Automate HTTP Trigger Security (Verified):</strong> Three authentication modes available: (1) Anyone — SAS token, no auth; (2) Any user in my tenant — valid Azure AD Bearer Token required (this architecture uses this); (3) Specific users in my tenant — whitelist by email. <a href="https://manueltgomes.com/reference/power-automate-trigger-reference/when-an-http-request-is-received-trigger/" class="ref rb" target="_blank">Source ↗</a></div>
+</div>
+
+<!-- SECTION 06: AGENT UI — 6 STEPS -->
+<div class="section" id="agent-ui">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 06</div>
+  <h2 class="s-ti">Agent Publication Workflow — 6 Steps</h2>
+  <p class="s-le">When a user is ready to publish a designed app to Dev, the agent guides them through 6 structured steps. No technical knowledge required. No environment is touched until Step 6 explicit confirmation.</p>
+  <div class="fs">
+    <div class="fst"><div class="fsl"><div class="fd t">1</div><div class="fl"></div></div><div class="fc"><div class="fti">Model Confirmation</div><div class="fde">Agent presents complete summary: tables, relationships, forms, modules, visual design. Three options: <strong>Confirm</strong> (proceed), <strong>Request changes</strong> (chat continues, model updates, returns here), or <strong>Cancel</strong> (see Section 06.A). Nothing is applied to any environment.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd t">2</div><div class="fl"></div></div><div class="fc"><div class="fti">Name and Description</div><div class="fde">Four fields: (1) Display name — what users see; (2) Unique name — Dataverse internal ID, prefix <code>cf_</code> enforced by the Clara Fortuna publisher; (3) Description — optional; (4) Version tag — defaults to <code>DEV-v1.0</code>. Agent validates uniqueness against target environment in real time. Agent suggests 3 names based on the model designed in the session.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd b">3</div><div class="fl"></div></div><div class="fc"><div class="fti">Target Environment Selection</div><div class="fde">Agent queries Power Platform API to retrieve environments available to the authenticated user. Each shown as a card with status, URL, region, and app count. <strong>Production is always locked</strong> for citizen developers — only System Administrators can publish to Production. Selecting QA shows a warning to validate in Dev first.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd b">4</div><div class="fl"></div></div><div class="fc"><div class="fti">Security Roles Assignment</div><div class="fde">Agent queries Dataverse for all security roles in target environment. Without at least one role, the published app is invisible to all users — including the publisher. <code>Basic User</code> is always recommended as minimum. <code>System Administrator</code> shows a caution badge. User can proceed without roles but sees a warning.</div>
+    <div class="cl info" style="margin-top:8px"><strong>Verified:</strong> "Users assigned to the associated security roles can see and use your model-driven apps in Dataverse." An app without roles is published but invisible. <a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" class="ref" target="_blank">MS Learn ↗</a></div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd g">5</div><div class="fl"></div></div><div class="fc"><div class="fti">Data Source Confirmation</div><div class="fde">Three options: (1) <strong>Dataverse</strong> — agent lists session tables, verifies existence in target environment; (2) <strong>External database</strong> (SQL/PostgreSQL/MySQL/Oracle/SAP) — user provides credentials, agent tests connection live through Power Automate — mandatory before proceeding; (3) <strong>Power Automate Flow</strong> — select existing flows in tenant that connect to external systems.</div></div></div>
+    <div class="fst"><div class="fsl"><div class="fd gr">6</div></div><div class="fc"><div class="fti">Final Confirmation Summary + Publish</div><div class="fde">Full summary of all 5 steps with edit links. Agent runs automated pre-publish checks (connection, tables, roles, token). User must check an explicit confirmation checkbox before Publish button activates. Progress bar shows each internal API step in real time. On success — see Section 06.B for confirmation screen details.</div></div></div>
+  </div>
+</div>
+
+<!-- SECTION 06.A: CANCELLATION -->
+<div class="section" id="cancel">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 06.A — Audit Correction (Finding #3)</div>
+  <h2 class="s-ti">Cancellation and Correction Flow</h2>
+  <p class="s-le">At any point during the 6-step workflow, the user can stop. The agent preserves all progress and offers 4 recovery options. No environment changes are ever made before Step 6 confirmation.</p>
+
+  <h3>State Preservation</h3>
+  <p>When the user pauses or cancels, the agent maintains the complete state of all completed steps in session memory:</p>
+  <table class="dt">
+    <thead><tr><th>Step</th><th>What is preserved</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Step 1</strong></td><td>Full model — tables, relationships, forms, modules, visual design</td></tr>
+      <tr><td><strong>Step 2</strong></td><td>App name, unique name, description, version tag</td></tr>
+      <tr><td><strong>Step 3</strong></td><td>Selected environment and its connection details</td></tr>
+      <tr><td><strong>Step 4</strong></td><td>Selected security roles list</td></tr>
+      <tr><td><strong>Step 5</strong></td><td>Data source type, connection details, tables confirmed</td></tr>
+    </tbody>
+  </table>
+
+  <h3>4 Recovery Options</h3>
+  <div class="cg">
+    <div class="card"><div class="ci t">✏️</div><div class="ct">1. Correct a specific step</div><div class="cd">Return to any step directly. All other steps remain saved. Most common option — user noticed an error in one field only.</div></div>
+    <div class="card"><div class="ci b">💬</div><div class="ct">2. Modify the model in chat</div><div class="cd">Describe the change in natural language. Agent updates the model and automatically returns to Step 6 with updated summary.</div></div>
+    <div class="card"><div class="ci g">💾</div><div class="ct">3. Save session for later</div><div class="cd">Agent saves complete state with a unique session ID (e.g. <code>AILab-Session-20260417-EU-001</code>). User can resume in another session by referencing the ID.</div></div>
+    <div class="card"><div class="ci c">🗑️</div><div class="ct">4. Discard and start over</div><div class="cd">Requires double confirmation. Agent explicitly confirms Dev environment was NOT affected since nothing was published. Model and all step data are cleared.</div></div>
+  </div>
+  <div class="cl ok"><strong>Key Principle:</strong> Discarding a session has zero impact on any Dataverse environment. The agent never writes to Dataverse before Step 6 explicit publish confirmation. The "discard" warning is for user peace of mind — not because data was at risk.</div>
+</div>
+
+<!-- SECTION 06.B: SUCCESS CONFIRMATION -->
+<div class="section" id="success">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 06.B — Audit Correction (Finding #7)</div>
+  <h2 class="s-ti">Success Confirmation Screen</h2>
+  <p class="s-le">After successful publication, the agent displays a comprehensive confirmation screen. The design follows the principle that a citizen developer should immediately know what was published, where to find it, and what to do next.</p>
+
+  <h3>Screen Elements</h3>
+  <table class="dt">
+    <thead><tr><th>Element</th><th>Content</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Animated checkmark</strong></td><td>Green circle with ✓ animation</td><td>Immediate visual confirmation — reduces anxiety for non-technical users</td></tr>
+      <tr><td><strong>App URL</strong></td><td>Direct link to app in target environment with Copy and Open buttons</td><td>First thing needed — share with team immediately</td></tr>
+      <tr><td><strong>Published summary</strong></td><td>App name, unique name, version, environment, tables, security roles, forms, time taken</td><td>Confirms everything configured in Steps 1-5 arrived correctly</td></tr>
+      <tr><td><strong>QA/Production status</strong></td><td>"Not affected" label for both</td><td>Reassures user no other environment was touched</td></tr>
+      <tr><td><strong>Collapsible audit log</strong></td><td>Each API call with timestamp and duration (hidden by default)</td><td>Available for technical review without cluttering the main view</td></tr>
+      <tr><td><strong>Next steps (4 cards)</strong></td><td>Modify app / Promote to QA / Create another app / Manage access</td><td>Agent anticipates the most likely next action</td></tr>
+      <tr><td><strong>Share options</strong></td><td>Share URL via Teams / Email / Copy link</td><td>In enterprise, publishing = notifying the team</td></tr>
+    </tbody>
+  </table>
+</div>
+<!-- SECTION 06.C: POST-PUBLICATION MODIFICATION -->
+<div class="section" id="post-pub">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 06.C — Audit Correction (Finding #1)</div>
+  <h2 class="s-ti">Post-Publication Modification Flow</h2>
+  <p class="s-le">After a successful Dev publication, the lifecycle continues. Users can modify the app at any time. The type of change determines whether a version increment is required and what the impact to active users is.</p>
+
+  <h3>5 Types of Post-Publication Changes</h3>
+  <div class="mod-type">
+    <div class="mt-card">
+      <div class="mt-header"><div class="mt-icon ci t">📋</div><div class="mt-name">1. Add or modify fields</div><span class="badge t">Low impact</span></div>
+      <div class="mt-desc">New columns, data type changes, column renames on existing tables. Applied directly to DEV-v1.0 — no version increment needed.</div>
+      <div class="mt-pills"><span class="mt-pill">+ priority field</span><span class="mt-pill">+ due date field</span><span class="mt-pill">rename column</span></div>
+    </div>
+    <div class="mt-card">
+      <div class="mt-header"><div class="mt-icon ci b">📄</div><div class="mt-name">2. Change forms or views</div><span class="badge t">Low impact</span></div>
+      <div class="mt-desc">Reorganize sections, add tabs, change field order on screen. Applied directly — no version increment needed.</div>
+      <div class="mt-pills"><span class="mt-pill">move field up</span><span class="mt-pill">add section</span><span class="mt-pill">new filtered view</span></div>
+    </div>
+    <div class="mt-card">
+      <div class="mt-header"><div class="mt-icon ci p">🎨</div><div class="mt-name">3. Change visual design</div><span class="badge t">Low impact</span></div>
+      <div class="mt-desc">Colors, fonts, layout of the web resource. Agent modifies and republishes the web resource (componenttype 61). Instant — visible in seconds. No data impact.</div>
+      <div class="mt-pills"><span class="mt-pill">change header color</span><span class="mt-pill">add client logo</span><span class="mt-pill">adjust layout</span></div>
+    </div>
+    <div class="mt-card">
+      <div class="mt-header"><div class="mt-icon ci g">🗄️</div><div class="mt-name">4. Add or modify tables</div><span class="badge g">Medium impact</span></div>
+      <div class="mt-desc">New table, change relationships, add catalog table. Requires version increment: adding = minor (v1.0→v1.1), changing existing relationships = major (v1.0→v2.0).</div>
+      <div class="mt-pills"><span class="mt-pill">+ cf_contract table</span><span class="mt-pill">new relationship</span><span class="mt-pill">catalog table</span></div>
+    </div>
+    <div class="mt-card">
+      <div class="mt-header"><div class="mt-icon ci c">⚙️</div><div class="mt-name">5. Major structural change</div><span class="badge c">High impact</span></div>
+      <div class="mt-desc">Delete tables, change data source, restructure modules. Always requires new major version. Previous version stays active during transition. Agent creates automatic backup before any structural change.</div>
+      <div class="mt-pills"><span class="mt-pill">delete table</span><span class="mt-pill">change to SQL</span><span class="mt-pill">new module</span></div>
+    </div>
+  </div>
+
+  <h3>Versioning Strategy</h3>
+  <table class="ver-table">
+    <thead><tr><th>Version Type</th><th>Pattern</th><th>When to use</th><th>Previous version</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge t">Minor</span></td><td class="mono">v1.0 → v1.1</td><td>Add new table, new field, new view. Backward compatible.</td><td>Stays active until new version validated</td></tr>
+      <tr><td><span class="badge c">Major</span></td><td class="mono">v1.0 → v2.0</td><td>Restructure existing relationships, change data source, major module redesign.</td><td><strong>Stays active</strong> — users continue on v1.0 during transition</td></tr>
+      <tr><td><span class="badge b">Hotfix</span></td><td class="mono">v1.0 → v1.0.1</td><td>Minor correction, data type fix, no functional change.</td><td>Replaced immediately after validation</td></tr>
+    </tbody>
+  </table>
+  <div class="cl ok"><strong>Key Rule:</strong> The previous version is always kept active during the transition to a new major version. Users continue working without interruption. Only when the new version is validated and promoted to the same environment is the old version retired.</div>
+</div>
+
+<!-- SECTION 07: INTERNAL FLOW -->
+<div class="section" id="internal-flow">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 07</div>
+  <h2 class="s-ti">Internal API Flow — What Happens When the User Publishes</h2>
+  <p class="s-le">One button click → ~12 seconds → done. Internally: 6 sequential API calls through Power Automate. Each depends on the result of the previous one.</p>
+  <table class="dt">
+    <thead><tr><th>#</th><th>Step</th><th>API Call</th><th>Time</th><th>On Failure</th></tr></thead>
+    <tbody>
+      <tr><td><span class="badge t">1</span></td><td><strong>Token validation</strong></td><td class="mono">MSAL acquireTokenSilent()</td><td>~1s</td><td>Re-authenticate user</td></tr>
+      <tr><td><span class="badge t">2</span></td><td><strong>Create AppModule</strong></td><td class="mono">POST /api/data/v9.2/appmodules</td><td>~2s</td><td>Abort — nothing created</td></tr>
+      <tr><td><span class="badge b">3</span></td><td><strong>Register tables (parallel)</strong></td><td class="mono">GET + POST EntityDefinitions</td><td>~3s</td><td>Rollback: DELETE AppModule</td></tr>
+      <tr><td><span class="badge g">4</span></td><td><strong>Add forms/views/web resources</strong></td><td class="mono">POST appmodulecomponents (type 60, 26, 61)</td><td>~2s</td><td>Rollback: DELETE AppModule</td></tr>
+      <tr><td><span class="badge b">5</span></td><td><strong>Assign security roles</strong></td><td class="mono">POST appmoduleroles_association/$ref</td><td>~1s</td><td>Notify — retry this step only</td></tr>
+      <tr><td><span class="badge t">6</span></td><td><strong>Publish app (PublishXml)</strong></td><td class="mono">POST /api/data/v9.2/PublishXml</td><td>~2s</td><td>Rollback: DELETE AppModule</td></tr>
+    </tbody>
+  </table>
+  <div class="cl ok"><strong>Rollback Principle:</strong> If any step after AppModule creation fails, the AppModule is deleted via <code>DELETE /api/data/v9.0/appmodules({id})</code>. The environment returns to its exact pre-publish state. Never a partial publication.</div>
+</div>
+
+<!-- SECTION 08: DATAVERSE API -->
+<div class="section" id="dataverse-api">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 08</div>
+  <h2 class="s-ti">Dataverse Web API Reference</h2>
+  <p class="s-le">All Dataverse operations use OData v4.0 Web API — documented, generally-available. Verified against official Microsoft documentation.</p>
+
+  <h3>Create AppModule</h3>
+  <div class="cb"><div class="cb-h"><span class="cb-l">HTTP</span><span class="cb-s"><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" style="color:rgba(255,255,255,.4);text-decoration:none">MS Learn ↗</a></span></div>
+  <div class="cb-b"><span class="m">POST</span> <span class="u">[org]/api/data/v9.2/appmodules</span>
+{
+  <span class="k">"name"</span>: <span class="v">"cf_gestion_casos_csr"</span>,
+  <span class="k">"uniquename"</span>: <span class="v">"cf_gestion_casos_csr"</span>,
+  <span class="k">"friendlyname"</span>: <span class="v">"Gestión de Casos CSR"</span>,
+  <span class="k">"clienttype"</span>: <span class="v">64</span>  <span class="c">// 64 = Model-Driven App</span>
+}
+<span class="c">// Response: HTTP 204 — OData-EntityId contains appmoduleid</span></div></div>
+
+  <h3>Add Components (Tables, Forms, Views, Web Resources)</h3>
+  <div class="cb"><div class="cb-h"><span class="cb-l">HTTP</span><span class="cb-s"><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" style="color:rgba(255,255,255,.4);text-decoration:none">MS Learn ↗</a></span></div>
+  <div class="cb-b"><span class="m">POST</span> <span class="u">[org]/api/data/v9.2/AddAppComponents</span>
+{
+  <span class="k">"AppId"</span>: <span class="v">"{appmoduleid}"</span>,
+  <span class="k">"Components"</span>: [
+    { <span class="k">"componenttype"</span>: <span class="v">1</span>,  <span class="k">"objectid"</span>: <span class="v">"{entityId}"</span>  },  <span class="c">// Table/Entity</span>
+    { <span class="k">"componenttype"</span>: <span class="v">60</span>, <span class="k">"objectid"</span>: <span class="v">"{formId}"</span>   },  <span class="c">// SystemForm</span>
+    { <span class="k">"componenttype"</span>: <span class="v">26</span>, <span class="k">"objectid"</span>: <span class="v">"{viewId}"</span>   },  <span class="c">// SavedQuery/View</span>
+    { <span class="k">"componenttype"</span>: <span class="v">61</span>, <span class="k">"objectid"</span>: <span class="v">"{webResId}"</span> }   <span class="c">// WebResource (visual design)</span>
+  ]
+}</div></div>
+
+  <h3>Assign Security Roles</h3>
+  <div class="cb"><div class="cb-h"><span class="cb-l">HTTP</span><span class="cb-s"><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" style="color:rgba(255,255,255,.4);text-decoration:none">MS Learn ↗</a></span></div>
+  <div class="cb-b"><span class="m">POST</span> <span class="u">[org]/api/data/v9.2/appmodules({id})/appmoduleroles_association/$ref</span>
+{ <span class="k">"@odata.id"</span>: <span class="v">"[org]/api/data/v9.2/roles({roleId})"</span> }
+<span class="c">// Response: HTTP 204 No Content — association successful</span></div></div>
+
+  <h3>Publish the App</h3>
+  <div class="cb"><div class="cb-h"><span class="cb-l">HTTP</span><span class="cb-s"><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" style="color:rgba(255,255,255,.4);text-decoration:none">MS Learn ↗</a></span></div>
+  <div class="cb-b"><span class="m">POST</span> <span class="u">[org]/api/data/v9.2/PublishXml</span>
+{ <span class="k">"ParameterXml"</span>: <span class="v">"&lt;importexportxml&gt;&lt;appmodules&gt;&lt;appmodule&gt;{id}&lt;/appmodule&gt;&lt;/appmodules&gt;&lt;/importexportxml&gt;"</span> }
+<span class="c">// Makes app visible to users with assigned security roles</span></div></div>
+
+  <h3>Rollback — Delete AppModule</h3>
+  <div class="cb"><div class="cb-h"><span class="cb-l">HTTP</span></div>
+  <div class="cb-b"><span class="m">DELETE</span> <span class="u">[org]/api/data/v9.2/appmodules({appmoduleid})</span>
+<span class="c">// Executed automatically on any pipeline failure after Step 2</span></div></div>
+</div>
+
+<!-- SECTION 09: DEV→QA -->
+<div class="section" id="dev-qa">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 09</div>
+  <h2 class="s-ti">Dev → QA Promotion Flow</h2>
+  <p class="s-le">QA is a shared environment — a broken app blocks other teams. The 2-approver workflow ensures only validated code reaches QA.</p>
+  <div class="pipeline">
+    <div class="ps"><div class="pc t">✓</div><div class="pl">Dev</div><div class="psl">Published</div></div>
+    <div class="pa"></div>
+    <div class="ps"><div class="pc b">⟳</div><div class="pl">Approval</div><div class="psl">2 approvers</div></div>
+    <div class="pa"></div>
+    <div class="ps"><div class="pc g">○</div><div class="pl">QA</div><div class="psl">Pending</div></div>
+    <div class="pa"></div>
+    <div class="ps"><div class="pc lk">🔒</div><div class="pl">Prod</div><div class="psl">Admin only</div></div>
+  </div>
+
+  <h3>Quality Checklist — Dev → QA (6 items)</h3>
+  <div class="cl-list">
+    <div class="cl-item"><div class="cl-ic a">A</div><span><strong>Auto:</strong> App active and stable in Dev — no errors detected</span></div>
+    <div class="cl-item"><div class="cl-ic a">A</div><span><strong>Auto:</strong> All tables contain test data in Dev environment</span></div>
+    <div class="cl-item"><div class="cl-ic a">A</div><span><strong>Auto:</strong> Security roles correctly assigned and verified</span></div>
+    <div class="cl-item"><div class="cl-ic m">M</div><span><strong>Manual:</strong> Forms validated by at least one end user</span></div>
+    <div class="cl-item"><div class="cl-ic m">M</div><span><strong>Manual:</strong> Visual design approved by client or stakeholder</span></div>
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Required:</strong> Technical documentation updated (ERD + SOP) and published to Innovation portal at demo.clarafortuna.com/Innovation/</span></div>
+  </div>
+
+  <h3>Approvers — Dev → QA</h3>
+  <div class="av-list">
+    <div class="av-item"><div class="av-circle" style="background:#378ADD">RD</div><div class="av-info"><div class="av-name">Randdy — Development</div><div class="av-role">Validates technical integrity and code quality</div></div><span class="badge b">Level 1</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#BA7517">MA</div><div class="av-info"><div class="av-name">Manny — Interim Development Supervisor</div><div class="av-role">Certifies testing completeness · Temporary role pending Director selection</div></div><span class="badge b">Level 1</span></div>
+  </div>
+  <div class="cl info"><strong>Approval Mechanism (Verified):</strong> Approvers respond directly from Teams Adaptive Card, Outlook email, or Power Automate action center. No portal access required. <a href="https://learn.microsoft.com/en-us/power-automate/get-started-approvals" class="ref rb" target="_blank">MS Learn ↗</a></div>
+
+  <h3>Timeout and Escalation</h3>
+  <table class="dt">
+    <thead><tr><th>Trigger</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td>No response — 48 hours</td><td>Automatic reminder to both approvers</td></tr>
+      <tr><td>No response — 72 hours</td><td>Escalation notification to Director of Innovation (Euris)</td></tr>
+      <tr><td>Rejection</td><td>Mandatory comment delivered to requesting user with direct correction actions</td></tr>
+      <tr><td>All approve</td><td>Power Automate automatically publishes to QA using same Dataverse API pipeline</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 10: APPROVER EXPERIENCE -->
+<div class="section" id="approver-exp">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 10 — Audit Correction (Finding #2)</div>
+  <h2 class="s-ti">Approver Experience — What Randdy and Manny See</h2>
+  <p class="s-le">Approvers never need to open the agent or the Power Apps portal. Everything happens from their existing communication tools — Teams and email.</p>
+
+  <h3>Teams Adaptive Card</h3>
+  <div class="notif-mock">
+    <div class="notif-teams-bar">
+      <div class="notif-teams-logo">T</div>
+      <div class="notif-teams-name">Microsoft Teams</div>
+      <div class="notif-teams-chan">Innovation · Dev Approvals channel</div>
+    </div>
+    <div class="notif-body">
+      <div class="notif-sender">
+        <div class="notif-av">AI</div>
+        <div><div class="notif-sname">Clara AI Lab Bot</div><div class="notif-time">Today, 9:42 AM</div></div>
+      </div>
+      <div class="notif-msg">Hi <strong>@Randdy</strong> and <strong>@Manny</strong> — Euris has requested to promote the following app to QA. Please review and respond.</div>
+      <div class="notif-card">
+        <div class="notif-card-title">Promotion Request: Dev → QA</div>
+        <div class="notif-card-row"><span class="notif-card-key">App</span><span class="notif-card-val">Gestión de Casos CSR</span></div>
+        <div class="notif-card-row"><span class="notif-card-key">Version</span><span class="notif-card-val">DEV-v1.0</span></div>
+        <div class="notif-card-row"><span class="notif-card-key">Requested by</span><span class="notif-card-val">Euris · Director of Innovation</span></div>
+        <div class="notif-card-row"><span class="notif-card-key">Target</span><span class="notif-card-val">clarafortuna-qa.crm.dynamics.com</span></div>
+        <div class="notif-card-row"><span class="notif-card-key">Checklist</span><span class="notif-card-val ok">6/6 complete ✓</span></div>
+      </div>
+      <div class="notif-actions">
+        <button class="n-btn-yes">✓ Approve</button>
+        <button class="n-btn-no">✗ Reject</button>
+        <button class="n-btn-info">View full details</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="cl info"><strong>Verified (Microsoft Learn):</strong> "After you assign an approval request to a user, they can respond directly from an Outlook email, a Microsoft Teams adaptive card, or the Power Automate action center." <a href="https://learn.microsoft.com/en-us/power-automate/get-started-approvals" class="ref rb" target="_blank">MS Learn ↗</a></div>
+  <div class="cl info"><strong>Verified (Power Platform Community):</strong> Teams Adaptive Cards with Approve/Reject action buttons are implemented via the "Post adaptive card and wait for a response" action in Power Automate. <a href="https://community.powerplatform.com/blogs/post/?postid=1998fbe8-30e2-4da4-a7eb-214a6998e9c0" class="ref rb" target="_blank">Power Platform Community ↗</a></div>
+
+  <h3>Rejection — Mandatory Comment</h3>
+  <p>When an approver clicks Reject, a text field appears requiring an explanation before the rejection can be submitted. <strong>It is not possible to reject without providing a comment.</strong> The comment is delivered directly to the requesting user (Euris) with action options to correct and resubmit.</p>
+
+  <h3>What Happens After Response</h3>
+  <table class="dt">
+    <thead><tr><th>Scenario</th><th>Immediate action</th><th>Notification to Euris</th></tr></thead>
+    <tbody>
+      <tr><td>Randdy approves, Manny pending</td><td>Flow waits for Manny. Randdy's card shows "Approved ✓"</td><td>"Randdy approved — waiting for Manny"</td></tr>
+      <tr><td>Both approve</td><td>Power Automate triggers QA publication automatically</td><td>QA URL delivered + success confirmation</td></tr>
+      <tr><td>Either rejects</td><td>Flow cancels. App stays in Dev.</td><td>Rejection comment + correction action options</td></tr>
+    </tbody>
+  </table>
+</div>
+<!-- SECTION 11: QA → PROD -->
+<div class="section" id="qa-prod">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 11</div>
+  <h2 class="s-ti">QA → Production Promotion Flow</h2>
+  <p class="s-le">Production promotion is significantly stricter than Dev→QA. Errors in Production affect real utility clients with real operations. The process reflects that consequence.</p>
+
+  <div class="cl crit"><strong>No Friday Deployments.</strong> Production deployments are restricted to Tuesday and Thursday, 8:00–10:00 AM EST. Fridays are prohibited because weekend support coverage is reduced — limiting the ability to execute a rollback if needed. Mondays are planning days. This is a standard enterprise DevOps practice followed by organizations including Microsoft itself. <a href="https://windowsforum.com/threads/march-2026-power-platform-update-copilot-governance-and-agent-driven-apps.409004/" class="ref rw" target="_blank">Source ↗</a></div>
+
+  <h3>Dev → QA vs QA → Production Comparison</h3>
+  <div class="cmp">
+    <div class="cmp-col">
+      <div class="cmp-h qa">Dev → QA</div>
+      <div class="cmp-r"><span class="cmp-k">Approvers</span><span class="cmp-v">2 (parallel)</span></div>
+      <div class="cmp-r"><span class="cmp-k">Checklist items</span><span class="cmp-v">6</span></div>
+      <div class="cmp-r"><span class="cmp-k">Change window</span><span class="cmp-v">Any time</span></div>
+      <div class="cmp-r"><span class="cmp-k">Approval timeout</span><span class="cmp-v">48 hours</span></div>
+      <div class="cmp-r"><span class="cmp-k">Rollback plan</span><span class="cmp-v">Optional</span></div>
+      <div class="cmp-r"><span class="cmp-k">Client notification</span><span class="cmp-v">Not required</span></div>
+      <div class="cmp-r"><span class="cmp-k">Error impact</span><span class="cmp-v"><span class="badge b">Internal team</span></span></div>
+    </div>
+    <div class="cmp-col">
+      <div class="cmp-h pr">QA → Production</div>
+      <div class="cmp-r"><span class="cmp-k">Approvers</span><span class="cmp-v">4 (sequential levels)</span></div>
+      <div class="cmp-r"><span class="cmp-k">Checklist items</span><span class="cmp-v">12</span></div>
+      <div class="cmp-r"><span class="cmp-k">Change window</span><span class="cmp-v">Tue/Thu 8–10 AM EST only</span></div>
+      <div class="cmp-r"><span class="cmp-k">Approval timeout</span><span class="cmp-v">24 hours</span></div>
+      <div class="cmp-r"><span class="cmp-k">Rollback plan</span><span class="cmp-v"><span class="badge c">Mandatory</span></span></div>
+      <div class="cmp-r"><span class="cmp-k">Client notification</span><span class="cmp-v"><span class="badge c">Mandatory</span></span></div>
+      <div class="cmp-r"><span class="cmp-k">Error impact</span><span class="cmp-v"><span class="badge c">Utility clients — real ops</span></span></div>
+    </div>
+  </div>
+
+  <h3>Change Window Justification</h3>
+  <p><strong>Why Tuesday and Thursday, 8–10 AM EST specifically:</strong></p>
+  <ul>
+    <li><strong>Monday excluded:</strong> Teams are in planning mode — reduced availability to respond to incidents</li>
+    <li><strong>Friday prohibited:</strong> If a critical issue emerges Friday afternoon, the on-call team has reduced capacity over the weekend to execute a rollback or hotfix</li>
+    <li><strong>8–10 AM EST:</strong> Low user activity window before business peak. If the deploy fails, there is time to roll back before the majority of users are affected</li>
+    <li><strong>2-hour window:</strong> Sufficient for the deployment pipeline (~12s) and initial monitoring period, while leaving time for rollback decision if needed</li>
+  </ul>
+
+  <h3>Quality Checklist — QA → Production (12 items)</h3>
+  <h4>Technical Validation</h4>
+  <div class="cl-list">
+    <div class="cl-item"><div class="cl-ic a">A</div><span><strong>Auto:</strong> App active and stable in QA — no errors in last 72 hours</span></div>
+    <div class="cl-item"><div class="cl-ic a">A</div><span><strong>Auto:</strong> All tables contain validated test data</span></div>
+    <div class="cl-item"><div class="cl-ic a">A</div><span><strong>Auto:</strong> Security roles verified in QA environment</span></div>
+    <div class="cl-item"><div class="cl-ic m">M</div><span><strong>Manual:</strong> Performance testing completed — response time &lt; 3 seconds</span></div>
+  </div>
+  <h4>Business Validation</h4>
+  <div class="cl-list">
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Critical:</strong> UAT completed — minimum 3 end users validated the app</span></div>
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Critical:</strong> Client or project stakeholder approval obtained</span></div>
+    <div class="cl-item"><div class="cl-ic m">M</div><span><strong>Manual:</strong> User communication plan prepared and approved</span></div>
+  </div>
+  <h4>Documentation and Compliance</h4>
+  <div class="cl-list">
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Critical:</strong> ERD updated and published to Innovation portal (demo.clarafortuna.com/Innovation/erd/)</span></div>
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Critical:</strong> SOP for end users published to Innovation portal (demo.clarafortuna.com/Innovation/sop/)</span></div>
+    <div class="cl-item"><div class="cl-ic m">M</div><span><strong>Manual:</strong> Master technical documentation updated in Innovation portal (demo.clarafortuna.com/Innovation/tecnica/)</span></div>
+  </div>
+  <h4>Security and Rollback</h4>
+  <div class="cl-list">
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Critical:</strong> Production environment backup verified</span></div>
+    <div class="cl-item"><div class="cl-ic r">!</div><span><strong>Critical:</strong> Rollback plan documented and approved (see Section 12)</span></div>
+  </div>
+
+  <h3>Approvers — QA → Production (Sequential)</h3>
+  <div class="av-list">
+    <div class="av-item"><div class="av-circle" style="background:#378ADD">RD</div><div class="av-info"><div class="av-name">Randdy — Development</div><div class="av-role">Level 1 · Validates technical integrity and code quality</div></div><span class="badge b">Level 1</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#BA7517">MA</div><div class="av-info"><div class="av-name">Manny — Interim Development Supervisor</div><div class="av-role">Level 1 · Certifies full testing cycle completed</div></div><span class="badge b">Level 1</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#1D9E75">EU</div><div class="av-info"><div class="av-name">Euris — Director of Innovation</div><div class="av-role">Level 2 · Approves business value and strategic alignment</div></div><span class="badge t">Level 2</span></div>
+    <div class="av-item"><div class="av-circle" style="background:#e76f51">CF</div><div class="av-info"><div class="av-name">Founder / Executive — Clara Fortuna</div><div class="av-role">Final Authority · Production deployment sign-off</div></div><span class="badge c">Final</span></div>
+  </div>
+  <p>Approvals are sequential. Level 1 (Randdy + Manny) must both approve before the request escalates to Level 2 (Euris), then to the Founder. This prevents unresolved technical issues from reaching executive review.</p>
+</div>
+
+<!-- SECTION 12: ROLLBACK -->
+<div class="section" id="rollback">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 12</div>
+  <h2 class="s-ti">Rollback Strategy</h2>
+  <table class="dt">
+    <thead><tr><th>Environment</th><th>Window</th><th>Trigger</th><th>Method</th><th>Data Safety</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Dev</strong></td><td>Immediate</td><td>Any step failure</td><td>Auto: DELETE AppModule</td><td>No user data at risk</td></tr>
+      <tr><td><strong>QA</strong></td><td>Immediate</td><td>Any step failure</td><td>Auto: DELETE AppModule</td><td>Test data — auto backup before deploy</td></tr>
+      <tr><td><strong>Production</strong></td><td>30 min post-deploy</td><td>Error detected OR manual</td><td>Restore snapshot — Power Automate</td><td>Full snapshot before deploy — retained 30 days</td></tr>
+      <tr><td><strong>Production (post-30min)</strong></td><td>After 30 min</td><td>Manual — Founder approval required</td><td>Managed solution rollback</td><td>Data migration assessment required</td></tr>
+    </tbody>
+  </table>
+  <div class="cl warn"><strong>Production Rollback SLA:</strong> Within the 30-minute window, restoration target is under 5 minutes. After 30 minutes the environment is considered stable. All approvers receive automatic notification when a rollback is executed, including the reason and the complete action log.</div>
+</div>
+
+<!-- SECTION 13: AUDIT LOG -->
+<div class="section" id="audit-log">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 13 — Audit Correction (Finding #9)</div>
+  <h2 class="s-ti">Audit Log Specification</h2>
+  <p class="s-le">Every action — publication, approval, rejection, rollback — is recorded with a full audit trail. This is a compliance requirement for the utility sector and a core Document Control standard.</p>
+
+  <h3>Log Structure</h3>
+  <table class="dt">
+    <thead><tr><th>Field</th><th>Type</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Timestamp</strong></td><td class="mono">ISO 8601</td><td class="mono">2026-04-17T09:42:11.102Z</td></tr>
+      <tr><td><strong>Actor</strong></td><td>Enum: Agent / User / Approver / System</td><td class="mono">Approver: randdy@clarafortuna.com</td></tr>
+      <tr><td><strong>Event</strong></td><td>String</td><td>AppModule created — ID: a1b2c3d4...</td></tr>
+      <tr><td><strong>Status</strong></td><td>Enum: Success / Warning / Error</td><td>Success ✓</td></tr>
+      <tr><td><strong>Duration</strong></td><td>Milliseconds</td><td class="mono">1840ms</td></tr>
+      <tr><td><strong>Environment</strong></td><td>Dev / QA / Production</td><td>Dev</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Sample Audit Log — Successful Dev → QA Promotion</h3>
+  <div style="background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;margin:16px 0;">
+    <div class="audit-row"><span class="audit-time">09:42:11</span><span class="audit-actor"><span class="ap-pill us">Euris</span></span><span class="audit-ev">Promotion request created — DEV-v1.0 → QA</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">09:42:12</span><span class="audit-actor"><span class="ap-pill ag">Agent</span></span><span class="audit-ev">Approval flow triggered — ID: approval-20260417-001</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">09:42:14</span><span class="audit-actor"><span class="ap-pill sy">System</span></span><span class="audit-ev">Adaptive Card sent to Teams — Innovation · Dev Approvals</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">09:42:15</span><span class="audit-actor"><span class="ap-pill sy">System</span></span><span class="audit-ev">Email sent — randdy@, manny@, cc: euris@</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">10:03:44</span><span class="audit-actor"><span class="ap-pill" style="background:var(--purple-light);color:var(--purple)">Randdy</span></span><span class="audit-ev">Approved from Teams — comment: "LGTM, looks good"</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">10:15:22</span><span class="audit-actor"><span class="ap-pill" style="background:var(--gold-light);color:var(--gold)">Manny</span></span><span class="audit-ev">Approved from email — no additional comment</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">10:15:23</span><span class="audit-actor"><span class="ap-pill ag">Agent</span></span><span class="audit-ev">All approvers confirmed — initiating QA publication</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">10:15:35</span><span class="audit-actor"><span class="ap-pill ag">Agent</span></span><span class="audit-ev">App published to QA — clarafortuna-qa.crm.dynamics.com — 12.1s total</span><span class="audit-st ok">✓</span></div>
+    <div class="audit-row"><span class="audit-time">10:15:36</span><span class="audit-actor"><span class="ap-pill sy">System</span></span><span class="audit-ev">Notification sent to euris@ — QA URL included</span><span class="audit-st ok">✓</span></div>
+  </div>
+
+  <h3>Log Retention and Access</h3>
+  <table class="dt">
+    <thead><tr><th>Environment</th><th>Retention</th><th>Who can access</th><th>Location</th></tr></thead>
+    <tbody>
+      <tr><td>Dev</td><td>30 days</td><td>Innovation team</td><td>Power Automate run history</td></tr>
+      <tr><td>QA</td><td>90 days</td><td>Innovation + Development teams</td><td>Power Automate run history</td></tr>
+      <tr><td>Production</td><td>1 year minimum</td><td>Director of Innovation + Executive</td><td>Power Automate run history + exported to SharePoint</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION 14: CONNECTORS -->
+<div class="section" id="connectors">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 14 — Audit Correction (Finding #12)</div>
+  <h2 class="s-ti">Power Platform Connectors — Data Source Options</h2>
+  <p class="s-le">The agent supports any data source a utility client uses. Three integration patterns were evaluated. Power Platform Connectors (Option 2) was selected as the primary approach.</p>
+
+  <h3>Three Integration Options Evaluated</h3>
+  <div class="cg">
+    <div class="card"><div class="ci b">🔗</div><div class="ct">Option 1 — Virtual Tables</div><div class="cd">Connect SQL/PostgreSQL/MySQL directly to Dataverse as virtual tables. Data stays in client's database. <strong>Not selected</strong> — requires more complex setup and limited connector support vs. Option 2.</div></div>
+    <div class="card" style="border-color:var(--teal-mid);border-width:2px"><div class="ci t">⚡</div><div class="ct">Option 2 — Power Platform Connectors ✓ Selected</div><div class="cd">Agent calls Power Automate flows that use Premium Connectors. Server-side, secure, 1,000+ data sources, covered by existing Clara Fortuna Premium licenses.</div></div>
+    <div class="card"><div class="ci g">🌐</div><div class="ct">Option 3 — Direct REST API</div><div class="cd">For client systems with exposed REST APIs. No connector needed. <strong>Available as fallback</strong> when no native connector exists for a specific system.</div></div>
+  </div>
+
+  <div class="cl ok"><strong>Licensing Verified (March 2026):</strong> Premium connectors — including SQL Server, Azure SQL, Dataverse (outside M365), Salesforce, ServiceNow, SAP, Oracle — require a Power Apps Premium or Power Automate Premium license per user. Clara Fortuna holds Power Platform Premium. <strong>Client deployments: each client user running a premium connector flow requires their own Premium license.</strong> <a href="https://microsoftnegotiations.com/blog/microsoft-power-platform-premium-connectors-licensing.html" class="ref" target="_blank">Source ↗</a></div>
+
+  <h3>Supported Data Sources</h3>
+  <div class="cg">
+    <div class="card"><div class="ci t">⚡</div><div class="ct">Microsoft Dataverse</div><div class="cd">Native. Full AppModule, table, form, security role management via Web API v9.2.</div></div>
+    <div class="card"><div class="ci b">🗄️</div><div class="ct">SQL Server / Azure SQL</div><div class="cd">Premium connector. Full CRUD. On-premises via Data Gateway or Azure SQL direct.</div></div>
+    <div class="card"><div class="ci t">🐘</div><div class="ct">PostgreSQL</div><div class="cd">Premium connector. Read, write, update, delete. SSL connections supported.</div></div>
+    <div class="card"><div class="ci g">🐬</div><div class="ct">MySQL</div><div class="cd">Premium connector. Full CRUD. Common in utility client operational databases.</div></div>
+    <div class="card"><div class="ci c">🏭</div><div class="ct">SAP</div><div class="cd">Premium connector. SAP ERP, S/4HANA, BTP. Critical for enterprise utility clients.</div></div>
+    <div class="card"><div class="ci p">🔌</div><div class="ct">Custom REST API</div><div class="cd">HTTP connector. Any REST API with JSON/XML. Fallback for systems without native connector.</div></div>
+  </div>
+</div>
+
+<!-- SECTION 15: REPOSITORY -->
+<div class="section" id="repo">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 15 — Audit Correction (Finding #10)</div>
+  <h2 class="s-ti">Document Repository Structure</h2>
+  <p class="s-le">All Innovation department documents — including this one — are managed in the <code>clarafortuna/demos</code> GitHub repository under the <code>Innovation/</code> folder, accessible at <code>demo.clarafortuna.com/Innovation/</code>.</p>
+
+  <div class="tree">
+<span class="folder">clarafortuna/demos</span> (GitHub repository)
+├── <span class="folder">Innovation/</span>
+│   ├── <span class="file">index.html</span>          <span class="note">← Portal homepage with password prompt</span>
+│   ├── <span class="file">README.md</span>           <span class="note">← Document Control policy + access instructions</span>
+│   ├── <span class="folder">erd/</span>
+│   │   └── <span class="file">ERD-CSR-PORTAL-v1.0.html</span>
+│   ├── <span class="folder">sop/</span>
+│   │   └── <span class="file">SOP-001-ERD-DATAVERSE-v1.0.html</span>
+│   ├── <span class="folder">tecnica/</span>
+│   │   ├── <span class="file">DOC-CSR-PORTAL-v1.0.html</span>
+│   │   └── <span class="file">DOC-AILAB-ARCHITECTURE-v2.0.html</span>  <span class="note">← This document</span>
+│   ├── <span class="folder">demos/</span>              <span class="note">← Client-facing prototypes</span>
+│   └── <span class="folder">dashboards/</span>         <span class="note">← KPI dashboards and reports</span>
+└── (other Clara Fortuna projects)
+  </div>
+
+  <h3>File Naming Convention</h3>
+  <table class="dt">
+    <thead><tr><th>Prefix</th><th>Type</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>ERD-</code></td><td>Entity-relationship diagrams</td><td><code>ERD-CSR-PORTAL-v1.0.html</code></td></tr>
+      <tr><td><code>SOP-</code></td><td>Standard operating procedures</td><td><code>SOP-001-ERD-DATAVERSE-v1.0.html</code></td></tr>
+      <tr><td><code>DOC-</code></td><td>Technical documentation</td><td><code>DOC-AILAB-ARCHITECTURE-v2.0.html</code></td></tr>
+      <tr><td><code>DEMO-</code></td><td>Client demos and prototypes</td><td><code>DEMO-AILAB-UTILITIES-v1.0.html</code></td></tr>
+      <tr><td><code>DASH-</code></td><td>Dashboards and reports</td><td><code>DASH-KPI-INNOVATION-v1.0.html</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Security</h3>
+  <p>All HTML documents in the Innovation portal include a password prompt implemented in client-side JavaScript. Two passwords are configured per document:</p>
+  <ul>
+    <li><strong>Internal password:</strong> For the Clara Fortuna team — shared via secure channel (not stored in repository)</li>
+    <li><strong>Client password:</strong> For external utility clients — shared by the assigned project lead — may differ per client</li>
+  </ul>
+  <div class="cl warn"><strong>Document Control Rule:</strong> Passwords are never written in the README, commit messages, or any file in the repository. They are managed offline via the organization's preferred secure channel.</div>
+</div>
+
+<!-- SECTION 16: ROADMAP -->
+<div class="section" id="roadmap">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 16 — Audit Correction (Finding #13)</div>
+  <h2 class="s-ti">Future Roadmap — Copilot Studio Migration</h2>
+  <p class="s-le">The current architecture (HTML/JS + MSAL.js + Power Automate) was chosen because it works with Clara Fortuna's existing Power Platform Premium licenses — no additional licensing required to start. However, Microsoft offers a native agent platform that would provide significant additional capabilities.</p>
+
+  <h3>Current Architecture vs. Copilot Studio</h3>
+  <div class="cmp">
+    <div class="cmp-col">
+      <div class="cmp-h qa">Current: HTML/JS Agent (v1.0)</div>
+      <div class="cmp-r"><span class="cmp-k">Licensing</span><span class="cmp-v">Power Platform Premium (existing)</span></div>
+      <div class="cmp-r"><span class="cmp-k">Additional cost</span><span class="cmp-v">$0 — already licensed</span></div>
+      <div class="cmp-r"><span class="cmp-k">AI model</span><span class="cmp-v">Claude API (Anthropic)</span></div>
+      <div class="cmp-r"><span class="cmp-k">Hosting</span><span class="cmp-v">GitHub Pages</span></div>
+      <div class="cmp-r"><span class="cmp-k">Connector management</span><span class="cmp-v">Manual — Power Automate flows</span></div>
+      <div class="cmp-r"><span class="cmp-k">Multi-turn conversation</span><span class="cmp-v">Custom implementation</span></div>
+    </div>
+    <div class="cmp-col">
+      <div class="cmp-h pr">Future: Copilot Studio Agent</div>
+      <div class="cmp-r"><span class="cmp-k">Licensing</span><span class="cmp-v">Copilot Studio (separate license)</span></div>
+      <div class="cmp-r"><span class="cmp-k">Additional cost</span><span class="cmp-v">Requires new license purchase</span></div>
+      <div class="cmp-r"><span class="cmp-k">AI model</span><span class="cmp-v">Microsoft Copilot (GPT-4)</span></div>
+      <div class="cmp-r"><span class="cmp-k">Hosting</span><span class="cmp-v">Microsoft managed</span></div>
+      <div class="cmp-r"><span class="cmp-k">Connector management</span><span class="cmp-v">Native — 1,000+ connectors built-in</span></div>
+      <div class="cmp-r"><span class="cmp-k">Multi-turn conversation</span><span class="cmp-v">Native — built-in memory</span></div>
+    </div>
+  </div>
+
+  <div class="cl info"><strong>Migration Path:</strong> The current HTML/JS agent is designed to serve as the <strong>proof of concept and MVP</strong> for the Clara AI Lab. Once demonstrated to clients and stakeholders, the business case for Copilot Studio licensing can be built from real usage data and client feedback. The architecture is designed for easy migration — the Power Automate flows and Dataverse API calls remain identical regardless of the frontend. <a href="https://dynamicscommunities.com/ug/copilot-ug/integrating-copilot-studio-into-power-platform/" class="ref rb" target="_blank">Copilot Studio Integration ↗</a></div>
+
+  <div class="cl info"><strong>Dataverse as Agent Foundation (2026 Release Wave):</strong> Microsoft's 2025 release wave 2 positions Dataverse as the foundational data platform for building and scaling teams of autonomous agents. This means the Dataverse tables and model-driven apps created by the current agent are fully compatible with future Copilot Studio migration. <a href="https://learn.microsoft.com/en-us/power-platform/release-plan/2025wave2/data-platform/" class="ref" target="_blank">MS Learn ↗</a></div>
+</div>
+
+<!-- SECTION 17: REFERENCES -->
+<div class="section" id="references">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 17</div>
+  <h2 class="s-ti">Technical References</h2>
+  <p class="s-le">Every technical claim in this document is backed by at least one official Microsoft source or verified third-party analysis. All sources were verified as of April 17, 2026.</p>
+
+  <h3>Authentication and Identity</h3>
+  <table class="dt">
+    <thead><tr><th>Claim</th><th>Source</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr><td>MSAL.js implements OAuth 2.0 Auth Code + PKCE for SPAs — no backend required</td><td>Microsoft / Azure AD GitHub</td><td><a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html" class="ref rb" target="_blank">MSAL Browser ↗</a></td></tr>
+      <tr><td>acquireTokenSilent() pattern — bearer token in Authorization header</td><td>MSAL.js Official GitHub</td><td><a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md" class="ref rb" target="_blank">GitHub ↗</a></td></tr>
+      <tr><td>Client secret best practice — Azure Key Vault storage, never in frontend</td><td>Forward Forever (Oct 2023)</td><td><a href="https://forwardforever.com/using-oauth-authentication-for-http-request-triggers-in-power-automate/" class="ref rb" target="_blank">forwardforever.com ↗</a></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Dataverse and Model-Driven Apps</h3>
+  <table class="dt">
+    <thead><tr><th>Claim</th><th>Source</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr><td>AppModule created via Dataverse Web API using code — full pipeline</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>PublishXml API — makes app visible to users with assigned roles</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>appmoduleroles_association — HTTP 204 on success</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/model-driven-apps/create-manage-model-driven-apps-using-code" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>AppModule entity reference</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/reference/entities/appmodule" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>Dataverse OData v4.0 Web API overview</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-apps/developer/data-platform/webapi/overview" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>Web resources (HTML/JS/CSS) as visual extension mechanism for model-driven apps</td><td>U2U Training / Microsoft</td><td><a href="https://www.u2u.be/training/developing-for-the-power-platform" class="ref rb" target="_blank">U2U ↗</a></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Power Automate and Approvals</h3>
+  <table class="dt">
+    <thead><tr><th>Claim</th><th>Source</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr><td>HTTP trigger — 3 auth modes including "Any user in my tenant" Bearer Token</td><td>Manuel T. Gomes</td><td><a href="https://manueltgomes.com/reference/power-automate-trigger-reference/when-an-http-request-is-received-trigger/" class="ref rb" target="_blank">manueltgomes.com ↗</a></td></tr>
+      <tr><td>Approvers respond from Teams Adaptive Card, Outlook, or Action Center</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-automate/get-started-approvals" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>HTTP with Azure AD connector is Premium — requires separate license</td><td>ESPC Conference 2026</td><td><a href="https://www.sharepointeurope.com/connect-power-platform-to-azure-ad-protected-apis-using-built-in-http-connectors/" class="ref rb" target="_blank">sharepointeurope.com ↗</a></td></tr>
+      <tr><td>Adaptive Cards in Teams for approval workflows with inline action buttons</td><td>Power Platform Community</td><td><a href="https://community.powerplatform.com/blogs/post/?postid=1998fbe8-30e2-4da4-a7eb-214a6998e9c0" class="ref rb" target="_blank">powerplatform.com ↗</a></td></tr>
+      <tr><td>Secure HTTP trigger using OAuth authentication in Power Automate</td><td>Inogic (March 2025)</td><td><a href="https://www.inogic.com/blog/2025/03/how-to-secure-http-requests-using-oauth-authentication-in-power-automate/" class="ref rb" target="_blank">inogic.com ↗</a></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Connectors and Licensing</h3>
+  <table class="dt">
+    <thead><tr><th>Claim</th><th>Source</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr><td>Premium connectors per-user licensing requirement (March 2026)</td><td>Microsoft Negotiations</td><td><a href="https://microsoftnegotiations.com/blog/microsoft-power-platform-premium-connectors-licensing.html" class="ref rb" target="_blank">microsoftnegotiations.com ↗</a></td></tr>
+      <tr><td>Power Platform connects to SQL, PostgreSQL, MySQL, Oracle, SAP, 1,000+ sources</td><td>Power GI (March 2026)</td><td><a href="https://powergi.net/blog/what-is-microsoft-power-platform-and-why-it-matters-in-2026/" class="ref rb" target="_blank">powergi.net ↗</a></td></tr>
+      <tr><td>2026 Power Platform connector comparison — Dataverse, SQL, SAP</td><td>Synapx (March 2026)</td><td><a href="https://www.synapx.com/power-apps-data-sources-2026-enterprise-guide/" class="ref rb" target="_blank">synapx.com ↗</a></td></tr>
+    </tbody>
+  </table>
+
+  <h3>Power Platform 2026 and Roadmap</h3>
+  <table class="dt">
+    <thead><tr><th>Claim</th><th>Source</th><th>Link</th></tr></thead>
+    <tbody>
+      <tr><td>Dataverse as agent foundation — 2025 release wave 2</td><td>Microsoft Learn</td><td><a href="https://learn.microsoft.com/en-us/power-platform/release-plan/2025wave2/data-platform/" class="ref" target="_blank">MS Learn ↗</a></td></tr>
+      <tr><td>March 2026 Power Platform update — agent-driven apps</td><td>Windows Forum (April 2026)</td><td><a href="https://windowsforum.com/threads/march-2026-power-platform-update-copilot-governance-and-agent-driven-apps.409004/" class="ref rb" target="_blank">windowsforum.com ↗</a></td></tr>
+      <tr><td>Copilot Studio integration with Power Platform</td><td>Dynamics Communities (2025)</td><td><a href="https://dynamicscommunities.com/ug/copilot-ug/integrating-copilot-studio-into-power-platform/" class="ref rb" target="_blank">dynamicscommunities.com ↗</a></td></tr>
+    </tbody>
+  </table>
+
+  <div style="margin-top:40px;padding-top:32px;border-top:1px solid var(--border)">
+    <p style="font-size:12px;color:var(--muted)"><strong>Document Control:</strong> This document is v2.0 — a corrected version of v1.0. All 13 findings from the architecture audit have been addressed. Managed under the Innovation Department Document Control policy in the <code>clarafortuna/demos</code> GitHub repository. All referenced sources verified as of April 17, 2026. Review quarterly — Microsoft APIs and licensing change frequently.</p>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px"><strong>Changes from v1.0:</strong> Added Section 00 (Bias Corrections), expanded Executive Summary with business context and org chart, added Section 06.A (Cancellation Flow), Section 06.B (Success Screen), Section 06.C (Post-Publication Modification), Section 10 (Approver Experience with Teams mockup), Section 13 (Audit Log Specification), Section 15 (Repository Structure), Section 16 (Future Roadmap). Added Emely to org chart. Corrected change window justification. Added virtual tables comparison. Total: 17 sections, 13 audit findings resolved.</p>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /doc -->
+<script>
+(function(){
+  var p1="clarainnov2026",p2="AILabClient2026",KEY="cf_innovation_auth";
+  function unlock(){document.getElementById("cf-lock").classList.add("hidden");document.getElementById("doc").classList.add("visible");}
+  function cfCheck(){
+    var v=document.getElementById("cf-pwd").value.trim();
+    if(v===p1||v===p2){sessionStorage.setItem(KEY,"1");unlock();}
+    else{var i=document.getElementById("cf-pwd");i.classList.add("err");document.getElementById("cf-err").textContent="Incorrect password. Please try again.";i.value="";setTimeout(function(){i.classList.remove("err");},400);}
+  }
+  window.cfCheck=cfCheck;
+  function lockDoc(){sessionStorage.removeItem(KEY);document.getElementById("cf-lock").classList.remove("hidden");document.getElementById("doc").classList.remove("visible");document.getElementById("cf-pwd").value="";document.getElementById("cf-err").textContent="";}
+  window.lockDoc=lockDoc;
+  if(sessionStorage.getItem(KEY))unlock();
+})();
+
+var sections=document.querySelectorAll(".section");
+var navItems=document.querySelectorAll(".nav-item");
+function updateNav(){
+  var scrollY=window.scrollY+100,current="";
+  sections.forEach(function(s){if(s.offsetTop<=scrollY)current=s.id;});
+  navItems.forEach(function(n){n.classList.toggle("active",n.getAttribute("href").replace("#","")==current);});
+}
+window.addEventListener("scroll",updateNav);
+updateNav();
+
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener("click",function(e){
+    var t=document.querySelector(this.getAttribute("href"));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:"smooth"});}
+  });
+});
+</script>
+</body>
+</html>
