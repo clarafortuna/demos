@@ -1,27 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Unified CSR Portal — Entity Relationship Diagram</title>
 <style>
   :root {
-    --bg: #0f1117;
-    --surface: #1a1d27;
-    --surface2: #22263a;
-    --border: #2e3352;
     --accent: #4f7cff;
     --accent2: #7c4fff;
     --green: #34d399;
     --amber: #fbbf24;
     --red: #f87171;
+    --header-h: 36px;
+    --row-h: 26px;
+    --card-w: 210px;
+  }
+
+  /* ── DARK THEME (default) ── */
+  [data-theme="dark"] {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3352;
     --text: #e2e8f0;
     --text-muted: #94a3b8;
     --pk: #fbbf24;
     --fk: #60a5fa;
-    --header-h: 36px;
-    --row-h: 26px;
-    --card-w: 210px;
+    --toolbar-bg: rgba(15,17,23,0.95);
+    --tooltip-bg: rgba(26,29,39,0.95);
+    --tooltip-bg2: rgba(34,38,58,0.98);
+    --minimap-bg: #0f1117;
+  }
+
+  /* ── LIGHT THEME ── */
+  [data-theme="light"] {
+    --bg: #f8f9fc;
+    --surface: #ffffff;
+    --surface2: #eef0f7;
+    --border: #d0d5e8;
+    --text: #1a202c;
+    --text-muted: #64748b;
+    --pk: #b45309;
+    --fk: #1d4ed8;
+    --toolbar-bg: rgba(255,255,255,0.97);
+    --tooltip-bg: rgba(255,255,255,0.97);
+    --tooltip-bg2: rgba(244,246,251,0.98);
+    --minimap-bg: #f8f9fc;
+  }
+
+  /* ── SEPIA THEME ── */
+  [data-theme="sepia"] {
+    --bg: #fdf6e3;
+    --surface: #fffbf0;
+    --surface2: #f5edcf;
+    --border: #d4c09a;
+    --text: #3b2f1e;
+    --text-muted: #7a6245;
+    --pk: #9a6b00;
+    --fk: #5b4fcf;
+    --toolbar-bg: rgba(253,246,227,0.97);
+    --tooltip-bg: rgba(253,246,227,0.97);
+    --tooltip-bg2: rgba(245,237,207,0.98);
+    --minimap-bg: #fdf6e3;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -36,7 +76,7 @@
   #toolbar {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     height: 54px;
-    background: rgba(15,17,23,0.95);
+    background: var(--toolbar-bg);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 12px;
@@ -148,7 +188,7 @@
   #minimap {
     position: fixed; bottom: 20px; right: 20px; z-index: 99;
     width: 160px; height: 110px;
-    background: rgba(26,29,39,.9);
+    background: var(--tooltip-bg);
     border: 1px solid var(--border);
     border-radius: 8px;
     overflow: hidden;
@@ -158,7 +198,7 @@
   /* ── TOOLTIP ── */
   #tooltip {
     position: fixed; z-index: 200;
-    background: rgba(34,38,58,.98);
+    background: var(--tooltip-bg2);
     border: 1px solid var(--border);
     border-radius: 8px; padding: 10px 14px;
     font-size: 12px; pointer-events: none;
@@ -176,6 +216,21 @@
   .rel-end-mark.active { stroke: var(--accent); stroke-width: 2; opacity: 1; }
   .rel-cardinality { fill: #64748b; font-size: 11px; font-weight: 700; font-family: 'Segoe UI', monospace; transition: fill .2s; }
   .rel-cardinality.active { fill: var(--accent); }
+
+  /* ── THEME SWITCHER ── */
+  .theme-switcher {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .theme-btn {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted);
+    font-size: 11px; font-family: inherit; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.03em;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .theme-btn svg { flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -229,6 +284,71 @@
 })();
 </script>
 <!-- END CF LOCK -->
+<!-- CF LOCK -->
+<style>
+#cf-lock{position:fixed;inset:0;z-index:99999;background:#0d1f1c;display:flex;align-items:center;justify-content:center;font-family:sans-serif;transition:opacity .5s ease}
+#cf-lock.hidden{opacity:0;pointer-events:none}
+.cf-card{width:340px;text-align:center;padding:0 24px}
+.cf-logo{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#2a9d8f;margin-bottom:28px}
+.cf-title{font-size:28px;color:#fff;margin-bottom:6px;font-weight:300}
+.cf-sub{font-size:12px;color:rgba(255,255,255,.35);margin-bottom:36px;letter-spacing:.05em}
+.cf-input{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#fff;font-size:14px;letter-spacing:.08em;outline:none;transition:border-color .2s;box-sizing:border-box}
+.cf-input:focus{border-color:#2a9d8f}
+.cf-input.err{border-color:#e76f51;animation:cfshake .3s ease}
+.cf-error{font-size:11px;color:#e76f51;height:16px;margin:8px 0}
+.cf-btn{width:100%;padding:13px;background:#2a9d8f;border:none;border-radius:8px;color:#fff;font-size:13px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.cf-btn:hover{background:#1a7a6e}
+.cf-hint{margin-top:20px;font-size:10px;color:rgba(255,255,255,.18);letter-spacing:.05em}
+@keyframes cfshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+  /* ── THEME SWITCHER ── */
+  .theme-switcher {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .theme-btn {
+    display: flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-muted);
+    font-size: 11px; font-family: inherit; cursor: pointer;
+    transition: all 0.2s; letter-spacing: 0.03em;
+  }
+  .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .theme-btn svg { flex-shrink: 0; }
+</style>
+<div id="cf-lock">
+  <div class="cf-card">
+    <div class="cf-logo">Clara Fortuna · Innovation</div>
+    <div class="cf-title">Restricted Access</div>
+    <div class="cf-sub">Enter your password to view this document</div>
+    <input class="cf-input" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key===String.fromCharCode(13))cfCheck()"/>
+    <div class="cf-error" id="cf-err"></div>
+    <button class="cf-btn" onclick="cfCheck()">Access Document</button>
+    <div class="cf-hint">Clara Fortuna · Innovation Department</div>
+  </div>
+</div>
+<script>
+(function(){
+  var p1="clarainnov2026";
+  var p2="AILabClient2026";
+  var KEY="cf_innovation_auth";
+  function unlock(){document.getElementById("cf-lock").classList.add("hidden");}
+  function cfCheck(){
+    var v=document.getElementById("cf-pwd").value.trim();
+    if(v===p1||v===p2){sessionStorage.setItem(KEY,"1");unlock();}
+    else{
+      var i=document.getElementById("cf-pwd");
+      i.classList.add("err");
+      document.getElementById("cf-err").textContent="Incorrect password. Try again.";
+      i.value="";
+      setTimeout(function(){i.classList.remove("err");},400);
+    }
+  }
+  window.cfCheck=cfCheck;
+  if(sessionStorage.getItem(KEY))unlock();
+})();
+</script>
+<!-- END CF LOCK -->
 
 
 <!-- TOOLBAR -->
@@ -241,6 +361,21 @@
   <button class="tb-btn" onclick="resetView()">⟳ Reset</button>
   <button class="tb-btn" onclick="fitAll()">⊡ Fit All</button>
   <div class="tb-sep"></div>
+  <div class="tb-sep"></div>
+  <div class="theme-switcher">
+    <button class="theme-btn active" id="btn-dark" onclick="setTheme('dark')" title="Dark theme">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/></svg>
+      Dark
+    </button>
+    <button class="theme-btn" id="btn-light" onclick="setTheme('light')" title="Light theme">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+      Light
+    </button>
+    <button class="theme-btn" id="btn-sepia" onclick="setTheme('sepia')" title="Sepia theme">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      Sepia
+    </button>
+  </div>
   <input id="search-box" type="text" placeholder="🔍 Search entity or field…" oninput="doSearch(this.value)">
   <div class="tb-sep"></div>
   <div class="tb-legend">
@@ -994,7 +1129,7 @@ function drawMinimap() {
   const mm = document.getElementById('mm-canvas');
   const ctx = mm.getContext('2d');
   mm.width = 160; mm.height = 110;
-  ctx.fillStyle = '#0f1117';
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--minimap-bg').trim() || '#0f1117';
   ctx.fillRect(0, 0, 160, 110);
 
   const ids = Object.keys(positions);
@@ -1022,6 +1157,27 @@ function drawMinimap() {
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
+
+// ═══════════════════════════════════════════════
+// THEME SWITCHER
+// ═══════════════════════════════════════════════
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('cf_erd_theme', theme);
+  ['dark','light','sepia'].forEach(t => {
+    const btn = document.getElementById('btn-' + t);
+    if (btn) btn.classList.toggle('active', t === theme);
+  });
+  setTimeout(drawMinimap, 50);
+}
+
+(function initTheme() {
+  const saved = localStorage.getItem('cf_erd_theme');
+  const system = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  const theme = saved || system;
+  setTheme(theme);
+})();
+
 buildCards();
 buildRelations();
 applyTransform();
