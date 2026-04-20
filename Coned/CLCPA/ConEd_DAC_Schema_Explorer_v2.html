@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConEd DAC Report — Schema Explorer (v2: collapsed dims)</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-2: #f7f6f2;
+    --bg-3: #f1efe8;
+    --text: #1a1a1a;
+    --text-2: #5f5e5a;
+    --text-3: #888780;
+    --border: rgba(0,0,0,0.12);
+    --border-2: rgba(0,0,0,0.22);
+    --accent: #185FA5;
+    --accent-bg: #E6F1FB;
+    --dim-bg: #EEEDFE;
+    --dim-text: #3C3489;
+    --fact-bg: #E1F5EE;
+    --fact-text: #085041;
+    --pk-bg: #FAEEDA;
+    --pk-text: #633806;
+    --fk-bg: #EAF3DE;
+    --fk-text: #27500A;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+    --font-mono: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --bg-2: #232321;
+      --bg-3: #2c2c2a;
+      --text: #e8e6df;
+      --text-2: #b4b2a9;
+      --text-3: #888780;
+      --border: rgba(255,255,255,0.12);
+      --border-2: rgba(255,255,255,0.22);
+      --accent: #85B7EB;
+      --accent-bg: #0C447C;
+      --dim-bg: #3C3489;
+      --dim-text: #EEEDFE;
+      --fact-bg: #085041;
+      --fact-text: #E1F5EE;
+      --pk-bg: #633806;
+      --pk-text: #FAEEDA;
+      --fk-bg: #27500A;
+      --fk-text: #EAF3DE;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text);
+    background: var(--bg-2);
+    margin: 0;
+    padding: 24px;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  header { margin-bottom: 24px; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 4px; color: var(--text); }
+  header p { color: var(--text-2); margin: 0; font-size: 14px; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 20px;
+    font-size: 13px; color: var(--text-2);
+    margin: 16px 0 24px; padding: 12px 16px;
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: 8px;
+    align-items: center;
+  }
+  .legend-dot { display: inline-flex; align-items: center; gap: 8px; }
+  .legend-swatch { width: 14px; height: 14px; border-radius: 3px; }
+  .erd-section {
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .erd-section h2 { font-size: 16px; font-weight: 500; margin: 0 0 4px; color: var(--text); }
+  .erd-section .erd-desc { font-size: 13px; color: var(--text-2); margin: 0 0 16px; }
+  .erd-svg-wrap { width: 100%; overflow-x: auto; }
+  .erd-svg { display: block; min-width: 900px; width: 100%; height: auto; }
+  .erd-node rect { transition: fill 0.15s, stroke 0.15s, stroke-width 0.15s; cursor: pointer; }
+  .erd-node text { pointer-events: none; user-select: none; }
+  .erd-node:hover rect { stroke-width: 2; }
+  .erd-node.highlighted rect { stroke-width: 2.5; }
+  .erd-node.dimmed rect { opacity: 0.25; }
+  .erd-node.dimmed text { opacity: 0.35; }
+  .erd-edge { stroke: var(--border-2); stroke-width: 1; fill: none;
+    transition: stroke 0.15s, stroke-width 0.15s, opacity 0.15s; }
+  .erd-edge.highlighted { stroke: var(--accent); stroke-width: 2; }
+  .erd-edge.dimmed { opacity: 0.1; }
+  .erd-hint { font-size: 11px; color: var(--text-3); margin-top: 8px; text-align: center; }
+  .grid { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+  .sidebar {
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px;
+    padding: 16px; position: sticky; top: 24px;
+    max-height: calc(100vh - 48px); overflow-y: auto;
+  }
+  .sidebar-group { margin-bottom: 20px; }
+  .sidebar-group:last-child { margin-bottom: 0; }
+  .sidebar-label {
+    font-size: 11px; font-weight: 500; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px; padding-left: 2px;
+  }
+  .tbl-btn {
+    display: block; width: 100%; text-align: left;
+    padding: 8px 12px; margin-bottom: 4px;
+    background: transparent; border: 0.5px solid transparent;
+    border-radius: 6px; font-size: 13px; cursor: pointer;
+    color: var(--text); font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .tbl-btn:hover { background: var(--bg-3); border-color: var(--border); }
+  .tbl-btn.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+  .tbl-btn .tag {
+    display: inline-block; font-size: 10px; padding: 1px 6px;
+    border-radius: 3px; margin-right: 8px;
+    font-weight: 500; letter-spacing: 0.3px;
+  }
+  .tag-dim { background: var(--dim-bg); color: var(--dim-text); }
+  .tag-fact { background: var(--fact-bg); color: var(--fact-text); }
+  .detail {
+    background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px; padding: 24px;
+  }
+  .detail-kicker { font-size: 12px; color: var(--text-3); margin-bottom: 4px; }
+  .detail-title { font-size: 20px; font-weight: 500; color: var(--text); margin: 0 0 8px; }
+  .detail-desc { font-size: 14px; color: var(--text-2); margin: 0 0 20px; line-height: 1.6; }
+  .cols-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cols-table th {
+    text-align: left; padding: 8px 10px;
+    font-size: 11px; font-weight: 500; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .cols-table td {
+    padding: 8px 10px; border-bottom: 0.5px solid var(--border);
+    vertical-align: top; word-break: break-word;
+  }
+  .cols-table td:first-child { font-family: var(--font-mono); font-size: 12.5px; width: 42%; color: var(--text); }
+  .cols-table td:nth-child(2) { color: var(--text-2); width: 28%; font-size: 12px; font-family: var(--font-mono); }
+  .cols-table td:nth-child(3) { width: 30%; }
+  .key-pk, .key-fk {
+    display: inline-block; font-size: 10px; padding: 2px 7px;
+    border-radius: 3px; font-weight: 500; letter-spacing: 0.3px;
+  }
+  .key-pk { background: var(--pk-bg); color: var(--pk-text); }
+  .key-fk { background: var(--fk-bg); color: var(--fk-text); }
+  .key-enum {
+    display: inline-block; font-size: 10px; padding: 2px 7px;
+    border-radius: 3px; font-weight: 500; letter-spacing: 0.3px;
+    background: #FFE4B5; color: #5A3A00;
+  }
+  @media (prefers-color-scheme: dark) {
+    .key-enum { background: #5A3A00; color: #FFE4B5; }
+  }
+  .rel-section { margin-top: 24px; padding-top: 16px; border-top: 0.5px solid var(--border); }
+  .rel-title {
+    font-size: 11px; font-weight: 500; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px;
+  }
+  .rel-chip {
+    display: inline-block; background: var(--bg-3);
+    border: 0.5px solid var(--border); border-radius: 6px;
+    padding: 5px 12px; margin: 0 6px 6px 0;
+    font-size: 12px; cursor: pointer;
+    color: var(--text); font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .rel-chip:hover { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .fk-link {
+    background: transparent; border: none; padding: 1px 4px;
+    font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--accent); cursor: pointer;
+    text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px;
+  }
+  .fk-link:hover { text-decoration-style: solid; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>ConEd DAC Report — Schema Explorer (v2: collapsed dims)</h1>
+    <p>Collapsed schema: 4 shared dimensions + 10 facts. Single-relation dims are absorbed into their fact as enum columns. Click any table to view its columns and relationships.</p>
+  </header>
+  <div class="legend">
+    <span class="legend-dot"><span class="legend-swatch" style="background:var(--dim-bg)"></span>Dimension</span>
+    <span class="legend-dot"><span class="legend-swatch" style="background:var(--fact-bg)"></span>Fact</span>
+    <span class="legend-dot"><span class="key-pk">PK</span>Primary key</span>
+    <span class="legend-dot"><span class="key-fk">FK</span>Foreign key</span>
+    <span class="legend-dot"><span style="display:inline-block;background:#FFE4B5;color:#5A3A00;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:500;letter-spacing:0.3px;">ENUM</span>Absorbed enum column</span>
+  </div>
+  <section class="erd-section">
+    <h2>Relationship diagram</h2>
+    <p class="erd-desc">Dimensions above feed the facts below. Hover a table to highlight its connections; click to open its detail.</p>
+    <div class="erd-svg-wrap" id="erd-wrap"></div>
+    <p class="erd-hint">Curves: dimension → fact (one-to-many relationship)</p>
+  </section>
+  <div class="grid">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="detail" id="detail"></main>
+  </div>
+</div>
+<script>
+const SCHEMA = {
+  DIM_PERIOD: {
+    kind: "dim", group: "Time (shared)",
+    title: "DIM_PERIOD — time dimension",
+    desc: "Shared across all 10 facts. period_grain distinguishes MONTH, QUARTER, YEAR, CUMULATIVE, POINT_IN_TIME. Moving from annual to monthly reporting only requires inserting rows at MONTH grain — no schema changes.",
+    cols: [
+      ["period_id","INTEGER","PK"],
+      ["period_grain","VARCHAR(16)",""],
+      ["period_start_date","DATE",""],
+      ["period_end_date","DATE",""],
+      ["calendar_year","INTEGER",""],
+      ["calendar_month","INTEGER",""],
+      ["calendar_quarter","INTEGER",""],
+      ["period_label","VARCHAR(32)",""],
+      ["is_report_period","BOOLEAN",""],
+    ],
+    related: ["FACT_CLEAN_ENERGY_SPENDING","FACT_EV_MAKE_READY","FACT_DEMAND_RESPONSE","FACT_DER","FACT_STRATEGIC_CAP_INVESTMENT","FACT_CUSTOMER_OUTAGES","FACT_MAIN_REPLACEMENT","FACT_LEAK_REPAIRS","FACT_CLEAN_ENERGY_JOBS","FACT_CUSTOMER_OPERATIONS"],
+  },
+  DIM_GEOGRAPHY: {
+    kind: "dim", group: "Geography (shared)",
+    title: "DIM_GEOGRAPHY — hierarchical geography",
+    desc: "Shared across 4 facts (Outages, Main Replacement, Leak Repairs, Customer Operations). Hierarchy: census tract → network/load area → borough/county → service territory. The is_dac flag tracks NYSERDA designation at tract level.",
+    cols: [
+      ["geography_id","INTEGER","PK"],
+      ["geography_level","VARCHAR(24)",""],
+      ["census_tract_geoid","VARCHAR(16)",""],
+      ["network_name","VARCHAR(64)",""],
+      ["load_area_name","VARCHAR(64)",""],
+      ["borough_or_county","VARCHAR(32)",""],
+      ["is_dac","BOOLEAN",""],
+      ["is_unknown_dac","BOOLEAN",""],
+    ],
+    related: ["FACT_CUSTOMER_OUTAGES","FACT_MAIN_REPLACEMENT","FACT_LEAK_REPAIRS","FACT_CUSTOMER_OPERATIONS"],
+  },
+  DIM_DAC_STATUS: {
+    kind: "dim", group: "DAC classification (shared)",
+    title: "DIM_DAC_STATUS — DAC / Low-Income status",
+    desc: "Shared across 8 facts. Distinguishes geographic DAC (NYSERDA census tract) from low-income (EAP participant). Sections A and J use the combined definition — this is why it is modeled as a dimension rather than a simple boolean.",
+    cols: [
+      ["dac_status_id","INTEGER","PK"],
+      ["dac_status_code","VARCHAR(16)",""],
+      ["is_dac_geographic","BOOLEAN",""],
+      ["is_low_income_eap","BOOLEAN",""],
+      ["dac_status_label","VARCHAR(64)",""],
+    ],
+    related: ["FACT_CLEAN_ENERGY_SPENDING","FACT_EV_MAKE_READY","FACT_DEMAND_RESPONSE","FACT_DER","FACT_CUSTOMER_OUTAGES","FACT_MAIN_REPLACEMENT","FACT_LEAK_REPAIRS","FACT_CUSTOMER_OPERATIONS"],
+  },
+  DIM_PROGRAM: {
+    kind: "dim", group: "Program (shared)",
+    title: "DIM_PROGRAM — program catalog",
+    desc: "Shared across Sections A, B, C, I. All named programs with their section code, category, default segment, and flags (is_lmi_targeted, is_active).",
+    cols: [
+      ["program_id","INTEGER","PK"],
+      ["program_code","VARCHAR(32)",""],
+      ["program_name","VARCHAR(128)",""],
+      ["section_code","VARCHAR(4)",""],
+      ["program_category","VARCHAR(64)",""],
+      ["customer_segment_default","VARCHAR(32)",""],
+      ["is_lmi_targeted","BOOLEAN",""],
+      ["is_active","BOOLEAN",""],
+    ],
+    related: ["FACT_CLEAN_ENERGY_SPENDING","FACT_EV_MAKE_READY","FACT_DEMAND_RESPONSE","FACT_CLEAN_ENERGY_JOBS"],
+  },
+
+  FACT_CLEAN_ENERGY_SPENDING: {
+    kind: "fact", group: "Section A — Clean Energy Spending",
+    title: "FACT_CLEAN_ENERGY_SPENDING",
+    desc: "Absorbed dims: customer_segment_code + measure_category_code. One row per (period × program × customer_segment × measure_category × dac_status). When measure_category_code is NULL, the row feeds program-level tables (A1–A4); when populated, installation-count tables (A5–A8). Produces all 10 tables A1–A10.",
+    cols: [
+      ["spending_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["program_id","INTEGER","FK → DIM_PROGRAM"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["customer_segment_code","VARCHAR(24)","ENUM"],
+      ["measure_category_code","VARCHAR(32)","ENUM"],
+      ["incentive_dollars","DECIMAL(18,2)",""],
+      ["energy_savings_mmbtu","DECIMAL(18,4)",""],
+      ["participants","INTEGER",""],
+      ["installations","INTEGER",""],
+      ["source_table","VARCHAR(16)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_PROGRAM","DIM_DAC_STATUS"],
+  },
+  FACT_EV_MAKE_READY: {
+    kind: "fact", group: "Section B — EV Make-Ready",
+    title: "FACT_EV_MAKE_READY",
+    desc: "Absorbed dim: plug_type_code. plug_type_code NULL for incentive-only rows (Table B1), populated for plug-count rows (Table B2). Produces Tables B1 and B2.",
+    cols: [
+      ["ev_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["program_id","INTEGER","FK → DIM_PROGRAM"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["plug_type_code","VARCHAR(16)","ENUM"],
+      ["incentive_dollars","DECIMAL(18,2)",""],
+      ["plugs_installed","INTEGER",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_PROGRAM","DIM_DAC_STATUS"],
+  },
+  FACT_DEMAND_RESPONSE: {
+    kind: "fact", group: "Section C — Demand Response",
+    title: "FACT_DEMAND_RESPONSE",
+    desc: "No absorbed dims. Customer-group summaries (DAC / Low-Income / Total) in Tables C2–C5 come from filtering on dac_status_id.",
+    cols: [
+      ["dr_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["program_id","INTEGER","FK → DIM_PROGRAM"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["participants","INTEGER",""],
+      ["committed_mw","DECIMAL(10,2)",""],
+      ["delivered_mw","DECIMAL(10,2)",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_PROGRAM","DIM_DAC_STATUS"],
+  },
+  FACT_DER: {
+    kind: "fact", group: "Section D — Distributed Energy Resources",
+    title: "FACT_DER",
+    desc: "Absorbed dim: der_type_code. period_grain='CUMULATIVE' handles 'Up to 2024' rollup. subscribers NULL when der_type_code='NM' (Net Metering has projects, not subscribers).",
+    cols: [
+      ["der_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["der_type_code","VARCHAR(8)","ENUM"],
+      ["projects","INTEGER",""],
+      ["mw_installed","DECIMAL(12,4)",""],
+      ["subscribers","INTEGER",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_DAC_STATUS"],
+  },
+  FACT_STRATEGIC_CAP_INVESTMENT: {
+    kind: "fact", group: "Section E — Strategic Capital Investments",
+    title: "FACT_STRATEGIC_CAP_INVESTMENT",
+    desc: "Absorbed dim: investment_category_code. pct_affecting_dacs stays as a row attribute (not split across DAC/non-DAC rows) because Section E reports estimated exposure, not actual dollar allocation.",
+    cols: [
+      ["cap_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["investment_category_code","VARCHAR(24)","ENUM"],
+      ["total_investment_dollars","DECIMAL(18,2)",""],
+      ["pct_affecting_dacs","DECIMAL(5,4)",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD"],
+  },
+  FACT_CUSTOMER_OUTAGES: {
+    kind: "fact", group: "Section F — Customer Outages",
+    title: "FACT_CUSTOMER_OUTAGES",
+    desc: "Absorbed dim: outage_excludability + outage_network_type (the original DIM_OUTAGE_TYPE was itself a cross-product, so absorbed as two columns). geography_id at NETWORK / LOAD_AREA feeds F4–F6; at BOROUGH feeds F8/F9.",
+    cols: [
+      ["outage_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["geography_id","INTEGER","FK → DIM_GEOGRAPHY"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["outage_excludability","VARCHAR(16)","ENUM"],
+      ["outage_network_type","VARCHAR(16)","ENUM"],
+      ["outage_count","INTEGER",""],
+      ["customers_interrupted","INTEGER",""],
+      ["source_table","VARCHAR(16)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
+  },
+  FACT_MAIN_REPLACEMENT: {
+    kind: "fact", group: "Section G — Main Replacement",
+    title: "FACT_MAIN_REPLACEMENT",
+    desc: "Absorbed dim: pipe_action_code. feet_of_pipe and metric_tons_ch4_reduced coexist — emissions (G10) are derivatives of pipe replacement (G1–G9).",
+    cols: [
+      ["pipe_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["geography_id","INTEGER","FK → DIM_GEOGRAPHY"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["pipe_action_code","VARCHAR(24)","ENUM"],
+      ["feet_of_pipe","INTEGER",""],
+      ["metric_tons_ch4_reduced","DECIMAL(10,4)",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
+  },
+  FACT_LEAK_REPAIRS: {
+    kind: "fact", group: "Section H — Leak Repairs",
+    title: "FACT_LEAK_REPAIRS",
+    desc: "Absorbed dim: leak_type_code. Nullable — H1 reports aggregate not per-type; populating this enables per-leak-type analytics without schema change.",
+    cols: [
+      ["leak_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["geography_id","INTEGER","FK → DIM_GEOGRAPHY"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["leak_type_code","VARCHAR(8)","ENUM"],
+      ["leaks_repaired","INTEGER",""],
+      ["unique_tickets","INTEGER",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
+  },
+  FACT_CLEAN_ENERGY_JOBS: {
+    kind: "fact", group: "Section I — Clean Energy Jobs",
+    title: "FACT_CLEAN_ENERGY_JOBS",
+    desc: "Long-form fact (no absorbed dims added — it was already in long-form shape in v1). One row per (period × metric × count_basis). count_basis ∈ {UNIQUE, NON_UNIQUE}.",
+    cols: [
+      ["jobs_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["program_id","INTEGER","FK → DIM_PROGRAM"],
+      ["metric_code","VARCHAR(32)","ENUM"],
+      ["count_basis","VARCHAR(16)","ENUM"],
+      ["count_value","INTEGER",""],
+      ["text_value","VARCHAR(256)",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_PROGRAM"],
+  },
+  FACT_CUSTOMER_OPERATIONS: {
+    kind: "fact", group: "Section J — Customer Operations",
+    title: "FACT_CUSTOMER_OPERATIONS",
+    desc: "Absorbed dims: account_status_code + usage_commodity_code. All J1–J9 metrics in a single long-form fact. Point-in-time metrics (J3/J4/J6/J7/J9) use period_grain='POINT_IN_TIME'; flow metrics (J5/J8) use YEAR or MONTH grain.",
+    cols: [
+      ["custop_fact_id","BIGINT","PK"],
+      ["period_id","INTEGER","FK → DIM_PERIOD"],
+      ["geography_id","INTEGER","FK → DIM_GEOGRAPHY"],
+      ["dac_status_id","INTEGER","FK → DIM_DAC_STATUS"],
+      ["account_status_code","VARCHAR(32)","ENUM"],
+      ["usage_commodity_code","VARCHAR(16)","ENUM"],
+      ["account_count","INTEGER",""],
+      ["dollar_amount","DECIMAL(18,2)",""],
+      ["usage_amount","DECIMAL(18,4)",""],
+      ["avg_usage_per_customer","DECIMAL(12,4)",""],
+      ["source_table","VARCHAR(8)",""],
+    ],
+    related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
+  },
+};
+
+const DIM_ORDER = [
+  "DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS","DIM_PROGRAM"
+];
+const FACT_ORDER = [
+  "FACT_CLEAN_ENERGY_SPENDING","FACT_EV_MAKE_READY","FACT_DEMAND_RESPONSE","FACT_DER",
+  "FACT_STRATEGIC_CAP_INVESTMENT","FACT_CUSTOMER_OUTAGES","FACT_MAIN_REPLACEMENT",
+  "FACT_LEAK_REPAIRS","FACT_CLEAN_ENERGY_JOBS","FACT_CUSTOMER_OPERATIONS"
+];
+
+function renderERD() {
+  const wrap = document.getElementById("erd-wrap");
+
+  const dimensions = DIM_ORDER.map(name => ({ name, kind: "dim" }));
+  const facts = FACT_ORDER.map(name => ({ name, kind: "fact" }));
+
+  const nodeW = 170;
+  const nodeH = 40;
+  const hGap = 14;
+  const vGap = 120;
+  const paddingX = 30;
+  const paddingY = 30;
+
+  const dimCols = 7;
+  const dimRows = Math.ceil(dimensions.length / dimCols);
+  const factCols = 5;
+  const factRows = Math.ceil(facts.length / factCols);
+
+  const totalWidth = paddingX * 2 + dimCols * nodeW + (dimCols - 1) * hGap;
+  const dimBlockHeight = dimRows * nodeH + (dimRows - 1) * 12;
+  const factBlockHeight = factRows * nodeH + (factRows - 1) * 12;
+  const totalHeight = paddingY * 2 + dimBlockHeight + vGap + factBlockHeight;
+
+  const positions = {};
+
+  dimensions.forEach((d, i) => {
+    const row = Math.floor(i / dimCols);
+    const col = i % dimCols;
+    const itemsInRow = (row === dimRows - 1) ? (dimensions.length - row * dimCols) : dimCols;
+    const rowWidth = itemsInRow * nodeW + (itemsInRow - 1) * hGap;
+    const rowStartX = (totalWidth - rowWidth) / 2;
+    positions[d.name] = {
+      x: rowStartX + col * (nodeW + hGap),
+      y: paddingY + row * (nodeH + 12),
+      kind: "dim"
+    };
+  });
+
+  const factY0 = paddingY + dimBlockHeight + vGap;
+  facts.forEach((f, i) => {
+    const row = Math.floor(i / factCols);
+    const col = i % factCols;
+    const itemsInRow = (row === factRows - 1) ? (facts.length - row * factCols) : factCols;
+    const rowWidth = itemsInRow * nodeW + (itemsInRow - 1) * hGap;
+    const rowStartX = (totalWidth - rowWidth) / 2;
+    positions[f.name] = {
+      x: rowStartX + col * (nodeW + hGap),
+      y: factY0 + row * (nodeH + 12),
+      kind: "fact"
+    };
+  });
+
+  const edges = [];
+  for (const factName of FACT_ORDER) {
+    const fact = SCHEMA[factName];
+    for (const related of (fact.related || [])) {
+      if (related.startsWith("DIM_")) {
+        edges.push({ from: related, to: factName });
+      }
+    }
+  }
+
+  let svg = '<svg class="erd-svg" viewBox="0 0 ' + totalWidth + ' ' + totalHeight + '" xmlns="http://www.w3.org/2000/svg">';
+  svg += '<g id="erd-edges">';
+  edges.forEach((e, idx) => {
+    const p1 = positions[e.from];
+    const p2 = positions[e.to];
+    const x1 = p1.x + nodeW / 2;
+    const y1 = p1.y + nodeH;
+    const x2 = p2.x + nodeW / 2;
+    const y2 = p2.y;
+    const midY = (y1 + y2) / 2;
+    const d = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
+    svg += `<path class="erd-edge" data-from="${e.from}" data-to="${e.to}" data-idx="${idx}" d="${d}" />`;
+  });
+  svg += '</g>';
+
+  svg += '<g id="erd-nodes">';
+  for (const [name, pos] of Object.entries(positions)) {
+    const isDim = pos.kind === "dim";
+    const fill = isDim ? "var(--dim-bg)" : "var(--fact-bg)";
+    const textColor = isDim ? "var(--dim-text)" : "var(--fact-text)";
+    const stroke = isDim ? "var(--dim-text)" : "var(--fact-text)";
+    const short = name.replace("DIM_", "").replace("FACT_", "");
+    const label = short.length > 22 ? short.substring(0, 20) + "…" : short;
+    svg += `<g class="erd-node" data-name="${name}" onclick="select('${name}')">`;
+    svg += `<rect x="${pos.x}" y="${pos.y}" width="${nodeW}" height="${nodeH}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="0.8" />`;
+    svg += `<text x="${pos.x + nodeW/2}" y="${pos.y + nodeH/2 + 4}" text-anchor="middle" font-size="12" font-family="var(--font)" fill="${textColor}" font-weight="500">${label}</text>`;
+    svg += `</g>`;
+  }
+  svg += '</g>';
+
+  svg += '<text x="' + (paddingX + 4) + '" y="' + (paddingY - 10) + '" font-size="11" font-family="var(--font)" fill="var(--text-3)" font-weight="500" letter-spacing="0.5">DIMENSIONS</text>';
+  svg += '<text x="' + (paddingX + 4) + '" y="' + (factY0 - 10) + '" font-size="11" font-family="var(--font)" fill="var(--text-3)" font-weight="500" letter-spacing="0.5">FACTS</text>';
+
+  svg += '</svg>';
+  wrap.innerHTML = svg;
+
+  wrap.querySelectorAll(".erd-node").forEach(nodeEl => {
+    const name = nodeEl.dataset.name;
+    nodeEl.addEventListener("mouseenter", () => highlightNode(name));
+    nodeEl.addEventListener("mouseleave", () => clearHighlight());
+  });
+}
+
+function highlightNode(name) {
+  const relatedNames = new Set([name]);
+  const edgesByNode = window._erdEdgesByNode || {};
+  const edges = edgesByNode[name] || [];
+  for (const e of edges) {
+    relatedNames.add(e.from);
+    relatedNames.add(e.to);
+  }
+  document.querySelectorAll(".erd-node").forEach(n => {
+    const nn = n.dataset.name;
+    n.classList.toggle("highlighted", nn === name);
+    n.classList.toggle("dimmed", !relatedNames.has(nn));
+  });
+  document.querySelectorAll(".erd-edge").forEach(e => {
+    const connected = e.dataset.from === name || e.dataset.to === name;
+    e.classList.toggle("highlighted", connected);
+    e.classList.toggle("dimmed", !connected);
+  });
+}
+
+function clearHighlight() {
+  document.querySelectorAll(".erd-node").forEach(n => {
+    n.classList.remove("highlighted", "dimmed");
+  });
+  document.querySelectorAll(".erd-edge").forEach(e => {
+    e.classList.remove("highlighted", "dimmed");
+  });
+}
+
+function buildEdgeIndex() {
+  const idx = {};
+  for (const factName of FACT_ORDER) {
+    const fact = SCHEMA[factName];
+    for (const related of (fact.related || [])) {
+      if (related.startsWith("DIM_")) {
+        const edge = { from: related, to: factName };
+        (idx[related] = idx[related] || []).push(edge);
+        (idx[factName] = idx[factName] || []).push(edge);
+      }
+    }
+  }
+  window._erdEdgesByNode = idx;
+}
+
+function renderSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  sidebar.innerHTML = "";
+
+  const dimGroup = document.createElement("div");
+  dimGroup.className = "sidebar-group";
+  dimGroup.innerHTML = '<div class="sidebar-label">Dimensions (14)</div>';
+  for (const name of DIM_ORDER) {
+    const btn = document.createElement("button");
+    btn.className = "tbl-btn";
+    btn.dataset.name = name;
+    btn.innerHTML = '<span class="tag tag-dim">DIM</span>' + name.replace("DIM_","");
+    btn.onclick = () => select(name);
+    dimGroup.appendChild(btn);
+  }
+  sidebar.appendChild(dimGroup);
+
+  const factGroup = document.createElement("div");
+  factGroup.className = "sidebar-group";
+  factGroup.innerHTML = '<div class="sidebar-label">Facts (10)</div>';
+  for (const name of FACT_ORDER) {
+    const btn = document.createElement("button");
+    btn.className = "tbl-btn";
+    btn.dataset.name = name;
+    btn.innerHTML = '<span class="tag tag-fact">FACT</span>' + name.replace("FACT_","");
+    btn.onclick = () => select(name);
+    factGroup.appendChild(btn);
+  }
+  sidebar.appendChild(factGroup);
+}
+
+function select(name) {
+  document.querySelectorAll(".tbl-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.name === name);
+  });
+  const t = SCHEMA[name];
+  const detail = document.getElementById("detail");
+
+  let colsHtml = '<table class="cols-table"><thead><tr><th>Column</th><th>Type</th><th>Key / Reference</th></tr></thead><tbody>';
+  for (const [col, type, key] of t.cols) {
+    let keyHtml = "";
+    if (key === "PK") keyHtml = '<span class="key-pk">PK</span>';
+    else if (key === "ENUM") keyHtml = '<span class="key-enum">ENUM</span>';
+    else if (key.startsWith("FK")) {
+      const target = key.replace("FK → ","").trim();
+      keyHtml = '<span class="key-fk">FK</span> <button class="fk-link" onclick="select(\'' + target + '\')">' + target + '</button>';
+    }
+    colsHtml += '<tr><td>' + col + '</td><td>' + type + '</td><td>' + keyHtml + '</td></tr>';
+  }
+  colsHtml += '</tbody></table>';
+
+  let relHtml = "";
+  if (t.related && t.related.length) {
+    relHtml = '<div class="rel-section"><div class="rel-title">' +
+      (t.kind === "dim" ? "Facts that reference this" : "Dimensions referenced") + '</div>';
+    for (const r of t.related) {
+      relHtml += '<button class="rel-chip" onclick="select(\'' + r + '\')">' + r + '</button>';
+    }
+    relHtml += '</div>';
+  }
+
+  detail.innerHTML =
+    '<div class="detail-kicker">' + t.group + '</div>' +
+    '<h2 class="detail-title">' + t.title + '</h2>' +
+    '<p class="detail-desc">' + t.desc + '</p>' +
+    colsHtml +
+    relHtml;
+
+  const detailRect = detail.getBoundingClientRect();
+  if (detailRect.top < 0 || detailRect.top > window.innerHeight - 100) {
+    detail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+buildEdgeIndex();
+renderERD();
+renderSidebar();
+select("DIM_PERIOD");
+</script>
+</body>
+</html>
