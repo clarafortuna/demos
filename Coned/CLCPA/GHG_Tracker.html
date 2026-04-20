@@ -322,32 +322,186 @@
     .banner-right { text-align: left; }
     .bar-row { grid-template-columns: 110px minmax(0, 1fr) 70px; font-size: 12px; }
     .kpi-value { font-size: 20px; }
+    .logo-header { flex-direction: column; align-items: flex-start; text-align: left; }
+    .logo-meta { text-align: left; }
   }
+
+  /* ---------- Logo header ---------- */
+  .logo-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 28px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .logo-header-left {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .logo-mark {
+    height: 48px;
+    width: auto;
+    flex-shrink: 0;
+    display: block;
+  }
+  .logo-wordmark {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .logo-name {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text-info);
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+  }
+  .logo-tag {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .logo-meta {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .logo-meta-label {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  @media (prefers-color-scheme: dark) {
+    .logo-name { color: #85B7EB; }
+  }
+
+  /* ---------- Password gate ---------- */
+  .gate-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-page);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+  }
+  .gate-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 36px 32px 28px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  }
+  .gate-logo {
+    height: 56px;
+    width: auto;
+    max-width: 100%;
+    margin: 0 auto 24px;
+    display: block;
+  }
+  .gate-name {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text-info);
+    letter-spacing: 0.5px;
+    margin: 0 0 4px;
+  }
+  .gate-tag {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin: 0 0 24px;
+    font-weight: 500;
+  }
+  .gate-sub {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 0 0 20px;
+  }
+  .gate-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .gate-form input {
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  .gate-hint {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .gate-error {
+    color: var(--text-danger);
+    font-size: 12px;
+    min-height: 16px;
+    margin-top: 4px;
+  }
+  .body-locked { overflow: hidden; }
+  .app-hidden { display: none; }
 </style>
 </head>
-<body>
+<body class="body-locked">
+
+<!-- ============================================================
+     PASSWORD GATE
+     Default demo password: fortuna2026
+     To change: edit the DEMO_PASSWORD constant at the bottom of
+     this file. Note this is client-side protection only — fine
+     for demo gating, NOT a substitute for real authentication.
+     ============================================================ -->
+<div class="gate-overlay" id="gate">
+  <div class="gate-card">
+    <img class="gate-logo" src="https://cdn.prod.website-files.com/67515336f01078bba5365d57/675174d07c0de7e915ffb302_logo-main.webp" alt="Clara Fortuna" />
+    <p class="gate-sub">Enter access code to view the Main Replacement GHG tracker.</p>
+    <form class="gate-form" id="gate-form" autocomplete="off">
+      <input type="password" id="gate-input" placeholder="Access code" autofocus />
+      <button type="submit" class="btn-p">Unlock</button>
+      <div class="gate-error" id="gate-error"></div>
+    </form>
+    <div class="gate-hint">Authorized personnel only · Demo environment</div>
+  </div>
+</div>
+
+<div id="app" class="app-hidden">
 
 <div class="container">
+
+  <!-- Logo header -->
+  <div class="logo-header">
+    <div class="logo-header-left">
+      <img class="logo-mark" src="https://cdn.prod.website-files.com/67515336f01078bba5365d57/675174d07c0de7e915ffb302_logo-main.webp" alt="Clara Fortuna" />
+      <div class="logo-wordmark">
+        <div class="logo-tag">Main Replacement GHG Tracker</div>
+      </div>
+    </div>
+    <div class="logo-meta">
+      <div><span class="logo-meta-label">Period</span> &nbsp; FY 2026 · Q2</div>
+      <div><span class="logo-meta-label">User</span> &nbsp; A. Delgado · Gas Ops</div>
+    </div>
+  </div>
 
   <div class="demo-notice">
     <strong>Demo / mockup</strong> — all data is illustrative. Not a live Clara Fortuna system.
   </div>
-
-  <section style="margin-top: 8px;">
-    <div class="banner">
-      <div class="banner-left">
-        <div class="logo">CF</div>
-        <div>
-          <div class="banner-title">Clara Fortuna · main replacement GHG tracker</div>
-          <div class="banner-sub">EPA subpart W reporting · CLCPA DAC compliance · Gas operations</div>
-        </div>
-      </div>
-      <div class="banner-right">
-        <div>FY 2026 · Q2</div>
-        <div>Signed in as: A. Delgado (Gas Ops)</div>
-      </div>
-    </div>
-  </section>
 
   <section>
     <div class="kpi-grid">
@@ -520,6 +674,7 @@
     Clara Fortuna Main Replacement GHG Tracker · Demo build · All figures illustrative
   </div>
 
+</div>
 </div>
 
 <script>
@@ -708,6 +863,48 @@
   });
 
   renderAll();
+})();
+</script>
+
+<!-- Password gate script -->
+<script>
+(function(){
+  // ==========================================================
+  // DEMO PASSWORD — change this string to set a new access code
+  const DEMO_PASSWORD = 'fortuna2026';
+  // ==========================================================
+
+  const gate = document.getElementById('gate');
+  const app = document.getElementById('app');
+  const form = document.getElementById('gate-form');
+  const input = document.getElementById('gate-input');
+  const err = document.getElementById('gate-error');
+
+  // Persist unlock for the session so refreshes don't re-prompt
+  try {
+    if (sessionStorage.getItem('cf_unlocked') === '1') {
+      unlock();
+    }
+  } catch(e) { /* sessionStorage blocked — gate still works per-pageload */ }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (input.value === DEMO_PASSWORD) {
+      try { sessionStorage.setItem('cf_unlocked', '1'); } catch(e) {}
+      unlock();
+    } else {
+      err.textContent = 'Incorrect access code.';
+      input.value = '';
+      input.focus();
+      setTimeout(function(){ err.textContent = ''; }, 2500);
+    }
+  });
+
+  function unlock(){
+    gate.style.display = 'none';
+    app.classList.remove('app-hidden');
+    document.body.classList.remove('body-locked');
+  }
 })();
 </script>
 
