@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOP-002, AI-Assisted Power Platform Development</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1a1a2e;--ink2:#2d2d4e;--mist:#f4f3f0;
+  --teal:#0f7b6c;--teal-l:#e0f5f1;--teal-m:#1D9E75;
+  --gold:#c4860a;--gold-l:#fef3dc;
+  --coral:#b84040;--coral-l:#fdeaea;
+  --blue:#1a5fa8;--blue-l:#e8f1fc;
+  --border:rgba(26,26,46,0.1);
+  --surface:#ffffff;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Source Serif 4',serif;background:var(--mist);color:var(--ink);line-height:1.75;}
+
+/* LOCK */
+#cf-lock{position:fixed;inset:0;z-index:9999;background:var(--ink);display:flex;align-items:center;justify-content:center;transition:opacity .5s;}
+#cf-lock.hidden{opacity:0;pointer-events:none;}
+.lc{width:360px;text-align:center;padding:0 24px;}
+.ll{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal-m);margin-bottom:28px;}
+.lt{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;color:#fff;margin-bottom:8px;font-weight:700;line-height:1.3;}
+.ls{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:36px;font-family:'Source Serif 4',serif;}
+.li{width:100%;padding:13px 16px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:8px;color:#fff;font-size:14px;outline:none;font-family:inherit;box-sizing:border-box;transition:border-color .2s;}
+.li:focus{border-color:var(--teal-m);}
+.li.err{border-color:#e76f51;animation:shake .3s;}
+.le{font-size:11px;color:#e76f51;height:16px;margin:8px 0;font-family:'Plus Jakarta Sans',sans-serif;}
+.lb{width:100%;padding:13px;background:var(--teal-m);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;margin-top:4px;transition:background .2s;}
+.lb:hover{background:var(--teal);}
+.lh{margin-top:20px;font-size:10px;color:rgba(255,255,255,.2);font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.05em;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+
+/* LAYOUT */
+#doc{opacity:0;transition:opacity .5s;}
+#doc.visible{opacity:1;}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:268px;background:var(--ink);overflow-y:auto;padding:36px 0;}
+.sb-logo{padding:0 28px 28px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:20px;}
+.sb-brand{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal-m);margin-bottom:6px;}
+.sb-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;color:#fff;font-weight:700;line-height:1.35;}
+.sb-ver{font-size:10px;color:rgba(255,255,255,.3);margin-top:6px;font-family:'Fira Code',monospace;}
+.nav-sec{padding:10px 28px 4px;font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-top:8px;}
+.nav-item{display:block;padding:8px 28px;font-size:12px;color:rgba(255,255,255,.5);text-decoration:none;transition:all .2s;border-left:2px solid transparent;font-family:'Plus Jakarta Sans',sans-serif;}
+.nav-item:hover{color:rgba(255,255,255,.9);background:rgba(255,255,255,.04);}
+.nav-item.active{color:var(--teal-m);border-left-color:var(--teal-m);background:rgba(29,158,117,.08);}
+.sb-foot{padding:24px 28px;border-top:1px solid rgba(255,255,255,.08);margin-top:24px;font-size:10px;color:rgba(255,255,255,.25);font-family:'Plus Jakarta Sans',sans-serif;line-height:1.6;}
+.lock-btn{float:right;font-size:10px;color:rgba(255,255,255,.3);cursor:pointer;border:1px solid rgba(255,255,255,.1);padding:4px 10px;border-radius:4px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.05em;transition:all .2s;}
+.lock-btn:hover{color:rgba(255,255,255,.7);}
+.main{margin-left:268px;min-height:100vh;}
+
+/* HERO */
+.hero{background:var(--ink);padding:72px 72px 64px;border-bottom:1px solid rgba(255,255,255,.06);position:relative;}
+.hero-sop{font-family:'Fira Code',monospace;font-size:11px;color:var(--teal-m);letter-spacing:.15em;margin-bottom:16px;}
+.hero-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:46px;color:#fff;line-height:1.05;font-weight:800;margin-bottom:16px;}
+.hero-title span{color:#c4860a;font-style:italic;font-family:'Source Serif 4',serif;font-weight:400;}
+.hero-sub{font-size:15px;color:rgba(255,255,255,.45);max-width:560px;line-height:1.8;margin-bottom:36px;}
+.hero-meta{display:flex;gap:40px;flex-wrap:wrap;}
+.hm-l{font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.3);margin-bottom:4px;}
+.hm-v{font-size:13px;color:rgba(255,255,255,.7);}
+.scope-pills{display:flex;gap:8px;margin-top:28px;flex-wrap:wrap;}
+.scope-pill{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;padding:5px 14px;border-radius:20px;border:1px solid;}
+.scope-pill.t{background:rgba(29,158,117,.12);border-color:rgba(29,158,117,.3);color:var(--teal-m);}
+.scope-pill.g{background:rgba(196,134,10,.12);border-color:rgba(196,134,10,.3);color:#c4860a;}
+.scope-pill.b{background:rgba(26,95,168,.12);border-color:rgba(26,95,168,.3);color:#4a8fd4;}
+
+/* SECTIONS */
+.section{padding:60px 72px;border-bottom:1px solid var(--border);}
+.section:last-child{border-bottom:none;}
+.s-ey{font-family:'Plus Jakarta Sans',sans-serif;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal-m);margin-bottom:10px;}
+.s-ti{font-family:'Plus Jakarta Sans',sans-serif;font-size:30px;font-weight:800;color:var(--ink);margin-bottom:16px;line-height:1.15;}
+.s-le{font-size:15px;color:#5a5a7a;max-width:660px;line-height:1.85;margin-bottom:36px;}
+h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:17px;font-weight:700;color:var(--ink);margin:36px 0 12px;}
+h4{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:var(--ink);margin:20px 0 8px;letter-spacing:.03em;}
+p{font-size:14px;color:#5a5a7a;line-height:1.85;margin-bottom:16px;}
+ul,ol{padding-left:22px;margin-bottom:16px;}
+li{font-size:14px;color:#5a5a7a;line-height:1.85;margin-bottom:5px;}
+strong{color:var(--ink);font-weight:600;}
+code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.07);padding:2px 7px;border-radius:4px;color:var(--teal);}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:0;margin:24px 0;}
+.step{display:flex;gap:20px;align-items:flex-start;}
+.step-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:44px;}
+.step-num{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;flex-shrink:0;}
+.step-num.t{background:var(--teal-l);color:var(--teal);border:1.5px solid rgba(15,123,108,.25);}
+.step-num.g{background:var(--gold-l);color:var(--gold);border:1.5px solid rgba(196,134,10,.25);}
+.step-num.b{background:var(--blue-l);color:var(--blue);border:1.5px solid rgba(26,95,168,.25);}
+.step-num.c{background:var(--coral-l);color:var(--coral);border:1.5px solid rgba(184,64,64,.25);}
+.step-num.done{background:#EAF3DE;color:#27500A;border:2px solid #3B6D11;}
+.step-line{width:2px;background:var(--border);flex:1;min-height:16px;margin:3px 0;}
+.step-body{flex:1;padding-bottom:28px;}
+.step-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;color:var(--ink);margin-top:8px;margin-bottom:5px;}
+.step-desc{font-size:13px;color:#5a5a7a;line-height:1.7;}
+
+/* CODE BLOCKS */
+.cmd{background:var(--ink);border-radius:10px;overflow:hidden;margin:14px 0;}
+.cmd-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.cmd-label{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal-m);}
+.cmd-env{font-family:'Fira Code',monospace;font-size:10px;color:rgba(255,255,255,.3);}
+.cmd-body{padding:16px 20px;font-family:'Fira Code',monospace;font-size:12.5px;line-height:1.8;color:rgba(255,255,255,.8);overflow-x:auto;white-space:pre;}
+.cmd-body .dollar{color:rgba(255,255,255,.3);}
+.cmd-body .cmd-c{color:#34d399;}
+.cmd-body .flag{color:#fbbf24;}
+.cmd-body .path{color:#a78bfa;}
+.cmd-body .comment{color:rgba(255,255,255,.3);font-style:italic;}
+
+/* CALLOUTS */
+.callout{border-radius:10px;padding:16px 20px;margin:16px 0;font-size:13px;line-height:1.7;}
+.callout.ok{background:var(--teal-l);border-left:3px solid var(--teal-m);color:var(--teal);}
+.callout.warn{background:var(--gold-l);border-left:3px solid var(--gold);color:var(--gold);}
+.callout.crit{background:var(--coral-l);border-left:3px solid var(--coral);color:var(--coral);}
+.callout.info{background:var(--blue-l);border-left:3px solid var(--blue);color:var(--blue);}
+.callout strong{color:inherit;}
+
+/* TABLES */
+.dt{width:100%;border-collapse:collapse;font-size:13px;margin:16px 0;}
+.dt th{padding:10px 14px;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:#f0efe8;color:#5a5a7a;border-bottom:2px solid var(--border);}
+.dt td{padding:10px 14px;border-bottom:1px solid var(--border);color:#5a5a7a;vertical-align:top;}
+.dt td strong{color:var(--ink);}
+.dt td.mono{font-family:'Fira Code',monospace;font-size:11px;color:var(--teal);}
+.dt tr:last-child td{border-bottom:none;}
+
+/* PROMPT BOXES */
+.prompt-box{background:var(--surface);border:1.5px solid rgba(29,158,117,.3);border-radius:12px;overflow:hidden;margin:20px 0;}
+.prompt-header{background:rgba(29,158,117,.06);padding:10px 18px;border-bottom:1px solid rgba(29,158,117,.15);display:flex;align-items:center;gap:10px;}
+.prompt-icon{width:24px;height:24px;border-radius:6px;background:var(--teal-m);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;flex-shrink:0;}
+.prompt-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);}
+.prompt-body{padding:16px 18px;font-size:13px;color:var(--ink);line-height:1.75;font-family:'Source Serif 4',serif;}
+.prompt-body em{color:var(--teal);font-style:normal;font-weight:600;}
+
+/* CARDS */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:20px 0;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;}
+.card-icon{font-size:22px;margin-bottom:10px;}
+.card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.card-desc{font-size:12px;color:#5a5a7a;line-height:1.6;}
+
+/* FILE TREE */
+.tree{font-family:'Fira Code',monospace;font-size:12px;color:#5a5a7a;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px 22px;line-height:1.9;margin:16px 0;}
+.tree .folder{color:var(--teal);font-weight:600;}
+.tree .file{color:var(--ink);}
+.tree .note{color:#aaa;font-style:italic;}
+.tree .xml{color:var(--blue);}
+.tree .important{color:var(--gold);font-weight:600;}
+
+/* LEVEL BADGES */
+.level-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0;}
+.level-card{border-radius:10px;padding:18px;border:1.5px solid;}
+.level-card.l1{background:var(--teal-l);border-color:rgba(15,123,108,.3);}
+.level-card.l2{background:var(--gold-l);border-color:rgba(196,134,10,.3);}
+.level-card.l3{background:var(--blue-l);border-color:rgba(26,95,168,.3);}
+.level-num{font-family:'Plus Jakarta Sans',sans-serif;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;}
+.level-num.t{color:var(--teal);}
+.level-num.g{color:var(--gold);}
+.level-num.b{color:var(--blue);}
+.level-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+.level-desc{font-size:12px;color:#5a5a7a;line-height:1.6;}
+
+.toc-marker{display:block;height:1px;margin-top:-80px;padding-top:80px;}
+@media(max-width:900px){.sidebar{display:none;}.main{margin-left:0;}.hero,.section{padding:40px 24px;}.level-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="cf-lock">
+  <div class="lc">
+    <div class="ll">Clara Fortuna · Innovation</div>
+    <div class="lt">SOP-002<br>AI-Assisted Power Platform Development</div>
+    <div class="ls">Enter your password to access this document</div>
+    <input class="li" id="cf-pwd" type="password" placeholder="Password" autocomplete="off" onkeydown="if(event.key===String.fromCharCode(13))cfCheck()"/>
+    <div class="le" id="cf-err"></div>
+    <button class="lb" onclick="cfCheck()">Access Document</button>
+    <div class="lh">Clara Fortuna · Innovation Department · Confidential</div>
+  </div>
+</div>
+
+<div id="doc">
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">Clara Fortuna · Innovation</div>
+    <div class="sb-title">SOP-002<br>AI-Assisted Power Platform Development</div>
+    <div class="sb-ver">v1.0 · April 2026</div>
+  </div>
+  <div class="nav-sec">Overview</div>
+  <a href="#overview" class="nav-item active">Purpose & Scope</a>
+  <a href="#maturity" class="nav-item">3 Maturity Levels</a>
+  <a href="#prerequisites" class="nav-item">Prerequisites</a>
+  <div class="nav-sec">Level 1: Create</div>
+  <a href="#l1-prompt" class="nav-item">Step 1: Design with Claude</a>
+  <a href="#l1-build" class="nav-item">Step 2: Build in Maker Portal</a>
+  <a href="#l1-export" class="nav-item">Step 3: Export Solution</a>
+  <a href="#l1-deliver" class="nav-item">Step 4: Deliver to Client</a>
+  <div class="nav-sec">Level 2: Modify</div>
+  <a href="#l2-unpack" class="nav-item">Step 5: Unpack with PAC CLI</a>
+  <a href="#l2-structure" class="nav-item">Step 6: Understand Structure</a>
+  <a href="#l2-modify" class="nav-item">Step 7: Modify with Claude</a>
+  <a href="#l2-repack" class="nav-item">Step 8: Repack &amp; Import</a>
+  <div class="nav-sec">Prompt Templates</div>
+  <a href="#prompts-model" class="nav-item">Model-Driven App Prompts</a>
+  <a href="#prompts-canvas" class="nav-item">Canvas App Prompts</a>
+  <a href="#prompts-modify" class="nav-item">Modification Prompts</a>
+  <div class="nav-sec">Visual Layer</div>
+  <a href="#web-resources-visual" class="nav-item">Web Resources: Visual Components</a>
+  <div class="nav-sec">Reference</div>
+  <a href="#what-lives-where" class="nav-item">What Lives in the XML</a>
+  <a href="#gotchas" class="nav-item">Known Issues & Fixes</a>
+  <div class="sb-foot">Owner: Euris · Director of Innovation<br>Clara Fortuna · Confidential<br>All team members, any Power Platform project</div>
+</nav>
+
+<div class="main">
+
+<!-- HERO -->
+<div class="hero">
+  <button class="lock-btn" onclick="lockDoc()">Lock</button>
+  <div class="hero-sop">SOP-002 · Standard Operating Procedure</div>
+  <h1 class="hero-title">AI-Assisted<br><span>Power Platform</span><br>Development</h1>
+  <p class="hero-sub">The validated method for creating, modifying, and delivering Power Platform solutions, including model-driven apps, canvas apps, flows, and web resources, using Claude AI and the Power Platform CLI. No specialized developer knowledge required to start.</p>
+  <div class="hero-meta">
+    <div><div class="hm-l">Version</div><div class="hm-v">v1.0</div></div>
+    <div><div class="hm-l">Date</div><div class="hm-v">April 2026</div></div>
+    <div><div class="hm-l">Owner</div><div class="hm-v">Euris · Director of Innovation</div></div>
+    <div><div class="hm-l">Audience</div><div class="hm-v">All Clara Fortuna team members</div></div>
+  </div>
+  <div class="scope-pills">
+    <span class="scope-pill t">Model-Driven Apps</span>
+    <span class="scope-pill t">Canvas Apps</span>
+    <span class="scope-pill t">Power Automate Flows</span>
+    <span class="scope-pill g">Dataverse Tables</span>
+    <span class="scope-pill g">Web Resources</span>
+    <span class="scope-pill b">PCF Components</span>
+    <span class="scope-pill b">Security Roles</span>
+  </div>
+</div>
+
+<!-- SECTION: PURPOSE -->
+<div class="section" id="overview">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 01</div>
+  <h2 class="s-ti">Purpose & Scope</h2>
+  <p class="s-le">This SOP defines the standard method for the Clara Fortuna team to design, build, modify, and deliver Power Platform solutions using AI assistance, reducing development time and enabling team members without deep Power Platform expertise to contribute meaningfully.</p>
+
+  <h3>Why This Method</h3>
+  <p>Traditional Power Platform development requires deep knowledge of Dataverse schema design, XML customization files, and ALM processes. This method uses Claude AI to handle the knowledge layer, the team provides the business context, Claude provides the technical specification, and Power Platform CLI handles the packaging and delivery.</p>
+  <p>The same method works for <strong>every component inside a Power Platform solution</strong>, not just model-driven apps. Once you understand the unpack/modify/repack cycle, you can improve any part of any solution.</p>
+
+  <div class="card-grid">
+    <div class="card"><div class="card-icon">🏗️</div><div class="card-title">Model-Driven Apps</div><div class="card-desc">Tables, forms, views, dashboards, business process flows. Data-first enterprise apps.</div></div>
+    <div class="card"><div class="card-icon">🎨</div><div class="card-title">Canvas Apps</div><div class="card-desc">Custom UI experiences. The .msapp file unpacks to JSON, fully readable by Claude.</div></div>
+    <div class="card"><div class="card-icon">⚡</div><div class="card-title">Power Automate</div><div class="card-desc">Flows stored as JSON in the solution. Claude can add steps, change conditions, fix logic.</div></div>
+    <div class="card"><div class="card-icon">🌐</div><div class="card-title">Web Resources</div><div class="card-desc">HTML, JS, CSS files embedded in the solution. Directly editable, no unpack needed.</div></div>
+    <div class="card"><div class="card-icon">🔒</div><div class="card-title">Security Roles</div><div class="card-desc">Role definitions in XML. Claude can add or adjust permissions for specific tables.</div></div>
+    <div class="card"><div class="card-icon">📦</div><div class="card-title">Deliver to Any Tenant</div><div class="card-desc">Export as managed .zip → import in client's tenant. No code access needed by client.</div></div>
+  </div>
+
+  <div class="callout ok"><strong>Business Impact:</strong> A solution built once in Clara Fortuna's Dev environment can be packaged and delivered to any utility client's tenant in under 10 minutes. The client receives a fully managed solution, they can use it but cannot accidentally break its structure.</div>
+</div>
+
+<!-- SECTION: MATURITY -->
+<div class="section" id="maturity">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 02</div>
+  <h2 class="s-ti">3 Maturity Levels</h2>
+  <p class="s-le">The method has three progressive levels. Start at Level 1. You will be productive immediately. Move to Level 2 once you've shipped at least one solution. Level 3 is the long-term automation goal.</p>
+
+  <div class="level-grid">
+    <div class="level-card l1">
+      <div class="level-num t">Level 1: Create</div>
+      <div class="level-title">Claude + Maker Portal</div>
+      <div class="level-desc">Claude designs the data model and configuration. Team builds it manually in make.powerapps.com. Export as .zip and deliver to client.</div>
+    </div>
+    <div class="level-card l2">
+      <div class="level-num g">Level 2: Modify</div>
+      <div class="level-title">PAC CLI + Claude + VS Code</div>
+      <div class="level-desc">Unpack existing solution, pass XML to Claude for modifications, repack and import. Faster than rebuilding. Works on any existing app.</div>
+    </div>
+    <div class="level-card l3">
+      <div class="level-num b">Level 3: Automate</div>
+      <div class="level-title">PAC CLI + GitHub CI/CD</div>
+      <div class="level-desc">Automated export, version control, and deployment via GitHub Actions. Full ALM pipeline. Target state once Level 2 is mastered.</div>
+    </div>
+  </div>
+
+  <table class="dt">
+    <thead><tr><th>Aspect</th><th>Level 1</th><th>Level 2</th><th>Level 3</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Tools needed</strong></td><td>Claude, browser</td><td>VS Code, PAC CLI, Claude</td><td>VS Code, PAC CLI, GitHub</td></tr>
+      <tr><td><strong>Time to first result</strong></td><td>Same day</td><td>After first solution shipped</td><td>After Level 2 mastered</td></tr>
+      <tr><td><strong>Who can do it</strong></td><td>Any team member</td><td>Randdy, Emely, or any trained member</td><td>Randdy, Emely + DevOps setup</td></tr>
+      <tr><td><strong>Good for</strong></td><td>New solutions from scratch</td><td>Improving existing solutions</td><td>Repeatable multi-client delivery</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION: PREREQUISITES -->
+<div class="section" id="prerequisites">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 03</div>
+  <h2 class="s-ti">Prerequisites</h2>
+  <p class="s-le">Before starting, verify you have the following. Level 1 requires only items 1–3. Level 2 requires all items.</p>
+
+  <table class="dt">
+    <thead><tr><th>#</th><th>Requirement</th><th>Level</th><th>How to verify</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Claude.ai access</strong></td><td>L1 + L2</td><td>Log in at claude.ai with your account</td></tr>
+      <tr><td>2</td><td><strong>Power Apps maker access</strong></td><td>L1 + L2</td><td>Open make.powerapps.com, you should see Clara Fortuna Dev environment</td></tr>
+      <tr><td>3</td><td><strong>Power Platform Premium license</strong></td><td>L1 + L2</td><td>Ask Euris to confirm your license assignment</td></tr>
+      <tr><td>4</td><td><strong>VS Code installed</strong></td><td>L2</td><td>Open VS Code, version 1.85 or later recommended</td></tr>
+      <tr><td>5</td><td><strong>Power Platform Tools extension</strong></td><td>L2</td><td>In VS Code: Extensions → search "Power Platform Tools" → install Microsoft's extension</td></tr>
+      <tr><td>6</td><td><strong>Auth profile configured</strong></td><td>L2</td><td>In VS Code left panel, expand POWER PLATFORM → AUTH PROFILES → should show <code>euris@clarafortuna.com</code></td></tr>
+      <tr><td>7</td><td><strong>Environments visible</strong></td><td>L2</td><td>In VS Code panel → ENVIRONMENTS & SOLUTIONS → should show Clara Fortuna Dev, QA, PROD</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout info"><strong>Already confirmed:</strong> As of April 2026, the PAC CLI and Power Platform Tools extension are installed and configured with Clara Fortuna's environments (Dev, QA, PROD) and authenticated as euris@clarafortuna.com. The <code>Unified CSR Portal</code> solution is visible in Dev.</div>
+</div>
+
+<!-- SECTION: L1 PROMPT -->
+<div class="section" id="l1-prompt">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 1 · Step 1</div>
+  <h2 class="s-ti">Design with Claude</h2>
+  <p class="s-le">Before touching Power Platform, use Claude to design the complete data model and app configuration. Claude's output becomes your build specification. Follow it exactly in the Maker Portal.</p>
+
+  <h3>Model-Driven App: Master Prompt Template</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Model-Driven App Design</div></div>
+    <div class="prompt-body">
+      You are a Microsoft Power Platform architect. Design a complete model-driven app for the following requirements:<br><br>
+      <strong>Client:</strong> <em>[CLIENT NAME]</em><br>
+      <strong>Sector:</strong> <em>[e.g. Electric utility / Water utility / Gas distribution]</em><br>
+      <strong>Business process:</strong> <em>[DESCRIBE THE PROCESS IN 2-3 SENTENCES]</em><br>
+      <strong>Users:</strong> <em>[WHO WILL USE THE APP AND WHAT THEY NEED TO DO]</em><br>
+      <strong>Data they work with:</strong> <em>[MAIN ENTITIES: e.g. work orders, assets, customers, incidents]</em><br><br>
+      Generate the following in order:<br>
+      1. <strong>Dataverse table schema</strong>, for each table: logical name (prefix cf_), display name, primary column, and all columns with name, data type (Text/Number/Date/Lookup/Choice/Currency), and required/optional flag<br>
+      2. <strong>Table relationships</strong>, list every 1:N and N:N relationship with parent and child table<br>
+      3. <strong>Form layout</strong>, for each table, list the sections and fields in order as they should appear on the main form<br>
+      4. <strong>Views</strong>, for each table, define the Active Records view columns and sort order<br>
+      5. <strong>Security roles</strong>, define 2-3 roles with their access level per table (Read/Write/Create/Delete)<br>
+      6. <strong>App sitemap</strong>, navigation structure with groups and sub-areas<br><br>
+      Format each section clearly. Use tables where helpful. Be specific. This output will be used directly to build the app.
+    </div>
+  </div>
+
+  <h3>Canvas App: Master Prompt Template</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Canvas App Design</div></div>
+    <div class="prompt-body">
+      You are a Microsoft Power Apps canvas app architect. Design a canvas app for the following:<br><br>
+      <strong>Client:</strong> <em>[CLIENT NAME]</em><br>
+      <strong>Purpose:</strong> <em>[WHAT THE APP DOES, e.g. field technician mobile app for work order management]</em><br>
+      <strong>Device:</strong> <em>[Mobile / Tablet / Desktop / All]</em><br>
+      <strong>Data source:</strong> <em>[Dataverse tables / SharePoint / SQL / other]</em><br>
+      <strong>Key screens:</strong> <em>[LIST THE MAIN SCREENS NEEDED]</em><br><br>
+      Generate:<br>
+      1. <strong>Screen list</strong>, every screen with its purpose and navigation flow<br>
+      2. <strong>Data connections</strong>, tables/lists needed and what data is read vs. written<br>
+      3. <strong>Key formulas</strong>, the 5-10 most important Power Fx formulas for the app logic<br>
+      4. <strong>Component structure</strong>, reusable components and their properties<br>
+      5. <strong>Color and branding</strong>, palette using Clara Fortuna teal (#1D9E75) as primary<br><br>
+      Output a screen-by-screen spec I can follow to build this in Power Apps studio.
+    </div>
+  </div>
+
+  <div class="callout warn"><strong>Important:</strong> Always use the prefix <code>cf_</code> for all custom tables and columns in Dataverse. This is the Clara Fortuna publisher prefix. If Claude suggests a different prefix, correct it in the prompt before building.</div>
+</div>
+
+<!-- SECTION: L1 BUILD -->
+<div class="section" id="l1-build">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 1 · Step 2</div>
+  <h2 class="s-ti">Build in the Maker Portal</h2>
+  <p class="s-le">Using Claude's output as your spec, build the solution in make.powerapps.com. Always work inside a Solution, never directly in the default environment.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num t">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Create a new Solution</div>
+        <div class="step-desc">Go to <code>make.powerapps.com</code> → select <strong>Clara Fortuna Dev</strong> environment → left menu → <strong>Solutions</strong> → <strong>New solution</strong>. Set Display name, Publisher: <strong>Clara Fortuna</strong> (prefix: cf_), and Version: <strong>1.0.0.0</strong>. Click Create.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Create Dataverse tables</div>
+        <div class="step-desc">Inside your solution → <strong>New → Table</strong>. Follow Claude's table schema exactly: logical name, display name, primary column. For each table, add all columns Claude specified with their exact data types. Repeat for every table in the schema.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Create relationships</div>
+        <div class="step-desc">For each relationship in Claude's output: open the parent table → <strong>Relationships tab</strong> → <strong>Add relationship</strong> → select type (1:N or N:N) → select the related table. Use Claude's relationship names exactly.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Create the Model-Driven App</div>
+        <div class="step-desc">Inside solution → <strong>New → App → Model-driven app</strong>. In the app designer, add pages using Claude's sitemap structure. Configure forms and views per Claude's layout spec. Save and Publish.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">5</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Assign security roles</div>
+        <div class="step-desc">Settings → <strong>Security roles</strong> → create each role Claude defined. Set table permissions per Claude's access matrix. Assign roles to the app via the app's Properties panel.</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout ok"><strong>Tip:</strong> If you get stuck on any step, paste the relevant part of Claude's output back into Claude and ask: <em>"I'm on step [X] in make.powerapps.com. Based on this spec, what exactly should I click and configure?"</em> Claude will guide you through the UI.</div>
+</div>
+
+<!-- SECTION: L1 EXPORT -->
+<div class="section" id="l1-export">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 1 · Step 3</div>
+  <h2 class="s-ti">Export the Solution</h2>
+  <p class="s-le">Once built and tested in Dev, export the solution as a Managed package for client delivery, or Unmanaged if the team will continue modifying it internally.</p>
+
+  <table class="dt">
+    <thead><tr><th>Type</th><th>When to use</th><th>Client can modify?</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Unmanaged</strong></td><td>Internal Dev↔QA movement, continued development</td><td>Yes, full access</td></tr>
+      <tr><td><strong>Managed</strong></td><td>Final delivery to client tenant</td><td>No, protected structure</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Export via VS Code (Recommended)</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num g">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Open VS Code → Power Platform panel</div>
+        <div class="step-desc">In the left sidebar, click the Power Platform icon. Expand <strong>ENVIRONMENTS & SOLUTIONS</strong> → <strong>Clara Fortuna Dev</strong> → find your solution.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num g">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Right-click → Export Solution</div>
+        <div class="step-desc">Select <strong>Managed</strong> for client delivery. VS Code will download the <code>.zip</code> file to your workspace folder.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Export via PAC CLI (Alternative)</h3>
+  <div class="cmd">
+    <div class="cmd-bar"><span class="cmd-label">Terminal: PAC CLI</span><span class="cmd-env">Clara Fortuna Dev</span></div>
+    <div class="cmd-body"><span class="dollar">$ </span><span class="cmd-c">pac solution export</span> <span class="flag">--name</span> <span class="path">"YourSolutionName"</span> <span class="flag">--path</span> <span class="path">"./exports/YourSolution.zip"</span> <span class="flag">--managed</span> true
+
+<span class="comment"># For unmanaged (internal development):</span>
+<span class="dollar">$ </span><span class="cmd-c">pac solution export</span> <span class="flag">--name</span> <span class="path">"YourSolutionName"</span> <span class="flag">--path</span> <span class="path">"./exports/YourSolution-unmanaged.zip"</span> <span class="flag">--managed</span> false</div>
+  </div>
+  <div class="callout info">Find your exact solution name in VS Code's Power Platform panel or in make.powerapps.com → Solutions. The name is case-sensitive.</div>
+</div>
+
+<!-- SECTION: L1 DELIVER -->
+<div class="section" id="l1-deliver">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 1 · Step 4</div>
+  <h2 class="s-ti">Deliver to Client Tenant</h2>
+  <p class="s-le">Send the managed .zip to the client and walk them through the import, or import it directly if you have access to their tenant.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num done">✓</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Client goes to make.powerapps.com in their tenant</div>
+        <div class="step-desc">They must have a Power Apps license. They select their target environment (their Production or Sandbox environment).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num done">✓</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Solutions → Import solution → Upload .zip</div>
+        <div class="step-desc">Client uploads the managed .zip file. Power Platform validates dependencies automatically. If there are missing dependencies, the portal shows them clearly.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num done">✓</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Configure connection references (if applicable)</div>
+        <div class="step-desc">If the solution includes Power Automate flows with connectors, the client must connect their own accounts (SharePoint, Outlook, SQL, etc.) during import. The portal prompts for each connection.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num done">✓</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Import → assign users to security roles</div>
+        <div class="step-desc">After import, client System Admin assigns their users to the security roles included in the solution. The app is then visible and usable for those users.</div>
+      </div>
+    </div>
+  </div>
+  <div class="callout ok"><strong>Delivery complete.</strong> The client has a fully managed Power Platform solution in their tenant. Clara Fortuna retains the source in Dev. Any future updates are re-exported and re-imported as a new version.</div>
+</div>
+
+<!-- SECTION: L2 UNPACK -->
+<div class="section" id="l2-unpack">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Step 5</div>
+  <h2 class="s-ti">Unpack with PAC CLI</h2>
+  <p class="s-le">To modify an existing solution, adding fields, fixing flows, improving forms, changing canvas app logic, you unpack it into readable files, modify with Claude, and repack. This works on any solution regardless of how it was originally built.</p>
+
+  <h3>Step-by-step unpack process</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num g">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Export the unmanaged solution first</div>
+        <div class="step-desc">You can only meaningfully modify an <strong>unmanaged</strong> solution. If you only have a managed .zip, you need to export fresh from the source environment.</div>
+        <div class="cmd">
+          <div class="cmd-bar"><span class="cmd-label">Terminal</span></div>
+          <div class="cmd-body"><span class="dollar">$ </span><span class="cmd-c">pac solution export</span> <span class="flag">--name</span> <span class="path">"UnifiedCSRPortal"</span> <span class="flag">--path</span> <span class="path">"./UnifiedCSRPortal.zip"</span> <span class="flag">--managed</span> false</div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num g">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Unpack into a folder</div>
+        <div class="cmd">
+          <div class="cmd-bar"><span class="cmd-label">Terminal</span></div>
+          <div class="cmd-body"><span class="dollar">$ </span><span class="cmd-c">pac solution unpack</span> <span class="flag">--zipfile</span> <span class="path">"./UnifiedCSRPortal.zip"</span> <span class="flag">--folder</span> <span class="path">"./UnifiedCSRPortal-src"</span>
+
+<span class="comment"># You should see output like:</span>
+<span class="comment"># Unpacking solution components...</span>
+<span class="comment"># Done. Solution extracted to ./UnifiedCSRPortal-src</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num g">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Open the folder in VS Code</div>
+        <div class="step-desc">File → Open Folder → select <code>UnifiedCSRPortal-src</code>. You will see the complete solution as structured files, ready for Claude to read and modify.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: L2 STRUCTURE -->
+<div class="section" id="l2-structure">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Step 6</div>
+  <h2 class="s-ti">Understand the Unpacked Structure</h2>
+  <p class="s-le">After unpacking, every component of your solution is a readable file. Here is what you will find and what each part controls.</p>
+
+  <div class="tree">
+<span class="folder">UnifiedCSRPortal-src/</span>
+├── <span class="folder">Entities/</span>                     <span class="note">← Dataverse tables</span>
+│   ├── <span class="folder">cf_caso/</span>
+│   │   ├── <span class="xml">Entity.xml</span>            <span class="note">← Table definition, columns, relationships</span>
+│   │   ├── <span class="folder">FormXml/</span>
+│   │   │   └── <span class="xml">main.xml</span>          <span class="note">← Main form layout (add/remove fields here)</span>
+│   │   └── <span class="folder">SavedQueries/</span>
+│   │       └── <span class="xml">ActiveCasos.xml</span>   <span class="note">← View definition (columns shown in list)</span>
+│   └── <span class="folder">cf_cliente/</span>
+│       └── <span class="xml">Entity.xml</span>
+├── <span class="folder">AppModules/</span>                    <span class="note">← Model-Driven Apps</span>
+│   └── <span class="xml">UnifiedCSRPortal.xml</span>      <span class="note">← App structure and sitemap</span>
+├── <span class="folder">Workflows/</span>                     <span class="note">← Power Automate flows</span>
+│   └── <span class="xml">NotifyOnCaseCreate.xml</span>
+├── <span class="folder">WebResources/</span>                  <span class="note">← HTML, JS, CSS files</span>
+│   ├── <span class="important">cf_customstyles.css</span>       <span class="note">← DIRECTLY editable, no repack needed for testing</span>
+│   └── <span class="important">cf_dashboard.html</span>
+├── <span class="folder">Roles/</span>                         <span class="note">← Security role definitions</span>
+│   └── <span class="xml">CSRAgent.xml</span>
+└── <span class="xml">Other/Solution.xml</span>              <span class="note">← Solution metadata (version, publisher)</span>
+  </div>
+
+  <h3>What Claude can do with each file type</h3>
+  <table class="dt">
+    <thead><tr><th>File</th><th>What Claude can modify</th><th>Complexity</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Entity.xml</strong></td><td>Add columns, change data types, modify relationships</td><td>Medium (follow existing XML patterns)</td></tr>
+      <tr><td><strong>FormXml/main.xml</strong></td><td>Add/remove/reorder fields, add sections, change labels</td><td>Low (clear XML structure)</td></tr>
+      <tr><td><strong>SavedQueries/*.xml</strong></td><td>Add/remove view columns, change sort order, add filters</td><td>Low</td></tr>
+      <tr><td><strong>AppModules/*.xml</strong></td><td>Add pages, change navigation, update sitemap</td><td>Medium</td></tr>
+      <tr><td><strong>Workflows/*.xml</strong></td><td>Add steps, change conditions, fix connector references</td><td>Medium-High</td></tr>
+      <tr><td><strong>WebResources/*</strong></td><td>Full HTML/JS/CSS, anything Claude can write</td><td>Low (familiar web code)</td></tr>
+      <tr><td><strong>Roles/*.xml</strong></td><td>Add table permissions, change access levels</td><td>Low</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION: L2 MODIFY -->
+<div class="section" id="l2-modify">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Step 7</div>
+  <h2 class="s-ti">Modify with Claude</h2>
+  <p class="s-le">Open the relevant XML file in VS Code, copy its content, and pass it to Claude with a clear instruction. Claude returns the modified XML, paste it back and save.</p>
+
+  <h3>The Modification Prompt Pattern</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: XML Modification</div></div>
+    <div class="prompt-body">
+      You are a Microsoft Power Platform developer modifying a Dataverse solution XML file.<br><br>
+      <strong>File type:</strong> <em>[Entity.xml / FormXml/main.xml / SavedQueries / AppModules / Workflows / Roles]</em><br>
+      <strong>Current file content:</strong><br>
+      <em>[PASTE THE ENTIRE XML FILE CONTENT HERE]</em><br><br>
+      <strong>Change requested:</strong><br>
+      <em>[DESCRIBE EXACTLY WHAT YOU WANT TO ADD, REMOVE, OR CHANGE]</em><br><br>
+      Rules:<br>
+      · Keep all existing content intact unless explicitly told to remove it<br>
+      · Use the same naming convention and prefix (cf_) as the existing file<br>
+      · Output the complete modified XML file, no partial outputs<br>
+      · Add a comment at the top: &lt;!-- Modified by Claude, [DATE], [CHANGE SUMMARY] --&gt;
+    </div>
+  </div>
+
+  <h3>Example: Adding a field to a form</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Example Prompt</div></div>
+    <div class="prompt-body">
+      You are a Microsoft Power Platform developer modifying a Dataverse solution XML file.<br><br>
+      <strong>File type:</strong> FormXml/main.xml for the cf_caso table<br>
+      <strong>Current file content:</strong><br>
+      [paste xml here]<br><br>
+      <strong>Change requested:</strong><br>
+      Add a new field called "cf_priority" (Choice field, values: High, Medium, Low) to the General section of the form, positioned after the "cf_description" field. The field should be labeled "Priority" and be required.
+    </div>
+  </div>
+
+  <div class="callout warn"><strong>Important, canvas apps are different:</strong> Canvas apps are stored as <code>.msapp</code> files (a ZIP containing JSON). To modify them, export the app separately from Power Apps Studio using <strong>File → Save As → Download a copy</strong>, then unzip and open the <code>Controls/</code> folder. Pass individual screen JSON files to Claude for modification. This is more advanced. Review the canvas app JSON structure with Claude before making changes.</div>
+</div>
+
+<!-- SECTION: L2 REPACK -->
+<div class="section" id="l2-repack">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Step 8</div>
+  <h2 class="s-ti">Repack and Import</h2>
+  <p class="s-le">After saving Claude's modified XML back into the source folder, repack the solution and import it to test your changes.</p>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num b">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Increment the version in Solution.xml</div>
+        <div class="step-desc">Open <code>Other/Solution.xml</code>. Find the <code>&lt;Version&gt;</code> tag and increment it (e.g. 1.2.0.9 → 1.2.1.0). This prevents import conflicts.</div>
+        <div class="cmd">
+          <div class="cmd-bar"><span class="cmd-label">Other/Solution.xml: edit this line</span></div>
+          <div class="cmd-body"><span class="comment">&lt;!-- Before --&gt;</span>
+&lt;Version&gt;<span class="path">1.2.0.9</span>&lt;/Version&gt;
+
+<span class="comment">&lt;!-- After --&gt;</span>
+&lt;Version&gt;<span class="path">1.2.1.0</span>&lt;/Version&gt;</div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Repack with PAC CLI</div>
+        <div class="cmd">
+          <div class="cmd-bar"><span class="cmd-label">Terminal</span></div>
+          <div class="cmd-body"><span class="dollar">$ </span><span class="cmd-c">pac solution pack</span> <span class="flag">--zipfile</span> <span class="path">"./UnifiedCSRPortal-v1.2.1.0.zip"</span> <span class="flag">--folder</span> <span class="path">"./UnifiedCSRPortal-src"</span>
+
+<span class="comment"># Expected output:</span>
+<span class="comment"># Packing solution components...</span>
+<span class="comment"># Done. Solution packed to ./UnifiedCSRPortal-v1.2.1.0.zip</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Fix the Content_Types.xml (Critical, Known Issue)</div>
+        <div class="step-desc">After PAC packs the solution, open the resulting .zip and replace the <code>[Content_Types].xml</code> with the one from the original downloaded solution. This fixes an encoding mismatch that can prevent the app from being editable after import.</div>
+        <div class="callout crit"><strong>Do not skip this step.</strong> PAC marks XML files as <code>text/xml</code> but Power Platform expects <code>application/octet-stream</code>. Without this fix the imported solution may not be editable in the maker portal. Keep a copy of the original <code>[Content_Types].xml</code> from your first export for reuse.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Import to Dev for testing</div>
+        <div class="cmd">
+          <div class="cmd-bar"><span class="cmd-label">Terminal: import to Dev</span></div>
+          <div class="cmd-body"><span class="dollar">$ </span><span class="cmd-c">pac solution import</span> <span class="flag">--path</span> <span class="path">"./UnifiedCSRPortal-v1.2.1.0.zip"</span> <span class="flag">--publish-changes</span>
+
+<span class="comment"># Or import via VS Code: right-click solution → Import Solution</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num done">✓</div></div>
+      <div class="step-body">
+        <div class="step-title">Verify in make.powerapps.com</div>
+        <div class="step-desc">Open Dev environment → Solutions → find your solution → open the app and verify the changes are visible. If something looks wrong, recheck the modified XML against Claude's output for any typos or mismatched tags.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: PROMPTS MODIFY -->
+<div class="section" id="prompts-modify">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Prompt Library</div>
+  <h2 class="s-ti">Ready-to-Use Modification Prompts</h2>
+  <p class="s-le">Copy, fill in the blanks, and send to Claude. These cover the most common modification scenarios.</p>
+
+  <h3>Add a new column to an existing table</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Add Column: Entity.xml</div></div>
+    <div class="prompt-body">
+      This is a Dataverse Entity.xml file. Add a new column with these specifications:<br>
+      · Logical name: <em>cf_[columnname]</em><br>
+      · Display name: <em>[Label shown to users]</em><br>
+      · Data type: <em>[Text / Integer / DateTime / Lookup to cf_[table] / Choice: Option1, Option2, Option3]</em><br>
+      · Required: <em>[Yes / No]</em><br>
+      · Max length (if Text): <em>[100 / 500 / 2000]</em><br><br>
+      Keep all existing content intact. Output the complete modified XML.<br><br>
+      [PASTE ENTITY.XML CONTENT HERE]
+    </div>
+  </div>
+
+  <h3>Add a field to an existing form</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Add Field to Form: FormXml/main.xml</div></div>
+    <div class="prompt-body">
+      This is a Dataverse form XML. Add the field <em>cf_[fieldname]</em> to the form:<br>
+      · Section: <em>[section name where it should appear]</em><br>
+      · Position: <em>[after cf_[existingfield] / at the top of the section / at the bottom]</em><br>
+      · Label: <em>[label to display]</em><br>
+      · Required on form: <em>[Yes / No]</em><br><br>
+      Output the complete modified XML.<br><br>
+      [PASTE MAIN.XML CONTENT HERE]
+    </div>
+  </div>
+
+  <h3>Add a step to a Power Automate flow</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Modify Flow: Workflows/*.xml</div></div>
+    <div class="prompt-body">
+      This is a Power Automate flow stored as Dataverse workflow XML. Add a new step:<br>
+      · Step type: <em>[Send email / Update record / Create record / Condition / HTTP request]</em><br>
+      · Position: <em>[after step named "[X]" / at the end of the flow / inside the Yes branch of condition "[Y]"]</em><br>
+      · Details: <em>[describe what the step should do]</em><br><br>
+      Keep all existing steps intact. Output the complete modified XML.<br><br>
+      [PASTE WORKFLOW XML CONTENT HERE]
+    </div>
+  </div>
+
+  <h3>Improve a web resource (HTML/CSS/JS)</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Modify Web Resource: WebResources/*</div></div>
+    <div class="prompt-body">
+      This is a web resource file embedded in a Power Platform solution (model-driven app context).<br><br>
+      <strong>Change needed:</strong> <em>[describe what you want to improve, add, or fix]</em><br><br>
+      Context: This runs inside a model-driven app iframe. The Xrm object is available for Dataverse operations. Keep Clara Fortuna brand colors: primary teal #1D9E75.<br><br>
+      Output the complete modified file.<br><br>
+      [PASTE HTML / CSS / JS FILE CONTENT HERE]
+    </div>
+  </div>
+</div>
+
+<!-- SECTION: WHAT LIVES WHERE -->
+<div class="section" id="what-lives-where">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Reference</div>
+  <h2 class="s-ti">What Lives in the XML, Quick Reference</h2>
+  <p class="s-le">When you need to find a specific component to modify, use this reference to know exactly which file to open.</p>
+
+  <table class="dt">
+    <thead><tr><th>I want to change...</th><th>Open this file</th><th>Location in unpacked folder</th></tr></thead>
+    <tbody>
+      <tr><td>Add a column to a table</td><td class="mono">Entity.xml</td><td class="mono">Entities/cf_[table]/Entity.xml</td></tr>
+      <tr><td>Change what fields appear on a form</td><td class="mono">main.xml</td><td class="mono">Entities/cf_[table]/FormXml/main.xml</td></tr>
+      <tr><td>Change what columns appear in a list view</td><td class="mono">*.xml in SavedQueries</td><td class="mono">Entities/cf_[table]/SavedQueries/</td></tr>
+      <tr><td>Change app navigation / sitemap</td><td class="mono">AppModules/*.xml</td><td class="mono">AppModules/</td></tr>
+      <tr><td>Modify a Power Automate flow</td><td class="mono">Workflows/*.xml</td><td class="mono">Workflows/</td></tr>
+      <tr><td>Change HTML/CSS/JS in the app</td><td class="mono">WebResources/*</td><td class="mono">WebResources/</td></tr>
+      <tr><td>Change security role permissions</td><td class="mono">Roles/*.xml</td><td class="mono">Roles/</td></tr>
+      <tr><td>Change solution version or publisher</td><td class="mono">Solution.xml</td><td class="mono">Other/Solution.xml</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- SECTION: GOTCHAS -->
+<div class="section" id="gotchas">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Reference</div>
+  <h2 class="s-ti">Known Issues & Fixes</h2>
+
+  <h3>Issue 1: Solution not editable after import</h3>
+  <div class="callout crit"><strong>Problem:</strong> PAC CLI sets XML content type to <code>text/xml</code> but Power Platform expects <code>application/octet-stream</code> in the <code>[Content_Types].xml</code> file.<br><br><strong>Fix:</strong> After running <code>pac solution pack</code>, open the resulting .zip, replace <code>[Content_Types].xml</code> with the one from your original export. Save. Import the fixed zip.</div>
+
+  <h3>Issue 2: Import fails with "Missing dependencies"</h3>
+  <div class="callout warn"><strong>Problem:</strong> The target environment is missing a component that this solution depends on (e.g. a table from another solution, a connector).<br><br><strong>Fix:</strong> The import portal lists exactly what is missing. Install or import the dependency first, then retry.</div>
+
+  <h3>Issue 3: Claude modifies XML but import breaks the app</h3>
+  <div class="callout warn"><strong>Problem:</strong> Claude introduced a tag inconsistency or wrong GUID reference in the XML.<br><br><strong>Fix:</strong> Go back to Claude and paste the broken XML section. Ask: <em>"This XML caused an import error. The error message is [X]. Find and fix the issue without changing anything else."</em></div>
+
+  <h3>Issue 4: Changes visible in Dev but not in QA after import</h3>
+  <div class="callout info"><strong>Problem:</strong> The solution was imported but not published.<br><br><strong>Fix:</strong> In make.powerapps.com → Solutions → open the solution → click <strong>Publish all customizations</strong>. Or add <code>--publish-changes</code> flag to the <code>pac solution import</code> command.</div>
+
+  <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);">
+    <p style="font-size:12px;color:#aaa;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.03em;">
+      <strong>Document Control:</strong> SOP-002 · v1.0 · April 2026 · Owner: Euris, Director of Innovation · Clara Fortuna Innovation Department · Confidential · Stored at demo.clarafortuna.com/Innovation/sop/ · Review quarterly as Power Platform CLI and Claude capabilities evolve.
+    </p>
+  </div>
+</div>
+
+
+<!-- SECTION: WEB RESOURCES VISUAL -->
+<div class="section" id="web-resources-visual">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Section 09: Visual Enhancement</div>
+  <h2 class="s-ti">Web Resources: The Visual Layer</h2>
+  <p class="s-le">Model-driven apps are powerful but visually generic by default. Web resources are the mechanism to change that entirely. A web resource is any HTML, CSS, or JavaScript file registered in Dataverse and embedded inside a form, dashboard, or sitemap. With Claude writing the code, the team can produce enterprise-quality visual components without a frontend developer.</p>
+
+  <div class="callout ok"><strong>Key principle:</strong> Everything you see in this section is standard HTML, CSS, and JavaScript. Claude writes all of it. The team registers it in the solution. Power Platform renders it. No additional licenses or tools required beyond what Clara Fortuna already has.</div>
+
+  <h3>3 Places to Embed a Web Resource</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">📋</div>
+      <div class="card-title">On a Form</div>
+      <div class="card-desc">Embedded as a component inside any tab or section. Reads and writes field values from the current record. Best for dynamic visualizations tied to a specific record.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <div class="card-title">On a Dashboard</div>
+      <div class="card-desc">Full-width panel alongside charts and grids. Reads Dataverse data via the Web API. Best for KPI tiles, summary cards, and custom charts across multiple records.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🗺️</div>
+      <div class="card-title">In the Sitemap</div>
+      <div class="card-desc">Standalone page in the app navigation. Not connected to a specific record or form. Best for help pages, process guides, or embedded external tools.</div>
+    </div>
+  </div>
+
+  <div class="callout warn"><strong>Critical technical constraint (verified Microsoft Learn):</strong> The <code>Xrm</code> object is NOT directly available inside an HTML web resource. Use <code>parent.Xrm.*</code> when the web resource is embedded in a form container. For standalone web resources (dashboard or sitemap), use <code>GetGlobalContext</code> from <code>ClientGlobalContext.js.aspx</code> to access environment information, and the Dataverse Web API directly for data access.</div>
+
+  <h3>Component Type 1: KPI Dashboard</h3>
+  <p>A full-width HTML panel on a dashboard showing live metrics pulled from Dataverse. Uses Chart.js loaded from CDN for visualizations. Reads data via <code>parent.Xrm.WebApi</code> or direct Dataverse Web API calls.</p>
+
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: KPI Dashboard Web Resource</div></div>
+    <div class="prompt-body">
+      Create a single-file HTML web resource for a Microsoft Power Platform model-driven app dashboard. This file will be embedded as a web resource component inside an organization dashboard.<br><br>
+      <strong>KPIs to display:</strong> <em>[LIST YOUR KPIS: e.g. Open Cases, Resolved Today, Avg Resolution Time, SLA Compliance %]</em><br>
+      <strong>Dataverse table:</strong> <em>[TABLE LOGICAL NAME: e.g. cf_caso]</em><br>
+      <strong>Data to fetch:</strong> <em>[FIELDS AND FILTERS: e.g. statecode eq 0 for open, filter by current user]</em><br>
+      <strong>Chart type:</strong> <em>[Bar chart / Line chart / Pie chart / Donut / Combination]</em><br>
+      <strong>Brand colors:</strong> Primary #1D9E75 (Clara Fortuna teal), accent #BA7517<br><br>
+      Requirements:<br>
+      · Single self-contained HTML file (no external files)<br>
+      · Load Chart.js from cdnjs.cloudflare.com<br>
+      · Fetch data using <code>parent.Xrm.WebApi.retrieveMultipleRecords()</code><br>
+      · Handle the case where parent.Xrm is not available (show fallback message)<br>
+      · KPI tiles at the top row, chart below<br>
+      · Loading spinner while data is fetching<br>
+      · Error state if data fetch fails<br>
+      · Responsive layout that works at 400px–1200px wide<br>
+      · No hardcoded record GUIDs<br><br>
+      Output the complete HTML file ready to upload as a web resource.
+    </div>
+  </div>
+
+  <h3>Component Type 2: Custom Form Panel</h3>
+  <p>A visual component embedded inside a model-driven form tab. Can read field values from the current record, display calculated information, or show enriched context the native form cannot display.</p>
+
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Form-Embedded Web Resource</div></div>
+    <div class="prompt-body">
+      Create a single-file HTML web resource for a Microsoft Power Platform model-driven app form. This file will be embedded inside a specific tab on the <em>[TABLE NAME]</em> main form.<br><br>
+      <strong>Purpose:</strong> <em>[WHAT THIS PANEL SHOWS: e.g. visual status timeline of a case, a map of the client address, a calculated risk score display]</em><br>
+      <strong>Fields available on the form:</strong> <em>[LIST THE FIELD LOGICAL NAMES THIS COMPONENT WILL READ: e.g. cf_status, cf_createdon, cf_priority]</em><br>
+      <strong>Brand colors:</strong> Primary #1D9E75 (Clara Fortuna teal)<br><br>
+      Requirements:<br>
+      · Single self-contained HTML file<br>
+      · Read field values using <code>parent.Xrm.Page.getAttribute("fieldname").getValue()</code><br>
+      · Listen for field changes using <code>parent.Xrm.Page.getAttribute("fieldname").addOnChange()</code><br>
+      · Handle the case where parent.Xrm is not available gracefully<br>
+      · Compact design that fits inside a form section (max 300px tall)<br>
+      · No external dependencies except those loaded from cdnjs.cloudflare.com<br><br>
+      Output the complete HTML file ready to register as a web resource.
+    </div>
+  </div>
+
+  <h3>Component Type 3: Custom Navigation Panel</h3>
+  <p>A sidebar or header component added to the app via a sitemap page. Shows contextual navigation, help content, team announcements, or external links relevant to the user's role.</p>
+
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Sitemap Navigation Web Resource</div></div>
+    <div class="prompt-body">
+      Create a single-file HTML web resource for a Microsoft Power Platform model-driven app sitemap page. This will be a standalone page in the app's left navigation.<br><br>
+      <strong>Purpose:</strong> <em>[e.g. Quick reference guide / Process flowchart / Team announcements / External tool embed]</em><br>
+      <strong>Content:</strong> <em>[DESCRIBE WHAT THE PAGE SHOULD SHOW]</em><br>
+      <strong>Brand colors:</strong> Primary #1D9E75, navy background #0d1f1c for header<br><br>
+      Requirements:<br>
+      · Single self-contained HTML file<br>
+      · Access environment context using GetGlobalContext from ClientGlobalContext.js.aspx<br>
+      · Include this reference in the head: <code>&lt;script src="../ClientGlobalContext.js.aspx"&gt;&lt;/script&gt;</code><br>
+      · Professional design consistent with enterprise software<br>
+      · Works without parent.Xrm (this is a standalone page, not a form component)<br><br>
+      Output the complete HTML file ready to register as a web resource.
+    </div>
+  </div>
+
+  <h3>How to Register a Web Resource in the Solution</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num t">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Add the file to your solution</div>
+        <div class="step-desc">In <code>make.powerapps.com</code>, open your solution → <strong>New → More → Web Resource</strong>. Upload the HTML file Claude generated. Set the logical name using the convention <code>cf_/webresources/[name].html</code>. Display name is what appears in the portal.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Add to a form (for form-embedded components)</div>
+        <div class="step-desc">Open the table form in the form designer → add a new <strong>1-column section</strong> in the target tab → click <strong>Components → Web Resource</strong> → select your web resource. Set the height in rows (1 row ≈ 24px, so 12 rows ≈ 288px). Save and Publish.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Add to a dashboard (for KPI panels)</div>
+        <div class="step-desc">In your app, open or create a dashboard → click <strong>Insert Web Resource</strong> → select your web resource. Set the column span and height. Save. The dashboard is now available in the app.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Add to the sitemap (for standalone pages)</div>
+        <div class="step-desc">In the app designer → sitemap editor → add a new <strong>Sub Area</strong> → set Type to <strong>Web Resource</strong> → select your web resource. It now appears as a navigation item in the left sidebar of the app.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num done">5</div></div>
+      <div class="step-body">
+        <div class="step-title">Export and include in solution .zip</div>
+        <div class="step-desc">When you export the solution, web resources are automatically included. In the unpacked folder they appear under <code>WebResources/</code> as plain HTML/CSS/JS files — directly editable with Claude without needing to re-register them.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Modifying an Existing Web Resource with Claude</h3>
+  <p>Once a web resource is in the solution, modify it directly in the unpacked folder at <code>WebResources/cf_[name].html</code>. No re-registration needed — just repack and import.</p>
+
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Improve Existing Web Resource</div></div>
+    <div class="prompt-body">
+      This is an existing HTML web resource embedded in a Microsoft Power Platform model-driven app.<br><br>
+      <strong>Change needed:</strong> <em>[DESCRIBE: e.g. add a donut chart showing case distribution by priority, change the color scheme to match Clara Fortuna branding, add a loading skeleton instead of a spinner, add a date range filter]</em><br><br>
+      Context: This file runs inside a model-driven app. <code>parent.Xrm</code> is available if embedded in a form. Chart.js is already loaded from CDN. Maintain Clara Fortuna brand colors: #1D9E75 primary, #0d1f1c dark.<br><br>
+      Keep all existing functionality. Output the complete modified file with a comment header noting the change and date.<br><br>
+      <em>[PASTE CURRENT HTML FILE CONTENT HERE]</em>
+    </div>
+  </div>
+
+  <h3>Performance Guidelines</h3>
+  <table class="dt">
+    <thead><tr><th>Rule</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Load external libraries from <strong>cdnjs.cloudflare.com</strong> only</td><td>Reliable CDN, no CORS issues in Dataverse context</td></tr>
+      <tr><td>Keep the HTML file under <strong>1MB</strong></td><td>Larger files cause noticeable form load delay</td></tr>
+      <tr><td>Use <strong>retrieveMultipleRecords</strong> with a <code>$top</code> limit</td><td>Unbounded queries can time out and break the component</td></tr>
+      <tr><td>Always include a <strong>loading state</strong> and <strong>error state</strong></td><td>API calls can fail silently — users need visual feedback</td></tr>
+      <tr><td>Test at <strong>400px width</strong> minimum</td><td>Form columns can be narrow on smaller screens</td></tr>
+      <tr><td>Avoid <code>alert()</code> and <code>console.log()</code> in production</td><td>These surface to end users and pollute the browser console</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /main -->
+</div><!-- /doc -->
+
+<script>
+(function(){
+  var p1="clarainnov2026",p2="AILabClient2026",KEY="cf_innovation_auth";
+  function unlock(){document.getElementById("cf-lock").classList.add("hidden");document.getElementById("doc").classList.add("visible");}
+  function cfCheck(){
+    var v=document.getElementById("cf-pwd").value.trim();
+    if(v===p1||v===p2){sessionStorage.setItem(KEY,"1");unlock();}
+    else{var i=document.getElementById("cf-pwd");i.classList.add("err");document.getElementById("cf-err").textContent="Incorrect password.";i.value="";setTimeout(function(){i.classList.remove("err");},400);}
+  }
+  window.cfCheck=cfCheck;
+  function lockDoc(){sessionStorage.removeItem(KEY);document.getElementById("cf-lock").classList.remove("hidden");document.getElementById("doc").classList.remove("visible");document.getElementById("cf-pwd").value="";document.getElementById("cf-err").textContent="";}
+  window.lockDoc=lockDoc;
+  if(sessionStorage.getItem(KEY))unlock();
+})();
+var sections=document.querySelectorAll(".section");
+var navItems=document.querySelectorAll(".nav-item");
+function updateNav(){
+  var sy=window.scrollY+100,cur="";
+  sections.forEach(function(s){if(s.offsetTop<=sy)cur=s.id;});
+  navItems.forEach(function(n){n.classList.toggle("active",n.getAttribute("href").replace("#","")==cur);});
+}
+window.addEventListener("scroll",updateNav);
+updateNav();
+document.querySelectorAll('a[href^="#"]').forEach(function(a){
+  a.addEventListener("click",function(e){
+    var t=document.querySelector(this.getAttribute("href"));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:"smooth"});}
+  });
+});
+</script>
+</body>
+</html>
