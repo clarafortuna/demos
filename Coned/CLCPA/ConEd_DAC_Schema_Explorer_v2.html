@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ConEd DAC Report — Schema Explorer (v2: collapsed dims)</title>
+<title>ConEd DAC Report: Schema Explorer (v2: collapsed dims)</title>
 <style>
   :root {
     --bg: #ffffff;
@@ -27,27 +27,25 @@
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
     --font-mono: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1a1a1a;
-      --bg-2: #232321;
-      --bg-3: #2c2c2a;
-      --text: #e8e6df;
-      --text-2: #b4b2a9;
-      --text-3: #888780;
-      --border: rgba(255,255,255,0.12);
-      --border-2: rgba(255,255,255,0.22);
-      --accent: #85B7EB;
-      --accent-bg: #0C447C;
-      --dim-bg: #3C3489;
-      --dim-text: #EEEDFE;
-      --fact-bg: #085041;
-      --fact-text: #E1F5EE;
-      --pk-bg: #633806;
-      --pk-text: #FAEEDA;
-      --fk-bg: #27500A;
-      --fk-text: #EAF3DE;
-    }
+  body.dark {
+    --bg: #1a1a1a;
+    --bg-2: #232321;
+    --bg-3: #2c2c2a;
+    --text: #e8e6df;
+    --text-2: #b4b2a9;
+    --text-3: #888780;
+    --border: rgba(255,255,255,0.12);
+    --border-2: rgba(255,255,255,0.22);
+    --accent: #85B7EB;
+    --accent-bg: #0C447C;
+    --dim-bg: #3C3489;
+    --dim-text: #EEEDFE;
+    --fact-bg: #085041;
+    --fact-text: #E1F5EE;
+    --pk-bg: #633806;
+    --pk-text: #FAEEDA;
+    --fk-bg: #27500A;
+    --fk-text: #EAF3DE;
   }
   * { box-sizing: border-box; }
   body {
@@ -153,9 +151,7 @@
     border-radius: 3px; font-weight: 500; letter-spacing: 0.3px;
     background: #FFE4B5; color: #5A3A00;
   }
-  @media (prefers-color-scheme: dark) {
-    .key-enum { background: #5A3A00; color: #FFE4B5; }
-  }
+  body.dark .key-enum { background: #5A3A00; color: #FFE4B5; }
   .rel-section { margin-top: 24px; padding-top: 16px; border-top: 0.5px solid var(--border); }
   .rel-title {
     font-size: 11px; font-weight: 500; color: var(--text-3);
@@ -177,13 +173,44 @@
     text-decoration: underline; text-decoration-style: dotted; text-underline-offset: 3px;
   }
   .fk-link:hover { text-decoration-style: solid; }
+
+  .theme-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--text);
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .theme-toggle:hover {
+    background: var(--bg-3);
+    border-color: var(--border-2);
+  }
+  .theme-toggle svg {
+    width: 16px;
+    height: 16px;
+  }
+  header { position: relative; padding-right: 140px; }
 </style>
 </head>
 <body>
 <div class="container">
   <header>
-    <h1>ConEd DAC Report — Schema Explorer (v2: collapsed dims)</h1>
+    <h1>ConEd DAC Report: Schema Explorer (v2: collapsed dims)</h1>
     <p>Collapsed schema: 4 shared dimensions + 10 facts. Single-relation dims are absorbed into their fact as enum columns. Click any table to view its columns and relationships.</p>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn" aria-label="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <span id="theme-label">Dark mode</span>
+    </button>
   </header>
   <div class="legend">
     <span class="legend-dot"><span class="legend-swatch" style="background:var(--dim-bg)"></span>Dimension</span>
@@ -204,11 +231,33 @@
   </div>
 </div>
 <script>
+function toggleTheme() {
+  const body = document.body;
+  const isDark = body.classList.toggle('dark');
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  if (isDark) {
+    icon.innerHTML = '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+    label.textContent = 'Light mode';
+  } else {
+    icon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>';
+    label.textContent = 'Dark mode';
+  }
+  try { localStorage.setItem('conedDacTheme', isDark ? 'dark' : 'light'); } catch (e) {}
+}
+(function initTheme() {
+  try {
+    if (localStorage.getItem('conedDacTheme') === 'dark') {
+      document.addEventListener('DOMContentLoaded', () => toggleTheme());
+    }
+  } catch (e) {}
+})();
+
 const SCHEMA = {
   DIM_PERIOD: {
     kind: "dim", group: "Time (shared)",
-    title: "DIM_PERIOD — time dimension",
-    desc: "Shared across all 10 facts. period_grain distinguishes MONTH, QUARTER, YEAR, CUMULATIVE, POINT_IN_TIME. Moving from annual to monthly reporting only requires inserting rows at MONTH grain — no schema changes.",
+    title: "DIM_PERIOD: time dimension",
+    desc: "Shared across all 10 facts. period_grain distinguishes MONTH, QUARTER, YEAR, CUMULATIVE, POINT_IN_TIME. Moving from annual to monthly reporting only requires inserting rows at MONTH grain, no schema changes.",
     cols: [
       ["period_id","INTEGER","PK"],
       ["period_grain","VARCHAR(16)",""],
@@ -224,7 +273,7 @@ const SCHEMA = {
   },
   DIM_GEOGRAPHY: {
     kind: "dim", group: "Geography (shared)",
-    title: "DIM_GEOGRAPHY — hierarchical geography",
+    title: "DIM_GEOGRAPHY: hierarchical geography",
     desc: "Shared across 4 facts (Outages, Main Replacement, Leak Repairs, Customer Operations). Hierarchy: census tract → network/load area → borough/county → service territory. The is_dac flag tracks NYSERDA designation at tract level.",
     cols: [
       ["geography_id","INTEGER","PK"],
@@ -240,8 +289,8 @@ const SCHEMA = {
   },
   DIM_DAC_STATUS: {
     kind: "dim", group: "DAC classification (shared)",
-    title: "DIM_DAC_STATUS — DAC / Low-Income status",
-    desc: "Shared across 8 facts. Distinguishes geographic DAC (NYSERDA census tract) from low-income (EAP participant). Sections A and J use the combined definition — this is why it is modeled as a dimension rather than a simple boolean.",
+    title: "DIM_DAC_STATUS: DAC / Low-Income status",
+    desc: "Shared across 8 facts. Distinguishes geographic DAC (NYSERDA census tract) from low-income (EAP participant). Sections A and J use the combined definition, this is why it is modeled as a dimension rather than a simple boolean.",
     cols: [
       ["dac_status_id","INTEGER","PK"],
       ["dac_status_code","VARCHAR(16)",""],
@@ -253,7 +302,7 @@ const SCHEMA = {
   },
   DIM_PROGRAM: {
     kind: "dim", group: "Program (shared)",
-    title: "DIM_PROGRAM — program catalog",
+    title: "DIM_PROGRAM: program catalog",
     desc: "Shared across Sections A, B, C, I. All named programs with their section code, category, default segment, and flags (is_lmi_targeted, is_active).",
     cols: [
       ["program_id","INTEGER","PK"],
@@ -269,7 +318,7 @@ const SCHEMA = {
   },
 
   FACT_CLEAN_ENERGY_SPENDING: {
-    kind: "fact", group: "Section A — Clean Energy Spending",
+    kind: "fact", group: "Section A, Clean Energy Spending",
     title: "FACT_CLEAN_ENERGY_SPENDING",
     desc: "Absorbed dims: customer_segment_code + measure_category_code. One row per (period × program × customer_segment × measure_category × dac_status). When measure_category_code is NULL, the row feeds program-level tables (A1–A4); when populated, installation-count tables (A5–A8). Produces all 10 tables A1–A10.",
     cols: [
@@ -288,7 +337,7 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_PROGRAM","DIM_DAC_STATUS"],
   },
   FACT_EV_MAKE_READY: {
-    kind: "fact", group: "Section B — EV Make-Ready",
+    kind: "fact", group: "Section B, EV Make-Ready",
     title: "FACT_EV_MAKE_READY",
     desc: "Absorbed dim: plug_type_code. plug_type_code NULL for incentive-only rows (Table B1), populated for plug-count rows (Table B2). Produces Tables B1 and B2.",
     cols: [
@@ -304,7 +353,7 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_PROGRAM","DIM_DAC_STATUS"],
   },
   FACT_DEMAND_RESPONSE: {
-    kind: "fact", group: "Section C — Demand Response",
+    kind: "fact", group: "Section C, Demand Response",
     title: "FACT_DEMAND_RESPONSE",
     desc: "No absorbed dims. Customer-group summaries (DAC / Low-Income / Total) in Tables C2–C5 come from filtering on dac_status_id.",
     cols: [
@@ -320,7 +369,7 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_PROGRAM","DIM_DAC_STATUS"],
   },
   FACT_DER: {
-    kind: "fact", group: "Section D — Distributed Energy Resources",
+    kind: "fact", group: "Section D, Distributed Energy Resources",
     title: "FACT_DER",
     desc: "Absorbed dim: der_type_code. period_grain='CUMULATIVE' handles 'Up to 2024' rollup. subscribers NULL when der_type_code='NM' (Net Metering has projects, not subscribers).",
     cols: [
@@ -336,7 +385,7 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_DAC_STATUS"],
   },
   FACT_STRATEGIC_CAP_INVESTMENT: {
-    kind: "fact", group: "Section E — Strategic Capital Investments",
+    kind: "fact", group: "Section E, Strategic Capital Investments",
     title: "FACT_STRATEGIC_CAP_INVESTMENT",
     desc: "Absorbed dim: investment_category_code. pct_affecting_dacs stays as a row attribute (not split across DAC/non-DAC rows) because Section E reports estimated exposure, not actual dollar allocation.",
     cols: [
@@ -350,7 +399,7 @@ const SCHEMA = {
     related: ["DIM_PERIOD"],
   },
   FACT_CUSTOMER_OUTAGES: {
-    kind: "fact", group: "Section F — Customer Outages",
+    kind: "fact", group: "Section F, Customer Outages",
     title: "FACT_CUSTOMER_OUTAGES",
     desc: "Absorbed dim: outage_excludability + outage_network_type (the original DIM_OUTAGE_TYPE was itself a cross-product, so absorbed as two columns). geography_id at NETWORK / LOAD_AREA feeds F4–F6; at BOROUGH feeds F8/F9.",
     cols: [
@@ -367,9 +416,9 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
   },
   FACT_MAIN_REPLACEMENT: {
-    kind: "fact", group: "Section G — Main Replacement",
+    kind: "fact", group: "Section G, Main Replacement",
     title: "FACT_MAIN_REPLACEMENT",
-    desc: "Absorbed dim: pipe_action_code. feet_of_pipe and metric_tons_ch4_reduced coexist — emissions (G10) are derivatives of pipe replacement (G1–G9).",
+    desc: "Absorbed dim: pipe_action_code. feet_of_pipe and metric_tons_ch4_reduced coexist, emissions (G10) are derivatives of pipe replacement (G1–G9).",
     cols: [
       ["pipe_fact_id","BIGINT","PK"],
       ["period_id","INTEGER","FK → DIM_PERIOD"],
@@ -383,9 +432,9 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
   },
   FACT_LEAK_REPAIRS: {
-    kind: "fact", group: "Section H — Leak Repairs",
+    kind: "fact", group: "Section H, Leak Repairs",
     title: "FACT_LEAK_REPAIRS",
-    desc: "Absorbed dim: leak_type_code. Nullable — H1 reports aggregate not per-type; populating this enables per-leak-type analytics without schema change.",
+    desc: "Absorbed dim: leak_type_code. Nullable, H1 reports aggregate not per-type; populating this enables per-leak-type analytics without schema change.",
     cols: [
       ["leak_fact_id","BIGINT","PK"],
       ["period_id","INTEGER","FK → DIM_PERIOD"],
@@ -399,9 +448,9 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_GEOGRAPHY","DIM_DAC_STATUS"],
   },
   FACT_CLEAN_ENERGY_JOBS: {
-    kind: "fact", group: "Section I — Clean Energy Jobs",
+    kind: "fact", group: "Section I, Clean Energy Jobs",
     title: "FACT_CLEAN_ENERGY_JOBS",
-    desc: "Long-form fact (no absorbed dims added — it was already in long-form shape in v1). One row per (period × metric × count_basis). count_basis ∈ {UNIQUE, NON_UNIQUE}.",
+    desc: "Long-form fact (no absorbed dims added, it was already in long-form shape in v1). One row per (period × metric × count_basis). count_basis ∈ {UNIQUE, NON_UNIQUE}.",
     cols: [
       ["jobs_fact_id","BIGINT","PK"],
       ["period_id","INTEGER","FK → DIM_PERIOD"],
@@ -415,7 +464,7 @@ const SCHEMA = {
     related: ["DIM_PERIOD","DIM_PROGRAM"],
   },
   FACT_CUSTOMER_OPERATIONS: {
-    kind: "fact", group: "Section J — Customer Operations",
+    kind: "fact", group: "Section J, Customer Operations",
     title: "FACT_CUSTOMER_OPERATIONS",
     desc: "Absorbed dims: account_status_code + usage_commodity_code. All J1–J9 metrics in a single long-form fact. Point-in-time metrics (J3/J4/J6/J7/J9) use period_grain='POINT_IN_TIME'; flow metrics (J5/J8) use YEAR or MONTH grain.",
     cols: [
