@@ -198,6 +198,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <a href="#l2-structure" class="nav-item">Step 6: Understand Structure</a>
   <a href="#l2-modify" class="nav-item">Step 7: Modify with Claude</a>
   <a href="#l2-repack" class="nav-item">Step 8: Repack &amp; Import</a>
+  <a href="#l2-programmatic-schema" class="nav-item">Advanced: Programmatic Schema</a>
   <div class="nav-sec">Prompt Templates</div>
   <a href="#prompts-model" class="nav-item">Model-Driven App Prompts</a>
   <a href="#prompts-canvas" class="nav-item">Canvas App Prompts</a>
@@ -695,6 +696,232 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
     </div>
   </div>
 </div>
+
+
+<!-- SECTION: PROGRAMMATIC SCHEMA GENERATION -->
+<div class="section" id="l2-programmatic-schema">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Advanced</div>
+  <h2 class="s-ti">Programmatic Dataverse Schema Generation</h2>
+  <p class="s-le">This section documents the validated process for generating Dataverse tables programmatically using AI and importing them successfully into Power Platform. This method bypasses manual table creation in the Maker Portal and enables schema generation from structured definitions such as HTML, JSON, or technical specification documents.</p>
+
+  <h3>Validated Pipeline</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num b">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Define the schema in a structured format</div>
+        <div class="step-desc">Start from a stable source of truth such as an HTML schema explorer, JSON model, spreadsheet, or technical specification that clearly defines tables, columns, data types, and relationships.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Generate <code>Entity.xml</code> files with AI</div>
+        <div class="step-desc">Use Claude or Cursor to generate entity definitions following the exact export pattern of the target environment. Use a real entity from the same org and publisher prefix as the structural baseline.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Inject entities into an unpacked solution</div>
+        <div class="step-desc">Start from a real unpacked solution from the same environment. Add the new entity folders and only the minimum valid metadata required for import.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Remove invalid supporting components</div>
+        <div class="step-desc">Before packaging, remove any copied <code>FormXml</code>, <code>SavedQueries</code>, or <code>Relationships.xml</code> entries that are not fully aligned with the new entities.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">5</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Pack, import, and debug iteratively</div>
+        <div class="step-desc">Package the solution with PAC CLI, import into Dataverse, and use the actual import error as the source of truth. Apply one fix at a time until the solution imports successfully.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout ok"><strong>Validated result:</strong> This process has already been proven to create and import a multi-table Dataverse schema successfully. It is a viable path for AI-assisted model-driven solution generation.</div>
+
+  <h3>Minimum Required for Successful Import</h3>
+  <table class="dt">
+    <thead><tr><th>Component</th><th>Requirement</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Entity.xml</strong></td><td>Valid structure matching the org export pattern</td><td>Must include primary name, PK, system fields, and custom fields in the correct order</td></tr>
+      <tr><td><strong>statecode / statuscode</strong></td><td>Entity-specific option set names</td><td>Each entity must use its own <code>cf_[entity]_statecode</code> and <code>cf_[entity]_statuscode</code></td></tr>
+      <tr><td><strong>FormXml</strong></td><td>Remove unless fully valid</td><td>Copied forms from another entity can break import immediately</td></tr>
+      <tr><td><strong>SavedQueries</strong></td><td>Remove unless fully valid</td><td>Views must reference only attributes that actually exist on the entity</td></tr>
+      <tr><td><strong>Relationships.xml</strong></td><td>Keep only fully defined relationships</td><td>Self-closing <code>&lt;EntityRelationship /&gt;</code> nodes are not valid relationship definitions</td></tr>
+      <tr><td><strong>Import validation</strong></td><td>Dataverse import is the final authority</td><td>AI can validate structure, but only Dataverse validates real metadata behavior</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Lessons Learned</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🧩</div>
+      <div class="card-title">Forms and Views Break Imports Fast</div>
+      <div class="card-desc">Copied <code>FormXml</code> and <code>SavedQueries</code> from another entity will fail if they reference fields that do not exist in the new entity.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">Relationships Cannot Be Guessed</div>
+      <div class="card-desc"><code>Relationships.xml</code> must contain full metadata. Self-closing placeholders created by pattern are invalid and should be removed.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <div class="card-title">Localized Labels Matter</div>
+      <div class="card-desc">Dataverse enforces internal uniqueness on labels. Reused label-bearing metadata, especially around status/state option sets, can trigger import failures.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📌</div>
+      <div class="card-title">State and Status Are Per Entity</div>
+      <div class="card-desc">Every entity must define its own statecode and statuscode option set names. Reusing another entity’s names causes collisions.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🧪</div>
+      <div class="card-title">Cursor Is Static Analysis, Not Runtime Validation</div>
+      <div class="card-desc">Cursor and Claude can detect structural issues, but they cannot simulate Dataverse import behavior. Import testing remains mandatory.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">Debugging Must Be Iterative</div>
+      <div class="card-desc">Use a disciplined cycle: one change, one pack, one import, one error, one fix. Avoid batching speculative corrections.</div>
+    </div>
+  </div>
+
+  <h3>Anti-Patterns to Avoid</h3>
+  <div class="callout crit"><strong>Avoid these mistakes:</strong> copying full entity folders blindly, reusing FormXml across entities, generating <code>Relationships.xml</code> by naming pattern only, assuming valid XML guarantees a valid import, and applying multiple speculative fixes before running the next import test.</div>
+
+  <h3>Recommended Debugging Sequence</h3>
+  <div class="cmd">
+    <div class="cmd-bar"><span class="cmd-label">Validated troubleshooting loop</span><span class="cmd-env">Use this every time</span></div>
+    <div class="cmd-body"><span class="comment"># 1. Generate / modify only the minimum required files</span>
+<span class="comment"># 2. Pack the solution</span>
+<span class="comment"># 3. Import into Dataverse</span>
+<span class="comment"># 4. Read the exact error returned by the platform</span>
+<span class="comment"># 5. Apply one targeted fix only</span>
+<span class="comment"># 6. Repeat until import succeeds</span></div>
+  </div>
+
+  <h3>Current Proven Outcome</h3>
+  <p>This method has successfully generated and imported a Dataverse solution containing multiple dimension and fact tables from an external structured schema. The result validates that AI-assisted schema generation is practical when the team uses a real environment baseline, removes invalid copied artifacts, and treats Dataverse import feedback as the final validator.</p>
+
+  <h3>Next Step Toward Full Automation</h3>
+  <div class="callout info"><strong>Future state:</strong> Input = business definition or structured schema. Output = fully deployable Dataverse solution. The next automation targets are lookup relationships, safe form generation, minimal valid views, and CI/CD integration for repeatable delivery.</div>
+</div>
+
+
+<!-- SECTION: CLCPA CASE STUDY -->
+<div class="section" id="clcpa-case-study">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Case Study</div>
+  <h2 class="s-ti">Case Study: CLCPA Import Debugging Timeline</h2>
+  <p class="s-le">This case study documents a real-world scenario where a Dataverse solution generated programmatically failed to import. The debugging process followed an iterative, evidence-based approach until a successful import was achieved.</p>
+
+  <h3>Initial Objective</h3>
+  <ul>
+    <li>Generate 13+ Dataverse tables programmatically from a structured model</li>
+    <li>Import the solution into the target environment</li>
+    <li>Avoid manual table creation in Maker Portal</li>
+  </ul>
+
+  <h3>Initial State</h3>
+  <ul>
+    <li>Solution generated using AI from a reference entity</li>
+    <li>Entities included full structure (fields, forms, views, relationships)</li>
+    <li>Solution failed to import</li>
+  </ul>
+
+  <h3>Debugging Timeline</h3>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num b">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">FormXml and SavedQueries Failure</div>
+        <div class="step-desc">Forms and views were copied from the reference entity (<code>cf_dacstatus</code>) and reused across all new entities. Forms referenced fields not present in target entities. SavedQueries referenced the incorrect entity logical name.</div>
+        <div class="callout ok" style="margin-top:10px"><strong>Fix:</strong> Removed all <code>FormXml</code> and <code>SavedQueries</code> from generated entities.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Relationships.xml Failure</div>
+        <div class="step-desc">Import failed due to incomplete relationship definitions. Relationships were generated as self-closing nodes without required metadata structure:</div>
+        <div class="cmd" style="margin-top:8px"><div class="cmd-body"><code>&lt;EntityRelationship Name="..." /&gt;</code></div></div>
+        <div class="callout ok" style="margin-top:10px"><strong>Fix:</strong> Removed all incomplete relationships and replaced with an empty valid root node.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Localized Label Constraint Failure</div>
+        <div class="step-desc">Import failed with a <code>UQ_LocalizedLabelCheck</code> constraint violation. Duplicated label metadata existed across entities — a result of cloning the entity template without regenerating internal identifiers.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Statecode / Statuscode Conflict</div>
+        <div class="step-desc">All entities reused the reference entity's option set names:</div>
+        <div class="cmd" style="margin-top:8px"><div class="cmd-body"><code>cf_dacstatus_statecode<br>cf_dacstatus_statuscode</code></div></div>
+        <div class="step-desc" style="margin-top:8px">These must be unique per entity.</div>
+        <div class="callout ok" style="margin-top:10px"><strong>Fix:</strong> Updated to entity-specific option set names: <code>cf_{entity}_statecode</code> and <code>cf_{entity}_statuscode</code></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">✓</div></div>
+      <div class="step-body">
+        <div class="step-title">Final Result</div>
+        <div class="step-desc">Solution imported successfully. 14 Dataverse tables created. No metadata conflicts.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Key Lessons Learned</h3>
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-icon">🧩</div>
+      <div class="card-title">Forms and Views Are the Most Fragile Component</div>
+      <div class="card-desc">Copied <code>FormXml</code> and <code>SavedQueries</code> break imports immediately if they reference fields that do not exist in the target entity.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <div class="card-title">Relationships Cannot Be Generated Partially</div>
+      <div class="card-desc">Self-closing relationship nodes are not valid. Either include the full relationship definition or omit entirely.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🏷️</div>
+      <div class="card-title">Labels Can Break Import Even When XML Is Valid</div>
+      <div class="card-desc">Dataverse enforces internal uniqueness on localized labels. Cloned metadata without regenerated identifiers triggers constraint violations.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">📌</div>
+      <div class="card-title">System Option Sets Must Be Entity-Specific</div>
+      <div class="card-desc">Every entity requires its own <code>statecode</code> and <code>statuscode</code> option set names. Reusing another entity's names causes import collisions.</div>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎯</div>
+      <div class="card-title">AI Must Be Guided With Strict Constraints</div>
+      <div class="card-desc">AI-generated solution files require validation steps and a real environment baseline. Structural correctness does not guarantee import success.</div>
+    </div>
+  </div>
+
+  <h3>Validated Debugging Method</h3>
+  <div class="cmd">
+    <div class="cmd-bar"><span class="cmd-label">One change → one pack → one import → analyze error → repeat</span><span class="cmd-env">Non-negotiable</span></div>
+    <div class="cmd-body"><span class="comment"># Apply exactly ONE fix per iteration</span>
+<span class="comment"># Pack → Import → Read the exact platform error</span>
+<span class="comment"># Never batch speculative corrections</span></div>
+  </div>
+
+  <div class="callout ok"><strong>Outcome:</strong> This case confirms that AI-assisted Dataverse schema generation is viable when combined with controlled validation and iterative debugging.</div>
+</div>
+
 
 <!-- SECTION: PROMPTS MODIFY -->
 <div class="section" id="prompts-modify">
