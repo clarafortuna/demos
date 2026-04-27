@@ -182,7 +182,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <div class="sb-logo">
     <div class="sb-brand">Clara Fortuna · Innovation</div>
     <div class="sb-title">SOP-002<br>AI-Assisted Power Platform Development</div>
-    <div class="sb-ver">v1.0 · April 2026</div>
+    <div class="sb-ver">v1.1 · April 2026</div>
   </div>
   <div class="nav-sec">Overview</div>
   <a href="#overview" class="nav-item active">Purpose & Scope</a>
@@ -199,6 +199,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <a href="#l2-modify" class="nav-item">Step 7: Modify with Claude</a>
   <a href="#l2-repack" class="nav-item">Step 8: Repack &amp; Import</a>
   <a href="#l2-programmatic-schema" class="nav-item">Advanced: Programmatic Schema</a>
+  <a href="#l2-relationship-automation" class="nav-item">Advanced: Relationship Automation</a>
   <div class="nav-sec">Prompt Templates</div>
   <a href="#prompts-model" class="nav-item">Model-Driven App Prompts</a>
   <a href="#prompts-canvas" class="nav-item">Canvas App Prompts</a>
@@ -220,7 +221,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <h1 class="hero-title">AI-Assisted<br><span>Power Platform</span><br>Development</h1>
   <p class="hero-sub">The validated method for creating, modifying, and delivering Power Platform solutions, including model-driven apps, canvas apps, flows, and web resources, using Claude AI and the Power Platform CLI. No specialized developer knowledge required to start.</p>
   <div class="hero-meta">
-    <div><div class="hm-l">Version</div><div class="hm-v">v1.0</div></div>
+    <div><div class="hm-l">Version</div><div class="hm-v">v1.1</div></div>
     <div><div class="hm-l">Date</div><div class="hm-v">April 2026</div></div>
     <div><div class="hm-l">Owner</div><div class="hm-v">Euris · Director of Innovation</div></div>
     <div><div class="hm-l">Audience</div><div class="hm-v">All Clara Fortuna team members</div></div>
@@ -325,7 +326,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <h2 class="s-ti">Design with Claude</h2>
   <p class="s-le">Before touching Power Platform, use Claude to design the complete data model and app configuration. Claude's output becomes your build specification. Follow it exactly in the Maker Portal.</p>
 
-  <h3>Model-Driven App: Master Prompt Template</h3>
+  <h3 id="prompts-model">Model-Driven App: Master Prompt Template</h3>
   <div class="prompt-box">
     <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Model-Driven App Design</div></div>
     <div class="prompt-body">
@@ -346,7 +347,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
     </div>
   </div>
 
-  <h3>Canvas App: Master Prompt Template</h3>
+  <h3 id="prompts-canvas">Canvas App: Master Prompt Template</h3>
   <div class="prompt-box">
     <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Claude Prompt: Canvas App Design</div></div>
     <div class="prompt-body">
@@ -811,7 +812,94 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <p>This method has successfully generated and imported a Dataverse solution containing multiple dimension and fact tables from an external structured schema. The result validates that AI-assisted schema generation is practical when the team uses a real environment baseline, removes invalid copied artifacts, and treats Dataverse import feedback as the final validator.</p>
 
   <h3>Next Step Toward Full Automation</h3>
-  <div class="callout info"><strong>Future state:</strong> Input = business definition or structured schema. Output = fully deployable Dataverse solution. The next automation targets are lookup relationships, safe form generation, minimal valid views, and CI/CD integration for repeatable delivery.</div>
+  <div class="callout info"><strong>Validated advancement:</strong> Relationship automation is now validated and should be treated as part of the standard advanced workflow. Input = business definition or structured schema. Output = fully deployable Dataverse solution with tables, lookup relationships, safe form generation, minimal valid views, and CI/CD integration for repeatable delivery.</div>
+</div>
+
+
+<!-- SECTION: RELATIONSHIP AUTOMATION -->
+<div class="section" id="l2-relationship-automation">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Advanced</div>
+  <h2 class="s-ti">Automating Dataverse Relationships After Table Creation</h2>
+  <p class="s-le">This section documents the validated method for creating lookup relationships programmatically after Dataverse tables already exist. Use this process when relationships were not created during initial table setup and must be added through unpacked solution XML.</p>
+
+  <h3>When to Use This Process</h3>
+  <ul>
+    <li>Tables already exist in Dataverse.</li>
+    <li>Relationships were not created initially.</li>
+    <li>The goal is to add lookup columns and relationship definitions through unpacked solution XML.</li>
+    <li>The process must be validated by pack and import, not only by static XML checks.</li>
+  </ul>
+
+  <h3>Required Files to Modify</h3>
+  <table class="dt">
+    <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Entities\[fact table]\Entity.xml</td><td>Add the lookup attribute block to the source fact table.</td></tr>
+      <tr><td class="mono">Other\Relationships.xml</td><td>Add the relationship index entry.</td></tr>
+      <tr><td class="mono">Other\Relationships\[target dimension].xml</td><td>Add the full relationship definition under the referenced target table file.</td></tr>
+      <tr><td class="mono">Other\Solution.xml</td><td>Increment the solution version before packing and importing.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Required Lookup Attribute Pattern</h3>
+  <div class="cmd">
+    <div class="cmd-bar"><span class="cmd-label">Entity.xml lookup attribute</span><span class="cmd-env">Validated pattern</span></div>
+    <div class="cmd-body">&lt;attribute PhysicalName="cf_period"&gt;
+  &lt;Type&gt;lookup&lt;/Type&gt;
+  &lt;Name&gt;cf_period&lt;/Name&gt;
+  &lt;LogicalName&gt;cf_period&lt;/LogicalName&gt;
+  ...
+  &lt;LookupStyle&gt;single&lt;/LookupStyle&gt;
+  &lt;LookupTypes&gt;&lt;LookupType&gt;10950&lt;/LookupType&gt;&lt;/LookupTypes&gt;
+&lt;/attribute&gt;</div>
+  </div>
+
+  <div class="callout crit"><strong>Critical LookupType Rule:</strong> Custom lookup <code>&lt;LookupType&gt;</code> must use the numeric Dataverse Object Type Code only. Do not use logical table names. Do not include or reuse <code>id</code> attributes.</div>
+
+  <table class="dt">
+    <thead><tr><th>Pattern</th><th>Status</th><th>Reason</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">&lt;LookupTypes&gt;&lt;LookupType&gt;10950&lt;/LookupType&gt;&lt;/LookupTypes&gt;</td><td><strong>Correct</strong></td><td>Uses the numeric Object Type Code only.</td></tr>
+      <tr><td class="mono">&lt;LookupTypes&gt;&lt;LookupType&gt;cf_dimperiod&lt;/LookupType&gt;&lt;/LookupTypes&gt;</td><td><strong>Invalid</strong></td><td>Logical names can trigger import parsing failures.</td></tr>
+      <tr><td class="mono">&lt;LookupTypes&gt;&lt;LookupType id="..."&gt;10950&lt;/LookupType&gt;&lt;/LookupTypes&gt;</td><td><strong>Invalid</strong></td><td>Reused IDs can create duplicate <code>MetadataSchema.AttributeLookupValue</code> keys.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Relationship Definition Requirement</h3>
+  <p>Each lookup relationship must be fully defined under <code>Other\Relationships\[target dimension].xml</code> and indexed in <code>Other\Relationships.xml</code>. The relationship index entry may be concise, but the target relationship file must contain the complete <code>&lt;EntityRelationship&gt;</code> definition with referencing entity, referenced entity, referencing attribute, cascade behavior, and navigation roles.</p>
+  <div class="callout warn"><strong>Do not use placeholders:</strong> A self-closing relationship placeholder by itself is not a complete relationship definition. Use a full exported relationship structure as the baseline.</div>
+
+  <h3>Validation Checklist</h3>
+  <ul>
+    <li>All expected relationships exist in <code>Other\Relationships.xml</code>.</li>
+    <li>Each relationship definition exists in the correct <code>Other\Relationships\*.xml</code> file.</li>
+    <li>Each lookup attribute exists in the correct source table <code>Entity.xml</code>.</li>
+    <li>Each lookup attribute uses <code>&lt;Name&gt;</code>, not <code>&lt;n&gt;</code>.</li>
+    <li>Each <code>&lt;LookupType&gt;</code> uses the numeric Dataverse Object Type Code only.</li>
+    <li>No custom lookup <code>&lt;LookupType&gt;</code> node includes an <code>id</code> attribute.</li>
+    <li>No wrong target names exist, such as <code>cf_DIMDACSTATUS</code>.</li>
+    <li><code>Other\Solution.xml</code> version is incremented.</li>
+    <li><code>pac solution pack</code> succeeds.</li>
+    <li>Dataverse import succeeds.</li>
+  </ul>
+
+  <h3>Cursor Prompt Template</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Cursor Prompt: Generate Dataverse Relationships After Tables Exist</div></div>
+    <div class="prompt-body">
+      You are modifying an unpacked Dataverse solution where tables already exist. Read the relationship list from this schema source: <em>[PASTE OR REFERENCE SCHEMA SOURCE]</em>.<br><br>
+      Use an exported Dataverse solution as the structural baseline. For each relationship:<br>
+      · Add the lookup attribute to the correct source <code>Entities\[table]\Entity.xml</code> file.<br>
+      · Add the full relationship definition to the correct <code>Other\Relationships\*.xml</code> file.<br>
+      · Add the relationship index entry to <code>Other\Relationships.xml</code>.<br>
+      · Use numeric Dataverse Object Type Codes inside custom <code>&lt;LookupType&gt;</code> nodes.<br>
+      · Remove all <code>id</code> attributes from custom <code>&lt;LookupType&gt;</code> nodes.<br>
+      · Verify lookup attributes use <code>&lt;Name&gt;</code>, not <code>&lt;n&gt;</code>.<br>
+      · Increment the solution version before packing.<br><br>
+      Before packing, validate all relationships and produce a PASS/FAIL report covering lookup attributes, relationship definitions, relationship index entries, target table names, Object Type Codes, missing dependencies, and solution version.
+    </div>
+  </div>
 </div>
 
 
@@ -1025,9 +1113,12 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <h3>Issue 4: Changes visible in Dev but not in QA after import</h3>
   <div class="callout info"><strong>Problem:</strong> The solution was imported but not published.<br><br><strong>Fix:</strong> In make.powerapps.com → Solutions → open the solution → click <strong>Publish all customizations</strong>. Or add <code>--publish-changes</code> flag to the <code>pac solution import</code> command.</div>
 
+  <h3>Issue 5: Import fails with duplicate key in MetadataSchema.AttributeLookupValue</h3>
+  <div class="callout crit"><strong>Problem:</strong> Custom lookup metadata reused the same <code>LookupType id</code> GUID across multiple lookup attributes, causing a duplicate key conflict in <code>MetadataSchema.AttributeLookupValue</code>.<br><br><strong>Fix:</strong> Remove the <code>id</code> attribute from custom lookup <code>LookupType</code> nodes and keep only the numeric Object Type Code:<br><br><code>&lt;LookupType&gt;10950&lt;/LookupType&gt;</code></div>
+
   <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);">
     <p style="font-size:12px;color:#aaa;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.03em;">
-      <strong>Document Control:</strong> SOP-002 · v1.0 · April 2026 · Owner: Euris, Director of Innovation · Clara Fortuna Innovation Department · Confidential · Stored at demo.clarafortuna.com/Innovation/sop/ · Review quarterly as Power Platform CLI and Claude capabilities evolve.
+      <strong>Document Control:</strong> SOP-002 · v1.1 · April 2026 · Owner: Euris, Director of Innovation · Clara Fortuna Innovation Department · Confidential · Stored at demo.clarafortuna.com/Innovation/sop/ · Review quarterly as Power Platform CLI and Claude capabilities evolve.
     </p>
   </div>
 </div>
