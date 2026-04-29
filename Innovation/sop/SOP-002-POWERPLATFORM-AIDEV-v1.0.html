@@ -182,7 +182,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <div class="sb-logo">
     <div class="sb-brand">Clara Fortuna · Innovation</div>
     <div class="sb-title">SOP-002<br>AI-Assisted Power Platform Development</div>
-    <div class="sb-ver">v1.1 · April 2026</div>
+    <div class="sb-ver">v1.3 · April 2026</div>
   </div>
   <div class="nav-sec">Overview</div>
   <a href="#overview" class="nav-item active">Purpose & Scope</a>
@@ -200,6 +200,9 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <a href="#l2-repack" class="nav-item">Step 8: Repack &amp; Import</a>
   <a href="#l2-programmatic-schema" class="nav-item">Advanced: Programmatic Schema</a>
   <a href="#l2-relationship-automation" class="nav-item">Advanced: Relationship Automation</a>
+  <a href="#l2-model-driven-app-automation" class="nav-item">Advanced: Model-Driven Apps</a>
+  <a href="#clcpa-case-study" class="nav-item">Case Study: CLCPA Import</a>
+  <a href="#l2-canvas-sp-to-dv" class="nav-item">Canvas: SharePoint → Dataverse</a>
   <div class="nav-sec">Prompt Templates</div>
   <a href="#prompts-model" class="nav-item">Model-Driven App Prompts</a>
   <a href="#prompts-canvas" class="nav-item">Canvas App Prompts</a>
@@ -221,7 +224,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <h1 class="hero-title">AI-Assisted<br><span>Power Platform</span><br>Development</h1>
   <p class="hero-sub">The validated method for creating, modifying, and delivering Power Platform solutions, including model-driven apps, canvas apps, flows, and web resources, using Claude AI and the Power Platform CLI. No specialized developer knowledge required to start.</p>
   <div class="hero-meta">
-    <div><div class="hm-l">Version</div><div class="hm-v">v1.1</div></div>
+    <div><div class="hm-l">Version</div><div class="hm-v">v1.3</div></div>
     <div><div class="hm-l">Date</div><div class="hm-v">April 2026</div></div>
     <div><div class="hm-l">Owner</div><div class="hm-v">Euris · Director of Innovation</div></div>
     <div><div class="hm-l">Audience</div><div class="hm-v">All Clara Fortuna team members</div></div>
@@ -903,6 +906,166 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
 </div>
 
 
+<!-- SECTION: MODEL-DRIVEN APP AUTOMATION -->
+<div class="section" id="l2-model-driven-app-automation">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Advanced</div>
+  <h2 class="s-ti">Automating Model-Driven Apps, Sitemaps, and Web Resource Dashboards</h2>
+  <p class="s-le">This section documents the validated method for adding a model-driven app to an existing unpacked Dataverse solution. Use this process when the tables already exist and the goal is to add an app shell, a sitemap, a read-only HTML dashboard, and native table pages for CRUD without modifying the Dataverse schema.</p>
+
+  <div class="callout ok"><strong>Validated outcome:</strong> The CLCPA solution successfully imported, published, and launched after adding a model-driven app named <code>CLCPA DAC Reporting Portal</code>, a static HTML dashboard web resource, a dedicated SVG app icon web resource, and sitemap subareas for all fact and dimension tables.</div>
+
+  <h3>When to Use This Process</h3>
+  <ul>
+    <li>The Dataverse tables, columns, and relationships already exist.</li>
+    <li>The app must provide native model-driven table pages for create, read, update, and delete operations.</li>
+    <li>A custom HTML web resource should provide a dashboard, analytics, help page, or other read-only visual experience.</li>
+    <li>The implementation must preserve existing <code>Entity.xml</code>, relationship files, and lookup metadata rules.</li>
+  </ul>
+
+  <h3>Required Files to Create</h3>
+  <table class="dt">
+    <thead><tr><th>File</th><th>Purpose</th><th>Validated Example</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">AppModules\[app unique name]\AppModule.xml</td><td>Defines the model-driven app record, app name, app icon web resource, app state, and app components.</td><td class="mono">cf_clcpadacreportingportal</td></tr>
+      <tr><td class="mono">AppModuleSiteMaps\[app unique name]\AppModuleSiteMap.xml</td><td>Defines the app navigation: dashboard subarea, fact table subareas, and dimension table subareas.</td><td class="mono">cf_clcpadacreportingportal</td></tr>
+      <tr><td class="mono">WebResources\[dashboard name]</td><td>Stores the HTML file rendered by the dashboard sitemap subarea.</td><td class="mono">cf_clcpa_dac_dashboard</td></tr>
+      <tr><td class="mono">WebResources\[dashboard name].data.xml</td><td>Registers the dashboard web resource metadata. HTML web resources use <code>WebResourceType 1</code>.</td><td class="mono">cf_clcpa_dac_dashboard.data.xml</td></tr>
+      <tr><td class="mono">WebResources\[icon name]</td><td>Stores the dedicated app icon asset. Use a small SVG for modern model-driven app icons.</td><td class="mono">cf_clcpa_dac_app_icon</td></tr>
+      <tr><td class="mono">WebResources\[icon name].data.xml</td><td>Registers the app icon web resource metadata. SVG web resources use <code>WebResourceType 11</code>.</td><td class="mono">cf_clcpa_dac_app_icon.data.xml</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Required Files to Modify</h3>
+  <table class="dt">
+    <thead><tr><th>File</th><th>Required Change</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">Other\Solution.xml</td><td>Increment the solution version and add root components for the app, app sitemap, dashboard web resource, and app icon web resource.</td></tr>
+      <tr><td class="mono">Other\Customizations.xml</td><td>Ensure the solution contains component containers for <code>&lt;WebResources /&gt;</code>, <code>&lt;AppModuleSiteMaps /&gt;</code>, and <code>&lt;AppModules /&gt;</code>. PAC uses these containers when packing component metadata into <code>customizations.xml</code>.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout crit"><strong>Preserve schema files:</strong> Do not change <code>Entities\*\Entity.xml</code>, <code>Other\Relationships.xml</code>, or <code>Other\Relationships\*.xml</code> when the task is only to add the app shell. Model-driven app packaging should not alter table or relationship metadata.</div>
+
+  <h3>Validated AppModule Pattern</h3>
+  <p>The <code>AppModule.xml</code> file must reference the app sitemap component and a valid app icon web resource GUID. The <code>WebResourceId</code> is not the dashboard page; it is the app icon asset used by the model-driven app shell.</p>
+  <div class="cmd">
+    <div class="cmd-bar"><span class="cmd-label">AppModule.xml</span><span class="cmd-env">Required pattern</span></div>
+    <div class="cmd-body">&lt;AppModule&gt;
+  &lt;UniqueName&gt;cf_clcpadacreportingportal&lt;/UniqueName&gt;
+  &lt;IntroducedVersion&gt;1.0.1.7&lt;/IntroducedVersion&gt;
+  &lt;WebResourceId&gt;22415f70-0463-48cd-a538-17d3771fd064&lt;/WebResourceId&gt;
+  &lt;statecode&gt;0&lt;/statecode&gt;
+  &lt;statuscode&gt;1&lt;/statuscode&gt;
+  &lt;FormFactor&gt;1&lt;/FormFactor&gt;
+  &lt;ClientType&gt;4&lt;/ClientType&gt;
+  &lt;NavigationType&gt;0&lt;/NavigationType&gt;
+  &lt;AppModuleComponents&gt;
+    &lt;AppModuleComponent type="62" schemaName="cf_clcpadacreportingportal" /&gt;
+  &lt;/AppModuleComponents&gt;
+  &lt;LocalizedNames&gt;
+    &lt;LocalizedName description="CLCPA DAC Reporting Portal" languagecode="1033" /&gt;
+  &lt;/LocalizedNames&gt;
+&lt;/AppModule&gt;</div>
+  </div>
+
+  <div class="callout crit"><strong>Critical AppModule WebResourceId Rule:</strong> <code>AppModule.WebResourceId</code> must contain a valid GUID for a dedicated app icon web resource. Do not leave it empty. Do not point it to the HTML dashboard. An empty value caused <code>Unrecognized Guid format</code>; using the dashboard HTML as the app icon caused the app module to import but fail at runtime.</div>
+
+  <h3>Validated Web Resource Pattern</h3>
+  <table class="dt">
+    <thead><tr><th>Web Resource</th><th>Type</th><th>Used By</th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">cf_clcpa_dac_app_icon</td><td class="mono">11</td><td>AppModule <code>WebResourceId</code></td><td>Small SVG icon. This is required for the app shell.</td></tr>
+      <tr><td class="mono">cf_clcpa_dac_dashboard</td><td class="mono">1</td><td>Sitemap subarea URL</td><td>HTML dashboard page. This is not the app icon.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Validated Sitemap Pattern</h3>
+  <p>The sitemap controls the left navigation inside the model-driven app. Use one dashboard subarea for the HTML web resource and entity subareas for native Dataverse CRUD.</p>
+  <div class="cmd">
+    <div class="cmd-bar"><span class="cmd-label">AppModuleSiteMap.xml</span><span class="cmd-env">Dashboard + table CRUD</span></div>
+    <div class="cmd-body">&lt;SubArea
+  Id="subarea_10873523"
+  Url="$webresource:cf_clcpa_dac_dashboard"
+  Client="All,Outlook,OutlookLaptopClient,OutlookWorkstationClient,Web"
+  AvailableOffline="true"
+  PassParams="false"
+  Sku="All,OnPremise,Live,SPLA"&gt;
+  &lt;Titles&gt;
+    &lt;Title LCID="1033" Title="CLCPA DAC Dashboard" /&gt;
+  &lt;/Titles&gt;
+&lt;/SubArea&gt;
+
+&lt;SubArea
+  Id="subarea_50d6156a"
+  Entity="cf_factcleanenergyspending"
+  Client="All,Outlook,OutlookLaptopClient,OutlookWorkstationClient,Web"
+  AvailableOffline="true"
+  Sku="All,OnPremise,Live,SPLA"&gt;
+  &lt;Titles&gt;
+    &lt;Title LCID="1033" Title="Clean Energy Spending" /&gt;
+  &lt;/Titles&gt;
+&lt;/SubArea&gt;</div>
+  </div>
+
+  <div class="callout info"><strong>CRUD rule:</strong> Keep the HTML dashboard read-only unless the business explicitly requires custom CRUD. Use native model-driven table pages for create, update, and delete behavior by adding entity subareas to the sitemap.</div>
+
+  <h3>Root Components to Add</h3>
+  <table class="dt">
+    <thead><tr><th>Component</th><th>RootComponent Type</th><th>Schema Name</th></tr></thead>
+    <tbody>
+      <tr><td>Dashboard HTML web resource</td><td class="mono">61</td><td class="mono">cf_clcpa_dac_dashboard</td></tr>
+      <tr><td>App icon SVG web resource</td><td class="mono">61</td><td class="mono">cf_clcpa_dac_app_icon</td></tr>
+      <tr><td>App sitemap</td><td class="mono">62</td><td class="mono">cf_clcpadacreportingportal</td></tr>
+      <tr><td>Model-driven app</td><td class="mono">80</td><td class="mono">cf_clcpadacreportingportal</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Execution Checklist</h3>
+  <ul>
+    <li>Generate new GUIDs for app icon web resource, dashboard web resource, app sitemap IDs, groups, areas, and subareas.</li>
+    <li>Create <code>AppModules\[app unique name]\AppModule.xml</code>.</li>
+    <li>Create <code>AppModuleSiteMaps\[app unique name]\AppModuleSiteMap.xml</code>.</li>
+    <li>Create the HTML dashboard web resource file and its <code>.data.xml</code> metadata.</li>
+    <li>Create the SVG app icon web resource file and its <code>.data.xml</code> metadata.</li>
+    <li>Add required component containers to <code>Other\Customizations.xml</code> if they are missing.</li>
+    <li>Add root components and increment version in <code>Other\Solution.xml</code>.</li>
+    <li>Pack with <code>pac solution pack</code>.</li>
+    <li>Import the unmanaged or managed package into Dataverse.</li>
+    <li>After import, click <strong>Publish all customizations</strong>.</li>
+    <li>Open Apps, select the model-driven app, click <strong>Play</strong>, and verify the dashboard and table navigation load.</li>
+  </ul>
+
+  <h3>Validated Debugging Sequence</h3>
+  <table class="dt">
+    <thead><tr><th>Error</th><th>Cause</th><th>Validated Fix</th></tr></thead>
+    <tbody>
+      <tr><td><code>Unrecognized Guid format</code></td><td><code>AppModule.WebResourceId</code> was empty.</td><td>Set it to a valid GUID for an app icon web resource.</td></tr>
+      <tr><td><code>0x80050135</code> during app module import</td><td>The app module pointed to the HTML dashboard as its icon web resource.</td><td>Create a dedicated SVG icon web resource and point <code>AppModule.WebResourceId</code> to that icon.</td></tr>
+      <tr><td><code>The object could not be found</code> when clicking Play</td><td>The app had imported but customizations were not published yet.</td><td>Run <strong>Publish all customizations</strong>, then refresh and launch the app again.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cursor Prompt Template</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Cursor Prompt: Generate a Model-Driven App with Web Resource Dashboard</div></div>
+    <div class="prompt-body">
+      You are modifying an unpacked Dataverse solution. Add a model-driven app named <em>[APP DISPLAY NAME]</em> with unique name <em>[APP UNIQUE NAME]</em>.<br><br>
+      Use an existing exported model-driven app as the structural baseline. Create <code>AppModule.xml</code>, <code>AppModuleSiteMap.xml</code>, an HTML dashboard web resource, and a dedicated SVG app icon web resource. Do not modify existing entities, columns, relationships, or lookup metadata.<br><br>
+      Requirements:<br>
+      · Register the dashboard HTML as a web resource with <code>WebResourceType 1</code>.<br>
+      · Register the app icon SVG as a web resource with <code>WebResourceType 11</code>.<br>
+      · Set <code>AppModule.WebResourceId</code> to the SVG app icon GUID, not the dashboard HTML GUID.<br>
+      · Add a sitemap dashboard subarea using <code>$webresource:[dashboard web resource name]</code>.<br>
+      · Add entity subareas for all tables that require native Dataverse CRUD.<br>
+      · Add <code>WebResources</code>, <code>AppModuleSiteMaps</code>, and <code>AppModules</code> containers to <code>Other\Customizations.xml</code> if missing.<br>
+      · Add root components for the dashboard web resource, app icon web resource, app sitemap, and model-driven app.<br>
+      · Increment solution version, pack, and produce a PASS/FAIL validation report before import.
+    </div>
+  </div>
+</div>
+
+
 <!-- SECTION: CLCPA CASE STUDY -->
 <div class="section" id="clcpa-case-study">
   <span class="toc-marker"></span>
@@ -1011,6 +1174,140 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
 </div>
 
 
+<!-- SECTION: CANVAS SHAREPOINT TO DATAVERSE -->
+<div class="section" id="l2-canvas-sp-to-dv">
+  <span class="toc-marker"></span>
+  <div class="s-ey">Level 2 · Advanced</div>
+  <h2 class="s-ti">Canvas App: Rebinding SharePoint (or External Lists) to Dataverse</h2>
+  <p class="s-le">Standard procedure when a canvas app was built against SharePoint lists (or similar tabular sources) and must run on Dataverse tables while preserving the same screens and user experience — the “wide model” migration. Use this after <strong>Level 2</strong> prerequisites (PAC CLI, auth to the target environment) are met.</p>
+
+  <div class="callout info"><strong>Relationship to other sections:</strong> Create or align Dataverse tables using <a href="#l2-programmatic-schema">Programmatic Dataverse Schema Generation</a> or Maker Portal, then follow this section for app and solution packaging. Import debugging patterns match <a href="#clcpa-case-study">CLCPA: Import Debugging Timeline</a> — one fix per pack/import cycle.</div>
+
+  <h3>Purpose &amp; When to Use</h3>
+  <ul>
+    <li>Replace <strong>SharePoint</strong> (or Excel-backed list) data sources with <strong>Dataverse</strong> tables.</li>
+    <li>Keep <strong>UI and formulas</strong> stable; change bindings, logical names, and option-set handling — not a redesign.</li>
+    <li>Deliver an <strong>unmanaged solution .zip</strong> that imports into the client environment with connection references and canvas app.</li>
+  </ul>
+
+  <h3>Inputs to Collect Before Development</h3>
+  <table class="dt">
+    <thead><tr><th>Artifact</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><strong>.msapp</strong> export (or solution containing the canvas app)</td><td>Source of truth for screens, controls, and embedded <code>References/DataSources.json</code> after pack.</td></tr>
+      <tr><td><strong>List/schema exports</strong> (Excel or inventory from SharePoint)</td><td>Column internal names, types, choices — map to Dataverse logical names.</td></tr>
+      <tr><td><strong>Unpacked solution folder</strong> from the same environment as target tables (<code>Other/Solution.xml</code>, <code>Entities/</code>, <code>CanvasApps/</code>)</td><td>Authoritative packaging baseline for import.</td></tr>
+      <tr><td><strong>Flow definitions</strong> if the app calls flows</td><td>Triggers and actions must switch from SharePoint IDs/APIs to Dataverse row IDs and connectors.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Expected Folder Layout (Developer Workspace)</h3>
+  <div class="tree">
+<span class="folder">solution-root/</span>
+├── <span class="xml">Other/Solution.xml</span>, <span class="xml">Other/Customizations.xml</span>
+├── <span class="folder">Entities/</span> <span class="note">… Dataverse table XML</span>
+├── <span class="folder">CanvasApps/</span>
+│   ├── <span class="file important">sbd_*_DocumentUri.msapp</span> <span class="note">packed canvas binary</span>
+│   └── <span class="file important">sbd_*.meta.xml</span> <span class="note">connection references, CDS dependencies</span>
+└── <span class="folder">canvas-src/</span> <span class="note">(optional) output of <code>pac canvas unpack</code> for editing</span>
+    ├── <span class="file">Connections/Connections.json</span>
+    ├── <span class="file">DataSources/*.json</span>
+    ├── <span class="file">CanvasManifest.json</span> <span class="note"><code>LocalDatabaseReferences</code></span>
+    ├── <span class="file">pkgs/TableDefinitions/*.json</span>
+    └── <span class="file">Src/*.fx.yaml</span>, <span class="file">Other/Src/*.pa.yaml</span>
+  </div>
+
+  <h3>End-to-End Pipeline</h3>
+  <div class="steps">
+    <div class="step">
+      <div class="step-left"><div class="step-num t">1</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Model Dataverse tables (“wide” alignment)</div>
+        <div class="step-desc">Mirror SharePoint <strong>internal</strong> column names where possible. Recreate choice columns (Yes/No, multi-value sets). Publish customization. Seed <strong>reference</strong> tables (e.g. catalogs, mapping rows) via CSV/SDK; plan separately for <strong>transactional</strong> project rows (often created by the app or a dedicated migration).</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">2</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Unpack the canvas app</div>
+        <div class="step-desc"><code>pac canvas unpack --msapp … --sources …</code> Deprecated warnings are expected until Microsoft replaces the command — still usable for source edits.</div>
+        <div class="cmd" style="margin-top:10px"><div class="cmd-bar"><span class="cmd-label">CLI</span></div><div class="cmd-body"><span class="dollar">pac canvas unpack --msapp </span><span class="path">MyApp.msapp</span><span class="dollar"> --sources </span><span class="path">./canvas-src</span></div></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num t">3</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Rebind data sources &amp; formulas</div>
+        <div class="step-desc">Replace SharePoint <code>ConnectedDataSourceInfo</code> with <code>NativeCDSDataSourceInfo</code>: set <code>LogicalName</code>, <code>EntitySetName</code>, and <code>NativeCDSDataSourceInfoNameMapping</code> per column. Update <code>CanvasManifest.json</code> → <code>LocalDatabaseReferences</code> for <code>default.cds</code>. Adjust Power Fx: <code>Patch</code>, <code>LookUp</code>, <code>Filter</code>, <code>Choices</code>, <code>ClearCollect</code> — picklists often need <code>.Value</code> comparisons. Remove obsolete connectors from <code>Connections.json</code>.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num g">4</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Hydrate Dataverse metadata inside the app package</div>
+        <div class="step-desc">Do not ship empty <code>TableDefinition: {}</code> blobs only. The player needs rich metadata: after rebinding, regenerate <strong>TableDefinition</strong> entries (including <strong>EntityMetadata</strong> JSON from the org Web API) so the packed <code>References/DataSources.json</code> inside the <code>.msapp</code> contains full entity definitions. Packing/unpacking succeeds with placeholders; <strong>Play</strong> may fail with “Fetching your app…” until this is fixed.</div>
+        <div class="callout warn" style="margin-top:10px"><strong>Validated lesson:</strong> A working Dataverse-backed canvas app from the same tenant shows large <code>EntityMetadata</code> strings per table in packaged data sources — match that pattern for migrated apps.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num g">5</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Pack canvas → embed in solution</div>
+        <div class="step-desc"><code>pac canvas pack --sources … --msapp …</code> Copy the resulting <code>.msapp</code> into <code>CanvasApps/</code> as referenced by the solution. Increment <code>Solution.xml</code> version.</div>
+        <div class="cmd" style="margin-top:10px"><div class="cmd-bar"><span class="cmd-label">CLI</span></div><div class="cmd-body"><span class="dollar">pac canvas pack --sources </span><span class="path">./canvas-src</span><span class="dollar"> --msapp </span><span class="path">./CanvasApps/app_DocumentUri.msapp</span>
+<span class="dollar">pac solution pack --zipfile </span><span class="path">Solution.zip</span><span class="dollar"> --folder </span><span class="path">./solution-src</span><span class="dollar"> --packagetype Unmanaged</span></div></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">6</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Fix canvas app <code>meta.xml</code> for import</div>
+        <div class="step-desc">In <code>CanvasApps/*.meta.xml</code>, <code>ConnectionReferences</code> must deserialize as the platform expects — e.g. <code>dependencies</code> / <code>dependents</code> as <strong>JSON arrays</strong>, not single objects, when the environment rejects import with a Newtonsoft array/type mismatch.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num b">7</div><div class="step-line"></div></div>
+      <div class="step-body">
+        <div class="step-title">Flows &amp; app integration</div>
+        <div class="step-desc">If the app calls a cloud flow: ensure the flow exists in the environment, connection references resolve, and parameters use <strong>Dataverse row GUIDs</strong> instead of SharePoint item IDs. If Solution Packager cannot embed a reconstructed flow, document <strong>manual import</strong> or add the flow in Maker Portal and re-export.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-left"><div class="step-num done">✓</div></div>
+      <div class="step-body">
+        <div class="step-title">Validate (import is not enough)</div>
+        <div class="step-desc">After solution import: open the app in <strong>Play</strong> (not only Edit). Smoke-test create/read/update on each table path; run report/email flows if applicable.</div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Known Failures &amp; Fixes</h3>
+  <table class="dt">
+    <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Solution import: CanvasApp JSON <code>dependencies</code> type error</td><td><code>ConnectionReferences</code> in <code>meta.xml</code> uses object where an array is required.</td><td>Flatten to arrays; remove stale connector entries.</td></tr>
+      <tr><td>Play: “Fetching your app…” then generic startup failure</td><td>Missing flow connector, broken data source metadata, or empty <code>EntityMetadata</code> in packaged app.</td><td>Remove/fix logic-flow references; regenerate table metadata from live org.</td></tr>
+      <tr><td>Power Fx errors on choices</td><td>SharePoint choice vs Dataverse picklist record shape.</td><td>Compare to <code>.Value</code> / use option-set numeric values consistently.</td></tr>
+      <tr><td>Seed data missing for two tables</td><td>Only reference tables were loaded from Excel; transactional tables are user-driven.</td><td>Expected unless a separate migration job loads historical rows.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Cursor / Claude Prompt (Migration Kickoff)</h3>
+  <div class="prompt-box">
+    <div class="prompt-header"><div class="prompt-icon">C</div><div class="prompt-title">Canvas: SharePoint → Dataverse Rebind</div></div>
+    <div class="prompt-body">
+      You are assisting with a Power Apps canvas app migrated from SharePoint lists to Dataverse. The unpacked source is in <code>canvas-src/</code>.<br><br>
+      <strong>Constraints:</strong> Do not redesign screens. Preserve behavior. Use Dataverse logical names and entity set names from the target environment. Update <code>Connections.json</code>, <code>DataSources/*.json</code>, <code>CanvasManifest.json</code> (<code>LocalDatabaseReferences</code>), <code>pkgs/TableDefinitions</code> with full metadata, and Power Fx in <code>Src/*.fx.yaml</code> / <code>Other/Src/*.pa.yaml</code>. Map picklists and choice columns correctly.<br><br>
+      <strong>Environment URL:</strong> <em>[e.g. https://org….crm.dynamics.com/]</em><br>
+      <strong>Tables:</strong> <em>[logical name + entity set name for each list]</em><br><br>
+      After edits: pack with <code>pac canvas pack</code>, place <code>.msapp</code> in solution <code>CanvasApps/</code>, verify <code>CanvasApps/*.meta.xml</code> connection JSON shapes, then <code>pac solution pack</code>. List validation steps for Play and import.
+    </div>
+  </div>
+
+  <div class="callout ok"><strong>Outcome:</strong> A reproducible developer workflow for Dataverse-backed canvas apps delivered as managed or unmanaged solutions, with explicit checks for packaging and runtime failures that do not appear during <code>pac solution pack</code> alone.</div>
+</div>
+
+
 <!-- SECTION: PROMPTS MODIFY -->
 <div class="section" id="prompts-modify">
   <span class="toc-marker"></span>
@@ -1090,6 +1387,7 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
       <tr><td>Modify a Power Automate flow</td><td class="mono">Workflows/*.xml</td><td class="mono">Workflows/</td></tr>
       <tr><td>Change HTML/CSS/JS in the app</td><td class="mono">WebResources/*</td><td class="mono">WebResources/</td></tr>
       <tr><td>Change security role permissions</td><td class="mono">Roles/*.xml</td><td class="mono">Roles/</td></tr>
+      <tr><td>Rebind a canvas app to Dataverse (unpacked source)</td><td class="mono">DataSources/*.json, CanvasManifest.json, Connections.json, Src/*.fx.yaml</td><td class="mono">See <a href="#l2-canvas-sp-to-dv">Canvas: SharePoint → Dataverse</a> — app is inside solution <code>CanvasApps/*.msapp</code> or unpacked <code>canvas-src/</code></td></tr>
       <tr><td>Change solution version or publisher</td><td class="mono">Solution.xml</td><td class="mono">Other/Solution.xml</td></tr>
     </tbody>
   </table>
@@ -1116,9 +1414,18 @@ code{font-family:'Fira Code',monospace;font-size:12px;background:rgba(26,26,46,.
   <h3>Issue 5: Import fails with duplicate key in MetadataSchema.AttributeLookupValue</h3>
   <div class="callout crit"><strong>Problem:</strong> Custom lookup metadata reused the same <code>LookupType id</code> GUID across multiple lookup attributes, causing a duplicate key conflict in <code>MetadataSchema.AttributeLookupValue</code>.<br><br><strong>Fix:</strong> Remove the <code>id</code> attribute from custom lookup <code>LookupType</code> nodes and keep only the numeric Object Type Code:<br><br><code>&lt;LookupType&gt;10950&lt;/LookupType&gt;</code></div>
 
+  <h3>Issue 6: App module import fails with "Unrecognized Guid format"</h3>
+  <div class="callout crit"><strong>Problem:</strong> The model-driven app <code>AppModule.xml</code> file contains an empty <code>&lt;WebResourceId&gt;</code> value.<br><br><strong>Fix:</strong> Create a dedicated app icon web resource and set <code>&lt;WebResourceId&gt;</code> to that icon web resource GUID. Do not leave the node empty.</div>
+
+  <h3>Issue 7: App module import fails after pointing WebResourceId to an HTML dashboard</h3>
+  <div class="callout crit"><strong>Problem:</strong> <code>AppModule.WebResourceId</code> was set to the HTML dashboard web resource GUID. This field is for the app icon asset, not the dashboard page.<br><br><strong>Fix:</strong> Register a small SVG icon web resource with <code>WebResourceType 11</code>, point <code>AppModule.WebResourceId</code> to the SVG icon GUID, and keep the HTML dashboard referenced only from the sitemap using <code>$webresource:[name]</code>.</div>
+
+  <h3>Issue 8: App imports successfully but Play shows "The object could not be found"</h3>
+  <div class="callout info"><strong>Problem:</strong> The app and sitemap imported, but the environment had not published the latest metadata yet.<br><br><strong>Fix:</strong> In make.powerapps.com → Solutions → open the solution → click <strong>Publish all customizations</strong>. After publishing succeeds, refresh the Apps list and click <strong>Play</strong> again.</div>
+
   <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);">
     <p style="font-size:12px;color:#aaa;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.03em;">
-      <strong>Document Control:</strong> SOP-002 · v1.1 · April 2026 · Owner: Euris, Director of Innovation · Clara Fortuna Innovation Department · Confidential · Stored at demo.clarafortuna.com/Innovation/sop/ · Review quarterly as Power Platform CLI and Claude capabilities evolve.
+      <strong>Document Control:</strong> SOP-002 · v1.3 · April 2026 · Owner: Euris, Director of Innovation · Clara Fortuna Innovation Department · Confidential · Stored at demo.clarafortuna.com/Innovation/sop/ · Review quarterly as Power Platform CLI and Claude capabilities evolve.
     </p>
   </div>
 </div>
