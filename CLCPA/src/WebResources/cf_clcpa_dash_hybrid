@@ -725,16 +725,27 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
     return map;
   }
 
+  function geographyRowPresent(facts) {
+    if (!facts || !facts.length) return false;
+    for (var gi = 0; gi < facts.length; gi++) {
+      var g = facts[gi].cf_geography;
+      if (g && g.cf_boroughorcounty) return true;
+    }
+    return false;
+  }
+
   G.mergeSectionF = function (payload, facts, periodYear) {
     if (!payload || !payload.charts) return payload;
     var ch = payload.charts;
     var key = 'F8_boroughs_' + (String(periodYear) === '2023' ? '2023' : '2024');
-    if (facts && facts.length && facts[0].cf_geography) {
+    if (facts && facts.length && geographyRowPresent(facts)) {
       var mp = outagesByBorough(facts);
       var names = Object.keys(mp).filter(function (b) { return b !== 'Unknown'; });
       if (names.length) {
         ch[key] = names.map(function (name) {
-          return { name: name, dac: mp[name].dac, nondac: mp[name].nondac, _src: G.SRC_DV };
+          var d = mp[name].dac;
+          var nd = mp[name].nondac;
+          return { name: name, dac: d, nondac: nd, total: d + nd, _src: G.SRC_DV };
         });
       }
     }
@@ -776,10 +787,13 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
       var keys = Object.keys(rep).filter(function (b) { return b !== 'Unknown'; });
       if (keys.length) {
         ch['G_replacement_' + y] = keys.map(function (name) {
+          var d = rep[name].dacFt;
+          var nd = rep[name].nondacFt;
           return {
             name: name,
-            dac: rep[name].dacFt,
-            nondac: rep[name].nondacFt,
+            dac: d,
+            nondac: nd,
+            total: d + nd,
             _methaneDac: rep[name].dacCh4,
             _methaneNondac: rep[name].nondacCh4,
             _srcFeet: G.SRC_DV,
@@ -808,12 +822,14 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
     var ch = payload.charts;
     var y = String(periodYear) === '2023' ? '2023' : '2024';
     var key = 'H1_boroughs_' + y;
-    if (facts && facts.length && facts[0].cf_geography) {
+    if (facts && facts.length && geographyRowPresent(facts)) {
       var mp = leaksByBorough(facts);
       var names = Object.keys(mp).filter(function (b) { return b !== 'Unknown'; });
       if (names.length) {
         ch[key] = names.map(function (name) {
-          return { name: name, dac: mp[name].dac, nondac: mp[name].nondac, _src: G.SRC_DV };
+          var d = mp[name].dac;
+          var nd = mp[name].nondac;
+          return { name: name, dac: d, nondac: nd, total: d + nd, _src: G.SRC_DV };
         });
       }
     }
@@ -826,17 +842,8 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
 
   G.extraPanels = function (letter, payload) {
     var rows = [];
-    if (letter === 'C') {
-      rows.push({ label: 'Average event MW', value: '—', src: G.SRC_HTML, note: 'Shown for context from the published tables; not collected on this portal yet.' });
-    }
     if (letter === 'F') {
       rows.push({ label: 'Average outage duration', value: '—', src: G.SRC_HTML, note: 'Shown for context from the published tables; duration is not part of the outage form here.' });
-    }
-    if (letter === 'G') {
-      rows.push({ label: 'Leaks eliminated (count)', value: '—', src: G.SRC_HTML, note: 'Shown for context from the published tables; not on this maintenance form yet.' });
-    }
-    if (letter === 'H') {
-      rows.push({ label: 'Average response time (hrs)', value: '—', src: G.SRC_HTML, note: 'Shown for context from the published tables; not collected on this repair form yet.' });
     }
     if (!rows.length) return '';
     var h = '<div class="dash-extra-card"><h3>Context metrics <span class="src-pill src-html">Reference</span></h3><table class="data-table"><thead><tr><th>Metric</th><th>Value</th><th>Basis</th></tr></thead><tbody>';
