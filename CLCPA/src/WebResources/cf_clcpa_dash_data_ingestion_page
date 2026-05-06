@@ -15,27 +15,569 @@
 
   const state = { section: 'A', table: 'A1', year: '2024' };
 
-  // ============================================================
-  // STORAGE
-  // ============================================================
+  var API_DV = '/api/data/v9.2/';
+  var SOURCE_TABLE_A = 'UI-SectionA';
+  var DASHBOARD_MIN_REPORTING_YEAR = 2023;
+  var ingestionPeriods = [];
+  var sectionAPrograms = [];
+  var dacStatuses = [];
+  var sectionARowMirror = [];
+  var dvMetaPromise = null;
+
+  function getGlobalContextIngestion() {
+    try {
+      if (window.parent && window.parent.Xrm && window.parent.Xrm.Utility) {
+        return window.parent.Xrm.Utility.getGlobalContext();
+      }
+      if (window.Xrm && window.Xrm.Utility) {
+        return window.Xrm.Utility.getGlobalContext();
+      }
+    } catch (e) { /* ignore */ }
+    return null;
+  }
+
+  function dvSectionAActive() {
+    return !!getGlobalContextIngestion();
+  }
+
+  function getClientUrlIngestion() {
+    var ctx = getGlobalContextIngestion();
+    if (!ctx) return null;
+    try {
+      return ctx.getClientUrl().replace(/\/$/, '');
+    } catch (e) { return null; }
+  }
+
+  function dvFetch(path, init) {
+    var base = getClientUrlIngestion();
+    if (!base) return Promise.reject(new Error('Open inside the CLCPA model-driven app to sync Section A with Dataverse.'));
+    var url = base + path;
+    var headers = {
+      'Accept': 'application/json',
+      'OData-MaxVersion': '4.0',
+      'OData-Version': '4.0'
+    };
+    if (init && init.method && init.method !== 'GET') {
+      headers['Content-Type'] = 'application/json';
+    }
+    return fetch(url, Object.assign({}, init, { credentials: 'same-origin', headers: Object.assign(headers, (init && init.headers) || {}) }));
+  }
+
+  function parseJsonSafe(r) {
+    return r.text().then(function (t) {
+      try { return JSON.parse(t); } catch (e) { return { _raw: t }; }
+    });
+  }
+
+  function loadIngestionPeriods() {
+    var qs = '?$select=cf_dimperiodid,cf_calendaryear,cf_periodlabel,cf_periodgrain,cf_isreportperiod' +
+      '&$filter=statecode eq 0&$orderby=cf_calendaryear desc';
+    return dvFetch(API_DV + 'cf_dimperiods' + qs).then(function (r) {
+      if (!r.ok) throw new Error('Periods ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      ingestionPeriods = d.value || [];
+      return ingestionPeriods;
+    });
+  }
+
+  function loadSectionAPrograms() {
+    var qs = '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_isactive' +
+      '&$filter=statecode eq 0 and cf_sectioncode eq \'A\' and cf_isactive eq true&$orderby=cf_programname';
+    return dvFetch(API_DV + 'cf_dimprograms' + qs).then(function (r) {
+      if (!r.ok) throw new Error('Programs ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      sectionAPrograms = d.value || [];
+      if (sectionAPrograms.length === 0) {
+        return dvFetch(API_DV + 'cf_dimprograms?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode&$filter=statecode eq 0&$orderby=cf_programname&$top=500').then(function (r2) {
+          if (!r2.ok) throw new Error('Programs fallback ' + r2.status);
+          return r2.json();
+        }).then(function (d2) {
+          sectionAPrograms = d2.value || [];
+        });
+      }
+    });
+  }
+
+  function loadDacStatusesIngestion() {
+    var qs = '?$select=cf_dacstatusid,cf_dacstatuslabel,cf_dacstatuscode&$filter=statecode eq 0&$orderby=cf_dacstatuslabel';
+    return dvFetch(API_DV + 'cf_dacstatuses' + qs).then(function (r) {
+      if (!r.ok) throw new Error('DAC statuses ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      dacStatuses = d.value || [];
+    });
+  }
+
+  function periodGuidForYearIngestion(year) {
+    var y = parseInt(year, 10);
+    var list = ingestionPeriods.filter(function (p) {
+      return parseInt(p.cf_calendaryear, 10) === y;
+    });
+    if (!list.length) return null;
+    var rep = list.filter(function (p) { return p.cf_isreportperiod === true; });
+    return (rep[0] || list[0]).cf_dimperiodid;
+  }
+
+  function distinctCalendarYearsFromIngestionPeriods() {
+    var m = {};
+    ingestionPeriods.forEach(function (p) {
+      if (p.cf_calendaryear != null) m[p.cf_calendaryear] = true;
+    });
+    return Object.keys(m).map(Number);
+  }
+
+  function ensureDvMetadataLoaded() {
+    if (!dvSectionAActive()) return Promise.resolve();
+    if (dvMetaPromise) return dvMetaPromise;
+    dvMetaPromise = loadIngestionPeriods()
+      .then(function () { return loadSectionAPrograms(); })
+      .then(function () { return loadDacStatusesIngestion(); })
+      .catch(function (e) {
+        dvMetaPromise = null;
+        throw e;
+      });
+    return dvMetaPromise;
+  }
+
+  function factToMirrorRow(f) {
+    var y = f.cf_period && f.cf_period.cf_calendaryear != null ? String(f.cf_period.cf_calendaryear) : '';
+    var prog = '';
+    if (f.cf_program) {
+      prog = f.cf_program.cf_programname || f.cf_program.cf_programcode || '';
+    }
+    var meas = (f.cf_measurecategorycode != null && String(f.cf_measurecategorycode).trim()) || '';
+    var custSeg = (f.cf_customersegmentcode != null && String(f.cf_customersegmentcode).trim()) || '';
+    var dacLab = f.cf_dacstatus ? String(f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode || '') : '';
+    var isDacStatus = /\bDAC\b|DISADVANTAGED|IN_DAC|DAC_COMMUNITY/i.test(dacLab) && !/\bNON-?DAC\b/i.test(dacLab) && !/\bNOT\b/i.test(dacLab);
+
+    var segment;
+    if (meas) {
+      segment = custSeg || (isDacStatus ? 'Commercial / DAC' : 'Commercial / Non-DAC');
+    } else if (custSeg && /^(Residential|Multifamily|Commercial|Multisector)$/i.test(custSeg)) {
+      segment = custSeg;
+    } else if (/^DAC$/i.test(custSeg)) {
+      segment = 'DAC';
+    } else if (/^Non-?DAC$/i.test(custSeg)) {
+      segment = 'Non-DAC';
+    } else if (isDacStatus) {
+      segment = 'DAC';
+    } else {
+      segment = 'Non-DAC';
+    }
+
+    return {
+      id: f.cf_factcleanenergyspendingid,
+      section: 'A',
+      values: {
+        year: y,
+        segment: segment,
+        program: prog,
+        measure: meas,
+        incentive_dollars: f.cf_incentivedollars != null ? f.cf_incentivedollars : '',
+        energy_savings_mmbtu: f.cf_energysavingsmmbtu != null ? f.cf_energysavingsmmbtu : '',
+        participants: f.cf_participants != null ? f.cf_participants : '',
+        installations: f.cf_installations != null ? f.cf_installations : ''
+      },
+      status: 'dv',
+      created_at: new Date().toISOString()
+    };
+  }
+
+  function refreshSectionAFromDataverse() {
+    sectionARowMirror = [];
+    if (!dvSectionAActive()) return Promise.resolve();
+    return ensureDvMetadataLoaded().then(function () {
+      var pg = periodGuidForYearIngestion(state.year);
+      if (!pg) {
+        return;
+      }
+      var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname,cf_programcode),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+      var sel = 'cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value';
+      var path = API_DV + 'cf_factcleanenergyspendings?$select=' + sel +
+        '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+      return dvFetch(path).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Facts ' + r.status));
+          });
+        }
+        return r.json();
+      }).then(function (d) {
+        sectionARowMirror = (d.value || []).map(factToMirrorRow);
+      });
+    });
+  }
+
+  function prepareSectionAData() {
+    if (state.section !== 'A' || !dvSectionAActive()) return Promise.resolve();
+    return refreshSectionAFromDataverse();
+  }
+
+  function isDvFactGuid(id) {
+    return typeof id === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+  }
+
+  function resolveProgramId(name) {
+    var n = String(name || '').trim().toLowerCase();
+    var i, p, pn, q, pc;
+    for (i = 0; i < sectionAPrograms.length; i++) {
+      p = sectionAPrograms[i];
+      pn = String(p.cf_programname || '').trim().toLowerCase();
+      if (pn === n) return p.cf_dimprogramid;
+    }
+    for (i = 0; i < sectionAPrograms.length; i++) {
+      q = sectionAPrograms[i];
+      pc = String(q.cf_programcode || '').trim().toLowerCase();
+      if (pc === n) return q.cf_dimprogramid;
+    }
+    return null;
+  }
+
+  function resolveDacStatusId(wantDac) {
+    var list = dacStatuses || [];
+    var k, d, lab;
+    for (k = 0; k < list.length; k++) {
+      d = list[k];
+      lab = String(d.cf_dacstatuslabel || d.cf_dacstatuscode || '').toUpperCase();
+      if (wantDac) {
+        if (lab === 'DAC' || (lab.indexOf('DAC') >= 0 && lab.indexOf('NON') < 0 && lab.indexOf('NOT') < 0)) {
+          return d.cf_dacstatusid;
+        }
+      } else {
+        if (lab.indexOf('NON') >= 0 || lab.indexOf('NOT') >= 0 || lab === 'NON-DAC' || lab === 'NON DAC') {
+          return d.cf_dacstatusid;
+        }
+      }
+    }
+    if (list.length) return list[wantDac ? 0 : (list.length - 1)].cf_dacstatusid;
+    return null;
+  }
+
+  function resolveDacStatusIdForA3() {
+    var list = dacStatuses || [];
+    var k, d, lab;
+    for (k = 0; k < list.length; k++) {
+      d = list[k];
+      lab = String(d.cf_dacstatuslabel || d.cf_dacstatuscode || '').toUpperCase();
+      if (lab.indexOf('ALL') >= 0 || lab.indexOf('TOTAL') >= 0 || lab.indexOf('COMBINED') >= 0) {
+        return d.cf_dacstatusid;
+      }
+    }
+    return resolveDacStatusId(false);
+  }
+
+  function patchFactA(id, body) {
+    return dvFetch(API_DV + 'cf_factcleanenergyspendings(' + id + ')', {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+      headers: { 'If-Match': '*' }
+    }).then(function (r) {
+      if (r.status === 204) return;
+      return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('PATCH fact ' + r.status));
+      });
+    });
+  }
+
+  function postFactA(body) {
+    return dvFetch(API_DV + 'cf_factcleanenergyspendings', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    }).then(function (r) {
+      if (r.status === 204 || r.status === 201) {
+        var loc = r.headers.get('OData-EntityId') || r.headers.get('Location');
+        if (loc) {
+          var m = /([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})/i.exec(loc);
+          if (m) return m[1];
+        }
+        return null;
+      }
+      if (r.ok) return null;
+      return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('POST fact ' + r.status));
+      });
+    });
+  }
+
+  function deleteFactA(id) {
+    if (!isDvFactGuid(id)) return Promise.resolve();
+    return dvFetch(API_DV + 'cf_factcleanenergyspendings(' + id + ')', { method: 'DELETE' }).then(function (r) {
+      if (r.status === 204 || r.status === 404) return;
+      return r.text().then(function (t) {
+        throw new Error('DELETE fact ' + r.status + ' ' + t);
+      });
+    });
+  }
+
+  function upsertA1A2Cell(row, segLabel, val, measureField, programName, periodId) {
+    var programId = resolveProgramId(programName);
+    if (!programId) {
+      return Promise.reject(new Error('Program "' + programName + '" was not found in DIM PROGRAM (Section A).'));
+    }
+    var isDac = /^DAC$/i.test(segLabel);
+    var dacId = resolveDacStatusId(isDac);
+    if (!dacId) {
+      return Promise.reject(new Error('Could not resolve DAC status in Dataverse.'));
+    }
+    var body = {
+      cf_sourcetable: SOURCE_TABLE_A,
+      'cf_period@odata.bind': '/cf_dimperiods(' + periodId + ')',
+      'cf_program@odata.bind': '/cf_dimprograms(' + programId + ')',
+      'cf_dacstatus@odata.bind': '/cf_dacstatuses(' + dacId + ')',
+      cf_customersegmentcode: null,
+      cf_measurecategorycode: null,
+      cf_participants: null,
+      cf_installations: null,
+      cf_highimpactdacpct: null,
+      cf_incentivedollars: null,
+      cf_energysavingsmmbtu: null
+    };
+    if (measureField === 'incentive_dollars') body.cf_incentivedollars = val;
+    else body.cf_energysavingsmmbtu = val;
+
+    if (row && isDvFactGuid(row.id)) {
+      var patch = {};
+      if (measureField === 'incentive_dollars') patch.cf_incentivedollars = val;
+      else patch.cf_energysavingsmmbtu = val;
+      return patchFactA(row.id, patch);
+    }
+    return postFactA(body);
+  }
+
+  function buildBodyA3(periodId, programId, segment, participants, inc, mmbtu) {
+    var dacId = resolveDacStatusIdForA3();
+    if (!dacId) {
+      throw new Error('Could not resolve DAC status row in Dataverse (required for participant tables).');
+    }
+    return {
+      cf_sourcetable: SOURCE_TABLE_A,
+      'cf_period@odata.bind': '/cf_dimperiods(' + periodId + ')',
+      'cf_program@odata.bind': '/cf_dimprograms(' + programId + ')',
+      'cf_dacstatus@odata.bind': '/cf_dacstatuses(' + dacId + ')',
+      cf_customersegmentcode: segment,
+      cf_measurecategorycode: null,
+      cf_incentivedollars: inc == null ? null : inc,
+      cf_energysavingsmmbtu: mmbtu == null ? null : mmbtu,
+      cf_participants: participants == null ? null : Math.round(participants),
+      cf_installations: null,
+      cf_highimpactdacpct: null
+    };
+  }
+
+  function buildBodyA5A8(periodId, programId, segBase, isDac, measureName, installations) {
+    var dacId = resolveDacStatusId(isDac);
+    var cust = segBase + (isDac ? ' / DAC' : ' / Non-DAC');
+    return {
+      cf_sourcetable: SOURCE_TABLE_A,
+      'cf_period@odata.bind': '/cf_dimperiods(' + periodId + ')',
+      'cf_program@odata.bind': '/cf_dimprograms(' + programId + ')',
+      'cf_dacstatus@odata.bind': '/cf_dacstatuses(' + dacId + ')',
+      cf_customersegmentcode: cust,
+      cf_measurecategorycode: measureName || null,
+      cf_incentivedollars: null,
+      cf_energysavingsmmbtu: null,
+      cf_participants: null,
+      cf_installations: installations == null ? null : Math.round(installations),
+      cf_highimpactdacpct: null
+    };
+  }
+
+  function shiftODataDate(val, deltaYears) {
+    if (val == null || val === '') return null;
+    var d = new Date(val);
+    if (isNaN(d.getTime())) return null;
+    d.setUTCFullYear(d.getUTCFullYear() + deltaYears);
+    return d.toISOString();
+  }
+
+  function buildClonedPeriodPayload(src, templateYear, newYear) {
+    var dy = parseInt(newYear, 10) - parseInt(templateYear, 10);
+    var lab = src.cf_periodlabel ? String(src.cf_periodlabel) : '';
+    var ts = String(templateYear);
+    var ns = String(newYear);
+    var newLab = lab.replace(new RegExp('\\b' + ts + '\\b', 'g'), ns);
+    if (newLab === lab && lab.indexOf(ts) >= 0) newLab = lab.split(ts).join(ns);
+    var body = {
+      cf_calendaryear: parseInt(newYear, 10),
+      cf_periodgrain: src.cf_periodgrain,
+      cf_periodlabel: newLab || ns,
+      cf_isreportperiod: src.cf_isreportperiod === true
+    };
+    var s = shiftODataDate(src.cf_periodstartdate, dy);
+    var e = shiftODataDate(src.cf_periodenddate, dy);
+    if (s) body.cf_periodstartdate = s;
+    if (e) body.cf_periodenddate = e;
+    if (src.cf_calendarmonth != null) body.cf_calendarmonth = src.cf_calendarmonth;
+    if (src.cf_calendarquarter != null) body.cf_calendarquarter = src.cf_calendarquarter;
+    return body;
+  }
+
+  function fetchPeriodRowsForCalendarYear(y) {
+    var yi = parseInt(y, 10);
+    var filt = 'cf_calendaryear eq ' + yi + ' and statecode eq 0';
+    var sel = 'cf_dimperiodid,cf_calendaryear,cf_periodlabel,cf_periodgrain,cf_isreportperiod,cf_periodstartdate,cf_periodenddate,cf_calendarmonth,cf_calendarquarter';
+    var path = API_DV + 'cf_dimperiods?$select=' + encodeURIComponent(sel) + '&$filter=' + encodeURIComponent(filt);
+    function pull(url) {
+      return dvFetch(url).then(function (r) {
+        if (!r.ok) throw new Error('Period template read failed (' + r.status + ')');
+        return r.json();
+      }).then(function (d) {
+        var part = d.value || [];
+        if (d['@odata.nextLink']) {
+          return pull(d['@odata.nextLink']).then(function (rest) { return part.concat(rest); });
+        }
+        return part;
+      });
+    }
+    return pull(path);
+  }
+
+  function createReportingYearFromTemplateIngestion(newYearStr) {
+    var newY = parseInt(newYearStr, 10);
+    if (isNaN(newY) || newY < 2000 || newY > 2099) {
+      return Promise.reject(new Error('Enter a valid 4-digit year.'));
+    }
+    return ensureDvMetadataLoaded().then(function () {
+      var hasYear = ingestionPeriods.some(function (p) { return parseInt(p.cf_calendaryear, 10) === newY; });
+      if (hasYear) {
+        return Promise.reject(new Error('That calendar year already exists in DIM PERIOD.'));
+      }
+      var ys = distinctCalendarYearsFromIngestionPeriods();
+      var templateYear = ys.length ? Math.max.apply(null, ys) : null;
+      if (!templateYear) {
+        return Promise.reject(new Error('No existing periods to use as a template.'));
+      }
+      return fetchPeriodRowsForCalendarYear(templateYear).then(function (rows) {
+        if (!rows.length) {
+          return Promise.reject(new Error('Template year ' + templateYear + ' has no period rows.'));
+        }
+        return rows.reduce(function (pms, src) {
+          return pms.then(function () {
+            var body = buildClonedPeriodPayload(src, templateYear, newY);
+            return dvFetch(API_DV + 'cf_dimperiods', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
+              if (!r.ok) {
+                return parseJsonSafe(r).then(function (j) {
+                  throw new Error((j.error && j.error.message) || ('Create period failed ' + r.status));
+                });
+              }
+            });
+          });
+        }, Promise.resolve());
+      }).then(function () {
+        dvMetaPromise = null;
+        return loadIngestionPeriods();
+      });
+    });
+  }
+
+  function deleteDimPeriod(id) {
+    return dvFetch(API_DV + 'cf_dimperiods(' + id + ')', { method: 'DELETE' }).then(function (r) {
+      if (r.status === 204 || r.status === 404) return;
+      return r.text().then(function (t) {
+        throw new Error('DELETE period ' + r.status + ' ' + t);
+      });
+    });
+  }
+
+  function gatherSectionAFactIdsForFilter(filt) {
+    var acc = [];
+    var path = API_DV + 'cf_factcleanenergyspendings?$select=cf_factcleanenergyspendingid&$filter=' + encodeURIComponent(filt);
+    function pull(url) {
+      return dvFetch(url).then(function (r) {
+        if (!r.ok) throw new Error('Facts filter query failed (' + r.status + ')');
+        return r.json();
+      }).then(function (d) {
+        (d.value || []).forEach(function (row) {
+          if (row.cf_factcleanenergyspendingid) acc.push(row.cf_factcleanenergyspendingid);
+        });
+        if (d['@odata.nextLink']) return pull(d['@odata.nextLink']);
+        return acc;
+      });
+    }
+    return pull(path);
+  }
+
+  function deleteSectionAReportingYearCascade(yearStr) {
+    var y = parseInt(yearStr, 10);
+    var periodIds = ingestionPeriods.filter(function (p) { return parseInt(p.cf_calendaryear, 10) === y; }).map(function (p) { return p.cf_dimperiodid; });
+    var distinctYears = distinctCalendarYearsFromIngestionPeriods();
+    if (distinctYears.length <= 1) {
+      return Promise.reject(new Error('Cannot delete the only calendar year in DIM PERIOD.'));
+    }
+    if (!periodIds.length) {
+      return Promise.reject(new Error('No periods found for year ' + yearStr + '.'));
+    }
+    var filt = periodIds.map(function (id) { return '_cf_period_value eq ' + id; }).join(' or ');
+    return gatherSectionAFactIdsForFilter(filt).then(function (ids) {
+      return ids.reduce(function (pms, fid) {
+        return pms.then(function () { return deleteFactA(fid); });
+      }, Promise.resolve());
+    }).then(function () {
+      return periodIds.reduce(function (pms, pid) {
+        return pms.then(function () { return deleteDimPeriod(pid); });
+      }, Promise.resolve());
+    }).then(function () {
+      dvMetaPromise = null;
+      return loadIngestionPeriods();
+    });
+  }
+
+  function calendarYearsForSectionA() {
+    var years = {};
+    ingestionPeriods.forEach(function (p) {
+      if (p.cf_calendaryear != null) {
+        var yi = parseInt(p.cf_calendaryear, 10);
+        if (!isNaN(yi) && yi >= DASHBOARD_MIN_REPORTING_YEAR && yi <= 2100) {
+          years[yi] = true;
+        }
+      }
+    });
+    return Object.keys(years).map(Number).sort(function (a, b) { return b - a; }).map(String);
+  }
+
   function loadAllRows() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    } catch (e) { return []; }
+      const fromLs = raw ? JSON.parse(raw) : [];
+      if (dvSectionAActive()) {
+        const nonA = fromLs.filter(r => r.section !== 'A');
+        return nonA.concat(sectionARowMirror);
+      }
+      return fromLs;
+    } catch (e) {
+      return dvSectionAActive() ? sectionARowMirror.slice() : [];
+    }
   }
+
   function saveAllRows(rows) {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(rows)); }
+    const toStore = dvSectionAActive() ? rows.filter(r => r.section !== 'A') : rows;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore)); }
     catch (e) { alert('Storage failed: ' + e.message); }
   }
+
   function newId() {
     return 'row_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
   }
 
   function seedIfNeeded() {
+    if (dvSectionAActive()) {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const cleaned = parsed.filter(r => r.section !== 'A');
+          if (cleaned.length !== parsed.length) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(cleaned));
+          }
+        }
+      } catch (e) { /* ignore */ }
+    }
     if (localStorage.getItem(SEED_FLAG) === '1') return;
     const all = [];
     Object.keys(SEED_DATA).forEach(letter => {
+      if (letter === 'A' && dvSectionAActive()) return;
       SEED_DATA[letter].forEach((values, idx) => {
         all.push({
           id: 'seed_' + letter + '_' + idx,
@@ -51,6 +593,15 @@
   }
 
   function getAvailableYears(section) {
+    if (section === 'A' && dvSectionAActive()) {
+      const ysDv = calendarYearsForSectionA();
+      const years = new Set(ysDv);
+      sectionARowMirror.forEach(r => {
+        if (r.values && r.values.year) years.add(String(r.values.year));
+      });
+      const merged = Array.from(years).sort().reverse();
+      if (merged.length) return merged;
+    }
     const all = loadAllRows().filter(r => r.section === section);
     const years = new Set();
     all.forEach(r => {
@@ -1660,6 +2211,20 @@
       if (newNondac < 0) { alert('Total cannot be less than DAC. Reverting.'); renderEditor(); return; }
     }
 
+    if (dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const periodId = periodGuidForYearIngestion(state.year);
+        if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
+        return Promise.all([
+          upsertA1A2Cell(target.dacRow, 'DAC', newDac, measureField, target.program, periodId),
+          upsertA1A2Cell(target.nonDacRow, 'Non-DAC', newNondac, measureField, target.program, periodId)
+        ]);
+      }).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     const all = loadAllRows();
     function upsert(seg, val) {
       const seekRow = seg === 'DAC' ? target.dacRow : target.nonDacRow;
@@ -1688,6 +2253,18 @@
     const all = loadAllRows();
     const r = all.find(x => x.id === rowid);
     if (!r) { renderEditor(); return; }
+
+    if (dvSectionAActive() && isDvFactGuid(rowid)) {
+      const patch = {};
+      if (field === 'participants') patch.cf_participants = newVal == null ? null : Math.round(newVal);
+      else if (field === 'incentive_dollars') patch.cf_incentivedollars = newVal == null ? null : newVal;
+      else if (field === 'energy_savings_mmbtu') patch.cf_energysavingsmmbtu = newVal == null ? null : newVal;
+      patchFactA(rowid, patch).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     r.values = Object.assign({}, r.values);
     r.values[field] = newVal == null ? '' : newVal;
     r.updated_at = new Date().toISOString();
@@ -1720,6 +2297,28 @@
     const tabs = TABLES_BY_SECTION.A;
     const table = tabs.find(t => t.id === state.table);
     const segBase = table.segmentBase;
+
+    if (dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const periodId = periodGuidForYearIngestion(state.year);
+        if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
+        const programId = resolveProgramId(program);
+        if (!programId) throw new Error('Program "' + program + '" was not found in DIM PROGRAM (Section A).');
+        const dacBody = buildBodyA5A8(periodId, programId, segBase, true, measure, newDac);
+        const nondacBody = buildBodyA5A8(periodId, programId, segBase, false, measure, newNondac);
+        const p1 = dacRow && isDvFactGuid(dacRow.id)
+          ? patchFactA(dacRow.id, { cf_installations: newDac == null ? null : Math.round(newDac) })
+          : postFactA(dacBody);
+        const p2 = nondacRow && isDvFactGuid(nondacRow.id)
+          ? patchFactA(nondacRow.id, { cf_installations: newNondac == null ? null : Math.round(newNondac) })
+          : postFactA(nondacBody);
+        return Promise.all([p1, p2]);
+      }).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     function ensureRow(existing, segLabel, value) {
       if (existing) {
         existing.values = Object.assign({}, existing.values, { installations: value });
@@ -2166,6 +2765,23 @@
     const dacVal = dac != null ? dac : 0;
     const nondacVal = totalVal - dacVal;
     if (nondacVal < 0) { alert('DAC cannot exceed Total.'); return; }
+
+    if (dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const periodId = periodGuidForYearIngestion(state.year);
+        if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
+        const programId = resolveProgramId(name);
+        if (!programId) throw new Error('Program "' + name + '" was not found in DIM PROGRAM (Section A).');
+        return Promise.all([
+          upsertA1A2Cell(null, 'DAC', dacVal, measureField, name, periodId),
+          upsertA1A2Cell(null, 'Non-DAC', nondacVal, measureField, name, periodId)
+        ]);
+      }).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     const all = loadAllRows();
     all.push({ id: newId(), section: 'A',
       values: { year: state.year, segment: 'DAC', program: name, measure: '',
@@ -2189,6 +2805,24 @@
     const inc = parseNumberInput(addRow.querySelector('.add-prog-inc').value);
     const mmbtu = parseNumberInput(addRow.querySelector('.add-prog-mmbtu').value);
     if (!name) { alert('Program name is required.'); return; }
+
+    if (dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const periodId = periodGuidForYearIngestion(state.year);
+        if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
+        const programId = resolveProgramId(name);
+        if (!programId) throw new Error('Program "' + name + '" was not found in DIM PROGRAM (Section A).');
+        const body = buildBodyA3(periodId, programId, segment,
+          participants != null ? participants : null,
+          inc != null ? inc : null,
+          mmbtu != null ? mmbtu : null);
+        return postFactA(body);
+      }).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     const all = loadAllRows();
     all.push({ id: newId(), section: 'A',
       values: { year: state.year, segment: segment, program: name, measure: '',
@@ -2214,6 +2848,22 @@
     const dacVal = dac != null ? dac : 0;
     const nondacVal = totalVal - dacVal;
     if (nondacVal < 0) { alert('DAC cannot exceed Total.'); return; }
+
+    if (dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const periodId = periodGuidForYearIngestion(state.year);
+        if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
+        const programId = resolveProgramId(program);
+        if (!programId) throw new Error('Program "' + program + '" was not found in DIM PROGRAM (Section A).');
+        const dacBody = buildBodyA5A8(periodId, programId, segBase, true, name, dacVal);
+        const nondacBody = buildBodyA5A8(periodId, programId, segBase, false, name, nondacVal);
+        return Promise.all([postFactA(dacBody), postFactA(nondacBody)]);
+      }).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     const all = loadAllRows();
     all.push({ id: newId(), section: 'A',
       values: { year: state.year, segment: segBase + ' / DAC', program: program, measure: name,
@@ -2233,6 +2883,23 @@
     const tabs = TABLES_BY_SECTION.A;
     const table = tabs.find(t => t.id === state.table);
     const segBase = table.segmentBase;
+
+    if (dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const periodId = periodGuidForYearIngestion(state.year);
+        if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
+        const programId = resolveProgramId(name);
+        if (!programId) throw new Error('Program "' + name + '" was not found in DIM PROGRAM (Section A).');
+        const meas = '(new measure)';
+        const dacBody = buildBodyA5A8(periodId, programId, segBase, true, meas, 0);
+        const nondacBody = buildBodyA5A8(periodId, programId, segBase, false, meas, 0);
+        return Promise.all([postFactA(dacBody), postFactA(nondacBody)]);
+      }).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     const all = loadAllRows();
     all.push({ id: newId(), section: 'A',
       values: { year: state.year, segment: segBase + ' / DAC', program: name, measure: '(new measure)',
@@ -2456,6 +3123,17 @@
     const target = displayRows[idx];
     if (!target) return;
     if (!confirm('Delete program "' + target.program + '" for ' + state.year + '?')) return;
+
+    if (dvSectionAActive()) {
+      const dels = [];
+      if (target.dacRow && isDvFactGuid(target.dacRow.id)) dels.push(deleteFactA(target.dacRow.id));
+      if (target.nonDacRow && isDvFactGuid(target.nonDacRow.id)) dels.push(deleteFactA(target.nonDacRow.id));
+      Promise.all(dels).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     let all = loadAllRows();
     if (target.dacRow) all = all.filter(r => r.id !== target.dacRow.id);
     if (target.nonDacRow) all = all.filter(r => r.id !== target.nonDacRow.id);
@@ -2465,6 +3143,12 @@
 
   function handleDeleteRowById(rowid) {
     if (!confirm('Delete this row?')) return;
+    if (state.section === 'A' && dvSectionAActive() && isDvFactGuid(rowid)) {
+      deleteFactA(rowid).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
     const all = loadAllRows().filter(r => r.id !== rowid);
     saveAllRows(all);
     renderEditor();
@@ -2475,6 +3159,20 @@
     const tabs = TABLES_BY_SECTION.A;
     const table = tabs.find(t => t.id === state.table);
     const segBase = table.segmentBase;
+
+    if (dvSectionAActive() && state.section === 'A') {
+      const toDelete = sectionARowMirror.filter(r =>
+        String(r.values.year) === String(state.year) &&
+        r.values.program === program &&
+        r.values.measure === measure &&
+        (r.values.segment || '').indexOf(segBase + ' /') === 0
+      );
+      Promise.all(toDelete.map(r => deleteFactA(r.id))).then(() => refreshSectionAFromDataverse())
+        .then(() => renderEditorSync())
+        .catch(e => { alert(e.message); renderEditorSync(); });
+      return;
+    }
+
     const all = loadAllRows().filter(r => {
       if (r.section !== 'A') return true;
       if (String(r.values.year) !== String(state.year)) return true;
@@ -2494,6 +3192,25 @@
     const yearStr = String(document.getElementById('add-year-input').value).trim();
     if (!/^\d{4}$/.test(yearStr)) { alert('Enter a 4-digit year.'); return; }
     const newYear = yearStr;
+
+    if (state.section === 'A' && dvSectionAActive()) {
+      ensureDvMetadataLoaded().then(() => {
+        const ys = new Set(getAvailableYears('A'));
+        if (ys.has(newYear)) { alert('Year ' + newYear + ' already exists.'); return; }
+        return createReportingYearFromTemplateIngestion(newYear);
+      }).then(function (created) {
+        if (created === undefined) return null;
+        document.getElementById('add-year-modal').hidden = true;
+        state.year = newYear;
+        renderToolbar();
+        return refreshSectionAFromDataverse();
+      }).then(function (didRefresh) {
+        if (didRefresh === null) return;
+        renderEditorSync();
+      }).catch(e => { if (e && e.message) alert(e.message); });
+      return;
+    }
+
     const all = loadAllRows();
     const existingYears = new Set(all.filter(r => r.section === state.section).map(r => String(r.values.year)));
     if (existingYears.has(newYear)) { alert('Year ' + newYear + ' already exists.'); return; }
@@ -2524,6 +3241,21 @@
   }
 
   function handleDeleteYear() {
+    if (state.section === 'A' && dvSectionAActive()) {
+      const years = getAvailableYears('A');
+      if (years.length <= 1) { alert('Cannot delete the only year. Add another year first.'); return; }
+      if (!confirm('Delete reporting year ' + state.year + ' in Dataverse (all Section A facts for that year and DIM PERIOD rows for that calendar year)?')) return;
+      ensureDvMetadataLoaded().then(() => deleteSectionAReportingYearCascade(state.year))
+        .then(() => {
+          const remain = getAvailableYears('A');
+          state.year = remain[0] || '2024';
+          renderToolbar();
+          return prepareSectionAData();
+        }).then(() => renderEditorSync())
+        .catch(e => { if (e && e.message) alert(e.message); });
+      return;
+    }
+
     const years = getAvailableYears(state.section);
     if (years.length <= 1) { alert('Cannot delete the only year. Add another year first.'); return; }
     if (!confirm('Delete ALL data for ' + state.year + ' in Section ' + state.section + '? This cannot be undone.')) return;
@@ -2558,6 +3290,15 @@
   }
 
   function renderEditor() {
+    prepareSectionAData().then(function () {
+      renderEditorSync();
+    }).catch(function (e) {
+      console.error(e);
+      renderEditorSync();
+    });
+  }
+
+  function renderEditorSync() {
     const tabs = TABLES_BY_SECTION[state.section] || [];
     const table = tabs.find(t => t.id === state.table);
     const area = document.getElementById('ingest-editor-area');
@@ -2736,8 +3477,14 @@
   // ============================================================
   function bootProtoIngestionUi() {
     seedIfNeeded();
-    renderToolbar();
-    renderEditor();
+    var bootChain = Promise.resolve();
+    if (dvSectionAActive()) {
+      bootChain = ensureDvMetadataLoaded().catch(function (e) { console.error(e); });
+    }
+    bootChain.then(function () {
+      renderToolbar();
+      renderEditor();
+    });
 
     document.querySelectorAll('.ingest-sec-btn').forEach(btn => {
       btn.addEventListener('click', () => setSection(btn.getAttribute('data-letter')));
