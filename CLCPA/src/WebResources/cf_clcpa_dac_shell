@@ -1636,18 +1636,31 @@
     });
   }
 
+  function periodFilterSectionAMultiYear() {
+    var years = ['2023', '2024'];
+    var parts = [];
+    var seen = {};
+    years.forEach(function (y) {
+      var g = periodGuidForYear(y);
+      if (!g || seen[g]) return;
+      seen[g] = true;
+      parts.push('_cf_period_value eq ' + g);
+    });
+    if (!parts.length) return null;
+    return parts.length === 1 ? parts[0] : '(' + parts.join(' or ') + ')';
+  }
+
   function loadFacts() {
-    var year = reportingYearForDataLoad();
-    var pg = periodGuidForYear(year);
-    if (!pg) {
+    var filt = periodFilterSectionAMultiYear();
+    if (!filt) {
       stateA.facts = [];
       renderGrid();
-      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      showStatus('No 2023/2024 reporting period is set up. Contact your administrator.', true);
       return Promise.resolve();
     }
     var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
     var path = API + ENTITY_SET_A + '?$select=cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value' +
-      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+      '&$filter=' + encodeURIComponent(filt) + '&$orderby=createdon desc&$top=500&' + expand;
     return dvFetch(path).then(function (r) {
       if (!r.ok) return parseJsonSafe(r).then(function (j) {
         throw new Error((j.error && j.error.message) || 'Facts ' + r.status);
@@ -1657,7 +1670,7 @@
       stateA.facts = d.value || [];
       renderGrid();
       summarize();
-      showStatus('Loaded ' + stateA.facts.length + ' row(s) for ' + year + '.', false);
+      showStatus('Loaded ' + stateA.facts.length + ' row(s) for Section A (2023–2024 periods).', false);
     }).catch(function (e) {
       showStatus(e.message, true);
     });

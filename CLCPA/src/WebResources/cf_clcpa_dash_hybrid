@@ -643,7 +643,9 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
     var n = (f.cf_program && (f.cf_program.cf_programname || f.cf_program.cf_programcode)) || '';
     n = String(n).toUpperCase();
     var L = String(legacyName).toUpperCase();
-    if (n.indexOf(L.replace(/[^A-Z0-9]/g, '')) >= 0) return true;
+    var nA = n.replace(/[^A-Z0-9]/g, '');
+    var LA = L.replace(/[^A-Z0-9]/g, '');
+    if (LA.length && (nA === LA || nA.indexOf(LA) >= 0 || LA.indexOf(nA) >= 0)) return true;
     if (L.indexOf('CSRP') >= 0 && /SYSTEM\s+RELIEF|CSRP/i.test(n)) return true;
     if (L.indexOf('DLRP') >= 0 && /DISTRIBUTION\s+LOAD|DLRP/i.test(n)) return true;
     if (L.indexOf('BYOT') >= 0 && /BYOT/i.test(n)) return true;
