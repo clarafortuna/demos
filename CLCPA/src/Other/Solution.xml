@@ -8,7 +8,7 @@
     <Descriptions>
       <Description description="Solution for Con Edison's annual Disadvantaged Communities (DAC) Report under the regulatory framework of New York State's Climate Leadership and Community Protection Act (CLCPA).&#xA; &#xA;Contains the data model (4 shared dimensions and 10 fact tables) covering Sections A–J of the report:&#xA;- A: Clean Energy Spending&#xA;- B: EV Make-Ready&#xA;- C: Demand Response&#xA;- D: Distributed Energy Resources (DER)&#xA;- E: Strategic Capital Investments&#xA;- F: Customer Outages&#xA;- G: Main Replacement&#xA;- H: Leak Repairs&#xA;- I: Clean Energy Jobs&#xA;- J: Customer Operations&#xA; &#xA;Identifies disadvantaged communities based on NYSERDA-designated census tracts and low-income customers enrolled in the Energy Affordability Program (EAP)." languagecode="1033" />
     </Descriptions>
-    <Version>1.0.21.18</Version>
+    <Version>1.0.21.19</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>ClaraFortuna</UniqueName>

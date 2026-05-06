@@ -92,8 +92,12 @@ window.__DASH.stackedBar = function(items, opts) {
     const dacPct = total > 0 ? Number(item.dac) / total : 0;
     const dacStop = (dacPct * 100).toFixed(3);
     const grad = 'linear-gradient(90deg, var(--dusk) 0%, var(--dusk) ' + dacStop + '%, var(--pale-sky) ' + dacStop + '%, var(--pale-sky) 100%)';
+    const dacNum = Number(item.dac);
+    const dacStr = Number.isNaN(dacNum) ? '—' : (opts.fmt ? opts.fmt(dacNum) : fmtCompact(dacNum));
+    const subPct = (dacPct * 100).toFixed(0) + '% DAC';
+    const subLine = opts.dacSub === 'value' ? (dacStr + ' DAC') : subPct;
     const subVal = opts.showDacSplit !== false
-      ? `<span class="bar-value-sub">${(dacPct*100).toFixed(0)}% DAC</span>`
+      ? `<span class="bar-value-sub">${subLine}</span>`
       : '';
     return `
       <div class="bar-row" style="grid-template-columns: ${labelW}px minmax(0, 1fr) auto;">

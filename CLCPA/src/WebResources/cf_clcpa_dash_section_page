@@ -669,7 +669,7 @@ window.CLCPADashMountSection = function (host, PAYLOAD, yearSelectEl) {
             <div class="chart-card-head"><div><h3>Customers Interrupted by Borough</h3><p class="chart-sub">Section F (Table F8) - ${yearLabel} - DAC vs Non-DAC distribution</p></div><span class="chart-tag">Section F - GEO</span></div>
             <div class="chart-body">
               <div class="chart-legend"><div class="legend-item"><span class="legend-swatch" style="background:var(--dusk)"></span>DAC customers interrupted</div><div class="legend-item"><span class="legend-swatch" style="background:var(--pale-sky)"></span>Non-DAC</div></div>
-              ${D.stackedBar(rows, { labelW: 110, fmt: D.fmtCompact })}
+              ${D.stackedBar(rows, { labelW: 110, fmt: D.fmtCompact, dacSub: 'value' })}
             </div>
           </div>
         </div>`;
