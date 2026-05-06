@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>conEdison - CLCPA DAC Performance Dashboard</title>
+<title>conEdison · CLCPA DAC Performance Dashboard</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Barlow+Condensed:wght@600;700;800&family=Inter:wght@400;500;600&display=swap');
@@ -39,10 +38,10 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--paper); color: var(--ink); font-size: 14px; line-height: 1.5; }
 
-/* -- LAYOUT -------------------------------------------------- */
+/* ── LAYOUT ────────────────────────────────────────────────── */
 #app { display: flex; height: 100vh; overflow: hidden; }
 
-/* -- SIDEBAR ------------------------------------------------- */
+/* ── SIDEBAR ───────────────────────────────────────────────── */
 #sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
@@ -158,7 +157,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 }
 .sb-toggle:hover { color: var(--white); }
 
-/* -- MAIN ---------------------------------------------------- */
+/* ── MAIN ──────────────────────────────────────────────────── */
 #main {
   flex: 1;
   display: flex;
@@ -167,7 +166,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
   min-width: 0;
 }
 
-/* -- TOPBAR -------------------------------------------------- */
+/* ── TOPBAR ────────────────────────────────────────────────── */
 #topbar {
   height: var(--header-h);
   background: var(--white);
@@ -199,7 +198,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
   font-family: 'Inter', 'Helvetica Neue', monospace;
 }
 
-/* -- CONTENT ------------------------------------------------- */
+/* ── CONTENT ───────────────────────────────────────────────── */
 #content {
   flex: 1;
   overflow-y: auto;
@@ -213,7 +212,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 .page.active { display: block; animation: fadeIn 0.18s ease; }
 @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 
-/* -- SECTION HEADER ------------------------------------------ */
+/* ── SECTION HEADER ────────────────────────────────────────── */
 .pg-header {
   margin-bottom: 20px;
   display: flex;
@@ -230,7 +229,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 }
 .pg-subtitle { font-size: 12px; color: var(--mist); margin-top: 2px; }
 
-/* -- GRID UTILITIES ------------------------------------------ */
+/* ── GRID UTILITIES ────────────────────────────────────────── */
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
 .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
@@ -238,7 +237,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 .col-span-2 { grid-column: span 2; }
 .col-span-3 { grid-column: span 3; }
 
-/* -- CARDS --------------------------------------------------- */
+/* ── CARDS ─────────────────────────────────────────────────── */
 .card {
   background: var(--white);
   border: 1px solid var(--cloud);
@@ -265,7 +264,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 .card-val-sm { font-size: 20px; }
 .card-meta { font-size: 11.5px; color: var(--ink-3); margin-top: 4px; }
 
-/* -- KPI CARD (with target bar) ------------------------------ */
+/* ── KPI CARD (with target bar) ────────────────────────────── */
 .kpi-card {
   background: var(--white);
   border: 1px solid var(--cloud);
@@ -292,7 +291,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 .down { color: var(--red); }
 .flat { color: var(--mist); }
 
-/* -- CAPITAL CARD -------------------------------------------- */
+/* ── CAPITAL CARD ──────────────────────────────────────────── */
 .cap-card {
   border-radius: var(--r);
   padding: 20px 22px;
@@ -330,7 +329,7 @@ html, body { height: 100%; font-family: 'Barlow', 'Helvetica Neue', Helvetica, A
 .cap-card-0 .cap-mini-val { color: white; }
 .cap-card-1 .cap-mini-val, .cap-card-2 .cap-mini-val { color: var(--ink); }
 
-/* -- TABLE --------------------------------------------------- */
+/* ── TABLE ─────────────────────────────────────────────────── */
 .tbl-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
 thead th {
@@ -352,11 +351,11 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 .td-mono { font-family: 'Inter', 'Helvetica Neue', monospace; font-size: 12px; }
 .td-bold { font-weight: 600; color: var(--ink); }
 
-/* -- CHART WRAPPER ------------------------------------------- */
+/* ── CHART WRAPPER ─────────────────────────────────────────── */
 .chart-wrap { position: relative; }
 .chart-title { font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 12px; }
 
-/* -- SECTION DIVIDER ----------------------------------------- */
+/* ── SECTION DIVIDER ───────────────────────────────────────── */
 .section-divider {
   margin: 24px 0 16px;
   display: flex;
@@ -379,7 +378,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 }
 .section-divider::before { display: none; }
 
-/* -- HEAT CELL ----------------------------------------------- */
+/* ── HEAT CELL ─────────────────────────────────────────────── */
 .heat-cell {
   padding: 5px 8px;
   border-radius: 6px;
@@ -391,14 +390,14 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
   min-width: 52px;
 }
 
-/* -- PROGRESS BAR -------------------------------------------- */
+/* ── PROGRESS BAR ──────────────────────────────────────────── */
 .prog-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .prog-label { font-size: 12px; color: var(--ink-2); min-width: 120px; }
 .prog-bar-bg { flex: 1; height: 8px; background: var(--cloud); border-radius: 4px; overflow: hidden; }
 .prog-bar-fill { height: 100%; background: var(--teal); border-radius: 4px; }
 .prog-val { font-size: 12px; font-family: 'Inter', 'Helvetica Neue', monospace; color: var(--ink-2); min-width: 40px; text-align: right; }
 
-/* -- EXECUTIVE OVERVIEW CARD --------------------------------- */
+/* ── EXECUTIVE OVERVIEW CARD ───────────────────────────────── */
 .ov-card {
   background: white;
   border: 1px solid var(--cloud);
@@ -417,7 +416,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 .ov-val { font-size: 22px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 .ov-yoy { font-size: 11px; font-weight: 500; }
 
-/* -- BOROUGH MAP (placeholder) ------------------------------- */
+/* ── BOROUGH MAP (placeholder) ─────────────────────────────── */
 .borough-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .borough-card {
   background: white;
@@ -430,7 +429,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 .borough-share { font-size: 22px; font-weight: 700; color: var(--teal); margin: 4px 0; }
 .borough-meta { font-size: 10.5px; color: var(--mist); }
 
-/* -- TOGGLE --------------------------------------------------- */
+/* ── TOGGLE ─────────────────────────────────────────────────── */
 .toggle-row { display: flex; gap: 4px; background: var(--paper); border: 1px solid var(--cloud); border-radius: 8px; padding: 3px; }
 .toggle-btn {
   padding: 5px 14px;
@@ -445,7 +444,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 }
 .toggle-btn.active { background: white; color: var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
 
-/* -- EXPORT BTN ----------------------------------------------- */
+/* ── EXPORT BTN ─────────────────────────────────────────────── */
 .export-btn {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 12px;
@@ -460,42 +459,14 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 }
 .export-btn:hover { background: var(--cloud); border-color: var(--fog); }
 
-/* -- CLEAN ENERGY CRUD --------------------------------------- */
-.crud-card { margin-bottom: 20px; }
-.crud-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.crud-status { font-size: 11.5px; color: var(--mist); margin-top: 8px; min-height: 18px; }
-.crud-status.error { color: var(--red); }
-.crud-status.ok { color: var(--green); }
-.crud-form { display: none; margin-top: 16px; border-top: 1px solid var(--cloud); padding-top: 16px; }
-.crud-form.active { display: block; }
-.crud-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.form-field { display: flex; flex-direction: column; gap: 5px; }
-.form-field label { font-size: 10.5px; font-weight: 700; color: var(--mist); text-transform: uppercase; letter-spacing: 0.07em; }
-.form-field input, .form-field select {
-  border: 1px solid var(--cloud);
-  border-radius: 7px;
-  padding: 8px 10px;
-  font-family: 'Inter', 'Helvetica Neue', monospace;
-  font-size: 12px;
-  color: var(--ink);
-  background: white;
-}
-.form-field input:focus, .form-field select:focus { outline: 2px solid rgba(0,114,188,0.18); border-color: var(--teal); }
-.form-hint { font-size: 10.5px; color: var(--mist); margin-top: 8px; }
-.row-actions { display: flex; justify-content: flex-end; gap: 6px; }
-.link-btn { border: none; background: transparent; color: var(--teal); cursor: pointer; font-weight: 700; font-size: 11.5px; }
-.link-btn:disabled { color: var(--mist); cursor: not-allowed; }
-
-/* -- RESPONSIVE ----------------------------------------------- */
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .grid-3 { grid-template-columns: 1fr 1fr; }
   .grid-5 { grid-template-columns: 1fr 1fr; }
   .grid-4 { grid-template-columns: 1fr 1fr; }
-  .crud-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 620px) {
   .grid-3, .grid-2, .grid-4, .grid-5 { grid-template-columns: 1fr; }
-  .crud-grid { grid-template-columns: 1fr; }
   .col-span-2, .col-span-3 { grid-column: span 1; }
 }
 </style>
@@ -503,7 +474,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 <body>
 <div id="app">
 
-<!-- -- SIDEBAR ------------------------------------------------ -->
+<!-- ── SIDEBAR ──────────────────────────────────────────────── -->
 <nav id="sidebar" onmouseenter="expandSidebar()" onmouseleave="collapseSidebar()">
   <div class="sb-logo">
     <div class="sb-logo-mark" style="background:transparent;border-radius:0;width:38px;height:38px;min-width:38px">
@@ -522,80 +493,80 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
   <div class="sb-nav">
     <div class="sb-section-label">Overview</div>
     <div class="sb-item active" data-page="executive" onclick="nav(this)">
-      <div class="sb-icon">+</div>
+      <div class="sb-icon">⊞</div>
       <div class="sb-label">Executive Summary</div>
     </div>
 
-    <div class="sb-section-label">Sections A-E</div>
+    <div class="sb-section-label">Sections A–E</div>
     <div class="sb-item" data-page="ces" onclick="nav(this)">
-      <div class="sb-icon">*</div>
+      <div class="sb-icon">⚡</div>
       <div class="sb-label">Clean Energy Spending</div>
     </div>
     <div class="sb-item" data-page="ev" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">🔌</div>
       <div class="sb-label">EV Make Ready</div>
     </div>
     <div class="sb-item" data-page="dr" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">📊</div>
       <div class="sb-label">Demand Response</div>
     </div>
     <div class="sb-item" data-page="der" onclick="nav(this)">
-      <div class="sb-icon">*</div>
+      <div class="sb-icon">☀️</div>
       <div class="sb-label">Distributed Energy</div>
     </div>
     <div class="sb-item" data-page="sec" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">🏗️</div>
       <div class="sb-label">Strategic Capital</div>
     </div>
 
-    <div class="sb-section-label">Sections F-J</div>
+    <div class="sb-section-label">Sections F–J</div>
     <div class="sb-item" data-page="outages" onclick="nav(this)">
-      <div class="sb-icon">*</div>
+      <div class="sb-icon">⚠️</div>
       <div class="sb-label">Customer Outages</div>
     </div>
     <div class="sb-item" data-page="main" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">🔧</div>
       <div class="sb-label">Main Replacement</div>
     </div>
     <div class="sb-item" data-page="leaks" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">💧</div>
       <div class="sb-label">Leak Repairs</div>
     </div>
     <div class="sb-item" data-page="jobs" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">👷</div>
       <div class="sb-label">Clean Energy Jobs</div>
     </div>
     <div class="sb-item" data-page="custops" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">📋</div>
       <div class="sb-label">Customer Operations</div>
     </div>
 
     <div class="sb-section-label">Geography</div>
     <div class="sb-item" data-page="boroughs" onclick="nav(this)">
-      <div class="sb-icon"></div>
+      <div class="sb-icon">🗺️</div>
       <div class="sb-label">Borough Map</div>
     </div>
   </div>
 
   <div class="sb-toggle" onclick="toggleSidebar()" title="Toggle sidebar">
-    <span id="sb-chevron">></span>
+    <span id="sb-chevron">›</span>
   </div>
 </nav>
 
-<!-- -- MAIN ---------------------------------------------------- -->
+<!-- ── MAIN ──────────────────────────────────────────────────── -->
 <div id="main">
   <div id="topbar">
     <div class="tb-title" id="page-title">Executive Summary</div>
-    <div class="tb-period">FY 2024 - YoY vs 2023</div>
+    <div class="tb-period">FY 2024 · YoY vs 2023</div>
     <div class="tb-badge" style="background:#0072BC">CLCPA DAC</div>
-    <div class="tb-sub" id="data-status">Loading live data...</div>
+    <div class="tb-sub">conEdison</div>
   </div>
 
   <div id="content">
 
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <!-- PAGE: EXECUTIVE SUMMARY                                  -->
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <div class="page active" id="page-executive">
 
       <!-- Capital Deployment Cards -->
@@ -603,17 +574,17 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
         <div class="cap-card cap-card-0">
           <div>
             <div class="cap-label">Total Capital Deployed</div>
-            <div class="cap-secondary">Consolidated 2023-2024</div>
+            <div class="cap-secondary">Consolidated 2023–2024</div>
           </div>
           <div>
             <div class="cap-value">$1.40B</div>
-            <div class="cap-secondary">2023: $1.17B -> 2024: $1.40B</div>
-            <div class="cap-delta">+ $226M increase - +19% YoY</div>
+            <div class="cap-secondary">2023: $1.17B → 2024: $1.40B</div>
+            <div class="cap-delta">▲ $226M increase · +19% YoY</div>
           </div>
           <div class="cap-breakdown">
-            <div class="cap-mini"><div class="cap-mini-label">Clean Energy</div><div class="cap-mini-val" id="cap-total-clean-energy">$380M</div></div>
-            <div class="cap-mini"><div class="cap-mini-label">Strategic Cap</div><div class="cap-mini-val" id="cap-total-strategic">$977M</div></div>
-            <div class="cap-mini"><div class="cap-mini-label">EV Make-Ready</div><div class="cap-mini-val" id="cap-total-ev">$43M</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Clean Energy</div><div class="cap-mini-val">$380M</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Strategic Cap</div><div class="cap-mini-val">$977M</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">EV Make-Ready</div><div class="cap-mini-val">$43M</div></div>
           </div>
         </div>
         <div class="cap-card cap-card-1">
@@ -623,13 +594,13 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
           </div>
           <div>
             <div class="cap-value">$711M</div>
-            <div class="cap-secondary">2023: ~$594M -> 2024: ~$711M</div>
-            <div class="cap-delta">+ $117M increase - +20% YoY</div>
+            <div class="cap-secondary">2023: ~$594M → 2024: ~$711M</div>
+            <div class="cap-delta">▲ $117M increase · +20% YoY</div>
           </div>
           <div class="cap-breakdown">
-            <div class="cap-mini"><div class="cap-mini-label">Clean Energy</div><div class="cap-mini-val" id="cap-dac-clean-energy">$205M</div></div>
-            <div class="cap-mini"><div class="cap-mini-label">Strategic Cap</div><div class="cap-mini-val" id="cap-dac-strategic">$488M</div></div>
-            <div class="cap-mini"><div class="cap-mini-label">EV Make-Ready</div><div class="cap-mini-val" id="cap-dac-ev">$18M</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Clean Energy</div><div class="cap-mini-val">$205M</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Strategic Cap</div><div class="cap-mini-val">$488M</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">EV Make-Ready</div><div class="cap-mini-val">$18M</div></div>
           </div>
         </div>
         <div class="cap-card cap-card-2">
@@ -639,13 +610,13 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
           </div>
           <div>
             <div class="cap-value">51%</div>
-            <div class="cap-secondary">2023: ~51% -> 2024: ~51%</div>
-            <div class="cap-delta">* Stable allocation</div>
+            <div class="cap-secondary">2023: ~51% → 2024: ~51%</div>
+            <div class="cap-delta">• Stable allocation</div>
           </div>
           <div class="cap-breakdown">
-            <div class="cap-mini"><div class="cap-mini-label">Target</div><div class="cap-mini-val" id="cap-target">>=40%</div></div>
-            <div class="cap-mini"><div class="cap-mini-label">Floor</div><div class="cap-mini-val" id="cap-floor">35%</div></div>
-            <div class="cap-mini"><div class="cap-mini-label">Status</div><div class="cap-mini-val" id="cap-status" style="color:var(--green)">Above</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Target</div><div class="cap-mini-val">≥40%</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Floor</div><div class="cap-mini-val">35%</div></div>
+            <div class="cap-mini"><div class="cap-mini-label">Status</div><div class="cap-mini-val" style="color:var(--green)">Above</div></div>
           </div>
         </div>
       </div>
@@ -655,14 +626,14 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
         <div class="pg-header">
           <div>
             <div class="pg-title">Executive Overview by Section</div>
-            <div class="pg-subtitle">One KPI per section - FY 2024 vs FY 2023</div>
+            <div class="pg-subtitle">One KPI per section · FY 2024 vs FY 2023</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center">
             <div class="toggle-row" id="ov-toggle">
               <button class="toggle-btn active" onclick="ovView('cards',this)">Cards</button>
               <button class="toggle-btn" onclick="ovView('table',this)">Table</button>
             </div>
-            <button class="export-btn" onclick="exportExecCSV()">v CSV</button>
+            <button class="export-btn" onclick="exportExecCSV()">↓ CSV</button>
           </div>
         </div>
 
@@ -671,61 +642,61 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
             <div class="ov-section">Clean Energy</div>
             <div class="ov-kpi">DAC Share of Incentives</div>
             <div class="ov-val">53.8%</div>
-            <div class="ov-yoy up">+ +4.6 pp YoY</div>
+            <div class="ov-yoy up">▲ +4.6 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=ev]'))">
             <div class="ov-section">EV Make Ready</div>
             <div class="ov-kpi">DAC Share of Plugs</div>
             <div class="ov-val">40%</div>
-            <div class="ov-yoy up">+ +10 pp YoY</div>
+            <div class="ov-yoy up">▲ +10 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=dr]'))">
             <div class="ov-section">Demand Response</div>
             <div class="ov-kpi">DAC Delivered MW</div>
             <div class="ov-val">303.1 MW</div>
-            <div class="ov-yoy up">+ +44.1 MW YoY</div>
+            <div class="ov-yoy up">▲ +44.1 MW YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=der]'))">
             <div class="ov-section">DER</div>
             <div class="ov-kpi">DAC Share of Projects</div>
             <div class="ov-val">32.3%</div>
-            <div class="ov-yoy up">+ +0.3 pp YoY</div>
+            <div class="ov-yoy up">▲ +0.3 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=sec]'))">
             <div class="ov-section">Strategic Capital</div>
             <div class="ov-kpi">% Affecting DACs</div>
             <div class="ov-val">50%</div>
-            <div class="ov-yoy up">+ +10 pp YoY</div>
+            <div class="ov-yoy up">▲ +10 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=outages]'))">
             <div class="ov-section">Customer Outages</div>
             <div class="ov-kpi">DAC Interruption Rate</div>
             <div class="ov-val">10%</div>
-            <div class="ov-yoy down">v +1 pp YoY</div>
+            <div class="ov-yoy down">▼ +1 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=main]'))">
             <div class="ov-section">Main Replacement</div>
             <div class="ov-kpi">% in DACs</div>
             <div class="ov-val">46%</div>
-            <div class="ov-yoy up">+ +3 pp YoY</div>
+            <div class="ov-yoy up">▲ +3 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=leaks]'))">
             <div class="ov-section">Leak Repairs</div>
             <div class="ov-kpi">DAC Share of Repairs</div>
             <div class="ov-val">36%</div>
-            <div class="ov-yoy up">+ +1 pp YoY</div>
+            <div class="ov-yoy up">▲ +1 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=jobs]'))">
             <div class="ov-section">Clean Energy Jobs</div>
             <div class="ov-kpi">DAC Resident Share</div>
             <div class="ov-val">59%</div>
-            <div class="ov-yoy up">+ +4 pp YoY</div>
+            <div class="ov-yoy up">▲ +4 pp YoY</div>
           </div>
           <div class="ov-card" onclick="nav(document.querySelector('[data-page=custops]'))">
             <div class="ov-section">Customer Ops</div>
             <div class="ov-kpi">DAC Electric Share</div>
             <div class="ov-val">40%</div>
-            <div class="ov-yoy up">+ +1 pp YoY</div>
+            <div class="ov-yoy up">▲ +1 pp YoY</div>
           </div>
         </div>
 
@@ -734,16 +705,16 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
             <table>
               <thead><tr><th>Section</th><th>KPI</th><th class="td-right">2024</th><th class="td-right">YoY</th></tr></thead>
               <tbody id="exec-tbody">
-                <tr><td class="td-bold">Clean Energy Spending</td><td>DAC Share of Incentives</td><td class="td-right td-mono">53.8%</td><td class="td-right up">+ +4.6 pp</td></tr>
-                <tr><td class="td-bold">EV Make Ready</td><td>DAC Share of Plugs</td><td class="td-right td-mono">40%</td><td class="td-right up">+ +10 pp</td></tr>
-                <tr><td class="td-bold">Demand Response</td><td>DAC Delivered MW</td><td class="td-right td-mono">303.1 MW</td><td class="td-right up">+ +44.1 MW</td></tr>
-                <tr><td class="td-bold">Distributed Energy Resources</td><td>DAC Share of Projects</td><td class="td-right td-mono">32.3%</td><td class="td-right up">+ +0.3 pp</td></tr>
-                <tr><td class="td-bold">Strategic Electric Capital</td><td>% Affecting DACs</td><td class="td-right td-mono">50%</td><td class="td-right up">+ +10 pp</td></tr>
-                <tr><td class="td-bold">Customer Outages</td><td>DAC Interruption Rate</td><td class="td-right td-mono">10%</td><td class="td-right down">v +1 pp</td></tr>
-                <tr><td class="td-bold">Main Replacement Program</td><td>% in DACs</td><td class="td-right td-mono">46%</td><td class="td-right up">+ +3 pp</td></tr>
-                <tr><td class="td-bold">Leak Repairs</td><td>DAC Share of Repairs</td><td class="td-right td-mono">36%</td><td class="td-right up">+ +1 pp</td></tr>
-                <tr><td class="td-bold">Clean Energy Jobs</td><td>DAC Resident Share</td><td class="td-right td-mono">59%</td><td class="td-right up">+ +4 pp</td></tr>
-                <tr><td class="td-bold">Customer Operations Data</td><td>DAC Electric Share</td><td class="td-right td-mono">40%</td><td class="td-right up">+ +1 pp</td></tr>
+                <tr><td class="td-bold">Clean Energy Spending</td><td>DAC Share of Incentives</td><td class="td-right td-mono">53.8%</td><td class="td-right up">▲ +4.6 pp</td></tr>
+                <tr><td class="td-bold">EV Make Ready</td><td>DAC Share of Plugs</td><td class="td-right td-mono">40%</td><td class="td-right up">▲ +10 pp</td></tr>
+                <tr><td class="td-bold">Demand Response</td><td>DAC Delivered MW</td><td class="td-right td-mono">303.1 MW</td><td class="td-right up">▲ +44.1 MW</td></tr>
+                <tr><td class="td-bold">Distributed Energy Resources</td><td>DAC Share of Projects</td><td class="td-right td-mono">32.3%</td><td class="td-right up">▲ +0.3 pp</td></tr>
+                <tr><td class="td-bold">Strategic Electric Capital</td><td>% Affecting DACs</td><td class="td-right td-mono">50%</td><td class="td-right up">▲ +10 pp</td></tr>
+                <tr><td class="td-bold">Customer Outages</td><td>DAC Interruption Rate</td><td class="td-right td-mono">10%</td><td class="td-right down">▼ +1 pp</td></tr>
+                <tr><td class="td-bold">Main Replacement Program</td><td>% in DACs</td><td class="td-right td-mono">46%</td><td class="td-right up">▲ +3 pp</td></tr>
+                <tr><td class="td-bold">Leak Repairs</td><td>DAC Share of Repairs</td><td class="td-right td-mono">36%</td><td class="td-right up">▲ +1 pp</td></tr>
+                <tr><td class="td-bold">Clean Energy Jobs</td><td>DAC Resident Share</td><td class="td-right td-mono">59%</td><td class="td-right up">▲ +4 pp</td></tr>
+                <tr><td class="td-bold">Customer Operations Data</td><td>DAC Electric Share</td><td class="td-right td-mono">40%</td><td class="td-right up">▲ +1 pp</td></tr>
               </tbody>
             </table>
           </div>
@@ -751,103 +722,56 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
       </div>
     </div><!-- /executive -->
 
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <!-- PAGE: CLEAN ENERGY SPENDING                              -->
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <div class="page" id="page-ces">
-      <div class="pg-header">
+      <div class="pg-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
         <div>
           <div class="pg-title">Clean Energy Spending</div>
-          <div class="pg-subtitle">Section A - DAC incentive allocation, program breakdown, YoY trends</div>
+          <div class="pg-subtitle">Section A · DAC incentive allocation, program breakdown, YoY trends</div>
         </div>
+        <label style="font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:8px;font-family:Inter,'Helvetica Neue',sans-serif;white-space:nowrap">
+          <span>Reporting year</span>
+          <select id="ces-year-select" title="Reporting year" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--cloud);background:var(--white);color:var(--ink);font-family:Inter,'Helvetica Neue',sans-serif">
+            <option value="2024" selected>2024</option>
+            <option value="2023">2023</option>
+          </select>
+        </label>
       </div>
 
-      <div class="card crud-card">
-        <div class="pg-header">
-          <div>
-            <div class="chart-title" style="margin:0">Clean Energy Data Management</div>
-            <div class="pg-subtitle">Submit and maintain Section A metric rows. Source table is generated automatically.</div>
-          </div>
-          <div class="crud-actions">
-            <button class="export-btn" type="button" onclick="showCesForm()">Submit New Record</button>
-            <button class="export-btn" type="button" onclick="loadCesCrudGrid()">Refresh Records</button>
-          </div>
-        </div>
-        <div id="ces-crud-status" class="crud-status">Loading Clean Energy records...</div>
-        <div class="tbl-wrap" style="margin-top:8px">
-          <table>
-            <thead>
-              <tr>
-                <th>Period</th>
-                <th>Program</th>
-                <th>DAC Status</th>
-                <th>Customer Segment</th>
-                <th class="td-right">Incentives</th>
-                <th class="td-right">Participants</th>
-                <th class="td-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="ces-crud-tbody">
-              <tr><td colspan="7">Loading...</td></tr>
-            </tbody>
-          </table>
-        </div>
-        <form id="ces-form" class="crud-form" onsubmit="saveCesRecord(event)">
-          <input type="hidden" id="ces-record-id" />
-          <div class="pg-header" style="margin-bottom:12px">
-            <div>
-              <div class="chart-title" id="ces-form-title" style="margin:0">Submit Clean Energy Record</div>
-              <div class="pg-subtitle">Period, program, and DAC status are required for dashboard aggregation.</div>
-            </div>
-            <div class="crud-actions">
-              <button class="export-btn" type="submit">Save Record</button>
-              <button class="export-btn" type="button" onclick="hideCesForm()">Cancel</button>
-            </div>
-          </div>
-          <div class="crud-grid">
-            <div class="form-field"><label for="ces-period">Period *</label><select id="ces-period" required></select></div>
-            <div class="form-field"><label for="ces-program">Program *</label><select id="ces-program" required></select></div>
-            <div class="form-field"><label for="ces-dacstatus">DAC Status *</label><select id="ces-dacstatus" required></select></div>
-            <div class="form-field"><label for="ces-customersegmentcode">Customer Segment Code</label><input id="ces-customersegmentcode" maxlength="100" /></div>
-            <div class="form-field"><label for="ces-measurecategorycode">Measure Category Code</label><input id="ces-measurecategorycode" maxlength="100" /></div>
-            <div class="form-field"><label for="ces-incentivedollars">Incentive Dollars</label><input id="ces-incentivedollars" type="number" step="0.01" min="-100000000000" max="100000000000" /></div>
-            <div class="form-field"><label for="ces-energysavingsmmbtu">Energy Savings MMBtu</label><input id="ces-energysavingsmmbtu" type="number" step="0.01" min="-100000000000" max="100000000000" /></div>
-            <div class="form-field"><label for="ces-participants">Participants</label><input id="ces-participants" type="number" step="1" min="-2147483648" max="2147483647" /></div>
-            <div class="form-field"><label for="ces-installations">Installations</label><input id="ces-installations" type="number" step="1" min="-2147483648" max="2147483647" /></div>
-          </div>
-          <div class="form-hint" id="ces-source-preview">Generated source table will appear after selecting period, program, and DAC status.</div>
-        </form>
-      </div>
+      <div id="ces-err" role="alert" style="display:none;margin-bottom:16px;background:var(--red-lt);color:var(--red);padding:12px 16px;border-radius:var(--r-sm);font-size:13px;line-height:1.4"></div>
+      <div id="ces-loading" style="display:none;margin-bottom:12px;font-size:12px;color:var(--mist);font-family:Inter,'Helvetica Neue',sans-serif">Loading Section A data…</div>
 
       <!-- KPI Row -->
       <div class="grid-4" style="margin-bottom:20px">
         <div class="kpi-card">
-          <div class="kpi-top"><div class="kpi-label">DAC Incentive Share</div><div class="kpi-status status-ok">Above target</div></div>
-          <div class="kpi-val">53.8%</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 35%</span><span class="kpi-bar-marker">Target 40%</span></div>
-          <div class="kpi-yoy up">+ +4.6 pp vs 2023 (49.4%)</div>
+          <div class="kpi-top"><div class="kpi-label">DAC Incentive Share</div><div class="kpi-status status-ok" id="ces-kpi-share-badge" style="display:none">—</div></div>
+          <div class="kpi-val" id="ces-kpi-share-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-share-bar" style="width:0%;background:var(--green)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-share-markers"><span class="kpi-bar-marker">—</span><span class="kpi-bar-marker">—</span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-share-yoy">—</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Incentives ($)</div></div>
-          <div class="kpi-val">$204.8M</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:54%;background:var(--teal)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">of $380.3M total</span><span></span></div>
-          <div class="kpi-yoy up">+ +$75.1M YoY (+57.9%)</div>
+          <div class="kpi-val" id="ces-kpi-dacusd-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-dacusd-bar" style="width:0%;background:var(--teal)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-dacusd-markers"><span class="kpi-bar-marker">—</span><span></span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-dacusd-yoy">—</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Participants</div></div>
-          <div class="kpi-val">46,000</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:56%;background:var(--teal-lt)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">of ~82,500 total</span><span></span></div>
-          <div class="kpi-yoy up">+ +1,900 vs 2023</div>
+          <div class="kpi-val" id="ces-kpi-parts-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-parts-bar" style="width:0%;background:var(--teal-lt)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-parts-markers"><span class="kpi-bar-marker">—</span><span></span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-parts-yoy">—</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">Avg Incentive / DAC</div></div>
-          <div class="kpi-val">$4,452</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:72%;background:var(--teal)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">Non-DAC avg: $4,806</span><span></span></div>
-          <div class="kpi-yoy flat">* Near parity</div>
+          <div class="kpi-val" id="ces-kpi-avg-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-avg-bar" style="width:0%;background:var(--teal)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-avg-markers"><span class="kpi-bar-marker">—</span><span></span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-avg-yoy">—</div>
         </div>
       </div>
 
@@ -858,7 +782,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
           <div class="chart-wrap"><canvas id="ces-spend-chart" height="220"></canvas></div>
         </div>
         <div class="card">
-          <div class="chart-title">DAC Incentive Share - Trend 2023-2024</div>
+          <div class="chart-title" id="ces-trend-chart-title">DAC Incentive Share — Trend 2021–2024</div>
           <div class="chart-wrap"><canvas id="ces-trend-chart" height="220"></canvas></div>
         </div>
       </div>
@@ -869,25 +793,19 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Program</th><th class="td-right">DAC Spend</th><th class="td-right">Non-DAC Spend</th><th class="td-right">DAC Share</th><th class="td-right">DAC Participants</th><th class="td-right">High-Impact DAC</th></tr></thead>
-            <tbody>
-              <tr><td class="td-bold">Resi Retrofit</td><td class="td-right td-mono">$38.2M</td><td class="td-right td-mono">$54.9M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.22);color:var(--teal-dim)">41%</span></td><td class="td-right td-mono">15,200</td><td class="td-right td-mono">62%</td></tr>
-              <tr><td class="td-bold">Multifamily</td><td class="td-right td-mono">$62.5M</td><td class="td-right td-mono">$51.3M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.38);color:var(--teal-dim)">55%</span></td><td class="td-right td-mono">8,500</td><td class="td-right td-mono">58%</td></tr>
-              <tr><td class="td-bold">Income Eligible</td><td class="td-right td-mono">$74.1M</td><td class="td-right td-mono">$22.9M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.55);color:white">76%</span></td><td class="td-right td-mono">21,600</td><td class="td-right td-mono">71%</td></tr>
-              <tr><td class="td-bold">Small Business</td><td class="td-right td-mono">$18.0M</td><td class="td-right td-mono">$27.5M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.20);color:var(--teal-dim)">40%</span></td><td class="td-right td-mono">2,850</td><td class="td-right td-mono">49%</td></tr>
-              <tr><td class="td-bold">Large C&I</td><td class="td-right td-mono">$12.0M</td><td class="td-right td-mono">$34.2M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.12);color:var(--ink-3)">26%</span></td><td class="td-right td-mono">240</td><td class="td-right td-mono">44%</td></tr>
-            </tbody>
+            <tbody id="ces-program-tbody"></tbody>
           </table>
         </div>
       </div>
     </div><!-- /ces -->
 
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <!-- PAGE: EV MAKE READY                                      -->
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <div class="page" id="page-ev">
       <div class="pg-header">
         <div><div class="pg-title">EV Make Ready Program</div>
-        <div class="pg-subtitle">Section B - Plug installations and incentives by DAC status</div></div>
+        <div class="pg-subtitle">Section B · Plug installations and incentives by DAC status</div></div>
       </div>
       <div class="grid-4" style="margin-bottom:20px">
         <div class="kpi-card">
@@ -895,43 +813,43 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
           <div class="kpi-val">40%</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 30%</span><span class="kpi-bar-marker">Target 40%</span></div>
-          <div class="kpi-yoy up">+ +10 pp vs 2023 (30%)</div>
+          <div class="kpi-yoy up">▲ +10 pp vs 2023 (30%)</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Incentives</div></div>
           <div class="kpi-val">$18.3M</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:43%;background:var(--teal)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">of $42.8M total</span></div>
-          <div class="kpi-yoy flat">* Stable YoY</div>
+          <div class="kpi-yoy flat">• Stable YoY</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Plugs Installed</div></div>
           <div class="kpi-val">3,240</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:40%;background:var(--teal-lt)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">of 8,100 total</span></div>
-          <div class="kpi-yoy up">+ +810 vs 2023</div>
+          <div class="kpi-yoy up">▲ +810 vs 2023</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DCFC in DACs</div></div>
           <div class="kpi-val">38%</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:38%;background:var(--amber)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 35%</span></div>
-          <div class="kpi-yoy up">+ +3 pp YoY</div>
+          <div class="kpi-yoy up">▲ +3 pp YoY</div>
         </div>
       </div>
       <div class="card">
-        <div class="chart-title">Plug Installations by Type - DAC vs Non-DAC</div>
+        <div class="chart-title">Plug Installations by Type — DAC vs Non-DAC</div>
         <div class="chart-wrap"><canvas id="ev-chart" height="200"></canvas></div>
       </div>
     </div>
 
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <!-- PAGE: DEMAND RESPONSE                                    -->
-    <!-- ======================================================== -->
+    <!-- ════════════════════════════════════════════════════════ -->
     <div class="page" id="page-dr">
       <div class="pg-header">
         <div><div class="pg-title">Demand Response</div>
-        <div class="pg-subtitle">Section C - Capacity and participation in DAC programs</div></div>
+        <div class="pg-subtitle">Section C · Capacity and participation in DAC programs</div></div>
       </div>
       <div class="grid-4" style="margin-bottom:20px">
         <div class="kpi-card">
@@ -939,32 +857,32 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
           <div class="kpi-val">303 MW</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 280 MW</span></div>
-          <div class="kpi-yoy up">+ +44 MW YoY</div>
+          <div class="kpi-yoy up">▲ +44 MW YoY</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Committed MW</div></div>
           <div class="kpi-val">328 MW</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:43%;background:var(--teal)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">of 766 MW total</span></div>
-          <div class="kpi-yoy up">+ +18 MW YoY</div>
+          <div class="kpi-yoy up">▲ +18 MW YoY</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Participants</div></div>
           <div class="kpi-val">4,820</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:40%;background:var(--teal-lt)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">of 12,050 total</span></div>
-          <div class="kpi-yoy up">+ +320 YoY</div>
+          <div class="kpi-yoy up">▲ +320 YoY</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">Delivery Efficiency</div></div>
           <div class="kpi-val">92.4%</div>
           <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:92%;background:var(--green)"></div></div>
           <div class="kpi-bar-markers"><span class="kpi-bar-marker">Committed vs Delivered</span></div>
-          <div class="kpi-yoy up">+ +2.1 pp YoY</div>
+          <div class="kpi-yoy up">▲ +2.1 pp YoY</div>
         </div>
       </div>
       <div class="card">
-        <div class="chart-title">Committed vs Delivered MW - DAC Programs 2023-2024</div>
+        <div class="chart-title">Committed vs Delivered MW — DAC Programs 2021–2024</div>
         <div class="chart-wrap"><canvas id="dr-chart" height="200"></canvas></div>
       </div>
     </div>
@@ -973,24 +891,24 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
     <!-- Each follows the same KPI+chart pattern, rendered with static data -->
 
     <div class="page" id="page-der">
-      <div class="pg-header"><div><div class="pg-title">Distributed Energy Resources</div><div class="pg-subtitle">Section D - Net metering, community solar, BTM storage</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Distributed Energy Resources</div><div class="pg-subtitle">Section D · Net metering, community solar, BTM storage</div></div></div>
       <div class="grid-4" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Share of Projects</div><div class="kpi-status status-ok">At target</div></div><div class="kpi-val">32.3%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:80%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 30%</span><span class="kpi-bar-marker">Target 35%</span></div><div class="kpi-yoy up">+ +0.3 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Installed (MW)</div></div><div class="kpi-val">64.6 MW</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:35%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 182.5 MW total</span></div><div class="kpi-yoy up">+ +8.2 MW YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Community Solar DAC</div></div><div class="kpi-val">34.8%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:87%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 30%</span></div><div class="kpi-yoy up">+ +2.1 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">BTM Storage DAC</div></div><div class="kpi-val">28.4%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:57%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 25%</span></div><div class="kpi-yoy up">+ +1.2 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Share of Projects</div><div class="kpi-status status-ok">At target</div></div><div class="kpi-val">32.3%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:80%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 30%</span><span class="kpi-bar-marker">Target 35%</span></div><div class="kpi-yoy up">▲ +0.3 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Installed (MW)</div></div><div class="kpi-val">64.6 MW</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:35%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 182.5 MW total</span></div><div class="kpi-yoy up">▲ +8.2 MW YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Community Solar DAC</div></div><div class="kpi-val">34.8%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:87%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 30%</span></div><div class="kpi-yoy up">▲ +2.1 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">BTM Storage DAC</div></div><div class="kpi-val">28.4%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:57%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 25%</span></div><div class="kpi-yoy up">▲ +1.2 pp YoY</div></div>
       </div>
-      <div class="card"><div class="chart-title">DER Installed Capacity (MW) - DAC vs Non-DAC by Technology</div><div class="chart-wrap"><canvas id="der-chart" height="200"></canvas></div></div>
+      <div class="card"><div class="chart-title">DER Installed Capacity (MW) — DAC vs Non-DAC by Technology</div><div class="chart-wrap"><canvas id="der-chart" height="200"></canvas></div></div>
     </div>
 
     <div class="page" id="page-sec">
-      <div class="pg-header"><div><div class="pg-title">Strategic Electric Capital Investments</div><div class="pg-subtitle">Section E - Capital investment exposure affecting DACs</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Strategic Electric Capital Investments</div><div class="pg-subtitle">Section E · Capital investment exposure affecting DACs</div></div></div>
       <div class="grid-3" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">% Affecting DACs</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">50%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 35%</span><span class="kpi-bar-marker">Target 40%</span></div><div class="kpi-yoy up">+ +10 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC-Affecting Capital</div></div><div class="kpi-val">$488M</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:50%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of $977M total</span></div><div class="kpi-yoy up">+ +$136M YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Total Capital Budget</div></div><div class="kpi-val">$977M</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--fog)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">2023: $880M</span></div><div class="kpi-yoy up">+ +$97M YoY (+11%)</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">% Affecting DACs</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">50%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 35%</span><span class="kpi-bar-marker">Target 40%</span></div><div class="kpi-yoy up">▲ +10 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC-Affecting Capital</div></div><div class="kpi-val">$488M</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:50%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of $977M total</span></div><div class="kpi-yoy up">▲ +$136M YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Total Capital Budget</div></div><div class="kpi-val">$977M</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--fog)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">2023: $880M</span></div><div class="kpi-yoy up">▲ +$97M YoY (+11%)</div></div>
       </div>
-      <div class="card"><div class="chart-title">Strategic Capital by Category - DAC Exposure %</div>
+      <div class="card"><div class="chart-title">Strategic Capital by Category — DAC Exposure %</div>
         <div style="margin-top:8px">
           <div class="prog-row"><div class="prog-label">Grid Modernization</div><div class="prog-bar-bg"><div class="prog-bar-fill" style="width:62%"></div></div><div class="prog-val">62%</div></div>
           <div class="prog-row"><div class="prog-label">Electric Reliability</div><div class="prog-bar-bg"><div class="prog-bar-fill" style="width:48%"></div></div><div class="prog-val">48%</div></div>
@@ -1002,54 +920,54 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
     </div>
 
     <div class="page" id="page-outages">
-      <div class="pg-header"><div><div class="pg-title">Customer Outages</div><div class="pg-subtitle">Section F - Reliability metrics for DAC vs non-DAC customers</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Customer Outages</div><div class="pg-subtitle">Section F · Reliability metrics for DAC vs non-DAC customers</div></div></div>
       <div class="grid-4" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Interruption Rate</div><div class="kpi-status status-warn">Monitor</div></div><div class="kpi-val">10%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Parity goal</span></div><div class="kpi-yoy down">v +1 pp vs 2023 (9%)</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Customers Interrupted</div></div><div class="kpi-val">12,450</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:38%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 32,700 total</span></div><div class="kpi-yoy down">v +350 vs 2023</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC SAIDI (hrs)</div></div><div class="kpi-val">1.84</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:60%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target <=1.70</span></div><div class="kpi-yoy down">v +0.08 hrs YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Non-Excludable DAC</div></div><div class="kpi-val">7.2%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:72%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of total non-excl.</span></div><div class="kpi-yoy flat">* Stable YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Interruption Rate</div><div class="kpi-status status-warn">Monitor</div></div><div class="kpi-val">10%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Parity goal</span></div><div class="kpi-yoy down">▼ +1 pp vs 2023 (9%)</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Customers Interrupted</div></div><div class="kpi-val">12,450</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:38%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 32,700 total</span></div><div class="kpi-yoy down">▼ +350 vs 2023</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC SAIDI (hrs)</div></div><div class="kpi-val">1.84</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:60%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target ≤1.70</span></div><div class="kpi-yoy down">▼ +0.08 hrs YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Non-Excludable DAC</div></div><div class="kpi-val">7.2%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:72%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of total non-excl.</span></div><div class="kpi-yoy flat">• Stable YoY</div></div>
       </div>
-      <div class="card"><div class="chart-title">SAIDI Trend - DAC vs Non-DAC 2023-2024</div><div class="chart-wrap"><canvas id="outages-chart" height="200"></canvas></div></div>
+      <div class="card"><div class="chart-title">SAIDI Trend — DAC vs Non-DAC 2021–2024</div><div class="chart-wrap"><canvas id="outages-chart" height="200"></canvas></div></div>
     </div>
 
     <div class="page" id="page-main">
-      <div class="pg-header"><div><div class="pg-title">Main Replacement Program</div><div class="pg-subtitle">Section G - Gas main replacement and methane emission reduction</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Main Replacement Program</div><div class="pg-subtitle">Section G · Gas main replacement and methane emission reduction</div></div></div>
       <div class="grid-4" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">% Replacements in DACs</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">46%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 40%</span><span class="kpi-bar-marker">Target 45%</span></div><div class="kpi-yoy up">+ +3 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Feet of Pipe</div></div><div class="kpi-val">3,420 ft</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:46%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 8,300 ft total</span></div><div class="kpi-yoy up">+ +180 ft YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">CH4 Reduced (DAC)</div></div><div class="kpi-val">284 t</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:48%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 592 t total</span></div><div class="kpi-yoy up">+ +22 t YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Cast Iron in DACs</div></div><div class="kpi-val">52%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 48%</span></div><div class="kpi-yoy up">+ +4 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">% Replacements in DACs</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">46%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 40%</span><span class="kpi-bar-marker">Target 45%</span></div><div class="kpi-yoy up">▲ +3 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Feet of Pipe</div></div><div class="kpi-val">3,420 ft</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:46%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 8,300 ft total</span></div><div class="kpi-yoy up">▲ +180 ft YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">CH₄ Reduced (DAC)</div></div><div class="kpi-val">284 t</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:48%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 592 t total</span></div><div class="kpi-yoy up">▲ +22 t YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Cast Iron in DACs</div></div><div class="kpi-val">52%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 48%</span></div><div class="kpi-yoy up">▲ +4 pp YoY</div></div>
       </div>
     </div>
 
     <div class="page" id="page-leaks">
-      <div class="pg-header"><div><div class="pg-title">Leak Repairs</div><div class="pg-subtitle">Section H - Gas leak repair activity in DAC areas</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Leak Repairs</div><div class="pg-subtitle">Section H · Gas leak repair activity in DAC areas</div></div></div>
       <div class="grid-4" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Share of Repairs</div><div class="kpi-status status-ok">At target</div></div><div class="kpi-val">36%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:90%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 33%</span><span class="kpi-bar-marker">Target 38%</span></div><div class="kpi-yoy up">+ +1 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Leaks Repaired</div></div><div class="kpi-val">5,980</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:36%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 16,600 total</span></div><div class="kpi-yoy up">+ +140 YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Grade 1 DAC (urgent)</div></div><div class="kpi-val">42%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 40%</span></div><div class="kpi-yoy up">+ +2 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Avg Response (DAC)</div></div><div class="kpi-val">18.4 hrs</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:76%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target <=16 hrs</span></div><div class="kpi-yoy down">v +0.6 hrs YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Share of Repairs</div><div class="kpi-status status-ok">At target</div></div><div class="kpi-val">36%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:90%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 33%</span><span class="kpi-bar-marker">Target 38%</span></div><div class="kpi-yoy up">▲ +1 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Leaks Repaired</div></div><div class="kpi-val">5,980</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:36%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 16,600 total</span></div><div class="kpi-yoy up">▲ +140 YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Grade 1 DAC (urgent)</div></div><div class="kpi-val">42%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 40%</span></div><div class="kpi-yoy up">▲ +2 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">Avg Response (DAC)</div></div><div class="kpi-val">18.4 hrs</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:76%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target ≤16 hrs</span></div><div class="kpi-yoy down">▼ +0.6 hrs YoY</div></div>
       </div>
     </div>
 
     <div class="page" id="page-jobs">
-      <div class="pg-header"><div><div class="pg-title">Clean Energy Jobs</div><div class="pg-subtitle">Section I - Workforce development in DAC communities</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Clean Energy Jobs</div><div class="pg-subtitle">Section I · Workforce development in DAC communities</div></div></div>
       <div class="grid-4" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Resident Share</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">59%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 50%</span><span class="kpi-bar-marker">Target 55%</span></div><div class="kpi-yoy up">+ +4 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Placements</div></div><div class="kpi-val">87</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:59%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 123 total</span></div><div class="kpi-yoy up">+ +9 YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Apprentice Hours</div></div><div class="kpi-val">62,400</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:56%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 111,400 total</span></div><div class="kpi-yoy up">+ +4,200 YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">LMI Job Share</div></div><div class="kpi-val">54%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 50%</span></div><div class="kpi-yoy up">+ +3 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Resident Share</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">59%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 50%</span><span class="kpi-bar-marker">Target 55%</span></div><div class="kpi-yoy up">▲ +4 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Placements</div></div><div class="kpi-val">87</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:59%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 123 total</span></div><div class="kpi-yoy up">▲ +9 YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Apprentice Hours</div></div><div class="kpi-val">62,400</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:56%;background:var(--teal-lt)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of 111,400 total</span></div><div class="kpi-yoy up">▲ +4,200 YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">LMI Job Share</div></div><div class="kpi-val">54%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 50%</span></div><div class="kpi-yoy up">▲ +3 pp YoY</div></div>
       </div>
-      <div class="card"><div class="chart-title">Placements by Program - DAC Residents vs Total</div><div class="chart-wrap"><canvas id="jobs-chart" height="200"></canvas></div></div>
+      <div class="card"><div class="chart-title">Placements by Program — DAC Residents vs Total</div><div class="chart-wrap"><canvas id="jobs-chart" height="200"></canvas></div></div>
     </div>
 
     <div class="page" id="page-custops">
-      <div class="pg-header"><div><div class="pg-title">Customer Operations Data</div><div class="pg-subtitle">Section J - Arrears, shutoffs, EAP enrollment, usage equity</div></div></div>
+      <div class="pg-header"><div><div class="pg-title">Customer Operations Data</div><div class="pg-subtitle">Section J · Arrears, shutoffs, EAP enrollment, usage equity</div></div></div>
       <div class="grid-4" style="margin-bottom:20px">
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Electric Share</div><div class="kpi-status status-ok">At target</div></div><div class="kpi-val">40%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of active accounts</span></div><div class="kpi-yoy up">+ +1 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC EAP Enrollment</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">71%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 65%</span></div><div class="kpi-yoy up">+ +4 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Shutoff Rate</div><div class="kpi-status status-warn">Monitor</div></div><div class="kpi-val">3.2%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:64%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Non-DAC: 1.9%</span></div><div class="kpi-yoy down">v +0.3 pp YoY</div></div>
-        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Arrears ($avg)</div></div><div class="kpi-val">$1,240</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:80%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Non-DAC: $680</span></div><div class="kpi-yoy down">v +$88 YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Electric Share</div><div class="kpi-status status-ok">At target</div></div><div class="kpi-val">40%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--teal)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">of active accounts</span></div><div class="kpi-yoy up">▲ +1 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC EAP Enrollment</div><div class="kpi-status status-ok">Above target</div></div><div class="kpi-val">71%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Target 65%</span></div><div class="kpi-yoy up">▲ +4 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Shutoff Rate</div><div class="kpi-status status-warn">Monitor</div></div><div class="kpi-val">3.2%</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:64%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Non-DAC: 1.9%</span></div><div class="kpi-yoy down">▼ +0.3 pp YoY</div></div>
+        <div class="kpi-card"><div class="kpi-top"><div class="kpi-label">DAC Arrears ($avg)</div></div><div class="kpi-val">$1,240</div><div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:80%;background:var(--amber)"></div></div><div class="kpi-bar-markers"><span class="kpi-bar-marker">Non-DAC: $680</span></div><div class="kpi-yoy down">▼ +$88 YoY</div></div>
       </div>
     </div>
 
@@ -1058,7 +976,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
       <div class="pg-header"><div><div class="pg-title">Borough Map</div><div class="pg-subtitle">DAC performance share by NYC borough</div></div></div>
       <div class="card" style="margin-bottom:16px">
         <div style="background:var(--paper);border-radius:var(--r-sm);height:220px;display:flex;align-items:center;justify-content:center;color:var(--mist);font-size:12px;border:1px dashed var(--fog)">
-          Geographic map visualization - connects to geography when live data is wired up.
+          Geographic map visualization — connect to Dataverse geography dimension for live data
         </div>
       </div>
       <div class="borough-grid">
@@ -1076,10 +994,9 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
 </div><!-- /app -->
 
 <script>
-// ?? SIDEBAR ??????????????????????????????????????????????????????????????????
+// ── SIDEBAR ──────────────────────────────────────────────────────────────────
 let sidebarPinned = false;
 let collapseTimer = null;
-const charts = {};
 
 function expandSidebar() {
   clearTimeout(collapseTimer);
@@ -1094,14 +1011,26 @@ function collapseSidebar() {
 function toggleSidebar() {
   sidebarPinned = !sidebarPinned;
   const sb = document.getElementById('sidebar');
-  if (sidebarPinned) { sb.classList.add('expanded'); document.getElementById('sb-chevron').textContent = '?'; }
-  else { sb.classList.remove('expanded'); document.getElementById('sb-chevron').textContent = '?'; }
+  if (sidebarPinned) { sb.classList.add('expanded'); document.getElementById('sb-chevron').textContent = '‹'; }
+  else { sb.classList.remove('expanded'); document.getElementById('sb-chevron').textContent = '›'; }
 }
 
-// ?? NAVIGATION ???????????????????????????????????????????????????????????????
+// ── NAVIGATION ───────────────────────────────────────────────────────────────
 const PAGE_TITLES = {
-  executive: 'Executive Summary', ces: 'Clean Energy Spending', ev: 'EV Make Ready Program', dr: 'Demand Response', der: 'Distributed Energy Resources', sec: 'Strategic Capital Investments', outages: 'Customer Outages', main: 'Main Replacement Program', leaks: 'Leak Repairs', jobs: 'Clean Energy Jobs', custops: 'Customer Operations Data', boroughs: 'Borough Map'
+  executive: 'Executive Summary',
+  ces: 'Clean Energy Spending',
+  ev: 'EV Make Ready Program',
+  dr: 'Demand Response',
+  der: 'Distributed Energy Resources',
+  sec: 'Strategic Capital Investments',
+  outages: 'Customer Outages',
+  main: 'Main Replacement Program',
+  leaks: 'Leak Repairs',
+  jobs: 'Clean Energy Jobs',
+  custops: 'Customer Operations Data',
+  boroughs: 'Borough Map'
 };
+
 function nav(item) {
   document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1111,18 +1040,24 @@ function nav(item) {
   document.getElementById('page-' + page).classList.add('active');
   document.getElementById('page-title').textContent = PAGE_TITLES[page] || page;
 }
+
+// ── OVERVIEW TOGGLE ───────────────────────────────────────────────────────────
 function ovView(v, btn) {
   document.querySelectorAll('#ov-toggle .toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('ov-cards-view').style.display = v === 'cards' ? 'grid' : 'none';
   document.getElementById('ov-table-view').style.display = v === 'table' ? 'block' : 'none';
 }
+
+// ── EXPORT CSV ────────────────────────────────────────────────────────────────
 function exportExecCSV() {
   const rows = document.querySelectorAll('#exec-tbody tr');
   let csv = 'Section,KPI,2024,YoY\n';
   rows.forEach(r => {
     const cells = r.querySelectorAll('td');
-    csv += [cells[0].textContent, cells[1].textContent, cells[2].textContent, cells[3].textContent].map(s => `"${s.trim()}"`).join(',') + '\n';
+    csv += [cells[0].textContent, cells[1].textContent, cells[2].textContent, cells[3].textContent]
+      .map(s => `"${s.trim()}"`)
+      .join(',') + '\n';
   });
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
@@ -1130,428 +1065,484 @@ function exportExecCSV() {
   a.click();
 }
 
-// ?? DATAVERSE DATA LAYER ?????????????????????????????????????????????????????
-const TEAL = '#2f6f89', TEAL_LT = '#a5becb', MIST = '#8fa8b6';
+// ── CHARTS ────────────────────────────────────────────────────────────────────
+const TEAL = '#2f6f89', TEAL_LT = '#a5becb', INK = '#0f1923', MIST = '#8fa8b6';
 const gridColor = '#e8f0f4';
-const SAMPLE_SOURCE = 'CLCPA_DASHBOARD_SAMPLE';
-const DASHBOARD_VERSION = '1.0.2.5';
-const ENTITY = {
-  periods: 'cf_dimperiods', programs: 'cf_dimprograms', dac: 'cf_dacstatuses', geo: 'cf_dimgeographys',
-  ces: 'cf_factcleanenergyspendings', ev: 'cf_factevmakereadys', dr: 'cf_factdemandresponses', der: 'cf_factders',
-  sec: 'cf_factstrategiccapinvestments', outages: 'cf_factcustomeroutagess', main: 'cf_factmainreplacements',
-  leaks: 'cf_factleakrepairss', jobs: 'cf_factcleanenergyjobss', custops: 'cf_factcustomeroperationss'
-};
-const LOOKUP_VALUE = { period: '_cf_period_value', program: '_cf_program_value', dacstatus: '_cf_dacstatus_value' };
-const lookupCache = { periods: [], programs: [], dacStatuses: [] };
-let latestDashboardData = null;
-const sectionMeta = [
-  ['ces','Clean Energy Spending','DAC Share of Incentives'], ['ev','EV Make Ready','DAC Share of Plugs'], ['dr','Demand Response','DAC Delivered MW'], ['der','Distributed Energy Resources','DAC Share of Projects'], ['sec','Strategic Electric Capital','% Affecting DACs'], ['outages','Customer Outages','DAC Interruption Rate'], ['main','Main Replacement Program','% in DACs'], ['leaks','Leak Repairs','DAC Share of Repairs'], ['jobs','Clean Energy Jobs','DAC Resident Share'], ['custops','Customer Operations Data','DAC Electric Share']
-];
 const baseOpts = {
-  responsive: true, maintainAspectRatio: true,
+  responsive: true,
+  maintainAspectRatio: true,
   plugins: { legend: { labels: { font: { family: 'Barlow', size: 11 }, color: '#4a6070', boxWidth: 12, boxHeight: 12 } } },
-  scales: { x: { grid: { color: gridColor }, ticks: { font: { family: 'Inter', size: 10 }, color: MIST } }, y: { grid: { color: gridColor }, ticks: { font: { family: 'Inter', size: 10 }, color: MIST } } }
+  scales: {
+    x: { grid: { color: gridColor }, ticks: { font: { family: 'Inter', size: 10 }, color: MIST } },
+    y: { grid: { color: gridColor }, ticks: { font: { family: 'Inter', size: 10 }, color: MIST } }
+  }
 };
 
-function getContext() {
-  if (window.GetGlobalContext) return window.GetGlobalContext();
-  if (window.parent && window.parent.Xrm && window.parent.Xrm.Utility) return window.parent.Xrm.Utility.getGlobalContext();
-  if (window.Xrm && window.Xrm.Utility) return window.Xrm.Utility.getGlobalContext();
-  throw new Error('App context is unavailable. Open this dashboard inside the CLCPA model-driven app.');
-}
-function clientUrl() { return getContext().getClientUrl().replace(/\/$/, ''); }
-function apiUrl(entitySet, query='') { return `${clientUrl()}/api/data/v9.2/${entitySet}${query}`; }
-async function dvGet(entitySet, query='') {
-  const res = await fetch(apiUrl(entitySet, query), { headers: { Accept: 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' }, credentials: 'same-origin' });
-  if (!res.ok) throw new Error(`${entitySet} GET failed: ${res.status} ${await res.text()}`);
-  return (await res.json()).value || [];
-}
-async function dvPost(entitySet, body) {
-  const res = await fetch(apiUrl(entitySet), { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' }, credentials: 'same-origin', body: JSON.stringify(body) });
-  if (!res.ok) throw new Error(`${entitySet} create failed: ${res.status} ${await res.text()}`);
-  return res;
-}
-async function dvPatch(entitySet, id, body) {
-  const res = await fetch(apiUrl(entitySet, `(${id})`), { method: 'PATCH', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', 'If-Match': '*' }, credentials: 'same-origin', body: JSON.stringify(body) });
-  if (!res.ok) throw new Error(`${entitySet} update failed: ${res.status} ${await res.text()}`);
-  return res;
-}
-function setStatus(text, isError=false) {
-  const el = document.getElementById('data-status');
-  if (el) { el.textContent = text; el.style.color = isError ? 'var(--red)' : 'var(--mist)'; }
-}
-function moneyM(v) { return '$' + fmt1(v) + 'M'; }
-function moneyB(v) { return '$' + fmt2(v / 1000) + 'B'; }
-function fmt0(v) { return Math.round(Number(v || 0)).toLocaleString(); }
-function fmt1(v) { return Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 1, minimumFractionDigits: 1 }); }
-function fmt2(v) { return Number(v || 0).toLocaleString(undefined, { maximumFractionDigits: 2, minimumFractionDigits: 2 }); }
-function esc(v) { return String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function pct(n, d) { return d ? (n / d) * 100 : 0; }
-function sum(rows, field) { return rows.reduce((t, r) => t + Number(r[field] || 0), 0); }
-function by(rows, field, value) { return rows.filter(r => String(r[field] || '').toUpperCase() === String(value).toUpperCase()); }
-function sampleFilter(extra='') { return `?$top=5000&$filter=startswith(cf_sourcetable,'${SAMPLE_SOURCE}')${extra}`; }
-function cesQuery() { return '?$top=5000&$orderby=createdon desc'; }
 function mk(id, config) {
   const el = document.getElementById(id);
-  if (!el || !window.Chart) return;
-  if (charts[id]) charts[id].destroy();
-  charts[id] = new Chart(el, config);
-}
-function setKpis(page, values) {
-  document.querySelectorAll(`#page-${page} .kpi-val`).forEach((el, i) => { if (values[i] !== undefined) el.textContent = values[i]; });
-}
-function barChart(id, labels, aLabel, a, bLabel, b) {
-  mk(id, { type: 'bar', data: { labels, datasets: [{ label: aLabel, data: a, backgroundColor: TEAL }, { label: bLabel, data: b, backgroundColor: TEAL_LT }] }, options: baseOpts });
-}
-function lineChart(id, labels, datasets) { mk(id, { type: 'line', data: { labels, datasets }, options: baseOpts }); }
-
-async function getDashboardData() {
-  const [periods, programs, dacStatuses, geos, ces, ev, dr, der, sec, outages, main, leaks, jobs, custops] = await Promise.all([
-    dvGet(ENTITY.periods, '?$select=cf_dimperiodid,cf_periodlabel,cf_calendaryear'),
-    dvGet(ENTITY.programs, '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_programcategory,cf_sectioncode'),
-    dvGet(ENTITY.dac, '?$select=cf_dacstatusid,cf_dacstatuscode,cf_dacstatuslabel'),
-    dvGet(ENTITY.geo, '?$select=cf_dimgeographyid,cf_boroughorcounty,cf_isdac'),
-    dvGet(ENTITY.ces, cesQuery()), dvGet(ENTITY.ev, sampleFilter()), dvGet(ENTITY.dr, sampleFilter()), dvGet(ENTITY.der, sampleFilter()), dvGet(ENTITY.sec, sampleFilter()),
-    dvGet(ENTITY.outages, sampleFilter()), dvGet(ENTITY.main, sampleFilter()), dvGet(ENTITY.leaks, sampleFilter()), dvGet(ENTITY.jobs, sampleFilter()), dvGet(ENTITY.custops, sampleFilter())
-  ]);
-  return { periods, programs, dacStatuses, geos, ces, ev, dr, der, sec, outages, main, leaks, jobs, custops };
-}
-function cacheLookups(d) {
-  lookupCache.periods = d.periods || [];
-  lookupCache.programs = d.programs || [];
-  lookupCache.dacStatuses = d.dacStatuses || [];
-}
-function normGuid(v) { return String(v || '').replace(/[{}]/g, '').toLowerCase(); }
-function findLookup(rows, idField, id) { return (rows || []).find(r => normGuid(r[idField]) === normGuid(id)); }
-function getLookupId(row, key) { return row && row[LOOKUP_VALUE[key]]; }
-function periodFor(row, d=latestDashboardData) { return findLookup((d && d.periods) || lookupCache.periods, 'cf_dimperiodid', getLookupId(row, 'period')); }
-function programFor(row, d=latestDashboardData) { return findLookup((d && d.programs) || lookupCache.programs, 'cf_dimprogramid', getLookupId(row, 'program')); }
-function dacStatusFor(row, d=latestDashboardData) { return findLookup((d && d.dacStatuses) || lookupCache.dacStatuses, 'cf_dacstatusid', getLookupId(row, 'dacstatus')); }
-function rowYear(row, d) {
-  const period = periodFor(row, d);
-  if (period && period.cf_calendaryear) return String(period.cf_calendaryear);
-  const match = String(row.cf_sourcetable || '').match(/20\d{2}/);
-  return match ? match[0] : '';
-}
-function rowProgramLabel(row, d) {
-  const program = programFor(row, d);
-  if (program) return program.cf_programname || program.cf_programcode || 'Unassigned Program';
-  return String(row.cf_sourcetable || 'Unassigned Program').replace(`${SAMPLE_SOURCE}_CES_${rowYear(row, d)}_`, '').replace('CLCPA_HTML_CES_', '').replace('_NON_DAC','').replace('_DAC','').replaceAll('_',' ');
-}
-function isDacRow(r, d) {
-  const status = dacStatusFor(r, d);
-  const label = `${status ? (status.cf_dacstatuscode || '') + ' ' + (status.cf_dacstatuslabel || '') : ''} ${r.cf_sourcetable || ''}`;
-  return /DAC/i.test(label) && !/NON[\s_-]?DAC/i.test(label);
-}
-function isNonDacRow(r, d) {
-  const status = dacStatusFor(r, d);
-  const label = `${status ? (status.cf_dacstatuscode || '') + ' ' + (status.cf_dacstatuslabel || '') : ''} ${r.cf_sourcetable || ''}`;
-  return /NON[\s_-]?DAC/i.test(label);
-}
-function rowsForYear(rows, year, d) { return (rows || []).filter(r => rowYear(r, d) === String(year)); }
-
-function renderDashboard(d) {
-  cacheLookups(d);
-  const ces24 = rowsForYear(d.ces, 2024, d);
-  const cesDac = ces24.filter(r => isDacRow(r, d)), cesNon = ces24.filter(r => isNonDacRow(r, d));
-  const cesDacSpend = sum(cesDac, 'cf_incentivedollars') / 1000000;
-  const cesNonSpend = sum(cesNon, 'cf_incentivedollars') / 1000000;
-  const cesParticipants = sum(cesDac, 'cf_participants');
-  const cesShare = pct(cesDacSpend, cesDacSpend + cesNonSpend);
-  setKpis('ces', [`${fmt1(cesShare)}%`, moneyM(cesDacSpend), fmt0(cesParticipants), '$' + fmt0((sum(cesDac, 'cf_incentivedollars') || 0) / (cesParticipants || 1))]);
-  const cesLabels = [...new Set(ces24.map(r => rowProgramLabel(r, d)).filter(Boolean))];
-  barChart('ces-spend-chart', cesLabels, 'DAC Spend ($M)', cesLabels.map(l => sum(cesDac.filter(r => rowProgramLabel(r, d) === l), 'cf_incentivedollars') / 1000000), 'Non-DAC Spend ($M)', cesLabels.map(l => sum(cesNon.filter(r => rowProgramLabel(r, d) === l), 'cf_incentivedollars') / 1000000));
-  renderCesTable(cesLabels, cesDac, cesNon, d);
-  const years = ['2023','2024'];
-  lineChart('ces-trend-chart', years, [{ label: 'DAC Share (%)', data: years.map(y => { const yr = rowsForYear(d.ces, y, d); const dac=sum(yr.filter(r => isDacRow(r, d)),'cf_incentivedollars'); const non=sum(yr.filter(r => isNonDacRow(r, d)),'cf_incentivedollars'); return fmt1(pct(dac, dac+non)); }), borderColor: TEAL, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, tension: 0.3 }, { label: 'Target (40%)', data: [40,40], borderColor: '#10b981', borderDash: [5,4], borderWidth: 1.5, pointRadius: 0 }, { label: 'Floor (35%)', data: [35,35], borderColor: '#f59e0b', borderDash: [5,4], borderWidth: 1.5, pointRadius: 0 }]);
-
-  const ev24 = d.ev.filter(r => /2024/.test(r.cf_sourcetable || '')), evDac = ev24.filter(isDacRow), evNon = ev24.filter(isNonDacRow);
-  const evDacPlugs = sum(evDac, 'cf_plugsinstalled'), evNonPlugs = sum(evNon, 'cf_plugsinstalled');
-  setKpis('ev', [`${fmt0(pct(evDacPlugs, evDacPlugs + evNonPlugs))}%`, moneyM(sum(evDac, 'cf_incentivedollars') / 1000000), fmt0(evDacPlugs), `${fmt0(pct(sum(evDac.filter(r => /DCFC/i.test(r.cf_plugtypecode || '')), 'cf_plugsinstalled'), sum(ev24.filter(r => /DCFC/i.test(r.cf_plugtypecode || '')), 'cf_plugsinstalled')))}%`]);
-  const evTypes = [...new Set(ev24.map(r => r.cf_plugtypecode))];
-  barChart('ev-chart', evTypes, 'DAC Plugs', evTypes.map(t => sum(evDac.filter(r => r.cf_plugtypecode === t), 'cf_plugsinstalled')), 'Non-DAC Plugs', evTypes.map(t => sum(evNon.filter(r => r.cf_plugtypecode === t), 'cf_plugsinstalled')));
-
-  const dr24 = d.dr.filter(r => /2024/.test(r.cf_sourcetable || '')), drDac24 = dr24.filter(isDacRow), drAll24 = dr24;
-  setKpis('dr', [`${fmt0(sum(drDac24,'cf_deliveredmw'))} MW`, `${fmt0(sum(drDac24,'cf_committedmw'))} MW`, fmt0(sum(drDac24,'cf_participants')), `${fmt1(pct(sum(drDac24,'cf_deliveredmw'), sum(drDac24,'cf_committedmw')))}%`]);
-  barChart('dr-chart', years, 'Committed MW', years.map(y => sum(d.dr.filter(r => (r.cf_sourcetable||'').includes(`DR_${y}`) && isDacRow(r)), 'cf_committedmw')), 'Delivered MW', years.map(y => sum(d.dr.filter(r => (r.cf_sourcetable||'').includes(`DR_${y}`) && isDacRow(r)), 'cf_deliveredmw')));
-
-  const der24 = d.der.filter(r => /2024/.test(r.cf_sourcetable || '')), derDac = der24.filter(isDacRow), derNon = der24.filter(isNonDacRow);
-  setKpis('der', [`${fmt1(pct(sum(derDac,'cf_projects'), sum(der24,'cf_projects')))}%`, `${fmt1(sum(derDac,'cf_mwinstalled'))} MW`, `${fmt1(pct(sum(derDac.filter(r => /COMMUNITY/i.test(r.cf_dertypecode || '')), 'cf_projects'), sum(der24.filter(r => /COMMUNITY/i.test(r.cf_dertypecode || '')), 'cf_projects')))}%`, `${fmt1(pct(sum(derDac.filter(r => /STORAGE/i.test(r.cf_dertypecode || '')), 'cf_projects'), sum(der24.filter(r => /STORAGE/i.test(r.cf_dertypecode || '')), 'cf_projects')))}%`]);
-  const derTypes = [...new Set(der24.map(r => r.cf_dertypecode))];
-  barChart('der-chart', derTypes, 'DAC MW', derTypes.map(t => sum(derDac.filter(r => r.cf_dertypecode === t), 'cf_mwinstalled')), 'Non-DAC MW', derTypes.map(t => sum(derNon.filter(r => r.cf_dertypecode === t), 'cf_mwinstalled')));
-
-  const sec24 = d.sec.filter(r => /2024/.test(r.cf_sourcetable || ''));
-  const secTotal = sum(sec24, 'cf_totalinvestmentdollars') / 1000000;
-  const secDac = sec24.reduce((t,r)=>t + Number(r.cf_totalinvestmentdollars || 0) * Number(r.cf_pctaffectingdacs || 0) / 100, 0) / 1000000;
-  setKpis('sec', [`${fmt0(pct(secDac, secTotal))}%`, moneyM(secDac), moneyM(secTotal)]);
-  renderStrategicBars(sec24);
-
-  const out24 = d.outages.filter(r => /2024/.test(r.cf_sourcetable || '')), outDac = out24.filter(isDacRow);
-  setKpis('outages', [`${fmt0(pct(sum(outDac,'cf_customersinterrupted'), sum(out24,'cf_customersinterrupted')))}%`, fmt0(sum(outDac,'cf_customersinterrupted')), fmt2(sum(outDac,'cf_outagecount') / 100), `${fmt1(pct(sum(outDac.filter(r => /NON_EXCLUDABLE/i.test(r.cf_outageexcludability || '')), 'cf_customersinterrupted'), sum(out24.filter(r => /NON_EXCLUDABLE/i.test(r.cf_outageexcludability || '')), 'cf_customersinterrupted')))}%`]);
-  lineChart('outages-chart', years, [{ label: 'DAC SAIDI (hrs)', data: years.map(y => sum(d.outages.filter(r => (r.cf_sourcetable||'').includes(`OUTAGES_${y}`) && isDacRow(r)), 'cf_outagecount') / 100), borderColor: '#f59e0b', borderWidth: 2.5, pointRadius: 5, tension: 0.3 }, { label: 'Non-DAC SAIDI (hrs)', data: years.map(y => sum(d.outages.filter(r => (r.cf_sourcetable||'').includes(`OUTAGES_${y}`) && isNonDacRow(r)), 'cf_outagecount') / 100), borderColor: TEAL, borderWidth: 2.5, pointRadius: 5, tension: 0.3 }]);
-
-  const main24 = d.main.filter(r => /2024/.test(r.cf_sourcetable || '')), mainDac = main24.filter(isDacRow);
-  setKpis('main', [`${fmt0(pct(sum(mainDac,'cf_feetofpipe'), sum(main24,'cf_feetofpipe')))}%`, `${fmt0(sum(mainDac,'cf_feetofpipe'))} ft`, `${fmt0(sum(mainDac,'cf_metrictonsch4reduced'))} t`, `${fmt0(pct(sum(mainDac.filter(r => /CAST_IRON/i.test(r.cf_pipeactioncode || '')), 'cf_feetofpipe'), sum(main24.filter(r => /CAST_IRON/i.test(r.cf_pipeactioncode || '')), 'cf_feetofpipe')))}%`]);
-
-  const leak24 = d.leaks.filter(r => /2024/.test(r.cf_sourcetable || '')), leakDac = leak24.filter(isDacRow);
-  setKpis('leaks', [`${fmt0(pct(sum(leakDac,'cf_leaksrepaired'), sum(leak24,'cf_leaksrepaired')))}%`, fmt0(sum(leakDac,'cf_leaksrepaired')), `${fmt0(pct(sum(leakDac.filter(r => /GRADE_1/i.test(r.cf_leaktypecode || '')), 'cf_leaksrepaired'), sum(leak24.filter(r => /GRADE_1/i.test(r.cf_leaktypecode || '')), 'cf_leaksrepaired')))}%`, '18.4 hrs']);
-
-  const jobs24 = d.jobs.filter(r => /2024/.test(r.cf_sourcetable || ''));
-  const jobsDac = jobs24.filter(r => /DAC/i.test(r.cf_sourcetable || ''));
-  const jobPlacementsDac = sum(jobsDac.filter(r => r.cf_metriccode === 'PLACEMENTS'), 'cf_countvalue');
-  const jobPlacementsTotal = sum(jobs24.filter(r => r.cf_metriccode === 'PLACEMENTS'), 'cf_countvalue');
-  setKpis('jobs', [`${fmt0(pct(jobPlacementsDac, jobPlacementsTotal))}%`, fmt0(jobPlacementsDac), fmt0(sum(jobsDac.filter(r => r.cf_metriccode === 'APPRENTICE_HOURS'), 'cf_countvalue')), '54%']);
-  const jobPrograms = [...new Set(jobs24.filter(r => r.cf_metriccode === 'PLACEMENTS').map(r => r.cf_countbasis))];
-  barChart('jobs-chart', jobPrograms, 'DAC Residents', jobPrograms.map(t => sum(jobsDac.filter(r => r.cf_metriccode === 'PLACEMENTS' && r.cf_countbasis === t), 'cf_countvalue')), 'Non-DAC', jobPrograms.map(t => sum(jobs24.filter(r => r.cf_metriccode === 'PLACEMENTS' && r.cf_countbasis === t && !/DAC/i.test(r.cf_sourcetable || '')), 'cf_countvalue')));
-
-  const ops24 = d.custops.filter(r => /2024/.test(r.cf_sourcetable || '')), opsDac = ops24.filter(isDacRow);
-  setKpis('custops', [`${fmt0(pct(sum(opsDac,'cf_accountcount'), sum(ops24,'cf_accountcount')))}%`, `${fmt0(pct(sum(opsDac.filter(r => /EAP/i.test(r.cf_accountstatuscode || '')), 'cf_accountcount'), sum(opsDac,'cf_accountcount')))}%`, `${fmt1(pct(sum(opsDac.filter(r => /SHUTOFF/i.test(r.cf_accountstatuscode || '')), 'cf_accountcount'), sum(opsDac,'cf_accountcount')))}%`, '$' + fmt0((sum(opsDac,'cf_dollaramount') || 0) / (sum(opsDac,'cf_accountcount') || 1))]);
-
-  renderExecutive({
-    cesShare,
-    evShare:pct(evDacPlugs, evDacPlugs + evNonPlugs),
-    drDelivered:sum(drDac24,'cf_deliveredmw'),
-    derShare:pct(sum(derDac,'cf_projects'), sum(der24,'cf_projects')),
-    secShare:pct(secDac, secTotal),
-    outRate:pct(sum(outDac,'cf_customersinterrupted'), sum(out24,'cf_customersinterrupted')),
-    mainShare:pct(sum(mainDac,'cf_feetofpipe'), sum(main24,'cf_feetofpipe')),
-    leakShare:pct(sum(leakDac,'cf_leaksrepaired'), sum(leak24,'cf_leaksrepaired')),
-    jobsShare:pct(jobPlacementsDac, jobPlacementsTotal),
-    opsShare:pct(sum(opsDac,'cf_accountcount'), sum(ops24,'cf_accountcount')),
-    cesTotalSpend:cesDacSpend + cesNonSpend,
-    cesDacSpend,
-    evTotalSpend:sum(ev24,'cf_incentivedollars')/1000000,
-    evDacSpend:sum(evDac,'cf_incentivedollars')/1000000,
-    secDac,
-    secTotal
-  });
-  renderBoroughs(d.geos);
-}
-function renderCesTable(labels, dacRows, nonRows, d) {
-  const tbody = document.querySelector('#page-ces .card:not(.crud-card) table tbody');
-  if (!tbody) return;
-  tbody.innerHTML = labels.map(l => {
-    const dac = dacRows.filter(r => rowProgramLabel(r, d) === l); const non = nonRows.filter(r => rowProgramLabel(r, d) === l);
-    const ds=sum(dac,'cf_incentivedollars')/1000000, ns=sum(non,'cf_incentivedollars')/1000000, share=pct(ds,ds+ns);
-    return `<tr><td class="td-bold">${esc(l)}</td><td class="td-right td-mono">${moneyM(ds)}</td><td class="td-right td-mono">${moneyM(ns)}</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,.35);color:var(--teal-dim)">${fmt0(share)}%</span></td><td class="td-right td-mono">${fmt0(sum(dac,'cf_participants'))}</td><td class="td-right td-mono">${fmt0(share)}%</td></tr>`;
-  }).join('');
-}
-function renderStrategicBars(rows) {
-  const holder = document.querySelector('#page-sec .card > div[style]');
-  if (!holder) return;
-  holder.innerHTML = rows.map(r => `<div class="prog-row"><div class="prog-label">${esc((r.cf_investmentcategorycode || '').replaceAll('_',' '))}</div><div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${Number(r.cf_pctaffectingdacs||0)}%"></div></div><div class="prog-val">${fmt0(r.cf_pctaffectingdacs)}%</div></div>`).join('');
-}
-function renderExecutive(v) {
-  const totalCapital = v.cesTotalSpend + v.evTotalSpend + v.secTotal;
-  const dacCapital = v.cesDacSpend + v.evDacSpend + v.secDac;
-  const dacCapitalShare = pct(dacCapital, totalCapital);
-  const capVals = document.querySelectorAll('.cap-value');
-  if (capVals[0]) capVals[0].textContent = moneyB(totalCapital);
-  if (capVals[1]) capVals[1].textContent = moneyM(dacCapital);
-  if (capVals[2]) capVals[2].textContent = `${fmt0(dacCapitalShare)}%`;
-  setText('cap-total-clean-energy', moneyM(v.cesTotalSpend));
-  setText('cap-total-strategic', moneyM(v.secTotal));
-  setText('cap-total-ev', moneyM(v.evTotalSpend));
-  setText('cap-dac-clean-energy', moneyM(v.cesDacSpend));
-  setText('cap-dac-strategic', moneyM(v.secDac));
-  setText('cap-dac-ev', moneyM(v.evDacSpend));
-  setText('cap-target', '>=40%');
-  setText('cap-floor', '35%');
-  setText('cap-status', dacCapitalShare >= 40 ? 'Above' : 'Below');
-  const vals = [`${fmt1(v.cesShare)}%`, `${fmt0(v.evShare)}%`, `${fmt1(v.drDelivered)} MW`, `${fmt1(v.derShare)}%`, `${fmt0(v.secShare)}%`, `${fmt0(v.outRate)}%`, `${fmt0(v.mainShare)}%`, `${fmt0(v.leakShare)}%`, `${fmt0(v.jobsShare)}%`, `${fmt0(v.opsShare)}%`];
-  document.querySelectorAll('.ov-val').forEach((el,i) => { if (vals[i]) el.textContent = vals[i]; });
-  document.getElementById('exec-tbody').innerHTML = sectionMeta.map((m,i) => `<tr><td class="td-bold">${esc(m[1])}</td><td>${esc(m[2])}</td><td class="td-right td-mono">${esc(vals[i])}</td><td class="td-right up">Live</td></tr>`).join('');
-}
-function setText(id, value) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = value;
-}
-function renderBoroughs(geos) {
-  const cards = document.querySelectorAll('.borough-card');
-  const byCounty = [...new Set(geos.map(g => g.cf_boroughorcounty).filter(Boolean))];
-  if (!cards.length || !byCounty.length) return;
-  cards.forEach((card, i) => { const county = byCounty[i]; if (!county) return; const rows = geos.filter(g => g.cf_boroughorcounty === county); card.querySelector('.borough-name').textContent = county; card.querySelector('.borough-share').textContent = `${fmt0(pct(rows.filter(g => g.cf_isdac).length, rows.length))}%`; });
-}
-
-function cesStatus(text, type='') {
-  const el = document.getElementById('ces-crud-status');
   if (!el) return;
-  el.textContent = text;
-  el.className = `crud-status ${type}`.trim();
+  new Chart(el, config);
 }
-function optionLabel(value, fallback='Unassigned') { return value || fallback; }
-function populateSelect(id, rows, idField, labelFn) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = '<option value="">Select...</option>' + rows.map(r => `<option value="${esc(r[idField])}">${esc(labelFn(r))}</option>`).join('');
+
+// ── SECTION A: Clean Energy Spending (Dataverse Web API) ───────────────────
+const DATAVERSE_API = 'https://org9076e69b.crm.dynamics.com/api/data/v9.2';
+let cesSpendChart = null;
+let cesTrendChart = null;
+let cesCachedFacts = null;
+let cesCachedPeriods = null;
+
+function cesDacRow(r) {
+  return r.cf_dacstatus && String(r.cf_dacstatus.cf_dacstatuscode) === 'DAC';
 }
-function populateCesLookups() {
-  populateSelect('ces-period', lookupCache.periods, 'cf_dimperiodid', p => optionLabel(p.cf_periodlabel || p.cf_calendaryear));
-  populateSelect('ces-program', lookupCache.programs, 'cf_dimprogramid', p => optionLabel(p.cf_programname || p.cf_programcode));
-  populateSelect('ces-dacstatus', lookupCache.dacStatuses, 'cf_dacstatusid', s => optionLabel(s.cf_dacstatuslabel || s.cf_dacstatuscode));
-}
-function getInput(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
-function setInput(id, value) { const el = document.getElementById(id); if (el) el.value = value == null ? '' : value; }
-function numOrNull(id) { const value = getInput(id); return value === '' ? null : Number(value); }
-function isWholeNumber(value) { return Number.isInteger(Number(value)); }
-function sourceToken(value) { return String(value || 'NA').trim().replace(/[^a-z0-9]+/ig, '_').replace(/^_+|_+$/g, '').toUpperCase() || 'NA'; }
-function generateCesSourceTable() {
-  const period = findLookup(lookupCache.periods, 'cf_dimperiodid', getInput('ces-period'));
-  const program = findLookup(lookupCache.programs, 'cf_dimprogramid', getInput('ces-program'));
-  const dac = findLookup(lookupCache.dacStatuses, 'cf_dacstatusid', getInput('ces-dacstatus'));
-  const year = period ? (period.cf_calendaryear || period.cf_periodlabel) : 'PERIOD';
-  const programCode = program ? (program.cf_programcode || program.cf_programname) : 'PROGRAM';
-  const dacCode = dac ? (dac.cf_dacstatuscode || dac.cf_dacstatuslabel) : 'DACSTATUS';
-  return `CLCPA_HTML_CES_${sourceToken(year)}_${sourceToken(programCode)}_${sourceToken(dacCode)}`;
-}
-function updateCesSourcePreview() {
-  const el = document.getElementById('ces-source-preview');
-  if (el) el.textContent = `Generated source table: ${generateCesSourceTable()}`;
-}
-function validateCesForm() {
-  const errors = [];
-  [['ces-period','Period'], ['ces-program','Program'], ['ces-dacstatus','DAC Status']].forEach(([id, label]) => { if (!getInput(id)) errors.push(`${label} is required.`); });
-  [['ces-customersegmentcode','Customer Segment Code',100], ['ces-measurecategorycode','Measure Category Code',100]].forEach(([id, label, max]) => { if (getInput(id).length > max) errors.push(`${label} cannot exceed ${max} characters.`); });
-  [['ces-incentivedollars','Incentive Dollars'], ['ces-energysavingsmmbtu','Energy Savings MMBtu']].forEach(([id, label]) => {
-    const value = getInput(id);
-    if (value === '') return;
-    const n = Number(value);
-    if (!Number.isFinite(n) || n < -100000000000 || n > 100000000000) errors.push(`${label} must be between -100,000,000,000 and 100,000,000,000.`);
-    if (!/^-?\d+(\.\d{1,2})?$/.test(value)) errors.push(`${label} allows up to 2 decimal places.`);
+
+async function cesFetch(query) {
+  const url = DATAVERSE_API + query;
+  const res = await fetch(url, {
+    credentials: 'include',
+    headers: {
+      'OData-MaxVersion': '4.0',
+      'OData-Version': '4.0',
+      'Accept': 'application/json'
+    }
   });
-  [['ces-participants','Participants'], ['ces-installations','Installations']].forEach(([id, label]) => {
-    const value = getInput(id);
-    if (value === '') return;
-    const n = Number(value);
-    if (!Number.isFinite(n) || !isWholeNumber(value) || n < -2147483648 || n > 2147483647) errors.push(`${label} must be a whole number between -2,147,483,648 and 2,147,483,647.`);
+  const text = await res.text();
+  if (!res.ok) throw new Error('Dataverse ' + res.status + ': ' + text.slice(0, 400));
+  return JSON.parse(text);
+}
+
+function cesFmtMillions(v) {
+  if (v == null || isNaN(v)) return '—';
+  return '$' + (v / 1e6).toFixed(1) + 'M';
+}
+
+function cesFmtUsd0(v) {
+  if (v == null || isNaN(v)) return '—';
+  return '$' + Math.round(v).toLocaleString();
+}
+
+function cesFmtPct1(v) {
+  if (v == null || isNaN(v)) return '—';
+  return v.toFixed(1) + '%';
+}
+
+function cesFmtInt(v) {
+  if (v == null || isNaN(v)) return '—';
+  return Math.round(v).toLocaleString();
+}
+
+function cesHeatStyle(pct) {
+  const p = Math.max(0, Math.min(100, pct)) / 100;
+  const a = 0.12 + p * 0.45;
+  const white = pct >= 60;
+  return 'background:rgba(47,111,137,' + a + ');color:' + (white ? 'white' : 'var(--teal-dim)');
+}
+
+function cesYearTotals(rows) {
+  let dac$ = 0, non$ = 0, dacP = 0, nonP = 0;
+  for (const r of rows) {
+    const amt = Number(r.cf_incentivedollars) || 0;
+    const parts = Number(r.cf_participants) || 0;
+    if (cesDacRow(r)) { dac$ += amt; dacP += parts; }
+    else { non$ += amt; nonP += parts; }
+  }
+  const total$ = dac$ + non$;
+  const totalP = dacP + nonP;
+  const share = total$ > 0 ? dac$ / total$ * 100 : 0;
+  const avgDac = dacP > 0 ? dac$ / dacP : 0;
+  const avgNon = nonP > 0 ? non$ / nonP : 0;
+  return { dac$, non$, dacP, nonP, total$, totalP, share, avgDac, avgNon };
+}
+
+function cesProgramAgg(rows) {
+  const m = new Map();
+  for (const r of rows) {
+    const pid = r._cf_program_value;
+    const label = (r.cf_program && (r.cf_program.cf_portal_short_label || r.cf_program.cf_programname)) || 'Program';
+    if (!m.has(pid)) m.set(pid, { label, dac$: 0, non$: 0, dacP: 0, hiSum: 0, hiCnt: 0 });
+    const g = m.get(pid);
+    const amt = Number(r.cf_incentivedollars) || 0;
+    const parts = Number(r.cf_participants) || 0;
+    if (cesDacRow(r)) {
+      g.dac$ += amt;
+      g.dacP += parts;
+      if (r.cf_highimpactdacpct != null && r.cf_highimpactdacpct !== '') {
+        g.hiSum += Number(r.cf_highimpactdacpct);
+        g.hiCnt++;
+      }
+    } else g.non$ += amt;
+  }
+  return Array.from(m.values()).sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function cesDestroyCharts() {
+  if (cesSpendChart) { cesSpendChart.destroy(); cesSpendChart = null; }
+  if (cesTrendChart) { cesTrendChart.destroy(); cesTrendChart = null; }
+}
+
+function cesRenderCharts(selYear, rowsSel, trendMeta) {
+  const agg = cesProgramAgg(rowsSel);
+  const labels = agg.map(g => g.label);
+  const dacM = agg.map(g => g.dac$ / 1e6);
+  const nonM = agg.map(g => g.non$ / 1e6);
+
+  const spendCanvas = document.getElementById('ces-spend-chart');
+  const trendCanvas = document.getElementById('ces-trend-chart');
+  if (!spendCanvas || !trendCanvas) return;
+
+  cesDestroyCharts();
+
+  cesSpendChart = new Chart(spendCanvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'DAC Spend ($M)', data: dacM, backgroundColor: TEAL },
+        { label: 'Non-DAC Spend ($M)', data: nonM, backgroundColor: TEAL_LT }
+      ]
+    },
+    options: { ...baseOpts, plugins: { ...baseOpts.plugins } }
   });
-  const source = generateCesSourceTable();
-  if (source.length > 850) errors.push('Generated source table cannot exceed 850 characters.');
-  return errors;
+
+  const years = trendMeta.years;
+  const shares = trendMeta.shares;
+  const targets = trendMeta.targets;
+  const floors = trendMeta.floors;
+  let yMin = 30, yMax = 60;
+  if (years.length) {
+    const allVals = [...shares, ...targets, ...floors].filter(x => x != null && !isNaN(x));
+    if (allVals.length) {
+      const lo = Math.min(...allVals);
+      const hi = Math.max(...allVals);
+      yMin = Math.floor(lo / 5) * 5 - 5;
+      yMax = Math.ceil(hi / 5) * 5 + 5;
+      if (yMax - yMin < 15) yMax = yMin + 15;
+    }
+  }
+
+  cesTrendChart = new Chart(trendCanvas, {
+    type: 'line',
+    data: {
+      labels: years.map(String),
+      datasets: [
+        { label: 'DAC Share (%)', data: shares, borderColor: TEAL, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, tension: 0.3 },
+        { label: 'Target (%)', data: targets, borderColor: '#10b981', borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 },
+        { label: 'Floor (%)', data: floors, borderColor: '#f59e0b', borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 }
+      ]
+    },
+    options: {
+      ...baseOpts,
+      scales: {
+        ...baseOpts.scales,
+        y: { ...baseOpts.scales.y, min: yMin, max: yMax, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + '%' } }
+      }
+    }
+  });
 }
-function buildCesPayload() {
-  const payload = {
-    cf_sourcetable: generateCesSourceTable(),
-    'cf_period@odata.bind': `/${ENTITY.periods}(${getInput('ces-period')})`,
-    'cf_program@odata.bind': `/${ENTITY.programs}(${getInput('ces-program')})`,
-    'cf_dacstatus@odata.bind': `/${ENTITY.dac}(${getInput('ces-dacstatus')})`
-  };
-  [['cf_customersegmentcode','ces-customersegmentcode'], ['cf_measurecategorycode','ces-measurecategorycode']].forEach(([field, id]) => { payload[field] = getInput(id) || null; });
-  [['cf_incentivedollars','ces-incentivedollars'], ['cf_energysavingsmmbtu','ces-energysavingsmmbtu'], ['cf_participants','ces-participants'], ['cf_installations','ces-installations']].forEach(([field, id]) => { payload[field] = numOrNull(id); });
-  return payload;
+
+async function cesLoadAll() {
+  const qPeriods = "/cf_dimperiods?$filter=cf_calendaryear eq 2023 or cf_calendaryear eq 2024"
+    + "&$select=cf_dimperiodid,cf_calendaryear,cf_clcpa_sectiona_dacshare_target_pct,cf_clcpa_sectiona_dacshare_floor_pct,cf_clcpa_sectiona_kpi1_status_label,cf_clcpa_sectiona_kpi4_yoy_label";
+  const periodJson = await cesFetch(qPeriods);
+  const periods = periodJson.value || [];
+  if (!periods.length) throw new Error('No cf_dimperiod rows for 2023–2024.');
+
+  const byYear = {};
+  for (const p of periods) {
+    const y = Number(p.cf_calendaryear);
+    if (!isNaN(y)) byYear[y] = p;
+  }
+
+  const ids = [2023, 2024].map(y => byYear[y] && byYear[y].cf_dimperiodid).filter(Boolean);
+  if (!ids.length) throw new Error('Could not resolve period IDs for 2023/2024.');
+
+  const orFilter = ids.map(id => "_cf_period_value eq " + id).join(' or ');
+  const qFacts = '/cf_factcleanenergyspendings?$filter=' + encodeURIComponent('(' + orFilter + ')')
+    + '&$expand=cf_program($select=cf_portal_short_label,cf_programname),cf_dacstatus($select=cf_dacstatuscode)'
+    + '&$select=cf_incentivedollars,cf_participants,cf_highimpactdacpct,_cf_period_value,_cf_program_value';
+
+  const factJson = await cesFetch(qFacts);
+  const facts = factJson.value || [];
+  cesCachedPeriods = byYear;
+  cesCachedFacts = facts;
+  return { byYear, facts };
 }
-function showCesForm(record) {
-  populateCesLookups();
-  setInput('ces-record-id', record ? record.cf_factcleanenergyspendingid : '');
-  setInput('ces-period', record ? getLookupId(record, 'period') : '');
-  setInput('ces-program', record ? getLookupId(record, 'program') : '');
-  setInput('ces-dacstatus', record ? getLookupId(record, 'dacstatus') : '');
-  setInput('ces-customersegmentcode', record ? record.cf_customersegmentcode : '');
-  setInput('ces-measurecategorycode', record ? record.cf_measurecategorycode : '');
-  setInput('ces-incentivedollars', record ? record.cf_incentivedollars : '');
-  setInput('ces-energysavingsmmbtu', record ? record.cf_energysavingsmmbtu : '');
-  setInput('ces-participants', record ? record.cf_participants : '');
-  setInput('ces-installations', record ? record.cf_installations : '');
-  setText('ces-form-title', record ? 'Edit Clean Energy Record' : 'Submit Clean Energy Record');
-  const form = document.getElementById('ces-form');
-  if (form) form.classList.add('active');
-  updateCesSourcePreview();
+
+function cesApplyKpis(selYear, byYear, facts) {
+  const pid = byYear[selYear] && byYear[selYear].cf_dimperiodid;
+  const prevYear = selYear - 1;
+  const pidPrev = byYear[prevYear] && byYear[prevYear].cf_dimperiodid;
+
+  const rowsSel = facts.filter(f => f._cf_period_value === pid);
+  const rowsPrev = pidPrev ? facts.filter(f => f._cf_period_value === pidPrev) : [];
+
+  const cur = cesYearTotals(rowsSel);
+  const prev = rowsPrev.length ? cesYearTotals(rowsPrev) : null;
+
+  const periodRow = byYear[selYear] || {};
+  const tgt = periodRow.cf_clcpa_sectiona_dacshare_target_pct != null ? Number(periodRow.cf_clcpa_sectiona_dacshare_target_pct) : null;
+  const flr = periodRow.cf_clcpa_sectiona_dacshare_floor_pct != null ? Number(periodRow.cf_clcpa_sectiona_dacshare_floor_pct) : null;
+
+  const elShareVal = document.getElementById('ces-kpi-share-val');
+  const elShareBar = document.getElementById('ces-kpi-share-bar');
+  const elShareMk = document.getElementById('ces-kpi-share-markers');
+  const elShareYoy = document.getElementById('ces-kpi-share-yoy');
+  const elBadge = document.getElementById('ces-kpi-share-badge');
+
+  elShareVal.textContent = cesFmtPct1(cur.share);
+  let barW = 0, barBg = 'var(--teal)';
+  if (tgt != null && cur.share >= tgt) { barW = 100; barBg = 'var(--green)'; }
+  else if (tgt != null && flr != null) { barW = Math.min(100, (cur.share / tgt) * 100); barBg = cur.share >= flr ? 'var(--teal)' : 'var(--amber)'; }
+  else { barW = Math.min(100, cur.share); barBg = 'var(--teal)'; }
+  elShareBar.style.width = barW + '%';
+  elShareBar.style.background = barBg;
+
+  const m0 = document.querySelector('#ces-kpi-share-markers .kpi-bar-marker');
+  const m1 = document.querySelectorAll('#ces-kpi-share-markers .kpi-bar-marker')[1];
+  if (m0 && m1) {
+    m0.textContent = flr != null ? ('Floor ' + flr + '%') : '—';
+    m1.textContent = tgt != null ? ('Target ' + tgt + '%') : '—';
+  }
+
+  if (periodRow.cf_clcpa_sectiona_kpi1_status_label) {
+    elBadge.style.display = '';
+    elBadge.textContent = periodRow.cf_clcpa_sectiona_kpi1_status_label;
+    elBadge.classList.remove('status-ok', 'status-warn');
+    if (tgt != null && cur.share >= tgt) elBadge.classList.add('status-ok');
+    else if (flr != null && cur.share < flr) elBadge.classList.add('status-warn');
+    else elBadge.classList.add('status-ok');
+  } else {
+    elBadge.style.display = '';
+    elBadge.classList.remove('status-ok', 'status-warn');
+    if (tgt != null && cur.share >= tgt) { elBadge.classList.add('status-ok'); elBadge.textContent = 'Above target'; }
+    else if (flr != null && cur.share < flr) { elBadge.classList.add('status-warn'); elBadge.textContent = 'Below floor'; }
+    else { elBadge.classList.add('status-warn'); elBadge.textContent = 'Monitor'; }
+  }
+
+  elShareYoy.classList.remove('up', 'down', 'flat');
+  if (!prev) {
+    elShareYoy.textContent = '• No prior-year comparison';
+    elShareYoy.classList.add('flat');
+  } else {
+    const d = cur.share - prev.share;
+    elShareYoy.classList.add(d >= 0 ? 'up' : 'down');
+    elShareYoy.textContent = (d >= 0 ? '▲ ' : '▼ ') + Math.abs(d).toFixed(1) + ' pp vs ' + prevYear + ' (' + prev.share.toFixed(1) + '%)';
+  }
+
+  const elD = document.getElementById('ces-kpi-dacusd-val');
+  const elDB = document.getElementById('ces-kpi-dacusd-bar');
+  const elDM = document.getElementById('ces-kpi-dacusd-markers');
+  const elDY = document.getElementById('ces-kpi-dacusd-yoy');
+  elD.textContent = cesFmtMillions(cur.dac$);
+  elDB.style.width = cur.total$ > 0 ? Math.min(100, (cur.dac$ / cur.total$) * 100) + '%' : '0%';
+  elDM.querySelector('.kpi-bar-marker').textContent = 'of ' + cesFmtMillions(cur.total$) + ' total';
+  elDY.classList.remove('up', 'down', 'flat');
+  if (!prev || prev.dac$ == null || isNaN(prev.dac$)) {
+    elDY.textContent = '• No prior-year comparison';
+    elDY.classList.add('flat');
+  } else {
+    const del = cur.dac$ - prev.dac$;
+    if (Math.abs(del) < 1e-6) {
+      elDY.textContent = '• No change vs prior year';
+      elDY.classList.add('flat');
+    } else {
+      const pct = prev.dac$ ? ((del / prev.dac$) * 100).toFixed(1) : '0';
+      elDY.classList.add(del >= 0 ? 'up' : 'down');
+      const absM = Math.abs(del) / 1e6;
+      elDY.textContent = (del >= 0 ? '▲ ' : '▼ ') + '$' + absM.toFixed(1) + 'M YoY (' + (del >= 0 ? '+' : '') + pct + '%)';
+    }
+  }
+
+  const elP = document.getElementById('ces-kpi-parts-val');
+  const elPB = document.getElementById('ces-kpi-parts-bar');
+  const elPM = document.getElementById('ces-kpi-parts-markers');
+  const elPY = document.getElementById('ces-kpi-parts-yoy');
+  elP.textContent = cesFmtInt(cur.dacP);
+  elPB.style.width = cur.totalP > 0 ? Math.min(100, (cur.dacP / cur.totalP) * 100) + '%' : '0%';
+  elPM.querySelector('.kpi-bar-marker').textContent = 'of ' + cesFmtInt(cur.totalP) + ' total';
+  cesSetYOYParts(elPY, cur.dacP, prev && prev.dacP);
+
+  const elA = document.getElementById('ces-kpi-avg-val');
+  const elAB = document.getElementById('ces-kpi-avg-bar');
+  const elAM = document.getElementById('ces-kpi-avg-markers');
+  const elAY = document.getElementById('ces-kpi-avg-yoy');
+  elA.textContent = cesFmtUsd0(cur.avgDac);
+  if (cur.avgNon > 0) {
+    elAB.style.width = Math.min(100, (cur.avgDac / cur.avgNon) * 100) + '%';
+    elAM.querySelector('.kpi-bar-marker').textContent = 'Non-DAC avg: ' + cesFmtUsd0(cur.avgNon);
+  } else {
+    elAB.style.width = '0%';
+    elAM.querySelector('.kpi-bar-marker').textContent = 'Non-DAC avg: —';
+  }
+  elAY.classList.remove('up', 'down', 'flat');
+  if (periodRow.cf_clcpa_sectiona_kpi4_yoy_label) {
+    elAY.textContent = '• ' + periodRow.cf_clcpa_sectiona_kpi4_yoy_label;
+    elAY.classList.add('flat');
+  } else if (prev && prev.avgDac > 0 && cur.avgDac > 0) {
+    const del = cur.avgDac - prev.avgDac;
+    elAY.classList.remove('up', 'down', 'flat');
+    if (Math.abs(del) < 1e-6) {
+      elAY.textContent = '• No change vs prior year';
+      elAY.classList.add('flat');
+    } else {
+      elAY.classList.add(del >= 0 ? 'up' : 'down');
+      elAY.textContent = (del >= 0 ? '▲ +$' : '▼ -$') + Math.abs(Math.round(del)).toLocaleString() + ' vs prior';
+    }
+  } else {
+    const parity = cur.avgNon > 0 ? Math.abs(cur.avgDac - cur.avgNon) / cur.avgNon : 0;
+    if (parity < 0.08) { elAY.textContent = '• Near parity'; elAY.classList.add('flat'); }
+    else { elAY.textContent = '• Compare to Non-DAC avg'; elAY.classList.add('flat'); }
+  }
+
+  const yearsArr = [2023, 2024].filter(y => byYear[y] && byYear[y].cf_dimperiodid);
+  const shares = yearsArr.map(y => {
+    const id = byYear[y].cf_dimperiodid;
+    const rows = facts.filter(f => f._cf_period_value === id);
+    return cesYearTotals(rows).share;
+  });
+  const targets = yearsArr.map(y => {
+    const p = byYear[y];
+    return p.cf_clcpa_sectiona_dacshare_target_pct != null ? Number(p.cf_clcpa_sectiona_dacshare_target_pct) : null;
+  });
+  const floors = yearsArr.map(y => {
+    const p = byYear[y];
+    return p.cf_clcpa_sectiona_dacshare_floor_pct != null ? Number(p.cf_clcpa_sectiona_dacshare_floor_pct) : null;
+  });
+
+  const titleEl = document.getElementById('ces-trend-chart-title');
+  if (titleEl && yearsArr.length === 1) {
+    titleEl.textContent = 'DAC Incentive Share — Trend ' + yearsArr[0];
+  } else if (titleEl && yearsArr.length >= 2) {
+    titleEl.textContent = 'DAC Incentive Share — Trend ' + yearsArr[0] + '–' + yearsArr[yearsArr.length - 1];
+  }
+
+  cesRenderCharts(selYear, rowsSel, { years: yearsArr, shares, targets, floors });
+
+  const tb = document.getElementById('ces-program-tbody');
+  tb.innerHTML = '';
+  const programs = cesProgramAgg(rowsSel);
+  for (const g of programs) {
+    const sum = g.dac$ + g.non$;
+    const sh = sum > 0 ? g.dac$ / sum * 100 : 0;
+    const hi = g.hiCnt ? (g.hiSum / g.hiCnt) : null;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="td-bold"></td>'
+      + '<td class="td-right td-mono">' + cesFmtMillions(g.dac$) + '</td>'
+      + '<td class="td-right td-mono">' + cesFmtMillions(g.non$) + '</td>'
+      + '<td class="td-right"><span class="heat-cell" style="' + cesHeatStyle(sh) + '">' + sh.toFixed(0) + '%</span></td>'
+      + '<td class="td-right td-mono">' + cesFmtInt(g.dacP) + '</td>'
+      + '<td class="td-right td-mono">' + (hi != null ? hi.toFixed(0) + '%' : '—') + '</td>';
+    tr.querySelector('.td-bold').textContent = g.label;
+    tb.appendChild(tr);
+  }
 }
-function hideCesForm() {
-  const form = document.getElementById('ces-form');
-  if (form) form.classList.remove('active');
-}
-function renderCesCrudGrid(rows) {
-  const tbody = document.getElementById('ces-crud-tbody');
-  if (!tbody) return;
-  if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7">No Clean Energy Spending records found.</td></tr>';
+
+function cesSetYOYParts(el, cur, prev) {
+  el.classList.remove('up', 'down', 'flat');
+  if (prev == null || isNaN(cur) || isNaN(prev)) {
+    el.textContent = '• No prior-year comparison';
+    el.classList.add('flat');
     return;
   }
-  tbody.innerHTML = rows.map(r => {
-    const period = periodFor(r), program = programFor(r), dac = dacStatusFor(r);
-    return `<tr>
-      <td>${esc(optionLabel(period && (period.cf_periodlabel || period.cf_calendaryear)))}</td>
-      <td class="td-bold">${esc(optionLabel(program && (program.cf_programname || program.cf_programcode)))}</td>
-      <td>${esc(optionLabel(dac && (dac.cf_dacstatuslabel || dac.cf_dacstatuscode)))}</td>
-      <td>${esc(optionLabel(r.cf_customersegmentcode, ''))}</td>
-      <td class="td-right td-mono">${'$' + fmt2(r.cf_incentivedollars || 0)}</td>
-      <td class="td-right td-mono">${fmt0(r.cf_participants || 0)}</td>
-      <td class="td-right"><div class="row-actions"><button class="link-btn" type="button" onclick="editCesRecord('${r.cf_factcleanenergyspendingid}')">Edit</button><button class="link-btn" type="button" disabled title="Delete is disabled for Phase 1">Delete disabled</button></div></td>
-    </tr>`;
-  }).join('');
-}
-async function loadCesCrudGrid() {
-  try {
-    cesStatus('Loading Clean Energy records...');
-    if (!latestDashboardData) latestDashboardData = await getDashboardData();
-    cacheLookups(latestDashboardData);
-    populateCesLookups();
-    renderCesCrudGrid(latestDashboardData.ces || []);
-    cesStatus(`Loaded ${(latestDashboardData.ces || []).length} Clean Energy records.`, 'ok');
-  } catch (err) {
-    console.error(err);
-    cesStatus('Clean Energy records failed to load - ' + err.message, 'error');
-  }
-}
-function editCesRecord(id) {
-  const record = ((latestDashboardData && latestDashboardData.ces) || []).find(r => normGuid(r.cf_factcleanenergyspendingid) === normGuid(id));
-  if (!record) { cesStatus('Unable to find the selected Clean Energy record.', 'error'); return; }
-  showCesForm(record);
-}
-async function saveCesRecord(event) {
-  event.preventDefault();
-  const errors = validateCesForm();
-  if (errors.length) { cesStatus(errors.join(' '), 'error'); return; }
-  const id = getInput('ces-record-id');
-  try {
-    cesStatus(id ? 'Updating Clean Energy record...' : 'Creating Clean Energy record...');
-    if (id) await dvPatch(ENTITY.ces, id, buildCesPayload());
-    else await dvPost(ENTITY.ces, buildCesPayload());
-    hideCesForm();
-    latestDashboardData = await getDashboardData();
-    renderDashboard(latestDashboardData);
-    renderCesCrudGrid(latestDashboardData.ces || []);
-    cesStatus(id ? 'Clean Energy record updated.' : 'Clean Energy record created.', 'ok');
-    setStatus(`Live data v${DASHBOARD_VERSION}`);
-  } catch (err) {
-    console.error(err);
-    cesStatus('Save failed - ' + err.message, 'error');
-  }
-}
-['ces-period','ces-program','ces-dacstatus'].forEach(id => document.addEventListener('change', event => { if (event.target && event.target.id === id) updateCesSourcePreview(); }));
-
-function clearDashboardValues() {
-  document.querySelectorAll('.kpi-val,.ov-val,.cap-value,.cap-mini-val,.borough-share').forEach(el => { el.textContent = '...'; });
-  const execBody = document.getElementById('exec-tbody');
-  if (execBody) execBody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
-  const cesBody = document.querySelector('#page-ces .card:not(.crud-card) table tbody');
-  if (cesBody) cesBody.innerHTML = '<tr><td colspan="6">Loading...</td></tr>';
-  Object.keys(charts).forEach(id => { charts[id].destroy(); delete charts[id]; });
+  const delta = cur - prev;
+  if (delta === 0) { el.textContent = '• No change vs prior year'; el.classList.add('flat'); return; }
+  el.classList.add(delta > 0 ? 'up' : 'down');
+  el.textContent = (delta > 0 ? '▲ +' : '▼ ') + Math.abs(delta).toLocaleString() + ' vs ' + (Number(document.getElementById('ces-year-select').value) - 1);
 }
 
-async function loadDashboard() {
-  clearDashboardValues();
-  try {
-    const data = await getDashboardData();
-    latestDashboardData = data;
-    if (!data.ces.length) {
-      setStatus('No dashboard rows were found in the CLCPA tables.', true);
-      renderCesCrudGrid([]);
-      return;
+async function initCesSection() {
+  const sel = document.getElementById('ces-year-select');
+  const err = document.getElementById('ces-err');
+  const loading = document.getElementById('ces-loading');
+  if (!sel) return;
+
+  async function run() {
+    err.style.display = 'none';
+    loading.style.display = 'block';
+    try {
+      const { byYear, facts } = await cesLoadAll();
+      const y = Number(sel.value);
+      cesApplyKpis(y, byYear, facts);
+    } catch (e) {
+      err.textContent = 'Section A could not load Dataverse data. ' + (e && e.message ? e.message : e);
+      err.style.display = 'block';
+      cesDestroyCharts();
+    } finally {
+      loading.style.display = 'none';
     }
-    renderDashboard(data);
-    renderCesCrudGrid(data.ces || []);
-    populateCesLookups();
-    cesStatus(`Loaded ${(data.ces || []).length} Clean Energy records.`, 'ok');
-    setStatus(`Live data v${DASHBOARD_VERSION}`);
-  } catch (err) {
-    console.error(err);
-    setStatus('Could not load dashboard - ' + err.message, true);
-    cesStatus('Clean Energy records failed to load - ' + err.message, 'error');
   }
+
+  sel.addEventListener('change', run);
+  run();
 }
-window.addEventListener('load', loadDashboard);
+
+document.addEventListener('DOMContentLoaded', initCesSection);
+
+// CES Spend — static chart removed; charts created in cesRenderCharts after Web API load
+
+// EV
+mk('ev-chart', {
+  type: 'bar',
+  data: {
+    labels: ['L2 Residential', 'L2 Commercial', 'DCFC Standard', 'DCFC 150kW+'],
+    datasets: [
+      { label: 'DAC Plugs', data: [1240, 820, 680, 500], backgroundColor: TEAL },
+      { label: 'Non-DAC Plugs', data: [1480, 1620, 1040, 720], backgroundColor: TEAL_LT }
+    ]
+  },
+  options: baseOpts
+});
+
+// Demand Response
+mk('dr-chart', {
+  type: 'bar',
+  data: {
+    labels: ['2021', '2022', '2023', '2024'],
+    datasets: [
+      { label: 'Committed MW', data: [268, 295, 310, 328], backgroundColor: TEAL_LT },
+      { label: 'Delivered MW', data: [241, 272, 259, 303], backgroundColor: TEAL }
+    ]
+  },
+  options: baseOpts
+});
+
+// DER
+mk('der-chart', {
+  type: 'bar',
+  data: {
+    labels: ['Net Metering', 'Community Solar', 'BTM Storage', 'Fuel Cell'],
+    datasets: [
+      { label: 'DAC MW', data: [28.4, 22.1, 8.9, 5.2], backgroundColor: TEAL },
+      { label: 'Non-DAC MW', data: [52.6, 41.3, 22.8, 10.1], backgroundColor: TEAL_LT }
+    ]
+  },
+  options: baseOpts
+});
+
+// Outages
+mk('outages-chart', {
+  type: 'line',
+  data: {
+    labels: ['2021', '2022', '2023', '2024'],
+    datasets: [
+      { label: 'DAC SAIDI (hrs)', data: [1.62, 1.74, 1.76, 1.84], borderColor: '#f59e0b', borderWidth: 2.5, pointRadius: 5, tension: 0.3 },
+      { label: 'Non-DAC SAIDI (hrs)', data: [1.44, 1.52, 1.55, 1.58], borderColor: TEAL, borderWidth: 2.5, pointRadius: 5, tension: 0.3 }
+    ]
+  },
+  options: baseOpts
+});
+
+// Jobs
+mk('jobs-chart', {
+  type: 'bar',
+  data: {
+    labels: ['Apprenticeship', 'Direct Hire', 'Training', 'Internship'],
+    datasets: [
+      { label: 'DAC Residents', data: [32, 24, 18, 13], backgroundColor: TEAL },
+      { label: 'Non-DAC', data: [18, 14, 10, 8], backgroundColor: TEAL_LT }
+    ]
+  },
+  options: baseOpts
+});
 </script>
 </body>
 </html>

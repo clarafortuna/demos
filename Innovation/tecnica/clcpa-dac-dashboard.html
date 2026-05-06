@@ -726,42 +726,52 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
     <!-- PAGE: CLEAN ENERGY SPENDING                              -->
     <!-- ════════════════════════════════════════════════════════ -->
     <div class="page" id="page-ces">
-      <div class="pg-header">
+      <div class="pg-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
         <div>
           <div class="pg-title">Clean Energy Spending</div>
           <div class="pg-subtitle">Section A · DAC incentive allocation, program breakdown, YoY trends</div>
         </div>
+        <label style="font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:8px;font-family:Inter,'Helvetica Neue',sans-serif;white-space:nowrap">
+          <span>Reporting year</span>
+          <select id="ces-year-select" title="Reporting year" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--cloud);background:var(--white);color:var(--ink);font-family:Inter,'Helvetica Neue',sans-serif">
+            <option value="2024" selected>2024</option>
+            <option value="2023">2023</option>
+          </select>
+        </label>
       </div>
+
+      <div id="ces-err" role="alert" style="display:none;margin-bottom:16px;background:var(--red-lt);color:var(--red);padding:12px 16px;border-radius:var(--r-sm);font-size:13px;line-height:1.4"></div>
+      <div id="ces-loading" style="display:none;margin-bottom:12px;font-size:12px;color:var(--mist);font-family:Inter,'Helvetica Neue',sans-serif">Loading Section A data…</div>
 
       <!-- KPI Row -->
       <div class="grid-4" style="margin-bottom:20px">
         <div class="kpi-card">
-          <div class="kpi-top"><div class="kpi-label">DAC Incentive Share</div><div class="kpi-status status-ok">Above target</div></div>
-          <div class="kpi-val">53.8%</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:100%;background:var(--green)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">Floor 35%</span><span class="kpi-bar-marker">Target 40%</span></div>
-          <div class="kpi-yoy up">▲ +4.6 pp vs 2023 (49.4%)</div>
+          <div class="kpi-top"><div class="kpi-label">DAC Incentive Share</div><div class="kpi-status status-ok" id="ces-kpi-share-badge" style="display:none">—</div></div>
+          <div class="kpi-val" id="ces-kpi-share-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-share-bar" style="width:0%;background:var(--green)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-share-markers"><span class="kpi-bar-marker">—</span><span class="kpi-bar-marker">—</span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-share-yoy">—</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Incentives ($)</div></div>
-          <div class="kpi-val">$204.8M</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:54%;background:var(--teal)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">of $380.3M total</span><span></span></div>
-          <div class="kpi-yoy up">▲ +$75.1M YoY (+57.9%)</div>
+          <div class="kpi-val" id="ces-kpi-dacusd-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-dacusd-bar" style="width:0%;background:var(--teal)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-dacusd-markers"><span class="kpi-bar-marker">—</span><span></span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-dacusd-yoy">—</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">DAC Participants</div></div>
-          <div class="kpi-val">46,000</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:56%;background:var(--teal-lt)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">of ~82,500 total</span><span></span></div>
-          <div class="kpi-yoy up">▲ +1,900 vs 2023</div>
+          <div class="kpi-val" id="ces-kpi-parts-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-parts-bar" style="width:0%;background:var(--teal-lt)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-parts-markers"><span class="kpi-bar-marker">—</span><span></span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-parts-yoy">—</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><div class="kpi-label">Avg Incentive / DAC</div></div>
-          <div class="kpi-val">$4,452</div>
-          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" style="width:72%;background:var(--teal)"></div></div>
-          <div class="kpi-bar-markers"><span class="kpi-bar-marker">Non-DAC avg: $4,806</span><span></span></div>
-          <div class="kpi-yoy flat">• Near parity</div>
+          <div class="kpi-val" id="ces-kpi-avg-val">—</div>
+          <div class="kpi-bar-wrap"><div class="kpi-bar-fill" id="ces-kpi-avg-bar" style="width:0%;background:var(--teal)"></div></div>
+          <div class="kpi-bar-markers" id="ces-kpi-avg-markers"><span class="kpi-bar-marker">—</span><span></span></div>
+          <div class="kpi-yoy flat" id="ces-kpi-avg-yoy">—</div>
         </div>
       </div>
 
@@ -772,7 +782,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
           <div class="chart-wrap"><canvas id="ces-spend-chart" height="220"></canvas></div>
         </div>
         <div class="card">
-          <div class="chart-title">DAC Incentive Share — Trend 2021–2024</div>
+          <div class="chart-title" id="ces-trend-chart-title">DAC Incentive Share — Trend 2021–2024</div>
           <div class="chart-wrap"><canvas id="ces-trend-chart" height="220"></canvas></div>
         </div>
       </div>
@@ -783,13 +793,7 @@ tbody td { padding: 10px 12px; font-size: 13px; color: var(--ink-2); }
         <div class="tbl-wrap">
           <table>
             <thead><tr><th>Program</th><th class="td-right">DAC Spend</th><th class="td-right">Non-DAC Spend</th><th class="td-right">DAC Share</th><th class="td-right">DAC Participants</th><th class="td-right">High-Impact DAC</th></tr></thead>
-            <tbody>
-              <tr><td class="td-bold">Resi Retrofit</td><td class="td-right td-mono">$38.2M</td><td class="td-right td-mono">$54.9M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.22);color:var(--teal-dim)">41%</span></td><td class="td-right td-mono">15,200</td><td class="td-right td-mono">62%</td></tr>
-              <tr><td class="td-bold">Multifamily</td><td class="td-right td-mono">$62.5M</td><td class="td-right td-mono">$51.3M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.38);color:var(--teal-dim)">55%</span></td><td class="td-right td-mono">8,500</td><td class="td-right td-mono">58%</td></tr>
-              <tr><td class="td-bold">Income Eligible</td><td class="td-right td-mono">$74.1M</td><td class="td-right td-mono">$22.9M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.55);color:white">76%</span></td><td class="td-right td-mono">21,600</td><td class="td-right td-mono">71%</td></tr>
-              <tr><td class="td-bold">Small Business</td><td class="td-right td-mono">$18.0M</td><td class="td-right td-mono">$27.5M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.20);color:var(--teal-dim)">40%</span></td><td class="td-right td-mono">2,850</td><td class="td-right td-mono">49%</td></tr>
-              <tr><td class="td-bold">Large C&I</td><td class="td-right td-mono">$12.0M</td><td class="td-right td-mono">$34.2M</td><td class="td-right"><span class="heat-cell" style="background:rgba(47,111,137,0.12);color:var(--ink-3)">26%</span></td><td class="td-right td-mono">240</td><td class="td-right td-mono">44%</td></tr>
-            </tbody>
+            <tbody id="ces-program-tbody"></tbody>
           </table>
         </div>
       </div>
@@ -1080,32 +1084,400 @@ function mk(id, config) {
   new Chart(el, config);
 }
 
-// CES Spend
-mk('ces-spend-chart', {
-  type: 'bar',
-  data: {
-    labels: ['Resi Retrofit', 'Multifamily', 'Income Eligible', 'Small Business', 'Large C&I'],
-    datasets: [
-      { label: 'DAC Spend ($M)', data: [38.2, 62.5, 74.1, 18.0, 12.0], backgroundColor: TEAL },
-      { label: 'Non-DAC Spend ($M)', data: [54.9, 51.3, 22.9, 27.5, 34.2], backgroundColor: TEAL_LT }
-    ]
-  },
-  options: { ...baseOpts, plugins: { ...baseOpts.plugins } }
-});
+// ── SECTION A: Clean Energy Spending (Dataverse Web API) ───────────────────
+const DATAVERSE_API = 'https://org9076e69b.crm.dynamics.com/api/data/v9.2';
+let cesSpendChart = null;
+let cesTrendChart = null;
+let cesCachedFacts = null;
+let cesCachedPeriods = null;
 
-// CES Trend
-mk('ces-trend-chart', {
-  type: 'line',
-  data: {
-    labels: ['2021', '2022', '2023', '2024'],
-    datasets: [
-      { label: 'DAC Share (%)', data: [43.0, 44.9, 47.2, 53.8], borderColor: TEAL, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, tension: 0.3 },
-      { label: 'Target (40%)', data: [40, 40, 40, 40], borderColor: '#10b981', borderDash: [5,4], borderWidth: 1.5, pointRadius: 0 },
-      { label: 'Floor (35%)', data: [35, 35, 35, 35], borderColor: '#f59e0b', borderDash: [5,4], borderWidth: 1.5, pointRadius: 0 }
-    ]
-  },
-  options: { ...baseOpts, scales: { ...baseOpts.scales, y: { ...baseOpts.scales.y, min: 30, max: 60, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + '%' } } } }
-});
+function cesDacRow(r) {
+  return r.cf_dacstatus && String(r.cf_dacstatus.cf_dacstatuscode) === 'DAC';
+}
+
+async function cesFetch(query) {
+  const url = DATAVERSE_API + query;
+  const res = await fetch(url, {
+    credentials: 'include',
+    headers: {
+      'OData-MaxVersion': '4.0',
+      'OData-Version': '4.0',
+      'Accept': 'application/json'
+    }
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error('Dataverse ' + res.status + ': ' + text.slice(0, 400));
+  return JSON.parse(text);
+}
+
+function cesFmtMillions(v) {
+  if (v == null || isNaN(v)) return '—';
+  return '$' + (v / 1e6).toFixed(1) + 'M';
+}
+
+function cesFmtUsd0(v) {
+  if (v == null || isNaN(v)) return '—';
+  return '$' + Math.round(v).toLocaleString();
+}
+
+function cesFmtPct1(v) {
+  if (v == null || isNaN(v)) return '—';
+  return v.toFixed(1) + '%';
+}
+
+function cesFmtInt(v) {
+  if (v == null || isNaN(v)) return '—';
+  return Math.round(v).toLocaleString();
+}
+
+function cesHeatStyle(pct) {
+  const p = Math.max(0, Math.min(100, pct)) / 100;
+  const a = 0.12 + p * 0.45;
+  const white = pct >= 60;
+  return 'background:rgba(47,111,137,' + a + ');color:' + (white ? 'white' : 'var(--teal-dim)');
+}
+
+function cesYearTotals(rows) {
+  let dac$ = 0, non$ = 0, dacP = 0, nonP = 0;
+  for (const r of rows) {
+    const amt = Number(r.cf_incentivedollars) || 0;
+    const parts = Number(r.cf_participants) || 0;
+    if (cesDacRow(r)) { dac$ += amt; dacP += parts; }
+    else { non$ += amt; nonP += parts; }
+  }
+  const total$ = dac$ + non$;
+  const totalP = dacP + nonP;
+  const share = total$ > 0 ? dac$ / total$ * 100 : 0;
+  const avgDac = dacP > 0 ? dac$ / dacP : 0;
+  const avgNon = nonP > 0 ? non$ / nonP : 0;
+  return { dac$, non$, dacP, nonP, total$, totalP, share, avgDac, avgNon };
+}
+
+function cesProgramAgg(rows) {
+  const m = new Map();
+  for (const r of rows) {
+    const pid = r._cf_program_value;
+    const label = (r.cf_program && (r.cf_program.cf_portal_short_label || r.cf_program.cf_programname)) || 'Program';
+    if (!m.has(pid)) m.set(pid, { label, dac$: 0, non$: 0, dacP: 0, hiSum: 0, hiCnt: 0 });
+    const g = m.get(pid);
+    const amt = Number(r.cf_incentivedollars) || 0;
+    const parts = Number(r.cf_participants) || 0;
+    if (cesDacRow(r)) {
+      g.dac$ += amt;
+      g.dacP += parts;
+      if (r.cf_highimpactdacpct != null && r.cf_highimpactdacpct !== '') {
+        g.hiSum += Number(r.cf_highimpactdacpct);
+        g.hiCnt++;
+      }
+    } else g.non$ += amt;
+  }
+  return Array.from(m.values()).sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function cesDestroyCharts() {
+  if (cesSpendChart) { cesSpendChart.destroy(); cesSpendChart = null; }
+  if (cesTrendChart) { cesTrendChart.destroy(); cesTrendChart = null; }
+}
+
+function cesRenderCharts(selYear, rowsSel, trendMeta) {
+  const agg = cesProgramAgg(rowsSel);
+  const labels = agg.map(g => g.label);
+  const dacM = agg.map(g => g.dac$ / 1e6);
+  const nonM = agg.map(g => g.non$ / 1e6);
+
+  const spendCanvas = document.getElementById('ces-spend-chart');
+  const trendCanvas = document.getElementById('ces-trend-chart');
+  if (!spendCanvas || !trendCanvas) return;
+
+  cesDestroyCharts();
+
+  cesSpendChart = new Chart(spendCanvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'DAC Spend ($M)', data: dacM, backgroundColor: TEAL },
+        { label: 'Non-DAC Spend ($M)', data: nonM, backgroundColor: TEAL_LT }
+      ]
+    },
+    options: { ...baseOpts, plugins: { ...baseOpts.plugins } }
+  });
+
+  const years = trendMeta.years;
+  const shares = trendMeta.shares;
+  const targets = trendMeta.targets;
+  const floors = trendMeta.floors;
+  let yMin = 30, yMax = 60;
+  if (years.length) {
+    const allVals = [...shares, ...targets, ...floors].filter(x => x != null && !isNaN(x));
+    if (allVals.length) {
+      const lo = Math.min(...allVals);
+      const hi = Math.max(...allVals);
+      yMin = Math.floor(lo / 5) * 5 - 5;
+      yMax = Math.ceil(hi / 5) * 5 + 5;
+      if (yMax - yMin < 15) yMax = yMin + 15;
+    }
+  }
+
+  cesTrendChart = new Chart(trendCanvas, {
+    type: 'line',
+    data: {
+      labels: years.map(String),
+      datasets: [
+        { label: 'DAC Share (%)', data: shares, borderColor: TEAL, backgroundColor: 'transparent', borderWidth: 2.5, pointRadius: 5, tension: 0.3 },
+        { label: 'Target (%)', data: targets, borderColor: '#10b981', borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 },
+        { label: 'Floor (%)', data: floors, borderColor: '#f59e0b', borderDash: [5, 4], borderWidth: 1.5, pointRadius: 0 }
+      ]
+    },
+    options: {
+      ...baseOpts,
+      scales: {
+        ...baseOpts.scales,
+        y: { ...baseOpts.scales.y, min: yMin, max: yMax, ticks: { ...baseOpts.scales.y.ticks, callback: v => v + '%' } }
+      }
+    }
+  });
+}
+
+async function cesLoadAll() {
+  const qPeriods = "/cf_dimperiods?$filter=cf_calendaryear eq 2023 or cf_calendaryear eq 2024"
+    + "&$select=cf_dimperiodid,cf_calendaryear,cf_clcpa_sectiona_dacshare_target_pct,cf_clcpa_sectiona_dacshare_floor_pct,cf_clcpa_sectiona_kpi1_status_label,cf_clcpa_sectiona_kpi4_yoy_label";
+  const periodJson = await cesFetch(qPeriods);
+  const periods = periodJson.value || [];
+  if (!periods.length) throw new Error('No cf_dimperiod rows for 2023–2024.');
+
+  const byYear = {};
+  for (const p of periods) {
+    const y = Number(p.cf_calendaryear);
+    if (!isNaN(y)) byYear[y] = p;
+  }
+
+  const ids = [2023, 2024].map(y => byYear[y] && byYear[y].cf_dimperiodid).filter(Boolean);
+  if (!ids.length) throw new Error('Could not resolve period IDs for 2023/2024.');
+
+  const orFilter = ids.map(id => "_cf_period_value eq " + id).join(' or ');
+  const qFacts = '/cf_factcleanenergyspendings?$filter=' + encodeURIComponent('(' + orFilter + ')')
+    + '&$expand=cf_program($select=cf_portal_short_label,cf_programname),cf_dacstatus($select=cf_dacstatuscode)'
+    + '&$select=cf_incentivedollars,cf_participants,cf_highimpactdacpct,_cf_period_value,_cf_program_value';
+
+  const factJson = await cesFetch(qFacts);
+  const facts = factJson.value || [];
+  cesCachedPeriods = byYear;
+  cesCachedFacts = facts;
+  return { byYear, facts };
+}
+
+function cesApplyKpis(selYear, byYear, facts) {
+  const pid = byYear[selYear] && byYear[selYear].cf_dimperiodid;
+  const prevYear = selYear - 1;
+  const pidPrev = byYear[prevYear] && byYear[prevYear].cf_dimperiodid;
+
+  const rowsSel = facts.filter(f => f._cf_period_value === pid);
+  const rowsPrev = pidPrev ? facts.filter(f => f._cf_period_value === pidPrev) : [];
+
+  const cur = cesYearTotals(rowsSel);
+  const prev = rowsPrev.length ? cesYearTotals(rowsPrev) : null;
+
+  const periodRow = byYear[selYear] || {};
+  const tgt = periodRow.cf_clcpa_sectiona_dacshare_target_pct != null ? Number(periodRow.cf_clcpa_sectiona_dacshare_target_pct) : null;
+  const flr = periodRow.cf_clcpa_sectiona_dacshare_floor_pct != null ? Number(periodRow.cf_clcpa_sectiona_dacshare_floor_pct) : null;
+
+  const elShareVal = document.getElementById('ces-kpi-share-val');
+  const elShareBar = document.getElementById('ces-kpi-share-bar');
+  const elShareMk = document.getElementById('ces-kpi-share-markers');
+  const elShareYoy = document.getElementById('ces-kpi-share-yoy');
+  const elBadge = document.getElementById('ces-kpi-share-badge');
+
+  elShareVal.textContent = cesFmtPct1(cur.share);
+  let barW = 0, barBg = 'var(--teal)';
+  if (tgt != null && cur.share >= tgt) { barW = 100; barBg = 'var(--green)'; }
+  else if (tgt != null && flr != null) { barW = Math.min(100, (cur.share / tgt) * 100); barBg = cur.share >= flr ? 'var(--teal)' : 'var(--amber)'; }
+  else { barW = Math.min(100, cur.share); barBg = 'var(--teal)'; }
+  elShareBar.style.width = barW + '%';
+  elShareBar.style.background = barBg;
+
+  const m0 = document.querySelector('#ces-kpi-share-markers .kpi-bar-marker');
+  const m1 = document.querySelectorAll('#ces-kpi-share-markers .kpi-bar-marker')[1];
+  if (m0 && m1) {
+    m0.textContent = flr != null ? ('Floor ' + flr + '%') : '—';
+    m1.textContent = tgt != null ? ('Target ' + tgt + '%') : '—';
+  }
+
+  if (periodRow.cf_clcpa_sectiona_kpi1_status_label) {
+    elBadge.style.display = '';
+    elBadge.textContent = periodRow.cf_clcpa_sectiona_kpi1_status_label;
+    elBadge.classList.remove('status-ok', 'status-warn');
+    if (tgt != null && cur.share >= tgt) elBadge.classList.add('status-ok');
+    else if (flr != null && cur.share < flr) elBadge.classList.add('status-warn');
+    else elBadge.classList.add('status-ok');
+  } else {
+    elBadge.style.display = '';
+    elBadge.classList.remove('status-ok', 'status-warn');
+    if (tgt != null && cur.share >= tgt) { elBadge.classList.add('status-ok'); elBadge.textContent = 'Above target'; }
+    else if (flr != null && cur.share < flr) { elBadge.classList.add('status-warn'); elBadge.textContent = 'Below floor'; }
+    else { elBadge.classList.add('status-warn'); elBadge.textContent = 'Monitor'; }
+  }
+
+  elShareYoy.classList.remove('up', 'down', 'flat');
+  if (!prev) {
+    elShareYoy.textContent = '• No prior-year comparison';
+    elShareYoy.classList.add('flat');
+  } else {
+    const d = cur.share - prev.share;
+    elShareYoy.classList.add(d >= 0 ? 'up' : 'down');
+    elShareYoy.textContent = (d >= 0 ? '▲ ' : '▼ ') + Math.abs(d).toFixed(1) + ' pp vs ' + prevYear + ' (' + prev.share.toFixed(1) + '%)';
+  }
+
+  const elD = document.getElementById('ces-kpi-dacusd-val');
+  const elDB = document.getElementById('ces-kpi-dacusd-bar');
+  const elDM = document.getElementById('ces-kpi-dacusd-markers');
+  const elDY = document.getElementById('ces-kpi-dacusd-yoy');
+  elD.textContent = cesFmtMillions(cur.dac$);
+  elDB.style.width = cur.total$ > 0 ? Math.min(100, (cur.dac$ / cur.total$) * 100) + '%' : '0%';
+  elDM.querySelector('.kpi-bar-marker').textContent = 'of ' + cesFmtMillions(cur.total$) + ' total';
+  elDY.classList.remove('up', 'down', 'flat');
+  if (!prev || prev.dac$ == null || isNaN(prev.dac$)) {
+    elDY.textContent = '• No prior-year comparison';
+    elDY.classList.add('flat');
+  } else {
+    const del = cur.dac$ - prev.dac$;
+    if (Math.abs(del) < 1e-6) {
+      elDY.textContent = '• No change vs prior year';
+      elDY.classList.add('flat');
+    } else {
+      const pct = prev.dac$ ? ((del / prev.dac$) * 100).toFixed(1) : '0';
+      elDY.classList.add(del >= 0 ? 'up' : 'down');
+      const absM = Math.abs(del) / 1e6;
+      elDY.textContent = (del >= 0 ? '▲ ' : '▼ ') + '$' + absM.toFixed(1) + 'M YoY (' + (del >= 0 ? '+' : '') + pct + '%)';
+    }
+  }
+
+  const elP = document.getElementById('ces-kpi-parts-val');
+  const elPB = document.getElementById('ces-kpi-parts-bar');
+  const elPM = document.getElementById('ces-kpi-parts-markers');
+  const elPY = document.getElementById('ces-kpi-parts-yoy');
+  elP.textContent = cesFmtInt(cur.dacP);
+  elPB.style.width = cur.totalP > 0 ? Math.min(100, (cur.dacP / cur.totalP) * 100) + '%' : '0%';
+  elPM.querySelector('.kpi-bar-marker').textContent = 'of ' + cesFmtInt(cur.totalP) + ' total';
+  cesSetYOYParts(elPY, cur.dacP, prev && prev.dacP);
+
+  const elA = document.getElementById('ces-kpi-avg-val');
+  const elAB = document.getElementById('ces-kpi-avg-bar');
+  const elAM = document.getElementById('ces-kpi-avg-markers');
+  const elAY = document.getElementById('ces-kpi-avg-yoy');
+  elA.textContent = cesFmtUsd0(cur.avgDac);
+  if (cur.avgNon > 0) {
+    elAB.style.width = Math.min(100, (cur.avgDac / cur.avgNon) * 100) + '%';
+    elAM.querySelector('.kpi-bar-marker').textContent = 'Non-DAC avg: ' + cesFmtUsd0(cur.avgNon);
+  } else {
+    elAB.style.width = '0%';
+    elAM.querySelector('.kpi-bar-marker').textContent = 'Non-DAC avg: —';
+  }
+  elAY.classList.remove('up', 'down', 'flat');
+  if (periodRow.cf_clcpa_sectiona_kpi4_yoy_label) {
+    elAY.textContent = '• ' + periodRow.cf_clcpa_sectiona_kpi4_yoy_label;
+    elAY.classList.add('flat');
+  } else if (prev && prev.avgDac > 0 && cur.avgDac > 0) {
+    const del = cur.avgDac - prev.avgDac;
+    elAY.classList.remove('up', 'down', 'flat');
+    if (Math.abs(del) < 1e-6) {
+      elAY.textContent = '• No change vs prior year';
+      elAY.classList.add('flat');
+    } else {
+      elAY.classList.add(del >= 0 ? 'up' : 'down');
+      elAY.textContent = (del >= 0 ? '▲ +$' : '▼ -$') + Math.abs(Math.round(del)).toLocaleString() + ' vs prior';
+    }
+  } else {
+    const parity = cur.avgNon > 0 ? Math.abs(cur.avgDac - cur.avgNon) / cur.avgNon : 0;
+    if (parity < 0.08) { elAY.textContent = '• Near parity'; elAY.classList.add('flat'); }
+    else { elAY.textContent = '• Compare to Non-DAC avg'; elAY.classList.add('flat'); }
+  }
+
+  const yearsArr = [2023, 2024].filter(y => byYear[y] && byYear[y].cf_dimperiodid);
+  const shares = yearsArr.map(y => {
+    const id = byYear[y].cf_dimperiodid;
+    const rows = facts.filter(f => f._cf_period_value === id);
+    return cesYearTotals(rows).share;
+  });
+  const targets = yearsArr.map(y => {
+    const p = byYear[y];
+    return p.cf_clcpa_sectiona_dacshare_target_pct != null ? Number(p.cf_clcpa_sectiona_dacshare_target_pct) : null;
+  });
+  const floors = yearsArr.map(y => {
+    const p = byYear[y];
+    return p.cf_clcpa_sectiona_dacshare_floor_pct != null ? Number(p.cf_clcpa_sectiona_dacshare_floor_pct) : null;
+  });
+
+  const titleEl = document.getElementById('ces-trend-chart-title');
+  if (titleEl && yearsArr.length === 1) {
+    titleEl.textContent = 'DAC Incentive Share — Trend ' + yearsArr[0];
+  } else if (titleEl && yearsArr.length >= 2) {
+    titleEl.textContent = 'DAC Incentive Share — Trend ' + yearsArr[0] + '–' + yearsArr[yearsArr.length - 1];
+  }
+
+  cesRenderCharts(selYear, rowsSel, { years: yearsArr, shares, targets, floors });
+
+  const tb = document.getElementById('ces-program-tbody');
+  tb.innerHTML = '';
+  const programs = cesProgramAgg(rowsSel);
+  for (const g of programs) {
+    const sum = g.dac$ + g.non$;
+    const sh = sum > 0 ? g.dac$ / sum * 100 : 0;
+    const hi = g.hiCnt ? (g.hiSum / g.hiCnt) : null;
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td class="td-bold"></td>'
+      + '<td class="td-right td-mono">' + cesFmtMillions(g.dac$) + '</td>'
+      + '<td class="td-right td-mono">' + cesFmtMillions(g.non$) + '</td>'
+      + '<td class="td-right"><span class="heat-cell" style="' + cesHeatStyle(sh) + '">' + sh.toFixed(0) + '%</span></td>'
+      + '<td class="td-right td-mono">' + cesFmtInt(g.dacP) + '</td>'
+      + '<td class="td-right td-mono">' + (hi != null ? hi.toFixed(0) + '%' : '—') + '</td>';
+    tr.querySelector('.td-bold').textContent = g.label;
+    tb.appendChild(tr);
+  }
+}
+
+function cesSetYOYParts(el, cur, prev) {
+  el.classList.remove('up', 'down', 'flat');
+  if (prev == null || isNaN(cur) || isNaN(prev)) {
+    el.textContent = '• No prior-year comparison';
+    el.classList.add('flat');
+    return;
+  }
+  const delta = cur - prev;
+  if (delta === 0) { el.textContent = '• No change vs prior year'; el.classList.add('flat'); return; }
+  el.classList.add(delta > 0 ? 'up' : 'down');
+  el.textContent = (delta > 0 ? '▲ +' : '▼ ') + Math.abs(delta).toLocaleString() + ' vs ' + (Number(document.getElementById('ces-year-select').value) - 1);
+}
+
+async function initCesSection() {
+  const sel = document.getElementById('ces-year-select');
+  const err = document.getElementById('ces-err');
+  const loading = document.getElementById('ces-loading');
+  if (!sel) return;
+
+  async function run() {
+    err.style.display = 'none';
+    loading.style.display = 'block';
+    try {
+      const { byYear, facts } = await cesLoadAll();
+      const y = Number(sel.value);
+      cesApplyKpis(y, byYear, facts);
+    } catch (e) {
+      err.textContent = 'Section A could not load Dataverse data. ' + (e && e.message ? e.message : e);
+      err.style.display = 'block';
+      cesDestroyCharts();
+    } finally {
+      loading.style.display = 'none';
+    }
+  }
+
+  sel.addEventListener('change', run);
+  run();
+}
+
+document.addEventListener('DOMContentLoaded', initCesSection);
+
+// CES Spend — static chart removed; charts created in cesRenderCharts after Web API load
 
 // EV
 mk('ev-chart', {
