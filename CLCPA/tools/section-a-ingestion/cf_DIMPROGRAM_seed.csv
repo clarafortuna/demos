@@ -1,0 +1,6 @@
+cf_dimprogramid,cf_programcode,cf_programname,cf_portal_short_label,cf_sectioncode,cf_isactive
+"c3333333-3333-3333-3333-333333330001","A_RESI_RETROFIT","Residential Energy Efficiency Program","Resi Retrofit","A",1
+"c3333333-3333-3333-3333-333333330002","A_MULTIFAMILY","Multifamily Energy Efficiency Program","Multifamily","A",1
+"c3333333-3333-3333-3333-333333330003","A_INCOME_ELIGIBLE","Income-Eligible Energy Efficiency Program","Income Eligible","A",1
+"c3333333-3333-3333-3333-333333330004","A_SMALL_BUSINESS","Small Business Clean Energy Program","Small Business","A",1
+"c3333333-3333-3333-3333-333333330005","A_LARGE_CI","Large Commercial & Industrial Clean Energy Program","Large C&I","A",1

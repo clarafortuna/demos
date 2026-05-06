@@ -1,0 +1,5 @@
+cf_dimperiodid,cf_periodgrain,cf_calendaryear,cf_periodlabel,cf_periodstartdate,cf_periodenddate,cf_isreportperiod,cf_clcpa_sectiona_dacshare_target_pct,cf_clcpa_sectiona_dacshare_floor_pct,cf_clcpa_sectiona_kpi1_status_label,cf_clcpa_sectiona_kpi4_yoy_label
+"a1111111-1111-1111-1111-111111110223","YEAR 2023",2023,"FY 2023",2023-01-01,2023-12-31,1,40,35,,
+"a1111111-1111-1111-1111-111111110224","YEAR 2024",2024,"FY 2024",2024-01-01,2024-12-31,1,40,35,"Above target","Near parity"
+"a1111111-1111-1111-1111-111111110225","YEAR 2025",2025,"FY 2025",2025-01-01,2025-12-31,0,40,35,,
+"a1111111-1111-1111-1111-111111110226","YEAR 2026",2026,"FY 2026",2026-01-01,2026-12-31,0,40,35,,
