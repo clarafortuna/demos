@@ -9,8 +9,12 @@ using Azure.Identity;
 //   dotnet run
 //   dotnet run -- https://yourorg.crm.dynamics.com
 //   dotnet run -- patch [optional org url]
+//   dotnet run -- delete-ui-dupes [optional org url]
+//   dotnet run -- enrich-legacy-a1 [optional org url]
 //
 // patch: PATCH f55… legacy A1 facts (lookups + post-verify vs __LEGACY_DASH), then print full integrity report.
+// delete-ui-dupes: DELETE four duplicate UI-SectionA fact rows (FIX 1 normalization).
+// enrich-legacy-a1: PATCH LEGACY_A1 f55… rows with cf_energysavingsmmbtu (Table A2) and cf_participants (A3, split by A2 DAC share).
 
 var mode = "verify";
 var url = "https://org9076e69b.crm.dynamics.com";
@@ -20,6 +24,18 @@ if (args.Length > 0)
     if (string.Equals(args[0], "patch", StringComparison.OrdinalIgnoreCase))
     {
         mode = "patch";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "delete-ui-dupes", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "delete-ui-dupes";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "enrich-legacy-a1", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "enrich-legacy-a1";
         if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
             url = args[1].TrimEnd('/');
     }
@@ -57,6 +73,21 @@ http.DefaultRequestHeaders.Add("OData-Version", "4.0");
 var ingestionDir = VerifyTools.FindIngestionToolDir();
 if (mode == "patch")
     await LegacyA1FactPatch.Run(http, url, ingestionDir);
+
+if (mode == "delete-ui-dupes")
+{
+    await DeleteUiSectionADupes.Run(http);
+    Console.WriteLine("FIX 1 complete. Exiting (no full verify report).");
+    return;
+}
+
+if (mode == "enrich-legacy-a1")
+{
+    var rootEarly = VerifyTools.FindClcpaRepoRoot(VerifyTools.FindIngestionToolDir());
+    await LegacyA1TableEnrichment.Run(http, rootEarly);
+    Console.WriteLine("Exiting after enrich-legacy-a1 (no full verify report).");
+    return;
+}
 
 var clcpaRoot = VerifyTools.FindClcpaRepoRoot(ingestionDir);
 var periodIds = await VerifyTools.LoadActiveIdSet(http, "cf_dimperiods", "cf_dimperiodid");

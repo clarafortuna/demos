@@ -18,6 +18,38 @@ Then validate `mergeSectionA` against packaged legacy JSON:
 node verify-merge-section-a.mjs
 ```
 
+### Optional: remove duplicate UI-created facts
+
+If manual **Section A** entry created extra rows with `cf_sourcetable = UI-SectionA` (same program/year/DAC as seeded facts), delete them so incentives are not double-counted:
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- delete-ui-dupes
+```
+
+### Optional: align `f55…` `LEGACY_A1` rows with published tables (A2 / A3)
+
+Legacy **`__LEGACY_DASH`** embeds **Table A2** (program energy savings, MMBtu) and **Table A3** (participants by program, summed across participant types). To copy those values onto **`cf_energysavingsmmbtu`** and **`cf_participants`** for every active fact whose id starts with `f55aaaaa` and whose `cf_sourcetable` starts with `LEGACY_A1`:
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- enrich-legacy-a1
+```
+
+- **Energy:** DAC rows get the **DAC Energy Savings (MMBtu)** column from A2; NON_DAC rows get **Total − DAC**. Program labels on facts are matched to A2/A3 rows by **exact name** or a **prefix/suffix** rule (e.g. fact `SMB Program` ↔ table `SMB Program - Electric & Gas`).
+- **Participants:** A3 totals per program are split across DAC and NON_DAC fact rows using the **same DAC share** as in A2 (`DAC MMBtu / Total MMBtu`). If there is no A2 energy row for that program/year, **all** participants from A3 are written to the **NON_DAC** row and the DAC row gets **0** (still no double-count when summing dac + non-dac).
+
+Some chart-only programs (e.g. **Commercial Kitchen**) may appear in A3 but not A2; in that case only participants are updated.
+
+### Dual naming: chart labels vs long portfolio names (do not delete long-name rows)
+
+Two naming schemes **intentionally** coexist in `cf_FACTCLEANENERGYSPENDING`:
+
+1. **Legacy / chart-shaped** names on `f55…` rows with `cf_sourcetable` like `LEGACY_A1_…` — these match the labels in **`A1_programs_YYYY`** and the program names in **Tables A2/A3** (with the small prefix/suffix alignment described above).
+2. **Long / portfolio-shaped** names on other facts (e.g. `f444…` rows, `A1_2023_RESI_…`) — these carry the same incentive totals for **different reporting slices** but **do not** share the same strings as the legacy chart series.
+
+**Do not delete** the long-name rows to “deduplicate”; they are not errors. The **Section A** merge that drives **`A1_programs_*`** uses **`programMatchesLegacyForA1`** in `cf_clcpa_dash_hybrid`: **case-insensitive exact** match on `cf_programname` to the legacy chart label, plus a **small set of acronym shortcuts** (CSRP, DLRP, BYOT, TERM/DLM, AUTO/DLM). It **does not** use substring matching, so a fact named **Multifamily** does not pick up **Multifamily Energy Efficiency Program** and vice versa. **`mergeSectionC`** still uses the broader **`programMatchesLegacy`** (substring / normalized containment) so Section C charts do not mis-roll shorter names into unrelated programs.
+
 ---
 
 ## Row counts (confirm before import)
