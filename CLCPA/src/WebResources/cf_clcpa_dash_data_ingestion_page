@@ -51,7 +51,7 @@
   function dvFetch(path, init) {
     var base = getClientUrlIngestion();
     if (!base) return Promise.reject(new Error('Open inside the CLCPA model-driven app to sync Section A with Dataverse.'));
-    var url = base + path;
+    var url = /^https?:\/\//i.test(path) ? path : (base + path);
     var headers = {
       'Accept': 'application/json',
       'OData-MaxVersion': '4.0',
@@ -82,7 +82,7 @@
   }
 
   function loadSectionAPrograms() {
-    var qs = '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_isactive' +
+    var qs = '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_isactive,cf_reportingtable' +
       '&$filter=statecode eq 0 and cf_sectioncode eq \'A\' and cf_isactive eq true&$orderby=cf_programname';
     return dvFetch(API_DV + 'cf_dimprograms' + qs).then(function (r) {
       if (!r.ok) throw new Error('Programs ' + r.status);
@@ -90,7 +90,7 @@
     }).then(function (d) {
       sectionAPrograms = d.value || [];
       if (sectionAPrograms.length === 0) {
-        return dvFetch(API_DV + 'cf_dimprograms?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode&$filter=statecode eq 0&$orderby=cf_programname&$top=500').then(function (r2) {
+        return dvFetch(API_DV + 'cf_dimprograms?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_reportingtable&$filter=statecode eq 0&$orderby=cf_programname&$top=500').then(function (r2) {
           if (!r2.ok) throw new Error('Programs fallback ' + r2.status);
           return r2.json();
         }).then(function (d2) {
@@ -167,9 +167,16 @@
       segment = 'Non-DAC';
     }
 
+    var reportingTable = '';
+    if (f.cf_program && f.cf_program.cf_reportingtable != null && String(f.cf_program.cf_reportingtable).trim() !== '') {
+      reportingTable = String(f.cf_program.cf_reportingtable).trim();
+    }
+
     return {
       id: f.cf_factcleanenergyspendingid,
       section: 'A',
+      sourceTable: f.cf_sourcetable != null ? String(f.cf_sourcetable) : '',
+      reportingTable: reportingTable,
       values: {
         year: y,
         segment: segment,
@@ -193,19 +200,28 @@
       if (!pg) {
         return;
       }
-      var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname,cf_programcode),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+      var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname,cf_programcode,cf_reportingtable),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
       var sel = 'cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value';
       var path = API_DV + 'cf_factcleanenergyspendings?$select=' + sel +
         '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
-      return dvFetch(path).then(function (r) {
-        if (!r.ok) {
-          return parseJsonSafe(r).then(function (j) {
-            throw new Error((j.error && j.error.message) || ('Facts ' + r.status));
-          });
-        }
-        return r.json();
-      }).then(function (d) {
-        sectionARowMirror = (d.value || []).map(factToMirrorRow);
+      function pullFacts(url) {
+        return dvFetch(url).then(function (r) {
+          if (!r.ok) {
+            return parseJsonSafe(r).then(function (j) {
+              throw new Error((j.error && j.error.message) || ('Facts ' + r.status));
+            });
+          }
+          return r.json();
+        }).then(function (d) {
+          var part = d.value || [];
+          if (d['@odata.nextLink']) {
+            return pullFacts(d['@odata.nextLink']).then(function (rest) { return part.concat(rest); });
+          }
+          return part;
+        });
+      }
+      return pullFacts(path).then(function (allFacts) {
+        sectionARowMirror = allFacts.map(factToMirrorRow);
       });
     });
   }
@@ -633,6 +649,32 @@
     const n = parseFloat(cleaned);
     return isNaN(n) ? null : n;
   }
+  function reportingTableTokens(rt) {
+    if (rt == null || rt === '') return [];
+    return String(rt).split(',').map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean);
+  }
+  function reportingTableContains(rt, token) {
+    var want = String(token || '').trim().toUpperCase();
+    if (!want) return false;
+    return reportingTableTokens(rt).indexOf(want) >= 0;
+  }
+  function resolveReportingTableForRow(row) {
+    if (!row) return '';
+    var fromExpand = row.reportingTable != null ? String(row.reportingTable).trim() : '';
+    if (fromExpand) return fromExpand;
+    var progKey = row.values && row.values.program ? String(row.values.program).trim().toLowerCase() : '';
+    if (!progKey) return '';
+    var i, p, pn, pc;
+    for (i = 0; i < sectionAPrograms.length; i++) {
+      p = sectionAPrograms[i];
+      pn = String(p.cf_programname || '').trim().toLowerCase();
+      pc = String(p.cf_programcode || '').trim().toLowerCase();
+      if (pn === progKey || pc === progKey) {
+        return p.cf_reportingtable != null ? String(p.cf_reportingtable).trim() : '';
+      }
+    }
+    return '';
+  }
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, c =>
       ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -842,7 +884,13 @@
       return rs.filter(r => {
         const cls = classifyRowA(r);
         if (cls === null) return false;
-        if (tableId === 'A1' || tableId === 'A2') return cls === 'A1A2';
+        if (tableId === 'A1' || tableId === 'A2') {
+          if (cls !== 'A1A2') return false;
+          var rt = resolveReportingTableForRow(r);
+          if (tableId === 'A1' && !reportingTableContains(rt, 'A1')) return false;
+          if (tableId === 'A2' && !reportingTableContains(rt, 'A2')) return false;
+          return true;
+        }
         if (tableId === 'A3' || tableId === 'A4') return cls === 'A3';
         return cls === tableId;
       });
@@ -855,17 +903,48 @@
   // ============================================================
   // RENDERERS — Section A (preserved from v3)
   // ============================================================
-  function renderA1A2(table) {
-    const measureField = table.measure;
-    const unit = table.unit;
-    const rows = rowsForTable(table.id, state.year);
+  function preferSlotForA1Ingest(existing, incoming) {
+    if (!existing) return incoming;
+    if (!incoming) return existing;
+    var eI = parseNumberInput(existing.values.incentive_dollars);
+    var iI = parseNumberInput(incoming.values.incentive_dollars);
+    if (iI != null && eI == null) return incoming;
+    if (eI != null && iI == null) return existing;
+    var eA1 = /^LEGACY_A1/i.test(String(existing.sourceTable || ''));
+    var iA1 = /^LEGACY_A1/i.test(String(incoming.sourceTable || ''));
+    if (eA1 && !iA1) return existing;
+    if (iA1 && !eA1) return incoming;
+    return existing;
+  }
+  function preferSlotForA2Ingest(existing, incoming) {
+    if (!existing) return incoming;
+    if (!incoming) return existing;
+    var eM = parseNumberInput(existing.values.energy_savings_mmbtu);
+    var iM = parseNumberInput(incoming.values.energy_savings_mmbtu);
+    if (iM != null && eM == null) return incoming;
+    if (eM != null && iM == null) return existing;
+    var eA1 = /^LEGACY_A1/i.test(String(existing.sourceTable || ''));
+    var iA1 = /^LEGACY_A1/i.test(String(incoming.sourceTable || ''));
+    if (eA1 && !iA1) return existing;
+    if (iA1 && !eA1) return incoming;
+    return existing;
+  }
+  function mergeA1A2RowsByProgram(rows, tableId) {
+    const preferSlot = tableId === 'A1' ? preferSlotForA1Ingest : preferSlotForA2Ingest;
     const byProgram = {};
     rows.forEach(r => {
       const p = r.values.program || '';
       if (!byProgram[p]) byProgram[p] = { program: p, dacRow: null, nonDacRow: null };
-      if (/^DAC$/i.test(r.values.segment)) byProgram[p].dacRow = r;
-      else if (/^Non-DAC$/i.test(r.values.segment)) byProgram[p].nonDacRow = r;
+      if (/^DAC$/i.test(r.values.segment)) byProgram[p].dacRow = preferSlot(byProgram[p].dacRow, r);
+      else if (/^Non-DAC$/i.test(r.values.segment)) byProgram[p].nonDacRow = preferSlot(byProgram[p].nonDacRow, r);
     });
+    return byProgram;
+  }
+  function renderA1A2(table) {
+    const measureField = table.measure;
+    const unit = table.unit;
+    const rows = rowsForTable(table.id, state.year);
+    const byProgram = mergeA1A2RowsByProgram(rows, table.id);
 
     const displayRows = Object.values(byProgram).map(g => {
       const dac = parseNumberInput(g.dacRow ? g.dacRow.values[measureField] : null);
@@ -1070,8 +1149,13 @@
 
   function renderA9() {
     function totals(year, measure) {
-      const rs = loadAllRows().filter(r =>
+      let rs = loadAllRows().filter(r =>
         r.section === 'A' && r.values && String(r.values.year) === String(year) && classifyRowA(r) === 'A1A2');
+      if (measure === 'incentive_dollars') {
+        rs = rs.filter(r => reportingTableContains(resolveReportingTableForRow(r), 'A1'));
+      } else if (measure === 'energy_savings_mmbtu') {
+        rs = rs.filter(r => reportingTableContains(resolveReportingTableForRow(r), 'A2'));
+      }
       let total = 0, dac = 0;
       rs.forEach(r => {
         const v = parseNumberInput(r.values[measure]) || 0;
@@ -2186,13 +2270,7 @@
 
     const measureField = table.measure;
     const rows = rowsForTable(table.id, state.year);
-    const byProgram = {};
-    rows.forEach(r => {
-      const p = r.values.program || '';
-      if (!byProgram[p]) byProgram[p] = { program: p, dacRow: null, nonDacRow: null };
-      if (/^DAC$/i.test(r.values.segment)) byProgram[p].dacRow = r;
-      else if (/^Non-DAC$/i.test(r.values.segment)) byProgram[p].nonDacRow = r;
-    });
+    const byProgram = mergeA1A2RowsByProgram(rows, table.id);
     const displayRows = Object.values(byProgram).map(g => {
       const dac = parseNumberInput(g.dacRow ? g.dacRow.values[measureField] : null) || 0;
       const nondac = parseNumberInput(g.nonDacRow ? g.nonDacRow.values[measureField] : null) || 0;
@@ -3107,13 +3185,7 @@
     const tabs = TABLES_BY_SECTION.A;
     const table = tabs.find(t => t.id === state.table);
     const rows = rowsForTable(table.id, state.year);
-    const byProgram = {};
-    rows.forEach(r => {
-      const p = r.values.program || '';
-      if (!byProgram[p]) byProgram[p] = { program: p, dacRow: null, nonDacRow: null };
-      if (/^DAC$/i.test(r.values.segment)) byProgram[p].dacRow = r;
-      else if (/^Non-DAC$/i.test(r.values.segment)) byProgram[p].nonDacRow = r;
-    });
+    const byProgram = mergeA1A2RowsByProgram(rows, table.id);
     const measureField = table.measure;
     const displayRows = Object.values(byProgram).map(g => {
       const dac = parseNumberInput(g.dacRow ? g.dacRow.values[measureField] : null) || 0;

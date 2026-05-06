@@ -1,5 +1,15 @@
 # Section A seed import (CLCPA) — instructions
 
+After importing **`cf_dimprogram.cf_reportingtable`** (schema patch **1.0.23.0+**), set values from program code prefixes:
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- populate-dimprogram-reporting-table
+dotnet run -- populate-dimprogram-reporting-table https://YOURORG.crm.dynamics.com
+```
+
+Rules: **`A1LG*`** → `A1,A2`; **`A2LG*`** → `A2`; **`A_*`** seed codes → `A1,A2`. New A2-only programs created by STEP 3 get **`cf_reportingtable = A2`** on POST.
+
 ## Demo legacy A1 (23 programs, 48 facts) — repair null lookups
 
 Configuration Migration imports **drop entityreference fields** when the CSV GUID does not exist in the target org (e.g. seed `a111…` / `b222…` while the environment uses different period/DAC rows).

@@ -15,6 +15,7 @@
     - cf_DIMPERIOD.cf_clcpa_sectiona_kpi1_status_label
     - cf_DIMPERIOD.cf_clcpa_sectiona_kpi4_yoy_label
     - cf_DIMPROGRAM.cf_portal_short_label
+    - cf_DIMPROGRAM.cf_reportingtable
 
   Re-pack the zip after editing entity XML under `..\src\Entities\` (see `Add-SectionAFields-patch-src`):
 

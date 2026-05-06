@@ -122,6 +122,7 @@ internal static class LegacyA2TableOnlyFacts
             $"\"cf_programcode\":\"{JsonEncoded(code)}\"," +
             $"\"cf_portal_short_label\":\"{JsonEncoded(shortLabel)}\"," +
             "\"cf_sectioncode\":\"A\"," +
+            "\"cf_reportingtable\":\"A2\"," +
             "\"cf_isactive\":true" +
             "}";
         using var req = new HttpRequestMessage(HttpMethod.Post, "cf_dimprograms");

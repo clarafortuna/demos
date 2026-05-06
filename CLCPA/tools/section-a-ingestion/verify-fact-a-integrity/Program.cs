@@ -16,6 +16,7 @@ using Azure.Identity;
 //   dotnet run -- upsert-legacy-a2-mmbtu [optional org url]
 //   dotnet run -- verify-a2-mmbtu-step4 [optional org url]
 //   dotnet run -- delete-f444-portfolio [optional org url]
+//   dotnet run -- populate-dimprogram-reporting-table [optional org url]
 //
 // patch: PATCH f55… legacy A1 facts (lookups + post-verify vs __LEGACY_DASH), then print full integrity report.
 // delete-ui-dupes: DELETE four duplicate UI-SectionA fact rows (FIX 1 normalization).
@@ -75,6 +76,12 @@ if (args.Length > 0)
     else if (string.Equals(args[0], "delete-f444-portfolio", StringComparison.OrdinalIgnoreCase))
     {
         mode = "delete-f444-portfolio";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "populate-dimprogram-reporting-table", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "populate-dimprogram-reporting-table";
         if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
             url = args[1].TrimEnd('/');
     }
@@ -162,6 +169,13 @@ if (mode == "delete-f444-portfolio")
 {
     await DeleteF444PortfolioFacts.Run(http);
     Console.WriteLine("Exiting after delete-f444-portfolio.");
+    return;
+}
+
+if (mode == "populate-dimprogram-reporting-table")
+{
+    await PopulateDimProgramReportingTable.Run(http);
+    Console.WriteLine("Exiting after populate-dimprogram-reporting-table.");
     return;
 }
 

@@ -84,6 +84,14 @@
                       </cell>
                     </row>
                     <row>
+                      <cell id="{b9e7f3a1-6c42-5d8e-a103-0000cf000001}">
+                        <labels>
+                          <label description="reporting table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_reportingtable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_reportingtable" />
+                      </cell>
+                    </row>
+                    <row>
                       <cell id="{7df3d474-4abf-5b49-a9a6-483ebc389db3}">
                         <labels>
                           <label description="Owner" languagecode="1033" />
