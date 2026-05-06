@@ -1,6 +1,6 @@
 # Unpacked Dataverse solution; attach managed/unmanaged zips via GitHub Releases instead of committing.
 *.zip
-!CLCPA_1.0.21.25_unmanaged.zip
+!CLCPA_1.0.21.26_unmanaged.zip
 !tools/section-a-ingestion/Add-SectionAFields-patch.zip
 !tools/section-a-ingestion/SectionA_seed_data.zip
 .vs/

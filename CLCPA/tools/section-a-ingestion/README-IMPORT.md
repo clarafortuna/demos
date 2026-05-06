@@ -41,14 +41,20 @@ dotnet run -- enrich-legacy-a1
 
 Some chart-only programs (e.g. **Commercial Kitchen**) may appear in A3 but not A2; in that case only participants are updated.
 
-### Dual naming: chart labels vs long portfolio names (do not delete long-name rows)
+### Optional: remove portfolio-level `f444…` facts (not ConEd report grain)
 
-Two naming schemes **intentionally** coexist in `cf_FACTCLEANENERGYSPENDING`:
+If legacy seed or imports created **`f4444444…`** rows (`cf_sourcetable` like `A1_2023_RESI_DAC`), delete them so ingestion totals match **A1 chart grain** only (`f55…` + **`LEGACY_A1_`**). Roll-ups are computed in the dashboard.
 
-1. **Legacy / chart-shaped** names on `f55…` rows with `cf_sourcetable` like `LEGACY_A1_…` — these match the labels in **`A1_programs_YYYY`** and the program names in **Tables A2/A3** (with the small prefix/suffix alignment described above).
-2. **Long / portfolio-shaped** names on other facts (e.g. `f444…` rows, `A1_2023_RESI_…`) — these carry the same incentive totals for **different reporting slices** but **do not** share the same strings as the legacy chart series.
+```text
+cd verify-fact-a-integrity
+dotnet run -- delete-f444-portfolio
+```
 
-**Do not delete** the long-name rows to “deduplicate”; they are not errors. The **Section A** merge that drives **`A1_programs_*`** uses **`programMatchesLegacyForA1`** in `cf_clcpa_dash_hybrid`: **case-insensitive exact** match on `cf_programname` to the legacy chart label, plus a **small set of acronym shortcuts** (CSRP, DLRP, BYOT, TERM/DLM, AUTO/DLM). It **does not** use substring matching, so a fact named **Multifamily** does not pick up **Multifamily Energy Efficiency Program** and vice versa. **`mergeSectionC`** still uses the broader **`programMatchesLegacy`** (substring / normalized containment) so Section C charts do not mis-roll shorter names into unrelated programs.
+### Dual naming: chart grain only in facts
+
+Section A **Figure A1** uses **discrete program labels** from **`A1_programs_YYYY`** in **`__LEGACY_DASH`**. Facts for that grain use **`f55aaaaa…`** ids and **`LEGACY_A1_*`** `cf_sourcetable` values (see **`Build-DemoLegacyA1Import.ps1`**). **`programMatchesLegacyForA1`** in `cf_clcpa_dash_hybrid` merges DV dollars into those bars using **exact** program name + acronym shortcuts (no substring match vs other programs).
+
+**Portfolio** program names (e.g. Residential Energy Efficiency Program on deprecated `f444…` facts) are **not** loaded as separate fact rows in the seed path; **`cf_DIMPROGRAM`** rows with codes `A_RESI_RETROFIT`, … may still exist for metadata, but **incentives** live at chart-program grain only.
 
 ---
 
@@ -59,8 +65,8 @@ Two naming schemes **intentionally** coexist in `cf_FACTCLEANENERGYSPENDING`:
 | `cf_DIMPERIOD` | 4 |
 | `cf_DACSTATUS` | 2 |
 | `cf_DIMPROGRAM` | 5 |
-| `cf_FACTCLEANENERGYSPENDING` | 20 |
-| **Total data rows** | **31** |
+| `cf_FACTCLEANENERGYSPENDING` | **0** in base seed CSV (portfolio `f444…` rows removed; use **`Build-DemoLegacyA1Import.ps1`** / demo CMT for **LEGACY_A1** chart-grain facts). |
+| **Total data rows** | **11** (4 + 2 + 5 + 0) from seed CSVs only |
 
 ---
 
