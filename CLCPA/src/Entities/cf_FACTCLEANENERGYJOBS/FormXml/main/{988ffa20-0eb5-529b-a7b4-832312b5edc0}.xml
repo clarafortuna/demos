@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{988ffa20-0eb5-529b-a7b4-832312b5edc0}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{c722630d-9941-544c-bc1e-39ad153107dc}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{e6520745-2fa8-5b2c-ae18-e3c9fadafe2a}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{4c9a9b43-1d3e-5b19-b43d-6496a72dd6ee}">
+                        <labels>
+                          <label description="FACT CLEAN ENERGY JOBS" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factcleanenergyjobsid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factcleanenergyjobsid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a4186dc1-47e4-5696-9550-e7e06ef4d03e}">
+                        <labels>
+                          <label description="count basis" languagecode="1033" />
+                        </labels>
+                        <control id="cf_countbasis" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_countbasis" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6258eff0-1c1b-53a5-8fdc-889b350dbca6}">
+                        <labels>
+                          <label description="count value" languagecode="1033" />
+                        </labels>
+                        <control id="cf_countvalue" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_countvalue" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f1d4aeee-83de-5a9d-9a9b-555085fcda0d}">
+                        <labels>
+                          <label description="metric code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_metriccode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_metriccode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d5260e41-9522-56cf-a4bd-15eaa3e4e53d}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{8f01331b-482a-51d1-943e-ed9cdadb2d33}">
+                        <labels>
+                          <label description="text value" languagecode="1033" />
+                        </labels>
+                        <control id="cf_textvalue" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_textvalue" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{218b26ef-00ca-58c1-8df0-f10e4cc20e19}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{b304ae8f-48cc-5dc1-baf4-b4863d9c27c6}">
+                        <labels>
+                          <label description="Program" languagecode="1033" />
+                        </labels>
+                        <control id="cf_program" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_program" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{cfc8d63b-22c7-5adf-94bc-3c232c52cacf}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{3f9b51a8-31ab-52c8-b867-133dc10c5ea4}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT CLEAN ENERGY JOBS." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

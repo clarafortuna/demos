@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>1</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{1210b517-d8b7-497d-b64d-54c1c633fc90}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="cf_programname" select="1" icon="1" preview="1">
+        <row name="result" id="cf_dimprogramid">
+          <cell name="cf_programname" width="300" />
+          <cell name="cf_customersegmentdefault" width="150" />
+          <cell name="cf_isactive" width="150" />
+          <cell name="cf_islmitargeted" width="150" />
+          <cell name="cf_programcategory" width="150" />
+          <cell name="cf_programcode" width="150" />
+          <cell name="cf_sectioncode" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>4</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_dimprogram">
+          <attribute name="cf_dimprogramid" />
+          <attribute name="cf_programname" />
+          <attribute name="cf_customersegmentdefault" />
+          <attribute name="cf_isactive" />
+          <attribute name="cf_islmitargeted" />
+          <attribute name="cf_programcategory" />
+          <attribute name="cf_programcode" />
+          <attribute name="cf_sectioncode" />
+          <attribute name="createdon" />
+          <order attribute="cf_programcode" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+          <filter type="or" isquickfindfields="1">
+            <condition attribute="cf_programcode" operator="like" value="{0}" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Quick Find Active DIM PROGRAMS" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

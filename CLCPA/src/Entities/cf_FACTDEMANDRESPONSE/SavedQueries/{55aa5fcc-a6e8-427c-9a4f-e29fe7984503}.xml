@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{55aa5fcc-a6e8-427c-9a4f-e29fe7984503}</savedqueryid>
+    <layoutxml>
+      <grid name="cf_factdemandresponses" jump="cf_sourcetable" select="1" icon="1" preview="1">
+        <row name="cf_factdemandresponse" id="cf_factdemandresponseid">
+          <cell name="cf_sourcetable" width="300" />
+          <cell name="cf_committedmw" width="150" />
+          <cell name="cf_deliveredmw" width="150" />
+          <cell name="cf_participants" width="150" />
+          <cell name="cf_period" width="150" />
+          <cell name="cf_dacstatus" width="150" />
+          <cell name="cf_program" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>2</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_factdemandresponse">
+          <attribute name="cf_factdemandresponseid" />
+          <attribute name="cf_sourcetable" />
+          <attribute name="cf_committedmw" />
+          <attribute name="cf_deliveredmw" />
+          <attribute name="cf_participants" />
+          <attribute name="cf_period" />
+          <attribute name="cf_dacstatus" />
+          <attribute name="cf_program" />
+          <attribute name="createdon" />
+          <order attribute="cf_sourcetable" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="FACT DEMAND RESPONSE Associated View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

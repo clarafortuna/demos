@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{1517de1d-ea50-5be1-9008-d28b44f90fe4}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{b64c5152-78f3-519b-b00f-ac912ed30adf}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{439e829a-5b08-538f-b807-c76a4218340d}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{460cf36b-a62c-58e9-98d9-7296ffd84a8d}">
+                        <labels>
+                          <label description="DIM PERIOD" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dimperiodid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_dimperiodid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0ba76772-8270-5b61-8447-8061573101a4}">
+                        <labels>
+                          <label description="calendar month" languagecode="1033" />
+                        </labels>
+                        <control id="cf_calendarmonth" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_calendarmonth" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{4456b84e-d393-5ab7-9e69-94d418367f8f}">
+                        <labels>
+                          <label description="calendar quarter" languagecode="1033" />
+                        </labels>
+                        <control id="cf_calendarquarter" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_calendarquarter" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{ebb4175c-a5ea-5dca-b224-f34131c057b1}">
+                        <labels>
+                          <label description="calendar year" languagecode="1033" />
+                        </labels>
+                        <control id="cf_calendaryear" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_calendaryear" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{c5fbc4d5-607b-51c2-a6ec-00a713a0ebd6}">
+                        <labels>
+                          <label description="is report period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_isreportperiod" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_isreportperiod" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0fd3cbbb-23eb-58e4-8cef-33817ddb6156}">
+                        <labels>
+                          <label description="period end date" languagecode="1033" />
+                        </labels>
+                        <control id="cf_periodenddate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="cf_periodenddate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{81b817b5-f4e2-583c-b73d-650b246046f7}">
+                        <labels>
+                          <label description="period grain" languagecode="1033" />
+                        </labels>
+                        <control id="cf_periodgrain" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_periodgrain" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6f4b372a-803b-560c-94fd-baf17e5842e9}">
+                        <labels>
+                          <label description="period label" languagecode="1033" />
+                        </labels>
+                        <control id="cf_periodlabel" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_periodlabel" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{4761a9af-9837-5b7f-81d5-efcd517c936a}">
+                        <labels>
+                          <label description="period start date" languagecode="1033" />
+                        </labels>
+                        <control id="cf_periodstartdate" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="cf_periodstartdate" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{af0b2ad4-7843-538f-b6c3-05a275a60614}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{034663e7-0cff-5be0-9b8a-0f925b8ded74}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for DIM PERIOD." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

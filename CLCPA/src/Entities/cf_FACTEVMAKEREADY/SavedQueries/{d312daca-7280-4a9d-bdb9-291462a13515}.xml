@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{d312daca-7280-4a9d-bdb9-291462a13515}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="cf_sourcetable" select="1" icon="1" preview="1">
+        <row name="result" id="cf_factevmakereadyid">
+          <cell name="cf_sourcetable" width="300" />
+          <cell name="cf_incentivedollars" width="150" />
+          <cell name="cf_plugsinstalled" width="150" />
+          <cell name="cf_plugtypecode" width="150" />
+          <cell name="cf_period" width="150" />
+          <cell name="cf_dacstatus" width="150" />
+          <cell name="cf_program" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>1</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_factevmakeready">
+          <attribute name="cf_factevmakereadyid" />
+          <attribute name="cf_sourcetable" />
+          <attribute name="cf_incentivedollars" />
+          <attribute name="cf_plugsinstalled" />
+          <attribute name="cf_plugtypecode" />
+          <attribute name="cf_period" />
+          <attribute name="cf_dacstatus" />
+          <attribute name="cf_program" />
+          <attribute name="createdon" />
+          <order attribute="cf_sourcetable" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="FACT EV MAKE READY Advanced Find View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

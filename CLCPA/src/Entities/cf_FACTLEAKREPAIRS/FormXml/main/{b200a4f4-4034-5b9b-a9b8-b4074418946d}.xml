@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{b200a4f4-4034-5b9b-a9b8-b4074418946d}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{1a35b0c8-5e0b-5996-a5dc-bd10992480a2}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{e92ede5b-9196-56db-8e9c-df7fdd30e23f}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{f0af2d9c-36b6-57d8-9039-b8163d5fbdc1}">
+                        <labels>
+                          <label description="FACT LEAK REPAIRS" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factleakrepairsid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factleakrepairsid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2900dd10-3bee-5305-8f8e-cd0bc64d7719}">
+                        <labels>
+                          <label description="leaks repaired" languagecode="1033" />
+                        </labels>
+                        <control id="cf_leaksrepaired" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_leaksrepaired" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{aa2e80ca-5999-592c-a500-4f1337f40215}">
+                        <labels>
+                          <label description="leak type code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_leaktypecode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_leaktypecode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{cc9db338-d826-5eaa-a2bd-dc7f421a0896}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6a13fd0e-2932-5e52-88fb-00fb7a03414a}">
+                        <labels>
+                          <label description="unique tickets" languagecode="1033" />
+                        </labels>
+                        <control id="cf_uniquetickets" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_uniquetickets" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{3292c208-2578-552f-a4c5-3ef4c4f3ffac}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{cd86aa44-f107-5554-b3cc-6e9b73ed8dd1}">
+                        <labels>
+                          <label description="Geography" languagecode="1033" />
+                        </labels>
+                        <control id="cf_geography" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_geography" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{74244c19-20ac-53be-af44-ed0736cc587c}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2e16d5a9-898b-52ae-81b5-098c90a172ff}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{ebe3cca3-6d10-5727-a844-25c1fe34363e}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT LEAK REPAIRS." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

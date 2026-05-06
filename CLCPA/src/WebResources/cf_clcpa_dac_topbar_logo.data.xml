@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WebResource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <WebResourceId>{a91bc2d3-e4f5-6789-a012-b3c4d5e6f789}</WebResourceId>
+  <Name>cf_clcpa_dac_topbar_logo</Name>
+  <DisplayName>CLCPA DAC top bar compact logo</DisplayName>
+  <LanguageCode>0</LanguageCode>
+  <WebResourceType>11</WebResourceType>
+  <IntroducedVersion>1.0.21.4</IntroducedVersion>
+  <IsEnabledForMobileClient>1</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>0</IsAvailableForMobileOffline>
+  <IsCustomizable>1</IsCustomizable>
+  <CanBeDeleted>1</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/cf_clcpa_dac_topbar_logoA91BC2D3-E4F5-6789-A012-B3C4D5E6F789</FileName>
+</WebResource>

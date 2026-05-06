@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{e805e486-fb51-50cb-8d09-1b748c96f75e}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{3d9c56e7-49df-583a-9423-1f9519bc476a}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{a6409daf-2374-5c88-9b9f-9ec47d861ea5}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{cc268979-1e13-52c8-b5fb-24cb0414fbb0}">
+                        <labels>
+                          <label description="FACT STRATEGIC CAP INVESTMENT" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factstrategiccapinvestmentid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factstrategiccapinvestmentid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{98bf2499-34bc-5390-bff7-d09d472ea04b}">
+                        <labels>
+                          <label description="investment category code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_investmentcategorycode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_investmentcategorycode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{af720cc2-0ed0-5e66-8985-9d0daf7c8abd}">
+                        <labels>
+                          <label description="pct affecting dacs" languagecode="1033" />
+                        </labels>
+                        <control id="cf_pctaffectingdacs" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_pctaffectingdacs" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{85b8c720-6f95-5e65-965b-9818474cacd5}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a23f06d7-b3d9-54fc-aba4-c61eb7dad5fa}">
+                        <labels>
+                          <label description="total investment dollars" languagecode="1033" />
+                        </labels>
+                        <control id="cf_totalinvestmentdollars" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_totalinvestmentdollars" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a63ed4d0-5ae9-5a48-aa6c-333e448c2967}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f3cf804e-9da6-5d77-b09c-611f4da5e9d2}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{982e6dd6-c423-54fc-a30e-7a4ee051e9f2}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT STRATEGIC CAP INVESTMENT." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

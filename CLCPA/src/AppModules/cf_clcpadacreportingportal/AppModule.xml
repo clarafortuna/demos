@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppModule>
+  <UniqueName>cf_clcpadacreportingportal</UniqueName>
+  <IntroducedVersion>1.0.2.5</IntroducedVersion>
+  <WebResourceId>22415f70-0463-48cd-a538-17d3771fd064</WebResourceId>
+  <OptimizedFor></OptimizedFor>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+  <FormFactor>1</FormFactor>
+  <ClientType>4</ClientType>
+  <NavigationType>0</NavigationType>
+  <AppModuleComponents>
+    <AppModuleComponent type="62" schemaName="cf_clcpadacreportingportal" />
+  </AppModuleComponents>
+  <LocalizedNames>
+    <LocalizedName description="CLCPA DAC Reporting Portal" languagecode="1033" />
+  </LocalizedNames>
+  <appsettings>
+    <appsetting settingdefinitionid.uniquename="AppChannel">
+      <iscustomizable>1</iscustomizable>
+      <value>1</value>
+    </appsetting>
+    <appsetting settingdefinitionid.uniquename="NewLookOptOut">
+      <iscustomizable>1</iscustomizable>
+      <value>false</value>
+    </appsetting>
+  </appsettings>
+</AppModule>

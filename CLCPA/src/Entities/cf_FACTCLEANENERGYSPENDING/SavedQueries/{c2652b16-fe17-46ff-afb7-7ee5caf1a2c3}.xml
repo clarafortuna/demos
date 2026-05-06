@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{c2652b16-fe17-46ff-afb7-7ee5caf1a2c3}</savedqueryid>
+    <layoutxml>
+      <grid name="cf_factcleanenergyspendings" jump="cf_sourcetable" select="1" icon="1" preview="0">
+        <row name="cf_factcleanenergyspending" id="cf_factcleanenergyspendingid">
+          <cell name="cf_sourcetable" width="300" />
+          <cell name="cf_customersegmentcode" width="150" />
+          <cell name="cf_energysavingsmmbtu" width="150" />
+          <cell name="cf_incentivedollars" width="150" />
+          <cell name="cf_installations" width="150" />
+          <cell name="cf_measurecategorycode" width="150" />
+          <cell name="cf_participants" width="150" />
+          <cell name="cf_period" width="150" />
+          <cell name="cf_dacstatus" width="150" />
+          <cell name="cf_program" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>64</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_factcleanenergyspending">
+          <attribute name="cf_factcleanenergyspendingid" />
+          <attribute name="cf_sourcetable" />
+          <attribute name="cf_customersegmentcode" />
+          <attribute name="cf_energysavingsmmbtu" />
+          <attribute name="cf_incentivedollars" />
+          <attribute name="cf_installations" />
+          <attribute name="cf_measurecategorycode" />
+          <attribute name="cf_participants" />
+          <attribute name="cf_period" />
+          <attribute name="cf_dacstatus" />
+          <attribute name="cf_program" />
+          <attribute name="createdon" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="FACT CLEAN ENERGY SPENDING Lookup View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

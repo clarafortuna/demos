@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppModuleSiteMap xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SiteMapUniqueName>cf_clcpadacreportingportal</SiteMapUniqueName>
+  <EnableCollapsibleGroups>False</EnableCollapsibleGroups>
+  <ShowHome>False</ShowHome>
+  <ShowPinned>False</ShowPinned>
+  <ShowRecents>False</ShowRecents>
+  <SiteMap IntroducedVersion="7.0.0.0">
+    <Area Id="area_a268200a" ResourceId="SitemapDesigner.NewTitle" DescriptionResourceId="SitemapDesigner.NewTitle" ShowGroups="false" IntroducedVersion="7.0.0.0">
+      <Titles>
+        <Title LCID="1033" Title="CLCPA DAC Reporting" />
+      </Titles>
+      <Group Id="group_e5d7082f" ResourceId="SitemapDesigner.NewGroup" DescriptionResourceId="SitemapDesigner.NewGroup" IntroducedVersion="7.0.0.0" IsProfile="false" ToolTipResourseId="SitemapDesigner.Unknown">
+        <Titles>
+          <Title LCID="1033" Title="DAC Report" />
+        </Titles>
+        <SubArea Id="subarea_10873523" ResourceId="SitemapDesigner.NewSubArea" Icon="/_imgs/imagestrips/transparent_spacer.gif" Url="$webresource:cf_clcpa_dac_shell" Client="All,Outlook,OutlookLaptopClient,OutlookWorkstationClient,Web" AvailableOffline="true" PassParams="false" Sku="All,OnPremise,Live,SPLA">
+          <Titles>
+            <Title LCID="1033" Title="DAC Report — Sections A–J" />
+          </Titles>
+        </SubArea>
+      </Group>
+    </Area>
+  </SiteMap>
+  <LocalizedNames>
+    <LocalizedName description="CLCPA DAC Reporting Portal" languagecode="1033" />
+  </LocalizedNames>
+</AppModuleSiteMap>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <rect width="80" height="80" rx="12" fill="#0072BC"/>
+  <path d="M22 52h36v6H22z" fill="#ffffff" opacity=".85"/>
+  <path d="M25 48 40 18l15 30h-9l-6-14-6 14z" fill="#ffffff"/>
+  <circle cx="56" cy="24" r="7" fill="#1a7a4a"/>
+  <text x="40" y="70" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" font-weight="700" fill="#ffffff">CLCPA</text>
+</svg>

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{ff2b7529-fe76-545a-ac33-32557f629b05}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{0ab114a1-572e-51f6-98ee-160e8aa10993}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{f11672ca-8f10-5c26-9545-e23df64fbf18}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{dba70826-5196-564d-a23d-006430c2b1fe}">
+                        <labels>
+                          <label description="FACT DEMAND RESPONSE" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factdemandresponseid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factdemandresponseid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{9d22c077-2e7d-57b1-9fc5-a0da7179a23c}">
+                        <labels>
+                          <label description="committed mw" languagecode="1033" />
+                        </labels>
+                        <control id="cf_committedmw" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_committedmw" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{73bb6473-b814-5761-9211-9627fc02c15a}">
+                        <labels>
+                          <label description="delivered mw" languagecode="1033" />
+                        </labels>
+                        <control id="cf_deliveredmw" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_deliveredmw" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{dddf897c-ca72-5b24-ae10-799b4f78a401}">
+                        <labels>
+                          <label description="participants" languagecode="1033" />
+                        </labels>
+                        <control id="cf_participants" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_participants" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{c8d54378-893d-5dba-baac-db90bd88683f}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{5abe04b3-df5e-5e44-840f-1433d8ac182f}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{1b795bf6-8428-554f-9c71-b5c862e7b9c5}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{68a26f8c-8339-54d5-a093-a8d00e21de62}">
+                        <labels>
+                          <label description="Program" languagecode="1033" />
+                        </labels>
+                        <control id="cf_program" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_program" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{4a5d7af4-90e9-5c69-8e64-776ce3bcc683}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f85407f8-b794-5f74-8c46-ef7c240ddc01}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT DEMAND RESPONSE." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

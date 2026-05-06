@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.2.26042.139" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26042.139" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26042.00152">
+  <SolutionManifest>
+    <UniqueName>CLCPA</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="CLCPA" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Solution for Con Edison's annual Disadvantaged Communities (DAC) Report under the regulatory framework of New York State's Climate Leadership and Community Protection Act (CLCPA).&#xA; &#xA;Contains the data model (4 shared dimensions and 10 fact tables) covering Sections A–J of the report:&#xA;- A: Clean Energy Spending&#xA;- B: EV Make-Ready&#xA;- C: Demand Response&#xA;- D: Distributed Energy Resources (DER)&#xA;- E: Strategic Capital Investments&#xA;- F: Customer Outages&#xA;- G: Main Replacement&#xA;- H: Leak Repairs&#xA;- I: Clean Energy Jobs&#xA;- J: Customer Operations&#xA; &#xA;Identifies disadvantaged communities based on NYSERDA-designated census tracts and low-income customers enrolled in the Energy Affordability Program (EAP)." languagecode="1033" />
+    </Descriptions>
+    <Version>1.0.21.13</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>ClaraFortuna</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="Clara Fortuna" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions>
+        <Description description="General publisher" languagecode="1033" />
+      </Descriptions>
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>cf</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>12147</CustomizationOptionValuePrefix>
+      <Addresses>
+        <Address>
+          <AddressNumber>1</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+        <Address>
+          <AddressNumber>2</AddressNumber>
+          <AddressTypeCode>1</AddressTypeCode>
+          <City xsi:nil="true"></City>
+          <County xsi:nil="true"></County>
+          <Country xsi:nil="true"></Country>
+          <Fax xsi:nil="true"></Fax>
+          <FreightTermsCode xsi:nil="true"></FreightTermsCode>
+          <ImportSequenceNumber xsi:nil="true"></ImportSequenceNumber>
+          <Latitude xsi:nil="true"></Latitude>
+          <Line1 xsi:nil="true"></Line1>
+          <Line2 xsi:nil="true"></Line2>
+          <Line3 xsi:nil="true"></Line3>
+          <Longitude xsi:nil="true"></Longitude>
+          <Name xsi:nil="true"></Name>
+          <PostalCode xsi:nil="true"></PostalCode>
+          <PostOfficeBox xsi:nil="true"></PostOfficeBox>
+          <PrimaryContactName xsi:nil="true"></PrimaryContactName>
+          <ShippingMethodCode>1</ShippingMethodCode>
+          <StateOrProvince xsi:nil="true"></StateOrProvince>
+          <Telephone1 xsi:nil="true"></Telephone1>
+          <Telephone2 xsi:nil="true"></Telephone2>
+          <Telephone3 xsi:nil="true"></Telephone3>
+          <TimeZoneRuleVersionNumber xsi:nil="true"></TimeZoneRuleVersionNumber>
+          <UPSZone xsi:nil="true"></UPSZone>
+          <UTCOffset xsi:nil="true"></UTCOffset>
+          <UTCConversionTimeZoneCode xsi:nil="true"></UTCConversionTimeZoneCode>
+        </Address>
+      </Addresses>
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="cf_dacstatus" behavior="0" />
+      <RootComponent type="1" schemaName="cf_dimgeography" behavior="0" />
+      <RootComponent type="1" schemaName="cf_dimperiod" behavior="0" />
+      <RootComponent type="1" schemaName="cf_dimprogram" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factcleanenergyjobs" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factcleanenergyspending" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factcustomeroperations" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factcustomeroutages" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factdemandresponse" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factder" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factevmakeready" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factleakrepairs" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factmainreplacement" behavior="0" />
+      <RootComponent type="1" schemaName="cf_factstrategiccapinvestment" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dac_app_icon" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dac_brand_logo" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dac_topbar_logo" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dac_dashboard" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dac_shell" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dash_legacy" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dash_hybrid" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dash_section_page" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dash_shared_css" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dash_data_ingestion_html" behavior="0" />
+      <RootComponent type="61" schemaName="cf_clcpa_dash_data_ingestion_page" behavior="0" />
+      <RootComponent type="62" schemaName="cf_clcpadacreportingportal" behavior="0" />
+      <RootComponent type="80" schemaName="cf_clcpadacreportingportal" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>
+

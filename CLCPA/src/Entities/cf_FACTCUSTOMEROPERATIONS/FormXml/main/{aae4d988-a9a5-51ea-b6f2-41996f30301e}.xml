@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{aae4d988-a9a5-51ea-b6f2-41996f30301e}</formid>
+    <IntroducedVersion>1.0.13.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{b23d5481-f96d-58bc-914c-a8c78aea6656}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{38ac5bbe-313f-596a-bb8f-b41614ea9d6f}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{e32162b6-fc47-5359-8972-8cc603a11a77}">
+                        <labels>
+                          <label description="FACT CUSTOMER OPERATIONS" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factcustomeroperationsid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factcustomeroperationsid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{bc4297bb-49dc-59cd-a4da-1cbea6f1fe8a}">
+                        <labels>
+                          <label description="account count" languagecode="1033" />
+                        </labels>
+                        <control id="cf_accountcount" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_accountcount" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{52932c01-04fc-5c42-86f9-1aefdc28eb23}">
+                        <labels>
+                          <label description="account status code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_accountstatuscode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_accountstatuscode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a1b2c3d4-e5f6-4789-a012-3456789abcde}">
+                        <labels>
+                          <label description="Metric Code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_metriccode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_metriccode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{dc655d90-9c4c-5a3a-88ba-afecf6ad505c}">
+                        <labels>
+                          <label description="avg usage per customer" languagecode="1033" />
+                        </labels>
+                        <control id="cf_avgusagepercustomer" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_avgusagepercustomer" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a5f8beed-1f83-5949-b8e5-97d54db19844}">
+                        <labels>
+                          <label description="dollar amount" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dollaramount" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_dollaramount" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{8fc89deb-9fd9-5190-829f-79dd2c668e12}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{69685118-dc77-5763-8b8f-e42386952be1}">
+                        <labels>
+                          <label description="usage amount" languagecode="1033" />
+                        </labels>
+                        <control id="cf_usageamount" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_usageamount" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{8306a23b-f2c5-5646-9f38-9130cbe30834}">
+                        <labels>
+                          <label description="usage commodity code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_usagecommoditycode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_usagecommoditycode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7df4b944-9617-5229-b2e3-3e3432e8b2e3}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{bb3b0179-4c66-5ffe-805d-e91a8a1585cc}">
+                        <labels>
+                          <label description="Geography" languagecode="1033" />
+                        </labels>
+                        <control id="cf_geography" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_geography" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2de945e2-f23b-55e6-b741-0a5bb7469521}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{37880b79-7722-5b13-9cca-601c98e791d4}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{1115267a-3f86-5212-9911-2e06c6a44d66}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT CUSTOMER OPERATIONS." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

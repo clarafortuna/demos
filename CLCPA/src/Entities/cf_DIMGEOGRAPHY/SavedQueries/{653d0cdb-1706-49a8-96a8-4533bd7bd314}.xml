@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{653d0cdb-1706-49a8-96a8-4533bd7bd314}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="cf_boroughorcounty" select="1" icon="1" preview="1">
+        <row name="result" id="cf_dimgeographyid">
+          <cell name="cf_boroughorcounty" width="300" />
+          <cell name="cf_censustractgeoid" width="150" />
+          <cell name="cf_geographylevel" width="150" />
+          <cell name="cf_isdac" width="150" />
+          <cell name="cf_isunknowndac" width="150" />
+          <cell name="cf_loadareaname" width="150" />
+          <cell name="cf_networkname" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_dimgeography">
+          <attribute name="cf_dimgeographyid" />
+          <attribute name="cf_boroughorcounty" />
+          <attribute name="cf_censustractgeoid" />
+          <attribute name="cf_geographylevel" />
+          <attribute name="cf_isdac" />
+          <attribute name="cf_isunknowndac" />
+          <attribute name="cf_loadareaname" />
+          <attribute name="cf_networkname" />
+          <attribute name="createdon" />
+          <order attribute="cf_geographylevel" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Active DIM GEOGRAPHIES" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

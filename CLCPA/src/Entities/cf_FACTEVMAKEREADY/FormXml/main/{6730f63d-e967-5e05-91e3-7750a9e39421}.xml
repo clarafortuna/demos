@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{6730f63d-e967-5e05-91e3-7750a9e39421}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{b5fb5177-7f5a-5d0a-a95f-24cf82d4f3c4}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{62be9806-6dbb-5d2f-94b2-2f0da02e4288}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{bc6bb7e1-5475-5b50-b39a-076a1bbc7715}">
+                        <labels>
+                          <label description="FACT EV MAKE READY" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factevmakereadyid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factevmakereadyid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{343c7481-bb5e-5f52-8ebe-1fe278875f49}">
+                        <labels>
+                          <label description="incentive dollars" languagecode="1033" />
+                        </labels>
+                        <control id="cf_incentivedollars" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_incentivedollars" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{90ba28c9-b664-5306-a7ac-37ea790c00bd}">
+                        <labels>
+                          <label description="plugs installed" languagecode="1033" />
+                        </labels>
+                        <control id="cf_plugsinstalled" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_plugsinstalled" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{58f0e493-b403-5639-8686-045f18971ea6}">
+                        <labels>
+                          <label description="plug type code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_plugtypecode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_plugtypecode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{27d16419-cc36-5224-90bb-76fe53d6b1c1}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{43bb6ddf-67d0-5000-935b-a76f6804506b}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f411f173-8449-5d04-b006-e5556eef956f}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{3aa45efb-1126-5eaa-8cb8-c2530df6b085}">
+                        <labels>
+                          <label description="Program" languagecode="1033" />
+                        </labels>
+                        <control id="cf_program" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_program" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{b3a68c56-1e2f-5daa-b651-83b20d5e689d}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d9c274a0-827d-5bb0-af15-13e876917be5}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT EV MAKE READY." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

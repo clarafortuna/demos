@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{89b16d64-40ba-5250-a3d8-342bd775c11b}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{9e8480f0-e2bf-5bfc-a9a5-4518905657ab}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{e7abda1a-add8-5739-9835-f19d30495541}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{38d62b16-fcd9-5301-a135-9fc69b336991}">
+                        <labels>
+                          <label description="DIM GEOGRAPHY" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dimgeographyid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_dimgeographyid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{4170bf67-b31d-5d2b-a337-60cf7a88a72b}">
+                        <labels>
+                          <label description="borough or county" languagecode="1033" />
+                        </labels>
+                        <control id="cf_boroughorcounty" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_boroughorcounty" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d73c4cc1-1ede-5aa9-895a-734cda6cb71f}">
+                        <labels>
+                          <label description="census tract geoid" languagecode="1033" />
+                        </labels>
+                        <control id="cf_censustractgeoid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_censustractgeoid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{98d9556c-6b57-523a-9720-adfec3187c90}">
+                        <labels>
+                          <label description="geography level" languagecode="1033" />
+                        </labels>
+                        <control id="cf_geographylevel" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_geographylevel" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6b7f87e9-6d7d-5bab-9ee9-e2d07f239c4b}">
+                        <labels>
+                          <label description="is dac" languagecode="1033" />
+                        </labels>
+                        <control id="cf_isdac" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_isdac" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{b34192f6-4bd1-5f6c-8a63-7143ef1c9e1d}">
+                        <labels>
+                          <label description="is unknown dac" languagecode="1033" />
+                        </labels>
+                        <control id="cf_isunknowndac" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_isunknowndac" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{41535ffc-ae8d-5cfb-91d2-01e5a9681015}">
+                        <labels>
+                          <label description="load area name" languagecode="1033" />
+                        </labels>
+                        <control id="cf_loadareaname" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_loadareaname" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{1ba63c26-3571-5480-a12e-f071442e100f}">
+                        <labels>
+                          <label description="network name" languagecode="1033" />
+                        </labels>
+                        <control id="cf_networkname" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_networkname" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{11384dc7-b5fe-5217-9641-6407d36a64ea}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2f735dc3-de26-5d75-9a29-24b2f6e89c09}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for DIM GEOGRAPHY." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

@@ -1,0 +1,4418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Con Edison · CLCPA — DAC Report (Sections A–J)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" type="text/css" href="/WebResources/cf_clcpa_dash_shared_css" />
+<style>
+/* Shell-only — DAC_Report HTML package design system is in cf_clcpa_dash_shared_css */
+.shell-page-header h1 { font-size: 22px; margin: 0 0 6px; }
+.shell-page-sub { color: var(--text-3); margin: 0 0 18px; max-width: 720px; }
+/* Unified editor surface — closer to New update single chart-card editors */
+.ingest-submission-zone {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 18px 18px;
+  margin-bottom: 16px;
+}
+.ingest-submission-zone .ingest-section-hero.chart-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0 0 14px;
+  box-shadow: none;
+}
+.ingest-submission-zone .ingest-section-hero .chart-card-head {
+  margin-bottom: 0;
+}
+.ingest-submission-zone .summary-grid {
+  margin-bottom: 16px;
+}
+.ingest-submission-zone .summary-card {
+  background: var(--bright-snow);
+}
+.ingest-submission-zone .ingest-form-row {
+  gap: 12px;
+  align-items: stretch;
+  margin-bottom: 0;
+}
+.ingest-submission-zone .ingest-form-row > .chart-card {
+  background: var(--bright-snow);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.ingest-submission-zone .ingest-panel-form .chart-card-head,
+.ingest-submission-zone .ingest-panel-grid .chart-card-head {
+  margin-bottom: 12px;
+}
+.shell-count-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--dusk-tint); color: var(--dusk); }
+.status-bar { padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; }
+.status-bar.info { background: var(--dusk-tint); color: var(--dusk); }
+.status-bar.error { background: #fde0e4; color: var(--red); }
+.summary-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.summary-card { background: var(--white); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; }
+.summary-card dt { font-size: 9px; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+.summary-card dd { margin: 0; font-weight: 700; font-size: 15px; }
+/* .form-grid: use shared.css (3-column responsive layout) */
+.ingest-submission-zone .form-field { display: flex; flex-direction: column; gap: 4px; }
+.ingest-submission-zone .form-field label { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; }
+.ingest-submission-zone .shell-page-header { display: block; }
+.ingest-submission-zone .form-field input,
+.ingest-submission-zone .form-field select {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  font-family: var(--font);
+  font-size: 11.5px;
+  background: var(--white);
+  color: var(--text);
+}
+.ingest-submission-zone .form-field input:focus,
+.ingest-submission-zone .form-field select:focus {
+  outline: 2px solid var(--dusk);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+.ingest-submission-zone .chart-card-head h3 .shell-count-badge { vertical-align: middle; }
+.ingest-submission-zone .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.empty { color: var(--text-3); padding: 24px; text-align: center; }
+.dash-hybrid-banner { font-size: 12px; color: var(--text-3); background: var(--white-smoke); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 14px; line-height: 1.45; }
+.src-pill { font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 3px; margin: 0 2px; }
+.src-pill.src-dv { background: #e1f0e9; color: #1a6b45; }
+.src-pill.src-html { background: #fff4e5; color: #8a5a00; }
+.dash-mount-host .dash-inner { min-height: 120px; }
+.section-view { display: none !important; }
+.section-view.active { display: block !important; }
+/* Data Ingestion: layout matches New update data_ingestion.html (picker → toolbar → #ingest-editor-area) */
+#ingest-editor-area { margin-top: 0; }
+.ingest-modal-actions .btn-cancel {
+  background: transparent;
+  color: var(--text-3);
+  border: none;
+  padding: 8px 14px;
+  font-family: var(--font);
+  font-weight: 500;
+  font-size: 11.5px;
+  cursor: pointer;
+}
+.ingest-modal-actions .btn-cancel:hover { color: var(--text); }
+/* Section picker + .ingest-sec-btn: cf_clcpa_dash_shared_css (Data Ingestion tab) */
+.ingestion-panel { display: none; }
+.ingestion-panel.ingestion-panel--active { display: block; }
+@media print {
+  .sidebar { display: none !important; }
+  .topbar-actions { display: none !important; }
+  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; grid-template-areas: "topbar" "content"; }
+  .content { padding: 12px 16px 24px; overflow: visible; }
+  .topbar { border-bottom: 1px solid var(--line); position: static; }
+  .status-bar.info { background: transparent; border: 1px solid var(--line); }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img id="shell-sidebar-logo" src="" alt="Con Edison" />
+      </div>
+      <div class="sidebar-brand-mark">DAC Annual Report</div>
+      <div class="sidebar-brand-sub" id="sidebar-brand-sub">Reporting Year 2024</div>
+    </div>
+    <div class="sidebar-section">Overview</div>
+    <nav class="sidebar-nav">
+      <button type="button" class="nav-item" id="nav-exec"><span class="nav-letter">⌂</span> Executive Summary</button>
+    </nav>
+    <div class="sidebar-section">Reporting Areas</div>
+    <nav class="sidebar-nav">
+      <button type="button" class="nav-item active" id="nav-a" aria-current="page"><span class="nav-letter">A</span> Clean Energy Spending</button>
+      <button type="button" class="nav-item" id="nav-b"><span class="nav-letter">B</span> EV Make-Ready Program</button>
+      <button type="button" class="nav-item" id="nav-c"><span class="nav-letter">C</span> Demand Response</button>
+      <button type="button" class="nav-item" id="nav-d"><span class="nav-letter">D</span> Distributed Energy Resources</button>
+      <button type="button" class="nav-item" id="nav-e"><span class="nav-letter">E</span> Strategic Capital Investments</button>
+      <button type="button" class="nav-item" id="nav-f"><span class="nav-letter">F</span> Customer Outages</button>
+      <button type="button" class="nav-item" id="nav-g"><span class="nav-letter">G</span> Main Replacement Program</button>
+      <button type="button" class="nav-item" id="nav-h"><span class="nav-letter">H</span> Leak Repairs</button>
+      <button type="button" class="nav-item" id="nav-i"><span class="nav-letter">I</span> Clean Energy Jobs</button>
+      <button type="button" class="nav-item" id="nav-j"><span class="nav-letter">J</span> Customer Operations</button>
+    </nav>
+    <div class="sidebar-section">Data</div>
+    <nav class="sidebar-nav">
+      <button type="button" class="nav-item" id="nav-ingestion"><span class="nav-letter">↓</span> Data Ingestion</button>
+    </nav>
+    <div class="sidebar-foot">
+      <div>2024 vs 2023</div>
+      <div>10 areas · 55 tables</div>
+    </div>
+  </aside>
+  <header class="topbar">
+    <div class="topbar-title" id="topbar-title">
+      <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden; package ref: logo/ConEd_Logo_fondo_blanco.jpeg) -->
+      <span class="topbar-logo" aria-hidden="true">
+        <img id="shell-topbar-logo" src="" alt="Con Edison" />
+      </span>
+      <span class="crumb">DAC Report</span>
+      <span class="crumb-sep">/</span>
+      <span id="topbar-page">A. Clean Energy Spending</span>
+    </div>
+    <div class="topbar-actions" id="topbar-actions">
+      <span class="year-label">Reporting Year</span>
+      <select id="filter-year" class="year-select" aria-label="Reporting year" title="Filter tables and charts by reporting year"></select>
+      <button type="button" class="btn" id="btn-export-pdf" title="Export this page as PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF
+      </button>
+      <button type="button" class="btn btn-secondary" id="btn-refresh" title="Reload tables and charts for the selected year">Refresh data</button>
+    </div>
+  </header>
+  <main class="content">
+    <div id="status-bar" class="status-bar info" style="display:none;"></div>
+
+    <div id="view-exec" class="section-view">
+      <div class="page-header">
+        <div>
+          <h1>Executive Summary</h1>
+          <p class="page-sub">Reported KPIs and analytical metrics with cross-year comparisons.</p>
+        </div>
+        <dl class="page-header-meta" id="exec-hero-meta"></dl>
+      </div>
+      <div id="dash-mount-exec" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-a" class="section-view active">
+      <div id="dash-mount-a" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-b" class="section-view">
+      <div id="dash-mount-b" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-c" class="section-view">
+      <div id="dash-mount-c" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-d" class="section-view">
+      <div id="dash-mount-d" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-e" class="section-view">
+      <div id="dash-mount-e" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-f" class="section-view">
+      <div id="dash-mount-f" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-g" class="section-view">
+      <div id="dash-mount-g" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-h" class="section-view">
+      <div id="dash-mount-h" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-i" class="section-view">
+      <div id="dash-mount-i" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-j" class="section-view">
+      <div id="dash-mount-j" class="dash-mount-host"></div>
+    </div>
+
+    <div id="view-ingestion" class="section-view">
+      <div class="page-header">
+        <div>
+          <h1>Data Ingestion</h1>
+          <p class="page-sub">Add or update the data behind your dashboard. Pick a section, choose a year, and edit any table. Your changes show up in the dashboard automatically.</p>
+        </div>
+      </div>
+      <div class="ingest-section-picker" id="ingest-section-picker" role="tablist" aria-label="Submission section">
+        <button type="button" class="ingest-sec-btn active" data-letter="A" role="tab" aria-selected="true"><span class="ingest-sec-btn-letter">A</span><span class="ingest-sec-btn-name">Clean Energy</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="B" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">B</span><span class="ingest-sec-btn-name">EV Make-Ready</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="C" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">C</span><span class="ingest-sec-btn-name">Demand Response</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="D" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">D</span><span class="ingest-sec-btn-name">DER</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="E" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">E</span><span class="ingest-sec-btn-name">Strategic Cap</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="F" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">F</span><span class="ingest-sec-btn-name">Outages</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="G" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">G</span><span class="ingest-sec-btn-name">Main Replace</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="H" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">H</span><span class="ingest-sec-btn-name">Leak Repairs</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="I" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">I</span><span class="ingest-sec-btn-name">Jobs</span></button>
+        <button type="button" class="ingest-sec-btn" data-letter="J" role="tab" aria-selected="false"><span class="ingest-sec-btn-letter">J</span><span class="ingest-sec-btn-name">Cust Ops</span></button>
+      </div>
+      <div class="ingest-toolbar">
+        <div class="ingest-toolbar-field">
+          <label class="ingest-toolbar-label" for="ingest-year-select">Reporting Year</label>
+          <select id="ingest-year-select" class="ingest-toolbar-select" aria-label="Reporting year for all ingestion sections"></select>
+        </div>
+        <div class="ingest-toolbar-field">
+          <label class="ingest-toolbar-label" for="ingest-table-select">Table</label>
+          <select id="ingest-table-select" class="ingest-toolbar-select" aria-label="Table within the selected section"></select>
+        </div>
+        <div class="ingest-toolbar-spacer"></div>
+        <button type="button" class="btn btn-secondary" id="btn-add-year">+ Add new year</button>
+        <button type="button" class="btn btn-secondary danger-on-hover" id="btn-delete-year" title="Delete all data for this year (all sections in Dataverse)">Delete year…</button>
+      </div>
+      <div id="ingest-editor-area"></div>
+    </div>
+
+</main>
+</div>
+<div id="add-year-modal" class="ingest-modal" hidden>
+  <div class="ingest-modal-content">
+    <h3>Add new reporting year</h3>
+    <p class="ingest-modal-sub">A new year will be created. Programs and measures from the most recent year will be copied as a template; values will be empty so you can fill them in. You can delete rows you don't need.</p>
+    <div class="ingest-modal-field">
+      <label for="add-year-input">Year (4 digits)</label>
+      <input type="number" id="add-year-input" placeholder="2025" min="2000" max="2099" />
+    </div>
+    <div class="ingest-modal-actions">
+      <button type="button" class="btn-cancel" id="add-year-cancel">Cancel</button>
+      <button type="button" class="btn" id="add-year-confirm">Create year</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var API = '/api/data/v9.2/';
+  /** Reporting years exposed in dashboard & ingestion year selectors (subset of cf_dimperiod data in env). */
+  var DASHBOARD_MIN_REPORTING_YEAR = 2023;
+  var DASHBOARD_MAX_REPORTING_YEAR = 2024;
+  var periods = [];
+  var dacStatuses = [];
+  var activeSection = 'a';
+  var ingestionLetter = 'a';
+  var dashAssetsPromise = null;
+  /** New update 55-table editors (localStorage) — cf_clcpa_dash_data_ingestion_page */
+  var USE_PROTO_DATA_INGESTION = true;
+  window.__DAC_SHELL_API = {
+    getYear: function () {
+      var el = document.getElementById('filter-year');
+      return el && el.value ? el.value : '2024';
+    },
+    get stateA() { return stateA; },
+    get stateB() { return stateB; },
+    get stateC() { return stateC; },
+    get stateD() { return stateD; },
+    get stateE() { return stateE; },
+    get stateF() { return stateF; },
+    get stateG() { return stateG; },
+    get stateH() { return stateH; },
+    get stateI() { return stateI; },
+    get stateJ() { return stateJ; }
+  };
+
+  function shellDiagInfo(msg, detail) {
+    if (typeof console !== 'undefined' && console.info) {
+      console.info('[CLCPA shell] ' + msg, detail !== undefined ? detail : '');
+    }
+  }
+  function shellDiagWarn(msg, detail) {
+    if (typeof console !== 'undefined' && console.warn) {
+      console.warn('[CLCPA shell] ' + msg, detail !== undefined ? detail : '');
+    }
+  }
+  function verifyShellNavigationDom() {
+    var missing = [];
+    if (!document.getElementById('nav-exec')) missing.push('nav-exec');
+    if (!document.getElementById('view-exec')) missing.push('view-exec');
+    if (!document.getElementById('view-ingestion')) missing.push('view-ingestion');
+    if (!document.getElementById('nav-ingestion')) missing.push('nav-ingestion');
+    if (!document.getElementById('ingest-editor-area')) missing.push('ingest-editor-area');
+    var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+    for (var i = 0; i < letters.length; i++) {
+      var L = letters[i];
+      if (!document.getElementById('nav-' + L)) missing.push('nav-' + L);
+      if (!document.getElementById('view-' + L)) missing.push('view-' + L);
+    }
+    if (missing.length) {
+      shellDiagWarn('missing view/nav ids', missing.join(', '));
+    } else {
+      shellDiagInfo('navigation DOM OK');
+    }
+  }
+
+  function loadDashScripts() {
+    if (dashAssetsPromise) return dashAssetsPromise;
+    dashAssetsPromise = new Promise(function (resolve, reject) {
+      try {
+        var base = getClientUrl();
+        var s = document.createElement('script');
+        s.src = base + '/WebResources/cf_clcpa_dash_hybrid';
+        s.onload = function () {
+          if (!window.CLCPADash || !window.CLCPADash.loadScripts) {
+            reject(new Error('Hybrid runtime missing'));
+            return;
+          }
+          window.CLCPADash.loadScripts(base, function (err) {
+            if (err) reject(err);
+            else resolve();
+          });
+        };
+        s.onerror = function () { reject(new Error('Could not load cf_clcpa_dash_hybrid')); };
+        document.head.appendChild(s);
+      } catch (e) {
+        reject(e);
+      }
+    });
+    return dashAssetsPromise;
+  }
+
+  function refreshExecDashboard() {
+    if (!window.CLCPADash || !window.__LEGACY_DASH) return;
+    var host = document.getElementById('dash-mount-exec');
+    if (!host) return;
+    host.innerHTML =
+      '<div class="kpi-group analytical"><div class="kpi-group-header"><h2>Analytical KPIs</h2><span class="group-tag">Derived Metrics</span><span class="group-desc">Composite measures we built · Formula shown on each card</span></div><div class="kpi-grid" id="dash-kpi-analytical"></div></div>' +
+      '<div class="kpi-group"><div class="kpi-group-header"><h2>Reported KPIs</h2><span class="group-tag">From Source Reports</span><span class="group-desc">Twelve metrics copied directly from the 2023 and 2024 PDFs · No derivation</span></div><div class="kpi-grid" id="dash-kpi-reported"></div></div>';
+    window.CLCPADash.mountExecutive(host, document.getElementById('filter-year'));
+    syncExecHeroMeta();
+  }
+
+  function refreshSectionDashboard(letter) {
+    if (!window.CLCPADash || !window.CLCPADashMountSection || !window.__LEGACY_DASH) return;
+    var host = document.getElementById('dash-mount-' + letter);
+    if (!host) return;
+    host.innerHTML = '';
+    var inner = document.createElement('div');
+    inner.className = 'dash-inner';
+    var sec = window.__LEGACY_DASH['section' + letter.toUpperCase()];
+    var L = letter.toUpperCase();
+    var overviewHtml = sec
+      ? '<div class="section-overview">' +
+        '<div class="section-overview-icon">' + L + '</div>' +
+        '<div class="section-overview-text"><h2>' + escapeHtml(sec.section_name || '') + '</h2><p>' + escapeHtml(sec.blurb || '') + '</p></div>' +
+        '<dl class="section-overview-stats page-header-meta" data-dash-stats></dl></div>' +
+        '<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>' +
+        '<div data-dash-charts></div>' +
+        '<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>' +
+        '<div data-dash-tables></div>' +
+        '<div data-dash-extra></div>'
+      : '<div data-dash-charts></div><div data-dash-tables></div><div data-dash-extra></div>';
+    inner.innerHTML = overviewHtml;
+    host.appendChild(inner);
+    if (!sec) return;
+    var payload = window.CLCPADash.mergePayload(letter.toUpperCase(), sec, window.__DAC_SHELL_API);
+    var ex = inner.querySelector('[data-dash-extra]');
+    if (ex) ex.innerHTML = window.CLCPADash.extraPanels(letter.toUpperCase(), payload);
+    window.CLCPADashMountSection(inner, payload, document.getElementById('filter-year'));
+  }
+
+  function refreshDashboardForActive() {
+    if (activeSection === 'ingestion') return;
+    loadDashScripts().then(function () {
+      if (activeSection === 'exec') {
+        refreshExecDashboard();
+        return;
+      }
+      refreshSectionDashboard(activeSection);
+    }).catch(function (err) {
+      shellDiagWarn('dashboard script load failed', err && err.message ? err.message : err);
+    });
+  }
+
+  function refreshDashboardForActiveSectionAfterSave(savedLetter) {
+    if (USE_PROTO_DATA_INGESTION) return;
+    loadDashScripts().then(function () {
+      if (activeSection === 'ingestion') {
+        if (savedLetter !== ingestionLetter) return;
+        refreshSectionDashboard(savedLetter);
+        return;
+      }
+      if (activeSection === savedLetter) {
+        refreshSectionDashboard(savedLetter);
+      }
+    }).catch(function (err) {
+      shellDiagWarn('dashboard refresh after save failed', err && err.message ? err.message : err);
+    });
+  }
+
+  var stateA = {
+    programs: [],
+    facts: [],
+    editId: null
+  };
+  var ENTITY_SET_A = 'cf_factcleanenergyspendings';
+  var SOURCE_TABLE_A = 'UI-SectionA';
+
+  var stateB = {
+    facts: [],
+    editId: null
+  };
+  var ENTITY_SET_B = 'cf_factevmakereadys';
+  var SOURCE_TABLE_B = 'UI-SectionB';
+
+  var stateC = {
+    programs: [],
+    facts: [],
+    editId: null
+  };
+  var ENTITY_SET_C = 'cf_factdemandresponses';
+  var SOURCE_TABLE_C = 'UI-SectionC';
+
+  var stateD = {
+    facts: [],
+    editId: null
+  };
+  var ENTITY_SET_D = 'cf_factders';
+  var SOURCE_TABLE_D = 'UI-SectionD';
+
+  var stateE = {
+    facts: [],
+    editId: null
+  };
+  var ENTITY_SET_E = 'cf_factstrategiccapinvestments';
+  var SOURCE_TABLE_E = 'UI-SectionE';
+
+  var stateF = {
+    facts: [],
+    editId: null,
+    duplicateUsesGeo: false
+  };
+  var ENTITY_SET_F = 'cf_factcustomeroutagess';
+  var SOURCE_TABLE_F = 'UI-SectionF';
+  var geographies = [];
+
+  var stateG = {
+    facts: [],
+    editId: null,
+    duplicateUsesGeo: false
+  };
+  var ENTITY_SET_G = 'cf_factmainreplacements';
+  var SOURCE_TABLE_G = 'UI-SectionG';
+  var MILES_TO_FEET = 5280;
+
+  var stateH = {
+    facts: [],
+    editId: null,
+    duplicateUsesGeo: false
+  };
+  var ENTITY_SET_H = 'cf_factleakrepairss';
+  var SOURCE_TABLE_H = 'UI-SectionH';
+
+  var stateI = {
+    programs: [],
+    facts: []
+  };
+  var ENTITY_SET_I = 'cf_factcleanenergyjobss';
+  var SOURCE_TABLE_I = 'UI-SectionI';
+  var METRIC_I_ENROLLEES = 'ENROLLEES';
+  var METRIC_I_PLACEMENTS = 'PLACEMENTS';
+  var METRIC_I_PLACEMENT_PCT = 'PLACEMENT_PCT';
+
+  var stateJ = {
+    facts: [],
+    duplicateUsesGeo: false
+  };
+  var ENTITY_SET_J = 'cf_factcustomeroperationss';
+  var SOURCE_TABLE_J = 'UI-SectionJ';
+  var METRIC_J_RESIDENTIAL = 'RESIDENTIAL_CUSTOMERS';
+  var METRIC_J_EAP = 'EAP_ENROLLED';
+  var METRIC_J_ARREARS = 'ARREARS_DOLLARS';
+  var INGEST_TOOLBAR_TABLE_LABELS = {
+    a: 'A — Clean Energy Spending (form & grid)',
+    b: 'B — EV Make-Ready (form & grid)',
+    c: 'C — Demand Response (form & grid)',
+    d: 'D — DER (form & grid)',
+    e: 'E — Strategic Capital (form & grid)',
+    f: 'F — Customer Outages (form & grid)',
+    g: 'G — Main Replacement (form & grid)',
+    h: 'H — Leak Repairs (form & grid)',
+    i: 'I — Clean Energy Jobs (form & grid)',
+    j: 'J — Customer Operations (form & grid)'
+  };
+  var INGEST_FACT_ENTITY_DEFS = [
+    { set: ENTITY_SET_A, idField: 'cf_factcleanenergyspendingid' },
+    { set: ENTITY_SET_B, idField: 'cf_factevmakereadyid' },
+    { set: ENTITY_SET_C, idField: 'cf_factdemandresponseid' },
+    { set: ENTITY_SET_D, idField: 'cf_factderid' },
+    { set: ENTITY_SET_E, idField: 'cf_factstrategiccapinvestmentid' },
+    { set: ENTITY_SET_F, idField: 'cf_factcustomeroutagesid' },
+    { set: ENTITY_SET_G, idField: 'cf_factmainreplacementid' },
+    { set: ENTITY_SET_H, idField: 'cf_factleakrepairsid' },
+    { set: ENTITY_SET_I, idField: 'cf_factcleanenergyjobsid' },
+    { set: ENTITY_SET_J, idField: 'cf_factcustomeroperationsid' }
+  ];
+
+  var PRESET_PLUG_CODES = ['L2', 'DCFC', 'DCFC_150KW'];
+  var PRESET_DER_CODES = ['NM', 'CS', 'BTM_STORAGE'];
+  var PRESET_INV_CAT = ['ELECTRIC_RELIABILITY', 'GAS_SAFETY', 'GRID_MODERNIZATION', 'RESILIENCE', 'TRANSMISSION'];
+  var PRESET_PIPE_ACTION_CODES = ['REPLACE_BARE_STEEL', 'REPLACE_CAST_IRON', 'REPLACE_OTHER', 'PROTECT_IN_PLACE'];
+  var PRESET_LEAK_TYPE_CODES = ['GRADE_1', 'GRADE_2', 'GRADE_3'];
+  var PRESET_J_ACCT_STATUS = ['ACTIVE', 'PAST_DUE', 'SHUTOFF', 'EAP_ENROLLED'];
+  var PRESET_J_USAGE_COMMODITY = ['ELECTRIC', 'GAS', 'DUAL_FUEL'];
+
+  function getGlobalContext() {
+    if (window.parent && window.parent.Xrm && window.parent.Xrm.Utility) {
+      return window.parent.Xrm.Utility.getGlobalContext();
+    }
+    if (window.Xrm && window.Xrm.Utility) {
+      return window.Xrm.Utility.getGlobalContext();
+    }
+    return null;
+  }
+
+  function getClientUrl() {
+    var ctx = getGlobalContext();
+    if (!ctx) {
+      throw new Error('Open this web resource inside the CLCPA model-driven app (Xrm context required).');
+    }
+    return ctx.getClientUrl().replace(/\/$/, '');
+  }
+
+  function applyShellBrandUrls() {
+    try {
+      var base = getClientUrl();
+      var img = document.getElementById('shell-sidebar-logo');
+      if (img) img.src = base + '/WebResources/cf_clcpa_dac_brand_logo';
+      var topLogo = document.getElementById('shell-topbar-logo');
+      if (topLogo) topLogo.src = base + '/WebResources/cf_clcpa_dac_topbar_logo';
+    } catch (e) { /* optional when Xrm unavailable */ }
+  }
+
+  function syncSidebarReportingYear() {
+    var sub = document.getElementById('sidebar-brand-sub');
+    if (!sub) return;
+    if (activeSection === 'ingestion') {
+      sub.textContent = 'Multi-year ingestion';
+      return;
+    }
+    var y = document.getElementById('filter-year');
+    sub.textContent = 'Reporting Year ' + (y && y.value ? y.value : '2024');
+  }
+
+  function syncExecHeroMeta() {
+    var y = document.getElementById('filter-year');
+    var hero = document.getElementById('exec-hero-meta');
+    if (!hero || !y) return;
+    hero.innerHTML = '<div><dt>Year</dt><dd>' + String(y.value || '2024') + '</dd></div>';
+  }
+
+  function syncTopbarChrome(section) {
+    var actions = document.getElementById('topbar-actions');
+    if (actions) actions.style.display = section === 'ingestion' ? 'none' : '';
+  }
+
+  function showStatus(msg, isErr) {
+    var el = document.getElementById('status-bar');
+    el.style.display = 'block';
+    el.className = 'status-bar ' + (isErr ? 'error' : 'info');
+    el.textContent = msg;
+  }
+
+  function dvFetch(path, init) {
+    var url = getClientUrl() + path;
+    var headers = {
+      'Accept': 'application/json',
+      'OData-MaxVersion': '4.0',
+      'OData-Version': '4.0'
+    };
+    if (init && init.method && init.method !== 'GET') {
+      headers['Content-Type'] = 'application/json';
+    }
+    return fetch(url, Object.assign({}, init, { credentials: 'same-origin', headers: Object.assign(headers, (init && init.headers) || {}) }));
+  }
+
+  function parseJsonSafe(r) {
+    return r.text().then(function (t) {
+      try { return JSON.parse(t); } catch (e) { return { _raw: t }; }
+    });
+  }
+
+  function loadPeriods() {
+    var qs = '?$select=cf_dimperiodid,cf_calendaryear,cf_periodlabel,cf_periodgrain,cf_isreportperiod' +
+      '&$filter=statecode eq 0&$orderby=cf_calendaryear desc';
+    return dvFetch(API + 'cf_dimperiods' + qs).then(function (r) {
+      if (!r.ok) throw new Error('Periods ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      periods = d.value || [];
+      return periods;
+    });
+  }
+
+  function loadPrograms() {
+    var qs = '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_isactive' +
+      '&$filter=statecode eq 0 and cf_sectioncode eq \'A\' and cf_isactive eq true&$orderby=cf_programname';
+    return dvFetch(API + 'cf_dimprograms' + qs).then(function (r) {
+      if (!r.ok) throw new Error('Programs ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      stateA.programs = d.value || [];
+      if (stateA.programs.length === 0) {
+        return dvFetch(API + 'cf_dimprograms?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode&$filter=statecode eq 0&$orderby=cf_programname&$top=500').then(function (r2) {
+          if (!r2.ok) throw new Error('Programs fallback ' + r2.status);
+          return r2.json();
+        }).then(function (d2) {
+          stateA.programs = d2.value || [];
+        });
+      }
+    });
+  }
+
+  function loadProgramsC() {
+    var qs = '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_isactive' +
+      '&$filter=statecode eq 0 and cf_sectioncode eq \'C\' and cf_isactive eq true&$orderby=cf_programname';
+    return dvFetch(API + 'cf_dimprograms' + qs).then(function (r) {
+      if (!r.ok) throw new Error('Programs (C) ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      stateC.programs = d.value || [];
+      if (stateC.programs.length === 0) {
+        return dvFetch(API + 'cf_dimprograms?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode&$filter=statecode eq 0&$orderby=cf_programname&$top=500').then(function (r2) {
+          if (!r2.ok) throw new Error('Programs (C) fallback ' + r2.status);
+          return r2.json();
+        }).then(function (d2) {
+          stateC.programs = d2.value || [];
+        });
+      }
+    });
+  }
+
+  function loadProgramsI() {
+    var qs = '?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode,cf_isactive' +
+      '&$filter=statecode eq 0 and cf_sectioncode eq \'I\' and cf_isactive eq true&$orderby=cf_programname';
+    return dvFetch(API + 'cf_dimprograms' + qs).then(function (r) {
+      if (!r.ok) throw new Error('Programs (I) ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      stateI.programs = d.value || [];
+      if (stateI.programs.length === 0) {
+        return dvFetch(API + 'cf_dimprograms?$select=cf_dimprogramid,cf_programname,cf_programcode,cf_sectioncode&$filter=statecode eq 0&$orderby=cf_programname&$top=500').then(function (r2) {
+          if (!r2.ok) throw new Error('Programs (I) fallback ' + r2.status);
+          return r2.json();
+        }).then(function (d2) {
+          stateI.programs = d2.value || [];
+        });
+      }
+    });
+  }
+
+  function loadDacStatuses() {
+    var qs = '?$select=cf_dacstatusid,cf_dacstatuslabel,cf_dacstatuscode&$filter=statecode eq 0&$orderby=cf_dacstatuslabel';
+    return dvFetch(API + 'cf_dacstatuses' + qs).then(function (r) {
+      if (!r.ok) throw new Error('DAC statuses ' + r.status);
+      return r.json();
+    }).then(function (d) {
+      dacStatuses = d.value || [];
+    });
+  }
+
+  function periodGuidForYear(year) {
+    var y = parseInt(year, 10);
+    var list = periods.filter(function (p) {
+      return parseInt(p.cf_calendaryear, 10) === y;
+    });
+    if (!list.length) return null;
+    var rep = list.filter(function (p) { return p.cf_isreportperiod === true; });
+    return (rep[0] || list[0]).cf_dimperiodid;
+  }
+
+  function reportingYearForDataLoad() {
+    var el = document.getElementById('filter-year');
+    if (el && el.value) return el.value;
+    var best = null;
+    periods.forEach(function (p) {
+      if (p.cf_calendaryear == null) return;
+      var y = parseInt(p.cf_calendaryear, 10);
+      if (isNaN(y) || y < DASHBOARD_MIN_REPORTING_YEAR || y > 2100) return;
+      if (best == null || y > best) best = y;
+    });
+    return best != null ? String(best) : '';
+  }
+
+  function odataFetchUrl(fullUrl) {
+    return fetch(fullUrl, {
+      credentials: 'same-origin',
+      headers: {
+        'Accept': 'application/json',
+        'OData-MaxVersion': '4.0',
+        'OData-Version': '4.0'
+      }
+    });
+  }
+
+  function distinctCalendarYearsFromPeriods() {
+    var m = {};
+    periods.forEach(function (p) {
+      if (p.cf_calendaryear != null) m[p.cf_calendaryear] = true;
+    });
+    return Object.keys(m).map(Number);
+  }
+
+  function syncIngestToolbarTableSelect() {
+    if (USE_PROTO_DATA_INGESTION) return;
+    var sel = document.getElementById('ingest-table-select');
+    if (!sel) return;
+    var L = ingestionLetter;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    var o = document.createElement('option');
+    o.value = L;
+    o.textContent = INGEST_TOOLBAR_TABLE_LABELS[L] || ('Section ' + L.toUpperCase());
+    sel.appendChild(o);
+  }
+
+  function applyGlobalReportingYear(yStr) {
+    if (!yStr) return;
+    var ids = USE_PROTO_DATA_INGESTION
+      ? ['filter-year', 'f-year', 'b-f-year', 'c-f-year', 'd-f-year', 'e-f-year', 'f-f-year', 'g-f-year', 'h-f-year', 'i-f-year', 'j-f-year']
+      : ['ingest-year-select', 'filter-year', 'f-year', 'b-f-year', 'c-f-year', 'd-f-year', 'e-f-year', 'f-f-year', 'g-f-year', 'h-f-year', 'i-f-year', 'j-f-year'];
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || el.tagName !== 'SELECT') return;
+      var has = false;
+      for (var i = 0; i < el.options.length; i++) {
+        if (el.options[i].value === yStr) { has = true; break; }
+      }
+      if (!has) return;
+      el.value = yStr;
+    });
+    syncPeriodDropdown();
+    syncPeriodDropdownB();
+    syncPeriodDropdownC();
+    syncPeriodDropdownD();
+    syncPeriodDropdownE();
+    syncPeriodDropdownF();
+    syncPeriodDropdownG();
+    syncPeriodDropdownH();
+    syncPeriodDropdownI();
+    syncPeriodDropdownJ();
+    syncSidebarReportingYear();
+    syncExecHeroMeta();
+    if (activeSection === 'ingestion' && !USE_PROTO_DATA_INGESTION) reloadIngestionForLetter(ingestionLetter);
+    else applyFilterOrReload();
+  }
+
+  function gatherPrimaryKeys(entitySet, idField, filterExpr) {
+    var acc = [];
+    var path = API + entitySet + '?$select=' + encodeURIComponent(idField) + '&$filter=' + encodeURIComponent(filterExpr);
+    function pull(url) {
+      return (url.indexOf('http') === 0 ? odataFetchUrl(url) : dvFetch(url)).then(function (r) {
+        if (!r.ok) throw new Error(entitySet + ' $filter query failed (' + r.status + ')');
+        return r.json();
+      }).then(function (d) {
+        (d.value || []).forEach(function (row) {
+          if (row[idField]) acc.push(row[idField]);
+        });
+        if (d['@odata.nextLink']) return pull(d['@odata.nextLink']);
+        return acc;
+      });
+    }
+    return pull(path);
+  }
+
+  function deleteRecordById(entitySet, id) {
+    return dvFetch(API + entitySet + '(' + id + ')', { method: 'DELETE' }).then(function (r) {
+      if (r.status === 204 || r.status === 404) return;
+      return r.text().then(function (t) {
+        throw new Error('DELETE ' + entitySet + ' ' + r.status + ' ' + t);
+      });
+    });
+  }
+
+  function deleteFactsForPeriodFilter(filt) {
+    return INGEST_FACT_ENTITY_DEFS.reduce(function (p, def) {
+      return p.then(function () {
+        return gatherPrimaryKeys(def.set, def.idField, filt);
+      }).then(function (ids) {
+        return ids.reduce(function (q, id) {
+          return q.then(function () { return deleteRecordById(def.set, id); });
+        }, Promise.resolve());
+      });
+    }, Promise.resolve());
+  }
+
+  function fetchPeriodRowsForCalendarYear(y) {
+    var yi = parseInt(y, 10);
+    var filt = 'cf_calendaryear eq ' + yi + ' and statecode eq 0';
+    var sel = 'cf_dimperiodid,cf_calendaryear,cf_periodlabel,cf_periodgrain,cf_isreportperiod,cf_periodstartdate,cf_periodenddate,cf_calendarmonth,cf_calendarquarter';
+    var path = API + 'cf_dimperiods?$select=' + encodeURIComponent(sel) + '&$filter=' + encodeURIComponent(filt);
+    function pull(url) {
+      return (url.indexOf('http') === 0 ? odataFetchUrl(url) : dvFetch(url)).then(function (r) {
+        if (!r.ok) throw new Error('Period template read failed (' + r.status + ')');
+        return r.json();
+      }).then(function (d) {
+        var part = d.value || [];
+        if (d['@odata.nextLink']) {
+          return pull(d['@odata.nextLink']).then(function (rest) { return part.concat(rest); });
+        }
+        return part;
+      });
+    }
+    return pull(path);
+  }
+
+  function shiftODataDate(val, deltaYears) {
+    if (val == null || val === '') return null;
+    var d = new Date(val);
+    if (isNaN(d.getTime())) return null;
+    d.setUTCFullYear(d.getUTCFullYear() + deltaYears);
+    return d.toISOString();
+  }
+
+  function buildClonedPeriodPayload(src, templateYear, newYear) {
+    var dy = parseInt(newYear, 10) - parseInt(templateYear, 10);
+    var lab = src.cf_periodlabel ? String(src.cf_periodlabel) : '';
+    var ts = String(templateYear);
+    var ns = String(newYear);
+    var newLab = lab.replace(new RegExp('\\b' + ts + '\\b', 'g'), ns);
+    if (newLab === lab && lab.indexOf(ts) >= 0) newLab = lab.split(ts).join(ns);
+    var body = {
+      cf_calendaryear: parseInt(newYear, 10),
+      cf_periodgrain: src.cf_periodgrain,
+      cf_periodlabel: newLab || ns,
+      cf_isreportperiod: src.cf_isreportperiod === true
+    };
+    if (src.cf_calendarmonth != null) body.cf_calendarmonth = src.cf_calendarmonth;
+    if (src.cf_calendarquarter != null) body.cf_calendarquarter = src.cf_calendarquarter;
+    var s = shiftODataDate(src.cf_periodstartdate, dy);
+    var e = shiftODataDate(src.cf_periodenddate, dy);
+    if (s) body.cf_periodstartdate = s;
+    if (e) body.cf_periodenddate = e;
+    return body;
+  }
+
+  function createReportingYearFromTemplate(newYearStr) {
+    var newY = parseInt(newYearStr, 10);
+    if (isNaN(newY) || newY < 2000 || newY > 2099) {
+      return Promise.reject(new Error('Enter a valid 4-digit year.'));
+    }
+    var hasYear = periods.some(function (p) { return parseInt(p.cf_calendaryear, 10) === newY; });
+    if (hasYear) {
+      return Promise.reject(new Error('That calendar year already exists in DIM PERIOD.'));
+    }
+    var ys = distinctCalendarYearsFromPeriods();
+    var templateYear = ys.length ? Math.max.apply(null, ys) : null;
+    if (!templateYear) {
+      return Promise.reject(new Error('No existing periods to use as a template.'));
+    }
+    return fetchPeriodRowsForCalendarYear(templateYear).then(function (rows) {
+      if (!rows.length) {
+        return Promise.reject(new Error('Template year ' + templateYear + ' has no period rows.'));
+      }
+      return rows.reduce(function (pms, src) {
+        return pms.then(function () {
+          var body = buildClonedPeriodPayload(src, templateYear, newY);
+          return dvFetch(API + 'cf_dimperiods', { method: 'POST', body: JSON.stringify(body) }).then(function (r) {
+            if (!r.ok) {
+              return parseJsonSafe(r).then(function (j) {
+                throw new Error((j.error && j.error.message) || ('Create period failed ' + r.status));
+              });
+            }
+          });
+        });
+      }, Promise.resolve());
+    }).then(function () {
+      return loadPeriods();
+    }).then(function () {
+      fillYearSelects();
+      applyGlobalReportingYear(String(newY));
+      showStatus('Created DIM PERIOD rows for ' + newY + ' (cloned from ' + templateYear + '). No fact rows were copied.', false);
+    });
+  }
+
+  function deleteReportingYearCascade(yearStr) {
+    var y = parseInt(yearStr, 10);
+    var periodIds = periods.filter(function (p) { return parseInt(p.cf_calendaryear, 10) === y; }).map(function (p) { return p.cf_dimperiodid; });
+    var distinctYears = distinctCalendarYearsFromPeriods();
+    if (distinctYears.length <= 1) {
+      return Promise.reject(new Error('Cannot delete the only calendar year in DIM PERIOD.'));
+    }
+    if (!periodIds.length) {
+      return Promise.reject(new Error('No periods found for year ' + yearStr + '.'));
+    }
+    var filt = periodIds.map(function (id) { return '_cf_period_value eq ' + id; }).join(' or ');
+    return deleteFactsForPeriodFilter(filt).then(function () {
+      return periodIds.reduce(function (pms, pid) {
+        return pms.then(function () { return deleteRecordById('cf_dimperiods', pid); });
+      }, Promise.resolve());
+    }).then(function () {
+      return loadPeriods();
+    }).then(function () {
+      fillYearSelects();
+      var remain = distinctCalendarYearsFromPeriods().sort(function (a, b) { return b - a; });
+      if (remain.length) applyGlobalReportingYear(String(remain[0]));
+      showStatus('Deleted reporting year ' + yearStr + ' (all Section A–J facts for those periods, then DIM PERIOD rows).', false);
+    });
+  }
+
+  function fillYearSelects() {
+    var years = {};
+    periods.forEach(function (p) {
+      if (p.cf_calendaryear != null) years[p.cf_calendaryear] = true;
+    });
+    var ys = Object.keys(years).map(Number).filter(function (y) {
+      return y >= DASHBOARD_MIN_REPORTING_YEAR && y <= 2100;
+    }).sort(function (a, b) { return b - a; });
+    var fy = document.getElementById('f-year');
+    var fl = document.getElementById('filter-year');
+    var fyb = document.getElementById('b-f-year');
+    var fyc = document.getElementById('c-f-year');
+    var fyd = document.getElementById('d-f-year');
+    var fye = document.getElementById('e-f-year');
+    var fyf = document.getElementById('f-f-year');
+    var fyg = document.getElementById('g-f-year');
+    var fyh = document.getElementById('h-f-year');
+    var fyi = document.getElementById('i-f-year');
+    var fyj = document.getElementById('j-f-year');
+    var ingestIy = USE_PROTO_DATA_INGESTION ? null : document.getElementById('ingest-year-select');
+    var allSels = [fy, fl, fyb, fyc, fyd, fye, fyf, fyg, fyh, fyi, fyj];
+    if (ingestIy) allSels.push(ingestIy);
+    allSels.forEach(function (sel) {
+      if (!sel) return;
+      while (sel.firstChild) sel.removeChild(sel.firstChild);
+    });
+    ys.forEach(function (y) {
+      var o = document.createElement('option');
+      o.value = String(y);
+      o.textContent = String(y);
+      var yearTargets = [fy, fl, fyb, fyc, fyd, fye, fyf, fyg, fyh, fyi, fyj, ingestIy];
+      yearTargets.forEach(function (sel) {
+        if (sel) sel.appendChild(o.cloneNode(true));
+      });
+    });
+    if (ys.length) {
+      var y0 = String(ys[0]);
+      if (fl) fl.value = y0;
+      if (fy) fy.value = y0;
+      if (fyb) fyb.value = y0;
+      if (fyc) fyc.value = y0;
+      if (fyd) fyd.value = y0;
+      if (fye) fye.value = y0;
+      if (fyf) fyf.value = y0;
+      if (fyg) fyg.value = y0;
+      if (fyh) fyh.value = y0;
+      if (fyi) fyi.value = y0;
+      if (fyj) fyj.value = y0;
+      if (ingestIy) ingestIy.value = y0;
+    }
+    syncPeriodDropdown();
+    syncPeriodDropdownB();
+    syncPeriodDropdownC();
+    syncPeriodDropdownD();
+    syncPeriodDropdownE();
+    syncPeriodDropdownF();
+    syncPeriodDropdownG();
+    syncPeriodDropdownH();
+    syncPeriodDropdownI();
+    syncPeriodDropdownJ();
+    syncIngestToolbarTableSelect();
+  }
+
+  function syncPeriodDropdown() {
+    var sel = document.getElementById('f-period');
+    var yEl = document.getElementById('f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownB() {
+    var sel = document.getElementById('b-f-period');
+    var yEl = document.getElementById('b-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownC() {
+    var sel = document.getElementById('c-f-period');
+    var yEl = document.getElementById('c-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownD() {
+    var sel = document.getElementById('d-f-period');
+    var yEl = document.getElementById('d-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownE() {
+    var sel = document.getElementById('e-f-period');
+    var yEl = document.getElementById('e-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownF() {
+    var sel = document.getElementById('f-f-period');
+    var yEl = document.getElementById('f-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownG() {
+    var sel = document.getElementById('g-f-period');
+    var yEl = document.getElementById('g-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownH() {
+    var sel = document.getElementById('h-f-period');
+    var yEl = document.getElementById('h-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownI() {
+    var sel = document.getElementById('i-f-period');
+    var yEl = document.getElementById('i-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function syncPeriodDropdownJ() {
+    var sel = document.getElementById('j-f-period');
+    var yEl = document.getElementById('j-f-year');
+    if (!sel || !yEl) return;
+    var y = yEl.value;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    periods.filter(function (p) { return String(p.cf_calendaryear) === y; })
+      .forEach(function (p) {
+        var o = document.createElement('option');
+        o.value = p.cf_dimperiodid;
+        o.textContent = (p.cf_periodlabel || p.cf_dimperiodid) +
+          (p.cf_periodgrain ? ' · ' + p.cf_periodgrain : '');
+        sel.appendChild(o);
+      });
+  }
+
+  function fillProgramsDropdown() {
+    var sel = document.getElementById('f-program');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    stateA.programs.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dimprogramid;
+      o.textContent = p.cf_programname || p.cf_programcode || p.cf_dimprogramid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillDacDropdown() {
+    var sel = document.getElementById('f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillDacDropdownB() {
+    var sel = document.getElementById('b-f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillProgramsDropdownC() {
+    var sel = document.getElementById('c-f-program');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    stateC.programs.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dimprogramid;
+      o.textContent = p.cf_programname || p.cf_programcode || p.cf_dimprogramid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillProgramsDropdownI() {
+    var sel = document.getElementById('i-f-program');
+    var hint = document.getElementById('i-program-hint');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    var o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = stateI.programs.length ? '(none — org-wide / unset program)' : '(no programs — leave unset)';
+    sel.appendChild(o0);
+    stateI.programs.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dimprogramid;
+      o.textContent = p.cf_programname || p.cf_programcode || p.cf_dimprogramid;
+      sel.appendChild(o);
+    });
+    if (hint) {
+      hint.textContent = stateI.programs.length
+        ? 'Optional: omit program only when facts are not tied to a program row. Duplicate key includes program when set.'
+        : 'No Section I programs are configured; facts can be saved without a program.';
+    }
+  }
+
+  function fillDacDropdownC() {
+    var sel = document.getElementById('c-f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillDacDropdownD() {
+    var sel = document.getElementById('d-f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillDacDropdownF() {
+    var sel = document.getElementById('f-f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillDacDropdownG() {
+    var sel = document.getElementById('g-f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillDacDropdownH() {
+    var sel = document.getElementById('h-f-dac');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    dacStatuses.forEach(function (p) {
+      var o = document.createElement('option');
+      o.value = p.cf_dacstatusid;
+      o.textContent = p.cf_dacstatuslabel || p.cf_dacstatuscode || p.cf_dacstatusid;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillGeographyDropdownF() {
+    var sel = document.getElementById('f-f-geo');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    var o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = '(none)';
+    sel.appendChild(o0);
+    geographies.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.cf_dimgeographyid;
+      var label = g.cf_boroughorcounty || g.cf_loadareaname || g.cf_networkname || g.cf_dimgeographyid;
+      if (g.cf_geographylevel) label += ' · ' + g.cf_geographylevel;
+      o.textContent = label;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillGeographyDropdownG() {
+    var sel = document.getElementById('g-f-geo');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    var o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = '(none)';
+    sel.appendChild(o0);
+    geographies.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.cf_dimgeographyid;
+      var label = g.cf_boroughorcounty || g.cf_loadareaname || g.cf_networkname || g.cf_dimgeographyid;
+      if (g.cf_geographylevel) label += ' · ' + g.cf_geographylevel;
+      o.textContent = label;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillGeographyDropdownH() {
+    var sel = document.getElementById('h-f-geo');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    var o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = '(none)';
+    sel.appendChild(o0);
+    geographies.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.cf_dimgeographyid;
+      var label = g.cf_boroughorcounty || g.cf_loadareaname || g.cf_networkname || g.cf_dimgeographyid;
+      if (g.cf_geographylevel) label += ' · ' + g.cf_geographylevel;
+      o.textContent = label;
+      sel.appendChild(o);
+    });
+  }
+
+  function fillGeographyDropdownJ() {
+    var sel = document.getElementById('j-f-geo');
+    if (!sel) return;
+    while (sel.firstChild) sel.removeChild(sel.firstChild);
+    var o0 = document.createElement('option');
+    o0.value = '';
+    o0.textContent = '(none)';
+    sel.appendChild(o0);
+    geographies.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.cf_dimgeographyid;
+      var label = g.cf_boroughorcounty || g.cf_loadareaname || g.cf_networkname || g.cf_dimgeographyid;
+      if (g.cf_geographylevel) label += ' · ' + g.cf_geographylevel;
+      o.textContent = label;
+      sel.appendChild(o);
+    });
+  }
+
+  function loadGeographiesOutages() {
+    var qs = '?$select=cf_dimgeographyid,cf_boroughorcounty,cf_geographylevel,cf_loadareaname,cf_networkname' +
+      '&$filter=statecode eq 0&$orderby=cf_boroughorcounty,cf_loadareaname&$top=500';
+    return dvFetch(API + 'cf_dimgeographys' + qs).then(function (r) {
+      if (!r.ok) {
+        geographies = [];
+        fillGeographyDropdownF();
+        fillGeographyDropdownG();
+        fillGeographyDropdownH();
+        fillGeographyDropdownJ();
+        return null;
+      }
+      return r.json();
+    }).then(function (d) {
+      geographies = d && d.value ? d.value : [];
+      fillGeographyDropdownF();
+      fillGeographyDropdownG();
+      fillGeographyDropdownH();
+      fillGeographyDropdownJ();
+    });
+  }
+
+  function syncGeoFieldAvailabilityF() {
+    var sel = document.getElementById('f-f-geo');
+    var hint = document.getElementById('f-geo-hint');
+    if (!sel || !hint) return;
+    if (!stateF.duplicateUsesGeo) {
+      sel.disabled = true;
+      sel.value = '';
+      hint.textContent = 'Geography bind/expand is unavailable for this fact entity in your org (navigation missing or API error). Duplicate detection uses period + DAC + source only.';
+    } else {
+      sel.disabled = false;
+      hint.textContent = '';
+    }
+  }
+
+  function syncGeoFieldAvailabilityG() {
+    var sel = document.getElementById('g-f-geo');
+    var hint = document.getElementById('g-geo-hint');
+    if (!sel || !hint) return;
+    if (!stateG.duplicateUsesGeo) {
+      sel.disabled = true;
+      sel.value = '';
+      hint.textContent = 'Geography bind/expand is unavailable for this fact entity in your org. Duplicate detection omits geography.';
+    } else {
+      sel.disabled = false;
+      hint.textContent = '';
+    }
+  }
+
+  function syncGeoFieldAvailabilityH() {
+    var sel = document.getElementById('h-f-geo');
+    var hint = document.getElementById('h-geo-hint');
+    if (!sel || !hint) return;
+    if (!stateH.duplicateUsesGeo) {
+      sel.disabled = true;
+      sel.value = '';
+      hint.textContent = 'Geography bind/expand is unavailable for this fact entity in your org. Duplicate detection omits geography.';
+    } else {
+      sel.disabled = false;
+      hint.textContent = '';
+    }
+  }
+
+  function syncGeoFieldAvailabilityJ() {
+    var sel = document.getElementById('j-f-geo');
+    var hint = document.getElementById('j-geo-hint');
+    if (!sel || !hint) return;
+    if (!stateJ.duplicateUsesGeo) {
+      sel.disabled = true;
+      sel.value = '';
+      hint.textContent = 'Geography bind/expand is unavailable for this fact entity in your org. Duplicate detection omits geography.';
+    } else {
+      sel.disabled = false;
+      hint.textContent = '';
+    }
+  }
+
+  function refreshPlugDatalist() {
+    var dl = document.getElementById('b-plug-list');
+    if (!dl) return Promise.resolve();
+    while (dl.firstChild) dl.removeChild(dl.firstChild);
+    var seen = {};
+    PRESET_PLUG_CODES.forEach(function (c) { seen[c] = true; });
+    PRESET_PLUG_CODES.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c;
+      dl.appendChild(o);
+    });
+    return dvFetch(API + ENTITY_SET_B + '?$select=cf_plugtypecode&$filter=cf_plugtypecode ne null&$orderby=cf_plugtypecode&$top=5000').then(function (r) {
+      if (!r.ok) return null;
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.value) return;
+      d.value.forEach(function (row) {
+        var c = row.cf_plugtypecode;
+        if (c && !seen[c]) {
+          seen[c] = true;
+          var o = document.createElement('option');
+          o.value = c;
+          dl.appendChild(o);
+        }
+      });
+    });
+  }
+
+  function refreshDerDatalist() {
+    var dl = document.getElementById('d-dertype-list');
+    if (!dl) return Promise.resolve();
+    while (dl.firstChild) dl.removeChild(dl.firstChild);
+    var seen = {};
+    PRESET_DER_CODES.forEach(function (c) { seen[c] = true; });
+    PRESET_DER_CODES.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c;
+      dl.appendChild(o);
+    });
+    return dvFetch(API + ENTITY_SET_D + '?$select=cf_dertypecode&$filter=cf_dertypecode ne null&$orderby=cf_dertypecode&$top=5000').then(function (r) {
+      if (!r.ok) return null;
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.value) return;
+      d.value.forEach(function (row) {
+        var c = row.cf_dertypecode;
+        if (c && !seen[c]) {
+          seen[c] = true;
+          var o = document.createElement('option');
+          o.value = c;
+          dl.appendChild(o);
+        }
+      });
+    });
+  }
+
+  function refreshInvCategoryDatalist() {
+    var dl = document.getElementById('e-category-list');
+    if (!dl) return Promise.resolve();
+    while (dl.firstChild) dl.removeChild(dl.firstChild);
+    var seen = {};
+    PRESET_INV_CAT.forEach(function (c) { seen[c] = true; });
+    PRESET_INV_CAT.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c;
+      dl.appendChild(o);
+    });
+    return dvFetch(API + ENTITY_SET_E + '?$select=cf_investmentcategorycode&$filter=cf_investmentcategorycode ne null&$orderby=cf_investmentcategorycode&$top=5000').then(function (r) {
+      if (!r.ok) return null;
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.value) return;
+      d.value.forEach(function (row) {
+        var c = row.cf_investmentcategorycode;
+        if (c && !seen[c]) {
+          seen[c] = true;
+          var o = document.createElement('option');
+          o.value = c;
+          dl.appendChild(o);
+        }
+      });
+    });
+  }
+
+  function refreshPipeActionDatalist() {
+    var dl = document.getElementById('g-pipe-list');
+    if (!dl) return Promise.resolve();
+    while (dl.firstChild) dl.removeChild(dl.firstChild);
+    var seen = {};
+    PRESET_PIPE_ACTION_CODES.forEach(function (c) { seen[c] = true; });
+    PRESET_PIPE_ACTION_CODES.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c;
+      dl.appendChild(o);
+    });
+    return dvFetch(API + ENTITY_SET_G + '?$select=cf_pipeactioncode&$filter=cf_pipeactioncode ne null&$orderby=cf_pipeactioncode&$top=5000').then(function (r) {
+      if (!r.ok) return null;
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.value) return;
+      d.value.forEach(function (row) {
+        var c = row.cf_pipeactioncode;
+        if (c && !seen[c]) {
+          seen[c] = true;
+          var o = document.createElement('option');
+          o.value = c;
+          dl.appendChild(o);
+        }
+      });
+    });
+  }
+
+  function refreshLeakTypeDatalist() {
+    var dl = document.getElementById('h-leak-list');
+    if (!dl) return Promise.resolve();
+    while (dl.firstChild) dl.removeChild(dl.firstChild);
+    var seen = {};
+    PRESET_LEAK_TYPE_CODES.forEach(function (c) { seen[c] = true; });
+    PRESET_LEAK_TYPE_CODES.forEach(function (c) {
+      var o = document.createElement('option');
+      o.value = c;
+      dl.appendChild(o);
+    });
+    return dvFetch(API + ENTITY_SET_H + '?$select=cf_leaktypecode&$filter=cf_leaktypecode ne null&$orderby=cf_leaktypecode&$top=5000').then(function (r) {
+      if (!r.ok) return null;
+      return r.json();
+    }).then(function (d) {
+      if (!d || !d.value) return;
+      d.value.forEach(function (row) {
+        var c = row.cf_leaktypecode;
+        if (c && !seen[c]) {
+          seen[c] = true;
+          var o = document.createElement('option');
+          o.value = c;
+          dl.appendChild(o);
+        }
+      });
+    });
+  }
+
+  function refreshJDatalists() {
+    function seedDl(dlId, presets) {
+      var dl = document.getElementById(dlId);
+      if (!dl) return;
+      while (dl.firstChild) dl.removeChild(dl.firstChild);
+      presets.forEach(function (c) {
+        var o = document.createElement('option');
+        o.value = c;
+        dl.appendChild(o);
+      });
+    }
+    seedDl('j-acct-list', PRESET_J_ACCT_STATUS);
+    seedDl('j-usage-list', PRESET_J_USAGE_COMMODITY);
+    var seenA = {};
+    var seenU = {};
+    PRESET_J_ACCT_STATUS.forEach(function (c) { seenA[c] = true; });
+    PRESET_J_USAGE_COMMODITY.forEach(function (c) { seenU[c] = true; });
+    var dlA = document.getElementById('j-acct-list');
+    var dlU = document.getElementById('j-usage-list');
+    return dvFetch(API + ENTITY_SET_J + '?$select=cf_accountstatuscode&$filter=cf_accountstatuscode ne null&$orderby=cf_accountstatuscode&$top=2000').then(function (r) {
+      if (r.ok) return r.json();
+      return null;
+    }).then(function (d) {
+      if (d && d.value && dlA) {
+        d.value.forEach(function (row) {
+          var c = row.cf_accountstatuscode;
+          if (c && !seenA[c]) {
+            seenA[c] = true;
+            var o = document.createElement('option');
+            o.value = c;
+            dlA.appendChild(o);
+          }
+        });
+      }
+      return dvFetch(API + ENTITY_SET_J + '?$select=cf_usagecommoditycode&$filter=cf_usagecommoditycode ne null&$orderby=cf_usagecommoditycode&$top=2000');
+    }).then(function (r) {
+      if (!r || !r.ok) return null;
+      return r.json();
+    }).then(function (d) {
+      if (d && d.value && dlU) {
+        d.value.forEach(function (row) {
+          var c = row.cf_usagecommoditycode;
+          if (c && !seenU[c]) {
+            seenU[c] = true;
+            var o = document.createElement('option');
+            o.value = c;
+            dlU.appendChild(o);
+          }
+        });
+      }
+    });
+  }
+
+  function loadFacts() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateA.facts = [];
+      renderGrid();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var path = API + ENTITY_SET_A + '?$select=cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,_cf_period_value,_cf_program_value,_cf_dacstatus_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || 'Facts ' + r.status);
+      });
+      return r.json();
+    }).then(function (d) {
+      stateA.facts = d.value || [];
+      renderGrid();
+      summarize();
+      showStatus('Loaded ' + stateA.facts.length + ' row(s) for ' + year + '.', false);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function fmtMoney(n) {
+    if (n == null || n === '') return '—';
+    var x = Number(n);
+    if (isNaN(x)) return '—';
+    return x.toLocaleString(undefined, { maximumFractionDigits: 0 });
+  }
+
+  function fmtNum(n) {
+    if (n == null || n === '') return '—';
+    return Number(n).toLocaleString();
+  }
+
+  function fmtMw(n) {
+    if (n == null || n === '') return '—';
+    var x = Number(n);
+    if (isNaN(x)) return '—';
+    return x.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  }
+
+  function summarize() {
+    if (!document.getElementById('sum-rows')) return;
+    var tInc = 0, tMmbtu = 0, tPart = 0;
+    stateA.facts.forEach(function (f) {
+      if (f.cf_incentivedollars != null) tInc += Number(f.cf_incentivedollars);
+      if (f.cf_energysavingsmmbtu != null) tMmbtu += Number(f.cf_energysavingsmmbtu);
+      if (f.cf_participants != null) tPart += Number(f.cf_participants);
+    });
+    document.getElementById('sum-rows').textContent = String(stateA.facts.length);
+    document.getElementById('sum-incentive').textContent = fmtMoney(tInc);
+    document.getElementById('sum-mmbtu').textContent = fmtNum(tMmbtu);
+    document.getElementById('sum-participants').textContent = fmtNum(tPart);
+  }
+
+  function renderGrid() {
+    var tb = document.getElementById('grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('grid-empty');
+    var badge = document.getElementById('row-count-badge');
+    var gridEl = document.getElementById('grid');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    if (badge) badge.textContent = String(stateA.facts.length);
+    if (!stateA.facts.length) {
+      if (empty) empty.style.display = 'block';
+      if (gridEl) gridEl.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (gridEl) gridEl.style.display = '';
+    stateA.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var prog = f.cf_program ? f.cf_program.cf_programname : '—';
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(prog) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td>' + escapeHtml(f.cf_customersegmentcode || '') + '</td>' +
+        '<td class="num">' + fmtMoney(f.cf_incentivedollars) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_energysavingsmmbtu) + '</td>' +
+        '<td><button type="button" class="btn btn-secondary edit-row" data-id="' + f.cf_factcleanenergyspendingid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEdit(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function escapeHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  function numOrNull(id) {
+    var el = document.getElementById(id);
+    var v = el.value.trim();
+    if (v === '') return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+
+  function buildPayloadA(isPatch) {
+    var periodId = document.getElementById('f-period').value;
+    var programId = document.getElementById('f-program').value;
+    var dacId = document.getElementById('f-dac').value;
+    var seg = document.getElementById('f-seg').value;
+    var measure = document.getElementById('f-measure').value.trim();
+
+    var body = {
+      cf_sourcetable: SOURCE_TABLE_A
+    };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_program@odata.bind'] = '/cf_dimprograms(' + programId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    if (seg) body.cf_customersegmentcode = seg;
+    else body.cf_customersegmentcode = null;
+    if (measure) body.cf_measurecategorycode = measure;
+    else body.cf_measurecategorycode = null;
+
+    var inc = numOrNull('f-incentive');
+    var mmbtu = numOrNull('f-mmbtu');
+    var part = numOrNull('f-participants');
+    var inst = numOrNull('f-install');
+    body.cf_incentivedollars = inc;
+    body.cf_energysavingsmmbtu = mmbtu;
+    body.cf_participants = part == null ? null : Math.round(part);
+    body.cf_installations = inst == null ? null : Math.round(inst);
+    return body;
+  }
+
+  function clearFormA() {
+    stateA.editId = null;
+    document.getElementById('f-record-id').value = '';
+    document.getElementById('form-heading').textContent = 'New fact row';
+    document.getElementById('f-measure').value = '';
+    document.getElementById('f-incentive').value = '';
+    document.getElementById('f-mmbtu').value = '';
+    document.getElementById('f-participants').value = '';
+    document.getElementById('f-install').value = '';
+    document.getElementById('f-seg').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('f-year').value = fy;
+      syncPeriodDropdown();
+    }
+  }
+
+  function startEdit(id) {
+    var f = stateA.facts.filter(function (x) { return x.cf_factcleanenergyspendingid === id; })[0];
+    if (!f) return;
+    stateA.editId = id;
+    document.getElementById('f-record-id').value = id;
+    document.getElementById('form-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('f-year').value = String(y);
+      syncPeriodDropdown();
+    }
+    document.getElementById('f-period').value = f._cf_period_value || '';
+    document.getElementById('f-program').value = f._cf_program_value || '';
+    document.getElementById('f-dac').value = f._cf_dacstatus_value || '';
+    document.getElementById('f-seg').value = f.cf_customersegmentcode || '';
+    document.getElementById('f-measure').value = f.cf_measurecategorycode || '';
+    document.getElementById('f-incentive').value = f.cf_incentivedollars != null ? f.cf_incentivedollars : '';
+    document.getElementById('f-mmbtu').value = f.cf_energysavingsmmbtu != null ? f.cf_energysavingsmmbtu : '';
+    document.getElementById('f-participants').value = f.cf_participants != null ? f.cf_participants : '';
+    document.getElementById('f-install').value = f.cf_installations != null ? f.cf_installations : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordA(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('f-record-id').value;
+    var body = buildPayloadA(!!id);
+    var url, method, headers = {};
+    if (id) {
+      method = 'PATCH';
+      url = API + ENTITY_SET_A + '(' + id + ')';
+      headers['If-Match'] = '*';
+    } else {
+      method = 'POST';
+      url = API + ENTITY_SET_A;
+    }
+    document.getElementById('btn-save').disabled = true;
+    dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+      if (!r.ok) {
+        return parseJsonSafe(r).then(function (j) {
+          throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+        });
+      }
+      showStatus(id ? 'Updated.' : 'Saved.', false);
+      clearFormA();
+      return loadFacts().then(function () {
+        refreshDashboardForActiveSectionAfterSave('a');
+      });
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section B (EV Make Ready) -----
+  function normalizePlugCode(raw) {
+    var s = (raw || '').trim();
+    return s === '' ? null : s;
+  }
+
+  function buildDuplicateFilterB(periodGuid, dacGuid, plugNorm) {
+    var f = '_cf_period_value eq ' + periodGuid + ' and _cf_dacstatus_value eq ' + dacGuid +
+      " and cf_sourcetable eq 'UI-SectionB'";
+    if (plugNorm == null) {
+      f += ' and cf_plugtypecode eq null';
+    } else {
+      f += " and cf_plugtypecode eq '" + plugNorm.replace(/'/g, "''") + "'";
+    }
+    return f;
+  }
+
+  function findExistingEvId(periodGuid, dacGuid, plugNorm) {
+    var filt = buildDuplicateFilterB(periodGuid, dacGuid, plugNorm);
+    var path = API + ENTITY_SET_B + '?$select=cf_factevmakereadyid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing EV row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factevmakereadyid : null;
+    });
+  }
+
+  function loadFactsB() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateB.facts = [];
+      renderGridB();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var path = API + ENTITY_SET_B + '?$select=cf_factevmakereadyid,cf_sourcetable,cf_plugtypecode,cf_incentivedollars,cf_plugsinstalled,_cf_period_value,_cf_dacstatus_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || 'EV facts ' + r.status);
+      });
+      return r.json();
+    }).then(function (d) {
+      stateB.facts = d.value || [];
+      renderGridB();
+      summarizeB();
+      showStatus('Loaded ' + stateB.facts.length + ' EV Make Ready row(s) for ' + year + '.', false);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeB() {
+    if (!document.getElementById('b-sum-rows')) return;
+    var tFund = 0, tPlugs = 0;
+    stateB.facts.forEach(function (f) {
+      if (f.cf_incentivedollars != null) tFund += Number(f.cf_incentivedollars);
+      if (f.cf_plugsinstalled != null) tPlugs += Number(f.cf_plugsinstalled);
+    });
+    document.getElementById('b-sum-rows').textContent = String(stateB.facts.length);
+    document.getElementById('b-sum-funding').textContent = fmtMoney(tFund);
+    document.getElementById('b-sum-plugs').textContent = fmtNum(tPlugs);
+  }
+
+  function renderGridB() {
+    var tb = document.getElementById('b-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('b-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('b-row-count-badge').textContent = String(stateB.facts.length);
+    if (!stateB.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('b-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('b-grid').style.display = '';
+    stateB.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      var plug = f.cf_plugtypecode != null && f.cf_plugtypecode !== '' ? f.cf_plugtypecode : '—';
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td>' + escapeHtml(String(plug)) + '</td>' +
+        '<td class="num">' + fmtMoney(f.cf_incentivedollars) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_plugsinstalled) + '</td>' +
+        '<td><button type="button" class="btn btn-secondary b-edit-row" data-id="' + f.cf_factevmakereadyid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.b-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditB(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadB() {
+    var periodId = document.getElementById('b-f-period').value;
+    var dacId = document.getElementById('b-f-dac').value;
+    var plug = normalizePlugCode(document.getElementById('b-plug').value);
+    var fund = numOrNull('b-funding');
+    var plugs = numOrNull('b-plugs');
+
+    var body = {
+      cf_sourcetable: SOURCE_TABLE_B
+    };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    body.cf_plugtypecode = plug;
+    body.cf_incentivedollars = fund;
+    body.cf_plugsinstalled = plugs == null ? null : Math.round(plugs);
+    return body;
+  }
+
+  function clearFormB() {
+    stateB.editId = null;
+    document.getElementById('b-record-id').value = '';
+    document.getElementById('b-form-heading').textContent = 'New fact row';
+    document.getElementById('b-plug').value = '';
+    document.getElementById('b-funding').value = '';
+    document.getElementById('b-plugs').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('b-f-year').value = fy;
+      syncPeriodDropdownB();
+    }
+  }
+
+  function startEditB(id) {
+    var f = stateB.facts.filter(function (x) { return x.cf_factevmakereadyid === id; })[0];
+    if (!f) return;
+    stateB.editId = id;
+    document.getElementById('b-record-id').value = id;
+    document.getElementById('b-form-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('b-f-year').value = String(y);
+      syncPeriodDropdownB();
+    }
+    document.getElementById('b-f-period').value = f._cf_period_value || '';
+    document.getElementById('b-f-dac').value = f._cf_dacstatus_value || '';
+    document.getElementById('b-plug').value = f.cf_plugtypecode != null ? f.cf_plugtypecode : '';
+    document.getElementById('b-funding').value = f.cf_incentivedollars != null ? f.cf_incentivedollars : '';
+    document.getElementById('b-plugs').value = f.cf_plugsinstalled != null ? f.cf_plugsinstalled : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordB(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('b-record-id').value;
+    var body = buildPayloadB();
+    var periodId = document.getElementById('b-f-period').value;
+    var dacId = document.getElementById('b-f-dac').value;
+    var plugNorm = normalizePlugCode(document.getElementById('b-plug').value);
+
+    document.getElementById('b-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_B + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_B;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'EV Make Ready updated.' : 'EV Make Ready saved.', false);
+        clearFormB();
+        return refreshPlugDatalist().then(function () {
+          return loadFactsB().then(function () {
+            refreshDashboardForActiveSectionAfterSave('b');
+          });
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingEvId(periodId, dacId, plugNorm).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('b-btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section C (Demand Response) -----
+  function buildDuplicateFilterC(periodGuid, dacGuid, programGuid) {
+    return '_cf_period_value eq ' + periodGuid +
+      ' and _cf_dacstatus_value eq ' + dacGuid +
+      ' and _cf_program_value eq ' + programGuid +
+      " and cf_sourcetable eq 'UI-SectionC'";
+  }
+
+  function findExistingDrId(periodGuid, dacGuid, programGuid) {
+    var filt = buildDuplicateFilterC(periodGuid, dacGuid, programGuid);
+    var path = API + ENTITY_SET_C + '?$select=cf_factdemandresponseid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing DR row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factdemandresponseid : null;
+    });
+  }
+
+  function loadFactsC() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateC.facts = [];
+      renderGridC();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var path = API + ENTITY_SET_C + '?$select=cf_factdemandresponseid,cf_sourcetable,cf_participants,cf_committedmw,cf_deliveredmw,_cf_period_value,_cf_program_value,_cf_dacstatus_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || 'Demand Response facts ' + r.status);
+      });
+      return r.json();
+    }).then(function (d) {
+      stateC.facts = d.value || [];
+      renderGridC();
+      summarizeC();
+      showStatus('Loaded ' + stateC.facts.length + ' Demand Response row(s) for ' + year + '.', false);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeC() {
+    if (!document.getElementById('c-sum-rows')) return;
+    var tComm = 0, tDel = 0, tPart = 0;
+    stateC.facts.forEach(function (f) {
+      if (f.cf_committedmw != null) tComm += Number(f.cf_committedmw);
+      if (f.cf_deliveredmw != null) tDel += Number(f.cf_deliveredmw);
+      if (f.cf_participants != null) tPart += Number(f.cf_participants);
+    });
+    document.getElementById('c-sum-rows').textContent = String(stateC.facts.length);
+    document.getElementById('c-sum-committed').textContent = fmtMw(tComm);
+    document.getElementById('c-sum-delivered').textContent = fmtMw(tDel);
+    document.getElementById('c-sum-participants').textContent = fmtNum(tPart);
+  }
+
+  function renderGridC() {
+    var tb = document.getElementById('c-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('c-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('c-row-count-badge').textContent = String(stateC.facts.length);
+    if (!stateC.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('c-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('c-grid').style.display = '';
+    var noAvgTitle = 'Average event size (MW) is not collected in this form yet.';
+    stateC.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var prog = f.cf_program ? f.cf_program.cf_programname : '—';
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(prog) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_participants) + '</td>' +
+        '<td class="num">' + fmtMw(f.cf_committedmw) + '</td>' +
+        '<td class="num">' + fmtMw(f.cf_deliveredmw) + '</td>' +
+        '<td class="num" title="' + escapeHtml(noAvgTitle) + '">—</td>' +
+        '<td><button type="button" class="btn btn-secondary c-edit-row" data-id="' + f.cf_factdemandresponseid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.c-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditC(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadC() {
+    var periodId = document.getElementById('c-f-period').value;
+    var programId = document.getElementById('c-f-program').value;
+    var dacId = document.getElementById('c-f-dac').value;
+    var part = numOrNull('c-participants');
+    var comm = numOrNull('c-committed');
+    var del = numOrNull('c-delivered');
+    var body = { cf_sourcetable: SOURCE_TABLE_C };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_program@odata.bind'] = '/cf_dimprograms(' + programId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    body.cf_participants = part == null ? null : Math.round(part);
+    body.cf_committedmw = comm;
+    body.cf_deliveredmw = del;
+    return body;
+  }
+
+  function clearFormC() {
+    stateC.editId = null;
+    document.getElementById('c-record-id').value = '';
+    document.getElementById('c-form-heading').textContent = 'New fact row';
+    document.getElementById('c-participants').value = '';
+    document.getElementById('c-committed').value = '';
+    document.getElementById('c-delivered').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('c-f-year').value = fy;
+      syncPeriodDropdownC();
+    }
+  }
+
+  function startEditC(id) {
+    var f = stateC.facts.filter(function (x) { return x.cf_factdemandresponseid === id; })[0];
+    if (!f) return;
+    stateC.editId = id;
+    document.getElementById('c-record-id').value = id;
+    document.getElementById('c-form-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('c-f-year').value = String(y);
+      syncPeriodDropdownC();
+    }
+    document.getElementById('c-f-period').value = f._cf_period_value || '';
+    document.getElementById('c-f-program').value = f._cf_program_value || '';
+    document.getElementById('c-f-dac').value = f._cf_dacstatus_value || '';
+    document.getElementById('c-participants').value = f.cf_participants != null ? f.cf_participants : '';
+    document.getElementById('c-committed').value = f.cf_committedmw != null ? f.cf_committedmw : '';
+    document.getElementById('c-delivered').value = f.cf_deliveredmw != null ? f.cf_deliveredmw : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordC(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('c-record-id').value;
+    var body = buildPayloadC();
+    var periodId = document.getElementById('c-f-period').value;
+    var dacId = document.getElementById('c-f-dac').value;
+    var programId = document.getElementById('c-f-program').value;
+
+    document.getElementById('c-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_C + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_C;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'Demand Response updated.' : 'Demand Response saved.', false);
+        clearFormC();
+        return loadFactsC().then(function () {
+          refreshDashboardForActiveSectionAfterSave('c');
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingDrId(periodId, dacId, programId).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('c-btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section D (DER) -----
+  function normalizeDerTypeCode(raw) {
+    var s = (raw || '').trim();
+    return s === '' ? null : s;
+  }
+
+  function buildDuplicateFilterD(periodGuid, dacGuid, typeNorm) {
+    var f = '_cf_period_value eq ' + periodGuid + ' and _cf_dacstatus_value eq ' + dacGuid +
+      " and cf_sourcetable eq 'UI-SectionD'";
+    if (typeNorm == null) {
+      f += ' and cf_dertypecode eq null';
+    } else {
+      f += " and cf_dertypecode eq '" + typeNorm.replace(/'/g, "''") + "'";
+    }
+    return f;
+  }
+
+  function findExistingDerId(periodGuid, dacGuid, typeNorm) {
+    var filt = buildDuplicateFilterD(periodGuid, dacGuid, typeNorm);
+    var path = API + ENTITY_SET_D + '?$select=cf_factderid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing DER row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factderid : null;
+    });
+  }
+
+  function loadFactsD() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateD.facts = [];
+      renderGridD();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var path = API + ENTITY_SET_D + '?$select=cf_factderid,cf_sourcetable,cf_dertypecode,cf_projects,cf_mwinstalled,cf_subscribers,_cf_period_value,_cf_dacstatus_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || 'DER facts ' + r.status);
+      });
+      return r.json();
+    }).then(function (d) {
+      stateD.facts = d.value || [];
+      renderGridD();
+      summarizeD();
+      showStatus('Loaded ' + stateD.facts.length + ' DER row(s) for ' + year + '.', false);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeD() {
+    if (!document.getElementById('d-sum-rows')) return;
+    var tProj = 0, tMw = 0, tSub = 0;
+    stateD.facts.forEach(function (f) {
+      if (f.cf_projects != null) tProj += Number(f.cf_projects);
+      if (f.cf_mwinstalled != null) tMw += Number(f.cf_mwinstalled);
+      if (f.cf_subscribers != null) tSub += Number(f.cf_subscribers);
+    });
+    document.getElementById('d-sum-rows').textContent = String(stateD.facts.length);
+    document.getElementById('d-sum-projects').textContent = fmtNum(tProj);
+    document.getElementById('d-sum-mw').textContent = fmtMw(tMw);
+    document.getElementById('d-sum-subscribers').textContent = fmtNum(tSub);
+  }
+
+  function renderGridD() {
+    var tb = document.getElementById('d-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('d-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('d-row-count-badge').textContent = String(stateD.facts.length);
+    if (!stateD.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('d-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('d-grid').style.display = '';
+    stateD.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      var dt = f.cf_dertypecode != null && f.cf_dertypecode !== '' ? f.cf_dertypecode : '—';
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td>' + escapeHtml(String(dt)) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_projects) + '</td>' +
+        '<td class="num">' + fmtMw(f.cf_mwinstalled) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_subscribers) + '</td>' +
+        '<td><button type="button" class="btn btn-secondary d-edit-row" data-id="' + f.cf_factderid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.d-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditD(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadD() {
+    var periodId = document.getElementById('d-f-period').value;
+    var dacId = document.getElementById('d-f-dac').value;
+    var dtype = normalizeDerTypeCode(document.getElementById('d-dertype').value);
+    var proj = numOrNull('d-projects');
+    var mw = numOrNull('d-mw');
+    var sub = numOrNull('d-subscribers');
+    var body = { cf_sourcetable: SOURCE_TABLE_D };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    body.cf_dertypecode = dtype;
+    body.cf_projects = proj == null ? null : Math.round(proj);
+    body.cf_mwinstalled = mw;
+    body.cf_subscribers = sub == null ? null : Math.round(sub);
+    return body;
+  }
+
+  function clearFormD() {
+    stateD.editId = null;
+    document.getElementById('d-record-id').value = '';
+    document.getElementById('d-form-heading').textContent = 'New fact row';
+    document.getElementById('d-dertype').value = '';
+    document.getElementById('d-projects').value = '';
+    document.getElementById('d-mw').value = '';
+    document.getElementById('d-subscribers').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('d-f-year').value = fy;
+      syncPeriodDropdownD();
+    }
+  }
+
+  function startEditD(id) {
+    var f = stateD.facts.filter(function (x) { return x.cf_factderid === id; })[0];
+    if (!f) return;
+    stateD.editId = id;
+    document.getElementById('d-record-id').value = id;
+    document.getElementById('d-form-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('d-f-year').value = String(y);
+      syncPeriodDropdownD();
+    }
+    document.getElementById('d-f-period').value = f._cf_period_value || '';
+    document.getElementById('d-f-dac').value = f._cf_dacstatus_value || '';
+    document.getElementById('d-dertype').value = f.cf_dertypecode != null ? f.cf_dertypecode : '';
+    document.getElementById('d-projects').value = f.cf_projects != null ? f.cf_projects : '';
+    document.getElementById('d-mw').value = f.cf_mwinstalled != null ? f.cf_mwinstalled : '';
+    document.getElementById('d-subscribers').value = f.cf_subscribers != null ? f.cf_subscribers : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordD(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('d-record-id').value;
+    var body = buildPayloadD();
+    var periodId = document.getElementById('d-f-period').value;
+    var dacId = document.getElementById('d-f-dac').value;
+    var typeNorm = normalizeDerTypeCode(document.getElementById('d-dertype').value);
+
+    document.getElementById('d-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_D + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_D;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'DER updated.' : 'DER saved.', false);
+        clearFormD();
+        return refreshDerDatalist().then(function () {
+          return loadFactsD().then(function () {
+            refreshDashboardForActiveSectionAfterSave('d');
+          });
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingDerId(periodId, dacId, typeNorm).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('d-btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section E (Strategic Capital Investments) -----
+  function normalizeInvCat(raw) {
+    var s = (raw || '').trim();
+    return s === '' ? null : s;
+  }
+
+  function buildDuplicateFilterE(periodGuid, categoryNorm, geoGuid) {
+    var f = '_cf_period_value eq ' + periodGuid + " and cf_sourcetable eq 'UI-SectionE'";
+    if (geoGuid) {
+      f += ' and _cf_geography_value eq ' + geoGuid;
+    }
+    if (categoryNorm == null) {
+      f += ' and cf_investmentcategorycode eq null';
+    } else {
+      f += " and cf_investmentcategorycode eq '" + categoryNorm.replace(/'/g, "''") + "'";
+    }
+    return f;
+  }
+
+  function findExistingCapId(periodGuid, categoryNorm, geoGuid) {
+    var filt = buildDuplicateFilterE(periodGuid, categoryNorm, geoGuid);
+    var path = API + ENTITY_SET_E + '?$select=cf_factstrategiccapinvestmentid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing Strategic Capital row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factstrategiccapinvestmentid : null;
+    });
+  }
+
+  function loadFactsE() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateE.facts = [];
+      renderGridE();
+      summarizeE();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var baseSelect = 'cf_factstrategiccapinvestmentid,cf_sourcetable,cf_investmentcategorycode,cf_totalinvestmentdollars,cf_pctaffectingdacs,_cf_period_value';
+    var expandPeriod = 'cf_period($select=cf_calendaryear,cf_periodlabel)';
+    var pathNoGeo = API + ENTITY_SET_E + '?$select=' + baseSelect +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandPeriod;
+    var pathGeo = API + ENTITY_SET_E + '?$select=' + baseSelect + ',_cf_geography_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandPeriod +
+      ',cf_geography($select=cf_boroughorcounty,cf_geographylevel)';
+
+    function finish(d) {
+      stateE.facts = d.value || [];
+      renderGridE();
+      summarizeE();
+      showStatus('Loaded ' + stateE.facts.length + ' Strategic Capital row(s) for ' + year + '.', false);
+    }
+
+    return dvFetch(pathGeo).then(function (r) {
+      if (r.ok) {
+        return r.json();
+      }
+      return dvFetch(pathNoGeo).then(function (r2) {
+        if (!r2.ok) return parseJsonSafe(r2).then(function (j) {
+          throw new Error((j.error && j.error.message) || ('Strategic Capital facts ' + r2.status));
+        });
+        return r2.json();
+      });
+    }).then(function (d) {
+      finish(d);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeE() {
+    if (!document.getElementById('e-sum-rows')) return;
+    var tD = 0, nPct = 0, sPct = 0;
+    stateE.facts.forEach(function (f) {
+      if (f.cf_totalinvestmentdollars != null) tD += Number(f.cf_totalinvestmentdollars);
+      if (f.cf_pctaffectingdacs != null) {
+        nPct++;
+        sPct += Number(f.cf_pctaffectingdacs);
+      }
+    });
+    document.getElementById('e-sum-rows').textContent = String(stateE.facts.length);
+    document.getElementById('e-sum-dollars').textContent = fmtMw(tD);
+    document.getElementById('e-sum-avgpct').textContent = nPct ? fmtMw(sPct / nPct) : '—';
+  }
+
+  function renderGridE() {
+    var tb = document.getElementById('e-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('e-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('e-row-count-badge').textContent = String(stateE.facts.length);
+    if (!stateE.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('e-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('e-grid').style.display = '';
+    stateE.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var src = f.cf_sourcetable || '—';
+      var cat = f.cf_investmentcategorycode != null && f.cf_investmentcategorycode !== '' ? f.cf_investmentcategorycode : '—';
+      var bor = '—';
+      if (f.cf_geography) {
+        bor = f.cf_geography.cf_boroughorcounty || f.cf_geography.cf_geographylevel || '—';
+      } else if (f._cf_geography_value) {
+        bor = '(linked)';
+      }
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(String(cat)) + '</td>' +
+        '<td>' + escapeHtml(String(bor)) + '</td>' +
+        '<td class="num">' + fmtMw(f.cf_totalinvestmentdollars) + '</td>' +
+        '<td class="num">' + (f.cf_pctaffectingdacs != null ? fmtMw(f.cf_pctaffectingdacs) : '—') + '</td>' +
+        '<td><button type="button" class="btn btn-secondary e-edit-row" data-id="' + f.cf_factstrategiccapinvestmentid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.e-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditE(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadE() {
+    var periodId = document.getElementById('e-f-period').value;
+    var cat = normalizeInvCat(document.getElementById('e-category').value);
+    var spend = numOrNull('e-spend');
+    var pct = numOrNull('e-pct');
+    var body = { cf_sourcetable: SOURCE_TABLE_E };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body.cf_investmentcategorycode = cat;
+    body.cf_totalinvestmentdollars = spend;
+    body.cf_pctaffectingdacs = pct;
+    return body;
+  }
+
+  function clearFormE() {
+    stateE.editId = null;
+    document.getElementById('e-record-id').value = '';
+    document.getElementById('e-form-heading').textContent = 'New fact row';
+    document.getElementById('e-category').value = '';
+    document.getElementById('e-spend').value = '';
+    document.getElementById('e-pct').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('e-f-year').value = fy;
+      syncPeriodDropdownE();
+    }
+  }
+
+  function startEditE(id) {
+    var f = stateE.facts.filter(function (x) { return x.cf_factstrategiccapinvestmentid === id; })[0];
+    if (!f) return;
+    stateE.editId = id;
+    document.getElementById('e-record-id').value = id;
+    document.getElementById('e-form-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('e-f-year').value = String(y);
+      syncPeriodDropdownE();
+    }
+    document.getElementById('e-f-period').value = f._cf_period_value || '';
+    document.getElementById('e-category').value = f.cf_investmentcategorycode != null ? f.cf_investmentcategorycode : '';
+    document.getElementById('e-spend').value = f.cf_totalinvestmentdollars != null ? f.cf_totalinvestmentdollars : '';
+    document.getElementById('e-pct').value = f.cf_pctaffectingdacs != null ? f.cf_pctaffectingdacs : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordE(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('e-record-id').value;
+    var body = buildPayloadE();
+    var periodId = document.getElementById('e-f-period').value;
+    var catNorm = normalizeInvCat(document.getElementById('e-category').value);
+    var geoGuid = null;
+
+    document.getElementById('e-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_E + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_E;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'Strategic Capital updated.' : 'Strategic Capital saved.', false);
+        clearFormE();
+        return refreshInvCategoryDatalist().then(function () {
+          return loadFactsE().then(function () {
+            refreshDashboardForActiveSectionAfterSave('e');
+          });
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingCapId(periodId, catNorm, geoGuid).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('e-btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section F (Customer Outages) -----
+  function buildDuplicateFilterF(periodGuid, dacGuid, geoGuid, useGeo) {
+    var f = '_cf_period_value eq ' + periodGuid + ' and _cf_dacstatus_value eq ' + dacGuid +
+      " and cf_sourcetable eq 'UI-SectionF'";
+    if (useGeo) {
+      if (geoGuid) f += ' and _cf_geography_value eq ' + geoGuid;
+      else f += ' and _cf_geography_value eq null';
+    }
+    return f;
+  }
+
+  function findExistingOutageId(periodGuid, dacGuid, geoGuid, useGeo) {
+    var filt = buildDuplicateFilterF(periodGuid, dacGuid, geoGuid, useGeo);
+    var path = API + ENTITY_SET_F + '?$select=cf_factcustomeroutagesid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing outage row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factcustomeroutagesid : null;
+    });
+  }
+
+  function intOrNullRounded(id) {
+    var n = numOrNull(id);
+    if (n == null) return null;
+    return Math.round(Number(n));
+  }
+
+  function loadFactsF() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateF.facts = [];
+      stateF.duplicateUsesGeo = false;
+      renderGridF();
+      summarizeF();
+      syncGeoFieldAvailabilityF();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expandCore = 'cf_period($select=cf_calendaryear,cf_periodlabel),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var baseSel = 'cf_factcustomeroutagesid,cf_sourcetable,cf_outagecount,cf_customersinterrupted,_cf_period_value,_cf_dacstatus_value';
+    var pathNoGeo = API + ENTITY_SET_F + '?$select=' + baseSel +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandCore;
+    var pathGeo = API + ENTITY_SET_F + '?$select=' + baseSel + ',_cf_geography_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandCore +
+      ',cf_geography($select=cf_boroughorcounty,cf_geographylevel)';
+
+    function finish(d) {
+      stateF.facts = d.value || [];
+      renderGridF();
+      summarizeF();
+      syncGeoFieldAvailabilityF();
+      showStatus('Loaded ' + stateF.facts.length + ' customer outage row(s) for ' + year + '.', false);
+    }
+
+    return dvFetch(pathGeo).then(function (r) {
+      if (r.ok) {
+        stateF.duplicateUsesGeo = true;
+        return r.json();
+      }
+      stateF.duplicateUsesGeo = false;
+      return dvFetch(pathNoGeo).then(function (r2) {
+        if (!r2.ok) return parseJsonSafe(r2).then(function (j) {
+          throw new Error((j.error && j.error.message) || ('Customer outage facts ' + r2.status));
+        });
+        return r2.json();
+      });
+    }).then(function (d) {
+      finish(d);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeF() {
+    if (!document.getElementById('f-sum-rows')) return;
+    var tOut = 0, tCust = 0;
+    stateF.facts.forEach(function (f) {
+      if (f.cf_outagecount != null) tOut += Number(f.cf_outagecount);
+      if (f.cf_customersinterrupted != null) tCust += Number(f.cf_customersinterrupted);
+    });
+    document.getElementById('f-sum-rows').textContent = String(stateF.facts.length);
+    document.getElementById('f-sum-outages').textContent = fmtNum(tOut);
+    document.getElementById('f-sum-customers').textContent = fmtNum(tCust);
+  }
+
+  function renderGridF() {
+    var tb = document.getElementById('f-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('f-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('f-row-count-badge').textContent = String(stateF.facts.length);
+    if (!stateF.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('f-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('f-grid').style.display = '';
+    stateF.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      var bor = '—';
+      if (f.cf_geography) {
+        bor = f.cf_geography.cf_boroughorcounty || f.cf_geography.cf_geographylevel || '—';
+      } else if (f._cf_geography_value) {
+        bor = '(linked)';
+      }
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td>' + escapeHtml(String(bor)) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_outagecount) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_customersinterrupted) + '</td>' +
+        '<td><button type="button" class="btn btn-secondary f-edit-row" data-id="' + f.cf_factcustomeroutagesid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.f-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditF(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadF() {
+    var periodId = document.getElementById('f-f-period').value;
+    var dacId = document.getElementById('f-f-dac').value;
+    var geoId = document.getElementById('f-f-geo').value;
+    var body = { cf_sourcetable: SOURCE_TABLE_F };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    if (stateF.duplicateUsesGeo) {
+      if (geoId) body['cf_geography@odata.bind'] = '/cf_dimgeographys(' + geoId + ')';
+      else body['cf_geography@odata.bind'] = null;
+    }
+    body.cf_outagecount = intOrNullRounded('sect-f-interruptions');
+    body.cf_customersinterrupted = intOrNullRounded('sect-f-customers');
+    return body;
+  }
+
+  function clearFormF() {
+    stateF.editId = null;
+    document.getElementById('sect-f-record-id').value = '';
+    document.getElementById('sect-f-heading').textContent = 'New fact row';
+    document.getElementById('sect-f-interruptions').value = '';
+    document.getElementById('sect-f-customers').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('f-f-year').value = fy;
+      syncPeriodDropdownF();
+    }
+    if (stateF.duplicateUsesGeo) {
+      document.getElementById('f-f-geo').value = '';
+    }
+  }
+
+  function startEditF(id) {
+    var f = stateF.facts.filter(function (x) { return x.cf_factcustomeroutagesid === id; })[0];
+    if (!f) return;
+    stateF.editId = id;
+    document.getElementById('sect-f-record-id').value = id;
+    document.getElementById('sect-f-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('f-f-year').value = String(y);
+      syncPeriodDropdownF();
+    }
+    document.getElementById('f-f-period').value = f._cf_period_value || '';
+    document.getElementById('f-f-dac').value = f._cf_dacstatus_value || '';
+    if (stateF.duplicateUsesGeo) {
+      document.getElementById('f-f-geo').value = f._cf_geography_value || '';
+    }
+    document.getElementById('sect-f-interruptions').value = f.cf_outagecount != null ? f.cf_outagecount : '';
+    document.getElementById('sect-f-customers').value = f.cf_customersinterrupted != null ? f.cf_customersinterrupted : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordF(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('sect-f-record-id').value;
+    var body = buildPayloadF();
+    var periodId = document.getElementById('f-f-period').value;
+    var dacId = document.getElementById('f-f-dac').value;
+    var geoGuid = stateF.duplicateUsesGeo ? (document.getElementById('f-f-geo').value || null) : null;
+    var useGeo = stateF.duplicateUsesGeo;
+
+    document.getElementById('sect-f-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_F + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_F;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'Outage data updated.' : 'Outage data saved.', false);
+        clearFormF();
+        return loadFactsF().then(function () {
+          refreshDashboardForActiveSectionAfterSave('f');
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingOutageId(periodId, dacId, geoGuid, useGeo).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('sect-f-btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section G (Main Replacement) -----
+  function normalizePipeActionG(raw) {
+    var s = (raw || '').trim();
+    return s === '' ? null : s;
+  }
+
+  function buildDuplicateFilterG(periodGuid, dacGuid, geoGuid, useGeo, pipeNorm) {
+    var filt = '_cf_period_value eq ' + periodGuid + ' and _cf_dacstatus_value eq ' + dacGuid +
+      " and cf_sourcetable eq 'UI-SectionG'";
+    if (useGeo) {
+      if (geoGuid) filt += ' and _cf_geography_value eq ' + geoGuid;
+      else filt += ' and _cf_geography_value eq null';
+    }
+    if (pipeNorm == null) filt += ' and cf_pipeactioncode eq null';
+    else filt += " and cf_pipeactioncode eq '" + pipeNorm.replace(/'/g, "''") + "'";
+    return filt;
+  }
+
+  function findExistingMainReplacementId(periodGuid, dacGuid, geoGuid, useGeo, pipeNorm) {
+    var filt = buildDuplicateFilterG(periodGuid, dacGuid, geoGuid, useGeo, pipeNorm);
+    var path = API + ENTITY_SET_G + '?$select=cf_factmainreplacementid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing main replacement row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factmainreplacementid : null;
+    });
+  }
+
+  function feetFromMilesUi() {
+    var n = numOrNull('sect-g-miles');
+    if (n == null) return null;
+    return Math.round(Number(n) * MILES_TO_FEET);
+  }
+
+  function loadFactsG() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateG.facts = [];
+      stateG.duplicateUsesGeo = false;
+      renderGridG();
+      summarizeG();
+      syncGeoFieldAvailabilityG();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expandCore = 'cf_period($select=cf_calendaryear,cf_periodlabel),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var baseSel = 'cf_factmainreplacementid,cf_sourcetable,cf_pipeactioncode,cf_feetofpipe,cf_metrictonsch4reduced,_cf_period_value,_cf_dacstatus_value';
+    var pathNoGeo = API + ENTITY_SET_G + '?$select=' + baseSel +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandCore;
+    var pathGeo = API + ENTITY_SET_G + '?$select=' + baseSel + ',_cf_geography_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandCore +
+      ',cf_geography($select=cf_boroughorcounty,cf_geographylevel)';
+
+    function finish(d) {
+      stateG.facts = d.value || [];
+      renderGridG();
+      summarizeG();
+      syncGeoFieldAvailabilityG();
+      showStatus('Loaded ' + stateG.facts.length + ' main replacement row(s) for ' + year + '.', false);
+    }
+
+    return dvFetch(pathGeo).then(function (r) {
+      if (r.ok) {
+        stateG.duplicateUsesGeo = true;
+        return r.json();
+      }
+      stateG.duplicateUsesGeo = false;
+      return dvFetch(pathNoGeo).then(function (r2) {
+        if (!r2.ok) return parseJsonSafe(r2).then(function (j) {
+          throw new Error((j.error && j.error.message) || ('Main replacement facts ' + r2.status));
+        });
+        return r2.json();
+      });
+    }).then(function (d) {
+      finish(d);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeG() {
+    if (!document.getElementById('g-sum-rows')) return;
+    var tFt = 0, tCh4 = 0;
+    stateG.facts.forEach(function (f) {
+      if (f.cf_feetofpipe != null) tFt += Number(f.cf_feetofpipe);
+      if (f.cf_metrictonsch4reduced != null) tCh4 += Number(f.cf_metrictonsch4reduced);
+    });
+    document.getElementById('g-sum-rows').textContent = String(stateG.facts.length);
+    document.getElementById('g-sum-feet').textContent = fmtNum(tFt);
+    document.getElementById('g-sum-ch4').textContent = tCh4 ? fmtMw(tCh4) : '—';
+  }
+
+  function renderGridG() {
+    var tb = document.getElementById('g-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('g-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('g-row-count-badge').textContent = String(stateG.facts.length);
+    if (!stateG.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('g-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('g-grid').style.display = '';
+    stateG.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      var geo = '—';
+      if (f.cf_geography) {
+        geo = f.cf_geography.cf_boroughorcounty || f.cf_geography.cf_geographylevel || '—';
+      } else if (f._cf_geography_value) {
+        geo = '(linked)';
+      }
+      var pipe = f.cf_pipeactioncode != null && f.cf_pipeactioncode !== '' ? f.cf_pipeactioncode : '—';
+      var ft = f.cf_feetofpipe != null ? fmtNum(f.cf_feetofpipe) : '—';
+      var mi = f.cf_feetofpipe != null ? fmtMw(Number(f.cf_feetofpipe) / MILES_TO_FEET) : '—';
+      var ch = f.cf_metrictonsch4reduced != null ? fmtMw(f.cf_metrictonsch4reduced) : '—';
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td>' + escapeHtml(String(geo)) + '</td>' +
+        '<td>' + escapeHtml(String(pipe)) + '</td>' +
+        '<td class="num">' + ft + '</td>' +
+        '<td class="num">' + mi + '</td>' +
+        '<td class="num">' + ch + '</td>' +
+        '<td><button type="button" class="btn btn-secondary sect-g-edit-row" data-id="' + f.cf_factmainreplacementid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.sect-g-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditG(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadG() {
+    var periodId = document.getElementById('g-f-period').value;
+    var dacId = document.getElementById('g-f-dac').value;
+    var geoId = document.getElementById('g-f-geo').value;
+    var body = { cf_sourcetable: SOURCE_TABLE_G };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    if (stateG.duplicateUsesGeo) {
+      if (geoId) body['cf_geography@odata.bind'] = '/cf_dimgeographys(' + geoId + ')';
+      else body['cf_geography@odata.bind'] = null;
+    }
+    body.cf_pipeactioncode = normalizePipeActionG(document.getElementById('g-pipe-action').value);
+    body.cf_feetofpipe = feetFromMilesUi();
+    body.cf_metrictonsch4reduced = numOrNull('sect-g-ch4');
+    return body;
+  }
+
+  function clearFormG() {
+    stateG.editId = null;
+    document.getElementById('sect-g-record-id').value = '';
+    document.getElementById('sect-g-heading').textContent = 'New fact row';
+    document.getElementById('g-pipe-action').value = '';
+    document.getElementById('sect-g-miles').value = '';
+    document.getElementById('sect-g-ch4').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('g-f-year').value = fy;
+      syncPeriodDropdownG();
+    }
+    if (stateG.duplicateUsesGeo) {
+      document.getElementById('g-f-geo').value = '';
+    }
+  }
+
+  function startEditG(id) {
+    var f = stateG.facts.filter(function (x) { return x.cf_factmainreplacementid === id; })[0];
+    if (!f) return;
+    stateG.editId = id;
+    document.getElementById('sect-g-record-id').value = id;
+    document.getElementById('sect-g-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('g-f-year').value = String(y);
+      syncPeriodDropdownG();
+    }
+    document.getElementById('g-f-period').value = f._cf_period_value || '';
+    document.getElementById('g-f-dac').value = f._cf_dacstatus_value || '';
+    if (stateG.duplicateUsesGeo) {
+      document.getElementById('g-f-geo').value = f._cf_geography_value || '';
+    }
+    document.getElementById('g-pipe-action').value = f.cf_pipeactioncode != null ? f.cf_pipeactioncode : '';
+    document.getElementById('sect-g-miles').value = f.cf_feetofpipe != null ? String(Number(f.cf_feetofpipe) / MILES_TO_FEET) : '';
+    document.getElementById('sect-g-ch4').value = f.cf_metrictonsch4reduced != null ? f.cf_metrictonsch4reduced : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordG(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('sect-g-record-id').value;
+    var body = buildPayloadG();
+    var periodId = document.getElementById('g-f-period').value;
+    var dacId = document.getElementById('g-f-dac').value;
+    var geoGuid = stateG.duplicateUsesGeo ? (document.getElementById('g-f-geo').value || null) : null;
+    var useGeo = stateG.duplicateUsesGeo;
+    var pipeNorm = normalizePipeActionG(document.getElementById('g-pipe-action').value);
+
+    document.getElementById('sect-g-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_G + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_G;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'Main replacement updated.' : 'Main replacement saved.', false);
+        clearFormG();
+        return refreshPipeActionDatalist().then(function () {
+          return loadFactsG().then(function () {
+            refreshDashboardForActiveSectionAfterSave('g');
+          });
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingMainReplacementId(periodId, dacId, geoGuid, useGeo, pipeNorm).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('sect-g-btn-save').disabled = false;
+    });
+  }
+
+  // ----- Section H (Leak Repairs) -----
+  function normalizeLeakTypeH(raw) {
+    var s = (raw || '').trim();
+    return s === '' ? null : s;
+  }
+
+  function buildDuplicateFilterH(periodGuid, dacGuid, geoGuid, useGeo, leakTypeNorm) {
+    var filt = '_cf_period_value eq ' + periodGuid + ' and _cf_dacstatus_value eq ' + dacGuid +
+      " and cf_sourcetable eq 'UI-SectionH'";
+    if (useGeo) {
+      if (geoGuid) filt += ' and _cf_geography_value eq ' + geoGuid;
+      else filt += ' and _cf_geography_value eq null';
+    }
+    if (leakTypeNorm == null) filt += ' and cf_leaktypecode eq null';
+    else filt += " and cf_leaktypecode eq '" + leakTypeNorm.replace(/'/g, "''") + "'";
+    return filt;
+  }
+
+  function findExistingLeakRepairId(periodGuid, dacGuid, geoGuid, useGeo, leakTypeNorm) {
+    var filt = buildDuplicateFilterH(periodGuid, dacGuid, geoGuid, useGeo, leakTypeNorm);
+    var path = API + ENTITY_SET_H + '?$select=cf_factleakrepairsid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing leak repair row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factleakrepairsid : null;
+    });
+  }
+
+  function loadFactsH() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateH.facts = [];
+      stateH.duplicateUsesGeo = false;
+      renderGridH();
+      summarizeH();
+      syncGeoFieldAvailabilityH();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var expandCore = 'cf_period($select=cf_calendaryear,cf_periodlabel),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
+    var baseSel = 'cf_factleakrepairsid,cf_sourcetable,cf_leaktypecode,cf_leaksrepaired,_cf_period_value,_cf_dacstatus_value';
+    var pathNoGeo = API + ENTITY_SET_H + '?$select=' + baseSel +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandCore;
+    var pathGeo = API + ENTITY_SET_H + '?$select=' + baseSel + ',_cf_geography_value' +
+      '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&$expand=' + expandCore +
+      ',cf_geography($select=cf_boroughorcounty,cf_geographylevel)';
+
+    function finish(d) {
+      stateH.facts = d.value || [];
+      renderGridH();
+      summarizeH();
+      syncGeoFieldAvailabilityH();
+      showStatus('Loaded ' + stateH.facts.length + ' leak repair row(s) for ' + year + '.', false);
+    }
+
+    return dvFetch(pathGeo).then(function (r) {
+      if (r.ok) {
+        stateH.duplicateUsesGeo = true;
+        return r.json();
+      }
+      stateH.duplicateUsesGeo = false;
+      return dvFetch(pathNoGeo).then(function (r2) {
+        if (!r2.ok) return parseJsonSafe(r2).then(function (j) {
+          throw new Error((j.error && j.error.message) || ('Leak repair facts ' + r2.status));
+        });
+        return r2.json();
+      });
+    }).then(function (d) {
+      finish(d);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeH() {
+    if (!document.getElementById('h-sum-rows')) return;
+    var tLeaks = 0;
+    stateH.facts.forEach(function (f) {
+      if (f.cf_leaksrepaired != null) tLeaks += Number(f.cf_leaksrepaired);
+    });
+    document.getElementById('h-sum-rows').textContent = String(stateH.facts.length);
+    document.getElementById('h-sum-leaks').textContent = fmtNum(tLeaks);
+  }
+
+  function renderGridH() {
+    var tb = document.getElementById('h-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('h-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('h-row-count-badge').textContent = String(stateH.facts.length);
+    if (!stateH.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('h-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('h-grid').style.display = '';
+    stateH.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
+      var src = f.cf_sourcetable || '—';
+      var geo = '—';
+      if (f.cf_geography) {
+        geo = f.cf_geography.cf_boroughorcounty || f.cf_geography.cf_geographylevel || '—';
+      } else if (f._cf_geography_value) {
+        geo = '(linked)';
+      }
+      var gr = f.cf_leaktypecode != null && f.cf_leaktypecode !== '' ? f.cf_leaktypecode : '—';
+      tr.innerHTML =
+        '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
+        '<td>' + escapeHtml(String(dac)) + '</td>' +
+        '<td>' + escapeHtml(String(geo)) + '</td>' +
+        '<td>' + escapeHtml(String(gr)) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_leaksrepaired) + '</td>' +
+        '<td><button type="button" class="btn btn-secondary sect-h-edit-row" data-id="' + f.cf_factleakrepairsid + '">Edit</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.sect-h-edit-row').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditH(btn.getAttribute('data-id'));
+      });
+    });
+  }
+
+  function buildPayloadH() {
+    var periodId = document.getElementById('h-f-period').value;
+    var dacId = document.getElementById('h-f-dac').value;
+    var geoId = document.getElementById('h-f-geo').value;
+    var body = { cf_sourcetable: SOURCE_TABLE_H };
+    body['cf_period@odata.bind'] = '/cf_dimperiods(' + periodId + ')';
+    body['cf_dacstatus@odata.bind'] = '/cf_dacstatuses(' + dacId + ')';
+    if (stateH.duplicateUsesGeo) {
+      if (geoId) body['cf_geography@odata.bind'] = '/cf_dimgeographys(' + geoId + ')';
+      else body['cf_geography@odata.bind'] = null;
+    }
+    body.cf_leaktypecode = normalizeLeakTypeH(document.getElementById('h-leak-grade').value);
+    body.cf_leaksrepaired = intOrNullRounded('sect-h-leaks');
+    return body;
+  }
+
+  function clearFormH() {
+    stateH.editId = null;
+    document.getElementById('sect-h-record-id').value = '';
+    document.getElementById('sect-h-heading').textContent = 'New fact row';
+    document.getElementById('h-leak-grade').value = '';
+    document.getElementById('sect-h-leaks').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('h-f-year').value = fy;
+      syncPeriodDropdownH();
+    }
+    if (stateH.duplicateUsesGeo) {
+      document.getElementById('h-f-geo').value = '';
+    }
+  }
+
+  function startEditH(id) {
+    var f = stateH.facts.filter(function (x) { return x.cf_factleakrepairsid === id; })[0];
+    if (!f) return;
+    stateH.editId = id;
+    document.getElementById('sect-h-record-id').value = id;
+    document.getElementById('sect-h-heading').textContent = 'Edit fact row';
+    var y = f.cf_period ? f.cf_period.cf_calendaryear : null;
+    if (y != null) {
+      document.getElementById('h-f-year').value = String(y);
+      syncPeriodDropdownH();
+    }
+    document.getElementById('h-f-period').value = f._cf_period_value || '';
+    document.getElementById('h-f-dac').value = f._cf_dacstatus_value || '';
+    if (stateH.duplicateUsesGeo) {
+      document.getElementById('h-f-geo').value = f._cf_geography_value || '';
+    }
+    document.getElementById('h-leak-grade').value = f.cf_leaktypecode != null ? f.cf_leaktypecode : '';
+    document.getElementById('sect-h-leaks').value = f.cf_leaksrepaired != null ? f.cf_leaksrepaired : '';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordH(ev) {
+    ev.preventDefault();
+    var id = document.getElementById('sect-h-record-id').value;
+    var body = buildPayloadH();
+    var periodId = document.getElementById('h-f-period').value;
+    var dacId = document.getElementById('h-f-dac').value;
+    var geoGuid = stateH.duplicateUsesGeo ? (document.getElementById('h-f-geo').value || null) : null;
+    var useGeo = stateH.duplicateUsesGeo;
+    var leakTypeNorm = normalizeLeakTypeH(document.getElementById('h-leak-grade').value);
+
+    document.getElementById('sect-h-btn-save').disabled = true;
+
+    function patchOrPost(resolvedId) {
+      var url, method, headers = {};
+      if (resolvedId) {
+        method = 'PATCH';
+        url = API + ENTITY_SET_H + '(' + resolvedId + ')';
+        headers['If-Match'] = '*';
+      } else {
+        method = 'POST';
+        url = API + ENTITY_SET_H;
+      }
+      return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+        if (!r.ok) {
+          return parseJsonSafe(r).then(function (j) {
+            throw new Error((j.error && j.error.message) || ('Save failed ' + r.status));
+          });
+        }
+        showStatus(resolvedId ? 'Leak repair updated.' : 'Leak repair saved.', false);
+        clearFormH();
+        return refreshLeakTypeDatalist().then(function () {
+          return loadFactsH().then(function () {
+            refreshDashboardForActiveSectionAfterSave('h');
+          });
+        });
+      });
+    }
+
+    var chain;
+    if (id) {
+      chain = patchOrPost(id);
+    } else {
+      chain = findExistingLeakRepairId(periodId, dacId, geoGuid, useGeo, leakTypeNorm).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    chain.catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('sect-h-btn-save').disabled = false;
+    });
+  }
+
+  function buildDuplicateFilterI(periodGuid, programGuid, metricCode) {
+    var esc = metricCode.replace(/'/g, "''");
+    var filt = '_cf_period_value eq ' + periodGuid + " and cf_sourcetable eq 'UI-SectionI' and cf_metriccode eq '" + esc + "' and cf_countbasis eq null";
+    if (programGuid) filt += ' and _cf_program_value eq ' + programGuid;
+    else filt += ' and _cf_program_value eq null';
+    return filt;
+  }
+
+  function findExistingJobMetricId(periodGuid, programGuid, metricCode) {
+    var filt = buildDuplicateFilterI(periodGuid, programGuid, metricCode);
+    var path = API + ENTITY_SET_I + '?$select=cf_factcleanenergyjobsid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing jobs metric row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factcleanenergyjobsid : null;
+    });
+  }
+
+  function buildMetricPayloadI(periodId, programId, metricCode, countVal) {
+    var body = {
+      cf_sourcetable: SOURCE_TABLE_I,
+      cf_metriccode: metricCode,
+      cf_countvalue: countVal,
+      'cf_period@odata.bind': '/cf_dimperiods(' + periodId + ')'
+    };
+    if (programId) body['cf_program@odata.bind'] = '/cf_dimprograms(' + programId + ')';
+    else body['cf_program@odata.bind'] = null;
+    return body;
+  }
+
+  function loadFactsI() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateI.facts = [];
+      renderGridI();
+      summarizeI();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var sel = 'cf_factcleanenergyjobsid,cf_sourcetable,cf_metriccode,cf_countvalue,cf_countbasis,_cf_period_value,_cf_program_value';
+    var filt = '_cf_period_value eq ' + pg + " and cf_sourcetable eq 'UI-SectionI'";
+    var path = API + ENTITY_SET_I + '?$select=' + sel +
+      '&$filter=' + encodeURIComponent(filt) +
+      '&$orderby=_cf_program_value asc, cf_metriccode asc&$top=500&$expand=' +
+      'cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname,cf_programcode)';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Jobs facts ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      stateI.facts = d.value || [];
+      renderGridI();
+      summarizeI();
+      showStatus('Loaded ' + stateI.facts.length + ' Section I row(s) for ' + year + '.', false);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeI() {
+    if (!document.getElementById('i-sum-rows')) return;
+    document.getElementById('i-sum-rows').textContent = String(stateI.facts.length);
+  }
+
+  function renderGridI() {
+    var tb = document.getElementById('i-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('i-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('i-row-count-badge').textContent = String(stateI.facts.length);
+    if (!stateI.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('i-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('i-grid').style.display = '';
+    stateI.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var prog = f.cf_program ? (f.cf_program.cf_programname || f.cf_program.cf_programcode) : '—';
+      var metric = f.cf_metriccode || '—';
+      var pidRaw = f._cf_program_value || '';
+      tr.innerHTML =
+        '<td>' + escapeHtml(String(prog)) + '</td>' +
+        '<td title="' + escapeHtml(metric) + '">' + escapeHtml(metric) + '</td>' +
+        '<td class="num">' + fmtNum(f.cf_countvalue) + '</td>' +
+        '<td><button type="button" class="btn btn-secondary sect-i-edit-group" data-period="' + escapeHtml(f._cf_period_value) + '" data-program="' + escapeHtml(pidRaw) + '">Edit trio</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.sect-i-edit-group').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditGroupI(btn.getAttribute('data-period'), btn.getAttribute('data-program') || '');
+      });
+    });
+  }
+
+  function clearFormI() {
+    document.getElementById('sect-i-heading').textContent = 'New metric trio';
+    document.getElementById('sect-i-id-enrollees').value = '';
+    document.getElementById('sect-i-id-placements').value = '';
+    document.getElementById('sect-i-id-pct').value = '';
+    document.getElementById('sect-i-enrollees').value = '';
+    document.getElementById('sect-i-placements').value = '';
+    document.getElementById('sect-i-pct').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('i-f-year').value = fy;
+      syncPeriodDropdownI();
+    }
+    document.getElementById('i-f-program').value = '';
+  }
+
+  function startEditGroupI(periodGuid, programGuidStr) {
+    var programKey = programGuidStr || '';
+    var facts = stateI.facts.filter(function (f) {
+      if (f._cf_period_value !== periodGuid) return false;
+      if (programKey === '') return !f._cf_program_value;
+      return f._cf_program_value === programKey;
+    });
+    var byM = {};
+    facts.forEach(function (f) {
+      if (f.cf_metriccode) byM[f.cf_metriccode] = f;
+    });
+    var per = periods.filter(function (p) { return p.cf_dimperiodid === periodGuid; })[0];
+    if (per && per.cf_calendaryear != null) {
+      document.getElementById('i-f-year').value = String(per.cf_calendaryear);
+      syncPeriodDropdownI();
+    }
+    document.getElementById('i-f-period').value = periodGuid;
+    document.getElementById('i-f-program').value = programKey;
+
+    var e = byM[METRIC_I_ENROLLEES];
+    var p = byM[METRIC_I_PLACEMENTS];
+    var pct = byM[METRIC_I_PLACEMENT_PCT];
+    document.getElementById('sect-i-id-enrollees').value = e ? e.cf_factcleanenergyjobsid : '';
+    document.getElementById('sect-i-id-placements').value = p ? p.cf_factcleanenergyjobsid : '';
+    document.getElementById('sect-i-id-pct').value = pct ? pct.cf_factcleanenergyjobsid : '';
+    document.getElementById('sect-i-enrollees').value = e && e.cf_countvalue != null ? String(e.cf_countvalue) : '';
+    document.getElementById('sect-i-placements').value = p && p.cf_countvalue != null ? String(p.cf_countvalue) : '';
+    document.getElementById('sect-i-pct').value = pct && pct.cf_countvalue != null ? String(pct.cf_countvalue) : '';
+    document.getElementById('sect-i-heading').textContent = 'Edit metric trio';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordI(ev) {
+    ev.preventDefault();
+    var periodId = document.getElementById('i-f-period').value;
+    var programId = document.getElementById('i-f-program').value || null;
+    var idE = document.getElementById('sect-i-id-enrollees').value || null;
+    var idP = document.getElementById('sect-i-id-placements').value || null;
+    var idPct = document.getElementById('sect-i-id-pct').value || null;
+    var vE = intOrNullRounded('sect-i-enrollees');
+    var vP = intOrNullRounded('sect-i-placements');
+    var vPct = intOrNullRounded('sect-i-pct');
+    var editMode = !!(idE || idP || idPct);
+
+    var metrics = [
+      { code: METRIC_I_ENROLLEES, val: vE, id: idE },
+      { code: METRIC_I_PLACEMENTS, val: vP, id: idP },
+      { code: METRIC_I_PLACEMENT_PCT, val: vPct, id: idPct }
+    ];
+
+    document.getElementById('sect-i-btn-save').disabled = true;
+
+    function writeOne(m) {
+      var body = buildMetricPayloadI(periodId, programId, m.code, m.val);
+      function patchOrPost(resolvedId) {
+        var url, method, headers = {};
+        if (resolvedId) {
+          method = 'PATCH';
+          url = API + ENTITY_SET_I + '(' + resolvedId + ')';
+          headers['If-Match'] = '*';
+        } else {
+          method = 'POST';
+          url = API + ENTITY_SET_I;
+        }
+        return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+          if (!r.ok) {
+            return parseJsonSafe(r).then(function (j) {
+              throw new Error((j.error && j.error.message) || ('Save ' + m.code + ' failed ' + r.status));
+            });
+          }
+        });
+      }
+      if (editMode && m.id) {
+        return patchOrPost(m.id);
+      }
+      return findExistingJobMetricId(periodId, programId, m.code).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    var chain = metrics.reduce(function (p, m) {
+      return p.then(function () { return writeOne(m); });
+    }, Promise.resolve());
+
+    chain.then(function () {
+      showStatus('Section I: saved.', false);
+      clearFormI();
+      return loadFactsI().then(function () {
+        refreshDashboardForActiveSectionAfterSave('i');
+      });
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('sect-i-btn-save').disabled = false;
+    });
+  }
+
+  function normalizeDimCodeJ(raw) {
+    var s = (raw || '').trim();
+    return s === '' ? null : s;
+  }
+
+  function buildDuplicateFilterJ(periodGuid, geoGuid, useGeo, acctNorm, usageNorm, metricCode) {
+    var filt = '_cf_period_value eq ' + periodGuid + " and cf_sourcetable eq 'UI-SectionJ'";
+    if (useGeo) {
+      if (geoGuid) filt += ' and _cf_geography_value eq ' + geoGuid;
+      else filt += ' and _cf_geography_value eq null';
+    }
+    if (acctNorm == null) filt += ' and cf_accountstatuscode eq null';
+    else filt += " and cf_accountstatuscode eq '" + acctNorm.replace(/'/g, "''") + "'";
+    if (usageNorm == null) filt += ' and cf_usagecommoditycode eq null';
+    else filt += " and cf_usagecommoditycode eq '" + usageNorm.replace(/'/g, "''") + "'";
+    filt += " and cf_metriccode eq '" + metricCode.replace(/'/g, "''") + "'";
+    return filt;
+  }
+
+  function findExistingJMetricId(periodGuid, geoGuid, useGeo, acctNorm, usageNorm, metricCode) {
+    var filt = buildDuplicateFilterJ(periodGuid, geoGuid, useGeo, acctNorm, usageNorm, metricCode);
+    var path = API + ENTITY_SET_J + '?$select=cf_factcustomeroperationsid&$filter=' + encodeURIComponent(filt) + '&$top=1';
+    return dvFetch(path).then(function (r) {
+      if (!r.ok) return parseJsonSafe(r).then(function (j) {
+        throw new Error((j.error && j.error.message) || ('Lookup existing customer operations row failed ' + r.status));
+      });
+      return r.json();
+    }).then(function (d) {
+      var v = d.value || [];
+      return v.length ? v[0].cf_factcustomeroperationsid : null;
+    });
+  }
+
+  function buildRowPayloadJ(periodId, geoGuid, useGeo, acctNorm, usageNorm, metricCode, isDollars, acctCount, dollarAmt) {
+    var body = {
+      cf_sourcetable: SOURCE_TABLE_J,
+      cf_metriccode: metricCode,
+      cf_accountstatuscode: acctNorm,
+      cf_usagecommoditycode: usageNorm,
+      'cf_period@odata.bind': '/cf_dimperiods(' + periodId + ')'
+    };
+    if (useGeo) {
+      if (geoGuid) body['cf_geography@odata.bind'] = '/cf_dimgeographys(' + geoGuid + ')';
+      else body['cf_geography@odata.bind'] = null;
+    }
+    if (isDollars) {
+      body.cf_dollaramount = dollarAmt;
+      body.cf_accountcount = null;
+    } else {
+      body.cf_accountcount = acctCount;
+      body.cf_dollaramount = null;
+    }
+    return body;
+  }
+
+  function loadFactsJ() {
+    var year = reportingYearForDataLoad();
+    var pg = periodGuidForYear(year);
+    if (!pg) {
+      stateJ.facts = [];
+      stateJ.duplicateUsesGeo = false;
+      renderGridJ();
+      summarizeJ();
+      syncGeoFieldAvailabilityJ();
+      showStatus('No reporting period is set up for ' + year + '. Contact your administrator.', true);
+      return Promise.resolve();
+    }
+    var filt = '_cf_period_value eq ' + pg + " and cf_sourcetable eq 'UI-SectionJ'";
+    var expandCore = 'cf_period($select=cf_calendaryear,cf_periodlabel)';
+    var baseSel = 'cf_factcustomeroperationsid,cf_sourcetable,cf_metriccode,cf_accountstatuscode,cf_usagecommoditycode,cf_accountcount,cf_dollaramount,_cf_period_value';
+    var pathNoGeo = API + ENTITY_SET_J + '?$select=' + baseSel +
+      '&$filter=' + encodeURIComponent(filt) + '&$orderby=createdon desc&$top=500&$expand=' + expandCore;
+    var pathGeo = API + ENTITY_SET_J + '?$select=' + baseSel + ',_cf_geography_value' +
+      '&$filter=' + encodeURIComponent(filt) + '&$orderby=createdon desc&$top=500&$expand=' + expandCore +
+      ',cf_geography($select=cf_boroughorcounty,cf_geographylevel)';
+
+    function finish(d) {
+      stateJ.facts = d.value || [];
+      renderGridJ();
+      summarizeJ();
+      syncGeoFieldAvailabilityJ();
+      showStatus('Loaded ' + stateJ.facts.length + ' Section J row(s) for ' + year + '.', false);
+    }
+
+    return dvFetch(pathGeo).then(function (r) {
+      if (r.ok) {
+        stateJ.duplicateUsesGeo = true;
+        return r.json();
+      }
+      stateJ.duplicateUsesGeo = false;
+      return dvFetch(pathNoGeo).then(function (r2) {
+        if (!r2.ok) return parseJsonSafe(r2).then(function (j) {
+          throw new Error((j.error && j.error.message) || ('Customer operations facts ' + r2.status));
+        });
+        return r2.json();
+      });
+    }).then(function (d) {
+      finish(d);
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    });
+  }
+
+  function summarizeJ() {
+    if (!document.getElementById('j-sum-rows')) return;
+    document.getElementById('j-sum-rows').textContent = String(stateJ.facts.length);
+  }
+
+  function renderGridJ() {
+    var tb = document.getElementById('j-grid-body');
+    if (!tb) return;
+    var empty = document.getElementById('j-grid-empty');
+    while (tb.firstChild) tb.removeChild(tb.firstChild);
+    document.getElementById('j-row-count-badge').textContent = String(stateJ.facts.length);
+    if (!stateJ.facts.length) {
+      empty.style.display = 'block';
+      document.getElementById('j-grid').style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+    document.getElementById('j-grid').style.display = '';
+    stateJ.facts.forEach(function (f) {
+      var tr = document.createElement('tr');
+      var geo = '—';
+      if (f.cf_geography) {
+        geo = f.cf_geography.cf_boroughorcounty || f.cf_geography.cf_geographylevel || '—';
+      } else if (f._cf_geography_value) {
+        geo = '(linked)';
+      }
+      var acct = f.cf_accountstatuscode != null ? f.cf_accountstatuscode : '';
+      var usage = f.cf_usagecommoditycode != null ? f.cf_usagecommoditycode : '';
+      var metric = f.cf_metriccode || '—';
+      var cnt = '—';
+      var dollars = '—';
+      if (f.cf_accountcount != null) cnt = fmtNum(f.cf_accountcount);
+      if (f.cf_dollaramount != null) dollars = Number(f.cf_dollaramount).toLocaleString(undefined, { maximumFractionDigits: 2 });
+      var gid = f._cf_geography_value || '';
+      tr.innerHTML =
+        '<td>' + escapeHtml(String(geo)) + '</td>' +
+        '<td>' + escapeHtml(String(acct || '—')) + '</td>' +
+        '<td>' + escapeHtml(String(usage || '—')) + '</td>' +
+        '<td title="' + escapeHtml(metric) + '">' + escapeHtml(metric) + '</td>' +
+        '<td class="num">' + cnt + '</td>' +
+        '<td class="num">' + dollars + '</td>' +
+        '<td><button type="button" class="btn btn-secondary sect-j-edit-group" data-period="' + escapeHtml(f._cf_period_value) + '" data-geo="' + escapeHtml(gid) +
+        '" data-acct="' + escapeHtml(acct) + '" data-usage="' + escapeHtml(usage) + '">Edit trio</button></td>';
+      tb.appendChild(tr);
+    });
+    tb.querySelectorAll('.sect-j-edit-group').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        startEditGroupJ(btn.getAttribute('data-period'), btn.getAttribute('data-geo') || '', btn.getAttribute('data-acct') || '', btn.getAttribute('data-usage') || '');
+      });
+    });
+  }
+
+  function clearFormJ() {
+    document.getElementById('sect-j-heading').textContent = 'New metric trio';
+    document.getElementById('sect-j-id-residential').value = '';
+    document.getElementById('sect-j-id-eap').value = '';
+    document.getElementById('sect-j-id-arrears').value = '';
+    document.getElementById('sect-j-residential').value = '';
+    document.getElementById('sect-j-eap').value = '';
+    document.getElementById('sect-j-arrears').value = '';
+    document.getElementById('j-acct-status').value = '';
+    document.getElementById('j-usage-commodity').value = '';
+    var fy = reportingYearForDataLoad();
+    if (fy) {
+      document.getElementById('j-f-year').value = fy;
+      syncPeriodDropdownJ();
+    }
+    if (stateJ.duplicateUsesGeo) {
+      document.getElementById('j-f-geo').value = '';
+    }
+  }
+
+  function startEditGroupJ(periodGuid, geoKey, acctRaw, usageRaw) {
+    var useGeo = stateJ.duplicateUsesGeo;
+    var facts = stateJ.facts.filter(function (f) {
+      if (f._cf_period_value !== periodGuid) return false;
+      if (useGeo) {
+        if (!geoKey) {
+          if (f._cf_geography_value) return false;
+        } else if (f._cf_geography_value !== geoKey) return false;
+      }
+      var fa = f.cf_accountstatuscode != null ? f.cf_accountstatuscode : '';
+      var fu = f.cf_usagecommoditycode != null ? f.cf_usagecommoditycode : '';
+      if (fa !== (acctRaw || '')) return false;
+      if (fu !== (usageRaw || '')) return false;
+      return true;
+    });
+    var byM = {};
+    facts.forEach(function (f) {
+      if (f.cf_metriccode) byM[f.cf_metriccode] = f;
+    });
+    var per = periods.filter(function (p) { return p.cf_dimperiodid === periodGuid; })[0];
+    if (per && per.cf_calendaryear != null) {
+      document.getElementById('j-f-year').value = String(per.cf_calendaryear);
+      syncPeriodDropdownJ();
+    }
+    document.getElementById('j-f-period').value = periodGuid;
+    if (useGeo) {
+      document.getElementById('j-f-geo').value = geoKey || '';
+    }
+    document.getElementById('j-acct-status').value = acctRaw || '';
+    document.getElementById('j-usage-commodity').value = usageRaw || '';
+
+    var res = byM[METRIC_J_RESIDENTIAL];
+    var eap = byM[METRIC_J_EAP];
+    var arr = byM[METRIC_J_ARREARS];
+    document.getElementById('sect-j-id-residential').value = res ? res.cf_factcustomeroperationsid : '';
+    document.getElementById('sect-j-id-eap').value = eap ? eap.cf_factcustomeroperationsid : '';
+    document.getElementById('sect-j-id-arrears').value = arr ? arr.cf_factcustomeroperationsid : '';
+    document.getElementById('sect-j-residential').value = res && res.cf_accountcount != null ? String(res.cf_accountcount) : '';
+    document.getElementById('sect-j-eap').value = eap && eap.cf_accountcount != null ? String(eap.cf_accountcount) : '';
+    document.getElementById('sect-j-arrears').value = arr && arr.cf_dollaramount != null ? String(arr.cf_dollaramount) : '';
+    document.getElementById('sect-j-heading').textContent = 'Edit metric trio';
+    window.scrollTo(0, 0);
+  }
+
+  function saveRecordJ(ev) {
+    ev.preventDefault();
+    var periodId = document.getElementById('j-f-period').value;
+    var useGeo = stateJ.duplicateUsesGeo;
+    var geoGuid = useGeo ? (document.getElementById('j-f-geo').value || null) : null;
+    var acctNorm = normalizeDimCodeJ(document.getElementById('j-acct-status').value);
+    var usageNorm = normalizeDimCodeJ(document.getElementById('j-usage-commodity').value);
+    var idR = document.getElementById('sect-j-id-residential').value || null;
+    var idE = document.getElementById('sect-j-id-eap').value || null;
+    var idA = document.getElementById('sect-j-id-arrears').value || null;
+    var vR = intOrNullRounded('sect-j-residential');
+    var vEap = intOrNullRounded('sect-j-eap');
+    var vA = numOrNull('sect-j-arrears');
+    var editMode = !!(idR || idE || idA);
+
+    var rows = [
+      { code: METRIC_J_RESIDENTIAL, dollars: false, acctVal: vR, dollarVal: null, id: idR },
+      { code: METRIC_J_EAP, dollars: false, acctVal: vEap, dollarVal: null, id: idE },
+      { code: METRIC_J_ARREARS, dollars: true, acctVal: null, dollarVal: vA, id: idA }
+    ];
+
+    document.getElementById('sect-j-btn-save').disabled = true;
+
+    function writeOne(row) {
+      var body = buildRowPayloadJ(periodId, geoGuid, useGeo, acctNorm, usageNorm, row.code, row.dollars, row.acctVal, row.dollarVal);
+      function patchOrPost(resolvedId) {
+        var url, method, headers = {};
+        if (resolvedId) {
+          method = 'PATCH';
+          url = API + ENTITY_SET_J + '(' + resolvedId + ')';
+          headers['If-Match'] = '*';
+        } else {
+          method = 'POST';
+          url = API + ENTITY_SET_J;
+        }
+        return dvFetch(url, { method: method, body: JSON.stringify(body), headers: headers }).then(function (r) {
+          if (!r.ok) {
+            return parseJsonSafe(r).then(function (j) {
+              throw new Error((j.error && j.error.message) || ('Save ' + row.code + ' failed ' + r.status));
+            });
+          }
+        });
+      }
+      if (editMode && row.id) {
+        return patchOrPost(row.id);
+      }
+      return findExistingJMetricId(periodId, geoGuid, useGeo, acctNorm, usageNorm, row.code).then(function (existing) {
+        return patchOrPost(existing);
+      });
+    }
+
+    var chain = rows.reduce(function (p, row) {
+      return p.then(function () { return writeOne(row); });
+    }, Promise.resolve());
+
+    chain.then(function () {
+      showStatus('Section J: saved.', false);
+      clearFormJ();
+      return loadFactsJ().then(function () {
+        refreshDashboardForActiveSectionAfterSave('j');
+      });
+    }).catch(function (e) {
+      showStatus(e.message, true);
+    }).then(function () {
+      document.getElementById('sect-j-btn-save').disabled = false;
+    });
+  }
+
+  function reloadIngestionForLetter(letter) {
+    if (USE_PROTO_DATA_INGESTION) return;
+    if (letter === 'a') return loadFacts();
+    if (letter === 'b') {
+      syncPeriodDropdownB();
+      return loadFactsB();
+    }
+    if (letter === 'c') {
+      syncPeriodDropdownC();
+      return loadFactsC();
+    }
+    if (letter === 'd') {
+      syncPeriodDropdownD();
+      return loadFactsD();
+    }
+    if (letter === 'e') {
+      syncPeriodDropdownE();
+      return loadFactsE();
+    }
+    if (letter === 'f') {
+      syncPeriodDropdownF();
+      return loadFactsF();
+    }
+    if (letter === 'g') {
+      syncPeriodDropdownG();
+      return loadFactsG();
+    }
+    if (letter === 'h') {
+      syncPeriodDropdownH();
+      return loadFactsH();
+    }
+    if (letter === 'i') {
+      syncPeriodDropdownI();
+      return loadFactsI();
+    }
+    if (letter === 'j') {
+      syncPeriodDropdownJ();
+      return loadFactsJ();
+    }
+    return Promise.resolve();
+  }
+
+  function setIngestionLetter(letter) {
+    if (USE_PROTO_DATA_INGESTION) return;
+    ingestionLetter = letter;
+    var Ls = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+    for (var i = 0; i < Ls.length; i++) {
+      var L = Ls[i];
+      var p = document.getElementById('ingestion-panel-' + L);
+      var t = document.getElementById('ingest-tab-' + L);
+      if (p) {
+        p.classList.toggle('ingestion-panel--active', L === letter);
+        p.setAttribute('aria-hidden', L === letter ? 'false' : 'true');
+      }
+      if (t) {
+        t.classList.toggle('active', L === letter);
+        t.setAttribute('aria-selected', L === letter ? 'true' : 'false');
+      }
+    }
+    syncIngestToolbarTableSelect();
+    reloadIngestionForLetter(letter);
+  }
+
+  function applyFilterOrReload() {
+    if (activeSection === 'ingestion') {
+      reloadIngestionForLetter(ingestionLetter);
+    } else {
+      setSection(activeSection);
+    }
+  }
+
+  function setSection(section) {
+    shellDiagInfo('setSection', section);
+    activeSection = section;
+    document.getElementById('view-exec').classList.toggle('active', section === 'exec');
+    document.getElementById('view-a').classList.toggle('active', section === 'a');
+    document.getElementById('view-b').classList.toggle('active', section === 'b');
+    document.getElementById('view-c').classList.toggle('active', section === 'c');
+    document.getElementById('view-d').classList.toggle('active', section === 'd');
+    document.getElementById('view-e').classList.toggle('active', section === 'e');
+    document.getElementById('view-f').classList.toggle('active', section === 'f');
+    document.getElementById('view-g').classList.toggle('active', section === 'g');
+    document.getElementById('view-h').classList.toggle('active', section === 'h');
+    document.getElementById('view-i').classList.toggle('active', section === 'i');
+    document.getElementById('view-j').classList.toggle('active', section === 'j');
+    document.getElementById('view-ingestion').classList.toggle('active', section === 'ingestion');
+
+    document.getElementById('nav-exec').classList.toggle('active', section === 'exec');
+    document.getElementById('nav-a').classList.toggle('active', section === 'a');
+    document.getElementById('nav-b').classList.toggle('active', section === 'b');
+    document.getElementById('nav-c').classList.toggle('active', section === 'c');
+    document.getElementById('nav-d').classList.toggle('active', section === 'd');
+    document.getElementById('nav-e').classList.toggle('active', section === 'e');
+    document.getElementById('nav-f').classList.toggle('active', section === 'f');
+    document.getElementById('nav-g').classList.toggle('active', section === 'g');
+    document.getElementById('nav-h').classList.toggle('active', section === 'h');
+    document.getElementById('nav-i').classList.toggle('active', section === 'i');
+    document.getElementById('nav-j').classList.toggle('active', section === 'j');
+    document.getElementById('nav-ingestion').classList.toggle('active', section === 'ingestion');
+
+    document.getElementById('nav-exec').setAttribute('aria-current', section === 'exec' ? 'page' : 'false');
+    document.getElementById('nav-a').setAttribute('aria-current', section === 'a' ? 'page' : 'false');
+    document.getElementById('nav-b').setAttribute('aria-current', section === 'b' ? 'page' : 'false');
+    document.getElementById('nav-c').setAttribute('aria-current', section === 'c' ? 'page' : 'false');
+    document.getElementById('nav-d').setAttribute('aria-current', section === 'd' ? 'page' : 'false');
+    document.getElementById('nav-e').setAttribute('aria-current', section === 'e' ? 'page' : 'false');
+    document.getElementById('nav-f').setAttribute('aria-current', section === 'f' ? 'page' : 'false');
+    document.getElementById('nav-g').setAttribute('aria-current', section === 'g' ? 'page' : 'false');
+    document.getElementById('nav-h').setAttribute('aria-current', section === 'h' ? 'page' : 'false');
+    document.getElementById('nav-i').setAttribute('aria-current', section === 'i' ? 'page' : 'false');
+    document.getElementById('nav-j').setAttribute('aria-current', section === 'j' ? 'page' : 'false');
+    document.getElementById('nav-ingestion').setAttribute('aria-current', section === 'ingestion' ? 'page' : 'false');
+
+    var pageLabels = {
+      exec: 'Executive Summary',
+      a: 'A. Clean Energy Spending',
+      b: 'B. EV Make-Ready Program',
+      c: 'C. Demand Response',
+      d: 'D. Distributed Energy Resources',
+      e: 'E. Strategic Capital Investments',
+      f: 'F. Customer Outages',
+      g: 'G. Main Replacement Program',
+      h: 'H. Leak Repairs',
+      i: 'I. Clean Energy Jobs',
+      j: 'J. Customer Operations',
+      ingestion: 'Data Ingestion'
+    };
+    var tp = document.getElementById('topbar-page');
+    if (tp) tp.textContent = pageLabels[section] || pageLabels.a;
+    syncTopbarChrome(section);
+    syncSidebarReportingYear();
+    if (section === 'exec') syncExecHeroMeta();
+
+    if (section === 'ingestion') {
+      if (!USE_PROTO_DATA_INGESTION) setIngestionLetter(ingestionLetter);
+      return;
+    }
+
+    var dashAfter = function () { refreshDashboardForActive(); };
+    if (section === 'exec') {
+      dashAfter();
+      return;
+    }
+    if (section === 'a') {
+      loadFacts().then(dashAfter);
+    } else if (section === 'b') {
+      syncPeriodDropdownB();
+      loadFactsB().then(dashAfter);
+    } else if (section === 'c') {
+      syncPeriodDropdownC();
+      loadFactsC().then(dashAfter);
+    } else if (section === 'd') {
+      syncPeriodDropdownD();
+      loadFactsD().then(dashAfter);
+    } else if (section === 'e') {
+      syncPeriodDropdownE();
+      loadFactsE().then(dashAfter);
+    } else if (section === 'f') {
+      syncPeriodDropdownF();
+      loadFactsF().then(dashAfter);
+    } else if (section === 'g') {
+      syncPeriodDropdownG();
+      loadFactsG().then(dashAfter);
+    } else if (section === 'h') {
+      syncPeriodDropdownH();
+      loadFactsH().then(dashAfter);
+    } else if (section === 'i') {
+      syncPeriodDropdownI();
+      loadFactsI().then(dashAfter);
+    } else if (section === 'j') {
+      syncPeriodDropdownJ();
+      loadFactsJ().then(dashAfter);
+    }
+  }
+
+  function applyHash() {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h === '#ingest' || h === '#ingestion' || h === '#data') {
+      setSection('ingestion');
+    } else if (h === '#exec' || h === '#summary') {
+      setSection('exec');
+    } else if (h === '#b' || h === '#section-b' || h === '#ev') {
+      setSection('b');
+    } else if (h === '#c' || h === '#section-c' || h === '#dr') {
+      setSection('c');
+    } else if (h === '#d' || h === '#section-d' || h === '#der') {
+      setSection('d');
+    } else if (h === '#e' || h === '#section-e' || h === '#strategic') {
+      setSection('e');
+    } else if (h === '#f' || h === '#section-f' || h === '#outages') {
+      setSection('f');
+    } else if (h === '#g' || h === '#section-g' || h === '#mains' || h === '#mainreplacement') {
+      setSection('g');
+    } else if (h === '#h' || h === '#section-h' || h === '#leaks' || h === '#leakrepairs') {
+      setSection('h');
+    } else if (h === '#i' || h === '#section-i' || h === '#jobs' || h === '#cleanenergyjobs') {
+      setSection('i');
+    } else if (h === '#j' || h === '#section-j' || h === '#custops' || h === '#customeroperations') {
+      setSection('j');
+    } else {
+      setSection('a');
+    }
+  }
+
+  function boot() {
+    shellDiagInfo('boot started');
+    verifyShellNavigationDom();
+    try {
+      getClientUrl();
+      applyShellBrandUrls();
+      syncSidebarReportingYear();
+    } catch (e) {
+      showStatus(e.message, true);
+      return;
+    }
+    showStatus('Loading dimensions…', false);
+    Promise.all([loadPeriods(), loadPrograms(), loadProgramsC(), loadProgramsI(), loadDacStatuses()])
+      .then(function () {
+        fillYearSelects();
+        fillProgramsDropdown();
+        fillProgramsDropdownC();
+        fillProgramsDropdownI();
+        fillDacDropdown();
+        fillDacDropdownB();
+        fillDacDropdownC();
+        fillDacDropdownD();
+        fillDacDropdownF();
+        fillDacDropdownG();
+        fillDacDropdownH();
+        return Promise.all([refreshPlugDatalist(), refreshDerDatalist(), refreshInvCategoryDatalist(), refreshPipeActionDatalist(), refreshLeakTypeDatalist(), refreshJDatalists(), loadGeographiesOutages()]);
+      })
+      .then(function () {
+        var warn = [];
+        var fpA = document.getElementById('f-program');
+        if (fpA && !fpA.options.length) {
+          warn.push('Section A: no programs (cf_sectioncode = A).');
+        }
+        var fpC = document.getElementById('c-f-program');
+        if (fpC && !fpC.options.length) {
+          warn.push('Section C: no programs (cf_sectioncode = C).');
+        }
+        if (warn.length) {
+          showStatus(warn.join(' '), true);
+        }
+        applyHash();
+      })
+      .catch(function (e) {
+        showStatus(e.message, true);
+      });
+  }
+
+  (function wireLegacyIngestionUi() {
+    var fy = document.getElementById('f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('b-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('c-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('d-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('e-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('f-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('g-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('h-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('i-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    fy = document.getElementById('j-f-year');
+    if (fy) fy.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    document.getElementById('filter-year').addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    if (!USE_PROTO_DATA_INGESTION) {
+      var ingestYearSel = document.getElementById('ingest-year-select');
+      if (ingestYearSel) ingestYearSel.addEventListener('change', function () { applyGlobalReportingYear(this.value); });
+    }
+  })();
+  document.getElementById('btn-export-pdf').addEventListener('click', function () {
+    window.print();
+  });
+  document.getElementById('btn-refresh').addEventListener('click', function () {
+    applyFilterOrReload();
+  });
+  if (!USE_PROTO_DATA_INGESTION) {
+    var _sf = document.getElementById('spend-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordA);
+    _sf = document.getElementById('btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormA);
+    _sf = document.getElementById('ev-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordB);
+    _sf = document.getElementById('b-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormB);
+    _sf = document.getElementById('dr-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordC);
+    _sf = document.getElementById('c-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormC);
+    _sf = document.getElementById('der-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordD);
+    _sf = document.getElementById('d-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormD);
+    _sf = document.getElementById('cap-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordE);
+    _sf = document.getElementById('e-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormE);
+    _sf = document.getElementById('outage-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordF);
+    _sf = document.getElementById('sect-f-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormF);
+    _sf = document.getElementById('mainrepl-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordG);
+    _sf = document.getElementById('sect-g-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormG);
+    _sf = document.getElementById('leak-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordH);
+    _sf = document.getElementById('sect-h-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormH);
+    _sf = document.getElementById('jobs-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordI);
+    _sf = document.getElementById('sect-i-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormI);
+    _sf = document.getElementById('custops-form');
+    if (_sf) _sf.addEventListener('submit', saveRecordJ);
+    _sf = document.getElementById('sect-j-btn-new');
+    if (_sf) _sf.addEventListener('click', clearFormJ);
+  }
+  document.getElementById('nav-exec').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#exec' && h !== '#summary') {
+      window.location.hash = 'exec';
+    } else {
+      setSection('exec');
+    }
+  });
+  document.getElementById('nav-a').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h === '#exec' || h === '#summary' || h === '#ingest' || h === '#ingestion' || h === '#data' || h === '#b' || h === '#section-b' || h === '#ev' || h === '#c' || h === '#section-c' || h === '#dr' || h === '#d' || h === '#section-d' || h === '#der' || h === '#e' || h === '#section-e' || h === '#strategic' || h === '#f' || h === '#section-f' || h === '#outages' || h === '#g' || h === '#section-g' || h === '#mains' || h === '#mainreplacement' || h === '#h' || h === '#section-h' || h === '#leaks' || h === '#leakrepairs' || h === '#i' || h === '#section-i' || h === '#jobs' || h === '#cleanenergyjobs' || h === '#j' || h === '#section-j' || h === '#custops' || h === '#customeroperations') {
+      window.location.hash = '';
+    } else {
+      setSection('a');
+    }
+  });
+  document.getElementById('nav-b').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#b' && h !== '#section-b' && h !== '#ev') {
+      window.location.hash = 'b';
+    } else {
+      setSection('b');
+    }
+  });
+  document.getElementById('nav-c').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#c' && h !== '#section-c' && h !== '#dr') {
+      window.location.hash = 'c';
+    } else {
+      setSection('c');
+    }
+  });
+  document.getElementById('nav-d').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#d' && h !== '#section-d' && h !== '#der') {
+      window.location.hash = 'd';
+    } else {
+      setSection('d');
+    }
+  });
+  document.getElementById('nav-e').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#e' && h !== '#section-e' && h !== '#strategic') {
+      window.location.hash = 'e';
+    } else {
+      setSection('e');
+    }
+  });
+  document.getElementById('nav-f').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#f' && h !== '#section-f' && h !== '#outages') {
+      window.location.hash = 'f';
+    } else {
+      setSection('f');
+    }
+  });
+  document.getElementById('nav-g').addEventListener('click', function () {
+    var h = (window.location.hash || '').toLowerCase();
+    if (h !== '#g' && h !== '#section-g' && h !== '#mains' && h !== '#mainreplacement') {
+      window.location.hash = 'g';
+    } else {
+      setSection('g');
+    }
+  });
+  document.getElementById('nav-h').addEventListener('click', function () {
+    var hx = (window.location.hash || '').toLowerCase();
+    if (hx !== '#h' && hx !== '#section-h' && hx !== '#leaks' && hx !== '#leakrepairs') {
+      window.location.hash = 'h';
+    } else {
+      setSection('h');
+    }
+  });
+  document.getElementById('nav-i').addEventListener('click', function () {
+    var hi = (window.location.hash || '').toLowerCase();
+    if (hi !== '#i' && hi !== '#section-i' && hi !== '#jobs' && hi !== '#cleanenergyjobs') {
+      window.location.hash = 'i';
+    } else {
+      setSection('i');
+    }
+  });
+  document.getElementById('nav-j').addEventListener('click', function () {
+    var hj = (window.location.hash || '').toLowerCase();
+    if (hj !== '#j' && hj !== '#section-j' && hj !== '#custops' && hj !== '#customeroperations') {
+      window.location.hash = 'j';
+    } else {
+      setSection('j');
+    }
+  });
+  document.getElementById('nav-ingestion').addEventListener('click', function () {
+    var hi = (window.location.hash || '').toLowerCase();
+    if (hi !== '#ingest' && hi !== '#ingestion' && hi !== '#data') {
+      window.location.hash = 'ingest';
+    } else {
+      setSection('ingestion');
+    }
+  });
+  if (!USE_PROTO_DATA_INGESTION) {
+  var addYearModal = document.getElementById('add-year-modal');
+  if (addYearModal) {
+    addYearModal.addEventListener('click', function (e) {
+      if (e.target === addYearModal) addYearModal.hidden = true;
+    });
+  }
+  var btnAddIngestYear = document.getElementById('btn-add-year');
+  if (btnAddIngestYear) {
+    btnAddIngestYear.addEventListener('click', function () {
+      var inp = document.getElementById('add-year-input');
+      if (inp) inp.value = '';
+      if (addYearModal) addYearModal.hidden = false;
+      setTimeout(function () { if (inp) inp.focus(); }, 50);
+    });
+  }
+  var addYearCancel = document.getElementById('add-year-cancel');
+  if (addYearCancel) {
+    addYearCancel.addEventListener('click', function () {
+      if (addYearModal) addYearModal.hidden = true;
+    });
+  }
+  var addYearConfirm = document.getElementById('add-year-confirm');
+  if (addYearConfirm) {
+    addYearConfirm.addEventListener('click', function () {
+      var inp = document.getElementById('add-year-input');
+      var raw = inp ? String(inp.value).trim() : '';
+      if (!/^\d{4}$/.test(raw)) {
+        showStatus('Enter a 4-digit year.', true);
+        return;
+      }
+      addYearConfirm.disabled = true;
+      createReportingYearFromTemplate(raw).then(function () {
+        if (addYearModal) addYearModal.hidden = true;
+      }).catch(function (e) {
+        showStatus(e && e.message ? e.message : String(e), true);
+      }).then(function () {
+        addYearConfirm.disabled = false;
+      });
+    });
+  }
+  var btnDelIngestYear = document.getElementById('btn-delete-year');
+  if (btnDelIngestYear) {
+    btnDelIngestYear.addEventListener('click', function () {
+      var iy = document.getElementById('ingest-year-select');
+      if (!iy || !iy.value) return;
+      var yDel = iy.value;
+      if (!window.confirm('Delete ALL fact rows in ALL sections (A–J) tied to reporting year ' + yDel + ', then remove every DIM PERIOD row for that year? This cannot be undone.')) return;
+      btnDelIngestYear.disabled = true;
+      deleteReportingYearCascade(yDel).catch(function (e) {
+        showStatus(e && e.message ? e.message : String(e), true);
+      }).then(function () {
+        btnDelIngestYear.disabled = false;
+      });
+    });
+  }
+  }
+  /* ingest-tab handlers removed — prototype binds .ingest-sec-btn */
+  window.addEventListener('hashchange', function () {
+    applyHash();
+  });
+
+  shellDiagInfo('nav listeners attached');
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
+</script>
+
+<script type="text/javascript" src="/WebResources/cf_clcpa_dash_data_ingestion_page"></script>
+</body>
+</html>

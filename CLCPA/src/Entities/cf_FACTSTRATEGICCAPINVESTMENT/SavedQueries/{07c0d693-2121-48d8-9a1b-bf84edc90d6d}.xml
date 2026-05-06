@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>0</isdefault>
+    <savedqueryid>{07c0d693-2121-48d8-9a1b-bf84edc90d6d}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="cf_sourcetable" select="1" icon="1" preview="1">
+        <row name="result" id="cf_factstrategiccapinvestmentid">
+          <cell name="cf_sourcetable" width="300" />
+          <cell name="cf_investmentcategorycode" width="150" />
+          <cell name="cf_pctaffectingdacs" width="150" />
+          <cell name="cf_totalinvestmentdollars" width="150" />
+          <cell name="cf_period" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>0</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_factstrategiccapinvestment">
+          <attribute name="cf_factstrategiccapinvestmentid" />
+          <attribute name="cf_sourcetable" />
+          <attribute name="cf_investmentcategorycode" />
+          <attribute name="cf_pctaffectingdacs" />
+          <attribute name="cf_totalinvestmentdollars" />
+          <attribute name="cf_period" />
+          <attribute name="createdon" />
+          <order attribute="cf_sourcetable" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="1" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="Inactive FACT STRATEGIC CAP INVESTMENTS" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

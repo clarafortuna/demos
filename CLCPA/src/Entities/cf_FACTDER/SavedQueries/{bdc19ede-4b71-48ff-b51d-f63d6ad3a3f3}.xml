@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{bdc19ede-4b71-48ff-b51d-f63d6ad3a3f3}</savedqueryid>
+    <layoutxml>
+      <grid name="cf_factders" jump="cf_sourcetable" select="1" icon="1" preview="1">
+        <row name="cf_factder" id="cf_factderid">
+          <cell name="cf_sourcetable" width="300" />
+          <cell name="cf_dertypecode" width="150" />
+          <cell name="cf_mwinstalled" width="150" />
+          <cell name="cf_projects" width="150" />
+          <cell name="cf_subscribers" width="150" />
+          <cell name="cf_period" width="150" />
+          <cell name="cf_dacstatus" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>2</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_factder">
+          <attribute name="cf_factderid" />
+          <attribute name="cf_sourcetable" />
+          <attribute name="cf_dertypecode" />
+          <attribute name="cf_mwinstalled" />
+          <attribute name="cf_projects" />
+          <attribute name="cf_subscribers" />
+          <attribute name="cf_period" />
+          <attribute name="cf_dacstatus" />
+          <attribute name="createdon" />
+          <order attribute="cf_sourcetable" descending="false" />
+          <filter type="and">
+            <condition attribute="statecode" operator="eq" value="0" />
+          </filter>
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="FACT DER Associated View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

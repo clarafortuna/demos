@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{00d57979-5087-5df8-9f78-8054c5bc580b}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{44e90166-dd3e-5219-9778-13bb3dd66e3d}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{889dd4c4-093e-5b78-a904-e1a09a67377b}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{7036b7e3-2d76-584e-bdfb-4e4da138d0ea}">
+                        <labels>
+                          <label description="DIM PROGRAM" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dimprogramid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_dimprogramid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{aed5000e-27a0-5368-af4b-1ee5b51a8ce2}">
+                        <labels>
+                          <label description="customer segment default" languagecode="1033" />
+                        </labels>
+                        <control id="cf_customersegmentdefault" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_customersegmentdefault" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{e02fae4a-6050-5313-8696-3c3eba2dfdfe}">
+                        <labels>
+                          <label description="is active" languagecode="1033" />
+                        </labels>
+                        <control id="cf_isactive" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_isactive" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{e012cec0-baa3-58b1-bb06-4258fa56d0d7}">
+                        <labels>
+                          <label description="is lmi targeted" languagecode="1033" />
+                        </labels>
+                        <control id="cf_islmitargeted" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_islmitargeted" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{b1c44536-af63-52c5-b663-013dcc16bab6}">
+                        <labels>
+                          <label description="program category" languagecode="1033" />
+                        </labels>
+                        <control id="cf_programcategory" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_programcategory" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f9243693-a537-56a8-b1e1-e05e2125c936}">
+                        <labels>
+                          <label description="program code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_programcode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_programcode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7404ea6d-db44-5a87-bc8c-0818388eede2}">
+                        <labels>
+                          <label description="program name" languagecode="1033" />
+                        </labels>
+                        <control id="cf_programname" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_programname" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{dbaa8ace-905f-5a51-ade8-f3c69f93c0f3}">
+                        <labels>
+                          <label description="section code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sectioncode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sectioncode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7df3d474-4abf-5b49-a9a6-483ebc389db3}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7c278c8e-c2ea-51fd-8839-5ed0aa73f7bb}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for DIM PROGRAM." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

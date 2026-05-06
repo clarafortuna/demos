@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WebResource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <WebResourceId>{0f7e9d8c-6b5a-495e-9d0a-1e2f3a4b5c6d}</WebResourceId>
+  <Name>cf_clcpa_dac_shell</Name>
+  <DisplayName>CLCPA DAC Shell (Sections A-J)</DisplayName>
+  <LanguageCode>0</LanguageCode>
+  <WebResourceType>1</WebResourceType>
+  <IntroducedVersion>1.0.21.12</IntroducedVersion>
+  <IsEnabledForMobileClient>1</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>0</IsAvailableForMobileOffline>
+  <IsCustomizable>1</IsCustomizable>
+  <CanBeDeleted>1</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/cf_clcpa_dac_shell</FileName>
+</WebResource>

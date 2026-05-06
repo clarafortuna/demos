@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{2ffec4f9-01e0-5c1e-a512-fe56a2309526}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{855c0587-b464-5f84-9d52-2f55a2f444dc}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{0e183cd8-be34-5d6f-bf9e-08e3a6c15c09}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{98bb9a46-e7c2-5242-b11b-8ab9e173596a}">
+                        <labels>
+                          <label description="FACT CLEAN ENERGY SPENDING" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factcleanenergyspendingid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factcleanenergyspendingid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{8ff93bd0-51f3-5dbb-8692-4061ebe02c95}">
+                        <labels>
+                          <label description="customer segment code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_customersegmentcode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_customersegmentcode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{ea474506-6e13-5d8c-9db4-a761aff83fb6}">
+                        <labels>
+                          <label description="energy savings mmbtu" languagecode="1033" />
+                        </labels>
+                        <control id="cf_energysavingsmmbtu" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_energysavingsmmbtu" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a417e423-5282-5b54-a8e9-d52b48c846a6}">
+                        <labels>
+                          <label description="incentive dollars" languagecode="1033" />
+                        </labels>
+                        <control id="cf_incentivedollars" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_incentivedollars" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{765dc619-ec44-50b2-9e4e-274c04be2b51}">
+                        <labels>
+                          <label description="installations" languagecode="1033" />
+                        </labels>
+                        <control id="cf_installations" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_installations" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{68db6917-9f0a-5489-b354-e278ed89a2f7}">
+                        <labels>
+                          <label description="measure category code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_measurecategorycode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_measurecategorycode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{08534ed0-8a52-52c7-9172-f7376444e4f3}">
+                        <labels>
+                          <label description="participants" languagecode="1033" />
+                        </labels>
+                        <control id="cf_participants" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_participants" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{7a7ffd6d-0648-5121-a364-3843445f1f9f}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{3ec80c25-c441-5fe2-ab51-e337b0e86123}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{c8c38254-ed37-5082-99a5-3e2361c846d0}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{f19f926b-9dc9-5f20-bf4b-75ee765ac17d}">
+                        <labels>
+                          <label description="Program" languagecode="1033" />
+                        </labels>
+                        <control id="cf_program" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_program" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{9fe99f4e-73b5-5572-ac23-100e04ff231f}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{c87640c3-84ae-5938-8c98-c0a636937710}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT CLEAN ENERGY SPENDING." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{886df8bc-55dd-420c-a4c5-958ec4aa0612}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{6c44d745-5ac9-41b0-bd53-970622240f3c}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{d023a83a-8c87-4f62-b4c3-f4090e357495}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{02ecaacf-bae8-448d-b9dc-9ff4d3c7b18e}">
+                        <labels>
+                          <label description="dac status id" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dac_status_id" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_dac_status_id" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2c47b7d4-b67c-4fa0-99e1-997e776ce44b}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{149598eb-3e5e-44ea-a216-eed953eb7738}">
+                        <labels>
+                          <label description="dac status code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatuscode" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="cf_dacstatuscode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{ea0e820c-49cc-46e1-b6c7-1573a5aa5da9}">
+                        <labels>
+                          <label description="is dac geographic" languagecode="1033" />
+                        </labels>
+                        <control id="cf_isdacgeographic" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_isdacgeographic" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{bd18499b-75b0-4956-bcc2-2021f1e835f1}">
+                        <labels>
+                          <label description="is low income eap" languagecode="1033" />
+                        </labels>
+                        <control id="cf_islowincomeeap" classid="{67fac785-cd58-4f9f-abb3-4b7ddc6ed5ed}" datafieldname="cf_islowincomeeap" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d03367c1-40f6-49d0-87ae-bb4dff0fa221}">
+                        <labels>
+                          <label description="dac status label" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatuslabel" classid="{4273edbd-ac1d-40d3-9fb2-095c621b552d}" datafieldname="cf_dacstatuslabel" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{80cd7ad7-5ec6-52e0-8036-d69be57c49c4}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{a2356a78-3e92-58d2-80e7-34a04c97ad79}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{77cd3330-6a7f-5ff9-b118-b4cf7a950d31}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{1174452c-4241-5a8d-9b7b-6f109bbf0263}">
+                        <labels>
+                          <label description="FACT CUSTOMER OUTAGES" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factcustomeroutagesid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factcustomeroutagesid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{fd06cbdb-676d-582d-b91a-03384fe86aa9}">
+                        <labels>
+                          <label description="customers interrupted" languagecode="1033" />
+                        </labels>
+                        <control id="cf_customersinterrupted" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_customersinterrupted" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{2975f16e-fc0c-507b-aeb2-fe0567887ef1}">
+                        <labels>
+                          <label description="outage count" languagecode="1033" />
+                        </labels>
+                        <control id="cf_outagecount" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_outagecount" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{45402177-4f67-5206-a543-60fb09f4a62d}">
+                        <labels>
+                          <label description="outage excludability" languagecode="1033" />
+                        </labels>
+                        <control id="cf_outageexcludability" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_outageexcludability" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{95d51a9f-df3b-5af6-9fb8-43e666c329ea}">
+                        <labels>
+                          <label description="outage network type" languagecode="1033" />
+                        </labels>
+                        <control id="cf_outagenetworktype" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_outagenetworktype" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{058ec522-612a-5e63-bef9-869d05cf6027}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{a467f31a-d5c1-5444-af9e-89d26d2d8e8c}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{98db236e-3c36-5890-86cd-921598d4a8c0}">
+                        <labels>
+                          <label description="Geography" languagecode="1033" />
+                        </labels>
+                        <control id="cf_geography" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_geography" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{25036e65-30eb-5db8-9801-16e85ea0deb0}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{8664dfb6-1ff3-5c92-af20-7eb13b5ad764}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6d8efa77-e17d-5093-98d6-6460fe7d2434}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT CUSTOMER OUTAGES." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{73509760-192e-4dd0-b99e-19d666f5feb8}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="cf_sourcetable" select="1" icon="1" preview="1">
+        <row name="result" id="cf_factcustomeroperationsid">
+          <cell name="cf_sourcetable" width="300" />
+          <cell name="cf_accountcount" width="150" />
+          <cell name="cf_accountstatuscode" width="150" />
+          <cell name="cf_metriccode" width="150" />
+          <cell name="cf_avgusagepercustomer" width="150" />
+          <cell name="cf_dollaramount" width="150" />
+          <cell name="cf_usageamount" width="150" />
+          <cell name="cf_usagecommoditycode" width="150" />
+          <cell name="cf_period" width="150" />
+          <cell name="cf_geography" width="150" />
+          <cell name="cf_dacstatus" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>1</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_factcustomeroperations">
+          <attribute name="cf_factcustomeroperationsid" />
+          <attribute name="cf_sourcetable" />
+          <attribute name="cf_accountcount" />
+          <attribute name="cf_accountstatuscode" />
+          <attribute name="cf_metriccode" />
+          <attribute name="cf_avgusagepercustomer" />
+          <attribute name="cf_dollaramount" />
+          <attribute name="cf_usageamount" />
+          <attribute name="cf_usagecommoditycode" />
+          <attribute name="cf_period" />
+          <attribute name="cf_geography" />
+          <attribute name="cf_dacstatus" />
+          <attribute name="createdon" />
+          <order attribute="cf_sourcetable" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="FACT CUSTOMER OPERATIONS Advanced Find View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>

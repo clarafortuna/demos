@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WebResource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <WebResourceId>{22415f70-0463-48cd-a538-17d3771fd064}</WebResourceId>
+  <Name>cf_clcpa_dac_app_icon</Name>
+  <DisplayName>CLCPA DAC App Icon</DisplayName>
+  <LanguageCode>0</LanguageCode>
+  <WebResourceType>11</WebResourceType>
+  <IntroducedVersion>1.0.2.5</IntroducedVersion>
+  <IsEnabledForMobileClient>1</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>0</IsAvailableForMobileOffline>
+  <IsCustomizable>1</IsCustomizable>
+  <CanBeDeleted>1</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/cf_clcpa_dac_app_icon22415F70-0463-48CD-A538-17D3771FD064</FileName>
+</WebResource>

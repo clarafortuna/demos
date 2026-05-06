@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WebResource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <WebResourceId>{c1d2e3f4-a5b6-4789-c012-d3456789ef01}</WebResourceId>
+  <Name>cf_clcpa_dash_data_ingestion_html</Name>
+  <DisplayName>CLCPA Data Ingestion (standalone prototype HTML)</DisplayName>
+  <LanguageCode>0</LanguageCode>
+  <WebResourceType>1</WebResourceType>
+  <IntroducedVersion>1.0.21.5</IntroducedVersion>
+  <IsEnabledForMobileClient>0</IsEnabledForMobileClient>
+  <IsAvailableForMobileOffline>0</IsAvailableForMobileOffline>
+  <IsCustomizable>1</IsCustomizable>
+  <CanBeDeleted>1</CanBeDeleted>
+  <IsHidden>0</IsHidden>
+  <FileName>/WebResources/cf_clcpa_dash_data_ingestion_html</FileName>
+</WebResource>

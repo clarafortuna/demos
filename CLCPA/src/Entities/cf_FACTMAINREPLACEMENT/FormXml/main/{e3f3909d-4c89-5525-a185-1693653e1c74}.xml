@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{e3f3909d-4c89-5525-a185-1693653e1c74}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{c2c538b7-a71f-57fd-a4cb-70a0fcb36915}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{8e983433-857a-5ed2-b231-112fe86bbfd8}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{c619eb78-74a8-53a1-828f-45551e94557b}">
+                        <labels>
+                          <label description="FACT MAIN REPLACEMENT" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factmainreplacementid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factmainreplacementid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{8c473439-45f4-57c9-8231-fa363682a0ff}">
+                        <labels>
+                          <label description="feet of pipe" languagecode="1033" />
+                        </labels>
+                        <control id="cf_feetofpipe" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_feetofpipe" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d610ae80-f9fb-534e-8abe-b6f24e524d91}">
+                        <labels>
+                          <label description="metric tons ch4 reduced" languagecode="1033" />
+                        </labels>
+                        <control id="cf_metrictonsch4reduced" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_metrictonsch4reduced" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{064b4d6e-0cb2-58e0-ab1c-9c751b4e002b}">
+                        <labels>
+                          <label description="pipe action code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_pipeactioncode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_pipeactioncode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{07d7042a-296d-5780-9f00-8cdb057449bb}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{28c18c10-79e9-553b-8a1c-c0461c956c9a}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{6d732dda-c851-5024-9c5e-1ac872fa3f51}">
+                        <labels>
+                          <label description="Geography" languagecode="1033" />
+                        </labels>
+                        <control id="cf_geography" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_geography" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{0aa04edd-ff8e-5da8-9149-cf1376472ba0}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{226ba7a6-6b60-5ebf-8656-36fe52d0e75a}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{4be5f410-d454-56ac-866f-93b53ffa782a}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT MAIN REPLACEMENT." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

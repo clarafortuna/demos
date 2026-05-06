@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{d2f22522-d96e-55ae-a25f-d484c6b257aa}</formid>
+    <IntroducedVersion>1.0.2.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{7e70bb43-7db8-565c-a67a-7b7fcf26f5b3}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{ba47d02c-15e5-52cd-8af4-7da197083611}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{48c895d0-9517-54a3-ade9-099646f4994e}">
+                        <labels>
+                          <label description="FACT DER" languagecode="1033" />
+                        </labels>
+                        <control id="cf_factderid" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_factderid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{88316cc0-9460-5891-b9d2-d3f3ead64ae4}">
+                        <labels>
+                          <label description="der type code" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dertypecode" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_dertypecode" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{98a00438-42b7-57b6-8b68-cd5a453599cf}">
+                        <labels>
+                          <label description="mw installed" languagecode="1033" />
+                        </labels>
+                        <control id="cf_mwinstalled" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_mwinstalled" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d0211830-b962-5582-8ccf-1e7c3d767b62}">
+                        <labels>
+                          <label description="projects" languagecode="1033" />
+                        </labels>
+                        <control id="cf_projects" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_projects" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{19d7c089-992c-54f7-9e58-6b4ed6391a50}">
+                        <labels>
+                          <label description="source table" languagecode="1033" />
+                        </labels>
+                        <control id="cf_sourcetable" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_sourcetable" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{eb63dc56-1517-513c-9dfb-856c470c62f6}">
+                        <labels>
+                          <label description="subscribers" languagecode="1033" />
+                        </labels>
+                        <control id="cf_subscribers" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_subscribers" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{732460b8-d1bf-5fcb-802f-da52f5cb72f6}">
+                        <labels>
+                          <label description="Period" languagecode="1033" />
+                        </labels>
+                        <control id="cf_period" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_period" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{1d1b36fc-fc47-5a9d-82b6-fcd3c97d4b54}">
+                        <labels>
+                          <label description="Dac Status" languagecode="1033" />
+                        </labels>
+                        <control id="cf_dacstatus" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="cf_dacstatus" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{140de7a7-489b-5a4b-b259-8e599acf8adf}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{d861dfa8-8db0-5826-9490-725893a06235}">
+                        <labels>
+                          <label description="Created On" languagecode="1033" />
+                        </labels>
+                        <control id="createdon" classid="{5b773807-9fb2-42db-97c3-7a91eff8adff}" datafieldname="createdon" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Main form for FACT DER." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>
