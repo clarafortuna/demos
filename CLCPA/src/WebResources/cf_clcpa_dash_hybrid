@@ -714,18 +714,6 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
     return payload;
   };
 
-  function outagesByBorough(facts) {
-    var map = {};
-    facts.forEach(function (f) {
-      var bor = (f.cf_geography && f.cf_geography.cf_boroughorcounty) || 'Unknown';
-      if (!map[bor]) map[bor] = { dac: 0, nondac: 0 };
-      var n = Number(f.cf_customersinterrupted) || 0;
-      if (isDacFact(f)) map[bor].dac += n;
-      else map[bor].nondac += n;
-    });
-    return map;
-  }
-
   function geographyRowPresent(facts) {
     if (!facts || !facts.length) return false;
     for (var gi = 0; gi < facts.length; gi++) {
@@ -737,19 +725,9 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
 
   G.mergeSectionF = function (payload, facts, periodYear) {
     if (!payload || !payload.charts) return payload;
-    var ch = payload.charts;
-    var key = 'F8_boroughs_' + (String(periodYear) === '2023' ? '2023' : '2024');
-    if (facts && facts.length && geographyRowPresent(facts)) {
-      var mp = outagesByBorough(facts);
-      var names = Object.keys(mp).filter(function (b) { return b !== 'Unknown'; });
-      if (names.length) {
-        ch[key] = names.map(function (name) {
-          var d = mp[name].dac;
-          var nd = mp[name].nondac;
-          return { name: name, dac: d, nondac: nd, total: d + nd, _src: G.SRC_DV };
-        });
-      }
-    }
+    // F8 "Customers by borough" in Visual Analytics must match Table F8 (legacy published figures).
+    // cf_FACTCUSTOMEROUTAGES is event-level with sparse geography; rolling it up overwrites the
+    // chart with partial borough lists and wrong totals (e.g. only two boroughs, K-scale mismatch).
     return payload;
   };
 

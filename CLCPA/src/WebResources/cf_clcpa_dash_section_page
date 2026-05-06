@@ -26,7 +26,8 @@ window.CLCPADashMountSection = function (host, PAYLOAD, yearSelectEl) {
     groups.push([{ label: 'Tables', value: TABLES.length }]);
 
     // Groups 2..N: each reported KPI with its own DAC share, in its own divider group
-    if (REPORTED_KPIS && REPORTED_KPIS.length > 0) {
+    // Section F: skip header KPI rollups so the page matches Table F8 only (no duplicate "context" figures).
+    if (LETTER !== 'F' && REPORTED_KPIS && REPORTED_KPIS.length > 0) {
       REPORTED_KPIS.forEach(k => {
         const v = k[yrkey];
         if (!v) return;
