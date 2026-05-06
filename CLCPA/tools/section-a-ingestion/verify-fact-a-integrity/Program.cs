@@ -11,11 +11,18 @@ using Azure.Identity;
 //   dotnet run -- patch [optional org url]
 //   dotnet run -- delete-ui-dupes [optional org url]
 //   dotnet run -- enrich-legacy-a1 [optional org url]
+//   dotnet run -- patch-legacy-a1-a2-mmbtu [optional org url]
+//   dotnet run -- report-mmbtu-totals [optional org url]
+//   dotnet run -- upsert-legacy-a2-mmbtu [optional org url]
+//   dotnet run -- verify-a2-mmbtu-step4 [optional org url]
 //   dotnet run -- delete-f444-portfolio [optional org url]
 //
 // patch: PATCH f55… legacy A1 facts (lookups + post-verify vs __LEGACY_DASH), then print full integrity report.
 // delete-ui-dupes: DELETE four duplicate UI-SectionA fact rows (FIX 1 normalization).
 // enrich-legacy-a1: PATCH LEGACY_A1 f55… rows with cf_energysavingsmmbtu (Table A2) and cf_participants (A3, split by A2 DAC share).
+// patch-legacy-a1-a2-mmbtu: STEP 2 — PATCH cf_energysavingsmmbtu only from Table A2 using tools/clcpa/a1-a2-program-alias-map.json (strict A1 chart names; no fuzzy table match).
+// upsert-legacy-a2-mmbtu: STEP 3 — POST/PATCH LEGACY_A2_* facts + cf_dimprogram rows for Table A2 programs not covered by A1 chart + alias map.
+// verify-a2-mmbtu-step4: STEP 4 — validate fact counts, MMBtu totals vs Table A2 program lines, lookups, document 2023 footer discrepancy.
 // delete-f444-portfolio: DELETE all active facts with id prefix f4444444 (portfolio roll-ups; chart grain is f55 LEGACY_A1 only).
 
 var mode = "verify";
@@ -38,6 +45,30 @@ if (args.Length > 0)
     else if (string.Equals(args[0], "enrich-legacy-a1", StringComparison.OrdinalIgnoreCase))
     {
         mode = "enrich-legacy-a1";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "patch-legacy-a1-a2-mmbtu", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "patch-legacy-a1-a2-mmbtu";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "report-mmbtu-totals", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "report-mmbtu-totals";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "upsert-legacy-a2-mmbtu", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "upsert-legacy-a2-mmbtu";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "verify-a2-mmbtu-step4", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "verify-a2-mmbtu-step4";
         if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
             url = args[1].TrimEnd('/');
     }
@@ -94,6 +125,36 @@ if (mode == "enrich-legacy-a1")
     var rootEarly = VerifyTools.FindClcpaRepoRoot(VerifyTools.FindIngestionToolDir());
     await LegacyA1TableEnrichment.Run(http, rootEarly);
     Console.WriteLine("Exiting after enrich-legacy-a1 (no full verify report).");
+    return;
+}
+
+if (mode == "patch-legacy-a1-a2-mmbtu")
+{
+    var rootEarly = VerifyTools.FindClcpaRepoRoot(VerifyTools.FindIngestionToolDir());
+    await LegacyA1TableEnrichment.RunA2MmbtuOnly(http, rootEarly);
+    Console.WriteLine("Exiting after patch-legacy-a1-a2-mmbtu (no full verify report).");
+    return;
+}
+
+if (mode == "report-mmbtu-totals")
+{
+    await MmbtuTotalsReport.Run(http);
+    Console.WriteLine("Exiting after report-mmbtu-totals.");
+    return;
+}
+
+if (mode == "upsert-legacy-a2-mmbtu")
+{
+    var rootEarly = VerifyTools.FindClcpaRepoRoot(VerifyTools.FindIngestionToolDir());
+    await LegacyA2TableOnlyFacts.Run(http, rootEarly);
+    Console.WriteLine("Exiting after upsert-legacy-a2-mmbtu.");
+    return;
+}
+
+if (mode == "verify-a2-mmbtu-step4")
+{
+    await A2Step4Verify.Run(http);
+    Console.WriteLine("Exiting after verify-a2-mmbtu-step4.");
     return;
 }
 

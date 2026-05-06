@@ -111,12 +111,194 @@ internal static class LegacyA1TableEnrichment
         Console.WriteLine("FIX 2 complete.");
     }
 
+    /// <summary>
+    /// STEP 2: PATCH <c>cf_energysavingsmmbtu</c> only from Table A2 for active LEGACY_A1 f55… facts.
+    /// Uses <c>tools/clcpa/a1-a2-program-alias-map.json</c> (explicit aliases) plus identity A1→A2 names.
+    /// Restricts to programs listed in <c>A1_programs_{year}</c>; no fuzzy <see cref="NamesAlign"/> matching.
+    /// </summary>
+    public static async Task RunA2MmbtuOnly(HttpClient http, string clcpaRepoRoot)
+    {
+        var legacyPath = Path.Combine(clcpaRepoRoot, "src", "WebResources", "cf_clcpa_dash_legacy");
+        if (!File.Exists(legacyPath))
+            throw new FileNotFoundException(legacyPath);
+
+        var json = DecodeAtobJson(legacyPath);
+        using var legacyDoc = JsonDocument.Parse(json);
+        var a2 = FindTable(legacyDoc.RootElement.GetProperty("sectionA").GetProperty("tables"), "A2");
+        var energyByYearProgram = ParseA2(a2);
+        var aliasMap = LoadA1ToA2AliasMap(clcpaRepoRoot);
+        var a1ByYear = LoadA1ChartProgramSets(legacyDoc.RootElement);
+
+        var dacFlags = await VerifyTools.LoadDacFlags(http);
+        var rows = await FetchLegacyA1F55Rows(http);
+        Console.WriteLine(
+            $"STEP 2: PATCH cf_energysavingsmmbtu on LEGACY_A1 f55… rows (strict A1 + alias map, {rows.Count} candidate(s)) …");
+
+        var patched = 0;
+        var skipped = 0;
+
+        foreach (var row in rows)
+        {
+            if (row.Year is not (2023 or 2024))
+            {
+                skipped++;
+                continue;
+            }
+
+            var year = row.Year.Value;
+            var pname = row.ProgramName?.Trim() ?? "";
+            if (string.IsNullOrEmpty(pname))
+            {
+                skipped++;
+                continue;
+            }
+
+            if (!a1ByYear.TryGetValue(year, out var a1Set) || !a1Set.Contains(pname))
+            {
+                Console.WriteLine($"  SKIP {row.Id}: program {Quote(pname)} not in A1_programs_{year}");
+                skipped++;
+                continue;
+            }
+
+            if (!dacFlags.TryGetValue(row.DacStatusId, out var isDacRow))
+            {
+                Console.WriteLine($"  SKIP {row.Id}: unknown dac status id {row.DacStatusId}");
+                skipped++;
+                continue;
+            }
+
+            if (!TryMatchEnergyStrict(year, pname, energyByYearProgram, aliasMap, out var totalMmbtu,
+                    out var dacMmbtu) ||
+                !totalMmbtu.HasValue || !dacMmbtu.HasValue)
+            {
+                Console.WriteLine(
+                    $"  SKIP {row.Id} ({Quote(pname)}, {year}): no Table A2 row for resolved A2 name after alias map");
+                skipped++;
+                continue;
+            }
+
+            var nondacMmbtu = totalMmbtu.Value - dacMmbtu.Value;
+            if (nondacMmbtu < 0) nondacMmbtu = 0;
+            var mmbtuForRow = isDacRow ? dacMmbtu.Value : nondacMmbtu;
+            mmbtuForRow = Math.Round(mmbtuForRow, 2, MidpointRounding.AwayFromZero);
+
+            byte[] body;
+            using (var patchDoc = new MemoryStream())
+            {
+                using (var w = new Utf8JsonWriter(patchDoc))
+                {
+                    w.WriteStartObject();
+                    w.WriteNumber("cf_energysavingsmmbtu", mmbtuForRow);
+                    w.WriteEndObject();
+                }
+
+                body = patchDoc.ToArray();
+            }
+
+            using var req = new HttpRequestMessage(new HttpMethod("PATCH"),
+                $"cf_factcleanenergyspendings({row.Id})")
+            {
+                Content = new ByteArrayContent(body)
+            };
+            req.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+            req.Headers.IfMatch.Add(EntityTagHeaderValue.Any);
+            using var resp = await http.SendAsync(req);
+            resp.EnsureSuccessStatusCode();
+            patched++;
+            var a2Name = ResolveA2TableRowName(year, pname, aliasMap);
+            Console.WriteLine(
+                $"  PATCH {row.Id} ({Quote(pname)}→{Quote(a2Name)}, {(isDacRow ? "DAC" : "NON_DAC")}, {year}): cf_energysavingsmmbtu={mmbtuForRow.ToString("0.##", CultureInfo.InvariantCulture)}");
+        }
+
+        Console.WriteLine($"STEP 2 complete. Patched={patched}, skipped={skipped}.");
+    }
+
+    private static string Quote(string s) => "\"" + s.Replace("\"", "\\\"", StringComparison.Ordinal) + "\"";
+
+    internal static Dictionary<(int Year, string A1Chart), string> LoadA1ToA2AliasMap(string clcpaRepoRoot)
+    {
+        var path = Path.Combine(clcpaRepoRoot, "tools", "clcpa", "a1-a2-program-alias-map.json");
+        if (!File.Exists(path))
+            throw new FileNotFoundException(
+                "STEP 1 alias map not found. Expected: " + path);
+
+        using var doc = JsonDocument.Parse(File.ReadAllText(path));
+        var aliases = doc.RootElement.GetProperty("aliases");
+        var d = new Dictionary<(int, string), string>();
+        foreach (var el in aliases.EnumerateArray())
+        {
+            var a1 = el.GetProperty("a1ChartName").GetString() ?? "";
+            var a2 = el.GetProperty("a2TableName").GetString() ?? "";
+            if (string.IsNullOrWhiteSpace(a1) || string.IsNullOrWhiteSpace(a2)) continue;
+            foreach (var y in el.GetProperty("years").EnumerateArray())
+            {
+                if (y.ValueKind != JsonValueKind.Number || !y.TryGetInt32(out var yi)) continue;
+                d[(yi, a1)] = a2;
+            }
+        }
+
+        return d;
+    }
+
+    internal static Dictionary<int, HashSet<string>> LoadA1ChartProgramSets(JsonElement legacyRoot)
+    {
+        var charts = legacyRoot.GetProperty("sectionA").GetProperty("charts");
+        var res = new Dictionary<int, HashSet<string>>();
+        foreach (var year in new[] { 2023, 2024 })
+        {
+            var prop = "A1_programs_" + year.ToString(CultureInfo.InvariantCulture);
+            if (!charts.TryGetProperty(prop, out var arr) || arr.ValueKind != JsonValueKind.Array)
+                continue;
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var el in arr.EnumerateArray())
+            {
+                if (!el.TryGetProperty("name", out var n) || n.ValueKind != JsonValueKind.String) continue;
+                var s = n.GetString()?.Trim() ?? "";
+                if (s.Length > 0) set.Add(s);
+            }
+
+            res[year] = set;
+        }
+
+        return res;
+    }
+
+    internal static string ResolveA2TableRowName(int year, string a1ChartProgram,
+        Dictionary<(int Year, string A1Chart), string> aliasMap) =>
+        aliasMap.TryGetValue((year, a1ChartProgram), out var a2) ? a2 : a1ChartProgram;
+
+    /// <summary>Table A2 row labels that already receive MMBtu via LEGACY_A1 facts (STEP 2), including alias targets.</summary>
+    internal static HashSet<string> GetA2RowNamesCoveredByA1Charts(int year,
+        Dictionary<int, HashSet<string>> a1ByYear,
+        Dictionary<(int Year, string A1Chart), string> aliasMap)
+    {
+        var covered = new HashSet<string>(StringComparer.Ordinal);
+        if (!a1ByYear.TryGetValue(year, out var a1s)) return covered;
+        foreach (var a1 in a1s)
+            covered.Add(ResolveA2TableRowName(year, a1, aliasMap));
+        return covered;
+    }
+
+    private static bool TryMatchEnergyStrict(int year, string a1ChartProgram,
+        Dictionary<(int Year, string Program), (decimal Total, decimal Dac)> a2,
+        Dictionary<(int Year, string A1Chart), string> aliasMap,
+        out decimal? total, out decimal? dac)
+    {
+        total = null;
+        dac = null;
+        var a2Row = ResolveA2TableRowName(year, a1ChartProgram, aliasMap);
+        if (!a2.TryGetValue((year, a2Row), out var pair)) return false;
+        total = pair.Total;
+        dac = pair.Dac;
+        return true;
+    }
+
     private static string FmtOpt(decimal? v) =>
         v.HasValue ? v.Value.ToString("0.##", CultureInfo.InvariantCulture) : "—";
 
     private static string FmtOptInt(int? v) => v.HasValue ? v.Value.ToString(CultureInfo.InvariantCulture) : "—";
 
-    private static string DecodeAtobJson(string legacyPath)
+    internal static string DecodeAtobJson(string legacyPath)
     {
         var text = File.ReadAllText(legacyPath);
         var start = text.IndexOf("atob('", StringComparison.Ordinal);
@@ -126,7 +308,7 @@ internal static class LegacyA1TableEnrichment
         return Encoding.UTF8.GetString(Convert.FromBase64String(text[start..end]));
     }
 
-    private static JsonElement FindTable(JsonElement tablesArray, string id)
+    internal static JsonElement FindTable(JsonElement tablesArray, string id)
     {
         foreach (var t in tablesArray.EnumerateArray())
         {
@@ -137,7 +319,7 @@ internal static class LegacyA1TableEnrichment
         throw new InvalidOperationException($"Legacy JSON missing section A table {id}.");
     }
 
-    private static Dictionary<(int Year, string Program), (decimal Total, decimal Dac)> ParseA2(JsonElement table)
+    internal static Dictionary<(int Year, string Program), (decimal Total, decimal Dac)> ParseA2(JsonElement table)
     {
         var d = new Dictionary<(int, string), (decimal, decimal)>();
         foreach (var year in new[] { 2023, 2024 })
@@ -151,6 +333,9 @@ internal static class LegacyA1TableEnrichment
                 if (row.GetArrayLength() < 3) continue;
                 var prog = row[0].GetString()?.Trim() ?? "";
                 if (string.IsNullOrEmpty(prog)) continue;
+                if (string.Equals(prog, "Total", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(prog, "Grand Total", StringComparison.OrdinalIgnoreCase))
+                    continue;
                 if (!TryParseDec(row[1], out var tot) || !TryParseDec(row[2], out var dac))
                     continue;
                 d[(year, prog)] = (tot, dac);

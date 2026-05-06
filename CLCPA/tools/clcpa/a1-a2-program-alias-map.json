@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "description": "Maps legacy Section A A1 bar-chart program labels to Table A2 program row names (same reporting year). Used to PATCH cf_energysavingsmmbtu onto existing LEGACY_A1 facts and to align ingestion totals with Table A2.",
+  "legacySource": {
+    "a1Charts": "cf_clcpa_dash_legacy → sectionA.charts.A1_programs_{2023|2024}[].name",
+    "a2Table": "cf_clcpa_dash_legacy → sectionA.tables id A2 → data_{2023|2024}"
+  },
+  "aliases": [
+    {
+      "a1ChartName": "SMB Program",
+      "a2TableName": "SMB Program - Electric & Gas",
+      "years": [2023],
+      "pattern": "A2 uses long-form '… - Electric & Gas'; A1 2023 chart uses short label.",
+      "detectedBy": "scan-a1-a2-aliases.mjs suffixAppendElectricGas"
+    },
+    {
+      "a1ChartName": "Residential Weatherization - Electric & Gas",
+      "a2TableName": "Residential Weatherization",
+      "years": [2023],
+      "pattern": "A1 2023 chart carries '… - Electric & Gas'; A2 2023 row omits that suffix.",
+      "detectedBy": "scan-a1-a2-aliases.mjs chartStripSuffixMatchesTable"
+    }
+  ],
+  "automationFindings": {
+    "scanScript": "tools/clcpa/scan-a1-a2-aliases.mjs",
+    "additionalSuffixOrStripMatches2023": "none beyond the two aliases above",
+    "additionalSuffixOrStripMatches2024": "none (all 12 A1 chart names match an A2 row verbatim)"
+  },
+  "chartWithoutTableRow": [
+    {
+      "year": 2023,
+      "a1ChartName": "Commercial Kitchen",
+      "note": "Present on A1_programs_2023 but no program line on Table A2 data_2023 in packaged legacy; not an alias—A2 gap unless the table is updated elsewhere."
+    }
+  ],
+  "relatedNamingNotAliases": [
+    {
+      "topic": "Cross-year A1 chart renames (not A1↔A2)",
+      "examples": [
+        {
+          "a1_2023": "Clean Heat - Residential ASHP",
+          "a1_2024": "Clean Heat - Residential Air Source Heat Pump"
+        },
+        {
+          "a1_2023": "Clean Heat - SMB ASHP",
+          "a1_2024": "Clean Heat - Small-Medium Business Air Source Heat Pump"
+        },
+        {
+          "a1_2023": "Clean Heat - C&I ASHP",
+          "a1_2024": "Clean Heat - Commercial & Industrial Air Source Heat Pump"
+        },
+        {
+          "a1_2023": "SMB Program",
+          "a1_2024": "Small-Medium Business"
+        },
+        {
+          "a1_2023": "C&I Program - Electric & Gas",
+          "a1_2024": "Commercial & Industrial"
+        }
+      ],
+      "note": "These are year-over-year label changes on the bar chart. Within a single year, A2 strings follow the new naming (2024) or legacy naming (2023). Resolve dimensions per year in cf_DIMPROGRAM; do not use this file to equate 2023 chart names to 2024 table names."
+    },
+    {
+      "topic": "A2-only programs (no A1 chart bar)",
+      "note": "Many Table A2 rows (e.g. AMEEP, EmPower, Marketplace, Smart Kids, Retail Lighting - LMI) are not A1 aliases—they simply do not appear on the 12-bar chart. Those require LEGACY_A2 facts (Step 3), not this map."
+    }
+  ]
+}

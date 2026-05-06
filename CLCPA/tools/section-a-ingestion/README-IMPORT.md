@@ -27,6 +27,52 @@ cd verify-fact-a-integrity
 dotnet run -- delete-ui-dupes
 ```
 
+### STEP 2 — Table A2 MMBtu only (strict A1 + explicit alias map)
+
+Patches **`cf_energysavingsmmbtu`** on active **`f55aaaaa…`** facts with **`cf_sourcetable`** starting **`LEGACY_A1`**, using **Table A2** from packaged **`cf_clcpa_dash_legacy`** and **`tools/clcpa/a1-a2-program-alias-map.json`** (STEP 1). Only programs listed in **`A1_programs_{year}`** are updated; **no fuzzy** name match to A2 rows (avoids e.g. Retail Lighting vs LMI collisions). Does **not** change **`cf_participants`** (use **`enrich-legacy-a1`** if you need A3 as well).
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- patch-legacy-a1-a2-mmbtu
+dotnet run -- patch-legacy-a1-a2-mmbtu https://YOURORG.crm.dynamics.com
+```
+
+### STEP 3 — Table A2-only programs (`LEGACY_A2_*` facts)
+
+Creates **`cf_dimprogram`** rows (if missing) and **`cf_factcleanenergyspending`** rows with **`cf_sourcetable`** `LEGACY_A2_{year}_{slug}_DAC` / `_ND`, **`cf_incentivedollars` = null**, and **`cf_energysavingsmmbtu`** from Table A2 for programs **not** already covered by A1 bar chart + **`tools/clcpa/a1-a2-program-alias-map.json`** (no double-count vs `LEGACY_A1` chart grain). Program **`POST`** uses **`Prefer: return=representation`**.
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- upsert-legacy-a2-mmbtu
+dotnet run -- upsert-legacy-a2-mmbtu https://YOURORG.crm.dynamics.com
+```
+
+### STEP 4 — Verify A2 MMBtu completion (demo-dev expectations)
+
+After Steps 2–3 on **Clara Fortuna Dev** (48 `LEGACY_A1` + 58 `LEGACY_A2` active facts):
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- verify-a2-mmbtu-step4 https://YOURORG.crm.dynamics.com
+```
+
+**Expected (demo import + Web API steps above):**
+
+| Check | Expected |
+|--------|-----------|
+| Active Section A spending facts | **106** (48 `LEGACY_A1*` + 58 `LEGACY_A2*`) |
+| Sum `cf_energysavingsmmbtu` **2023** | **3,682,726** (sum of Table A2 **program lines**, excludes Footer **Total**) |
+| Sum **2024** | **4,360,879** (matches Table A2 program lines and **Grand Total**) |
+| Lookups | **cf_period**, **cf_program**, **cf_dacstatus** → active rows |
+
+**Known packaged legacy inconsistency (not a Dataverse bug):** Table A2 **2023** footer row **Total** shows **4,019,790** MMBtu, which is **337,064** **higher** than the sum of the **27** printed program lines (**3,682,726**). Dataverse is reconciled to **program-line** totals; the footer row in `__LEGACY_DASH` is inconsistent with those lines.
+
+### Report MMBtu totals only
+
+```text
+dotnet run -- report-mmbtu-totals https://YOURORG.crm.dynamics.com
+```
+
 ### Optional: align `f55…` `LEGACY_A1` rows with published tables (A2 / A3)
 
 Legacy **`__LEGACY_DASH`** embeds **Table A2** (program energy savings, MMBtu) and **Table A3** (participants by program, summed across participant types). To copy those values onto **`cf_energysavingsmmbtu`** and **`cf_participants`** for every active fact whose id starts with `f55aaaaa` and whose `cf_sourcetable` starts with `LEGACY_A1`:
@@ -188,6 +234,21 @@ Use the same `pac auth` profile as other steps.
 
 ---
 
+## Unmanaged solution package (CLCPA 1.0.21.27)
+
+Repo root: **`CLCPA_1.0.21.27_unmanaged.zip`** (unmanaged). Build from repo root:
+
+```powershell
+cd ..\..   # CLCPA repo root (parent of tools\section-a-ingestion)
+pac auth create --environment https://YOURORG.crm.dynamics.com
+pac solution pack --zipfile .\CLCPA_1.0.21.27_unmanaged.zip --folder .\src
+pac solution import --path .\CLCPA_1.0.21.27_unmanaged.zip --publish-changes
+```
+
+`src\Other\Solution.xml` version **1.0.21.27** matches this zip. Data steps (A1 demo CMT / Steps 2–3 Web API) are separate from solution import.
+
+---
+
 ## 3) `cf_sourcetable` (fact name column)
 
 `cf_sourcetable` is the **primary name** on **FACT CLEAN ENERGY SPENDING** and must be **unique**. Seeds use values such as `A1_2024_RESI_DAC` so **`A1`** is the lineage prefix while the row remains unique. If you must store **exactly** `A1` for every row, you would need a separate non-key column or a model change; that is **not** in these seeds.
@@ -218,3 +279,5 @@ Use the same `pac auth` profile as other steps.
 | `cf_DACSTATUS_seed.csv` | DAC + NON_DAC |
 | `cf_DIMPROGRAM_seed.csv` | 5 Section A programs + portal short labels |
 | `cf_FACTCLEANENERGYSPENDING_seed.csv` | 20 fact rows (2023–2024, A1 program grain) |
+| `verify-fact-a-integrity\` | .NET CLI: lookup patch; STEP 2–4 Table A2 `cf_energysavingsmmbtu`; `report-mmbtu-totals` |
+| `tools/clcpa/a1-a2-program-alias-map.json` | A1 chart ↔ Table A2 aliases (STEP 1) |
