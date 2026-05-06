@@ -88,9 +88,10 @@ window.__DASH.stackedBar = function(items, opts) {
     const t = Number(item.total);
     const total = Number.isNaN(t) ? 0 : t;
     const totalPct = max > 0 ? (total / max) : 0;
-    const trackWidth = `${(totalPct * 100).toFixed(2)}%`;
-    const dacPct = total > 0 ? item.dac / total : 0;
-    const nondacPct = 1 - dacPct;
+    const trackWidth = `${(totalPct * 100).toFixed(3)}%`;
+    const dacPct = total > 0 ? Number(item.dac) / total : 0;
+    const dacStop = (dacPct * 100).toFixed(3);
+    const grad = 'linear-gradient(90deg, var(--dusk) 0%, var(--dusk) ' + dacStop + '%, var(--pale-sky) ' + dacStop + '%, var(--pale-sky) 100%)';
     const subVal = opts.showDacSplit !== false
       ? `<span class="bar-value-sub">${(dacPct*100).toFixed(0)}% DAC</span>`
       : '';
@@ -98,10 +99,7 @@ window.__DASH.stackedBar = function(items, opts) {
       <div class="bar-row" style="grid-template-columns: ${labelW}px minmax(0, 1fr) auto;">
         <div class="bar-label" title="${item.name}">${item.name}</div>
         <div class="bar-track" style="width:100%; background:transparent;">
-          <div style="width:${trackWidth}; display:flex; height:100%; background:var(--white-smoke); border-radius:3px; overflow:hidden;">
-            <div class="seg seg-dac" style="width:${(dacPct*100).toFixed(2)}%"></div>
-            <div class="seg seg-nondac" style="width:${(nondacPct*100).toFixed(2)}%"></div>
-          </div>
+          <div class="bar-stack-meter" style="width:${trackWidth}; max-width:100%; height:100%; border-radius:3px; background:${grad};"></div>
         </div>
         <div class="bar-value">${opts.fmt ? opts.fmt(total) : fmtCompact(total)}${subVal}</div>
       </div>`;

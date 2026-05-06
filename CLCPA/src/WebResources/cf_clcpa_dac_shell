@@ -393,15 +393,12 @@
         '<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>' +
         '<div data-dash-charts></div>' +
         '<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>' +
-        '<div data-dash-tables></div>' +
-        '<div data-dash-extra></div>'
-      : '<div data-dash-charts></div><div data-dash-tables></div><div data-dash-extra></div>';
+        '<div data-dash-tables></div>'
+      : '<div data-dash-charts></div><div data-dash-tables></div>';
     inner.innerHTML = overviewHtml;
     host.appendChild(inner);
     if (!sec) return;
     var payload = window.CLCPADash.mergePayload(letter.toUpperCase(), sec, window.__DAC_SHELL_API);
-    var ex = inner.querySelector('[data-dash-extra]');
-    if (ex) ex.innerHTML = window.CLCPADash.extraPanels(letter.toUpperCase(), payload);
     window.CLCPADashMountSection(inner, payload, document.getElementById('filter-year'));
   }
 

@@ -317,8 +317,13 @@ body {
   border-radius: 3px;
   overflow: hidden;
   position: relative;
-  display: flex;
+  display: block;
   min-width: 0;
+}
+.bar-row .bar-track .bar-stack-meter {
+  display: block;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .bar-row .bar-track .seg {
   height: 100%;
