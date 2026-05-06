@@ -15,7 +15,7 @@
 ## Order of operations
 
 1. Authenticate (PAC).
-2. **Add new columns** (PowerShell metadata script) **or** create the same logical names in **make.powerapps.com** if the script fails in your tenant policy.
+2. **Add new columns** via **`Add-SectionAFields-patch.zip`** (`pac solution import`) **or** the legacy Web API mode on `Add-SectionASchemaFields.ps1`, **or** create the same logical names in **make.powerapps.com** if import is blocked by policy.
 3. Publish customizations.
 4. Import **dimension** CSVs, then **fact** CSV (order below).
 5. Publish customizations again if your import tool requires it.
@@ -24,23 +24,46 @@
 
 ---
 
-## 1) Schema: PowerShell + Web API
+## 1) Schema: solution patch (recommended)
 
-Prerequisites: permission to customize tables in the target environment.
+Prerequisites: permission to customize tables; base **CLCPA** solution (or the same tables) already in the environment; same publisher **ClaraFortuna** as the patch.
 
 ```powershell
 pac auth create --environment https://YOURORG.crm.dynamics.com
+.\Add-SectionASchemaFields.ps1
 ```
 
-Obtain a bearer token for the **same** instance URL (example with Azure CLI):
+This runs `pac solution import --path .\Add-SectionAFields-patch.zip --publish-changes` using your active auth profile (no bearer token).
+
+To rebuild the zip after editing the canonical entity XML under `..\..\src\Entities\`:
+
+1. Copy the updated entity folders into the patch source tree (PowerShell):
+
+```powershell
+$base = '..\..'
+$dst = '.\Add-SectionAFields-patch-src\Entities'
+foreach ($e in @('cf_FACTCLEANENERGYSPENDING','cf_DIMPERIOD','cf_DIMPROGRAM')) {
+  Copy-Item -Recurse -Force (Join-Path $base "src\Entities\$e") (Join-Path $dst $e)
+}
+```
+
+2. Pack:
+
+```powershell
+pac solution pack --zipfile Add-SectionAFields-patch.zip --folder .\Add-SectionAFields-patch-src
+```
+
+### Schema: Web API fallback (token required)
+
+If you cannot import the patch, obtain a bearer token for the instance (example with Azure CLI) and use **`-UseWebApi`**:
 
 ```powershell
 $envUrl = 'https://YOURORG.crm.dynamics.com'
 $token = az account get-access-token --resource $envUrl --query accessToken -o tsv
-.\Add-SectionASchemaFields.ps1 -EnvironmentUrl $envUrl -AccessToken $token
+.\Add-SectionASchemaFields.ps1 -UseWebApi -EnvironmentUrl $envUrl -AccessToken $token
 ```
 
-Publish:
+Optional publish after manual Web API creation:
 
 ```powershell
 pac solution publish

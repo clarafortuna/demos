@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<savedqueries xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <savedquery>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>0</CanBeDeleted>
+    <isquickfindquery>0</isquickfindquery>
+    <isprivate>0</isprivate>
+    <isdefault>1</isdefault>
+    <savedqueryid>{b64bc4a3-ca9e-490f-9d2e-d9c2ed0abee9}</savedqueryid>
+    <layoutxml>
+      <grid name="resultset" jump="cf_periodgrain" select="1" icon="1" preview="1">
+        <row name="result" id="cf_dimperiodid">
+          <cell name="cf_periodgrain" width="300" />
+          <cell name="cf_calendarmonth" width="150" />
+          <cell name="cf_calendarquarter" width="150" />
+          <cell name="cf_calendaryear" width="150" />
+          <cell name="cf_isreportperiod" width="150" />
+          <cell name="cf_periodenddate" width="150" />
+          <cell name="cf_periodlabel" width="150" />
+          <cell name="cf_periodstartdate" width="150" />
+          <cell name="createdon" width="125" />
+        </row>
+      </grid>
+    </layoutxml>
+    <querytype>1</querytype>
+    <fetchxml>
+      <fetch version="1.0" mapping="logical">
+        <entity name="cf_dimperiod">
+          <attribute name="cf_dimperiodid" />
+          <attribute name="cf_periodgrain" />
+          <attribute name="cf_calendarmonth" />
+          <attribute name="cf_calendarquarter" />
+          <attribute name="cf_calendaryear" />
+          <attribute name="cf_isreportperiod" />
+          <attribute name="cf_periodenddate" />
+          <attribute name="cf_periodlabel" />
+          <attribute name="cf_periodstartdate" />
+          <attribute name="createdon" />
+          <order attribute="cf_periodgrain" descending="false" />
+        </entity>
+      </fetch>
+    </fetchxml>
+    <IntroducedVersion>1.0.0.3</IntroducedVersion>
+    <LocalizedNames>
+      <LocalizedName description="DIM PERIOD Advanced Find View" languagecode="1033" />
+    </LocalizedNames>
+  </savedquery>
+</savedqueries>
