@@ -634,15 +634,38 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
   }
 
   function isDacFact(f) {
-    var c = (f.cf_dacstatus && (f.cf_dacstatus.cf_dacstatuscode || f.cf_dacstatus.cf_dacstatuslabel)) || '';
-    c = String(c).toUpperCase();
-    return /\bDAC\b|DAC_|DISADVANTAGED|IN_DAC|INDAC|DAC_COMMUNITY/i.test(c);
+    var ds = f.cf_dacstatus || {};
+    var code = String(ds.cf_dacstatuscode || '').toUpperCase();
+    var label = String(ds.cf_dacstatuslabel || '').toUpperCase();
+    var blob = code + ' ' + label;
+    if (code === 'NON_DAC' || /\bNON[\s_-]*DAC\b/i.test(blob)) return false;
+    if (code === 'DAC') return true;
+    return /\bDAC\b|DAC_|DISADVANTAGED|IN_DAC|INDAC|DAC_COMMUNITY/i.test(blob);
+  }
+
+  /** Section A A1 $ merge: exact cf_programname (legacy chart name) only, plus acronym shortcuts — no substring match (avoids Multifamily vs Clean Heat - Multifamily double count). */
+  function programMatchesLegacyForA1(f, legacyName) {
+    var raw = (f.cf_program && (f.cf_program.cf_programname || f.cf_program.cf_programcode)) || '';
+    var nTrim = String(raw).trim();
+    var LTrim = String(legacyName).trim();
+    if (nTrim.toLowerCase() === LTrim.toLowerCase()) return true;
+    var n = nTrim.toUpperCase();
+    var L = LTrim.toUpperCase();
+    if (L.indexOf('CSRP') >= 0 && /SYSTEM\s+RELIEF|CSRP/i.test(n)) return true;
+    if (L.indexOf('DLRP') >= 0 && /DISTRIBUTION\s+LOAD|DLRP/i.test(n)) return true;
+    if (L.indexOf('BYOT') >= 0 && /BYOT/i.test(n)) return true;
+    if (L.indexOf('TERM') >= 0 && /TERM/i.test(n) && /DLM/i.test(n)) return true;
+    if (L.indexOf('AUTO') >= 0 && /AUTO/i.test(n) && /DLM/i.test(n)) return true;
+    return false;
   }
 
   function programMatchesLegacy(f, legacyName) {
-    var n = (f.cf_program && (f.cf_program.cf_programname || f.cf_program.cf_programcode)) || '';
-    n = String(n).toUpperCase();
-    var L = String(legacyName).toUpperCase();
+    var raw = (f.cf_program && (f.cf_program.cf_programname || f.cf_program.cf_programcode)) || '';
+    var nTrim = String(raw).trim();
+    var LTrim = String(legacyName).trim();
+    if (nTrim.toLowerCase() === LTrim.toLowerCase()) return true;
+    var n = nTrim.toUpperCase();
+    var L = LTrim.toUpperCase();
     var nA = n.replace(/[^A-Z0-9]/g, '');
     var LA = L.replace(/[^A-Z0-9]/g, '');
     if (LA.length && (nA === LA || nA.indexOf(LA) >= 0 || LA.indexOf(nA) >= 0)) return true;
@@ -670,7 +693,7 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
   function aggregateAIncentiveByProgram(facts, legacyName) {
     var dac = 0, nondac = 0, n = 0;
     facts.forEach(function (f) {
-      if (!programMatchesLegacy(f, legacyName)) return;
+      if (!programMatchesLegacyForA1(f, legacyName)) return;
       if (f.cf_incentivedollars == null) return;
       n++;
       var amt = Number(f.cf_incentivedollars);

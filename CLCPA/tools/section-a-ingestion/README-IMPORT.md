@@ -1,5 +1,25 @@
 # Section A seed import (CLCPA) — instructions
 
+## Demo legacy A1 (23 programs, 48 facts) — repair null lookups
+
+Configuration Migration imports **drop entityreference fields** when the CSV GUID does not exist in the target org (e.g. seed `a111…` / `b222…` while the environment uses different period/DAC rows).
+
+After `Build-DemoLegacyA1Import.ps1` / `pac data import` for facts, if lookups are null, run the Web API patch tool (Azure.Identity interactive/VS/CLI auth):
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- patch
+dotnet run -- patch https://YOURORG.crm.dynamics.com
+```
+
+Then validate `mergeSectionA` against packaged legacy JSON:
+
+```text
+node verify-merge-section-a.mjs
+```
+
+---
+
 ## Row counts (confirm before import)
 
 | Table | Rows |

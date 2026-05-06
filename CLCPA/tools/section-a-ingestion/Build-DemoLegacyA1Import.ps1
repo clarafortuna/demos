@@ -123,6 +123,10 @@ function New-CmtZipPrograms([string]$OutZip) {
 }
 
 function New-CmtZipFacts([string]$OutZip) {
+    # CMT writes lookup fields only when the GUID exists in the target org. Demo CSV uses seed
+    # period/DAC GUIDs (a111…/b222…); if those rows are absent, imports create facts with null
+    # lookups. Use: dotnet run --project verify-fact-a-integrity -- patch  (from section-a-ingestion)
+    # or Web API PATCH with cf_*@odata.bind resolved to live cf_dimperiod / cf_dimprogram / cf_dacstatus.
     $csv = Join-Path $PSScriptRoot 'cf_FACT_legacyA1_demo.csv'
     $rows = Import-Csv $csv
     $sbSchema = [System.Text.StringBuilder]::new()
