@@ -17,10 +17,10 @@
 1. Authenticate (PAC).
 2. **Add new columns** via **`Add-SectionAFields-patch.zip`** (`pac solution import`) **or** the legacy Web API mode on `Add-SectionASchemaFields.ps1`, **or** create the same logical names in **make.powerapps.com** if import is blocked by policy.
 3. Publish customizations.
-4. Import **dimension** CSVs, then **fact** CSV (order below).
+4. Import seed rows (**Option A — CMT zip**, **Option B — CSV / Power Apps**, or **Option C — raw CSV** only if your tool supports it).
 5. Publish customizations again if your import tool requires it.
 
-`pac data import` only accepts a **zip** produced by **Configuration Migration Tool (CMT)** with a **schema.xml** — not raw CSV. Use **one** of the import paths in the next section.
+`pac data import` expects a zip in **Configuration Migration Tool** layout: **`data_schema.xml`** and **`data.xml`** at the root (see `Build-SectionASeedCmtPackage.ps1` or use the checked-in `SectionA_seed_data.zip`). Raw CSV is not accepted by `pac data import`.
 
 ---
 
@@ -82,18 +82,27 @@ If an attribute already exists, the script logs a warning and continues.
 
 ---
 
-## 2) Import seed data (CSV)
+## 2) Import seed data
 
-CSV files use **fixed GUIDs** for primary keys and lookups so `cf_FACTCLEANENERGYSPENDING_seed.csv` can reference periods, programs, and DAC status without a separate lookup step.
+### Option A — CMT package + `pac data import` (recommended for CLI)
 
-**Import order**
+After schema columns exist and customizations are published, import the four tables in one step (order is enforced in the package: DIM PERIOD → DAC STATUS → DIM PROGRAM → FACT).
 
-1. `cf_DIMPERIOD_seed.csv`
-2. `cf_DACSTATUS_seed.csv`
-3. `cf_DIMPROGRAM_seed.csv`
-4. `cf_FACTCLEANENERGYSPENDING_seed.csv`
+**Prebuilt zip:** `SectionA_seed_data.zip` (root contains `data_schema.xml` + `data.xml`).
 
-### Option A — Power Apps “Import data” / Excel (per table)
+```powershell
+pac auth create --environment https://YOURORG.crm.dynamics.com
+pac data import -d ".\SectionA_seed_data.zip"
+```
+
+**Regenerate** from the CSVs (same folder as this README; CSVs are not modified). The script queries `EntityDefinitions.ObjectTypeCode` for your signed-in org (via `cmt-etc-fetcher`); rerun after changing environments:
+
+```powershell
+.\Build-SectionASeedCmtPackage.ps1
+# Skip import:  .\Build-SectionASeedCmtPackage.ps1 -SkipImport
+```
+
+### Option B — CSV / Power Apps (“Import data”)
 
 For each CSV:
 
@@ -102,25 +111,22 @@ For each CSV:
 3. Map columns (GUID columns map to **Primary column** / lookups as **ID** fields when prompted).
 4. Complete the import and resolve any validation errors (e.g. required owner, choice values).
 
-Repeat in the order above.
+Repeat in this order:
 
-### Option B — Configuration Migration Tool + `pac data import`
+1. `cf_DIMPERIOD_seed.csv`
+2. `cf_DACSTATUS_seed.csv`
+3. `cf_DIMPROGRAM_seed.csv`
+4. `cf_FACTCLEANENERGYSPENDING_seed.csv`
 
-1. Launch CMT from PAC:
+### Option C — Manual schema in Configuration Migration Tool
 
-   ```powershell
-   pac tool cmt
-   ```
+If you do not use the prebuilt `SectionA_seed_data.zip`, create a CMT schema yourself, export **data.xml** + **data_schema.xml**, zip them, then:
 
-2. Create a **new** export schema including, at minimum, the four tables and the columns present in the CSVs (plus system owner columns if your environment requires them).
-3. Import your CSVs into the tool’s data set (or use the tool’s export format), then build **`Data.zip`**.
-4. Import:
+```powershell
+pac data import -d .\YourData.zip
+```
 
-   ```powershell
-   pac data import --data .\Data.zip --verbose
-   ```
-
-Use the same environment profile as `pac auth`.
+Use the same `pac auth` profile as other steps.
 
 ---
 
@@ -144,7 +150,12 @@ Use the same environment profile as `pac auth`.
 | File | Purpose |
 |------|---------|
 | `README-ROW-COUNTS.md` | Count checklist |
-| `Add-SectionASchemaFields.ps1` | Web API metadata script |
+| `Add-SectionASchemaFields.ps1` | `pac solution import` for Section A columns (default) or `-UseWebApi` |
+| `Build-SectionASeedCmtPackage.ps1` | Builds `SectionA_seed_data.zip` from the four CSVs (`data_schema.xml` + `data.xml`) |
+| `SectionA_seed_data.zip` | CMT data package for `pac data import` |
+| `cmt-etc-fetcher\` | Small dotnet helper: prints `LogicalName` + `ObjectTypeCode` (used by the build script) |
+| `Add-SectionAFields-patch.zip` | Unmanaged solution layer for the six Section A columns |
+| `Add-SectionAFields-patch-src\` | Unpacked patch solution (entity XML) |
 | `cf_DIMPERIOD_seed.csv` | 4 YEAR rows (2023–2026), targets/floors |
 | `cf_DACSTATUS_seed.csv` | DAC + NON_DAC |
 | `cf_DIMPROGRAM_seed.csv` | 5 Section A programs + portal short labels |

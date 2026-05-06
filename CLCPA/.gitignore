@@ -1,6 +1,7 @@
 ﻿# Unpacked Dataverse solution; attach managed/unmanaged zips via GitHub Releases instead of committing.
 *.zip
 !tools/section-a-ingestion/Add-SectionAFields-patch.zip
+!tools/section-a-ingestion/SectionA_seed_data.zip
 .vs/
 *.user
 Thumbs.db
