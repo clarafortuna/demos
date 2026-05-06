@@ -665,6 +665,45 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
     return { participants: p, committed: c, delivered: d, hasdv: n > 0 };
   }
 
+  function aggregateAIncentiveByProgram(facts, legacyName) {
+    var dac = 0, nondac = 0, n = 0;
+    facts.forEach(function (f) {
+      if (!programMatchesLegacy(f, legacyName)) return;
+      if (f.cf_incentivedollars == null) return;
+      n++;
+      var amt = Number(f.cf_incentivedollars);
+      if (isDacFact(f)) dac += amt;
+      else nondac += amt;
+    });
+    return { dac: dac, total: dac + nondac, hasdv: n > 0 };
+  }
+
+  G.mergeSectionA = function (payload, facts) {
+    if (!payload || !payload.charts) return payload;
+    if (!facts || !facts.length) return payload;
+    var ch = payload.charts;
+    Object.keys(ch).forEach(function (key) {
+      var m = /^A1_programs_(\d{4})$/.exec(key);
+      if (!m) return;
+      var y = m[1];
+      var arr = ch[key];
+      if (!arr || !arr.map) return;
+      var factsY = facts.filter(function (f) {
+        var cy = f.cf_period && f.cf_period.cf_calendaryear;
+        if (cy == null) return false;
+        return String(parseInt(cy, 10)) === y;
+      });
+      if (!factsY.length) return;
+      ch[key] = arr.map(function (row) {
+        var leg = clonePayload(row);
+        var a = aggregateAIncentiveByProgram(factsY, leg.name);
+        if (!a.hasdv) return leg;
+        return { name: leg.name, dac: a.dac, total: a.total };
+      });
+    });
+    return payload;
+  };
+
   G.mergeSectionC = function (payload, facts) {
     if (!payload || !payload.charts) return payload;
     if (!facts || !facts.length) return payload;
@@ -830,6 +869,7 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
   G.mergePayload = function (letter, payload, api) {
     var y = api.getYear();
     var p = clonePayload(payload);
+    if (letter === 'A') G.mergeSectionA(p, api.stateA && api.stateA.facts ? api.stateA.facts : []);
     if (letter === 'C') G.mergeSectionC(p, api.stateC && api.stateC.facts ? api.stateC.facts : []);
     if (letter === 'F') G.mergeSectionF(p, api.stateF && api.stateF.facts ? api.stateF.facts : [], y);
     if (letter === 'G') G.mergeSectionG(p, api.stateG && api.stateG.facts ? api.stateG.facts : [], y);

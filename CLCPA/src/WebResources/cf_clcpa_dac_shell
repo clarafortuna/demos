@@ -257,7 +257,119 @@
         <button type="button" class="btn btn-secondary" id="btn-add-year">+ Add new year</button>
         <button type="button" class="btn btn-secondary danger-on-hover" id="btn-delete-year" title="Delete all data for this year (all sections in Dataverse)">Delete year…</button>
       </div>
-      <div id="ingest-editor-area"></div>
+      <div id="ingest-editor-area">
+        <div id="ingestion-panel-a" class="ingestion-panel ingestion-panel--active" role="tabpanel" aria-hidden="false">
+          <div class="ingest-submission-zone">
+            <div class="summary-grid">
+              <div class="summary-card"><dt>Rows (filtered)</dt><dd id="sum-rows">0</dd></div>
+              <div class="summary-card"><dt>Σ Incentive $</dt><dd id="sum-incentive">—</dd></div>
+              <div class="summary-card"><dt>Σ MMBtu</dt><dd id="sum-mmbtu">—</dd></div>
+              <div class="summary-card"><dt>Σ Participants</dt><dd id="sum-participants">—</dd></div>
+            </div>
+            <div class="chart-card ingest-panel-form">
+              <div class="chart-card-head"><h3 id="form-heading">New fact row</h3><span id="row-count-badge" class="shell-count-badge">0</span></div>
+              <form id="spend-form">
+                <input type="hidden" id="f-record-id" value="" />
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label for="f-year">Reporting year</label>
+                    <select id="f-year" aria-label="Reporting year for Section A"></select>
+                  </div>
+                  <div class="form-field">
+                    <label for="f-period">Period</label>
+                    <select id="f-period" aria-label="DIM period"></select>
+                  </div>
+                  <div class="form-field">
+                    <label for="f-program">Program</label>
+                    <select id="f-program" aria-label="Program"></select>
+                  </div>
+                  <div class="form-field">
+                    <label for="f-dac">DAC status</label>
+                    <select id="f-dac" aria-label="DAC status"></select>
+                  </div>
+                  <div class="form-field">
+                    <label for="f-seg">Customer segment code</label>
+                    <input type="text" id="f-seg" autocomplete="off" />
+                  </div>
+                  <div class="form-field">
+                    <label for="f-measure">Measure category code</label>
+                    <input type="text" id="f-measure" autocomplete="off" />
+                  </div>
+                  <div class="form-field">
+                    <label for="f-incentive">Incentive dollars</label>
+                    <input type="text" id="f-incentive" inputmode="decimal" autocomplete="off" />
+                  </div>
+                  <div class="form-field">
+                    <label for="f-mmbtu">Energy savings (MMBtu)</label>
+                    <input type="text" id="f-mmbtu" inputmode="decimal" autocomplete="off" />
+                  </div>
+                  <div class="form-field">
+                    <label for="f-participants">Participants</label>
+                    <input type="text" id="f-participants" inputmode="numeric" autocomplete="off" />
+                  </div>
+                  <div class="form-field">
+                    <label for="f-install">Installations</label>
+                    <input type="text" id="f-install" inputmode="numeric" autocomplete="off" />
+                  </div>
+                  <div class="form-field">
+                    <label for="f-highimpactdacpct">High-impact DAC % (DAC program rows)</label>
+                    <input type="text" id="f-highimpactdacpct" inputmode="decimal" placeholder="e.g. 42.5" autocomplete="off" />
+                  </div>
+                </div>
+                <div class="ingest-modal-actions" style="margin-top:14px;display:flex;gap:10px;align-items:center">
+                  <button type="submit" class="btn" id="btn-save">Save row</button>
+                  <button type="button" class="btn btn-secondary" id="btn-new">New row</button>
+                </div>
+              </form>
+            </div>
+            <p id="grid-empty" class="empty" style="display:none">No fact rows for this reporting year.</p>
+            <div id="grid" class="ingest-table-wrap" style="display:none">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Source</th>
+                    <th>Program</th>
+                    <th>DAC</th>
+                    <th>Segment</th>
+                    <th class="num">Incentive $</th>
+                    <th class="num">MMBtu</th>
+                    <th class="num">HI DAC %</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="grid-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div id="ingestion-panel-b" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section B ingestion is not embedded in this shell. Use Dataverse tables or extend this web resource.</p>
+        </div>
+        <div id="ingestion-panel-c" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section C ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-d" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section D ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-e" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section E ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-f" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section F ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-g" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section G ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-h" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section H ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-i" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section I ingestion is not embedded in this shell.</p>
+        </div>
+        <div id="ingestion-panel-j" class="ingestion-panel" role="tabpanel" aria-hidden="true">
+          <p class="empty" style="padding:20px">Section J ingestion is not embedded in this shell.</p>
+        </div>
+      </div>
     </div>
 
 </main>
@@ -291,7 +403,7 @@
   var ingestionLetter = 'a';
   var dashAssetsPromise = null;
   /** New update 55-table editors (localStorage) — cf_clcpa_dash_data_ingestion_page */
-  var USE_PROTO_DATA_INGESTION = true;
+  var USE_PROTO_DATA_INGESTION = false;
   window.__DAC_SHELL_API = {
     getYear: function () {
       var el = document.getElementById('filter-year');
@@ -1646,7 +1758,7 @@
       return Promise.resolve();
     }
     var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
-    var path = API + ENTITY_SET_A + '?$select=cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,_cf_period_value,_cf_program_value,_cf_dacstatus_value' +
+    var path = API + ENTITY_SET_A + '?$select=cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value' +
       '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
     return dvFetch(path).then(function (r) {
       if (!r.ok) return parseJsonSafe(r).then(function (j) {
@@ -1716,6 +1828,7 @@
       var prog = f.cf_program ? f.cf_program.cf_programname : '—';
       var dac = f.cf_dacstatus ? (f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode) : '—';
       var src = f.cf_sourcetable || '—';
+      var hiCell = f.cf_highimpactdacpct != null && f.cf_highimpactdacpct !== '' ? (Number(f.cf_highimpactdacpct).toFixed(1) + '%') : '—';
       tr.innerHTML =
         '<td title="' + escapeHtml(src) + '">' + escapeHtml(src.length > 16 ? src.slice(0, 14) + '…' : src) + '</td>' +
         '<td>' + escapeHtml(prog) + '</td>' +
@@ -1723,6 +1836,7 @@
         '<td>' + escapeHtml(f.cf_customersegmentcode || '') + '</td>' +
         '<td class="num">' + fmtMoney(f.cf_incentivedollars) + '</td>' +
         '<td class="num">' + fmtNum(f.cf_energysavingsmmbtu) + '</td>' +
+        '<td class="num">' + escapeHtml(hiCell) + '</td>' +
         '<td><button type="button" class="btn btn-secondary edit-row" data-id="' + f.cf_factcleanenergyspendingid + '">Edit</button></td>';
       tb.appendChild(tr);
     });
@@ -1769,10 +1883,12 @@
     var mmbtu = numOrNull('f-mmbtu');
     var part = numOrNull('f-participants');
     var inst = numOrNull('f-install');
+    var hi = numOrNull('f-highimpactdacpct');
     body.cf_incentivedollars = inc;
     body.cf_energysavingsmmbtu = mmbtu;
     body.cf_participants = part == null ? null : Math.round(part);
     body.cf_installations = inst == null ? null : Math.round(inst);
+    body.cf_highimpactdacpct = hi;
     return body;
   }
 
@@ -1786,6 +1902,8 @@
     document.getElementById('f-participants').value = '';
     document.getElementById('f-install').value = '';
     document.getElementById('f-seg').value = '';
+    var hip = document.getElementById('f-highimpactdacpct');
+    if (hip) hip.value = '';
     var fy = reportingYearForDataLoad();
     if (fy) {
       document.getElementById('f-year').value = fy;
@@ -1813,6 +1931,10 @@
     document.getElementById('f-mmbtu').value = f.cf_energysavingsmmbtu != null ? f.cf_energysavingsmmbtu : '';
     document.getElementById('f-participants').value = f.cf_participants != null ? f.cf_participants : '';
     document.getElementById('f-install').value = f.cf_installations != null ? f.cf_installations : '';
+    var hip = document.getElementById('f-highimpactdacpct');
+    if (hip) {
+      hip.value = f.cf_highimpactdacpct != null && f.cf_highimpactdacpct !== '' ? String(f.cf_highimpactdacpct) : '';
+    }
     window.scrollTo(0, 0);
   }
 
@@ -4339,6 +4461,20 @@
     }
   });
   if (!USE_PROTO_DATA_INGESTION) {
+    document.querySelectorAll('#ingest-section-picker .ingest-sec-btn').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var letter = (btn.getAttribute('data-letter') || 'A').toLowerCase();
+        document.querySelectorAll('#ingest-section-picker .ingest-sec-btn').forEach(function (b) {
+          var on = b === btn;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        ingestionLetter = letter;
+        setIngestionLetter(letter);
+      });
+    });
+  }
+  if (!USE_PROTO_DATA_INGESTION) {
   var addYearModal = document.getElementById('add-year-modal');
   if (addYearModal) {
     addYearModal.addEventListener('click', function (e) {
@@ -4407,9 +4543,14 @@
   } else {
     boot();
   }
+
+  if (USE_PROTO_DATA_INGESTION) {
+    var protoIngest = document.createElement('script');
+    protoIngest.type = 'text/javascript';
+    protoIngest.src = getClientUrl() + '/WebResources/cf_clcpa_dash_data_ingestion_page';
+    document.body.appendChild(protoIngest);
+  }
 })();
 </script>
-
-<script type="text/javascript" src="/WebResources/cf_clcpa_dash_data_ingestion_page"></script>
 </body>
 </html>

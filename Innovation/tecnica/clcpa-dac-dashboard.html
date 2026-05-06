@@ -1095,8 +1095,8 @@ function cesDacRow(r) {
   return r.cf_dacstatus && String(r.cf_dacstatus.cf_dacstatuscode) === 'DAC';
 }
 
-async function cesFetch(query) {
-  const url = DATAVERSE_API + query;
+async function cesFetch(queryOrUrl) {
+  const url = (queryOrUrl.indexOf('http') === 0) ? queryOrUrl : (DATAVERSE_API + queryOrUrl);
   const res = await fetch(url, {
     credentials: 'include',
     headers: {
@@ -1240,41 +1240,71 @@ function cesRenderCharts(selYear, rowsSel, trendMeta) {
 }
 
 async function cesLoadAll() {
-  const qPeriods = "/cf_dimperiods?$filter=cf_calendaryear eq 2023 or cf_calendaryear eq 2024"
-    + "&$select=cf_dimperiodid,cf_calendaryear,cf_clcpa_sectiona_dacshare_target_pct,cf_clcpa_sectiona_dacshare_floor_pct,cf_clcpa_sectiona_kpi1_status_label,cf_clcpa_sectiona_kpi4_yoy_label";
-  const periodJson = await cesFetch(qPeriods);
-  const periods = periodJson.value || [];
-  if (!periods.length) throw new Error('No cf_dimperiod rows for 2023–2024.');
+  const selCols = 'cf_dimperiodid,cf_calendaryear,cf_isreportperiod,cf_clcpa_sectiona_dacshare_target_pct,cf_clcpa_sectiona_dacshare_floor_pct,cf_clcpa_sectiona_kpi1_status_label,cf_clcpa_sectiona_kpi4_yoy_label';
+  const q0 = '/cf_dimperiods?$filter=statecode eq 0 and cf_calendaryear ne null'
+    + '&$select=' + selCols
+    + '&$orderby=cf_calendaryear asc';
 
-  const byYear = {};
-  for (const p of periods) {
-    const y = Number(p.cf_calendaryear);
-    if (!isNaN(y)) byYear[y] = p;
+  const periods = [];
+  let next = q0;
+  while (next) {
+    const periodJson = await cesFetch(next);
+    const chunk = periodJson.value || [];
+    periods.push.apply(periods, chunk);
+    next = periodJson['@odata.nextLink'] || null;
   }
 
-  const ids = [2023, 2024].map(y => byYear[y] && byYear[y].cf_dimperiodid).filter(Boolean);
-  if (!ids.length) throw new Error('Could not resolve period IDs for 2023/2024.');
+  if (!periods.length) throw new Error('No active cf_dimperiod rows with a calendar year.');
 
-  const orFilter = ids.map(id => "_cf_period_value eq " + id).join(' or ');
+  const periodsByYear = {};
+  for (const p of periods) {
+    const y = Number(p.cf_calendaryear);
+    if (isNaN(y)) continue;
+    if (!periodsByYear[y]) periodsByYear[y] = [];
+    periodsByYear[y].push(p);
+  }
+
+  const byYear = {};
+  const periodIdsByYear = {};
+  for (const yStr of Object.keys(periodsByYear)) {
+    const y = Number(yStr);
+    const list = periodsByYear[y];
+    const canonical = list.filter(function (p) { return p.cf_isreportperiod === true; })[0] || list[0];
+    byYear[y] = canonical;
+    periodIdsByYear[y] = list.map(function (p) { return p.cf_dimperiodid; });
+  }
+
+  const allIds = [];
+  for (const yStr of Object.keys(periodIdsByYear)) {
+    periodIdsByYear[yStr].forEach(function (id) { allIds.push(id); });
+  }
+  const orFilter = allIds.map(function (id) { return '_cf_period_value eq ' + id; }).join(' or ');
   const qFacts = '/cf_factcleanenergyspendings?$filter=' + encodeURIComponent('(' + orFilter + ')')
     + '&$expand=cf_program($select=cf_portal_short_label,cf_programname),cf_dacstatus($select=cf_dacstatuscode)'
     + '&$select=cf_incentivedollars,cf_participants,cf_highimpactdacpct,_cf_period_value,_cf_program_value';
 
   const factJson = await cesFetch(qFacts);
   const facts = factJson.value || [];
+
+  const availableYears = Object.keys(byYear).map(Number).sort(function (a, b) { return b - a; });
+
   cesCachedPeriods = byYear;
   cesCachedFacts = facts;
-  return { byYear, facts };
+  return { byYear, facts, periodIdsByYear, availableYears };
 }
 
-function cesApplyKpis(selYear, byYear, facts) {
-  const pid = byYear[selYear] && byYear[selYear].cf_dimperiodid;
+function cesFactsForYear(facts, periodIdsByYear, year) {
+  const ids = periodIdsByYear[year];
+  if (!ids || !ids.length) return [];
+  const idSet = new Set(ids);
+  return facts.filter(function (f) { return idSet.has(f._cf_period_value); });
+}
+
+function cesApplyKpis(selYear, byYear, facts, periodIdsByYear) {
   const prevYear = selYear - 1;
-  const pidPrev = byYear[prevYear] && byYear[prevYear].cf_dimperiodid;
 
-  const rowsSel = facts.filter(f => f._cf_period_value === pid);
-  const rowsPrev = pidPrev ? facts.filter(f => f._cf_period_value === pidPrev) : [];
-
+  const rowsSel = cesFactsForYear(facts, periodIdsByYear, selYear);
+  const rowsPrev = cesFactsForYear(facts, periodIdsByYear, prevYear);
   const cur = cesYearTotals(rowsSel);
   const prev = rowsPrev.length ? cesYearTotals(rowsPrev) : null;
 
@@ -1393,10 +1423,9 @@ function cesApplyKpis(selYear, byYear, facts) {
     else { elAY.textContent = '• Compare to Non-DAC avg'; elAY.classList.add('flat'); }
   }
 
-  const yearsArr = [2023, 2024].filter(y => byYear[y] && byYear[y].cf_dimperiodid);
-  const shares = yearsArr.map(y => {
-    const id = byYear[y].cf_dimperiodid;
-    const rows = facts.filter(f => f._cf_period_value === id);
+  const yearsArr = Object.keys(byYear).map(Number).sort(function (a, b) { return a - b; });
+  const shares = yearsArr.map(function (y) {
+    const rows = cesFactsForYear(facts, periodIdsByYear, y);
     return cesYearTotals(rows).share;
   });
   const targets = yearsArr.map(y => {
@@ -1459,9 +1488,21 @@ async function initCesSection() {
     err.style.display = 'none';
     loading.style.display = 'block';
     try {
-      const { byYear, facts } = await cesLoadAll();
-      const y = Number(sel.value);
-      cesApplyKpis(y, byYear, facts);
+      const { byYear, facts, periodIdsByYear, availableYears } = await cesLoadAll();
+      while (sel.firstChild) sel.removeChild(sel.firstChild);
+      if (!availableYears.length) throw new Error('No reporting years found on cf_dimperiod.');
+      availableYears.forEach(function (y) {
+        const o = document.createElement('option');
+        o.value = String(y);
+        o.textContent = String(y);
+        sel.appendChild(o);
+      });
+      var yCur = Number(sel.value);
+      if (!availableYears.includes(yCur)) {
+        sel.value = String(availableYears[0]);
+        yCur = availableYears[0];
+      }
+      cesApplyKpis(yCur, byYear, facts, periodIdsByYear);
     } catch (e) {
       err.textContent = 'Section A could not load Dataverse data. ' + (e && e.message ? e.message : e);
       err.style.display = 'block';
