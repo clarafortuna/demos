@@ -80,19 +80,22 @@ window.__DASH.donut = function(dac, total, opts) {
 
 window.__DASH.stackedBar = function(items, opts) {
   opts = opts || {};
-  const max = opts.max || Math.max(...items.map(i => i.total));
+  const totals = items.map(i => Number(i.total)).filter(function (v) { return !Number.isNaN(v); });
+  const max = opts.max != null ? Number(opts.max) : (totals.length ? Math.max.apply(null, totals) : 0);
   const labelW = opts.labelW || 140;
   const fmtCompact = window.__DASH.fmtCompact;
   return `<div class="bar-chart">${items.map(item => {
-    const totalPct = max > 0 ? (item.total / max) : 0;
+    const t = Number(item.total);
+    const total = Number.isNaN(t) ? 0 : t;
+    const totalPct = max > 0 ? (total / max) : 0;
     const trackWidth = `${(totalPct * 100).toFixed(2)}%`;
-    const dacPct = item.total > 0 ? item.dac / item.total : 0;
+    const dacPct = total > 0 ? item.dac / total : 0;
     const nondacPct = 1 - dacPct;
     const subVal = opts.showDacSplit !== false
       ? `<span class="bar-value-sub">${(dacPct*100).toFixed(0)}% DAC</span>`
       : '';
     return `
-      <div class="bar-row" style="grid-template-columns: ${labelW}px 1fr auto;">
+      <div class="bar-row" style="grid-template-columns: ${labelW}px minmax(0, 1fr) auto;">
         <div class="bar-label" title="${item.name}">${item.name}</div>
         <div class="bar-track" style="width:100%; background:transparent;">
           <div style="width:${trackWidth}; display:flex; height:100%; background:var(--white-smoke); border-radius:3px; overflow:hidden;">
@@ -100,7 +103,7 @@ window.__DASH.stackedBar = function(items, opts) {
             <div class="seg seg-nondac" style="width:${(nondacPct*100).toFixed(2)}%"></div>
           </div>
         </div>
-        <div class="bar-value">${opts.fmt ? opts.fmt(item.total) : fmtCompact(item.total)}${subVal}</div>
+        <div class="bar-value">${opts.fmt ? opts.fmt(total) : fmtCompact(total)}${subVal}</div>
       </div>`;
   }).join('')}</div>`;
 };
@@ -122,7 +125,7 @@ window.__DASH.compareRows = function(items, opts) {
     const dLabel = d == null ? '—' : `${dArrow} ${(Math.abs(d)*100).toFixed(1)}%`;
     const inv = opts.lower_is_better ? ' invert' : '';
     return `
-      <div class="comp-row" style="grid-template-columns: ${labelW}px 1fr auto;">
+      <div class="comp-row" style="grid-template-columns: ${labelW}px minmax(0, 1fr) auto;">
         <div class="comp-label">${item.name}</div>
         <div class="comp-bars">
           <div class="comp-bar-line"><span class="yr">${yearLabel}</span><div class="bar-fill"><div style="width:${cPct.toFixed(1)}%"></div></div><span class="bar-num">${fmt(item.curr)}</span></div>
@@ -841,17 +844,7 @@ window.CLCPADashWireTableToggles = function (host, state, rerenderTablesFn) {
   }
 
   G.extraPanels = function (letter, payload) {
-    var rows = [];
-    if (letter === 'F') {
-      rows.push({ label: 'Average outage duration', value: '—', src: G.SRC_HTML, note: 'Shown for context from the published tables; duration is not part of the outage form here.' });
-    }
-    if (!rows.length) return '';
-    var h = '<div class="dash-extra-card"><h3>Context metrics <span class="src-pill src-html">Reference</span></h3><table class="data-table"><thead><tr><th>Metric</th><th>Value</th><th>Basis</th></tr></thead><tbody>';
-    rows.forEach(function (r) {
-      h += '<tr><td>' + r.label + '</td><td class="num">' + r.value + '</td><td>' + G.sourcePill(r.src) + '</td></tr>';
-    });
-    h += '</tbody></table><p class="dash-note">' + rows.map(function (r) { return r.note; }).join(' ') + '</p></div>';
-    return h;
+    return '';
   };
 
   G.mergePayload = function (letter, payload, api) {

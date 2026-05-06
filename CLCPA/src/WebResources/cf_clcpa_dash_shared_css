@@ -295,7 +295,7 @@ body {
 .bar-chart svg { display: block; width: 100%; height: auto; }
 .bar-row {
   display: grid;
-  grid-template-columns: 140px 1fr auto;
+  grid-template-columns: 140px minmax(0, 1fr) auto;
   gap: 8px;
   align-items: center;
   padding: 4px 0;
@@ -318,6 +318,7 @@ body {
   overflow: hidden;
   position: relative;
   display: flex;
+  min-width: 0;
 }
 .bar-row .bar-track .seg {
   height: 100%;
@@ -370,7 +371,7 @@ body {
 /* Comparison bar (2024 vs 2023) */
 .comp-row {
   display: grid;
-  grid-template-columns: 100px 1fr auto;
+  grid-template-columns: 100px minmax(0, 1fr) auto;
   gap: 10px;
   align-items: center;
   padding: 6px 0;
@@ -379,7 +380,7 @@ body {
 }
 .comp-row:last-child { border-bottom: none; }
 .comp-row .comp-label { font-weight: 600; color: var(--text-2); }
-.comp-bars { display: flex; flex-direction: column; gap: 2px; }
+.comp-bars { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .comp-bar-line { display: flex; align-items: center; gap: 6px; font-size: 10px; }
 .comp-bar-line .yr { width: 32px; font-family: var(--font-mono); font-weight: 600; color: var(--text-3); }
 .comp-bar-line .bar-fill {
