@@ -159,7 +159,9 @@
     var meas = (f.cf_measurecategorycode != null && String(f.cf_measurecategorycode).trim()) || '';
     var custSeg = (f.cf_customersegmentcode != null && String(f.cf_customersegmentcode).trim()) || '';
     var participantType = normalizeParticipantType(f.cf_participanttype);
-    var dacLab = f.cf_dacstatus ? String(f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode || '') : '';
+    var dacStatusCode = f.cf_dacstatus ? String(f.cf_dacstatus.cf_dacstatuscode || '') : '';
+    var dacStatusLabel = f.cf_dacstatus ? String(f.cf_dacstatus.cf_dacstatuslabel || '') : '';
+    var dacLab = (dacStatusCode + ' ' + dacStatusLabel).trim();
     var isDacStatus = /\bDAC\b|DISADVANTAGED|IN_DAC|DAC_COMMUNITY/i.test(dacLab) && !/\bNON-?DAC\b/i.test(dacLab) && !/\bNOT\b/i.test(dacLab);
 
     var segment;
@@ -189,6 +191,8 @@
       section: 'A',
       sourceTable: f.cf_sourcetable != null ? String(f.cf_sourcetable) : '',
       reportingTable: reportingTable,
+      dacStatusCode: dacStatusCode,
+      dacStatusLabel: dacStatusLabel,
       values: {
         year: y,
         segment: segment,
@@ -944,6 +948,20 @@
     // B, C, D-J: use _table tag
     return rowsForSectionYear(state.section, year).filter(r => r.values && r.values._table === tableId);
   }
+  function isDacFactRowA(row) {
+    if (!row) return false;
+    var code = String(row.dacStatusCode || '').trim().toUpperCase();
+    var label = String(row.dacStatusLabel || '').trim().toUpperCase();
+    var blob = (code + ' ' + label).trim();
+    if (code === 'NON_DAC' || /NON[\s_-]*DAC/i.test(blob)) return false;
+    if (code === 'DAC') return true;
+    if (/\bDAC\b|DISADVANTAGED|IN_DAC|INDAC|DAC_COMMUNITY/i.test(blob)) return true;
+    var src = String(row.sourceTable || '').trim().toUpperCase();
+    if (!src) return false;
+    if (/_ND(?:_|$)|_NON-?DAC(?:_|$)/i.test(src)) return false;
+    if (/_DAC(?:_|$)/i.test(src)) return true;
+    return false;
+  }
 
 
   // ============================================================
@@ -1042,7 +1060,7 @@
 
   function renderA3A4(table) {
     const isDac = table.isDac === true;
-    const rows = rowsForTable('A3', state.year);
+    const rows = rowsForTable('A3', state.year).filter(r => !isDac || isDacFactRowA(r));
     const groups = {};
     rows.forEach(r => {
       const seg = r.values.segment || 'Unknown';
