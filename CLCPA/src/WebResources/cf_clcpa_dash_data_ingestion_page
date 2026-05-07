@@ -115,9 +115,18 @@
     var list = ingestionPeriods.filter(function (p) {
       return parseInt(p.cf_calendaryear, 10) === y;
     });
+    if (!list.length) return [];
+    return list.map(function (p) { return p.cf_dimperiodid; }).filter(Boolean);
+  }
+
+  function primaryPeriodGuidForYearIngestion(year) {
+    var y = parseInt(year, 10);
+    var list = ingestionPeriods.filter(function (p) {
+      return parseInt(p.cf_calendaryear, 10) === y;
+    });
     if (!list.length) return null;
     var rep = list.filter(function (p) { return p.cf_isreportperiod === true; });
-    return (rep[0] || list[0]).cf_dimperiodid;
+    return (rep[0] || list[0]).cf_dimperiodid || null;
   }
 
   function distinctCalendarYearsFromIngestionPeriods() {
@@ -200,14 +209,15 @@
     sectionARowMirror = [];
     if (!dvSectionAActive()) return Promise.resolve();
     return ensureDvMetadataLoaded().then(function () {
-      var pg = periodGuidForYearIngestion(state.year);
-      if (!pg) {
+      var pgs = periodGuidForYearIngestion(state.year);
+      if (!pgs.length) {
         return;
       }
       var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname,cf_programcode,cf_reportingtable),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
       var sel = 'cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_participanttype,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value';
+      var periodFilter = pgs.map(function (id) { return '_cf_period_value eq ' + id; }).join(' or ');
       var path = API_DV + 'cf_factcleanenergyspendings?$select=' + sel +
-        '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
+        '&$filter=' + encodeURIComponent('(' + periodFilter + ')') + '&$orderby=createdon desc&$top=500&' + expand;
       function pullFacts(url) {
         return dvFetch(url).then(function (r) {
           if (!r.ok) {
@@ -2306,7 +2316,7 @@
 
     if (dvSectionAActive()) {
       ensureDvMetadataLoaded().then(() => {
-        const periodId = periodGuidForYearIngestion(state.year);
+        const periodId = primaryPeriodGuidForYearIngestion(state.year);
         if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
         return Promise.all([
           upsertA1A2Cell(target.dacRow, 'DAC', newDac, measureField, target.program, periodId),
@@ -2394,7 +2404,7 @@
 
     if (dvSectionAActive()) {
       ensureDvMetadataLoaded().then(() => {
-        const periodId = periodGuidForYearIngestion(state.year);
+        const periodId = primaryPeriodGuidForYearIngestion(state.year);
         if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
         const programId = resolveProgramId(program);
         if (!programId) throw new Error('Program "' + program + '" was not found in DIM PROGRAM (Section A).');
@@ -2862,7 +2872,7 @@
 
     if (dvSectionAActive()) {
       ensureDvMetadataLoaded().then(() => {
-        const periodId = periodGuidForYearIngestion(state.year);
+        const periodId = primaryPeriodGuidForYearIngestion(state.year);
         if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
         const programId = resolveProgramId(name);
         if (!programId) throw new Error('Program "' + name + '" was not found in DIM PROGRAM (Section A).');
@@ -2902,7 +2912,7 @@
 
     if (dvSectionAActive()) {
       ensureDvMetadataLoaded().then(() => {
-        const periodId = periodGuidForYearIngestion(state.year);
+        const periodId = primaryPeriodGuidForYearIngestion(state.year);
         if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
         const programId = resolveProgramId(name);
         if (!programId) throw new Error('Program "' + name + '" was not found in DIM PROGRAM (Section A).');
@@ -2945,7 +2955,7 @@
 
     if (dvSectionAActive()) {
       ensureDvMetadataLoaded().then(() => {
-        const periodId = periodGuidForYearIngestion(state.year);
+        const periodId = primaryPeriodGuidForYearIngestion(state.year);
         if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
         const programId = resolveProgramId(program);
         if (!programId) throw new Error('Program "' + program + '" was not found in DIM PROGRAM (Section A).');
@@ -2980,7 +2990,7 @@
 
     if (dvSectionAActive()) {
       ensureDvMetadataLoaded().then(() => {
-        const periodId = periodGuidForYearIngestion(state.year);
+        const periodId = primaryPeriodGuidForYearIngestion(state.year);
         if (!periodId) throw new Error('No reporting period for year ' + state.year + '.');
         const programId = resolveProgramId(name);
         if (!programId) throw new Error('Program "' + name + '" was not found in DIM PROGRAM (Section A).');
