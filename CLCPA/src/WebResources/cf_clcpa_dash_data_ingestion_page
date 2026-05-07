@@ -906,19 +906,40 @@
   function rowsForTable(tableId, year) {
     if (state.section === 'A') {
       const rs = rowsForSectionYear('A', year);
-      return rs.filter(r => {
-        const cls = classifyRowA(r);
-        if (cls === null) return false;
-        if (tableId === 'A1' || tableId === 'A2') {
-          if (cls !== 'A1A2') return false;
-          var rt = resolveReportingTableForRow(r);
-          if (tableId === 'A1' && !reportingTableContains(rt, 'A1')) return false;
-          if (tableId === 'A2' && !reportingTableContains(rt, 'A2')) return false;
-          return true;
+    if (tableId === 'A1' || tableId === 'A2') {
+      return rs.reduce(function (acc, r) {
+        var rt = resolveReportingTableForRow(r);
+        if (tableId === 'A1' && !reportingTableContains(rt, 'A1')) return acc;
+        if (tableId === 'A2' && !reportingTableContains(rt, 'A2')) return acc;
+
+        var v = r.values || {};
+        var measure = String(v.measure || '').trim();
+        if (measure) return acc;
+
+        var seg = String(v.segment || '').trim();
+        if (!/^(DAC|Non-DAC)$/i.test(seg)) {
+          var src = String(r.sourceTable || '');
+          if (/_DAC(?:_|$)/i.test(src) || /_DAC$/i.test(src)) seg = 'DAC';
+          else if (/_ND(?:_|$)/i.test(src) || /_NON-?DAC(?:_|$)/i.test(src)) seg = 'Non-DAC';
         }
-        if (tableId === 'A3' || tableId === 'A4') return cls === 'A3';
-        return cls === tableId;
-      });
+        if (!/^(DAC|Non-DAC)$/i.test(seg)) {
+          if (classifyRowA(r) !== 'A1A2') return acc;
+        }
+
+        if (!/^(DAC|Non-DAC)$/i.test(String(v.segment || '')) && /^(DAC|Non-DAC)$/i.test(seg)) {
+          acc.push(Object.assign({}, r, { values: Object.assign({}, v, { segment: seg }) }));
+        } else {
+          acc.push(r);
+        }
+        return acc;
+      }, []);
+    }
+    return rs.filter(r => {
+      const cls = classifyRowA(r);
+      if (cls === null) return false;
+      if (tableId === 'A3' || tableId === 'A4') return cls === 'A3';
+      return cls === tableId;
+    });
     }
     // B, C, D-J: use _table tag
     return rowsForSectionYear(state.section, year).filter(r => r.values && r.values._table === tableId);
