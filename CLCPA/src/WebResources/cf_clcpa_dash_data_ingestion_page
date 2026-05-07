@@ -149,12 +149,15 @@
     }
     var meas = (f.cf_measurecategorycode != null && String(f.cf_measurecategorycode).trim()) || '';
     var custSeg = (f.cf_customersegmentcode != null && String(f.cf_customersegmentcode).trim()) || '';
+    var participantType = normalizeParticipantType(f.cf_participanttype);
     var dacLab = f.cf_dacstatus ? String(f.cf_dacstatus.cf_dacstatuslabel || f.cf_dacstatus.cf_dacstatuscode || '') : '';
     var isDacStatus = /\bDAC\b|DISADVANTAGED|IN_DAC|DAC_COMMUNITY/i.test(dacLab) && !/\bNON-?DAC\b/i.test(dacLab) && !/\bNOT\b/i.test(dacLab);
 
     var segment;
     if (meas) {
       segment = custSeg || (isDacStatus ? 'Commercial / DAC' : 'Commercial / Non-DAC');
+    } else if (participantType) {
+      segment = participantType;
     } else if (custSeg && /^(Residential|Multifamily|Commercial|Multisector)$/i.test(custSeg)) {
       segment = custSeg;
     } else if (/^DAC$/i.test(custSeg)) {
@@ -181,6 +184,7 @@
         year: y,
         segment: segment,
         program: prog,
+        participant_type: participantType,
         measure: meas,
         incentive_dollars: f.cf_incentivedollars != null ? f.cf_incentivedollars : '',
         energy_savings_mmbtu: f.cf_energysavingsmmbtu != null ? f.cf_energysavingsmmbtu : '',
@@ -201,7 +205,7 @@
         return;
       }
       var expand = '$expand=cf_period($select=cf_calendaryear,cf_periodlabel),cf_program($select=cf_programname,cf_programcode,cf_reportingtable),cf_dacstatus($select=cf_dacstatuslabel,cf_dacstatuscode)';
-      var sel = 'cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value';
+      var sel = 'cf_factcleanenergyspendingid,cf_sourcetable,cf_customersegmentcode,cf_participanttype,cf_measurecategorycode,cf_incentivedollars,cf_energysavingsmmbtu,cf_participants,cf_installations,cf_highimpactdacpct,_cf_period_value,_cf_program_value,_cf_dacstatus_value';
       var path = API_DV + 'cf_factcleanenergyspendings?$select=' + sel +
         '&$filter=_cf_period_value eq ' + pg + '&$orderby=createdon desc&$top=500&' + expand;
       function pullFacts(url) {
@@ -373,6 +377,7 @@
       'cf_program@odata.bind': '/cf_dimprograms(' + programId + ')',
       'cf_dacstatus@odata.bind': '/cf_dacstatuses(' + dacId + ')',
       cf_customersegmentcode: segment,
+      cf_participanttype: normalizeParticipantType(segment) || null,
       cf_measurecategorycode: null,
       cf_incentivedollars: inc == null ? null : inc,
       cf_energysavingsmmbtu: mmbtu == null ? null : mmbtu,
@@ -649,6 +654,15 @@
     const n = parseFloat(cleaned);
     return isNaN(n) ? null : n;
   }
+  function normalizeParticipantType(value) {
+    var raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    if (/^residential$/i.test(raw)) return 'Residential';
+    if (/^multifamily$/i.test(raw)) return 'Multifamily';
+    if (/^multisector$/i.test(raw)) return 'Multisector';
+    if (/^commercial$/i.test(raw)) return 'Commercial';
+    return '';
+  }
   function reportingTableTokens(rt) {
     if (rt == null || rt === '') return [];
     return String(rt).split(',').map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean);
@@ -870,6 +884,7 @@
       return null;
     }
     if (/^(Residential|Multifamily|Commercial|Multisector)$/i.test(seg)) return 'A3';
+    if (/^(Residential|Multifamily|Commercial|Multisector)$/i.test(String(v.participant_type || ''))) return 'A3';
     if (/^(DAC|Non-DAC)$/i.test(seg)) return 'A1A2';
     return null;
   }
@@ -2337,6 +2352,7 @@
       if (field === 'participants') patch.cf_participants = newVal == null ? null : Math.round(newVal);
       else if (field === 'incentive_dollars') patch.cf_incentivedollars = newVal == null ? null : newVal;
       else if (field === 'energy_savings_mmbtu') patch.cf_energysavingsmmbtu = newVal == null ? null : newVal;
+      patch.cf_participanttype = normalizeParticipantType(r.values.segment) || null;
       patchFactA(rowid, patch).then(() => refreshSectionAFromDataverse())
         .then(() => renderEditorSync())
         .catch(e => { alert(e.message); renderEditorSync(); });
