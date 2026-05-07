@@ -36,15 +36,16 @@ internal static class PopulateDimProgramReportingTable
             }
 
             var current = row.ReportingTable?.Trim() ?? "";
-            if (string.Equals(current, want, StringComparison.Ordinal))
+            var merged = MergeReportingTable(current, want);
+            if (string.Equals(current, merged, StringComparison.Ordinal))
             {
                 skipped++;
                 continue;
             }
 
-            await PatchProgram(http, row.Id.Value, want);
+            await PatchProgram(http, row.Id.Value, merged);
             patched++;
-            Console.WriteLine($"PATCH {row.Id:D} {row.Code} -> {want} (was \"{current}\")");
+            Console.WriteLine($"PATCH {row.Id:D} {row.Code} -> {merged} (was \"{current}\")");
         }
 
         Console.WriteLine();
@@ -106,6 +107,26 @@ internal static class PopulateDimProgramReportingTable
         }
 
         return list;
+    }
+
+    internal static string MergeReportingTable(string? current, string addByRule)
+    {
+        var ordered = new List<string>();
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+        void AddCsv(string? csv)
+        {
+            if (string.IsNullOrWhiteSpace(csv)) return;
+            foreach (var p in csv.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (seen.Add(p))
+                    ordered.Add(p);
+            }
+        }
+
+        AddCsv(current);
+        AddCsv(addByRule);
+        return string.Join(",", ordered);
     }
 
     private static async Task PatchProgram(HttpClient http, Guid id, string value)
