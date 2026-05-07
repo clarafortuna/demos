@@ -76,6 +76,14 @@
                       </cell>
                     </row>
                     <row>
+                      <cell id="{d0c1a8f3-2b4e-5c9a-8d01-1a2b3c4d5e6f}">
+                        <labels>
+                          <label description="participant type (Table A3)" languagecode="1033" />
+                        </labels>
+                        <control id="cf_participanttype" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="cf_participanttype" />
+                      </cell>
+                    </row>
+                    <row>
                       <cell id="{7a7ffd6d-0648-5121-a364-3843445f1f9f}">
                         <labels>
                           <label description="Period" languagecode="1033" />

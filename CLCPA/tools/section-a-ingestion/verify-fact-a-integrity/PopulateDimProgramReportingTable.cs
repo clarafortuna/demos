@@ -13,6 +13,7 @@ internal static class PopulateDimProgramReportingTable
         var c = programCode.Trim();
         if (c.StartsWith("A1LG", StringComparison.OrdinalIgnoreCase)) return "A1,A2";
         if (c.StartsWith("A2LG", StringComparison.OrdinalIgnoreCase)) return "A2";
+        if (c.StartsWith("A3LG", StringComparison.OrdinalIgnoreCase)) return "A3";
         if (c.StartsWith("A_", StringComparison.Ordinal)) return "A1,A2";
         return "";
     }

@@ -8,7 +8,7 @@ dotnet run -- populate-dimprogram-reporting-table
 dotnet run -- populate-dimprogram-reporting-table https://YOURORG.crm.dynamics.com
 ```
 
-Rules: **`A1LG*`** → `A1,A2`; **`A2LG*`** → `A2`; **`A_*`** seed codes → `A1,A2`. New A2-only programs created by STEP 3 get **`cf_reportingtable = A2`** on POST.
+Rules: **`A1LG*`** → `A1,A2`; **`A2LG*`** → `A2`; **`A3LG*`** → `A3`; **`A_*`** seed codes → `A1,A2`. New A2-only programs created by **`upsert-legacy-a2-mmbtu`** get **`cf_reportingtable = A2`** on POST. New A3-only programs use **`A3LG*`** / **`A3`** from **`upsert-legacy-a3-step3`**.
 
 ## Demo legacy A1 (23 programs, 48 facts) — repair null lookups
 
@@ -76,6 +76,40 @@ dotnet run -- verify-a2-mmbtu-step4 https://YOURORG.crm.dynamics.com
 | Lookups | **cf_period**, **cf_program**, **cf_dacstatus** → active rows |
 
 **Known packaged legacy inconsistency (not a Dataverse bug):** Table A2 **2023** footer row **Total** shows **4,019,790** MMBtu, which is **337,064** **higher** than the sum of the **27** printed program lines (**3,682,726**). Dataverse is reconciled to **program-line** totals; the footer row in `__LEGACY_DASH` is inconsistent with those lines.
+
+**Table A3 — same class of issue:** **2023** footer **Total** shows **2,354,317** participants, which is **15,350** **higher** than the sum of the printed program lines (**2,338,967**). Use **program-line sums** as ground truth for `cf_participants` and dashboard averages (parallel to A2 MMBtu).
+
+### STEP 2 (A3) — compare `cf_participants` vs Table A3 extract
+
+After generating **`legacy-table-a3-extracted.json`** (Node extract or packaged artifact), compare active **`LEGACY_A1*`** + **`LEGACY_A2*`** facts on Clara Fortuna Dev:
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- compare-a3-participants-step2 https://org9076e69b.crm.dynamics.com
+```
+
+Program-level **Dataverse** totals = **sum of `cf_participants`** across DAC + Non-DAC rows for each **calendar year** and **`cf_dimprogram.cf_programname`**. Report shows legacy-only, DV-only, matched deltas, and year rollups vs **row-detail** A3 sums (not the 2023 footer).
+
+### STEP 3 (A3) — upsert participants, participant type, `LEGACY_A3*` facts
+
+**Prerequisite:** Import unmanaged solution **CLCPASectionAFieldsPatch** version **1.0.24.0+** (adds **`cf_factcleanenergyspending.cf_participanttype`**) into the target org before running the tool.
+
+Then on Clara Fortuna Dev (or your org):
+
+```text
+cd verify-fact-a-integrity
+dotnet run -- upsert-legacy-a3-step3 https://YOURORG.crm.dynamics.com
+```
+
+**Behavior:**
+
+- Reads **Table A3** from packaged **`cf_clcpa_dash_legacy`** (participant type per row, totals back-calculated from avg × participants).
+- **PATCH** every active **`LEGACY_A1*`** and **`LEGACY_A2*`** fact: **`cf_participants`** (split across DAC / Non-DAC using **Table A2** DAC share when a matching A2 row exists; otherwise all participants on the Non-DAC row), and **`cf_participanttype`** (Residential, Multifamily, Multisector, Commercial).
+- **PATCH** **`cf_dimprogram.cf_reportingtable`** to append **`A3`** when missing (e.g. `A1,A2` → `A1,A2,A3`).
+- For Table A3 program lines with **no** matching Section A legacy fact, **POST** (or **PATCH** if present) **`LEGACY_A3_{year}_{slug}_DAC`** / **`_ND`** with **`cf_participants`**, **`cf_incentivedollars`**, **`cf_energysavingsmmbtu`**, and **`cf_participanttype`** (DAC split from A2 when available; otherwise ND-only for dollars/MMBtu/participants).
+- New programs from A3-only lines use **`cf_programcode`** prefix **`A3LG*`** and **`cf_reportingtable = A3`**.
+
+**Note:** **STEP 3** updates **`cf_incentivedollars`** / **`cf_energysavingsmmbtu`** only on **`LEGACY_A3*`** rows, not on existing **`LEGACY_A1`** / **`LEGACY_A2`** rows (those remain aligned with A1/A2 ingestion). Re-run **`compare-a3-participants-step2`** afterward to verify participant totals.
 
 ### Report MMBtu totals only
 

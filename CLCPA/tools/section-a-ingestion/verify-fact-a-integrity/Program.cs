@@ -17,6 +17,8 @@ using Azure.Identity;
 //   dotnet run -- verify-a2-mmbtu-step4 [optional org url]
 //   dotnet run -- delete-f444-portfolio [optional org url]
 //   dotnet run -- populate-dimprogram-reporting-table [optional org url]
+//   dotnet run -- compare-a3-participants-step2 [optional org url] [optional path to legacy-table-a3-extracted.json]
+//   dotnet run -- upsert-legacy-a3-step3 [optional org url]
 //
 // patch: PATCH f55… legacy A1 facts (lookups + post-verify vs __LEGACY_DASH), then print full integrity report.
 // delete-ui-dupes: DELETE four duplicate UI-SectionA fact rows (FIX 1 normalization).
@@ -25,6 +27,9 @@ using Azure.Identity;
 // upsert-legacy-a2-mmbtu: STEP 3 — POST/PATCH LEGACY_A2_* facts + cf_dimprogram rows for Table A2 programs not covered by A1 chart + alias map.
 // verify-a2-mmbtu-step4: STEP 4 — validate fact counts, MMBtu totals vs Table A2 program lines, lookups, document 2023 footer discrepancy.
 // delete-f444-portfolio: DELETE all active facts with id prefix f4444444 (portfolio roll-ups; chart grain is f55 LEGACY_A1 only).
+// populate-dimprogram-reporting-table: set cf_reportingtable on cf_dimprogram from program code prefixes (A1LG*, A2LG*, etc.).
+// compare-a3-participants-step2: STEP 2 (A3) — compare per-program participant totals vs legacy-table-a3-extracted.json (LEGACY_A1* + LEGACY_A2*).
+// upsert-legacy-a3-step3: STEP 3 (A3) — PATCH cf_participants + cf_participanttype on LEGACY_A1/LEGACY_A2; POST/PATCH LEGACY_A3_* for remaining Table A3 programs; extend cf_reportingtable with A3.
 
 var mode = "verify";
 var url = "https://org9076e69b.crm.dynamics.com";
@@ -82,6 +87,18 @@ if (args.Length > 0)
     else if (string.Equals(args[0], "populate-dimprogram-reporting-table", StringComparison.OrdinalIgnoreCase))
     {
         mode = "populate-dimprogram-reporting-table";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "compare-a3-participants-step2", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "compare-a3-participants-step2";
+        if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+            url = args[1].TrimEnd('/');
+    }
+    else if (string.Equals(args[0], "upsert-legacy-a3-step3", StringComparison.OrdinalIgnoreCase))
+    {
+        mode = "upsert-legacy-a3-step3";
         if (args.Length > 1 && args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
             url = args[1].TrimEnd('/');
     }
@@ -176,6 +193,29 @@ if (mode == "populate-dimprogram-reporting-table")
 {
     await PopulateDimProgramReportingTable.Run(http);
     Console.WriteLine("Exiting after populate-dimprogram-reporting-table.");
+    return;
+}
+
+if (mode == "compare-a3-participants-step2")
+{
+    string jsonPath;
+    if (args.Length >= 3 && !args[2].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        jsonPath = Path.GetFullPath(args[2]);
+    else if (args.Length >= 2 && !args[1].StartsWith("http", StringComparison.OrdinalIgnoreCase))
+        jsonPath = Path.GetFullPath(args[1]);
+    else
+        jsonPath = Path.Combine(ingestionDir, "legacy-table-a3-extracted.json");
+
+    await A3Step2CompareParticipants.Run(http, jsonPath);
+    Console.WriteLine("Exiting after compare-a3-participants-step2.");
+    return;
+}
+
+if (mode == "upsert-legacy-a3-step3")
+{
+    var clcpaRootStep3 = VerifyTools.FindClcpaRepoRoot(ingestionDir);
+    await LegacyA3Step3.Run(http, clcpaRootStep3);
+    Console.WriteLine("Exiting after upsert-legacy-a3-step3.");
     return;
 }
 

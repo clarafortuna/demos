@@ -1,0 +1,616 @@
+{
+  "source": "__LEGACY_DASH.sectionA.tables[A3]",
+  "titles": {
+    "title_2024": "Table A3. 2024 Total Number of Participants and Average Savings and Incentives by Participant  |  Main  |  PDF page 11",
+    "title_2023": "Table A3. 2023 Total Number of Participants and Average Savings and Incentives by Participant  |  Main  |  PDF page 11"
+  },
+  "legacyHeaders": [
+    "Participant Type",
+    "Program Name",
+    "Total Participants",
+    "Avg. Incentives by Participant",
+    "Avg. Energy Savings by Participant (MMBtu)"
+  ],
+  "note": "totalIncentiveDollars = totalParticipants * avgIncentivePerParticipant; totalEnergySavingsMmbtu = totalParticipants * avgEnergySavingsMmbtuPerParticipant. Legacy Avg cells that are \"N/A\" or empty are treated as 0 for back-calculation.",
+  "knownLegacyInconsistency2023Participants": {
+    "topic": "Table A3 2023 participant Total row vs program lines",
+    "packagedLegacyFooterTotalParticipants": 2354317,
+    "rowDetailSumParticipants": 2338967,
+    "deltaFooterMinusDetail": 15350,
+    "groundTruth": "row_detail_sum"
+  },
+  "years2024": {
+    "rowCount": 26,
+    "grandTotal": {
+      "participantType": "Total",
+      "programName": "",
+      "rawRow": [
+        "Total",
+        "",
+        2087688,
+        "",
+        ""
+      ],
+      "totalParticipants": 2087688,
+      "avgIncentiveLegacy": 0,
+      "avgMmbtuLegacy": 0,
+      "totalIncentiveFromAvgs": 0,
+      "totalMmbtuFromAvgs": 0
+    },
+    "sumsBackCalculatedFromRows": {
+      "totalParticipants": 2087688,
+      "totalIncentiveDollars": 369163434.97999996,
+      "totalEnergySavingsMmbtu": 4183143.4999999995
+    },
+    "participantCountMatchLegacyTotal": true,
+    "rows": [
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Clean Heat - Midstream Heat Pump Water Heater",
+        "totalParticipants": 538,
+        "avgIncentivePerParticipant": 3327,
+        "avgEnergySavingsMmbtuPerParticipant": 14,
+        "totalIncentiveDollars": 1789926,
+        "totalEnergySavingsMmbtu": 7532
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Clean Heat - Residential Air Source Heat Pump",
+        "totalParticipants": 12813,
+        "avgIncentivePerParticipant": 7408,
+        "avgEnergySavingsMmbtuPerParticipant": 44,
+        "totalIncentiveDollars": 94918704,
+        "totalEnergySavingsMmbtu": 563772
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Clean Heat - Residential Ground Source Heat Pump",
+        "totalParticipants": 145,
+        "avgIncentivePerParticipant": 37623,
+        "avgEnergySavingsMmbtuPerParticipant": 94,
+        "totalIncentiveDollars": 5455335,
+        "totalEnergySavingsMmbtu": 13630
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Efficiency Starter Program - LMI",
+        "totalParticipants": 12893,
+        "avgIncentivePerParticipant": 7,
+        "avgEnergySavingsMmbtuPerParticipant": 1,
+        "totalIncentiveDollars": 90251,
+        "totalEnergySavingsMmbtu": 12893
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "EmPower+",
+        "totalParticipants": 582,
+        "avgIncentivePerParticipant": 2422,
+        "avgEnergySavingsMmbtuPerParticipant": 7,
+        "totalIncentiveDollars": 1409604,
+        "totalEnergySavingsMmbtu": 4074
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Marketplace",
+        "totalParticipants": 1389,
+        "avgIncentivePerParticipant": 39,
+        "avgEnergySavingsMmbtuPerParticipant": 1,
+        "totalIncentiveDollars": 54171,
+        "totalEnergySavingsMmbtu": 1389
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Residential Home Energy Reports",
+        "totalParticipants": 1237910,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 0.24,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 297098.39999999997
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Retail Lighting - LMI",
+        "totalParticipants": 78408,
+        "avgIncentivePerParticipant": 13,
+        "avgEnergySavingsMmbtuPerParticipant": 0.4,
+        "totalIncentiveDollars": 1019304,
+        "totalEnergySavingsMmbtu": 31363.2
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Retail Products",
+        "totalParticipants": 514639,
+        "avgIncentivePerParticipant": 16,
+        "avgEnergySavingsMmbtuPerParticipant": 3,
+        "totalIncentiveDollars": 8234224,
+        "totalEnergySavingsMmbtu": 1543917
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Smart Kids",
+        "totalParticipants": 70910,
+        "avgIncentivePerParticipant": 12,
+        "avgEnergySavingsMmbtuPerParticipant": 0.39,
+        "totalIncentiveDollars": 850920,
+        "totalEnergySavingsMmbtu": 27654.9
+      },
+      {
+        "year": 2024,
+        "participantType": "Residential",
+        "programName": "Weather Ready",
+        "totalParticipants": 1348,
+        "avgIncentivePerParticipant": 2155,
+        "avgEnergySavingsMmbtuPerParticipant": 9,
+        "totalIncentiveDollars": 2904940,
+        "totalEnergySavingsMmbtu": 12132
+      },
+      {
+        "year": 2024,
+        "participantType": "Multisector",
+        "programName": "Pilots",
+        "totalParticipants": 20,
+        "avgIncentivePerParticipant": 6411,
+        "avgEnergySavingsMmbtuPerParticipant": 0,
+        "totalIncentiveDollars": 128220,
+        "totalEnergySavingsMmbtu": 0
+      },
+      {
+        "year": 2024,
+        "participantType": "Multisector",
+        "programName": "Real Time Energy Management",
+        "totalParticipants": 6,
+        "avgIncentivePerParticipant": 31027,
+        "avgEnergySavingsMmbtuPerParticipant": 302,
+        "totalIncentiveDollars": 186162,
+        "totalEnergySavingsMmbtu": 1812
+      },
+      {
+        "year": 2024,
+        "participantType": "Multifamily",
+        "programName": "Affordable Multifamily Energy Efficiency Program",
+        "totalParticipants": 151045,
+        "avgIncentivePerParticipant": 513,
+        "avgEnergySavingsMmbtuPerParticipant": 3,
+        "totalIncentiveDollars": 77486085,
+        "totalEnergySavingsMmbtu": 453135
+      },
+      {
+        "year": 2024,
+        "participantType": "Multifamily",
+        "programName": "Clean Heat - Multifamily Air Source Heat Pump",
+        "totalParticipants": 240,
+        "avgIncentivePerParticipant": 177765,
+        "avgEnergySavingsMmbtuPerParticipant": 649,
+        "totalIncentiveDollars": 42663600,
+        "totalEnergySavingsMmbtu": 155760
+      },
+      {
+        "year": 2024,
+        "participantType": "Multifamily",
+        "programName": "Clean Heat - Multifamily Ground Source Heat Pump",
+        "totalParticipants": 5,
+        "avgIncentivePerParticipant": 1338751,
+        "avgEnergySavingsMmbtuPerParticipant": 5027,
+        "totalIncentiveDollars": 6693755,
+        "totalEnergySavingsMmbtu": 25135
+      },
+      {
+        "year": 2024,
+        "participantType": "Multifamily",
+        "programName": "Multifamily",
+        "totalParticipants": 1275,
+        "avgIncentivePerParticipant": 27104,
+        "avgEnergySavingsMmbtuPerParticipant": 229,
+        "totalIncentiveDollars": 34557600,
+        "totalEnergySavingsMmbtu": 291975
+      },
+      {
+        "year": 2024,
+        "participantType": "Multifamily",
+        "programName": "Multifamily - Fuel-Switch",
+        "totalParticipants": 9,
+        "avgIncentivePerParticipant": 101.96,
+        "avgEnergySavingsMmbtuPerParticipant": 1854,
+        "totalIncentiveDollars": 917.64,
+        "totalEnergySavingsMmbtu": 16686
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - Commercial & Industrial Air Source Heat Pump",
+        "totalParticipants": 34,
+        "avgIncentivePerParticipant": 418633,
+        "avgEnergySavingsMmbtuPerParticipant": 1803,
+        "totalIncentiveDollars": 14233522,
+        "totalEnergySavingsMmbtu": 61302
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - Commercial & Industrial Ground Source Heat Pump",
+        "totalParticipants": 1,
+        "avgIncentivePerParticipant": 1526891,
+        "avgEnergySavingsMmbtuPerParticipant": 3717,
+        "totalIncentiveDollars": 1526891,
+        "totalEnergySavingsMmbtu": 3717
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - Small-Medium Business Air Source Heat Pump",
+        "totalParticipants": 217,
+        "avgIncentivePerParticipant": 48.02,
+        "avgEnergySavingsMmbtuPerParticipant": 190,
+        "totalIncentiveDollars": 10420.34,
+        "totalEnergySavingsMmbtu": 41230
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Commercial & Industrial",
+        "totalParticipants": 315,
+        "avgIncentivePerParticipant": 162925,
+        "avgEnergySavingsMmbtuPerParticipant": 1052,
+        "totalIncentiveDollars": 51321375,
+        "totalEnergySavingsMmbtu": 331380
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Commercial Water Heaters PEI (Pump Energy Index)",
+        "totalParticipants": 12,
+        "avgIncentivePerParticipant": 749,
+        "avgEnergySavingsMmbtuPerParticipant": 49,
+        "totalIncentiveDollars": 8988,
+        "totalEnergySavingsMmbtu": 588
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Instant Lighting",
+        "totalParticipants": 569,
+        "avgIncentivePerParticipant": 7861,
+        "avgEnergySavingsMmbtuPerParticipant": 139,
+        "totalIncentiveDollars": 4472909,
+        "totalEnergySavingsMmbtu": 79091
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Midstream Water and Space Heating",
+        "totalParticipants": 367,
+        "avgIncentivePerParticipant": 4009,
+        "avgEnergySavingsMmbtuPerParticipant": 71,
+        "totalIncentiveDollars": 1471303,
+        "totalEnergySavingsMmbtu": 26057
+      },
+      {
+        "year": 2024,
+        "participantType": "Commercial",
+        "programName": "Small-Medium Business",
+        "totalParticipants": 1998,
+        "avgIncentivePerParticipant": 8846,
+        "avgEnergySavingsMmbtuPerParticipant": 90,
+        "totalIncentiveDollars": 17674308,
+        "totalEnergySavingsMmbtu": 179820
+      }
+    ]
+  },
+  "years2023": {
+    "rowCount": 28,
+    "grandTotal": {
+      "participantType": "Total",
+      "programName": "",
+      "rawRow": [
+        "Total",
+        "",
+        2354317,
+        "",
+        ""
+      ],
+      "totalParticipants": 2354317,
+      "avgIncentiveLegacy": 0,
+      "avgMmbtuLegacy": 0,
+      "totalIncentiveFromAvgs": 0,
+      "totalMmbtuFromAvgs": 0
+    },
+    "sumsBackCalculatedFromRows": {
+      "totalParticipants": 2338967,
+      "totalIncentiveDollars": 262371363,
+      "totalEnergySavingsMmbtu": 3823133.96
+    },
+    "participantCountMatchLegacyTotal": false,
+    "rows": [
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Clean Heat - Residential ASHP",
+        "totalParticipants": 4838,
+        "avgIncentivePerParticipant": 16265,
+        "avgEnergySavingsMmbtuPerParticipant": 71,
+        "totalIncentiveDollars": 78690070,
+        "totalEnergySavingsMmbtu": 343498
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Clean Heat - Residential GSHP",
+        "totalParticipants": 199,
+        "avgIncentivePerParticipant": 43408,
+        "avgEnergySavingsMmbtuPerParticipant": 108,
+        "totalIncentiveDollars": 8638192,
+        "totalEnergySavingsMmbtu": 21492
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Efficiency Starter Program - LMI Electric & Gas",
+        "totalParticipants": 7464,
+        "avgIncentivePerParticipant": 9,
+        "avgEnergySavingsMmbtuPerParticipant": 1,
+        "totalIncentiveDollars": 67176,
+        "totalEnergySavingsMmbtu": 7464
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "EmPower - Electric & Gas",
+        "totalParticipants": 545,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 8,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 4360
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Marketplace Electric & Gas",
+        "totalParticipants": 25526,
+        "avgIncentivePerParticipant": 29,
+        "avgEnergySavingsMmbtuPerParticipant": 1,
+        "totalIncentiveDollars": 740254,
+        "totalEnergySavingsMmbtu": 25526
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Residential Home Energy Reports",
+        "totalParticipants": 1374518,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 0.22,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 302393.96
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Residential Weatherization - Electric & Gas",
+        "totalParticipants": 1194,
+        "avgIncentivePerParticipant": 1895,
+        "avgEnergySavingsMmbtuPerParticipant": 23,
+        "totalIncentiveDollars": 2262630,
+        "totalEnergySavingsMmbtu": 27462
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Retail Lighting",
+        "totalParticipants": 494550,
+        "avgIncentivePerParticipant": 9,
+        "avgEnergySavingsMmbtuPerParticipant": 1,
+        "totalIncentiveDollars": 4450950,
+        "totalEnergySavingsMmbtu": 494550
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Retail Lighting LMI",
+        "totalParticipants": 153408,
+        "avgIncentivePerParticipant": 2,
+        "avgEnergySavingsMmbtuPerParticipant": 0.4,
+        "totalIncentiveDollars": 306816,
+        "totalEnergySavingsMmbtu": 61363.200000000004
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Retail Products - Electric & Gas",
+        "totalParticipants": 61890,
+        "avgIncentivePerParticipant": 17,
+        "avgEnergySavingsMmbtuPerParticipant": 6,
+        "totalIncentiveDollars": 1052130,
+        "totalEnergySavingsMmbtu": 371340
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Smart Kids - Electric & Gas",
+        "totalParticipants": 61476,
+        "avgIncentivePerParticipant": 14,
+        "avgEnergySavingsMmbtuPerParticipant": 0.3,
+        "totalIncentiveDollars": 860664,
+        "totalEnergySavingsMmbtu": 18442.8
+      },
+      {
+        "year": 2023,
+        "participantType": "Residential",
+        "programName": "Smart Kids LMI - Electric & Gas",
+        "totalParticipants": 59820,
+        "avgIncentivePerParticipant": 11,
+        "avgEnergySavingsMmbtuPerParticipant": 0.4,
+        "totalIncentiveDollars": 658020,
+        "totalEnergySavingsMmbtu": 23928
+      },
+      {
+        "year": 2023,
+        "participantType": "Multifamily",
+        "programName": "AMEEP - Electric & Gas",
+        "totalParticipants": 85455,
+        "avgIncentivePerParticipant": 397,
+        "avgEnergySavingsMmbtuPerParticipant": 4,
+        "totalIncentiveDollars": 33925635,
+        "totalEnergySavingsMmbtu": 341820
+      },
+      {
+        "year": 2023,
+        "participantType": "Multifamily",
+        "programName": "Clean Heat - Multifamily ASHP",
+        "totalParticipants": 202,
+        "avgIncentivePerParticipant": 140044,
+        "avgEnergySavingsMmbtuPerParticipant": 898,
+        "totalIncentiveDollars": 28288888,
+        "totalEnergySavingsMmbtu": 181396
+      },
+      {
+        "year": 2023,
+        "participantType": "Multifamily",
+        "programName": "Clean Heat - Multifamily GSHP",
+        "totalParticipants": 1,
+        "avgIncentivePerParticipant": 1296000,
+        "avgEnergySavingsMmbtuPerParticipant": 5648,
+        "totalIncentiveDollars": 1296000,
+        "totalEnergySavingsMmbtu": 5648
+      },
+      {
+        "year": 2023,
+        "participantType": "Multifamily",
+        "programName": "Multifamily Program - Electric & Gas",
+        "totalParticipants": 2227,
+        "avgIncentivePerParticipant": 9434,
+        "avgEnergySavingsMmbtuPerParticipant": 92,
+        "totalIncentiveDollars": 21009518,
+        "totalEnergySavingsMmbtu": 204884
+      },
+      {
+        "year": 2023,
+        "participantType": "Multifamily",
+        "programName": "Multifamily - Fuel-Switch",
+        "totalParticipants": 5,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 12098,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 60490
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - C&I ASHP",
+        "totalParticipants": 43,
+        "avgIncentivePerParticipant": 157670,
+        "avgEnergySavingsMmbtuPerParticipant": 1098,
+        "totalIncentiveDollars": 6779810,
+        "totalEnergySavingsMmbtu": 47214
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - C&I GSHP",
+        "totalParticipants": 1,
+        "avgIncentivePerParticipant": 2698732,
+        "avgEnergySavingsMmbtuPerParticipant": 6747,
+        "totalIncentiveDollars": 2698732,
+        "totalEnergySavingsMmbtu": 6747
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - Midstream Heat Pump Water Heater",
+        "totalParticipants": 157,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 58,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 9106
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Clean Heat - SMB ASHP",
+        "totalParticipants": 131,
+        "avgIncentivePerParticipant": 75898,
+        "avgEnergySavingsMmbtuPerParticipant": 449,
+        "totalIncentiveDollars": 9942638,
+        "totalEnergySavingsMmbtu": 58819
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "C&I Program - Electric & Gas",
+        "totalParticipants": 571,
+        "avgIncentivePerParticipant": 58014,
+        "avgEnergySavingsMmbtuPerParticipant": 1365,
+        "totalIncentiveDollars": 33125994,
+        "totalEnergySavingsMmbtu": 779415
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Commercial Kitchen",
+        "totalParticipants": 953,
+        "avgIncentivePerParticipant": 1787,
+        "avgEnergySavingsMmbtuPerParticipant": 37,
+        "totalIncentiveDollars": 1703011,
+        "totalEnergySavingsMmbtu": 35261
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Instant Lighting",
+        "totalParticipants": 577,
+        "avgIncentivePerParticipant": 4893,
+        "avgEnergySavingsMmbtuPerParticipant": 152,
+        "totalIncentiveDollars": 2823261,
+        "totalEnergySavingsMmbtu": 87704
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Midstream Water and Space Heating",
+        "totalParticipants": 302,
+        "avgIncentivePerParticipant": 3110,
+        "avgEnergySavingsMmbtuPerParticipant": 140,
+        "totalIncentiveDollars": 939220,
+        "totalEnergySavingsMmbtu": 42280
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Pilots",
+        "totalParticipants": 0,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 0,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 0
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "SMB Program - Electric & Gas",
+        "totalParticipants": 2906,
+        "avgIncentivePerParticipant": 7609,
+        "avgEnergySavingsMmbtuPerParticipant": 89,
+        "totalIncentiveDollars": 22111754,
+        "totalEnergySavingsMmbtu": 258634
+      },
+      {
+        "year": 2023,
+        "participantType": "Commercial",
+        "programName": "Virtual Commissioning",
+        "totalParticipants": 8,
+        "avgIncentivePerParticipant": 0,
+        "avgEnergySavingsMmbtuPerParticipant": 237,
+        "totalIncentiveDollars": 0,
+        "totalEnergySavingsMmbtu": 1896
+      }
+    ]
+  }
+}

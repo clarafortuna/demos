@@ -249,6 +249,59 @@ internal static class VerifyTools
         return list;
     }
 
+    /// <summary>Active facts whose source table is LEGACY_A1* or LEGACY_A2* (Section A chart / A2-only grain), with optional cf_participants.</summary>
+    public static async Task<List<ParticipantFactRow>> FetchLegacyFactsWithParticipants(HttpClient http)
+    {
+        var list = new List<ParticipantFactRow>();
+        var next =
+            "cf_factcleanenergyspendings?$select=cf_factcleanenergyspendingid,cf_sourcetable,cf_participants,_cf_period_value,_cf_program_value" +
+            "&$filter=statecode eq 0 and (startswith(cf_sourcetable,'LEGACY_A1') or startswith(cf_sourcetable,'LEGACY_A2'))";
+        while (next != null)
+        {
+            var isAbs = next.StartsWith("http", StringComparison.OrdinalIgnoreCase);
+            using var resp = isAbs ? await http.GetAsync(next) : await http.GetAsync(next.TrimStart('/'));
+            resp.EnsureSuccessStatusCode();
+            using var doc = await JsonDocument.ParseAsync(await resp.Content.ReadAsStreamAsync());
+            var root = doc.RootElement;
+            if (root.TryGetProperty("value", out var arr))
+            {
+                foreach (var row in arr.EnumerateArray())
+                {
+                    if (!TryGuid(row, "cf_factcleanenergyspendingid", out var id)) continue;
+                    row.TryGetProperty("_cf_period_value", out var pEl);
+                    row.TryGetProperty("_cf_program_value", out var prEl);
+                    decimal? parts = null;
+                    if (row.TryGetProperty("cf_participants", out var ptEl) && ptEl.ValueKind != JsonValueKind.Null)
+                    {
+                        if (ptEl.ValueKind == JsonValueKind.Number)
+                            parts = ptEl.GetDecimal();
+                        else if (ptEl.ValueKind == JsonValueKind.String &&
+                                 decimal.TryParse(
+                                     ptEl.GetString(),
+                                     NumberStyles.Any,
+                                     CultureInfo.InvariantCulture,
+                                     out var dec))
+                            parts = dec;
+                    }
+
+                    var st = row.TryGetProperty("cf_sourcetable", out var stEl) && stEl.ValueKind == JsonValueKind.String
+                        ? stEl.GetString()
+                        : null;
+                    list.Add(new ParticipantFactRow(
+                        id,
+                        ParseODataGuid(pEl),
+                        ParseODataGuid(prEl),
+                        parts,
+                        st));
+                }
+            }
+
+            next = root.TryGetProperty("@odata.nextLink", out var nl) ? nl.GetString() : null;
+        }
+
+        return list;
+    }
+
     public static Guid? ParseODataGuid(JsonElement root, string prop)
     {
         if (!root.TryGetProperty(prop, out var el)) return null;
@@ -289,3 +342,10 @@ internal readonly record struct FactDto(
     Guid? Program,
     Guid? Dac,
     decimal? Incentive);
+
+internal readonly record struct ParticipantFactRow(
+    Guid Id,
+    Guid? Period,
+    Guid? Program,
+    decimal? Participants,
+    string? SourceTable);

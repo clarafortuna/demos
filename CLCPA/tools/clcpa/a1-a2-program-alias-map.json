@@ -1,6 +1,18 @@
 {
   "version": 1,
   "description": "Maps legacy Section A A1 bar-chart program labels to Table A2 program row names (same reporting year). Used to PATCH cf_energysavingsmmbtu onto existing LEGACY_A1 facts and to align ingestion totals with Table A2.",
+  "knownLegacyInconsistencies": [
+    {
+      "topic": "Table A2 — 2023 MMBtu footer vs program lines",
+      "summary": "Packaged __LEGACY_DASH Table A2 shows a 2023 Total row (4,019,790 MMBtu) 337,064 above the sum of printed program lines (3,682,726). Reconcile Dataverse and verification to program-line sums, not the footer.",
+      "reference": "tools/section-a-ingestion/README-IMPORT.md — STEP 4"
+    },
+    {
+      "topic": "Table A3 — 2023 participant footer vs program lines",
+      "summary": "Packaged __LEGACY_DASH Table A3 shows a 2023 Total row (2,354,317 participants) 15,350 above the sum of printed program lines (2,338,967). Use row-detail sums as ground truth for ingestion and dashboard math, same pattern as A2 MMBtu.",
+      "reference": "tools/section-a-ingestion/extract-legacy-table-a3.mjs; legacy-table-a3-extracted.json"
+    }
+  ],
   "legacySource": {
     "a1Charts": "cf_clcpa_dash_legacy → sectionA.charts.A1_programs_{2023|2024}[].name",
     "a2Table": "cf_clcpa_dash_legacy → sectionA.tables id A2 → data_{2023|2024}"

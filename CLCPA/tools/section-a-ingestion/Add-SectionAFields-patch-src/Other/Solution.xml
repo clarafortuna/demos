@@ -6,9 +6,9 @@
       <LocalizedName description="CLCPA Section A schema fields (patch)" languagecode="1033" />
     </LocalizedNames>
     <Descriptions>
-      <Description description="Unmanaged layer that adds Section A / dashboard columns to cf_FACTCLEANENERGYSPENDING, cf_DIMPERIOD, and cf_DIMPROGRAM (including cf_dimprogram.cf_reportingtable). Import after base solution CLCPA; uses the same publisher (ClaraFortuna)." languagecode="1033" />
+      <Description description="Unmanaged layer that adds Section A / dashboard columns to cf_FACTCLEANENERGYSPENDING (including cf_participanttype), cf_DIMPERIOD, and cf_DIMPROGRAM (including cf_dimprogram.cf_reportingtable). Import after base solution CLCPA; uses the same publisher (ClaraFortuna)." languagecode="1033" />
     </Descriptions>
-    <Version>1.0.23.0</Version>
+    <Version>1.0.24.0</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>ClaraFortuna</UniqueName>
