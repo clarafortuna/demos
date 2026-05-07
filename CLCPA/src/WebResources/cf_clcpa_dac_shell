@@ -711,6 +711,14 @@
     var rep = list.filter(function (p) { return p.cf_isreportperiod === true; });
     return (rep[0] || list[0]).cf_dimperiodid;
   }
+  function periodGuidsForYear(year) {
+    var y = parseInt(year, 10);
+    return periods.filter(function (p) {
+      return parseInt(p.cf_calendaryear, 10) === y && !!p.cf_dimperiodid;
+    }).map(function (p) {
+      return p.cf_dimperiodid;
+    });
+  }
 
   function reportingYearForDataLoad() {
     var el = document.getElementById('filter-year');
@@ -1641,10 +1649,12 @@
     var parts = [];
     var seen = {};
     years.forEach(function (y) {
-      var g = periodGuidForYear(y);
-      if (!g || seen[g]) return;
-      seen[g] = true;
-      parts.push('_cf_period_value eq ' + g);
+      var gs = periodGuidsForYear(y);
+      gs.forEach(function (g) {
+        if (!g || seen[g]) return;
+        seen[g] = true;
+        parts.push('_cf_period_value eq ' + g);
+      });
     });
     if (!parts.length) return null;
     return parts.length === 1 ? parts[0] : '(' + parts.join(' or ') + ')';
