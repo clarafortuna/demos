@@ -1065,7 +1065,21 @@
     rows.forEach(r => {
       const seg = r.values.segment || 'Unknown';
       if (!groups[seg]) groups[seg] = {};
-      groups[seg][r.values.program || ''] = r;
+      const prog = r.values.program || '';
+      const p = parseNumberInput(r.values.participants);
+      const i = parseNumberInput(r.values.incentive_dollars);
+      const m = parseNumberInput(r.values.energy_savings_mmbtu);
+      if (!groups[seg][prog]) {
+        groups[seg][prog] = {
+          row: r,
+          participants: 0,
+          incentive_dollars: 0,
+          energy_savings_mmbtu: 0
+        };
+      }
+      groups[seg][prog].participants += Number(p || 0);
+      groups[seg][prog].incentive_dollars += Number(i || 0);
+      groups[seg][prog].energy_savings_mmbtu += Number(m || 0);
     });
 
     const segOrder = ['Residential', 'Multifamily', 'Multisector', 'Commercial'];
@@ -1077,20 +1091,19 @@
       bodyHtml += '<tr class="is-subhead"><td colspan="6" class="col-text">' + seg + '</td></tr>';
       if (segRows) {
         Object.keys(segRows).sort().forEach(prog => {
-          const r = segRows[prog];
-          const v = r.values || {};
-          const participants = parseNumberInput(v.participants);
-          const inc = parseNumberInput(v.incentive_dollars);
-          const mmbtu = parseNumberInput(v.energy_savings_mmbtu);
-          const pVal = participants || 0;
-          gt_p += pVal; gt_inc += (inc || 0); gt_mmbtu += (mmbtu || 0);
+          const b = segRows[prog];
+          const r = b.row;
+          const participants = b.participants;
+          const inc = b.incentive_dollars;
+          const mmbtu = b.energy_savings_mmbtu;
+          gt_p += participants; gt_inc += inc; gt_mmbtu += mmbtu;
 
           bodyHtml +=
             '<tr><td class="col-text"></td>' +
             '<td class="col-text">' + escapeHtml(prog) + '</td>' +
-            '<td class="col-num cell-edit" data-field="participants" data-rowid="' + r.id + '" contenteditable="true">' + (participants != null ? fmtNum(participants, 0) : '') + '</td>' +
-            '<td class="col-num cell-edit" data-field="incentive_dollars" data-rowid="' + r.id + '" contenteditable="true">' + (inc != null ? fmtMoney(inc) : '') + '</td>' +
-            '<td class="col-num cell-edit" data-field="energy_savings_mmbtu" data-rowid="' + r.id + '" contenteditable="true">' + (mmbtu != null ? fmtNum(mmbtu, 0) : '') + '</td>' +
+            '<td class="col-num cell-edit" data-field="participants" data-rowid="' + r.id + '" contenteditable="true">' + fmtNum(participants, 0) + '</td>' +
+            '<td class="col-num cell-edit" data-field="incentive_dollars" data-rowid="' + r.id + '" contenteditable="true">' + fmtMoney(inc) + '</td>' +
+            '<td class="col-num cell-edit" data-field="energy_savings_mmbtu" data-rowid="' + r.id + '" contenteditable="true">' + fmtNum(mmbtu, 0) + '</td>' +
             '<td class="col-actions"><button class="row-delete-btn" data-action="delete-row" data-rowid="' + r.id + '" title="Delete">×</button></td>' +
             '</tr>';
         });
