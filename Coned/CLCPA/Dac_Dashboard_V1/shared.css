@@ -1,3 +1,16 @@
+/* Auth overlay */
+#dac-auth{position:fixed;inset:0;z-index:9999;background:#031824;display:flex;align-items:center;justify-content:center;}
+.dac-auth-box{background:#fff;border-radius:12px;padding:40px 48px;text-align:center;width:360px;box-shadow:0 8px 32px rgba(0,0,0,.45);}
+.dac-auth-logo{height:44px;margin-bottom:22px;}
+.dac-auth-title{font-size:1.2rem;font-weight:700;color:#031824;margin:0 0 6px;}
+.dac-auth-sub{font-size:.875rem;color:#64748b;margin:0 0 22px;}
+.dac-auth-row{display:flex;gap:8px;}
+#dac-pwd{flex:1;padding:10px 14px;border:1.5px solid #cbd5e1;border-radius:8px;font-size:.95rem;font-family:inherit;outline:none;}
+#dac-pwd:focus{border-color:#1E96FC;}
+#dac-btn{padding:10px 20px;background:#1E96FC;color:#fff;border:none;border-radius:8px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;}
+#dac-btn:hover{background:#1a7fd6;}
+#dac-err{display:none;color:#c0392b;font-size:.825rem;margin-top:10px;}
+
 :root {
   --ink: #031824;
   --ink-2: #0A2436;

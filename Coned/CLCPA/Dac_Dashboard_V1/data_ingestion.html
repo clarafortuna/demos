@@ -8,6 +8,32 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="shared.css">
+<script>
+(function(){
+  function showOverlay(){
+    var d=document.createElement('div');
+    d.id='dac-auth';
+    d.innerHTML='<div class="dac-auth-box"><img src="Logo/ConEd_Logo_fondo_blanco.jpeg" class="dac-auth-logo" alt="Con Edison"><p class="dac-auth-title">DAC Annual Report</p><p class="dac-auth-sub">Enter password to continue</p><div class="dac-auth-row"><input type="password" id="dac-pwd" placeholder="Password" autocomplete="current-password"><button id="dac-btn">Enter</button></div><p id="dac-err">Incorrect password</p></div>';
+    document.body.prepend(d);
+    document.getElementById('dac-pwd').focus();
+    document.getElementById('dac-btn').onclick=check;
+    document.getElementById('dac-pwd').onkeydown=function(e){if(e.key==='Enter')check();};
+  }
+  function check(){
+    if(document.getElementById('dac-pwd').value==='dacdemo'){
+      sessionStorage.setItem('dac_auth','1');
+      document.getElementById('dac-auth').remove();
+    } else {
+      document.getElementById('dac-err').style.display='block';
+      document.getElementById('dac-pwd').value='';
+      document.getElementById('dac-pwd').focus();
+    }
+  }
+  if(sessionStorage.getItem('dac_auth')!=='1'){
+    document.addEventListener('DOMContentLoaded',showOverlay);
+  }
+})();
+</script>
 </head>
 <body>
 <div class="app">
