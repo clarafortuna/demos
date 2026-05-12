@@ -592,7 +592,7 @@
           rows: [
             { label: 'Source', value: 'Section A · Clean Energy' },
             { label: 'Metric', value: 'DAC incentive $ paid' },
-            { label: '2023', value: yr.prevDac ? fmtM(yr.prevDac) : 'n/a' },
+            { label: (parseInt(state.year) - 1).toString(), value: yr.prevDac ? fmtM(yr.prevDac) : 'n/a' },
             { label: state.year, value: fmtM(yr.dac) },
             { label: 'YoY change', value: incGrow !== null ? '+' + incGrow + '%' : '—' },
             { label: 'DAC share', value: yr.dacPct.toFixed(1) + '%' }
@@ -607,6 +607,7 @@
         heroSub: 'DAC-exposed $',
         delta:  eDacGrow !== null ? (eDacGrow >= 0 ? '↑ +' : '↓ ') + eDacGrow + '%' : eDacPct + '%',
         deltaSub: eDacGrow !== null ? 'YoY' : 'of total',
+        deltaColor: eDacGrow !== null ? (eDacGrow >= 0 ? 'var(--green)' : 'var(--red)') : 'var(--green)',
         detail: eDacPrev !== null
           ? fmtBig(eDacPrev) + ' → ' + fmtBig(eDacTotal)
           : 'Weighted across ' + eCats.length + ' categories',
@@ -619,7 +620,7 @@
             { label: 'Total invested ' + state.year, value: fmtM(yr.dac), value: fmtBig(eTotal) },
             { label: 'DAC share', value: eDacPct + '%' },
             { label: 'DAC invested ' + state.year, value: fmtBig(eDacTotal) },
-            { label: 'DAC invested 2023', value: eDacPrev !== null ? fmtBig(eDacPrev) : 'n/a' },
+            { label: 'DAC invested ' + (parseInt(state.year) - 1), value: eDacPrev !== null ? fmtBig(eDacPrev) : 'n/a' },
 
           ],
           note: 'Dollar-weighted DAC % across Environmental, Risk Reduction, Safety & Security, and System Expansion capital investments.'
@@ -631,6 +632,7 @@
         heroSub: 'DAC unpaid $',
         delta:  j4Grow !== null ? (j4Grow >= 0 ? '↑ +' : '↓ ') + j4Grow + '%' : (j4DacPct + '%'),
         deltaSub: j4Grow !== null ? 'YoY' : 'of total',
+        deltaColor: j4Grow !== null ? (j4Grow >= 0 ? 'var(--red)' : 'var(--green)') : 'var(--green)',
         detail: j4DacPrev !== null
           ? fmtBig(j4DacPrev) + ' → ' + fmtBig(j4DacAmt)
           : (j4Curr ? fmtBig(j4TotalAmt) + ' total unpaid' : 'Loading…'),
@@ -642,7 +644,7 @@
             { label: 'Metric', value: '90+ day past-due $' },
             { label: 'Total unpaid ' + state.year, value: j4Curr ? fmtBig(j4TotalAmt) : '—' },
             { label: 'DAC unpaid ' + state.year, value: j4Curr ? fmtBig(j4DacAmt) : '—' },
-            { label: 'DAC unpaid 2023', value: j4DacPrev !== null ? fmtBig(j4DacPrev) : 'n/a' },
+            { label: 'DAC unpaid ' + (parseInt(state.year) - 1), value: j4DacPrev !== null ? fmtBig(j4DacPrev) : 'n/a' },
             { label: 'YoY change', value: j4Grow !== null ? (j4Grow >= 0 ? '+' : '') + j4Grow + '%' : '—' },
           ],
           note: 'Residential accounts 90+ days past due. Tracks affordability gap — DAC accounts carry a disproportionate share of unpaid debt.'
@@ -665,7 +667,7 @@
           </div>
           ${c.delta ? `
           <div style="text-align:right">
-            <div style="font-size:14px;font-weight:700;color:var(--green);line-height:1">${c.delta}</div>
+            <div style="font-size:14px;font-weight:700;color:${c.deltaColor || 'var(--green)'};line-height:1">${c.delta}</div>
             ${c.deltaSub ? `<div style="font-size:9px;color:var(--text-4);margin-top:2px">${c.deltaSub}</div>` : ''}
           </div>` : ''}
         </div>
@@ -972,6 +974,20 @@
       d.total_customers  = d.dac_customers + d.nondac_customers;
       d.dac_pct          = get('J9', 1, 2) || 0;
 
+      // J1 — electric usage (row 1 = totals, row 2 = averages)
+      d.elec_total_dac    = get('J1', 1, 1) || 0;
+      d.elec_total_nondac = get('J1', 1, 3) || 0;
+      d.elec_dac_pct      = get('J1', 1, 2) || 0;
+      d.elec_avg_dac      = get('J1', 2, 1) || 0;
+      d.elec_avg_nondac   = get('J1', 2, 3) || 0;
+
+      // J2 — gas usage (row 1 = totals, row 2 = averages)
+      d.gas_total_dac    = get('J2', 1, 1) || 0;
+      d.gas_total_nondac = get('J2', 1, 3) || 0;
+      d.gas_dac_pct      = get('J2', 1, 2) || 0;
+      d.gas_avg_dac      = get('J2', 2, 1) || 0;
+      d.gas_avg_nondac   = get('J2', 2, 3) || 0;
+
       // J3 — 60-90 day unpaid
       d.j3_accts_dac    = get('J3', 1, 1) || 0;
       d.j3_accts_nondac = get('J3', 2, 1) || 0;
@@ -987,6 +1003,38 @@
       d.j4_amt_dac      = get('J4', 1, 3) || 0;
       d.j4_amt_nondac   = get('J4', 2, 3) || 0;
       d.j4_amt_pct      = get('J4', 1, 4) || 0;
+
+      // J5 — disconnections (row 1) + restorations (row 2)
+      d.disc_dac    = get('J5', 1, 1) || 0;
+      d.disc_pct    = get('J5', 1, 2) || 0;
+      d.disc_nondac = get('J5', 1, 3) || 0;
+      d.rest_dac    = get('J5', 2, 1) || 0;
+      d.rest_pct    = get('J5', 2, 2) || 0;
+      d.rest_nondac = get('J5', 2, 3) || 0;
+
+      // J6 — DPAs
+      d.dpa_accts_dac    = get('J6', 1, 1) || 0;
+      d.dpa_accts_nondac = get('J6', 2, 1) || 0;
+      d.dpa_accts_pct    = get('J6', 1, 2) || 0;
+      d.dpa_amt_dac      = get('J6', 1, 3) || 0;
+      d.dpa_amt_nondac   = get('J6', 2, 3) || 0;
+      d.dpa_amt_pct      = get('J6', 1, 4) || 0;
+
+      // J7 — EAP enrolled (electric-only, gas-only, dual)
+      d.eap_dac_elec    = get('J7', 1, 1) || 0;
+      d.eap_dac_gas     = get('J7', 1, 2) || 0;
+      d.eap_dac_dual    = get('J7', 1, 3) || 0;
+      d.eap_pct         = get('J7', 1, 4) || 0;
+      d.eap_nondac_elec = get('J7', 2, 1) || 0;
+      d.eap_nondac_gas  = get('J7', 2, 2) || 0;
+      d.eap_nondac_dual = get('J7', 2, 3) || 0;
+
+      // J8 — EAP $ delivered
+      d.eap_amt_dac_elec    = get('J8', 1, 1) || 0;
+      d.eap_amt_dac_gas     = get('J8', 1, 2) || 0;
+      d.eap_amt_pct         = get('J8', 1, 3) || 0;
+      d.eap_amt_nondac_elec = get('J8', 2, 1) || 0;
+      d.eap_amt_nondac_gas  = get('J8', 2, 2) || 0;
     });
     return result;
   }
