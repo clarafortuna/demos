@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — E. Strategic Capital Investments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item active" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>E. Strategic Capital Investments</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">E</div>
+  <div class="section-overview-text">
+    <h2>Strategic Capital Investments</h2>
+    <p>Electric capital investment by category and the share whose benefits affect DAC areas. Table E1.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"E","section_name":"Strategic Capital Investments","blurb":"Electric capital investment by category and the share whose benefits affect DAC areas. Table E1.","tables":[{"section":"E","number":1,"id":"E1","title_2024":"Table E1. Strategic Electric Capital Investments |  Main  |  PDF page 30","title_2023":"Table E1. 2023 Strategic Electric Capital Investments  |  Main  |  PDF page 26","data_2024":[["Investment Category","2024 Total Investment","Percentage Affecting DACs"],["Environmental",70779794,0.53],["Risk Reduction",514647065,0.52],["Safety And Security",24106971,0.54],["System Expansion",367058018,0.46],["Grand Total",976591848,0.5]],"data_2023":[["Investment Category","2023 Total Investment ($)","Percentage (%) Affecting DACs"],["Environmental",53396000,0.56],["Risk Reduction",697262000,0.42],["Safety and Security",19355000,0.54],["System Expansion",528240000,0.35],["Grand Total",1298253000,0.4]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table E1. Strategic Electric Capital Investments","table_2024":"Table E1. Strategic Electric Capital Investments"}}],"reported_kpis":[{"id":"strategic_capital","label":"Strategic Capital Invested","section":"E","y2024":{"total":976591848,"dac":488295924.0,"dac_pct":0.5},"y2023":{"total":1298253000,"dac":519301200.0,"dac_pct":0.4},"unit":"$","primary_metric":"total","format":"currency","narrative":"Total electric capital investment across environmental, risk-reduction, safety, and system-expansion categories. DAC share is exposure (% affecting DAC areas), not allocated dollars."}],"analytical_kpis":[],"charts":{"E1_categories_2024":[{"name":"Environmental","total":70779794.0,"dac_pct":0.53},{"name":"Risk Reduction","total":514647065.0,"dac_pct":0.52},{"name":"Safety And Security","total":24106971.0,"dac_pct":0.54},{"name":"System Expansion","total":367058018.0,"dac_pct":0.46}],"E1_categories_2023":[{"name":"Environmental","total":53396000.0,"dac_pct":0.56},{"name":"Risk Reduction","total":697262000.0,"dac_pct":0.42},{"name":"Safety and Security","total":19355000.0,"dac_pct":0.54},{"name":"System Expansion","total":528240000.0,"dac_pct":0.35}]}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

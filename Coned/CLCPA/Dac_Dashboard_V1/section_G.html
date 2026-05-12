@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — G. Main Replacement Program</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item active" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>G. Main Replacement Program</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">G</div>
+  <div class="section-overview-text">
+    <h2>Main Replacement Program</h2>
+    <p>Leak-prone gas main retired, replaced, and abandoned by county, plus CH4 emissions reductions. Tables G1–G10. Tables G3/G5/G7/G9 are NEW IN 2024.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"G","section_name":"Main Replacement Program","blurb":"Leak-prone gas main retired, replaced, and abandoned by county, plus CH4 emissions reductions. Tables G1\u2013G10. Tables G3/G5/G7/G9 are NEW IN 2024.","tables":[{"section":"G","number":1,"id":"G1","title_2024":"Table G1. Total Leak- Prone Pipe Retired|  Main  |  PDF page 41","title_2023":"Table G1. 2023 Total Leak-Prone Pipe Retired and Replaced (Systemwide)  |  Main  |  PDF page 36","data_2024":[["Category","Percentage"],["Feet Replaced within DAC",0.46],["Feet Replaced not in a DAC",0.54]],"data_2023":[["Category","Percentage"],["Total Footage Replaced within DACs",0.46],["Total Footage Replaced not in DACs",0.54]],"mapping":{"status":"CHANGED","comparable":"No.","notes":"","table_2023":"Table G1. Total Leak-Prone Pipe Retired and Replaced (systemwide pie)","table_2024":"Table G1. Total Leak- Prone Pipe Retired"}},{"section":"G","number":2,"id":"G2","title_2024":"Table G2. Bronx County Retired & Replaced  |  Main  |  PDF page 42","title_2023":"Table G2-G3. 2023 Bronx County  |  Main  |  PDF page 37","data_2024":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",72504,0.83],["Feet Replaced not in a DAC",14991,0.17],["County Total",87495]],"data_2023":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",78020,0.9],["Feet Replaced not in a DAC",8932,0.1],["County Total",86952]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table G2 Bronx County ","table_2024":"Table G2 Bronx County : Retired & Replaced"}},{"section":"G","number":3,"id":"G3","title_2024":"Table G3. Bronx County Retired & Abandoned  |  Main  |  PDF page 42","title_2023":"Table G2-G3. 2023 Bronx County  |  Main  |  PDF page 37","data_2024":[["Category","Feet Abandoned","Percentage"],["Feet Abandoned within DAC",2553,0.7],["Feet Abandoned not in a DAC",1135,0.3],["County Total",3688]],"data_2023":[],"mapping":{"status":"CHANGED","comparable":"Additional Data : % Abandoned","notes":"","table_2023":"Table G3. Bronx County ","table_2024":"Table G3: Bronx County Retired & Abadoned"}},{"section":"G","number":4,"id":"G4","title_2024":"Table G4 Manhattan County Retired & Replaced  |  Main  |  PDF page 42","title_2023":"Table G4-G5. 2023 New York County (Manhattan)  |  Main  |  PDF page 37-38","data_2024":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",16917,0.42],["Feet Replaced not in a DAC",23618,0.58],["County Total",40535]],"data_2023":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",14672,0.34],["Feet Replaced not in a DAC",28993,0.66],["County Total",43665]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table G4 New York County (Manhattan) ","table_2024":"Table G4 Manhattan County : Retired & Replaced"}},{"section":"G","number":5,"id":"G5","title_2024":"Table G5 Manhattan County Retired & Abandoned  |  Main  |  PDF page 42","title_2023":"Table G4-G5. 2023 New York County (Manhattan)  |  Main  |  PDF page 37-38","data_2024":[["Category","Feet Abandoned","Percentage"],["Feet Abandoned within DAC",533,0.54],["Feet Abandoned not in a DAC",542,0.46],["County Total",1075]],"data_2023":[],"mapping":{"status":"CHANGED","comparable":"Additional Data : % Abandoned","notes":"","table_2023":"Table G5. New York County (Manhattan) ","table_2024":"Table G5: Manhattan County Retired & Abadoned"}},{"section":"G","number":6,"id":"G6","title_2024":"Table G6 Queens County Retired & Replaced  |  Main  |  PDF page 43","title_2023":"Table G6-G7. 2023 Queens County  |  Main  |  PDF page 38","data_2024":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",18752,0.23],["Feet Replaced not in a DAC",62282,0.77],["County Total",81034]],"data_2023":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",27908,0.34],["Feet Replaced not in a DAC",53498,0.66],["County Total",81406]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table G6 Queens County","table_2024":"Table G6 Queens County : Retired & Replaced"}},{"section":"G","number":7,"id":"G7","title_2024":"Table G7 Queens County Retired & Abandoned  |  Main  |  PDF page 43","title_2023":"Table G6-G7. 2023 Queens County  |  Main  |  PDF page 38","data_2024":[["Category","Feet Abandoned","Percentage"],["Feet Abandoned within DAC",0,0],["Feet Abandoned not in a DAC",1793,1],["County Total",1793]],"data_2023":[],"mapping":{"status":"CHANGED","comparable":"Additional Data : % Abandoned","notes":"","table_2023":"Table G7. Queens County","table_2024":"Table G7: Queens County Retired & Abadoned"}},{"section":"G","number":8,"id":"G8","title_2024":"Table G8 Westchester County Retired & Replaced  |  Main  |  PDF page 43","title_2023":"Table G8-G9. 2023 Westchester County  |  Main  |  PDF page 39","data_2024":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",82499,0.41],["Feet Replaced not in a DAC",119712,0.59],["County Total",202211]],"data_2023":[["Category","Feet Replaced","Percentage"],["Feet Replaced within DAC",73462,0.35],["Feet Replaced not in a DAC",136943,0.65],["County Total",210405,1]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table G8. Westchester County","table_2024":"Table G8 Westchester County : Retired & Replaced"}},{"section":"G","number":9,"id":"G9","title_2024":"Table G9 Westchester County Retired & Abandoned  |  Main  |  PDF page 43","title_2023":"Table G8-G9. 2023 Westchester County  |  Main  |  PDF page 39","data_2024":[["Category","Feet Abandoned","Percentage"],["Feet Abandoned within DAC",1242,0.32],["Feet Abandoned not in a DAC",2649,0.68],["County Total",3891]],"data_2023":[],"mapping":{"status":"CHANGED","comparable":"Additional Data : % Abandoned","notes":"","table_2023":"Table G9. Westchester County","table_2024":"Table G9: Westchester County Retired & Abadoned"}},{"section":"G","number":10,"id":"G10","title_2024":"Table G10. Emissions Reductions  |  Main  |  PDF page 44","title_2023":"Table G10.2023 Emissions Reductions  |  Main  |  PDF page 39","data_2024":[["Category","mT CH4","Percentage"],["Total mT CH4 in Non-DACs",116.03,0.48],["Total mT CH4 in DACs",125.19,0.52],["Grand Total",241.2279]],"data_2023":[["Category","mT CH4","Percentage"],["Total mT CH4 in Non-DACs",129.3,0.54],["Total mT CH4 in DACs",109.59,0.46],["Grand Total",238.89]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table G10. Emissions Reductions","table_2024":"Table G10. Emissions Reductions"}}],"reported_kpis":[{"id":"main_replacement","label":"Leak-Prone Gas Main Replaced (Feet)","section":"G","y2024":{"total":411275.0,"dac":190672.0,"dac_pct":0.46361193848398274},"y2023":{"total":422428.0,"dac":194062.0,"dac_pct":0.4593966309051483},"unit":"ft","primary_metric":"total","format":"int","narrative":"Linear feet of leak-prone gas main retired and replaced (Bronx + Manhattan + Queens + Westchester). DAC share indicates equitable infrastructure renewal."}],"analytical_kpis":[],"charts":{"G_replacement_2024":[{"name":"Bronx","dac":72504.0,"nondac":14991.0,"total":87495.0},{"name":"Manhattan","dac":16917.0,"nondac":23618.0,"total":40535.0},{"name":"Queens","dac":18752.0,"nondac":62282.0,"total":81034.0},{"name":"Westchester","dac":82499.0,"nondac":119712.0,"total":202211.0}],"G_replacement_2023":[{"name":"Bronx","dac":78020.0,"nondac":8932.0,"total":86952.0},{"name":"Manhattan","dac":14672.0,"nondac":28993.0,"total":43665.0},{"name":"Queens","dac":27908.0,"nondac":53498.0,"total":81406.0},{"name":"Westchester","dac":73462.0,"nondac":136943.0,"total":210405.0}],"G_abandonment_2024":[{"name":"Bronx","dac":2553.0,"nondac":1135.0,"total":3688.0},{"name":"Manhattan","dac":533.0,"nondac":542.0,"total":1075.0},{"name":"Queens","dac":0,"nondac":1793.0,"total":1793.0},{"name":"Westchester","dac":1242.0,"nondac":2649.0,"total":3891.0}]}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

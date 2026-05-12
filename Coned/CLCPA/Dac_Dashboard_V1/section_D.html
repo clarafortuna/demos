@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — D. Distributed Energy Resources</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item active" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>D. Distributed Energy Resources</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">D</div>
+  <div class="section-overview-text">
+    <h2>Distributed Energy Resources</h2>
+    <p>Distributed Energy Resources interconnected to the grid: project counts, MW installed, DAC share. Tables D1–D4.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"D","section_name":"Distributed Energy Resources","blurb":"Distributed Energy Resources interconnected to the grid: project counts, MW installed, DAC share. Tables D1\u2013D4.","tables":[{"section":"D","number":1,"id":"D1","title_2024":"Table D1. Typical Compensation Types for Distributed Energy Resources  |  Main  |  PDF page 27","title_2023":"Table D1. 2023 Typical Compensation Types for Distributed Energy Resources  |  Main  |  PDF page 23","data_2024":[["Compensation Type","Description"],["Community Distributed Generation (CDG, or Community Solar)","A tariff program where a CDG host that installs a DER distributes credits to subscribing customers. Many CDG projects participate in utility consolidated billing (\u201cnet crediting\u201d) whereby subscription fees for CDG are collected out of the credit the customer receives. The utility remits these subscription fees, less a 1% admin fee, to the CDG host."],["Remote Crediting (RC)","A tariff program whereby a remote crediting host that installs a DER distributes credits to up to 10 accounts associated with the same customer (typically commercial)."],["Net-Metering (NM)","A tariff program where a customer installs an eligible DER. Excess net monthly energy credits carry over and are applied against future bills."]],"data_2023":[["Compensation Type","Description"],["Community Distributed Generation (CDG, or Community Solar)","A tariff program where a CDG host that installs a DER distributes credits to subscribing customers. Many CDG projects participate in utility consolidated billing (\"net crediting\") whereby subscription fees for CDG are collected out of the credit the customer receives. The utility remits these subscription fees, less a 1% admin fee, to the CDG host."],["Remote Crediting (RC)","A tariff program where a remote crediting host that installs a DER distributes credit to their own accounts and/or up to 10 customers (typically commercial)."],["Net-Metering (NM)","A tariff program where a customer installs an eligible DER. Excess net monthly energy credits carry over and are applied against future bills."]],"mapping":{"status":"SAME","comparable":"N/A (descriptive).","notes":"","table_2023":"Table D1. Typical Compensation Types for DERs","table_2024":"Table D1. Typical Compensation Types for DERs"},"header_levels":0},{"section":"D","number":2,"id":"D2","title_2024":"Table D2.For All Distribution-Interconnected Projects Including Community DG (CDG), Remote Crediting (RC), and Net Metered (NM) Projects  |  Main  |  PDF page 28","title_2023":"Table D2.2023 For All Distribution-Interconnected Projects Including Community DG (CDG), Remote Crediting (RC), and Net Metered (NM) Projects  |  Main  |  PDF page 24","data_2024":[["Metric","Up to 2024",2024],["Total # of projects",76991,10555],["Total # of projects in DACs",24882,3584],["Percentage of projects in DACs",0.323,0.34],["Total MW installed (All DERs)",1096.44,182.54],["Total MW installed in DACs (All DERs)",405.92,64.62],["Percentage of MW installed in DACs (All DERs)",0.37,0.354]],"data_2023":[["Metric","Cumulative through 2023"],["Total # of projects",66436],["Total # of projects in DACs",21298],["Percentage of projects in DACs",0.321],["Total MW installed (All DERs)",913.9],["Total MW installed in DACs (All DERs)",341.3],["Percentage of MW installed in DACs (All DERs)",0.373]],"mapping":{"status":"SAME","comparable":"Yes against cumulative column.","notes":"","table_2023":"Table D2. Distribution-Interconnected Projects","table_2024":"Table D2. Distribution-Interconnected Projects"}},{"section":"D","number":3,"id":"D3","title_2024":"Table D3. For All Community DG (CDG) and Remote Crediting (RC) Projects  |  Main  |  PDF page 28","title_2023":"Table D3.2023 For All Community DG (CDG) and Remote Crediting (RC) Projects  |  Main  |  PDF page 24","data_2024":[["Metric","Up to 2024",2024],["Total # of subscribers",18762,1498],["Total # of subscribers in DACs",6215,843],["Percentage of subscribers in DACs",0.331,0.563],["Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",1186,334],["Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program",0.063,0.223]],"data_2023":[["Metric","Cumulative through 2023"],["Total # of subscribers",17264],["Total # of subscribers in DACs",5372],["Percentage of subscribers in DACs",0.311],["Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",852],["Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program",0.049]],"mapping":{"status":"SAME","comparable":"Yes against cumulative.","notes":"","table_2023":"Table D3. CDG and Remote Crediting Projects","table_2024":"Table D3. CDG and Remote Crediting Projects"}},{"section":"D","number":4,"id":"D4","title_2024":"Table D4. For All Net Metering Projects |  Main  |  PDF page 28","title_2023":"Table D4. 2023For All Net Metering Projects  |  Main  |  PDF page 24","data_2024":[[null,"Up to 2024",2024],["Total # of projects",75160,10436],["Total # of projects installed for low-income customers",4470,752],["Percentage of projects installed for low-income customers",0.059,0.072],["Total # of projects in DACs",24062,3545],["Percentage of projects in DACs",0.32,0.4],["Total MW installed",688.3,165.7],["Total MW installed for low-income customers",22.9,3.4],["Percentage MW installed for low-income customers",0.033,0.02],["Total MW installed in DACs",200.82,25.82],["Percentage MW installed in DACs",0.292,0.156]],"data_2023":[["Metric","Cumulative through 2023"],["Total # of projects",64724],["Total # of projects installed for low-income customers",3718],["Percentage of projects installed for low-income customers",0.057],["Total # of projects in DACs",20517],["Percentage of projects in DACs",0.317],["Total MW installed",522.6],["Total MW installed for low-income customers",19.5],["Percentage MW installed for low-income customers",0.037],["Total MW installed in DACs",175],["Percentage MW installed in DACs",0.335]],"mapping":{"status":"SAME","comparable":"Yes against cumulative.","notes":"","table_2023":"Table D4. Net Metering Projects","table_2024":"Table D4. Net Metering Projects"}}],"reported_kpis":[{"id":"der_mw","label":"DER Capacity Installed (Cumulative)","section":"D","y2024":{"total":1096.44,"dac":405.92,"dac_pct":0.3702163365072416},"y2023":{"total":913.9,"dac":341.3,"dac_pct":0.37345442608600504},"unit":"MW","primary_metric":"total","format":"decimal","narrative":"Cumulative MW of distributed energy resources interconnected to the distribution system, measured at year-end."}],"analytical_kpis":[],"charts":{"D2_2024":{"year":"2024","projects_total":76991.0,"projects_dac":24882.0,"mw_total":1096.44,"mw_dac":405.92},"D2_2023":{"year":"2023","projects_total":66436.0,"projects_dac":21298.0,"mw_total":913.9,"mw_dac":341.3}}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — B. EV Make-Ready Program</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item active" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>B. EV Make-Ready Program</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">B</div>
+  <div class="section-overview-text">
+    <h2>EV Make-Ready Program</h2>
+    <p>Capital incentives and the resulting Level-2 and DC fast-charging plug counts. Tables B1–B2.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"B","section_name":"EV Make-Ready Program","blurb":"Capital incentives and the resulting Level-2 and DC fast-charging plug counts. Tables B1\u2013B2.","tables":[{"section":"B","number":1,"id":"B1","title_2024":"Table B1. Total Make-Ready Incentive Funding Spent in 2024  |  Main  |  PDF page 22","title_2023":"Table B1. Total Make-Ready Incentive Funding Spent in 2023  |  Main  |  PDF page 18","data_2024":[["Category","Incentive Funding ($)"],["DAC",18281828],["Non-DAC",24517801],["Total",42799629]],"data_2023":[["Category","Incentive Funding ($)"],["DAC",10190734.93],["Non-DAC",22410902.55],["Total",32601637.48]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table B1. Total Make-Ready Incentive Funding Spent","table_2024":"Table B1. Total Make-Ready Incentive Funding Spent"}},{"section":"B","number":2,"id":"B2","title_2024":"Table B2. Charging Plugs Completed Under the Make-Ready Program In 2024  |  Main  |  PDF page 22","title_2023":"Table B2. Number of Charging Plugs Installed Under the Make-Ready Program In 2023  |  Main  |  PDF page 19","data_2024":[["Category","L2 Plugs","DCFC Plugs","Total Plugs"],["DAC",1732,118,1850],["Non-DAC",2386,76,2462],["Total",4118,194,4312]],"data_2023":[["Category","L2 Plugs","DCFC Plugs","Total Plugs"],["DAC",817,82,899],["Non-DAC",2081,29,2110],["Total",2898,111,3009]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table B2. Number of Charging Plugs Installed","table_2024":"Table B2. Charging Plugs Completed"}}],"reported_kpis":[{"id":"ev_funding","label":"EV Make-Ready Funding Spent","section":"B","y2024":{"total":42799629.0,"dac":18281828.0,"dac_pct":0.42714921664391065},"y2023":{"total":32601637.48,"dac":10190734.93,"dac_pct":0.3125835300834711},"unit":"$","primary_metric":"total","format":"currency","narrative":"Capital deployed under the EV Make-Ready Program to install Level-2 and DC fast-charging plug infrastructure."},{"id":"ev_plugs","label":"EV Charging Plugs Installed","section":"B","y2024":{"total":4312,"dac":1850,"dac_pct":0.4290352504638219},"y2023":{"total":3009,"dac":899,"dac_pct":0.2987703555998671},"unit":"plugs","primary_metric":"total","format":"int","narrative":"L2 and DCFC charging plugs completed under the Make-Ready Program; pace of buildout in DACs is the equity signal."}],"analytical_kpis":[{"id":"ev_equity_ratio","label":"EV Plug Equity Ratio","section":"B","y2024":{"value":0.9870235392764433},"y2023":{"value":0.6898843161378729},"format":"ratio","narrative":"DAC share of EV plug installations divided by the DAC share of residential customers (43.5%). A ratio of 1.0 = parity. Below 1.0 = under-served; above 1.0 = over-indexed (a positive equity outcome).","source_calc":"B2 plugs DAC% \u00f7 J9 customers DAC%"}],"charts":{"B2_plugs_2024":{"DAC":{"L2":1732.0,"DCFC":118.0,"Total":1850.0},"Non-DAC":{"L2":2386.0,"DCFC":76.0,"Total":2462.0},"Total":{"L2":4118.0,"DCFC":194.0,"Total":4312.0}},"B2_plugs_2023":{"DAC":{"L2":817.0,"DCFC":82.0,"Total":899.0},"Non-DAC":{"L2":2081.0,"DCFC":29.0,"Total":2110.0},"Total":{"L2":2898.0,"DCFC":111.0,"Total":3009.0}}}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

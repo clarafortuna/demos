@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — H. Leak Repairs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item active" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>H. Leak Repairs</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">H</div>
+  <div class="section-overview-text">
+    <h2>Leak Repairs</h2>
+    <p>Gas leak repairs by borough/county, DAC vs non-DAC. Table H1.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"H","section_name":"Leak Repairs","blurb":"Gas leak repairs by borough/county, DAC vs non-DAC. Table H1.","tables":[{"section":"H","number":1,"id":"H1","title_2024":"Table H1. Total Leaks Repaired in DACs and Non-DACs  |  Main  |  PDF page 45","title_2023":"Table H1. 2023 Total Leaks Repaired in DACs and Non-DACs  |  Main  |  PDF page 40","data_2024":[["Borough / County","Non-DAC Repairs","DAC Repairs","Grand Total"],["Manhattan",1242,462,1704],["Queens",1321,245,1566],["Westchester",2176,1279,3455],["Bronx",365,1212,1577],["Grand Total",5104,3198,8302]],"data_2023":[["Area","Non-DAC Repairs","DAC Repairs","Grand Total"],["Manhattan",1062,494,1556],["Queens",1003,315,1318],["Westchester",2641,1342,3983],["Bronx",255,911,1166],["Grand Total",4961,3062,8023]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table H1. Total Leaks Repaired in DACs/Non-DACs","table_2024":"Table H1. Total Leaks Repaired in DACs/Non-DACs"}}],"reported_kpis":[{"id":"leak_repairs","label":"Gas Leaks Repaired","section":"H","y2024":{"total":8302,"dac":3198,"dac_pct":0.3852083835220429},"y2023":{"total":8023,"dac":3062,"dac_pct":0.38165274834849805},"unit":"repairs","primary_metric":"total","format":"int","narrative":"Gas leaks repaired across Manhattan, Queens, Westchester, and Bronx. The DAC share captures whether at-risk communities receive equitable response."}],"analytical_kpis":[{"id":"leak_velocity_ratio","label":"Leak Repair Equity Ratio","section":"H","y2024":{"value":0.8861969771757606},"y2023":{"value":0.8812662982172399},"format":"ratio","narrative":"DAC share of gas leak repairs divided by DAC share of all customers. Below 1.0 means DACs may be receiving fewer repairs proportionally; above 1.0 means DACs receive a disproportionate share of repair work \u2014 likely reflecting older infrastructure but warranting attention.","source_calc":"H1 leak repairs DAC% \u00f7 J9 customers DAC%"}],"charts":{"H1_boroughs_2024":[{"name":"Manhattan","dac":462.0,"nondac":1242.0,"total":1704.0},{"name":"Queens","dac":245.0,"nondac":1321.0,"total":1566.0},{"name":"Westchester","dac":1279.0,"nondac":2176.0,"total":3455.0},{"name":"Bronx","dac":1212.0,"nondac":365.0,"total":1577.0}],"H1_boroughs_2023":[{"name":"Manhattan","dac":494.0,"nondac":1062.0,"total":1556.0},{"name":"Queens","dac":315.0,"nondac":1003.0,"total":1318.0},{"name":"Westchester","dac":1342.0,"nondac":2641.0,"total":3983.0},{"name":"Bronx","dac":911.0,"nondac":255.0,"total":1166.0}]}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — C. Demand Response</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item active" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>C. Demand Response</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">C</div>
+  <div class="section-overview-text">
+    <h2>Demand Response</h2>
+    <p>Five demand-response programs with participation, committed load, and delivered load by DAC and low-income segments. Tables C1–C5.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"C","section_name":"Demand Response","blurb":"Five demand-response programs with participation, committed load, and delivered load by DAC and low-income segments. Tables C1\u2013C5.","tables":[{"section":"C","number":1,"id":"C1","title_2024":"Table C1. Summary of Con Edison Demand Response Programs  |  Main  |  PDF page 24","title_2023":"Table C1. 2023 Summary of Con Edison Demand Response Programs  |  Main  |  PDF page 20","data_2024":[["Program",null,null,"Category",null,"Description"],["Commercial System Relief Program (CSRP)",null,null,"Peak Shaving",null,"CSRP is open to customers throughout the service territory and events are called system-wide. Notifications are sent at least 21 hours prior to a planned event. Participants are called on weekdays."],["Distribution Load Relief Program (DLRP)",null,null,"Contingency",null,"DLRP is open to customers throughout the service territory. Participants can be called any day of the week, including holidays."],["Long Term-Dynamic Load Management (Term-DLM)",null,null,"Peak Shaving",null,"Participants sign multiyear contracts to provide load relief. Notifications are sent at least 21 hours prior to a planned event. Participants are called on weekdays."],["Long Term-Dynamic Load Management (Auto-DLM)",null,null,"Peak Shaving and Contingency",null,"Participants sign multiyear contracts to provide load relief. Participants can be called any day of the week, including holidays."],["Bring Your Own Thermostat (BYOT)",null,null,"Peak Shaving and Contingency",null,"A mass-market program intended for smaller commercial and residential customers with an eligible smart thermostat. For a one-time $85 incentive, customers can enable their Wi-Fi-controlled thermostat to reduce air conditioning use at times of critical system need."]],"data_2023":[["Program","Category","Description"],["Commercial System Relief Program (CSRP)","Peak Shaving","CSRP is open to customers throughout the service territory and events are called system-wide. Notifications are sent at least 21 hours prior to a planned event. Participants are called on weekdays."],["Distribution Load Relief Program (DLRP)","Contingency","DLRP is open to customers throughout the service territory. Participants can be called any day of the week, including holidays."],["Long Term-Dynamic Load Management (Term-DLM)","Peak Shaving","Participants sign multiyear contracts to provide load relief. Notifications are sent at least 21 hours prior to a planned event. Participants are called on weekdays."],["Long Term-Dynamic Load Management (Auto-DLM)","Peak Shaving and Contingency","Participants sign multiyear contracts to provide load relief. Participants can be called any day of the week, including holidays."],["Bring Your Own Thermostat (BYOT)","Peak Shaving and Contingency","A mass-market program intended for smaller commercial and residential customers with an eligible smart thermostat. For a one-time $85 incentive, customers can enable their Wi-Fi-controlled thermostat to reduce air conditioning use at times of critical system need."]],"mapping":{"status":"SAME","comparable":"N/A (descriptive).","notes":"","table_2023":"Table C1. Summary of DR Programs","table_2024":"Table C1. Summary of DR Programs"}},{"section":"C","number":2,"id":"C2","title_2024":"Table C2. Participation Summary by Customer Group  |  Main  |  PDF page 25","title_2023":"Table C2.2023 Participation Summary by Customer Group  |  Main  |  PDF page 21","data_2024":[["Customer Group",null,null,"Participants",null,"Committed Load Relief (MW)",null,"Average Event Reductions (MW)"],["DAC",null,null,"32,919 (32%)",null,"404.87 (41%)",null,"303.07 (40%)"],["Low-Income",null,null,"8,929 (9%)",null,"5.26 (1%)",null,"3.33 (0%)"],["Total",null,null,104025,null,998.11,null,766.94]],"data_2023":[["Customer Group","Participants","Committed Load Relief (MW)","Average Event Reductions (MW)"],["DAC","31%","32%","34%"],["Low-Income","9%","1%","1%"],["Total",93187,991.6,766.6]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table C2. Participation Summary by Customer Group","table_2024":"Table C2. Participation Summary by Customer Group"}},{"section":"C","number":3,"id":"C3","title_2024":"Table C3. DAC Program Participation Summary  |  Main  |  PDF page 25","title_2023":"Table C3. 2023 DAC Program Participation Summary  |  Main  |  PDF page 21","data_2024":[["Program Name",null,null,"Program Participants",null,"Committed Load Relief (MW)",null,"Delivered Load Relief (MW)"],["CSRP",null,null,14414,null,191.42,null,134.64],["DLRP",null,null,13444,null,193.16,null,148.7],["Term-DLM",null,null,152,null,4.07,null,3.87],["Auto-DLM",null,null,4,null,11.5,null,12.1],["BYOT",null,null,4905,null,4.72,null,3.77],["Total",null,null,32919,null,404.87,null,303.07]],"data_2023":[["Program Name","Program Participants","Committed Load Relief (MW)","Delivered Load Relief (MW)"],["CSRP",11048,136.39,126.24],["DLRP",11338,162.01,118.51],["Term-DLM",124,7.97,6.35],["Auto-DLM",7,7,2.01],["BYOT",6450,6.59,5.25],["Total",28967,319.96,258.35]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table C3. DAC Program Participation Summary","table_2024":"Table C3. DAC Program Participation Summary"}},{"section":"C","number":4,"id":"C4","title_2024":"Table C4. Low-Income Program Participation Summary |  Main  |  PDF page 25","title_2023":"Table C4. 2023 Low-Income Program Participation Summary  |  Main  |  PDF page 21","data_2024":[["Program Name",null,null,"Program Participants",null,"Committed Load Relief (MW)",null,"Delivered Load Relief (MW)"],["CSRP",null,null,4184,null,2.23,null,0.96],["DLRP",null,null,3632,null,2.02,null,1.55],["Term-DLM",null,null,10,null,0.01,null,0.02],["Auto-DLM",null,null,0,null,0,null,0],["BYOT",null,null,1103,null,1.01,null,0.8],["Total",null,null,8929,null,5.26,null,3.33]],"data_2023":[["Program Name","Program Participants","Committed Load Relief (MW)","Delivered Load Relief (MW)"],["CSRP",3059,1.95,0.79],["DLRP",2877,1.91,0.92],["Term-DLM",9,0.01,0.01],["Auto-DLM",0,0,0],["BYOT",2824,3.33,2.66],["Total",8769,7.2,4.38]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table C4. Low-Income Program Participation Summary","table_2024":"Table C4. Low-Income Program Participation Summary"}},{"section":"C","number":5,"id":"C5","title_2024":"Table C5. Total Program Participation Summary |  Main  |  PDF page 26","title_2023":"Table C5. 2023 Total Program Participation Summary  |  Main  |  PDF page 22","data_2024":[["Program Name",null,null,"Program Participants",null,"Committed Load Relief (MW)",null,"Delivered Load Relief (MW)"],["CSRP",null,null,40534,null,466.2,null,326.68],["DLRP",null,null,38649,null,472.51,null,374.05],["Term-DLM",null,null,708,null,11.5,null,12.83],["Auto-DLM",null,null,4,null,20.4,null,32.29],["BYOT",null,null,24130,null,27.5,null,21.09],["Total",null,null,104025,null,998.11,null,766.94]],"data_2023":[["Program Name","Program Participants","Committed Load Relief (MW)","Delivered Load Relief (MW)"],["CSRP",32121,437,363],["DLRP",32426,488,349],["Term-DLM",533,25.2,25.1],["Auto-DLM",7,7,2],["BYOT",28100,34.4,27.5],["Total",93187,991.6,766.6]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table C5. Total Program Participation Summary","table_2024":"Table C5. Total Program Participation Summary"}}],"reported_kpis":[{"id":"dr_participation","label":"Demand-Response Participants","section":"C","y2024":{"total":104025,"dac":32919.0,"dac_pct":0.32},"y2023":{"total":93187.0,"dac":null,"dac_pct":0.31},"unit":"participants","primary_metric":"total","format":"int","narrative":"Total customers enrolled in demand-response programs across CSRP, DLRP, Term-DLM, Auto-DLM, and BYOT."}],"analytical_kpis":[],"charts":{"C5_programs_2024":[{"name":"CSRP","participants":40534.0,"committed":466.2,"delivered":326.68},{"name":"DLRP","participants":38649.0,"committed":472.51,"delivered":374.05},{"name":"Term-DLM","participants":708.0,"committed":11.5,"delivered":12.83},{"name":"Auto-DLM","participants":4.0,"committed":20.4,"delivered":32.29},{"name":"BYOT","participants":24130.0,"committed":27.5,"delivered":21.09}],"C5_programs_2023":[{"name":"CSRP","participants":32121.0,"committed":437.0,"delivered":363.0},{"name":"DLRP","participants":32426.0,"committed":488.0,"delivered":349.0},{"name":"Term-DLM","participants":533.0,"committed":25.2,"delivered":25.1},{"name":"Auto-DLM","participants":7.0,"committed":7.0,"delivered":2.0},{"name":"BYOT","participants":28100.0,"committed":34.4,"delivered":27.5}],"C3_programs_2024":[{"name":"CSRP","participants":14414.0,"committed":191.42,"delivered":134.64},{"name":"DLRP","participants":13444.0,"committed":193.16,"delivered":148.7},{"name":"Term-DLM","participants":152.0,"committed":4.07,"delivered":3.87},{"name":"Auto-DLM","participants":4.0,"committed":11.5,"delivered":12.1},{"name":"BYOT","participants":4905.0,"committed":4.72,"delivered":3.77}],"C3_programs_2023":[{"name":"CSRP","participants":11048.0,"committed":136.39,"delivered":126.24},{"name":"DLRP","participants":11338.0,"committed":162.01,"delivered":118.51},{"name":"Term-DLM","participants":124.0,"committed":7.97,"delivered":6.35},{"name":"Auto-DLM","participants":7.0,"committed":7.0,"delivered":2.01},{"name":"BYOT","participants":6450.0,"committed":6.59,"delivered":5.25}]}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

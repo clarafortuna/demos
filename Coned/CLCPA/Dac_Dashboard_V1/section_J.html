@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — J. Customer Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item active" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>J. Customer Operations</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">J</div>
+  <div class="section-overview-text">
+    <h2>Customer Operations</h2>
+    <p>Customer-operations equity: usage, unpaid accounts, disconnections, EAP, total customers. Tables J1–J9. Several J tables cover only Apr–Dec 2023.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"J","section_name":"Customer Operations","blurb":"Customer-operations equity: usage, unpaid accounts, disconnections, EAP, total customers. Tables J1\u2013J9. Several J tables cover only Apr\u2013Dec 2023.","tables":[{"section":"J","number":1,"id":"J1","title_2024":"Table J1. Residential Electric Usage \u2013 202485  |  Main  |  PDF page 53","title_2023":"Table J1. 2023 Residential Electric Usage - April-December 2023  |  Main  |  PDF page 46","data_2024":[[null,"DAC","DAC % of Total","Non-DAC","Non-DAC % of Total"],["Total amount of residential electric usage (kWh)",5455330732,0.4,8331039856,0.6],["Average electric usage per residential customer (kWh) [Average of the monthly average usage]",353.2,"N/A",417.1,"N/A"]],"data_2023":[["Metric","Total in DAC","DAC % of Total","Total in Non-DAC","Non-DAC % of Total"],["Total amount of residential electric usage (kWh)",4026175751.88,0.39,6265657893.74,0.61],["Average electric usage per residential customer (kWh) [Average of the monthly average usage]",337.75,0.45,406.56,0.55]],"mapping":{"status":"SAME","comparable":"Averages yes; totals require adjustment.","notes":"","table_2023":"Table J1. Residential Electric Usage (April\u2013December 2023)","table_2024":"Table J1. Residential Electric Usage \u2013 2024"}},{"section":"J","number":2,"id":"J2","title_2024":"Table J2. Residential Gas Usage \u2013 202486  |  Main  |  PDF page 53","title_2023":"Table J2. 2023 Residential Gas Usage - April-December 2023  |  Main  |  PDF page 46","data_2024":[["Average gas usage per residential","DAC","DAC % of Total","Non-DAC","Non-DAC % of Total"],["Total amount of residential gas usage (ccf)",264936296,0.41,381682391,0.59],["Average gas usage per residential customer (ccf) [Average of the monthly average usage]",56.2,"N/A",95.3,"N/A"]],"data_2023":[["Metric","Total in DAC","DAC % of Total","Total in Non-DAC","Non-DAC % of Total"],["Total amount of residential gas usage (ccf)",200019526,0.46,238748629,0.54],["Average gas usage per residential customer (ccf) [Average of the monthly average usage]",49.4,0.44,62.36,0.56]],"mapping":{"status":"SAME","comparable":"Averages yes; totals require adjustment.","notes":"","table_2023":"Table J2. Residential Gas Usage (April\u2013December 2023)","table_2024":"Table J2. Residential Gas Usage \u2013 2024"}},{"section":"J","number":3,"id":"J3","title_2024":"Table J3. Unpaid Residential Accounts That Were 60 to 90 Days Overdue as of 12/31/202487  |  Main  |  PDF page 53","title_2023":"Table J3. 2023 Unpaid Residential Accounts That Are 60 to 90 Days Overdue as of 12/31/2023  |  Main  |  PDF page 47","data_2024":[[null,"Total Accounts","% of Accounts","Total Amount","% of Amount"],["Total in DAC",312470,0.64,55040891,0.63],["Total in Non-DAC",178175,0.36,32362554,0.37]],"data_2023":[["Category","Total Accounts","% of Accounts","Total Amount ($)","% of Amount"],["Total in DAC",289487,0.6,109831317.74,0.57],["Total in Non-DAC",196006,0.4,83042485.19,0.43]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table J3. Unpaid Accounts 60\u201390 Days Overdue (12/31/2023)","table_2024":"Table J3. Unpaid Accounts 60\u201390 Days Overdue (12/31/2024)"}},{"section":"J","number":4,"id":"J4","title_2024":"Table J4. Unpaid Residential Accounts That Were 90 Or More Days Overdue as of 12/31/202488  |  Main  |  PDF page 54","title_2023":"Table J4. 2024 Unpaid Residential Accounts That Are 90 Or More Days Overdue as of 12/31/2023  |  Main  |  PDF page 47","data_2024":[[null,"Total Accounts","% of Accounts","Total Amount","% of Amount"],["Total in DAC",264398,0.65,563924629,0.66],["Total in Non-DAC",144161,0.35,292120672,0.34]],"data_2023":[["Category","Total Accounts","% of Accounts","Total Amount ($)","% of Amount"],["Total in DAC",179249,0.63,302122726.3,0.66],["Total in Non-DAC",107055,0.37,157680308.42,0.34]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table J4. Unpaid Accounts 90+ Days Overdue (12/31/2023)","table_2024":"Table J4. Unpaid Accounts 90+ Days Overdue (12/31/2024)"}},{"section":"J","number":5,"id":"J5","title_2024":"Table J5. Residential Service Disconnects and Restorations \u2013 202489  |  Main  |  PDF page 54","title_2023":"Table J5. 2023 Residential Service Disconnects and Restorations \u2013 April-December 2023  |  Main  |  PDF page 47","data_2024":[["Number of residential service","Total in DAC","DAC % of Total","Total in Non-DAC","Non-DAC % of Total"],["Number of residential service disconnections for non-payment",17869,0.6,12076,0.4],["Number of residential service restorations due to payment",13481,0.59,9544,0.41]],"data_2023":[["Metric","Total in DAC","DAC % of Total","Total in Non-DAC","Non-DAC % of Total"],["Number of residential service disconnections for non-payment",30756,0.54,26458,0.46],["Number of residential service restorations due to payment",26707,0.54,23041,0.46]],"mapping":{"status":"SAME","comparable":"Qualitatively yes; quantitatively requires adjustment.","notes":"","table_2023":"Table J5. Disconnects and Restorations (April\u2013December 2023)","table_2024":"Table J5. Disconnects and Restorations \u2013 2024"}},{"section":"J","number":6,"id":"J6","title_2024":"Table J6. Residential Customers with DPAs as of 12/31/202490  |  Main  |  PDF page 54","title_2023":"Table J6.2023  Residential Customers With DPAs as of 12/31/2023  |  Main  |  PDF page 47","data_2024":[[null,"Total Accounts","% of Accounts","Total Amount","% of Amount"],["Total in DAC",121203,0.6,139350179,0.59],["Total in Non-DAC",81767,0.4,97352921,0.41]],"data_2023":[["Category","Total Accounts","% of Accounts","Total Amount ($)","% of Amount"],["Total in DAC",95627,0.61,126681405.76,0.56],["Total in Non-DAC",61406,0.39,100223119.9,0.44]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table J6. Customers with DPAs (12/31/2023)","table_2024":"Table J6. Customers with DPAs (12/31/2024)"}},{"section":"J","number":7,"id":"J7","title_2024":"Table J7. Number of Customers Enrolled in the Energy Affordability Program as of 12/31/202491  |  Main  |  PDF page 54","title_2023":"Table J7. 2023Number of Customers Enrolled in the Energy Affordability Program as of 12/31/2023  |  Main  |  PDF page 48","data_2024":[[null,"Electric-only","Gas-only","Dual Service","% of Accounts"],["Total in DAC",193281,1304,101784,0.66],["Total in Non-DAC",127593,577,25299,0.34]],"data_2023":[["Category","Electric-only","Gas-only","Dual Service","% of Accounts"],["Total in DAC",201727,1260,114965,0.66],["Total in Non-DAC",134567,722,27764,0.34]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table J7. Customers Enrolled in EAP (12/31/2023)","table_2024":"Table J7. Customers Enrolled in EAP (12/31/2024)"}},{"section":"J","number":8,"id":"J8","title_2024":"Table J8. Amount Expended for EAP Discounts \u2013 202492  |  Main  |  PDF page 55","title_2023":"Table J8. Amount Expended for EAP Discounts \u2013 April-December 2023  |  Main  |  PDF page 48","data_2024":[[null,"Electric","Gas","% of Total"],["Total in DAC",162532290,28964404,0.62],["Total in Non-DAC",95845105,22786170,0.38]],"data_2023":[["Category","Electric ($)","Gas ($)","% of Amount"],["Total in DAC",109754510.35,21993626.6,0.66],["Total in Non-DAC",55712765.65,13525084.95,0.34]],"mapping":{"status":"SAME","comparable":"Qualitatively yes; quantitatively requires annualization.","notes":"","table_2023":"Table J8. Amount Expended for EAP Discounts (April\u2013December 2023)","table_2024":"Table J8. Amount Expended for EAP Discounts \u2013 2024"}},{"section":"J","number":9,"id":"J9","title_2024":"Table J9. Total Residential Customers as of 12/31/202493  |  Main  |  PDF page 55","title_2023":"Table J9. Total Residential Customers as of 12/31/2023  |  Main  |  PDF page 48","data_2024":[["Total Number of","Total in DAC","DAC % of Total","Total in Non-DAC","Non-DAC % of Total"],["Residential Customers",1363212,0.43,1772946,0.57]],"data_2023":[["Category","Total in DAC","DAC % of Total","Total in Non-DAC","Non-DAC % of Total"],["Total Number of Residential Customers",1344495,0.43,1760050,0.57]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table J9. Total Residential Customers (12/31/2023)","table_2024":"Table J9. Total Residential Customers (12/31/2024)"}}],"reported_kpis":[{"id":"residential_customers","label":"Total Residential Customers Served","section":"J","y2024":{"total":3136158.0,"dac":1363212.0,"dac_pct":0.43467580396140754},"y2023":{"total":3104545.0,"dac":1344495.0,"dac_pct":0.4330731234367677},"unit":"customers","primary_metric":"total","format":"int","narrative":"Total residential customers on the system at year-end. DAC share is the latent demographic baseline against which all program reach should be benchmarked."}],"analytical_kpis":[{"id":"eap_per_customer","label":"EAP Discount per DAC Customer","section":"J","y2024":{"value":646.1427949616863},"y2023":{"value":414.36486309254224},"format":"currency_decimal","narrative":"Average annual EAP (Energy Affordability Program) discount dollars delivered per enrolled customer in disadvantaged communities. Notes: 2023 figure is from a partial year (Apr\u2013Dec) and is not directly comparable.","source_calc":"(J8 DAC electric + gas $) \u00f7 (J7 DAC electric + gas + dual enrollees)","caveat_2023":"PARTIAL YEAR"}],"charts":{"J1_avg_usage":{"2024":{"dac":353.2,"nondac":417.1},"2023":{"dac":337.75,"nondac":406.56}},"J2_avg_gas":{"2024":{"dac":56.2,"nondac":95.3},"2023":{"dac":49.4,"nondac":62.36}}}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

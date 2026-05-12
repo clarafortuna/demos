@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — I. Clean Energy Jobs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <!-- LOGO PLACEHOLDER · Replace this entire <div class="sidebar-brand-logo">…</div> with: <div class="sidebar-brand-logo"><img src="conedison-logo.jpg" alt="Con Edison"></div> -->
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Reporting Year 2024</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a><a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a><a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a><a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a><a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a><a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a><a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a><a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a><a class="nav-item active" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a><a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a></nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>2024 vs 2023</div>
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <!-- Compact logo for top bar (also visible in printed PDF when sidebar is hidden) -->
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>I. Clean Energy Jobs</span>
+  </div>
+  <div class="topbar-actions">
+    <span class="year-label">Reporting Year</span>
+    <select id="year-select" class="year-select" aria-label="Reporting year">
+      <option value="2024" selected>2024</option>
+      <option value="2023">2023</option>
+    </select>
+    <button class="btn" id="btn-export" title="Export this page as PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export PDF
+    </button>
+  </div>
+</header>
+<main class="content">
+
+<div class="section-overview">
+  <div class="section-overview-icon">I</div>
+  <div class="section-overview-text">
+    <h2>Clean Energy Jobs</h2>
+    <p>Clean Energy Academy enrollment, graduation, and job placements. Table I1.</p>
+  </div>
+  <dl class="section-overview-stats" id="section-stats"></dl>
+</div>
+
+
+<div class="section-divider"><span class="icon"></span> Visual Analytics <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="charts-container"></div>
+
+<div class="section-divider"><span class="icon"></span> Source Tables <span class="icon" style="background:var(--dusk)"></span></div>
+<div id="tables-container"></div>
+
+</main>
+</div>
+<script id="payload" type="application/json">{"letter":"I","section_name":"Clean Energy Jobs","blurb":"Clean Energy Academy enrollment, graduation, and job placements. Table I1.","tables":[{"section":"I","number":1,"id":"I1","title_2024":"Table I1. 2024 Year Totals  |  Main  |  PDF page 47, 48","title_2023":"Table I1. 2023 Year Totals  |  Main  |  PDF page 42","data_2024":[[null,"Unique","Unique Non-Unique"],["Type of clean energy workforce development program if other than the Clean Energy Academy","The Academy is the only clean energy workforce development program the Company operated in 2024","The Academy is the only clean energy workforce development program the Company operated in 2024"],["Number of programs the Company offers or participates in if other than the Clean Energy Academy and details on the program","N/A","N/A"],["Location of [the Academy]","Online; Zoom","Online; Zoom"],["Number of students enrolled in [the Academy] ",390,435],["Number of students that graduate from [the Academy]",290,321],["Number of jobs placed as a result of [the Academy] ",87,89],["Number of graduate students from [the Academy] the Company has hired, and the type of jobs at Con Edison for which they were hired","1; Senior Specialist Customer Energy Solutions","1; Senior Specialist Customer Energy Solutions"],["Whether or not the Con Edison jobs and hires from the [the Academy] are in the clean energy field","No: 0","No: 0"],["Total number of hires at Con Edison from [the Academy] who resided in a disadvantaged community at the time of enrollment in the program",0,0]],"data_2023":[["Metric","Unique","Non-Unique"],["Type of clean energy workforce development program if other than the Clean Energy Academy","The Academy is the only clean energy workforce development program the Company operated in 2023.","The Academy is the only clean energy workforce development program the Company operated in 2023."],["Number of programs the Company offers or participates in if other than the Clean Energy Academy and details on the program","N/A","N/A"],["Location of [the Academy]","Online; Zoom","Online; Zoom"],["Number of students enrolled in [the Academy]",502,792],["Number of students that graduate from [the Academy]",285,370],["Number of jobs placed as a result of [the Academy]",43,46],["Number of graduate students from [the Academy] the Company has hired, and the type of jobs at Con Edison for which they were hired","1; Senior Specialist Customer Energy Solutions","1; Senior Specialist Customer Energy Solutions"],["Whether or not the Con Edison jobs and hires from [the Academy] are in the clean energy field","Yes; 1","Yes; 1"],["Total number of hires at Con Edison from [the Academy] who resided in a disadvantaged community at the time of enrollment in the program",1,1]],"mapping":{"status":"SAME","comparable":"Yes.","notes":"","table_2023":"Table I1. 2023 Year Totals","table_2024":"Table I1. 2024 Year Totals"}}],"reported_kpis":[{"id":"clean_energy_jobs","label":"Clean Energy Academy Job Placements","section":"I","y2024":{"total":87.0,"dac":null,"dac_pct":null},"y2023":{"total":43.0,"dac":null,"dac_pct":null},"unit":"placements","primary_metric":"total","format":"int","narrative":"Job placements resulting from Con Edison's Clean Energy Academy workforce-development program (unique count)."}],"analytical_kpis":[],"charts":{}}</script>
+<script src="shared.js"></script>
+<script src="section_page.js"></script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · DAC Report — Data Ingestion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-logo">
+      <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+    </div>
+    <div class="sidebar-brand-mark">DAC Annual Report</div>
+    <div class="sidebar-brand-sub">Multi-year ingestion</div>
+  </div>
+  <div class="sidebar-section">Overview</div>
+  <nav class="sidebar-nav"><a class="nav-item" href="index.html"><span class="nav-letter">⌂</span> Executive Summary</a></nav>
+  <div class="sidebar-section">Reporting Areas</div>
+  <nav class="sidebar-nav">
+    <a class="nav-item" href="section_A.html"><span class="nav-letter">A</span> Clean Energy Spending</a>
+    <a class="nav-item" href="section_B.html"><span class="nav-letter">B</span> EV Make-Ready Program</a>
+    <a class="nav-item" href="section_C.html"><span class="nav-letter">C</span> Demand Response</a>
+    <a class="nav-item" href="section_D.html"><span class="nav-letter">D</span> Distributed Energy Resources</a>
+    <a class="nav-item" href="section_E.html"><span class="nav-letter">E</span> Strategic Capital Investments</a>
+    <a class="nav-item" href="section_F.html"><span class="nav-letter">F</span> Customer Outages</a>
+    <a class="nav-item" href="section_G.html"><span class="nav-letter">G</span> Main Replacement Program</a>
+    <a class="nav-item" href="section_H.html"><span class="nav-letter">H</span> Leak Repairs</a>
+    <a class="nav-item" href="section_I.html"><span class="nav-letter">I</span> Clean Energy Jobs</a>
+    <a class="nav-item" href="section_J.html"><span class="nav-letter">J</span> Customer Operations</a>
+  </nav>
+  <div class="sidebar-section">Data</div>
+  <nav class="sidebar-nav"><a class="nav-item active" href="data_ingestion.html"><span class="nav-letter">↓</span> Data Ingestion</a></nav>
+  <div class="sidebar-foot">
+    <div>10 areas · 55 tables</div>
+  </div>
+</aside>
+<header class="topbar">
+  <div class="topbar-title">
+    <span class="topbar-logo" aria-hidden="true">
+      <svg viewBox="0 0 28 28" width="22" height="22" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="28" height="28" rx="5" fill="#1E96FC"/>
+        <rect x="6" y="6" width="16" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="12.75" width="11" height="2.5" fill="#FFFFFF"/>
+        <rect x="6" y="19.5" width="16" height="2.5" fill="#FFFFFF"/>
+        <circle cx="24.5" cy="6" r="2" fill="#FFFFFF"/>
+      </svg>
+    </span>
+    <span class="crumb">DAC Report</span>
+    <span class="crumb-sep">/</span>
+    <span>Data Ingestion</span>
+  </div>
+</header>
+<main class="content">
+
+<div class="page-header">
+  <div>
+    <h1>Data Ingestion</h1>
+    <p class="page-sub">Add or update the data behind your dashboard. Pick a section, choose a year, and edit any table. Your changes show up in the dashboard automatically.</p>
+  </div>
+</div>
+
+<!-- Section picker (A through J) -->
+<div class="ingest-section-picker" id="ingest-section-picker">
+  <button class="ingest-sec-btn active" data-letter="A"><span class="ingest-sec-btn-letter">A</span><span class="ingest-sec-btn-name">Clean Energy</span></button>
+  <button class="ingest-sec-btn" data-letter="B"><span class="ingest-sec-btn-letter">B</span><span class="ingest-sec-btn-name">EV Make-Ready</span></button>
+  <button class="ingest-sec-btn" data-letter="C"><span class="ingest-sec-btn-letter">C</span><span class="ingest-sec-btn-name">Demand Response</span></button>
+  <button class="ingest-sec-btn" data-letter="D"><span class="ingest-sec-btn-letter">D</span><span class="ingest-sec-btn-name">DER</span></button>
+  <button class="ingest-sec-btn" data-letter="E"><span class="ingest-sec-btn-letter">E</span><span class="ingest-sec-btn-name">Strategic Cap</span></button>
+  <button class="ingest-sec-btn" data-letter="F"><span class="ingest-sec-btn-letter">F</span><span class="ingest-sec-btn-name">Outages</span></button>
+  <button class="ingest-sec-btn" data-letter="G"><span class="ingest-sec-btn-letter">G</span><span class="ingest-sec-btn-name">Main Replace</span></button>
+  <button class="ingest-sec-btn" data-letter="H"><span class="ingest-sec-btn-letter">H</span><span class="ingest-sec-btn-name">Leak Repairs</span></button>
+  <button class="ingest-sec-btn" data-letter="I"><span class="ingest-sec-btn-letter">I</span><span class="ingest-sec-btn-name">Jobs</span></button>
+  <button class="ingest-sec-btn" data-letter="J"><span class="ingest-sec-btn-letter">J</span><span class="ingest-sec-btn-name">Cust Ops</span></button>
+</div>
+
+<!-- Toolbar: Year + Table dropdowns + Add Year -->
+<div class="ingest-toolbar">
+  <div class="ingest-toolbar-field">
+    <label class="ingest-toolbar-label">Reporting Year</label>
+    <select id="ingest-year-select" class="ingest-toolbar-select"></select>
+  </div>
+  <div class="ingest-toolbar-field">
+    <label class="ingest-toolbar-label">Table</label>
+    <select id="ingest-table-select" class="ingest-toolbar-select"></select>
+  </div>
+  <div class="ingest-toolbar-spacer"></div>
+  <button class="btn-secondary" id="btn-add-year">+ Add new year</button>
+  <button class="btn-secondary danger-on-hover" id="btn-delete-year" title="Delete all data for this year">Delete year…</button>
+</div>
+
+<!-- Source-table editor area -->
+<div id="ingest-editor-area"></div>
+
+</main>
+</div>
+
+<!-- Modal: Add new year -->
+<div id="add-year-modal" class="ingest-modal" hidden>
+  <div class="ingest-modal-content">
+    <h3>Add new reporting year</h3>
+    <p class="ingest-modal-sub">A new year will be created. Programs and measures from the most recent year will be copied as a template; values will be empty so you can fill them in. You can delete rows you don't need.</p>
+    <div class="ingest-modal-field">
+      <label>Year (4 digits)</label>
+      <input type="number" id="add-year-input" placeholder="2025" min="2000" max="2099">
+    </div>
+    <div class="ingest-modal-actions">
+      <button class="btn-cancel" id="add-year-cancel">Cancel</button>
+      <button class="btn" id="add-year-confirm">Create year</button>
+    </div>
+  </div>
+</div>
+
+<script src="data_ingestion_page.js"></script>
+</body>
+</html>
