@@ -29,14 +29,25 @@
       document.getElementById('dac-pwd').focus();
     }
   }
-  if(sessionStorage.getItem('dac_auth')!=='1'){
-    document.addEventListener('DOMContentLoaded',showOverlay);
-  }
-})();
-</script>
 </head>
 <body>
-<div class="app">
+
+<!-- ══ PASSWORD OVERLAY ══ -->
+<div id="lock-overlay">
+  <div class="lock-card">
+    <div class="lock-logo">Con Edison</div>
+    <div class="lock-title">DAC Annual<br>Report</div>
+    <div class="lock-sub">Restricted access — enter password to continue</div>
+    <div class="lock-input-wrap">
+      <input class="lock-input" id="pwd-input" type="password" placeholder="Enter password" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
+    </div>
+    <div class="lock-error" id="pwd-error"></div>
+    <button class="lock-btn" onclick="checkPassword()">Access Report</button>
+    <div class="lock-hint">Con Edison · CLCPA · 2024</div>
+  </div>
+</div>
+
+<div id="portal" class="app">
 <aside class="sidebar">
   <div class="sidebar-brand">
     <div class="sidebar-brand-logo">

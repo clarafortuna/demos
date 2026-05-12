@@ -1,3 +1,48 @@
+// ── AUTH ──
+(function(){
+  var SESSION_KEY = 'dac_report_auth';
+
+  window.checkPassword = function() {
+    var input = document.getElementById('pwd-input');
+    var val = input.value.trim();
+    if (val === 'dacdemo') {
+      sessionStorage.setItem(SESSION_KEY, '1');
+      window.unlockPortal();
+    } else {
+      input.classList.add('error');
+      document.getElementById('pwd-error').textContent = 'Incorrect password. Try again.';
+      input.value = '';
+      setTimeout(function(){ input.classList.remove('error'); }, 400);
+    }
+  };
+
+  window.unlockPortal = function() {
+    var overlay = document.getElementById('lock-overlay');
+    var portal  = document.getElementById('portal');
+    if (overlay) overlay.classList.add('hidden');
+    if (portal)  portal.classList.add('visible');
+  };
+
+  window.lockPortal = function() {
+    sessionStorage.removeItem(SESSION_KEY);
+    var overlay = document.getElementById('lock-overlay');
+    var portal  = document.getElementById('portal');
+    if (overlay) overlay.classList.remove('hidden');
+    if (portal)  portal.classList.remove('visible');
+    var input = document.getElementById('pwd-input');
+    if (input) { input.value = ''; input.focus(); }
+    var err = document.getElementById('pwd-error');
+    if (err) err.textContent = '';
+  };
+
+  if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    window.unlockPortal();
+  } else {
+    var input = document.getElementById('pwd-input');
+    if (input) input.focus();
+  }
+})();
+
 // ==========================================================================
 // shared.js — Chart primitives, formatters, and table renderers
 // Used by: index.html (Executive Summary) and section_A.html ... section_J.html
