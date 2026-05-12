@@ -18,17 +18,13 @@
 
   window.unlockPortal = function() {
     var overlay = document.getElementById('lock-overlay');
-    var portal  = document.getElementById('portal');
     if (overlay) overlay.classList.add('hidden');
-    if (portal)  portal.classList.add('visible');
   };
 
   window.lockPortal = function() {
     sessionStorage.removeItem(SESSION_KEY);
     var overlay = document.getElementById('lock-overlay');
-    var portal  = document.getElementById('portal');
     if (overlay) overlay.classList.remove('hidden');
-    if (portal)  portal.classList.remove('visible');
     var input = document.getElementById('pwd-input');
     if (input) { input.value = ''; input.focus(); }
     var err = document.getElementById('pwd-error');
