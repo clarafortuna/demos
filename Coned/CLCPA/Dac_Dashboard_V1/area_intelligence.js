@@ -580,29 +580,7 @@
       // }
       // },
       {
-        tag:    'Incentive Growth',
-        hero:   fmtM(yr.dac),
-        heroSub: 'DAC incentive $',
-        delta:  incGrow !== null ? '↑ +' + incGrow + '%' : null,
-        deltaSub: 'YoY',
-        detail: yr.prevDac ? fmtM(yr.prevDac) + ' → ' + fmtM(yr.dac) : fmtM(yr.dac) + ' total DAC',
-        link:   'section_A.html',
-        tooltip: {
-          title: 'Incentive Growth · Incentive Dollars Spent',
-          rows: [
-            { label: 'Source', value: 'Section A · Clean Energy' },
-            { label: 'Metric', value: 'DAC incentive $ paid' },
-            { label: (parseInt(state.year) - 1).toString(), value: yr.prevDac ? fmtM(yr.prevDac) : 'n/a' },
-            { label: state.year, value: fmtM(yr.dac) },
-            { label: 'YoY change', value: incGrow !== null ? '+' + incGrow + '%' : '—' },
-            { label: 'DAC share', value: yr.dacPct.toFixed(1) + '%' }
-            
-          ],
-          note: 'Total dollars disbursed as DAC incentives across all Clean Energy programs. From Section A · Table A1 totals.'
-        }
-      },
-      {
-        tag:    'Strategic Capital',
+        tag:    'Strategic Capital Investments',
         hero:   fmtBig(eDacTotal),
         heroSub: 'DAC-exposed $',
         delta:  eDacGrow !== null ? (eDacGrow >= 0 ? '↑ +' : '↓ ') + eDacGrow + '%' : eDacPct + '%',
@@ -627,7 +605,29 @@
         }
       },
       {
-        tag:    'Past-Due 90+ days',
+        tag:    'Clean Energy Incentive Spend',
+        hero:   fmtM(yr.dac),
+        heroSub: 'DAC incentive $',
+        delta:  incGrow !== null ? '↑ +' + incGrow + '%' : null,
+        deltaSub: 'YoY',
+        detail: yr.prevDac ? fmtM(yr.prevDac) + ' → ' + fmtM(yr.dac) : fmtM(yr.dac) + ' total DAC',
+        link:   'section_A.html',
+        tooltip: {
+          title: 'Incentive Growth · Incentive Dollars Spent',
+          rows: [
+            { label: 'Source', value: 'Section A · Clean Energy' },
+            { label: 'Metric', value: 'DAC incentive $ paid' },
+            { label: (parseInt(state.year) - 1).toString(), value: yr.prevDac ? fmtM(yr.prevDac) : 'n/a' },
+            { label: state.year, value: fmtM(yr.dac) },
+            { label: 'YoY change', value: incGrow !== null ? '+' + incGrow + '%' : '—' },
+            { label: 'DAC share', value: yr.dacPct.toFixed(1) + '%' }
+            
+          ],
+          note: 'Total dollars disbursed as DAC incentives across all Clean Energy programs. From Section A · Table A1 totals.'
+        }
+      },
+      {
+        tag:    'Customer Arrears (90+ days past due)',
         hero:   j4Curr ? fmtBig(j4DacAmt) : '—',
         heroSub: 'DAC unpaid $',
         delta:  j4Grow !== null ? (j4Grow >= 0 ? '↑ +' : '↓ ') + j4Grow + '%' : (j4DacPct + '%'),
