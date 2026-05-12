@@ -28,7 +28,7 @@
     var input = document.getElementById('pwd-input');
     if (input) { input.value = ''; input.focus(); }
     var err = document.getElementById('pwd-error');
-    if (err) err.textContent = '';
+    if (err) { err.textContent = ''; err.style.display = 'none'; }
   };
 
   if (sessionStorage.getItem(SESSION_KEY) === '1') {
