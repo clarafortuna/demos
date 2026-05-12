@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sustainability by Design — Schema Modernization Concept</title>
+  <title>Sustainability by Design: Schema Modernization Concept</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -974,9 +974,102 @@
       padding-top: 1.4rem;
       border-top: 1px solid rgba(255,255,255,.07);
     }
-  </style>
+  
+    /* ════════════════════════════════
+       PASSWORD GATE
+    ════════════════════════════════ */
+    body.pw-locked { overflow: hidden; }
+    #pw-overlay {
+      position: fixed; inset: 0; z-index: 999999;
+      display: flex; align-items: center; justify-content: center; padding: 24px;
+      background: linear-gradient(-45deg, #0D4A3C, #0f5a4a, #134E4A, #0a3528, #2A9D8F, #0D4A3C);
+      background-size: 400% 400%;
+      animation: pwGradFlow 16s ease infinite;
+    }
+    @keyframes pwGradFlow {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    #pw-overlay::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 52px 52px;
+      pointer-events: none;
+    }
+    #pw-overlay::after {
+      content: '';
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(42,157,143,.18) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(42,157,143,.12) 0%, transparent 45%);
+      pointer-events: none;
+    }
+    #pw-card {
+      position: relative; z-index: 1;
+      width: min(420px, 92vw);
+      background: rgba(255,255,255,.97);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 20px;
+      box-shadow: 0 28px 90px rgba(0,0,0,.4), 0 2px 10px rgba(0,0,0,.15);
+      padding: 2rem 2rem 1.75rem;
+    }
+    .pw-logo { display: flex; align-items: center; gap: .7rem; margin-bottom: 1.6rem; }
+    .pw-logo-dot {
+      width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+      background: linear-gradient(135deg, #0D4A3C 0%, #2A9D8F 100%);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pw-logo-text { font-size: .75rem; font-weight: 500; color: #64748B; line-height: 1.4; }
+    .pw-logo-text strong { display: block; font-size: .88rem; font-weight: 700; color: #0D4A3C; letter-spacing: -0.01em; }
+    #pw-card h2 { font-size: 1.15rem; font-weight: 700; color: #1E293B; margin-bottom: .4rem; letter-spacing: -0.01em; }
+    #pw-card > p { font-size: .84rem; color: #64748B; margin-bottom: 1.25rem; line-height: 1.65; }
+    #pw-row { display: flex; gap: .6rem; align-items: stretch; }
+    #pw-input {
+      flex: 1; border: 1.5px solid #E2E8F0; border-radius: 10px;
+      padding: .72rem .9rem; font-size: .9rem; font-family: "Inter",system-ui,sans-serif;
+      outline: none; background: #fff;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    #pw-input:focus { border-color: #2A9D8F; box-shadow: 0 0 0 3px rgba(42,157,143,.15); }
+    #pw-btn {
+      border: none; border-radius: 10px; padding: 0 1.3rem;
+      background: #0D4A3C; color: #fff; font-weight: 600; font-size: .9rem;
+      font-family: "Inter",system-ui,sans-serif; cursor: pointer;
+      white-space: nowrap; transition: background .15s;
+    }
+    #pw-btn:hover { background: #0a3d31; }
+    #pw-error { margin-top: .65rem; color: #B91C1C; font-size: .8rem; font-weight: 600; display: none; }
+    #pw-footer {
+      margin-top: 1.3rem; padding-top: 1rem; border-top: 1px solid #E2E8F0;
+      font-size: .73rem; color: #94A3B8; line-height: 1.5;
+    }
+</style>
 </head>
 <body>
+<!-- ════════════ PASSWORD GATE ════════════ -->
+<div id="pw-overlay" aria-label="Password protection" role="dialog" aria-modal="true" aria-labelledby="pw-title">
+  <div id="pw-card">
+    <div class="pw-logo">
+      <div class="pw-logo-dot" aria-hidden="true">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="1.75" aria-hidden="true"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      </div>
+      <div class="pw-logo-text"><strong>Clara Fortuna</strong>Sustainability by Design</div>
+    </div>
+    <h2 id="pw-title">This page is protected</h2>
+    <p>Enter the password to access the schema modernization concept.</p>
+    <div id="pw-row">
+      <input id="pw-input" type="password" autocomplete="current-password" placeholder="Enter password" />
+      <button id="pw-btn" type="button">Unlock</button>
+    </div>
+    <div id="pw-error" role="alert">Incorrect password. Please try again.</div>
+    <div id="pw-footer">For internal review only. Clara Fortuna · AI Lab.</div>
+  </div>
+</div>
+
 
 <a href="#main" class="skip">Skip to main content</a>
 
@@ -1001,10 +1094,10 @@
   <div class="wrap hero-inner">
     <div class="hero-badge">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
-      For discussion — schema direction
+      For discussion, schema direction
     </div>
     <h1>Sustainability by Design<br>Schema Modernization Concept</h1>
-    <p class="hero-sub">Based on the migration work we've done, there's a structural change worth discussing. This is a proposal for how screening questions could be organized going forward — not a cut-over plan.</p>
+    <p class="hero-sub">Based on the migration work we've done, there's a structural change worth discussing. This is a proposal for how screening questions could be organized going forward, not a cut-over plan.</p>
 
     <div class="stat-row">
       <div class="stat">
@@ -1059,7 +1152,7 @@
     </div>
 
     <div class="fade">
-      <p style="font-size:.83rem;color:#64748B;margin-bottom:.6rem;font-weight:500;">Current <em>Project Threshold Screening</em> table — columns at a glance:</p>
+      <p style="font-size:.83rem;color:#64748B;margin-bottom:.6rem;font-weight:500;">Current <em>Project Threshold Screening</em> table, columns at a glance:</p>
       <div class="chips" role="list" aria-label="Database columns on Project Threshold Screening">
         <span class="chip core" role="listitem">cf_projectscreeningid</span>
         <span class="chip core" role="listitem">cf_projectnumber</span>
@@ -1130,7 +1223,7 @@
     </div>
 
     <div class="insight-box fade">
-      <p class="pre">Three examples from the migration mapping — what the question says vs. where it's stored:</p>
+      <p class="pre">Three examples from the migration mapping, what the question says vs. where it's stored:</p>
 
       <div class="map-row">
         <span class="map-q">"Is the project likely to take place within 100 feet of wetlands or open waters?"</span>
@@ -1149,7 +1242,7 @@
       </div>
 
       <p class="insight-note">
-        <strong>The proposed model does away with the shadow document.</strong> The question text, its code, and its metadata become actual data — a row you can edit, not a column name you have to release.
+        <strong>The proposed model does away with the shadow document.</strong> The question text, its code, and its metadata become actual data, a row you can edit, not a column name you have to release.
       </p>
     </div>
   </div>
@@ -1162,7 +1255,7 @@
       <span class="eyebrow">The proposed direction</span>
       <h2>What the New Structure Looks Like</h2>
       <div class="divider"></div>
-      <p class="lead">Instead of 40 question columns packed onto one table, there are a handful of focused tables. The project record stays lean. Questions and answers each live where they belong — and the relationship between them is explicit.</p>
+      <p class="lead">Instead of 40 question columns packed onto one table, there are a handful of focused tables. The project record stays lean. Questions and answers each live where they belong, and the relationship between them is explicit.</p>
     </div>
 
     <!-- Schema contrast -->
@@ -1245,7 +1338,7 @@
         <span class="erd-leg-item"><span class="erd-leg-dot" style="background:#EDE9FE;border:1.5px solid #DDD6FE;"></span>Strategy</span>
         <span class="erd-leg-item"><span class="erd-leg-dot" style="background:#FFF1F2;border:1.5px solid #FECDD3;"></span>Strategy mapping</span>
       </div>
-      <p class="erd-caption">Arrows show 1:N relationships. Screening Question is the central node — everything else connects through it.</p>
+      <p class="erd-caption">Arrows show 1:N relationships. Screening Question is the central node, everything else connects through it.</p>
     </div>
 
     <!-- Entity cards -->
@@ -1253,7 +1346,7 @@
       <div class="ecard fade">
         <span class="ecard-badge badge-project">Project</span>
         <div class="ecard-name">Sustainability Project</div>
-        <div class="ecard-purpose">One row per project. Holds identity — name, number, owner. No questionnaire data.</div>
+        <div class="ecard-purpose">One row per project. Holds identity, name, number, owner. No questionnaire data.</div>
         <div class="ecard-fields">
           <div class="ecard-fields-label">Key fields</div>
           <div class="efields-list">
@@ -1336,7 +1429,7 @@
       <div class="ecard fade">
         <span class="ecard-badge badge-strategy">Strategy</span>
         <div class="ecard-name">Strategy Mapping</div>
-        <div class="ecard-purpose">Strategy activation rules that reference questions by code — not by column name.</div>
+        <div class="ecard-purpose">Strategy activation rules that reference questions by code, not by column name.</div>
         <div class="ecard-fields">
           <div class="ecard-fields-label">Key fields</div>
           <div class="efields-list">
@@ -1358,7 +1451,7 @@
 
     <!-- Sample data table -->
     <div class="fade">
-      <h3 style="color:var(--green);margin-bottom:.65rem;font-size:.97rem;">What the data actually looks like — five questions as rows</h3>
+      <h3 style="color:var(--green);margin-bottom:.65rem;font-size:.97rem;">What the data actually looks like, five questions as rows</h3>
       <div class="dt-wrap">
         <table class="dt" aria-label="Sample screening questions as rows in the proposed model">
           <thead>
@@ -1441,7 +1534,7 @@
           <tr>
             <td>Question wording</td>
             <td class="bad">Lives in app labels and a separate mapping doc; the column name is anonymous</td>
-            <td class="good">Lives on the Question row — one place to read and update it</td>
+            <td class="good">Lives on the Question row, one place to read and update it</td>
           </tr>
           <tr>
             <td>Strategy mapping</td>
@@ -1460,7 +1553,7 @@
           </tr>
           <tr>
             <td>End-user experience</td>
-            <td class="good">Same — open project, answer screening, see roadmap</td>
+            <td class="good">Same, open project, answer screening, see roadmap</td>
             <td class="good">Same, with room for richer UI as the catalog grows</td>
           </tr>
         </tbody>
@@ -1491,7 +1584,7 @@
           <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg> Updating the questionnaire is a data operation, not a release</li>
           <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg> Strategy rules reference questions by name, not by column</li>
           <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg> Reporting on answers is a simple filter on one table</li>
-          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg> Question text lives with the question — one place to update it</li>
+          <li><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg> Question text lives with the question, one place to update it</li>
         </ul>
       </div>
     </div>
@@ -1599,7 +1692,7 @@
       <span class="eyebrow">Walk through it</span>
       <h2>What "Add a Question" Actually Looks Like</h2>
       <div class="divider"></div>
-      <p class="lead">Say policy needs a new question: "Does this project include battery storage?" Here's what that looks like under the proposed model — from request to live question, without a schema change.</p>
+      <p class="lead">Say policy needs a new question: "Does this project include battery storage?" Here's what that looks like under the proposed model, from request to live question, without a schema change.</p>
     </div>
 
     <div class="steps">
@@ -1707,7 +1800,7 @@
           <h3>Users &amp; Stakeholders</h3>
         </div>
         <ul class="bul">
-          <li>Same journey — open a project, answer the screening, see the roadmap</li>
+          <li>Same journey, open a project, answer the screening, see the roadmap</li>
           <li>Help text, question wording, and ordering are editable without a release</li>
           <li>Question groupings and categories can evolve as the program does</li>
           <li>Responses are traceable to a specific question, which helps with audits</li>
@@ -1737,10 +1830,10 @@
           <h3>Platform &amp; Technology</h3>
         </div>
         <ul class="bul">
-          <li>The project table carries project data — full stop</li>
+          <li>The project table carries project data, full stop</li>
           <li>Reporting on answers is a filter, not a 40-column join</li>
           <li>Integrations and reports can reference question codes that don't change</li>
-          <li>One screen pattern handles all questions — far less custom formula logic</li>
+          <li>One screen pattern handles all questions, far less custom formula logic</li>
         </ul>
       </div>
     </div>
@@ -1764,11 +1857,11 @@
       </div>
       <div class="risk">
         <h3>The admin experience matters</h3>
-        <p>If the question catalog is difficult to maintain, it won't get maintained. A usable editing experience — even a basic one — isn't optional.</p>
+        <p>If the question catalog is difficult to maintain, it won't get maintained. A usable editing experience, even a basic one, isn't optional.</p>
       </div>
       <div class="risk">
         <h3>More rows means more attention to queries</h3>
-        <p>A response table with many rows needs thoughtful indexing. Standard Dataverse design practice — not a blocker, but not free either.</p>
+        <p>A response table with many rows needs thoughtful indexing. Standard Dataverse design practice, not a blocker, but not free either.</p>
       </div>
       <div class="risk">
         <h3>Some complexity stays in code</h3>
@@ -1785,7 +1878,7 @@
       <span class="eyebrow">Path forward</span>
       <h2>Concept → Alignment → Phase 2</h2>
       <div class="divider"></div>
-      <p class="lead">Nothing here blocks the work already underway. The intent is to start a conversation about direction — and decide together whether a pilot makes sense.</p>
+      <p class="lead">Nothing here blocks the work already underway. The intent is to start a conversation about direction, and decide together whether a pilot makes sense.</p>
     </div>
 
     <div class="tl fade" role="list" aria-label="Three-phase path forward">
@@ -1836,7 +1929,7 @@
       <strong>For discussion, not commitment.</strong> This deck presents a proposed direction for how the screening model could evolve. It is not a plan for immediate production changes and does not affect the work already underway. Any move toward the proposed structure would be planned separately, with appropriate alignment and phasing. Grounded in Dataverse migration work on the Sustainability by Design solution.
     </div>
     <div class="foot-btm">
-      <div>Sustainability by Design — Schema Modernization Concept</div>
+      <div>Sustainability by Design: Schema Modernization Concept</div>
       <div>Clara Fortuna &nbsp;·&nbsp; For discussion with Manny &amp; Tom</div>
     </div>
   </div>
@@ -1858,5 +1951,34 @@
     els.forEach(function (el) { obs.observe(el); });
   }());
 </script>
-</body>
+
+<script>
+(function(){
+  var REQUIRED="sustainabilityschema", KEY="sustain_schema_pw_ok";
+  function qs(id){ return document.getElementById(id); }
+  function unlock(){
+    try{ sessionStorage.setItem(KEY,"1"); }catch(e){}
+    var ov=qs("pw-overlay");
+    if(ov){ ov.style.transition="opacity .35s ease"; ov.style.opacity="0"; setTimeout(function(){ ov.style.display="none"; },360); }
+    document.body.classList.remove("pw-locked");
+  }
+  function lock(){
+    document.body.classList.add("pw-locked");
+    var ov=qs("pw-overlay"); if(ov){ ov.style.opacity="1"; ov.style.display="flex"; }
+    setTimeout(function(){ var inp=qs("pw-input"); if(inp) inp.focus(); },80);
+  }
+  function check(){
+    var inp=qs("pw-input"), err=qs("pw-error"), val=(inp&&inp.value)?inp.value.trim():"";
+    if(val===REQUIRED){ if(err) err.style.display="none"; unlock(); }
+    else{ if(err) err.style.display="block"; if(inp){inp.value="";inp.focus();} }
+  }
+  var ok=false; try{ ok=sessionStorage.getItem(KEY)==="1"; }catch(e){}
+  if(ok){ unlock(); }else{ lock(); }
+  document.addEventListener("DOMContentLoaded",function(){
+    var btn=qs("pw-btn"), inp=qs("pw-input");
+    if(btn) btn.addEventListener("click",check);
+    if(inp) inp.addEventListener("keydown",function(e){ if(e.key==="Enter"){e.preventDefault();check();} });
+  });
+})();
+</script></body>
 </html>
