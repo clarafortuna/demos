@@ -1,105 +1,89 @@
 /* ── PASSWORD OVERLAY ── */
 
 #lock-overlay {
-  position: fixed; inset: 0; z-index: 1000;
-  background: #031824;
+  position: fixed; inset: 0; z-index: 999999;
   display: flex; align-items: center; justify-content: center;
-  transition: opacity 0.6s ease;
+  padding: 24px;
+  background: rgba(8,17,26,.78);
+  backdrop-filter: blur(8px);
+  transition: opacity 0.3s ease;
 }
 #lock-overlay.hidden { opacity: 0; pointer-events: none; }
 
 .lock-card {
-  width: 360px;
-  text-align: center;
-  padding: 0 24px;
-}
-
-.lock-logo {
-  font-family: 'DM Serif Display', serif;
-  font-size: 13px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #1E96FC;
-  margin-bottom: 32px;
+  width: min(520px, 92vw);
+  background: rgba(255,255,255,.96);
+  border: 1px solid rgba(224,227,232,.9);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.25);
+  padding: 22px 22px 18px;
+  font-family: 'Inter', sans-serif;
 }
 
 .lock-title {
-  font-family: 'DM Serif Display', serif;
-  font-size: 32px;
-  color: #ffffff;
-  line-height: 1.2;
-  margin-bottom: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #141414;
+  letter-spacing: -0.2px;
+  margin: 0 0 6px 0;
 }
 
 .lock-sub {
   font-size: 13px;
-  color: rgba(255,255,255,0.4);
-  margin-bottom: 40px;
-  letter-spacing: 0.05em;
+  color: #5a5a6e;
+  line-height: 1.6;
+  margin: 0 0 14px 0;
 }
 
-.lock-input-wrap {
-  position: relative;
-  margin-bottom: 12px;
+.lock-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
 }
 
 .lock-input {
-  width: 100%;
-  padding: 14px 18px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 8px;
-  color: #ffffff;
-  font-family: 'DM Sans', sans-serif;
-  font-size: 15px;
-  letter-spacing: 0.08em;
+  flex: 1;
+  border: 1px solid #e0e3e8;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  color: #141414;
+  background: #fff;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-.lock-input:focus { border-color: #1E96FC; }
-.lock-input::placeholder { color: rgba(255,255,255,0.25); letter-spacing: 0.05em; }
-.lock-input.error { border-color: #e76f51; animation: lock-shake 0.3s ease; }
-
-@keyframes lock-shake {
-  0%,100% { transform: translateX(0); }
-  25%      { transform: translateX(-6px); }
-  75%      { transform: translateX(6px); }
-}
-
-.lock-error {
-  font-size: 12px;
-  color: #e76f51;
-  margin-bottom: 12px;
-  height: 16px;
-  transition: opacity 0.2s;
-}
+.lock-input:focus { border-color: #0078D4; box-shadow: 0 0 0 3px rgba(0,120,212,.18); }
 
 .lock-btn {
-  width: 100%;
-  padding: 14px;
-  background: #1E96FC;
   border: none;
-  border-radius: 8px;
-  color: #ffffff;
-  font-family: 'DM Sans', sans-serif;
+  border-radius: 12px;
+  padding: 0 18px;
+  background: #0078D4;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
   font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s, transform 0.1s;
+  min-width: 110px;
+  transition: background 0.2s;
 }
-.lock-btn:hover  { background: #1a7fd6; }
-.lock-btn:active { transform: scale(0.98); }
+.lock-btn:hover { background: #005fa3; }
+
+.lock-error {
+  margin-top: 10px;
+  color: #b42318;
+  font-size: 12px;
+  font-weight: 700;
+  display: none;
+}
 
 .lock-hint {
-  margin-top: 24px;
+  margin-top: 10px;
   font-size: 11px;
-  color: rgba(255,255,255,0.2);
-  letter-spacing: 0.05em;
+  color: #9a9aaa;
+  line-height: 1.4;
 }
-
-#portal.unlocking { pointer-events: none; }
 
 :root {
   --ink: #031824;

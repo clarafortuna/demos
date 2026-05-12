@@ -13,16 +13,15 @@
 
 <!-- ══ PASSWORD OVERLAY ══ -->
 <div id="lock-overlay">
-  <div class="lock-card">
-    <div class="lock-logo">Con Edison</div>
-    <div class="lock-title">DAC Annual<br>Report</div>
-    <div class="lock-sub">Restricted access — enter password to continue</div>
-    <div class="lock-input-wrap">
-      <input class="lock-input" id="pwd-input" type="password" placeholder="Enter password" autocomplete="off" onkeydown="if(event.key==='Enter') checkPassword()">
+  <div class="lock-card" role="dialog" aria-modal="true" aria-labelledby="lock-title">
+    <h2 class="lock-title" id="lock-title">Enter password</h2>
+    <p class="lock-sub">This page is password protected.</p>
+    <div class="lock-row">
+      <input class="lock-input" id="pwd-input" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter') checkPassword()">
+      <button class="lock-btn" onclick="checkPassword()">Unlock</button>
     </div>
     <div class="lock-error" id="pwd-error"></div>
-    <button class="lock-btn" onclick="checkPassword()">Access Report</button>
-    <div class="lock-hint">Con Edison · CLCPA · 2024</div>
+    <div class="lock-hint">Tip: Passwords are case-sensitive.</div>
   </div>
 </div>
 

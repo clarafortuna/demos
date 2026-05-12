@@ -9,10 +9,10 @@
       sessionStorage.setItem(SESSION_KEY, '1');
       window.unlockPortal();
     } else {
-      input.classList.add('error');
-      document.getElementById('pwd-error').textContent = 'Incorrect password. Try again.';
+      var errEl = document.getElementById('pwd-error');
+      if (errEl) { errEl.textContent = 'Incorrect password. Try again.'; errEl.style.display = 'block'; }
       input.value = '';
-      setTimeout(function(){ input.classList.remove('error'); }, 400);
+      setTimeout(function(){ input.focus(); }, 50);
     }
   };
 
