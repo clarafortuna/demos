@@ -538,6 +538,25 @@
     const eTotal = eCats.reduce((sum, c) => sum + c.total24, 0);
     const eDacTotal = eCats.reduce((sum, c) => sum + c.total24 * c.curr, 0);
     const eDacPct = eTotal > 0 ? (eDacTotal / eTotal * 100).toFixed(1) : '—';
+    // Prior year DAC-exposed $ (only available when current year is 2024)
+    const eDacPrev = (state.year === '2024')
+      ? eCats.reduce((sum, c) => sum + (c.total23 || 0) * (c.prev != null ? c.prev : c.curr), 0)
+      : null;
+    const eDacGrow = (eDacPrev !== null && eDacPrev > 0)
+      ? Math.round((eDacTotal - eDacPrev) / eDacPrev * 100)
+      : null;
+
+    // Section J — 90+ days overdue (Table J4)
+    const jAll = (typeof getJData === 'function') ? getJData() : null;
+    const j4Curr = (jAll && jAll[state.year]) ? jAll[state.year] : null;
+    const j4Prev = (jAll && state.year === '2024' && jAll['2023']) ? jAll['2023'] : null;
+    const j4DacAmt   = j4Curr ? j4Curr.j4_amt_dac : 0;
+    const j4TotalAmt = j4Curr ? (j4Curr.j4_amt_dac + j4Curr.j4_amt_nondac) : 0;
+    const j4DacPct   = j4Curr ? (j4Curr.j4_amt_pct * 100).toFixed(1) : '—';
+    const j4DacPrev  = j4Prev ? j4Prev.j4_amt_dac : null;
+    const j4Grow = (j4DacPrev !== null && j4DacPrev > 0)
+      ? Math.round((j4DacAmt - j4DacPrev) / j4DacPrev * 100)
+      : null;
 
     // Order: Avg DAC Impact → Incentive Growth → Savings Achieved → Most Equitable Program → Strategic Electric Capital
     const cards = [
@@ -562,8 +581,10 @@
       // },
       {
         tag:    'Incentive Growth',
-        hero:   incGrow !== null ? '+' + incGrow + '%' : yr.dacPct + '%',
-        sub:    incGrow !== null ? 'DAC YoY increase' : 'DAC share',
+        hero:   fmtM(yr.dac),
+        heroSub: 'DAC incentive $',
+        delta:  incGrow !== null ? '↑ +' + incGrow + '%' : null,
+        deltaSub: 'YoY',
         detail: yr.prevDac ? fmtM(yr.prevDac) + ' → ' + fmtM(yr.dac) : fmtM(yr.dac) + ' total DAC',
         link:   'section_A.html',
         tooltip: {
@@ -573,65 +594,60 @@
             { label: 'Metric', value: 'DAC incentive $ paid' },
             { label: '2023', value: yr.prevDac ? fmtM(yr.prevDac) : 'n/a' },
             { label: state.year, value: fmtM(yr.dac) },
-            { label: 'YoY change', value: incGrow !== null ? '+' + incGrow + '%' : '—' }
+            { label: 'YoY change', value: incGrow !== null ? '+' + incGrow + '%' : '—' },
+            { label: 'DAC share', value: yr.dacPct.toFixed(1) + '%' }
+            
           ],
           note: 'Total dollars disbursed as DAC incentives across all Clean Energy programs. From Section A · Table A1 totals.'
         }
       },
       {
-        tag:    'Savings Achieved',
-        hero:   savGrow !== null ? '+' + savGrow + '%' : fmtMMBtu(yr.savings_dac) + ' MMBtu',
-        sub:    savGrow !== null ? 'DAC savings YoY increase' : 'DAC energy savings',
-        detail: yr.prevSavings_dac
-          ? fmtMMBtu(yr.prevSavings_dac) + ' → ' + fmtMMBtu(yr.savings_dac) + ' MMBtu'
-          : fmtMMBtu(yr.savings_total) + ' MMBtu total',
-        link:   'section_A.html',
+        tag:    'Strategic Capital',
+        hero:   fmtBig(eDacTotal),
+        heroSub: 'DAC-exposed $',
+        delta:  eDacGrow !== null ? (eDacGrow >= 0 ? '↑ +' : '↓ ') + eDacGrow + '%' : eDacPct + '%',
+        deltaSub: eDacGrow !== null ? 'YoY' : 'of total',
+        detail: eDacPrev !== null
+          ? fmtBig(eDacPrev) + ' → ' + fmtBig(eDacTotal)
+          : 'Weighted across ' + eCats.length + ' categories',
+        link:   'section_E.html',
         tooltip: {
-          title: 'Savings Achieved · Energy savings delivered',
+          title: 'Strategic Electric Capital Investments',
           rows: [
-            { label: 'Source', value: 'Section A · Table A2' },
-            { label: 'Metric', value: 'DAC MMBtu savings' },
-            { label: '2023', value: yr.prevSavings_dac ? fmtMMBtu(yr.prevSavings_dac) + ' MMBtu' : 'n/a' },
-            { label: state.year, value: fmtMMBtu(yr.savings_dac) + ' MMBtu' },
-            { label: 'YoY change', value: savGrow !== null ? '+' + savGrow + '%' : '—' }
+            { label: 'Source', value: 'Section E · Capital tables' },
+            { label: 'Categories' , value: eCats.length + ' investment areas' },
+            { label: 'Total invested ' + state.year, value: fmtM(yr.dac), value: fmtBig(eTotal) },
+            { label: 'DAC share', value: eDacPct + '%' },
+            { label: 'DAC invested ' + state.year, value: fmtBig(eDacTotal) },
+            { label: 'DAC invested 2023', value: eDacPrev !== null ? fmtBig(eDacPrev) : 'n/a' },
+
           ],
-          note: 'Total energy savings (MMBtu) delivered to disadvantaged communities through Clean Energy programs.'
+          note: 'Dollar-weighted DAC % across Environmental, Risk Reduction, Safety & Security, and System Expansion capital investments.'
         }
       },
       {
-        tag:    'Most Equitable Program',
-        hero:   yr.topProgram.pct + '%',
-        sub:    'DAC share · Section A',
-        detail: yr.topProgram.name + ' · ' + fmtM(yr.topProgram.total),
-        link:   'section_A.html',
+        tag:    'Past-Due 90+ days',
+        hero:   j4Curr ? fmtBig(j4DacAmt) : '—',
+        heroSub: 'DAC unpaid $',
+        delta:  j4Grow !== null ? (j4Grow >= 0 ? '↑ +' : '↓ ') + j4Grow + '%' : (j4DacPct + '%'),
+        deltaSub: j4Grow !== null ? 'YoY' : 'of total',
+        detail: j4DacPrev !== null
+          ? fmtBig(j4DacPrev) + ' → ' + fmtBig(j4DacAmt)
+          : (j4Curr ? fmtBig(j4TotalAmt) + ' total unpaid' : 'Loading…'),
+        link:   'section_J.html',
         tooltip: {
-          title: 'Most Equitable Program · Highest DAC %',
+          title: 'Past-Due 90+ days · Customer Operations',
           rows: [
-            { label: 'Source', value: 'Section A · Table A1' },
-            { label: 'Program', value: yr.topProgram.name },
-            { label: 'Total spend', value: fmtM(yr.topProgram.total) },
-            { label: 'DAC share', value: yr.topProgram.pct + '%' }
+            { label: 'Source', value: 'Section J · Table J4' },
+            { label: 'Metric', value: '90+ day past-due $' },
+            { label: 'Total unpaid ' + state.year, value: j4Curr ? fmtBig(j4TotalAmt) : '—' },
+            { label: 'DAC unpaid ' + state.year, value: j4Curr ? fmtBig(j4DacAmt) : '—' },
+            { label: 'DAC unpaid 2023', value: j4DacPrev !== null ? fmtBig(j4DacPrev) : 'n/a' },
+            { label: 'YoY change', value: j4Grow !== null ? (j4Grow >= 0 ? '+' : '') + j4Grow + '%' : '—' },
           ],
-          note: 'The Clean Energy program with the highest DAC-funded share. Calculated as DAC incentives ÷ total incentives per program.'
+          note: 'Residential accounts 90+ days past due. Tracks affordability gap — DAC accounts carry a disproportionate share of unpaid debt.'
         }
-      },
-      //{
-        //tag:    'Strategic Capital',
-        //hero:   eDacPct + '%',
-        //sub:    'DAC exposure · Section E',
-        //detail: 'Weighted across ' + eCats.length + ' categories',
-        //link:   'section_E.html',
-        //tooltip: {
-          //title: 'Strategic Electric Capital Investments',
-          //rows: [
-            //{ label: 'Source', value: 'Section E · Capital tables' },
-            //{ label: 'Categories', value: eCats.length + ' investment areas' },
-            //{ label: 'Total invested', value: fmtBig(eTotal) },
-            //{ label: 'DAC exposure', value: eDacPct + '%' }
-          //],
-          //note: 'Dollar-weighted DAC % across Environmental, Risk Reduction, Safety & Security, and System Expansion capital investments.'
-        //}
-      //}
+      }
     ];
 
     grid.style.display = 'grid';
@@ -642,8 +658,17 @@
     grid.innerHTML = cards.map(c => `
       <div class="ai-kpi-mini ai-header-card" ${c.link ? 'data-link="' + c.link + '" style="cursor:pointer"' : ''}>
         <span class="ai-kpi-mini-tag">${c.tag}</span>
-        <span class="ai-kpi-mini-hero">${c.hero}</span>
-        <span class="ai-kpi-mini-sub">${c.sub}</span>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:4px 0 2px">
+          <div>
+            <div style="font-size:26px;font-weight:700;color:var(--dusk);letter-spacing:-.02em;line-height:1">${c.hero}</div>
+            ${c.heroSub ? `<div style="font-size:10px;color:var(--text-3);margin-top:3px">${c.heroSub}</div>` : ''}
+          </div>
+          ${c.delta ? `
+          <div style="text-align:right">
+            <div style="font-size:14px;font-weight:700;color:var(--green);line-height:1">${c.delta}</div>
+            ${c.deltaSub ? `<div style="font-size:9px;color:var(--text-4);margin-top:2px">${c.deltaSub}</div>` : ''}
+          </div>` : ''}
+        </div>
         <span class="ai-kpi-mini-detail">${c.detail}</span>
       </div>`).join('');
 
@@ -793,7 +818,7 @@
 
     const DPR = Math.max(window.devicePixelRatio || 1, 2);
     const CW = canvas.parentElement.clientWidth - 32; // account for card padding
-    const R_OUT = 92, R_IN = 64, SW_OUT = 20, SW_IN = 18;
+    const R_OUT = 82, R_IN = 54, SW_OUT = 20, SW_IN = 18;
     const TOP_PAD = SW_OUT/2 + 4;
     const CY = TOP_PAD + R_OUT;
     const LABEL_PAD = 1, LINE_H = 22;
@@ -923,6 +948,51 @@
       row.onmouseleave = function() { tip.style.opacity = '0'; };
     });
   }
+
+  // Parse Section J payload tables into a structured object per year
+  function getJData() {
+    const cache = SECTION_CACHE['J'];
+    if (!cache || !cache.tables) return null;
+
+    const result = { '2024': {}, '2023': {} };
+    ['2024', '2023'].forEach(yr => {
+      const key = 'data_' + yr;
+      const d = result[yr];
+
+      const get = (id, rowIdx, colIdx) => {
+        const t = cache.tables.find(x => x.id === id);
+        if (!t || !t[key] || !t[key][rowIdx]) return null;
+        const v = t[key][rowIdx][colIdx];
+        return (typeof v === 'number') ? v : null;
+      };
+
+      // J9 — total customers
+      d.dac_customers    = get('J9', 1, 1) || 0;
+      d.nondac_customers = get('J9', 1, 3) || 0;
+      d.total_customers  = d.dac_customers + d.nondac_customers;
+      d.dac_pct          = get('J9', 1, 2) || 0;
+
+      // J3 — 60-90 day unpaid
+      d.j3_accts_dac    = get('J3', 1, 1) || 0;
+      d.j3_accts_nondac = get('J3', 2, 1) || 0;
+      d.j3_accts_pct    = get('J3', 1, 2) || 0;
+      d.j3_amt_dac      = get('J3', 1, 3) || 0;
+      d.j3_amt_nondac   = get('J3', 2, 3) || 0;
+      d.j3_amt_pct      = get('J3', 1, 4) || 0;
+
+      // J4 — 90+ day unpaid
+      d.j4_accts_dac    = get('J4', 1, 1) || 0;
+      d.j4_accts_nondac = get('J4', 2, 1) || 0;
+      d.j4_accts_pct    = get('J4', 1, 2) || 0;
+      d.j4_amt_dac      = get('J4', 1, 3) || 0;
+      d.j4_amt_nondac   = get('J4', 2, 3) || 0;
+      d.j4_amt_pct      = get('J4', 1, 4) || 0;
+    });
+    return result;
+  }
+
+
+
 
   // ── Section labels ──
   function sectionLabel(letter, name, href) {
@@ -1106,8 +1176,8 @@
         renderHeaderCards();
       });
     }
-    // Pre-fetch Section A payload to get full program tables
-    getSectionPayload('A').then(function() {
+    // Pre-fetch Section A and J payloads
+    Promise.all([getSectionPayload('A'), getSectionPayload('J')]).then(function() {
       renderAreaIntelligence();
       renderHeaderCards();
     });
