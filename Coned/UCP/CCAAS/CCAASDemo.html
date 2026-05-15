@@ -205,47 +205,254 @@ tr:hover td{background:var(--bg)}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}
 ::-webkit-scrollbar-thumb:hover{background:#9CA3AF}
 
+/* ───────────── SCHEMA MAP (SVG) ───────────── */
+.schema-map-wrap{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px 12px 12px;
+  position:relative;
+  /* Subtle dot grid backdrop helps SVG nodes feel anchored to a "canvas" */
+  background-image:radial-gradient(circle, #D8DCE2 1px, transparent 1px);
+  background-size:18px 18px;
+  background-position:0 0;
+}
+.schema-svg{width:100%;height:auto;display:block;max-height:680px}
+.schema-svg .conn{
+  stroke:#94A3B8;
+  stroke-width:1.5;
+  fill:none;
+  stroke-linecap:round;
+  transition:stroke 0.25s, stroke-width 0.25s, opacity 0.25s;
+}
+.schema-svg .conn.dimmed{opacity:.15}
+.schema-svg .conn.highlighted{stroke:var(--accent);stroke-width:2.5;opacity:1}
+.schema-svg .entity-node{cursor:pointer;transition:transform 0.2s ease, opacity 0.25s ease}
+.schema-svg .entity-node:hover{transform:translateY(-3px)}
+.schema-svg .entity-node.dimmed{opacity:.2}
+.schema-svg .entity-node.highlighted .entity-box{stroke-width:2.5}
+.schema-svg .entity-node .entity-box{
+  fill:#fff;
+  stroke:var(--node-color,#9CA3AF);
+  stroke-width:1.5;
+  transition:all 0.2s ease;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.08));
+}
+.schema-svg .entity-node:hover .entity-box{
+  stroke-width:2.5;
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.15));
+}
+.schema-svg .entity-strip{fill:var(--node-color,#9CA3AF)}
+.schema-svg .entity-name{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;
+  font-weight:800;
+  fill:var(--text);
+  letter-spacing:.6px;
+  pointer-events:none;
+}
+.schema-svg .entity-count{
+  font-family:'DM Sans',sans-serif;
+  font-size:10.5px;
+  font-weight:500;
+  fill:var(--text-muted);
+  pointer-events:none;
+}
+.schema-svg .entity-badge{
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:9px;
+  font-weight:700;
+  fill:var(--node-color);
+  letter-spacing:1px;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+.map-legend{
+  display:flex;align-items:center;
+  padding:10px 14px;
+  font-family:var(--font-display);
+  font-size:11px;font-weight:600;
+  color:var(--text-muted);
+  margin-top:4px;
+  background:var(--surface);
+  border-radius:var(--radius);
+  border:1px solid var(--border);
+  flex-wrap:wrap;gap:8px 18px;
+}
+
+/* Hover-path indicator — small badge above the diagram showing which path is
+   currently traced. Updated by setupMapHoverTracing on mouseenter/leave. */
+.map-path-indicator{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 12px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:99px;
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:10.5px;font-weight:600;
+  color:var(--text-muted);
+  letter-spacing:.5px;
+  margin-bottom:12px;
+  transition:all 0.2s ease;
+  min-height:30px;
+}
+.map-path-indicator.active{
+  background:var(--accent-light);
+  border-color:var(--accent);
+  color:var(--accent);
+}
+.map-path-indicator .crumb-sep{color:#9CA3AF;margin:0 2px}
+
+/* ───────────── JSON SAMPLE BLOCKS ───────────── */
+/* GitHub-dark-inspired token coloring on a deep slate background. Matches the
+   portal's --header-bg so the code surface feels like a sibling of the tab bar. */
+.json-block{
+  background:#0D1117;
+  color:#E5E7EB;
+  padding:18px 22px;
+  border-radius:var(--radius);
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:11.5px;
+  line-height:1.65;
+  overflow-x:auto;
+  white-space:pre;
+  margin:0;
+  border:1px solid #1F2937;
+  position:relative;
+}
+.json-block .j-key{color:#79C0FF}      /* keys — cyan */
+.json-block .j-str{color:#A5D6A0}      /* string values — soft green */
+.json-block .j-num{color:#FFA657}      /* numbers — amber */
+.json-block .j-bool{color:#FF7B72}     /* booleans + null — coral */
+.json-copy-btn{
+  position:absolute;top:8px;right:8px;
+  padding:4px 10px;
+  background:rgba(255,255,255,.08);
+  color:#9CA3AF;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:4px;
+  font-family:var(--font-display);
+  font-size:10px;font-weight:600;
+  letter-spacing:.4px;
+  cursor:pointer;
+  transition:all 0.15s;
+  z-index:2;
+}
+.json-copy-btn:hover{
+  background:rgba(15,98,254,.2);
+  color:#fff;
+  border-color:rgba(15,98,254,.4);
+}
+.json-copy-btn.copied{background:rgba(5,150,105,.25);color:#86EFAC;border-color:rgba(5,150,105,.4)}
+
+/* Inline code chips used in body copy */
+.inline-code{
+  background:var(--bg);
+  padding:2px 6px;
+  border-radius:3px;
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:11.5px;
+  color:var(--text);
+  border:1px solid var(--border);
+}
+
 /* ───────────── PASSWORD GATE ───────────── */
-/* Sits over the rendered schema content using the same modal-overlay pattern
-   the portal uses elsewhere — semi-transparent slate background with a soft
-   blur on what's behind. The content stays in the DOM (visible but dimmed),
-   and the overlay's z-index blocks interaction until unlocked. */
+/* Horizontal split card: dark slate brand panel on the left carrying the title
+   + a miniature SVG of the actual schema hierarchy (telegraphing what's behind
+   the gate), white form panel on the right. Visually distinct from any standard
+   centered modal — reads as a custom developer-tool entry point. */
 .password-gate{
   position:fixed;inset:0;
-  background:rgba(13,17,23,.55);
-  backdrop-filter:blur(6px);
-  -webkit-backdrop-filter:blur(6px);
+  background:rgba(13,17,23,.62);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
   display:flex;align-items:center;justify-content:center;
   z-index:10000;padding:20px;
-  animation:fadeIn .3s ease;
+  animation:fadeIn .35s ease;
 }
 .password-gate.hidden{display:none}
 .password-card{
+  display:flex;flex-direction:row;
   background:var(--surface);
   border-radius:var(--radius-lg);
-  box-shadow:0 24px 60px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05);
-  padding:36px 34px 28px;
-  max-width:400px;width:100%;
-  text-align:center;
-  animation:fadeInUp .45s cubic-bezier(.16,1,.3,1);
+  box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04);
+  max-width:580px;width:100%;
+  min-height:320px;
+  overflow:hidden;
+  animation:fadeInUp .5s cubic-bezier(.16,1,.3,1);
 }
-.password-card .eyebrow{
-  font-family:var(--font-display);
-  font-size:10px;font-weight:700;
-  color:var(--accent);
-  letter-spacing:1.2px;text-transform:uppercase;
-  margin-bottom:8px;
+
+/* LEFT: dark brand panel */
+.pw-brand{
+  flex:0 0 240px;
+  background:#0D1117;
+  /* Soft color washes from the entity palette suggest the rainbow without
+     drawing a hard stripe — feels integrated rather than decorative */
+  background-image:
+    radial-gradient(circle at 20% 25%, rgba(15,98,254,.22) 0%, transparent 55%),
+    radial-gradient(circle at 85% 85%, rgba(124,58,237,.18) 0%, transparent 55%),
+    radial-gradient(circle at 60% 10%, rgba(212,160,23,.12) 0%, transparent 45%);
+  color:#fff;
+  padding:30px 24px 22px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  position:relative;
+  overflow:hidden;
 }
-.password-card h2{
+/* Thin entity-palette accent strip running down the right edge separates the
+   panels and ties the gate to the schema color system */
+.pw-brand::after{
+  content:'';
+  position:absolute;top:0;right:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,
+    #D4A017 0%, #C2410C 17%, #DC2626 33%,
+    #1E40AF 50%, #0EA5E9 66%, #047857 83%, #7C3AED 100%);
+  opacity:.85;
+}
+.pw-eyebrow{
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:10px;font-weight:600;
+  color:#79C0FF;
+  letter-spacing:2.5px;
+  text-transform:uppercase;
+  margin-bottom:10px;
+  position:relative;
+}
+.pw-brand h2{
   font-family:var(--font-display);
-  font-size:22px;font-weight:700;
-  color:var(--text);
+  font-size:21px;font-weight:700;
+  color:#F3F4F6;
   letter-spacing:-.3px;
-  margin-bottom:6px;
+  line-height:1.2;
+  margin:0;
+  position:relative;
 }
-.password-card p{
+/* Miniature schema diagram — abstract abstraction of the real Schema Map */
+.pw-mini-schema{
+  margin-top:24px;
+  width:100%;
+  position:relative;
+}
+.pw-mini-schema svg{display:block;width:100%;height:auto;max-height:140px}
+.pw-mini-caption{
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:9px;font-weight:500;
+  color:rgba(255,255,255,.4);
+  letter-spacing:1.5px;
+  text-transform:uppercase;
+  margin-top:10px;
+  text-align:center;
+}
+
+/* RIGHT: white form panel */
+.pw-body{
+  flex:1;
+  padding:30px 30px 24px;
+  display:flex;flex-direction:column;
+  background:var(--surface);
+}
+.pw-body p{
   font-size:13px;color:var(--text-muted);
-  margin-bottom:24px;line-height:1.55;
+  margin:0 0 18px;line-height:1.55;
 }
 .password-form{display:flex;flex-direction:column;gap:10px}
 .password-form input{
@@ -253,12 +460,12 @@ tr:hover td{background:var(--bg)}
   border:1.5px solid var(--border);
   border-radius:var(--radius);
   font-family:var(--font-body);
-  font-size:14px;text-align:center;
+  font-size:14px;
   letter-spacing:1.5px;
   transition:all .15s;
   background:var(--surface);color:var(--text);
 }
-.password-form input::placeholder{letter-spacing:.5px}
+.password-form input::placeholder{letter-spacing:.5px;color:#9CA3AF}
 .password-form input:focus{
   outline:none;
   border-color:var(--accent);
@@ -296,13 +503,22 @@ tr:hover td{background:var(--bg)}
   margin-top:2px;
 }
 .password-footer{
-  margin-top:22px;
+  margin-top:auto;
   padding-top:16px;
   border-top:1px solid var(--border);
   font-size:11px;
   color:var(--text-muted);
   font-style:italic;
   line-height:1.4;
+}
+
+/* Mobile: collapse horizontal split to vertical stack, hide mini-schema to
+   keep the card compact on small screens */
+@media (max-width: 580px){
+  .password-card{flex-direction:column;max-width:380px;min-height:0}
+  .pw-brand{flex:none;padding:24px 24px 20px}
+  .pw-brand::after{top:auto;right:0;bottom:0;left:0;width:auto;height:2px}
+  .pw-mini-schema{display:none}
 }
 
 /* ───────────── RESPONSIVE ───────────── */
@@ -330,15 +546,47 @@ tr:hover td{background:var(--bg)}
 
 <div class="password-gate" id="passwordGate">
   <div class="password-card">
-    <div class="eyebrow">Restricted Access</div>
-    <h2>Genesys Cloud Schema</h2>
-    <p>Enter the access password to continue to the schema reference.</p>
-    <form class="password-form" onsubmit="event.preventDefault();checkPassword()">
-      <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" autofocus />
-      <button type="submit">Unlock</button>
-      <div class="password-error" id="passwordError"></div>
-    </form>
-    <div class="password-footer">Client-side demo gate — not intended for sensitive data.</div>
+    <div class="pw-brand">
+      <div>
+        <div class="pw-eyebrow">Restricted Access</div>
+        <h2>Genesys Cloud Schema</h2>
+      </div>
+      <div>
+        <div class="pw-mini-schema">
+          <svg viewBox="0 0 220 130" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Connection lines drawn first so nodes sit on top -->
+            <g stroke="rgba(255,255,255,.18)" stroke-width="1" fill="none">
+              <path d="M 110 22 L 40 60"/>
+              <path d="M 110 22 L 110 60"/>
+              <path d="M 110 22 L 180 60"/>
+              <path d="M 110 70 L 110 90"/>
+              <path d="M 110 100 L 50 124"/>
+              <path d="M 110 100 L 110 124"/>
+              <path d="M 110 100 L 170 124"/>
+            </g>
+            <!-- Entity nodes color-coded to match the real Schema Map -->
+            <circle cx="110" cy="18" r="6" fill="#D4A017"/>
+            <circle cx="40"  cy="62" r="5" fill="#DC2626"/>
+            <circle cx="110" cy="62" r="5" fill="#C2410C"/>
+            <circle cx="180" cy="62" r="5" fill="#1E40AF"/>
+            <circle cx="110" cy="95" r="5" fill="#0EA5E9"/>
+            <circle cx="50"  cy="125" r="4" fill="#7C3AED"/>
+            <circle cx="110" cy="125" r="4" fill="#047857"/>
+            <circle cx="170" cy="125" r="4" fill="#F59E0B"/>
+          </svg>
+        </div>
+        <div class="pw-mini-caption">Conversation Detail Model</div>
+      </div>
+    </div>
+    <div class="pw-body">
+      <p>Enter the access password to continue to the schema reference.</p>
+      <form class="password-form" onsubmit="event.preventDefault();checkPassword()">
+        <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" autofocus />
+        <button type="submit">Unlock</button>
+        <div class="password-error" id="passwordError"></div>
+      </form>
+      <div class="password-footer">Client-side demo gate — not intended for sensitive data.</div>
+    </div>
   </div>
 </div>
 
@@ -356,6 +604,7 @@ tr:hover td{background:var(--bg)}
   <div class="tab" onclick="switchTab(3)">Session</div>
   <div class="tab" onclick="switchTab(4)">Segment</div>
   <div class="tab" onclick="switchTab(5)">Reference</div>
+  <div class="tab" onclick="switchTab(6)">Schema Map</div>
 </div>
 
 <!-- TAB 0: Overview -->
@@ -395,6 +644,21 @@ tr:hover td{background:var(--bg)}
   <div class="content" id="referenceContent"></div>
 </div>
 
+<!-- TAB 6: Schema Map — interactive relationship diagram -->
+<div id="tab6" style="display:none">
+  <div class="filters">
+    <div class="filter-group">
+      <label>View Mode</label>
+      <select id="mapViewMode">
+        <option value="full">Full Hierarchy</option>
+        <option value="counts">With Field Counts</option>
+        <option value="required">Highlight Required</option>
+      </select>
+    </div>
+  </div>
+  <div class="content" id="mapContent"></div>
+</div>
+
 <script>
 /* ───────────────── PASSWORD GATE ───────────────── */
 const ACCESS_PASSWORD = 'schemademo';
@@ -425,6 +689,509 @@ try {
     if(gate) gate.classList.add('hidden');
   }
 } catch(e){ /* sessionStorage may be unavailable in some embeds — fall through to gate */ }
+
+/* ───────────────── SAMPLE JSON DATA ───────────────── */
+/* Illustrative shapes for each entity. UUIDs are abbreviated where it improves
+   readability; values are realistic but not from any real conversation. Used
+   by the Sample Shape section on each entity tab. */
+const SAMPLE_JSON = {
+  Conversation: {
+    conversationId: "8a5f3c1e-9a4d-4f2b-b6e0-1c8d5e2f4a90",
+    conversationStart: "2026-05-15T14:23:01.420Z",
+    conversationEnd: "2026-05-15T14:31:48.150Z",
+    originatingDirection: "inbound",
+    divisionIds: ["a12b3c4d-5e6f-4789-9abc-1de2f3a4b5c6"],
+    externalTag: "billing-priority-high",
+    selfServed: false,
+    mediaStatsMinConversationMos: 4.21,
+    mediaStatsMinConversationRFactor: 87.3,
+    participants: [
+      {
+        participantId: "b7f29a8c-3d4e-4f5a-9b8c-1d2e3f4a5b6c",
+        participantName: "Customer",
+        purpose: "customer",
+        sessions: [{
+          sessionId: "f2a8c1e9-7d4e-4b5a-9c8d-1e2f3a4b5c6d",
+          mediaType: "voice",
+          direction: "inbound"
+        }]
+      },
+      {
+        participantId: "c4e9d1f3-8b6a-4c2e-9f1d-5a7b8c9d0e1f",
+        participantName: "Sarah Chen",
+        userId: "a8b2c4d6-e8f0-4123-9456-7890abcdef12",
+        purpose: "agent",
+        teamId: "team-1a2b3c4d",
+        sessions: [{
+          sessionId: "g8h2j4k6-3l5m-4n7p-9q1r-2s3t4u5v6w7x",
+          mediaType: "voice",
+          direction: "inbound"
+        }]
+      }
+    ],
+    surveys: [],
+    evaluations: []
+  },
+  Participant: {
+    participantId: "c4e9d1f3-8b6a-4c2e-9f1d-5a7b8c9d0e1f",
+    participantName: "Sarah Chen",
+    userId: "a8b2c4d6-e8f0-4123-9456-7890abcdef12",
+    purpose: "agent",
+    externalContactId: null,
+    externalOrganizationId: null,
+    teamId: "team-1a2b3c4d-5e6f-7g8h",
+    attributes: {
+      "csr.tier": "tier1",
+      "csr.specialty": "billing"
+    },
+    sessions: [{
+      sessionId: "g8h2j4k6-3l5m-4n7p-9q1r-2s3t4u5v6w7x",
+      mediaType: "voice",
+      direction: "inbound",
+      ani: "+14155551234",
+      dnis: "+18005550100",
+      recording: true,
+      segments: [
+        { segmentType: "alert", segmentStart: "2026-05-15T14:24:08.200Z" },
+        { segmentType: "interact", segmentStart: "2026-05-15T14:24:11.800Z" },
+        { segmentType: "wrapup", segmentStart: "2026-05-15T14:30:32.500Z" }
+      ]
+    }]
+  },
+  Session: {
+    sessionId: "f2a8c1e9-7d4e-4b5a-9c8d-1e2f3a4b5c6d",
+    mediaType: "voice",
+    direction: "inbound",
+    ani: "+14155551234",
+    dnis: "+18005550100",
+    addressFrom: "tel:+14155551234",
+    addressTo: "tel:+18005550100",
+    edgeId: "edge-9a8b7c6d-5e4f-3g2h",
+    protocolCallId: "abc123def456@sip.genesys.com",
+    requestedRoutings: ["Predictive", "Standard"],
+    usedRouting: "Predictive",
+    selectedAgentId: "a8b2c4d6-e8f0-4123-9456-7890abcdef12",
+    selectedAgentRank: 2,
+    skipEnabled: false,
+    mediaCount: 1,
+    recording: true,
+    flow: {
+      flowId: "flow-uuid-1234",
+      flowName: "Billing Inbound IVR",
+      flowType: "inboundCall",
+      flowOutType: "ACD",
+      entryReason: "+18005550100"
+    },
+    segments: [
+      { segmentType: "ivr", segmentStart: "2026-05-15T14:23:01.420Z", segmentEnd: "2026-05-15T14:23:45.100Z" },
+      { segmentType: "delay", segmentStart: "2026-05-15T14:23:45.100Z", segmentEnd: "2026-05-15T14:24:11.800Z", queueId: "queue-billing-tier1" },
+      { segmentType: "interact", segmentStart: "2026-05-15T14:24:11.800Z", segmentEnd: "2026-05-15T14:30:32.500Z" }
+    ],
+    mediaEndpointStats: [
+      { eventTime: "2026-05-15T14:30:32.500Z", minMos: 4.18, maxMos: 4.42, codecs: ["OPUS"] }
+    ]
+  },
+  Segment: {
+    segmentStart: "2026-05-15T14:24:11.800Z",
+    segmentEnd: "2026-05-15T14:30:32.500Z",
+    segmentType: "interact",
+    queueId: "queue-billing-tier1",
+    conference: false,
+    disconnectType: "peer",
+    audioMuted: false,
+    videoMuted: false,
+    wrapUpCode: "resolved-billing-question",
+    wrapUpNote: "Customer wanted to verify last month's charges",
+    wrapUpTags: ["billing", "verification"]
+  },
+  Flow: {
+    flowId: "flow-uuid-1234-abcd",
+    flowName: "Billing Inbound IVR v3",
+    flowVersion: "3.2.1",
+    flowType: "inboundCall",
+    flowOutType: "ACD",
+    flowOutcome: "RoutedToBilling",
+    flowOutcomeId: "outcome-uuid",
+    flowOutcomeValue: "success",
+    entryReason: "+18005550100",
+    entryType: "dnis",
+    exitReason: "queue:billing-tier1",
+    startingLanguage: "en-US",
+    endingLanguage: "en-US",
+    issuedCallback: false
+  },
+  MediaEndpointStat: {
+    eventTime: "2026-05-15T14:30:32.500Z",
+    minMos: 4.18,
+    maxMos: 4.42,
+    minRFactor: 85.2,
+    maxRFactor: 92.7,
+    discardedPackets: 0,
+    duplicatePackets: 2,
+    invalidPackets: 0,
+    overrunPackets: 0,
+    underrunPackets: 4,
+    receivedPackets: 18234,
+    codecs: ["OPUS"]
+  },
+  Survey: {
+    surveyId: "survey-uuid-9876",
+    surveyFormId: "form-uuid-csat-v2",
+    surveyFormName: "Post-Call Customer Satisfaction v2",
+    surveyFormContextId: "context-uuid-csat",
+    surveyCompletedDate: "2026-05-15T14:34:12.300Z",
+    surveyPromoterScore: 9,
+    surveyTotalScore: 85,
+    surveyStatus: "Finished",
+    userId: "a8b2c4d6-e8f0-4123-9456-7890abcdef12",
+    queueId: "queue-billing-tier1",
+    eventTime: "2026-05-15T14:34:12.300Z"
+  },
+  Evaluation: {
+    evaluationId: "eval-uuid-4567",
+    evaluatorId: "supervisor-uuid-1234",
+    userId: "a8b2c4d6-e8f0-4123-9456-7890abcdef12",
+    formId: "qm-form-q2-2026",
+    formName: "Q2 2026 Tier 1 QA Form",
+    contextId: "form-context-uuid",
+    queueId: "queue-billing-tier1",
+    calibrationId: null,
+    deleted: false,
+    released: true,
+    rescored: false,
+    eventTime: "2026-05-16T09:14:22.110Z"
+  },
+  Metrics: {
+    nOffered: 1,
+    nConnected: 1,
+    nAnswered: 1,
+    nTransferred: 0,
+    tAlert: 3600,
+    tAnswered: 26700,
+    tTalk: 372700,
+    tHeld: 18200,
+    tAcw: 45000,
+    tHandle: 435900,
+    tWait: 26700,
+    tFlow: 43680
+  }
+};
+
+/* ───────────────── DIAGRAM LAYOUT ───────────────── */
+const ENTITY_DISPLAY = {
+  Conversation: 'CONVERSATION',
+  Participant:  'PARTICIPANT',
+  Session:      'SESSION',
+  Segment:      'SEGMENT',
+  Flow:         'FLOW',
+  MediaEndpointStat: 'MEDIA STATS',
+  Survey:       'SURVEY',
+  Evaluation:   'EVALUATION'
+};
+
+const ENTITY_BADGE = {
+  Conversation: 'ROOT',
+  Participant:  'L1',
+  Session:      'L2',
+  Segment:      'L3',
+  Flow:         'L3',
+  MediaEndpointStat: 'L3',
+  Survey:       'L1',
+  Evaluation:   'L1'
+};
+
+/* Box positions on a 960×640 viewBox. Width 170 × height 76 with rounded
+   corners. Arranged so connection lines bezier cleanly between parent and
+   child rows without crossing. */
+const DIAGRAM_LAYOUT = {
+  Conversation:      { x: 395, y: 30  },
+  Survey:            { x: 100, y: 190 },
+  Participant:       { x: 395, y: 190 },
+  Evaluation:        { x: 690, y: 190 },
+  Session:           { x: 395, y: 360 },
+  Segment:           { x: 100, y: 530 },
+  Flow:              { x: 395, y: 530 },
+  MediaEndpointStat: { x: 690, y: 530 }
+};
+
+/* ───────────────── JSON SYNTAX HIGHLIGHTER ───────────────── */
+/* Two-pass tokenizer with placeholder extraction. Strings are extracted FIRST
+   into Unicode private-use-area markers (\uE001 … \uE002) so that ISO
+   timestamps like "2026-05-15T14:23:01.420Z" — which contain inner colons
+   that would otherwise trigger the number regex — are protected. After
+   booleans/numbers are wrapped on the remaining (string-free) source,
+   strings are restored and classified as keys or values by checking for a
+   trailing colon. */
+function highlightJSON(obj){
+  let s = JSON.stringify(obj, null, 2);
+  s = s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  // 1) Stash strings safely
+  const strings = [];
+  s = s.replace(/"(?:[^"\\]|\\.)*"/g, m => {
+    strings.push(m);
+    return '\uE001' + (strings.length - 1) + '\uE002';
+  });
+
+  // 2) Anchor non-string tokens to a preceding `:` so digits inside placeholder
+  //    indices (e.g. \uE0014\uE002) are never matched as numbers.
+  s = s.replace(/(:\s*)(true|false|null)\b/g, '$1<span class="j-bool">$2</span>');
+  s = s.replace(/(:\s*)(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g, '$1<span class="j-num">$2</span>');
+
+  // 3) Restore strings. Trailing `:` → key; otherwise value/array item.
+  s = s.replace(/\uE001(\d+)\uE002(\s*:)?/g, (match, idx, colon) => {
+    const str = strings[parseInt(idx, 10)];
+    return colon
+      ? '<span class="j-key">' + str + '</span>' + colon
+      : '<span class="j-str">' + str + '</span>';
+  });
+
+  return s;
+}
+
+function buildSampleJSONSection(entityId){
+  if(!SAMPLE_JSON[entityId]) return '';
+  const obj = SAMPLE_JSON[entityId];
+  const jsonStr = JSON.stringify(obj, null, 2);
+  // Escape for safe attribute embedding (single quotes + ampersands handled by data-)
+  const encoded = encodeURIComponent(jsonStr);
+  return '<div class="grid-section">' +
+    '<div class="section-header"><h3>Sample Shape</h3></div>' +
+    '<div class="desc-block" style="margin-bottom:14px">An illustrative <strong>' + esc(entityId) + '</strong> record as returned by the Conversation Detail Query. UUIDs are abbreviated for readability; nested entities are condensed to a single example each.</div>' +
+    '<pre class="json-block"><button class="json-copy-btn" data-json="' + encoded + '" onclick="copyJSON(this)">Copy</button>' + highlightJSON(obj) + '</pre>' +
+  '</div>';
+}
+
+function copyJSON(btn){
+  try {
+    const json = decodeURIComponent(btn.dataset.json);
+    navigator.clipboard.writeText(json).then(() => {
+      const originalText = btn.textContent;
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.classList.remove('copied');
+      }, 1500);
+    });
+  } catch(e){
+    console.warn('Copy failed:', e);
+  }
+}
+
+/* ───────────────── RELATIONSHIP TRACING ───────────────── */
+/* Single-parent hierarchy. Used by setupMapHoverTracing to compute the full
+   ancestor-chain + descendant-tree of any node on mouseenter. */
+const ENTITY_RELATIONS = {
+  Conversation:      { parent: null,           children: ['Survey','Participant','Evaluation'] },
+  Survey:            { parent: 'Conversation', children: [] },
+  Participant:       { parent: 'Conversation', children: ['Session'] },
+  Evaluation:        { parent: 'Conversation', children: [] },
+  Session:           { parent: 'Participant',  children: ['Segment','Flow','MediaEndpointStat'] },
+  Segment:           { parent: 'Session',      children: [] },
+  Flow:              { parent: 'Session',      children: [] },
+  MediaEndpointStat: { parent: 'Session',      children: [] }
+};
+
+/* Order matches buildConnections() — index N in this array corresponds to the
+   Nth <path> element in the rendered SVG, so the hover handler can flip the
+   correct connection lines without DOM querying. */
+const CONNECTION_PAIRS = [
+  ['Conversation','Survey'],
+  ['Conversation','Participant'],
+  ['Conversation','Evaluation'],
+  ['Participant','Session'],
+  ['Session','Segment'],
+  ['Session','Flow'],
+  ['Session','MediaEndpointStat']
+];
+
+function getRelatedSet(id){
+  const set = new Set([id]);
+  // Walk up the parent chain
+  let cur = id;
+  while(ENTITY_RELATIONS[cur] && ENTITY_RELATIONS[cur].parent){
+    cur = ENTITY_RELATIONS[cur].parent;
+    set.add(cur);
+  }
+  // Walk down all descendants (BFS)
+  const queue = [id];
+  while(queue.length){
+    const e = queue.shift();
+    (ENTITY_RELATIONS[e] && ENTITY_RELATIONS[e].children || []).forEach(child => {
+      if(!set.has(child)){
+        set.add(child);
+        queue.push(child);
+      }
+    });
+  }
+  return set;
+}
+
+function buildBreadcrumb(id){
+  // Walks up to Root, returns the path string e.g. "Conversation › Participant › Session"
+  const chain = [id];
+  let cur = id;
+  while(ENTITY_RELATIONS[cur] && ENTITY_RELATIONS[cur].parent){
+    cur = ENTITY_RELATIONS[cur].parent;
+    chain.unshift(cur);
+  }
+  return chain.map(e => '<span>' + e + '</span>').join('<span class="crumb-sep">›</span>');
+}
+
+function setupMapHoverTracing(){
+  const svg = document.querySelector('.schema-svg');
+  if(!svg) return;
+  const nodes = svg.querySelectorAll('.entity-node');
+  const paths = svg.querySelectorAll('.connections .conn');
+  const indicator = document.getElementById('mapPathIndicator');
+
+  nodes.forEach(node => {
+    const eid = node.getAttribute('data-entity');
+    node.addEventListener('mouseenter', () => {
+      const related = getRelatedSet(eid);
+      nodes.forEach(n => {
+        const nid = n.getAttribute('data-entity');
+        n.classList.toggle('dimmed', !related.has(nid));
+        n.classList.toggle('highlighted', related.has(nid));
+      });
+      paths.forEach((p, i) => {
+        const pair = CONNECTION_PAIRS[i];
+        const onPath = related.has(pair[0]) && related.has(pair[1]);
+        p.classList.toggle('dimmed', !onPath);
+        p.classList.toggle('highlighted', onPath);
+      });
+      if(indicator){
+        indicator.innerHTML = buildBreadcrumb(eid);
+        indicator.classList.add('active');
+      }
+    });
+    node.addEventListener('mouseleave', () => {
+      nodes.forEach(n => { n.classList.remove('dimmed','highlighted'); });
+      paths.forEach(p => p.classList.remove('dimmed','highlighted'));
+      if(indicator){
+        indicator.innerHTML = 'Hover any entity to trace its hierarchy path';
+        indicator.classList.remove('active');
+      }
+    });
+  });
+}
+
+/* ───────────────── SCHEMA MAP RENDERER ───────────────── */
+function buildEntityNode(id, viewMode){
+  const e = SCHEMA[id];
+  const pos = DIAGRAM_LAYOUT[id];
+  const color = ENTITY_COLORS[id];
+  const w = 170, h = 76;
+  const cx = pos.x + w/2;
+  const reqCount = e.fields.filter(f => f.req).length;
+
+  let subtitle = e.fields.length + ' fields';
+  if(viewMode === 'required') subtitle = reqCount + ' required · ' + e.fields.length + ' total';
+  else if(viewMode === 'counts') subtitle = e.fields.length + ' fields · ' + (e.fields.filter(f => f.enums).length) + ' enums';
+
+  return '<g class="entity-node" data-entity="' + id + '" style="--node-color:' + color + '" onclick="navigateToEntity(\'' + id + '\')">' +
+    '<rect class="entity-box" x="' + pos.x + '" y="' + pos.y + '" width="' + w + '" height="' + h + '" rx="8"/>' +
+    '<rect class="entity-strip" x="' + pos.x + '" y="' + pos.y + '" width="' + w + '" height="4" rx="2"/>' +
+    '<text class="entity-badge" x="' + (pos.x + 12) + '" y="' + (pos.y + 22) + '">' + ENTITY_BADGE[id] + '</text>' +
+    '<text class="entity-name" x="' + cx + '" y="' + (pos.y + 44) + '" text-anchor="middle">' + ENTITY_DISPLAY[id] + '</text>' +
+    '<text class="entity-count" x="' + cx + '" y="' + (pos.y + 62) + '" text-anchor="middle">' + subtitle + '</text>' +
+  '</g>';
+}
+
+function buildConnections(){
+  const paths = [
+    'M 480 106 C 480 145, 185 145, 185 190',  // Conversation → Survey
+    'M 480 106 L 480 190',                     // Conversation → Participant
+    'M 480 106 C 480 145, 775 145, 775 190',  // Conversation → Evaluation
+    'M 480 266 L 480 360',                     // Participant → Session
+    'M 480 436 C 480 480, 185 480, 185 530',  // Session → Segment
+    'M 480 436 L 480 530',                     // Session → Flow
+    'M 480 436 C 480 480, 775 480, 775 530'   // Session → MediaEndpointStat
+  ];
+  return paths.map(d => '<path class="conn" d="' + d + '"/>').join('');
+}
+
+function renderMap(){
+  const container = document.getElementById('mapContent');
+  if(!container) return;
+  const viewMode = (document.getElementById('mapViewMode') || {value:'full'}).value;
+  const allEntities = Object.keys(SCHEMA);
+  let totalFields = 0, totalRequired = 0;
+  allEntities.forEach(eid => {
+    totalFields += SCHEMA[eid].fields.length;
+    totalRequired += SCHEMA[eid].fields.filter(f => f.req).length;
+  });
+
+  let html = '';
+
+  // KPI cards
+  html += '<div class="cards">';
+  html += '<div class="card overall"><div class="label">Hierarchy Depth</div><div class="value">4</div><div class="sub">Conversation → Segment</div></div>';
+  html += '<div class="card s4"><div class="label">Entities Mapped</div><div class="value">8</div><div class="sub">Plus Metrics (attached)</div></div>';
+  html += '<div class="card s5"><div class="label">Total Fields</div><div class="value">' + totalFields + '</div><div class="sub">Across the model</div></div>';
+  html += '<div class="card s1"><div class="label">Required Fields</div><div class="value">' + totalRequired + '</div><div class="sub">Always populated</div></div>';
+  html += '</div>';
+
+  // Diagram
+  html += '<div class="grid-section">';
+  html += '<div class="section-header"><h3>Conversation Hierarchy &amp; Relationships</h3></div>';
+  html += '<div class="desc-block">The Genesys Cloud conversation model is a strict containment hierarchy. Each <strong>Conversation</strong> branches into three child types — Participant, Survey, and Evaluation. The Participant branch is the deepest path: every <strong>Participant</strong> has one or more <strong>Sessions</strong> (one per media type), and each session decomposes into state-interval <strong>Segments</strong> plus optional <strong>Flow</strong> execution data and <strong>Media Stats</strong> for voice quality.</div>';
+  html += '<div class="schema-map-wrap" style="margin-top:18px">';
+  html += '<div id="mapPathIndicator" class="map-path-indicator">Hover any entity to trace its hierarchy path</div>';
+  html += '<svg class="schema-svg" viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">';
+  html += '<g class="connections">' + buildConnections() + '</g>';
+  ['Conversation','Survey','Participant','Evaluation','Session','Segment','Flow','MediaEndpointStat'].forEach(eid => {
+    html += buildEntityNode(eid, viewMode);
+  });
+  html += '</svg>';
+  html += '</div>';
+  html += '<div class="map-legend">';
+  html += '<span style="display:inline-flex;align-items:center;gap:8px"><svg width="36" height="10"><line x1="2" y1="5" x2="34" y2="5" stroke="#94A3B8" stroke-width="1.5"/></svg> Parent-child containment</span>';
+  html += '<span style="display:inline-flex;align-items:center;gap:8px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent)"></span> Click any node to drill into its detail tab</span>';
+  html += '<span style="display:inline-flex;align-items:center;gap:8px;color:var(--text)"><strong>Tip:</strong> Switch view mode above to overlay required-field counts.</span>';
+  html += '</div>';
+  html += '</div>';
+
+  // Path navigator
+  html += '<div class="grid-section">';
+  html += '<div class="section-header"><h3>Field Path Resolver</h3></div>';
+  html += '<div class="desc-block">Common JSON paths used to address nested data in the conversation detail response.</div>';
+  html += '<div style="overflow-x:auto;margin-top:14px"><table class="field-table"><thead><tr>';
+  html += '<th>What You Want</th><th>JSON Path</th><th>Notes</th>';
+  html += '</tr></thead><tbody>';
+  const paths = [
+    ['Customer\'s phone number',    'participants[?(@.purpose=="customer")].sessions[0].ani', 'Voice only. Falls back to addressFrom for other media.'],
+    ['Agent who handled the call',  'participants[?(@.purpose=="agent")].userId',             'May be more than one agent if transferred.'],
+    ['Wait time before connect',    'participants[].sessions[].segments[?(@.segmentType=="delay")]', 'Sum across all delay segments for total wait.'],
+    ['Wrap-up code',                'participants[].sessions[].segments[?(@.segmentType=="wrapup")].wrapUpCode', 'Per-segment; agents may have multiple wrapups.'],
+    ['Lowest MOS for the call',     'mediaStatsMinConversationMos',                            'Rolled up at the conversation level.'],
+    ['Flow that ran',               'participants[].sessions[].flow.flowName',                 'Only present for sessions that hit an Architect flow.'],
+    ['Wrap-up time (ACW)',          'metrics where metric == "tAcw"',                          'Aggregate metric, not a direct field on the document.']
+  ];
+  paths.forEach(p => {
+    html += '<tr><td>' + esc(p[0]) + '</td><td><span class="inline-code">' + esc(p[1]) + '</span></td><td style="color:var(--text-muted);font-size:11.5px">' + esc(p[2]) + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  html += '</div>';
+
+  // Entity quick-links
+  html += '<details class="roster-section" open><summary>All Entities · Quick Navigate <span class="roster-count">' + allEntities.length + '</span></summary><div class="roster-buttons">';
+  allEntities.forEach(eid => {
+    const cc = ENTITY_COLORS[eid];
+    html += '<button class="roster-btn" style="--rel-color:' + cc + '" onclick="navigateToEntity(\'' + eid + '\')"><span class="rel-dot"></span>' + esc(eid) + ' · ' + SCHEMA[eid].fields.length + ' fields</button>';
+  });
+  html += '</div></details>';
+
+  html += '<div class="footer-note">Diagram represents the analytics conversation detail data model. Reference and metric documentation: <a href="https://developer.genesys.cloud/analyticsdatamanagement/analytics/detail/conversation-data-model" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">developer.genesys.cloud/analyticsdatamanagement</a>.</div>';
+
+  container.innerHTML = html;
+
+  // After DOM is in place, wire mouseenter/leave on each SVG entity node so
+  // hovering a box highlights its full ancestor + descendant chain and dims
+  // unrelated entities. Must run AFTER innerHTML is set.
+  setupMapHoverTracing();
+}
 
 /* ───────────────── SCHEMA DATA ───────────────── */
 const ENTITY_COLORS = {
@@ -766,6 +1533,9 @@ function renderEntity(id, containerId, searchTerm){
   }
   html += '</div>';
 
+  // Sample shape — illustrative JSON example for this entity
+  html += buildSampleJSONSection(id);
+
   // Direct Children section (if any)
   if(children.length){
     html += '<details class="roster-section" open><summary>Direct Children <span class="roster-count">'+children.length+'</span></summary><div class="roster-buttons">';
@@ -987,6 +1757,17 @@ function renderReference(searchTerm){
       html += '</tr>';
     });
     html += '</tbody></table></div>';
+    // Sample shape — inline within the same grid-section so it renders right
+    // beneath the field table for that reference entity. Only emitted when a
+    // sample exists in SAMPLE_JSON (Flow, MediaEndpointStat, Survey, Evaluation,
+    // and Metrics all have one).
+    if(SAMPLE_JSON[eid]){
+      const encoded = encodeURIComponent(JSON.stringify(SAMPLE_JSON[eid], null, 2));
+      html += '<div style="margin-top:18px">';
+      html += '<div style="font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px">Sample Shape</div>';
+      html += '<pre class="json-block"><button class="json-copy-btn" data-json="' + encoded + '" onclick="copyJSON(this)">Copy</button>' + highlightJSON(SAMPLE_JSON[eid]) + '</pre>';
+      html += '</div>';
+    }
     html += '</div>';
     html += '</details>';
   });
@@ -1017,7 +1798,7 @@ function navigateToEntity(id){
 
 function switchTab(n){
   document.querySelectorAll('.tab').forEach((t,i)=>{ t.classList.toggle('active', i===n); });
-  for(let i=0; i<=5; i++){
+  for(let i=0; i<=6; i++){
     const el = document.getElementById('tab'+i);
     if(!el) continue;
     el.style.display = i===n ? '' : 'none';
@@ -1044,6 +1825,8 @@ function switchTab(n){
     renderEntity('Segment', 'segmentContent', s);
   } else if(n === 5){
     renderReference(document.getElementById('searchReference').value);
+  } else if(n === 6){
+    renderMap();
   }
   window.scrollTo({top: 0, behavior: 'smooth'});
 }
@@ -1072,6 +1855,13 @@ document.addEventListener('DOMContentLoaded', () => {
     renderReference(e.target.value);
   });
 
+  // Schema Map — view-mode selector swaps node subtitles between field-count,
+  // required overlay, and the default full hierarchy view.
+  const mapViewEl = document.getElementById('mapViewMode');
+  if(mapViewEl){
+    mapViewEl.addEventListener('change', () => renderMap());
+  }
+
   // Initial render
   renderOverview('', 'all');
   renderEntity('Conversation', 'conversationContent', '');
@@ -1079,6 +1869,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderEntity('Session', 'sessionContent', '');
   renderEntity('Segment', 'segmentContent', '');
   renderReference('');
+  renderMap();
 });
 </script>
 </body>
