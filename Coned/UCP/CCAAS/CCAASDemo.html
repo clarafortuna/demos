@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Genesys Cloud — Conversation Schema</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg:#F4F5F7;--surface:#fff;--border:#E2E5EA;--text:#1A1D23;--text-muted:#6B7280;
+  --accent:#0F62FE;--accent-light:#E8F0FE;
+  --header-bg:#0D1117;--header-text:#F0F3F6;
+  --score-1:#DC2626;--score-1-bg:#FEF2F2;--score-1-light:#FCA5A5;
+  --score-2:#EA580C;--score-2-bg:#FFF7ED;--score-2-light:#FB923C;
+  --score-3:#374151;--score-3-bg:#FFFFFF;--score-3-border:#D1D5DB;
+  --score-4:#1D4ED8;--score-4-bg:#1D4ED8;
+  --score-5:#059669;--score-5-bg:#059669;
+  --ovr-1:#991B1B;
+  --ovr-2:#C2410C;
+  --ovr-3:#64748B;--ovr-3-bg:#FFFFFF;--ovr-3-border:#CBD5E1;
+  --ovr-4:#1E40AF;
+  --ovr-5:#047857;
+  --gold:#D4A017;--gold-bg:#FFFBEB;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.1);
+  --shadow-xl:0 8px 24px rgba(0,0,0,.12);
+  --radius:8px;--radius-lg:12px;
+  --font-display:'Plus Jakarta Sans',sans-serif;
+  --font-body:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.fade-in{animation:fadeIn .5s cubic-bezier(.16,1,.3,1) backwards}
+.fade-in-up{animation:fadeInUp .6s cubic-bezier(.16,1,.3,1) backwards}
+.tab-fade-in{animation:fadeInUp .55s cubic-bezier(.16,1,.3,1) backwards}
+.cards{animation:fadeIn .6s cubic-bezier(.16,1,.3,1) backwards}
+.cards > .card{animation:fadeInUp .65s cubic-bezier(.16,1,.3,1) backwards}
+.cards > .card:nth-child(1){animation-delay:45ms}
+.cards > .card:nth-child(2){animation-delay:90ms}
+.cards > .card:nth-child(3){animation-delay:135ms}
+.cards > .card:nth-child(4){animation-delay:180ms}
+.cards > .card:nth-child(5){animation-delay:225ms}
+.cards > .card:nth-child(6){animation-delay:270ms}
+.grid-section{animation:fadeInUp .65s cubic-bezier(.16,1,.3,1) backwards;animation-delay:120ms}
+
+/* ───────────── HEADER ───────────── */
+.header{background:#1F6FBA;padding:16px 22px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow)}
+.header-left{display:flex;align-items:center;gap:14px}
+.header h1{font-family:var(--font-display);color:#fff;font-size:18px;font-weight:700;letter-spacing:-.2px;display:flex;align-items:center;gap:10px;margin:0}
+.header h1 .icon{width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:rgba(255,255,255,.16);border-radius:8px;border:1px solid rgba(255,255,255,.2)}
+.header-meta{color:rgba(255,255,255,.82);font-size:12px;font-weight:600;margin-top:2px}
+.header-action-btn{display:inline-flex;align-items:center;padding:9px 18px;background:#7C3AED;color:#fff;text-decoration:none;border:1px solid #6D28D9;border-radius:8px;font-family:var(--font-display);font-size:12.5px;font-weight:700;letter-spacing:.3px;white-space:nowrap;box-shadow:0 2px 6px rgba(124,58,237,.35);transition:all .15s}
+.header-action-btn:hover{background:#6D28D9;border-color:#5B21B6;transform:translateY(-1px);box-shadow:0 4px 12px rgba(124,58,237,.45)}
+
+/* ───────────── TABS ───────────── */
+.tabs{display:flex;background:var(--header-bg);padding:0 32px;border-bottom:1px solid rgba(255,255,255,.08);overflow-x:auto}
+.tab{padding:12px 24px;color:rgba(240,243,246,.5);cursor:pointer;font-family:var(--font-display);font-size:13px;font-weight:600;border-bottom:2px solid transparent;transition:all .2s;letter-spacing:.2px;white-space:nowrap}
+.tab:hover{color:var(--header-text)}
+.tab.active{color:var(--header-text);border-bottom-color:var(--accent)}
+
+/* ───────────── FILTERS ───────────── */
+.filters{display:flex;gap:16px;padding:16px 32px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:flex-end}
+.filter-group{display:flex;flex-direction:column;gap:4px}
+.filter-group label{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.8px}
+.filter-group input,.filter-group select{padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-body);font-size:13px;background:var(--surface);color:var(--text);transition:border .2s}
+.filter-group input{min-width:340px}
+.filter-group select{min-width:180px}
+.filter-group input:focus,.filter-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(15,98,254,.08)}
+
+/* ───────────── CONTENT ───────────── */
+.content{padding:24px 32px}
+
+/* ───────────── KPI CARDS ───────────── */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:24px}
+.card{background:var(--surface);padding:18px 16px;border-radius:var(--radius-lg);box-shadow:var(--shadow);border-left:4px solid var(--border);transition:all .15s}
+.card:hover{transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.card.overall{border-left-color:var(--gold)}
+.card.s1{border-left-color:var(--ovr-1)}
+.card.s2{border-left-color:var(--ovr-2)}
+.card.s3{border-left-color:var(--ovr-3-border)}
+.card.s4{border-left-color:var(--ovr-4)}
+.card.s5{border-left-color:var(--ovr-5)}
+.card .label{font-family:var(--font-display);font-size:10px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;margin-bottom:8px}
+.card .value{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
+.card .sub{font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:500}
+
+/* ───────────── LEGEND BAR ───────────── */
+.legend-bar{display:flex;align-items:center;gap:16px;padding:12px 20px;background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow-sm);margin-bottom:20px;border:1px solid var(--border);flex-wrap:wrap}
+.legend-bar .legend-title{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.8px;margin-right:8px}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:500;color:var(--text)}
+.legend-swatch{width:14px;height:14px;border-radius:3px}
+
+/* ───────────── GRID SECTIONS ───────────── */
+.grid-section{background:var(--surface);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:24px;margin-bottom:24px;border:1px solid var(--border);position:relative}
+.grid-section h3{font-family:var(--font-display);font-size:13px;font-weight:700;margin-bottom:16px;letter-spacing:.5px}
+.section-header{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.section-header h3{margin:0;flex:1;min-width:0}
+.section-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.desc-block{color:var(--text);font-size:13.5px;line-height:1.7;max-width:80ch}
+.desc-block + .desc-block{margin-top:8px;color:var(--text-muted);font-style:italic;font-size:12.5px}
+
+/* Section groups (collapsible row dividers) */
+details.section-group{margin:24px 0 0 0}
+details.section-group:first-of-type{margin-top:8px}
+details.section-group > summary{display:flex;align-items:center;gap:10px;cursor:pointer;list-style:none;user-select:none;padding:6px 2px 10px;border-bottom:1px solid var(--border);margin-bottom:14px;font-family:var(--font-display);font-size:12.5px;font-weight:700;letter-spacing:0;color:var(--text-muted)}
+details.section-group > summary > :first-child{flex:1;min-width:0}
+details.section-group > summary::-webkit-details-marker{display:none}
+details.section-group > summary::marker{display:none}
+details.section-group > summary::after{content:'▾';color:var(--text-muted);font-size:12px;transition:transform .2s ease;line-height:1}
+details.section-group[open] > summary::after{transform:rotate(180deg)}
+details.section-group > summary:hover{color:var(--text)}
+
+/* ───────────── TABLES ───────────── */
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:10px 12px;text-align:left;font-family:var(--font-display);font-weight:700;color:var(--text-muted);font-size:10px;letter-spacing:.8px;border-bottom:2px solid var(--border);white-space:nowrap}
+td{padding:10px 12px;border-bottom:1px solid var(--border);font-weight:500;vertical-align:top}
+tr{transition:background .1s}
+tr:hover td{background:var(--bg)}
+.pending-table th,.pending-table td{text-align:center;vertical-align:middle}
+
+/* Field table — left-aligned for readability of long descriptions */
+.field-table th{text-align:left}
+.field-table td{text-align:left;vertical-align:top}
+.field-table td.field-name{font-family:'JetBrains Mono','Consolas',monospace;font-size:12.5px;font-weight:600;color:var(--text);white-space:nowrap;width:230px}
+.field-table td.field-type{width:180px;white-space:nowrap}
+.field-table td.field-req{width:90px;text-align:center}
+.field-table td.field-desc{color:var(--text);font-size:12.5px;line-height:1.55}
+.field-table td.field-desc small{display:block;margin-top:4px;color:var(--text-muted);font-size:11px;font-style:italic}
+
+/* ───────────── VALUE PILLS / BADGES ───────────── */
+.val-cell{display:inline-block;border-radius:4px;padding:3px 8px;font-family:var(--font-display);font-weight:700;font-size:11px;text-align:center;letter-spacing:.2px}
+.vc-string{background:var(--accent-light);color:var(--accent);border:1px solid rgba(15,98,254,.3)}
+.vc-number{background:#ECFDF5;color:var(--score-5-bg);border:1px solid #6EE7B7}
+.vc-bool{background:var(--score-2-bg);color:var(--score-2);border:1px solid var(--score-2-light)}
+.vc-datetime{background:#F3E8FF;color:#7C3AED;border:1px solid #C4B5FD}
+.vc-enum{background:var(--bg);color:var(--score-3);border:1px solid var(--score-3-border)}
+.vc-array{background:#FFFBEB;color:#92400E;border:1px solid var(--gold)}
+.vc-map{background:#FEF2F2;color:var(--score-1);border:1px solid var(--score-1-light)}
+.vc-ref{background:#FFFBEB;color:#92400E;border:1px solid var(--gold);cursor:pointer;text-decoration:none;transition:all .15s}
+.vc-ref:hover{background:var(--gold);color:#fff;border-color:#92400E}
+
+.req-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.3px}
+.req-yes{background:#FEF2F2;color:var(--score-1);border:1px solid var(--score-1-light)}
+.req-no{background:var(--bg);color:var(--text-muted);border:1px solid var(--border)}
+
+.status-pill{display:inline-block;padding:3px 9px;border-radius:20px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:.2px;white-space:nowrap}
+
+/* ───────────── ENUM PILLS (inline below field description) ───────────── */
+.enum-pills{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.enum-pill{font-family:'JetBrains Mono','Consolas',monospace;font-size:10.5px;color:var(--text);background:var(--bg);border:1px solid var(--border);padding:2px 7px;border-radius:3px;font-weight:500}
+
+/* ───────────── ROSTER-STYLE RELATED ENTITIES ───────────── */
+.roster-section{margin-top:0;margin-bottom:24px;background:var(--surface);border:1px solid #C4B5FD;border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden}
+.roster-section > summary{padding:14px 20px;cursor:pointer;list-style:none;font-family:var(--font-display);font-size:13px;font-weight:700;color:#5B21B6;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:10px;user-select:none;background:#EDE9FE;transition:background .15s}
+.roster-section > summary:hover{background:#DDD6FE}
+.roster-section > summary::-webkit-details-marker{display:none}
+.roster-section > summary::marker{display:none}
+.roster-section > summary::after{content:'▾';font-size:11px;color:#6D28D9;transition:transform .2s ease}
+.roster-section[open] > summary::after{transform:rotate(180deg)}
+.roster-section[open] > summary{border-bottom:1px solid #C4B5FD}
+.roster-section .roster-count{font-size:10px;font-weight:700;color:#6D28D9;letter-spacing:.4px;background:var(--surface);padding:3px 8px;border-radius:10px;border:1px solid #C4B5FD}
+.roster-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:14px 20px}
+.roster-btn{padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-family:var(--font-display);font-size:12px;font-weight:600;color:var(--text);cursor:pointer;transition:all .15s;white-space:nowrap;line-height:1.2;display:inline-flex;align-items:center;gap:8px}
+.roster-btn:hover{border-color:var(--accent);background:var(--accent-light);color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+.roster-btn .rel-dot{width:7px;height:7px;border-radius:50%;background:var(--rel-color,var(--accent));flex-shrink:0}
+
+/* ───────────── HIERARCHY DIAGRAM ───────────── */
+.hierarchy{display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:20px}
+.hier-node{display:inline-flex;flex-direction:column;align-items:center;gap:4px;padding:14px 24px;background:var(--surface);border:2px solid var(--rel-color,var(--accent));border-radius:var(--radius);min-width:200px;cursor:pointer;transition:all .2s;text-align:center;box-shadow:var(--shadow-sm)}
+.hier-node:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.hier-node .hier-label{font-family:var(--font-display);font-size:13px;font-weight:800;color:var(--text);letter-spacing:-.2px}
+.hier-node .hier-sub{font-size:10.5px;color:var(--text-muted);font-weight:600;letter-spacing:.3px;text-transform:uppercase}
+.hier-conn{width:2px;height:24px;background:var(--border);position:relative}
+.hier-conn::after{content:'';position:absolute;top:-4px;left:-3px;width:8px;height:8px;border-right:2px solid var(--text-muted);border-bottom:2px solid var(--text-muted);transform:rotate(45deg);background:transparent}
+.hier-branch{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+
+/* ───────────── BUTTONS ───────────── */
+.btn-ghost{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;font-family:var(--font-display);font-size:10.5px;font-weight:600;color:var(--text-muted);letter-spacing:.3px;transition:all .15s;line-height:1;text-decoration:none}
+.btn-ghost:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent);transform:translateY(-1px);box-shadow:var(--shadow-sm)}
+
+/* Field name CSR-link style for clickable type refs */
+.csr-link{color:var(--text);cursor:pointer;text-decoration:none;font-weight:600;transition:color .15s}
+.csr-link:hover{text-decoration:underline;color:var(--accent)}
+
+/* Highlighting search matches */
+.match-row td{background:linear-gradient(90deg,rgba(15,98,254,.06) 0%,transparent 80%)!important}
+.match-row td.field-name{background:linear-gradient(90deg,rgba(15,98,254,.12) 0%,rgba(15,98,254,.04) 100%)!important}
+
+/* No data */
+.no-data{text-align:center;padding:60px;color:var(--text-muted)}
+.no-data .icon-lg{font-size:48px;margin-bottom:12px;opacity:.3}
+.no-data .title{font-family:var(--font-display);font-size:15px;font-weight:600}
+.no-data .sub{font-size:13px;margin-top:6px}
+
+/* Footer attribution */
+.footer-note{margin-top:24px;padding-top:18px;border-top:1px solid var(--border);color:var(--text-muted);font-size:11.5px;font-style:italic;line-height:1.5}
+
+/* Scrollbars */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:5px}
+::-webkit-scrollbar-thumb:hover{background:#9CA3AF}
+
+/* ───────────── PASSWORD GATE ───────────── */
+/* Sits over the rendered schema content using the same modal-overlay pattern
+   the portal uses elsewhere — semi-transparent slate background with a soft
+   blur on what's behind. The content stays in the DOM (visible but dimmed),
+   and the overlay's z-index blocks interaction until unlocked. */
+.password-gate{
+  position:fixed;inset:0;
+  background:rgba(13,17,23,.55);
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:10000;padding:20px;
+  animation:fadeIn .3s ease;
+}
+.password-gate.hidden{display:none}
+.password-card{
+  background:var(--surface);
+  border-radius:var(--radius-lg);
+  box-shadow:0 24px 60px rgba(0,0,0,.4),0 0 0 1px rgba(255,255,255,.05);
+  padding:36px 34px 28px;
+  max-width:400px;width:100%;
+  text-align:center;
+  animation:fadeInUp .45s cubic-bezier(.16,1,.3,1);
+}
+.password-card .eyebrow{
+  font-family:var(--font-display);
+  font-size:10px;font-weight:700;
+  color:var(--accent);
+  letter-spacing:1.2px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.password-card h2{
+  font-family:var(--font-display);
+  font-size:22px;font-weight:700;
+  color:var(--text);
+  letter-spacing:-.3px;
+  margin-bottom:6px;
+}
+.password-card p{
+  font-size:13px;color:var(--text-muted);
+  margin-bottom:24px;line-height:1.55;
+}
+.password-form{display:flex;flex-direction:column;gap:10px}
+.password-form input{
+  padding:12px 14px;
+  border:1.5px solid var(--border);
+  border-radius:var(--radius);
+  font-family:var(--font-body);
+  font-size:14px;text-align:center;
+  letter-spacing:1.5px;
+  transition:all .15s;
+  background:var(--surface);color:var(--text);
+}
+.password-form input::placeholder{letter-spacing:.5px}
+.password-form input:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 4px rgba(15,98,254,.12);
+}
+.password-form input.error{
+  border-color:var(--score-1);
+  background:var(--score-1-bg);
+  animation:shake .4s;
+}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%,60%{transform:translateX(-6px)}
+  40%,80%{transform:translateX(6px)}
+}
+.password-form button{
+  padding:11px 18px;
+  background:#1F6FBA;color:#fff;
+  border:none;border-radius:var(--radius);
+  font-family:var(--font-display);
+  font-size:13px;font-weight:700;
+  letter-spacing:.4px;cursor:pointer;
+  transition:all .15s;
+}
+.password-form button:hover{
+  background:#1A5E9F;
+  transform:translateY(-1px);
+  box-shadow:0 4px 12px rgba(31,111,186,.35);
+}
+.password-form button:active{transform:translateY(0)}
+.password-error{
+  color:var(--score-1);
+  font-size:12px;font-weight:600;
+  min-height:18px;
+  margin-top:2px;
+}
+.password-footer{
+  margin-top:22px;
+  padding-top:16px;
+  border-top:1px solid var(--border);
+  font-size:11px;
+  color:var(--text-muted);
+  font-style:italic;
+  line-height:1.4;
+}
+
+/* ───────────── RESPONSIVE ───────────── */
+@media (max-width:768px){
+  .header{padding:12px 16px;flex-wrap:wrap;gap:10px}
+  .header h1{font-size:15px}
+  .header h1 .icon{width:30px;height:30px;font-size:16px}
+  .header-action-btn{padding:7px 12px;font-size:11.5px}
+  .tabs{padding:0 12px}
+  .tab{padding:10px 14px;font-size:12px}
+  .filters{padding:12px 16px;gap:10px}
+  .filter-group{flex:1 1 100%}
+  .filter-group input,.filter-group select{min-width:0;width:100%}
+  .content{padding:16px}
+  .cards{grid-template-columns:repeat(2,1fr);gap:10px}
+  .grid-section{padding:14px}
+  .field-table td.field-name{width:auto}
+  .field-table td.field-type{width:auto}
+  th,td{padding:8px 10px;font-size:11px}
+  th{font-size:9.5px}
+}
+</style>
+</head>
+<body>
+
+<div class="password-gate" id="passwordGate">
+  <div class="password-card">
+    <div class="eyebrow">Restricted Access</div>
+    <h2>Genesys Cloud Schema</h2>
+    <p>Enter the access password to continue to the schema reference.</p>
+    <form class="password-form" onsubmit="event.preventDefault();checkPassword()">
+      <input type="password" id="passwordInput" placeholder="Password" autocomplete="off" autofocus />
+      <button type="submit">Unlock</button>
+      <div class="password-error" id="passwordError"></div>
+    </form>
+    <div class="password-footer">Client-side demo gate — not intended for sensitive data.</div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-left">
+    <h1><span class="icon">⚡</span> Genesys Cloud Schema</h1>
+  </div>
+  <a class="header-action-btn" href="https://developer.genesys.cloud/devapps/api-explorer" target="_blank" rel="noopener" title="Open the official Genesys Cloud Platform API Explorer">API Explorer ↗</a>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab(0)">Overview</div>
+  <div class="tab" onclick="switchTab(1)">Conversation</div>
+  <div class="tab" onclick="switchTab(2)">Participant</div>
+  <div class="tab" onclick="switchTab(3)">Session</div>
+  <div class="tab" onclick="switchTab(4)">Segment</div>
+  <div class="tab" onclick="switchTab(5)">Reference</div>
+</div>
+
+<!-- TAB 0: Overview -->
+<div id="tab0">
+  <div class="filters">
+    <div class="filter-group">
+      <label>Search Across Schema</label>
+      <input id="searchGlobal" type="text" placeholder="Search any field, type, or entity..." />
+    </div>
+    <div class="filter-group">
+      <label>Filter</label>
+      <select id="filterGlobal">
+        <option value="all">All Fields</option>
+        <option value="required">Required Only</option>
+        <option value="ref">References Only</option>
+        <option value="enum">Enums Only</option>
+      </select>
+    </div>
+  </div>
+  <div class="content" id="overviewContent"></div>
+</div>
+
+<!-- TAB 1-4: Entity tabs -->
+<div id="tab1" style="display:none"><div class="filters"><div class="filter-group"><label>Search Fields</label><input class="entity-search" data-entity="Conversation" type="text" placeholder="Search fields in Conversation..." /></div></div><div class="content" id="conversationContent"></div></div>
+<div id="tab2" style="display:none"><div class="filters"><div class="filter-group"><label>Search Fields</label><input class="entity-search" data-entity="Participant" type="text" placeholder="Search fields in Participant..." /></div></div><div class="content" id="participantContent"></div></div>
+<div id="tab3" style="display:none"><div class="filters"><div class="filter-group"><label>Search Fields</label><input class="entity-search" data-entity="Session" type="text" placeholder="Search fields in Session..." /></div></div><div class="content" id="sessionContent"></div></div>
+<div id="tab4" style="display:none"><div class="filters"><div class="filter-group"><label>Search Fields</label><input class="entity-search" data-entity="Segment" type="text" placeholder="Search fields in Segment..." /></div></div><div class="content" id="segmentContent"></div></div>
+
+<!-- TAB 5: Reference (Flow + MediaEndpointStat + Survey + Evaluation + Metrics) -->
+<div id="tab5" style="display:none">
+  <div class="filters">
+    <div class="filter-group">
+      <label>Search Reference Entities</label>
+      <input id="searchReference" type="text" placeholder="Search across Flow, Survey, Evaluation, Metrics..." />
+    </div>
+  </div>
+  <div class="content" id="referenceContent"></div>
+</div>
+
+<script>
+/* ───────────────── PASSWORD GATE ───────────────── */
+const ACCESS_PASSWORD = 'schemademo';
+
+function checkPassword(){
+  const input = document.getElementById('passwordInput');
+  const errEl = document.getElementById('passwordError');
+  const gate = document.getElementById('passwordGate');
+  if((input.value || '').trim() === ACCESS_PASSWORD){
+    try { sessionStorage.setItem('schemaAccess','granted'); } catch(e){}
+    gate.classList.add('hidden');
+    errEl.textContent = '';
+  } else {
+    input.classList.add('error');
+    errEl.textContent = 'Incorrect password. Try again.';
+    setTimeout(()=>{
+      input.classList.remove('error');
+      input.value = '';
+      input.focus();
+    }, 450);
+  }
+}
+
+// Skip the gate if already unlocked this session
+try {
+  if(sessionStorage.getItem('schemaAccess') === 'granted'){
+    const gate = document.getElementById('passwordGate');
+    if(gate) gate.classList.add('hidden');
+  }
+} catch(e){ /* sessionStorage may be unavailable in some embeds — fall through to gate */ }
+
+/* ───────────────── SCHEMA DATA ───────────────── */
+const ENTITY_COLORS = {
+  Conversation: '#D4A017',
+  Participant:  '#C2410C',
+  Session:      '#1E40AF',
+  Segment:      '#7C3AED',
+  Flow:         '#047857',
+  MediaEndpointStat: '#EA580C',
+  Survey:       '#DC2626',
+  Evaluation:   '#0EA5E9',
+  Metrics:      '#92400E'
+};
+
+const SCHEMA = {
+  Conversation: {
+    parent: null,
+    desc: "The top-level interaction record. Aggregates every actor, channel, and lifecycle event involved in a single customer conversation across voice, chat, email, message, callback, social, and video.",
+    note: "Returned by the Conversation Detail Query, the Analytics Aggregates Query, and the conversations notification topic.",
+    fields: [
+      { n: "conversationId", t: "string", subt: "UUID", req: true, d: "Unique identifier for the conversation. Stable across the entire interaction lifecycle." },
+      { n: "conversationStart", t: "datetime", req: true, d: "Timestamp when the conversation began (first participant connected)." },
+      { n: "conversationEnd", t: "datetime", d: "Timestamp when the conversation terminated. Absent for in-progress conversations." },
+      { n: "originatingDirection", t: "enum", d: "Direction the conversation started in.", enums: ["inbound", "outbound"] },
+      { n: "divisionIds", t: "array", subt: "string", d: "Division IDs associated with the conversation, derived from participating queues, users, and DIDs." },
+      { n: "externalTag", t: "string", d: "Customer-supplied tag for filtering and reporting. Often set at flow entry." },
+      { n: "selfServed", t: "boolean", d: "True if the conversation was fully resolved by self-service (IVR, bot, workflow) without an agent." },
+      { n: "conferenceStart", t: "datetime", d: "Timestamp the conversation became a conference (3+ active parties)." },
+      { n: "conferenceEnd", t: "datetime", d: "Timestamp the conference state ended." },
+      { n: "mediaStatsMinConversationMos", t: "number", d: "Lowest Mean Opinion Score observed across all voice sessions. Range 1.0–5.0; below 3.5 indicates degradation." },
+      { n: "mediaStatsMinConversationRFactor", t: "number", d: "Lowest R-Factor across all voice sessions. Range 0–100; below 70 typically indicates poor call quality." },
+      { n: "knowledgeBaseIds", t: "array", subt: "string", d: "IDs of knowledge bases referenced during the conversation." },
+      { n: "participants", t: "ref-array", ref: "Participant", req: true, d: "All actors that joined this conversation." },
+      { n: "evaluations", t: "ref-array", ref: "Evaluation", d: "Quality management evaluations attached at the conversation level." },
+      { n: "surveys", t: "ref-array", ref: "Survey", d: "Post-interaction survey records linked to the conversation." }
+    ]
+  },
+  Participant: {
+    parent: "Conversation",
+    desc: "An actor that joined the conversation. Each conversation typically has multiple participants — the customer, IVR, ACD, one or more agents, plus any external systems. A participant carries identity and routing-time data, and contains one or more sessions.",
+    fields: [
+      { n: "participantId", t: "string", subt: "UUID", req: true, d: "Unique identifier for the participant within the conversation." },
+      { n: "participantName", t: "string", d: "Display name. Customer name for external callers; user's full name for agents." },
+      { n: "userId", t: "string", subt: "UUID", d: "Genesys Cloud user ID. Set when the participant is an internal user." },
+      { n: "purpose", t: "enum", req: true, d: "The role this participant played on the conversation.", enums: ["customer", "agent", "ivr", "acd", "manual", "external", "dialer", "workflow", "batch", "system", "voicemail", "user", "outboundCampaign"] },
+      { n: "externalContactId", t: "string", subt: "UUID", d: "ID of the matched external contact record, if identification succeeded." },
+      { n: "externalOrganizationId", t: "string", subt: "UUID", d: "ID of the matched external organization record." },
+      { n: "teamId", t: "string", subt: "UUID", d: "Team the participant (agent) belongs to at the time of the interaction." },
+      { n: "flaggedReason", t: "enum", d: "Reason the participant was flagged for review.", enums: ["general"] },
+      { n: "attributes", t: "map", subt: "string→string", d: "Free-form key-value pairs attached at the participant level. Common keys include integration-supplied IDs and custom routing context." },
+      { n: "sessions", t: "ref-array", ref: "Session", req: true, d: "Communications/sessions for this participant. One session per media type the participant interacted on." }
+    ]
+  },
+  Session: {
+    parent: "Participant",
+    desc: "A single media-typed communication for a participant — sometimes called a 'communication'. Voice, chat, email, message, callback, social, video, screenshare, or cobrowse. Holds routing, addressing, recording, flow, and quality data, broken into segments by state.",
+    note: "Voice sessions additionally carry mediaEndpointStats[]. Outbound campaign sessions carry the outbound* fields.",
+    fields: [
+      { n: "sessionId", t: "string", subt: "UUID", req: true, d: "Unique identifier for the session." },
+      { n: "mediaType", t: "enum", req: true, d: "The communication channel.", enums: ["voice", "chat", "email", "message", "callback", "social", "video", "screenshare", "cobrowse"] },
+      { n: "direction", t: "enum", req: true, d: "Inbound or outbound from the contact center perspective.", enums: ["inbound", "outbound"] },
+      { n: "ani", t: "string", d: "Automatic Number Identification — the calling party's number. Voice only." },
+      { n: "dnis", t: "string", d: "Dialed Number Identification Service — the number the caller dialed. Voice only." },
+      { n: "addressFrom", t: "string", d: "From-address. Format depends on mediaType (E.164 for voice, email address, JID, etc.)." },
+      { n: "addressTo", t: "string", d: "To-address for the session." },
+      { n: "edgeId", t: "string", subt: "UUID", d: "Identifier of the Edge that handled the media. Voice/screenshare." },
+      { n: "protocolCallId", t: "string", d: "SIP Call-ID header value for voice sessions. Useful for correlating with Edge/SBC logs." },
+      { n: "remote", t: "string", d: "Remote endpoint identifier (e.g. SIP URI for the far party)." },
+      { n: "requestedRoutings", t: "array", subt: "enum", d: "Routing methods evaluated for this session.", enums: ["Bullseye", "Conditional", "Last", "Manual", "Predictive", "Preferred", "Skills", "Standard"] },
+      { n: "usedRouting", t: "enum", d: "Routing method ultimately used to assign the session.", enums: ["Bullseye", "Conditional", "Last", "Manual", "Predictive", "Preferred", "Skills", "Standard"] },
+      { n: "selectedAgentId", t: "string", subt: "UUID", d: "Agent the predictive/preferred router selected for this session." },
+      { n: "selectedAgentRank", t: "integer", d: "Rank of the selected agent within the candidate pool." },
+      { n: "agentBullseyeRing", t: "integer", d: "Bullseye ring (1-based) when assignment occurred. Bullseye routing only." },
+      { n: "skipEnabled", t: "boolean", d: "True if the agent was permitted to skip this interaction." },
+      { n: "mediaCount", t: "integer", d: "Concurrent-media count credited to the agent at the time of assignment." },
+      { n: "monitoredParticipantId", t: "string", subt: "UUID", d: "ID of the participant being monitored, when this session is a supervisor monitor/coach/barge." },
+      { n: "recording", t: "boolean", d: "True if the session was recorded." },
+      { n: "outboundCampaignId", t: "string", subt: "UUID", d: "Campaign that originated this session. Outbound dialer sessions only." },
+      { n: "outboundContactId", t: "string", subt: "UUID", d: "Contact record dialed for this session." },
+      { n: "outboundContactListId", t: "string", subt: "UUID", d: "Contact list the contact was drawn from." },
+      { n: "dispositionAnalyzer", t: "enum", d: "Call-progress analysis result for outbound voice.", enums: ["LiveVoice", "AnsweringMachine", "Fax", "Busy", "DisconnectTone", "NoAnswer", "SitTone", "InvalidNumber"] },
+      { n: "flow", t: "ref", ref: "Flow", d: "Flow execution data for this session, if it traversed an Architect flow." },
+      { n: "segments", t: "ref-array", ref: "Segment", req: true, d: "State-by-state slices of this session." },
+      { n: "mediaEndpointStats", t: "ref-array", ref: "MediaEndpointStat", d: "Per-RTP-endpoint quality samples. Voice sessions only." }
+    ]
+  },
+  Segment: {
+    parent: "Session",
+    desc: "A contiguous state interval inside a session. The same session is sliced into multiple segments as the participant moves through the interaction lifecycle (alerting, talking, holding, wrapping up, etc.). Most analytics metrics are computed by summing segments of a given type.",
+    fields: [
+      { n: "segmentStart", t: "datetime", req: true, d: "Start of the segment." },
+      { n: "segmentEnd", t: "datetime", d: "End of the segment. Open if the segment is still active." },
+      { n: "segmentType", t: "enum", req: true, d: "The state this segment represents.", enums: ["alert", "delay", "system", "contacting", "dialing", "interact", "hold", "wrapup", "ivr", "scheduled", "transmitting", "converting", "parked", "voicemail", "sharing", "uploading", "dnd"] },
+      { n: "queueId", t: "string", subt: "UUID", d: "Queue the segment was associated with (e.g. wait segments)." },
+      { n: "conference", t: "boolean", d: "True if the segment occurred during a conference state." },
+      { n: "disconnectType", t: "enum", d: "How the segment ended, when it terminated the session.", enums: ["client", "peer", "error", "system", "timeout", "transfer", "transferConference", "transferForward", "transferNoAnswer", "transferNotAvailable", "transportFailure", "uncallable", "endpoint", "endpointDnd"] },
+      { n: "requestedRoutingSkillIds", t: "array", subt: "string", d: "Skill IDs requested when routing this segment." },
+      { n: "requestedLanguageId", t: "string", subt: "UUID", d: "Language ID requested when routing." },
+      { n: "subject", t: "string", d: "Subject line. Email and message segments." },
+      { n: "wrapUpCode", t: "string", d: "Wrap-up code applied during a wrapup segment." },
+      { n: "wrapUpNote", t: "string", d: "Free-text wrap-up note." },
+      { n: "wrapUpTags", t: "array", subt: "string", d: "Optional tags applied at wrap-up." },
+      { n: "errorCode", t: "string", d: "System error code, if the segment ended in error." },
+      { n: "audioMuted", t: "boolean", d: "True if audio was muted during the segment. Voice/video." },
+      { n: "videoMuted", t: "boolean", d: "True if video was muted. Video only." },
+      { n: "destinationConversationId", t: "string", subt: "UUID", d: "Conversation ID the participant transferred into. Set on transfer segments." },
+      { n: "destinationSessionId", t: "string", subt: "UUID", d: "Session ID the participant transferred into." },
+      { n: "sourceConversationId", t: "string", subt: "UUID", d: "Conversation ID this session was transferred from." },
+      { n: "sourceSessionId", t: "string", subt: "UUID", d: "Session ID this session was transferred from." },
+      { n: "groupId", t: "string", subt: "UUID", d: "Group used for routing during this segment." }
+    ]
+  },
+  Flow: {
+    parent: "Session",
+    desc: "Architect flow execution data attached to a session. Captures which flow ran, the path taken, the outcome, and how the flow exited (transfer, disconnect, queue, agent).",
+    fields: [
+      { n: "flowId", t: "string", subt: "UUID", req: true, d: "Identifier of the Architect flow definition." },
+      { n: "flowName", t: "string", d: "Human-readable flow name at the time of execution." },
+      { n: "flowVersion", t: "string", d: "Published version of the flow that ran." },
+      { n: "flowType", t: "enum", req: true, d: "Type of Architect flow.", enums: ["bot", "commonModule", "inboundCall", "inboundChat", "inboundEmail", "inboundMessage", "inboundShortMessage", "inQueueCall", "inQueueEmail", "inQueueShortMessage", "outboundCall", "secureCall", "surveyInvite", "voice", "voicemail", "workflow", "workitem"] },
+      { n: "flowOutType", t: "enum", d: "Where the flow handed off when it exited.", enums: ["AGENT", "ACD", "USER", "GROUP", "FLOW", "SECURE_FLOW", "EXTERNAL", "DISCONNECT", "VOICEMAIL"] },
+      { n: "flowOutcome", t: "string", d: "Name of the outcome assigned at flow exit (Architect Outcomes)." },
+      { n: "flowOutcomeId", t: "string", subt: "UUID", d: "Outcome identifier." },
+      { n: "flowOutcomeValue", t: "string", d: "Outcome value (success, failure, custom)." },
+      { n: "entryReason", t: "string", d: "Why the flow was entered. For inbound, the DNIS or trigger ID." },
+      { n: "entryType", t: "enum", d: "Trigger source for the flow entry.", enums: ["dnis", "flow", "agent", "outboundCampaign", "agentless", "direct"] },
+      { n: "exitReason", t: "string", d: "Why the flow exited (e.g. transfer target, disconnect cause)." },
+      { n: "transferTargetAddress", t: "string", d: "Address dialed/posted on transfer out of the flow." },
+      { n: "transferTargetName", t: "string", d: "Display name for the transfer target." },
+      { n: "transferType", t: "enum", d: "Mechanism of the transfer.", enums: ["Cold", "Warm", "NoAnswer"] },
+      { n: "startingLanguage", t: "string", d: "Language code at flow start (e.g. en-US)." },
+      { n: "endingLanguage", t: "string", d: "Language code at flow exit." },
+      { n: "issuedCallback", t: "boolean", d: "True if the flow scheduled a callback." },
+      { n: "recognitionFailureReason", t: "string", d: "Reason a speech-recognition step failed, if applicable." }
+    ]
+  },
+  MediaEndpointStat: {
+    parent: "Session",
+    desc: "RTP media-quality samples for a voice session, reported per endpoint. Drives MOS and R-Factor analytics and powers the call-quality dashboards.",
+    fields: [
+      { n: "eventTime", t: "datetime", req: true, d: "Time of the quality sample." },
+      { n: "minMos", t: "number", d: "Minimum MOS observed in the sample window. Range 1.0–5.0." },
+      { n: "maxMos", t: "number", d: "Maximum MOS observed in the sample window." },
+      { n: "minRFactor", t: "number", d: "Minimum R-Factor observed. Range 0–100." },
+      { n: "maxRFactor", t: "number", d: "Maximum R-Factor observed." },
+      { n: "discardedPackets", t: "integer", d: "Packets discarded by the jitter buffer." },
+      { n: "duplicatePackets", t: "integer", d: "Duplicate packets received." },
+      { n: "invalidPackets", t: "integer", d: "Malformed RTP packets received." },
+      { n: "overrunPackets", t: "integer", d: "Packets dropped due to jitter buffer overrun." },
+      { n: "underrunPackets", t: "integer", d: "Packets lost to jitter buffer underrun (silence inserted)." },
+      { n: "receivedPackets", t: "integer", d: "Total RTP packets received in the sample window." },
+      { n: "codecs", t: "array", subt: "string", d: "Codecs negotiated for the stream (e.g. PCMU, OPUS, G722)." }
+    ]
+  },
+  Survey: {
+    parent: "Conversation",
+    desc: "Post-interaction survey response associated with the conversation. Tied to a survey form and optionally to the agent that handled the interaction.",
+    fields: [
+      { n: "surveyId", t: "string", subt: "UUID", req: true, d: "Survey response identifier." },
+      { n: "surveyFormId", t: "string", subt: "UUID", req: true, d: "Identifier of the survey form definition." },
+      { n: "surveyFormName", t: "string", d: "Form name at the time of submission." },
+      { n: "surveyFormContextId", t: "string", subt: "UUID", d: "Form context ID — stable across form versions." },
+      { n: "surveyCompletedDate", t: "datetime", d: "When the customer submitted the survey." },
+      { n: "surveyPromoterScore", t: "integer", d: "NPS-style promoter score (0–10), if the form has one." },
+      { n: "surveyTotalScore", t: "integer", d: "Total weighted score for the survey response." },
+      { n: "surveyStatus", t: "enum", d: "Lifecycle status of the survey.", enums: ["Sent", "InProgress", "Finished", "Expired", "Error", "OptedOut"] },
+      { n: "userId", t: "string", subt: "UUID", d: "Agent the survey was attributed to, if the form is agent-scored." },
+      { n: "queueId", t: "string", subt: "UUID", d: "Queue the agent was on at the time of the interaction." },
+      { n: "eventTime", t: "datetime", d: "Time the survey event was recorded for analytics." }
+    ]
+  },
+  Evaluation: {
+    parent: "Conversation",
+    desc: "Quality-management evaluation recorded against the conversation. One conversation may have multiple evaluations — for different agents, forms, or calibration sessions.",
+    fields: [
+      { n: "evaluationId", t: "string", subt: "UUID", req: true, d: "Evaluation identifier." },
+      { n: "evaluatorId", t: "string", subt: "UUID", d: "User who performed the evaluation." },
+      { n: "userId", t: "string", subt: "UUID", d: "Agent being evaluated." },
+      { n: "formId", t: "string", subt: "UUID", req: true, d: "Evaluation form definition." },
+      { n: "formName", t: "string", d: "Form name at evaluation time." },
+      { n: "contextId", t: "string", subt: "UUID", d: "Form context ID — stable across form versions." },
+      { n: "queueId", t: "string", subt: "UUID", d: "Queue the evaluated interaction was on." },
+      { n: "calibrationId", t: "string", subt: "UUID", d: "Calibration session this evaluation belongs to, if any." },
+      { n: "deleted", t: "boolean", d: "True if the evaluation was soft-deleted." },
+      { n: "released", t: "boolean", d: "True once the evaluation was released to the agent." },
+      { n: "rescored", t: "boolean", d: "True if the evaluation was rescored after release." },
+      { n: "eventTime", t: "datetime", d: "Time the evaluation event was recorded." }
+    ]
+  },
+  Metrics: {
+    parent: null,
+    desc: "Time and count metrics emitted by the analytics service. Metrics aren't a separate document — they're attached to participants, sessions, and segments — but understanding them is essential for queries and reports. Times are in milliseconds.",
+    note: "Counts prefixed n*. Times prefixed t*. Observations prefixed o*.",
+    fields: [
+      { n: "nOffered", t: "integer", subt: "count", d: "Interactions offered to a queue or agent." },
+      { n: "nConnected", t: "integer", subt: "count", d: "Interactions that successfully connected." },
+      { n: "nAnswered", t: "integer", subt: "count", d: "Interactions answered by an agent." },
+      { n: "nOverSla", t: "integer", subt: "count", d: "Interactions that exceeded the queue's service level threshold." },
+      { n: "nTransferred", t: "integer", subt: "count", d: "Interactions transferred (cold + warm + conference)." },
+      { n: "nBlindTransferred", t: "integer", subt: "count", d: "Cold/blind transfers." },
+      { n: "nConsultTransferred", t: "integer", subt: "count", d: "Warm/consultative transfers." },
+      { n: "nOutbound", t: "integer", subt: "count", d: "Outbound interactions placed." },
+      { n: "nOutboundConnected", t: "integer", subt: "count", d: "Outbound interactions that connected to a live party." },
+      { n: "nOutboundAttempted", t: "integer", subt: "count", d: "Outbound dial attempts." },
+      { n: "nOutboundAbandoned", t: "integer", subt: "count", d: "Outbound calls abandoned by the dialer." },
+      { n: "tAlert", t: "integer", subt: "ms", d: "Time the agent's station spent alerting before answer." },
+      { n: "tAnswered", t: "integer", subt: "ms", d: "Time from offer to answer." },
+      { n: "tTalk", t: "integer", subt: "ms", d: "Time spent in talk/interact state." },
+      { n: "tTalkComplete", t: "integer", subt: "ms", d: "Talk time on completed interactions only." },
+      { n: "tHeld", t: "integer", subt: "ms", d: "Time the customer was on hold." },
+      { n: "tHeldComplete", t: "integer", subt: "ms", d: "Hold time on completed interactions only." },
+      { n: "tHandle", t: "integer", subt: "ms", d: "Total handle time = talk + hold + acw." },
+      { n: "tAcw", t: "integer", subt: "ms", d: "After-call (wrap-up) work time." },
+      { n: "tAgentResponseTime", t: "integer", subt: "ms", d: "Sum of agent response delays in async media." },
+      { n: "tUserResponseTime", t: "integer", subt: "ms", d: "Sum of customer response delays in async media." },
+      { n: "tContacting", t: "integer", subt: "ms", d: "Time the agent's station was being contacted (outbound)." },
+      { n: "tDialing", t: "integer", subt: "ms", d: "Time spent dialing the far party." },
+      { n: "tFlow", t: "integer", subt: "ms", d: "Time spent in flow execution." },
+      { n: "tFlowOut", t: "integer", subt: "ms", d: "Flow time that ended in transfer out." },
+      { n: "tFlowDisconnect", t: "integer", subt: "ms", d: "Flow time that ended in disconnect." },
+      { n: "tIvr", t: "integer", subt: "ms", d: "Time spent in IVR." },
+      { n: "tNotResponding", t: "integer", subt: "ms", d: "Time the agent was set Not Responding." },
+      { n: "tShortAbandon", t: "integer", subt: "ms", d: "Time before short-abandon threshold for abandoned interactions." },
+      { n: "tWait", t: "integer", subt: "ms", d: "Wait time in queue prior to assignment." },
+      { n: "tAbandon", t: "integer", subt: "ms", d: "Time before the customer abandoned." },
+      { n: "tAcd", t: "integer", subt: "ms", d: "Time spent in ACD routing." },
+      { n: "tConnected", t: "integer", subt: "ms", d: "Total time the session was in connected state." },
+      { n: "tMonitoring", t: "integer", subt: "ms", d: "Time a supervisor spent silently monitoring." },
+      { n: "tCoaching", t: "integer", subt: "ms", d: "Time spent in coach (whisper) mode." },
+      { n: "tBarging", t: "integer", subt: "ms", d: "Time spent in barge-in mode." }
+    ]
+  }
+};
+
+/* ───────────────── HELPERS ───────────────── */
+function esc(v){return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function typeBadge(f){
+  // Returns the type as a styled pill matching the val-cell convention
+  if(f.t === 'ref' || f.t === 'ref-array'){
+    const arrSuffix = f.t === 'ref-array' ? '[]' : '';
+    return '<span class="val-cell vc-ref" onclick="navigateToEntity(\''+f.ref+'\')" title="Go to '+f.ref+' definition">'+esc(f.ref)+arrSuffix+'</span>';
+  }
+  let cls = 'vc-'+f.t;
+  if(f.t === 'array') cls = 'vc-array';
+  if(f.t === 'map') cls = 'vc-map';
+  let label = f.t;
+  if(f.t === 'array' && f.subt) label = f.subt+'[]';
+  else if(f.t === 'map' && f.subt) label = 'Map<'+f.subt+'>';
+  else if(f.t === 'integer') { label = 'integer'; cls = 'vc-number'; }
+  else if(f.subt && f.t === 'string') label = f.subt;
+  else if(f.subt && f.t === 'integer') label = f.subt;
+  return '<span class="val-cell '+cls+'">'+esc(label)+'</span>';
+}
+
+function legendHTML(){
+  return '<div class="legend-bar"><span class="legend-title">Type Legend</span>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:var(--accent-light);border:1px solid rgba(15,98,254,.3)"></div><span style="color:var(--accent);font-weight:600">string</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:#ECFDF5;border:1px solid #6EE7B7"></div><span style="color:var(--score-5-bg);font-weight:600">number/integer</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:var(--score-2-bg);border:1px solid var(--score-2-light)"></div><span style="color:var(--score-2);font-weight:600">boolean</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:#F3E8FF;border:1px solid #C4B5FD"></div><span style="color:#7C3AED;font-weight:600">datetime</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:var(--bg);border:1px solid var(--score-3-border)"></div><span style="color:var(--score-3);font-weight:600">enum</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:#FFFBEB;border:1px solid var(--gold)"></div><span style="color:#92400E;font-weight:600">array / reference</span></div>'+
+    '<div class="legend-item"><div class="legend-swatch" style="background:#FEF2F2;border:1px solid var(--score-1-light)"></div><span style="color:var(--score-1);font-weight:600">map</span></div>'+
+  '</div>';
+}
+
+/* ───────────────── ENTITY RENDERING ───────────────── */
+function renderEntity(id, containerId, searchTerm){
+  const e = SCHEMA[id];
+  const container = document.getElementById(containerId);
+  if(!e || !container) return;
+  const color = ENTITY_COLORS[id];
+  const reqCount = e.fields.filter(f => f.req).length;
+  const refs = [...new Set(e.fields.filter(f => f.ref).map(f => f.ref))];
+  const children = Object.entries(SCHEMA).filter(([k,v]) => v.parent === id).map(([k]) => k);
+  const enumCount = e.fields.filter(f => f.enums).length;
+
+  let html = '';
+
+  // Type Legend bar
+  html += legendHTML();
+
+  // KPI cards
+  html += '<div class="cards">';
+  html += '<div class="card overall"><div class="label">Entity</div><div class="value" style="color:'+color+'">'+esc(id)+'</div><div class="sub">'+(e.parent ? 'Child of '+e.parent : 'Root entity')+'</div></div>';
+  html += '<div class="card s4"><div class="label">Total Fields</div><div class="value">'+e.fields.length+'</div><div class="sub">Across this entity</div></div>';
+  html += '<div class="card s1"><div class="label">Required</div><div class="value">'+reqCount+'</div><div class="sub">Always populated</div></div>';
+  html += '<div class="card s2"><div class="label">Enums</div><div class="value">'+enumCount+'</div><div class="sub">Constrained value sets</div></div>';
+  html += '<div class="card s5"><div class="label">References</div><div class="value">'+refs.length+'</div><div class="sub">Nested entity types</div></div>';
+  if(children.length){
+    html += '<div class="card s3"><div class="label">Direct Children</div><div class="value">'+children.length+'</div><div class="sub">Entities under this</div></div>';
+  }
+  html += '</div>';
+
+  // About this entity
+  html += '<div class="grid-section">';
+  html += '<h3>About '+esc(id)+'</h3>';
+  html += '<div class="desc-block">'+esc(e.desc)+'</div>';
+  if(e.note) html += '<div class="desc-block">'+esc(e.note)+'</div>';
+  html += '</div>';
+
+  // Fields table
+  const q = (searchTerm || '').trim().toLowerCase();
+  const visibleFields = e.fields.filter(f => {
+    if(!q) return true;
+    return f.n.toLowerCase().includes(q) ||
+      (f.d && f.d.toLowerCase().includes(q)) ||
+      (f.t && f.t.toLowerCase().includes(q)) ||
+      (f.subt && f.subt.toLowerCase().includes(q)) ||
+      (f.ref && f.ref.toLowerCase().includes(q)) ||
+      (f.enums && f.enums.some(en => en.toLowerCase().includes(q)));
+  });
+
+  html += '<div class="grid-section">';
+  html += '<div class="section-header"><h3>Fields · '+visibleFields.length+(q ? ' of '+e.fields.length+' matching "'+esc(q)+'"' : '')+'</h3></div>';
+  if(!visibleFields.length){
+    html += '<div class="no-data"><div class="icon-lg">🔍</div><div class="title">No fields match your search</div><div class="sub">Try a different term or clear the filter</div></div>';
+  } else {
+    html += '<div style="overflow-x:auto"><table class="field-table"><thead><tr>';
+    html += '<th>Field</th><th>Type</th><th style="text-align:center">Required</th><th>Description</th>';
+    html += '</tr></thead><tbody>';
+    visibleFields.forEach(f => {
+      const isMatch = q && (f.n.toLowerCase().includes(q) || (f.d && f.d.toLowerCase().includes(q)));
+      html += '<tr'+(isMatch ? ' class="match-row"' : '')+'>';
+      html += '<td class="field-name">'+esc(f.n)+'</td>';
+      html += '<td class="field-type">'+typeBadge(f)+'</td>';
+      html += '<td class="field-req">'+(f.req ? '<span class="req-pill req-yes">REQUIRED</span>' : '<span class="req-pill req-no">optional</span>')+'</td>';
+      html += '<td class="field-desc">'+esc(f.d || '');
+      if(f.enums){
+        html += '<div class="enum-pills">';
+        f.enums.forEach(en => { html += '<span class="enum-pill">'+esc(en)+'</span>'; });
+        html += '</div>';
+      }
+      html += '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  // Direct Children section (if any)
+  if(children.length){
+    html += '<details class="roster-section" open><summary>Direct Children <span class="roster-count">'+children.length+'</span></summary><div class="roster-buttons">';
+    children.forEach(cid => {
+      const cc = ENTITY_COLORS[cid];
+      html += '<button class="roster-btn" style="--rel-color:'+cc+'" onclick="navigateToEntity(\''+cid+'\')"><span class="rel-dot"></span>'+esc(cid)+'</button>';
+    });
+    html += '</div></details>';
+  }
+
+  // Referenced types section (if any)
+  if(refs.length){
+    html += '<details class="roster-section" open><summary>Referenced Entity Types <span class="roster-count">'+refs.length+'</span></summary><div class="roster-buttons">';
+    refs.forEach(rid => {
+      const cc = ENTITY_COLORS[rid] || '#6B7280';
+      html += '<button class="roster-btn" style="--rel-color:'+cc+'" onclick="navigateToEntity(\''+rid+'\')"><span class="rel-dot"></span>'+esc(rid)+'</button>';
+    });
+    html += '</div></details>';
+  }
+
+  html += '<div class="footer-note">Sourced from the Genesys Cloud Platform API Conversation Detail data model. Treat the OpenAPI spec at developer.genesys.cloud as authoritative for production work — preview fields and tenant-specific custom attributes are not represented here.</div>';
+
+  container.innerHTML = html;
+}
+
+/* ───────────────── OVERVIEW TAB ───────────────── */
+function renderOverview(searchTerm, filterMode){
+  const container = document.getElementById('overviewContent');
+  if(!container) return;
+  const q = (searchTerm || '').trim().toLowerCase();
+  const filter = filterMode || 'all';
+
+  // Schema-wide stats
+  const allEntities = Object.keys(SCHEMA);
+  let totalFields = 0, totalRequired = 0, totalRefs = 0, totalEnums = 0;
+  allEntities.forEach(eid => {
+    const e = SCHEMA[eid];
+    totalFields += e.fields.length;
+    totalRequired += e.fields.filter(f => f.req).length;
+    totalRefs += e.fields.filter(f => f.ref).length;
+    totalEnums += e.fields.filter(f => f.enums).length;
+  });
+
+  let html = '';
+  html += legendHTML();
+
+  // KPI cards — schema-wide
+  html += '<div class="cards">';
+  html += '<div class="card overall"><div class="label">Total Entities</div><div class="value">'+allEntities.length+'</div><div class="sub">In the conversation model</div></div>';
+  html += '<div class="card s4"><div class="label">Total Fields</div><div class="value">'+totalFields+'</div><div class="sub">Across all entities</div></div>';
+  html += '<div class="card s1"><div class="label">Required Fields</div><div class="value">'+totalRequired+'</div><div class="sub">Always populated</div></div>';
+  html += '<div class="card s2"><div class="label">Enums</div><div class="value">'+totalEnums+'</div><div class="sub">Constrained value sets</div></div>';
+  html += '<div class="card s5"><div class="label">Nested References</div><div class="value">'+totalRefs+'</div><div class="sub">Entity relationships</div></div>';
+  html += '<div class="card s3"><div class="label">Hierarchy Depth</div><div class="value">4</div><div class="sub">Conversation → Segment</div></div>';
+  html += '</div>';
+
+  // If searching, show a flat result table across all entities
+  if(q || filter !== 'all'){
+    const results = [];
+    allEntities.forEach(eid => {
+      const e = SCHEMA[eid];
+      e.fields.forEach(f => {
+        // Apply filter
+        if(filter === 'required' && !f.req) return;
+        if(filter === 'ref' && !f.ref) return;
+        if(filter === 'enum' && !f.enums) return;
+        // Apply search
+        if(q){
+          const matches = f.n.toLowerCase().includes(q) ||
+            (f.d && f.d.toLowerCase().includes(q)) ||
+            (f.t && f.t.toLowerCase().includes(q)) ||
+            (f.subt && f.subt.toLowerCase().includes(q)) ||
+            (f.ref && f.ref.toLowerCase().includes(q)) ||
+            (f.enums && f.enums.some(en => en.toLowerCase().includes(q))) ||
+            eid.toLowerCase().includes(q);
+          if(!matches) return;
+        }
+        results.push({entity: eid, field: f});
+      });
+    });
+
+    html += '<div class="grid-section">';
+    html += '<div class="section-header"><h3>Search Results · '+results.length+' field'+(results.length===1?'':'s')+(q?' matching "'+esc(q)+'"':'')+'</h3></div>';
+    if(!results.length){
+      html += '<div class="no-data"><div class="icon-lg">🔍</div><div class="title">No matches found</div><div class="sub">Try a different search term or filter</div></div>';
+    } else {
+      html += '<div style="overflow-x:auto"><table class="field-table"><thead><tr>';
+      html += '<th>Entity</th><th>Field</th><th>Type</th><th style="text-align:center">Required</th><th>Description</th>';
+      html += '</tr></thead><tbody>';
+      results.slice(0, 200).forEach(r => {
+        const color = ENTITY_COLORS[r.entity];
+        html += '<tr class="match-row">';
+        html += '<td style="white-space:nowrap"><span class="csr-link" onclick="navigateToEntity(\''+r.entity+'\')" style="color:'+color+'">'+esc(r.entity)+'</span></td>';
+        html += '<td class="field-name">'+esc(r.field.n)+'</td>';
+        html += '<td class="field-type">'+typeBadge(r.field)+'</td>';
+        html += '<td class="field-req">'+(r.field.req ? '<span class="req-pill req-yes">REQUIRED</span>' : '<span class="req-pill req-no">optional</span>')+'</td>';
+        html += '<td class="field-desc">'+esc(r.field.d || '');
+        if(r.field.enums){
+          html += '<div class="enum-pills">';
+          r.field.enums.forEach(en => { html += '<span class="enum-pill">'+esc(en)+'</span>'; });
+          html += '</div>';
+        }
+        html += '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      if(results.length > 200){
+        html += '<div style="text-align:center;padding:14px;color:var(--text-muted);font-size:12px;font-style:italic">Showing first 200 of '+results.length+' results — refine your search to narrow.</div>';
+      }
+    }
+    html += '</div>';
+  }
+
+  // Hierarchy diagram
+  html += '<div class="grid-section">';
+  html += '<div class="section-header"><h3>Conversation Hierarchy</h3></div>';
+  html += '<p style="font-size:13px;color:var(--text-muted);margin-bottom:8px;line-height:1.6">The Genesys Cloud conversation model is a nested hierarchy. A <strong>Conversation</strong> contains one or more <strong>Participants</strong> (customer, IVR, ACD, agent, external). Each participant has one or more <strong>Sessions</strong> — one per media type they engaged on. Each session is sliced into <strong>Segments</strong> representing state intervals (alert, talk, hold, wrapup, etc.).</p>';
+  html += '<div class="hierarchy">';
+  html += '<div class="hier-node" style="--rel-color:'+ENTITY_COLORS.Conversation+'" onclick="navigateToEntity(\'Conversation\')"><div class="hier-sub">Root</div><div class="hier-label">Conversation</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+SCHEMA.Conversation.fields.length+' fields</div></div>';
+  html += '<div class="hier-conn"></div>';
+  html += '<div class="hier-node" style="--rel-color:'+ENTITY_COLORS.Participant+'" onclick="navigateToEntity(\'Participant\')"><div class="hier-sub">Level 1</div><div class="hier-label">Participant</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+SCHEMA.Participant.fields.length+' fields</div></div>';
+  html += '<div class="hier-conn"></div>';
+  html += '<div class="hier-node" style="--rel-color:'+ENTITY_COLORS.Session+'" onclick="navigateToEntity(\'Session\')"><div class="hier-sub">Level 2</div><div class="hier-label">Session</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+SCHEMA.Session.fields.length+' fields</div></div>';
+  html += '<div class="hier-conn"></div>';
+  html += '<div class="hier-branch">';
+  ['Segment','Flow','MediaEndpointStat'].forEach(id => {
+    html += '<div class="hier-node" style="--rel-color:'+ENTITY_COLORS[id]+'" onclick="navigateToEntity(\''+id+'\')"><div class="hier-sub">Level 3</div><div class="hier-label">'+id+'</div><div style="font-size:11px;color:var(--text-muted);margin-top:2px">'+SCHEMA[id].fields.length+' fields</div></div>';
+  });
+  html += '</div>';
+  html += '</div>';
+  html += '<p style="font-size:11.5px;color:var(--text-muted);margin-top:14px;font-style:italic;text-align:center"><strong>Survey</strong> and <strong>Evaluation</strong> attach as siblings at the Conversation level. See the Reference tab for full details.</p>';
+  html += '</div>';
+
+  // Entity quick-access — roster-style
+  html += '<details class="roster-section" open><summary>All Entities <span class="roster-count">'+allEntities.length+'</span></summary><div class="roster-buttons">';
+  allEntities.forEach(eid => {
+    const cc = ENTITY_COLORS[eid];
+    html += '<button class="roster-btn" style="--rel-color:'+cc+'" onclick="navigateToEntity(\''+eid+'\')"><span class="rel-dot"></span>'+esc(eid)+' · '+SCHEMA[eid].fields.length+' fields</button>';
+  });
+  html += '</div></details>';
+
+  // Where to go next
+  html += '<div class="grid-section">';
+  html += '<div class="section-header"><h3>Working With This Schema</h3></div>';
+  html += '<div class="desc-block"><strong>Reading conversation data:</strong> Use the Conversation Detail Query at <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-family:monospace;font-size:12px">/api/v2/analytics/conversations/details/query</code> to pull historical conversations with all participants, sessions, and segments inline.</div>';
+  html += '<div class="desc-block"><strong>Real-time streams:</strong> The conversations notification topic delivers the same shape as participant/session/segment state changes, ideal for live dashboards.</div>';
+  html += '<div class="desc-block"><strong>Authoritative reference:</strong> The OpenAPI spec at <a href="https://developer.genesys.cloud/devapps/api-explorer" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600">developer.genesys.cloud/devapps/api-explorer</a> is the single source of truth — preview fields and tenant-specific custom attributes only appear there.</div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+/* ───────────────── REFERENCE TAB ───────────────── */
+function renderReference(searchTerm){
+  const container = document.getElementById('referenceContent');
+  if(!container) return;
+  const refEntities = ['Flow','MediaEndpointStat','Survey','Evaluation','Metrics'];
+  const q = (searchTerm || '').trim().toLowerCase();
+
+  let totalRefFields = 0;
+  refEntities.forEach(eid => { totalRefFields += SCHEMA[eid].fields.length; });
+
+  let html = '';
+  html += legendHTML();
+
+  // KPI cards
+  html += '<div class="cards">';
+  html += '<div class="card overall"><div class="label">Reference Entities</div><div class="value">'+refEntities.length+'</div><div class="sub">Supporting types</div></div>';
+  html += '<div class="card s4"><div class="label">Total Fields</div><div class="value">'+totalRefFields+'</div><div class="sub">Across reference set</div></div>';
+  html += '<div class="card s5"><div class="label">Metric Definitions</div><div class="value">'+SCHEMA.Metrics.fields.length+'</div><div class="sub">Count + time metrics</div></div>';
+  html += '<div class="card s2"><div class="label">Quality Surfaces</div><div class="value">3</div><div class="sub">MOS · Survey · Eval</div></div>';
+  html += '</div>';
+
+  html += '<div class="grid-section"><div class="section-header"><h3>Reference Types</h3></div>';
+  html += '<div class="desc-block">These entities support the core hierarchy without being primary nodes in it. <strong>Flow</strong> and <strong>MediaEndpointStat</strong> nest inside Session. <strong>Survey</strong> and <strong>Evaluation</strong> attach at the Conversation level. <strong>Metrics</strong> aren\'t a document of their own — they appear on participants, sessions, and segments — but understanding them is essential for querying.</div></div>';
+
+  // Render each reference entity in its own section-group
+  refEntities.forEach(eid => {
+    const e = SCHEMA[eid];
+    const color = ENTITY_COLORS[eid];
+    const reqCount = e.fields.filter(f => f.req).length;
+
+    const visibleFields = e.fields.filter(f => {
+      if(!q) return true;
+      return f.n.toLowerCase().includes(q) ||
+        (f.d && f.d.toLowerCase().includes(q)) ||
+        (f.t && f.t.toLowerCase().includes(q)) ||
+        (f.subt && f.subt.toLowerCase().includes(q)) ||
+        (f.enums && f.enums.some(en => en.toLowerCase().includes(q)));
+    });
+
+    if(q && !visibleFields.length) return;
+
+    html += '<details class="section-group" '+(q ? 'open' : (eid==='Flow' ? 'open' : ''))+'>';
+    html += '<summary><span style="color:'+color+';font-weight:800">'+esc(eid)+'</span> <span style="color:var(--text-muted);font-weight:600;text-transform:none;letter-spacing:0">· '+visibleFields.length+(q ? ' of '+e.fields.length : '')+' field'+(e.fields.length===1?'':'s')+(e.parent ? ' · child of '+e.parent : '')+'</span></summary>';
+
+    // Description inline
+    html += '<div class="grid-section">';
+    html += '<div class="desc-block">'+esc(e.desc)+'</div>';
+    if(e.note) html += '<div class="desc-block">'+esc(e.note)+'</div>';
+
+    // Field table
+    html += '<div style="overflow-x:auto;margin-top:14px"><table class="field-table"><thead><tr>';
+    html += '<th>Field</th><th>Type</th><th style="text-align:center">Required</th><th>Description</th>';
+    html += '</tr></thead><tbody>';
+    visibleFields.forEach(f => {
+      const isMatch = q && (f.n.toLowerCase().includes(q) || (f.d && f.d.toLowerCase().includes(q)));
+      html += '<tr'+(isMatch ? ' class="match-row"' : '')+'>';
+      html += '<td class="field-name">'+esc(f.n)+'</td>';
+      html += '<td class="field-type">'+typeBadge(f)+'</td>';
+      html += '<td class="field-req">'+(f.req ? '<span class="req-pill req-yes">REQUIRED</span>' : '<span class="req-pill req-no">optional</span>')+'</td>';
+      html += '<td class="field-desc">'+esc(f.d || '');
+      if(f.enums){
+        html += '<div class="enum-pills">';
+        f.enums.forEach(en => { html += '<span class="enum-pill">'+esc(en)+'</span>'; });
+        html += '</div>';
+      }
+      html += '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table></div>';
+    html += '</div>';
+    html += '</details>';
+  });
+
+  html += '<div class="footer-note">Sourced from the Genesys Cloud Platform API Conversation Detail data model. Treat the OpenAPI spec at developer.genesys.cloud as authoritative for production work.</div>';
+
+  container.innerHTML = html;
+}
+
+/* ───────────────── NAVIGATION ───────────────── */
+const ENTITY_TO_TAB = {
+  Conversation: 1,
+  Participant: 2,
+  Session: 3,
+  Segment: 4,
+  Flow: 5,
+  MediaEndpointStat: 5,
+  Survey: 5,
+  Evaluation: 5,
+  Metrics: 5
+};
+
+function navigateToEntity(id){
+  const tabIdx = ENTITY_TO_TAB[id];
+  if(tabIdx == null) return;
+  switchTab(tabIdx);
+}
+
+function switchTab(n){
+  document.querySelectorAll('.tab').forEach((t,i)=>{ t.classList.toggle('active', i===n); });
+  for(let i=0; i<=5; i++){
+    const el = document.getElementById('tab'+i);
+    if(!el) continue;
+    el.style.display = i===n ? '' : 'none';
+    if(i===n){
+      el.classList.remove('tab-fade-in');
+      void el.offsetWidth;
+      el.classList.add('tab-fade-in');
+    }
+  }
+  // Render the appropriate tab content
+  if(n === 0){
+    renderOverview(document.getElementById('searchGlobal').value, document.getElementById('filterGlobal').value);
+  } else if(n === 1){
+    const s = document.querySelector('.entity-search[data-entity="Conversation"]').value;
+    renderEntity('Conversation', 'conversationContent', s);
+  } else if(n === 2){
+    const s = document.querySelector('.entity-search[data-entity="Participant"]').value;
+    renderEntity('Participant', 'participantContent', s);
+  } else if(n === 3){
+    const s = document.querySelector('.entity-search[data-entity="Session"]').value;
+    renderEntity('Session', 'sessionContent', s);
+  } else if(n === 4){
+    const s = document.querySelector('.entity-search[data-entity="Segment"]').value;
+    renderEntity('Segment', 'segmentContent', s);
+  } else if(n === 5){
+    renderReference(document.getElementById('searchReference').value);
+  }
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ───────────────── EVENT BINDINGS ───────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  // Overview search
+  document.getElementById('searchGlobal').addEventListener('input', e => {
+    renderOverview(e.target.value, document.getElementById('filterGlobal').value);
+  });
+  document.getElementById('filterGlobal').addEventListener('change', e => {
+    renderOverview(document.getElementById('searchGlobal').value, e.target.value);
+  });
+
+  // Per-entity searches
+  document.querySelectorAll('.entity-search').forEach(input => {
+    input.addEventListener('input', () => {
+      const ent = input.dataset.entity;
+      const map = {Conversation:'conversationContent', Participant:'participantContent', Session:'sessionContent', Segment:'segmentContent'};
+      renderEntity(ent, map[ent], input.value);
+    });
+  });
+
+  // Reference search
+  document.getElementById('searchReference').addEventListener('input', e => {
+    renderReference(e.target.value);
+  });
+
+  // Initial render
+  renderOverview('', 'all');
+  renderEntity('Conversation', 'conversationContent', '');
+  renderEntity('Participant', 'participantContent', '');
+  renderEntity('Session', 'sessionContent', '');
+  renderEntity('Segment', 'segmentContent', '');
+  renderReference('');
+});
+</script>
+</body>
+</html>
