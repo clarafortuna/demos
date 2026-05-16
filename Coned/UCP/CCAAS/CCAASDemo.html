@@ -303,6 +303,63 @@ tr:hover td{background:var(--bg)}
 }
 .map-path-indicator .crumb-sep{color:#9CA3AF;margin:0 2px}
 
+/* ───────────── ERD (Entity Relationship Diagram) ───────────── */
+/* Database-style ERD view: each entity box lists its key fields with PK/FK
+   indicators, orthogonal connection lines carry crow's-foot notation showing
+   one-to-many cardinality between parent and child entities. */
+.erd-wrap{
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px 16px 16px;
+  overflow-x:auto;
+  /* Light dot grid backdrop, slightly different scale from the hierarchy map
+     so the two diagrams read as distinct visualizations */
+  background-image:
+    linear-gradient(to right, #E8ECF1 1px, transparent 1px),
+    linear-gradient(to bottom, #E8ECF1 1px, transparent 1px);
+  background-size:24px 24px;
+}
+.erd-svg{
+  display:block;
+  width:100%;
+  height:auto;
+  min-width:1100px;  /* prevents squashing on narrow viewports; container scrolls horizontally instead */
+}
+.erd-entity{cursor:pointer;transition:transform 0.2s ease}
+.erd-entity:hover{transform:translateY(-2px)}
+.erd-entity .erd-box{
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.08));
+  transition:filter 0.2s ease;
+}
+.erd-entity:hover .erd-box{
+  filter:drop-shadow(0 10px 22px rgba(0,0,0,.18));
+}
+.erd-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:12px;
+  font-weight:800;
+  fill:#fff;
+  letter-spacing:1px;
+  text-transform:uppercase;
+  pointer-events:none;
+}
+.erd-field{
+  font-family:'JetBrains Mono','Consolas',monospace;
+  font-size:11px;
+  fill:var(--text);
+  pointer-events:none;
+}
+.erd-tag{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.5px;
+  pointer-events:none;
+}
+.erd-row-divider{stroke:#F1F4F7;stroke-width:1}
+.erd-conn{stroke:#64748B;stroke-width:1.5;fill:none}
+
 /* ───────────── JSON SAMPLE BLOCKS ───────────── */
 /* GitHub-dark-inspired token coloring on a deep slate background. Matches the
    portal's --header-bg so the code surface feels like a sibling of the tab bar. */
@@ -1077,6 +1134,205 @@ function setupMapHoverTracing(){
   });
 }
 
+/* ───────────────── ERD (ENTITY RELATIONSHIP DIAGRAM) ───────────────── */
+/* A more formal database-style view of the schema. Each entity is rendered as
+   a box with a colored header + a list of key fields, with PK/FK markers in
+   the right column. Connection lines use orthogonal routing and carry crow's
+   foot notation for the "many" end and a perpendicular bar for the "one" end. */
+
+/* Key fields shown inside each ERD box. Not every field — just primary keys,
+   foreign keys to external entities (User, Queue, Team, Form, Division), and
+   a few distinguishing business fields per entity. */
+const ERD_FIELDS = {
+  Conversation: [
+    { name: 'conversationId',       tag: 'PK' },
+    { name: 'conversationStart' },
+    { name: 'conversationEnd' },
+    { name: 'originatingDirection' },
+    { name: 'divisionIds',          tag: 'FK' }
+  ],
+  Survey: [
+    { name: 'surveyId',             tag: 'PK' },
+    { name: 'surveyFormId',         tag: 'FK' },
+    { name: 'userId',               tag: 'FK' },
+    { name: 'queueId',              tag: 'FK' },
+    { name: 'surveyPromoterScore' },
+    { name: 'surveyStatus' }
+  ],
+  Participant: [
+    { name: 'participantId',        tag: 'PK' },
+    { name: 'userId',               tag: 'FK' },
+    { name: 'teamId',               tag: 'FK' },
+    { name: 'purpose' },
+    { name: 'externalContactId',    tag: 'FK' }
+  ],
+  Evaluation: [
+    { name: 'evaluationId',         tag: 'PK' },
+    { name: 'evaluatorId',          tag: 'FK' },
+    { name: 'userId',               tag: 'FK' },
+    { name: 'formId',               tag: 'FK' },
+    { name: 'queueId',              tag: 'FK' },
+    { name: 'released' }
+  ],
+  Session: [
+    { name: 'sessionId',            tag: 'PK' },
+    { name: 'mediaType' },
+    { name: 'direction' },
+    { name: 'ani' },
+    { name: 'dnis' },
+    { name: 'selectedAgentId',      tag: 'FK' }
+  ],
+  Segment: [
+    { name: 'segmentType' },
+    { name: 'segmentStart' },
+    { name: 'segmentEnd' },
+    { name: 'queueId',              tag: 'FK' },
+    { name: 'disconnectType' },
+    { name: 'wrapUpCode' }
+  ],
+  Flow: [
+    { name: 'flowId',               tag: 'PK' },
+    { name: 'flowName' },
+    { name: 'flowType' },
+    { name: 'flowOutcome' },
+    { name: 'exitReason' }
+  ],
+  MediaEndpointStat: [
+    { name: 'eventTime' },
+    { name: 'minMos' },
+    { name: 'maxMos' },
+    { name: 'codecs' },
+    { name: 'receivedPackets' }
+  ]
+};
+
+/* Box top-left positions on a 1280×860 viewBox. Three columns at x=80, 540,
+   1000 with 220px-wide boxes. Four rows aligned to the hierarchy: ROOT,
+   then the L1 row (Survey/Participant/Evaluation), then Session, then the
+   L3 row (Segment/Flow/MediaEndpointStat). */
+const ERD_LAYOUT = {
+  Conversation:      { x: 540, y: 20  },
+  Survey:            { x: 80,  y: 240 },
+  Participant:       { x: 540, y: 240 },
+  Evaluation:        { x: 1000, y: 240 },
+  Session:           { x: 540, y: 470 },
+  Segment:           { x: 80,  y: 680 },
+  Flow:              { x: 540, y: 680 },
+  MediaEndpointStat: { x: 1000, y: 680 }
+};
+
+const ERD_CONNECTIONS = [
+  ['Conversation', 'Survey'],
+  ['Conversation', 'Participant'],
+  ['Conversation', 'Evaluation'],
+  ['Participant',  'Session'],
+  ['Session',      'Segment'],
+  ['Session',      'Flow'],
+  ['Session',      'MediaEndpointStat']
+];
+
+const ERD_BOX_W = 220;
+const ERD_HEADER_H = 36;
+const ERD_ROW_H = 22;
+const ERD_PAD_BOTTOM = 10;
+
+function getERDBoxDims(id){
+  const fields = ERD_FIELDS[id] || [];
+  const pos = ERD_LAYOUT[id];
+  const h = ERD_HEADER_H + fields.length * ERD_ROW_H + ERD_PAD_BOTTOM;
+  return {
+    x: pos.x, y: pos.y, w: ERD_BOX_W, h: h,
+    cx: pos.x + ERD_BOX_W / 2,
+    topY: pos.y,
+    bottomY: pos.y + h
+  };
+}
+
+function buildERDBox(id){
+  const fields = ERD_FIELDS[id];
+  const color = ENTITY_COLORS[id];
+  const dims = getERDBoxDims(id);
+
+  let svg = '<g class="erd-entity" data-entity="' + id + '" onclick="navigateToEntity(\'' + id + '\')" transform="translate(' + dims.x + ',' + dims.y + ')">';
+
+  // White body with colored border
+  svg += '<rect class="erd-box" width="' + dims.w + '" height="' + dims.h + '" rx="6" fill="#fff" stroke="' + color + '" stroke-width="1.5"/>';
+
+  // Colored header. Draw a rounded rect, then overlay a square-cornered rect
+  // at the bottom of the header zone to flatten the lower corners cleanly.
+  svg += '<rect width="' + dims.w + '" height="' + ERD_HEADER_H + '" rx="6" fill="' + color + '"/>';
+  svg += '<rect y="' + (ERD_HEADER_H - 8) + '" width="' + dims.w + '" height="8" fill="' + color + '"/>';
+  svg += '<text class="erd-title" x="' + (dims.w / 2) + '" y="' + (ERD_HEADER_H / 2 + 4) + '" text-anchor="middle">' + ENTITY_DISPLAY[id] + '</text>';
+
+  // Field rows
+  fields.forEach((f, i) => {
+    const ty = ERD_HEADER_H + (i + 1) * ERD_ROW_H - 6;
+    // Subtle divider above each row except the first
+    if(i > 0){
+      const dividerY = ERD_HEADER_H + i * ERD_ROW_H;
+      svg += '<line class="erd-row-divider" x1="8" y1="' + dividerY + '" x2="' + (dims.w - 8) + '" y2="' + dividerY + '"/>';
+    }
+    svg += '<text class="erd-field" x="14" y="' + ty + '">' + f.name + '</text>';
+    if(f.tag){
+      const tagColor = f.tag === 'PK' ? '#D4A017' : '#1F6FBA';
+      svg += '<text class="erd-tag" x="' + (dims.w - 14) + '" y="' + ty + '" text-anchor="end" style="fill:' + tagColor + '">' + f.tag + '</text>';
+    }
+  });
+
+  svg += '</g>';
+  return svg;
+}
+
+function buildERDConnection(parentId, childId){
+  const p = getERDBoxDims(parentId);
+  const c = getERDBoxDims(childId);
+  const px = p.cx, py = p.bottomY;
+  const cx = c.cx, cy = c.topY;
+  const midY = (py + cy) / 2;
+  // Stop path 10px short of child to leave room for the crow's foot
+  const endY = cy - 10;
+
+  let svg = '';
+  // Orthogonal path: down from parent, across to child column, down to child
+  svg += '<path class="erd-conn" d="M ' + px + ' ' + py + ' V ' + midY + ' H ' + cx + ' V ' + endY + '"/>';
+
+  // "One" notation: small perpendicular bar near the parent end
+  svg += '<line x1="' + (px - 7) + '" y1="' + (py + 14) + '" x2="' + (px + 7) + '" y2="' + (py + 14) + '" stroke="#64748B" stroke-width="1.6" stroke-linecap="round"/>';
+
+  // "Many" (crow's foot) at the child end: three lines fanning into the child
+  svg += '<line x1="' + cx + '" y1="' + endY + '" x2="' + (cx - 8) + '" y2="' + cy + '" stroke="#64748B" stroke-width="1.4" stroke-linecap="round"/>';
+  svg += '<line x1="' + cx + '" y1="' + endY + '" x2="' + cx + '" y2="' + cy + '" stroke="#64748B" stroke-width="1.4" stroke-linecap="round"/>';
+  svg += '<line x1="' + cx + '" y1="' + endY + '" x2="' + (cx + 8) + '" y2="' + cy + '" stroke="#64748B" stroke-width="1.4" stroke-linecap="round"/>';
+
+  return svg;
+}
+
+function buildERDSection(){
+  let html = '<div class="grid-section">';
+  html += '<div class="section-header"><h3>Entity Relationship Diagram</h3></div>';
+  html += '<div class="desc-block">Database-style view with primary keys (<strong style="color:#D4A017">PK</strong>) and foreign-key references (<strong style="color:#1F6FBA">FK</strong> to external Genesys entities such as User, Queue, Team, Form, and Division). All relationships are one-to-many, denoted by the perpendicular bar at the parent end and the crow\'s foot at the child end. Click any entity to drill into its full field list.</div>';
+  html += '<div class="erd-wrap" style="margin-top:18px">';
+  html += '<svg class="erd-svg" viewBox="0 0 1280 860" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">';
+  // Connections drawn first so entity boxes render on top of any line crossings
+  ERD_CONNECTIONS.forEach(pair => {
+    html += buildERDConnection(pair[0], pair[1]);
+  });
+  // Entity boxes
+  Object.keys(ERD_LAYOUT).forEach(id => {
+    html += buildERDBox(id);
+  });
+  html += '</svg>';
+  html += '</div>';
+  // Legend
+  html += '<div class="map-legend" style="margin-top:12px">';
+  html += '<span style="display:inline-flex;align-items:center;gap:8px"><strong style="color:#D4A017;font-family:var(--font-display)">PK</strong> Primary key</span>';
+  html += '<span style="display:inline-flex;align-items:center;gap:8px"><strong style="color:#1F6FBA;font-family:var(--font-display)">FK</strong> Foreign key (external entity)</span>';
+  html += '<span style="display:inline-flex;align-items:center;gap:8px"><svg width="42" height="14" style="overflow:visible"><line x1="2" y1="3" x2="2" y2="11" stroke="#64748B" stroke-width="1.5"/><line x1="2" y1="7" x2="30" y2="7" stroke="#64748B" stroke-width="1.5"/><line x1="30" y1="7" x2="40" y2="2" stroke="#64748B" stroke-width="1.2"/><line x1="30" y1="7" x2="40" y2="7" stroke="#64748B" stroke-width="1.2"/><line x1="30" y1="7" x2="40" y2="12" stroke="#64748B" stroke-width="1.2"/></svg> One-to-many</span>';
+  html += '</div>';
+  html += '</div>';
+  return html;
+}
+
 /* ───────────────── SCHEMA MAP RENDERER ───────────────── */
 function buildEntityNode(id, viewMode){
   const e = SCHEMA[id];
@@ -1152,6 +1408,10 @@ function renderMap(){
   html += '<span style="display:inline-flex;align-items:center;gap:8px;color:var(--text)"><strong>Tip:</strong> Switch view mode above to overlay required-field counts.</span>';
   html += '</div>';
   html += '</div>';
+
+  // ERD — more detailed database-style view sits directly below the hierarchy
+  // map. Shows key fields with PK/FK indicators and crow's-foot cardinality.
+  html += buildERDSection();
 
   // Path navigator
   html += '<div class="grid-section">';
