@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clara AI Lab — Dataverse Management</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #ffffff;
+    --surface-alt: #faf9f8;
+    --surface-tint: #f3f2f1;
+    --border: #e1dfdd;
+    --border-strong: #c8c6c4;
+    --text: #242424;
+    --text-dim: #605e5c;
+    --text-faint: #8a8886;
+    --accent: #2b5797;
+    --accent-soft: #eef2f8;
+    --warning: #b87a2b;
+    --warning-soft: #fdf5ec;
+    --critical: #a4262c;
+    --critical-soft: #fbeaea;
+    --success: #4a7a3d;
+    --success-soft: #eef5eb;
+    --violet: #5e548e;
+    --violet-soft: #f0eef5;
+    --topbar-h: 48px;
+    --nav-h: 64px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body {
+    color: var(--text);
+    font-family: "Segoe UI", "Segoe UI Web", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-width: 1280px;
+    min-height: 720px;
+  }
+
+  /* ─── top bar ─── */
+  .topbar {
+    height: var(--topbar-h);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 32px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-dim);
+    background: var(--surface);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 10;
+  }
+  .topbar .left { display: flex; gap: 24px; align-items: center; }
+  .topbar .brand {
+    color: var(--text);
+    font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px;
+  }
+  .topbar .brand::before {
+    content: ""; width: 6px; height: 6px; background: var(--accent);
+    border-radius: 50%;
+  }
+  .topbar .slide-name {
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+  .topbar .product {
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    padding-left: 24px;
+    border-left: 1px solid var(--border);
+    margin-left: 0;
+  }
+  .topbar .right { display: flex; gap: 16px; align-items: center; font-size: 11px; }
+  .topbar .tag {
+    border: 1px solid var(--border);
+    padding: 3px 10px;
+    border-radius: 2px;
+    color: var(--text-dim);
+  }
+
+  /* ─── deck container ─── */
+  .deck {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0; right: 0;
+    bottom: var(--nav-h);
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 48px 64px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    overflow: auto;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  /* ─── nav bar ─── */
+  .deck-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: var(--nav-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    z-index: 10;
+  }
+  .deck-nav .progress {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .progress-dot {
+    width: 24px; height: 3px;
+    background: var(--border-strong);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .progress-dot.active { background: var(--accent); }
+  .progress-dot:hover:not(.active) { background: var(--text-faint); }
+
+  .nav-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .nav-btn {
+    height: 40px;
+    padding: 0 20px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .nav-btn.primary {
+    background: var(--accent);
+    color: #fff;
+    border: 1px solid var(--accent);
+  }
+  .nav-btn.primary:hover { background: #1f4173; border-color: #1f4173; }
+  .nav-btn.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+  }
+  .nav-btn.secondary:hover { background: var(--surface-tint); }
+  .nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .nav-btn .arrow { font-size: 16px; line-height: 1; }
+
+  .slide-counter {
+    font-size: 14px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+    min-width: 64px;
+    text-align: center;
+  }
+  .slide-counter strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* ─── common slide elements ─── */
+  .slide-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .slide-title {
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  .slide-title .light { font-weight: 300; color: var(--text-dim); }
+  .slide-subtitle {
+    font-size: 18px;
+    color: var(--text-dim);
+    line-height: 1.6;
+    max-width: 820px;
+    margin-bottom: 36px;
+  }
+
+  /* ─── slide 1: title ─── */
+  .slide-title-screen {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100%;
+    padding: 48px 96px;
+  }
+  .slide-title-screen .big {
+    font-size: 64px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
+    margin-bottom: 24px;
+    max-width: 960px;
+  }
+  .slide-title-screen .big .light {
+    font-weight: 300;
+    color: var(--text-dim);
+  }
+  .slide-title-screen .deck-meta {
+    display: flex;
+    gap: 40px;
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    max-width: 960px;
+  }
+  .slide-title-screen .deck-meta div .label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+  .slide-title-screen .deck-meta div .value {
+    font-size: 16px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .nav-hint {
+    position: absolute;
+    bottom: 40px;
+    right: 64px;
+    font-size: 12px;
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: pulse-hint 2s ease-in-out infinite;
+  }
+  @keyframes pulse-hint {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+  }
+  .nav-hint kbd {
+    font-family: inherit;
+    background: var(--surface-tint);
+    border: 1px solid var(--border);
+    border-bottom-width: 2px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    color: var(--text);
+  }
+
+  /* ─── slide 2: problem ─── */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 80px;
+    align-items: center;
+    height: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .problem-grid .pull-quote {
+    font-size: 26px;
+    line-height: 1.4;
+    color: var(--text);
+    font-weight: 500;
+    margin-bottom: 28px;
+    max-width: 540px;
+  }
+  .problem-grid .pull-quote em {
+    color: var(--accent);
+    font-style: normal;
+  }
+  .problem-grid .lede {
+    font-size: 17px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    max-width: 540px;
+  }
+  .problem-stats {
+    border: 1px solid var(--border);
+  }
+  .problem-stats .stat {
+    padding: 24px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+  .problem-stats .stat:last-child { border-bottom: none; }
+  .problem-stats .stat .label-block .label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+  }
+  .problem-stats .stat .label-block .sub {
+    font-size: 13.5px;
+    color: var(--text-dim);
+  }
+  .problem-stats .stat .value {
+    font-size: 42px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .problem-stats .stat .value.warn { color: var(--critical); }
+
+  /* ─── slide 3: flow ─── */
+  .flow-slide {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  .flow-slide-svg-wrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+  }
+  .flow-svg {
+    width: 100%;
+    height: auto;
+    min-width: 1180px;
+    max-width: 1600px;
+  }
+
+  /* ─── detail slides (4, 5, 6) ─── */
+  .stage-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+    align-items: stretch;
+  }
+  .stage-cell {
+    border: 1px solid var(--border);
+    padding: 32px 32px;
+    background: var(--surface);
+    border-left: 3px solid var(--accent);
+    display: flex;
+    flex-direction: column;
+  }
+  .stage-cell.amber { border-left-color: var(--warning); }
+  .stage-cell.red { border-left-color: var(--critical); }
+  .stage-cell.violet { border-left-color: var(--violet); }
+  .stage-cell.green { border-left-color: var(--success); }
+  .stage-cell.gray { border-left-color: var(--text-faint); }
+
+  .stage-cell .stage {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .stage-cell.amber .stage { color: var(--warning); }
+  .stage-cell.red .stage { color: var(--critical); }
+  .stage-cell.violet .stage { color: var(--violet); }
+  .stage-cell.green .stage { color: var(--success); }
+  .stage-cell.gray .stage { color: var(--text-faint); }
+
+  .stage-cell h3 {
+    font-size: 26px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .stage-cell p {
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+  }
+  .stage-cell .api-list {
+    margin-top: auto;
+  }
+  .stage-cell .api {
+    font-family: "Cascadia Code", Consolas, "Courier New", monospace;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface-tint);
+    padding: 9px 14px;
+    border-left: 2px solid var(--border-strong);
+    margin-bottom: 6px;
+  }
+
+  /* ─── slide 7: implementation ─── */
+  .stack-grid-slide {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .stack-grid-slide .stack-item {
+    background: var(--surface);
+    padding: 32px 30px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .stack-grid-slide .stack-item:nth-child(3n) { border-right: none; }
+  .stack-grid-slide .stack-item:nth-child(n+4) { border-bottom: none; }
+  .stack-grid-slide .role {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .stack-grid-slide .name {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+  .stack-grid-slide .desc {
+    font-size: 15px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ─── slide 8: approval workflow ─── */
+  .approval-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 64px;
+    align-items: center;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .approval-grid .intro p {
+    color: var(--text-dim);
+    font-size: 16px;
+    line-height: 1.65;
+    margin-bottom: 20px;
+    max-width: 480px;
+  }
+  .approval-grid .intro .principle {
+    padding: 22px 24px;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    margin-top: 8px;
+  }
+  .approval-grid .intro .principle-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .approval-grid .intro .principle-body {
+    font-size: 15.5px;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  /* adaptive card */
+  .adaptive-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 26px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+  }
+  .ac-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 18px;
+  }
+  .ac-header .who { display: flex; align-items: center; gap: 12px; }
+  .ac-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; color: #fff; font-weight: 600;
+  }
+  .ac-who-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .ac-who-sub { font-size: 12px; color: var(--text-faint); }
+  .ac-time { font-size: 12px; color: var(--text-faint); }
+  .ac-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; color: var(--text); }
+  .ac-subtitle { font-size: 13.5px; color: var(--text-dim); margin-bottom: 18px; }
+  .ac-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+  .ac-metric {
+    background: var(--surface-tint);
+    padding: 12px 14px;
+    border-radius: 4px;
+  }
+  .ac-metric .l {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 5px;
+  }
+  .ac-metric .v { font-size: 22px; font-weight: 600; color: var(--text); }
+  .ac-metric .v.warn { color: var(--critical); }
+  .ac-metric .v.ok { color: var(--success); }
+  .ac-rec {
+    display: flex; gap: 12px;
+    padding: 14px;
+    background: var(--surface-alt);
+    border-left: 2px solid var(--success);
+    margin-bottom: 7px;
+    align-items: flex-start;
+    border-radius: 2px;
+  }
+  .ac-rec.pending { border-left-color: var(--warning); }
+  .ac-rec.skipped { border-left-color: var(--border-strong); }
+  .ac-rec .check {
+    width: 18px; height: 18px;
+    border: 1px solid var(--border-strong);
+    margin-top: 1px;
+    flex: 0 0 18px;
+    position: relative;
+    border-radius: 2px;
+  }
+  .ac-rec.checked .check { background: var(--accent); border-color: var(--accent); }
+  .ac-rec.checked .check::after {
+    content: ""; position: absolute;
+    left: 5px; top: 2px;
+    width: 5px; height: 9px;
+    border: solid #fff;
+    border-width: 0 1.5px 1.5px 0;
+    transform: rotate(45deg);
+  }
+  .ac-rec .body { flex: 1; }
+  .ac-rec .body .t { font-size: 14.5px; margin-bottom: 4px; color: var(--text); }
+  .ac-rec .body .d { font-size: 12.5px; color: var(--text-dim); }
+  .ac-rec .saves { font-size: 13px; font-weight: 600; color: var(--success); flex: 0 0 auto; }
+  .ac-rec.skipped .saves { color: var(--text-faint); }
+  .ac-buttons { display: flex; gap: 10px; margin-top: 18px; }
+  .ac-btn {
+    padding: 10px 20px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    border-radius: 2px;
+  }
+  .ac-btn.primary { background: var(--accent); color: #fff; }
+  .ac-btn.secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border-strong); }
+  .ac-btn.danger { background: var(--surface); color: var(--critical); border: 1px solid var(--border-strong); }
+
+  /* ─── slide 9: considerations ─── */
+  .guard-grid-slide {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  .guard-grid-slide .guard-cell {
+    background: var(--surface);
+    padding: 40px 34px;
+    border-right: 1px solid var(--border);
+  }
+  .guard-grid-slide .guard-cell:last-child { border-right: none; }
+  .guard-grid-slide .guard-cell .num {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .guard-grid-slide .guard-cell h4 {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .guard-grid-slide .guard-cell p {
+    font-size: 15.5px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+
+  /* ─── slide 10: next steps ─── */
+  .next-steps {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .next-steps .steps-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .next-steps .step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px 26px;
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+  }
+  .next-steps .step-num {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 32px;
+  }
+  .next-steps .step h5 {
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .next-steps .step p {
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text-dim);
+  }
+  .next-steps .closing {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-faint);
+    display: flex;
+    justify-content: space-between;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="left">
+    <span class="brand">Clara AI Lab</span>
+    <span class="product">Dataverse Management</span>
+    <span class="slide-name" id="slide-name">Welcome</span>
+  </div>
+  <div class="right">
+    <span class="tag">Draft · v0.1</span>
+    <span class="tag">Microsoft Power Platform</span>
+  </div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- ─── SLIDE 1: TITLE ─── -->
+  <section class="slide active" data-name="Welcome">
+    <div class="slide-title-screen">
+      <div class="slide-eyebrow">Clara AI Lab · Dataverse Management</div>
+      <h1 class="big">Monitor Dataverse capacity <span class="light">with a Copilot agent.</span></h1>
+      <p class="slide-subtitle">A Copilot Studio agent monitors your Dataverse storage, identifies cleanup opportunities, recommends remediation actions, and executes approved changes with full audit logging.</p>
+      <div class="deck-meta">
+        <div>
+          <div class="label">Team</div>
+          <div class="value">Clara AI Lab</div>
+        </div>
+        <div>
+          <div class="label">Product line</div>
+          <div class="value">Dataverse Management</div>
+        </div>
+        <div>
+          <div class="label">Version</div>
+          <div class="value">Draft v0.1</div>
+        </div>
+        <div>
+          <div class="label">Stack</div>
+          <div class="value">Copilot Studio · Power Automate · Dataverse</div>
+        </div>
+      </div>
+    </div>
+    <div class="nav-hint">
+      Press <kbd>→</kbd> to begin
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 2: PROBLEM ─── -->
+  <section class="slide" data-name="The problem">
+    <div class="problem-grid">
+      <div>
+        <div class="slide-eyebrow">The problem</div>
+        <div class="pull-quote">Dataverse storage limits create real operational risk. Capacity creeps up quietly, then forces <em>reactive cleanup</em> under deadline pressure.</div>
+        <p class="lede">An agentic Copilot can watch capacity continuously, identify what is safe to remove, archive, or move, and propose a structured remediation plan before storage becomes a critical incident.</p>
+      </div>
+      <div class="problem-stats">
+        <div class="stat">
+          <div class="label-block">
+            <div class="label">Database capacity</div>
+            <div class="sub">Increasing 2.1 GB per month</div>
+          </div>
+          <div class="value warn">87%</div>
+        </div>
+        <div class="stat">
+          <div class="label-block">
+            <div class="label">Candidates identified</div>
+            <div class="sub">Tables, columns, audit rows</div>
+          </div>
+          <div class="value">12</div>
+        </div>
+        <div class="stat">
+          <div class="label-block">
+            <div class="label">Time to breach</div>
+            <div class="sub">At current growth rate</div>
+          </div>
+          <div class="value">6 wk</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 3: SYSTEM FLOW ─── -->
+  <section class="slide" data-name="System flow">
+    <div class="flow-slide">
+      <div>
+        <div class="slide-eyebrow">01 · System flow</div>
+        <h2 class="slide-title">Six stages, one feedback loop</h2>
+        <p class="slide-subtitle">The agent senses, analyzes, requests approval, executes, and writes back to memory. Each stage maps to a native Microsoft component.</p>
+      </div>
+      <div class="flow-slide-svg-wrap">
+        <svg class="flow-svg" viewBox="0 0 1600 720" xmlns="http://www.w3.org/2000/svg" role="img">
+          <title>Dataverse capacity Copilot agent system flow</title>
+
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10" fill="none" stroke="context-stroke" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+            <marker id="ar-dash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+              <path d="M0 0L10 5L0 10" fill="none" stroke="#605e5c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </marker>
+          </defs>
+
+          <!-- column headers - larger and darker -->
+          <g font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" letter-spacing="0.8" fill="#605e5c">
+            <text x="40" y="44">01 · TRIGGERS</text>
+            <text x="280" y="44">02 · AGENT</text>
+            <text x="610" y="44">03 · ANALYSIS</text>
+            <text x="900" y="44">04 · HUMAN APPROVAL</text>
+            <text x="1190" y="44">05 · ACTIONS</text>
+            <text x="1480" y="44">06 · AUDIT</text>
+          </g>
+
+          <!-- vertical guides between columns -->
+          <g stroke="#e1dfdd" stroke-width="0.5" stroke-dasharray="2 4">
+            <line x1="245" y1="80" x2="245" y2="700"/>
+            <line x1="575" y1="80" x2="575" y2="700"/>
+            <line x1="865" y1="80" x2="865" y2="700"/>
+            <line x1="1155" y1="80" x2="1155" y2="700"/>
+            <line x1="1445" y1="80" x2="1445" y2="700"/>
+          </g>
+
+          <!-- COL 1: TRIGGERS -->
+          <g font-family="Segoe UI, sans-serif">
+            <rect x="40" y="180" width="200" height="100" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="40" y="180" width="4" height="100" fill="#b87a2b"/>
+            <text x="58" y="218" font-size="19" font-weight="600" fill="#242424">Scheduled scan</text>
+            <text x="58" y="244" font-size="14" fill="#605e5c">Daily 02:00 UTC</text>
+            <text x="58" y="268" font-size="11" font-weight="600" fill="#b87a2b" letter-spacing="0.6">RECURRENCE</text>
+
+            <rect x="40" y="380" width="200" height="100" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="40" y="380" width="4" height="100" fill="#a4262c"/>
+            <text x="58" y="418" font-size="19" font-weight="600" fill="#242424">Threshold breach</text>
+            <text x="58" y="444" font-size="14" fill="#605e5c">Above 80% capacity</text>
+            <text x="58" y="468" font-size="11" font-weight="600" fill="#a4262c" letter-spacing="0.6">EVENT</text>
+          </g>
+
+          <!-- COL 2: AGENT -->
+          <g font-family="Segoe UI, sans-serif">
+            <rect x="280" y="100" width="280" height="540" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="280" y="100" width="280" height="4" fill="#5e548e"/>
+
+            <text x="300" y="142" font-size="11" font-weight="600" fill="#5e548e" letter-spacing="0.8">COPILOT STUDIO</text>
+            <text x="300" y="182" font-size="24" font-weight="600" fill="#242424">Dataverse capacity</text>
+            <text x="300" y="210" font-size="24" font-weight="600" fill="#242424">steward agent</text>
+            <text x="300" y="240" font-size="14.5" fill="#605e5c">Reads, analyzes, and plans —</text>
+            <text x="300" y="260" font-size="14.5" fill="#605e5c">never acts without approval.</text>
+
+            <line x1="300" y1="296" x2="540" y2="296" stroke="#e1dfdd" stroke-width="0.5"/>
+            <text x="300" y="322" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">TOOLS</text>
+
+            <g font-size="15">
+              <circle cx="306" cy="352" r="3" fill="#5e548e"/>
+              <text x="320" y="357" fill="#242424">Capacity API reader</text>
+
+              <circle cx="306" cy="382" r="3" fill="#5e548e"/>
+              <text x="320" y="387" fill="#242424">Dataverse Web API</text>
+
+              <circle cx="306" cy="412" r="3" fill="#5e548e"/>
+              <text x="320" y="417" fill="#242424">Growth analyzer</text>
+
+              <circle cx="306" cy="442" r="3" fill="#5e548e"/>
+              <text x="320" y="447" fill="#242424">Pattern matcher</text>
+
+              <circle cx="306" cy="472" r="3" fill="#5e548e"/>
+              <text x="320" y="477" fill="#242424">Audit memory reader</text>
+            </g>
+
+            <line x1="300" y1="510" x2="540" y2="510" stroke="#e1dfdd" stroke-width="0.5"/>
+            <text x="300" y="536" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">SYSTEM INSTRUCTION</text>
+            <text x="300" y="566" font-size="14" font-style="italic" fill="#605e5c">"Never act without approval.</text>
+            <text x="300" y="586" font-size="14" font-style="italic" fill="#605e5c">State impact in GB. Cap</text>
+            <text x="300" y="606" font-size="14" font-style="italic" fill="#605e5c">proposals at 10,000 rows."</text>
+          </g>
+
+          <!-- COL 3: ANALYSIS -->
+          <g font-family="Segoe UI, sans-serif">
+            <rect x="610" y="100" width="220" height="160" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="610" y="100" width="4" height="160" fill="#a4262c"/>
+            <text x="628" y="134" font-size="11" font-weight="600" fill="#a4262c" letter-spacing="0.6">RISK SUMMARY</text>
+            <text x="628" y="180" font-size="34" font-weight="600" fill="#242424">87%</text>
+            <text x="628" y="216" font-size="14.5" fill="#605e5c">DB capacity used.</text>
+            <text x="628" y="238" font-size="14.5" fill="#605e5c">Breach in 6 weeks.</text>
+
+            <rect x="610" y="290" width="220" height="160" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="610" y="290" width="4" height="160" fill="#b87a2b"/>
+            <text x="628" y="324" font-size="11" font-weight="600" fill="#b87a2b" letter-spacing="0.6">CANDIDATES</text>
+            <text x="628" y="370" font-size="34" font-weight="600" fill="#242424">12</text>
+            <text x="628" y="406" font-size="14.5" fill="#605e5c">Objects flagged for</text>
+            <text x="628" y="428" font-size="14.5" fill="#605e5c">cleanup by impact.</text>
+
+            <rect x="610" y="480" width="220" height="160" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="610" y="480" width="4" height="160" fill="#4a7a3d"/>
+            <text x="628" y="514" font-size="11" font-weight="600" fill="#4a7a3d" letter-spacing="0.6">RECOMMENDATIONS</text>
+            <text x="628" y="560" font-size="34" font-weight="600" fill="#242424">7</text>
+            <text x="628" y="596" font-size="14.5" fill="#605e5c">Proposed actions with</text>
+            <text x="628" y="618" font-size="14.5" fill="#605e5c">impact estimates.</text>
+          </g>
+
+          <!-- COL 4: HUMAN APPROVAL -->
+          <g font-family="Segoe UI, sans-serif">
+            <rect x="900" y="100" width="240" height="540" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="900" y="100" width="240" height="4" fill="#2b5797"/>
+
+            <text x="920" y="142" font-size="11" font-weight="600" fill="#2b5797" letter-spacing="0.8">MICROSOFT TEAMS</text>
+            <text x="920" y="182" font-size="24" font-weight="600" fill="#242424">Adaptive card</text>
+            <text x="920" y="212" font-size="24" font-weight="600" fill="#242424">approval gate</text>
+            <text x="920" y="244" font-size="14.5" fill="#605e5c">Posted to data steward</text>
+            <text x="920" y="264" font-size="14.5" fill="#605e5c">channel for per-line review.</text>
+
+            <line x1="920" y1="300" x2="1120" y2="300" stroke="#e1dfdd" stroke-width="0.5"/>
+            <text x="920" y="326" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">RESPONSE PATTERNS</text>
+
+            <g font-size="15">
+              <circle cx="926" cy="356" r="3" fill="#4a7a3d"/>
+              <text x="940" y="361" fill="#242424">Approve selected</text>
+
+              <circle cx="926" cy="388" r="3" fill="#b87a2b"/>
+              <text x="940" y="393" fill="#242424">Customize and approve</text>
+
+              <circle cx="926" cy="420" r="3" fill="#a4262c"/>
+              <text x="940" y="425" fill="#242424">Reject with feedback</text>
+            </g>
+
+            <line x1="920" y1="460" x2="1120" y2="460" stroke="#e1dfdd" stroke-width="0.5"/>
+            <text x="920" y="486" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">CONSENT BOUNDARY</text>
+            <text x="920" y="516" font-size="14" fill="#605e5c">No action runs until</text>
+            <text x="920" y="538" font-size="14" fill="#605e5c">the approval payload</text>
+            <text x="920" y="560" font-size="14" fill="#605e5c">returns through Power</text>
+            <text x="920" y="582" font-size="14" fill="#605e5c">Automate.</text>
+          </g>
+
+          <!-- COL 5: ACTIONS -->
+          <g font-family="Segoe UI, sans-serif">
+            <rect x="1190" y="100" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="1190" y="100" width="4" height="115" fill="#4a7a3d"/>
+            <text x="1208" y="134" font-size="11" font-weight="600" fill="#4a7a3d" letter-spacing="0.6">ARCHIVE</text>
+            <text x="1208" y="166" font-size="18" font-weight="600" fill="#242424">Move to Azure</text>
+            <text x="1208" y="190" font-size="13.5" fill="#605e5c">Synapse Link or</text>
+            <text x="1208" y="208" font-size="13.5" fill="#605e5c">long-term retention</text>
+
+            <rect x="1190" y="240" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="1190" y="240" width="4" height="115" fill="#a4262c"/>
+            <text x="1208" y="274" font-size="11" font-weight="600" fill="#a4262c" letter-spacing="0.6">BULK DELETE</text>
+            <text x="1208" y="306" font-size="18" font-weight="600" fill="#242424">Remove records</text>
+            <text x="1208" y="330" font-size="13.5" fill="#605e5c">Cap: 10,000 rows</text>
+            <text x="1208" y="348" font-size="13.5" fill="#605e5c">per execution</text>
+
+            <rect x="1190" y="380" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="1190" y="380" width="4" height="115" fill="#b87a2b"/>
+            <text x="1208" y="414" font-size="11" font-weight="600" fill="#b87a2b" letter-spacing="0.6">MOVE FILES</text>
+            <text x="1208" y="446" font-size="18" font-weight="600" fill="#242424">Offload attachments</text>
+            <text x="1208" y="470" font-size="13.5" fill="#605e5c">Blob or SharePoint,</text>
+            <text x="1208" y="488" font-size="13.5" fill="#605e5c">keep references</text>
+
+            <rect x="1190" y="520" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="1190" y="520" width="4" height="115" fill="#8a8886"/>
+            <text x="1208" y="554" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">TRIM LOGS</text>
+            <text x="1208" y="586" font-size="18" font-weight="600" fill="#242424">Shrink audit table</text>
+            <text x="1208" y="610" font-size="13.5" fill="#605e5c">Compliance sign-off</text>
+            <text x="1208" y="628" font-size="13.5" fill="#605e5c">required</text>
+          </g>
+
+          <!-- COL 6: AUDIT -->
+          <g font-family="Segoe UI, sans-serif">
+            <rect x="1480" y="200" width="110" height="340" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
+            <rect x="1480" y="200" width="4" height="340" fill="#605e5c"/>
+            <text x="1497" y="234" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">AUDIT LOG</text>
+            <text x="1497" y="276" font-size="20" font-weight="600" fill="#242424">Memory</text>
+
+            <text x="1497" y="316" font-size="13.5" fill="#605e5c">Records every</text>
+            <text x="1497" y="334" font-size="13.5" fill="#605e5c">proposal and</text>
+            <text x="1497" y="352" font-size="13.5" fill="#605e5c">execution.</text>
+
+            <line x1="1497" y1="384" x2="1573" y2="384" stroke="#e1dfdd"/>
+
+            <text x="1497" y="408" font-size="13.5" font-weight="600" fill="#242424">Custom table</text>
+            <text x="1497" y="430" font-size="13.5" font-weight="600" fill="#242424">App Insights</text>
+
+            <text x="1497" y="470" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">FED BACK INTO</text>
+            <text x="1497" y="496" font-size="13.5" fill="#605e5c">Next agent run</text>
+            <text x="1497" y="514" font-size="13.5" fill="#605e5c">as memory</text>
+          </g>
+
+          <!-- ARROWS - bolder, darker -->
+          <g stroke="#605e5c" stroke-width="1.6" fill="none">
+            <path d="M 244 230 L 262 230 L 262 280 L 278 280" marker-end="url(#ar)"/>
+            <path d="M 244 430 L 262 430 L 262 380 L 278 380" marker-end="url(#ar)"/>
+            <path d="M 564 200 L 590 200 L 590 180 L 608 180" marker-end="url(#ar)"/>
+            <path d="M 564 370 L 608 370" marker-end="url(#ar)"/>
+            <path d="M 564 540 L 590 540 L 590 560 L 608 560" marker-end="url(#ar)"/>
+            <path d="M 834 180 L 880 180 L 880 320 L 898 320" marker-end="url(#ar)"/>
+            <path d="M 834 370 L 898 370" marker-end="url(#ar)"/>
+            <path d="M 834 560 L 880 560 L 880 420 L 898 420" marker-end="url(#ar)"/>
+            <path d="M 1144 270 L 1170 270 L 1170 158 L 1188 158" marker-end="url(#ar)"/>
+            <path d="M 1144 340 L 1170 340 L 1170 298 L 1188 298" marker-end="url(#ar)"/>
+            <path d="M 1144 410 L 1170 410 L 1170 438 L 1188 438" marker-end="url(#ar)"/>
+            <path d="M 1144 480 L 1170 480 L 1170 578 L 1188 578" marker-end="url(#ar)"/>
+            <path d="M 1414 158 L 1450 158 L 1450 280 L 1478 280" marker-end="url(#ar)"/>
+            <path d="M 1414 298 L 1450 298 L 1450 340 L 1478 340" marker-end="url(#ar)"/>
+            <path d="M 1414 438 L 1450 438 L 1450 400 L 1478 400" marker-end="url(#ar)"/>
+            <path d="M 1414 578 L 1450 578 L 1450 460 L 1478 460" marker-end="url(#ar)"/>
+          </g>
+
+          <!-- feedback loop: darker and thicker -->
+          <path d="M 1535 200 L 1535 78 Q 1535 68 1525 68 L 430 68 Q 420 68 420 78 L 420 100"
+                fill="none" stroke="#605e5c" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#ar-dash)"/>
+          <text x="950" y="60" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" fill="#605e5c" letter-spacing="0.6" text-anchor="middle">Feedback loop — agent learns from prior runs</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 4: TRIGGERS + AGENT ─── -->
+  <section class="slide" data-name="Triggers and agent">
+    <div class="slide-eyebrow">Stages 01 + 02</div>
+    <h2 class="slide-title">Triggers <span class="light">and</span> agent</h2>
+    <p class="slide-subtitle">Two events invoke the agent. The agent itself runs in Copilot Studio with five read-only tools and a strict system instruction that bounds its behavior.</p>
+    <div class="stage-pair">
+      <div class="stage-cell amber">
+        <div class="stage">Stage 01 · Triggers</div>
+        <h3>Scheduled and event triggers</h3>
+        <p>Two triggers invoke the agent: a recurring daily timer for routine monitoring, and a webhook from the Power Platform Admin API when capacity exceeds a configured threshold. Both shape the same payload before invoking the agent so downstream logic stays uniform.</p>
+        <div class="api-list">
+          <div class="api">Recurrence: P1D at 02:00 UTC</div>
+          <div class="api">Webhook: capacity above 80%</div>
+          <div class="api">Power Automate scheduled flow</div>
+        </div>
+      </div>
+      <div class="stage-cell violet">
+        <div class="stage">Stage 02 · Agent</div>
+        <h3>Copilot Studio agent</h3>
+        <p>Hosted in Microsoft Copilot Studio with five tool connectors and a strict system instruction. The agent reads capacity metrics and Dataverse data, but only writes through the action layer downstream of human approval. Versioned, testable, and governable through standard ALM.</p>
+        <div class="api-list">
+          <div class="api">Copilot Studio with custom topics</div>
+          <div class="api">5 read-only tool connectors</div>
+          <div class="api">System instruction with hard limits</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 5: ANALYSIS + APPROVAL ─── -->
+  <section class="slide" data-name="Analysis and approval">
+    <div class="slide-eyebrow">Stages 03 + 04</div>
+    <h2 class="slide-title">Analysis <span class="light">and</span> approval</h2>
+    <p class="slide-subtitle">The agent produces a structured proposal in one pass. The proposal renders as a Microsoft Teams adaptive card with per-line approval. Nothing executes until the steward responds.</p>
+    <div class="stage-pair">
+      <div class="stage-cell red">
+        <div class="stage">Stage 03 · Analysis</div>
+        <h3>Structured proposal</h3>
+        <p>The agent produces three artifacts in a single pass: a risk summary with projected breach timing, a ranked list of cleanup candidates by impact in GB, and recommendations that pair each candidate with an action type. The output is structured JSON consumed by downstream stages.</p>
+        <div class="api-list">
+          <div class="api">Output format: structured JSON</div>
+          <div class="api">Cached until next agent run</div>
+          <div class="api">Risk · candidates · recommendations</div>
+        </div>
+      </div>
+      <div class="stage-cell">
+        <div class="stage">Stage 04 · Approval</div>
+        <h3>Microsoft Teams adaptive card</h3>
+        <p>The proposal renders as an adaptive card in the data steward channel. Each recommendation can be approved, modified, or rejected individually. No downstream action runs until the approval payload returns through Power Automate. This is the consent boundary.</p>
+        <div class="api-list">
+          <div class="api">Microsoft Graph adaptive card</div>
+          <div class="api">Response routes to Power Automate</div>
+          <div class="api">Per-line approval payload</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 6: ACTIONS + AUDIT ─── -->
+  <section class="slide" data-name="Actions and audit">
+    <div class="slide-eyebrow">Stages 05 + 06</div>
+    <h2 class="slide-title">Actions <span class="light">and</span> audit</h2>
+    <p class="slide-subtitle">Each approved recommendation maps to one of four bounded action types. Every proposal, approval, and execution is logged. The agent reads its own history on the next run.</p>
+    <div class="stage-pair">
+      <div class="stage-cell green">
+        <div class="stage">Stage 05 · Actions</div>
+        <h3>Four bounded action types</h3>
+        <p>Each approved recommendation maps to one of four actions: archive to Azure, bulk delete, file offload, or audit retention reduction. Power Automate flows execute each action with hard blast radius limits enforced before any change reaches Dataverse.</p>
+        <div class="api-list">
+          <div class="api">Azure Synapse Link + LTR</div>
+          <div class="api">bulkdeleteoperation entity</div>
+          <div class="api">Azure Blob / SharePoint move</div>
+        </div>
+      </div>
+      <div class="stage-cell gray">
+        <div class="stage">Stage 06 · Audit</div>
+        <h3>Audit trail and feedback</h3>
+        <p>Every proposal, approval decision, and executed action is logged to a custom Dataverse table and streamed to Application Insights. The agent reads this history on the next run as long-term memory, which turns the system from automation into an agent.</p>
+        <div class="api-list">
+          <div class="api">Custom Dataverse table</div>
+          <div class="api">Application Insights stream</div>
+          <div class="api">Read by next agent run</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 7: IMPLEMENTATION ─── -->
+  <section class="slide" data-name="Implementation">
+    <div class="slide-eyebrow">02 · Implementation</div>
+    <h2 class="slide-title">Native Microsoft components <span class="light">only</span></h2>
+    <p class="slide-subtitle">Every component in the architecture maps to an existing Microsoft service. The agent runs in Copilot Studio, orchestration runs in Power Automate, and all data services are first-party. No custom infrastructure is required.</p>
+    <div class="stack-grid-slide">
+      <div class="stack-item">
+        <div class="role">Agent host</div>
+        <div class="name">Microsoft Copilot Studio</div>
+        <div class="desc">Topics, generative answers, system instructions, and tool connectors. Versioned, testable, and governable through standard ALM.</div>
+      </div>
+      <div class="stack-item">
+        <div class="role">Orchestration</div>
+        <div class="name">Microsoft Power Automate</div>
+        <div class="desc">Scheduled triggers, webhook listeners, adaptive card delivery, and action execution flows. The wiring between every other component.</div>
+      </div>
+      <div class="stack-item">
+        <div class="role">Telemetry source</div>
+        <div class="name">Power Platform Admin API</div>
+        <div class="desc">Per-environment capacity metrics for database, file, and log storage in real time, with environment-level scoping.</div>
+      </div>
+      <div class="stack-item">
+        <div class="role">Data plane</div>
+        <div class="name">Dataverse Web API</div>
+        <div class="desc">FetchXML, OData, and bulk-delete entities. The agent reads with this, and approved actions write through it.</div>
+      </div>
+      <div class="stack-item">
+        <div class="role">Archive destination</div>
+        <div class="name">Azure Synapse Link &amp; LTR</div>
+        <div class="desc">Near-real-time replication to Azure Data Lake or native Dataverse long-term retention with no ETL required.</div>
+      </div>
+      <div class="stack-item">
+        <div class="role">File offload</div>
+        <div class="name">Azure Blob / SharePoint</div>
+        <div class="desc">File and image columns moved out of Dataverse with reference columns rewritten to external links.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 8: APPROVAL WORKFLOW ─── -->
+  <section class="slide" data-name="Approval workflow">
+    <div class="slide-eyebrow">03 · Approval workflow</div>
+    <h2 class="slide-title">The human <span class="light">in</span> the loop</h2>
+    <p class="slide-subtitle">The adaptive card is the boundary between agent autonomy and human judgment. Every recommendation is reviewable. The card payload is the artifact compliance teams will request when auditing the agent.</p>
+    <div class="approval-grid">
+      <div class="intro">
+        <p>The card supports three response patterns: approve all selected items, customize the selection before approving, or reject all and provide feedback that the agent reads on its next run.</p>
+        <p>Recommendations are sorted by impact in GB and color-coded by action type. Items that were skipped in previous runs are flagged so the steward sees the pattern without reading the full audit log.</p>
+        <div class="principle">
+          <div class="principle-label">Design principle</div>
+          <div class="principle-body">The agent earns autonomy through approved history. Trust is granted incrementally based on the audit log, not assumed at deployment time.</div>
+        </div>
+      </div>
+
+      <div class="adaptive-card">
+        <div class="ac-header">
+          <div class="who">
+            <div class="ac-avatar">DV</div>
+            <div>
+              <div class="ac-who-name">Dataverse capacity Copilot</div>
+              <div class="ac-who-sub">production environment · v0.1</div>
+            </div>
+          </div>
+          <div class="ac-time">02:14 UTC</div>
+        </div>
+
+        <div class="ac-title">Storage at 87% — 7 actions proposed</div>
+        <div class="ac-subtitle">Projected breach in 6 weeks. Review each line before approving.</div>
+
+        <div class="ac-metrics">
+          <div class="ac-metric"><div class="l">Database</div><div class="v warn">87%</div></div>
+          <div class="ac-metric"><div class="l">File</div><div class="v">41%</div></div>
+          <div class="ac-metric"><div class="l">Log</div><div class="v ok">12%</div></div>
+        </div>
+
+        <div class="ac-rec checked">
+          <div class="check"></div>
+          <div class="body">
+            <div class="t">Archive <strong>account</strong> rows older than 3 years</div>
+            <div class="d">Synapse Link · 18,420 rows</div>
+          </div>
+          <div class="saves">−18 GB</div>
+        </div>
+
+        <div class="ac-rec checked">
+          <div class="check"></div>
+          <div class="body">
+            <div class="t">Move <strong>email</strong> attachments to Azure Blob</div>
+            <div class="d">File column offload · 4,891 records</div>
+          </div>
+          <div class="saves">−28 GB</div>
+        </div>
+
+        <div class="ac-rec pending">
+          <div class="check"></div>
+          <div class="body">
+            <div class="t">Delete stale <strong>lead</strong> records</div>
+            <div class="d">Untouched 24 months · 6,210 rows</div>
+          </div>
+          <div class="saves">−4.2 GB</div>
+        </div>
+
+        <div class="ac-rec skipped">
+          <div class="check"></div>
+          <div class="body">
+            <div class="t">Trim <strong>audit</strong> retention from 365 to 180 days</div>
+            <div class="d">Requires compliance sign-off</div>
+          </div>
+          <div class="saves">−6.8 GB</div>
+        </div>
+
+        <div class="ac-buttons">
+          <button class="ac-btn primary">Run selected (2)</button>
+          <button class="ac-btn secondary">Customize</button>
+          <button class="ac-btn danger">Reject all</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 9: CONSIDERATIONS ─── -->
+  <section class="slide" data-name="Considerations">
+    <div class="slide-eyebrow">04 · Considerations</div>
+    <h2 class="slide-title">Decisions <span class="light">before</span> deployment</h2>
+    <p class="slide-subtitle">Three load-bearing decisions to make before production deployment. Each one shapes how much autonomy the agent is granted on day one and how that autonomy expands over time.</p>
+    <div class="guard-grid-slide">
+      <div class="guard-cell">
+        <div class="num">G.01</div>
+        <h4>Approval granularity</h4>
+        <p>Per-recommendation approval is safer but creates Teams card fatigue. Batch approval is faster but riskier. Recommended path: per-recommendation for the first quarter, then graduate to batch for action types that have a clean history in the audit log.</p>
+      </div>
+      <div class="guard-cell">
+        <div class="num">G.02</div>
+        <h4>Action limits</h4>
+        <p>Hard-code blast radius ceilings that the agent cannot override. Cap bulk deletes at 10,000 records per action and archives at 50 GB per pass. A misjudged recommendation should be wrong, never catastrophic.</p>
+      </div>
+      <div class="guard-cell">
+        <div class="num">G.03</div>
+        <h4>Environment scope</h4>
+        <p>One agent per environment is simpler to govern and easier to permission. Tenant-wide scope is more powerful but needs careful Service Principal design. Start scoped, then expand once the audit log shows clean runs.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SLIDE 10: NEXT STEPS ─── -->
+  <section class="slide" data-name="Next steps">
+    <div class="next-steps">
+      <div class="slide-eyebrow">Closing</div>
+      <h2 class="slide-title">What to build <span class="light">first</span></h2>
+      <p class="slide-subtitle">A pragmatic implementation order. Each step is independently valuable and unblocks the next.</p>
+
+      <div class="steps-list">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <h5>Read-only telemetry flow</h5>
+            <p>A Power Automate flow that reads the Admin API daily and writes capacity to a Dataverse table. No agent yet — just the visibility layer.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <h5>Copilot Studio agent skeleton</h5>
+            <p>Stand up the agent with the capacity reader tool. Have it produce risk summaries on demand. Validate output structure before adding action paths.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <h5>Teams adaptive card as a one-way notification</h5>
+            <p>Post proposals to Teams without action buttons. Operators read and act manually. Builds steward trust and surfaces card-design issues early.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>
+            <h5>One action path, end to end</h5>
+            <p>Wire archive-to-Synapse as the first executable action. Choose archive over delete to keep the first agent action reversible.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="closing">
+        <span>Clara AI Lab · Dataverse Management · draft v0.1</span>
+        <span>End of deck</span>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ─── NAV BAR ─── -->
+<nav class="deck-nav">
+  <div class="progress" id="progress"></div>
+  <div class="nav-controls">
+    <button class="nav-btn secondary" id="prev-btn" disabled>
+      <span class="arrow">←</span> Previous
+    </button>
+    <div class="slide-counter"><strong id="current-num">01</strong> / <span id="total-num">10</span></div>
+    <button class="nav-btn primary" id="next-btn">
+      Next <span class="arrow">→</span>
+    </button>
+  </div>
+</nav>
+
+<script>
+  (function() {
+    const slides = document.querySelectorAll('.slide');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const counter = document.getElementById('current-num');
+    const totalNum = document.getElementById('total-num');
+    const slideName = document.getElementById('slide-name');
+    const progress = document.getElementById('progress');
+    let current = 0;
+    const total = slides.length;
+    totalNum.textContent = String(total).padStart(2, '0');
+
+    // build progress dots
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'progress-dot' + (i === 0 ? ' active' : '');
+      dot.dataset.index = i;
+      dot.addEventListener('click', () => go(i));
+      progress.appendChild(dot);
+    }
+    const dots = document.querySelectorAll('.progress-dot');
+
+    function go(n) {
+      if (n < 0 || n >= total) return;
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = n;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      counter.textContent = String(current + 1).padStart(2, '0');
+      slideName.textContent = slides[current].dataset.name || '';
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === total - 1;
+      // scroll the slide back to top in case user scrolled
+      slides[current].scrollTop = 0;
+    }
+
+    prevBtn.addEventListener('click', () => go(current - 1));
+    nextBtn.addEventListener('click', () => go(current + 1));
+
+    document.addEventListener('keydown', (e) => {
+      // ignore if focus is on a button/input
+      if (e.target.matches('button, input, textarea')) return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        go(current + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        go(current - 1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        go(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        go(total - 1);
+      }
+    });
+  })();
+</script>
+
+</body>
+</html>
