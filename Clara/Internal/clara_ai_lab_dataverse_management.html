@@ -3,7 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clara AI Lab — Dataverse Management</title>
+<title>Clara AI Lab · Dataverse Management</title>
+<style>
+  html.access-denied body {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-family: "Segoe UI", sans-serif;
+    color: #3d3b39;
+    font-size: 14px;
+    min-width: auto !important;
+    min-height: auto !important;
+    margin: 0;
+    background: #ffffff;
+  }
+  html.access-denied body > * { display: none !important; }
+  html.access-denied body::before {
+    content: "Access denied.";
+    display: block;
+  }
+</style>
+<script>
+  (function() {
+    var PASSWORD = "dataverse demo";
+    var attempt = prompt("Clara AI Lab · Dataverse Management\n\nThis presentation is password protected.\n\nEnter password to view:");
+    while (attempt !== null && attempt.trim().toLowerCase() !== PASSWORD) {
+      attempt = prompt("Incorrect password. Please try again:");
+    }
+    if (attempt === null) {
+      document.documentElement.classList.add("access-denied");
+    }
+  })();
+</script>
 <style>
   :root {
     --bg: #ffffff;
@@ -13,8 +45,8 @@
     --border: #e1dfdd;
     --border-strong: #c8c6c4;
     --text: #242424;
-    --text-dim: #605e5c;
-    --text-faint: #8a8886;
+    --text-dim: #3d3b39;
+    --text-faint: #605e5c;
     --accent: #2b5797;
     --accent-soft: #eef2f8;
     --warning: #b87a2b;
@@ -346,6 +378,17 @@
   .problem-stats .stat .value.warn { color: var(--critical); }
 
   /* ─── slide 3: flow ─── */
+  .slide.flow { padding: 36px 48px; }
+  .slide.flow .slide-eyebrow { margin-bottom: 10px; }
+  .slide.flow .slide-title {
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+  .slide.flow .slide-subtitle {
+    font-size: 15px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
   .flow-slide {
     display: flex;
     flex-direction: column;
@@ -353,16 +396,16 @@
   }
   .flow-slide-svg-wrap {
     flex: 1;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: auto;
+    overflow: hidden;
   }
   .flow-svg {
+    display: block;
     width: 100%;
-    height: auto;
-    min-width: 1180px;
-    max-width: 1600px;
+    height: 100%;
   }
 
   /* ─── detail slides (4, 5, 6) ─── */
@@ -767,12 +810,12 @@
   </section>
 
   <!-- ─── SLIDE 3: SYSTEM FLOW ─── -->
-  <section class="slide" data-name="System flow">
+  <section class="slide flow" data-name="System flow">
     <div class="flow-slide">
       <div>
         <div class="slide-eyebrow">01 · System flow</div>
         <h2 class="slide-title">Six stages, one feedback loop</h2>
-        <p class="slide-subtitle">The agent senses, analyzes, requests approval, executes, and writes back to memory. Each stage maps to a native Microsoft component.</p>
+        <p class="slide-subtitle">From trigger to audit, each stage maps to a native Microsoft component.</p>
       </div>
       <div class="flow-slide-svg-wrap">
         <svg class="flow-svg" viewBox="0 0 1600 720" xmlns="http://www.w3.org/2000/svg" role="img">
@@ -783,12 +826,12 @@
               <path d="M0 0L10 5L0 10" fill="none" stroke="context-stroke" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
             </marker>
             <marker id="ar-dash" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-              <path d="M0 0L10 5L0 10" fill="none" stroke="#605e5c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M0 0L10 5L0 10" fill="none" stroke="#3d3b39" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
             </marker>
           </defs>
 
           <!-- column headers - larger and darker -->
-          <g font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" letter-spacing="0.8" fill="#605e5c">
+          <g font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" letter-spacing="0.8" fill="#3d3b39">
             <text x="40" y="44">01 · TRIGGERS</text>
             <text x="280" y="44">02 · AGENT</text>
             <text x="610" y="44">03 · ANALYSIS</text>
@@ -811,13 +854,13 @@
             <rect x="40" y="180" width="200" height="100" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
             <rect x="40" y="180" width="4" height="100" fill="#b87a2b"/>
             <text x="58" y="218" font-size="19" font-weight="600" fill="#242424">Scheduled scan</text>
-            <text x="58" y="244" font-size="14" fill="#605e5c">Daily 02:00 UTC</text>
+            <text x="58" y="244" font-size="14" fill="#3d3b39">Daily 02:00 UTC</text>
             <text x="58" y="268" font-size="11" font-weight="600" fill="#b87a2b" letter-spacing="0.6">RECURRENCE</text>
 
             <rect x="40" y="380" width="200" height="100" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
             <rect x="40" y="380" width="4" height="100" fill="#a4262c"/>
             <text x="58" y="418" font-size="19" font-weight="600" fill="#242424">Threshold breach</text>
-            <text x="58" y="444" font-size="14" fill="#605e5c">Above 80% capacity</text>
+            <text x="58" y="444" font-size="14" fill="#3d3b39">Above 80% capacity</text>
             <text x="58" y="468" font-size="11" font-weight="600" fill="#a4262c" letter-spacing="0.6">EVENT</text>
           </g>
 
@@ -829,11 +872,11 @@
             <text x="300" y="142" font-size="11" font-weight="600" fill="#5e548e" letter-spacing="0.8">COPILOT STUDIO</text>
             <text x="300" y="182" font-size="24" font-weight="600" fill="#242424">Dataverse capacity</text>
             <text x="300" y="210" font-size="24" font-weight="600" fill="#242424">steward agent</text>
-            <text x="300" y="240" font-size="14.5" fill="#605e5c">Reads, analyzes, and plans —</text>
-            <text x="300" y="260" font-size="14.5" fill="#605e5c">never acts without approval.</text>
+            <text x="300" y="240" font-size="14.5" fill="#3d3b39">Reads, analyzes, and plans.</text>
+            <text x="300" y="260" font-size="14.5" fill="#3d3b39">Never acts without approval.</text>
 
             <line x1="300" y1="296" x2="540" y2="296" stroke="#e1dfdd" stroke-width="0.5"/>
-            <text x="300" y="322" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">TOOLS</text>
+            <text x="300" y="322" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">TOOLS</text>
 
             <g font-size="15">
               <circle cx="306" cy="352" r="3" fill="#5e548e"/>
@@ -853,10 +896,10 @@
             </g>
 
             <line x1="300" y1="510" x2="540" y2="510" stroke="#e1dfdd" stroke-width="0.5"/>
-            <text x="300" y="536" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">SYSTEM INSTRUCTION</text>
-            <text x="300" y="566" font-size="14" font-style="italic" fill="#605e5c">"Never act without approval.</text>
-            <text x="300" y="586" font-size="14" font-style="italic" fill="#605e5c">State impact in GB. Cap</text>
-            <text x="300" y="606" font-size="14" font-style="italic" fill="#605e5c">proposals at 10,000 rows."</text>
+            <text x="300" y="536" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">SYSTEM INSTRUCTION</text>
+            <text x="300" y="566" font-size="14" font-style="italic" fill="#3d3b39">"Never act without approval.</text>
+            <text x="300" y="586" font-size="14" font-style="italic" fill="#3d3b39">State impact in GB. Cap</text>
+            <text x="300" y="606" font-size="14" font-style="italic" fill="#3d3b39">proposals at 10,000 rows."</text>
           </g>
 
           <!-- COL 3: ANALYSIS -->
@@ -865,22 +908,22 @@
             <rect x="610" y="100" width="4" height="160" fill="#a4262c"/>
             <text x="628" y="134" font-size="11" font-weight="600" fill="#a4262c" letter-spacing="0.6">RISK SUMMARY</text>
             <text x="628" y="180" font-size="34" font-weight="600" fill="#242424">87%</text>
-            <text x="628" y="216" font-size="14.5" fill="#605e5c">DB capacity used.</text>
-            <text x="628" y="238" font-size="14.5" fill="#605e5c">Breach in 6 weeks.</text>
+            <text x="628" y="216" font-size="14.5" fill="#3d3b39">DB capacity used.</text>
+            <text x="628" y="238" font-size="14.5" fill="#3d3b39">Breach in 6 weeks.</text>
 
             <rect x="610" y="290" width="220" height="160" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
             <rect x="610" y="290" width="4" height="160" fill="#b87a2b"/>
             <text x="628" y="324" font-size="11" font-weight="600" fill="#b87a2b" letter-spacing="0.6">CANDIDATES</text>
             <text x="628" y="370" font-size="34" font-weight="600" fill="#242424">12</text>
-            <text x="628" y="406" font-size="14.5" fill="#605e5c">Objects flagged for</text>
-            <text x="628" y="428" font-size="14.5" fill="#605e5c">cleanup by impact.</text>
+            <text x="628" y="406" font-size="14.5" fill="#3d3b39">Objects flagged for</text>
+            <text x="628" y="428" font-size="14.5" fill="#3d3b39">cleanup by impact.</text>
 
             <rect x="610" y="480" width="220" height="160" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
             <rect x="610" y="480" width="4" height="160" fill="#4a7a3d"/>
             <text x="628" y="514" font-size="11" font-weight="600" fill="#4a7a3d" letter-spacing="0.6">RECOMMENDATIONS</text>
             <text x="628" y="560" font-size="34" font-weight="600" fill="#242424">7</text>
-            <text x="628" y="596" font-size="14.5" fill="#605e5c">Proposed actions with</text>
-            <text x="628" y="618" font-size="14.5" fill="#605e5c">impact estimates.</text>
+            <text x="628" y="596" font-size="14.5" fill="#3d3b39">Proposed actions with</text>
+            <text x="628" y="618" font-size="14.5" fill="#3d3b39">impact estimates.</text>
           </g>
 
           <!-- COL 4: HUMAN APPROVAL -->
@@ -891,11 +934,11 @@
             <text x="920" y="142" font-size="11" font-weight="600" fill="#2b5797" letter-spacing="0.8">MICROSOFT TEAMS</text>
             <text x="920" y="182" font-size="24" font-weight="600" fill="#242424">Adaptive card</text>
             <text x="920" y="212" font-size="24" font-weight="600" fill="#242424">approval gate</text>
-            <text x="920" y="244" font-size="14.5" fill="#605e5c">Posted to data steward</text>
-            <text x="920" y="264" font-size="14.5" fill="#605e5c">channel for per-line review.</text>
+            <text x="920" y="244" font-size="14.5" fill="#3d3b39">Posted to data steward</text>
+            <text x="920" y="264" font-size="14.5" fill="#3d3b39">channel for per-line review.</text>
 
             <line x1="920" y1="300" x2="1120" y2="300" stroke="#e1dfdd" stroke-width="0.5"/>
-            <text x="920" y="326" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">RESPONSE PATTERNS</text>
+            <text x="920" y="326" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">RESPONSE PATTERNS</text>
 
             <g font-size="15">
               <circle cx="926" cy="356" r="3" fill="#4a7a3d"/>
@@ -909,11 +952,11 @@
             </g>
 
             <line x1="920" y1="460" x2="1120" y2="460" stroke="#e1dfdd" stroke-width="0.5"/>
-            <text x="920" y="486" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">CONSENT BOUNDARY</text>
-            <text x="920" y="516" font-size="14" fill="#605e5c">No action runs until</text>
-            <text x="920" y="538" font-size="14" fill="#605e5c">the approval payload</text>
-            <text x="920" y="560" font-size="14" fill="#605e5c">returns through Power</text>
-            <text x="920" y="582" font-size="14" fill="#605e5c">Automate.</text>
+            <text x="920" y="486" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">CONSENT BOUNDARY</text>
+            <text x="920" y="516" font-size="14" fill="#3d3b39">No action runs until</text>
+            <text x="920" y="538" font-size="14" fill="#3d3b39">the approval payload</text>
+            <text x="920" y="560" font-size="14" fill="#3d3b39">returns through Power</text>
+            <text x="920" y="582" font-size="14" fill="#3d3b39">Automate.</text>
           </g>
 
           <!-- COL 5: ACTIONS -->
@@ -922,54 +965,54 @@
             <rect x="1190" y="100" width="4" height="115" fill="#4a7a3d"/>
             <text x="1208" y="134" font-size="11" font-weight="600" fill="#4a7a3d" letter-spacing="0.6">ARCHIVE</text>
             <text x="1208" y="166" font-size="18" font-weight="600" fill="#242424">Move to Azure</text>
-            <text x="1208" y="190" font-size="13.5" fill="#605e5c">Synapse Link or</text>
-            <text x="1208" y="208" font-size="13.5" fill="#605e5c">long-term retention</text>
+            <text x="1208" y="190" font-size="13.5" fill="#3d3b39">Synapse Link or</text>
+            <text x="1208" y="208" font-size="13.5" fill="#3d3b39">long-term retention</text>
 
             <rect x="1190" y="240" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
             <rect x="1190" y="240" width="4" height="115" fill="#a4262c"/>
             <text x="1208" y="274" font-size="11" font-weight="600" fill="#a4262c" letter-spacing="0.6">BULK DELETE</text>
             <text x="1208" y="306" font-size="18" font-weight="600" fill="#242424">Remove records</text>
-            <text x="1208" y="330" font-size="13.5" fill="#605e5c">Cap: 10,000 rows</text>
-            <text x="1208" y="348" font-size="13.5" fill="#605e5c">per execution</text>
+            <text x="1208" y="330" font-size="13.5" fill="#3d3b39">Cap: 10,000 rows</text>
+            <text x="1208" y="348" font-size="13.5" fill="#3d3b39">per execution</text>
 
             <rect x="1190" y="380" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
             <rect x="1190" y="380" width="4" height="115" fill="#b87a2b"/>
             <text x="1208" y="414" font-size="11" font-weight="600" fill="#b87a2b" letter-spacing="0.6">MOVE FILES</text>
             <text x="1208" y="446" font-size="18" font-weight="600" fill="#242424">Offload attachments</text>
-            <text x="1208" y="470" font-size="13.5" fill="#605e5c">Blob or SharePoint,</text>
-            <text x="1208" y="488" font-size="13.5" fill="#605e5c">keep references</text>
+            <text x="1208" y="470" font-size="13.5" fill="#3d3b39">Blob or SharePoint,</text>
+            <text x="1208" y="488" font-size="13.5" fill="#3d3b39">keep references</text>
 
             <rect x="1190" y="520" width="220" height="115" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
-            <rect x="1190" y="520" width="4" height="115" fill="#8a8886"/>
-            <text x="1208" y="554" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">TRIM LOGS</text>
+            <rect x="1190" y="520" width="4" height="115" fill="#605e5c"/>
+            <text x="1208" y="554" font-size="11" font-weight="600" fill="#3d3b39" letter-spacing="0.6">TRIM LOGS</text>
             <text x="1208" y="586" font-size="18" font-weight="600" fill="#242424">Shrink audit table</text>
-            <text x="1208" y="610" font-size="13.5" fill="#605e5c">Compliance sign-off</text>
-            <text x="1208" y="628" font-size="13.5" fill="#605e5c">required</text>
+            <text x="1208" y="610" font-size="13.5" fill="#3d3b39">Compliance sign-off</text>
+            <text x="1208" y="628" font-size="13.5" fill="#3d3b39">required</text>
           </g>
 
           <!-- COL 6: AUDIT -->
           <g font-family="Segoe UI, sans-serif">
             <rect x="1480" y="200" width="110" height="340" rx="2" fill="#ffffff" stroke="#c8c6c4" stroke-width="1"/>
-            <rect x="1480" y="200" width="4" height="340" fill="#605e5c"/>
-            <text x="1497" y="234" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">AUDIT LOG</text>
+            <rect x="1480" y="200" width="4" height="340" fill="#3d3b39"/>
+            <text x="1497" y="234" font-size="11" font-weight="600" fill="#3d3b39" letter-spacing="0.6">AUDIT LOG</text>
             <text x="1497" y="276" font-size="20" font-weight="600" fill="#242424">Memory</text>
 
-            <text x="1497" y="316" font-size="13.5" fill="#605e5c">Records every</text>
-            <text x="1497" y="334" font-size="13.5" fill="#605e5c">proposal and</text>
-            <text x="1497" y="352" font-size="13.5" fill="#605e5c">execution.</text>
+            <text x="1497" y="316" font-size="13.5" fill="#3d3b39">Records every</text>
+            <text x="1497" y="334" font-size="13.5" fill="#3d3b39">proposal and</text>
+            <text x="1497" y="352" font-size="13.5" fill="#3d3b39">execution.</text>
 
             <line x1="1497" y1="384" x2="1573" y2="384" stroke="#e1dfdd"/>
 
             <text x="1497" y="408" font-size="13.5" font-weight="600" fill="#242424">Custom table</text>
             <text x="1497" y="430" font-size="13.5" font-weight="600" fill="#242424">App Insights</text>
 
-            <text x="1497" y="470" font-size="11" font-weight="600" fill="#8a8886" letter-spacing="0.6">FED BACK INTO</text>
-            <text x="1497" y="496" font-size="13.5" fill="#605e5c">Next agent run</text>
-            <text x="1497" y="514" font-size="13.5" fill="#605e5c">as memory</text>
+            <text x="1497" y="470" font-size="11" font-weight="600" fill="#605e5c" letter-spacing="0.6">FED BACK INTO</text>
+            <text x="1497" y="496" font-size="13.5" fill="#3d3b39">Next agent run</text>
+            <text x="1497" y="514" font-size="13.5" fill="#3d3b39">as memory</text>
           </g>
 
           <!-- ARROWS - bolder, darker -->
-          <g stroke="#605e5c" stroke-width="1.6" fill="none">
+          <g stroke="#3d3b39" stroke-width="1.6" fill="none">
             <path d="M 244 230 L 262 230 L 262 280 L 278 280" marker-end="url(#ar)"/>
             <path d="M 244 430 L 262 430 L 262 380 L 278 380" marker-end="url(#ar)"/>
             <path d="M 564 200 L 590 200 L 590 180 L 608 180" marker-end="url(#ar)"/>
@@ -990,8 +1033,8 @@
 
           <!-- feedback loop: darker and thicker -->
           <path d="M 1535 200 L 1535 78 Q 1535 68 1525 68 L 430 68 Q 420 68 420 78 L 420 100"
-                fill="none" stroke="#605e5c" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#ar-dash)"/>
-          <text x="950" y="60" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" fill="#605e5c" letter-spacing="0.6" text-anchor="middle">Feedback loop — agent learns from prior runs</text>
+                fill="none" stroke="#3d3b39" stroke-width="1.5" stroke-dasharray="6 5" marker-end="url(#ar-dash)"/>
+          <text x="950" y="60" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600" fill="#3d3b39" letter-spacing="0.6" text-anchor="middle">Feedback loop. Agent learns from prior runs.</text>
         </svg>
       </div>
     </div>
@@ -1150,7 +1193,7 @@
           <div class="ac-time">02:14 UTC</div>
         </div>
 
-        <div class="ac-title">Storage at 87% — 7 actions proposed</div>
+        <div class="ac-title">Storage at 87%. 7 actions proposed.</div>
         <div class="ac-subtitle">Projected breach in 6 weeks. Review each line before approving.</div>
 
         <div class="ac-metrics">
@@ -1240,7 +1283,7 @@
           <div class="step-num">1</div>
           <div>
             <h5>Read-only telemetry flow</h5>
-            <p>A Power Automate flow that reads the Admin API daily and writes capacity to a Dataverse table. No agent yet — just the visibility layer.</p>
+            <p>A Power Automate flow that reads the Admin API daily and writes capacity to a Dataverse table. No agent yet, just the visibility layer.</p>
           </div>
         </div>
         <div class="step">
