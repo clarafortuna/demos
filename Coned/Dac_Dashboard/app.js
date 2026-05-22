@@ -775,7 +775,7 @@
       return `<tr${cls}>${cells}</tr>`;
     }).join('');
 
-    return `<table class="data-table">${headerHtml}<tbody>${bodyRows}</tbody></table>`;
+    return `<table class="data-table"${opts.tableId ? ` data-table-id="${opts.tableId}"` : ''}>${headerHtml}<tbody>${bodyRows}</tbody></table>`;
   }
 
   // ============================================================
@@ -816,7 +816,7 @@
     const t = tables.find(x => x.id === activeId) || tables[0];
     const yearView = (perTableView && perTableView[t.id]) || 'current';
     const headerLevels = t.header_levels !== undefined ? t.header_levels : 1;
-    const renderOpts = { headerLevels: headerLevels };
+    const renderOpts = { headerLevels: headerLevels, tableId: t.id };
     const mapping = t.mapping || {};
 
     // Year-agnostic: compute prev year from payload
@@ -3197,45 +3197,78 @@ function renderSectionJ() {
             const t = p.tables[id];
             if (!t || !t.data || !t.data[yr] || !t.data[yr][rowIdx]) return null;
             const v = t.data[yr][rowIdx][colIdx];
-            return (typeof v === 'number') ? v : null;
+            if (typeof v === 'number') return v;
+            // Accept percentage strings like "66%" → 0.66 (introduced by 2025 data normalization)
+            if (typeof v === 'string') {
+              const s = v.trim();
+              if (s.endsWith('%')) {
+                const n = parseFloat(s.slice(0, -1).replace(/,/g, ''));
+                return isFinite(n) ? n / 100 : null;
+              }
+              const n = parseFloat(s.replace(/[,$\s]/g, ''));
+              return isFinite(n) ? n : null;
+            }
+            return null;
           };
 
-          d.dac_customers    = get('J9', 1, 1) || 0;
-          d.nondac_customers = get('J9', 1, 3) || 0;
+          d.dac_customers    = get('J9', 0, 1) || 0;
+          d.nondac_customers = get('J9', 0, 3) || 0;
           d.total_customers  = d.dac_customers + d.nondac_customers;
-          d.dac_pct          = get('J9', 1, 2) || 0;
+          d.dac_pct          = get('J9', 0, 2) || 0;
 
-          d.elec_total_dac    = get('J1', 1, 1) || 0;
-          d.elec_total_nondac = get('J1', 1, 3) || 0;
-          d.elec_dac_pct      = get('J1', 1, 2) || 0;
+          // J1, J2 row 0 = total usage row, row 1 = average row.
+          // For "DAC % of total usage" we read from row 0 (total amounts),
+          // since the average row's % was not always populated in the source.
+          //   schema = ['Metric', 'DAC', 'DAC % of Total', 'Non-DAC', 'Non-DAC % of Total']
+          //   col 1 = DAC value, col 2 = DAC% of total, col 3 = Non-DAC value
+          d.elec_total_dac    = get('J1', 0, 1) || 0;
+          d.elec_total_nondac = get('J1', 0, 3) || 0;
+          d.elec_dac_pct      = get('J1', 0, 2) || 0;
 
-          d.gas_total_dac    = get('J2', 1, 1) || 0;
-          d.gas_total_nondac = get('J2', 1, 3) || 0;
-          d.gas_dac_pct      = get('J2', 1, 2) || 0;
+          d.gas_total_dac    = get('J2', 0, 1) || 0;
+          d.gas_total_nondac = get('J2', 0, 3) || 0;
+          d.gas_dac_pct      = get('J2', 0, 2) || 0;
 
-          d.j4_accts_dac    = get('J4', 1, 1) || 0;
-          d.j4_accts_nondac = get('J4', 2, 1) || 0;
-          d.j4_accts_pct    = get('J4', 1, 2) || 0;
-          d.j4_amt_dac      = get('J4', 1, 3) || 0;
-          d.j4_amt_nondac   = get('J4', 2, 3) || 0;
-          d.j4_amt_pct      = get('J4', 1, 4) || 0;
+          // J3, J4, J6 — row 0 = DAC, row 1 = Non-DAC (was 1/2 in legacy format)
+          d.j4_accts_dac    = get('J4', 0, 1) || 0;
+          d.j4_accts_nondac = get('J4', 1, 1) || 0;
+          d.j4_accts_pct    = get('J4', 0, 2) || 0;
+          d.j4_amt_dac      = get('J4', 0, 3) || 0;
+          d.j4_amt_nondac   = get('J4', 1, 3) || 0;
+          d.j4_amt_pct      = get('J4', 0, 4) || 0;
 
-          d.disc_dac    = get('J5', 1, 1) || 0;
-          d.disc_pct    = get('J5', 1, 2) || 0;
-          d.disc_nondac = get('J5', 1, 3) || 0;
-          d.rest_dac    = get('J5', 2, 1) || 0;
-          d.rest_pct    = get('J5', 2, 2) || 0;
-          d.rest_nondac = get('J5', 2, 3) || 0;
+          // J5 — row 0 = disconnections, row 1 = restorations
+          d.disc_dac    = get('J5', 0, 1) || 0;
+          d.disc_pct    = get('J5', 0, 2) || 0;
+          d.disc_nondac = get('J5', 0, 3) || 0;
+          d.rest_dac    = get('J5', 1, 1) || 0;
+          d.rest_pct    = get('J5', 1, 2) || 0;
+          d.rest_nondac = get('J5', 1, 3) || 0;
 
-          d.dpa_accts_dac    = get('J6', 1, 1) || 0;
-          d.dpa_accts_nondac = get('J6', 2, 1) || 0;
-          d.dpa_accts_pct    = get('J6', 1, 2) || 0;
-          d.dpa_amt_dac      = get('J6', 1, 3) || 0;
-          d.dpa_amt_nondac   = get('J6', 2, 3) || 0;
-          d.dpa_amt_pct      = get('J6', 1, 4) || 0;
+          // J6 — row 0 = DAC, row 1 = Non-DAC
+          d.dpa_accts_dac    = get('J6', 0, 1) || 0;
+          d.dpa_accts_nondac = get('J6', 1, 1) || 0;
+          d.dpa_accts_pct    = get('J6', 0, 2) || 0;
+          d.dpa_amt_dac      = get('J6', 0, 3) || 0;
+          d.dpa_amt_nondac   = get('J6', 1, 3) || 0;
+          d.dpa_amt_pct      = get('J6', 0, 4) || 0;
 
-          d.eap_pct     = get('J7', 1, 4) || 0;
-          d.eap_amt_pct = get('J8', 1, 3) || 0;
+          // J7 — row 0 = Total in DAC, col 4 = % of Accounts
+          d.eap_pct     = get('J7', 0, 4) || 0;
+          // J8 — % of total in DAC:
+          //   2024 format: row 0 col 3 has the value directly (e.g. "62%")
+          //   2025 format: that column is empty; compute from row 0 (DAC totals)
+          //                vs row 2 (grand total) across Electric + Gas
+          let eapAmtPct = get('J8', 0, 3);
+          if (eapAmtPct == null) {
+            const dacElec = get('J8', 0, 1) || 0;
+            const dacGas  = get('J8', 0, 2) || 0;
+            const totElec = get('J8', 2, 1) || 0;
+            const totGas  = get('J8', 2, 2) || 0;
+            const denom = totElec + totGas;
+            eapAmtPct = denom > 0 ? (dacElec + dacGas) / denom : 0;
+          }
+          d.eap_amt_pct = eapAmtPct;
         });
         return result;
       };

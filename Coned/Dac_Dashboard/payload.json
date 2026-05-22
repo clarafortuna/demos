@@ -471,7 +471,9 @@
           ],
           [
             "Commercial Kitchen",
-            -212177
+            -212177,
+            null,
+            null
           ],
           [
             "EmPower+",
@@ -511,7 +513,9 @@
           ],
           [
             "Pilots",
-            158176
+            158176,
+            null,
+            null
           ],
           [
             "Real Time Energy Management",
@@ -925,7 +929,9 @@
           ],
           [
             "Clean Heat – Commercial & Industrial Ground Source Heat Pump",
-            2489
+            2489,
+            null,
+            null
           ],
           [
             "Clean Heat – Midstream Heat Pump Water Heater",
@@ -1001,7 +1007,9 @@
           ],
           [
             "Multifamily - Fuel-Switch",
-            55576
+            55576,
+            null,
+            null
           ],
           [
             "Real Time Energy Management",
@@ -1489,36 +1497,42 @@
             15
           ],
           [
+            "Residential",
             "Clean Heat – Residential Air Source Heat Pump",
             8322,
             6203,
             42
           ],
           [
+            "Residential",
             "Clean Heat – Residential Ground Source Heat Pump",
             103,
             33791,
             86
           ],
           [
+            "Residential",
             "EmPower+",
             849,
             2121,
             7
           ],
           [
+            "Residential",
             "Residential Home Energy Reports",
             1580862,
             null,
             0.18
           ],
           [
+            "Residential",
             "Retail Products",
             307494,
             13,
             3
           ],
           [
+            "Residential",
             "Weather Ready",
             1797,
             1500,
@@ -1528,9 +1542,11 @@
             "Multisector",
             "Pilots",
             30,
-            5273
+            5273,
+            null
           ],
           [
+            "Multisector",
             "Real Time Energy Management",
             8,
             22840,
@@ -1544,12 +1560,14 @@
             4
           ],
           [
+            "Multifamily",
             "Clean Heat – Multifamily Air Source Heat Pump",
             316,
             130642,
             689
           ],
           [
+            "Multifamily",
             "Clean Heat – Multifamily Ground Source Heat Pump",
             7,
             1276819,
@@ -1557,11 +1575,13 @@
           ],
           [
             "Multifamily",
+            "Multifamily",
             1459,
             12879,
             243
           ],
           [
+            "Multifamily",
             "Multifamily - Fuel-Switch",
             8,
             812280,
@@ -1575,42 +1595,49 @@
             2383
           ],
           [
+            "Commercial",
             "Clean Heat – Commercial & Industrial Ground Source Heat Pump",
             1,
             916986,
             2489
           ],
           [
+            "Commercial",
             "Clean Heat – Small-Medium Business Air Source Heat Pump",
             234,
             47036,
             259
           ],
           [
+            "Commercial",
             "Commercial & Industrial",
             388,
             103660,
             1485
           ],
           [
+            "Commercial",
             "Commercial Water Heaters PEI (Pump Energy Index)",
             43,
             4042,
             87
           ],
           [
+            "Commercial",
             "Instant Lighting",
             736,
             9871,
             158
           ],
           [
+            "Commercial",
             "Midstream Water and Space Heating",
             527,
             3755,
             102
           ],
           [
+            "Commercial",
             "Small-Medium Business",
             1643,
             12584,
@@ -2070,36 +2097,42 @@
             14
           ],
           [
+            "Residential",
             "Clean Heat – Residential Air Source Heat Pump",
             4774,
             6291,
             39
           ],
           [
+            "Residential",
             "Clean Heat – Residential Ground Source Heat Pump",
             14,
             43390,
             83
           ],
           [
+            "Residential",
             "EmPower+",
             849,
             2121,
             7
           ],
           [
+            "Residential",
             "Residential Home Energy Reports",
             634912,
             null,
             0.2
           ],
           [
+            "Residential",
             "Retail Products",
             193191,
             14,
             3
           ],
           [
+            "Residential",
             "Weather Ready",
             405,
             1670,
@@ -2108,10 +2141,16 @@
           [
             "Multisector",
             "Pilots",
-            9
+            9,
+            null,
+            null
           ],
           [
-            "Real Time Energy Management"
+            "Multisector",
+            "Real Time Energy Management",
+            null,
+            null,
+            null
           ],
           [
             "Multifamily",
@@ -2121,12 +2160,14 @@
             4
           ],
           [
+            "Multifamily",
             "Clean Heat – Multifamily Air Source Heat Pump",
             154,
             181820,
             898
           ],
           [
+            "Multifamily",
             "Clean Heat – Multifamily Ground Source Heat Pump",
             6,
             1439208,
@@ -2134,12 +2175,17 @@
           ],
           [
             "Multifamily",
+            "Multifamily",
             775,
             12511,
             233
           ],
           [
-            "Multifamily - Fuel-Switch"
+            "Multifamily",
+            "Multifamily - Fuel-Switch",
+            null,
+            null,
+            null
           ],
           [
             "Commercial",
@@ -2149,39 +2195,49 @@
             1427
           ],
           [
-            "Clean Heat – Commercial & Industrial Ground Source Heat Pump"
+            "Commercial",
+            "Clean Heat – Commercial & Industrial Ground Source Heat Pump",
+            null,
+            null,
+            null
           ],
           [
+            "Commercial",
             "Clean Heat – Small-Medium Business Air Source Heat Pump",
             107,
             45600,
             257
           ],
           [
+            "Commercial",
             "Commercial & Industrial",
             106,
             76219,
             1241
           ],
           [
+            "Commercial",
             "Commercial Water Heaters PEI (Pump Energy Index)",
             21,
             952,
             26
           ],
           [
+            "Commercial",
             "Instant Lighting",
             249,
             14855,
             227
           ],
           [
+            "Commercial",
             "Midstream Water and Space Heating",
             341,
             4062,
             110
           ],
           [
+            "Commercial",
             "Small-Medium Business",
             723,
             13273,
@@ -2806,7 +2862,10 @@
         ],
         "2025": [
           [
-            "Clean Heat – Commercial & Industrial Air Source Heat Pump"
+            "Clean Heat – Commercial & Industrial Air Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -2821,7 +2880,10 @@
             0.37
           ],
           [
-            "Clean Heat – Commercial & Industrial Ground Source Heat Pump"
+            "Clean Heat – Commercial & Industrial Ground Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -2836,7 +2898,10 @@
             0
           ],
           [
-            "Clean Heat – Small-Medium Business Air Source Heat Pump"
+            "Clean Heat – Small-Medium Business Air Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "Building Shell",
@@ -2857,7 +2922,10 @@
             0.47
           ],
           [
-            "Commercial & Industrial"
+            "Commercial & Industrial",
+            "",
+            "",
+            ""
           ],
           [
             "Appliance",
@@ -2938,7 +3006,10 @@
             0.25
           ],
           [
-            "Commercial Water Heaters PEI"
+            "Commercial Water Heaters PEI",
+            "",
+            "",
+            ""
           ],
           [
             "Motors and Drives",
@@ -2959,7 +3030,10 @@
             0.49
           ],
           [
-            "Instant Lighting"
+            "Instant Lighting",
+            "",
+            "",
+            ""
           ],
           [
             "Lighting",
@@ -2980,7 +3054,10 @@
             0.34
           ],
           [
-            "Midstream Water and Space Heating"
+            "Midstream Water and Space Heating",
+            "",
+            "",
+            ""
           ],
           [
             "Domestic Hot Water",
@@ -3001,7 +3078,10 @@
             0.65
           ],
           [
-            "Small-Medium Business"
+            "Small-Medium Business",
+            "",
+            "",
+            ""
           ],
           [
             "Building Shell",
@@ -3058,7 +3138,10 @@
             0.37
           ],
           [
-            "Virtual Commissioning"
+            "Virtual Commissioning",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC - Control",
@@ -3507,7 +3590,10 @@
         ],
         "2025": [
           [
-            "Affordable Multifamily Energy Efficiency Program"
+            "Affordable Multifamily Energy Efficiency Program",
+            "",
+            "",
+            ""
           ],
           [
             "Appliances",
@@ -3564,7 +3650,10 @@
             0.85
           ],
           [
-            "Clean Heat – Multifamily Air Source Heat Pump"
+            "Clean Heat – Multifamily Air Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "Building Shell",
@@ -3585,7 +3674,10 @@
             0.41
           ],
           [
-            "Clean Heat – Multifamily Ground Source Heat Pump"
+            "Clean Heat – Multifamily Ground Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "Building Shell",
@@ -3606,7 +3698,10 @@
             0.81
           ],
           [
-            "Multifamily"
+            "Multifamily",
+            "",
+            "",
+            ""
           ],
           [
             "Appliances",
@@ -3663,7 +3758,10 @@
             0.37
           ],
           [
-            "Multifamily - Fuel-Switch"
+            "Multifamily - Fuel-Switch",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -3756,7 +3854,10 @@
         ],
         "2025": [
           [
-            "Real Time Energy Management"
+            "Real Time Energy Management",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC - Control",
@@ -4259,7 +4360,10 @@
         ],
         "2025": [
           [
-            "Clean Heat – Midstream Heat Pump Water Heater"
+            "Clean Heat – Midstream Heat Pump Water Heater",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -4274,7 +4378,10 @@
             0.49
           ],
           [
-            "Clean Heat – Residential Air Source Heat Pump"
+            "Clean Heat – Residential Air Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -4289,7 +4396,10 @@
             0.55
           ],
           [
-            "Clean Heat – Residential Ground Source Heat Pump"
+            "Clean Heat – Residential Ground Source Heat Pump",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -4304,7 +4414,10 @@
             0.13
           ],
           [
-            "EmPower+"
+            "EmPower+",
+            "",
+            "",
+            ""
           ],
           [
             "Building Shell",
@@ -4355,7 +4468,10 @@
             1
           ],
           [
-            "Retail Products"
+            "Retail Products",
+            "",
+            "",
+            ""
           ],
           [
             "Building Shell",
@@ -4370,7 +4486,10 @@
             0.58
           ],
           [
-            "Weather Ready"
+            "Weather Ready",
+            "",
+            "",
+            ""
           ],
           [
             "HVAC",
@@ -4450,8 +4569,8 @@
             129680235,
             380265714,
             204785586,
-            0.45,
-            0.5791580420871384
+            "45%",
+            "58%"
           ],
           [
             "Energy Savings (MMBtu)",
@@ -4459,8 +4578,8 @@
             1659904,
             5360879,
             2486965,
-            0.08,
-            0.4982583330120296
+            "8%",
+            "50%"
           ],
           [
             "Participation",
@@ -4468,8 +4587,8 @@
             1205001,
             2087688,
             1130930,
-            -0.11,
-            -0.06146965853140371
+            "-11%",
+            "-6%"
           ],
           [
             "Average Incentive per Participant",
@@ -4477,8 +4596,8 @@
             108,
             182,
             181,
-            0.62,
-            0.6759259259259259
+            "62%",
+            "68%"
           ],
           [
             "Average Energy Savings Per Participant",
@@ -4486,12 +4605,13 @@
             1.38,
             2.09,
             2.2,
-            0.22,
-            0.594202898550725
+            "22%",
+            "59%"
           ]
         ],
         "2025": [
           [
+            null,
             "Total",
             "DAC",
             "Total",
@@ -4505,8 +4625,8 @@
             204785586,
             282132687,
             148672655,
-            -0.26,
-            -0.27
+            "-26%",
+            "-27%"
           ],
           [
             "Energy Savings (MMBtu)",
@@ -4514,8 +4634,8 @@
             2486965,
             4043415,
             2121658,
-            -0.07,
-            -0.15
+            "-7%",
+            "-15%"
           ],
           [
             "Participation",
@@ -4523,8 +4643,8 @@
             1130930,
             2034938,
             942510,
-            -0.03,
-            -0.17
+            "-3%",
+            "-17%"
           ],
           [
             "Average Incentive per Participant",
@@ -4532,8 +4652,8 @@
             181,
             139,
             158,
-            -0.24,
-            -0.13
+            "-24%",
+            "-13%"
           ],
           [
             "Average Energy Savings Per Participant",
@@ -4541,8 +4661,8 @@
             2.2,
             1.99,
             2.25,
-            -0.05,
-            0.02
+            "-5%",
+            "2%"
           ]
         ]
       },
@@ -4558,10 +4678,12 @@
       "header_levels": 2,
       "schema_by_year": {
         "2025": [
-          2024,
-          null,
-          2025,
-          null,
+          "",
+          "2024",
+          "2024",
+          "2025",
+          "2025",
+          "% Change",
           "% Change"
         ],
         "2024": [
@@ -4595,50 +4717,51 @@
             "Installations",
             56951,
             21436,
-            0.38,
+            "38%",
             298607,
             152685,
-            0.5113242489291946
+            "51%"
           ],
           [
             "Commercial",
             6591,
             2549,
-            0.39,
+            "39%",
             23636,
             11391,
-            0.4819343374513454
+            "48%"
           ],
           [
             "Multifamily",
             3010,
             2049,
-            0.68,
+            "68%",
             17917,
             11769,
-            0.6568621979125969
+            "66%"
           ],
           [
             "Multisector",
             0,
             0,
-            0,
+            "0%",
             6,
             3,
-            0.5
+            "50%"
           ],
           [
             "Residential",
             47350,
             16838,
-            0.36,
+            "36%",
             257048,
             129522,
-            0.5038825433382093
+            "50%"
           ]
         ],
         "2025": [
           [
+            null,
             "Total",
             "DAC",
             "% DAC",
@@ -4650,44 +4773,46 @@
             "Installations",
             298607,
             152685,
-            0.51,
+            "51%",
             336599,
             190180,
-            0.57
+            "57%"
           ],
           [
             "Commercial",
             23636,
             11391,
-            0.48,
+            "48%",
             27834,
             10294,
-            0.37
+            "37%"
           ],
           [
             "Multifamily",
             17917,
             11769,
-            0.66,
+            "66%",
             24905,
             17781,
-            0.71
+            "71%"
           ],
           [
             "Multisector",
             6,
             3,
-            0.5,
-            8
+            "50%",
+            8,
+            0,
+            "0%"
           ],
           [
             "Residential",
             257048,
             129522,
-            0.5,
+            "50%",
             283852,
             162105,
-            0.57
+            "57%"
           ]
         ]
       },
@@ -4703,10 +4828,13 @@
       "header_levels": 2,
       "schema_by_year": {
         "2025": [
-          2023,
-          null,
-          null,
-          2024
+          "",
+          "2024",
+          "2024",
+          "2024",
+          "2025",
+          "2025",
+          "2025"
         ],
         "2024": [
           "",
@@ -5711,16 +5839,6 @@
         ],
         "2025": [
           [
-            "Participants",
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-          ],
-          [
             "CSRP",
             null,
             null,
@@ -5856,6 +5974,10 @@
           ]
         ],
         "2025": [
+          [
+            "Community Distributed Generation (CDG, or Community Solar)",
+            "A tariff program where a CDG host that installs a DER distributes credits to subscribing customers. Many CDG projects participate in utility consolidated billing (“net crediting”) whereby subscription fees for CDG are collected out of the credit the customer receives. The utility remits these subscription fees, less a 1% admin fee, to the CDG host."
+          ],
           [
             "Remote Crediting (RC)",
             "A tariff program whereby a remote crediting host that installs a DER distributes credits to up to 10 accounts associated with the same customer (typically commercial)."
@@ -6291,11 +6413,12 @@
       },
       "schema_by_year": {
         "2025": [
+          "Metric",
           "Up to 2025",
           2025
         ],
         "2024": [
-          null,
+          "Metric",
           "Up to 2024",
           2024
         ],
@@ -6544,6 +6667,10 @@
           ]
         ],
         "2025": [
+          [
+            "Distribution Network",
+            "Electric distribution system design in which distribution power lines are interconnected in a mesh-like manner. This creates multiple paths for electricity to flow from the source to the load, thereby minimizing the impact of faults. If one line or transformer fails, power supply to customers can be maintained via alternate paths. The network design is predominantly seen in the underground system."
+          ],
           [
             "Non-Network Distribution",
             "Electric distribution system design in which power flows in a single path from the source (substation) to the load (customer). If a fault occurs along this path, the affected section loses power until repairs are made. The non-network design is most commonly seen in the radial or overhead system (e.g., power lines on poles)."
@@ -8474,10 +8601,13 @@
         ],
         "2025": [
           [
+            null,
+            null,
             "Non- Excludable",
             "Excludable",
             "Non- Excludable",
-            "Excludable"
+            "Excludable",
+            null
           ],
           [
             "Borough Hall",
@@ -8765,9 +8895,9 @@
           ],
           [
             "% of Grand Total",
-            0.3428,
-            0.6572,
-            1
+            "34%",
+            "66%",
+            "100%"
           ]
         ],
         "2023": [
@@ -8798,30 +8928,28 @@
         ],
         "2025": [
           [
-            null,
             "Non-Excludable",
             153080,
             318982,
             472062
           ],
           [
-            null,
             "Excludable",
             14885,
             44700,
             59585
           ],
           [
-            null,
             "Grand Total",
             167965,
             363682,
             531647
           ],
           [
-            null,
-            0.3159,
-            0.6840999999999999
+            "% of Grand Total",
+            "32%",
+            "68%",
+            "100%"
           ]
         ]
       },
@@ -9339,7 +9467,8 @@
           ],
           [
             "County Total",
-            87495
+            87495,
+            1.0
           ]
         ],
         "2023": [
@@ -9355,7 +9484,8 @@
           ],
           [
             "County Total",
-            86952
+            86952,
+            1.0
           ]
         ],
         "2025": [
@@ -9423,7 +9553,8 @@
           ],
           [
             "County Total",
-            3688
+            3688,
+            1.0
           ]
         ],
         "2025": [
@@ -9486,7 +9617,8 @@
           ],
           [
             "County Total",
-            40535
+            40535,
+            1.0
           ]
         ],
         "2023": [
@@ -9502,7 +9634,8 @@
           ],
           [
             "County Total",
-            43665
+            43665,
+            1.0
           ]
         ],
         "2025": [
@@ -9570,7 +9703,8 @@
           ],
           [
             "County Total",
-            1075
+            1075,
+            1.0
           ]
         ],
         "2025": [
@@ -9633,7 +9767,8 @@
           ],
           [
             "County Total",
-            81034
+            81034,
+            1.0
           ]
         ],
         "2023": [
@@ -9649,7 +9784,8 @@
           ],
           [
             "County Total",
-            81406
+            81406,
+            1.0
           ]
         ],
         "2025": [
@@ -9717,7 +9853,8 @@
           ],
           [
             "County Total",
-            1793
+            1793,
+            1.0
           ]
         ],
         "2025": [
@@ -9780,7 +9917,8 @@
           ],
           [
             "County Total",
-            202211
+            202211,
+            1.0
           ]
         ],
         "2023": [
@@ -9865,7 +10003,8 @@
           ],
           [
             "County Total",
-            3891
+            3891,
+            1.0
           ]
         ],
         "2025": [
@@ -9928,7 +10067,8 @@
           ],
           [
             "Grand Total",
-            241.2279
+            241.2279,
+            1.0
           ]
         ],
         "2023": [
@@ -9944,7 +10084,8 @@
           ],
           [
             "Grand Total",
-            238.89
+            238.89,
+            1.0
           ]
         ],
         "2025": [
@@ -10136,8 +10277,8 @@
         "2024": [
           [
             "Type of clean energy workforce development program if other than the Clean Energy Academy",
-            "The Academy is the only clean energy workforce development program the Company operated in 2024",
-            "The Academy is the only clean energy workforce development program the Company operated in 2024"
+            "The Academy is the only clean energy workforce development program the Company operated in 2024.",
+            "The Academy is the only clean energy workforce development program the Company operated in 2024."
           ],
           [
             "Number of programs the Company offers or participates in if other than the Clean Energy Academy and details on the program",
@@ -10229,60 +10370,47 @@
         ],
         "2025": [
           [
-            null,
             "Type of clean energy workforce development program if other than the Clean Energy Academy",
-            "The Academy is the only clean energy workforce development program the Company operated in 2025.",
-            "The Academy is the only clean energy workforce development program the Company operated in 2025."
+            "The Academy is the only clean energy workforce development program the Company operated in 2025.",
+            "The Academy is the only clean energy workforce development program the Company operated in 2025."
           ],
           [
-            null,
-            "Number of programs the Company",
-            null,
-            null
+            "Number of programs the Company offers or participates in if other than the Clean Energy Academy and details on the program",
+            "N/A",
+            "N/A"
           ],
           [
-            null,
-            "offers or participates in if other than the Clean Energy Academy and details on the program"
-          ],
-          [
-            null,
             "Location of [the Academy]",
             "Hybrid",
             "Hybrid"
           ],
           [
-            null,
             "Number of students enrolled in [the Academy]",
             432,
             515
           ],
           [
-            null,
             "Number of students that graduate from [the Academy]",
             310,
             393
           ],
           [
-            null,
             "Number of jobs placed as a result of [the Academy]",
             49,
             57
           ],
           [
-            null,
-            "Number of graduate students from [the Academy] the Company has hired, and the type of jobs at Con Edison for which they were hired",
+            "Number of graduate students from [the Academy] the Company has hired, and the type of jobs at Con Edison for which they were hired",
             0,
             0
           ],
           [
-            null,
             "Whether or not the Con Edison jobs and hires from the [the Academy] are in the clean energy field",
             "No: 0",
             "No: 0"
           ],
           [
-            null,
-            "Total number of hires at Con Edison from [the Academy] who resided in a disadvantaged community at the time of enrollment in the program",
+            "Total number of hires at Con Edison from [the Academy] who resided in a disadvantaged community at the time of enrollment in the program",
             0,
             0
           ]
@@ -10300,14 +10428,14 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Metric",
           "Unique",
-          "Unique Non-Unique"
+          "Non-Unique"
         ],
         "2024": [
-          null,
+          "Metric",
           "Unique",
-          "Unique Non-Unique"
+          "Non-Unique"
         ],
         "2023": [
           "Metric",
@@ -10326,9 +10454,9 @@
           [
             "Total amount of residential electric usage (kWh)",
             5455330732,
-            0.4,
+            "40%",
             8331039856,
-            0.6
+            "60%"
           ],
           [
             "Average electric usage per residential customer (kWh) [Average of the monthly average usage]",
@@ -10342,34 +10470,32 @@
           [
             "Total amount of residential electric usage (kWh)",
             4026175751.88,
-            0.39,
+            "39%",
             6265657893.74,
-            0.61
+            "61%"
           ],
           [
             "Average electric usage per residential customer (kWh) [Average of the monthly average usage]",
             337.75,
-            0.45,
+            "45%",
             406.56,
-            0.55
+            "55%"
           ]
         ],
         "2025": [
           [
-            null,
             "Total amount of residential electric usage (kWh)",
             5223783448,
-            0.4,
+            "40%",
             7980741755,
-            0.6
+            "60%"
           ],
           [
-            null,
             "Average electric usage per residential customer (kWh) [Average of the monthly average usage]",
             347.1,
-            0.26,
+            "26%",
             992.2,
-            0.74
+            "74%"
           ]
         ]
       },
@@ -10385,14 +10511,14 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Metric",
           "DAC",
           "DAC % of Total",
           "Non-DAC",
           "Non-DAC % of Total"
         ],
         "2024": [
-          null,
+          "Metric",
           "DAC",
           "DAC % of Total",
           "Non-DAC",
@@ -10506,58 +10632,55 @@
           [
             "Total in DAC",
             312470,
-            0.64,
+            "64%",
             55040891,
-            0.63
+            "63%"
           ],
           [
             "Total in Non-DAC",
             178175,
-            0.36,
+            "36%",
             32362554,
-            0.37
+            "37%"
           ]
         ],
         "2023": [
           [
             "Total in DAC",
             289487,
-            0.6,
+            "60%",
             109831317.74,
-            0.57
+            "57%"
           ],
           [
             "Total in Non-DAC",
             196006,
-            0.4,
+            "40%",
             83042485.19,
-            0.43
+            "43%"
           ]
         ],
         "2025": [
           [
-            null,
             "Total in DAC",
             252171,
-            0.66,
+            "66%",
             49573352,
-            0.65
+            "65%"
           ],
           [
-            null,
             "Total in Non-DAC",
             129138,
-            0.34,
+            "34%",
             26519485,
-            0.35
+            "35%"
           ],
           [
-            null,
             "Total",
             381309,
-            1,
+            "100%",
             76092837,
-            1
+            "100%"
           ]
         ]
       },
@@ -10573,14 +10696,14 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Category",
           "Total Accounts",
           "% of Accounts",
           "Total Amount",
           "% of Amount"
         ],
         "2024": [
-          null,
+          "Category",
           "Total Accounts",
           "% of Accounts",
           "Total Amount",
@@ -10605,58 +10728,55 @@
           [
             "Total in DAC",
             264398,
-            0.65,
+            "65%",
             563924629,
-            0.66
+            "66%"
           ],
           [
             "Total in Non-DAC",
             144161,
-            0.35,
+            "35%",
             292120672,
-            0.34
+            "34%"
           ]
         ],
         "2023": [
           [
             "Total in DAC",
             179249,
-            0.63,
+            "63%",
             302122726.3,
-            0.66
+            "66%"
           ],
           [
             "Total in Non-DAC",
             107055,
-            0.37,
+            "37%",
             157680308.42,
-            0.34
+            "34%"
           ]
         ],
         "2025": [
           [
-            null,
             "Total in DAC",
             227566,
-            0.68,
+            "68%",
             545824316,
-            0.69
+            "69%"
           ],
           [
-            null,
             "Total in Non-DAC",
             107484,
-            0.32,
+            "32%",
             249080630,
-            0.31
+            "31%"
           ],
           [
-            null,
             "Total",
             335050,
-            1,
+            "100%",
             794904947,
-            1
+            "100%"
           ]
         ]
       },
@@ -10672,14 +10792,14 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Category",
           "Total Accounts",
           "% of Accounts",
           "Total Amount",
           "% of Amount"
         ],
         "2024": [
-          null,
+          "Category",
           "Total Accounts",
           "% of Accounts",
           "Total Amount",
@@ -10793,58 +10913,55 @@
           [
             "Total in DAC",
             121203,
-            0.6,
+            "60%",
             139350179,
-            0.59
+            "59%"
           ],
           [
             "Total in Non-DAC",
             81767,
-            0.4,
+            "40%",
             97352921,
-            0.41
+            "41%"
           ]
         ],
         "2023": [
           [
             "Total in DAC",
             95627,
-            0.61,
+            "61%",
             126681405.76,
-            0.56
+            "56%"
           ],
           [
             "Total in Non-DAC",
             61406,
-            0.39,
+            "39%",
             100223119.9,
-            0.44
+            "44%"
           ]
         ],
         "2025": [
           [
-            null,
             "Total in DAC",
             135253,
-            0.63,
+            "63%",
             220968214,
-            0.64
+            "64%"
           ],
           [
-            null,
             "Total in Non-DAC",
             78589,
-            0.37,
+            "37%",
             122335146,
-            0.36
+            "36%"
           ],
           [
-            null,
             "Total",
             213842,
-            1,
+            "100%",
             343303360,
-            1
+            "100%"
           ]
         ]
       },
@@ -10860,14 +10977,14 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Category",
           "Total Accounts",
           "% of Accounts",
           "Total Amount",
           "% of Amount"
         ],
         "2024": [
-          null,
+          "Category",
           "Total Accounts",
           "% of Accounts",
           "Total Amount",
@@ -10894,14 +11011,14 @@
             193281,
             1304,
             101784,
-            0.66
+            "66%"
           ],
           [
             "Total in Non-DAC",
             127593,
             577,
             25299,
-            0.34
+            "34%"
           ]
         ],
         "2023": [
@@ -10910,37 +11027,37 @@
             201727,
             1260,
             114965,
-            0.66
+            "66%"
           ],
           [
             "Total in Non-DAC",
             134567,
             722,
             27764,
-            0.34
+            "34%"
           ]
         ],
         "2025": [
           [
-            null,
             "Total in DAC",
             184532,
             1114,
-            93210
+            93210,
+            "66%"
           ],
           [
-            null,
             "Total in Non-DAC",
             117813,
             406,
-            22386
+            22386,
+            "34%"
           ],
           [
-            null,
+            "Total",
             302345,
             1520,
             115596,
-            1
+            "100%"
           ]
         ]
       },
@@ -10956,14 +11073,14 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Category",
           "Electric-only",
           "Gas-only",
           "Dual Service",
           "% of Accounts"
         ],
         "2024": [
-          null,
+          "Category",
           "Electric-only",
           "Gas-only",
           "Dual Service",
@@ -10989,13 +11106,13 @@
             "Total in DAC",
             162532290,
             28964404,
-            0.62
+            "62%"
           ],
           [
             "Total in Non-DAC",
             95845105,
             22786170,
-            0.38
+            "38%"
           ]
         ],
         "2023": [
@@ -11003,45 +11120,40 @@
             "Total in DAC",
             109754510.35,
             21993626.6,
-            0.66
+            "66%"
           ],
           [
             "Total in Non-DAC",
             55712765.65,
             13525084.95,
-            0.34
+            "34%"
           ]
         ],
         "2025": [
           [
-            null,
             "Total in DAC",
             128986182,
             22904198
           ],
           [
-            null,
             "Total in Non-DAC",
             63415143,
             15691183
           ],
           [
-            null,
             "Total",
             192638756,
             38743914
           ],
           [
-            null,
             "% of total in DAC",
-            0.67,
-            0.59
+            "67%",
+            "59%"
           ],
           [
-            null,
             "% of total in non-DAC",
-            0.33,
-            0.41
+            "33%",
+            "41%"
           ]
         ]
       },
@@ -11057,13 +11169,13 @@
       },
       "schema_by_year": {
         "2025": [
-          null,
+          "Category",
           "Electric",
           "Gas",
           "% of Total"
         ],
         "2024": [
-          null,
+          "Category",
           "Electric",
           "Gas",
           "% of Total"
@@ -11165,6 +11277,11 @@
             "total": 262524921,
             "dac": 129680235,
             "dac_pct": 0.49
+          },
+          "2025": {
+            "total": 282132686,
+            "dac": 148672653,
+            "dac_pct": 0.53
           }
         }
       },
@@ -11186,6 +11303,11 @@
             "total": 4019790,
             "dac": 1659904,
             "dac_pct": 0.41
+          },
+          "2025": {
+            "total": 4043415,
+            "dac": 2121658,
+            "dac_pct": 0.52
           }
         }
       },
@@ -11207,6 +11329,11 @@
             "total": 32601637.48,
             "dac": 10190734.93,
             "dac_pct": 0.3125835300834711
+          },
+          "2025": {
+            "total": 81384026,
+            "dac": 31624536,
+            "dac_pct": 0.3885840693110955
           }
         }
       },
@@ -11228,6 +11355,11 @@
             "total": 3009,
             "dac": 899,
             "dac_pct": 0.2987703555998671
+          },
+          "2025": {
+            "total": 8884,
+            "dac": 3138,
+            "dac_pct": 0.35321927059882935
           }
         }
       },
@@ -11249,6 +11381,11 @@
             "total": 93187.0,
             "dac_pct": 0.31,
             "dac": null
+          },
+          "2025": {
+            "total": 116581,
+            "dac": 37988,
+            "dac_pct": 0.32585069608255207
           }
         }
       },
@@ -11270,6 +11407,11 @@
             "total": 913.9,
             "dac": 341.3,
             "dac_pct": 0.37345442608600504
+          },
+          "2025": {
+            "total": 1234.34,
+            "dac": 449.05,
+            "dac_pct": 0.363797657047491
           }
         }
       },
@@ -11291,6 +11433,11 @@
             "total": 1298253000,
             "dac": 519301200.0,
             "dac_pct": 0.4
+          },
+          "2025": {
+            "total": 1188983989,
+            "dac": 535042795.05,
+            "dac_pct": 0.45
           }
         }
       },
@@ -11312,6 +11459,11 @@
             "total": 432541,
             "dac": 162370,
             "dac_pct": 0.37538637955708243
+          },
+          "2025": {
+            "total": 531647,
+            "dac": 167965,
+            "dac_pct": 0.3159333166556004
           }
         }
       },
@@ -11333,6 +11485,11 @@
             "total": 422428.0,
             "dac": 194062.0,
             "dac_pct": 0.4593966309051483
+          },
+          "2025": {
+            "total": 430538,
+            "dac": 202384,
+            "dac_pct": 0.4700723281104107
           }
         }
       },
@@ -11354,6 +11511,11 @@
             "total": 8023,
             "dac": 3062,
             "dac_pct": 0.38165274834849805
+          },
+          "2025": {
+            "total": 7476,
+            "dac": 2555,
+            "dac_pct": 0.34176029962546817
           }
         }
       },
@@ -11373,6 +11535,11 @@
           },
           "2023": {
             "total": 43.0,
+            "dac": null,
+            "dac_pct": null
+          },
+          "2025": {
+            "total": 49,
             "dac": null,
             "dac_pct": null
           }
@@ -11396,6 +11563,11 @@
             "total": 3104545.0,
             "dac": 1344495.0,
             "dac_pct": 0.4330731234367677
+          },
+          "2025": {
+            "total": 3137609,
+            "dac": 1370398,
+            "dac_pct": 0.44
           }
         }
       }
@@ -11414,6 +11586,9 @@
           },
           "2023": {
             "value": 0.40086117669449034
+          },
+          "2025": {
+            "value": 0.4561946897703652
           }
         }
       },
@@ -11431,6 +11606,9 @@
           },
           "2023": {
             "value": 65.30811833453987
+          },
+          "2025": {
+            "value": 69.77584195537683
           }
         }
       },
@@ -11447,6 +11625,9 @@
           },
           "2023": {
             "value": 0.6898843161378729
+          },
+          "2025": {
+            "value": 0.802771069542794
           }
         }
       },
@@ -11464,6 +11645,9 @@
           },
           "2023": {
             "value": 0.8667967584275453
+          },
+          "2025": {
+            "value": 0.7180302651263646
           }
         }
       },
@@ -11480,6 +11664,9 @@
           },
           "2023": {
             "value": 0.8812662982172399
+          },
+          "2025": {
+            "value": 0.7767279536942459
           }
         }
       },
@@ -11497,6 +11684,9 @@
           "2023": {
             "value": 414.36486309254224,
             "caveat": ""
+          },
+          "2025": {
+            "value": 544.6910950454715
           }
         }
       }
@@ -11652,6 +11842,80 @@
             "dac": 793662.0,
             "dac_pct": 0.47
           }
+        ],
+        "2025": [
+          {
+            "name": "Clean Heat – Residential Air Source Heat Pump",
+            "total": 51623447,
+            "dac": 30033468,
+            "dac_pct": 0.58
+          },
+          {
+            "name": "Clean Heat – Multifamily Air Source Heat Pump",
+            "total": 41282713,
+            "dac": 28000252,
+            "dac_pct": 0.68
+          },
+          {
+            "name": "Commercial & Industrial",
+            "total": 40220243,
+            "dac": 8079250,
+            "dac_pct": 0.2
+          },
+          {
+            "name": "Affordable Multifamily Energy Efficiency Program",
+            "total": 39028343,
+            "dac": 34479665,
+            "dac_pct": 0.88
+          },
+          {
+            "name": "Small-Medium Business",
+            "total": 20675284,
+            "dac": 9596099,
+            "dac_pct": 0.46
+          },
+          {
+            "name": "Clean Heat – Commercial & Industrial Air Source Heat Pump",
+            "total": 19976025,
+            "dac": 3102040,
+            "dac_pct": 0.16
+          },
+          {
+            "name": "Multifamily",
+            "total": 18790448,
+            "dac": 9696193,
+            "dac_pct": 0.52
+          },
+          {
+            "name": "Clean Heat – Small-Medium Business Air Source Heat Pump",
+            "total": 11006433,
+            "dac": 4879157,
+            "dac_pct": 0.44
+          },
+          {
+            "name": "Clean Heat – Multifamily Ground Source Heat Pump",
+            "total": 8937736,
+            "dac": 8635249,
+            "dac_pct": 0.97
+          },
+          {
+            "name": "Instant Lighting",
+            "total": 7264841,
+            "dac": 3698846,
+            "dac_pct": 0.51
+          },
+          {
+            "name": "Multifamily - Fuel-Switch",
+            "total": 6498236,
+            "dac": 551303,
+            "dac_pct": 0.08
+          },
+          {
+            "name": "Retail Products",
+            "total": 4134143,
+            "dac": 2624722,
+            "dac_pct": 0.63
+          }
         ]
       }
     },
@@ -11699,6 +11963,28 @@
             "name": "System Expansion",
             "total": 528240000.0,
             "dac_pct": 0.35
+          }
+        ],
+        "2025": [
+          {
+            "name": "Environmental",
+            "total": 69138825,
+            "dac_pct": 0.45
+          },
+          {
+            "name": "Risk Reduction",
+            "total": 385046065,
+            "dac_pct": 0.44
+          },
+          {
+            "name": "Safety and Security",
+            "total": 17636777,
+            "dac_pct": 0.45
+          },
+          {
+            "name": "System Expansion",
+            "total": 717162322,
+            "dac_pct": 0.46
           }
         ]
       }
@@ -11780,6 +12066,44 @@
             "nondac": 203758.0,
             "total": 370466.0
           }
+        ],
+        "2025": [
+          {
+            "name": "Bronx",
+            "dac": 458353,
+            "nondac": 58636,
+            "total": 516989
+          },
+          {
+            "name": "Brooklyn",
+            "dac": 410012,
+            "nondac": 666904,
+            "total": 1076916
+          },
+          {
+            "name": "Manhattan",
+            "dac": 266031,
+            "nondac": 517109,
+            "total": 783140
+          },
+          {
+            "name": "Queens",
+            "dac": 315621,
+            "nondac": 524021,
+            "total": 839642
+          },
+          {
+            "name": "Staten Island",
+            "dac": 50398,
+            "nondac": 137329,
+            "total": 187727
+          },
+          {
+            "name": "Westchester",
+            "dac": 188317,
+            "nondac": 191400,
+            "total": 379717
+          }
         ]
       }
     },
@@ -11835,6 +12159,32 @@
             "dac": 911.0,
             "nondac": 255.0,
             "total": 1166.0
+          }
+        ],
+        "2025": [
+          {
+            "name": "Manhattan",
+            "nondac": 1309,
+            "dac": 491,
+            "total": 1800
+          },
+          {
+            "name": "Queens",
+            "nondac": 1563,
+            "dac": 281,
+            "total": 1844
+          },
+          {
+            "name": "Westchester",
+            "nondac": 1886,
+            "dac": 1094,
+            "total": 2980
+          },
+          {
+            "name": "Bronx",
+            "nondac": 163,
+            "dac": 689,
+            "total": 852
           }
         ]
       }
@@ -11892,6 +12242,32 @@
             "nondac": 136943.0,
             "total": 210405.0
           }
+        ],
+        "2025": [
+          {
+            "name": "Bronx",
+            "dac": 75080,
+            "nondac": 8732,
+            "total": 83812
+          },
+          {
+            "name": "Manhattan",
+            "dac": 21543,
+            "nondac": 15222,
+            "total": 36765
+          },
+          {
+            "name": "Queens",
+            "dac": 24228,
+            "nondac": 68363,
+            "total": 92591
+          },
+          {
+            "name": "Westchester",
+            "dac": 72533,
+            "nondac": 131016,
+            "total": 203549
+          }
         ]
       }
     },
@@ -11921,6 +12297,32 @@
             "dac": 1242.0,
             "nondac": 2649.0,
             "total": 3891.0
+          }
+        ],
+        "2025": [
+          {
+            "name": "Bronx",
+            "dac": 3276,
+            "nondac": 0,
+            "total": 3276
+          },
+          {
+            "name": "Manhattan",
+            "dac": 843,
+            "nondac": 87,
+            "total": 930
+          },
+          {
+            "name": "Queens",
+            "dac": 1296,
+            "nondac": 1529,
+            "total": 2825
+          },
+          {
+            "name": "Westchester",
+            "dac": 3585,
+            "nondac": 3205,
+            "total": 6790
           }
         ]
       }
@@ -11990,6 +12392,38 @@
             "committed": 34.4,
             "delivered": 27.5
           }
+        ],
+        "2025": [
+          {
+            "name": "CSRP",
+            "participants": 46378,
+            "committed": 445.92,
+            "delivered": 333.07
+          },
+          {
+            "name": "DLRP",
+            "participants": 45502,
+            "committed": 448.65,
+            "delivered": 329.66
+          },
+          {
+            "name": "Term-DLM",
+            "participants": 142,
+            "committed": 20.88,
+            "delivered": 35.33
+          },
+          {
+            "name": "Auto-DLM",
+            "participants": 6,
+            "committed": 18.83,
+            "delivered": 20.68
+          },
+          {
+            "name": "BYOT",
+            "participants": 24553,
+            "committed": 20.78,
+            "delivered": 17.98
+          }
         ]
       }
     },
@@ -12058,6 +12492,38 @@
             "committed": 6.59,
             "delivered": 5.25
           }
+        ],
+        "2025": [
+          {
+            "name": "CSRP",
+            "participants": 17052,
+            "committed": 185.39,
+            "delivered": 130.04
+          },
+          {
+            "name": "DLRP",
+            "participants": 16595,
+            "committed": 184.89,
+            "delivered": 139.45
+          },
+          {
+            "name": "Term-DLM",
+            "participants": 40,
+            "committed": 4.8,
+            "delivered": 14.71
+          },
+          {
+            "name": "Auto-DLM",
+            "participants": 4,
+            "committed": 11.5,
+            "delivered": 12.97
+          },
+          {
+            "name": "BYOT",
+            "participants": 4297,
+            "committed": 3.07,
+            "delivered": 2.4
+          }
         ]
       }
     },
@@ -12099,22 +12565,22 @@
         },
         "2025": {
           "DAC": {
-            "L2": 0,
-            "DCFC": 0,
-            "Micromobility": 0,
-            "Total": 0
+            "L2": 2966,
+            "DCFC": 170,
+            "Micromobility": 2,
+            "Total": 3138
           },
           "Non-DAC": {
-            "L2": 0,
-            "DCFC": 0,
-            "Micromobility": 0,
-            "Total": 0
+            "L2": 4516,
+            "DCFC": 1229,
+            "Micromobility": 1,
+            "Total": 5746
           },
           "Total": {
-            "L2": 0,
-            "DCFC": 0,
-            "Micromobility": 0,
-            "Total": 0
+            "L2": 7482,
+            "DCFC": 1399,
+            "Micromobility": 3,
+            "Total": 8884
           }
         }
       }
@@ -12134,6 +12600,13 @@
           "projects_dac": 21298.0,
           "mw_total": 913.9,
           "mw_dac": 341.3
+        },
+        "2025": {
+          "year": "2025",
+          "projects_total": 88150,
+          "projects_dac": 28536,
+          "mw_total": 1234.34,
+          "mw_dac": 449.05
         }
       }
     },
@@ -12146,18 +12619,26 @@
         "2023": {
           "dac": 337.75,
           "nondac": 406.56
+        },
+        "2025": {
+          "dac": 347.1,
+          "nondac": 992.2
         }
       }
     },
     "J2_avg_gas": {
       "values": {
         "2024": {
-          "dac": 0,
-          "nondac": 0
+          "dac": 56.2,
+          "nondac": 95.3
         },
         "2023": {
           "dac": 49.4,
           "nondac": 62.36
+        },
+        "2025": {
+          "dac": 54.1,
+          "nondac": 184.19
         }
       }
     }
