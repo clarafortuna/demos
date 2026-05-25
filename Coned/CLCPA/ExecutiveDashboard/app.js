@@ -2902,13 +2902,13 @@ function renderSectionC() {
               <div class="c2-tt-name">${progName} · ${segLabel}</div>
               <div class="c2-tt-row"><span>Committed ${yearLabel}</span><span class="v">${fmtMW(segData.committed)} MW</span></div>
               <div class="c2-tt-row"><span>Committed ${prevYearLabel}</span><span class="v">${prevCommStr}</span></div>
-              <div class="c2-tt-row"><span>Committed vs Prior Year</span>${commYoyPill}</div>
+              <div class="c2-tt-row"><span>YoY</span>${commYoyPill}</div>
               <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Delivered ${yearLabel}</span><span class="v">${fmtMW(segData.delivered)} MW</span></div>
               <div class="c2-tt-row"><span>Delivered ${prevYearLabel}</span><span class="v">${prevDelvStr}</span></div>
-              <div class="c2-tt-row"><span>Delivered vs Prior Year</span>${delvYoyPill}</div>
-              <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Ratio ${yearLabel}</span><span class="v">${ratio.toFixed(1)}%</span></div>
-              <div class="c2-tt-row"><span>Ratio ${prevYearLabel}</span><span class="v">${prevRatioStr}</span></div>
-              <div class="c2-tt-row"><span>Ratio vs Prior Year</span>${ratioYoyPill}</div>
+              <div class="c2-tt-row"><span>YoY</span>${delvYoyPill}</div>
+              <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Ratio ${yearLabel}</span><span class="v" style="color:var(--dusk)">${ratio.toFixed(1)}%</span></div>
+              <div class="c2-tt-row"><span>Ratio ${prevYearLabel}</span><span class="v" style="color:var(--dusk)">${prevRatioStr}</span></div>
+              <div class="c2-tt-row"><span>YoY</span>${ratioYoyPill}</div>
               <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line)"><span>Participants</span><span class="v">${fmtInt(segData.participants)}</span></div>
             </div>
           </div>`;
@@ -2935,7 +2935,7 @@ function renderSectionC() {
           <div class="chart-card-head">
             <div>
               <h3>Program Performance · Delivered vs Committed</h3>
-              <p class="chart-sub">${yearLabel} · MW delivered vs committed · ratio</p>
+              <p class="chart-sub">${yearLabel} · MW delivered vs committed · Ratio · vs Prior Year Ratio</p>
             </div>
             <div class="chart-legend">
               <div class="legend-item"><span class="legend-swatch" style="background:var(--dusk-tint);border:1px solid var(--dusk)"></span>Committed</div>
