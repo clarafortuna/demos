@@ -1320,14 +1320,14 @@
     `;
 
     const subText = hasPrevYear
-      ? `Each row shows ${prev} → ${year} year-over-year movement per section`
+      ? `Each row shows ${prev} → ${year} change vs prior year per section`
       : `Showing ${year} only · No prior-year baseline available`;
 
     return `
       <div class="exec-card">
         <div class="chart-card-head">
           <div>
-            <h3>DAC Equity · YoY Movement</h3>
+            <h3>DAC Equity · Movement vs Prior Year</h3>
             <p class="chart-sub">${subText}</p>
           </div>
           <div class="chart-head-right">
@@ -1419,7 +1419,6 @@
       return String(Math.round(v));
     };
     const fmtFull = v => (v == null || !isFinite(v)) ? '—' : Math.round(v).toLocaleString();
-    const pct = (num, den) => (!den || den <= 0) ? '—' : (num/den*100).toFixed(1) + '%';
 
     const scopeLabel = county
       ? (county === 'Kings' ? 'Brooklyn'
@@ -1428,61 +1427,98 @@
         : county)
       : 'All boroughs';
 
-    const dacTotal  = dacElecAcc  + dacGasAcc;
-    const ndacTotal = ndacElecAcc + ndacGasAcc;
+    // ---- DAC Accounts tooltip (electric + gas) -------------------
+    const dacAcctsTotal = dacElecAcc + dacGasAcc;
+    const dacTT =
+      '<div class="dac-kpi-tt-title">DAC Accounts</div>' +
+      '<div class="dac-kpi-tt-desc">ConEd customer accounts located in areas designated as Disadvantaged Communities (DAC) by NYS.</div>' +
+      '<div class="dac-kpi-tt-row"><span>Electric accounts</span><span class="v">' + fmtFull(dacElecAcc) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Gas accounts</span><span class="v">' + fmtFull(dacGasAcc) + '</span></div>' +
+      '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total accounts</span><span class="v">' + fmtFull(dacAcctsTotal) + '</span></div>';
 
-    function tooltipHtml(title, desc, elecAcc, gasAcc) {
-      return '' +
-        '<div class="dac-kpi-tt-title">' + title + '</div>' +
-        '<div class="dac-kpi-tt-desc">' + desc + '</div>' +
-        '<div class="dac-kpi-tt-row"><span>Electric accounts</span><span class="v">' + fmtFull(elecAcc) + '</span></div>' +
-        '<div class="dac-kpi-tt-row"><span>Gas accounts</span><span class="v">' + fmtFull(gasAcc) + '</span></div>';
-    }
+    // ---- Non-DAC Accounts tooltip (electric + gas) ---------------
+    const ndacAcctsTotal = ndacElecAcc + ndacGasAcc;
+    const ndacTT =
+      '<div class="dac-kpi-tt-title">Non-DAC Accounts</div>' +
+      '<div class="dac-kpi-tt-desc">ConEd customer accounts located in areas NOT designated as Disadvantaged Communities.</div>' +
+      '<div class="dac-kpi-tt-row"><span>Electric accounts</span><span class="v">' + fmtFull(ndacElecAcc) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Gas accounts</span><span class="v">' + fmtFull(ndacGasAcc) + '</span></div>' +
+      '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total accounts</span><span class="v">' + fmtFull(ndacAcctsTotal) + '</span></div>';
 
-    const dacTT = tooltipHtml(
-      'DAC Accounts',
-      'Total ConEd customer accounts located in areas designated as Disadvantaged Communities (DAC) by NYS.',
-      dacElecAcc, dacGasAcc
-    );
-    const ndacTT = tooltipHtml(
-      'Non-DAC Accounts',
-      'Total ConEd customer accounts located in areas NOT designated as Disadvantaged Communities.',
-      ndacElecAcc, ndacGasAcc
-    );
+    // ---- DAC vs Non-DAC account share ----------------------------
+    const allAccTotal = dacElecAcc + dacGasAcc + ndacElecAcc + ndacGasAcc;
+    const dacAccTotal = dacElecAcc + dacGasAcc;
+    const ndacAccTotal2 = ndacElecAcc + ndacGasAcc;
+    const dacSharePct  = allAccTotal > 0 ? (dacAccTotal   / allAccTotal * 100) : null;
+    const ndacSharePct = allAccTotal > 0 ? (ndacAccTotal2 / allAccTotal * 100) : null;
+    const dacShareStr  = dacSharePct  != null ? dacSharePct.toFixed(1)  + '%' : '—';
+    const ndacShareStr = ndacSharePct != null ? ndacSharePct.toFixed(1) + '%' : '—';
+
+    // Bar widths (clamp so tiny slivers are still visible)
+    const dacBarPct  = dacSharePct  != null ? Math.max(2, Math.min(98, dacSharePct))  : 0;
+    const ndacBarPct = 100 - dacBarPct;
+
+    const shareTT =
+      '<div class="dac-kpi-tt-title">Customer share · ' + scopeLabel + '</div>' +
+      '<div class="dac-kpi-tt-desc">Percentage of ConEd customer accounts (electric + gas) located in DAC vs Non-DAC census tracts within the selected borough.</div>' +
+      '<div class="dac-kpi-tt-row"><span>DAC accounts</span><span class="v">' + fmtFull(dacAccTotal) + ' (' + dacShareStr + ')</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Non-DAC accounts</span><span class="v">' + fmtFull(ndacAccTotal2) + ' (' + ndacShareStr + ')</span></div>' +
+      '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total accounts</span><span class="v">' + fmtFull(allAccTotal) + '</span></div>';
 
     panel.innerHTML =
       '<div class="dac-kpi-head">' +
         '<span class="dac-kpi-title">Customer Counts</span>' +
         '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
       '</div>' +
+      // ----- DAC Accounts card (electric + gas only, no total hero) -----
       '<div class="dac-kpi-card dac-kpi-card-dac">' +
         '<div class="dac-kpi-tt">' + dacTT + '</div>' +
         '<p class="dac-kpi-label dac-kpi-label-dac">DAC Accounts</p>' +
-        '<p class="dac-kpi-value dac-kpi-value-dac">' + dacTotal.toLocaleString() + '</p>' +
-        '<div class="dac-kpi-breakdown dac-kpi-breakdown-dac">' +
+        '<div class="dac-kpi-breakdown dac-kpi-breakdown-dac dac-kpi-breakdown-noborder">' +
           '<div class="dac-kpi-bd-cell">' +
             '<span class="dac-kpi-bd-k">Electric</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac">' + fmtBig(dacElecAcc) + '</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac dac-kpi-bd-v-lg">' + fmtBig(dacElecAcc) + '</span>' +
           '</div>' +
           '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
             '<span class="dac-kpi-bd-k">Gas</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac">' + fmtBig(dacGasAcc) + '</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac dac-kpi-bd-v-lg">' + fmtBig(dacGasAcc) + '</span>' +
           '</div>' +
         '</div>' +
       '</div>' +
+      // ----- Non-DAC Accounts card (electric + gas only, no total hero) -----
       '<div class="dac-kpi-card dac-kpi-card-ndac">' +
         '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
         '<p class="dac-kpi-label">Non-DAC Accounts</p>' +
-        '<p class="dac-kpi-value">' + ndacTotal.toLocaleString() + '</p>' +
-        '<div class="dac-kpi-breakdown">' +
+        '<div class="dac-kpi-breakdown dac-kpi-breakdown-noborder">' +
           '<div class="dac-kpi-bd-cell">' +
             '<span class="dac-kpi-bd-k">Electric</span>' +
-            '<span class="dac-kpi-bd-v">' + fmtBig(ndacElecAcc) + '</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacElecAcc) + '</span>' +
           '</div>' +
           '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
             '<span class="dac-kpi-bd-k">Gas</span>' +
-            '<span class="dac-kpi-bd-v">' + fmtBig(ndacGasAcc) + '</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacGasAcc) + '</span>' +
           '</div>' +
+        '</div>' +
+      '</div>' +
+      // ----- NEW: DAC vs Non-DAC share by borough card -----
+      '<div class="dac-kpi-card dac-kpi-card-share">' +
+        '<div class="dac-kpi-tt">' + shareTT + '</div>' +
+        '<p class="dac-kpi-label">Customer share · ' + scopeLabel + '</p>' +
+        '<div class="dac-kpi-share-row">' +
+          '<div class="dac-kpi-share-item">' +
+            '<span class="dac-kpi-share-dot dac-kpi-share-dot-dac"></span>' +
+            '<span class="dac-kpi-share-k">DAC</span>' +
+            '<span class="dac-kpi-share-v dac-kpi-share-v-dac">' + dacShareStr + '</span>' +
+          '</div>' +
+          '<div class="dac-kpi-share-item dac-kpi-share-item-right">' +
+            '<span class="dac-kpi-share-dot dac-kpi-share-dot-ndac"></span>' +
+            '<span class="dac-kpi-share-k">Non-DAC</span>' +
+            '<span class="dac-kpi-share-v">' + ndacShareStr + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="dac-kpi-share-bar" role="img" aria-label="DAC ' + dacShareStr + ', Non-DAC ' + ndacShareStr + '">' +
+          '<div class="dac-kpi-share-bar-dac"  style="width:' + dacBarPct  + '%"></div>' +
+          '<div class="dac-kpi-share-bar-ndac" style="width:' + ndacBarPct + '%"></div>' +
         '</div>' +
       '</div>';
   }
@@ -1801,11 +1837,11 @@
       {
         tag: 'Strategic Capital Investments',
         hero: fmtBig(eDacTotal),
-        heroSub: 'DAC-exposed $',
+        heroSub: 'Infrastructure investment benefiting DAC communities',
         delta: eGrow !== null
           ? (eGrow >= 0 ? '↑ +' : '↓ ') + eGrow + '%'
           : (eDacPct !== null ? eDacPct.toFixed(1) + '%' : null),
-        deltaSub: eGrow !== null ? 'YoY' : 'of total',
+        deltaSub: eGrow !== null ? 'vs Prior Year' : 'of total',
         deltaColor: eGrow !== null
           ? (eGrow >= 0 ? 'var(--green)' : 'var(--red)')
           : 'var(--green)',
@@ -1829,11 +1865,11 @@
       {
         tag: 'Clean Energy Incentive Spend',
         hero: fmtBig(cesDac),
-        heroSub: 'DAC incentive $',
+        heroSub: 'DAC clean energy incentives',
         delta: cesGrow !== null
           ? (cesGrow >= 0 ? '↑ +' : '↓ ') + cesGrow + '%'
           : null,
-        deltaSub: 'YoY',
+        deltaSub: 'vs Prior Year',
         deltaColor: cesGrow !== null && cesGrow < 0 ? 'var(--red)' : 'var(--green)',
         detail: cesDacPrev
           ? fmtBig(cesDacPrev) + ' → ' + fmtBig(cesDac)
@@ -1846,7 +1882,7 @@
             { label: 'Metric', value: 'DAC incentive $ paid' },
             { label: prevYear || 'Prior year', value: cesDacPrev ? fmtBig(cesDacPrev) : 'n/a' },
             { label: year, value: cesDac != null ? fmtBig(cesDac) : '—' },
-            { label: 'YoY change', value: cesGrow !== null ? (cesGrow >= 0 ? '+' : '') + cesGrow + '%' : '—' },
+            { label: 'Change vs Prior Year', value: cesGrow !== null ? (cesGrow >= 0 ? '+' : '') + cesGrow + '%' : '—' },
             { label: 'DAC share', value: cesCurr && cesCurr.dac_pct != null ? (cesCurr.dac_pct * 100).toFixed(1) + '%' : '—' },
           ],
           note: 'Total dollars disbursed as DAC incentives across all Clean Energy programs. From Section A · Table A1 totals.'
@@ -1855,11 +1891,11 @@
       {
         tag: 'Customer Arrears (90+ Days Past Due)',
         hero: j4Now ? fmtBig(j4Now.dac) : '—',
-        heroSub: 'DAC unpaid $',
+        heroSub: 'Past-due customer balances in DAC communities',
         delta: j4Grow !== null
           ? (j4Grow >= 0 ? '↑ +' : '↓ ') + j4Grow + '%'
           : (j4Now && j4Now.pct !== null ? j4Now.pct.toFixed(1) + '%' : null),
-        deltaSub: j4Grow !== null ? 'YoY' : 'of total',
+        deltaSub: j4Grow !== null ? 'vs Prior Year' : 'of total',
         // For arrears, growth is BAD (red), shrinkage is GOOD (green)
         deltaColor: j4Grow !== null
           ? (j4Grow >= 0 ? 'var(--red)' : 'var(--green)')
@@ -1876,7 +1912,7 @@
             { label: 'Total unpaid ' + year, value: j4Now ? fmtBig(j4Now.total) : '—' },
             { label: 'DAC unpaid ' + year, value: j4Now ? fmtBig(j4Now.dac) : '—' },
             { label: 'DAC unpaid ' + (prevYear || 'prior'), value: j4Then ? fmtBig(j4Then.dac) : 'n/a' },
-            { label: 'YoY change', value: j4Grow !== null ? (j4Grow >= 0 ? '+' : '') + j4Grow + '%' : '—' },
+            { label: 'Change vs Prior Year', value: j4Grow !== null ? (j4Grow >= 0 ? '+' : '') + j4Grow + '%' : '—' },
           ],
           note: 'Residential accounts 90+ days past due. DAC accounts carry a disproportionate share of unpaid debt.'
         },
@@ -1896,15 +1932,15 @@
       cards.map((c, idx) => `
         <a class="ai-kpi-mini ai-header-card" href="${c.href}" data-card-idx="${idx}" style="text-decoration:none;color:inherit;cursor:pointer">
           <span class="ai-kpi-mini-tag">${escapeHtml(c.tag)}</span>
-          <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:4px 0 2px">
-            <div>
-              <div style="font-size:26px;font-weight:700;color:var(--dusk);letter-spacing:-.02em;line-height:1">${c.hero}</div>
-              ${c.heroSub ? `<div style="font-size:10px;color:var(--text-3);margin-top:3px">${c.heroSub}</div>` : ''}
+          <div class="ai-header-card-row">
+            <div class="ai-header-card-hero-wrap">
+              <div class="ai-header-card-hero">${c.hero}</div>
+              ${c.heroSub ? `<div class="ai-header-card-herosub">${c.heroSub}</div>` : ''}
             </div>
             ${c.delta ? `
-              <div style="text-align:right">
-                <div style="font-size:14px;font-weight:700;color:${c.deltaColor};line-height:1">${c.delta}</div>
-                ${c.deltaSub ? `<div style="font-size:9px;color:var(--text-4);margin-top:2px">${c.deltaSub}</div>` : ''}
+              <div class="ai-header-card-delta-wrap">
+                <div class="ai-header-card-delta" style="color:${c.deltaColor}">${c.delta}</div>
+                ${c.deltaSub ? `<div class="ai-header-card-deltasub">${c.deltaSub}</div>` : ''}
               </div>` : ''}
           </div>
           <span class="ai-kpi-mini-detail">${c.detail}</span>
@@ -1957,12 +1993,12 @@
     );
 
     const header = `
-      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div>
+      <div class="page-header exec-page-header">
+        <div class="exec-page-header-text">
           <h1>Executive Summary</h1>
-          <p class="page-sub">Reported KPIs and analytical metrics with cross-year comparisons.</p>
+          <p class="page-sub exec-page-sub">This executive view of the DAC Impact Dashboard provides a high-level summary of investments, customer trends, operational performance, and equity metrics across disadvantaged communities. The dashboard enables leadership to monitor progress toward Climate Act goals, evaluate year-over-year performance, and identify trends across service areas and boroughs.</p>
         </div>
-        <dl class="page-header-meta"><div><dt>Year</dt><dd>${year}</dd></div></dl>
+        <div class="exec-reporting-year"><span class="exec-reporting-year-label">Reporting Year</span><span class="exec-reporting-year-value">${year}</span></div>
       </div>`;
 
     if (!anyData) {
@@ -1981,10 +2017,6 @@
       ${renderHeaderCards()}
 
       <div class="kpi-group">
-        <div class="kpi-group-header">
-          <h2>DAC Shares <span class="group-tag">Equity Distribution</span></h2>
-          <span class="group-desc">Per-section DAC shares benchmarked against the Climate Act goal</span>
-        </div>
         <div id="exec-toggle-mount">${renderToggleBar()}</div>
         <div class="exec-shares-grid" id="exec-shares-grid">
           ${renderDumbbell(baseline, year, sections)}
@@ -2547,14 +2579,14 @@
         lPct: (Math.abs(b1DacYoy) / maxGrowFund) * 100, lLabel: (b1DacYoy >= 0 ? '+' : '') + b1DacYoy + '%', lPrev: b1DacPrevTorn, lYoy: b1DacYoyTorn,
         rPct: (Math.abs(b1TotalYoy) / maxGrowFund) * 100, rLabel: (b1TotalYoy >= 0 ? '+' : '') + b1TotalYoy + '%', rPrev: b1TotalPrev !== null ? fmtBig(b1TotalPrev) : 'n/a', rYoy: (b1TotalYoy >= 0 ? '+' : '') + b1TotalYoy + '%',
         dacWins: b1DacYoy > b1TotalYoy,
-        interp: 'YoY growth in dollars. DAC funding pace exceeds the overall program pace.' });
+        interp: 'Growth in dollars vs prior year. DAC funding pace exceeds the overall program pace.' });
     }
     if (b2DacYoy !== null && b2NonYoy !== null) {
       tornadoRows.push({ metric: 'plug growth', source: 'Table B2',
         lPct: (Math.abs(b2DacYoy) / maxGrowPlug) * 100, lLabel: (b2DacYoy >= 0 ? '+' : '') + b2DacYoy + '%', lPrev: b2DacTotPrev !== null ? fmtInt(b2DacTotPrev) : 'n/a', lYoy: (b2DacYoy >= 0 ? '+' : '') + b2DacYoy + '%',
         rPct: (Math.abs(b2NonYoy) / maxGrowPlug) * 100, rLabel: (b2NonYoy >= 0 ? '+' : '') + b2NonYoy + '%', rPrev: b2NonTotPrev !== null ? fmtInt(b2NonTotPrev) : 'n/a', rYoy: (b2NonYoy >= 0 ? '+' : '') + b2NonYoy + '%',
         dacWins: b2DacYoy > b2NonYoy,
-        interp: 'YoY plug deployment pace. DAC roll-out far outpaces Non-DAC.' });
+        interp: 'Plug deployment pace vs prior year. DAC roll-out far outpaces Non-DAC.' });
     }
 
     return `
@@ -2562,7 +2594,7 @@
         <div class="chart-card">
           <div class="chart-card-head">
             <div><h3>Total Make-Ready Incentive Funding Spent</h3>
-            <p class="chart-sub">${yearLabel} · DAC vs Non-DAC · YoY vs ${prevYearLabel || 'prior'}</p></div>
+            <p class="chart-sub">${yearLabel} · DAC vs Non-DAC · vs Prior Year (${prevYearLabel || 'prior'})</p></div>
           </div>
           <div class="chart-body">
             ${fundingBar('DAC', dacFunding, b1DacPrev, 'b-fill-dac', b1DacYoy)}
@@ -2770,7 +2802,7 @@ function renderSectionC() {
           <div class="chart-card-head">
             <div>
               <h3>Participation Summary by Customer Group</h3>
-              <p class="chart-sub">${yearLabel} · hover for YoY vs ${prevYearLabel}</p>
+              <p class="chart-sub">${yearLabel} · hover for change vs ${prevYearLabel}</p>
             </div>
             <div class="chart-legend">
               <div class="legend-item"><span class="legend-swatch" style="background:var(--dusk)"></span>DAC</div>
@@ -2877,13 +2909,13 @@ function renderSectionC() {
               <div class="c2-tt-name">${progName} · ${segLabel}</div>
               <div class="c2-tt-row"><span>Committed ${yearLabel}</span><span class="v">${fmtMW(segData.committed)} MW</span></div>
               <div class="c2-tt-row"><span>Committed ${prevYearLabel}</span><span class="v">${prevCommStr}</span></div>
-              <div class="c2-tt-row"><span>Committed YoY</span>${commYoyPill}</div>
+              <div class="c2-tt-row"><span>Committed vs Prior Year</span>${commYoyPill}</div>
               <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Delivered ${yearLabel}</span><span class="v">${fmtMW(segData.delivered)} MW</span></div>
               <div class="c2-tt-row"><span>Delivered ${prevYearLabel}</span><span class="v">${prevDelvStr}</span></div>
-              <div class="c2-tt-row"><span>Delivered YoY</span>${delvYoyPill}</div>
+              <div class="c2-tt-row"><span>Delivered vs Prior Year</span>${delvYoyPill}</div>
               <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Ratio ${yearLabel}</span><span class="v">${ratio.toFixed(1)}%</span></div>
               <div class="c2-tt-row"><span>Ratio ${prevYearLabel}</span><span class="v">${prevRatioStr}</span></div>
-              <div class="c2-tt-row"><span>Ratio YoY</span>${ratioYoyPill}</div>
+              <div class="c2-tt-row"><span>Ratio vs Prior Year</span>${ratioYoyPill}</div>
               <div class="c2-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px solid var(--line)"><span>Participants</span><span class="v">${fmtInt(segData.participants)}</span></div>
             </div>
           </div>`;
@@ -3317,7 +3349,7 @@ function renderSectionE() {
         <div class="chart-card">
           <div class="chart-card-head">
             <div>
-              <h3>Capital Investment YoY · by Category</h3>
+              <h3>Capital Investment · Change vs Prior Year by Category</h3>
               <p class="chart-sub">${yearLabel} vs ${prevYearLabel} per investment category</p>
             </div>
             <div class="chart-legend">
@@ -3518,7 +3550,7 @@ function renderSectionF() {
     const card3 = buildBoroughCard(
       'F9',
       'Customers Interrupted by Borough',
-      'DAC vs Non-DAC per borough · YoY change shown for DAC',
+      'DAC vs Non-DAC per borough · Change vs Prior Year shown for DAC',
       'F9 · Customers interrupted'
     );
 
@@ -3849,7 +3881,7 @@ function renderSectionG() {
           `<div class="tt-row"><span>Source</span><span class="v">F3 · Interruption rate</span></div>` +
           `<div class="tt-row"><span>Rate ${yr}</span><span class="v">${renderVal(d.ttCurr)}</span></div>` +
           `<div class="tt-row"><span>Rate ${prevYr}</span><span class="v">${renderVal(d.ttPrev)}</span></div>` +
-          `<div class="tt-row"><span>YoY change</span><span class="v" style="color:${yoyColor(d.ttYoy)}">${renderVal(d.ttYoy)}</span></div>`;
+          `<div class="tt-row"><span>Change vs Prior Year</span><span class="v" style="color:${yoyColor(d.ttYoy)}">${renderVal(d.ttYoy)}</span></div>`;
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
@@ -3890,7 +3922,7 @@ function renderSectionG() {
           `<div class="tt-row"><span>Feet ${prevYr}</span><span class="v">${renderVal(d.ttPrevFeet)}</span></div>` +
           `<div class="tt-row"><span>DAC % ${yr}</span><span class="v">${renderVal(d.ttCurrPct)}</span></div>` +
           `<div class="tt-row"><span>DAC % ${prevYr}</span><span class="v">${renderVal(d.ttPrevPct)}</span></div>` +
-          `<div class="tt-row"><span>YoY change</span><span class="v" style="color:${yoyColor(d.ttYoy)}">${renderVal(d.ttYoy)}</span></div>`;
+          `<div class="tt-row"><span>Change vs Prior Year</span><span class="v" style="color:${yoyColor(d.ttYoy)}">${renderVal(d.ttYoy)}</span></div>`;
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
@@ -3911,7 +3943,7 @@ function renderSectionG() {
           `<div class="tt-row"><span>mT CH4 ${prevYr}</span><span class="v">${renderVal(d.ttPrev)}</span></div>` +
           `<div class="tt-row"><span>Share ${yr}</span><span class="v">${renderVal(d.ttPctCurr)}</span></div>` +
           `<div class="tt-row"><span>Share ${prevYr}</span><span class="v">${renderVal(d.ttPctPrev)}</span></div>` +
-          `<div class="tt-row"><span>YoY change</span><span class="v" style="color:${yoyColor(d.ttYoy)}">${renderVal(d.ttYoy)}</span></div>`;
+          `<div class="tt-row"><span>Change vs Prior Year</span><span class="v" style="color:${yoyColor(d.ttYoy)}">${renderVal(d.ttYoy)}</span></div>`;
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
@@ -3930,13 +3962,13 @@ function renderSectionG() {
           `<div class="tt-row"><span>Source</span><span class="v">G10 · Methane emissions</span></div>` +
           `<div class="tt-row"><span>Total ${yr}</span><span class="v">${renderVal(d.ttTotalCurr)}</span></div>` +
           `<div class="tt-row"><span>Total ${prevYr}</span><span class="v">${renderVal(d.ttTotalPrev)}</span></div>` +
-          `<div class="tt-row"><span>Total YoY</span><span class="v" style="color:${yoyColor(d.ttTotalYoy)}">${renderVal(d.ttTotalYoy)}</span></div>` +
+          `<div class="tt-row"><span>Total vs Prior Year</span><span class="v" style="color:${yoyColor(d.ttTotalYoy)}">${renderVal(d.ttTotalYoy)}</span></div>` +
           `<div class="tt-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line)"><span>DAC ${yr}</span><span class="v">${renderVal(d.ttDacCurr)} · ${renderVal(d.ttDacPctCurr)}</span></div>` +
           `<div class="tt-row"><span>DAC ${prevYr}</span><span class="v">${renderVal(d.ttDacPrev)} · ${renderVal(d.ttDacPctPrev)}</span></div>` +
-          `<div class="tt-row"><span>DAC YoY</span><span class="v" style="color:${yoyColor(d.ttDacYoy)}">${renderVal(d.ttDacYoy)}</span></div>` +
+          `<div class="tt-row"><span>DAC vs Prior Year</span><span class="v" style="color:${yoyColor(d.ttDacYoy)}">${renderVal(d.ttDacYoy)}</span></div>` +
           `<div class="tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Non-DAC ${yr}</span><span class="v">${renderVal(d.ttNonCurr)} · ${renderVal(d.ttNonPctCurr)}</span></div>` +
           `<div class="tt-row"><span>Non-DAC ${prevYr}</span><span class="v">${renderVal(d.ttNonPrev)} · ${renderVal(d.ttNonPctPrev)}</span></div>` +
-          `<div class="tt-row"><span>Non-DAC YoY</span><span class="v" style="color:${yoyColor(d.ttNonYoy)}">${renderVal(d.ttNonYoy)}</span></div>`;
+          `<div class="tt-row"><span>Non-DAC vs Prior Year</span><span class="v" style="color:${yoyColor(d.ttNonYoy)}">${renderVal(d.ttNonYoy)}</span></div>`;
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
@@ -4036,7 +4068,7 @@ function renderSectionH() {
           <div class="chart-card-head">
             <div>
               <h3>Leak Repairs by Borough</h3>
-              <p class="chart-sub">DAC vs Non-DAC per borough · YoY change shown for DAC repairs</p>
+              <p class="chart-sub">DAC vs Non-DAC per borough · Change vs Prior Year shown for DAC repairs</p>
             </div>
             <div class="chart-legend">
               <div class="legend-item"><span class="legend-swatch" style="background:var(--dusk)"></span>DAC</div>
@@ -4164,7 +4196,7 @@ function renderSectionI() {
     const yoyPct = (curr, prev) => {
       if (curr == null || prev == null || prev === 0) return '';
       const pct = Math.round((curr - prev) / Math.abs(prev) * 100);
-      if (pct === 0) return `<span class="i-pill i-pill-neutral">→ 0% YoY</span>`;
+      if (pct === 0) return `<span class="i-pill i-pill-neutral">→ 0% vs Prior Year</span>`;
       const cls = pct > 0 ? 'up' : 'down';
       const arrow = pct > 0 ? '↑ +' : '↓ ';
       return `<span class="i-pill i-pill-${cls}">${arrow}${Math.abs(pct)}%</span>`;
@@ -4173,11 +4205,11 @@ function renderSectionI() {
     const ppPill = (curr, prev, lowerBetter) => {
       if (curr == null || prev == null) return '';
       const delta = curr - prev;
-      if (delta === 0) return `<span class="i-pill i-pill-neutral">→ 0pp YoY</span>`;
+      if (delta === 0) return `<span class="i-pill i-pill-neutral">→ 0pp vs Prior Year</span>`;
       const isGood = lowerBetter ? delta < 0 : delta > 0;
       const cls = isGood ? 'up' : 'down';
       const sign = delta > 0 ? '+' : '';
-      return `<span class="i-pill i-pill-${cls}">${sign}${delta}pp YoY</span>`;
+      return `<span class="i-pill i-pill-${cls}">${sign}${delta}pp vs Prior Year</span>`;
     };
 
     const maxVal = Math.max(enrolled || 0, pEnrolled || 0);
@@ -4219,7 +4251,7 @@ function renderSectionI() {
             data-tt-label="Enrolled"
             data-tt-curr="${yr}: ${enrolled != null ? enrolled.toLocaleString() : '—'} students"
             data-tt-prev="${hasPrev ? prevYrLabel + ': ' + (pEnrolled != null ? pEnrolled.toLocaleString() : '—') + ' students' : ''}"
-            data-tt-delta="${enrolled != null && pEnrolled != null ? 'Change: ' + (enrolled - pEnrolled > 0 ? '+' : '') + (enrolled - pEnrolled) + ' (' + Math.round((enrolled - pEnrolled)/pEnrolled*100) + '% YoY)' : ''}">
+            data-tt-delta="${enrolled != null && pEnrolled != null ? 'Change: ' + (enrolled - pEnrolled > 0 ? '+' : '') + (enrolled - pEnrolled) + ' (' + Math.round((enrolled - pEnrolled)/pEnrolled*100) + '% vs Prior Year)' : ''}">
             <div class="i-funnel-label">Enrolled</div>
             <div class="i-funnel-bar-wrap">${funnelBar(enrolled, pEnrolled)}</div>
             <div class="i-funnel-pill-col">${yoyPct(enrolled, pEnrolled)}</div>
@@ -4229,7 +4261,7 @@ function renderSectionI() {
             data-tt-label="Graduates"
             data-tt-curr="${yr}: ${graduates != null ? graduates.toLocaleString() : '—'} graduates"
             data-tt-prev="${hasPrev ? prevYrLabel + ': ' + (pGraduates != null ? pGraduates.toLocaleString() : '—') + ' graduates' : ''}"
-            data-tt-delta="${graduates != null && pGraduates != null ? 'Change: ' + (graduates - pGraduates > 0 ? '+' : '') + (graduates - pGraduates) + ' (' + Math.round((graduates - pGraduates)/pGraduates*100) + '% YoY)' : ''}"
+            data-tt-delta="${graduates != null && pGraduates != null ? 'Change: ' + (graduates - pGraduates > 0 ? '+' : '') + (graduates - pGraduates) + ' (' + Math.round((graduates - pGraduates)/pGraduates*100) + '% vs Prior Year)' : ''}"
             data-tt-rate="${yr} graduation rate: ${gradRate}%">
             <div class="i-funnel-label">Graduates</div>
             <div class="i-funnel-bar-wrap">${funnelBar(graduates, pGraduates)}</div>
@@ -4240,7 +4272,7 @@ function renderSectionI() {
             data-tt-label="Job Placements"
             data-tt-curr="${yr}: ${placed != null ? placed.toLocaleString() : '—'} placements"
             data-tt-prev="${hasPrev ? prevYrLabel + ': ' + (pPlaced != null ? pPlaced.toLocaleString() : '—') + ' placements' : ''}"
-            data-tt-delta="${placed != null && pPlaced != null ? 'Change: ' + (placed - pPlaced > 0 ? '+' : '') + (placed - pPlaced) + ' (' + Math.round((placed - pPlaced)/pPlaced*100) + '% YoY)' : ''}"
+            data-tt-delta="${placed != null && pPlaced != null ? 'Change: ' + (placed - pPlaced > 0 ? '+' : '') + (placed - pPlaced) + ' (' + Math.round((placed - pPlaced)/pPlaced*100) + '% vs Prior Year)' : ''}"
             data-tt-rate="${yr} placement rate: ${placeRate}% of graduates">
             <div class="i-funnel-label">Placed</div>
             <div class="i-funnel-bar-wrap">${funnelBar(placed, pPlaced)}</div>
@@ -4267,7 +4299,7 @@ function renderSectionI() {
             <div class="i-rate-bar-row"
               data-tt-label="Graduation rate ${yr}"
               data-tt-curr="${graduates != null && enrolled != null ? graduates.toLocaleString() + ' graduates / ' + enrolled.toLocaleString() + ' enrolled = ' + gradRate + '%' : ''}"
-              data-tt-delta="${pGradRate != null ? 'vs ' + pGradRate + '% in ' + prevYrLabel + ' (' + (gradRate - pGradRate > 0 ? '+' : '') + (gradRate - pGradRate) + 'pp YoY)' : ''}">
+              data-tt-delta="${pGradRate != null ? 'vs ' + pGradRate + '% in ' + prevYrLabel + ' (' + (gradRate - pGradRate > 0 ? '+' : '') + (gradRate - pGradRate) + 'pp vs Prior Year)' : ''}">
               <div class="i-rate-yr">${yr}</div>
               <div class="i-rate-track"><div class="i-rate-fill i-fill-curr" style="width:${gradRate}%"></div></div>
               <div class="i-rate-pct">${gradRate}%</div>
@@ -4289,7 +4321,7 @@ function renderSectionI() {
             <div class="i-rate-bar-row"
               data-tt-label="Placement rate ${yr}"
               data-tt-curr="${placed != null && graduates != null ? placed.toLocaleString() + ' placed / ' + graduates.toLocaleString() + ' graduates = ' + placeRate + '%' : ''}"
-              data-tt-delta="${pPlaceRate != null ? 'vs ' + pPlaceRate + '% in ' + prevYrLabel + ' (' + (placeRate - pPlaceRate > 0 ? '+' : '') + (placeRate - pPlaceRate) + 'pp YoY)' : ''}">
+              data-tt-delta="${pPlaceRate != null ? 'vs ' + pPlaceRate + '% in ' + prevYrLabel + ' (' + (placeRate - pPlaceRate > 0 ? '+' : '') + (placeRate - pPlaceRate) + 'pp vs Prior Year)' : ''}">
               <div class="i-rate-yr">${yr}</div>
               <div class="i-rate-track"><div class="i-rate-fill i-fill-curr" style="width:${placeRate}%"></div></div>
               <div class="i-rate-pct">${placeRate}%</div>
@@ -4353,7 +4385,7 @@ function renderSectionI() {
       const pct = Math.round((curr - prev) / Math.abs(prev) * 100);
       const color = pct > 0 ? 'var(--green)' : (pct < 0 ? 'var(--red)' : 'var(--text-3)');
       const sign = pct > 0 ? '+' : '';
-      return `<div class="tt-row"><span>YoY change</span><span class="v" style="color:${color}">${sign}${pct}%</span></div>`;
+      return `<div class="tt-row"><span>Change vs Prior Year</span><span class="v" style="color:${color}">${sign}${pct}%</span></div>`;
     };
 
     // pp YoY (for rates)
@@ -4362,7 +4394,7 @@ function renderSectionI() {
       const delta = curr - prev;
       const color = delta > 0 ? 'var(--green)' : (delta < 0 ? 'var(--red)' : 'var(--text-3)');
       const sign = delta > 0 ? '+' : '';
-      return `<div class="tt-row"><span>YoY change</span><span class="v" style="color:${color}">${sign}${delta}pp</span></div>`;
+      return `<div class="tt-row"><span>Change vs Prior Year</span><span class="v" style="color:${color}">${sign}${delta}pp</span></div>`;
     };
 
     const buildCountTip = (title, curr, prev) => `
@@ -4517,21 +4549,21 @@ function renderSectionJ() {
       const yoyPill = (curr, prevVal, lowerIsBetter) => {
         if (curr == null || prevVal == null || prevVal === 0) return '';
         const pct = Math.round((curr - prevVal) / Math.abs(prevVal) * 100);
-        if (pct === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0% YoY</span>`;
+        if (pct === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0% vs Prior Year</span>`;
         const isGood = lowerIsBetter ? pct < 0 : pct > 0;
         const cls = isGood ? 'up' : 'down';
         const arrow = pct > 0 ? '↑ +' : '↓ ';
-        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}% YoY</span>`;
+        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}% vs Prior Year</span>`;
       };
 
       const ppPill = (curr, prevVal, lowerIsBetter) => {
         if (curr == null || prevVal == null) return '';
         const delta = Math.round((curr - prevVal) * 100);
-        if (delta === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0pp YoY</span>`;
+        if (delta === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0pp vs Prior Year</span>`;
         const isGood = lowerIsBetter ? delta < 0 : delta > 0;
         const cls = isGood ? 'up' : 'down';
         const sign = delta > 0 ? '+' : '';
-        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${sign}${delta}pp YoY</span>`;
+        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${sign}${delta}pp vs Prior Year</span>`;
       };
 
       // ===== CARD 1 · Customer Burden vs Population (HTML rows, not SVG) =====
@@ -4621,7 +4653,7 @@ function renderSectionJ() {
         const isGood = yoy < 0;
         const cls = isGood ? 'up' : 'down';
         const arrow = yoy > 0 ? '↑ +' : '↓ ';
-        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(yoy)}% YoY</span>`;
+        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(yoy)}% vs Prior Year</span>`;
       };
 
       const card2 = `
@@ -4697,7 +4729,7 @@ function renderSectionJ() {
         const dpaPill = (pct) => {
           const cls = pct > 0 ? 'up' : 'down';
           const arrow = pct > 0 ? '↑ +' : '↓ ';
-          return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}% YoY</span>`;
+          return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}% vs Prior Year</span>`;
         };
 
         card4 = `
@@ -4817,8 +4849,8 @@ function wireRankToggle() {
           `<div class="tt-row"><span>DAC share</span><span class="v" style="color:var(--dusk)">${d.aDacPct}</span></div>` +
           `<div class="tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Total ${prevLabel}</span><span class="v">${d.aPrevTotal}</span></div>` +
           `<div class="tt-row"><span>DAC ${prevLabel}</span><span class="v">${d.aPrevDac}</span></div>` +
-          `<div class="tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Total YoY</span><span class="v" style="color:${totalColor}">${d.aYoyTotal}</span></div>` +
-          `<div class="tt-row"><span>DAC YoY</span><span class="v" style="color:${dacColor}">${d.aYoyDac}</span></div>`;
+          `<div class="tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Total vs Prior Year</span><span class="v" style="color:${totalColor}">${d.aYoyTotal}</span></div>` +
+          `<div class="tt-row"><span>DAC vs Prior Year</span><span class="v" style="color:${dacColor}">${d.aYoyDac}</span></div>`;
         tip.style.opacity = '1';
       });
       bindMove(row);
@@ -4946,7 +4978,7 @@ function wireBTooltips() {
           '<div class="tt-row"><span>Source</span><span class="v">Table B1</span></div>' +
           '<div class="tt-row"><span>Funding ' + yr + '</span><span class="v">' + row.dataset.curr + '</span></div>' +
           '<div class="tt-row"><span>Funding ' + prevYr + '</span><span class="v">' + row.dataset.prev + '</span></div>' +
-          '<div class="tt-row"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + row.dataset.yoy + '</span></div>' +
+          '<div class="tt-row"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + row.dataset.yoy + '</span></div>' +
           '<div class="tt-row"><span>% of total</span><span class="v">' + row.dataset.pct + '</span></div>' +
           '<div class="tt-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line)"><span style="font-size:9.5px;color:var(--text-3);line-height:1.4">' + interp + '</span></div>';
         tip.style.opacity = '1';
@@ -4964,10 +4996,10 @@ function wireBTooltips() {
           '<div class="tt-row"><span>Source</span><span class="v">' + row.dataset.source + '</span></div>' +
           '<div class="tt-row"><span>DAC ' + yr + '</span><span class="v" style="color:' + winColor + '">' + row.dataset.dacCurr + '</span></div>' +
           '<div class="tt-row"><span>DAC ' + prevYr + '</span><span class="v">' + row.dataset.dacPrev + '</span></div>' +
-          '<div class="tt-row"><span>DAC YoY</span><span class="v">' + row.dataset.dacYoy + '</span></div>' +
+          '<div class="tt-row"><span>DAC vs Prior Year</span><span class="v">' + row.dataset.dacYoy + '</span></div>' +
           '<div class="tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Non-DAC ' + yr + '</span><span class="v">' + row.dataset.nonCurr + '</span></div>' +
           '<div class="tt-row"><span>Non-DAC ' + prevYr + '</span><span class="v">' + row.dataset.nonPrev + '</span></div>' +
-          '<div class="tt-row"><span>Non-DAC YoY</span><span class="v">' + row.dataset.nonYoy + '</span></div>' +
+          '<div class="tt-row"><span>Non-DAC vs Prior Year</span><span class="v">' + row.dataset.nonYoy + '</span></div>' +
           '<div class="tt-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line)"><span style="font-size:9.5px;color:var(--text-3);line-height:1.4">' + row.dataset.interp + '</span></div>';
         tip.style.opacity = '1';
       });
@@ -5104,7 +5136,7 @@ function drawSectionEArc() {
           '<div class="e-tt-row"><span>' + window.__sectionE_prevYr + ' investment</span><span class="v">' + row.dataset.total23 + '</span></div>' +
           '<div class="e-tt-row"><span>DAC % ' + yr + '</span><span class="v">' + row.dataset.curr + '</span></div>' +
           '<div class="e-tt-row"><span>DAC % ' + window.__sectionE_prevYr + '</span><span class="v">' + row.dataset.prev + '</span></div>' +
-          '<div class="e-tt-row"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + (yoyVal || 'n/a') + '</span></div>';
+          '<div class="e-tt-row"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + (yoyVal || 'n/a') + '</span></div>';
         tip.style.opacity = '1';
       };
       row.onmousemove = function(e) {
@@ -5158,7 +5190,7 @@ function wireJTooltips() {
           '<div class="j-tt-row"><span>Source</span><span class="v">' + (tableNames[row.dataset.src] || row.dataset.src) + '</span></div>' +
           '<div class="j-tt-row"><span>DAC share ' + yr + '</span><span class="v">' + row.dataset.pct + '</span></div>' +
           (hasPrev ? '<div class="j-tt-row"><span>DAC share ' + prevYr + '</span><span class="v">' + row.dataset.prev + '</span></div>' : '') +
-          (hasPrev && row.dataset.yoy ? '<div class="j-tt-row"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + row.dataset.yoy + '</span></div>' : '') +
+          (hasPrev && row.dataset.yoy ? '<div class="j-tt-row"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + row.dataset.yoy + '</span></div>' : '') +
           '<div class="j-tt-row"><span>Baseline</span><span class="v">' + row.dataset.baseline + '</span></div>' +
           (row.dataset.delta ? '<div class="j-tt-row"><span>vs baseline</span><span class="v" style="color:' + deltaColor + '">' + row.dataset.delta + '</span></div>' : '') +
           '<div class="j-tt-note">' + interpretation + '</div>';
@@ -5222,7 +5254,7 @@ function wireJTooltips() {
           '<div class="j-tt-row"><span>Source</span><span class="v">' + source + '</span></div>' +
           '<div class="j-tt-row"><span>Total ' + yr + '</span><span class="v">' + stage.dataset.total + '</span></div>' +
           (hasPrev ? '<div class="j-tt-row"><span>Total ' + prevYr + '</span><span class="v">' + stage.dataset.prev + '</span></div>' : '') +
-          (hasPrev && yoyVal ? '<div class="j-tt-row"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + (yoyNum > 0 ? '\u2191 ' : '\u2193 ') + yoyVal + '</span></div>' : '') +
+          (hasPrev && yoyVal ? '<div class="j-tt-row"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + (yoyNum > 0 ? '\u2191 ' : '\u2193 ') + yoyVal + '</span></div>' : '') +
           '<div class="j-tt-row"><span>DAC share</span><span class="v">' + stage.dataset.dac + '</span></div>' +
           '<div class="j-tt-row"><span>Non-DAC share</span><span class="v">' + stage.dataset.nondac + '</span></div>' +
           '<div class="j-tt-row"><span>' + convLabel + '</span><span class="v">' + stage.dataset.conv + '</span></div>' +
@@ -5244,7 +5276,7 @@ function wireJTooltips() {
           '<div class="j-tt-row"><span>Source</span><span class="v">' + (tableNames['J6'] || 'J6') + '</span></div>' +
           '<div class="j-tt-row"><span>Accounts ' + prevYr + '</span><span class="v">' + g.dataset.prev + '</span></div>' +
           '<div class="j-tt-row"><span>Accounts ' + yr + '</span><span class="v">' + g.dataset.curr + '</span></div>' +
-          '<div class="j-tt-row"><span>YoY growth</span><span class="v" style="color:var(--green)">' + g.dataset.growth + '</span></div>' +
+          '<div class="j-tt-row"><span>Growth vs Prior Year</span><span class="v" style="color:var(--green)">' + g.dataset.growth + '</span></div>' +
           '<div class="j-tt-row"><span>Balance ' + prevYr + '</span><span class="v">' + g.dataset.amtPrev + '</span></div>' +
           '<div class="j-tt-row"><span>Balance ' + yr + '</span><span class="v">' + g.dataset.amtCurr + '</span></div>' +
           '<div class="j-tt-note">' + interp + '</div>';
@@ -5296,7 +5328,7 @@ function wireDTooltips() {
           rowsHtml =
             '<div class="d-tt-row"><span>Up to ' + yr + '</span><span class="v">' + m.dataset.curr + '</span></div>' +
             '<div class="d-tt-row"><span>Up to ' + prevYr + '</span><span class="v">' + m.dataset.prev + '</span></div>' +
-            '<div class="d-tt-row"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + m.dataset.yoy + '</span></div>';
+            '<div class="d-tt-row"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + m.dataset.yoy + '</span></div>';
         } else {
           // DAC + Non-DAC split tooltip
           rowsHtml =
@@ -5308,7 +5340,7 @@ function wireDTooltips() {
             '<div class="d-tt-row"><span>DAC ' + prevYr + '</span><span class="v">' + m.dataset.prevDac + '</span></div>' +
             '<div class="d-tt-row"><span>Non-DAC ' + prevYr + '</span><span class="v">' + m.dataset.prevNon + '</span></div>' +
             '<div class="d-tt-row"><span>DAC share ' + prevYr + '</span><span class="v" style="color:var(--dusk)">' + m.dataset.prevDacPct + '</span></div>' +
-            '<div class="d-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + m.dataset.yoy + '</span></div>';
+            '<div class="d-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + m.dataset.yoy + '</span></div>';
         }
 
         tip.innerHTML =
@@ -5359,7 +5391,7 @@ function wireFTooltips() {
           '<div class="f-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Total ' + prevYr + '</span><span class="v">' + m.dataset.prevTotal + '</span></div>' +
           '<div class="f-tt-row"><span>Network ' + prevYr + '</span><span class="v">' + m.dataset.prevNet + '</span></div>' +
           '<div class="f-tt-row"><span>Non-Network ' + prevYr + '</span><span class="v">' + m.dataset.prevNon + '</span></div>' +
-          '<div class="f-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + m.dataset.yoy + '</span></div>';
+          '<div class="f-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + m.dataset.yoy + '</span></div>';
         tip.style.opacity = '1';
       });
       bindMove(m);
@@ -5384,10 +5416,10 @@ function wireFTooltips() {
           '<div class="f-tt-row"><span>Total ' + yr + '</span><span class="v">' + b.dataset.currTotal + '</span></div>' +
           '<div class="f-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>DAC ' + yr + '</span><span class="v">' + b.dataset.currDac + ' (' + b.dataset.dacPct + ')</span></div>' +
           '<div class="f-tt-row"><span>DAC ' + prevYr + '</span><span class="v">' + b.dataset.prevDac + '</span></div>' +
-          '<div class="f-tt-row"><span>DAC YoY</span><span class="v" style="color:' + dacColor + '">' + b.dataset.dacYoy + '</span></div>' +
+          '<div class="f-tt-row"><span>DAC vs Prior Year</span><span class="v" style="color:' + dacColor + '">' + b.dataset.dacYoy + '</span></div>' +
           '<div class="f-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Non-DAC ' + yr + '</span><span class="v">' + b.dataset.currNon + ' (' + b.dataset.nonPct + ')</span></div>' +
           '<div class="f-tt-row"><span>Non-DAC ' + prevYr + '</span><span class="v">' + b.dataset.prevNon + '</span></div>' +
-          '<div class="f-tt-row"><span>Non-DAC YoY</span><span class="v" style="color:' + nonColor + '">' + b.dataset.nonYoy + '</span></div>';
+          '<div class="f-tt-row"><span>Non-DAC vs Prior Year</span><span class="v" style="color:' + nonColor + '">' + b.dataset.nonYoy + '</span></div>';
         tip.style.opacity = '1';
       });
       bindMove(b);
@@ -5419,7 +5451,7 @@ function wireHTooltips() {
           '<div class="h-pie-tt-row"><span>Source</span><span class="v">H1 · Leak repairs</span></div>' +
           '<div class="h-pie-tt-row"><span>' + slice.dataset.label + ' ' + yr + '</span><span class="v">' + slice.dataset.value + '</span></div>' +
           '<div class="h-pie-tt-row"><span>' + slice.dataset.label + ' ' + prevYr + '</span><span class="v">' + slice.dataset.prevValue + '</span></div>' +
-          '<div class="h-pie-tt-row"><span>YoY change</span><span class="v" style="color:' + yoyColor + '">' + slice.dataset.yoy + '</span></div>' +
+          '<div class="h-pie-tt-row"><span>Change vs Prior Year</span><span class="v" style="color:' + yoyColor + '">' + slice.dataset.yoy + '</span></div>' +
           '<div class="h-pie-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>Share of total ' + yr + '</span><span class="v">' + slice.dataset.pct + '</span></div>';
         tip.style.opacity = '1';
       });
