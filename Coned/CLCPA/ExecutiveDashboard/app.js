@@ -2782,7 +2782,7 @@ function renderSectionC() {
           <div class="chart-card-head">
             <div>
               <h3>Participation Summary by Customer Group</h3>
-              <p class="chart-sub">${yearLabel} · hover for change vs ${prevYearLabel}</p>
+              <p class="chart-sub">${yearLabel}</p>
             </div>
             <div class="chart-legend">
               <div class="legend-item"><span class="legend-swatch" style="background:var(--dusk)"></span>DAC</div>
@@ -2842,6 +2842,8 @@ function renderSectionC() {
           return `
             <div class="c2-prog-cell">
               <div class="c2-prog-empty">No data</div>
+              <div class="c2-prog-ratio c2-na">—</div>
+              <span class="c2-prog-yoy c2-prog-yoy-na">n/a</span>
               <div class="c2-tt">
                 <div class="c2-tt-name">${progName} · ${segLabel}</div>
                 <div class="c2-tt-row"><span>Committed</span><span class="v">0 MW</span></div>
@@ -2877,6 +2879,16 @@ function renderSectionC() {
         const prevDelvStr = prevDelv > 0 ? fmtMW(prevDelv) + ' MW' : 'n/a';
         const prevRatioStr = prevRatio !== null ? prevRatio.toFixed(1) + '%' : 'n/a';
 
+        // YoY pill for ratio change
+        let ratioYoyPillSmall = '';
+        if (ratioYoy !== null) {
+          const ratioYoyCls = ratioYoy >= 0 ? 'up' : 'down';
+          const ratioYoyArrow = ratioYoy > 0 ? '↑ +' : (ratioYoy < 0 ? '↓ ' : '→ ');
+          ratioYoyPillSmall = `<span class="c2-prog-yoy c2-prog-yoy-${ratioYoyCls}">${ratioYoyArrow}${Math.abs(ratioYoy)}pp</span>`;
+        } else {
+          ratioYoyPillSmall = `<span class="c2-prog-yoy c2-prog-yoy-na">n/a</span>`;
+        }
+
         return `
           <div class="c2-prog-cell">
             <div class="c2-prog-bar">
@@ -2885,6 +2897,7 @@ function renderSectionC() {
               <div class="c2-prog-comm-label" style="${labelPosStyle}">${fmtMW(segData.committed)} committed</div>
             </div>
             <div class="c2-prog-ratio ${rCls}">${ratio.toFixed(1)}%</div>
+            ${ratioYoyPillSmall}
             <div class="c2-tt">
               <div class="c2-tt-name">${progName} · ${segLabel}</div>
               <div class="c2-tt-row"><span>Committed ${yearLabel}</span><span class="v">${fmtMW(segData.committed)} MW</span></div>
@@ -4176,7 +4189,7 @@ function renderSectionI() {
     const yoyPct = (curr, prev) => {
       if (curr == null || prev == null || prev === 0) return '';
       const pct = Math.round((curr - prev) / Math.abs(prev) * 100);
-      if (pct === 0) return `<span class="i-pill i-pill-neutral">→ 0% vs Prior Year</span>`;
+      if (pct === 0) return `<span class="i-pill i-pill-neutral">→ 0%</span>`;
       const cls = pct > 0 ? 'up' : 'down';
       const arrow = pct > 0 ? '↑ +' : '↓ ';
       return `<span class="i-pill i-pill-${cls}">${arrow}${Math.abs(pct)}%</span>`;
@@ -4185,11 +4198,11 @@ function renderSectionI() {
     const ppPill = (curr, prev, lowerBetter) => {
       if (curr == null || prev == null) return '';
       const delta = curr - prev;
-      if (delta === 0) return `<span class="i-pill i-pill-neutral">→ 0pp vs Prior Year</span>`;
+      if (delta === 0) return `<span class="i-pill i-pill-neutral">→ 0pp</span>`;
       const isGood = lowerBetter ? delta < 0 : delta > 0;
       const cls = isGood ? 'up' : 'down';
       const sign = delta > 0 ? '+' : '';
-      return `<span class="i-pill i-pill-${cls}">${sign}${delta}pp vs Prior Year</span>`;
+      return `<span class="i-pill i-pill-${cls}">${sign}${delta}pp</span>`;
     };
 
     const maxVal = Math.max(enrolled || 0, pEnrolled || 0);
@@ -4529,21 +4542,21 @@ function renderSectionJ() {
       const yoyPill = (curr, prevVal, lowerIsBetter) => {
         if (curr == null || prevVal == null || prevVal === 0) return '';
         const pct = Math.round((curr - prevVal) / Math.abs(prevVal) * 100);
-        if (pct === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0% vs Prior Year</span>`;
+        if (pct === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0%</span>`;
         const isGood = lowerIsBetter ? pct < 0 : pct > 0;
         const cls = isGood ? 'up' : 'down';
         const arrow = pct > 0 ? '↑ +' : '↓ ';
-        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}% vs Prior Year</span>`;
+        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}%</span>`;
       };
 
       const ppPill = (curr, prevVal, lowerIsBetter) => {
         if (curr == null || prevVal == null) return '';
         const delta = Math.round((curr - prevVal) * 100);
-        if (delta === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0pp vs Prior Year</span>`;
+        if (delta === 0) return `<span class="j-yoy-pill j-yoy-pill-neutral">→ 0pp</span>`;
         const isGood = lowerIsBetter ? delta < 0 : delta > 0;
         const cls = isGood ? 'up' : 'down';
         const sign = delta > 0 ? '+' : '';
-        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${sign}${delta}pp vs Prior Year</span>`;
+        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${sign}${delta}pp</span>`;
       };
 
       // ===== CARD 1 · Customer Burden vs Population (HTML rows, not SVG) =====
@@ -4633,7 +4646,7 @@ function renderSectionJ() {
         const isGood = yoy < 0;
         const cls = isGood ? 'up' : 'down';
         const arrow = yoy > 0 ? '↑ +' : '↓ ';
-        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(yoy)}% vs Prior Year</span>`;
+        return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(yoy)}%</span>`;
       };
 
       const card2 = `
@@ -4709,7 +4722,7 @@ function renderSectionJ() {
         const dpaPill = (pct) => {
           const cls = pct > 0 ? 'up' : 'down';
           const arrow = pct > 0 ? '↑ +' : '↓ ';
-          return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}% vs Prior Year</span>`;
+          return `<span class="j-yoy-pill j-yoy-pill-${cls}">${arrow}${Math.abs(pct)}%</span>`;
         };
 
         card4 = `
