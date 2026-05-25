@@ -4359,7 +4359,26 @@ a.nav-item { text-decoration: none; }
 .c2-prog-yoy-down    { background: var(--red-tint);   color: #C0392B; }
 .c2-prog-yoy-na      { background: var(--white-smoke); color: var(--text-4); }
 
+/* C2 · Vertical dividers between DAC | Low-Income | Total columns */
+.c2-grid-head.c2-h-li,
+.c2-grid-head.c2-h-tot,
+.c2-prog-cell:nth-child(4n+3),
+.c2-prog-cell:nth-child(4n) {
+  position: relative;
+}
 
+.c2-grid-head.c2-h-li::before,
+.c2-grid-head.c2-h-tot::before,
+.c2-prog-cell:nth-child(4n+3)::before,
+.c2-prog-cell:nth-child(4n)::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 10%;
+  bottom: 10%;
+  width: 1px;
+  background: rgba(3, 24, 36, 0.12);
+}
 /* =============================================================
    SECTION C · Tooltips (hover)
    ============================================================= */
