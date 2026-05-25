@@ -4309,10 +4309,10 @@ a.nav-item { text-decoration: none; }
   background: transparent;
   border-radius: 0;
 }
-.c2-prog-ratio.c2-bad       { color: #C0392B; }  /* rojo vivo */
-.c2-prog-ratio.c2-under     { color: #D68910; }  /* ámbar vivo */
-.c2-prog-ratio.c2-over      { color: #229954; }  /* verde vivo */
-.c2-prog-ratio.c2-excellent { color: #2471A3; }  /* azul vivo */
+.c2-prog-ratio.c2-bad       { color: var(--dusk); }
+.c2-prog-ratio.c2-under     { color: var(--dusk); }
+.c2-prog-ratio.c2-over      { color: var(--dusk); }
+.c2-prog-ratio.c2-excellent { color: var(--dusk); }
 .c2-prog-ratio.c2-na        { color: var(--text-4); }
 
 .c2-prog-empty {
@@ -4329,15 +4329,7 @@ a.nav-item { text-decoration: none; }
 
 /* Footer legend for ratio pills */
 .c2-foot {
-  display: flex;
-  gap: 14px;
-  font-size: 10px;
-  color: var(--text-3);
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-  flex-wrap: wrap;
-  align-items: center;
+  display: none;
 }
 .c2-foot-pill {
   display: inline-block;
