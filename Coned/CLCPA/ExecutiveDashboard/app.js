@@ -1499,28 +1499,8 @@
             '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacGasAcc) + '</span>' +
           '</div>' +
         '</div>' +
-      '</div>' +
-      // ----- NEW: DAC vs Non-DAC share by borough card -----
-      '<div class="dac-kpi-card dac-kpi-card-share">' +
-        '<div class="dac-kpi-tt">' + shareTT + '</div>' +
-        '<p class="dac-kpi-label">Customer share · ' + scopeLabel + '</p>' +
-        '<div class="dac-kpi-share-row">' +
-          '<div class="dac-kpi-share-item">' +
-            '<span class="dac-kpi-share-dot dac-kpi-share-dot-dac"></span>' +
-            '<span class="dac-kpi-share-k">DAC</span>' +
-            '<span class="dac-kpi-share-v dac-kpi-share-v-dac">' + dacShareStr + '</span>' +
-          '</div>' +
-          '<div class="dac-kpi-share-item dac-kpi-share-item-right">' +
-            '<span class="dac-kpi-share-dot dac-kpi-share-dot-ndac"></span>' +
-            '<span class="dac-kpi-share-k">Non-DAC</span>' +
-            '<span class="dac-kpi-share-v">' + ndacShareStr + '</span>' +
-          '</div>' +
-        '</div>' +
-        '<div class="dac-kpi-share-bar" role="img" aria-label="DAC ' + dacShareStr + ', Non-DAC ' + ndacShareStr + '">' +
-          '<div class="dac-kpi-share-bar-dac"  style="width:' + dacBarPct  + '%"></div>' +
-          '<div class="dac-kpi-share-bar-ndac" style="width:' + ndacBarPct + '%"></div>' +
-        '</div>' +
-      '</div>';
+      '</div>' ;
+      
   }
   function renderDACMap(baseline, year, sections) {
     const mapId = 'dac-leaflet-map-' + Date.now();
