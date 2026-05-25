@@ -1378,17 +1378,16 @@
 
   const _mapState = { county: null };
 // Compute and render KPI overlay for the DAC map
+  // Compute and render Customer Counts panel for the DAC map
   function renderMapKPI(geo, county) {
     if (!geo || !geo.features) return;
     const panel = document.getElementById('dac-map-kpi');
     if (!panel) return;
 
-    // Filter features by county if one is selected
     const feats = county
       ? geo.features.filter(f => f.properties.County === county)
       : geo.features;
 
-    // Aggregate counts
     let dacN = 0, ndacN = 0;
     let dacElecAcc = 0, ndacElecAcc = 0;
     let dacGasAcc  = 0, ndacGasAcc  = 0;
@@ -1416,13 +1415,11 @@
     const fmtBig = v => {
       if (v == null || !isFinite(v)) return '—';
       if (v >= 1e6) return (v/1e6).toFixed(2) + 'M';
-      if (v >= 1e3) return (v/1e3).toFixed(0) + 'K';
+      if (v >= 1e3) return Math.round(v/1e3) + 'K';
       return String(Math.round(v));
     };
-    const pct = (num, den) => {
-      if (!den || den <= 0) return '—';
-      return (num/den*100).toFixed(1) + '%';
-    };
+    const fmtFull = v => (v == null || !isFinite(v)) ? '—' : Math.round(v).toLocaleString();
+    const pct = (num, den) => (!den || den <= 0) ? '—' : (num/den*100).toFixed(1) + '%';
 
     const scopeLabel = county
       ? (county === 'Kings' ? 'Brooklyn'
@@ -1431,25 +1428,62 @@
         : county)
       : 'All boroughs';
 
+    const dacTotal  = dacElecAcc  + dacGasAcc;
+    const ndacTotal = ndacElecAcc + ndacGasAcc;
+
+    function tooltipHtml(title, desc, elecAcc, gasAcc) {
+      return '' +
+        '<div class="dac-kpi-tt-title">' + title + '</div>' +
+        '<div class="dac-kpi-tt-desc">' + desc + '</div>' +
+        '<div class="dac-kpi-tt-row"><span>Electric accounts</span><span class="v">' + fmtFull(elecAcc) + '</span></div>' +
+        '<div class="dac-kpi-tt-row"><span>Gas accounts</span><span class="v">' + fmtFull(gasAcc) + '</span></div>';
+    }
+
+    const dacTT = tooltipHtml(
+      'DAC Accounts',
+      'Total ConEd customer accounts located in areas designated as Disadvantaged Communities (DAC) by NYS.',
+      dacElecAcc, dacGasAcc
+    );
+    const ndacTT = tooltipHtml(
+      'Non-DAC Accounts',
+      'Total ConEd customer accounts located in areas NOT designated as Disadvantaged Communities.',
+      ndacElecAcc, ndacGasAcc
+    );
+
     panel.innerHTML =
       '<div class="dac-kpi-head">' +
-        '<span class="dac-kpi-eyebrow">Service area</span>' +
+        '<span class="dac-kpi-title">Customer Counts</span>' +
         '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
       '</div>' +
       '<div class="dac-kpi-card dac-kpi-card-dac">' +
-        '<p class="dac-kpi-label">DAC tracts</p>' +
-        '<p class="dac-kpi-value">' + dacN.toLocaleString() + '</p>' +
-        '<p class="dac-kpi-sub">' + fmtBig(dacElecAcc) + ' elec · ' + fmtBig(dacGasAcc) + ' gas</p>' +
+        '<div class="dac-kpi-tt">' + dacTT + '</div>' +
+        '<p class="dac-kpi-label dac-kpi-label-dac">DAC Accounts</p>' +
+        '<p class="dac-kpi-value dac-kpi-value-dac">' + dacTotal.toLocaleString() + '</p>' +
+        '<div class="dac-kpi-breakdown dac-kpi-breakdown-dac">' +
+          '<div class="dac-kpi-bd-cell">' +
+            '<span class="dac-kpi-bd-k">Electric</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac">' + fmtBig(dacElecAcc) + '</span>' +
+          '</div>' +
+          '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
+            '<span class="dac-kpi-bd-k">Gas</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac">' + fmtBig(dacGasAcc) + '</span>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
       '<div class="dac-kpi-card dac-kpi-card-ndac">' +
-        '<p class="dac-kpi-label">Non-DAC tracts</p>' +
-        '<p class="dac-kpi-value">' + ndacN.toLocaleString() + '</p>' +
-        '<p class="dac-kpi-sub">' + fmtBig(ndacElecAcc) + ' elec · ' + fmtBig(ndacGasAcc) + ' gas</p>' +
-      '</div>' +
-      '<div class="dac-kpi-card">' +
-        '<p class="dac-kpi-label">EAP enrolled (electric)</p>' +
-        '<div class="dac-kpi-row"><span class="dac-kpi-row-k dac-kpi-row-dac">DAC</span><span class="dac-kpi-row-v">' + pct(dacElecEap, dacElecAcc) + '</span></div>' +
-        '<div class="dac-kpi-row"><span class="dac-kpi-row-k dac-kpi-row-ndac">Non-DAC</span><span class="dac-kpi-row-v">' + pct(ndacElecEap, ndacElecAcc) + '</span></div>' +
+        '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
+        '<p class="dac-kpi-label">Non-DAC Accounts</p>' +
+        '<p class="dac-kpi-value">' + ndacTotal.toLocaleString() + '</p>' +
+        '<div class="dac-kpi-breakdown">' +
+          '<div class="dac-kpi-bd-cell">' +
+            '<span class="dac-kpi-bd-k">Electric</span>' +
+            '<span class="dac-kpi-bd-v">' + fmtBig(ndacElecAcc) + '</span>' +
+          '</div>' +
+          '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
+            '<span class="dac-kpi-bd-k">Gas</span>' +
+            '<span class="dac-kpi-bd-v">' + fmtBig(ndacGasAcc) + '</span>' +
+          '</div>' +
+        '</div>' +
       '</div>';
   }
   function renderDACMap(baseline, year, sections) {
@@ -1572,7 +1606,7 @@
           geoLayer.resetStyle(_hoveredLayer);
         }
         _hoveredLayer = this;
-        this.setStyle({ weight: 2, color: '#e87722', fillOpacity: 0.92 });
+        this.setStyle({ weight: 2, color: '#185FA5', fillOpacity: 0.92 });
         this.bringToFront();
         if (!tooltip) return;
 
