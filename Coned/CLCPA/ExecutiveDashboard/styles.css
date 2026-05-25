@@ -6784,13 +6784,13 @@ a.nav-item { text-decoration: none; }
   top: 12px !important;
   left: 12px !important;
   left: 12px;
-  width: 240px;
+  width: 280px;
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -6934,4 +6934,228 @@ a.nav-item { text-decoration: none; }
   margin-top: 4px;
   padding-top: 6px;
   border-top: 1px dashed var(--line);
+}
+/* =============================================================
+   EXECUTIVE SUMMARY · UX REFINEMENTS (2025 update)
+   - Larger, prominent "Reporting Year: 2025" in page header
+   - Improved description readability
+   - Polished KPI header cards
+   ============================================================= */
+
+/* Slightly larger card tag inside Exec header cards for readability */
+#exec-header-cards .ai-kpi-mini-tag {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-2);
+  margin-bottom: 2px;
+}
+#exec-header-cards .ai-kpi-mini-detail {
+  font-size: 10.5px;
+  margin-top: 8px;
+  padding-top: 8px;
+}
+
+/* --- Page header refresh: title left, large "Reporting Year" right --- */
+.exec-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.exec-page-header-text { flex: 1 1 580px; min-width: 0; }
+.exec-page-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  color: var(--text);
+  line-height: 1.15;
+}
+
+/* The "Year 2025" inline display in the upper right (Option D) */
+.exec-reporting-year {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 6px;
+  white-space: nowrap;
+}
+.exec-reporting-year-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0;
+}
+.exec-reporting-year-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--dusk);
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Narrower description so it doesn't run to the page edge */
+.exec-page-sub {
+  font-size: 13.5px !important;
+  line-height: 1.65 !important;
+  color: var(--text-2) !important;
+  max-width: none !important;
+  margin: 0 !important;
+  letter-spacing: 0;
+}
+
+@media (max-width: 900px) {
+  .exec-page-header { flex-direction: column; gap: 14px; }
+  .exec-reporting-year { align-self: flex-start; }
+}
+
+/* --- KPI header cards: cleaner padding & subtitle hierarchy --- */
+.ai-header-card-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 6px 0 4px;
+}
+.ai-header-card-hero-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ai-header-card-hero {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dusk);
+  letter-spacing: -0.022em;
+  line-height: 1;
+  font-feature-settings: "tnum";
+}
+.ai-header-card-herosub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 6px;
+  line-height: 1.35;
+  font-weight: 500;
+  max-width: 95%;
+}
+.ai-header-card-delta-wrap {
+  flex: 0 0 auto;
+  text-align: right;
+  padding-left: 4px;
+}
+.ai-header-card-delta {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.ai-header-card-deltasub {
+  font-size: 9.5px;
+  color: var(--text-4);
+  margin-top: 3px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Slightly more breathing room around the KPI header card */
+#exec-header-cards .ai-kpi-mini {
+  padding: 14px 16px;
+}
+#exec-header-cards,
+.exec-header-cards {
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+/* =============================================================
+   DAC CUSTOMER COUNTS PANEL — refinements for new card structure
+   ============================================================= */
+
+/* The DAC Accounts card no longer shows a big total hero — make the
+   Electric / Gas counters larger so they read as the primary numbers */
+.dac-kpi-bd-v-lg {
+  font-size: 19px !important;
+  font-weight: 700 !important;
+}
+.dac-kpi-breakdown-noborder {
+  border-top: none !important;
+  padding-top: 2px !important;
+  margin-top: 2px;
+}
+
+/* ---- New: DAC vs Non-DAC share card ---- */
+.dac-kpi-card-share {
+  border-left: 3px solid var(--dusk);
+}
+.dac-kpi-card-share .dac-kpi-label {
+  color: var(--text-2);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.dac-kpi-share-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.dac-kpi-share-item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.dac-kpi-share-item-right { margin-left: auto; }
+.dac-kpi-share-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  top: 0;
+}
+.dac-kpi-share-dot-dac  { background: var(--dusk); }
+.dac-kpi-share-dot-ndac { background: var(--text-4); }
+.dac-kpi-share-k {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.dac-kpi-share-v {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-2);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.01em;
+}
+.dac-kpi-share-v-dac { color: var(--dusk); }
+
+/* Stacked bar visualizing DAC vs Non-DAC share */
+.dac-kpi-share-bar {
+  display: flex;
+  height: 8px;
+  width: 100%;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--line);
+  margin-top: 4px;
+}
+.dac-kpi-share-bar-dac {
+  background: var(--dusk);
+  height: 100%;
+  transition: width 0.25s ease;
+}
+.dac-kpi-share-bar-ndac {
+  background: #c8d0d8;
+  height: 100%;
+  transition: width 0.25s ease;
 }
