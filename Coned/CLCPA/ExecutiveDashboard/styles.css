@@ -7186,3 +7186,33 @@ a.nav-item { text-decoration: none; }
   height: 100%;
   transition: width 0.25s ease;
 }
+
+.coned-area-label {
+  background: transparent !important;
+  border: none !important;
+  pointer-events: none;
+}
+.coned-area-label span {
+  display: inline-block;
+  transform: translate(-50%, -50%);
+  font-family: Inter, system-ui, sans-serif;
+  color: #1a1a1a;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  text-shadow:
+    0 0 3px #fff, 0 0 3px #fff,
+    0 0 3px #fff, 0 0 3px #fff,
+    0 0 3px #fff;
+}
+.coned-area-label-major span {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0a2540;
+}
+.coned-area-label-minor span {
+  font-size: 10px;
+  font-weight: 500;
+  color: #2a3a4a;
+}

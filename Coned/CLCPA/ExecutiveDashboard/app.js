@@ -1170,7 +1170,8 @@
       return `<span class="sg-pill sg-pill-below">Below</span>`;
     }
 
-    const rows = data.map(s => {
+    const prev = prevYearOf(year);
+      const rows = data.map(s => {
       const pct = s.pctByYear[year];
       const has = pct != null;
       const pctNum = has ? pct * 100 : 0;
@@ -1183,13 +1184,29 @@
       else if (gap > 0) { gapText = '+' + gap + 'pp'; gapColor = 'var(--dusk)'; }
       else { gapText = gap + 'pp'; gapColor = 'var(--red)'; }
 
+      // YoY in pp vs prior year (inverted for "invert" sections like outages)
+      const prevPct = prev ? s.pctByYear[prev] : null;
+      let yoyText = '—';
+      if (has && prevPct != null) {
+        const dpp = +((pct - prevPct) * 100).toFixed(1);
+        if (s.invert) {
+          if (dpp < -0.05) yoyText = '↓ ' + Math.abs(dpp).toFixed(1) + 'pp';
+          else if (dpp > 0.05) yoyText = '↑ +' + dpp.toFixed(1) + 'pp';
+          else yoyText = '→ 0pp';
+        } else {
+          if (dpp > 0.05) yoyText = '↑ +' + dpp.toFixed(1) + 'pp';
+          else if (dpp < -0.05) yoyText = '↓ ' + dpp.toFixed(1) + 'pp';
+          else yoyText = '→ 0pp';
+        }
+      }
+
       const kpi = s.primaryKpi;
       const v = kpi && kpi.values && kpi.values[year];
       const dacVal = v ? v.dac : null;
       const totalVal = v ? v.total : null;
       const kpiLabel = kpi ? kpi.label : '';
       const kpiUnit = kpi ? kpi.unit : '';
-      const tt = `data-section="${s.id}" data-name="${escapeHtml(s.name)}" data-pct="${pctText}" data-baseline="${baseline}%" data-gap="${gapText}" data-kpi-label="${escapeHtml(kpiLabel).replace(/"/g, '&quot;')}" data-dac-val="${fmtKpiVal(dacVal, kpi)}" data-total-val="${fmtKpiVal(totalVal, kpi)}" data-unit="${escapeHtml(kpiUnit)}"`;
+      const tt = `data-section="${s.id}" data-name="${escapeHtml(s.name)}" data-pct="${pctText}" data-baseline="${baseline}%" data-gap="${gapText}" data-yoy="${yoyText}" data-kpi-label="${escapeHtml(kpiLabel).replace(/"/g, '&quot;')}" data-dac-val="${fmtKpiVal(dacVal, kpi)}" data-total-val="${fmtKpiVal(totalVal, kpi)}" data-unit="${escapeHtml(kpiUnit)}"`;
 
       return `
         <div class="strip-row" ${tt}>
@@ -1197,7 +1214,6 @@
           <div class="strip-pct">${pctText}</div>
           <div class="strip-bar">
             <div class="strip-fill" style="width:${dacWidth}%;"></div>
-            <div class="strip-tick" style="left:${baseline}%;"></div>
             ${!has ? '<span class="strip-empty-label">N/A</span>' : ''}
           </div>
           ${statusPill(s)}
@@ -1210,14 +1226,13 @@
       <div class="exec-card sg-card">
         <div class="chart-card-head">
           <div>
-            <h3>DAC Equity by Section</h3>
-            <p class="chart-sub">Each bar = DAC share · Tick = ${baseline}% goal · ${year}</p>
+            <h3>DAC Impact by Section</h3>
+            <p class="chart-sub">Each bar = DAC share · ${year}</p>
           </div>
           <div class="chart-head-right">
             <div class="chart-legend">
               <div class="legend-item"><span class="legend-swatch" style="background:var(--dusk)"></span>DAC</div>
               <div class="legend-item"><span class="legend-swatch" style="background:var(--pale-sky)"></span>Non-DAC</div>
-              <div class="legend-item"><span class="legend-swatch" style="background:#2873BA;width:2px;"></span>${baseline}% goal</div>
               <div class="legend-item"><span class="legend-swatch" style="background:rgba(42,119,85,0.55)"></span>Above</div>
               <div class="legend-item"><span class="legend-swatch" style="background:rgba(178,59,42,0.55)"></span>Below</div>
             </div>
@@ -1227,7 +1242,7 @@
           <div class="sg-col-header">
             <span class="sg-ch-section">Section</span>
             <span class="sg-ch-pct">DAC %</span>
-            <span class="sg-ch-bar">Share vs ${baseline}% goal</span>
+            <span class="sg-ch-bar">Share</span>
             <span class="sg-ch-status">Status</span>
             <span class="sg-ch-gap">Gap</span>
           </div>
@@ -1269,11 +1284,10 @@
 
       let barInner;
       if (!hasCurr) {
-        barInner = `<div class="dumb-tick" style="left:${baseline}%;"></div>`;
+        barInner = ``;
       } else if (!hasBoth) {
         const pctNum = curr * 100;
         barInner = `
-          <div class="dumb-tick" style="left:${baseline}%;"></div>
           <div class="dumb-dot dumb-dot-curr" style="left:${pctNum}%;"></div>`;
       } else {
         const currNum = curr * 100;
@@ -1281,7 +1295,6 @@
         const left = Math.min(currNum, prevNum);
         const width = Math.abs(currNum - prevNum);
         barInner = `
-          <div class="dumb-tick" style="left:${baseline}%;"></div>
           <div class="dumb-connector" style="left:${left}%;width:${width}%;"></div>
           <div class="dumb-dot dumb-dot-prev" style="left:${prevNum}%;"></div>
           <div class="dumb-dot dumb-dot-curr" style="left:${currNum}%;"></div>`;
@@ -1295,7 +1308,7 @@
       const totalVal = v ? v.total : null;
       const kpiLabel = kpi ? kpi.label : '';
       const kpiUnit = kpi ? kpi.unit : '';
-      const tt = `data-section="${s.id}" data-name="${escapeHtml(s.name)}" data-pct="${currTxt}" data-baseline="${baseline}%" data-gap="${pillText}" data-prev-pct="${prevTxt}" data-kpi-label="${escapeHtml(kpiLabel).replace(/"/g, '&quot;')}" data-dac-val="${fmtKpiVal(dacVal, kpi)}" data-total-val="${fmtKpiVal(totalVal, kpi)}" data-unit="${escapeHtml(kpiUnit)}"`;
+      const tt = `data-section="${s.id}" data-name="${escapeHtml(s.name)}" data-pct="${currTxt}" data-baseline="${baseline}%" data-yoy="${pillText}" data-prev-pct="${prevTxt}" data-kpi-label="${escapeHtml(kpiLabel).replace(/"/g, '&quot;')}" data-dac-val="${fmtKpiVal(dacVal, kpi)}" data-total-val="${fmtKpiVal(totalVal, kpi)}" data-unit="${escapeHtml(kpiUnit)}"`;
 
       return `
         <div class="dumb-row ${!hasCurr ? 'is-na' : ''}" ${tt}>
@@ -1311,7 +1324,6 @@
         <div class="dumb-axis-inner">
           <span class="dumb-axis-tick">0%</span>
           <span class="dumb-axis-tick">25%</span>
-          <span class="dumb-axis-tick dumb-axis-goal">${baseline}% goal</span>
           <span class="dumb-axis-tick">50%</span>
           <span class="dumb-axis-tick">75%</span>
           <span class="dumb-axis-tick">100%</span>
@@ -1327,14 +1339,13 @@
       <div class="exec-card">
         <div class="chart-card-head">
           <div>
-            <h3>DAC Equity · Movement vs Prior Year</h3>
+            <h3>DAC Impact · Movement vs Prior Year</h3>
             <p class="chart-sub">${subText}</p>
           </div>
           <div class="chart-head-right">
             <div class="chart-legend">
               <div class="legend-item"><span class="legend-swatch" style="background:#B0BCC9;border-radius:50%;width:11px;height:11px;"></span>${prev || 'prior'}</div>
               <div class="legend-item"><span class="legend-swatch" style="background:var(--dusk);border-radius:50%;width:11px;height:11px;"></span>${year}</div>
-              <div class="legend-item"><span class="legend-swatch" style="background:#2873BA;width:2px;"></span>${baseline}% goal</div>
             </div>
           </div>
         </div>
@@ -1575,14 +1586,14 @@
     const map = L.map(containerId, {
       zoomControl: false,
       attributionControl: false,
+      zoomSnap: 0.1,        // allow fractional zoom (9.7 stays 9.7, not snapped to 10)
+      zoomDelta: 0.5,       // zoom buttons step by 0.5 instead of 1
+      wheelPxPerZoomLevel: 80,
     });
     _leafletMapInstance = map;
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
-    }).addTo(map);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19, pane: 'shadowPane',
     }).addTo(map);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -1705,14 +1716,154 @@
       onEachFeature: onEach,
     }).addTo(map);
     _mapGeoLayer = geoLayer;
+
+    // ---- ConEd service area labels (manual) ----
+    // Two tiers: major (boroughs / counties) and minor (neighborhoods).
+    // Minor labels only render at zoom 11+ to avoid clutter at low zoom.
+    const CONED_LABELS_MAJOR = [
+      { name: 'Bronx',         lat: 40.8448, lng: -73.8648 },
+      { name: 'Manhattan',     lat: 40.7831, lng: -73.9712 },
+      { name: 'Queens',        lat: 40.7282, lng: -73.7949 },
+      { name: 'Brooklyn',      lat: 40.6782, lng: -73.9442 },
+      { name: 'Staten Island', lat: 40.5795, lng: -74.1502 },
+      { name: 'Westchester',   lat: 41.1220, lng: -73.7949 },
+    ];
+
+    const CONED_LABELS_MINOR = [
+      // ---- Westchester County ----
+      { name: 'Yonkers',        lat: 40.9312, lng: -73.8987 },
+      { name: 'Mount Vernon',   lat: 40.9126, lng: -73.8371 },
+      { name: 'New Rochelle',   lat: 40.9115, lng: -73.7823 },
+      { name: 'White Plains',   lat: 41.0340, lng: -73.7629 },
+      { name: 'Yorktown',       lat: 41.2706, lng: -73.7976 },
+      { name: 'Peekskill',      lat: 41.2898, lng: -73.9203 },
+      { name: 'Cortlandt',      lat: 41.2298, lng: -73.8865 },
+      { name: 'Ossining',       lat: 41.1626, lng: -73.8665 },
+      { name: 'Tarrytown',      lat: 41.0762, lng: -73.8587 },
+      { name: 'Dobbs Ferry',    lat: 41.0140, lng: -73.8723 },
+      { name: 'Hastings',       lat: 40.9876, lng: -73.8790 },
+      { name: 'Greenburgh',     lat: 41.0337, lng: -73.8451 },
+      { name: 'Mount Pleasant', lat: 41.1051, lng: -73.7918 },
+      { name: 'Pleasantville',  lat: 41.1351, lng: -73.7846 },
+      { name: 'Mount Kisco',    lat: 41.2045, lng: -73.7290 },
+      { name: 'Harrison',       lat: 40.9690, lng: -73.7124 },
+      { name: 'Rye',            lat: 40.9818, lng: -73.6840 },
+      { name: 'Port Chester',   lat: 41.0009, lng: -73.6645 },
+      { name: 'Scarsdale',      lat: 40.9890, lng: -73.7846 },
+      { name: 'Eastchester',    lat: 40.9551, lng: -73.8081 },
+      { name: 'Bronxville',     lat: 40.9387, lng: -73.8334 },
+
+      // ---- Bronx ----
+      { name: 'Riverdale',      lat: 40.9009, lng: -73.9081 },
+      { name: 'Fordham',        lat: 40.8615, lng: -73.8965 },
+      { name: 'Throgs Neck',    lat: 40.8156, lng: -73.8195 },
+      { name: 'Hunts Point',    lat: 40.8081, lng: -73.8842 },
+      { name: 'Mott Haven',     lat: 40.8092, lng: -73.9217 },
+      { name: 'Morrisania',     lat: 40.8295, lng: -73.9069 },
+      { name: 'Soundview',      lat: 40.8237, lng: -73.8666 },
+
+      // ---- Manhattan ----
+      { name: 'Inwood',         lat: 40.8676, lng: -73.9213 },
+      { name: 'Washington Hts', lat: 40.8417, lng: -73.9393 },
+      { name: 'Harlem',         lat: 40.8116, lng: -73.9465 },
+      { name: 'Upper West Side',lat: 40.7870, lng: -73.9754 },
+      { name: 'Upper East Side',lat: 40.7736, lng: -73.9566 },
+      { name: 'Midtown',        lat: 40.7549, lng: -73.9840 },
+      { name: 'Chelsea',        lat: 40.7465, lng: -74.0014 },
+      { name: 'Greenwich Vlg',  lat: 40.7336, lng: -74.0027 },
+      { name: 'SoHo',           lat: 40.7233, lng: -74.0030 },
+      { name: 'Lower East Side',lat: 40.7150, lng: -73.9843 },
+      { name: 'Tribeca',        lat: 40.7163, lng: -74.0086 },
+      { name: 'Financial Dist', lat: 40.7075, lng: -74.0099 },
+
+      // ---- Queens ----
+      { name: 'Astoria',        lat: 40.7720, lng: -73.9301 },
+      { name: 'Long Island City',lat: 40.7447, lng: -73.9485 },
+      { name: 'Flushing',       lat: 40.7674, lng: -73.8330 },
+      { name: 'Jackson Hts',    lat: 40.7556, lng: -73.8830 },
+      { name: 'Elmhurst',       lat: 40.7372, lng: -73.8800 },
+      { name: 'Forest Hills',   lat: 40.7185, lng: -73.8453 },
+      { name: 'Jamaica',        lat: 40.7027, lng: -73.7890 },
+      { name: 'Bayside',        lat: 40.7686, lng: -73.7715 },
+      { name: 'Ridgewood',      lat: 40.7008, lng: -73.9061 },
+      { name: 'Far Rockaway',   lat: 40.6005, lng: -73.7553 },
+      { name: 'Howard Beach',   lat: 40.6595, lng: -73.8430 },
+
+      // ---- Brooklyn ----
+      { name: 'Williamsburg',   lat: 40.7081, lng: -73.9571 },
+      { name: 'Bushwick',       lat: 40.6944, lng: -73.9213 },
+      { name: 'Bed-Stuy',       lat: 40.6872, lng: -73.9418 },
+      { name: 'Park Slope',     lat: 40.6710, lng: -73.9814 },
+      { name: 'Downtown Bklyn', lat: 40.6925, lng: -73.9897 },
+      { name: 'Crown Heights',  lat: 40.6694, lng: -73.9442 },
+      { name: 'Flatbush',       lat: 40.6409, lng: -73.9624 },
+      { name: 'Sunset Park',    lat: 40.6453, lng: -74.0114 },
+      { name: 'Bay Ridge',      lat: 40.6259, lng: -74.0301 },
+      { name: 'Coney Island',   lat: 40.5755, lng: -73.9707 },
+      { name: 'East New York',  lat: 40.6677, lng: -73.8821 },
+      { name: 'Canarsie',       lat: 40.6396, lng: -73.9067 },
+      { name: 'Brownsville',    lat: 40.6627, lng: -73.9099 },
+      { name: 'Borough Park',   lat: 40.6334, lng: -73.9907 },
+      { name: 'Sheepshead Bay', lat: 40.5878, lng: -73.9442 },
+
+      // ---- Staten Island ----
+      { name: 'St. George',     lat: 40.6437, lng: -74.0768 },
+      { name: 'Stapleton',      lat: 40.6276, lng: -74.0775 },
+      { name: 'New Brighton',   lat: 40.6437, lng: -74.0937 },
+      { name: 'Port Richmond',  lat: 40.6334, lng: -74.1376 },
+      { name: 'Mid-Island',     lat: 40.5837, lng: -74.1640 },
+      { name: 'Tottenville',    lat: 40.5101, lng: -74.2492 },
+      { name: 'Great Kills',    lat: 40.5527, lng: -74.1497 },
+      { name: 'New Dorp',       lat: 40.5732, lng: -74.1170 },
+    ];
+
+    const _conedLabelMarkers = { major: [], minor: [] };
+
+    function addLabelMarker(l, tier) {
+      const marker = L.marker([l.lat, l.lng], {
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({
+          className: 'coned-area-label coned-area-label-' + tier,
+          html: `<span>${l.name}</span>`,
+          iconSize: [0, 0],
+          iconAnchor: [0, 0],
+        }),
+      }).addTo(map);
+      _conedLabelMarkers[tier].push(marker);
+    }
+
+    CONED_LABELS_MAJOR.forEach(l => addLabelMarker(l, 'major'));
+    CONED_LABELS_MINOR.forEach(l => addLabelMarker(l, 'minor'));
+
+    // Show/hide minor labels based on zoom (declutter at low zoom)
+    function updateLabelVisibility() {
+      const z = map.getZoom();
+      const showMinor = z >= 11;
+      _conedLabelMarkers.minor.forEach(m => {
+        const el = m.getElement();
+        if (el) el.style.display = showMinor ? '' : 'none';
+      });
+    }
+    map.on('zoomend', updateLabelVisibility);
+    // updateLabelVisibility() runs AFTER the initial setView completes
+    // (the setView is inside requestAnimationFrame below), so the call
+    // is deferred too.
+
     // Initial KPI render
     renderMapKPI(geo, _mapState.county);
 
-    // Use fixed initial view so "All" returns here (geoLayer bounds extend too far north into Westchester)
+    // Use fixed initial view so "All" returns here
     const initialCenter = [40.93, -73.9];
     const initialZoom = 9.7;
-    map.setView(initialCenter, initialZoom);
-    const defaultBounds = geoLayer.getBounds();  // kept for reference but not used as the "All" target
+
+    requestAnimationFrame(() => {
+      map.invalidateSize();
+      map.setView(initialCenter, initialZoom, { animate: false });
+      updateLabelVisibility();   // run after the zoom is set so minors hide correctly
+    });
+
+    const defaultBounds = geoLayer.getBounds();
 
     // County filter
     const bar = document.querySelector('.dac-map-county-bar');
@@ -1738,6 +1889,9 @@
           }
         } else {
           map.flyTo(initialCenter, initialZoom, { duration: 0.5 });
+          setTimeout(() => {
+            console.log('[ALL CLICK] center:', map.getCenter(), 'zoom:', map.getZoom(), 'container:', container.clientWidth + 'x' + container.clientHeight);
+          }, 600);
         }
       });
     }
@@ -1997,7 +2151,6 @@
       ${renderHeaderCards()}
 
       <div class="kpi-group">
-        <div id="exec-toggle-mount">${renderToggleBar()}</div>
         <div class="exec-shares-grid" id="exec-shares-grid">
           ${renderDumbbell(baseline, year, sections)}
           ${renderStripWithGap(baseline, year, sections)}
@@ -2043,8 +2196,7 @@
         const id = el.getAttribute('data-section');
         const name = el.getAttribute('data-name');
         const pct = el.getAttribute('data-pct');
-        const bl = el.getAttribute('data-baseline');
-        const gap = el.getAttribute('data-gap');
+        const yoy = el.getAttribute('data-yoy');
         const prevPct = el.getAttribute('data-prev-pct');
         const kpiLabel = el.getAttribute('data-kpi-label');
         const dacVal = el.getAttribute('data-dac-val');
@@ -2065,9 +2217,8 @@
         if (totalVal && totalVal !== 'n/a') {
           html += `<div class="tt-row"><span>Total ${unit ? '(' + unit + ')' : 'value'}</span><span class="v">${totalVal}</span></div>`;
         }
-        html += `<div class="tt-row"><span>Equity baseline</span><span class="v">${bl}</span></div>`;
-        if (gap && gap !== '—') {
-          html += `<div class="tt-row"><span>Gap vs goal</span><span class="v">${gap}</span></div>`;
+        if (yoy && yoy !== '—') {
+          html += `<div class="tt-row"><span>vs Prior Year</span><span class="v">${yoy}</span></div>`;
         }
         html += `<div class="tt-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line)">` +
                 `<span style="font-size:9.5px;color:var(--text-3);line-height:1.4">Source: filed DAC report. DAC % = DAC value ÷ total value for the primary metric of Section ${id}.</span>` +
