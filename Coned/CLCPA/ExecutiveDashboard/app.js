@@ -1140,7 +1140,7 @@
     const goalWord = baseline === 40 ? 'goal' : 'mandate';
     return `
       <div class="rkpi-toggle-bar exec-toggle-bar">
-        <span class="rkpi-toggle-label">DAC EQUITY BASELINE</span>
+        <span class="rkpi-toggle-label">DAC IMPACT BASELINE</span>
         <div class="rkpi-toggle-group" role="tablist">
           <button class="rkpi-toggle-btn ${baseline === 35 ? 'active' : ''}" data-baseline="35">35%<span class="toggle-sub">· NY Climate Act</span></button>
           <button class="rkpi-toggle-btn ${baseline === 40 ? 'active' : ''}" data-baseline="40">40%<span class="toggle-sub">· Justice40</span></button>
@@ -2524,7 +2524,7 @@
         </div>
         <div class="chart-card analytical">
           <div class="chart-card-head">
-            <div><h3>Equity Quadrant <span class="title-mode">· ${quadrantMetric === 'mmbtu' ? 'Energy Savings' : 'Incentive Spend'}</span></h3><p class="chart-sub">${quadrantSubLabel} · Hover any dot for details</p></div>
+            <div><h3>Impact Quadrant <span class="title-mode">· ${quadrantMetric === 'mmbtu' ? 'Energy Savings' : 'Incentive Spend'}</span></h3><p class="chart-sub">${quadrantSubLabel} · Hover any dot for details</p></div>
             <div class="chart-head-controls">
               <div class="quadrant-metric-toggle">
                 <button data-metric="dollars" class="${quadrantMetric === 'dollars' ? 'active' : ''}">$</button>
@@ -5046,14 +5046,14 @@ function wireQuadrantTooltip() {
         const xAxis = isMMBtu ? 'total energy savings (MMBtu)' : 'total funding ($)';
         const sizeNote = isMMBtu ? 'Bigger dots = more MMBtu saved.' : 'Bigger dots = more total spend.';
         const trDesc = isMMBtu
-          ? 'Large savings · highly equitable. The ideal zone — impact + equity.'
-          : 'Large programs · highly equitable. The ideal zone — scale + equity.';
+          ? 'Large savings · high DAC share. The ideal zone — scale + DAC impact.'
+          : 'Large programs · high DAC share. The ideal zone — scale + DAC impact.';
         const brDesc = isMMBtu
-          ? 'Large savings · low DAC share. Impact without equity — candidates for re-balancing.'
-          : 'Large programs · low DAC share. Scale without equity — candidates for re-balancing.';
+          ? 'Large savings · low DAC share. Scale without DAC impact — candidates for re-balancing.'
+          : 'Large programs · low DAC share. Scale without DAC impact — candidates for re-balancing.';
         const tlDesc = isMMBtu
-          ? 'Small savings · highly equitable. Most savings reach DACs but limited impact.'
-          : 'Small programs · highly equitable. Most funds reach DACs but limited scale.';
+          ? 'Small savings · high DAC share. Most savings reach DACs but limited scale.'
+          : 'Small programs · high DAC share. Most funds reach DACs but limited scale.';
         const blDesc = isMMBtu
           ? 'Small savings · low DAC share. Limited reach in any dimension.'
           : 'Small programs · low DAC share. Limited reach in any dimension.';
@@ -5063,7 +5063,7 @@ function wireQuadrantTooltip() {
         modal.innerHTML = `
           <div class="help-modal" role="dialog" aria-labelledby="help-modal-title">
             <div class="help-modal-head">
-              <h3 id="help-modal-title">How to read the Equity Quadrant${isMMBtu ? ' · MMBtu mode' : ' · Dollars mode'}</h3>
+              <h3 id="help-modal-title">How to read the Impact Quadrant${isMMBtu ? ' · MMBtu mode' : ' · Dollars mode'}</h3>
               <button class="help-modal-close" type="button" aria-label="Close">×</button>
             </div>
             <div class="help-modal-body">
