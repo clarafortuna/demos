@@ -7216,3 +7216,27 @@ a.nav-item { text-decoration: none; }
   font-weight: 500;
   color: #2a3a4a;
 }
+
+.dac-map-container .leaflet-control-zoom {
+  display: block !important;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.dac-map-container .leaflet-control-zoom a {
+  background: #fff;
+  color: var(--text);
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.dac-map-container .leaflet-control-zoom a:hover {
+  background: var(--white-smoke);
+  color: var(--dusk);
+}
+.dac-map-container .leaflet-control-zoom-in {
+  border-bottom: 1px solid var(--line);
+}
