@@ -1,0 +1,2617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Con Edison · White Paper Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #031824;
+  --ink-2: #0A2436;
+  --ink-3: #1E3346;
+  --dusk: #2F5496;
+  --dusk-tint: #E5EBF5;
+  --dodger: #1E96FC;
+  --dodger-tint: #E3F2FE;
+  --pale-sky: #BDDBF5;
+  --white-smoke: #F2F2F2;
+  --bright-snow: #F9F9F9;
+  --white: #FFFFFF;
+  --mauve-shadow: #75405B;
+  --crimson: #470024;
+  --crimson-tint: #F0DDE5;
+  --line: rgba(3, 24, 36, 0.10);
+  --line-strong: rgba(3, 24, 36, 0.18);
+  --text: #031824;
+  --text-2: #3A4D5E;
+  --text-3: #6B7B8C;
+  --text-4: #9CA8B5;
+  --green: #2A7755;
+  --green-tint: #E1F0E9;
+  --red: #B23B2A;
+  --red-tint: #F5E2DD;
+  --amber: #B8860B;
+  --amber-tint: #FFF4D6;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --sidebar-w: 220px;
+  --topbar-h: 56px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--white-smoke);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ======================== APP SHELL ======================== */
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) 1fr;
+  grid-template-rows: var(--topbar-h) 1fr;
+  grid-template-areas: "sidebar topbar" "sidebar content";
+  min-height: 100vh;
+}
+
+/* ======================== TOPBAR ======================== */
+.topbar {
+  grid-area: topbar;
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.topbar-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.topbar-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; background: var(--ink);
+  color: var(--white); border-radius: 4px;
+  font-weight: 800; font-size: 11px; letter-spacing: -0.01em;
+}
+.topbar-title .crumb { color: var(--text-3); font-weight: 500; }
+.topbar-title .crumb-sep { color: var(--text-4); margin: 0 6px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.year-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-3); margin-right: 4px;
+}
+.year-select, .case-select {
+  background: var(--white); border: 1px solid var(--line-strong);
+  color: var(--text); padding: 6px 10px 6px 12px; border-radius: 6px;
+  font-family: var(--font); font-size: 12px; font-weight: 500; cursor: pointer;
+}
+.btn {
+  background: var(--ink); color: var(--white); border: none;
+  padding: 7px 14px; border-radius: 6px;
+  font-family: var(--font); font-weight: 600; font-size: 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.15s ease;
+}
+.btn:hover { background: var(--ink-2); }
+.btn svg { width: 13px; height: 13px; }
+.btn-secondary {
+  background: var(--white); color: var(--text-2);
+  border: 1px solid var(--line-strong);
+}
+.btn-secondary:hover { background: var(--bright-snow); color: var(--text); }
+
+/* ======================== SIDEBAR ======================== */
+.sidebar {
+  grid-area: sidebar; background: var(--ink); color: var(--white);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; z-index: 60;
+}
+.sidebar-brand { padding: 18px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.sidebar-brand-logo {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: var(--white); color: var(--ink);
+  border-radius: 5px; font-weight: 800;
+  font-size: 13px; letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+.sidebar-brand-mark { font-weight: 800; font-size: 16px; letter-spacing: -0.015em; display: flex; align-items: center; gap: 6px; }
+.sidebar-brand-mark .dot { width: 6px; height: 6px; background: var(--dodger); border-radius: 50%; }
+.sidebar-brand-sub { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(189, 219, 245, 0.55); margin-top: 6px; }
+.sidebar-section { padding: 16px 12px 8px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(189, 219, 245, 0.45); }
+.sidebar-nav { display: flex; flex-direction: column; gap: 1px; padding: 0 8px; }
+.nav-item {
+  background: transparent; border: none; color: rgba(255,255,255,0.7);
+  padding: 8px 12px; border-radius: 5px;
+  font-family: var(--font); font-size: 12.5px; font-weight: 500;
+  text-align: left; cursor: pointer;
+  display: flex; align-items: center; gap: 10px;
+  transition: background 0.15s ease, color 0.15s ease;
+  text-decoration: none;
+}
+.nav-item:hover { background: rgba(255,255,255,0.06); color: var(--white); }
+.nav-item.active { background: var(--dusk); color: var(--white); }
+.nav-item.active .nav-letter, .nav-item:hover .nav-letter { color: var(--pale-sky); }
+.nav-letter { font-family: var(--font-mono); font-weight: 700; font-size: 11px; color: rgba(189, 219, 245, 0.5); width: 18px; text-align: center; flex-shrink: 0; }
+.nav-item .nav-badge {
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: 9.5px; font-weight: 600;
+  background: rgba(30, 150, 252, 0.2); color: var(--pale-sky);
+  padding: 1px 6px; border-radius: 3px;
+}
+.nav-item.active .nav-badge { background: rgba(255,255,255,0.18); color: var(--white); }
+.sidebar-foot { margin-top: auto; padding: 14px 16px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 10px; color: rgba(189, 219, 245, 0.45); font-family: var(--font-mono); }
+.sidebar-foot-user {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: rgba(255,255,255,0.75);
+  font-family: var(--font); margin-bottom: 6px;
+}
+.sidebar-foot-avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--dusk); color: var(--white);
+  display: grid; place-items: center;
+  font-size: 10px; font-weight: 700;
+}
+
+/* ======================== CONTENT ======================== */
+.content { grid-area: content; padding: 18px 24px 40px; overflow-y: auto; max-width: 100%; }
+
+/* ---------- Page header ---------- */
+.exec-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.exec-page-header-text { flex: 1 1 580px; min-width: 0; }
+.exec-page-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 8px;
+  color: var(--text);
+  line-height: 1.15;
+}
+.exec-page-sub {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-2);
+  max-width: 800px;
+  margin: 0;
+}
+.exec-reporting-year {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  padding-top: 6px;
+  white-space: nowrap;
+}
+.exec-reporting-year-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.exec-reporting-year-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dusk);
+  letter-spacing: -0.02em;
+}
+
+/* ---------- KPI Header cards (Exec summary style) ---------- */
+.exec-header-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ai-kpi-mini {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.ai-kpi-mini-tag {
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-2);
+  font-weight: 700; line-height: 1.2;
+}
+.ai-kpi-mini-hero {
+  font-size: 28px; font-weight: 700;
+  color: var(--dusk); letter-spacing: -0.022em;
+  font-feature-settings: "tnum"; line-height: 1;
+  margin-top: 8px;
+}
+.ai-kpi-mini-hero .unit-sub {
+  font-size: 13px; color: var(--text-3);
+  font-weight: 600; margin-left: 2px;
+}
+.ai-kpi-mini-sub {
+  font-size: 11px; color: var(--text-3); font-weight: 500;
+  margin-top: 6px; line-height: 1.4;
+}
+.ai-kpi-mini-detail {
+  font-size: 10.5px; color: var(--text-4);
+  margin-top: 8px; padding-top: 8px;
+  border-top: 1px dashed var(--line); line-height: 1.4;
+}
+.ai-header-card-row {
+  display: flex; align-items: flex-end;
+  justify-content: space-between; gap: 14px;
+  margin: 6px 0 4px;
+}
+.ai-header-card-delta {
+  font-size: 13px; font-weight: 700; line-height: 1;
+  letter-spacing: -0.01em;
+  padding: 3px 8px; border-radius: 99px;
+}
+.ai-header-card-delta.up { background: var(--green-tint); color: var(--green); }
+.ai-header-card-delta.down { background: var(--red-tint); color: var(--red); }
+.ai-header-card-delta.neutral { background: var(--white-smoke); color: var(--text-3); }
+
+/* ---------- View routing ---------- */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ---------- Section header ---------- */
+.ai-section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--dusk);
+  margin-bottom: 14px;
+}
+.ai-section-letter {
+  width: 32px; height: 32px;
+  background: var(--dusk); color: var(--white);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 800;
+  flex-shrink: 0;
+}
+.ai-section-name {
+  font-size: 14px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.01em;
+}
+.ai-section-sub {
+  font-size: 11px; color: var(--text-3); margin-top: 1px;
+}
+
+/* ---------- Card shell ---------- */
+.ai-card, .chart-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ai-card-head, .chart-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.ai-card-title, .chart-card-head h3 {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+.ai-card-sub, .chart-card-head .chart-sub {
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin: 2px 0 0;
+  font-weight: 500;
+}
+.ai-card-tag, .chart-card-head .chart-tag {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  color: var(--dusk); background: var(--dusk-tint);
+  padding: 2px 6px; border-radius: 3px;
+  white-space: nowrap; letter-spacing: 0.04em;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+/* ---------- Chart row grid ---------- */
+.chart-row { display: grid; gap: 12px; margin-bottom: 12px; }
+.chart-row.cols-2 { grid-template-columns: 1fr 1fr; }
+.chart-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.chart-row.cols-2-1 { grid-template-columns: 2fr 1fr; }
+.chart-row.cols-1-2 { grid-template-columns: 1fr 2fr; }
+@media (max-width: 1100px) {
+  .chart-row.cols-2, .chart-row.cols-3,
+  .chart-row.cols-2-1, .chart-row.cols-1-2 { grid-template-columns: 1fr; }
+}
+
+/* ======================================================== */
+/* DASHBOARD VIEW                                            */
+/* ======================================================== */
+
+/* Pipeline stages */
+.pipeline-stages {
+  display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+}
+.stage {
+  background: var(--bright-snow);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 8px;
+  text-align: center;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.stage:hover { border-color: var(--dusk); background: var(--white); }
+.stage-count {
+  font-size: 22px; font-weight: 700;
+  color: var(--dusk); letter-spacing: -0.02em;
+  font-feature-settings: "tnum"; line-height: 1;
+}
+.stage-label {
+  font-size: 9px; font-weight: 700;
+  color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.06em; margin-top: 5px;
+}
+.stage::after {
+  content: ''; position: absolute; right: -7px; top: 50%;
+  transform: translateY(-50%);
+  width: 10px; height: 10px;
+  background: var(--white-smoke);
+  border-right: 1px solid var(--line);
+  border-top: 1px solid var(--line);
+  transform: translateY(-50%) rotate(45deg);
+  z-index: 1;
+}
+.stage:last-child::after { display: none; }
+
+/* DAC distribution bars */
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 70px;
+  gap: 8px;
+  align-items: center;
+  font-size: 11px;
+  padding: 2px 0;
+}
+.bar-row .bar-label {
+  color: var(--text-2);
+  font-weight: 500;
+  font-size: 11px;
+}
+.bar-row .bar-track {
+  height: 18px;
+  background: var(--white-smoke);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+.bar-row .bar-fill {
+  height: 100%;
+  background: var(--dusk);
+  border-radius: 3px;
+  transition: width 0.4s ease;
+}
+.bar-row .bar-value {
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--text);
+  text-align: right;
+  font-feature-settings: "tnum";
+}
+
+/* Data table */
+.data-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.data-table th, .data-table td {
+  text-align: left; padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.data-table thead th {
+  font-size: 9.5px; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-3);
+  font-weight: 700; background: var(--white-smoke);
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+.data-table tbody tr:hover td { background: var(--bright-snow); }
+.data-table tbody tr:last-child td { border-bottom: none; }
+.wp-title {
+  font-weight: 600; color: var(--text);
+  font-size: 12px;
+}
+.wp-id {
+  font-family: var(--font-mono);
+  font-size: 10px; color: var(--text-3);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+/* Pills (status) */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 3px;
+  font-family: var(--font-mono); font-size: 9.5px;
+  font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.04em; white-space: nowrap;
+}
+.pill.dusk { background: var(--dusk-tint); color: var(--dusk); }
+.pill.green { background: var(--green-tint); color: var(--green); }
+.pill.red { background: var(--red-tint); color: var(--red); }
+.pill.amber { background: var(--amber-tint); color: var(--amber); }
+.pill.gray { background: var(--white-smoke); color: var(--text-3); }
+
+/* Alert cards */
+.alert-card {
+  display: flex; gap: 10px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--dusk);
+  background: var(--bright-snow);
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.alert-card:hover { background: var(--white-smoke); }
+.alert-card.amber { border-left-color: var(--amber); }
+.alert-card.red { border-left-color: var(--red); }
+.alert-text {
+  font-size: 11.5px; line-height: 1.45;
+  color: var(--text-2); flex: 1;
+}
+.alert-text b {
+  font-weight: 700; color: var(--text);
+  display: block; margin-bottom: 2px;
+  font-size: 12px;
+}
+.alert-text time {
+  display: block; margin-top: 3px;
+  font-size: 10px; color: var(--text-4);
+  font-family: var(--font-mono);
+}
+
+/* ======================================================== */
+/* INTAKE WIZARD                                              */
+/* ======================================================== */
+.wizard-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+}
+@media (max-width: 1100px) { .wizard-shell { grid-template-columns: 1fr; } }
+
+.wizard-steps {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 14px;
+  align-self: start;
+  position: sticky; top: 76px;
+}
+.wizard-steps-title {
+  font-size: 10px; font-weight: 700;
+  color: var(--text-3); text-transform: uppercase;
+  letter-spacing: 0.08em; margin-bottom: 12px;
+}
+.step {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 4px; cursor: pointer; position: relative;
+}
+.step:not(:last-child)::before {
+  content: ""; position: absolute;
+  left: 13px; top: 30px; bottom: -5px;
+  width: 1.5px; background: var(--line);
+}
+.step.done:not(:last-child)::before { background: var(--dusk); }
+.step-dot {
+  width: 24px; height: 24px; border-radius: 50%;
+  border: 1.5px solid var(--line-strong); background: var(--white);
+  display: grid; place-items: center;
+  font-size: 10px; font-weight: 700;
+  color: var(--text-3); flex-shrink: 0;
+  font-family: var(--font); z-index: 1;
+}
+.step.active .step-dot {
+  background: var(--dusk); color: var(--white);
+  border-color: var(--dusk);
+  box-shadow: 0 0 0 3px var(--dusk-tint);
+}
+.step.done .step-dot {
+  background: var(--dusk); color: var(--white);
+  border-color: var(--dusk);
+}
+.step-info { padding-top: 2px; }
+.step-label {
+  font-size: 12px; font-weight: 600;
+  color: var(--text); line-height: 1.2;
+}
+.step.active .step-label { color: var(--dusk); }
+.step-desc {
+  font-size: 10px; color: var(--text-3); margin-top: 1px;
+}
+
+.wizard-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 22px 26px;
+}
+.wizard-step-label {
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 600;
+  color: var(--dusk); background: var(--dusk-tint);
+  padding: 2px 8px; border-radius: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: inline-block;
+}
+.wizard-h {
+  font-size: 19px; font-weight: 700;
+  margin: 12px 0 6px;
+  letter-spacing: -0.015em;
+}
+.wizard-sub {
+  color: var(--text-2); font-size: 12.5px;
+  margin: 0; line-height: 1.55;
+  max-width: 720px;
+}
+.wizard-divider {
+  height: 1px; background: var(--line);
+  margin: 22px 0;
+}
+.form-section-h {
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--dusk);
+  font-weight: 700; margin: 0 0 12px;
+  padding-bottom: 6px; border-bottom: 1px dashed var(--line);
+}
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+.field-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.full { grid-column: 1 / -1; }
+.form-field-label {
+  font-size: 10px; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-3);
+  font-weight: 700;
+  display: flex; align-items: center; gap: 6px;
+}
+.form-field-label .req { color: var(--red); margin-left: 2px; }
+.hint-i {
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--white-smoke); color: var(--text-3);
+  display: grid; place-items: center;
+  font-size: 8.5px; font-weight: 700; cursor: help;
+}
+.form-input, .form-select, .form-textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  font-family: var(--font);
+  font-size: 12px; background: var(--white); color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none; border-color: var(--dusk);
+  box-shadow: 0 0 0 2px var(--dusk-tint);
+}
+.form-textarea { min-height: 80px; resize: vertical; }
+.field-hint {
+  font-size: 10px; color: var(--text-4);
+  font-weight: 500; line-height: 1.4; margin-top: 2px;
+}
+
+/* Y/N/NA toggle */
+.ynna { display: flex; gap: 4px; }
+.ynna button {
+  flex: 1; padding: 7px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--white); color: var(--text-2);
+  font-family: var(--font); font-size: 11px;
+  font-weight: 600; cursor: pointer;
+  transition: all 0.15s;
+}
+.ynna button:hover { border-color: var(--dusk); color: var(--dusk); }
+.ynna button.on.yes { background: var(--green-tint); color: var(--green); border-color: var(--green); }
+.ynna button.on.no { background: var(--red-tint); color: var(--red); border-color: var(--red); }
+.ynna button.on.na { background: var(--white-smoke); color: var(--text-2); border-color: var(--text-3); }
+
+/* Info banners */
+.info-banner {
+  display: flex; gap: 12px;
+  padding: 12px 14px;
+  background: var(--dusk-tint);
+  border-left: 3px solid var(--dusk);
+  border-radius: 0 5px 5px 0;
+  margin-bottom: 18px;
+}
+.info-banner-icon {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--dusk); color: var(--white);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.info-banner-body b {
+  font-weight: 700; color: var(--text);
+  display: block; font-size: 12px; margin-bottom: 2px;
+}
+.info-banner-body p {
+  margin: 0; font-size: 11.5px;
+  color: var(--text-2); line-height: 1.5;
+}
+
+.dac-alert {
+  display: flex; gap: 12px;
+  padding: 12px 14px;
+  background: var(--amber-tint);
+  border-left: 3px solid var(--amber);
+  border-radius: 0 5px 5px 0;
+  margin-top: 16px;
+}
+.dac-alert-icon {
+  width: 32px; height: 32px; border-radius: 6px;
+  background: var(--amber); color: var(--white);
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.dac-alert b {
+  font-weight: 700; color: var(--amber);
+  display: block; font-size: 12px; margin-bottom: 2px;
+}
+.dac-alert p {
+  margin: 0; font-size: 11.5px;
+  color: var(--text-2); line-height: 1.5;
+}
+
+/* DAC map preview */
+.map-preview {
+  height: 220px; border-radius: 6px;
+  border: 1px solid var(--line);
+  position: relative; overflow: hidden;
+  margin-top: 14px;
+  background:
+    radial-gradient(circle at 30% 40%, rgba(184,134,11,0.22) 0%, transparent 26%),
+    radial-gradient(circle at 64% 56%, rgba(184,134,11,0.16) 0%, transparent 22%),
+    radial-gradient(circle at 46% 72%, rgba(184,134,11,0.18) 0%, transparent 18%),
+    var(--bright-snow);
+}
+.map-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(3,24,36,0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(3,24,36,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.map-pin {
+  position: absolute; transform: translate(-50%, -100%);
+}
+.map-pin .pin-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--dusk); border: 2.5px solid var(--white);
+  box-shadow: 0 2px 6px rgba(3, 24, 36, 0.25);
+}
+.map-radius {
+  position: absolute; border-radius: 50%;
+  border: 1.5px dashed var(--dusk);
+  background: rgba(47, 84, 150, 0.06);
+  transform: translate(-50%, -50%);
+}
+.map-legend {
+  position: absolute; top: 10px; right: 10px;
+  background: var(--white); border: 1px solid var(--line);
+  border-radius: 5px; padding: 8px 10px;
+  font-size: 10px;
+  box-shadow: 0 2px 6px rgba(3,24,36,0.06);
+}
+.map-legend-row { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.map-legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+.wizard-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-top: 22px; padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.save-indicator {
+  font-size: 11px; color: var(--text-3);
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+}
+.save-indicator::before {
+  content: ""; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--green);
+}
+
+/* ======================================================== */
+/* DRAFT / REVIEW                                             */
+/* ======================================================== */
+.draft-shell {
+  display: grid; grid-template-columns: 1.7fr 1fr; gap: 14px;
+}
+@media (max-width: 1100px) { .draft-shell { grid-template-columns: 1fr; } }
+
+.doc-card {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.doc-toolbar {
+  display: flex; align-items: center; gap: 4px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bright-snow);
+}
+.doc-toolbar .tool {
+  width: 28px; height: 28px; border-radius: 4px;
+  display: grid; place-items: center;
+  color: var(--text-3); cursor: pointer;
+  background: transparent; border: none;
+  transition: background 0.15s, color 0.15s;
+}
+.doc-toolbar .tool:hover { background: var(--white-smoke); color: var(--text); }
+.doc-toolbar .sep { width: 1px; height: 18px; background: var(--line); margin: 0 2px; }
+.doc-toolbar-meta {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px; color: var(--text-3);
+}
+.doc-body {
+  padding: 22px 30px;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--text-2);
+  max-height: 580px; overflow-y: auto;
+}
+.doc-body h2 {
+  font-size: 15px; font-weight: 700;
+  margin: 16px 0 8px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.doc-body h3 {
+  font-size: 13px; font-weight: 600;
+  margin: 12px 0 6px; color: var(--text);
+}
+.doc-body p { margin: 0 0 10px; }
+.doc-meta {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bright-snow);
+  border: 1px solid var(--line);
+  border-radius: 5px; margin-bottom: 18px;
+  font-size: 11.5px;
+}
+.doc-meta-row span {
+  display: block; font-size: 9px;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3); font-weight: 700; margin-bottom: 2px;
+}
+.doc-meta-row b { font-weight: 600; color: var(--text); }
+.hl-dusk { background: var(--dusk-tint); padding: 1px 3px; border-radius: 2px; }
+.hl-amber { background: var(--amber-tint); padding: 1px 3px; border-radius: 2px; }
+
+.review-panel { display: flex; flex-direction: column; gap: 12px; }
+.review-tabs {
+  display: flex; gap: 1px;
+  background: var(--white-smoke);
+  border-radius: 5px; padding: 2px;
+  margin-bottom: 4px;
+}
+.review-tab {
+  flex: 1; padding: 6px;
+  border-radius: 4px;
+  font-size: 11px; font-weight: 600;
+  color: var(--text-3); cursor: pointer;
+  text-align: center; transition: all 0.15s;
+  background: transparent; border: none;
+  font-family: var(--font);
+}
+.review-tab.active { background: var(--white); color: var(--dusk); box-shadow: 0 1px 2px rgba(3,24,36,0.08); }
+
+.reviewer {
+  display: flex; gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  margin-bottom: 6px;
+  align-items: center;
+}
+.reviewer-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--dusk); color: var(--white);
+  display: grid; place-items: center;
+  font-size: 10.5px; font-weight: 700;
+  font-family: var(--font); flex-shrink: 0;
+}
+.reviewer-info { flex: 1; }
+.reviewer-name {
+  font-size: 12px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.reviewer-role {
+  font-size: 10px; color: var(--text-3); margin-top: 1px;
+}
+
+.ai-suggest {
+  border: 1px solid var(--line);
+  background: var(--dusk-tint);
+  padding: 12px 14px;
+  border-radius: 6px;
+  border-left: 3px solid var(--dusk);
+}
+.ai-suggest-header {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 700; font-size: 12px;
+  color: var(--dusk);
+}
+.ai-icon {
+  width: 22px; height: 22px; border-radius: 5px;
+  background: var(--dusk); color: var(--white);
+  display: grid; place-items: center;
+}
+.ai-suggest p {
+  margin: 0 0 8px; font-size: 11.5px;
+  line-height: 1.5; color: var(--text-2);
+}
+.ai-quote {
+  background: var(--white); padding: 8px 11px;
+  border-radius: 4px; border: 1px dashed var(--line);
+  font-size: 11px; line-height: 1.55;
+  font-style: italic; color: var(--text-2);
+}
+.ai-actions { display: flex; gap: 6px; margin-top: 8px; }
+.ai-btn {
+  padding: 5px 10px; border-radius: 4px;
+  font-size: 11px; font-weight: 600;
+  font-family: var(--font); cursor: pointer;
+  border: none;
+}
+.ai-btn-primary { background: var(--dusk); color: var(--white); }
+.ai-btn-primary:hover { background: var(--ink-2); }
+.ai-btn-ghost {
+  background: var(--white); color: var(--text-2);
+  border: 1px solid var(--line);
+}
+.ai-btn-ghost:hover { background: var(--bright-snow); }
+
+.sync-card {
+  border: 1px solid var(--line);
+  background: var(--white);
+  border-radius: 6px;
+  padding: 12px;
+}
+.sync-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.sync-card-title {
+  font-size: 12px; font-weight: 700; color: var(--text);
+}
+.sync-card-desc {
+  font-size: 11px; color: var(--text-3); line-height: 1.5;
+}
+
+/* ======================================================== */
+/* ANALYTICS                                                  */
+/* ======================================================== */
+.analytics-tabs {
+  display: flex; gap: 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 18px;
+}
+.a-tab {
+  padding: 10px 16px;
+  font-size: 12px; font-weight: 600;
+  color: var(--text-3); cursor: pointer;
+  position: relative;
+  background: transparent; border: none;
+  font-family: var(--font);
+  transition: color 0.15s;
+}
+.a-tab.active { color: var(--dusk); }
+.a-tab.active::after {
+  content: ""; position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px; background: var(--dusk);
+}
+.a-tab:hover { color: var(--text); }
+
+/* Heatmap */
+.heatmap {
+  display: grid;
+  grid-template-columns: 130px repeat(6, 1fr);
+  gap: 3px; font-size: 11px;
+  margin-top: 6px;
+}
+.heat-cell {
+  height: 32px; border-radius: 3px;
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-weight: 700; font-size: 10.5px;
+  color: var(--white);
+  font-feature-settings: "tnum";
+}
+.heat-label {
+  height: 32px; display: flex; align-items: center;
+  font-weight: 600; font-size: 11px;
+  color: var(--text-2);
+}
+.heat-header {
+  height: 28px; display: flex; align-items: center; justify-content: center;
+  font-size: 9.5px; font-weight: 700; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.heat-legend {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 12px; padding-top: 10px;
+  border-top: 1px solid var(--line);
+  font-size: 10px; color: var(--text-3);
+}
+.heat-legend-strip {
+  display: flex; gap: 1px;
+}
+.heat-legend-cell {
+  width: 22px; height: 10px;
+}
+
+/* Donut */
+.donut-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.donut-wrap svg { display: block; max-width: 180px; }
+.donut-legend {
+  width: 100%; padding-top: 12px;
+  border-top: 1px solid var(--line);
+  margin-top: 8px;
+}
+.donut-legend-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 0; font-size: 11.5px;
+}
+.donut-legend-row .sw {
+  width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0;
+}
+.donut-legend-row b {
+  font-weight: 600; color: var(--text);
+  flex: 1;
+}
+.donut-legend-row span {
+  font-family: var(--font-mono); font-weight: 600;
+  color: var(--dusk); font-feature-settings: "tnum";
+}
+
+/* Line chart */
+.line-chart { height: 220px; position: relative; }
+
+/* Stat tiles */
+.stat-tile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+.stat-tile {
+  background: var(--bright-snow);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.stat-tile-label {
+  font-size: 9.5px; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--text-3); font-weight: 700;
+}
+.stat-tile-value {
+  font-family: var(--font); font-weight: 700;
+  font-size: 18px; margin-top: 4px;
+  letter-spacing: -0.01em;
+  font-feature-settings: "tnum";
+  color: var(--dusk);
+}
+.stat-tile-sub {
+  font-size: 10px; color: var(--text-3); margin-top: 2px;
+}
+
+/* ======================================================== */
+/* CASEWORK                                                   */
+/* ======================================================== */
+.casework-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 14px;
+}
+@media (max-width: 1100px) { .casework-grid { grid-template-columns: 1fr; } }
+
+.case-tag {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  background: var(--dusk-tint); color: var(--dusk);
+  padding: 3px 8px; border-radius: 3px;
+  margin-bottom: 6px;
+}
+.case-h {
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.case-sub {
+  font-size: 11.5px; color: var(--text-3);
+  margin-top: 3px;
+}
+
+.file-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.file-row:hover { border-color: var(--dusk); background: var(--bright-snow); }
+.file-icon {
+  width: 30px; height: 38px; border-radius: 4px;
+  display: grid; place-items: center;
+  color: var(--white);
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 700;
+  flex-shrink: 0;
+}
+.file-icon.pdf { background: #B23B2A; }
+.file-icon.xls { background: var(--green); }
+.file-icon.doc { background: var(--dusk); }
+.file-info { flex: 1; min-width: 0; }
+.file-name {
+  font-size: 12px; font-weight: 600; color: var(--text);
+}
+.file-meta {
+  font-size: 10.5px; color: var(--text-3); margin-top: 2px;
+}
+.file-action {
+  font-size: 11px; font-weight: 600;
+  color: var(--dusk);
+}
+
+/* Part 105 grid */
+.p105-grid {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.p105-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  border-bottom: 1px solid var(--line);
+}
+.p105-row:last-child { border-bottom: none; }
+.p105-key {
+  padding: 9px 12px;
+  background: var(--bright-snow);
+  font-size: 10.5px; font-weight: 700;
+  color: var(--text-2);
+  border-right: 1px solid var(--line);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.p105-val {
+  padding: 9px 12px;
+  font-size: 11.5px;
+  color: var(--text); line-height: 1.5;
+}
+
+/* Timeline */
+.timeline {
+  position: relative; padding-left: 24px;
+}
+.timeline::before {
+  content: ""; position: absolute;
+  left: 9px; top: 6px; bottom: 6px;
+  width: 1.5px; background: var(--line);
+}
+.tl-item { position: relative; margin-bottom: 16px; }
+.tl-item:last-child { margin-bottom: 0; }
+.tl-dot {
+  position: absolute; left: -19px; top: 4px;
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--white); border: 2.5px solid var(--dusk);
+}
+.tl-item.done .tl-dot { background: var(--dusk); }
+.tl-time {
+  font-size: 10px; color: var(--text-3);
+  font-family: var(--font-mono);
+}
+.tl-title {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  margin-top: 2px;
+}
+.tl-meta {
+  font-size: 11px; color: var(--text-3); margin-top: 3px;
+  line-height: 1.4;
+}
+
+/* Compliance checklist */
+.check-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+.check-row:last-child { border-bottom: none; }
+.ck {
+  width: 18px; height: 18px; border-radius: 4px;
+  display: grid; place-items: center; flex-shrink: 0;
+}
+.ck.ok { background: var(--green-tint); color: var(--green); }
+.ck.warn { background: var(--amber-tint); color: var(--amber); }
+.check-row .label { flex: 1; color: var(--text-2); }
+.check-row .status {
+  font-size: 10.5px; font-weight: 700;
+  font-family: var(--font-mono);
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.check-row .status.ok { color: var(--green); }
+.check-row .status.warn { color: var(--amber); }
+
+/* ======================================================== */
+/* HANDOFF VIEW                                              */
+/* ======================================================== */
+.handoff-banner {
+  background: var(--ink);
+  color: var(--white);
+  border-radius: 8px;
+  padding: 22px 26px;
+  margin-bottom: 18px;
+  position: relative;
+  overflow: hidden;
+}
+.handoff-banner::before {
+  content: ""; position: absolute;
+  top: 0; right: 0; width: 280px; height: 100%;
+  background: radial-gradient(circle at 75% 50%, rgba(30, 150, 252, 0.18), transparent 70%);
+  pointer-events: none;
+}
+.handoff-banner-row {
+  display: flex; align-items: center; gap: 22px;
+  position: relative;
+}
+.handoff-stage {
+  flex: 1; padding: 0; min-width: 0;
+}
+.handoff-stage-tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: rgba(189, 219, 245, 0.65);
+  margin-bottom: 6px;
+}
+.handoff-stage-title {
+  font-size: 16px; font-weight: 700;
+  letter-spacing: -0.01em; line-height: 1.2;
+  margin-bottom: 3px;
+}
+.handoff-stage.completed .handoff-stage-title { color: var(--white); }
+.handoff-stage.target   .handoff-stage-title { color: var(--pale-sky); }
+.handoff-stage-meta {
+  font-size: 11px; color: rgba(189, 219, 245, 0.6);
+  font-family: var(--font-mono);
+}
+.handoff-arrow {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px;
+  background: rgba(30, 150, 252, 0.15);
+  border: 1px solid rgba(30, 150, 252, 0.3);
+  border-radius: 50%;
+  color: var(--dodger);
+  font-size: 18px; font-weight: 700;
+}
+.handoff-status-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: var(--dodger-tint); color: var(--dusk);
+  padding: 4px 12px; border-radius: 99px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+}
+.handoff-status-pill::before {
+  content: ""; width: 8px; height: 8px;
+  border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 0 3px rgba(42, 119, 85, 0.22);
+}
+.handoff-cta {
+  background: var(--dodger); color: var(--white);
+  border: none; padding: 11px 22px;
+  border-radius: 6px;
+  font-family: var(--font); font-weight: 700; font-size: 13px;
+  cursor: pointer;
+  display: inline-flex; align-items: center; gap: 8px;
+  transition: background 0.15s;
+}
+.handoff-cta:hover { background: #1A87E5; }
+.handoff-cta svg { width: 14px; height: 14px; }
+
+/* External system badge */
+.ext-system-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px;
+  background: var(--bright-snow);
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+  margin-bottom: 14px;
+}
+.ext-system-icon {
+  width: 36px; height: 36px; border-radius: 6px;
+  background: var(--ink); color: var(--white);
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+}
+.ext-system-info { flex: 1; }
+.ext-system-name {
+  font-size: 12.5px; font-weight: 700; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
+.ext-system-meta {
+  font-size: 11px; color: var(--text-3); margin-top: 2px;
+}
+.ext-system-link {
+  font-family: var(--font-mono);
+  font-size: 10.5px; font-weight: 600;
+  color: var(--dusk);
+}
+.ext-tag {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.08em;
+  background: var(--white-smoke); color: var(--text-3);
+  padding: 2px 6px; border-radius: 3px;
+  text-transform: uppercase;
+}
+.ext-tag.external { background: var(--ink); color: var(--white); }
+
+/* Handoff timeline — "this app's responsibility ends here" marker */
+.tl-handoff-marker {
+  margin-left: -24px;
+  margin-right: 0;
+  margin-top: 4px;
+  margin-bottom: 16px;
+  padding: 7px 12px 7px 24px;
+  background: var(--dodger-tint);
+  border-left: 3px solid var(--dodger);
+  border-radius: 0 4px 4px 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dusk);
+}
+.tl-item.external .tl-dot {
+  background: var(--white);
+  border-color: var(--text-4);
+  border-style: dashed;
+}
+.tl-item.external .tl-title,
+.tl-item.external .tl-time {
+  color: var(--text-3);
+}
+.tl-item.external .tl-title::after {
+  content: " · external"; font-weight: 500;
+  font-size: 10px; color: var(--text-4);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============== SIDEBAR ============== -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">CE</div>
+      <div class="sidebar-brand-mark">
+        White Paper Portal
+        <span class="dot"></span>
+      </div>
+      <div class="sidebar-brand-sub">Rate Case 26-E-0142</div>
+    </div>
+
+    <div class="sidebar-section">Overview</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#" data-view="dashboard">
+        <span class="nav-letter">⌂</span> Dashboard
+      </a>
+    </nav>
+
+    <div class="sidebar-section">Workflow</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#" data-view="intake">
+        <span class="nav-letter">1</span> Intake Wizard
+        <span class="nav-badge">3/6</span>
+      </a>
+      <a class="nav-item" href="#" data-view="draft">
+        <span class="nav-letter">2</span> Draft &amp; Review
+        <span class="nav-badge">12</span>
+      </a>
+      <a class="nav-item" href="#" data-view="casework">
+        <span class="nav-letter">3</span> Handoff to Casework
+      </a>
+    </nav>
+
+    <div class="sidebar-section">Analytics</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#" data-view="analytics">
+        <span class="nav-letter">↗</span> DAC &amp; Sustainability
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-letter">↗</span> CE-12 Benefits
+      </a>
+    </nav>
+
+    <div class="sidebar-section">Library</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#">
+        <span class="nav-letter">⊟</span> Templates
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-letter">⌕</span> Search Archive
+      </a>
+      <a class="nav-item" href="#">
+        <span class="nav-letter">◉</span> Stakeholder Log
+      </a>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="sidebar-foot-user">
+        <div class="sidebar-foot-avatar">EG</div>
+        <div>
+          <div style="font-weight:600; color:var(--white);">E. Gutierrez</div>
+          <div style="font-size:10px; color:rgba(189,219,245,0.55);">Regulatory Affairs</div>
+        </div>
+      </div>
+      v2.4.1 · Build 26b
+    </div>
+  </aside>
+
+  <!-- ============== TOPBAR ============== -->
+  <header class="topbar">
+    <div class="topbar-title">
+      <span class="topbar-logo">CE</span>
+      <span class="crumb">White Paper Portal</span>
+      <span class="crumb-sep">/</span>
+      <span id="crumb-current">Intake Wizard</span>
+    </div>
+    <div class="topbar-actions">
+      <span class="year-label">Rate Case</span>
+      <select class="case-select">
+        <option>26-E-0142 · CECONY Electric</option>
+        <option>26-G-0143 · CECONY Gas</option>
+        <option>26-E-0089 · O&amp;R Electric</option>
+      </select>
+      <button class="btn btn-secondary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF
+      </button>
+      <button class="btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        New White Paper
+      </button>
+    </div>
+  </header>
+
+  <!-- ============== CONTENT ============== -->
+  <main class="content">
+
+    <!-- ================================== -->
+    <!-- DASHBOARD                          -->
+    <!-- ================================== -->
+    <section class="view" id="view-dashboard">
+      <div class="exec-page-header">
+        <div class="exec-page-header-text">
+          <h1>Rate Case Dashboard</h1>
+          <p class="exec-page-sub">Centralized intake, drafting, DAC / Part 105 assessment, and Sustainability by Design capture for the 2025–2029 CECONY rate case. Each white paper exits this portal when its package is transmitted to <b>Con Edison Casework</b>, which carries it through legal review and PSC filing.</p>
+        </div>
+        <div class="exec-reporting-year">
+          <span class="exec-reporting-year-label">Filing Window</span>
+          <span class="exec-reporting-year-value">2026</span>
+        </div>
+      </div>
+
+      <!-- KPI Header cards -->
+      <div class="exec-header-cards">
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">Active White Papers</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">47</div>
+            <div class="ai-header-card-delta up">▲ 6</div>
+          </div>
+          <div class="ai-kpi-mini-detail">vs. 41 in 2023–2024 rate cycle</div>
+        </div>
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">DAC-Touching Projects</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">29<span class="unit-sub">/47</span></div>
+            <div class="ai-header-card-delta up">62%</div>
+          </div>
+          <div class="ai-kpi-mini-detail">621K customers served in DACs</div>
+        </div>
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">Part 105 Complete</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">38<span class="unit-sub">/47</span></div>
+            <div class="ai-header-card-delta up">81%</div>
+          </div>
+          <div class="ai-kpi-mini-detail">9 worksheets pending completion</div>
+        </div>
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">Avg. Cycle Time</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">18<span class="unit-sub">d</span></div>
+            <div class="ai-header-card-delta up">▼ 9d</div>
+          </div>
+          <div class="ai-kpi-mini-detail">intake → handoff to Casework · 27d baseline</div>
+        </div>
+      </div>
+
+      <!-- Pipeline -->
+      <div class="ai-section-header">
+        <div class="ai-section-letter">W</div>
+        <div>
+          <div class="ai-section-name">Workflow Pipeline</div>
+          <div class="ai-section-sub">Six-stage intake-to-handoff process · the portal's scope ends at Casework transmission</div>
+        </div>
+      </div>
+
+      <div class="ai-card" style="margin-bottom:14px;">
+        <div class="pipeline-stages">
+          <div class="stage"><div class="stage-count">7</div><div class="stage-label">Intake</div></div>
+          <div class="stage"><div class="stage-count">9</div><div class="stage-label">Assessment</div></div>
+          <div class="stage"><div class="stage-count">12</div><div class="stage-label">Drafting</div></div>
+          <div class="stage"><div class="stage-count">8</div><div class="stage-label">Review</div></div>
+          <div class="stage"><div class="stage-count">6</div><div class="stage-label">Approved</div></div>
+          <div class="stage"><div class="stage-count">5</div><div class="stage-label">→ Casework</div></div>
+        </div>
+      </div>
+
+      <!-- Recent + DAC + Alerts -->
+      <div class="chart-row cols-2-1">
+        <div class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <div class="ai-card-title">Recent White Papers</div>
+              <p class="ai-card-sub">Last activity across all rate-case exhibits</p>
+            </div>
+            <span class="ai-card-tag">47 Total</span>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Title · Exhibit</th>
+                <th>Owner</th>
+                <th>DAC</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="wp-title">Affordable Multifamily Electrification Pilot</div>
+                  <div class="wp-id">Exhibit__(CES-6) · WP-2026-0142</div>
+                </td>
+                <td>S. Geissler</td>
+                <td><span class="pill amber">DAC Impact</span></td>
+                <td><span class="pill dusk">In Review</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="wp-title">Astoria–LIC Substation Reinforcement</div>
+                  <div class="wp-id">Exhibit__(EOP-12) · WP-2026-0118</div>
+                </td>
+                <td>R. Patel</td>
+                <td><span class="pill amber">DAC Impact</span></td>
+                <td><span class="pill red">Action Needed</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="wp-title">Heat Pump Adoption Incentive Program</div>
+                  <div class="wp-id">Exhibit__(CES-9) · WP-2026-0136</div>
+                </td>
+                <td>M. Chen</td>
+                <td><span class="pill green">No DAC</span></td>
+                <td><span class="pill green">→ Casework</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="wp-title">Bronx Distribution Upgrades — Phase II</div>
+                  <div class="wp-id">Exhibit__(EOP-7) · WP-2026-0089</div>
+                </td>
+                <td>A. Rivera</td>
+                <td><span class="pill amber">DAC Impact</span></td>
+                <td><span class="pill dusk">Approved</span></td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="wp-title">AMI Phase 3 Rollout — Brooklyn &amp; Queens</div>
+                  <div class="wp-id">Exhibit__(CSP-3) · WP-2026-0157</div>
+                </td>
+                <td>J. Okonkwo</td>
+                <td><span class="pill amber">DAC Impact</span></td>
+                <td><span class="pill gray">Drafting</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <div class="ai-card">
+            <div class="ai-card-head">
+              <div>
+                <div class="ai-card-title">DAC Portfolio Distribution</div>
+                <p class="ai-card-sub">% DAC capital share by program</p>
+              </div>
+              <span class="ai-card-tag">$847M</span>
+            </div>
+            <div class="bar-chart">
+              <div class="bar-row">
+                <div class="bar-label">Energy Efficiency</div>
+                <div class="bar-track"><div class="bar-fill" style="width:68%;"></div></div>
+                <div class="bar-value">68%</div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Electrification</div>
+                <div class="bar-track"><div class="bar-fill" style="width:54%;"></div></div>
+                <div class="bar-value">54%</div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Grid Modernization</div>
+                <div class="bar-track"><div class="bar-fill" style="width:41%;"></div></div>
+                <div class="bar-value">41%</div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">EV Infrastructure</div>
+                <div class="bar-track"><div class="bar-fill" style="width:37%;"></div></div>
+                <div class="bar-value">37%</div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-label">Resiliency / Hardening</div>
+                <div class="bar-track"><div class="bar-fill" style="width:29%;"></div></div>
+                <div class="bar-value">29%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-card">
+            <div class="ai-card-head">
+              <div>
+                <div class="ai-card-title">Alerts &amp; Reminders</div>
+                <p class="ai-card-sub">Issues requiring attention</p>
+              </div>
+              <span class="ai-card-tag">3 Active</span>
+            </div>
+            <div class="alert-card red">
+              <div class="alert-text">
+                <b>Part 105 worksheet incomplete</b>
+                Bronx Distribution Upgrades · 5 cells missing before legal review
+                <time>DUE IN 2 DAYS</time>
+              </div>
+            </div>
+            <div class="alert-card amber">
+              <div class="alert-text">
+                <b>DAC designation refresh available</b>
+                NYSERDA Dec 2025 census tract update · 4 papers affected
+                <time>1 DAY AGO</time>
+              </div>
+            </div>
+            <div class="alert-card">
+              <div class="alert-text">
+                <b>Stakeholder feedback received</b>
+                Mott Haven Coalition response logged · Astoria–LIC Reinforcement
+                <time>3 DAYS AGO</time>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================== -->
+    <!-- INTAKE WIZARD                      -->
+    <!-- ================================== -->
+    <section class="view active" id="view-intake">
+      <div class="exec-page-header">
+        <div class="exec-page-header-text">
+          <h1>Intake Wizard</h1>
+          <p class="exec-page-sub">Guided submission capturing identification, classification, combined DAC / Part 105 screening, Sustainability by Design, and stakeholder engagement in a single structured flow. Data is entered once and synchronized to the draft narrative, the Part 105 worksheet, and the analytics layer.</p>
+        </div>
+        <div class="exec-reporting-year">
+          <span class="exec-reporting-year-label">Step</span>
+          <span class="exec-reporting-year-value">3<span style="font-size:13px; color:var(--text-3); font-weight:600;">/6</span></span>
+        </div>
+      </div>
+
+      <div class="wizard-shell">
+        <!-- Steps rail -->
+        <div class="wizard-steps">
+          <div class="wizard-steps-title">Submission Progress</div>
+          <div class="step done"><div class="step-dot">✓</div><div class="step-info"><div class="step-label">Identification</div><div class="step-desc">Case &amp; owner</div></div></div>
+          <div class="step done"><div class="step-dot">✓</div><div class="step-info"><div class="step-label">Classification</div><div class="step-desc">Type, category, funding</div></div></div>
+          <div class="step active"><div class="step-dot">3</div><div class="step-info"><div class="step-label">DAC / Part 105</div><div class="step-desc">Screening + burdens &amp; benefits</div></div></div>
+          <div class="step"><div class="step-dot">4</div><div class="step-info"><div class="step-label">Sustainability by Design</div><div class="step-desc">Lifecycle &amp; circularity</div></div></div>
+          <div class="step"><div class="step-dot">5</div><div class="step-info"><div class="step-label">Engagement</div><div class="step-desc">Stakeholder log</div></div></div>
+          <div class="step"><div class="step-dot">6</div><div class="step-info"><div class="step-label">Review &amp; Submit</div><div class="step-desc">Draft generation</div></div></div>
+        </div>
+
+        <!-- Card -->
+        <div class="wizard-card">
+          <span class="wizard-step-label">Step 3 of 6 · DAC / Part 105 Assessment</span>
+          <h2 class="wizard-h">DAC Screening &amp; Part 105 Disproportionate Burden Assessment</h2>
+          <p class="wizard-sub">Per CLCPA §7(3), establish whether this project is located in or impacts a designated disadvantaged community, then capture the full Part 105 burden, benefit, alternative, and mitigation narrative. Every field below maps 1:1 to a column in DPS Staff's Part 105 worksheet.</p>
+
+          <div class="info-banner" style="margin-top:20px;">
+            <div class="info-banner-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7v10a10 10 0 0 0 10 5 10 10 0 0 0 10-5V7l-10-5z"/></svg>
+            </div>
+            <div class="info-banner-body">
+              <b>Using December 2025 DAC designations</b>
+              <p>Source: NYSERDA / Climate Justice Working Group. Census tract maps refresh nightly. If designations change, the portal flags affected papers for re-screening.</p>
+            </div>
+          </div>
+
+          <h3 class="form-section-h">Reference Information</h3>
+          <div class="field-grid">
+            <div class="field">
+              <label class="form-field-label">Exhibit <span class="req">*</span></label>
+              <input class="form-input" value="Exhibit__(CES-6)" />
+            </div>
+            <div class="field">
+              <label class="form-field-label">Item Number</label>
+              <input class="form-input" value="6.4.2" />
+            </div>
+            <div class="field">
+              <label class="form-field-label">Page Number</label>
+              <input class="form-input" value="Page 14 of 51" />
+            </div>
+            <div class="field full">
+              <label class="form-field-label">Item Name <span class="req">*</span></label>
+              <input class="form-input" value="Affordable Multifamily Electrification Pilot" />
+            </div>
+          </div>
+
+          <div class="wizard-divider"></div>
+
+          <h3 class="form-section-h">Location &amp; Scale of Impact</h3>
+          <div class="field-grid cols-2">
+            <div class="field">
+              <label class="form-field-label">
+                Project fully or partially located in a DAC?
+                <span class="hint-i" title="Y / N / N/A only. N/A only when no determinate physical presence.">i</span>
+              </label>
+              <div class="ynna" data-ynna>
+                <button class="on yes">Yes</button>
+                <button>No</button>
+                <button>N/A</button>
+              </div>
+              <div class="field-hint">Auto-resolved by intersecting project address with NYSERDA DAC tracts.</div>
+            </div>
+
+            <div class="field">
+              <label class="form-field-label">Expected impact radius (mi)</label>
+              <input class="form-input" value="0.5 mi" />
+              <div class="field-hint">Air, noise, traffic, or co-pollutant impacts extending outward.</div>
+            </div>
+
+            <div class="field">
+              <label class="form-field-label">
+                DAC located within impact radius?
+                <span class="hint-i" title="Captures projects affecting DACs even if not inside one.">i</span>
+              </label>
+              <div class="ynna" data-ynna>
+                <button class="on yes">Yes</button>
+                <button>No</button>
+                <button>N/A</button>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="form-field-label">System-wide investment?</label>
+              <div class="ynna" data-ynna>
+                <button>Yes</button>
+                <button class="on no">No</button>
+                <button>N/A</button>
+              </div>
+              <div class="field-hint">If yes, switches to % DAC / % Non-DAC apportionment.</div>
+            </div>
+
+            <div class="field full">
+              <label class="form-field-label">Physical Address</label>
+              <input class="form-input" value="1235 Westchester Ave, Bronx, NY 10459 · Pilot Building Cluster A" />
+            </div>
+
+            <div class="field">
+              <label class="form-field-label">% DAC (territory share)</label>
+              <input class="form-input" value="78%" />
+            </div>
+            <div class="field">
+              <label class="form-field-label">% Non-DAC (territory share)</label>
+              <input class="form-input" value="22%" />
+            </div>
+
+            <div class="field">
+              <label class="form-field-label">Total customers impacted/served</label>
+              <input class="form-input" value="4,820" />
+            </div>
+            <div class="field">
+              <label class="form-field-label">DAC customers impacted/served</label>
+              <input class="form-input" value="3,760" />
+            </div>
+          </div>
+
+          <div class="dac-alert">
+            <div class="dac-alert-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+            <div>
+              <b>DAC overlap detected · 3 census tracts</b>
+              <p>Tracts 36005014300, 36005014500, and 36005014700 (Mott Haven / Hunts Point). Project address sits inside a DAC; a 0.5 mi radius intersects 2 additional DAC tracts. Part 105 columns E, G, and M will be auto-flagged.</p>
+            </div>
+          </div>
+
+          <div class="map-preview">
+            <div class="map-grid"></div>
+            <div class="map-radius" style="left:38%; top:52%; width:160px; height:160px;"></div>
+            <div class="map-pin" style="left:38%; top:52%;"><div class="pin-dot"></div></div>
+            <div class="map-pin" style="left:54%; top:38%;"><div class="pin-dot" style="background:var(--amber); width:12px; height:12px; border-width:2px;"></div></div>
+            <div class="map-pin" style="left:28%; top:65%;"><div class="pin-dot" style="background:var(--amber); width:12px; height:12px; border-width:2px;"></div></div>
+            <div class="map-legend">
+              <div class="map-legend-row"><span class="map-legend-swatch" style="background:rgba(184,134,11,0.4);"></span> DAC tract</div>
+              <div class="map-legend-row"><span class="map-legend-swatch" style="background:var(--dusk);"></span> Project site</div>
+              <div class="map-legend-row"><span class="map-legend-swatch" style="background:transparent; border:1.5px dashed var(--dusk);"></span> Impact radius</div>
+            </div>
+          </div>
+
+          <div class="wizard-divider"></div>
+
+          <h3 class="form-section-h">Part 105 Burden / Benefit Narrative</h3>
+          <div class="field-grid cols-2" style="grid-template-columns:1fr;">
+            <div class="field full">
+              <label class="form-field-label">
+                Burdens on DACs <span class="req">*</span>
+                <span class="hint-i" title="Part 105 column N. All potential burdens — environmental, health, temporary construction, long-term infrastructural.">i</span>
+              </label>
+              <textarea class="form-textarea">During the 14-day per-building install phase, Pilot Buildings within the Mott Haven and Hunts Point DACs may experience temporary increases in delivery traffic and equipment noise. No long-term emissions or land-use burdens are anticipated; the Pilot eliminates rather than introduces combustion emissions on-site.</textarea>
+              <div class="field-hint">Include both temporary construction burdens and long-term infrastructural burdens.</div>
+            </div>
+
+            <div class="field full">
+              <label class="form-field-label">
+                Benefits to DACs <span class="req">*</span>
+                <span class="hint-i" title="Part 105 column O. Improved conditions or reductions in existing burdens specific to DACs.">i</span>
+              </label>
+              <textarea class="form-textarea">Direct affordability protection via bill credit; reduction of indoor combustion exposure (NO₂, PM₂.₅, CO); ~62% reduction in building-attributable co-pollutant emissions; weatherization gains and in-unit cooling — particularly impactful given Mott Haven's elevated heat-vulnerability index.</textarea>
+            </div>
+
+            <div class="field full">
+              <label class="form-field-label">
+                Alternatives Considered <span class="req">*</span>
+                <span class="hint-i" title="Part 105 column P. Has the Company considered alternatives to avoid impact, or alternative locations?">i</span>
+              </label>
+              <textarea class="form-textarea">Two alternatives were evaluated and declined: (1) direct utility procurement of heat pumps — rejected as slower and yielding less policy learning; (2) voucher-only program with no bill-credit — rejected because it would not generate the cost-shift data the Pilot is designed to produce. Geographic relocation outside DACs was not considered appropriate given the §7(3) priority to deliver benefits to DACs.</textarea>
+            </div>
+
+            <div class="field full">
+              <label class="form-field-label">
+                Mitigation Measures <span class="req">*</span>
+                <span class="hint-i" title="Part 105 column Q. Measures the Company will take to reduce or eliminate identified burdens.">i</span>
+              </label>
+              <textarea class="form-textarea">Install windows restricted to 9am–5pm weekdays; multilingual (English / Spanish / Bengali) resident notices delivered 14 days pre-install; on-site bilingual liaison during install weeks; dedicated complaint line; monthly community check-ins with Mott Haven Coalition; coordination with building supers on freight elevator scheduling.</textarea>
+            </div>
+
+            <div class="field full">
+              <label class="form-field-label">
+                Public Engagement Summary <span class="req">*</span>
+                <span class="hint-i" title="Part 105 column R. Public participation undertaken and feedback received. Required field — state 'None' if no engagement.">i</span>
+              </label>
+              <textarea class="form-textarea">Aug–Nov 2025: four engagement events with Mott Haven Coalition, NOAH Preservation Network, Banana Kelly CIA, and two affordable housing operators. 87 attendees total; 23 comments captured. Feedback driving design changes: notice timeline extended from 7 to 14 days, multilingual materials added (Bengali included after Banana Kelly feedback), and a dedicated complaint line was added.</textarea>
+              <div class="field-hint">If no engagement has been undertaken, state so explicitly — DPS Staff requires this.</div>
+            </div>
+          </div>
+
+          <div class="wizard-footer">
+            <div class="save-indicator">Auto-saved · 12s ago · 23 fields synced to worksheet</div>
+            <div style="display:flex; gap:8px;">
+              <button class="btn btn-secondary">← Back to Classification</button>
+              <button class="btn">Continue to Sustainability by Design →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================== -->
+    <!-- DRAFT & REVIEW                     -->
+    <!-- ================================== -->
+    <section class="view" id="view-draft">
+      <div class="exec-page-header">
+        <div class="exec-page-header-text">
+          <h1>Draft &amp; Review</h1>
+          <p class="exec-page-sub">Affordable Multifamily Electrification Pilot · structured narrative editor with multi-team review, AI-assisted suggestions, and live two-way sync to the Part 105 worksheet and Sustainability by Design scorecard.</p>
+        </div>
+        <div class="exec-reporting-year">
+          <span class="exec-reporting-year-label">Status</span>
+          <span class="exec-reporting-year-value" style="font-size:16px;">In Review</span>
+        </div>
+      </div>
+
+      <div class="draft-shell">
+        <div class="doc-card">
+          <div class="doc-toolbar">
+            <button class="tool" title="Bold"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg></button>
+            <button class="tool" title="Italic"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+            <div class="sep"></div>
+            <button class="tool" title="Heading"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 4v16M18 4v16M6 12h12"/></svg></button>
+            <button class="tool" title="List"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+            <div class="sep"></div>
+            <button class="tool" title="Comment"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>
+            <div class="doc-toolbar-meta">v.4 · S. Geissler · 14 min ago</div>
+          </div>
+          <div class="doc-body">
+            <div class="doc-meta">
+              <div class="doc-meta-row"><span>Type</span><b>Program · O&amp;M</b></div>
+              <div class="doc-meta-row"><span>Category</span><b>Strategic</b></div>
+              <div class="doc-meta-row"><span>PM</span><b>S. Geissler</b></div>
+              <div class="doc-meta-row"><span>Start</span><b>Jan 1, 2026</b></div>
+              <div class="doc-meta-row"><span>Funding</span><b>$4,024K O&amp;M</b></div>
+              <div class="doc-meta-row"><span>DAC Coverage</span><b style="color:var(--dusk);">78% Bronx</b></div>
+            </div>
+
+            <h2>1. Project / Program Summary</h2>
+            <p><b>Work Description.</b> Consolidated Edison Company of New York ("CECONY" or "Company") proposes to design and implement an Affordable Multifamily Electrification Pilot ("Affordability Pilot" or "Pilot") that will provide bill credits to residents in <span class="hl-dusk">multifamily naturally occurring affordable housing (NOAH)</span> and low-income cooperative buildings to mitigate the cost shift that occurs when their buildings move from centralized fossil heating to in-unit heat pump systems tied to tenant meters.</p>
+            <p>The Pilot will allow the Company to collect new information about Pilot participants to produce an analysis of the heating cost shift, and to provide important learnings for a long-term policy solution.</p>
+
+            <h2>2. Challenge Addressed</h2>
+            <p>Multifamily buildings in New York City typically use centralized fossil fuel systems to provide heating. The building owner pays for fuel because there is usually one meter for the building; consequently, the building typically includes heating costs in residents' rent or through a common charge.</p>
+            <p>To achieve State and City building decarbonization goals, multifamily buildings will need to replace centralized fossil systems with electrified heating alternatives. A popular clean heat technology is a <span class="hl-amber">ductless heat pump</span>, which relies on electricity for both space heating and cooling.</p>
+
+            <h2>3. DAC &amp; Sustainability Profile</h2>
+            <p>Per CLCPA §7(3), this Pilot is partially located in <span class="hl-dusk">three Bronx DAC census tracts</span> (36005014300, 36005014500, 36005014700). Of the projected 4,820 customers served, <b>3,760 (78%)</b> reside in DACs. Forecast benefits include sustained reductions in indoor and outdoor co-pollutant exposure, weatherization improvements, and direct affordability protection through the bill-credit mechanism. See Part 105 worksheet, rows 14–19, for the full burden / benefit assessment.</p>
+          </div>
+        </div>
+
+        <div class="review-panel">
+          <div class="ai-card">
+            <div class="review-tabs">
+              <button class="review-tab active">Reviewers</button>
+              <button class="review-tab">Comments (8)</button>
+              <button class="review-tab">History</button>
+            </div>
+            <div class="reviewer">
+              <div class="reviewer-avatar">SG</div>
+              <div class="reviewer-info">
+                <div class="reviewer-name">Sara Geissler <span class="pill dusk">Owner</span></div>
+                <div class="reviewer-role">Program Mgr · Customer Energy Solutions</div>
+              </div>
+            </div>
+            <div class="reviewer">
+              <div class="reviewer-avatar" style="background:var(--green);">JT</div>
+              <div class="reviewer-info">
+                <div class="reviewer-name">James Torres</div>
+                <div class="reviewer-role">DAC Compliance Lead</div>
+              </div>
+              <span class="pill green">Approved</span>
+            </div>
+            <div class="reviewer">
+              <div class="reviewer-avatar" style="background:var(--amber);">PR</div>
+              <div class="reviewer-info">
+                <div class="reviewer-name">Priya Raghavan</div>
+                <div class="reviewer-role">Sustainability / GHG</div>
+              </div>
+              <span class="pill amber">Changes</span>
+            </div>
+            <div class="reviewer">
+              <div class="reviewer-avatar" style="background:var(--ink);">MK</div>
+              <div class="reviewer-info">
+                <div class="reviewer-name">Marcus Kowalski</div>
+                <div class="reviewer-role">Regulatory Counsel</div>
+              </div>
+              <span class="pill gray">Pending</span>
+            </div>
+            <div class="reviewer" style="margin-bottom:0;">
+              <div class="reviewer-avatar" style="background:var(--text-3);">DL</div>
+              <div class="reviewer-info">
+                <div class="reviewer-name">David Lin</div>
+                <div class="reviewer-role">Finance · Rate Design</div>
+              </div>
+              <span class="pill gray">Pending</span>
+            </div>
+          </div>
+
+          <div class="ai-suggest">
+            <div class="ai-suggest-header">
+              <div class="ai-icon">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+              </div>
+              AI Assist · Drafting Suggestion
+            </div>
+            <p><b>Section 2 may need a DAC burden discussion.</b> Based on Part 105 entries, the project has DAC overlap (78%) but the narrative does not explicitly address temporary construction noise/traffic burdens flagged in column N.</p>
+            <div class="ai-quote">"During the construction phase, Pilot Buildings within Mott Haven and Hunts Point may experience temporary increases in delivery traffic and equipment noise. CECONY will coordinate with building owners to schedule installation windows outside of evening hours and will provide multilingual resident notifications 14 days in advance."</div>
+            <div class="ai-actions">
+              <button class="ai-btn ai-btn-primary">Accept</button>
+              <button class="ai-btn ai-btn-ghost">Refine</button>
+              <button class="ai-btn ai-btn-ghost">Dismiss</button>
+            </div>
+          </div>
+
+          <div class="sync-card">
+            <div class="sync-card-head">
+              <div class="sync-card-title">Part 105 Auto-Sync</div>
+              <span class="pill green">✓ In Sync</span>
+            </div>
+            <div class="sync-card-desc">Changes propagate between narrative and worksheet on save · last sync 14 min ago across 17 fields.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================== -->
+    <!-- ANALYTICS                          -->
+    <!-- ================================== -->
+    <section class="view" id="view-analytics">
+      <div class="exec-page-header">
+        <div class="exec-page-header-text">
+          <h1>DAC &amp; Sustainability Analytics</h1>
+          <p class="exec-page-sub">CLCPA §7(3) burden distribution, 35–40% benefit tracking, and forecast GHG / co-pollutant impact across the 2025–2029 rate case. Drill into program, geography, and impact-type cuts.</p>
+        </div>
+        <div class="exec-reporting-year">
+          <span class="exec-reporting-year-label">Portfolio</span>
+          <span class="exec-reporting-year-value">$2.0B</span>
+        </div>
+      </div>
+
+      <div class="analytics-tabs">
+        <button class="a-tab active">DAC Distribution</button>
+        <button class="a-tab">Burdens &amp; Benefits</button>
+        <button class="a-tab">GHG &amp; Co-Pollutants</button>
+        <button class="a-tab">35–40% Tracking</button>
+        <button class="a-tab">Stakeholder Engagement</button>
+      </div>
+
+      <!-- KPI Header cards -->
+      <div class="exec-header-cards">
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">DAC Investment</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">$847<span class="unit-sub">M</span></div>
+            <div class="ai-header-card-delta up">42.3%</div>
+          </div>
+          <div class="ai-kpi-mini-detail">of $2.0B portfolio · ▲ from 38.1%</div>
+        </div>
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">Net Burden Score</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">−0.12</div>
+            <div class="ai-header-card-delta up">improving</div>
+          </div>
+          <div class="ai-kpi-mini-detail">vs. −0.34 baseline · scale −1 to +1</div>
+        </div>
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">GHG Reduction</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">1.84<span class="unit-sub">MMT</span></div>
+            <div class="ai-header-card-delta up">43% DAC</div>
+          </div>
+          <div class="ai-kpi-mini-detail">cumulative CO₂e avoided · 2026–2029</div>
+        </div>
+        <div class="ai-kpi-mini">
+          <div class="ai-kpi-mini-tag">DAC Customers Served</div>
+          <div class="ai-header-card-row">
+            <div class="ai-kpi-mini-hero">621<span class="unit-sub">K</span></div>
+            <div class="ai-header-card-delta up">▲ 47K</div>
+          </div>
+          <div class="ai-kpi-mini-detail">across 29 active projects</div>
+        </div>
+      </div>
+
+      <!-- Heatmap + Donut -->
+      <div class="chart-row cols-2-1">
+        <div class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <div class="ai-card-title">DAC Burden Heatmap · Program × Impact Type</div>
+              <p class="ai-card-sub">Aggregated from Part 105 column N · scale: green = net benefit, red = net burden</p>
+            </div>
+            <span class="ai-card-tag">47 Papers</span>
+          </div>
+          <div class="heatmap" id="heatmap-target">
+            <div></div>
+            <div class="heat-header">Air</div>
+            <div class="heat-header">Noise</div>
+            <div class="heat-header">Traffic</div>
+            <div class="heat-header">Land Use</div>
+            <div class="heat-header">Cost</div>
+            <div class="heat-header">Health</div>
+          </div>
+          <div class="heat-legend">
+            <span>Less burden</span>
+            <div class="heat-legend-strip">
+              <div class="heat-legend-cell" style="background:#2A7755;"></div>
+              <div class="heat-legend-cell" style="background:#5D9F7E;"></div>
+              <div class="heat-legend-cell" style="background:#8FA9B9;"></div>
+              <div class="heat-legend-cell" style="background:#C7916D;"></div>
+              <div class="heat-legend-cell" style="background:#B23B2A;"></div>
+            </div>
+            <span>More burden</span>
+          </div>
+        </div>
+
+        <div class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <div class="ai-card-title">Capital Allocation</div>
+              <p class="ai-card-sub">By DAC proximity</p>
+            </div>
+            <span class="ai-card-tag">$2.0B</span>
+          </div>
+          <div class="donut-wrap">
+            <svg viewBox="0 0 42 42" width="160" height="160">
+              <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--white-smoke)" stroke-width="5"/>
+              <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--dusk)" stroke-width="5"
+                      stroke-dasharray="42.3 57.7" stroke-dashoffset="25" stroke-linecap="butt"/>
+              <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--pale-sky)" stroke-width="5"
+                      stroke-dasharray="33 67" stroke-dashoffset="-17.3" stroke-linecap="butt"/>
+              <circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--text-4)" stroke-width="5"
+                      stroke-dasharray="24.7 75.3" stroke-dashoffset="-50.3" stroke-linecap="butt"/>
+              <text x="21" y="20" text-anchor="middle" font-family="Inter" font-weight="700" font-size="5" fill="var(--text)" letter-spacing="-0.02em">$2.0B</text>
+              <text x="21" y="25" text-anchor="middle" font-family="Inter" font-size="2.4" fill="var(--text-3)" letter-spacing="0.06em">TOTAL CAPITAL</text>
+            </svg>
+            <div class="donut-legend">
+              <div class="donut-legend-row">
+                <span class="sw" style="background:var(--dusk);"></span>
+                <b>In-DAC</b>
+                <span>42.3% · $847M</span>
+              </div>
+              <div class="donut-legend-row">
+                <span class="sw" style="background:var(--pale-sky);"></span>
+                <b>Adjacent (within radius)</b>
+                <span>33.0% · $660M</span>
+              </div>
+              <div class="donut-legend-row">
+                <span class="sw" style="background:var(--text-4);"></span>
+                <b>Non-DAC</b>
+                <span>24.7% · $494M</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GHG line + Burden/Benefit bars -->
+      <div class="chart-row cols-2">
+        <div class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <div class="ai-card-title">Forecast GHG Emissions Reduction</div>
+              <p class="ai-card-sub">Cumulative CO₂e avoided · 2026–2029 · DAC vs All projects</p>
+            </div>
+            <span class="ai-card-tag">MMT CO₂e</span>
+          </div>
+          <div class="line-chart">
+            <svg viewBox="0 0 600 200" preserveAspectRatio="none" width="100%" height="100%">
+              <defs>
+                <linearGradient id="ghgAll" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#BDDBF5" stop-opacity="0.5"/>
+                  <stop offset="1" stop-color="#BDDBF5" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="ghgDac" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="#2F5496" stop-opacity="0.35"/>
+                  <stop offset="1" stop-color="#2F5496" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <g stroke="rgba(3,24,36,0.08)" stroke-width="0.5">
+                <line x1="0" y1="40" x2="600" y2="40"/>
+                <line x1="0" y1="85" x2="600" y2="85"/>
+                <line x1="0" y1="130" x2="600" y2="130"/>
+                <line x1="0" y1="175" x2="600" y2="175"/>
+              </g>
+              <!-- All -->
+              <path d="M 40 160 L 175 125 L 310 85 L 445 50 L 565 30 L 565 180 L 40 180 Z" fill="url(#ghgAll)"/>
+              <path d="M 40 160 L 175 125 L 310 85 L 445 50 L 565 30" fill="none" stroke="#7DA3CE" stroke-width="2.2"/>
+              <!-- DAC -->
+              <path d="M 40 172 L 175 152 L 310 118 L 445 90 L 565 68 L 565 180 L 40 180 Z" fill="url(#ghgDac)"/>
+              <path d="M 40 172 L 175 152 L 310 118 L 445 90 L 565 68" fill="none" stroke="var(--dusk)" stroke-width="2.5"/>
+              <g fill="var(--white)" stroke="var(--dusk)" stroke-width="2">
+                <circle cx="40" cy="172" r="3.5"/>
+                <circle cx="175" cy="152" r="3.5"/>
+                <circle cx="310" cy="118" r="3.5"/>
+                <circle cx="445" cy="90" r="3.5"/>
+                <circle cx="565" cy="68" r="3.5"/>
+              </g>
+              <g font-family="Inter" font-size="10" fill="var(--text-3)" text-anchor="middle" font-weight="500">
+                <text x="40" y="195">2025</text>
+                <text x="175" y="195">2026</text>
+                <text x="310" y="195">2027</text>
+                <text x="445" y="195">2028</text>
+                <text x="565" y="195">2029</text>
+              </g>
+            </svg>
+          </div>
+          <div style="display:flex; gap:14px; padding-top:8px; border-top:1px solid var(--line); margin-top:6px; font-size:11px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="width:11px; height:11px; background:#7DA3CE; border-radius:2px;"></span>
+              <span style="color:var(--text-3);">All projects</span>
+              <b style="color:var(--text);">1.84 MMT</b>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="width:11px; height:11px; background:var(--dusk); border-radius:2px;"></span>
+              <span style="color:var(--text-3);">DAC-delivered</span>
+              <b style="color:var(--dusk);">0.79 MMT (43%)</b>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-card">
+          <div class="ai-card-head">
+            <div>
+              <div class="ai-card-title">Burden / Benefit Balance</div>
+              <p class="ai-card-sub">From Part 105 columns N (burdens) &amp; O (benefits)</p>
+            </div>
+            <span class="ai-card-tag">By Program</span>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <div class="bar-row" style="grid-template-columns: 70px 1fr 70px;">
+              <div class="bar-label">CES</div>
+              <div class="bar-track" style="background:transparent; height:24px; position:relative;">
+                <div style="position:absolute; left:0; top:3px; height:9px; width:78%; background:var(--green); border-radius:2px;"></div>
+                <div style="position:absolute; left:0; top:14px; height:7px; width:14%; background:var(--red); border-radius:2px;"></div>
+              </div>
+              <div class="bar-value" style="color:var(--green);">+0.64</div>
+            </div>
+            <div class="bar-row" style="grid-template-columns: 70px 1fr 70px;">
+              <div class="bar-label">EOP</div>
+              <div class="bar-track" style="background:transparent; height:24px; position:relative;">
+                <div style="position:absolute; left:0; top:3px; height:9px; width:48%; background:var(--green); border-radius:2px;"></div>
+                <div style="position:absolute; left:0; top:14px; height:7px; width:28%; background:var(--red); border-radius:2px;"></div>
+              </div>
+              <div class="bar-value" style="color:var(--green);">+0.20</div>
+            </div>
+            <div class="bar-row" style="grid-template-columns: 70px 1fr 70px;">
+              <div class="bar-label">CSP</div>
+              <div class="bar-track" style="background:transparent; height:24px; position:relative;">
+                <div style="position:absolute; left:0; top:3px; height:9px; width:90%; background:var(--green); border-radius:2px;"></div>
+                <div style="position:absolute; left:0; top:14px; height:7px; width:10%; background:var(--red); border-radius:2px;"></div>
+              </div>
+              <div class="bar-value" style="color:var(--green);">+0.80</div>
+            </div>
+            <div class="bar-row" style="grid-template-columns: 70px 1fr 70px;">
+              <div class="bar-label">RSP</div>
+              <div class="bar-track" style="background:transparent; height:24px; position:relative;">
+                <div style="position:absolute; left:0; top:3px; height:9px; width:32%; background:var(--green); border-radius:2px;"></div>
+                <div style="position:absolute; left:0; top:14px; height:7px; width:38%; background:var(--red); border-radius:2px;"></div>
+              </div>
+              <div class="bar-value" style="color:var(--red);">−0.06</div>
+            </div>
+            <div class="bar-row" style="grid-template-columns: 70px 1fr 70px;">
+              <div class="bar-label">DSM</div>
+              <div class="bar-track" style="background:transparent; height:24px; position:relative;">
+                <div style="position:absolute; left:0; top:3px; height:9px; width:69%; background:var(--green); border-radius:2px;"></div>
+                <div style="position:absolute; left:0; top:14px; height:7px; width:22%; background:var(--red); border-radius:2px;"></div>
+              </div>
+              <div class="bar-value" style="color:var(--green);">+0.47</div>
+            </div>
+            <div class="bar-row" style="grid-template-columns: 70px 1fr 70px;">
+              <div class="bar-label">CLM</div>
+              <div class="bar-track" style="background:transparent; height:24px; position:relative;">
+                <div style="position:absolute; left:0; top:3px; height:9px; width:74%; background:var(--green); border-radius:2px;"></div>
+                <div style="position:absolute; left:0; top:14px; height:7px; width:18%; background:var(--red); border-radius:2px;"></div>
+              </div>
+              <div class="bar-value" style="color:var(--green);">+0.56</div>
+            </div>
+          </div>
+          <div style="display:flex; gap:14px; padding-top:10px; border-top:1px solid var(--line); margin-top:6px; font-size:10.5px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="width:10px; height:10px; background:var(--green); border-radius:2px;"></span>
+              <span style="color:var(--text-3);">Benefits (rev-weighted)</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="width:10px; height:10px; background:var(--red); border-radius:2px;"></span>
+              <span style="color:var(--text-3);">Burdens (rev-weighted)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================== -->
+    <!-- HANDOFF TO CASEWORK                -->
+    <!-- ================================== -->
+    <section class="view" id="view-casework">
+      <div class="exec-page-header">
+        <div class="exec-page-header-text">
+          <h1>Handoff to Casework</h1>
+          <p class="exec-page-sub">The White Paper Portal's responsibility ends here. Once the package is approved, it is transmitted to <b>Con Edison Casework</b> — the system of record for regulatory filings — where Legal Counsel performs final review and submits to the NY Public Service Commission. This view confirms the package is ready and shows the downstream status pulled back from Casework.</p>
+        </div>
+        <div class="exec-reporting-year">
+          <span class="exec-reporting-year-label">Status</span>
+          <span class="exec-reporting-year-value" style="font-size:16px;">Filed in Casework</span>
+        </div>
+      </div>
+
+      <!-- Top banner: shows the handoff visually -->
+      <div class="handoff-banner">
+        <div class="handoff-banner-row">
+          <div class="handoff-stage completed">
+            <div class="handoff-stage-tag">This system</div>
+            <div class="handoff-stage-title">White Paper Portal</div>
+            <div class="handoff-stage-meta">Intake → Draft → Approved</div>
+          </div>
+          <div class="handoff-arrow">→</div>
+          <div class="handoff-stage target">
+            <div class="handoff-stage-tag">External system of record</div>
+            <div class="handoff-stage-title">Con Edison Casework</div>
+            <div class="handoff-stage-meta">Legal review → PSC filing</div>
+          </div>
+          <div class="handoff-arrow">→</div>
+          <div class="handoff-stage target">
+            <div class="handoff-stage-tag">Regulator</div>
+            <div class="handoff-stage-title">NY Public Service Commission</div>
+            <div class="handoff-stage-meta">DPS DMM public record</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="casework-grid">
+        <!-- Left column: what was sent -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <div class="ai-card">
+            <div class="handoff-status-pill">PACKAGE TRANSMITTED · NOV 21, 2025 · 14:08</div>
+            <div>
+              <div class="case-tag">Case 26-E-0142 · CECONY Electric</div>
+              <div class="case-h">Affordable Multifamily Electrification Pilot</div>
+              <div class="case-sub">Exhibit__(CES-6) · WP-2026-0142 · 51 pages</div>
+            </div>
+
+            <h3 class="form-section-h" style="margin-top:18px;">Package Contents Sent to Casework</h3>
+            <div class="file-row">
+              <div class="file-icon doc">DOC</div>
+              <div class="file-info">
+                <div class="file-name">Final White Paper · CES-6 v4.0</div>
+                <div class="file-meta">Approved narrative · 2.4 MB · signed by 5 reviewers</div>
+              </div>
+              <div class="file-action">View →</div>
+            </div>
+            <div class="file-row">
+              <div class="file-icon xls">XLS</div>
+              <div class="file-info">
+                <div class="file-name">Part 105 Disproportionate Burden Worksheet</div>
+                <div class="file-meta">14 columns populated · DAC overlap: Yes</div>
+              </div>
+              <div class="file-action">View →</div>
+            </div>
+            <div class="file-row">
+              <div class="file-icon pdf">PDF</div>
+              <div class="file-info">
+                <div class="file-name">DAC Map &amp; Census Tract Reference</div>
+                <div class="file-meta">NYSERDA Dec 2025 · 3 tracts attached</div>
+              </div>
+              <div class="file-action">View →</div>
+            </div>
+            <div class="file-row">
+              <div class="file-icon pdf">PDF</div>
+              <div class="file-info">
+                <div class="file-name">Sustainability by Design Assessment</div>
+                <div class="file-meta">Lifecycle &amp; circularity scorecard · CE-12 aligned</div>
+              </div>
+              <div class="file-action">View →</div>
+            </div>
+            <div class="file-row">
+              <div class="file-icon pdf">PDF</div>
+              <div class="file-info">
+                <div class="file-name">Stakeholder Engagement Summary</div>
+                <div class="file-meta">4 events · 87 attendees logged</div>
+              </div>
+              <div class="file-action">View →</div>
+            </div>
+
+            <div class="ext-system-row" style="margin-top:14px; margin-bottom:0;">
+              <div class="ext-system-icon">CW</div>
+              <div class="ext-system-info">
+                <div class="ext-system-name">
+                  Casework Reference
+                  <span class="ext-tag external">External</span>
+                </div>
+                <div class="ext-system-meta">Filed as <span class="ext-system-link">CW-2025-117-CES6</span> · linked back to WP-2026-0142</div>
+              </div>
+              <a href="#" class="file-action">Open in Casework ↗</a>
+            </div>
+          </div>
+
+          <div class="ai-card">
+            <div class="ai-card-head">
+              <div>
+                <div class="ai-card-title">Part 105 Worksheet · Quick View</div>
+                <p class="ai-card-sub">All 14 columns populated from intake — shown here as a read-only audit reference. Live worksheet now resides in Casework.</p>
+              </div>
+              <span class="ai-card-tag">Read-only</span>
+            </div>
+            <div class="p105-grid">
+              <div class="p105-row"><div class="p105-key">Exhibit</div><div class="p105-val">Exhibit__(CES-6)</div></div>
+              <div class="p105-row"><div class="p105-key">Item Number / Page</div><div class="p105-val">6.4.2 · Page 14 of 51</div></div>
+              <div class="p105-row"><div class="p105-key">Item Name</div><div class="p105-val">Affordable Multifamily Electrification Pilot</div></div>
+              <div class="p105-row"><div class="p105-key">Located in DAC?</div><div class="p105-val"><span class="pill green">Yes</span> · 3 tracts</div></div>
+              <div class="p105-row"><div class="p105-key">Impact Radius</div><div class="p105-val">0.5 mi</div></div>
+              <div class="p105-row"><div class="p105-key">DAC within Radius?</div><div class="p105-val"><span class="pill green">Yes</span></div></div>
+              <div class="p105-row"><div class="p105-key">Physical Address</div><div class="p105-val">1235 Westchester Ave, Bronx, NY 10459</div></div>
+              <div class="p105-row"><div class="p105-key">% DAC / Non-DAC</div><div class="p105-val">78% / 22%</div></div>
+              <div class="p105-row"><div class="p105-key">Customers Served</div><div class="p105-val">4,820 total · 3,760 DAC</div></div>
+              <div class="p105-row"><div class="p105-key">Burdens</div><div class="p105-val">Temporary construction noise &amp; delivery traffic during 14-day install windows; mitigated by scheduling &amp; multilingual notice.</div></div>
+              <div class="p105-row"><div class="p105-key">Benefits</div><div class="p105-val">Bill-credit affordability protection; reduced indoor combustion exposure; lower co-pollutant emissions; weatherization gains.</div></div>
+              <div class="p105-row"><div class="p105-key">Alternatives</div><div class="p105-val">Direct utility procurement of heat pumps (rejected — slower &amp; less learning); voucher-only program (rejected — no cost-shift learning).</div></div>
+              <div class="p105-row"><div class="p105-key">Mitigation Measures</div><div class="p105-val">Scheduling restrictions, multilingual notices, on-site liaison, dedicated complaint line, monthly community check-ins.</div></div>
+              <div class="p105-row"><div class="p105-key">Public Engagement</div><div class="p105-val">4 meetings w/ Mott Haven Coalition, NOAH Preservation Network, &amp; 2 affordable housing operators · Aug–Nov 2025.</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column: downstream status -->
+        <div style="display:flex; flex-direction:column; gap:14px;">
+
+          <div class="ai-card">
+            <div class="ai-card-head">
+              <div>
+                <div class="ai-card-title">Pre-Handoff Checklist</div>
+                <p class="ai-card-sub">Portal validates these before transmission to Casework</p>
+              </div>
+              <span class="ai-card-tag">7/7 ✓</span>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">Part 105 worksheet — all fields populated</div>
+              <div class="status ok">Complete</div>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">DAC screening — current designations</div>
+              <div class="status ok">Complete</div>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">CLCPA §7(3) burden assessment narrative</div>
+              <div class="status ok">Complete</div>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">Sustainability by Design assessment attached</div>
+              <div class="status ok">Complete</div>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">Stakeholder engagement summary</div>
+              <div class="status ok">Complete</div>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">Required reviewers signed off</div>
+              <div class="status ok">5 of 5</div>
+            </div>
+            <div class="check-row">
+              <div class="ck ok"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="label">Package transmitted to Casework</div>
+              <div class="status ok">Sent</div>
+            </div>
+          </div>
+
+          <div class="ai-card">
+            <div class="ai-card-head">
+              <div>
+                <div class="ai-card-title">End-to-End Audit Trail</div>
+                <p class="ai-card-sub">Portal events (solid) · Casework events synced back (dashed)</p>
+              </div>
+            </div>
+            <div class="timeline">
+              <div class="tl-item done">
+                <div class="tl-dot"></div>
+                <div class="tl-time">AUG 12, 2025 · 09:14</div>
+                <div class="tl-title">Project intake submitted</div>
+                <div class="tl-meta">S. Geissler · auto-classified as Strategic / O&amp;M</div>
+              </div>
+              <div class="tl-item done">
+                <div class="tl-dot"></div>
+                <div class="tl-time">AUG 14, 2025 · 16:22</div>
+                <div class="tl-title">DAC / Part 105 assessment completed</div>
+                <div class="tl-meta">3 tracts flagged · 78% coverage · 14 columns answered</div>
+              </div>
+              <div class="tl-item done">
+                <div class="tl-dot"></div>
+                <div class="tl-time">SEP 02, 2025</div>
+                <div class="tl-title">Stakeholder engagement · Mott Haven</div>
+                <div class="tl-meta">32 attendees · 11 comments captured</div>
+              </div>
+              <div class="tl-item done">
+                <div class="tl-dot"></div>
+                <div class="tl-time">OCT 18, 2025</div>
+                <div class="tl-title">All reviewers approved</div>
+                <div class="tl-meta">DAC Compliance, Sustainability, Finance, PM, Counsel pre-clearance</div>
+              </div>
+              <div class="tl-item done">
+                <div class="tl-dot"></div>
+                <div class="tl-time">NOV 21, 2025 · 14:08</div>
+                <div class="tl-title">Package transmitted to Casework</div>
+                <div class="tl-meta">5 artifacts · 7/7 checks passed · Casework ID assigned: CW-2025-117-CES6</div>
+              </div>
+
+              <div class="tl-handoff-marker">↓ This app's responsibility ends here</div>
+
+              <div class="tl-item done external">
+                <div class="tl-dot"></div>
+                <div class="tl-time">NOV 24, 2025 · 11:42</div>
+                <div class="tl-title">Casework legal review opened</div>
+                <div class="tl-meta">M. Kowalski assigned · status pulled from Casework</div>
+              </div>
+              <div class="tl-item external">
+                <div class="tl-dot"></div>
+                <div class="tl-time">TARGET · JUN 03, 2026</div>
+                <div class="tl-title">PSC filing &amp; public record release</div>
+                <div class="tl-meta">Auto-publish to DPS DMM portal · managed in Casework</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ai-card" style="background:var(--bright-snow);">
+            <div class="ai-card-head">
+              <div>
+                <div class="ai-card-title">Downstream Status · from Casework</div>
+                <p class="ai-card-sub">Live read-back · refreshes every 15 min</p>
+              </div>
+              <span class="ai-card-tag" style="background:var(--green-tint); color:var(--green);">Active</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="stat-tile">
+                <div class="stat-tile-label">Casework ID</div>
+                <div class="stat-tile-value" style="font-size:13px;">CW-2025-117</div>
+                <div class="stat-tile-sub">CECONY Electric · CES-6</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-tile-label">Current Stage</div>
+                <div class="stat-tile-value" style="font-size:13px;">Legal Review</div>
+                <div class="stat-tile-sub">Stage 2 of 4 in Casework</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-tile-label">Days in Casework</div>
+                <div class="stat-tile-value">6</div>
+                <div class="stat-tile-sub">avg. for CES exhibits: 22d</div>
+              </div>
+              <div class="stat-tile">
+                <div class="stat-tile-label">Days to PSC Filing</div>
+                <div class="stat-tile-value">189</div>
+                <div class="stat-tile-sub">target Jun 03, 2026</div>
+              </div>
+            </div>
+          </div>
+
+          <a href="#" class="handoff-cta" style="justify-content:center;">
+            Open this Case in Casework
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ===== View routing =====
+  const navItems = document.querySelectorAll('.nav-item[data-view]');
+  const views = document.querySelectorAll('.view');
+  const crumb = document.getElementById('crumb-current');
+  const crumbMap = {
+    dashboard: 'Dashboard',
+    intake: 'Intake Wizard',
+    draft: 'Draft & Review',
+    analytics: 'DAC & Sustainability',
+    casework: 'Handoff to Casework'
+  };
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const v = item.dataset.view;
+      navItems.forEach(n => n.classList.remove('active'));
+      item.classList.add('active');
+      views.forEach(s => s.classList.remove('active'));
+      const target = document.getElementById('view-' + v);
+      if (target) target.classList.add('active');
+      crumb.textContent = crumbMap[v] || '';
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    });
+  });
+
+  // ===== Y/N/NA toggles =====
+  document.querySelectorAll('[data-ynna]').forEach(group => {
+    group.querySelectorAll('button').forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('button').forEach(b => b.classList.remove('on','yes','no','na'));
+        btn.classList.add('on');
+        if (idx === 0) btn.classList.add('yes');
+        else if (idx === 1) btn.classList.add('no');
+        else btn.classList.add('na');
+      });
+    });
+  });
+
+  // ===== Analytics tabs =====
+  document.querySelectorAll('.a-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.a-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.review-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      t.parentElement.querySelectorAll('.review-tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+    });
+  });
+
+  // ===== Heatmap rendering =====
+  const programs = ['CES', 'EOP', 'CSP', 'RSP', 'DSM', 'CLM'];
+  const heatData = {
+    CES: [-0.4, -0.1,  0.2, -0.3, -0.7, -0.6],
+    EOP: [ 0.2,  0.4,  0.6,  0.1, -0.3,  0.1],
+    CSP: [-0.6, -0.5, -0.2, -0.4, -0.5, -0.5],
+    RSP: [ 0.5,  0.3,  0.4,  0.6,  0.1,  0.3],
+    DSM: [-0.5, -0.6, -0.4, -0.3, -0.6, -0.7],
+    CLM: [-0.3, -0.2, -0.1, -0.2, -0.4, -0.3]
+  };
+  function colorFor(v) {
+    if (v <= -0.6) return '#2A7755';
+    if (v <= -0.3) return '#5D9F7E';
+    if (v <= -0.1) return '#8FB8A4';
+    if (v < 0.1)   return '#9CA8B5';
+    if (v < 0.3)   return '#D4A685';
+    if (v < 0.6)   return '#C2410C';
+    return '#B23B2A';
+  }
+  const heatTarget = document.getElementById('heatmap-target');
+  if (heatTarget) {
+    programs.forEach(p => {
+      const label = document.createElement('div');
+      label.className = 'heat-label';
+      label.textContent = p;
+      heatTarget.appendChild(label);
+      heatData[p].forEach(v => {
+        const cell = document.createElement('div');
+        cell.className = 'heat-cell';
+        cell.style.background = colorFor(v);
+        cell.textContent = (v > 0 ? '+' : '') + v.toFixed(1);
+        if (Math.abs(v) < 0.15) cell.style.color = 'var(--text)';
+        heatTarget.appendChild(cell);
+      });
+    });
+  }
+</script>
+
+</body>
+</html>
