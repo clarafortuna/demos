@@ -1919,15 +1919,15 @@
         '<div class="dac-td-zone dac-td-zone-env">' +
           '<div class="dac-td-zone-hdr">Environmental Burden</div>' +
           '<div class="dac-td-zone-cols">' +
-            buildCol('Ambientales', 'Environmental Burdens', 'env') +
-            buildCol('Climáticos', 'Climate Risks', 'env') +
+            buildCol('Environmental Burdens', 'Environmental Burdens', 'env') +
+            buildCol('Climate Risks', 'Climate Risks', 'env') +
           '</div>' +
         '</div>' +
         '<div class="dac-td-zone dac-td-zone-pop">' +
           '<div class="dac-td-zone-hdr">Population Vulnerability</div>' +
           '<div class="dac-td-zone-cols">' +
-            buildCol('Salud', 'Health', 'pop') +
-            buildCol('Demografía / socioeconómico', 'Demographics / Vulnerability', 'pop') +
+            buildCol('Health', 'Health', 'pop') +
+            buildCol('Demographics / Socioeconomic', 'Demographics / Vulnerability', 'pop') +
           '</div>' +
         '</div>' +
       '</div>';
@@ -5008,8 +5008,8 @@ function renderSectionI() {
     const funnelBar = (curr, prev) => {
       const wCurr = bw(curr);
       const wPrev = bw(prev);
-      // Barra más corta va al frente para que su label sea visible.
-      // Las barras son semitransparentes para que ambas se vean.
+      // Shorter bar goes to the front so its label stays visible.
+      // Bars are semi-transparent so both stay visible.
       const currShorter = curr != null && prev != null ? curr <= prev : true;
       const currZ = currShorter ? 3 : 2;
       const prevZ = currShorter ? 2 : 3;
