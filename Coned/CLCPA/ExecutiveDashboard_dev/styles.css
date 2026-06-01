@@ -6999,23 +6999,32 @@ a.nav-item { text-decoration: none; }
   gap: 14px;
 }
 .dac-map-controls .dac-map-dd-trigger { min-width: 120px; }
-/* "Clear all" reset + "Export" buttons in the top bar */
+/* Divider between the dropdown filters and the action buttons */
+.dac-map-ctl-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* "Clear all" reset + "Export" action buttons in the top bar (blue) */
 .dac-map-clearall,
 .dac-map-export {
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: #185FA5;
+  border: 1px solid #185FA5;
   border-radius: 6px;
   padding: 5px 12px;
   font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
-  color: var(--text-2);
+  color: #ffffff;
   cursor: pointer;
   white-space: nowrap;
-  transition: border-color .15s, color .15s;
+  transition: background .15s, border-color .15s;
 }
 .dac-map-clearall:hover,
-.dac-map-export:hover { border-color: var(--dusk); color: var(--dusk); }
+.dac-map-export:hover { background: #134c84; border-color: #134c84; }
 .dac-map-card .chart-card-head h3 {
   font-size: 13px !important;
   font-weight: 700 !important;

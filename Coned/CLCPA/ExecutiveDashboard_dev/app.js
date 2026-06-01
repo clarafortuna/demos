@@ -1988,8 +1988,8 @@
       <div class="exec-card dac-map-card">
         <div class="chart-card-head">
           <div>
-            <h3 id="dac-map-title">DAC Tracts · <span id="dac-map-title-ind" class="dac-map-title-ind">${mapTitleText()}</span></h3>
-            <p class="chart-sub">Census tracts colored by selected indicator · ${year}</p>
+            <h3 id="dac-map-title">DAC Tracts</h3>
+            <p class="chart-sub dac-map-subind" id="dac-map-subind">${mapTitleText()}</p>
           </div>
           <div class="dac-map-controls">
             <div class="dac-map-indicator">
@@ -2018,12 +2018,13 @@
                 </div>
               </div>
             </div>
-            <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
-            <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
             <div class="dac-map-indicator">
               <label class="dac-map-indicator-label" for="dac-map-dd-trigger">Color by</label>
               ${mapDropdownHtml()}
             </div>
+            <span class="dac-map-ctl-divider" aria-hidden="true"></span>
+            <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
+            <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
           </div>
         </div>
         <div class="dac-map-legend" id="dac-map-legend" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin-bottom:4px">${mapLegendHtml(activeScale())}</div>
@@ -2664,6 +2665,7 @@
     if (clearAllBtn) clearAllBtn.addEventListener('click', function () {
       _mapState.county = null;
       _mapState.neighborhoods = [];
+      _mapState.indicators = ['Comb_Sc'];   // reset Color by to its default
       const bDd = document.getElementById('dac-map-borough');
       if (bDd) {
         bDd.querySelectorAll('.dac-map-dd-opt').forEach(o => o.classList.toggle('active', !o.dataset.county));
@@ -2673,6 +2675,7 @@
       }
       rebuildNeighborhoodDropdown();   // re-scope to all neighborhoods
       applyNeighborhoods();            // style + KPI (All boroughs) + remove outline + reset view
+      applyIndicatorSelection();       // recolor + legend + subtitle + Color-by trigger/checkboxes
     });
 
     // ---- Export the tracts in the current scope as CSV ----
@@ -2704,13 +2707,30 @@
       const dec1 = v => (v == null || v === '' || isNaN(parseFloat(v))) ? '' : parseFloat(v).toFixed(1);
       const intf = v => (v == null || v === '' || isNaN(parseFloat(v))) ? '' : String(Math.round(parseFloat(v)));
 
+      // Indicator columns depend on the current Color by:
+      //  - default (Combined Burden Score) -> all 44 thematic indicators
+      //  - specific indicator(s)           -> only those, minus core duplicates
+      const THEMATIC = ['Environmental Burdens', 'Climate Risks', 'Health', 'Demographics / Vulnerability'];
+      const sel = _mapState.indicators;
+      let extraKeys;
+      if (sel.length === 1 && sel[0] === 'Comb_Sc') {
+        extraKeys = [];
+        MAP_INDICATOR_GROUPS.forEach(g => {
+          if (THEMATIC.indexOf(g.group) >= 0) g.items.forEach(it => extraKeys.push(it.key));
+        });
+      } else {
+        const inCore = { Comb_Sc: 1, Burden_Pct: 1, Vulner_Pct: 1 };  // already in core columns
+        extraKeys = sel.filter(k => !inCore[k]);
+      }
+      const extraCols = extraKeys.map(k => ({ key: k, label: mapIndicatorMeta(k).label }));
+
       const headers = [
         'GEOID', 'Borough', 'Neighborhood', 'DAC status',
         'Combined Burden Score', 'Combined Rank (percentile)',
         'Environmental Burden Score', 'Environmental Burden (percentile)',
         'Population Vulnerability Score', 'Population Vulnerability (percentile)',
         'Electric accounts', 'Gas accounts',
-      ];
+      ].concat(extraCols.map(c => c.label));
       const rows = feats.slice().sort((a, b) => {
         const pa = a.properties, pb = b.properties;
         return (pa.borough || '').localeCompare(pb.borough || '')
@@ -2720,7 +2740,7 @@
       const lines = [headers.map(csvCell).join(',')];
       rows.forEach(f => {
         const p = f.properties;
-        lines.push([
+        const core = [
           p.GEOID || '',
           p.borough || '',
           p.neighborhood || '',
@@ -2729,7 +2749,9 @@
           dec1(p.Burden_Sc), intf(p.Burden_Pct),
           dec1(p.Vulner_Sc), intf(p.Vulner_Pct),
           intf(p.elec_accts), intf(p.gas_accts),
-        ].map(csvCell).join(','));
+        ];
+        const extra = extraCols.map(c => intf(p[c.key]));   // percentiles 0–100; null -> empty
+        lines.push(core.concat(extra).map(csvCell).join(','));
       });
 
       const csv = '﻿' + lines.join('\r\n');             // BOM for Excel
@@ -2748,8 +2770,35 @@
     // Populate the neighborhood list now that geo is loaded (scoped to county).
     rebuildNeighborhoodDropdown();
 
+    // Apply the current Color-by selection to map, legend, subtitle, the
+    // Color-by trigger + checkboxes, and the open detail panel highlights.
+    // Hoisted to mountDACMap scope so "Clear all" can reset Color by too.
+    function applyIndicatorSelection() {
+      const sel = _mapState.indicators;
+      geoLayer.setStyle(styleFeature);
+      const legend = document.getElementById('dac-map-legend');
+      if (legend) legend.innerHTML = mapLegendHtml(activeScale());
+      const sub = document.getElementById('dac-map-subind');
+      if (sub) sub.textContent = mapTitleText();
+      const cbCur = document.getElementById('dac-map-dd-current');
+      if (cbCur) cbCur.textContent = indicatorSummary().text;
+      const cbMenu = document.querySelector('#dac-map-indicator .dac-map-dd-menu');
+      if (cbMenu) cbMenu.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+        const on = sel.indexOf(o.dataset.key) >= 0;
+        o.classList.toggle('active', on);
+        o.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      // Keep the open tract detail panel's row highlights in sync.
+      const panel = document.getElementById('dac-tract-detail');
+      if (panel && !panel.hidden) {
+        panel.querySelectorAll('.dac-td-row[data-key]').forEach(r => {
+          r.classList.toggle('dac-td-row-selected', sel.indexOf(r.dataset.key) >= 0);
+        });
+      }
+    }
+
     // Indicator color selector (custom dropdown) — independent of the borough
-    // filter. Recolors tracts, updates the title suffix, swaps the legend, and
+    // filter. Recolors tracts, updates the subtitle, swaps the legend, and
     // updates the trigger label. Does NOT touch the county filter or KPI panel.
     const dd = document.getElementById('dac-map-indicator');
     if (dd) {
@@ -2767,32 +2816,6 @@
           e.stopPropagation();
           ddToggle(dd);
         });
-      }
-
-      // Apply the current selection to map, legend, title, trigger + checkboxes.
-      function applyIndicatorSelection() {
-        const sel = _mapState.indicators;
-        geoLayer.setStyle(styleFeature);
-        const legend = document.getElementById('dac-map-legend');
-        if (legend) legend.innerHTML = mapLegendHtml(activeScale());
-        const summary = indicatorSummary();
-        const titleInd = document.getElementById('dac-map-title-ind');
-        if (titleInd) titleInd.textContent = mapTitleText();
-        if (current) current.textContent = summary.text;
-        if (menu) {
-          menu.querySelectorAll('.dac-map-dd-opt').forEach(o => {
-            const on = sel.indexOf(o.dataset.key) >= 0;
-            o.classList.toggle('active', on);
-            o.setAttribute('aria-checked', on ? 'true' : 'false');
-          });
-        }
-        // Keep the open tract detail panel's row highlights in sync.
-        const panel = document.getElementById('dac-tract-detail');
-        if (panel && !panel.hidden) {
-          panel.querySelectorAll('.dac-td-row[data-key]').forEach(r => {
-            r.classList.toggle('dac-td-row-selected', sel.indexOf(r.dataset.key) >= 0);
-          });
-        }
       }
 
       if (menu) {
