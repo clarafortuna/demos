@@ -2022,9 +2022,11 @@
               <label class="dac-map-indicator-label" for="dac-map-dd-trigger">Color by</label>
               ${mapDropdownHtml()}
             </div>
-            <span class="dac-map-ctl-divider" aria-hidden="true"></span>
-            <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
-            <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
+            <div class="dac-map-actions">
+              <span class="dac-map-ctl-divider" aria-hidden="true"></span>
+              <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
+              <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
+            </div>
           </div>
         </div>
         <div class="dac-map-legend" id="dac-map-legend" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin-bottom:4px">${mapLegendHtml(activeScale())}</div>
