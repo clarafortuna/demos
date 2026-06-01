@@ -6987,7 +6987,12 @@ a.nav-item { text-decoration: none; }
   margin-bottom: 0 !important;
   flex-shrink: 0 !important;
   background: var(--white) !important;
-  z-index: 600 !important;
+  /* Stacking context above every map overlay (Customer Counts z-index 800,
+     legend 700, etc.) so any open dropdown menu always renders on top —
+     fixes the menu rendering behind the Customer Counts panel on Safari/Mac
+     where the panel's backdrop-filter otherwise wins the paint order. */
+  position: relative !important;
+  z-index: 1500 !important;
 }
 
 /* Top-bar control cluster: Borough · Neighborhood · Color by (inline) */
@@ -6999,6 +7004,15 @@ a.nav-item { text-decoration: none; }
   gap: 14px;
 }
 .dac-map-controls .dac-map-dd-trigger { min-width: 120px; }
+/* Action buttons (Clear all + Export) behave as one unit: always side by side,
+   and wrap together to the next row when the top bar is too narrow. */
+.dac-map-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
 /* Divider between the dropdown filters and the action buttons */
 .dac-map-ctl-divider {
   width: 1px;
