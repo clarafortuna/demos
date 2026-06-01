@@ -6999,6 +6999,23 @@ a.nav-item { text-decoration: none; }
   gap: 14px;
 }
 .dac-map-controls .dac-map-dd-trigger { min-width: 120px; }
+/* "Clear all" reset + "Export" buttons in the top bar */
+.dac-map-clearall,
+.dac-map-export {
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color .15s, color .15s;
+}
+.dac-map-clearall:hover,
+.dac-map-export:hover { border-color: var(--dusk); color: var(--dusk); }
 .dac-map-card .chart-card-head h3 {
   font-size: 13px !important;
   font-weight: 700 !important;
@@ -7295,6 +7312,8 @@ a.nav-item { text-decoration: none; }
   padding: 5px 8px; font-family: var(--font); font-size: 11px; color: var(--text);
 }
 .dac-map-nb-input:focus { outline: none; border-color: #185FA5; }
+/* Keep the Clear action pinned to the right of the search row */
+.dac-map-nb-search .dac-map-dd-clear { margin-left: auto; flex-shrink: 0; }
 .dac-map-nb-list { padding: 2px 0; }
 
 /* Customer Counts panel now sits in the column flow (not absolutely placed) */
