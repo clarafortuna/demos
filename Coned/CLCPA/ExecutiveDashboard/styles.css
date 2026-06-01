@@ -97,7 +97,10 @@ body {
 .sidebar {
   grid-area: sidebar; background: var(--ink); color: var(--white);
   display: flex; flex-direction: column;
-  position: sticky; top: 0; height: 100vh; z-index: 60;
+  /* Fixed to the viewport so it never scrolls away; identical on every tab.
+     The grid's first column (var(--sidebar-w)) stays reserved, so the main
+     content area is unaffected even though this item is out of grid flow. */
+  position: fixed; top: 0; left: 0; width: var(--sidebar-w); height: 100vh; z-index: 60;
 }
 .sidebar-brand { padding: 18px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .sidebar-brand-logo {
@@ -5955,6 +5958,162 @@ a.nav-item { text-decoration: none; }
   color: var(--white);
 }
 
+/* Indicator color selector — custom dropdown in the card header (right side).
+   A native <select> is avoided so the open list has no OS-drawn dark border. */
+.dac-map-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.dac-map-indicator-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.dac-map-dd {
+  position: relative;
+  z-index: 1200;
+}
+.dac-map-dd-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 190px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.dac-map-dd-trigger:hover { border-color: var(--dusk); color: var(--dusk); }
+.dac-map-dd.open .dac-map-dd-trigger { border-color: #185FA5; color: var(--dusk); }
+.dac-map-dd-chev {
+  font-size: 9px;
+  color: var(--text-3);
+  transition: transform .15s;
+}
+.dac-map-dd.open .dac-map-dd-chev { transform: rotate(180deg); }
+/* Open list: white background, thin light-gray border (ConEd style), no dark line */
+.dac-map-dd-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  width: 230px;
+  max-height: 340px;
+  overflow-y: auto;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.12);
+  padding: 4px 0;
+  z-index: 1200;
+}
+.dac-map-dd.open .dac-map-dd-menu { display: block; }
+/* Menu header with the Clear action, pinned at the top while options scroll */
+.dac-map-dd-menuhdr {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 8px 5px;
+  background: var(--white);
+  border-bottom: 1px solid var(--line);
+}
+.dac-map-dd-clear {
+  background: transparent;
+  border: none;
+  padding: 1px 5px;
+  font-family: var(--font);
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color .15s, background .15s;
+}
+.dac-map-dd-clear:hover { color: #185FA5; background: var(--bright-snow, #f4f7fa); }
+.dac-map-dd-group { padding: 2px 0; }
+.dac-map-dd-group + .dac-map-dd-group { border-top: 1px solid var(--line); }
+.dac-map-dd-grouphdr {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 12px 3px;
+}
+.dac-map-dd-opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 5px 12px;
+  font-family: var(--font);
+  font-size: 11px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background .12s, color .12s;
+}
+.dac-map-dd-opt:hover { background: var(--bright-snow, #f4f7fa); color: var(--dusk); }
+.dac-map-dd-opt.active {
+  background: rgba(24, 95, 165, 0.10);
+  color: #185FA5;
+  font-weight: 700;
+}
+/* Checkbox indicator for multi-select */
+.dac-map-dd-check {
+  flex: 0 0 auto;
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid var(--line-strong, #c7d0d9);
+  border-radius: 3px;
+  background: #fff;
+  position: relative;
+}
+.dac-map-dd-opt.active .dac-map-dd-check {
+  background: #185FA5;
+  border-color: #185FA5;
+}
+.dac-map-dd-opt.active .dac-map-dd-check::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 3px;
+  height: 7px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.dac-map-dd-optlabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Map title indicator: lists all selected indicators inline (no hover tooltip).
+   A long multi-indicator title wraps rather than truncates. */
+.dac-map-title-ind { white-space: normal; }
+
 /* Legend strip */
 .dac-map-legend {
   display: flex;
@@ -6013,6 +6172,16 @@ a.nav-item { text-decoration: none; }
   padding-bottom: 4px;
   border-bottom: 1px solid var(--line);
 }
+.dac-tt-nbhd {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+.dac-tt-nbhd-v { color: var(--text); font-weight: 600; }
 .dac-tt-row {
   display: flex;
   justify-content: space-between;
@@ -6025,6 +6194,265 @@ a.nav-item { text-decoration: none; }
   color: var(--text);
   font-weight: 600;
   font-feature-settings: "tnum";
+}
+/* Selected-indicator row in the hover tooltip */
+.dac-tt-selected {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin: 4px 0;
+  padding: 4px 6px;
+  background: var(--bright-snow, #f4f7fa);
+  border-left: 3px solid #185FA5;
+  border-radius: 3px;
+  font-size: 10.5px;
+  color: var(--text-2);
+}
+.dac-tt-selected-v {
+  color: #185FA5;
+  font-weight: 700;
+  font-feature-settings: "tnum";
+}
+/* Per-indicator breakdown under the average (multi-select tooltip) */
+.dac-tt-breakdown {
+  margin: 4px 0 2px;
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.dac-tt-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 1px 0;
+  font-size: 10px;
+  color: var(--text-3);
+}
+.dac-tt-breakdown-v {
+  color: var(--text);
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+
+/* =============================================================
+   Selected-tract detail panel (below the map) — additive
+   ============================================================= */
+.dac-tract-detail {
+  margin-top: 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px 12px;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+.dac-tract-detail[hidden] { display: none; }
+
+/* Header: top row (name/borough/badge + close) above a stats strip */
+.dac-td-header {
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.dac-td-headtop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dac-td-titles { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.dac-td-name { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
+.dac-td-boro { font-size: 12px; font-weight: 600; color: var(--text-3); }
+.dac-td-nbhd { font-size: 12px; font-weight: 600; color: var(--dusk); }
+.dac-td-nbhd::before { content: '· '; color: var(--text-4); }
+.dac-td-badge {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 2px 7px; border-radius: 99px;
+}
+.dac-td-badge-dac { background: rgba(24, 95, 165, 0.12); color: #185FA5; }
+.dac-td-badge-non { background: var(--bright-snow, #f4f7fa); color: var(--text-3); }
+
+/* Top-right cluster: the metrics strip + the close button. */
+.dac-td-headright {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  flex-shrink: 0;
+}
+/* Stats strip — Combined / Environmental / Population, each score (main) +
+   "Nth percentile" (secondary). Hover shows a custom explanatory tooltip. */
+.dac-td-stats {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 22px;
+  cursor: help;
+}
+.dac-td-stats-tt {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1300;
+  width: 280px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+  padding: 9px 12px;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text-2);
+  text-align: left;
+  white-space: normal;
+}
+.dac-td-stats:hover .dac-td-stats-tt { display: block; }
+.dac-td-metric { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.dac-td-metric-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.dac-td-metric-val { font-size: 20px; font-weight: 800; line-height: 1.15; font-feature-settings: "tnum"; }
+.dac-td-metric-pct { font-size: 9.5px; font-weight: 600; color: var(--text-3); font-feature-settings: "tnum"; }
+.dac-td-metric-comb .dac-td-metric-val { color: var(--ink, #0a1f33); }
+.dac-td-metric-env  .dac-td-metric-val { color: #185FA5; }
+.dac-td-metric-pop  .dac-td-metric-val { color: #D98A1F; }
+.dac-td-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.dac-td-help-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-family: var(--font); font-size: 10.5px; font-weight: 600;
+  color: var(--text-2); cursor: pointer; white-space: nowrap;
+  transition: border-color .15s, color .15s;
+}
+.dac-td-help-btn:hover,
+.dac-td-help-btn.active { border-color: #185FA5; color: #185FA5; }
+.dac-td-help-icon { width: 13px; height: 13px; flex-shrink: 0; }
+.dac-td-close {
+  flex-shrink: 0;
+  background: transparent; border: none; cursor: pointer;
+  font-size: 20px; line-height: 1; color: var(--text-3); padding: 0 2px;
+  transition: color .15s;
+}
+.dac-td-close:hover { color: var(--dusk); }
+
+/* "How to read" note — compact, light box, collapsed by default */
+.dac-td-note {
+  background: var(--bright-snow, #f4f7fa);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: 10.5px; line-height: 1.5; color: var(--text-2);
+}
+.dac-td-note[hidden] { display: none; }
+.dac-td-note-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.dac-td-note ul { margin: 0; padding-left: 16px; }
+.dac-td-note li { margin-bottom: 5px; }
+.dac-td-note li:last-child { margin-bottom: 0; }
+.dac-td-note strong { color: var(--text); font-weight: 700; }
+
+/* Body: two color-coded component zones, each with two sub-tables */
+.dac-td-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.dac-td-zone {
+  border-radius: 8px;
+  padding: 10px 12px 12px;
+}
+.dac-td-zone-env { background: #E9F1FB; }
+.dac-td-zone-pop { background: #FCEEDA; }
+.dac-td-zone-hdr {
+  font-size: 11px; font-weight: 800; letter-spacing: 0.02em;
+  margin-bottom: 8px;
+}
+.dac-td-zone-env .dac-td-zone-hdr { color: #185FA5; }
+.dac-td-zone-pop .dac-td-zone-hdr { color: #D98A1F; }
+.dac-td-zone-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  align-items: start;
+}
+.dac-td-col { min-width: 0; }
+.dac-td-coltitle {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+  padding-bottom: 6px; margin-bottom: 4px;
+  border-bottom: 1px solid var(--line);
+}
+/* Fixed height ≈ 8 rows; blocks with more (Env. Burdens 14, Demographics 17)
+   scroll inside with a subtle thin scrollbar. No indicators removed. */
+.dac-td-rows {
+  height: 184px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+.dac-td-rows::-webkit-scrollbar { width: 6px; }
+.dac-td-rows::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+.dac-td-rows::-webkit-scrollbar-track { background: transparent; }
+
+/* Left padding keeps the label clear of the selected-row accent line. */
+.dac-td-row { display: flex; align-items: center; gap: 6px; padding: 4px 0 4px 8px; }
+.dac-td-label {
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 10px; color: var(--text-2);
+}
+.dac-td-bar {
+  flex: 0 0 60px; height: 6px;
+  background: #e1e8ef; border-radius: 3px; overflow: hidden;
+}
+.dac-td-fill { display: block; height: 100%; background: #185FA5; border-radius: 3px; }
+/* Bars take the zone's component color */
+.dac-td-row-env .dac-td-fill { background: #185FA5; }
+.dac-td-row-pop .dac-td-fill { background: #D98A1F; }
+.dac-td-val {
+  flex: 0 0 22px; text-align: right;
+  font-size: 10px; font-weight: 600; color: var(--text); font-feature-settings: "tnum";
+}
+.dac-td-row-null .dac-td-val { color: var(--text-3); font-weight: 500; }
+
+/* Rows whose indicator is currently driving the map coloring/average,
+   color-coded by component (Environmental = blue, Population = amber). */
+.dac-td-row-selected { border-radius: 0 3px 3px 0; }
+.dac-td-row-selected .dac-td-label { font-weight: 600; }
+.dac-td-row-env.dac-td-row-selected {
+  background: rgba(24, 95, 165, 0.12);
+  box-shadow: inset 2px 0 0 #185FA5;
+}
+.dac-td-row-env.dac-td-row-selected .dac-td-label { color: #185FA5; }
+.dac-td-row-pop.dac-td-row-selected {
+  background: rgba(217, 138, 31, 0.14);
+  box-shadow: inset 2px 0 0 #D98A1F;
+}
+.dac-td-row-pop.dac-td-row-selected .dac-td-label { color: #D98A1F; }
+
+.dac-td-empty {
+  padding: 24px 8px; text-align: center;
+  font-size: 12px; color: var(--text-3);
+}
+
+@media (max-width: 900px) {
+  .dac-td-body { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .dac-td-zone-cols { grid-template-columns: 1fr; }
 }
 
 /* Leaflet zoom control — matches dashboard style */
@@ -6552,6 +6980,8 @@ a.nav-item { text-decoration: none; }
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
+  flex-wrap: wrap !important;
+  row-gap: 8px !important;
   padding: 12px 18px 10px !important;
   border-bottom: 1px solid var(--line) !important;
   margin-bottom: 0 !important;
@@ -6559,6 +6989,42 @@ a.nav-item { text-decoration: none; }
   background: var(--white) !important;
   z-index: 600 !important;
 }
+
+/* Top-bar control cluster: Borough · Neighborhood · Color by (inline) */
+.dac-map-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+}
+.dac-map-controls .dac-map-dd-trigger { min-width: 120px; }
+/* Divider between the dropdown filters and the action buttons */
+.dac-map-ctl-divider {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+/* "Clear all" reset + "Export" action buttons in the top bar (blue) */
+.dac-map-clearall,
+.dac-map-export {
+  background: #185FA5;
+  border: 1px solid #185FA5;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s;
+}
+.dac-map-clearall:hover,
+.dac-map-export:hover { background: #134c84; border-color: #134c84; }
 .dac-map-card .chart-card-head h3 {
   font-size: 13px !important;
   font-weight: 700 !important;
@@ -6570,16 +7036,24 @@ a.nav-item { text-decoration: none; }
   margin: 0 !important;
 }
 
-/* Move the legend OUT of its current spot, anchor it to the header (right side) */
+/* Legend — horizontal overlay anchored to the bottom-left of the map */
 .dac-map-card .dac-map-legend {
   position: absolute !important;
-  top: 14px !important;
-  right: 18px !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: 12px !important;
+  left: 12px !important;
   margin: 0 !important;
-  padding: 0 !important;
-  background: transparent !important;
+  padding: 6px 10px !important;
+  background: rgba(255, 255, 255, 0.97) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.06) !important;
   display: flex !important;
   align-items: center !important;
+  flex-wrap: nowrap !important;
   gap: 5px !important;
   font-size: 10px !important;
   z-index: 700 !important;
@@ -6592,6 +7066,7 @@ a.nav-item { text-decoration: none; }
   letter-spacing: 0.05em !important;
   margin-right: 2px !important;
 }
+
 .dac-map-card .dac-map-leg-swatch {
   width: 12px !important;
   height: 12px !important;
@@ -6712,7 +7187,7 @@ a.nav-item { text-decoration: none; }
   padding: 1px 4px !important;
 }
 
-/* Reducir altura de las barras */
+/* Reduce bar height */
 .exec-shares-grid .strip-bar {
   height: 16px !important;
 }
@@ -6802,8 +7277,66 @@ a.nav-item { text-decoration: none; }
 }
 
 /* =============================================================
+   DAC MAP · Left column — Borough -> Neighborhood -> Customer Counts
+   (stacked overlay at the top-left of the map)
+   ============================================================= */
+.dac-map-leftcol {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 288px;
+  max-width: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 800;
+}
+.dac-map-leftctl { display: flex; flex-direction: column; gap: 4px; }
+.dac-map-leftctl-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+/* Left-column dropdowns: full width; menu aligned left + full width */
+.dac-map-leftcol .dac-map-dd { width: 100%; }
+.dac-map-leftcol .dac-map-dd-trigger {
+  width: 100%;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dac-map-leftcol .dac-map-dd-menu { left: 0; right: auto; width: 100%; }
+
+/* Neighborhood dropdown search box + Clear (sticky at the top of the menu) */
+.dac-map-nb-search {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--white);
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.dac-map-nb-input {
+  flex: 1; min-width: 0; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 5px;
+  padding: 5px 8px; font-family: var(--font); font-size: 11px; color: var(--text);
+}
+.dac-map-nb-input:focus { outline: none; border-color: #185FA5; }
+/* Keep the Clear action pinned to the right of the search row */
+.dac-map-nb-search .dac-map-dd-clear { margin-left: auto; flex-shrink: 0; }
+.dac-map-nb-list { padding: 2px 0; }
+
+/* Customer Counts panel now sits in the column flow (not absolutely placed) */
+.dac-map-leftcol .dac-map-kpi-panel {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  z-index: auto !important;
+}
+
+/* =============================================================
    DAC MAP · Customer Counts overlay panel
-   (floats top-left of map, mirrors the borough selector on the right)
+   (now lives inside .dac-map-leftcol; base card styling below)
    Uses dashboard tokens — matches enterprise aesthetic
    ============================================================= */
 .dac-map-kpi-panel {
@@ -6857,6 +7390,19 @@ a.nav-item { text-decoration: none; }
 .dac-kpi-card:hover { background: var(--bright-snow); }
 .dac-kpi-card-dac  { border-left: 3px solid var(--dusk); }
 .dac-kpi-card-ndac { border-left: 3px solid var(--text-4); }
+
+/* Component burden averages (Environmental / Population) in the KPI panel */
+.dac-kpi-burden { border-left: 3px solid #185FA5; }
+.dac-kpi-burden-row { display: flex; gap: 12px; }
+.dac-kpi-bmetric { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.dac-kpi-bm-label {
+  font-size: 8.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3); line-height: 1.2;
+}
+.dac-kpi-bm-val { font-size: 19px; font-weight: 800; line-height: 1.15; font-feature-settings: "tnum"; }
+.dac-kpi-bm-pct { font-size: 8.5px; font-weight: 600; color: var(--text-3); font-feature-settings: "tnum"; }
+.dac-kpi-bmetric-env .dac-kpi-bm-val { color: #185FA5; }
+.dac-kpi-bmetric-pop .dac-kpi-bm-val { color: #D98A1F; }
 
 .dac-kpi-label {
   font-size: 9px;
