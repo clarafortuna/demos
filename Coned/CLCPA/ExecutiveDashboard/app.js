@@ -1377,9 +1377,10 @@
   function dacMapColor(score, isDAC) {
     // Non-DAC tracts: uniform light gray (no score-based coloring)
     if (isDAC === false) return '#a8a8a8';
-    if (score == null || score === '') return '#b8b8b8';
+    // DAC tract with no data → lightest blue (never gray; gray is Non-DAC only)
+    if (score == null || score === '') return '#d4e3f2';
     const s = parseFloat(score);
-    if (isNaN(s))  return '#b8b8b8';
+    if (isNaN(s))  return '#d4e3f2';
     if (s >= 120)  return '#0a2540';
     if (s >= 110)  return '#1e4d80';
     if (s >= 100)  return '#2f5496';
@@ -1387,23 +1388,275 @@
     return '#d4e3f2';
   }
 
-  const _mapState = { county: null };
+  // Percentile (0–100) color ramp for the granular DAC indicators.
+  // IMPORTANT: a real 0.0 is the lowest percentile (lightest blue), handled by
+  // the explicit `== null` check (not a falsy test, since 0 is falsy). DAC
+  // tracts are never gray — missing data also renders as the lightest blue;
+  // gray (#a8a8a8) is reserved for Non-DAC tracts only.
+  function dacMapColorPct(value, isDAC) {
+    if (isDAC === false) return '#a8a8a8';
+    // DAC tract with no data → lightest blue (never gray; gray is Non-DAC only)
+    if (value == null || value === '') return '#d4e3f2';
+    const v = parseFloat(value);
+    if (isNaN(v))  return '#d4e3f2';
+    if (v >= 80)   return '#0a2540';
+    if (v >= 60)   return '#1e4d80';
+    if (v >= 40)   return '#2f5496';
+    if (v >= 20)   return '#6fa0d6';
+    return '#d4e3f2';
+  }
+
+  // Indicator catalog for the map color selector. `scale` drives both the
+  // coloring function and the legend:
+  //   'score' = Comb_Sc's own binned scale (90/100/110/120)
+  //   'pct'   = 0–100 percentile ramp
+  const MAP_INDICATOR_GROUPS = [
+    { group: 'Summary', items: [
+      { key: 'Comb_Sc',    label: 'Combined Burden Score',         scale: 'score' },
+      { key: 'Burden_Pct', label: 'Environmental Burden (pct)',    scale: 'pct' },
+      { key: 'Vulner_Pct', label: 'Population Vulnerability (pct)', scale: 'pct' },
+    ]},
+    { group: 'Environmental Burdens', items: [
+      { key: 'PM25',      label: 'PM2.5',                      scale: 'pct' },
+      { key: 'Benzene',   label: 'Benzene',                    scale: 'pct' },
+      { key: 'Traff_Trk', label: 'Truck Traffic',              scale: 'pct' },
+      { key: 'Traff_Veh', label: 'Vehicle Traffic',            scale: 'pct' },
+      { key: 'Waste_H2O', label: 'Wastewater Discharge',       scale: 'pct' },
+      { key: 'Vacancy',   label: 'Housing Vacancy',            scale: 'pct' },
+      { key: 'Ind_LU',    label: 'Industrial Land Use',        scale: 'pct' },
+      { key: 'Landfills', label: 'Active Landfills',           scale: 'pct' },
+      { key: 'Oil_Stor',  label: 'Major Oil Storage',          scale: 'pct' },
+      { key: 'Waste_Com', label: 'Regulated Waste Facilities', scale: 'pct' },
+      { key: 'Pwr_Gen',   label: 'Power Generation',           scale: 'pct' },
+      { key: 'RMP_Sites', label: 'RMP Sites',                  scale: 'pct' },
+      { key: 'Rem_Sites', label: 'Remediation Sites',          scale: 'pct' },
+      { key: 'Scrap_Met', label: 'Scrap Metal Processing',     scale: 'pct' },
+    ]},
+    { group: 'Climate Risks', items: [
+      { key: 'Coast_Fld',  label: 'Coastal Flooding',          scale: 'pct' },
+      { key: 'Days_90_D',  label: 'Days Above 90°F',           scale: 'pct' },
+      { key: 'In_Flood',   label: 'Inland Flooding',           scale: 'pct' },
+      { key: 'Low_Veg',    label: 'Low Vegetative Cover',      scale: 'pct' },
+      { key: 'Drv_Health', label: 'Drive Time to Health Care', scale: 'pct' },
+      { key: 'Ag_LU',      label: 'Agricultural Land Use',     scale: 'pct' },
+    ]},
+    { group: 'Health', items: [
+      { key: 'Asthma',     label: 'Asthma',                   scale: 'pct' },
+      { key: 'COPD',       label: 'COPD',                     scale: 'pct' },
+      { key: 'HH_Disab',   label: 'Households w/ Disability', scale: 'pct' },
+      { key: 'Birth_Wt',   label: 'Low Birth Weight',         scale: 'pct' },
+      { key: 'MI_Rates',   label: 'Heart Attack (MI) Rate',   scale: 'pct' },
+      { key: 'Health_Ins', label: 'No Health Insurance',      scale: 'pct' },
+      { key: 'Prem_Death', label: 'Premature Death',          scale: 'pct' },
+    ]},
+    { group: 'Demographics / Vulnerability', items: [
+      { key: 'Age_Ovr_65', label: 'Population Over 65',                 scale: 'pct' },
+      { key: 'Asian_Pct',  label: 'Asian Population',                   scale: 'pct' },
+      { key: 'Black_Pct',  label: 'Black Population',                   scale: 'pct' },
+      { key: 'Lat_Pct',    label: 'Hispanic/Latino Population',         scale: 'pct' },
+      { key: 'Native_Pct', label: 'Native American Population',         scale: 'pct' },
+      { key: 'Redline',    label: 'Historically Redlined',             scale: 'pct' },
+      { key: 'Eng_Prof',   label: 'Limited English Proficiency',       scale: 'pct' },
+      { key: 'LMI_80_AMI', label: 'Low-to-Moderate Income (≤80% AMI)', scale: 'pct' },
+      { key: 'LMI_Fed',    label: 'Low Income (Federal)',              scale: 'pct' },
+      { key: 'No_College', label: 'No College Degree',                 scale: 'pct' },
+      { key: 'HH_Single',  label: 'Single-Parent Households',          scale: 'pct' },
+      { key: 'Unemploymt', label: 'Unemployment',                      scale: 'pct' },
+      { key: 'Internet',   label: 'No Internet Access',                scale: 'pct' },
+      { key: 'Homes_1960', label: 'Homes Built Before 1960',           scale: 'pct' },
+      { key: 'Mobile',     label: 'Mobile Homes',                      scale: 'pct' },
+      { key: 'Rent_Inc',   label: 'Rent Burden',                       scale: 'pct' },
+      { key: 'Rent_Pct',   label: 'Renter-Occupied',                   scale: 'pct' },
+    ]},
+    { group: 'Affordability & Ranking', items: [
+      { key: 'Energy_Aff', label: 'Energy Affordability (pct)',   scale: 'pct' },
+      { key: 'Rank_NYC',   label: 'NYC DAC Rank (pct)',           scale: 'pct' },
+      { key: 'Rank_ROS',   label: 'Rest-of-State DAC Rank (pct)', scale: 'pct' },
+    ]},
+  ];
+
+  const _mapIndicatorByKey = (function () {
+    const m = {};
+    MAP_INDICATOR_GROUPS.forEach(g => g.items.forEach(it => { m[it.key] = it; }));
+    return m;
+  })();
+
+  function mapIndicatorMeta(key) {
+    return _mapIndicatorByKey[key] || _mapIndicatorByKey['Comb_Sc'];
+  }
+
+  // A raw-scale score (e.g. Comb_Sc) uses its own binned legend and can't be
+  // averaged with percentile indicators.
+  function isRawKey(key) {
+    return mapIndicatorMeta(key).scale === 'score';
+  }
+
+  // Mean of the selected indicators' values for one tract. Includes a real 0.0;
+  // skips null/''/NaN. Returns null if every selected value is missing.
+  function tractMean(props, keys) {
+    if (!props) return null;
+    let sum = 0, n = 0;
+    for (let i = 0; i < keys.length; i++) {
+      const raw = props[keys[i]];
+      if (raw == null || raw === '') continue;
+      const v = parseFloat(raw);
+      if (isNaN(v)) continue;
+      sum += v; n++;
+    }
+    return n > 0 ? sum / n : null;
+  }
+
+  // Active legend scale: a lone raw-score uses its own scale; otherwise 0–100.
+  function activeScale() {
+    const keys = _mapState.indicators;
+    return (keys.length === 1) ? mapIndicatorMeta(keys[0]).scale : 'pct';
+  }
+
+  // Trigger/title summary text (+ a hover list when averaging several).
+  function indicatorSummary() {
+    const keys = _mapState.indicators;
+    if (keys.length === 1) {
+      return { text: mapIndicatorMeta(keys[0]).label, listTitle: '' };
+    }
+    const names = keys.map(k => mapIndicatorMeta(k).label);
+    return { text: 'Average of ' + keys.length + ' indicators', listTitle: names.join(', ') };
+  }
+
+  // Title text: one indicator → its name; several → "Average — A · B · C",
+  // listing all selected names inline (always visible, no hover tooltip).
+  function mapTitleText() {
+    const keys = _mapState.indicators;
+    if (keys.length === 1) return mapIndicatorMeta(keys[0]).label;
+    return 'Average — ' + keys.map(k => mapIndicatorMeta(k).label).join(' · ');
+  }
+
+  // Color a feature by the current selection. 1 indicator → its own value/scale;
+  // 2+ percentile indicators → mean of available values (still 0–100).
+  function colorForFeature(props, isDAC) {
+    const keys = _mapState.indicators;
+    if (keys.length === 1) {
+      const meta = mapIndicatorMeta(keys[0]);
+      const raw = props ? props[meta.key] : null;
+      return meta.scale === 'score'
+        ? dacMapColor(raw, isDAC)
+        : dacMapColorPct(raw, isDAC);
+    }
+    return dacMapColorPct(tractMean(props, keys), isDAC);
+  }
+
+  // Build the legend inner-HTML for a given scale ('score' | 'pct').
+  function mapLegendHtml(scale) {
+    const sw = c => '<span class="dac-map-leg-swatch" style="background:' + c + '"></span>';
+    const tx = t => '<span class="dac-map-leg-text">' + t + '</span>';
+    let label, bins;
+    if (scale === 'score') {
+      label = 'Score:';
+      bins = sw('#d4e3f2') + tx('&lt;90') +
+             sw('#6fa0d6') + tx('90–99') +
+             sw('#2f5496') + tx('100–109') +
+             sw('#1e4d80') + tx('110–119') +
+             sw('#0a2540') + tx('120+');
+    } else {
+      label = 'Percentile:';
+      bins = sw('#d4e3f2') + tx('0–20') +
+             sw('#6fa0d6') + tx('20–40') +
+             sw('#2f5496') + tx('40–60') +
+             sw('#1e4d80') + tx('60–80') +
+             sw('#0a2540') + tx('80–100');
+    }
+    return '<span class="dac-map-legend-label">' + label + '</span>' + bins +
+           sw('#e8e8e8') + tx('Non-DAC');
+  }
+
+  // Build a custom grouped dropdown (trigger + positioned list). A native
+  // <select> is avoided because the open option-list border is drawn by the
+  // browser/OS and cannot be styled. Same grouped structure + behavior.
+  function mapDropdownHtml() {
+    const sel = _mapState.indicators;
+    const groups = MAP_INDICATOR_GROUPS.map(g => {
+      const opts = g.items.map(it => {
+        const on = sel.indexOf(it.key) >= 0;
+        return '<button type="button" class="dac-map-dd-opt' + (on ? ' active' : '') +
+          '" data-key="' + it.key + '" role="option" aria-checked="' + (on ? 'true' : 'false') + '">' +
+          '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+          '<span class="dac-map-dd-optlabel">' + it.label + '</span>' +
+        '</button>';
+      }).join('');
+      return '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + g.group + '</div>' + opts + '</div>';
+    }).join('');
+    const summary = indicatorSummary();
+    return '' +
+      '<div class="dac-map-dd" id="dac-map-indicator">' +
+        '<button type="button" class="dac-map-dd-trigger" id="dac-map-dd-trigger" aria-haspopup="listbox" aria-expanded="false">' +
+          '<span class="dac-map-dd-current" id="dac-map-dd-current">' + summary.text + '</span>' +
+          '<span class="dac-map-dd-chev" aria-hidden="true">▾</span>' +
+        '</button>' +
+        '<div class="dac-map-dd-menu" role="listbox" aria-multiselectable="true">' +
+          '<div class="dac-map-dd-menuhdr">' +
+            '<button type="button" class="dac-map-dd-clear">Clear</button>' +
+          '</div>' +
+          groups +
+        '</div>' +
+      '</div>';
+  }
+
+  const _mapState = { county: null, neighborhoods: [], indicators: ['Comb_Sc'], selectedGeoid: null };
+
+  // True iff a given feature is within the current neighborhood selection.
+  function inSelectedNeighborhoods(props) {
+    const sel = _mapState.neighborhoods;
+    for (let i = 0; i < sel.length; i++) {
+      if (props.neighborhood === sel[i].name && props.borough === sel[i].boro) return true;
+    }
+    return false;
+  }
+
+  // HTML-escape for attribute values + text (neighborhood names may contain & etc.)
+  function escMap(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  // Document-level handlers for the custom dropdown (removed before re-adding
+  // on each mount so they don't accumulate across re-renders).
+  let _ddOutsideClick = null;
+  let _ddEscKey = null;
+  // Window resize handler that keeps the Leaflet map sized to its container.
+  let _mapResizeHandler = null;
 // Compute and render KPI overlay for the DAC map
   // Compute and render Customer Counts panel for the DAC map
-  function renderMapKPI(geo, county) {
+  function renderMapKPI(geo) {
     if (!geo || !geo.features) return;
     const panel = document.getElementById('dac-map-kpi');
     if (!panel) return;
 
-    const feats = county
-      ? geo.features.filter(f => f.properties.County === county)
-      : geo.features;
+    // Scope: selected neighborhoods narrow to their tracts (aggregate across
+    // all of them); else the active borough; else all.
+    const nbs = _mapState.neighborhoods;
+    const county = _mapState.county;
+    let feats;
+    if (nbs.length) {
+      feats = geo.features.filter(f => inSelectedNeighborhoods(f.properties));
+    } else if (county) {
+      feats = geo.features.filter(f => f.properties.County === county);
+    } else {
+      feats = geo.features;
+    }
 
     let dacN = 0, ndacN = 0;
     let dacElecAcc = 0, ndacElecAcc = 0;
     let dacGasAcc  = 0, ndacGasAcc  = 0;
     let dacElecEap = 0, ndacElecEap = 0;
     let dacGasEap  = 0, ndacGasEap  = 0;
+
+    // Component score/percentile averages across DAC tracts in the selection.
+    const acc = { bSc: 0, bScN: 0, vSc: 0, vScN: 0, bPct: 0, bPctN: 0, vPct: 0, vPctN: 0 };
+    const addAvg = (raw, key) => {
+      if (raw == null || raw === '') return;
+      const v = parseFloat(raw);
+      if (isNaN(v)) return;
+      acc[key] += v; acc[key + 'N']++;
+    };
 
     feats.forEach(f => {
       const p = f.properties;
@@ -1414,6 +1667,10 @@
         dacGasAcc  += (p.gas_accts  || 0);
         dacElecEap += (p.elec_eap   || 0);
         dacGasEap  += (p.gas_eap    || 0);
+        addAvg(p.Burden_Sc, 'bSc');
+        addAvg(p.Vulner_Sc, 'vSc');
+        addAvg(p.Burden_Pct, 'bPct');
+        addAvg(p.Vulner_Pct, 'vPct');
       } else {
         ndacN++;
         ndacElecAcc += (p.elec_accts || 0);
@@ -1431,12 +1688,14 @@
     };
     const fmtFull = v => (v == null || !isFinite(v)) ? '—' : Math.round(v).toLocaleString();
 
-    const scopeLabel = county
-      ? (county === 'Kings' ? 'Brooklyn'
-        : county === 'New York' ? 'Manhattan'
-        : county === 'Richmond' ? 'Staten Is.'
-        : county)
-      : 'All boroughs';
+    const scopeLabel = nbs.length
+      ? (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods')
+      : (county
+        ? (county === 'Kings' ? 'Brooklyn'
+          : county === 'New York' ? 'Manhattan'
+          : county === 'Richmond' ? 'Staten Is.'
+          : county)
+        : 'All boroughs');
 
     // ---- DAC Accounts tooltip (electric + gas) -------------------
     const dacAcctsTotal = dacElecAcc + dacGasAcc;
@@ -1468,6 +1727,39 @@
     // Bar widths (clamp so tiny slivers are still visible)
     const dacBarPct  = dacSharePct  != null ? Math.max(2, Math.min(98, dacSharePct))  : 0;
     const ndacBarPct = 100 - dacBarPct;
+
+    // ---- Component burden averages (Environmental / Population) ----
+    const mean = (sum, n) => n > 0 ? sum / n : null;
+    const bScAvg  = mean(acc.bSc,  acc.bScN);
+    const vScAvg  = mean(acc.vSc,  acc.vScN);
+    const bPctAvg = mean(acc.bPct, acc.bPctN);
+    const vPctAvg = mean(acc.vPct, acc.vPctN);
+    const bmVal = v => (v == null) ? '—' : v.toFixed(1);
+    const bmPct = v => (v == null) ? '' : '<span class="dac-kpi-bm-pct">' + ordinal(v) + ' percentile</span>';
+
+    const burdenTT =
+      '<div class="dac-kpi-tt-title">Burden scores · ' + scopeLabel + '</div>' +
+      '<div class="dac-kpi-tt-desc">Average across the DAC tracts in the current selection. ' +
+      'Score is the composite burden value; percentile is the statewide rank (0–100; higher = more disadvantaged).</div>' +
+      '<div class="dac-kpi-tt-row"><span>Environmental Burden</span><span class="v">' + bmVal(bScAvg) + (bPctAvg != null ? ' · ' + ordinal(bPctAvg) + ' pct' : '') + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Population Vulnerability</span><span class="v">' + bmVal(vScAvg) + (vPctAvg != null ? ' · ' + ordinal(vPctAvg) + ' pct' : '') + '</span></div>';
+
+    const burdenCard =
+      '<div class="dac-kpi-card dac-kpi-burden">' +
+        '<div class="dac-kpi-tt">' + burdenTT + '</div>' +
+        '<div class="dac-kpi-burden-row">' +
+          '<div class="dac-kpi-bmetric dac-kpi-bmetric-env">' +
+            '<span class="dac-kpi-bm-label">Environmental Burden</span>' +
+            '<span class="dac-kpi-bm-val">' + bmVal(bScAvg) + '</span>' +
+            bmPct(bPctAvg) +
+          '</div>' +
+          '<div class="dac-kpi-bmetric dac-kpi-bmetric-pop">' +
+            '<span class="dac-kpi-bm-label">Population Vulnerability</span>' +
+            '<span class="dac-kpi-bm-val">' + bmVal(vScAvg) + '</span>' +
+            bmPct(vPctAvg) +
+          '</div>' +
+        '</div>' +
+      '</div>';
 
     const shareTT =
       '<div class="dac-kpi-tt-title">Customer share · ' + scopeLabel + '</div>' +
@@ -1510,50 +1802,237 @@
             '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacGasAcc) + '</span>' +
           '</div>' +
         '</div>' +
-      '</div>' ;
-      
+      '</div>' +
+      burdenCard ;
+
   }
+  // "Census Tract N" from an 11-digit GEOID (last 6 digits = tract code /100).
+  function tractDisplayName(geoid) {
+    if (!geoid || String(geoid).length < 11) return 'Census Tract';
+    const code = parseInt(String(geoid).slice(5), 10) / 100;
+    if (isNaN(code)) return 'Census Tract';
+    const n = Number.isInteger(code) ? String(code) : code.toFixed(2).replace(/\.?0+$/, '');
+    return 'Census Tract ' + n;
+  }
+
+  function boroughLabel(county) {
+    return county === 'Kings' ? 'Brooklyn'
+         : county === 'New York' ? 'Manhattan'
+         : county === 'Richmond' ? 'Staten Island'
+         : (county || '');
+  }
+
+  // Ordinal suffix: 1→1st, 2→2nd, 30→30th, 95→95th (handles the 11–13 case).
+  function ordinal(n) {
+    const r = Math.round(n);
+    const v = r % 100;
+    const s = ['th', 'st', 'nd', 'rd'];
+    return r + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
+  // Build the selected-tract detail panel content (header + 4 thematic blocks).
+  // Pure function of the clicked feature's properties + MAP_INDICATOR_GROUPS.
+  function renderTractDetailContent(props) {
+    const isDAC = props.DAC_Desig === 'Designated as DAC';
+    const name = tractDisplayName(props.GEOID);
+    const boro = boroughLabel(props.County);
+    const badge = isDAC
+      ? '<span class="dac-td-badge dac-td-badge-dac">DAC</span>'
+      : '<span class="dac-td-badge dac-td-badge-non">Non-DAC</span>';
+
+    // One header metric: raw score (main) + its percentile (secondary line).
+    function metricHtml(cls, label, scoreVal, pctVal) {
+      const sNum = parseFloat(scoreVal);
+      const main = (scoreVal == null || scoreVal === '' || isNaN(sNum)) ? '—' : sNum.toFixed(1);
+      const pNum = parseFloat(pctVal);
+      const pctLine = (pctVal == null || pctVal === '' || isNaN(pNum)) ? ''
+        : '<span class="dac-td-metric-pct">' + ordinal(pNum) + ' percentile</span>';
+      return '<div class="dac-td-metric ' + cls + '">' +
+          '<span class="dac-td-metric-label">' + label + '</span>' +
+          '<span class="dac-td-metric-val">' + main + '</span>' +
+          pctLine +
+        '</div>';
+    }
+
+    const statsTt =
+      '<span class="dac-td-stats-tt">Score is the composite burden value — Environmental + ' +
+      'Population add up to the Combined Burden Score. Percentile is the tract\'s statewide ' +
+      'rank (0–100; higher = more disadvantaged).</span>';
+
+    const header =
+      '<div class="dac-td-header">' +
+        '<div class="dac-td-headtop">' +
+          '<div class="dac-td-titles">' +
+            '<span class="dac-td-name">' + name + '</span>' +
+            '<span class="dac-td-boro">' + boro + '</span>' +
+            '<span class="dac-td-nbhd">' + (props.neighborhood || '—') + '</span>' +
+            badge +
+          '</div>' +
+          '<div class="dac-td-headright">' +
+            '<div class="dac-td-stats">' +
+              metricHtml('dac-td-metric-comb', 'Combined Burden Score', props.Comb_Sc, props.Rank_State) +
+              metricHtml('dac-td-metric-env', 'Environmental Burden', props.Burden_Sc, props.Burden_Pct) +
+              metricHtml('dac-td-metric-pop', 'Population Vulnerability', props.Vulner_Sc, props.Vulner_Pct) +
+              statsTt +
+            '</div>' +
+            '<button type="button" class="dac-td-close" id="dac-td-close" aria-label="Close detail panel">&times;</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // "How to read" lives in a footer row at the bottom-right of the panel.
+    const footer =
+      '<div class="dac-td-footer">' +
+        '<button type="button" class="dac-td-help-btn" id="dac-td-help" aria-expanded="false">' +
+          '<svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg>' +
+          '<span>How to read</span>' +
+        '</button>' +
+      '</div>';
+
+    const note =
+      '<div class="dac-td-note" id="dac-td-note" hidden>' +
+        '<div class="dac-td-note-title">How to read this panel</div>' +
+        '<ul>' +
+          '<li>Indicator values are <strong>statewide percentiles (0–100)</strong>. ' +
+            'Example: <strong>PM2.5 = 71</strong> means this tract has more PM2.5 exposure than about <strong>71%</strong> ' +
+            'of all New York census tracts. Higher = greater relative burden or vulnerability.</li>' +
+          '<li>The <strong>Combined Burden Score</strong> is a <strong>composite total (roughly 0–143)</strong>, ' +
+            'not a percentile. It adds the tract\'s environmental-burden score and its population/health-vulnerability ' +
+            'score. The higher the score, the greater the overall disadvantage — this is the score New York uses ' +
+            'to rank and designate DACs.</li>' +
+        '</ul>' +
+      '</div>';
+
+    if (!isDAC) {
+      return header +
+        '<div class="dac-td-empty">Not a designated DAC — no indicator breakdown available.</div>' +
+        footer + note;
+    }
+
+    // Build one indicator row, color-coded by component ('env' | 'pop').
+    function buildRow(it, comp) {
+      const raw = props[it.key];
+      let valStr, pct, nullCls;
+      // 0.0 is a real low percentile (near-empty bar, "0"); only null/NaN are "—".
+      if (raw == null || raw === '' || isNaN(parseFloat(raw))) {
+        valStr = '—'; pct = 0; nullCls = ' dac-td-row-null';
+      } else {
+        const n = parseFloat(raw);
+        valStr = String(Math.round(n));
+        pct = Math.max(0, Math.min(100, n));
+        nullCls = '';
+      }
+      // Highlight rows whose indicator is currently driving the map coloring.
+      const selCls = _mapState.indicators.indexOf(it.key) >= 0 ? ' dac-td-row-selected' : '';
+      return '<div class="dac-td-row dac-td-row-' + comp + nullCls + selCls + '" data-key="' + it.key + '">' +
+          '<span class="dac-td-label" title="' + it.label + '">' + it.label + '</span>' +
+          '<span class="dac-td-bar"><span class="dac-td-fill" style="width:' + pct + '%"></span></span>' +
+          '<span class="dac-td-val">' + valStr + '</span>' +
+        '</div>';
+    }
+
+    // Build one sub-table (column) from a named group in MAP_INDICATOR_GROUPS.
+    function buildCol(title, groupName, comp) {
+      const g = MAP_INDICATOR_GROUPS.find(x => x.group === groupName);
+      const items = g ? g.items : [];
+      const rows = items.map(it => buildRow(it, comp)).join('');
+      return '<div class="dac-td-col">' +
+          '<div class="dac-td-coltitle">' + title + '</div>' +
+          '<div class="dac-td-rows">' + rows + '</div>' +
+        '</div>';
+    }
+
+    const body =
+      '<div class="dac-td-body">' +
+        '<div class="dac-td-zone dac-td-zone-env">' +
+          '<div class="dac-td-zone-hdr">Environmental Burden</div>' +
+          '<div class="dac-td-zone-cols">' +
+            buildCol('Environmental Burdens', 'Environmental Burdens', 'env') +
+            buildCol('Climate Risks', 'Climate Risks', 'env') +
+          '</div>' +
+        '</div>' +
+        '<div class="dac-td-zone dac-td-zone-pop">' +
+          '<div class="dac-td-zone-hdr">Population Vulnerability</div>' +
+          '<div class="dac-td-zone-cols">' +
+            buildCol('Health', 'Health', 'pop') +
+            buildCol('Demographics / Socioeconomic', 'Demographics / Vulnerability', 'pop') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    return header + body + footer + note;
+  }
+
   function renderDACMap(baseline, year, sections) {
     const mapId = 'dac-leaflet-map-' + Date.now();
     window._dacMapContainerId = mapId;
 
-    const countyButtons = [
-      { key: null,          label: 'All' },
+    // Borough dropdown options (single-select; no search needed).
+    const boroughOpts = [
+      { key: '',            label: 'All boroughs' },
       { key: 'Kings',       label: 'Brooklyn' },
       { key: 'Bronx',       label: 'Bronx' },
       { key: 'Queens',      label: 'Queens' },
       { key: 'New York',    label: 'Manhattan' },
-      { key: 'Richmond',    label: 'Staten Is.' },
+      { key: 'Richmond',    label: 'Staten Island' },
       { key: 'Westchester', label: 'Westchester' },
     ];
-
-    const btnHtml = countyButtons.map(b =>
-      `<button class="dac-map-county-btn${_mapState.county === b.key ? ' active' : ''}"
-        data-county="${b.key === null ? '' : b.key}" type="button">${b.label}</button>`
+    const curCounty = _mapState.county;
+    const boroughCur = (boroughOpts.find(o => (o.key || null) === curCounty) || boroughOpts[0]).label;
+    const boroughOptsHtml = boroughOpts.map(o =>
+      '<button type="button" class="dac-map-dd-opt' + ((o.key || null) === curCounty ? ' active' : '') +
+      '" data-county="' + o.key + '" role="option"><span class="dac-map-dd-optlabel">' + o.label + '</span></button>'
     ).join('');
 
     return `
       <div class="exec-card dac-map-card">
         <div class="chart-card-head">
           <div>
-            <h3>DAC Tracts · Combined Burden Score</h3>
-            <p class="chart-sub">Census tracts colored by equity score · ${year}</p>
+            <h3 id="dac-map-title">DAC Tracts</h3>
+            <p class="chart-sub dac-map-subind" id="dac-map-subind">${mapTitleText()}</p>
+          </div>
+          <div class="dac-map-controls">
+            <div class="dac-map-indicator">
+              <label class="dac-map-indicator-label">Borough</label>
+              <div class="dac-map-dd dac-map-borough" id="dac-map-borough">
+                <button type="button" class="dac-map-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="dac-map-dd-current" id="dac-map-borough-current">${boroughCur}</span>
+                  <span class="dac-map-dd-chev" aria-hidden="true">▾</span>
+                </button>
+                <div class="dac-map-dd-menu" role="listbox">${boroughOptsHtml}</div>
+              </div>
+            </div>
+            <div class="dac-map-indicator">
+              <label class="dac-map-indicator-label">Neighborhood</label>
+              <div class="dac-map-dd dac-map-nb" id="dac-map-nb">
+                <button type="button" class="dac-map-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="dac-map-dd-current" id="dac-map-nb-current">All neighborhoods</span>
+                  <span class="dac-map-dd-chev" aria-hidden="true">▾</span>
+                </button>
+                <div class="dac-map-dd-menu" role="listbox" aria-multiselectable="true">
+                  <div class="dac-map-nb-search">
+                    <input type="text" class="dac-map-nb-input" placeholder="Search neighborhoods…" aria-label="Search neighborhoods">
+                    <button type="button" class="dac-map-dd-clear">Clear</button>
+                  </div>
+                  <div class="dac-map-nb-list"></div>
+                </div>
+              </div>
+            </div>
+            <div class="dac-map-indicator">
+              <label class="dac-map-indicator-label" for="dac-map-dd-trigger">Color by</label>
+              ${mapDropdownHtml()}
+            </div>
+            <span class="dac-map-ctl-divider" aria-hidden="true"></span>
+            <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
+            <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
           </div>
         </div>
-        <div class="dac-map-legend" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin-bottom:4px">
-          <span class="dac-map-legend-label">Score:</span>
-          <span class="dac-map-leg-swatch" style="background:#d4e3f2"></span><span class="dac-map-leg-text">&lt;90</span>
-          <span class="dac-map-leg-swatch" style="background:#6fa0d6"></span><span class="dac-map-leg-text">90–99</span>
-          <span class="dac-map-leg-swatch" style="background:#2f5496"></span><span class="dac-map-leg-text">100–109</span>
-          <span class="dac-map-leg-swatch" style="background:#1e4d80"></span><span class="dac-map-leg-text">110–119</span>
-          <span class="dac-map-leg-swatch" style="background:#0a2540"></span><span class="dac-map-leg-text">120+</span>
-          <span class="dac-map-leg-swatch" style="background:#e8e8e8"></span><span class="dac-map-leg-text">Non-DAC</span>
-<span class="dac-map-leg-swatch" style="background:#b8b8b8"></span><span class="dac-map-leg-text">N/A</span>
-        </div>
-        <div class="dac-map-county-bar" style="flex-wrap:nowrap;gap:4px">${btnHtml}</div>
+        <div class="dac-map-legend" id="dac-map-legend" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin-bottom:4px">${mapLegendHtml(activeScale())}</div>
         <div style="position:relative;flex:1">
           <div id="${mapId}" class="dac-map-container"></div>
-          <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
+          <div class="dac-map-leftcol">
+            <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
+          </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
         </div>
       </div>
@@ -1564,6 +2043,12 @@
     const containerId = window._dacMapContainerId;
     const container = document.getElementById(containerId);
     if (!container) return;
+
+    // Each fresh mount starts with no tract selected (the detail panel in the
+    // freshly rendered DOM is hidden, so keep state in sync). The neighborhood
+    // filter also resets (the dropdown re-renders to "All neighborhoods").
+    _mapState.selectedGeoid = null;
+    _mapState.neighborhoods = [];
 
     if (_leafletMapInstance) {
       try { _leafletMapInstance.remove(); } catch(e) {}
@@ -1605,16 +2090,29 @@
       if (tooltip) tooltip.style.opacity = '0';
     });
 
+    // turf.js lets us dissolve selected-neighborhood tracts into one boundary.
+    const _useTurf = typeof turf !== 'undefined' && turf && typeof turf.union === 'function';
+
     function styleFeature(feature) {
+      const nbs = _mapState.neighborhoods;
       const active = _mapState.county;
-      const fCounty = feature.properties.County;
-      const dimmed = active && fCounty !== active;
-      const isDAC = feature.properties.DAC_Desig === 'Designated as DAC';
+      const p2 = feature.properties;
+      const inNbhd = nbs.length ? inSelectedNeighborhoods(p2) : false;
+      const dimmed = nbs.length
+        ? !inNbhd
+        : (active && p2.County !== active);
+      const isDAC = p2.DAC_Desig === 'Designated as DAC';
+      const isSelected = _mapState.selectedGeoid && p2.GEOID === _mapState.selectedGeoid;
+      // Per-tract orange edge only as a fallback when turf can't dissolve into a
+      // single boundary; otherwise the orange is drawn as a separate layer.
+      let color = '#ffffff', weight = 0.6;
+      if (isSelected) { color = '#0a2540'; weight = 3; }
+      else if (!_useTurf && inNbhd) { color = '#D98A1F'; weight = 1.6; }
       return {
-        fillColor: dacMapColor(feature.properties.Comb_Sc, isDAC),
+        fillColor: colorForFeature(p2, isDAC),
         fillOpacity: dimmed ? 0.12 : (isDAC ? 0.78 : 0.55),
-        color: '#ffffff',
-        weight: 0.6,
+        color: color,
+        weight: weight,
         opacity: dimmed ? 0.2 : 1,
       };
     }
@@ -1650,7 +2148,11 @@
 
         const dacDesig = p.DAC_Desig || '';
         const isDAC = dacDesig === 'Designated as DAC';
-        const subline = [p.County, dacDesig].filter(Boolean).join(' · ');
+        // Borough display name (Kings -> Brooklyn, etc.) instead of raw county.
+        const boroDisp = p.borough || boroughLabel(p.County);
+        const subline = [boroDisp, dacDesig].filter(Boolean).join(' · ');
+        const nbhdLine = '<div class="dac-tt-nbhd"><span>Neighborhood</span>' +
+          '<span class="dac-tt-nbhd-v">' + (p.neighborhood || '—') + '</span></div>';
 
         // Score/Rank/Pop line: only for DAC tracts (Non-DAC don't have these)
         let metaLine = '';
@@ -1681,10 +2183,51 @@
           return html;
         }
 
+        // ---- Selected indicator value (distinguish real 0.0 from null) ----
+        // Single selection → that indicator's value; multiple → the mean plus a
+        // per-indicator breakdown listed below.
+        const selKeys = _mapState.indicators;
+        let indLine;
+        if (selKeys.length === 1) {
+          const indLabel = mapIndicatorMeta(selKeys[0]).label;
+          const indRaw = p[selKeys[0]];
+          let indValStr;
+          if (indRaw == null || indRaw === '') {
+            indValStr = 'No data';
+          } else {
+            const n = parseFloat(indRaw);
+            indValStr = isNaN(n) ? 'No data' : n.toFixed(1);
+          }
+          indLine =
+            '<div class="dac-tt-selected"><span>' + indLabel + '</span>' +
+            '<span class="dac-tt-selected-v">' + indValStr + '</span></div>';
+        } else {
+          const avg = tractMean(p, selKeys);
+          const avgStr = (avg == null) ? 'No data' : String(Math.round(avg));
+          const breakdown = selKeys.map(function (k) {
+            const raw = p[k];
+            let vs;
+            if (raw == null || raw === '') {
+              vs = '—';
+            } else {
+              const n = parseFloat(raw);
+              vs = isNaN(n) ? '—' : String(Math.round(n));
+            }
+            return '<div class="dac-tt-breakdown-row"><span>' + mapIndicatorMeta(k).label +
+              '</span><span class="dac-tt-breakdown-v">' + vs + '</span></div>';
+          }).join('');
+          indLine =
+            '<div class="dac-tt-selected"><span>Average of ' + selKeys.length + '</span>' +
+            '<span class="dac-tt-selected-v">' + avgStr + '</span></div>' +
+            '<div class="dac-tt-breakdown">' + breakdown + '</div>';
+        }
+
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
+          nbhdLine +
           metaLine +
+          indLine +
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
           utilityBlock('Gas',      p.gas_accts,  p.gas_eap);
 
@@ -1709,6 +2252,20 @@
         if (_hoveredLayer === this) _hoveredLayer = null;
         if (tooltip) tooltip.style.opacity = '0';
       });
+      layer.on('click', function(e) {
+        // Stop the click from reaching the map-level handler (which clears the
+        // selection), so clicking a tract selects it normally.
+        L.DomEvent.stopPropagation(e);
+        const geoid = p.GEOID;
+        if (_mapState.selectedGeoid === geoid) {
+          clearTractSelection();          // toggle off
+        } else {
+          _mapState.selectedGeoid = geoid;
+          geoLayer.setStyle(styleFeature); // apply selected border
+          this.bringToFront();
+          showTractDetail(p);
+        }
+      });
     }
 
     const geoLayer = L.geoJSON(geo, {
@@ -1716,6 +2273,48 @@
       onEachFeature: onEach,
     }).addTo(map);
     _mapGeoLayer = geoLayer;
+
+    // ---- Selected-tract detail panel (below the map) ----
+    function showTractDetail(props) {
+      const panel = document.getElementById('dac-tract-detail');
+      if (!panel) return;
+      panel.innerHTML = renderTractDetailContent(props);
+      panel.hidden = false;
+      const closeBtn = panel.querySelector('#dac-td-close');
+      if (closeBtn) closeBtn.addEventListener('click', clearTractSelection);
+      // "How to read" toggle — collapsed by default; shows the note below header.
+      const helpBtn = panel.querySelector('#dac-td-help');
+      const note = panel.querySelector('#dac-td-note');
+      if (helpBtn && note) {
+        helpBtn.addEventListener('click', function() {
+          const show = note.hidden;
+          note.hidden = !show;
+          helpBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+          helpBtn.classList.toggle('active', show);
+        });
+      }
+      // Panel toggling can change the map container size — keep Leaflet in sync.
+      requestAnimationFrame(() => map.invalidateSize());
+    }
+
+    function clearTractSelection() {
+      _mapState.selectedGeoid = null;
+      geoLayer.setStyle(styleFeature);   // drop the selected border
+      const panel = document.getElementById('dac-tract-detail');
+      if (panel) {
+        panel.hidden = true;
+        panel.innerHTML = '';
+      }
+      requestAnimationFrame(() => map.invalidateSize());
+    }
+
+    // Clicking the base map (water / empty area / outside any tract) clears the
+    // selection. Feature clicks call L.DomEvent.stopPropagation, so they never
+    // reach this handler. Leaflet does not fire 'click' after a drag, so
+    // panning won't close the panel.
+    map.on('click', function() {
+      if (_mapState.selectedGeoid) clearTractSelection();
+    });
 
     // ---- ConEd service area labels (manual) ----
     // Two tiers: major (boroughs / counties) and minor (neighborhoods).
@@ -1851,7 +2450,7 @@
     // is deferred too.
 
     // Initial KPI render
-    renderMapKPI(geo, _mapState.county);
+    renderMapKPI(geo);
 
     // Use fixed initial view so "All" returns here
     const initialCenter = [40.93, -73.9];
@@ -1863,38 +2462,429 @@
       updateLabelVisibility();   // run after the zoom is set so minors hide correctly
     });
 
+    // The legend (bottom-left) and the indicator control (title bar) are
+    // inserted around the map and change the container's dimensions AFTER
+    // Leaflet has initialized. Recalculate once the layout has fully settled
+    // so the tiles fill the whole container (no blank strip at the bottom).
+    setTimeout(() => {
+      map.invalidateSize();
+      map.setView(initialCenter, initialZoom, { animate: false });
+      updateLabelVisibility();
+    }, 0);
+
     const defaultBounds = geoLayer.getBounds();
 
-    // County filter
-    const bar = document.querySelector('.dac-map-county-bar');
-    if (bar) {
-      bar.addEventListener('click', function(e) {
-        const btn = e.target.closest('.dac-map-county-btn');
-        if (!btn) return;
-        const county = btn.dataset.county || null;
-        _mapState.county = county;
-        bar.querySelectorAll('.dac-map-county-btn').forEach(b => {
-          b.classList.toggle('active', (b.dataset.county || null) === county);
-        });
-        geoLayer.setStyle(styleFeature);
-        renderMapKPI(geo, county);
-        if (county) {
-          const filtered = [];
-          geoLayer.eachLayer(l => {
-            if (l.feature.properties.County === county) filtered.push(l);
-          });
-          if (filtered.length) {
-            const group = L.featureGroup(filtered);
-            map.flyToBounds(group.getBounds(), { padding: [5, 5], duration: 0.5 });
-          }
-        } else {
-          map.flyTo(initialCenter, initialZoom, { duration: 0.5 });
-          setTimeout(() => {
-            console.log('[ALL CLICK] center:', map.getCenter(), 'zoom:', map.getZoom(), 'container:', container.clientWidth + 'x' + container.clientHeight);
-          }, 600);
+    // ---- Shared dropdown open/close (Borough, Neighborhood, Color by) ----
+    function ddCloseEl(d) {
+      d.classList.remove('open');
+      const t = d.querySelector('.dac-map-dd-trigger');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    }
+    function ddToggle(d) {
+      document.querySelectorAll('.dac-map-dd.open').forEach(o => { if (o !== d) ddCloseEl(o); });
+      const open = d.classList.toggle('open');
+      const t = d.querySelector('.dac-map-dd-trigger');
+      if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
+      return open;
+    }
+
+    // ---- Fit the map to the current scope (neighborhoods > borough > all) ----
+    function fitToScope() {
+      const nbs = _mapState.neighborhoods;
+      const county = _mapState.county;
+      if (nbs.length) {
+        const layers = [];
+        geoLayer.eachLayer(l => { if (inSelectedNeighborhoods(l.feature.properties)) layers.push(l); });
+        if (layers.length) map.flyToBounds(L.featureGroup(layers).getBounds(), { padding: [20, 20], duration: 0.5 });
+      } else if (county) {
+        const layers = [];
+        geoLayer.eachLayer(l => { if (l.feature.properties.County === county) layers.push(l); });
+        if (layers.length) map.flyToBounds(L.featureGroup(layers).getBounds(), { padding: [5, 5], duration: 0.5 });
+      } else {
+        map.flyTo(initialCenter, initialZoom, { duration: 0.5 });
+      }
+    }
+
+    // ---- Orange dissolved boundary around each selected neighborhood (turf) ----
+    let _nbOutlineLayer = null;
+    function unionAll(features) {
+      if (!features.length) return null;
+      try {
+        return turf.union(turf.featureCollection(features));   // turf 7 signature
+      } catch (e) {
+        let acc = features[0];                                  // turf 6 fallback
+        for (let i = 1; i < features.length; i++) {
+          try { acc = turf.union(acc, features[i]); } catch (e2) { /* skip bad geom */ }
         }
+        return acc;
+      }
+    }
+    function updateNbOutline() {
+      if (_nbOutlineLayer) { map.removeLayer(_nbOutlineLayer); _nbOutlineLayer = null; }
+      const nbs = _mapState.neighborhoods;
+      if (!nbs.length || !_useTurf) return;   // no turf -> per-tract orange edge via styleFeature
+      const boundaries = [];
+      nbs.forEach(sel => {
+        const feats = geo.features.filter(f => f.properties.neighborhood === sel.name && f.properties.borough === sel.boro);
+        const u = unionAll(feats);
+        if (u) boundaries.push(u);
+      });
+      if (!boundaries.length) return;
+      _nbOutlineLayer = L.geoJSON({ type: 'FeatureCollection', features: boundaries }, {
+        interactive: false,                  // clicks pass through to the tracts beneath
+        style: { color: '#D98A1F', weight: 3, opacity: 1, fill: false },
+      }).addTo(map);
+      _nbOutlineLayer.bringToFront();
+    }
+
+    // ---- Apply the current neighborhood selection everywhere ----
+    function applyNeighborhoods() {
+      geoLayer.setStyle(styleFeature);
+      renderMapKPI(geo);
+      updateNbOutline();
+      fitToScope();
+      const nbs = _mapState.neighborhoods;
+      const cur = document.getElementById('dac-map-nb-current');
+      if (cur) cur.textContent = nbs.length === 0 ? 'All neighborhoods'
+        : (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods');
+      const nbDd = document.getElementById('dac-map-nb');
+      if (nbDd) nbDd.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+        const on = nbs.some(s => s.name === o.dataset.name && s.boro === o.dataset.boro);
+        o.classList.toggle('active', on);
+        o.setAttribute('aria-checked', on ? 'true' : 'false');
       });
     }
+
+    // ---- Neighborhood dropdown: build the (re-)scoped checkbox option list ----
+    function neighborhoodListHtml() {
+      const county = _mapState.county;
+      const byBoro = {};
+      geo.features.forEach(f => {
+        const p = f.properties;
+        const nm = p.neighborhood;
+        if (!nm) return;                                  // null-neighborhood tracts not listed
+        if (county && p.County !== county) return;        // scope to active borough
+        const boro = p.borough || '';
+        (byBoro[boro] = byBoro[boro] || new Set()).add(nm);
+      });
+      const order = ['Brooklyn', 'Manhattan', 'Bronx', 'Queens', 'Staten Island', 'Westchester'];
+      const boros = Object.keys(byBoro).sort((a, b) => {
+        const ia = order.indexOf(a), ib = order.indexOf(b);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      });
+      let html = '';
+      boros.forEach(boro => {
+        const names = Array.from(byBoro[boro]).sort((a, b) => a.localeCompare(b));
+        html += '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + escMap(boro) + '</div>';
+        names.forEach(nm => {
+          const on = _mapState.neighborhoods.some(s => s.name === nm && s.boro === boro);
+          html += '<button type="button" class="dac-map-dd-opt' + (on ? ' active' : '') + '" data-name="' + escMap(nm) +
+            '" data-boro="' + escMap(boro) + '" role="option" aria-checked="' + (on ? 'true' : 'false') + '">' +
+            '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+            '<span class="dac-map-dd-optlabel">' + escMap(nm) + '</span></button>';
+        });
+        html += '</div>';
+      });
+      return html;
+    }
+    function rebuildNeighborhoodDropdown() {
+      const nbDd = document.getElementById('dac-map-nb');
+      if (!nbDd) return;
+      const list = nbDd.querySelector('.dac-map-nb-list');
+      if (list) list.innerHTML = neighborhoodListHtml();
+      const input = nbDd.querySelector('.dac-map-nb-input');
+      if (input) input.value = '';
+      filterNbOptions(nbDd, '');
+    }
+    function filterNbOptions(nbDd, q) {
+      const ql = q.trim().toLowerCase();
+      nbDd.querySelectorAll('.dac-map-dd-group').forEach(g => {
+        let any = false;
+        g.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+          const match = o.textContent.toLowerCase().indexOf(ql) >= 0;
+          o.style.display = match ? '' : 'none';
+          if (match) any = true;
+        });
+        g.style.display = any ? '' : 'none';
+      });
+    }
+
+    // ---- Borough dropdown (single-select) ----
+    const boroughDd = document.getElementById('dac-map-borough');
+    if (boroughDd) {
+      const trigger = boroughDd.querySelector('.dac-map-dd-trigger');
+      const menu = boroughDd.querySelector('.dac-map-dd-menu');
+      const current = document.getElementById('dac-map-borough-current');
+      if (trigger) trigger.addEventListener('click', e => { e.stopPropagation(); ddToggle(boroughDd); });
+      if (menu) menu.addEventListener('click', function (e) {
+        const opt = e.target.closest('.dac-map-dd-opt');
+        if (!opt) return;
+        _mapState.county = opt.dataset.county || null;
+        _mapState.neighborhoods = [];                     // borough change resets neighborhoods
+        menu.querySelectorAll('.dac-map-dd-opt').forEach(o =>
+          o.classList.toggle('active', (o.dataset.county || null) === _mapState.county));
+        if (current) current.textContent = opt.textContent.trim();
+        rebuildNeighborhoodDropdown();                    // re-scope neighborhood list
+        applyNeighborhoods();                             // style + KPI + outline + fit + trigger
+        ddCloseEl(boroughDd);
+      });
+    }
+
+    // ---- Neighborhood dropdown (multi-select, searchable, with Clear) ----
+    const nbDd = document.getElementById('dac-map-nb');
+    if (nbDd) {
+      const trigger = nbDd.querySelector('.dac-map-dd-trigger');
+      const menu = nbDd.querySelector('.dac-map-dd-menu');
+      const input = nbDd.querySelector('.dac-map-nb-input');
+      if (trigger) trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = ddToggle(nbDd);
+        if (open && input) setTimeout(() => input.focus(), 0);
+      });
+      if (input) {
+        input.addEventListener('click', e => e.stopPropagation());
+        input.addEventListener('input', () => filterNbOptions(nbDd, input.value));
+      }
+      if (menu) menu.addEventListener('click', function (e) {
+        if (e.target.closest('.dac-map-nb-search')) {
+          if (e.target.closest('.dac-map-dd-clear')) { _mapState.neighborhoods = []; applyNeighborhoods(); }
+          return;                                          // ignore clicks on the search input
+        }
+        const opt = e.target.closest('.dac-map-dd-opt');
+        if (!opt) return;
+        const sel = { name: opt.dataset.name, boro: opt.dataset.boro };
+        const idx = _mapState.neighborhoods.findIndex(s => s.name === sel.name && s.boro === sel.boro);
+        if (idx >= 0) _mapState.neighborhoods.splice(idx, 1); else _mapState.neighborhoods.push(sel);
+        applyNeighborhoods();
+        // Multi-select: keep the menu open (closes via trigger / outside / Esc).
+      });
+    }
+
+    // ---- "Clear all": reset borough + neighborhood scope in one click ----
+    const clearAllBtn = document.getElementById('dac-map-clearall');
+    if (clearAllBtn) clearAllBtn.addEventListener('click', function () {
+      _mapState.county = null;
+      _mapState.neighborhoods = [];
+      _mapState.indicators = ['Comb_Sc'];   // reset Color by to its default
+      const bDd = document.getElementById('dac-map-borough');
+      if (bDd) {
+        bDd.querySelectorAll('.dac-map-dd-opt').forEach(o => o.classList.toggle('active', !o.dataset.county));
+        const bc = document.getElementById('dac-map-borough-current');
+        if (bc) bc.textContent = 'All boroughs';
+        ddCloseEl(bDd);
+      }
+      rebuildNeighborhoodDropdown();   // re-scope to all neighborhoods
+      applyNeighborhoods();            // style + KPI (All boroughs) + remove outline + reset view
+      applyIndicatorSelection();       // recolor + legend + subtitle + Color-by trigger/checkboxes
+    });
+
+    // ---- Export the tracts in the current scope as CSV ----
+    function csvCell(v) {
+      const s = String(v == null ? '' : v);
+      return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
+    function slugify(s) {
+      return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'scope';
+    }
+    function exportCsv() {
+      // Scope mirrors renderMapKPI: neighborhoods > borough > all.
+      const nbs = _mapState.neighborhoods;
+      const county = _mapState.county;
+      let feats, scopeSlug;
+      if (nbs.length) {
+        feats = geo.features.filter(f => inSelectedNeighborhoods(f.properties));
+        scopeSlug = nbs.length === 1 ? slugify(nbs[0].name) : nbs.length + '-neighborhoods';
+      } else if (county) {
+        feats = geo.features.filter(f => f.properties.County === county);
+        const lbl = county === 'Kings' ? 'Brooklyn' : county === 'New York' ? 'Manhattan'
+          : county === 'Richmond' ? 'Staten Island' : county;
+        scopeSlug = slugify(lbl);
+      } else {
+        feats = geo.features;
+        scopeSlug = 'all-boroughs';
+      }
+
+      const dec1 = v => (v == null || v === '' || isNaN(parseFloat(v))) ? '' : parseFloat(v).toFixed(1);
+      const intf = v => (v == null || v === '' || isNaN(parseFloat(v))) ? '' : String(Math.round(parseFloat(v)));
+
+      // Indicator columns depend on the current Color by:
+      //  - default (Combined Burden Score) -> all 44 thematic indicators
+      //  - specific indicator(s)           -> only those, minus core duplicates
+      const THEMATIC = ['Environmental Burdens', 'Climate Risks', 'Health', 'Demographics / Vulnerability'];
+      const sel = _mapState.indicators;
+      let extraKeys;
+      if (sel.length === 1 && sel[0] === 'Comb_Sc') {
+        extraKeys = [];
+        MAP_INDICATOR_GROUPS.forEach(g => {
+          if (THEMATIC.indexOf(g.group) >= 0) g.items.forEach(it => extraKeys.push(it.key));
+        });
+      } else {
+        const inCore = { Comb_Sc: 1, Burden_Pct: 1, Vulner_Pct: 1 };  // already in core columns
+        extraKeys = sel.filter(k => !inCore[k]);
+      }
+      const extraCols = extraKeys.map(k => ({ key: k, label: mapIndicatorMeta(k).label }));
+
+      const headers = [
+        'GEOID', 'Borough', 'Neighborhood', 'DAC status',
+        'Combined Burden Score', 'Combined Rank (percentile)',
+        'Environmental Burden Score', 'Environmental Burden (percentile)',
+        'Population Vulnerability Score', 'Population Vulnerability (percentile)',
+        'Electric accounts', 'Gas accounts',
+      ].concat(extraCols.map(c => c.label));
+      const rows = feats.slice().sort((a, b) => {
+        const pa = a.properties, pb = b.properties;
+        return (pa.borough || '').localeCompare(pb.borough || '')
+          || (pa.neighborhood || '').localeCompare(pb.neighborhood || '')
+          || String(pa.GEOID).localeCompare(String(pb.GEOID));
+      });
+      const lines = [headers.map(csvCell).join(',')];
+      rows.forEach(f => {
+        const p = f.properties;
+        const core = [
+          p.GEOID || '',
+          p.borough || '',
+          p.neighborhood || '',
+          p.DAC_Desig === 'Designated as DAC' ? 'DAC' : 'Non-DAC',
+          dec1(p.Comb_Sc), intf(p.Rank_State),
+          dec1(p.Burden_Sc), intf(p.Burden_Pct),
+          dec1(p.Vulner_Sc), intf(p.Vulner_Pct),
+          intf(p.elec_accts), intf(p.gas_accts),
+        ];
+        const extra = extraCols.map(c => intf(p[c.key]));   // percentiles 0–100; null -> empty
+        lines.push(core.concat(extra).map(csvCell).join(','));
+      });
+
+      const csv = '﻿' + lines.join('\r\n');             // BOM for Excel
+      const date = new Date().toISOString().slice(0, 10);        // YYYY-MM-DD
+      const fname = 'dac_tracts_' + scopeSlug + '_' + date + '.csv';
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+    const exportBtn = document.getElementById('dac-map-export');
+    if (exportBtn) exportBtn.addEventListener('click', exportCsv);
+
+    // Populate the neighborhood list now that geo is loaded (scoped to county).
+    rebuildNeighborhoodDropdown();
+
+    // Apply the current Color-by selection to map, legend, subtitle, the
+    // Color-by trigger + checkboxes, and the open detail panel highlights.
+    // Hoisted to mountDACMap scope so "Clear all" can reset Color by too.
+    function applyIndicatorSelection() {
+      const sel = _mapState.indicators;
+      geoLayer.setStyle(styleFeature);
+      const legend = document.getElementById('dac-map-legend');
+      if (legend) legend.innerHTML = mapLegendHtml(activeScale());
+      const sub = document.getElementById('dac-map-subind');
+      if (sub) sub.textContent = mapTitleText();
+      const cbCur = document.getElementById('dac-map-dd-current');
+      if (cbCur) cbCur.textContent = indicatorSummary().text;
+      const cbMenu = document.querySelector('#dac-map-indicator .dac-map-dd-menu');
+      if (cbMenu) cbMenu.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+        const on = sel.indexOf(o.dataset.key) >= 0;
+        o.classList.toggle('active', on);
+        o.setAttribute('aria-checked', on ? 'true' : 'false');
+      });
+      // Keep the open tract detail panel's row highlights in sync.
+      const panel = document.getElementById('dac-tract-detail');
+      if (panel && !panel.hidden) {
+        panel.querySelectorAll('.dac-td-row[data-key]').forEach(r => {
+          r.classList.toggle('dac-td-row-selected', sel.indexOf(r.dataset.key) >= 0);
+        });
+      }
+    }
+
+    // Indicator color selector (custom dropdown) — independent of the borough
+    // filter. Recolors tracts, updates the subtitle, swaps the legend, and
+    // updates the trigger label. Does NOT touch the county filter or KPI panel.
+    const dd = document.getElementById('dac-map-indicator');
+    if (dd) {
+      const trigger = dd.querySelector('.dac-map-dd-trigger');
+      const menu    = dd.querySelector('.dac-map-dd-menu');
+      const current = dd.querySelector('.dac-map-dd-current');
+
+      function closeDd() {
+        dd.classList.remove('open');
+        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+      }
+
+      if (trigger) {
+        trigger.addEventListener('click', function (e) {
+          e.stopPropagation();
+          ddToggle(dd);
+        });
+      }
+
+      if (menu) {
+        menu.addEventListener('click', function (e) {
+          // "Clear" → revert to the default Combined Burden Score view.
+          if (e.target.closest('.dac-map-dd-clear')) {
+            _mapState.indicators = ['Comb_Sc'];
+            applyIndicatorSelection();
+            return;
+          }
+          const opt = e.target.closest('.dac-map-dd-opt');
+          if (!opt) return;
+          const key = opt.dataset.key;
+          let sel = _mapState.indicators.slice();
+          const hasRaw = sel.some(isRawKey);
+
+          if (isRawKey(key)) {
+            // Raw-score is single-view only (exclusive). Re-click toggles off.
+            sel = (sel.length === 1 && sel[0] === key) ? [] : [key];
+          } else if (hasRaw) {
+            // Switching from a raw-score to percentiles — start fresh.
+            sel = [key];
+          } else {
+            // Toggle this percentile in/out of the averaged set.
+            const i = sel.indexOf(key);
+            if (i >= 0) sel.splice(i, 1); else sel.push(key);
+          }
+          if (sel.length === 0) sel = ['Comb_Sc']; // empty → revert to default
+
+          _mapState.indicators = sel;
+          applyIndicatorSelection();
+          // Multi-select: keep the menu open (closes via trigger / outside / Esc).
+        });
+      }
+
+      // Close ANY open dropdown (Borough / Neighborhood / Color by) on
+      // outside-click or Escape. Replace prior handlers so they don't pile up
+      // across re-renders.
+      if (_ddOutsideClick) document.removeEventListener('click', _ddOutsideClick);
+      if (_ddEscKey) document.removeEventListener('keydown', _ddEscKey);
+      _ddOutsideClick = function (e) {
+        document.querySelectorAll('.dac-map-dd.open').forEach(function (d) {
+          if (!d.contains(e.target)) {
+            d.classList.remove('open');
+            const t = d.querySelector('.dac-map-dd-trigger');
+            if (t) t.setAttribute('aria-expanded', 'false');
+          }
+        });
+      };
+      _ddEscKey = function (e) {
+        if (e.key !== 'Escape') return;
+        document.querySelectorAll('.dac-map-dd.open').forEach(function (d) {
+          d.classList.remove('open');
+          const t = d.querySelector('.dac-map-dd-trigger');
+          if (t) t.setAttribute('aria-expanded', 'false');
+        });
+      };
+      document.addEventListener('click', _ddOutsideClick);
+      document.addEventListener('keydown', _ddEscKey);
+    }
+
+    // Keep the map sized to its container on window resize. Replace any prior
+    // handler so listeners don't accumulate across re-mounts; the handler
+    // references the live map via _leafletMapInstance.
+    if (_mapResizeHandler) window.removeEventListener('resize', _mapResizeHandler);
+    _mapResizeHandler = function () {
+      if (_leafletMapInstance) _leafletMapInstance.invalidateSize();
+    };
+    window.addEventListener('resize', _mapResizeHandler);
   }
 
 
@@ -2157,6 +3147,8 @@
           ${renderDACMap(baseline, year, sections)}
         </div>
       </div>
+
+      <div id="dac-tract-detail" class="dac-tract-detail" hidden></div>
     `;
   }
 
@@ -4363,8 +5355,8 @@ function renderSectionI() {
     const funnelBar = (curr, prev) => {
       const wCurr = bw(curr);
       const wPrev = bw(prev);
-      // Barra más corta va al frente para que su label sea visible.
-      // Las barras son semitransparentes para que ambas se vean.
+      // Shorter bar goes to the front so its label stays visible.
+      // Bars are semi-transparent so both stay visible.
       const currShorter = curr != null && prev != null ? curr <= prev : true;
       const currZ = currShorter ? 3 : 2;
       const prevZ = currShorter ? 2 : 3;
