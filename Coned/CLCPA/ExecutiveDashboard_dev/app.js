@@ -2018,6 +2018,8 @@
                 </div>
               </div>
             </div>
+            <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
+            <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
             <div class="dac-map-indicator">
               <label class="dac-map-indicator-label" for="dac-map-dd-trigger">Color by</label>
               ${mapDropdownHtml()}
@@ -2656,6 +2658,92 @@
         // Multi-select: keep the menu open (closes via trigger / outside / Esc).
       });
     }
+
+    // ---- "Clear all": reset borough + neighborhood scope in one click ----
+    const clearAllBtn = document.getElementById('dac-map-clearall');
+    if (clearAllBtn) clearAllBtn.addEventListener('click', function () {
+      _mapState.county = null;
+      _mapState.neighborhoods = [];
+      const bDd = document.getElementById('dac-map-borough');
+      if (bDd) {
+        bDd.querySelectorAll('.dac-map-dd-opt').forEach(o => o.classList.toggle('active', !o.dataset.county));
+        const bc = document.getElementById('dac-map-borough-current');
+        if (bc) bc.textContent = 'All boroughs';
+        ddCloseEl(bDd);
+      }
+      rebuildNeighborhoodDropdown();   // re-scope to all neighborhoods
+      applyNeighborhoods();            // style + KPI (All boroughs) + remove outline + reset view
+    });
+
+    // ---- Export the tracts in the current scope as CSV ----
+    function csvCell(v) {
+      const s = String(v == null ? '' : v);
+      return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }
+    function slugify(s) {
+      return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'scope';
+    }
+    function exportCsv() {
+      // Scope mirrors renderMapKPI: neighborhoods > borough > all.
+      const nbs = _mapState.neighborhoods;
+      const county = _mapState.county;
+      let feats, scopeSlug;
+      if (nbs.length) {
+        feats = geo.features.filter(f => inSelectedNeighborhoods(f.properties));
+        scopeSlug = nbs.length === 1 ? slugify(nbs[0].name) : nbs.length + '-neighborhoods';
+      } else if (county) {
+        feats = geo.features.filter(f => f.properties.County === county);
+        const lbl = county === 'Kings' ? 'Brooklyn' : county === 'New York' ? 'Manhattan'
+          : county === 'Richmond' ? 'Staten Island' : county;
+        scopeSlug = slugify(lbl);
+      } else {
+        feats = geo.features;
+        scopeSlug = 'all-boroughs';
+      }
+
+      const dec1 = v => (v == null || v === '' || isNaN(parseFloat(v))) ? '' : parseFloat(v).toFixed(1);
+      const intf = v => (v == null || v === '' || isNaN(parseFloat(v))) ? '' : String(Math.round(parseFloat(v)));
+
+      const headers = [
+        'GEOID', 'Borough', 'Neighborhood', 'DAC status',
+        'Combined Burden Score', 'Combined Rank (percentile)',
+        'Environmental Burden Score', 'Environmental Burden (percentile)',
+        'Population Vulnerability Score', 'Population Vulnerability (percentile)',
+        'Electric accounts', 'Gas accounts',
+      ];
+      const rows = feats.slice().sort((a, b) => {
+        const pa = a.properties, pb = b.properties;
+        return (pa.borough || '').localeCompare(pb.borough || '')
+          || (pa.neighborhood || '').localeCompare(pb.neighborhood || '')
+          || String(pa.GEOID).localeCompare(String(pb.GEOID));
+      });
+      const lines = [headers.map(csvCell).join(',')];
+      rows.forEach(f => {
+        const p = f.properties;
+        lines.push([
+          p.GEOID || '',
+          p.borough || '',
+          p.neighborhood || '',
+          p.DAC_Desig === 'Designated as DAC' ? 'DAC' : 'Non-DAC',
+          dec1(p.Comb_Sc), intf(p.Rank_State),
+          dec1(p.Burden_Sc), intf(p.Burden_Pct),
+          dec1(p.Vulner_Sc), intf(p.Vulner_Pct),
+          intf(p.elec_accts), intf(p.gas_accts),
+        ].map(csvCell).join(','));
+      });
+
+      const csv = '﻿' + lines.join('\r\n');             // BOM for Excel
+      const date = new Date().toISOString().slice(0, 10);        // YYYY-MM-DD
+      const fname = 'dac_tracts_' + scopeSlug + '_' + date + '.csv';
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = fname;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+    }
+    const exportBtn = document.getElementById('dac-map-export');
+    if (exportBtn) exportBtn.addEventListener('click', exportCsv);
 
     // Populate the neighborhood list now that geo is loaded (scoped to county).
     rebuildNeighborhoodDropdown();
