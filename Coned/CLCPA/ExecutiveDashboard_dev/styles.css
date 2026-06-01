@@ -6172,6 +6172,16 @@ a.nav-item { text-decoration: none; }
   padding-bottom: 4px;
   border-bottom: 1px solid var(--line);
 }
+.dac-tt-nbhd {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin-bottom: 5px;
+}
+.dac-tt-nbhd-v { color: var(--text); font-weight: 600; }
 .dac-tt-row {
   display: flex;
   justify-content: space-between;
@@ -6252,6 +6262,8 @@ a.nav-item { text-decoration: none; }
 .dac-td-titles { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .dac-td-name { font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; }
 .dac-td-boro { font-size: 12px; font-weight: 600; color: var(--text-3); }
+.dac-td-nbhd { font-size: 12px; font-weight: 600; color: var(--dusk); }
+.dac-td-nbhd::before { content: '· '; color: var(--text-4); }
 .dac-td-badge {
   font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
   padding: 2px 7px; border-radius: 99px;
@@ -6968,6 +6980,8 @@ a.nav-item { text-decoration: none; }
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
+  flex-wrap: wrap !important;
+  row-gap: 8px !important;
   padding: 12px 18px 10px !important;
   border-bottom: 1px solid var(--line) !important;
   margin-bottom: 0 !important;
@@ -6975,6 +6989,16 @@ a.nav-item { text-decoration: none; }
   background: var(--white) !important;
   z-index: 600 !important;
 }
+
+/* Top-bar control cluster: Borough · Neighborhood · Color by (inline) */
+.dac-map-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 14px;
+}
+.dac-map-controls .dac-map-dd-trigger { min-width: 120px; }
 .dac-map-card .chart-card-head h3 {
   font-size: 13px !important;
   font-weight: 700 !important;
@@ -7227,8 +7251,64 @@ a.nav-item { text-decoration: none; }
 }
 
 /* =============================================================
+   DAC MAP · Left column — Borough -> Neighborhood -> Customer Counts
+   (stacked overlay at the top-left of the map)
+   ============================================================= */
+.dac-map-leftcol {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 288px;
+  max-width: calc(100% - 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 800;
+}
+.dac-map-leftctl { display: flex; flex-direction: column; gap: 4px; }
+.dac-map-leftctl-label {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+/* Left-column dropdowns: full width; menu aligned left + full width */
+.dac-map-leftcol .dac-map-dd { width: 100%; }
+.dac-map-leftcol .dac-map-dd-trigger {
+  width: 100%;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.dac-map-leftcol .dac-map-dd-menu { left: 0; right: auto; width: 100%; }
+
+/* Neighborhood dropdown search box + Clear (sticky at the top of the menu) */
+.dac-map-nb-search {
+  position: sticky; top: 0; z-index: 1;
+  display: flex; align-items: center; gap: 6px;
+  background: var(--white);
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.dac-map-nb-input {
+  flex: 1; min-width: 0; box-sizing: border-box;
+  border: 1px solid var(--line); border-radius: 5px;
+  padding: 5px 8px; font-family: var(--font); font-size: 11px; color: var(--text);
+}
+.dac-map-nb-input:focus { outline: none; border-color: #185FA5; }
+.dac-map-nb-list { padding: 2px 0; }
+
+/* Customer Counts panel now sits in the column flow (not absolutely placed) */
+.dac-map-leftcol .dac-map-kpi-panel {
+  position: static !important;
+  top: auto !important;
+  left: auto !important;
+  width: 100% !important;
+  z-index: auto !important;
+}
+
+/* =============================================================
    DAC MAP · Customer Counts overlay panel
-   (floats top-left of map, mirrors the borough selector on the right)
+   (now lives inside .dac-map-leftcol; base card styling below)
    Uses dashboard tokens — matches enterprise aesthetic
    ============================================================= */
 .dac-map-kpi-panel {

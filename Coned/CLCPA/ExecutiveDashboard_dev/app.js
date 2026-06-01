@@ -1600,7 +1600,23 @@
       '</div>';
   }
 
-  const _mapState = { county: null, indicators: ['Comb_Sc'], selectedGeoid: null };
+  const _mapState = { county: null, neighborhoods: [], indicators: ['Comb_Sc'], selectedGeoid: null };
+
+  // True iff a given feature is within the current neighborhood selection.
+  function inSelectedNeighborhoods(props) {
+    const sel = _mapState.neighborhoods;
+    for (let i = 0; i < sel.length; i++) {
+      if (props.neighborhood === sel[i].name && props.borough === sel[i].boro) return true;
+    }
+    return false;
+  }
+
+  // HTML-escape for attribute values + text (neighborhood names may contain & etc.)
+  function escMap(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
   // Document-level handlers for the custom dropdown (removed before re-adding
   // on each mount so they don't accumulate across re-renders).
   let _ddOutsideClick = null;
@@ -1609,14 +1625,23 @@
   let _mapResizeHandler = null;
 // Compute and render KPI overlay for the DAC map
   // Compute and render Customer Counts panel for the DAC map
-  function renderMapKPI(geo, county) {
+  function renderMapKPI(geo) {
     if (!geo || !geo.features) return;
     const panel = document.getElementById('dac-map-kpi');
     if (!panel) return;
 
-    const feats = county
-      ? geo.features.filter(f => f.properties.County === county)
-      : geo.features;
+    // Scope: selected neighborhoods narrow to their tracts (aggregate across
+    // all of them); else the active borough; else all.
+    const nbs = _mapState.neighborhoods;
+    const county = _mapState.county;
+    let feats;
+    if (nbs.length) {
+      feats = geo.features.filter(f => inSelectedNeighborhoods(f.properties));
+    } else if (county) {
+      feats = geo.features.filter(f => f.properties.County === county);
+    } else {
+      feats = geo.features;
+    }
 
     let dacN = 0, ndacN = 0;
     let dacElecAcc = 0, ndacElecAcc = 0;
@@ -1663,12 +1688,14 @@
     };
     const fmtFull = v => (v == null || !isFinite(v)) ? '—' : Math.round(v).toLocaleString();
 
-    const scopeLabel = county
-      ? (county === 'Kings' ? 'Brooklyn'
-        : county === 'New York' ? 'Manhattan'
-        : county === 'Richmond' ? 'Staten Is.'
-        : county)
-      : 'All boroughs';
+    const scopeLabel = nbs.length
+      ? (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods')
+      : (county
+        ? (county === 'Kings' ? 'Brooklyn'
+          : county === 'New York' ? 'Manhattan'
+          : county === 'Richmond' ? 'Staten Is.'
+          : county)
+        : 'All boroughs');
 
     // ---- DAC Accounts tooltip (electric + gas) -------------------
     const dacAcctsTotal = dacElecAcc + dacGasAcc;
@@ -1838,6 +1865,7 @@
           '<div class="dac-td-titles">' +
             '<span class="dac-td-name">' + name + '</span>' +
             '<span class="dac-td-boro">' + boro + '</span>' +
+            '<span class="dac-td-nbhd">' + (props.neighborhood || '—') + '</span>' +
             badge +
           '</div>' +
           '<div class="dac-td-headright">' +
@@ -1939,19 +1967,21 @@
     const mapId = 'dac-leaflet-map-' + Date.now();
     window._dacMapContainerId = mapId;
 
-    const countyButtons = [
-      { key: null,          label: 'All' },
+    // Borough dropdown options (single-select; no search needed).
+    const boroughOpts = [
+      { key: '',            label: 'All boroughs' },
       { key: 'Kings',       label: 'Brooklyn' },
       { key: 'Bronx',       label: 'Bronx' },
       { key: 'Queens',      label: 'Queens' },
       { key: 'New York',    label: 'Manhattan' },
-      { key: 'Richmond',    label: 'Staten Is.' },
+      { key: 'Richmond',    label: 'Staten Island' },
       { key: 'Westchester', label: 'Westchester' },
     ];
-
-    const btnHtml = countyButtons.map(b =>
-      `<button class="dac-map-county-btn${_mapState.county === b.key ? ' active' : ''}"
-        data-county="${b.key === null ? '' : b.key}" type="button">${b.label}</button>`
+    const curCounty = _mapState.county;
+    const boroughCur = (boroughOpts.find(o => (o.key || null) === curCounty) || boroughOpts[0]).label;
+    const boroughOptsHtml = boroughOpts.map(o =>
+      '<button type="button" class="dac-map-dd-opt' + ((o.key || null) === curCounty ? ' active' : '') +
+      '" data-county="' + o.key + '" role="option"><span class="dac-map-dd-optlabel">' + o.label + '</span></button>'
     ).join('');
 
     return `
@@ -1961,16 +1991,45 @@
             <h3 id="dac-map-title">DAC Tracts · <span id="dac-map-title-ind" class="dac-map-title-ind">${mapTitleText()}</span></h3>
             <p class="chart-sub">Census tracts colored by selected indicator · ${year}</p>
           </div>
-          <div class="dac-map-indicator">
-            <label class="dac-map-indicator-label" for="dac-map-dd-trigger">Color by</label>
-            ${mapDropdownHtml()}
+          <div class="dac-map-controls">
+            <div class="dac-map-indicator">
+              <label class="dac-map-indicator-label">Borough</label>
+              <div class="dac-map-dd dac-map-borough" id="dac-map-borough">
+                <button type="button" class="dac-map-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="dac-map-dd-current" id="dac-map-borough-current">${boroughCur}</span>
+                  <span class="dac-map-dd-chev" aria-hidden="true">▾</span>
+                </button>
+                <div class="dac-map-dd-menu" role="listbox">${boroughOptsHtml}</div>
+              </div>
+            </div>
+            <div class="dac-map-indicator">
+              <label class="dac-map-indicator-label">Neighborhood</label>
+              <div class="dac-map-dd dac-map-nb" id="dac-map-nb">
+                <button type="button" class="dac-map-dd-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="dac-map-dd-current" id="dac-map-nb-current">All neighborhoods</span>
+                  <span class="dac-map-dd-chev" aria-hidden="true">▾</span>
+                </button>
+                <div class="dac-map-dd-menu" role="listbox" aria-multiselectable="true">
+                  <div class="dac-map-nb-search">
+                    <input type="text" class="dac-map-nb-input" placeholder="Search neighborhoods…" aria-label="Search neighborhoods">
+                    <button type="button" class="dac-map-dd-clear">Clear</button>
+                  </div>
+                  <div class="dac-map-nb-list"></div>
+                </div>
+              </div>
+            </div>
+            <div class="dac-map-indicator">
+              <label class="dac-map-indicator-label" for="dac-map-dd-trigger">Color by</label>
+              ${mapDropdownHtml()}
+            </div>
           </div>
         </div>
         <div class="dac-map-legend" id="dac-map-legend" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:10px;margin-bottom:4px">${mapLegendHtml(activeScale())}</div>
-        <div class="dac-map-county-bar" style="flex-wrap:nowrap;gap:4px">${btnHtml}</div>
         <div style="position:relative;flex:1">
           <div id="${mapId}" class="dac-map-container"></div>
-          <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
+          <div class="dac-map-leftcol">
+            <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
+          </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
         </div>
       </div>
@@ -1983,8 +2042,10 @@
     if (!container) return;
 
     // Each fresh mount starts with no tract selected (the detail panel in the
-    // freshly rendered DOM is hidden, so keep state in sync).
+    // freshly rendered DOM is hidden, so keep state in sync). The neighborhood
+    // filter also resets (the dropdown re-renders to "All neighborhoods").
     _mapState.selectedGeoid = null;
+    _mapState.neighborhoods = [];
 
     if (_leafletMapInstance) {
       try { _leafletMapInstance.remove(); } catch(e) {}
@@ -2026,17 +2087,29 @@
       if (tooltip) tooltip.style.opacity = '0';
     });
 
+    // turf.js lets us dissolve selected-neighborhood tracts into one boundary.
+    const _useTurf = typeof turf !== 'undefined' && turf && typeof turf.union === 'function';
+
     function styleFeature(feature) {
+      const nbs = _mapState.neighborhoods;
       const active = _mapState.county;
-      const fCounty = feature.properties.County;
-      const dimmed = active && fCounty !== active;
-      const isDAC = feature.properties.DAC_Desig === 'Designated as DAC';
-      const isSelected = _mapState.selectedGeoid && feature.properties.GEOID === _mapState.selectedGeoid;
+      const p2 = feature.properties;
+      const inNbhd = nbs.length ? inSelectedNeighborhoods(p2) : false;
+      const dimmed = nbs.length
+        ? !inNbhd
+        : (active && p2.County !== active);
+      const isDAC = p2.DAC_Desig === 'Designated as DAC';
+      const isSelected = _mapState.selectedGeoid && p2.GEOID === _mapState.selectedGeoid;
+      // Per-tract orange edge only as a fallback when turf can't dissolve into a
+      // single boundary; otherwise the orange is drawn as a separate layer.
+      let color = '#ffffff', weight = 0.6;
+      if (isSelected) { color = '#0a2540'; weight = 3; }
+      else if (!_useTurf && inNbhd) { color = '#D98A1F'; weight = 1.6; }
       return {
-        fillColor: colorForFeature(feature.properties, isDAC),
+        fillColor: colorForFeature(p2, isDAC),
         fillOpacity: dimmed ? 0.12 : (isDAC ? 0.78 : 0.55),
-        color: isSelected ? '#0a2540' : '#ffffff',
-        weight: isSelected ? 3 : 0.6,
+        color: color,
+        weight: weight,
         opacity: dimmed ? 0.2 : 1,
       };
     }
@@ -2072,7 +2145,11 @@
 
         const dacDesig = p.DAC_Desig || '';
         const isDAC = dacDesig === 'Designated as DAC';
-        const subline = [p.County, dacDesig].filter(Boolean).join(' · ');
+        // Borough display name (Kings -> Brooklyn, etc.) instead of raw county.
+        const boroDisp = p.borough || boroughLabel(p.County);
+        const subline = [boroDisp, dacDesig].filter(Boolean).join(' · ');
+        const nbhdLine = '<div class="dac-tt-nbhd"><span>Neighborhood</span>' +
+          '<span class="dac-tt-nbhd-v">' + (p.neighborhood || '—') + '</span></div>';
 
         // Score/Rank/Pop line: only for DAC tracts (Non-DAC don't have these)
         let metaLine = '';
@@ -2145,6 +2222,7 @@
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
+          nbhdLine +
           metaLine +
           indLine +
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
@@ -2369,7 +2447,7 @@
     // is deferred too.
 
     // Initial KPI render
-    renderMapKPI(geo, _mapState.county);
+    renderMapKPI(geo);
 
     // Use fixed initial view so "All" returns here
     const initialCenter = [40.93, -73.9];
@@ -2393,36 +2471,194 @@
 
     const defaultBounds = geoLayer.getBounds();
 
-    // County filter
-    const bar = document.querySelector('.dac-map-county-bar');
-    if (bar) {
-      bar.addEventListener('click', function(e) {
-        const btn = e.target.closest('.dac-map-county-btn');
-        if (!btn) return;
-        const county = btn.dataset.county || null;
-        _mapState.county = county;
-        bar.querySelectorAll('.dac-map-county-btn').forEach(b => {
-          b.classList.toggle('active', (b.dataset.county || null) === county);
-        });
-        geoLayer.setStyle(styleFeature);
-        renderMapKPI(geo, county);
-        if (county) {
-          const filtered = [];
-          geoLayer.eachLayer(l => {
-            if (l.feature.properties.County === county) filtered.push(l);
-          });
-          if (filtered.length) {
-            const group = L.featureGroup(filtered);
-            map.flyToBounds(group.getBounds(), { padding: [5, 5], duration: 0.5 });
-          }
-        } else {
-          map.flyTo(initialCenter, initialZoom, { duration: 0.5 });
-          setTimeout(() => {
-            console.log('[ALL CLICK] center:', map.getCenter(), 'zoom:', map.getZoom(), 'container:', container.clientWidth + 'x' + container.clientHeight);
-          }, 600);
+    // ---- Shared dropdown open/close (Borough, Neighborhood, Color by) ----
+    function ddCloseEl(d) {
+      d.classList.remove('open');
+      const t = d.querySelector('.dac-map-dd-trigger');
+      if (t) t.setAttribute('aria-expanded', 'false');
+    }
+    function ddToggle(d) {
+      document.querySelectorAll('.dac-map-dd.open').forEach(o => { if (o !== d) ddCloseEl(o); });
+      const open = d.classList.toggle('open');
+      const t = d.querySelector('.dac-map-dd-trigger');
+      if (t) t.setAttribute('aria-expanded', open ? 'true' : 'false');
+      return open;
+    }
+
+    // ---- Fit the map to the current scope (neighborhoods > borough > all) ----
+    function fitToScope() {
+      const nbs = _mapState.neighborhoods;
+      const county = _mapState.county;
+      if (nbs.length) {
+        const layers = [];
+        geoLayer.eachLayer(l => { if (inSelectedNeighborhoods(l.feature.properties)) layers.push(l); });
+        if (layers.length) map.flyToBounds(L.featureGroup(layers).getBounds(), { padding: [20, 20], duration: 0.5 });
+      } else if (county) {
+        const layers = [];
+        geoLayer.eachLayer(l => { if (l.feature.properties.County === county) layers.push(l); });
+        if (layers.length) map.flyToBounds(L.featureGroup(layers).getBounds(), { padding: [5, 5], duration: 0.5 });
+      } else {
+        map.flyTo(initialCenter, initialZoom, { duration: 0.5 });
+      }
+    }
+
+    // ---- Orange dissolved boundary around each selected neighborhood (turf) ----
+    let _nbOutlineLayer = null;
+    function unionAll(features) {
+      if (!features.length) return null;
+      try {
+        return turf.union(turf.featureCollection(features));   // turf 7 signature
+      } catch (e) {
+        let acc = features[0];                                  // turf 6 fallback
+        for (let i = 1; i < features.length; i++) {
+          try { acc = turf.union(acc, features[i]); } catch (e2) { /* skip bad geom */ }
         }
+        return acc;
+      }
+    }
+    function updateNbOutline() {
+      if (_nbOutlineLayer) { map.removeLayer(_nbOutlineLayer); _nbOutlineLayer = null; }
+      const nbs = _mapState.neighborhoods;
+      if (!nbs.length || !_useTurf) return;   // no turf -> per-tract orange edge via styleFeature
+      const boundaries = [];
+      nbs.forEach(sel => {
+        const feats = geo.features.filter(f => f.properties.neighborhood === sel.name && f.properties.borough === sel.boro);
+        const u = unionAll(feats);
+        if (u) boundaries.push(u);
+      });
+      if (!boundaries.length) return;
+      _nbOutlineLayer = L.geoJSON({ type: 'FeatureCollection', features: boundaries }, {
+        interactive: false,                  // clicks pass through to the tracts beneath
+        style: { color: '#D98A1F', weight: 3, opacity: 1, fill: false },
+      }).addTo(map);
+      _nbOutlineLayer.bringToFront();
+    }
+
+    // ---- Apply the current neighborhood selection everywhere ----
+    function applyNeighborhoods() {
+      geoLayer.setStyle(styleFeature);
+      renderMapKPI(geo);
+      updateNbOutline();
+      fitToScope();
+      const nbs = _mapState.neighborhoods;
+      const cur = document.getElementById('dac-map-nb-current');
+      if (cur) cur.textContent = nbs.length === 0 ? 'All neighborhoods'
+        : (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods');
+      const nbDd = document.getElementById('dac-map-nb');
+      if (nbDd) nbDd.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+        const on = nbs.some(s => s.name === o.dataset.name && s.boro === o.dataset.boro);
+        o.classList.toggle('active', on);
+        o.setAttribute('aria-checked', on ? 'true' : 'false');
       });
     }
+
+    // ---- Neighborhood dropdown: build the (re-)scoped checkbox option list ----
+    function neighborhoodListHtml() {
+      const county = _mapState.county;
+      const byBoro = {};
+      geo.features.forEach(f => {
+        const p = f.properties;
+        const nm = p.neighborhood;
+        if (!nm) return;                                  // null-neighborhood tracts not listed
+        if (county && p.County !== county) return;        // scope to active borough
+        const boro = p.borough || '';
+        (byBoro[boro] = byBoro[boro] || new Set()).add(nm);
+      });
+      const order = ['Brooklyn', 'Manhattan', 'Bronx', 'Queens', 'Staten Island', 'Westchester'];
+      const boros = Object.keys(byBoro).sort((a, b) => {
+        const ia = order.indexOf(a), ib = order.indexOf(b);
+        return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+      });
+      let html = '';
+      boros.forEach(boro => {
+        const names = Array.from(byBoro[boro]).sort((a, b) => a.localeCompare(b));
+        html += '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + escMap(boro) + '</div>';
+        names.forEach(nm => {
+          const on = _mapState.neighborhoods.some(s => s.name === nm && s.boro === boro);
+          html += '<button type="button" class="dac-map-dd-opt' + (on ? ' active' : '') + '" data-name="' + escMap(nm) +
+            '" data-boro="' + escMap(boro) + '" role="option" aria-checked="' + (on ? 'true' : 'false') + '">' +
+            '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+            '<span class="dac-map-dd-optlabel">' + escMap(nm) + '</span></button>';
+        });
+        html += '</div>';
+      });
+      return html;
+    }
+    function rebuildNeighborhoodDropdown() {
+      const nbDd = document.getElementById('dac-map-nb');
+      if (!nbDd) return;
+      const list = nbDd.querySelector('.dac-map-nb-list');
+      if (list) list.innerHTML = neighborhoodListHtml();
+      const input = nbDd.querySelector('.dac-map-nb-input');
+      if (input) input.value = '';
+      filterNbOptions(nbDd, '');
+    }
+    function filterNbOptions(nbDd, q) {
+      const ql = q.trim().toLowerCase();
+      nbDd.querySelectorAll('.dac-map-dd-group').forEach(g => {
+        let any = false;
+        g.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+          const match = o.textContent.toLowerCase().indexOf(ql) >= 0;
+          o.style.display = match ? '' : 'none';
+          if (match) any = true;
+        });
+        g.style.display = any ? '' : 'none';
+      });
+    }
+
+    // ---- Borough dropdown (single-select) ----
+    const boroughDd = document.getElementById('dac-map-borough');
+    if (boroughDd) {
+      const trigger = boroughDd.querySelector('.dac-map-dd-trigger');
+      const menu = boroughDd.querySelector('.dac-map-dd-menu');
+      const current = document.getElementById('dac-map-borough-current');
+      if (trigger) trigger.addEventListener('click', e => { e.stopPropagation(); ddToggle(boroughDd); });
+      if (menu) menu.addEventListener('click', function (e) {
+        const opt = e.target.closest('.dac-map-dd-opt');
+        if (!opt) return;
+        _mapState.county = opt.dataset.county || null;
+        _mapState.neighborhoods = [];                     // borough change resets neighborhoods
+        menu.querySelectorAll('.dac-map-dd-opt').forEach(o =>
+          o.classList.toggle('active', (o.dataset.county || null) === _mapState.county));
+        if (current) current.textContent = opt.textContent.trim();
+        rebuildNeighborhoodDropdown();                    // re-scope neighborhood list
+        applyNeighborhoods();                             // style + KPI + outline + fit + trigger
+        ddCloseEl(boroughDd);
+      });
+    }
+
+    // ---- Neighborhood dropdown (multi-select, searchable, with Clear) ----
+    const nbDd = document.getElementById('dac-map-nb');
+    if (nbDd) {
+      const trigger = nbDd.querySelector('.dac-map-dd-trigger');
+      const menu = nbDd.querySelector('.dac-map-dd-menu');
+      const input = nbDd.querySelector('.dac-map-nb-input');
+      if (trigger) trigger.addEventListener('click', e => {
+        e.stopPropagation();
+        const open = ddToggle(nbDd);
+        if (open && input) setTimeout(() => input.focus(), 0);
+      });
+      if (input) {
+        input.addEventListener('click', e => e.stopPropagation());
+        input.addEventListener('input', () => filterNbOptions(nbDd, input.value));
+      }
+      if (menu) menu.addEventListener('click', function (e) {
+        if (e.target.closest('.dac-map-nb-search')) {
+          if (e.target.closest('.dac-map-dd-clear')) { _mapState.neighborhoods = []; applyNeighborhoods(); }
+          return;                                          // ignore clicks on the search input
+        }
+        const opt = e.target.closest('.dac-map-dd-opt');
+        if (!opt) return;
+        const sel = { name: opt.dataset.name, boro: opt.dataset.boro };
+        const idx = _mapState.neighborhoods.findIndex(s => s.name === sel.name && s.boro === sel.boro);
+        if (idx >= 0) _mapState.neighborhoods.splice(idx, 1); else _mapState.neighborhoods.push(sel);
+        applyNeighborhoods();
+        // Multi-select: keep the menu open (closes via trigger / outside / Esc).
+      });
+    }
+
+    // Populate the neighborhood list now that geo is loaded (scoped to county).
+    rebuildNeighborhoodDropdown();
 
     // Indicator color selector (custom dropdown) — independent of the borough
     // filter. Recolors tracts, updates the title suffix, swaps the legend, and
@@ -2441,8 +2677,7 @@
       if (trigger) {
         trigger.addEventListener('click', function (e) {
           e.stopPropagation();
-          const isOpen = dd.classList.toggle('open');
-          trigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+          ddToggle(dd);
         });
       }
 
@@ -2505,26 +2740,27 @@
         });
       }
 
-      // Close on outside-click / Escape (replace prior handlers so they don't
-      // pile up if the Executive view is re-rendered).
+      // Close ANY open dropdown (Borough / Neighborhood / Color by) on
+      // outside-click or Escape. Replace prior handlers so they don't pile up
+      // across re-renders.
       if (_ddOutsideClick) document.removeEventListener('click', _ddOutsideClick);
       if (_ddEscKey) document.removeEventListener('keydown', _ddEscKey);
       _ddOutsideClick = function (e) {
-        const d = document.getElementById('dac-map-indicator');
-        if (d && !d.contains(e.target)) {
-          d.classList.remove('open');
-          const t = d.querySelector('.dac-map-dd-trigger');
-          if (t) t.setAttribute('aria-expanded', 'false');
-        }
+        document.querySelectorAll('.dac-map-dd.open').forEach(function (d) {
+          if (!d.contains(e.target)) {
+            d.classList.remove('open');
+            const t = d.querySelector('.dac-map-dd-trigger');
+            if (t) t.setAttribute('aria-expanded', 'false');
+          }
+        });
       };
       _ddEscKey = function (e) {
         if (e.key !== 'Escape') return;
-        const d = document.getElementById('dac-map-indicator');
-        if (d) {
+        document.querySelectorAll('.dac-map-dd.open').forEach(function (d) {
           d.classList.remove('open');
           const t = d.querySelector('.dac-map-dd-trigger');
           if (t) t.setAttribute('aria-expanded', 'false');
-        }
+        });
       };
       document.addEventListener('click', _ddOutsideClick);
       document.addEventListener('keydown', _ddEscKey);
