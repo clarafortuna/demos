@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Con Edison · DAC Map — Data Sources &amp; Reproducibility</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Reuse the dashboard's design tokens (CSS variables, fonts, colors) -->
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* ---- Standalone data-provenance reference page ---- */
+    body { background: var(--white-smoke); }
+    .ds-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 28px 64px;
+    }
+    .ds-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12.5px; font-weight: 600; color: #185FA5;
+      text-decoration: none; margin-bottom: 20px;
+    }
+    .ds-back:hover { text-decoration: underline; }
+
+    .ds-head { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 8px; }
+    .ds-head h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.015em; margin: 0 0 4px; color: var(--ink); }
+    .ds-head .ds-sub { font-size: 13px; color: var(--text-3); margin: 0; }
+
+    .ds-intro { font-size: 13.5px; color: var(--text-2); line-height: 1.6; margin: 16px 0 28px; }
+
+    .ds-part {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #185FA5; margin: 34px 0 4px;
+    }
+    .ds-part-title { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 16px; letter-spacing: -0.01em; }
+
+    /* Source cards */
+    .ds-card {
+      background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+      padding: 16px 18px; margin-bottom: 14px;
+      box-shadow: 0 1px 0 rgba(3,24,36,0.02), 0 3px 10px rgba(3,24,36,0.04);
+    }
+    .ds-card h3 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 2px; }
+    .ds-card .ds-provider { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin: 0 0 10px; }
+    .ds-fields { margin: 0; padding: 0; list-style: none; }
+    .ds-fields li { display: flex; gap: 10px; padding: 4px 0; font-size: 12.5px; border-top: 1px solid var(--line); }
+    .ds-fields li:first-child { border-top: none; }
+    .ds-fields .k { flex: 0 0 118px; font-weight: 700; color: var(--text-3); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; padding-top: 2px; }
+    .ds-fields .v { flex: 1; color: var(--text-2); line-height: 1.55; min-width: 0; }
+    .ds-fields .v a { color: #185FA5; word-break: break-all; }
+
+    /* Pipeline */
+    .ds-step {
+      background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+      padding: 16px 18px; margin-bottom: 14px;
+      box-shadow: 0 1px 0 rgba(3,24,36,0.02), 0 3px 10px rgba(3,24,36,0.04);
+    }
+    .ds-step-num {
+      display: inline-block; min-width: 22px; text-align: center;
+      background: #185FA5; color: #fff; font-weight: 700; font-size: 11px;
+      border-radius: 5px; padding: 2px 7px; margin-right: 8px;
+    }
+    .ds-step h3 { display: inline; font-size: 14.5px; font-weight: 700; color: var(--ink); }
+    .ds-step code, .ds-mono { font-family: var(--font-mono); background: var(--white-smoke); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; color: var(--ink-2); }
+    .ds-io { margin: 10px 0 0; padding: 0; list-style: none; }
+    .ds-io li { font-size: 12.5px; color: var(--text-2); padding: 3px 0; line-height: 1.55; }
+    .ds-io .lbl { font-weight: 700; color: var(--text-3); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; margin-right: 6px; }
+    .ds-step p { font-size: 12.5px; color: var(--text-2); line-height: 1.6; margin: 8px 0 0; }
+
+    .ds-note { font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
+    .ds-note strong { color: var(--ink); }
+
+    /* Run order block */
+    .ds-run {
+      background: var(--ink); color: var(--pale-sky); border-radius: 10px;
+      padding: 14px 18px; margin: 6px 0 8px;
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.8;
+      overflow-x: auto;
+    }
+    .ds-run .c { color: #7FA8D8; }
+
+    /* Definitions box */
+    .ds-defs {
+      background: var(--dusk-tint); border: 1px solid var(--dusk); border-left-width: 4px;
+      border-radius: 8px; padding: 16px 18px; margin: 18px 0 8px;
+    }
+    .ds-defs h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dusk); margin: 0 0 8px; }
+    .ds-defs dl { margin: 0; }
+    .ds-defs dt { font-weight: 700; color: var(--ink); font-size: 12.5px; margin-top: 8px; }
+    .ds-defs dt:first-child { margin-top: 0; }
+    .ds-defs dd { margin: 1px 0 0; font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
+
+    .ds-result {
+      background: var(--bright-snow); border: 1px solid var(--line); border-radius: 8px;
+      padding: 14px 18px; margin: 14px 0;
+    }
+    .ds-result h3 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin: 0 0 8px; }
+    .ds-result .ds-nums { display: flex; flex-wrap: wrap; gap: 22px; }
+    .ds-result .ds-num { display: flex; flex-direction: column; }
+    .ds-result .ds-num b { font-size: 22px; font-weight: 800; color: var(--ink); font-feature-settings: "tnum"; line-height: 1.1; }
+    .ds-result .ds-num span { font-size: 10.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .ds-foot { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--text-3); font-style: italic; }
+
+    a { color: #185FA5; }
+
+    @media print {
+      body { background: #fff; }
+      .ds-back { display: none; }
+      .ds-card, .ds-step, .ds-defs, .ds-result, .ds-run { box-shadow: none; break-inside: avoid; }
+      .ds-run { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+      .ds-run .c { color: var(--text-3); }
+      .ds-wrap { max-width: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="ds-wrap">
+
+  <a class="ds-back" href="ExecutiveDashboard.html">← Back to dashboard</a>
+
+  <div class="ds-head">
+    <h1>DAC Map — Data Sources &amp; Reproducibility</h1>
+    <p class="ds-sub">Provenance of every value shown on the “DAC Tracts” map, and how <span class="ds-mono">map_payload.json</span> is rebuilt from the original sources.</p>
+  </div>
+
+  <p class="ds-intro">
+    The map renders <strong>2,333 census tracts</strong> across Con Edison’s six-county service territory.
+    Each tract carries its NYS Disadvantaged-Communities (DAC) designation and scores, the underlying
+    environmental / health indicators, Con Edison customer counts, and a neighborhood label. This page
+    documents where each piece comes from (Part 1) and the exact build pipeline so the dataset can be
+    reproduced from the downloaded sources (Part 2).
+  </p>
+
+  <!-- ============================ PART 1 ============================ -->
+  <div class="ds-part">Part 1</div>
+  <h2 class="ds-part-title">Data sources</h2>
+
+  <div class="ds-card">
+    <h3>NYS Disadvantaged Communities (DAC) data</h3>
+    <p class="ds-provider">NYSERDA · NYS Climate Justice Working Group</p>
+    <ul class="ds-fields">
+      <li><span class="k">Provides</span><span class="v">DAC designation, Combined Burden Score, statewide rank, the Environmental Burden &amp; Population Vulnerability component scores, and the ~45 underlying indicators (air, traffic, land use, climate, health &amp; demographic percentiles).</span></li>
+      <li><span class="k">Vintage</span><span class="v">DAC criteria finalized <strong>March 27, 2023</strong>. Dataset: “Final Disadvantaged Communities (DAC) 2023.”</span></li>
+      <li><span class="k">Dataset</span><span class="v"><a href="https://data.ny.gov/Energy-Environment/Final-Disadvantaged-Communities-DAC-2023/2e6c-s6fp" target="_blank" rel="noopener">data.ny.gov/Energy-Environment/Final-Disadvantaged-Communities-DAC-2023/2e6c-s6fp</a></span></li>
+      <li><span class="k">Portal / map</span><span class="v"><a href="https://www.nyserda.ny.gov/ny/Disadvantaged-Communities" target="_blank" rel="noopener">nyserda.ny.gov/ny/Disadvantaged-Communities</a></span></li>
+      <li><span class="k">In the data</span><span class="v">Downloaded as <span class="ds-mono">Data/NYS_DAC.geojson</span> (1,736 statewide DAC tracts, 67 fields each).</span></li>
+    </ul>
+  </div>
+
+  <div class="ds-card">
+    <h3>Census tract geometry</h3>
+    <p class="ds-provider">U.S. Census Bureau</p>
+    <ul class="ds-fields">
+      <li><span class="k">Provides</span><span class="v">Tract polygon boundaries (the shapes drawn on the map) and the 11-digit <span class="ds-mono">GEOID</span> that keys every join.</span></li>
+      <li><span class="k">Vintage</span><span class="v"><strong>2020 cartographic boundary files</strong>, with <strong>2010 boundaries as a fallback</strong> for ~150 legacy-GEOID tracts that have no 2020 equivalent (tracked per-feature in <span class="ds-mono">_geom_year</span>).</span></li>
+      <li><span class="k">URL</span><span class="v"><a href="https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.2020.html" target="_blank" rel="noopener">census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.2020.html</a></span></li>
+    </ul>
+  </div>
+
+  <div class="ds-card">
+    <h3>NYC Neighborhood Tabulation Areas (NTA) crosswalk</h3>
+    <p class="ds-provider">NYC Department of City Planning · NYC Open Data</p>
+    <ul class="ds-fields">
+      <li><span class="k">Provides</span><span class="v">A 2020 census-tract → neighborhood (NTA) mapping, used to label each NYC tract with its neighborhood name.</span></li>
+      <li><span class="k">Vintage</span><span class="v">“2020 Census Tracts to 2020 NTAs and CDTAs Equivalency.”</span></li>
+      <li><span class="k">URL</span><span class="v"><a href="https://data.cityofnewyork.us/City-Government/2020-Census-Tracts-to-2020-NTAs-and-CDTAs-Equivale/hm78-6dwm" target="_blank" rel="noopener">data.cityofnewyork.us/City-Government/2020-Census-Tracts-to-2020-NTAs-and-CDTAs-Equivale/hm78-6dwm</a></span></li>
+      <li><span class="k">In the data</span><span class="v">Downloaded as <span class="ds-mono">Data/2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv</span> (GEOID column already in 11-digit form).</span></li>
+    </ul>
+  </div>
+
+  <div class="ds-card">
+    <h3>Con Edison customer data</h3>
+    <p class="ds-provider">Con Edison — internal (Disadvantaged Communities Report)</p>
+    <ul class="ds-fields">
+      <li><span class="k">Provides</span><span class="v">Per-tract Electric &amp; Gas extracts: customer <strong>accounts</strong>, <strong>EAP enrollment</strong>, and <strong>bill adjustment</strong>, plus the Non-DAC borough aggregates (<span class="ds-mono">nondac_by_county</span>).</span></li>
+      <li><span class="k">Vintage</span><span class="v">Reporting period per the Con Edison DAC Report (internal). <em>Confirm against the authoritative report — see footer.</em></span></li>
+      <li><span class="k">Method</span><span class="v">Per the report’s methodology, customers were mapped to census tracts (<span class="ds-mono">GEOID</span>) via the <strong>NYC Geo-Service</strong> for the five boroughs and the <strong>Census API</strong> for Westchester, then matched to NYSERDA’s published DAC tracts.</span></li>
+      <li><span class="k">Access</span><span class="v">Not public — sourced from Con Edison internally.</span></li>
+    </ul>
+  </div>
+
+  <!-- ============================ PART 2 ============================ -->
+  <div class="ds-part">Part 2</div>
+  <h2 class="ds-part-title">How the map data is built &amp; how to reproduce it</h2>
+
+  <p class="ds-note" style="margin-bottom:16px;">
+    The map loads a single file, <span class="ds-mono">map_payload.json</span> — a GeoJSON
+    <span class="ds-mono">FeatureCollection</span> of 2,333 tract features plus a top-level
+    <span class="ds-mono">nondac_by_county</span> aggregate. It is produced in three steps from the sources
+    above. The <strong>join key throughout is the 11-digit <span class="ds-mono">GEOID</span></strong>
+    (state 36 + county FIPS + tract), and everything is filtered to the
+    <strong>six Con Edison counties</strong>:
+    <span class="ds-mono">Bronx, Kings, New York, Queens, Richmond, Westchester</span>.
+    (Note: <span class="ds-mono">Data/build_payload.py</span> builds a separate file,
+    <span class="ds-mono">payload.json</span>, for the dashboard’s section tables/charts — it is
+    <em>not</em> part of the map pipeline.)
+  </p>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">0</span><h3><span class="ds-mono">Data/build_base_map_payload.py</span> — build the base <span class="ds-mono">map_payload.json</span></h3></div>
+    <p>Joins three sources on the 11-digit <span class="ds-mono">GEOID</span>, restricted to the six Con Edison counties:</p>
+    <p style="margin-top:6px;">
+      <strong>(a) Census-tract geometry.</strong> U.S. Census Bureau <strong>2020</strong> cartographic boundary file
+      <span class="ds-mono">cb_2020_36_tract_500k</span>, with the <strong>2010</strong> file
+      <span class="ds-mono">gz_2010_36_140_00_500k</span> as a fallback for the ~150 legacy GEOIDs that have no 2020
+      equivalent. Both are filtered to the six counties and saved as
+      <span class="ds-mono">Data/ny_tracts.geojson</span> (2020) and <span class="ds-mono">Data/ny_tracts_2010.geojson</span> (2010).
+      Each tract uses its 2020 boundary where one exists, otherwise the 2010 boundary — recorded per feature in
+      <span class="ds-mono">_geom_year</span> (2,183 → 2020, 150 → 2010). The 2010-vintage tracts are absent from the
+      2020 NTA crosswalk, so they receive no neighborhood in Step 2.
+    </p>
+    <p style="margin-top:6px;">
+      <strong>(b) NYSERDA DAC dataset</strong> (<span class="ds-mono">Data/NYS_DAC.geojson</span>) — DAC designation and the
+      base scores (<span class="ds-mono">Comb_Sc, Rank_State, Burden_Pct, Vulner_Pct, Energy_Aff</span>, population/household counts).
+    </p>
+    <p style="margin-top:6px;">
+      <strong>(c) Con Edison extracts</strong> (<span class="ds-mono">Data/Electric.xlsx</span>, <span class="ds-mono">Data/Gas.xlsx</span>) —
+      per-tract accounts, EAP enrollment, and bill adjustment; Non-DAC borough totals are rolled up into
+      <span class="ds-mono">nondac_by_county</span>.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">Data/ny_tracts.geojson</span> · <span class="ds-mono">Data/ny_tracts_2010.geojson</span> · <span class="ds-mono">Data/NYS_DAC.geojson</span> · <span class="ds-mono">Data/Electric.xlsx</span> · <span class="ds-mono">Data/Gas.xlsx</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> — 2,333 features (1,059 DAC + 1,274 Non-DAC), ~20 base properties each, + <span class="ds-mono">nondac_by_county</span>. Hybrid 2020+2010 geometry.</li>
+    </ul>
+  </div>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">1</span><h3><span class="ds-mono">Data/enrich_map_payload.py</span> — add the granular DAC indicators</h3></div>
+    <p>
+      Loads <span class="ds-mono">Data/NYS_DAC.geojson</span>, filters it to the six Con Edison counties, indexes
+      it by <span class="ds-mono">GEOID</span>, then left-joins <strong>48 fields</strong> onto each tract:
+      a DAC tract with a GEOID match copies the values; every other tract (Non-DAC, or no match) gets those 48
+      fields set to <span class="ds-mono">null</span> (so the schema is uniform across all 2,333 features).
+      The 48 fields are the <strong>44 indicator percentiles</strong> (Environmental Burdens, Climate Risks,
+      Health, Demographics) plus <strong>4 secondary rankings/scores</strong>
+      (<span class="ds-mono">Rank_NYC, Rank_ROS, Burden_Sc, Vulner_Sc</span>). Fields already on the base
+      (e.g. <span class="ds-mono">Comb_Sc, Burden_Pct, Vulner_Pct</span>) are not duplicated;
+      <span class="ds-mono">OBJECTID, Shape__Area, Shape__Length</span> and five classification fields
+      (<span class="ds-mono">REDC, NYC_Region, Urb_Rural, Trib_Desig, HH_Low_Cnt</span>) are excluded. Idempotent.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">Data/NYS_DAC.geojson</span> · <span class="ds-mono">map_payload.json</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> (overwritten, minified) — now ~68 properties per tract</li>
+    </ul>
+  </div>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">2</span><h3><span class="ds-mono">Data/enrich_neighborhoods.py</span> — add borough + neighborhood</h3></div>
+    <p>
+      Backs up <span class="ds-mono">map_payload.json</span> → <span class="ds-mono">map_payload.backup2.json</span>
+      (once), then loads the NTA crosswalk CSV indexed by <span class="ds-mono">GEOID</span>. For every tract it sets
+      <span class="ds-mono">borough</span> (display name from County: Kings→Brooklyn, New York→Manhattan,
+      Richmond→Staten Island, etc.) and <span class="ds-mono">neighborhood</span>: NYC tracts get the
+      <span class="ds-mono">NTAName</span> from the crosswalk; Westchester tracts use <span class="ds-mono">City_Town</span>
+      with the “ city” / “ village” suffix stripped; anything with no match (the 2010-vintage tracts) is
+      <span class="ds-mono">null</span>. Idempotent.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">Data/2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv</span> · <span class="ds-mono">map_payload.json</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> (overwritten, minified) · <span class="ds-mono">map_payload.backup2.json</span></li>
+    </ul>
+  </div>
+
+  <h3 style="font-size:13px; font-weight:700; color:var(--ink); margin:22px 0 6px;">Run order</h3>
+  <div class="ds-run">
+    <span class="c"># from Coned/CLCPA/ExecutiveDashboard_dev/</span><br>
+    python Data/build_base_map_payload.py&nbsp;<span class="c"># 0. base build (geometry + DAC + ConEd extracts)</span><br>
+    python Data/enrich_map_payload.py&nbsp;&nbsp;&nbsp;<span class="c"># 1. add 48 DAC indicator / score fields</span><br>
+    python Data/enrich_neighborhoods.py&nbsp;&nbsp;<span class="c"># 2. add borough + neighborhood</span>
+  </div>
+  <p class="ds-note">
+    Re-running the pipeline on the same inputs reproduces the same result — all three steps are idempotent
+    (each re-derives its fields from the source files on every run).
+  </p>
+  <p class="ds-note">
+    <strong>Reproducibility.</strong> The geometry inputs come from the public Census files above and are committed,
+    already filtered to the six counties (<span class="ds-mono">Data/ny_tracts.geojson</span>,
+    <span class="ds-mono">Data/ny_tracts_2010.geojson</span>); <span class="ds-mono">Data/NYS_DAC.geojson</span> and the NTA
+    crosswalk are public as well. Only <span class="ds-mono">Data/Electric.xlsx</span> and
+    <span class="ds-mono">Data/Gas.xlsx</span> are internal Con Edison data and are <strong>not committed to the
+    repo</strong> — drop them into <span class="ds-mono">Data/</span> to run Step 0; everything else regenerates from
+    the public sources.
+  </p>
+
+  <div class="ds-result">
+    <h3>Result · map_payload.json</h3>
+    <div class="ds-nums">
+      <div class="ds-num"><b>2,333</b><span>Total tracts</span></div>
+      <div class="ds-num"><b>1,059</b><span>DAC tracts</span></div>
+      <div class="ds-num"><b>1,274</b><span>Non-DAC tracts</span></div>
+      <div class="ds-num"><b>2,183 / 150</b><span>Geometry 2020 / 2010</span></div>
+    </div>
+    <p class="ds-note" style="margin-top:10px;">
+      Per county: Kings 752 · Queens 641 · Bronx 335 · New York 281 · Westchester 217 · Richmond 107.
+      Only DAC tracts carry indicator values; Non-DAC tracts have those fields as <span class="ds-mono">null</span>.
+    </p>
+  </div>
+
+  <!-- ============================ Definitions ============================ -->
+  <div class="ds-defs">
+    <h3>Definitions</h3>
+    <dl>
+      <dt>Indicators (percentiles)</dt>
+      <dd>Statewide percentiles, 0–100 — higher = more disadvantaged relative to all New York census tracts.</dd>
+      <dt>Combined Burden Score</dt>
+      <dd>A composite total (≈ 0–143), <em>not</em> a percentile = Environmental Burden score + Population Vulnerability score. The higher the score, the greater the overall disadvantage; this is the score NYS uses to rank and designate DACs.</dd>
+      <dt>EAP</dt>
+      <dd>Energy Affordability Program — Con Edison’s bill-discount assistance program; “EAP enrolled” counts accounts enrolled in it.</dd>
+      <dt>“Outside ConEd service area”</dt>
+      <dd>A tract where Con Edison does not provide that utility (e.g., gas in Brooklyn / Staten Island, which is served by National Grid). Such tracts show no accounts for that utility.</dd>
+    </dl>
+  </div>
+
+  <p class="ds-foot">
+    Static reference — confirm the Con Edison reporting period against the authoritative DAC Report.
+  </p>
+
+</div>
+</body>
+</html>
