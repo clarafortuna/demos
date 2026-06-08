@@ -2240,6 +2240,12 @@
             '</span><span class="dac-tt-v" style="color:#E8841A">' + nets.map(escMap).join(', ') + '</span></div>'
           : '';
 
+        const gareas = p.gas_areas;
+        const gasLine = (gareas && gareas.length)
+          ? '<div class="dac-tt-row"><span>' + (gareas.length > 1 ? 'Service areas' : 'Service area') +
+            '</span><span class="dac-tt-v" style="color:#4E8C1E">' + gareas.map(escMap).join(', ') + '</span></div>'
+          : '';
+
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
@@ -2248,7 +2254,8 @@
           indLine +
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
           netLine +
-          utilityBlock('Gas',      p.gas_accts,  p.gas_eap);
+          utilityBlock('Gas',      p.gas_accts,  p.gas_eap) +
+          gasLine;
 
         tooltip.style.opacity = '1';
       });
