@@ -2234,6 +2234,12 @@
             '<div class="dac-tt-breakdown">' + breakdown + '</div>';
         }
 
+        const nets = p.electric_networks;
+        const netLine = (nets && nets.length)
+          ? '<div class="dac-tt-row"><span>' + (nets.length > 1 ? 'Networks' : 'Network') +
+            '</span><span class="dac-tt-v" style="color:#E8841A">' + nets.map(escMap).join(', ') + '</span></div>'
+          : '';
+
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
@@ -2241,7 +2247,7 @@
           metaLine +
           indLine +
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
-          (p.electric_network ? '<div class="dac-tt-row"><span>Network</span><span class="dac-tt-v">' + escMap(p.electric_network) + '</span></div>' : '') +
+          netLine +
           utilityBlock('Gas',      p.gas_accts,  p.gas_eap);
 
         tooltip.style.opacity = '1';
