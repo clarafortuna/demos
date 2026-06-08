@@ -2241,6 +2241,7 @@
           metaLine +
           indLine +
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
+          (p.electric_network ? '<div class="dac-tt-row"><span>Network</span><span class="dac-tt-v">' + escMap(p.electric_network) + '</span></div>' : '') +
           utilityBlock('Gas',      p.gas_accts,  p.gas_eap);
 
         tooltip.style.opacity = '1';
