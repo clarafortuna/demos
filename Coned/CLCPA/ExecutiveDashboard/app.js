@@ -1623,6 +1623,9 @@
   let _ddEscKey = null;
   // Window resize handler that keeps the Leaflet map sized to its container.
   let _mapResizeHandler = null;
+  // Lazy-loaded ConEd service-territory overlay (electric networks + gas area).
+  let _territoryGeoCache = null;
+  let _territoryFetchPromise = null;
 // Compute and render KPI overlay for the DAC map
   // Compute and render Customer Counts panel for the DAC map
   function renderMapKPI(geo) {
@@ -2035,6 +2038,13 @@
           <div class="dac-map-leftcol">
             <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
           </div>
+          <div class="dac-map-terr" id="dac-map-terr">
+            <div class="dac-map-terr-title">Layers</div>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="burden" checked><span class="dac-map-terr-sw dac-map-terr-sw-burden"></span>DAC criteria</label>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
+          </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
         </div>
       </div>
@@ -2109,7 +2119,7 @@
       // single boundary; otherwise the orange is drawn as a separate layer.
       let color = '#ffffff', weight = 0.6;
       if (isSelected) { color = '#0a2540'; weight = 3; }
-      else if (!_useTurf && inNbhd) { color = '#D98A1F'; weight = 1.6; }
+      else if (!_useTurf && inNbhd) { color = '#E03131'; weight = 1.6; }
       return {
         fillColor: colorForFeature(p2, isDAC),
         fillOpacity: dimmed ? 0.12 : (isDAC ? 0.78 : 0.55),
@@ -2224,6 +2234,18 @@
             '<div class="dac-tt-breakdown">' + breakdown + '</div>';
         }
 
+        const nets = p.electric_networks;
+        const netLine = (nets && nets.length)
+          ? '<div class="dac-tt-row"><span>' + (nets.length > 1 ? 'Networks' : 'Network') +
+            '</span><span class="dac-tt-v" style="color:#E8841A">' + nets.map(escMap).join(', ') + '</span></div>'
+          : '';
+
+        const gareas = p.gas_areas;
+        const gasLine = (gareas && gareas.length)
+          ? '<div class="dac-tt-row"><span>' + (gareas.length > 1 ? 'Service areas' : 'Service area') +
+            '</span><span class="dac-tt-v" style="color:#4E8C1E">' + gareas.map(escMap).join(', ') + '</span></div>'
+          : '';
+
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
@@ -2231,7 +2253,9 @@
           metaLine +
           indLine +
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
-          utilityBlock('Gas',      p.gas_accts,  p.gas_eap);
+          netLine +
+          utilityBlock('Gas',      p.gas_accts,  p.gas_eap) +
+          gasLine;
 
         tooltip.style.opacity = '1';
       });
@@ -2534,7 +2558,7 @@
       if (!boundaries.length) return;
       _nbOutlineLayer = L.geoJSON({ type: 'FeatureCollection', features: boundaries }, {
         interactive: false,                  // clicks pass through to the tracts beneath
-        style: { color: '#D98A1F', weight: 3, opacity: 1, fill: false },
+        style: { color: '#E03131', weight: 3, opacity: 1, fill: false },
       }).addTo(map);
       _nbOutlineLayer.bringToFront();
     }
@@ -2771,6 +2795,63 @@
 
     // Populate the neighborhood list now that geo is loaded (scoped to county).
     rebuildNeighborhoodDropdown();
+
+    // ---- ConEd service-area overlays (lazy-loaded on first toggle) ----
+    function ensureTerritoryGeo() {
+      if (_territoryGeoCache) return Promise.resolve(_territoryGeoCache);
+      if (!_territoryFetchPromise) {
+        _territoryFetchPromise = fetch('./Data/service_territories.geojson')
+          .then(r => r.ok ? r.json() : Promise.reject(new Error('service_territories.geojson ' + r.status)))
+          .then(j => (_territoryGeoCache = j))
+          .catch(err => {
+            console.warn('[DAC map] Could not load Data/service_territories.geojson:', err);
+            _territoryFetchPromise = null;   // allow a retry on the next toggle
+            throw err;
+          });
+      }
+      return _territoryFetchPromise;
+    }
+    const TERR_STYLE = {
+      electric: { color: '#E8841A', weight: 1.6, opacity: 0.95, fillColor: '#E8841A', fillOpacity: 0.12 },
+      gas:      { color: '#4E8C1E', weight: 1.4, opacity: 0.9, fillColor: '#639922', fillOpacity: 0.14 },
+      oru:      { color: '#6741D9', weight: 1.4, opacity: 0.9, fillColor: '#7F77DD', fillOpacity: 0.14 },
+    };
+    const _terrLayers = { electric: null, gas: null, oru: null };
+    function setTerritory(kind, on) {
+      if (on) {
+        ensureTerritoryGeo().then(function () {
+          if (!_terrLayers[kind]) {
+            const feats = _territoryGeoCache.features.filter(f => f.properties.layer === kind);
+            _terrLayers[kind] = L.geoJSON({ type: 'FeatureCollection', features: feats },
+              { interactive: false, style: TERR_STYLE[kind] });  // non-interactive: tract hover/click still works underneath
+          }
+          _terrLayers[kind].addTo(map);
+          _terrLayers[kind].bringToFront();
+          if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();   // keep the neighborhood outline on top
+          // ORU sits NW of the six-county extent — fit to it so it's visible.
+          if (kind === 'oru') map.flyToBounds(_terrLayers[kind].getBounds(), { padding: [25, 25], duration: 0.6 });
+        }).catch(function () { /* already reported in ensureTerritoryGeo */ });
+      } else if (_terrLayers[kind]) {
+        map.removeLayer(_terrLayers[kind]);
+      }
+    }
+    // Burden choropleth (the tract geoLayer) toggle. Default on; off removes it
+    // (its hover tooltips go with it). Kept at the back so overlay outlines sit on top.
+    function setBurden(on) {
+      if (on) {
+        if (!map.hasLayer(geoLayer)) geoLayer.addTo(map);
+        geoLayer.bringToBack();
+      } else if (map.hasLayer(geoLayer)) {
+        map.removeLayer(geoLayer);
+      }
+    }
+    const terrPanel = document.getElementById('dac-map-terr');
+    if (terrPanel) terrPanel.addEventListener('change', function (e) {
+      const cb = e.target.closest('input[data-layer]');
+      if (!cb) return;
+      if (cb.dataset.layer === 'burden') setBurden(cb.checked);
+      else setTerritory(cb.dataset.layer, cb.checked);
+    });
 
     // Apply the current Color-by selection to map, legend, subtitle, the
     // Color-by trigger + checkboxes, and the open detail panel highlights.
