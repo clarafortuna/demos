@@ -2782,15 +2782,52 @@
       fitToScope();
       renderEapLayer();   // re-render EAP bubbles for the new scope (no-op when layer is off)
       const nbs = _mapState.neighborhoods;
-      const cur = document.getElementById('dac-map-nb-current');
-      if (cur) cur.textContent = nbs.length === 0 ? 'All neighborhoods'
-        : (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods');
       const nbDd = document.getElementById('dac-map-nb');
+      // Sync each neighborhood option's checked state from the selection set.
       if (nbDd) nbDd.querySelectorAll('.dac-map-dd-opt').forEach(o => {
         const on = nbs.some(s => s.name === o.dataset.name && s.boro === o.dataset.boro);
         o.classList.toggle('active', on);
         o.setAttribute('aria-checked', on ? 'true' : 'false');
       });
+      updateNbGroupStates();   // tri-state borough headers + "Select all neighborhoods"
+      // Trigger label. empty selection = no filter = EVERY tract ("All neighborhoods");
+      // all named neighborhoods selected = "All named neighborhoods" (excludes the 129
+      // unattributed tracts) — visibly distinct from the empty/cleared state.
+      const cur = document.getElementById('dac-map-nb-current');
+      if (cur) {
+        const total = nbDd ? nbDd.querySelectorAll('.dac-map-dd-opt').length : 0;
+        cur.textContent = nbs.length === 0 ? 'All neighborhoods'
+          : (total > 0 && nbs.length >= total ? 'All named neighborhoods'
+          : (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods'));
+      }
+    }
+
+    // Tri-state sync (checked / indeterminate / unchecked) for the borough
+    // "select all" checkboxes and the global "Select all neighborhoods" row,
+    // computed from _mapState.neighborhoods over each group's full listed set.
+    function setNbTri(el, on, total) {
+      if (!el) return;
+      const checked = total > 0 && on >= total;
+      const mixed = on > 0 && on < total;
+      el.classList.toggle('active', checked);
+      el.classList.toggle('indeterminate', mixed);
+      el.setAttribute('aria-checked', checked ? 'true' : (mixed ? 'mixed' : 'false'));
+    }
+    function updateNbGroupStates() {
+      const nbDd = document.getElementById('dac-map-nb');
+      if (!nbDd) return;
+      const sel = _mapState.neighborhoods;
+      let allTotal = 0, allOn = 0;
+      nbDd.querySelectorAll('.dac-map-dd-group').forEach(g => {
+        let total = 0, on = 0;
+        g.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+          total++;
+          if (sel.some(s => s.name === o.dataset.name && s.boro === o.dataset.boro)) on++;
+        });
+        allTotal += total; allOn += on;
+        setNbTri(g.querySelector('.dac-map-dd-groupcheck'), on, total);
+      });
+      setNbTri(nbDd.querySelector('.dac-map-dd-selectall'), allOn, allTotal);
     }
 
     // ---- Neighborhood dropdown: build the (re-)scoped checkbox option list ----
@@ -2810,10 +2847,27 @@
         const ia = order.indexOf(a), ib = order.indexOf(b);
         return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
       });
-      let html = '';
+      // "Select all neighborhoods" row (named neighborhoods only — never the
+      // null-neighborhood tracts). Tri-state set by updateNbGroupStates().
+      let html = '<button type="button" class="dac-map-dd-selectall" data-selectall role="option" aria-checked="false">' +
+        '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+        '<span class="dac-map-dd-optlabel">Select all neighborhoods</span></button>';
       boros.forEach(boro => {
         const names = Array.from(byBoro[boro]).sort((a, b) => a.localeCompare(b));
-        html += '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + escMap(boro) + '</div>';
+        // Header has TWO independent targets: a collapse toggle (chevron+label+count)
+        // and a tri-state select-all checkbox. Groups start collapsed.
+        html += '<div class="dac-map-dd-group" data-boro="' + escMap(boro) + '">' +
+          '<div class="dac-map-dd-grouphdr">' +
+            '<button type="button" class="dac-map-dd-grouptoggle" data-toggle-boro="' + escMap(boro) + '" aria-expanded="false">' +
+              '<span class="dac-map-dd-chev" aria-hidden="true">▸</span>' +
+              '<span class="dac-map-dd-grouplabel">' + escMap(boro) + '</span>' +
+              '<span class="dac-map-dd-groupcount">(' + names.length + ')</span>' +
+            '</button>' +
+            '<button type="button" class="dac-map-dd-groupcheck" data-group-boro="' + escMap(boro) + '" role="option" aria-checked="false" title="Select all in ' + escMap(boro) + '">' +
+              '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+            '</button>' +
+          '</div>' +
+          '<div class="dac-map-dd-groupitems" hidden>';
         names.forEach(nm => {
           const on = _mapState.neighborhoods.some(s => s.name === nm && s.boro === boro);
           html += '<button type="button" class="dac-map-dd-opt' + (on ? ' active' : '') + '" data-name="' + escMap(nm) +
@@ -2821,7 +2875,7 @@
             '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
             '<span class="dac-map-dd-optlabel">' + escMap(nm) + '</span></button>';
         });
-        html += '</div>';
+        html += '</div></div>';
       });
       return html;
     }
@@ -2836,6 +2890,7 @@
     }
     function filterNbOptions(nbDd, q) {
       const ql = q.trim().toLowerCase();
+      const searching = ql.length > 0;
       nbDd.querySelectorAll('.dac-map-dd-group').forEach(g => {
         let any = false;
         g.querySelectorAll('.dac-map-dd-opt').forEach(o => {
@@ -2843,7 +2898,16 @@
           o.style.display = match ? '' : 'none';
           if (match) any = true;
         });
-        g.style.display = any ? '' : 'none';
+        // Hide a whole group only while searching with no matches.
+        g.style.display = (searching && !any) ? 'none' : '';
+        // Auto-expand groups with matches while searching; collapse back to the
+        // default (collapsed) when the search is cleared.
+        const expand = searching && any;
+        const toggle = g.querySelector('.dac-map-dd-grouptoggle');
+        const items = g.querySelector('.dac-map-dd-groupitems');
+        if (toggle) toggle.setAttribute('aria-expanded', expand ? 'true' : 'false');
+        if (items) items.hidden = !expand;
+        g.classList.toggle('expanded', expand);
       });
     }
 
@@ -2883,11 +2947,52 @@
         input.addEventListener('click', e => e.stopPropagation());
         input.addEventListener('input', () => filterNbOptions(nbDd, input.value));
       }
+      // Helper: collect {name,boro} for every listed opt under a root (full group,
+      // ignoring the search filter — search only finds items, it doesn't limit
+      // borough/Select-all actions).
+      const optsUnder = root => Array.from(root.querySelectorAll('.dac-map-dd-opt'))
+        .map(o => ({ name: o.dataset.name, boro: o.dataset.boro }));
+      const isSelected = s => _mapState.neighborhoods.some(x => x.name === s.name && x.boro === s.boro);
+      const addMissing = arr => arr.forEach(s => { if (!isSelected(s)) _mapState.neighborhoods.push(s); });
+      const removeAll = arr => arr.forEach(s => {
+        const i = _mapState.neighborhoods.findIndex(x => x.name === s.name && x.boro === s.boro);
+        if (i >= 0) _mapState.neighborhoods.splice(i, 1);
+      });
+
       if (menu) menu.addEventListener('click', function (e) {
         if (e.target.closest('.dac-map-nb-search')) {
           if (e.target.closest('.dac-map-dd-clear')) { _mapState.neighborhoods = []; applyNeighborhoods(); }
           return;                                          // ignore clicks on the search input
         }
+        // Collapse/expand a borough group (separate target — no selection change).
+        const toggle = e.target.closest('.dac-map-dd-grouptoggle');
+        if (toggle) {
+          const group = toggle.closest('.dac-map-dd-group');
+          const items = group ? group.querySelector('.dac-map-dd-groupitems') : null;
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+          if (items) items.hidden = expanded;
+          if (group) group.classList.toggle('expanded', !expanded);
+          return;
+        }
+        // "Select all neighborhoods" — checked => clear; otherwise select every listed (named) neighborhood.
+        if (e.target.closest('.dac-map-dd-selectall')) {
+          const all = optsUnder(nbDd);
+          if (all.length && all.every(isSelected)) _mapState.neighborhoods = [];
+          else addMissing(all);
+          applyNeighborhoods();
+          return;
+        }
+        // Borough select-all checkbox — toggles the whole borough's listed neighborhoods.
+        const gcheck = e.target.closest('.dac-map-dd-groupcheck');
+        if (gcheck) {
+          const group = gcheck.closest('.dac-map-dd-group');
+          const arr = optsUnder(group);
+          if (arr.length && arr.every(isSelected)) removeAll(arr); else addMissing(arr);
+          applyNeighborhoods();
+          return;
+        }
+        // Individual neighborhood toggle.
         const opt = e.target.closest('.dac-map-dd-opt');
         if (!opt) return;
         const sel = { name: opt.dataset.name, boro: opt.dataset.boro };

@@ -6049,13 +6049,29 @@ a.nav-item { text-decoration: none; }
 .dac-map-dd-group { padding: 2px 0; }
 .dac-map-dd-group + .dac-map-dd-group { border-top: 1px solid var(--line); }
 .dac-map-dd-grouphdr {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 6px 12px 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 10px;
 }
+.dac-map-dd-grouptoggle {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: none; cursor: pointer; text-align: left;
+  font-family: var(--font); font-size: 9px; font-weight: 700; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 0;
+}
+.dac-map-dd-grouptoggle:hover { color: var(--dusk); }
+.dac-map-dd-chev { display: inline-block; font-size: 9px; transition: transform .15s; }
+.dac-map-dd-group.expanded .dac-map-dd-chev { transform: rotate(90deg); }
+.dac-map-dd-grouplabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dac-map-dd-groupcount { color: var(--text-3); font-weight: 600; }
+.dac-map-dd-groupcheck {
+  flex: 0 0 auto; display: inline-flex; align-items: center;
+  background: transparent; border: none; cursor: pointer; padding: 2px;
+}
+.dac-map-dd-groupcheck:hover .dac-map-dd-check { border-color: #185FA5; }
+.dac-map-dd-groupitems .dac-map-dd-opt { padding-left: 24px; }
 .dac-map-dd-opt {
   display: flex;
   align-items: center;
@@ -6101,6 +6117,29 @@ a.nav-item { text-decoration: none; }
   border: solid #fff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+/* "Select all neighborhoods" row — distinct from the individual options */
+.dac-map-dd-selectall {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: transparent; border: none; border-bottom: 1px solid var(--line);
+  padding: 7px 12px; font-family: var(--font); font-size: 11px; font-weight: 700;
+  color: var(--text-2); cursor: pointer;
+}
+.dac-map-dd-selectall:hover { background: var(--bright-snow, #f4f7fa); color: var(--dusk); }
+/* Tri-state check (aria-driven) — covers the borough header + Select-all boxes */
+[aria-checked="true"] > .dac-map-dd-check {
+  background: #185FA5; border-color: #185FA5;
+}
+[aria-checked="true"] > .dac-map-dd-check::after {
+  content: ''; position: absolute; left: 4px; top: 1px; width: 3px; height: 7px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+[aria-checked="mixed"] > .dac-map-dd-check {
+  background: #185FA5; border-color: #185FA5;
+}
+[aria-checked="mixed"] > .dac-map-dd-check::after {
+  content: ''; position: absolute; left: 2.5px; top: 5px; width: 6px; height: 0;
+  border-top: 2px solid #fff;
 }
 .dac-map-dd-optlabel {
   flex: 1 1 auto;
