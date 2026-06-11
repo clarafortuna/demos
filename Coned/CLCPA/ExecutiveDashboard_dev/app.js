@@ -2038,6 +2038,7 @@
           <div class="dac-map-leftcol">
             <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
           </div>
+          <div class="dac-map-panels" id="dac-map-panels">
           <div class="dac-map-terr" id="dac-map-terr">
             <div class="dac-map-terr-title">Layers</div>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="burden" checked><span class="dac-map-terr-sw dac-map-terr-sw-burden"></span>DAC criteria</label>
@@ -2045,7 +2046,10 @@
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="eap"><span class="dac-map-terr-sw dac-map-terr-sw-eap"></span>EAP enrollment</label>
-            <div class="dac-map-eap" id="dac-map-eap" hidden>
+          </div>
+          <!-- EAP controls live in their own card below LAYERS so the LAYERS panel never resizes -->
+          <div class="dac-map-eapbox" id="dac-map-eapbox" hidden>
+            <div class="dac-map-eap" id="dac-map-eap">
               <div class="dac-map-eap-row">
                 <span class="dac-map-eap-lbl">Utility</span>
                 <span class="dac-map-eap-seg" data-eap-group="utility">
@@ -2070,6 +2074,7 @@
               </div>
               <div class="dac-map-eap-legend" id="dac-map-eap-legend"></div>
             </div>
+          </div>
           </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
         </div>
@@ -2537,8 +2542,8 @@
 
     function setEap(on) {
       _eapState.on = !!on;
-      const panel = document.getElementById('dac-map-eap');
-      if (panel) panel.hidden = !on;
+      const box = document.getElementById('dac-map-eapbox');   // separate card below LAYERS
+      if (box) box.hidden = !on;
       renderEapLayer();
     }
 
