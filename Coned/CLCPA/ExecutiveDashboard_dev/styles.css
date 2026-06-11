@@ -7424,16 +7424,23 @@ a.nav-item { text-decoration: none; }
   display: flex; flex-direction: column; gap: 7px;
 }
 .dac-map-eap[hidden] { display: none; }
-.dac-map-eap-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+/* Left-aligned segmented groups: a fixed label column keeps all three groups
+   starting at the same left edge, while each group/button hugs its own text
+   (content width, tight padding) — no forced equal width. */
+.dac-map-eap-row { display: flex; align-items: center; gap: 8px; }
 .dac-map-eap-lbl {
+  flex: 0 0 56px;
   font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--text-3);
 }
-.dac-map-eap-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.dac-map-eap-seg {
+  display: inline-flex;
+  border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+}
 .dac-map-eap-seg button {
   appearance: none; border: 0; background: #fff; cursor: pointer;
   font-family: var(--font); font-size: 10.5px; font-weight: 600; color: var(--text-2);
-  padding: 3px 9px; line-height: 1.4;
+  padding: 6px 12px; line-height: 1.4; white-space: nowrap;
 }
 .dac-map-eap-seg button + button { border-left: 1px solid var(--line); }
 .dac-map-eap-seg button:hover { background: #f1f5f9; }

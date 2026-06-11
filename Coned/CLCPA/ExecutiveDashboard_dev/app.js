@@ -2375,8 +2375,8 @@
     // Null accounts (outside ConEd service area) are excluded from every sum;
     // null EAP counts as 0 enrolled; a group with no in-service tracts or a zero
     // value yields no bubble.
-    function eapItems() {
-      const u = EAP_UTIL[_eapState.utility];
+    function eapItems(utilityKey) {
+      const u = EAP_UTIL[utilityKey || _eapState.utility];
       const level = _eapState.groupBy;
       const isPct = _eapState.metric === 'pct';
 
@@ -2453,14 +2453,18 @@
       if (_eapLayer) { map.removeLayer(_eapLayer); _eapLayer = null; }
       if (!_eapState.on) { renderEapLegend(0); return; }
       const u = EAP_UTIL[_eapState.utility];
-      const items = eapItems();
-      // max is over the current LEVEL's groups; recomputed each render (filter/utility/metric/group-by).
-      const maxValue = items.reduce((m, it) => (it.value > m ? it.value : m), 0);
+      const items = eapItems(_eapState.utility);
+      // SHARED scale: max over BOTH utilities at the current level/metric/scope, so a
+      // given value maps to the same radius whether Electric or Gas is shown (directly
+      // comparable). Invariant to the utility toggle — only changes on level/metric/filter.
+      const otherKey = _eapState.utility === 'electric' ? 'gas' : 'electric';
+      const maxOf = arr => arr.reduce((m, it) => (it.value > m ? it.value : m), 0);
+      const sharedMax = Math.max(maxOf(items), maxOf(eapItems(otherKey)));
       const lvlLabel = _eapState.groupBy === 'borough' ? 'Borough'
         : (_eapState.groupBy === 'neighborhood' ? 'Neighborhood' : 'Tract');
       _eapLayer = L.layerGroup();
       items.forEach(it => {
-        const radius = eapRadius(it.value, maxValue);
+        const radius = eapRadius(it.value, sharedMax);
         if (radius <= 0) return;
         L.circleMarker(it.latlng, {
           radius: radius, color: u.color, weight: 1, opacity: 0.9,
@@ -2477,31 +2481,58 @@
       _eapLayer.addTo(map);
       _eapLayer.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });   // bubbles above the choropleth
       if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();                   // keep neighborhood outline on top
-      renderEapLegend(maxValue);
+      renderEapLegend(sharedMax);
     }
 
-    // Size legend — reference circles drawn with the SAME eapRadius() as the data.
-    function renderEapLegend(maxValue) {
+    // Abbreviated legend label (k/M for counts, % for percentages). Bubble tooltips
+    // keep FULL numbers — abbreviation is legend-only.
+    function eapLegendLabel(v, isPct) {
+      if (isPct) return (v < 10 ? v.toFixed(1).replace(/\.0$/, '') : String(Math.round(v))) + '%';
+      if (v >= 1e6) { const mv = v / 1e6; return (mv >= 10 ? Math.round(mv) : +mv.toFixed(1)) + 'M'; }
+      if (v >= 1e3) { const kv = v / 1e3; return (kv >= 10 ? Math.round(kv) : +kv.toFixed(1)) + 'k'; }
+      return String(Math.round(v));
+    }
+    // Reference values: the actual max (top, exact 28px) plus a descending 1-2-5
+    // ladder of round numbers above a ~5px legibility floor. Up to 6 — typically 5;
+    // never adds a sub-~5px circle.
+    function eapLegendRefs(M) {
+      const refs = [M];
+      const floor = M * Math.pow(5 / EAP_MAX_R, 2);   // values below ~5px radius are indistinct
+      const mant = [5, 2, 1];
+      const topExp = Math.floor(Math.log10(M));
+      for (let e = topExp; e >= -3 && refs.length < 6; e--) {
+        for (let i = 0; i < mant.length && refs.length < 6; i++) {
+          const v = mant[i] * Math.pow(10, e);
+          if (v < M && v >= floor) refs.push(v);
+        }
+      }
+      return refs;
+    }
+    // Size legend — single SHARED-scale legend (same eapRadius() as the bubbles).
+    function renderEapLegend(sharedMax) {
       const el = document.getElementById('dac-map-eap-legend');
       if (!el) return;
       if (!_eapState.on) { el.innerHTML = ''; return; }
       const u = EAP_UTIL[_eapState.utility];
-      if (!(maxValue > 0)) {
+      if (!(sharedMax > 0)) {
         el.innerHTML = '<span class="dac-eap-leg-empty">No EAP data in current scope.</span>';
         return;
       }
       const isPct = _eapState.metric === 'pct';
-      const fmt = v => isPct ? (v < 10 ? v.toFixed(1) : Math.round(v).toString()) + '%' : Math.round(v).toLocaleString();
-      const refs = [maxValue, maxValue / 2, maxValue / 4].filter(v => v > 0);
-      let items = '';
-      refs.forEach(v => {
-        const d = eapRadius(v, maxValue) * 2;   // identical scaling to the map circles
-        items += '<span class="dac-eap-leg-item">' +
+      let refs = eapLegendRefs(sharedMax);
+      // Fit to the legend's width: drop the smallest references if the row would
+      // overflow (each slot ~ max(circle, label) + gap). Keep at least 4.
+      const avail = el.clientWidth || 240;
+      const slot = v => Math.max(eapRadius(v, sharedMax) * 2, eapLegendLabel(v, isPct).length * 6 + 4) + 12;
+      while (refs.length > 4 && refs.reduce((s, v) => s + slot(v), 0) > avail) refs.pop();
+      const itemsHtml = refs.map(v => {
+        const d = eapRadius(v, sharedMax) * 2;   // identical scaling to the map circles
+        return '<span class="dac-eap-leg-item">' +
           '<span class="dac-eap-leg-circ" style="width:' + d + 'px;height:' + d + 'px;border-color:' + u.color + ';background:' + u.color + '33"></span>' +
-          '<span class="dac-eap-leg-val">' + fmt(v) + '</span></span>';
-      });
+          '<span class="dac-eap-leg-val">' + eapLegendLabel(v, isPct) + '</span></span>';
+      }).join('');
       el.innerHTML = '<div class="dac-eap-leg-title">' + u.label + ' EAP · ' + (isPct ? '% of accounts' : 'enrolled') + '</div>' +
-        '<div class="dac-eap-leg-row">' + items + '</div>';
+        '<div class="dac-eap-leg-row">' + itemsHtml + '</div>';
     }
 
     function setEap(on) {
