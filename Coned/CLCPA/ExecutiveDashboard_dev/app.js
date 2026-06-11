@@ -2044,6 +2044,32 @@
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="eap"><span class="dac-map-terr-sw dac-map-terr-sw-eap"></span>EAP enrollment</label>
+            <div class="dac-map-eap" id="dac-map-eap" hidden>
+              <div class="dac-map-eap-row">
+                <span class="dac-map-eap-lbl">Utility</span>
+                <span class="dac-map-eap-seg" data-eap-group="utility">
+                  <button type="button" data-eap-utility="electric" class="active">Electric</button>
+                  <button type="button" data-eap-utility="gas">Gas</button>
+                </span>
+              </div>
+              <div class="dac-map-eap-row">
+                <span class="dac-map-eap-lbl">Metric</span>
+                <span class="dac-map-eap-seg" data-eap-group="metric">
+                  <button type="button" data-eap-metric="count" class="active">Count</button>
+                  <button type="button" data-eap-metric="pct">% of accts</button>
+                </span>
+              </div>
+              <div class="dac-map-eap-row">
+                <span class="dac-map-eap-lbl">Group by</span>
+                <span class="dac-map-eap-seg" data-eap-group="groupby">
+                  <button type="button" data-eap-groupby="borough" class="active">Borough</button>
+                  <button type="button" data-eap-groupby="neighborhood">Nbhd</button>
+                  <button type="button" data-eap-groupby="tract">Tract</button>
+                </span>
+              </div>
+              <div class="dac-map-eap-legend" id="dac-map-eap-legend"></div>
+            </div>
           </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
         </div>
@@ -2299,6 +2325,191 @@
       onEachFeature: onEach,
     }).addTo(map);
     _mapGeoLayer = geoLayer;
+
+    // ============================================================
+    // EAP enrollment bubble layer (opt-in; OFF by default)
+    // ------------------------------------------------------------
+    // One L.circleMarker per in-scope, in-service tract at its turf centroid.
+    // Pixel radii => constant across zoom. Circle AREA is proportional to the
+    // value (radius ∝ sqrt(value)) in BOTH metrics, scaled so the max value in
+    // the current in-scope/filtered set maps to EAP_MAX_R. Recomputed only on
+    // filter / utility / metric changes — never on pan/zoom.
+    const EAP_UTIL = {
+      electric: { eap: 'elec_eap', accts: 'elec_accts', color: '#D98A1F', label: 'Electric' },
+      gas:      { eap: 'gas_eap',  accts: 'gas_accts',  color: '#2E8B57', label: 'Gas' },
+    };
+    const EAP_MIN_R = 3, EAP_MAX_R = 28;
+    const _eapState = { on: false, utility: 'electric', metric: 'count', groupBy: 'borough' };
+    let _eapLayer = null;
+    const _eapCentroids = {};   // GEOID -> [lat,lng]; computed once via turf, reused
+
+    function eapCentroid(feature) {
+      const id = feature.properties.GEOID;
+      if (id in _eapCentroids) return _eapCentroids[id];
+      let latlng = null;
+      try {
+        const co = turf.centroid(feature).geometry.coordinates;   // [lng, lat]
+        if (isFinite(co[0]) && isFinite(co[1])) latlng = [co[1], co[0]];
+      } catch (e) { /* leave null -> tract skipped */ }
+      _eapCentroids[id] = latlng;
+      return latlng;
+    }
+
+    // In-scope predicate — mirrors renderMapKPI/styleFeature: neighborhoods > borough > all.
+    function eapInScope(p) {
+      const nbs = _mapState.neighborhoods;
+      if (nbs.length) return inSelectedNeighborhoods(p);
+      if (_mapState.county) return p.County === _mapState.county;
+      return true;
+    }
+
+    // Shared scaling used by BOTH the data circles and the legend circles.
+    function eapRadius(value, maxValue) {
+      if (!(value > 0) || !(maxValue > 0)) return 0;
+      const r = EAP_MAX_R * Math.sqrt(value) / Math.sqrt(maxValue);
+      return Math.max(EAP_MIN_R, Math.min(EAP_MAX_R, r));
+    }
+
+    // Build renderable items for the current utility / metric / group-by within
+    // the active scope. Returns [{ latlng, value, eap, accts, pct, title, sub, level, members }].
+    // Null accounts (outside ConEd service area) are excluded from every sum;
+    // null EAP counts as 0 enrolled; a group with no in-service tracts or a zero
+    // value yields no bubble.
+    function eapItems() {
+      const u = EAP_UTIL[_eapState.utility];
+      const level = _eapState.groupBy;
+      const isPct = _eapState.metric === 'pct';
+
+      // In-scope, in-service member tracts (accts != null).
+      const members = [];
+      geo.features.forEach(f => {
+        const p = f.properties;
+        if (!eapInScope(p)) return;
+        const accts = p[u.accts];
+        if (accts == null) return;                            // outside ConEd service area
+        const eap = (p[u.eap] != null) ? p[u.eap] : 0;        // null EAP => 0 enrolled
+        members.push({ feature: f, p: p, accts: accts, eap: eap });
+      });
+
+      // Tract level = one bubble per eligible tract (the original per-tract behavior).
+      if (level === 'tract') {
+        const out = [];
+        members.forEach(m => {
+          const pct = m.accts > 0 ? (m.eap / m.accts) * 100 : 0;
+          const value = isPct ? pct : m.eap;
+          if (!(value > 0)) return;                           // null/zero => no circle
+          const ll = eapCentroid(m.feature);
+          if (!ll) return;
+          out.push({
+            latlng: ll, value: value, eap: m.eap, accts: m.accts, pct: pct,
+            title: escMap(m.p.GEOID || ''),
+            sub: m.p.neighborhood ? escMap(m.p.neighborhood) + (m.p.borough ? ', ' + escMap(m.p.borough) : '') : '—',
+            level: 'tract', members: 1,
+          });
+        });
+        return out;
+      }
+
+      // Borough / Neighborhood: aggregate the in-scope tracts into one bubble per group.
+      const groups = {};
+      members.forEach(m => {
+        let label;
+        if (level === 'borough') {
+          label = m.p.borough || '(Unknown borough)';
+        } else {   // neighborhood — null neighborhood becomes a labeled "(No neighborhood), <borough>" group
+          const boro = m.p.borough || '(Unknown borough)';
+          label = (m.p.neighborhood ? m.p.neighborhood : '(No neighborhood)') + ', ' + boro;
+        }
+        let g = groups[label];
+        if (!g) g = groups[label] = { label: label, eapSum: 0, acctsSum: 0, sumW: 0, sLat: 0, sLng: 0, count: 0 };
+        g.eapSum += m.eap;            // sum EAP (null already coerced to 0)
+        g.acctsSum += m.accts;        // sum accounts (in-service tracts only)
+        g.count += 1;
+        const ll = eapCentroid(m.feature);
+        if (ll) {                     // account-weighted centroid: bubble sits where the accounts are
+          const w = m.accts > 0 ? m.accts : 0;
+          g.sumW += w; g.sLat += ll[0] * w; g.sLng += ll[1] * w;
+        }
+      });
+
+      const out = [];
+      Object.keys(groups).forEach(k => {
+        const g = groups[k];
+        const value = isPct ? (g.acctsSum > 0 ? (g.eapSum / g.acctsSum) * 100 : 0) : g.eapSum;
+        if (!(value > 0)) return;     // entirely outside service / zero enrollment => no bubble
+        if (!(g.sumW > 0)) return;    // no positionable member => skip
+        out.push({
+          latlng: [g.sLat / g.sumW, g.sLng / g.sumW],
+          value: value, eap: g.eapSum, accts: g.acctsSum,
+          pct: g.acctsSum > 0 ? (g.eapSum / g.acctsSum) * 100 : 0,
+          title: escMap(g.label), sub: g.count + ' tract' + (g.count === 1 ? '' : 's'),
+          level: level, members: g.count,
+        });
+      });
+      return out;
+    }
+
+    function renderEapLayer() {
+      if (_eapLayer) { map.removeLayer(_eapLayer); _eapLayer = null; }
+      if (!_eapState.on) { renderEapLegend(0); return; }
+      const u = EAP_UTIL[_eapState.utility];
+      const items = eapItems();
+      // max is over the current LEVEL's groups; recomputed each render (filter/utility/metric/group-by).
+      const maxValue = items.reduce((m, it) => (it.value > m ? it.value : m), 0);
+      const lvlLabel = _eapState.groupBy === 'borough' ? 'Borough'
+        : (_eapState.groupBy === 'neighborhood' ? 'Neighborhood' : 'Tract');
+      _eapLayer = L.layerGroup();
+      items.forEach(it => {
+        const radius = eapRadius(it.value, maxValue);
+        if (radius <= 0) return;
+        L.circleMarker(it.latlng, {
+          radius: radius, color: u.color, weight: 1, opacity: 0.9,
+          fillColor: u.color, fillOpacity: 0.5,
+        }).bindTooltip(
+          '<div class="dac-eap-tt"><b>' + it.title + '</b><br>' +
+          it.sub + '<br><span class="dac-eap-tt-util">' + u.label + ' EAP · ' + lvlLabel + '</span><br>' +
+          'Enrolled: <b>' + it.eap.toLocaleString() + '</b><br>' +
+          'Accounts: ' + it.accts.toLocaleString() + '<br>' +
+          'Share: <b>' + it.pct.toFixed(1) + '%</b></div>',
+          { sticky: true, direction: 'top', className: 'dac-eap-tooltip', opacity: 1 }
+        ).addTo(_eapLayer);
+      });
+      _eapLayer.addTo(map);
+      _eapLayer.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });   // bubbles above the choropleth
+      if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();                   // keep neighborhood outline on top
+      renderEapLegend(maxValue);
+    }
+
+    // Size legend — reference circles drawn with the SAME eapRadius() as the data.
+    function renderEapLegend(maxValue) {
+      const el = document.getElementById('dac-map-eap-legend');
+      if (!el) return;
+      if (!_eapState.on) { el.innerHTML = ''; return; }
+      const u = EAP_UTIL[_eapState.utility];
+      if (!(maxValue > 0)) {
+        el.innerHTML = '<span class="dac-eap-leg-empty">No EAP data in current scope.</span>';
+        return;
+      }
+      const isPct = _eapState.metric === 'pct';
+      const fmt = v => isPct ? (v < 10 ? v.toFixed(1) : Math.round(v).toString()) + '%' : Math.round(v).toLocaleString();
+      const refs = [maxValue, maxValue / 2, maxValue / 4].filter(v => v > 0);
+      let items = '';
+      refs.forEach(v => {
+        const d = eapRadius(v, maxValue) * 2;   // identical scaling to the map circles
+        items += '<span class="dac-eap-leg-item">' +
+          '<span class="dac-eap-leg-circ" style="width:' + d + 'px;height:' + d + 'px;border-color:' + u.color + ';background:' + u.color + '33"></span>' +
+          '<span class="dac-eap-leg-val">' + fmt(v) + '</span></span>';
+      });
+      el.innerHTML = '<div class="dac-eap-leg-title">' + u.label + ' EAP · ' + (isPct ? '% of accounts' : 'enrolled') + '</div>' +
+        '<div class="dac-eap-leg-row">' + items + '</div>';
+    }
+
+    function setEap(on) {
+      _eapState.on = !!on;
+      const panel = document.getElementById('dac-map-eap');
+      if (panel) panel.hidden = !on;
+      renderEapLayer();
+    }
 
     // ---- Selected-tract detail panel (below the map) ----
     function showTractDetail(props) {
@@ -2569,6 +2780,7 @@
       renderMapKPI(geo);
       updateNbOutline();
       fitToScope();
+      renderEapLayer();   // re-render EAP bubbles for the new scope (no-op when layer is off)
       const nbs = _mapState.neighborhoods;
       const cur = document.getElementById('dac-map-nb-current');
       if (cur) cur.textContent = nbs.length === 0 ? 'All neighborhoods'
@@ -2850,7 +3062,21 @@
       const cb = e.target.closest('input[data-layer]');
       if (!cb) return;
       if (cb.dataset.layer === 'burden') setBurden(cb.checked);
+      else if (cb.dataset.layer === 'eap') setEap(cb.checked);
       else setTerritory(cb.dataset.layer, cb.checked);
+    });
+
+    // EAP sub-panel: Utility / Metric segmented selectors (one choice per group).
+    const eapPanel = document.getElementById('dac-map-eap');
+    if (eapPanel) eapPanel.addEventListener('click', function (e) {
+      const b = e.target.closest('button[data-eap-utility], button[data-eap-metric], button[data-eap-groupby]');
+      if (!b) return;
+      if (b.dataset.eapUtility) _eapState.utility = b.dataset.eapUtility;
+      if (b.dataset.eapMetric)  _eapState.metric  = b.dataset.eapMetric;
+      if (b.dataset.eapGroupby) _eapState.groupBy = b.dataset.eapGroupby;
+      const group = b.parentElement;   // toggle active within this group only
+      group.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      renderEapLayer();
     });
 
     // Apply the current Color-by selection to map, legend, subtitle, the

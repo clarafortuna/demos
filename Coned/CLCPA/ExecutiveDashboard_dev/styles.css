@@ -7371,6 +7371,51 @@ a.nav-item { text-decoration: none; }
 .dac-map-terr-sw-elec   { border: 1.5px solid #E8841A; background: rgba(232, 132, 26, 0.18); }
 .dac-map-terr-sw-gas    { border: 1.5px solid #4E8C1E; background: rgba(99, 153, 34, 0.18); }
 .dac-map-terr-sw-oru    { border: 1.5px solid #6741D9; background: rgba(127, 119, 221, 0.14); }
+/* EAP layer swatch: a small bubble, hinting the two utility colors */
+.dac-map-terr-sw-eap {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 1.5px solid #D98A1F;
+  background: linear-gradient(135deg, rgba(217,138,31,0.55) 0 50%, rgba(46,139,87,0.55) 50% 100%);
+}
+
+/* EAP enrollment sub-panel (revealed under the toggle when on) */
+.dac-map-eap {
+  margin: 6px 0 2px; padding: 8px 0 2px;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 7px;
+}
+.dac-map-eap[hidden] { display: none; }
+.dac-map-eap-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.dac-map-eap-lbl {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.dac-map-eap-seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.dac-map-eap-seg button {
+  appearance: none; border: 0; background: #fff; cursor: pointer;
+  font-family: var(--font); font-size: 10.5px; font-weight: 600; color: var(--text-2);
+  padding: 3px 9px; line-height: 1.4;
+}
+.dac-map-eap-seg button + button { border-left: 1px solid var(--line); }
+.dac-map-eap-seg button:hover { background: #f1f5f9; }
+.dac-map-eap-seg button.active { background: #185FA5; color: #fff; }
+
+/* EAP size legend (reference circles use the same scaling as the map circles) */
+.dac-map-eap-legend { margin-top: 1px; }
+.dac-eap-leg-title {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-3); margin-bottom: 5px;
+}
+.dac-eap-leg-row { display: flex; align-items: flex-end; gap: 12px; min-height: 30px; }
+.dac-eap-leg-item { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; }
+.dac-eap-leg-circ { display: block; border: 1.5px solid; border-radius: 50%; box-sizing: border-box; }
+.dac-eap-leg-val { font-size: 9.5px; font-weight: 600; color: var(--text-2); }
+.dac-eap-leg-empty { font-size: 10px; color: var(--text-3); font-style: italic; }
+
+/* EAP circle tooltip */
+.dac-eap-tooltip { font-family: var(--font); }
+.dac-eap-tooltip .dac-eap-tt { font-size: 11px; line-height: 1.45; }
+.dac-eap-tooltip .dac-eap-tt-util { color: var(--text-3); font-weight: 600; }
 
 /* =============================================================
    DAC MAP · Customer Counts overlay panel
