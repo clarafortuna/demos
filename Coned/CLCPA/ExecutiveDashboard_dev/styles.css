@@ -7485,11 +7485,20 @@ a.nav-item { text-decoration: none; }
    Uses dashboard tokens — matches enterprise aesthetic
    ============================================================= */
 .dac-map-kpi-panel {
+  /* transparent positioning wrapper; each section below is its own bordered box */
   position: absolute !important;
   top: 12px !important;
   left: 12px !important;
   left: 12px;
   width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;                 /* visible gap between the two section boxes */
+  z-index: 500;
+  font-family: var(--font);
+}
+/* Each panel section ("Customer counts" / "Burden scores") is its own card-style box */
+.dac-kpi-section {
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -7499,9 +7508,7 @@ a.nav-item { text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 500;
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.06);
-  font-family: var(--font);
 }
 
 .dac-kpi-head {
