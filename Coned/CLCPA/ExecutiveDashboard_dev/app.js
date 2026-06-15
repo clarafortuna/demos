@@ -2459,8 +2459,11 @@
           if (!(value > 0)) return;                           // null/zero => no circle
           const ll = eapCentroid(m.feature);
           if (!ll) return;
+          const isDac = m.p.DAC_Desig === 'Designated as DAC';   // a tract is DAC or Non-DAC -> one side is 0
           out.push({
             latlng: ll, value: value, eap: m.eap, accts: m.accts, pct: pct,
+            acctsDac: isDac ? m.accts : 0, acctsNon: isDac ? 0 : m.accts,
+            eapDac: isDac ? m.eap : 0, eapNon: isDac ? 0 : m.eap,
             title: escMap(m.p.GEOID || ''),
             sub: m.p.neighborhood ? escMap(m.p.neighborhood) + (m.p.borough ? ', ' + escMap(m.p.borough) : '') : '—',
             level: 'tract', members: 1,
@@ -2480,9 +2483,11 @@
           label = (m.p.neighborhood ? m.p.neighborhood : '(No neighborhood)') + ', ' + boro;
         }
         let g = groups[label];
-        if (!g) g = groups[label] = { label: label, eapSum: 0, acctsSum: 0, sumW: 0, sLat: 0, sLng: 0, count: 0 };
+        if (!g) g = groups[label] = { label: label, eapSum: 0, acctsSum: 0, eapDac: 0, eapNon: 0, acctsDac: 0, acctsNon: 0, sumW: 0, sLat: 0, sLng: 0, count: 0 };
         g.eapSum += m.eap;            // sum EAP (null already coerced to 0)
         g.acctsSum += m.accts;        // sum accounts (in-service tracts only)
+        if (m.p.DAC_Desig === 'Designated as DAC') { g.eapDac += m.eap; g.acctsDac += m.accts; }
+        else { g.eapNon += m.eap; g.acctsNon += m.accts; }
         g.count += 1;
         const ll = eapCentroid(m.feature);
         if (ll) {                     // account-weighted centroid: bubble sits where the accounts are
@@ -2500,6 +2505,7 @@
         out.push({
           latlng: [g.sLat / g.sumW, g.sLng / g.sumW],
           value: value, eap: g.eapSum, accts: g.acctsSum,
+          acctsDac: g.acctsDac, acctsNon: g.acctsNon, eapDac: g.eapDac, eapNon: g.eapNon,
           pct: g.acctsSum > 0 ? (g.eapSum / g.acctsSum) * 100 : 0,
           title: escMap(g.label), sub: g.count + ' tract' + (g.count === 1 ? '' : 's'),
           level: level, members: g.count,
@@ -2529,11 +2535,17 @@
           radius: radius, color: u.color, weight: 1, opacity: 0.9,
           fillColor: u.color, fillOpacity: 0.5,
         }).bindTooltip(
-          '<div class="dac-eap-tt"><b>' + it.title + '</b><br>' +
-          it.sub + '<br><span class="dac-eap-tt-util">' + u.label + ' EAP · ' + lvlLabel + '</span><br>' +
-          'Enrolled: <b>' + it.eap.toLocaleString() + '</b><br>' +
-          'Accounts: ' + it.accts.toLocaleString() + '<br>' +
-          'Share: <b>' + it.pct.toFixed(1) + '%</b></div>',
+          '<div class="dac-eap-tt">' +
+            '<div class="dac-kpi-tt-title">' + it.title + '</div>' +
+            '<div class="dac-kpi-tt-desc">' + u.label + ' EAP · ' + lvlLabel + (it.sub ? ' · ' + it.sub : '') + '</div>' +
+            '<div class="dac-kpi-tt-row"><span>DAC accounts</span><span class="v">' + it.acctsDac.toLocaleString() + '</span></div>' +
+            '<div class="dac-kpi-tt-row"><span>Non-DAC accounts</span><span class="v">' + it.acctsNon.toLocaleString() + '</span></div>' +
+            '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total accounts</span><span class="v">' + it.accts.toLocaleString() + '</span></div>' +
+            '<div class="dac-kpi-tt-row"><span>DAC enrolled</span><span class="v">' + it.eapDac.toLocaleString() + '</span></div>' +
+            '<div class="dac-kpi-tt-row"><span>Non-DAC enrolled</span><span class="v">' + it.eapNon.toLocaleString() + '</span></div>' +
+            '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total enrolled</span><span class="v">' + it.eap.toLocaleString() + '</span></div>' +
+            '<div class="dac-kpi-tt-row"><span>Share of accounts</span><span class="v">' + it.pct.toFixed(1) + '%</span></div>' +
+          '</div>',
           { sticky: true, direction: 'top', className: 'dac-eap-tooltip', opacity: 1 }
         ).addTo(_eapLayer);
       });

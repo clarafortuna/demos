@@ -7475,9 +7475,21 @@ a.nav-item { text-decoration: none; }
 .dac-eap-leg-empty { font-size: 10px; color: var(--text-3); font-style: italic; }
 
 /* EAP circle tooltip */
-.dac-eap-tooltip { font-family: var(--font); }
-.dac-eap-tooltip .dac-eap-tt { font-size: 11px; line-height: 1.45; }
-.dac-eap-tooltip .dac-eap-tt-util { color: var(--text-3); font-weight: 600; }
+.dac-eap-tooltip { font-family: var(--font); max-width: none; }
+/* Reuse the KPI tooltip styling; give the two-column rows room to align */
+.dac-eap-tooltip .dac-eap-tt { width: 215px; }
+/* Make the Total rows read as the sum: thin solid hairline above + bold, darker text */
+.dac-eap-tooltip .dac-kpi-tt-row-foot {
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+  color: var(--text);
+}
+.dac-eap-tooltip .dac-kpi-tt-row-foot .v { font-weight: 800; }
+/* DAC / Non-DAC component rows (non-foot, not the final Share row): slight indent
+   so they read as components feeding the Total above */
+.dac-eap-tooltip .dac-kpi-tt-row:not(.dac-kpi-tt-row-foot):not(:last-child) > span:first-child {
+  padding-left: 10px;
+}
 
 /* =============================================================
    DAC MAP · Customer Counts overlay panel
