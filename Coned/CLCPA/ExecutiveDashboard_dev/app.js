@@ -1633,12 +1633,15 @@
     const panel = document.getElementById('dac-map-kpi');
     if (!panel) return;
 
-    // Scope: selected neighborhoods narrow to their tracts (aggregate across
-    // all of them); else the active borough; else all.
+    // Scope, most specific wins: a clicked tract overrides the selected
+    // neighborhoods, which override the active borough, which overrides all.
+    const sel = _mapState.selectedGeoid;
     const nbs = _mapState.neighborhoods;
     const county = _mapState.county;
     let feats;
-    if (nbs.length) {
+    if (sel) {
+      feats = geo.features.filter(f => f.properties.GEOID === sel);
+    } else if (nbs.length) {
       feats = geo.features.filter(f => inSelectedNeighborhoods(f.properties));
     } else if (county) {
       feats = geo.features.filter(f => f.properties.County === county);
@@ -1684,14 +1687,16 @@
     });
 
     const fmtBig = v => {
-      if (v == null || !isFinite(v)) return '—';
+      if (v == null || !isFinite(v)) return 'n/a';
       if (v >= 1e6) return (v/1e6).toFixed(2) + 'M';
       if (v >= 1e3) return Math.round(v/1e3) + 'K';
       return String(Math.round(v));
     };
-    const fmtFull = v => (v == null || !isFinite(v)) ? '—' : Math.round(v).toLocaleString();
+    const fmtFull = v => (v == null || !isFinite(v)) ? 'n/a' : Math.round(v).toLocaleString();
 
-    const scopeLabel = nbs.length
+    const scopeLabel = sel
+      ? tractDisplayName(sel)
+      : nbs.length
       ? (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods')
       : (county
         ? (county === 'Kings' ? 'Brooklyn'
@@ -1724,8 +1729,8 @@
     const ndacAccTotal2 = ndacElecAcc + ndacGasAcc;
     const dacSharePct  = allAccTotal > 0 ? (dacAccTotal   / allAccTotal * 100) : null;
     const ndacSharePct = allAccTotal > 0 ? (ndacAccTotal2 / allAccTotal * 100) : null;
-    const dacShareStr  = dacSharePct  != null ? dacSharePct.toFixed(1)  + '%' : '—';
-    const ndacShareStr = ndacSharePct != null ? ndacSharePct.toFixed(1) + '%' : '—';
+    const dacShareStr  = dacSharePct  != null ? dacSharePct.toFixed(1)  + '%' : 'n/a';
+    const ndacShareStr = ndacSharePct != null ? ndacSharePct.toFixed(1) + '%' : 'n/a';
 
     // Bar widths (clamp so tiny slivers are still visible)
     const dacBarPct  = dacSharePct  != null ? Math.max(2, Math.min(98, dacSharePct))  : 0;
@@ -1737,13 +1742,13 @@
     const vScAvg  = mean(acc.vSc,  acc.vScN);
     const bPctAvg = mean(acc.bPct, acc.bPctN);
     const vPctAvg = mean(acc.vPct, acc.vPctN);
-    const bmVal = v => (v == null) ? '—' : v.toFixed(1);
+    const bmVal = v => (v == null) ? 'n/a' : v.toFixed(1);
     const bmPct = v => (v == null) ? '' : '<span class="dac-kpi-bm-pct">' + ordinal(v) + ' percentile</span>';
 
     const burdenTT =
       '<div class="dac-kpi-tt-title">Burden scores · ' + scopeLabel + '</div>' +
       '<div class="dac-kpi-tt-desc">Average across the DAC tracts in the current selection. ' +
-      'Score is the composite burden value; percentile is the statewide rank (0–100; higher = more disadvantaged).</div>' +
+      'Score is the composite burden value; percentile is the statewide rank (0 to 100; higher = more disadvantaged).</div>' +
       '<div class="dac-kpi-tt-row"><span>Environmental Burden</span><span class="v">' + bmVal(bScAvg) + (bPctAvg != null ? ' · ' + ordinal(bPctAvg) + ' pct' : '') + '</span></div>' +
       '<div class="dac-kpi-tt-row"><span>Population Vulnerability</span><span class="v">' + bmVal(vScAvg) + (vPctAvg != null ? ' · ' + ordinal(vPctAvg) + ' pct' : '') + '</span></div>';
 
@@ -1771,41 +1776,65 @@
       '<div class="dac-kpi-tt-row"><span>Non-DAC accounts</span><span class="v">' + fmtFull(ndacAccTotal2) + ' (' + ndacShareStr + ')</span></div>' +
       '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total accounts</span><span class="v">' + fmtFull(allAccTotal) + '</span></div>';
 
+    // ---- EAP Enrolled (Energy Affordability Program), visible: DAC / Non-DAC (electric+gas) ----
+    // The per-utility split lives in the hover tooltip only. Reuses the scope-pass sums;
+    // gas is 0 where ConEd has no gas service (null -> 0 above).
+    const dacEap  = dacElecEap + dacGasEap;
+    const ndacEap = ndacElecEap + ndacGasEap;
+    const eapTotal = dacEap + ndacEap;
+    const eapTT =
+      '<div class="dac-kpi-tt-title">EAP Enrolled · ' + scopeLabel + '</div>' +
+      '<div class="dac-kpi-tt-desc">Customers enrolled in the Energy Affordability Program, summed over the tracts in scope and split by DAC status. Gas shows 0 where ConEd has no gas service (e.g. Brooklyn, Staten Island).</div>' +
+      '<div class="dac-kpi-tt-row"><span>DAC electric</span><span class="v">' + fmtFull(dacElecEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Non-DAC electric</span><span class="v">' + fmtFull(ndacElecEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>DAC gas</span><span class="v">' + fmtFull(dacGasEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Non-DAC gas</span><span class="v">' + fmtFull(ndacGasEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total EAP enrolled</span><span class="v">' + fmtFull(eapTotal) + '</span></div>';
+    const eapCard =
+      '<div class="dac-kpi-card dac-kpi-card-eap">' +
+        '<div class="dac-kpi-tt">' + eapTT + '</div>' +
+        '<p class="dac-kpi-label dac-kpi-label-eap">EAP Enrolled</p>' +
+        '<div class="dac-kpi-breakdown dac-kpi-breakdown-noborder">' +
+          '<div class="dac-kpi-bd-cell">' +
+            '<span class="dac-kpi-bd-k">DAC</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(dacEap) + '</span>' +
+          '</div>' +
+          '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
+            '<span class="dac-kpi-bd-k">Non-DAC</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacEap) + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
     panel.innerHTML =
       '<div class="dac-kpi-head">' +
         '<span class="dac-kpi-title">Customer Counts</span>' +
         '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
       '</div>' +
-      // ----- DAC Accounts card (electric + gas only, no total hero) -----
-      '<div class="dac-kpi-card dac-kpi-card-dac">' +
-        '<div class="dac-kpi-tt">' + dacTT + '</div>' +
-        '<p class="dac-kpi-label dac-kpi-label-dac">DAC Accounts</p>' +
-        '<div class="dac-kpi-breakdown dac-kpi-breakdown-dac dac-kpi-breakdown-noborder">' +
+      // ----- Accounts row: DAC + Non-DAC side by side, one combined total each -----
+      // (electric + gas combined; the Electric/Gas split lives in each card's tooltip)
+      '<div class="dac-kpi-row">' +
+        '<div class="dac-kpi-card dac-kpi-card-dac">' +
+          '<div class="dac-kpi-tt">' + dacTT + '</div>' +
           '<div class="dac-kpi-bd-cell">' +
-            '<span class="dac-kpi-bd-k">Electric</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac dac-kpi-bd-v-lg">' + fmtBig(dacElecAcc) + '</span>' +
+            '<span class="dac-kpi-bd-k">DAC</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(dacAcctsTotal) + '</span>' +
           '</div>' +
-          '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
-            '<span class="dac-kpi-bd-k">Gas</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac dac-kpi-bd-v-lg">' + fmtBig(dacGasAcc) + '</span>' +
+        '</div>' +
+        '<div class="dac-kpi-card dac-kpi-card-ndac">' +
+          '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
+          '<div class="dac-kpi-bd-cell">' +
+            '<span class="dac-kpi-bd-k">Non-DAC</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacAcctsTotal) + '</span>' +
           '</div>' +
         '</div>' +
       '</div>' +
-      // ----- Non-DAC Accounts card (electric + gas only, no total hero) -----
-      '<div class="dac-kpi-card dac-kpi-card-ndac">' +
-        '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
-        '<p class="dac-kpi-label">Non-DAC Accounts</p>' +
-        '<div class="dac-kpi-breakdown dac-kpi-breakdown-noborder">' +
-          '<div class="dac-kpi-bd-cell">' +
-            '<span class="dac-kpi-bd-k">Electric</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacElecAcc) + '</span>' +
-          '</div>' +
-          '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
-            '<span class="dac-kpi-bd-k">Gas</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacGasAcc) + '</span>' +
-          '</div>' +
-        '</div>' +
+      // ----- Placeholder card (full width, reserved for a future feature; no data) -----
+      '<div class="dac-kpi-card dac-kpi-card-placeholder">' +
+        '<p class="dac-kpi-label dac-kpi-label-placeholder">Coming soon</p>' +
       '</div>' +
+      // ----- EAP Enrolled card (below Non-DAC accounts, above the burden section) -----
+      eapCard +
       burdenCard ;
 
   }
@@ -2323,6 +2352,7 @@
           geoLayer.setStyle(styleFeature); // apply selected border
           this.bringToFront();
           showTractDetail(p);
+          renderMapKPI(geo);               // scope the Customer Counts panel to this tract
         }
       });
     }
@@ -2580,6 +2610,7 @@
         panel.hidden = true;
         panel.innerHTML = '';
       }
+      renderMapKPI(geo);                 // return the Customer Counts panel to the active filter scope
       requestAnimationFrame(() => map.invalidateSize());
     }
 
@@ -3090,6 +3121,7 @@
     // ---- "Clear all": reset borough + neighborhood scope in one click ----
     const clearAllBtn = document.getElementById('dac-map-clearall');
     if (clearAllBtn) clearAllBtn.addEventListener('click', function () {
+      if (_mapState.selectedGeoid) clearTractSelection();   // drop any clicked-tract scope + close detail
       _mapState.county = null;
       _mapState.neighborhoods = [];
       _mapState.indicators = ['Comb_Sc'];   // reset Color by to its default
