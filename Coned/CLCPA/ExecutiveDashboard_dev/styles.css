@@ -7535,6 +7535,34 @@ a.nav-item { text-decoration: none; }
 .dac-kpi-card:hover { background: var(--bright-snow); }
 .dac-kpi-card-dac  { border-left: 3px solid var(--dusk); }
 .dac-kpi-card-ndac { border-left: 3px solid var(--text-4); }
+/* EAP enrolled — quiet desaturated green accent (distinct from the Non-DAC neutral,
+   cohesive with the panel's blue/amber) */
+.dac-kpi-card-eap  { border-left: 3px solid #5F8C6A; }
+.dac-kpi-label-eap { color: #4F7A60; }
+/* EAP breakdown: match the burden block's two-column template (flex:1 columns, 12px
+   gap, left-aligned) so DAC lines up with Environmental Burden and Non-DAC with
+   Population Vulnerability (left-aligned second column at the midpoint, not far right). */
+.dac-kpi-card-eap .dac-kpi-breakdown { gap: 12px; justify-content: flex-start; align-items: flex-start; }
+.dac-kpi-card-eap .dac-kpi-bd-cell { flex: 1; min-width: 0; align-items: flex-start; text-align: left; }
+/* Accounts row: DAC + Non-DAC cards side by side */
+.dac-kpi-row { display: flex; gap: 8px; }
+.dac-kpi-row > .dac-kpi-card { flex: 1; min-width: 0; }
+/* Reserved/placeholder card — quiet accent, empty of data */
+.dac-kpi-card-placeholder {
+  border-left: 3px solid var(--line);
+  cursor: default;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+.dac-kpi-label-placeholder {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text-4);
+}
 
 /* Component burden averages (Environmental / Population) in the KPI panel */
 .dac-kpi-burden { border-left: 3px solid #185FA5; }
