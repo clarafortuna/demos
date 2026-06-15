@@ -2151,12 +2151,14 @@
       let color = '#ffffff', weight = 0.6;
       if (isSelected) { color = '#0a2540'; weight = 3; }
       else if (!_useTurf && inNbhd) { color = '#E03131'; weight = 1.6; }
+      else if (!_useTurf && active && p2.County === active) { color = '#185FA5'; weight = 1.6; }   // blue borough edge (no-turf fallback)
       return {
         fillColor: colorForFeature(p2, isDAC),
         fillOpacity: dimmed ? 0.12 : (isDAC ? 0.78 : 0.55),
         color: color,
         weight: weight,
         opacity: dimmed ? 0.2 : 1,
+        className: 'map-tract',
       };
     }
 
@@ -2485,7 +2487,7 @@
       });
       _eapLayer.addTo(map);
       _eapLayer.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });   // bubbles above the choropleth
-      if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();                   // keep neighborhood outline on top
+      bringOutlinesToFront();                                                // borough (blue) then neighborhood (red) on top
       renderEapLegend(sharedMax);
     }
 
@@ -2780,6 +2782,7 @@
 
     // ---- Orange dissolved boundary around each selected neighborhood (turf) ----
     let _nbOutlineLayer = null;
+    let _boroOutlineLayer = null;
     function unionAll(features) {
       if (!features.length) return null;
       try {
@@ -2791,6 +2794,27 @@
         }
         return acc;
       }
+    }
+    // Outer perimeter of a tract set: union, weld sub-tract sliver seams + pinhole
+    // interior rings via a tiny buffer out-then-in (morphological close), then drop
+    // any remaining interior rings so ONLY the outer boundary is drawn (no internal lines).
+    function stripHoles(feat) {
+      const g = (feat && feat.geometry) ? feat.geometry : feat;
+      try {
+        if (g.type === 'Polygon') return turf.polygon([g.coordinates[0]]);
+        if (g.type === 'MultiPolygon') return turf.multiPolygon(g.coordinates.map(poly => [poly[0]]));
+      } catch (e) { /* fall through */ }
+      return feat;
+    }
+    function dissolveOuter(features) {
+      let u = unionAll(features);
+      if (!u) return null;
+      try {
+        const out = turf.buffer(u, 0.02, { units: 'kilometers' });          // weld seams/pinholes (~20 m)
+        const back = out && turf.buffer(out, -0.02, { units: 'kilometers' });
+        if (back && back.geometry) u = back;
+      } catch (e) { /* keep the unbuffered union */ }
+      return stripHoles(u);
     }
     function updateNbOutline() {
       if (_nbOutlineLayer) { map.removeLayer(_nbOutlineLayer); _nbOutlineLayer = null; }
@@ -2805,15 +2829,39 @@
       if (!boundaries.length) return;
       _nbOutlineLayer = L.geoJSON({ type: 'FeatureCollection', features: boundaries }, {
         interactive: false,                  // clicks pass through to the tracts beneath
-        style: { color: '#E03131', weight: 3, opacity: 1, fill: false },
+        style: { color: '#E03131', weight: 1.5, opacity: 1, fill: false, className: 'map-outline' },
       }).addTo(map);
       _nbOutlineLayer.bringToFront();
+    }
+
+    // Dissolved BLUE outline around the selected borough (mirrors updateNbOutline,
+    // keyed on County). Drawn only when a specific borough is selected; sits UNDER
+    // the red neighborhood outline. Rebuilt on every borough change; removed when
+    // the borough is cleared (county = null) — all via applyNeighborhoods().
+    function updateBoroOutline() {
+      if (_boroOutlineLayer) { map.removeLayer(_boroOutlineLayer); _boroOutlineLayer = null; }
+      const county = _mapState.county;
+      if (!county || !_useTurf) return;     // no turf -> per-tract blue edge via styleFeature
+      const feats = geo.features.filter(f => f.properties.County === county);
+      const u = dissolveOuter(feats);        // outer perimeter only (no internal lines)
+      if (!u) return;
+      _boroOutlineLayer = L.geoJSON(u, {
+        interactive: false,                  // clicks pass through to the tracts beneath
+        style: { color: '#185FA5', weight: 1.5, opacity: 1, fill: false, className: 'map-outline' },
+      }).addTo(map);
+      _boroOutlineLayer.bringToFront();
+    }
+    // Keep the outlines stacked: blue borough UNDER red neighborhood (both on top).
+    function bringOutlinesToFront() {
+      if (_boroOutlineLayer) _boroOutlineLayer.bringToFront();
+      if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();
     }
 
     // ---- Apply the current neighborhood selection everywhere ----
     function applyNeighborhoods() {
       geoLayer.setStyle(styleFeature);
       renderMapKPI(geo);
+      updateBoroOutline();   // blue borough boundary (sits under the red neighborhood outline)
       updateNbOutline();
       fitToScope();
       renderEapLayer();   // re-render EAP bubbles for the new scope (no-op when layer is off)
@@ -3180,7 +3228,7 @@
           }
           _terrLayers[kind].addTo(map);
           _terrLayers[kind].bringToFront();
-          if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();   // keep the neighborhood outline on top
+          bringOutlinesToFront();   // keep borough (blue) under neighborhood (red), both above the overlay
           // ORU sits NW of the six-county extent — fit to it so it's visible.
           if (kind === 'oru') map.flyToBounds(_terrLayers[kind].getBounds(), { padding: [25, 25], duration: 0.6 });
         }).catch(function () { /* already reported in ensureTerritoryGeo */ });

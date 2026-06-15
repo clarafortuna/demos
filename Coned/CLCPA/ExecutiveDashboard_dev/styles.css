@@ -5910,6 +5910,11 @@ a.nav-item { text-decoration: none; }
   background: var(--bright-snow);
   flex-shrink: 0;
 }
+/* Keep vector stroke widths constant during Leaflet's zoom-animation transform
+   (the SVG overlay pane is transform-scaled, which would otherwise fatten strokes
+   until the zoom settles). Applies to the borough/neighborhood outlines and the
+   choropleth tract borders. */
+.map-outline, .map-tract { vector-effect: non-scaling-stroke; }
 
 /* Loading / error states */
 .dac-map-loading {
