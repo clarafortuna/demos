@@ -1656,7 +1656,7 @@
     let dacGasEap  = 0, ndacGasEap  = 0;
 
     // Component score/percentile averages across DAC tracts in the selection.
-    const acc = { bSc: 0, bScN: 0, vSc: 0, vScN: 0, bPct: 0, bPctN: 0, vPct: 0, vPctN: 0 };
+    const acc = { bSc: 0, bScN: 0, vSc: 0, vScN: 0, bPct: 0, bPctN: 0, vPct: 0, vPctN: 0, cSc: 0, cScN: 0, cPct: 0, cPctN: 0 };
     const addAvg = (raw, key) => {
       if (raw == null || raw === '') return;
       const v = parseFloat(raw);
@@ -1673,6 +1673,8 @@
         dacGasAcc  += (p.gas_accts  || 0);
         dacElecEap += (p.elec_eap   || 0);
         dacGasEap  += (p.gas_eap    || 0);
+        addAvg(p.Comb_Sc, 'cSc');
+        addAvg(p.Rank_State, 'cPct');
         addAvg(p.Burden_Sc, 'bSc');
         addAvg(p.Vulner_Sc, 'vSc');
         addAvg(p.Burden_Pct, 'bPct');
@@ -1742,6 +1744,8 @@
     const vScAvg  = mean(acc.vSc,  acc.vScN);
     const bPctAvg = mean(acc.bPct, acc.bPctN);
     const vPctAvg = mean(acc.vPct, acc.vPctN);
+    const cScAvg  = mean(acc.cSc,  acc.cScN);
+    const cPctAvg = mean(acc.cPct, acc.cPctN);
     const bmVal = v => (v == null) ? 'n/a' : v.toFixed(1);
     const bmPct = v => (v == null) ? '' : '<span class="dac-kpi-bm-pct">' + ordinal(v) + ' percentile</span>';
 
@@ -1749,10 +1753,19 @@
       '<div class="dac-kpi-tt-title">Burden scores · ' + scopeLabel + '</div>' +
       '<div class="dac-kpi-tt-desc">Average across the DAC tracts in the current selection. ' +
       'Score is the composite burden value; percentile is the statewide rank (0 to 100; higher = more disadvantaged).</div>' +
+      '<div class="dac-kpi-tt-desc">Percentiles are statewide rankings across all New York census tracts. A higher percentile means greater burden or vulnerability than that share of the state. Example: 80th percentile is higher than 80 percent of New York tracts.</div>' +
+      '<div class="dac-kpi-tt-row"><span>Combined Burden Score</span><span class="v">' + bmVal(cScAvg) + (cPctAvg != null ? ' · ' + ordinal(cPctAvg) + ' pct' : '') + '</span></div>' +
       '<div class="dac-kpi-tt-row"><span>Environmental Burden</span><span class="v">' + bmVal(bScAvg) + (bPctAvg != null ? ' · ' + ordinal(bPctAvg) + ' pct' : '') + '</span></div>' +
       '<div class="dac-kpi-tt-row"><span>Population Vulnerability</span><span class="v">' + bmVal(vScAvg) + (vPctAvg != null ? ' · ' + ordinal(vPctAvg) + ' pct' : '') + '</span></div>';
 
     const burdenCard =
+      // Box 1: Combined Burden Score (its own card)
+      '<div class="dac-kpi-card dac-kpi-burden">' +
+        '<div class="dac-kpi-tt">' + burdenTT + '</div>' +
+        '<p class="dac-kpi-label">Combined Burden Score</p>' +
+        '<div class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + bmVal(cScAvg) + '</div>' +
+      '</div>' +
+      // Box 2: Environmental Burden + Population Vulnerability (its own card)
       '<div class="dac-kpi-card dac-kpi-burden">' +
         '<div class="dac-kpi-tt">' + burdenTT + '</div>' +
         '<div class="dac-kpi-burden-row">' +
@@ -1807,35 +1820,44 @@
       '</div>';
 
     panel.innerHTML =
-      '<div class="dac-kpi-head">' +
-        '<span class="dac-kpi-title">Customer Counts</span>' +
-        '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
-      '</div>' +
-      // ----- Accounts row: DAC + Non-DAC side by side, one combined total each -----
-      // (electric + gas combined; the Electric/Gas split lives in each card's tooltip)
-      '<div class="dac-kpi-row">' +
-        '<div class="dac-kpi-card dac-kpi-card-dac">' +
-          '<div class="dac-kpi-tt">' + dacTT + '</div>' +
-          '<div class="dac-kpi-bd-cell">' +
-            '<span class="dac-kpi-bd-k">DAC</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(dacAcctsTotal) + '</span>' +
+      // ===== Customer counts section (its own box) =====
+      '<div class="dac-kpi-section dac-kpi-section-counts">' +
+        '<div class="dac-kpi-head">' +
+          '<span class="dac-kpi-title">Customer counts</span>' +
+          '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
+        '</div>' +
+        // Accounts row: DAC + Non-DAC side by side, one combined total each
+        // (electric + gas combined; the Electric/Gas split lives in each card's tooltip)
+        '<div class="dac-kpi-row">' +
+          '<div class="dac-kpi-card dac-kpi-card-dac">' +
+            '<div class="dac-kpi-tt">' + dacTT + '</div>' +
+            '<div class="dac-kpi-bd-cell">' +
+              '<span class="dac-kpi-bd-k">DAC</span>' +
+              '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(dacAcctsTotal) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="dac-kpi-card dac-kpi-card-ndac">' +
+            '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
+            '<div class="dac-kpi-bd-cell">' +
+              '<span class="dac-kpi-bd-k">Non-DAC</span>' +
+              '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacAcctsTotal) + '</span>' +
+            '</div>' +
           '</div>' +
         '</div>' +
-        '<div class="dac-kpi-card dac-kpi-card-ndac">' +
-          '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
-          '<div class="dac-kpi-bd-cell">' +
-            '<span class="dac-kpi-bd-k">Non-DAC</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacAcctsTotal) + '</span>' +
-          '</div>' +
+        // Placeholder card (reserved for a future feature; no data)
+        '<div class="dac-kpi-card dac-kpi-card-placeholder">' +
+          '<p class="dac-kpi-label dac-kpi-label-placeholder">Coming soon</p>' +
         '</div>' +
+        eapCard +
       '</div>' +
-      // ----- Placeholder card (full width, reserved for a future feature; no data) -----
-      '<div class="dac-kpi-card dac-kpi-card-placeholder">' +
-        '<p class="dac-kpi-label dac-kpi-label-placeholder">Coming soon</p>' +
-      '</div>' +
-      // ----- EAP Enrolled card (below Non-DAC accounts, above the burden section) -----
-      eapCard +
-      burdenCard ;
+      // ===== Burden scores section (its own box) =====
+      '<div class="dac-kpi-section dac-kpi-section-burden">' +
+        '<div class="dac-kpi-head">' +
+          '<span class="dac-kpi-title">Burden scores</span>' +
+          '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
+        '</div>' +
+        burdenCard +
+      '</div>';
 
   }
   // "Census Tract N" from an 11-digit GEOID (last 6 digits = tract code /100).
