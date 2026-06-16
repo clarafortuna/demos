@@ -2104,7 +2104,8 @@
               <div class="dac-map-eap-row">
                 <span class="dac-map-eap-lbl">Utility</span>
                 <span class="dac-map-eap-seg" data-eap-group="utility">
-                  <button type="button" data-eap-utility="electric" class="active">Electric</button>
+                  <button type="button" data-eap-utility="total" class="active">Total</button>
+                  <button type="button" data-eap-utility="electric">Electric</button>
                   <button type="button" data-eap-utility="gas">Gas</button>
                 </span>
               </div>
@@ -2123,7 +2124,6 @@
                   <button type="button" data-eap-groupby="tract">Tract</button>
                 </span>
               </div>
-              <div class="dac-map-eap-legend" id="dac-map-eap-legend"></div>
             </div>
           </div>
           </div>
@@ -2171,6 +2171,14 @@
     });
     _leafletMapInstance = map;
 
+    // EAP heatmap state (declared up here so styleFeature, used at geoLayer
+    // creation below, can read _eapState/_eapColorCtx without a TDZ). The EAP
+    // layer colors tracts by enrollment, overriding the default Color-by
+    // choropleth while on. _eapColorCtx is rebuilt on utility/metric/group-by
+    // change and holds the per-tract values + max for the ramp.
+    const _eapState = { on: false, utility: 'total', metric: 'count', groupBy: 'borough' };
+    let _eapColorCtx = null;
+
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
     }).addTo(map);
@@ -2203,9 +2211,12 @@
       if (isSelected) { color = '#0a2540'; weight = 3; }
       else if (!_useTurf && inNbhd) { color = '#E03131'; weight = 1.6; }
       else if (!_useTurf && active && p2.County === active) { color = '#185FA5'; weight = 1.6; }   // blue borough edge (no-turf fallback)
+      // While the EAP heatmap is on, color every tract by EAP enrollment
+      // (overriding the Color-by choropleth) with a uniform fill opacity so the
+      // ramp reads evenly across DAC and Non-DAC tracts.
       return {
-        fillColor: colorForFeature(p2, isDAC),
-        fillOpacity: dimmed ? 0.12 : (isDAC ? 0.78 : 0.55),
+        fillColor: _eapState.on ? eapFillColor(p2) : colorForFeature(p2, isDAC),
+        fillOpacity: dimmed ? 0.12 : (_eapState.on ? 0.72 : (isDAC ? 0.78 : 0.55)),
         color: color,
         weight: weight,
         opacity: dimmed ? 0.2 : 1,
@@ -2386,219 +2397,150 @@
     _mapGeoLayer = geoLayer;
 
     // ============================================================
-    // EAP enrollment bubble layer (opt-in; OFF by default)
+    // EAP enrollment heatmap (opt-in; OFF by default)
     // ------------------------------------------------------------
-    // One L.circleMarker per in-scope, in-service tract at its turf centroid.
-    // Pixel radii => constant across zoom. Circle AREA is proportional to the
-    // value (radius ∝ sqrt(value)) in BOTH metrics, scaled so the max value in
-    // the current in-scope/filtered set maps to EAP_MAX_R. Recomputed only on
-    // filter / utility / metric changes — never on pan/zoom.
+    // Colors every tract by EAP enrollment for the selected Utility / Metric,
+    // overriding the default Color-by choropleth while on. "Group by" sets the
+    // aggregation level: Tract colors each tract by its own value; Borough /
+    // Neighborhood color each tract by its group's aggregate (a regional view).
+    // Coloring is scope-independent (the in/out-of-scope dimming in styleFeature
+    // still applies). _eapState/_eapColorCtx are declared near map init above so
+    // styleFeature can read them at geoLayer creation.
     const EAP_UTIL = {
-      electric: { eap: 'elec_eap', accts: 'elec_accts', color: '#D98A1F', label: 'Electric' },
-      gas:      { eap: 'gas_eap',  accts: 'gas_accts',  color: '#2E8B57', label: 'Gas' },
+      electric: { eap: 'elec_eap', accts: 'elec_accts', label: 'Electric' },
+      gas:      { eap: 'gas_eap',  accts: 'gas_accts',  label: 'Gas' },
+      total:    { label: 'Total' },   // electric + gas, computed in eapUtilVals
     };
-    const EAP_MIN_R = 3, EAP_MAX_R = 28;
-    const _eapState = { on: false, utility: 'electric', metric: 'count', groupBy: 'borough' };
-    let _eapLayer = null;
-    const _eapCentroids = {};   // GEOID -> [lat,lng]; computed once via turf, reused
+    // Sequential blue ramp (mirrors the burden choropleth); gray = no service.
+    const EAP_RAMP = ['#d4e3f2', '#6fa0d6', '#2f5496', '#1e4d80', '#0a2540'];
+    const EAP_NODATA = '#e2e6ea';
 
-    function eapCentroid(feature) {
-      const id = feature.properties.GEOID;
-      if (id in _eapCentroids) return _eapCentroids[id];
-      let latlng = null;
-      try {
-        const co = turf.centroid(feature).geometry.coordinates;   // [lng, lat]
-        if (isFinite(co[0]) && isFinite(co[1])) latlng = [co[1], co[0]];
-      } catch (e) { /* leave null -> tract skipped */ }
-      _eapCentroids[id] = latlng;
-      return latlng;
-    }
-
-    // In-scope predicate — mirrors renderMapKPI/styleFeature: neighborhoods > borough > all.
-    function eapInScope(p) {
-      const nbs = _mapState.neighborhoods;
-      if (nbs.length) return inSelectedNeighborhoods(p);
-      if (_mapState.county) return p.County === _mapState.county;
-      return true;
-    }
-
-    // Shared scaling used by BOTH the data circles and the legend circles.
-    function eapRadius(value, maxValue) {
-      if (!(value > 0) || !(maxValue > 0)) return 0;
-      const r = EAP_MAX_R * Math.sqrt(value) / Math.sqrt(maxValue);
-      return Math.max(EAP_MIN_R, Math.min(EAP_MAX_R, r));
-    }
-
-    // Build renderable items for the current utility / metric / group-by within
-    // the active scope. Returns [{ latlng, value, eap, accts, pct, title, sub, level, members }].
-    // Null accounts (outside ConEd service area) are excluded from every sum;
-    // null EAP counts as 0 enrolled; a group with no in-service tracts or a zero
-    // value yields no bubble.
-    function eapItems(utilityKey) {
-      const u = EAP_UTIL[utilityKey || _eapState.utility];
-      const level = _eapState.groupBy;
-      const isPct = _eapState.metric === 'pct';
-
-      // In-scope, in-service member tracts (accts != null).
-      const members = [];
-      geo.features.forEach(f => {
-        const p = f.properties;
-        if (!eapInScope(p)) return;
-        const accts = p[u.accts];
-        if (accts == null) return;                            // outside ConEd service area
-        const eap = (p[u.eap] != null) ? p[u.eap] : 0;        // null EAP => 0 enrolled
-        members.push({ feature: f, p: p, accts: accts, eap: eap });
-      });
-
-      // Tract level = one bubble per eligible tract (the original per-tract behavior).
-      if (level === 'tract') {
-        const out = [];
-        members.forEach(m => {
-          const pct = m.accts > 0 ? (m.eap / m.accts) * 100 : 0;
-          const value = isPct ? pct : m.eap;
-          if (!(value > 0)) return;                           // null/zero => no circle
-          const ll = eapCentroid(m.feature);
-          if (!ll) return;
-          out.push({
-            latlng: ll, value: value, eap: m.eap, accts: m.accts, pct: pct,
-            title: escMap(m.p.GEOID || ''),
-            sub: m.p.neighborhood ? escMap(m.p.neighborhood) + (m.p.borough ? ', ' + escMap(m.p.borough) : '') : '—',
-            level: 'tract', members: 1,
-          });
-        });
-        return out;
+    // Per-utility values for a tract: { eap, accts, hasData }. hasData=false means
+    // the utility isn't served here (null accounts) -> rendered as "no service".
+    // Total = electric + gas (served if either side is served); null EAP => 0.
+    function eapUtilVals(p, util) {
+      if (util === 'total') {
+        const ea = p.elec_accts, ga = p.gas_accts;
+        if (ea == null && ga == null) return { eap: 0, accts: 0, hasData: false };
+        const accts = (ea != null ? ea : 0) + (ga != null ? ga : 0);
+        const eap = (p.elec_eap != null ? p.elec_eap : 0) + (p.gas_eap != null ? p.gas_eap : 0);
+        return { eap: eap, accts: accts, hasData: true };
       }
-
-      // Borough / Neighborhood: aggregate the in-scope tracts into one bubble per group.
-      const groups = {};
-      members.forEach(m => {
-        let label;
-        if (level === 'borough') {
-          label = m.p.borough || '(Unknown borough)';
-        } else {   // neighborhood — null neighborhood becomes a labeled "(No neighborhood), <borough>" group
-          const boro = m.p.borough || '(Unknown borough)';
-          label = (m.p.neighborhood ? m.p.neighborhood : '(No neighborhood)') + ', ' + boro;
-        }
-        let g = groups[label];
-        if (!g) g = groups[label] = { label: label, eapSum: 0, acctsSum: 0, sumW: 0, sLat: 0, sLng: 0, count: 0 };
-        g.eapSum += m.eap;            // sum EAP (null already coerced to 0)
-        g.acctsSum += m.accts;        // sum accounts (in-service tracts only)
-        g.count += 1;
-        const ll = eapCentroid(m.feature);
-        if (ll) {                     // account-weighted centroid: bubble sits where the accounts are
-          const w = m.accts > 0 ? m.accts : 0;
-          g.sumW += w; g.sLat += ll[0] * w; g.sLng += ll[1] * w;
-        }
-      });
-
-      const out = [];
-      Object.keys(groups).forEach(k => {
-        const g = groups[k];
-        const value = isPct ? (g.acctsSum > 0 ? (g.eapSum / g.acctsSum) * 100 : 0) : g.eapSum;
-        if (!(value > 0)) return;     // entirely outside service / zero enrollment => no bubble
-        if (!(g.sumW > 0)) return;    // no positionable member => skip
-        out.push({
-          latlng: [g.sLat / g.sumW, g.sLng / g.sumW],
-          value: value, eap: g.eapSum, accts: g.acctsSum,
-          pct: g.acctsSum > 0 ? (g.eapSum / g.acctsSum) * 100 : 0,
-          title: escMap(g.label), sub: g.count + ' tract' + (g.count === 1 ? '' : 's'),
-          level: level, members: g.count,
-        });
-      });
-      return out;
+      const u = EAP_UTIL[util] || EAP_UTIL.electric;
+      const accts = p[u.accts];
+      if (accts == null) return { eap: 0, accts: 0, hasData: false };   // outside service area
+      return { eap: (p[u.eap] != null ? p[u.eap] : 0), accts: accts, hasData: true };
     }
 
-    function renderEapLayer() {
-      if (_eapLayer) { map.removeLayer(_eapLayer); _eapLayer = null; }
-      if (!_eapState.on) { renderEapLegend(0); return; }
-      const u = EAP_UTIL[_eapState.utility];
-      const items = eapItems(_eapState.utility);
-      // SHARED scale: max over BOTH utilities at the current level/metric/scope, so a
-      // given value maps to the same radius whether Electric or Gas is shown (directly
-      // comparable). Invariant to the utility toggle — only changes on level/metric/filter.
-      const otherKey = _eapState.utility === 'electric' ? 'gas' : 'electric';
-      const maxOf = arr => arr.reduce((m, it) => (it.value > m ? it.value : m), 0);
-      const sharedMax = Math.max(maxOf(items), maxOf(eapItems(otherKey)));
-      const lvlLabel = _eapState.groupBy === 'borough' ? 'Borough'
-        : (_eapState.groupBy === 'neighborhood' ? 'Neighborhood' : 'Tract');
-      _eapLayer = L.layerGroup();
-      items.forEach(it => {
-        const radius = eapRadius(it.value, sharedMax);
-        if (radius <= 0) return;
-        L.circleMarker(it.latlng, {
-          radius: radius, color: u.color, weight: 1, opacity: 0.9,
-          fillColor: u.color, fillOpacity: 0.5,
-        }).bindTooltip(
-          '<div class="dac-eap-tt"><b>' + it.title + '</b><br>' +
-          it.sub + '<br><span class="dac-eap-tt-util">' + u.label + ' EAP · ' + lvlLabel + '</span><br>' +
-          'Enrolled: <b>' + it.eap.toLocaleString() + '</b><br>' +
-          'Accounts: ' + it.accts.toLocaleString() + '<br>' +
-          'Share: <b>' + it.pct.toFixed(1) + '%</b></div>',
-          { sticky: true, direction: 'top', className: 'dac-eap-tooltip', opacity: 1 }
-        ).addTo(_eapLayer);
-      });
-      _eapLayer.addTo(map);
-      _eapLayer.eachLayer(l => { if (l.bringToFront) l.bringToFront(); });   // bubbles above the choropleth
-      bringOutlinesToFront();                                                // borough (blue) then neighborhood (red) on top
-      renderEapLegend(sharedMax);
+    // Group key for the active aggregation level.
+    function eapGroupKey(p, level) {
+      if (level === 'borough') return p.borough || '(Unknown borough)';
+      if (level === 'neighborhood') return (p.neighborhood ? p.neighborhood : '(No neighborhood)') + ', ' + (p.borough || '(Unknown borough)');
+      return p.GEOID;   // tract
     }
 
-    // Abbreviated legend label (k/M for counts, % for percentages). Bubble tooltips
-    // keep FULL numbers — abbreviation is legend-only.
-    function eapLegendLabel(v, isPct) {
-      if (isPct) return (v < 10 ? v.toFixed(1).replace(/\.0$/, '') : String(Math.round(v))) + '%';
+    // Build the per-tract coloring context for the current utility / metric /
+    // group-by. Aggregates EAP + accounts per group over served tracts, then maps
+    // every tract to its group's value (count = enrolled; pct = enrolled /
+    // accounts * 100). A tract whose group has no served accounts -> null (gray).
+    // `max` is the largest group value (count ramp domain; pct is fixed 0-100).
+    function buildEapColorCtx() {
+      const util = _eapState.utility, level = _eapState.groupBy;
+      const isPct = _eapState.metric === 'pct';
+      const agg = {};   // key -> { eap, accts }
+      geo.features.forEach(f => {
+        const v = eapUtilVals(f.properties, util);
+        if (!v.hasData) return;
+        const key = eapGroupKey(f.properties, level);
+        let g = agg[key]; if (!g) g = agg[key] = { eap: 0, accts: 0 };
+        g.eap += v.eap; g.accts += v.accts;
+      });
+      const groupVal = {};
+      let max = 0;
+      Object.keys(agg).forEach(k => {
+        const g = agg[k];
+        const val = isPct ? (g.accts > 0 ? (g.eap / g.accts) * 100 : null) : g.eap;
+        groupVal[k] = val;
+        if (val != null && val > max) max = val;
+      });
+      const valueByGeoid = {};
+      geo.features.forEach(f => {
+        const key = eapGroupKey(f.properties, level);
+        valueByGeoid[f.properties.GEOID] = (key in groupVal) ? groupVal[key] : null;
+      });
+      return { valueByGeoid: valueByGeoid, max: max, isPct: isPct, util: util, level: level };
+    }
+
+    // Ramp color for a tract value within the active context (gray when no data).
+    function eapRampColor(v, ctx) {
+      if (v == null) return EAP_NODATA;
+      const frac = ctx.isPct ? v / 100 : (ctx.max > 0 ? v / ctx.max : 0);
+      if (frac >= 0.8) return EAP_RAMP[4];
+      if (frac >= 0.6) return EAP_RAMP[3];
+      if (frac >= 0.4) return EAP_RAMP[2];
+      if (frac >= 0.2) return EAP_RAMP[1];
+      return EAP_RAMP[0];
+    }
+
+    // Fill color for a tract while the EAP heatmap is on (used by styleFeature).
+    function eapFillColor(p) {
+      if (!_eapColorCtx) return EAP_NODATA;
+      return eapRampColor(_eapColorCtx.valueByGeoid[p.GEOID], _eapColorCtx);
+    }
+
+    // Compact count label for the legend bucket edges (k/M abbreviations).
+    function eapCountLabel(v) {
       if (v >= 1e6) { const mv = v / 1e6; return (mv >= 10 ? Math.round(mv) : +mv.toFixed(1)) + 'M'; }
       if (v >= 1e3) { const kv = v / 1e3; return (kv >= 10 ? Math.round(kv) : +kv.toFixed(1)) + 'k'; }
       return String(Math.round(v));
     }
-    // Reference values: the actual max (top, exact 28px) plus a descending 1-2-5
-    // ladder of round numbers above a ~5px legibility floor. Up to 6 — typically 5;
-    // never adds a sub-~5px circle.
-    function eapLegendRefs(M) {
-      const refs = [M];
-      const floor = M * Math.pow(5 / EAP_MAX_R, 2);   // values below ~5px radius are indistinct
-      const mant = [5, 2, 1];
-      const topExp = Math.floor(Math.log10(M));
-      for (let e = topExp; e >= -3 && refs.length < 6; e--) {
-        for (let i = 0; i < mant.length && refs.length < 6; i++) {
-          const v = mant[i] * Math.pow(10, e);
-          if (v < M && v >= floor) refs.push(v);
-        }
+
+    // EAP ramp legend HTML (burden-legend style: label + swatches + bins). Count
+    // shows ascending bucket edges up to max; pct shows fixed 0-100% bins. A gray
+    // "No service" swatch closes the row.
+    function eapLegendHtml(ctx) {
+      const sw = c => '<span class="dac-map-leg-swatch" style="background:' + c + '"></span>';
+      const tx = t => '<span class="dac-map-leg-text">' + t + '</span>';
+      const uLbl = EAP_UTIL[ctx.util] ? EAP_UTIL[ctx.util].label : '';
+      let label, bins;
+      if (ctx.isPct) {
+        label = uLbl + ' EAP rate:';
+        bins = sw(EAP_RAMP[0]) + tx('0-20%') + sw(EAP_RAMP[1]) + tx('20-40%') +
+               sw(EAP_RAMP[2]) + tx('40-60%') + sw(EAP_RAMP[3]) + tx('60-80%') +
+               sw(EAP_RAMP[4]) + tx('80-100%');
+      } else {
+        label = uLbl + ' EAP enrolled:';
+        const m = ctx.max || 0;
+        const edge = f => eapCountLabel(m * f);
+        bins = sw(EAP_RAMP[0]) + tx('0') + sw(EAP_RAMP[1]) + tx(edge(0.2)) +
+               sw(EAP_RAMP[2]) + tx(edge(0.4)) + sw(EAP_RAMP[3]) + tx(edge(0.6)) +
+               sw(EAP_RAMP[4]) + tx(edge(0.8) + '+');
       }
-      return refs;
+      return '<span class="dac-map-legend-label">' + label + '</span>' + bins +
+             sw(EAP_NODATA) + tx('No service');
     }
-    // Size legend — single SHARED-scale legend (same eapRadius() as the bubbles).
-    function renderEapLegend(sharedMax) {
-      const el = document.getElementById('dac-map-eap-legend');
+
+    // Set the top map legend to the EAP ramp (while on) or the Color-by legend.
+    function updateMapLegend() {
+      const el = document.getElementById('dac-map-legend');
       if (!el) return;
-      if (!_eapState.on) { el.innerHTML = ''; return; }
-      const u = EAP_UTIL[_eapState.utility];
-      if (!(sharedMax > 0)) {
-        el.innerHTML = '<span class="dac-eap-leg-empty">No EAP data in current scope.</span>';
-        return;
-      }
-      const isPct = _eapState.metric === 'pct';
-      let refs = eapLegendRefs(sharedMax);
-      // Fit to the legend's width: drop the smallest references if the row would
-      // overflow (each slot ~ max(circle, label) + gap). Keep at least 4.
-      const avail = el.clientWidth || 240;
-      const slot = v => Math.max(eapRadius(v, sharedMax) * 2, eapLegendLabel(v, isPct).length * 6 + 4) + 12;
-      while (refs.length > 4 && refs.reduce((s, v) => s + slot(v), 0) > avail) refs.pop();
-      const itemsHtml = refs.map(v => {
-        const d = eapRadius(v, sharedMax) * 2;   // identical scaling to the map circles
-        return '<span class="dac-eap-leg-item">' +
-          '<span class="dac-eap-leg-circ" style="width:' + d + 'px;height:' + d + 'px;border-color:' + u.color + ';background:' + u.color + '33"></span>' +
-          '<span class="dac-eap-leg-val">' + eapLegendLabel(v, isPct) + '</span></span>';
-      }).join('');
-      el.innerHTML = '<div class="dac-eap-leg-title">' + u.label + ' EAP · ' + (isPct ? '% of accounts' : 'enrolled') + '</div>' +
-        '<div class="dac-eap-leg-row">' + itemsHtml + '</div>';
+      el.innerHTML = (_eapState.on && _eapColorCtx) ? eapLegendHtml(_eapColorCtx) : mapLegendHtml(activeScale());
+    }
+
+    // Rebuild the EAP coloring context, recolor the tracts, and swap the legend.
+    // When off, ctx is cleared (styleFeature falls back to the Color-by
+    // choropleth) and the legend reverts to the active indicator.
+    function applyEapColoring() {
+      _eapColorCtx = _eapState.on ? buildEapColorCtx() : null;
+      geoLayer.setStyle(styleFeature);
+      updateMapLegend();
     }
 
     function setEap(on) {
       _eapState.on = !!on;
       const box = document.getElementById('dac-map-eapbox');   // separate card below LAYERS
       if (box) box.hidden = !on;
-      renderEapLayer();
+      applyEapColoring();
     }
 
     // ---- Selected-tract detail panel (below the map) ----
@@ -2917,7 +2859,8 @@
       updateBoroOutline();   // blue borough boundary (sits under the red neighborhood outline)
       updateNbOutline();
       fitToScope();
-      renderEapLayer();   // re-render EAP bubbles for the new scope (no-op when layer is off)
+      // EAP heatmap coloring is scope-independent; the setStyle above already
+      // re-applies it (and out-of-scope dimming) when the layer is on.
       const nbs = _mapState.neighborhoods;
       const nbDd = document.getElementById('dac-map-nb');
       // Sync each neighborhood option's checked state from the selection set.
@@ -3319,7 +3262,7 @@
       if (b.dataset.eapGroupby) _eapState.groupBy = b.dataset.eapGroupby;
       const group = b.parentElement;   // toggle active within this group only
       group.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
-      renderEapLayer();
+      applyEapColoring();
     });
 
     // Apply the current Color-by selection to map, legend, subtitle, the
@@ -3328,8 +3271,9 @@
     function applyIndicatorSelection() {
       const sel = _mapState.indicators;
       geoLayer.setStyle(styleFeature);
-      const legend = document.getElementById('dac-map-legend');
-      if (legend) legend.innerHTML = mapLegendHtml(activeScale());
+      // Route the legend through updateMapLegend so the EAP ramp is preserved
+      // when the heatmap is overriding the Color-by choropleth.
+      updateMapLegend();
       const sub = document.getElementById('dac-map-subind');
       if (sub) sub.textContent = mapTitleText();
       const cbCur = document.getElementById('dac-map-dd-current');
