@@ -7429,11 +7429,11 @@ a.nav-item { text-decoration: none; }
 .dac-map-terr-sw-elec   { border: 1.5px solid #E8841A; background: rgba(232, 132, 26, 0.18); }
 .dac-map-terr-sw-gas    { border: 1.5px solid #4E8C1E; background: rgba(99, 153, 34, 0.18); }
 .dac-map-terr-sw-oru    { border: 1.5px solid #6741D9; background: rgba(127, 119, 221, 0.14); }
-/* EAP layer swatch: a small bubble, hinting the two utility colors */
+/* EAP layer swatch: a small chip hinting the blue enrollment ramp (light->dark) */
 .dac-map-terr-sw-eap {
   width: 12px; height: 12px; border-radius: 50%;
-  border: 1.5px solid #D98A1F;
-  background: linear-gradient(135deg, rgba(217,138,31,0.55) 0 50%, rgba(46,139,87,0.55) 50% 100%);
+  border: 1.5px solid #0a2540;
+  background: linear-gradient(135deg, #d4e3f2 0%, #0a2540 100%);
 }
 
 /* EAP controls (inside their own #dac-map-eapbox card below LAYERS) */
