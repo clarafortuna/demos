@@ -1,2 +1,5 @@
 # Local map-payload snapshots written by the pipeline — not versioned.
 map_payload.backup*.json
+
+# Pre-deploy snapshot of the hosted payload web resource — kept on disk, not versioned.
+payload.backup.deployed-*.json
