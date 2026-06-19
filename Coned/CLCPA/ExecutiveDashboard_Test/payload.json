@@ -342,6 +342,12 @@
             0.34
           ],
           [
+            "Multifamily Program – Electric & Gas",
+            21009690,
+            8565740,
+            0.41
+          ],
+          [
             "Pilots",
             163288,
             57076,
@@ -804,6 +810,12 @@
             779388,
             122099,
             0.16
+          ],
+          [
+            "Commercial Kitchen",
+            35373,
+            12935,
+            0.37
           ],
           [
             "Efficiency Starter Program - LMI",
@@ -1278,7 +1290,7 @@
           [
             "Total",
             "",
-            2087688,
+            2009280,
             "",
             ""
           ]
@@ -8119,7 +8131,8 @@
             "Non- Excludable ",
             "Excludable",
             "Non- Excludable",
-            "Excludable"
+            "Excludable",
+            null
           ],
           [
             "Borough Hall",
@@ -8345,7 +8358,8 @@
             "Non- Excludable ",
             "Excludable",
             "Non- Excludable",
-            "Excludable"
+            "Excludable",
+            null
           ],
           [
             "Bay Ridge",
@@ -11386,7 +11400,7 @@
           "2023": {
             "total": 93187.0,
             "dac_pct": 0.31,
-            "dac": null
+            "dac": 28967
           },
           "2025": {
             "total": 116581,
@@ -11783,6 +11797,12 @@
             "dac_pct": 0.43
           },
           {
+            "name": "AMEEP - Electric & Gas",
+            "total": 33895737.0,
+            "dac": 31612418.0,
+            "dac_pct": 0.93
+          },
+          {
             "name": "C&I Program – Electric & Gas",
             "total": 33125776.0,
             "dac": 9110325.0,
@@ -11799,6 +11819,12 @@
             "total": 22112993.0,
             "dac": 9441467.0,
             "dac_pct": 0.43
+          },
+          {
+            "name": "Multifamily Program – Electric & Gas",
+            "total": 21009690.0,
+            "dac": 8565740.0,
+            "dac_pct": 0.41
           },
           {
             "name": "Clean Heat – SMB ASHP",
@@ -11833,20 +11859,8 @@
           {
             "name": "Clean Heat – C&I GSHP",
             "total": 2698732.0,
-            "dac": 0,
+            "dac": 0.0,
             "dac_pct": 0
-          },
-          {
-            "name": "Residential Weatherization – Electric & Gas",
-            "total": 2262712.0,
-            "dac": 283948.0,
-            "dac_pct": 0.13
-          },
-          {
-            "name": "Commercial Kitchen",
-            "total": 1702873.0,
-            "dac": 793662.0,
-            "dac_pct": 0.47
           }
         ],
         "2025": [
