@@ -158,6 +158,8 @@
       function writeJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { console.error('Storage write failed for ' + key, e); return false; } }
       return {
         async init() { /* reads are live from localStorage; nothing to preload */ },
+        // No Dataverse context -> the map renders from map_payload.json only.
+        getMapTractOverlay() { return null; },
         applyOverrides(payload) {
           captureBaseline(payload);
           if (!payload || !payload.tables) return payload;
@@ -363,6 +365,21 @@
         },
         // SAFE: never bulk-delete Dataverse. Clear in-memory caches only.
         clearAll() { cOverrides = {}; cHistory = []; cYears = []; console.warn('[Storage] clearAll: in-memory caches cleared; Dataverse records left intact.'); },
+        // Read-only: load the 8 editable map fields for every tract, keyed by GEOID
+        // (logical column -> map_payload JSON key). Used to overlay onto the file features.
+        async getMapTractOverlay() {
+          const FM = { cr2bf_elecdac: 'elec_dac', cr2bf_elecaccts: 'elec_accts', cr2bf_eleceap: 'elec_eap', cr2bf_elecadj: 'elec_adj', cr2bf_gasdac: 'gas_dac', cr2bf_gasaccts: 'gas_accts', cr2bf_gaseap: 'gas_eap', cr2bf_gasadj: 'gas_adj' };
+          const rows = await getAll('cr2bf_dacmaptractdatas', '$select=cr2bf_censustractgeoid,' + Object.keys(FM).join(','));
+          const byGeoid = {};
+          rows.forEach(r => {
+            const g = r.cr2bf_censustractgeoid;
+            if (g == null) return;
+            const rec = {};
+            Object.keys(FM).forEach(col => { rec[FM[col]] = (r[col] === undefined ? null : r[col]); });
+            byGeoid[g] = rec;
+          });
+          return byGeoid;
+        },
       };
     })();
 
@@ -422,6 +439,8 @@
       getAddedYears() { return active.getAddedYears(); },
       applyAddedYears(payload) { return active.applyAddedYears(payload); },
       clearAll() { return active.clearAll(); },
+      // null on localStorage (file-only map); geoid -> {8 fields} on Dataverse.
+      getMapOverlay() { return active.getMapTractOverlay(); },
     };
   })();
 
@@ -1443,11 +1462,41 @@
   let _leafletMapInstance = null;
   let _mapGeoLayer = null;
 
+  // The 8 editable fields overlaid from Dataverse onto each feature by GEOID.
+  // Everything else (geometry, County, neighborhood, indicators, electric_networks, …)
+  // always stays from map_payload.json.
+  const MAP_OVERLAY_FIELDS = ['elec_dac', 'elec_accts', 'elec_eap', 'elec_adj', 'gas_dac', 'gas_accts', 'gas_eap', 'gas_adj'];
+
+  function applyMapOverlay(geo, overlay) {
+    if (!geo || !geo.features || !overlay) return 0;
+    let applied = 0, fileNotInDv = 0;
+    geo.features.forEach(f => {
+      const g = f && f.properties && f.properties.GEOID;
+      const rec = (g != null) ? overlay[g] : null;
+      if (rec) { MAP_OVERLAY_FIELDS.forEach(k => { f.properties[k] = rec[k]; }); applied++; }
+      else { fileNotInDv++; }
+    });
+    const dvNotInFile = Object.keys(overlay).length - applied;
+    console.info('[DAC map] overlaid ' + applied + ' tracts from Dataverse'
+      + (fileNotInDv ? ' (' + fileNotInDv + ' file tracts absent from Dataverse — kept file values)' : '')
+      + (dvNotInFile > 0 ? ' (' + dvNotInFile + ' Dataverse rows with no geometry — skipped)' : ''));
+    return applied;
+  }
+
   async function getMapGeo() {
     if (_mapGeoCache) return _mapGeoCache;
     const res = await fetch('./map_payload.json');
     if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-    _mapGeoCache = await res.json();
+    const geo = await res.json();
+    // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
+    // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
+    try {
+      const overlay = await Storage.getMapOverlay();
+      if (overlay) applyMapOverlay(geo, overlay);
+    } catch (e) {
+      console.warn('[DAC map] Dataverse overlay skipped (kept file values):', e);
+    }
+    _mapGeoCache = geo;
     return _mapGeoCache;
   }
 
