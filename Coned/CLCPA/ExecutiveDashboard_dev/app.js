@@ -30,13 +30,21 @@
   // ============================================================
   // STORAGE LAYER (Phase 6)
   // ============================================================
-  // Abstraction over the persistence backend. Today it reads/writes to
-  // localStorage; tomorrow swap the implementation to talk to Dataverse
-  // and the rest of the app stays untouched.
+  // Abstraction over the persistence backend, with TWO interchangeable
+  // implementations sharing one public interface:
+  //   - dvBackend  : Dataverse Web API (used when hosted in a Dataverse context).
+  //                  Loads all rows into memory at init(); getters serve from
+  //                  cache synchronously; writes update the cache then push to
+  //                  Dataverse in the background (instant UI, never blocks).
+  //   - lsBackend  : localStorage (original behavior; used on localhost / when
+  //                  no Dataverse context is detected).
+  // Storage.init() (awaited once in boot) picks the backend; every other method
+  // keeps its original synchronous signature, so the rest of the app is untouched.
   //
-  // Two buckets:
-  //   dac:overrides   { 'B2:2025': [[...rows...]], ... }
-  //   dac:history     [ { ts, user, tableId, year, changes: [{rowIdx, colIdx, oldVal, newVal}] }, ... ]
+  // Two buckets (localStorage backend) / three tables (Dataverse backend):
+  //   dac:overrides   { 'B2:2025': [[...rows...]], ... }        -> cr2bf_dacingesttesttabledata1s
+  //   dac:history     [ { ts, user, tableId, year, changes }, ... ] -> cr2bf_dacingesttestchangehistories
+  //   dac:years       [ '2026', ... ]                          -> cr2bf_dacingesttestreportingyears
   //
   // applyOverrides(payload) — at boot, merge any saved overrides into the
   //   payload so charts and tables reflect user edits.
@@ -46,305 +54,374 @@
   // ============================================================
 
   const Storage = (function () {
+    // localStorage keys (localStorage backend + dev fallback)
     const OVERRIDES_KEY = 'dac:overrides';
     const HISTORY_KEY = 'dac:history';
     const YEARS_KEY = 'dac:years';
 
-    function readJSON(key, fallback) {
+    // Dataverse Web API entity sets + primary-id columns
+    const SET_TABLEDATA = 'cr2bf_dacingesttesttabledata1s';
+    const SET_HISTORY   = 'cr2bf_dacingesttestchangehistories';
+    const SET_YEARS     = 'cr2bf_dacingesttestreportingyears';
+    const ID_TABLEDATA  = 'cr2bf_dacingesttesttabledata1id';
+    const ID_HISTORY    = 'cr2bf_dacingesttestchangehistoryid';
+    const ID_YEARS      = 'cr2bf_dacingesttestreportingyearid';
+
+    function overrideKey(tableId, year) { return tableId + ':' + year; }
+    function sectionOf(tableId) { const m = String(tableId).match(/^[A-Za-z]+/); return m ? m[0] : String(tableId); }
+    function deepClone(v) { return JSON.parse(JSON.stringify(v)); }
+
+    // ---- pristine payload.json baseline, captured before applyOverrides mutates it ----
+    // Used by resetTable to revert a table-year to its original payload.json values.
+    let baseline = {};            // 'tableId:year' -> deep-cloned original rows
+    let baselineCaptured = false;
+    function captureBaseline(payload) {
+      if (baselineCaptured || !payload || !payload.tables) return;
+      Object.keys(payload.tables).forEach(tid => {
+        const t = payload.tables[tid];
+        if (!t || !t.data) return;
+        Object.keys(t.data).forEach(y => { baseline[overrideKey(tid, y)] = deepClone(t.data[y]); });
+      });
+      baselineCaptured = true;
+    }
+
+    // ---- self-contained toast for background-write failures (no CSS-file dependency) ----
+    function showToast(message, type) {
       try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (e) {
-        console.warn('Storage read failed for ' + key, e);
-        return fallback;
-      }
+        let host = document.getElementById('dac-toast-host');
+        if (!host) {
+          host = document.createElement('div');
+          host.id = 'dac-toast-host';
+          host.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:99999;display:flex;flex-direction:column;gap:8px;max-width:380px';
+          document.body.appendChild(host);
+        }
+        const el = document.createElement('div');
+        el.textContent = message;
+        el.style.cssText = 'font:13px/1.4 system-ui,Segoe UI,sans-serif;padding:10px 14px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.22);color:#fff;background:' + (type === 'error' ? '#C0392B' : '#185FA5');
+        host.appendChild(el);
+        setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 420); }, 6000);
+      } catch (e) { /* DOM not ready — the console error is still emitted by the caller */ }
     }
 
-    function writeJSON(key, value) {
-      try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch (e) {
-        console.error('Storage write failed for ' + key, e);
-        return false;
-      }
-    }
-
-    function overrideKey(tableId, year) {
-      return tableId + ':' + year;
-    }
-
-    return {
-      /**
-       * Apply all saved overrides on top of the payload object. The payload
-       * is mutated in place. Safe to call multiple times.
-       */
-      applyOverrides(payload) {
-        if (!payload || !payload.tables) return payload;
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        Object.entries(overrides).forEach(([key, rows]) => {
-          const sepIdx = key.indexOf(':');
-          if (sepIdx < 0) return;
-          const tableId = key.slice(0, sepIdx);
-          const year = key.slice(sepIdx + 1);
-          const t = payload.tables[tableId];
-          if (!t) return;
-          t.data = t.data || {};
-          t.data[year] = rows;
-        });
-        return payload;
-      },
-
-      /**
-       * Get the override for a specific table/year (or null if none).
-       */
-      getOverride(tableId, year) {
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        return overrides[overrideKey(tableId, year)] || null;
-      },
-
-      /**
-       * Persist a full set of rows for a table/year and record one history
-       * entry describing the changes vs the previous state.
-       *
-       * History entry shape:
-       *   {
-       *     ts, user, email, tableId, year,
-       *     changes: [
-       *       { kind: 'cell',    rowIdx, colIdx, colLabel, rowLabel, oldVal, newVal },
-       *       { kind: 'added',   rowIdx, newRow: [...] },
-       *       { kind: 'deleted', rowIdx, oldRow: [...] }
-       *     ]
-       *   }
-       *
-       * @param {string} tableId
-       * @param {string} year
-       * @param {Array<Array>} newRows
-       * @param {{name, email, oldRows, schema}} ctx
-       */
-      saveTable(tableId, year, newRows, ctx) {
-        ctx = ctx || {};
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        const oldRows = ctx.oldRows || overrides[overrideKey(tableId, year)] || [];
-        const schema = ctx.schema || [];
-
-        // ---- Detect row-level adds/deletes -----------------------------
-        // Heuristic: pair rows by their first-cell label. If a label exists
-        // in only one side, it's an add or delete.
-        const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
-        const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
-
-        const oldByLabel = {};
-        oldLabels.forEach((lbl, i) => {
-          if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i);
-        });
-        const newByLabel = {};
-        newLabels.forEach((lbl, i) => {
-          if (lbl) (newByLabel[lbl] = newByLabel[lbl] || []).push(i);
-        });
-
-        const changes = [];
-
-        // Deleted rows: in oldByLabel but not in newByLabel (or fewer instances)
-        Object.keys(oldByLabel).forEach(lbl => {
-          const oldIdxs = oldByLabel[lbl] || [];
-          const newIdxs = newByLabel[lbl] || [];
-          for (let k = newIdxs.length; k < oldIdxs.length; k++) {
-            changes.push({ kind: 'deleted', rowIdx: oldIdxs[k], oldRow: oldRows[oldIdxs[k]] });
-          }
-        });
-
-        // Added rows: in newByLabel but not in oldByLabel (or more instances)
-        Object.keys(newByLabel).forEach(lbl => {
-          const oldIdxs = oldByLabel[lbl] || [];
-          const newIdxs = newByLabel[lbl] || [];
-          for (let k = oldIdxs.length; k < newIdxs.length; k++) {
-            changes.push({ kind: 'added', rowIdx: newIdxs[k], newRow: newRows[newIdxs[k]] });
-          }
-        });
-
-        // Cell-level diff for rows that exist in BOTH old and new (by label).
-        // Pair them up in encounter order.
-        const pairedOld = new Set();
-        const pairedNew = new Set();
-        Object.keys(oldByLabel).forEach(lbl => {
-          const oIdxs = oldByLabel[lbl] || [];
-          const nIdxs = newByLabel[lbl] || [];
-          const n = Math.min(oIdxs.length, nIdxs.length);
-          for (let i = 0; i < n; i++) {
-            const oi = oIdxs[i], ni = nIdxs[i];
-            pairedOld.add(oi);
-            pairedNew.add(ni);
-            const oRow = oldRows[oi] || [];
-            const nRow = newRows[ni] || [];
-            const colCount = Math.max(oRow.length, nRow.length);
-            for (let c = 1; c < colCount; c++) {   // skip col 0 (label) — covered by pairing
-              const oVal = oRow[c];
-              const nVal = nRow[c];
-              if (oVal !== nVal) {
-                changes.push({
-                  kind: 'cell',
-                  rowIdx: ni,
-                  colIdx: c,
-                  rowLabel: lbl,
-                  colLabel: schema[c] != null ? String(schema[c]) : '',
-                  oldVal: oVal,
-                  newVal: nVal
-                });
-              }
-            }
-          }
-        });
-
-        // Rows whose label is empty/blank — fall back to positional diff
-        for (let r = 0; r < Math.max(oldRows.length, newRows.length); r++) {
-          if (pairedOld.has(r) || pairedNew.has(r)) continue;
-          const oRow = oldRows[r] || [];
-          const nRow = newRows[r] || [];
-          const oLabel = oRow[0];
-          const nLabel = nRow[0];
-          if (!oLabel && !nLabel) {
-            // Both blank-labeled — positional cell diff
-            const colCount = Math.max(oRow.length, nRow.length);
-            for (let c = 0; c < colCount; c++) {
-              if (oRow[c] !== nRow[c]) {
-                changes.push({
-                  kind: 'cell',
-                  rowIdx: r,
-                  colIdx: c,
-                  rowLabel: '(unlabeled)',
-                  colLabel: schema[c] != null ? String(schema[c]) : '',
-                  oldVal: oRow[c],
-                  newVal: nRow[c]
-                });
-              }
-            }
+    // ---- shared row-diff (identical change-detection used by both backends) ----
+    // Returns the `changes` array for a history entry.
+    function diffRows(oldRows, newRows, schema) {
+      oldRows = oldRows || []; newRows = newRows || []; schema = schema || [];
+      const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
+      const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
+      const oldByLabel = {}; oldLabels.forEach((lbl, i) => { if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i); });
+      const newByLabel = {}; newLabels.forEach((lbl, i) => { if (lbl) (newByLabel[lbl] = newByLabel[lbl] || []).push(i); });
+      const changes = [];
+      // Deleted rows
+      Object.keys(oldByLabel).forEach(lbl => {
+        const oldIdxs = oldByLabel[lbl] || []; const newIdxs = newByLabel[lbl] || [];
+        for (let k = newIdxs.length; k < oldIdxs.length; k++) changes.push({ kind: 'deleted', rowIdx: oldIdxs[k], oldRow: oldRows[oldIdxs[k]] });
+      });
+      // Added rows
+      Object.keys(newByLabel).forEach(lbl => {
+        const oldIdxs = oldByLabel[lbl] || []; const newIdxs = newByLabel[lbl] || [];
+        for (let k = oldIdxs.length; k < newIdxs.length; k++) changes.push({ kind: 'added', rowIdx: newIdxs[k], newRow: newRows[newIdxs[k]] });
+      });
+      // Cell diffs for rows present in both (paired by label)
+      const pairedOld = new Set(); const pairedNew = new Set();
+      Object.keys(oldByLabel).forEach(lbl => {
+        const oIdxs = oldByLabel[lbl] || []; const nIdxs = newByLabel[lbl] || [];
+        const n = Math.min(oIdxs.length, nIdxs.length);
+        for (let i = 0; i < n; i++) {
+          const oi = oIdxs[i], ni = nIdxs[i]; pairedOld.add(oi); pairedNew.add(ni);
+          const oRow = oldRows[oi] || [], nRow = newRows[ni] || [];
+          const colCount = Math.max(oRow.length, nRow.length);
+          for (let c = 1; c < colCount; c++) {   // skip col 0 (label) — covered by pairing
+            if (oRow[c] !== nRow[c]) changes.push({ kind: 'cell', rowIdx: ni, colIdx: c, rowLabel: lbl, colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
           }
         }
+      });
+      // Blank-labeled rows — positional fallback
+      for (let r = 0; r < Math.max(oldRows.length, newRows.length); r++) {
+        if (pairedOld.has(r) || pairedNew.has(r)) continue;
+        const oRow = oldRows[r] || [], nRow = newRows[r] || [];
+        if (!oRow[0] && !nRow[0]) {
+          const colCount = Math.max(oRow.length, nRow.length);
+          for (let c = 0; c < colCount; c++) {
+            if (oRow[c] !== nRow[c]) changes.push({ kind: 'cell', rowIdx: r, colIdx: c, rowLabel: '(unlabeled)', colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
+          }
+        }
+      }
+      return changes;
+    }
 
-        // Persist the new rows.
-        overrides[overrideKey(tableId, year)] = newRows;
-        writeJSON(OVERRIDES_KEY, overrides);
+    // ============================================================
+    // Backend 1 — localStorage (original behavior; dev / no-Dataverse)
+    // ============================================================
+    const lsBackend = (function () {
+      function readJSON(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { console.warn('Storage read failed for ' + key, e); return fallback; } }
+      function writeJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { console.error('Storage write failed for ' + key, e); return false; } }
+      return {
+        async init() { /* reads are live from localStorage; nothing to preload */ },
+        applyOverrides(payload) {
+          captureBaseline(payload);
+          if (!payload || !payload.tables) return payload;
+          const overrides = readJSON(OVERRIDES_KEY, {});
+          Object.entries(overrides).forEach(([key, rows]) => {
+            const sepIdx = key.indexOf(':'); if (sepIdx < 0) return;
+            const tableId = key.slice(0, sepIdx); const year = key.slice(sepIdx + 1);
+            const t = payload.tables[tableId]; if (!t) return;
+            t.data = t.data || {}; t.data[year] = rows;
+          });
+          return payload;
+        },
+        getOverride(tableId, year) { const overrides = readJSON(OVERRIDES_KEY, {}); return overrides[overrideKey(tableId, year)] || null; },
+        saveTable(tableId, year, newRows, ctx) {
+          ctx = ctx || {};
+          const overrides = readJSON(OVERRIDES_KEY, {});
+          const oldRows = ctx.oldRows || overrides[overrideKey(tableId, year)] || [];
+          const changes = diffRows(oldRows, newRows, ctx.schema || []);
+          overrides[overrideKey(tableId, year)] = newRows;
+          writeJSON(OVERRIDES_KEY, overrides);
+          const entry = { ts: Date.now(), user: ctx.name || 'anonymous', email: ctx.email || '', tableId, year, changes };
+          const history = readJSON(HISTORY_KEY, []); history.push(entry); writeJSON(HISTORY_KEY, history);
+          return entry;
+        },
+        getHistoryFor(tableId, year) { return readJSON(HISTORY_KEY, []).filter(e => e.tableId === tableId && (!year || e.year === year)).sort((a, b) => b.ts - a.ts); },
+        getAllHistory() { return readJSON(HISTORY_KEY, []).sort((a, b) => b.ts - a.ts); },
+        resetTable(tableId, year) { const overrides = readJSON(OVERRIDES_KEY, {}); delete overrides[overrideKey(tableId, year)]; writeJSON(OVERRIDES_KEY, overrides); },
+        listOverrides() { return Object.keys(readJSON(OVERRIDES_KEY, {})); },
+        addYear(year) { const y = String(year); const years = readJSON(YEARS_KEY, []); if (years.includes(y)) return false; years.push(y); writeJSON(YEARS_KEY, years); return true; },
+        removeYear(year) {
+          const y = String(year); const years = readJSON(YEARS_KEY, []); const idx = years.indexOf(y); if (idx < 0) return false;
+          years.splice(idx, 1); writeJSON(YEARS_KEY, years);
+          const overrides = readJSON(OVERRIDES_KEY, {});
+          Object.keys(overrides).forEach(k => { if (k.endsWith(':' + y)) delete overrides[k]; });
+          writeJSON(OVERRIDES_KEY, overrides);
+          return true;
+        },
+        getAddedYears() { return readJSON(YEARS_KEY, []); },
+        applyAddedYears(payload) {
+          if (!payload || !payload.meta) return [];
+          const added = readJSON(YEARS_KEY, []); if (added.length === 0) return payload.meta.years;
+          const base = payload.meta.years || []; const all = Array.from(new Set([...base, ...added]));
+          all.sort((a, b) => parseInt(b) - parseInt(a)); payload.meta.years = all; return all;
+        },
+        clearAll() { localStorage.removeItem(OVERRIDES_KEY); localStorage.removeItem(HISTORY_KEY); localStorage.removeItem(YEARS_KEY); },
+      };
+    })();
 
-        // Append a history entry.
-        const entry = {
-          ts: Date.now(),
-          user: ctx.name || 'anonymous',
-          email: ctx.email || '',
-          tableId,
-          year,
-          changes,
-        };
-        const history = readJSON(HISTORY_KEY, []);
-        history.push(entry);
-        writeJSON(HISTORY_KEY, history);
+    // ============================================================
+    // Backend 2 — Dataverse (in-memory cache + async write-behind)
+    // ============================================================
+    // init() loads all three tables into caches; every getter then serves
+    // synchronously from cache (same contract as localStorage). Writes update
+    // the cache synchronously (instant UI) then push to Dataverse in the
+    // background; failures log + toast and never block the UI.
+    const dvBackend = (function () {
+      let API = null;                 // ".../api/data/v9.2/"
+      let cOverrides = {};            // 'tableId:year' -> { id, section, tableId, year, rows }
+      let cHistory = [];              // [{ ts, user, email, tableId, year, changes, _id }]
+      let cYears = [];                // [{ year, id }]
 
-        return entry;
+      const GET_HEADERS = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' };
+      const WRITE_HEADERS = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', 'Content-Type': 'application/json' };
+
+      async function getAll(set, query) {
+        let url = API + set + (query ? ('?' + query) : '');
+        const out = [];
+        while (url) {
+          const res = await fetch(url, { credentials: 'same-origin', headers: GET_HEADERS });
+          if (!res.ok) throw new Error(set + ' GET ' + res.status);
+          const j = await res.json();
+          if (j.value) out.push.apply(out, j.value);
+          url = j['@odata.nextLink'] || null;
+        }
+        return out;
+      }
+      async function dvCreate(set, body) {
+        const res = await fetch(API + set, { method: 'POST', credentials: 'same-origin', headers: Object.assign({}, WRITE_HEADERS, { Prefer: 'return=representation' }), body: JSON.stringify(body) });
+        if (!res.ok) throw new Error(set + ' POST ' + res.status + ' ' + (await res.text()));
+        return await res.json();
+      }
+      async function dvUpdate(set, id, body) {
+        const res = await fetch(API + set + '(' + id + ')', { method: 'PATCH', credentials: 'same-origin', headers: WRITE_HEADERS, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error(set + ' PATCH ' + res.status + ' ' + (await res.text()));
+      }
+      async function dvDelete(set, id) {
+        const res = await fetch(API + set + '(' + id + ')', { method: 'DELETE', credentials: 'same-origin', headers: WRITE_HEADERS });
+        if (!res.ok) throw new Error(set + ' DELETE ' + res.status);
+      }
+      // Fire-and-forget a background write; report failures without blocking the UI.
+      function bg(promise, failMsg) {
+        promise.catch(e => { console.error('[Storage] ' + failMsg, e); showToast(failMsg + ': ' + (e && e.message ? e.message : e), 'error'); });
+      }
+
+      return {
+        async init(baseUrl) {
+          API = baseUrl.replace(/\/+$/, '') + '/api/data/v9.2/';
+          // Table Data -> overrides cache
+          const td = await getAll(SET_TABLEDATA, '$select=' + ID_TABLEDATA + ',cr2bf_key,cr2bf_section,cr2bf_tableid,cr2bf_year,cr2bf_rows');
+          cOverrides = {};
+          td.forEach(r => {
+            let rows; try { rows = JSON.parse(r.cr2bf_rows); } catch (e) { rows = []; }
+            const key = r.cr2bf_key || overrideKey(r.cr2bf_tableid, r.cr2bf_year);
+            cOverrides[key] = { id: r[ID_TABLEDATA], section: r.cr2bf_section, tableId: r.cr2bf_tableid, year: String(r.cr2bf_year), rows: rows };
+          });
+          // Change History -> history cache (newest first)
+          const hh = await getAll(SET_HISTORY, '$select=' + ID_HISTORY + ',cr2bf_tableid,cr2bf_year,cr2bf_user,cr2bf_email,cr2bf_savedat,cr2bf_changes&$orderby=cr2bf_savedat desc');
+          cHistory = hh.map(r => {
+            let changes; try { changes = JSON.parse(r.cr2bf_changes); } catch (e) { changes = []; }
+            return { ts: r.cr2bf_savedat ? Date.parse(r.cr2bf_savedat) : 0, user: r.cr2bf_user || '', email: r.cr2bf_email || '', tableId: r.cr2bf_tableid, year: String(r.cr2bf_year), changes: changes, _id: r[ID_HISTORY] };
+          });
+          // Reporting Year -> years cache
+          const yy = await getAll(SET_YEARS, '$select=' + ID_YEARS + ',cr2bf_reportingyear');
+          cYears = yy.map(r => ({ year: String(r.cr2bf_reportingyear), id: r[ID_YEARS] }));
+        },
+        applyOverrides(payload) {
+          captureBaseline(payload);
+          if (!payload || !payload.tables) return payload;
+          Object.keys(cOverrides).forEach(key => {
+            const o = cOverrides[key]; const t = payload.tables[o.tableId]; if (!t) return;
+            t.data = t.data || {}; t.data[o.year] = o.rows;
+          });
+          return payload;
+        },
+        getOverride(tableId, year) { const o = cOverrides[overrideKey(tableId, year)]; return o ? o.rows : null; },
+        saveTable(tableId, year, newRows, ctx) {
+          ctx = ctx || {};
+          const key = overrideKey(tableId, year);
+          const existing = cOverrides[key];
+          const oldRows = ctx.oldRows || (existing ? existing.rows : []) || [];
+          const changes = diffRows(oldRows, newRows, ctx.schema || []);
+
+          // --- synchronous cache update (instant UI) ---
+          cOverrides[key] = { id: existing ? existing.id : null, section: existing ? existing.section : sectionOf(tableId), tableId: tableId, year: String(year), rows: newRows };
+          const entry = { ts: Date.now(), user: ctx.name || 'anonymous', email: ctx.email || '', tableId: tableId, year: year, changes: changes, _id: null };
+          cHistory.unshift(entry);
+
+          // --- background write-behind: upsert Table Data + append Change History ---
+          const yearInt = parseInt(year, 10);
+          const tdBody = { cr2bf_key: key, cr2bf_section: cOverrides[key].section, cr2bf_tableid: tableId, cr2bf_year: yearInt, cr2bf_rows: JSON.stringify(newRows) };
+          bg((async () => {
+            if (cOverrides[key] && cOverrides[key].id) {
+              await dvUpdate(SET_TABLEDATA, cOverrides[key].id, tdBody);
+            } else {
+              const created = await dvCreate(SET_TABLEDATA, tdBody);
+              if (cOverrides[key]) cOverrides[key].id = created[ID_TABLEDATA];
+            }
+          })(), 'Save to Dataverse failed for ' + key);
+
+          const n = changes.length;
+          const hBody = {
+            cr2bf_tableid: tableId, cr2bf_year: yearInt, cr2bf_user: entry.user, cr2bf_email: entry.email,
+            cr2bf_savedat: new Date(entry.ts).toISOString(), cr2bf_changes: JSON.stringify(changes),
+            cr2bf_changedescription: (key + ' — ' + n + ' change' + (n === 1 ? '' : 's')).slice(0, 100)
+          };
+          bg((async () => { const created = await dvCreate(SET_HISTORY, hBody); entry._id = created[ID_HISTORY]; })(), 'Save history to Dataverse failed for ' + key);
+
+          return entry;
+        },
+        getHistoryFor(tableId, year) { return cHistory.filter(e => e.tableId === tableId && (!year || e.year === year)).sort((a, b) => b.ts - a.ts); },
+        getAllHistory() { return cHistory.slice().sort((a, b) => b.ts - a.ts); },
+        resetTable(tableId, year) {
+          const key = overrideKey(tableId, year);
+          const base = baseline[key];
+          // restore live payload to pristine payload.json values
+          if (typeof state !== 'undefined' && state.payload && state.payload.tables && state.payload.tables[tableId]) {
+            const t = state.payload.tables[tableId]; t.data = t.data || {};
+            if (base !== undefined) t.data[year] = deepClone(base);
+          }
+          // restore cache + push baseline back to Dataverse (history untouched)
+          const o = cOverrides[key];
+          if (o) {
+            if (base !== undefined) o.rows = deepClone(base);
+            if (o.id && base !== undefined) bg(dvUpdate(SET_TABLEDATA, o.id, { cr2bf_rows: JSON.stringify(base) }), 'Reset in Dataverse failed for ' + key);
+          }
+        },
+        listOverrides() { return Object.keys(cOverrides); },
+        addYear(year) {
+          const y = String(year);
+          if (cYears.some(o => o.year === y)) return false;
+          const obj = { year: y, id: null }; cYears.push(obj);
+          bg((async () => { const created = await dvCreate(SET_YEARS, { cr2bf_reportingyear: y }); obj.id = created[ID_YEARS]; })(), 'Add year in Dataverse failed for ' + y);
+          return true;
+        },
+        removeYear(year) {
+          const y = String(year);
+          const idx = cYears.findIndex(o => o.year === y); if (idx < 0) return false;
+          const rec = cYears[idx]; cYears.splice(idx, 1);
+          const delIds = [];
+          Object.keys(cOverrides).forEach(k => { if (k.endsWith(':' + y)) { if (cOverrides[k].id) delIds.push(cOverrides[k].id); delete cOverrides[k]; } });
+          bg((async () => {
+            if (rec.id) await dvDelete(SET_YEARS, rec.id);
+            for (let i = 0; i < delIds.length; i++) await dvDelete(SET_TABLEDATA, delIds[i]);
+          })(), 'Remove year in Dataverse failed for ' + y);
+          return true;
+        },
+        getAddedYears() { return cYears.map(o => o.year); },
+        applyAddedYears(payload) {
+          if (!payload || !payload.meta) return [];
+          const added = cYears.map(o => o.year); if (added.length === 0) return payload.meta.years;
+          const base = payload.meta.years || []; const all = Array.from(new Set([...base, ...added]));
+          all.sort((a, b) => parseInt(b) - parseInt(a)); payload.meta.years = all; return all;
+        },
+        // SAFE: never bulk-delete Dataverse. Clear in-memory caches only.
+        clearAll() { cOverrides = {}; cHistory = []; cYears = []; console.warn('[Storage] clearAll: in-memory caches cleared; Dataverse records left intact.'); },
+      };
+    })();
+
+    // ============================================================
+    // Backend detection + facade (delegates to the active backend)
+    // ============================================================
+    function detectDataverseUrl() {
+      const tryCtx = (xrm) => { try { if (xrm && xrm.Utility && xrm.Utility.getGlobalContext) { const u = xrm.Utility.getGlobalContext().getClientUrl(); if (u) return u; } } catch (e) {} return null; };
+      let u = (typeof Xrm !== 'undefined') ? tryCtx(Xrm) : null;
+      if (!u) { try { u = tryCtx(window.parent && window.parent.Xrm); } catch (e) {} }
+      if (!u) { try { if (typeof GetGlobalContext === 'function') { const c = GetGlobalContext(); if (c && c.getClientUrl) u = c.getClientUrl(); } } catch (e) {} }
+      // Final fallback: the web resource is served from the org's own origin, so
+      // when no Xrm context is available but we're on a Dataverse host, use the
+      // origin directly. The Web API is same-origin (${origin}/api/data/v9.2/) and
+      // our fetches send credentials:'same-origin', so the authenticated session
+      // cookies should authorize the calls — no Xrm required. (If those reads come
+      // back 401/403, init() logs it and falls back to localStorage.)
+      if (!u) { try { if (/\.dynamics\.com$/i.test(window.location.hostname)) u = window.location.origin; } catch (e) {} }
+      return u || null;
+    }
+
+    let active = lsBackend;   // default until init() decides
+
+    return {
+      // Async one-time load. boot() awaits this before applyAddedYears/applyOverrides.
+      async init() {
+        const url = detectDataverseUrl();
+        if (url) {
+          try {
+            await dvBackend.init(url);
+            active = dvBackend;
+            console.info('[Storage] backend = Dataverse (' + url + ')');
+            return;
+          } catch (e) {
+            const msg = (e && e.message) ? e.message : String(e);
+            if (/\b40[13]\b/.test(msg)) {
+              console.error('[Storage] Dataverse read unauthorized (' + msg + '). Session-cookie auth was not accepted at ' + url + '/api/data/v9.2/ — the page probably needs to run inside a model-driven app (parent.Xrm). Falling back to localStorage.', e);
+            } else {
+              console.error('[Storage] Dataverse init failed (' + msg + '); falling back to localStorage.', e);
+            }
+            showToast('Could not connect to Dataverse — using local storage.', 'error');
+          }
+        }
+        active = lsBackend;
+        await lsBackend.init();
+        console.info('[Storage] backend = localStorage' + (url ? ' (Dataverse fallback)' : ' (no Dataverse context)'));
       },
-
-      /**
-       * Return history entries for a specific table+year (newest first).
-       */
-      getHistoryFor(tableId, year) {
-        const history = readJSON(HISTORY_KEY, []);
-        return history
-          .filter(e => e.tableId === tableId && (!year || e.year === year))
-          .sort((a, b) => b.ts - a.ts);
-      },
-
-      /**
-       * Return ALL history entries (newest first). Used for a global activity log.
-       */
-      getAllHistory() {
-        return readJSON(HISTORY_KEY, []).sort((a, b) => b.ts - a.ts);
-      },
-
-      /**
-       * Drop the override for a table/year. Does NOT touch history.
-       */
-      resetTable(tableId, year) {
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        delete overrides[overrideKey(tableId, year)];
-        writeJSON(OVERRIDES_KEY, overrides);
-      },
-
-      /**
-       * For debugging: list all override keys currently in localStorage.
-       */
-      listOverrides() {
-        return Object.keys(readJSON(OVERRIDES_KEY, {}));
-      },
-
-      /**
-       * Year management (Phase 6c)
-       * --------------------------------
-       * Users can extend the dashboard with new reporting years (e.g. 2026)
-       * without redeploying the payload. Added years are persisted under
-       * 'dac:years' and merged into meta.years at boot.
-       */
-
-      /**
-       * Add a new year. Returns true if added, false if it already existed.
-       */
-      addYear(year) {
-        const y = String(year);
-        const years = readJSON(YEARS_KEY, []);
-        if (years.includes(y)) return false;
-        years.push(y);
-        writeJSON(YEARS_KEY, years);
-        return true;
-      },
-
-      /**
-       * Remove a user-added year (does NOT touch baseline payload.meta.years).
-       * Returns true if removed, false if it wasn't a user-added year.
-       */
-      removeYear(year) {
-        const y = String(year);
-        const years = readJSON(YEARS_KEY, []);
-        const idx = years.indexOf(y);
-        if (idx < 0) return false;
-        years.splice(idx, 1);
-        writeJSON(YEARS_KEY, years);
-        // Also drop any overrides scoped to that year
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        Object.keys(overrides).forEach(k => {
-          if (k.endsWith(':' + y)) delete overrides[k];
-        });
-        writeJSON(OVERRIDES_KEY, overrides);
-        return true;
-      },
-
-      /** Return the list of user-added years (oldest first). */
-      getAddedYears() {
-        return readJSON(YEARS_KEY, []);
-      },
-
-      /**
-       * Merge user-added years into the payload's meta.years (sorted desc).
-       * Returns the resulting array.
-       */
-      applyAddedYears(payload) {
-        if (!payload || !payload.meta) return [];
-        const added = readJSON(YEARS_KEY, []);
-        if (added.length === 0) return payload.meta.years;
-        const base = payload.meta.years || [];
-        const all = Array.from(new Set([...base, ...added]));
-        // Sort newest first
-        all.sort((a, b) => parseInt(b) - parseInt(a));
-        payload.meta.years = all;
-        return all;
-      },
-
-      /**
-       * Hard reset — drop ALL overrides, history, and added years.
-       * Useful during development.
-       */
-      clearAll() {
-        localStorage.removeItem(OVERRIDES_KEY);
-        localStorage.removeItem(HISTORY_KEY);
-        localStorage.removeItem(YEARS_KEY);
-      },
+      applyOverrides(payload) { return active.applyOverrides(payload); },
+      getOverride(tableId, year) { return active.getOverride(tableId, year); },
+      saveTable(tableId, year, newRows, ctx) { return active.saveTable(tableId, year, newRows, ctx); },
+      getHistoryFor(tableId, year) { return active.getHistoryFor(tableId, year); },
+      getAllHistory() { return active.getAllHistory(); },
+      resetTable(tableId, year) { return active.resetTable(tableId, year); },
+      listOverrides() { return active.listOverrides(); },
+      addYear(year) { return active.addYear(year); },
+      removeYear(year) { return active.removeYear(year); },
+      getAddedYears() { return active.getAddedYears(); },
+      applyAddedYears(payload) { return active.applyAddedYears(payload); },
+      clearAll() { return active.clearAll(); },
     };
   })();
 
@@ -8263,6 +8340,10 @@ function wireHTooltips() {
     } catch (err) {
       return; // Error already surfaced
     }
+
+    // Load the persistence backend (Dataverse if hosted there, else localStorage)
+    // into memory before any overrides/years are applied below.
+    await Storage.init();
 
     // Merge user-added years (e.g. 2026) into meta.years FIRST so that
     // any per-year overrides applied below can target them.
