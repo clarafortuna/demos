@@ -7677,11 +7677,18 @@ function wireHTooltips() {
   // EDIT MAP FILES (CLCPA): source list + "update to a newer version" drawer
   // ============================================================
   let _emfEscHandler = null;
+  let _emfDocClickHandler = null;
 
   function renderEditMapFiles() {
     const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
     return `
-      <div class="page-header"><h1>Edit map files</h1></div>
+      <div class="page-header emf-header">
+        <h1>Edit map files</h1>
+        <button class="btn" id="emf-edit-files-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Edit files
+        </button>
+      </div>
       <div class="emf-wrap">
         <p class="emf-intro">The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
 
@@ -7771,73 +7778,129 @@ function wireHTooltips() {
             <li>Mind the projection: the Con Edison files are in <code>EPSG:2263</code>, the ORU file is in NAD27.</li>
           </ol></div>
         </div>
+
+        <div class="emf-popover" id="emf-popover" hidden role="dialog" aria-modal="false" aria-labelledby="emf-pop-title">
+          <div class="emf-pop-head">
+            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Updating to a newer version</span>
+            <button class="emf-pop-close" id="emf-pop-close" aria-label="Close">&times;</button>
+            <h3 id="emf-pop-title"></h3>
+            <span class="emf-chip" id="emf-pop-chip"></span>
+          </div>
+          <div class="emf-pop-body" id="emf-pop-body"></div>
+        </div>
       </div>
 
-      <div class="emf-overlay" id="emf-overlay" hidden>
-        <aside class="emf-drawer" id="emf-drawer" role="dialog" aria-modal="true" aria-labelledby="emf-drawer-title">
+      <div class="emf-overlay" id="emf-upload-overlay" hidden>
+        <aside class="emf-drawer" role="dialog" aria-modal="true" aria-labelledby="emf-upload-title">
           <div class="emf-drawer-head">
-            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Updating to a newer version</span>
-            <button class="emf-drawer-close" id="emf-drawer-close" aria-label="Close">&times;</button>
-            <h3 id="emf-drawer-title"></h3>
-            <span class="emf-chip" id="emf-drawer-chip"></span>
+            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Source versions</span>
+            <button class="emf-drawer-close" id="emf-upload-close" aria-label="Close">&times;</button>
+            <h3 id="emf-upload-title">Upload new source versions</h3>
           </div>
-          <div class="emf-drawer-body" id="emf-drawer-body"></div>
+          <div class="emf-drawer-body">
+            <p class="emf-up-intro">Drop a newer source file here or browse for one. It will be matched to the source it belongs to by filename, then validated before anything changes.</p>
+            <div class="emf-dropzone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <div class="emf-dz-title">Drag and drop a file here</div>
+              <div class="emf-dz-sub">or</div>
+              <label class="btn btn-secondary">Browse files<input type="file" hidden></label>
+            </div>
+            <p class="emf-up-maps">Maps to: <strong>auto-detected from the filename</strong> (for example <span class="emf-mono">ny_tracts.geojson</span> to Census tract geometry, or <span class="emf-mono">NYS_DAC.geojson</span> to the NYSERDA dataset).</p>
+            <div class="emf-up-actions"><button class="btn" type="button" disabled>Upload</button></div>
+            <p class="emf-up-note">Not yet connected. This panel is a visual mockup: no file is uploaded, and nothing is sent to the data store or the build.</p>
+          </div>
         </aside>
       </div>
     `;
   }
 
   function wireEditMapFiles() {
+    const wrap = document.querySelector('.emf-wrap');
     const cards = Array.prototype.slice.call(document.querySelectorAll('.emf-src'));
-    const overlay = document.getElementById('emf-overlay');
-    const drawer = document.getElementById('emf-drawer');
-    const closeBtn = document.getElementById('emf-drawer-close');
-    const dTitle = document.getElementById('emf-drawer-title');
-    const dChip = document.getElementById('emf-drawer-chip');
-    const dBody = document.getElementById('emf-drawer-body');
-    if (!overlay || !drawer) return;
+    const pop = document.getElementById('emf-popover');
+    const popClose = document.getElementById('emf-pop-close');
+    const popTitle = document.getElementById('emf-pop-title');
+    const popChip = document.getElementById('emf-pop-chip');
+    const popBody = document.getElementById('emf-pop-body');
 
-    function openDrawer(card) {
-      dTitle.textContent = card.getAttribute('data-title');
+    // ---- CHANGE 1: update panel as a card beside the selected source ----
+    function positionPopover(card) {
+      const GAP = 16;
+      pop.classList.remove('emf-pop-below');
+      pop.style.width = '';                       // CSS width (380) while measuring
+      const wrapRect = wrap.getBoundingClientRect();
+      const popW = pop.offsetWidth || 380;
+      const roomRight = (wrapRect.right + GAP + popW) <= (window.innerWidth - 12);
+      if (roomRight) {                            // beside: top-aligned, in the empty space to the right
+        pop.style.left = (wrap.clientWidth + GAP) + 'px';
+        pop.style.top = card.offsetTop + 'px';
+      } else {                                    // fallback: directly below the selected card
+        pop.classList.add('emf-pop-below');
+        pop.style.left = card.offsetLeft + 'px';
+        pop.style.top = (card.offsetTop + card.offsetHeight + GAP) + 'px';
+        pop.style.width = card.offsetWidth + 'px';
+      }
+    }
+    function openPopover(card) {
+      popTitle.textContent = card.getAttribute('data-title');
       const chip = card.querySelector('.emf-chip');
-      dChip.textContent = chip ? chip.textContent : '';
-      dChip.className = 'emf-chip ' + (chip && chip.classList.contains('emf-chip-edit') ? 'emf-chip-edit' : 'emf-chip-ref');
+      popChip.textContent = chip ? chip.textContent : '';
+      popChip.className = 'emf-chip ' + (chip && chip.classList.contains('emf-chip-edit') ? 'emf-chip-edit' : 'emf-chip-ref');
       const steps = card.querySelector('.emf-steps');
-      dBody.innerHTML = steps ? steps.innerHTML : '';
+      popBody.innerHTML = steps ? steps.innerHTML : '';
       cards.forEach(s => s.classList.remove('selected'));
-      card.classList.add('selected');
-      overlay.hidden = false;
-      requestAnimationFrame(() => overlay.classList.add('open'));
-      // Census step-3 info toggle (present only in that card's steps)
-      const info = dBody.querySelector('[data-emf-info]');
+      card.classList.add('selected');            // only one open at a time
+      pop.hidden = false;
+      positionPopover(card);
+      const info = popBody.querySelector('[data-emf-info]');   // Census step-3 info toggle
       if (info) {
         const note = info.parentElement.querySelector('.emf-info-note');
         info.addEventListener('click', () => {
           const isHidden = note.hasAttribute('hidden');
           if (isHidden) { note.removeAttribute('hidden'); info.setAttribute('aria-expanded', 'true'); }
           else { note.setAttribute('hidden', ''); info.setAttribute('aria-expanded', 'false'); }
+          positionPopover(card);
         });
       }
-      closeBtn.focus();
+      popClose.focus();
     }
-    function closeDrawer() {
-      overlay.classList.remove('open');
+    function closePopover() {
+      if (pop) pop.hidden = true;
       cards.forEach(s => s.classList.remove('selected'));
-      setTimeout(() => { if (overlay && !overlay.classList.contains('open')) overlay.hidden = true; }, 260);
     }
 
     cards.forEach(card => {
-      card.addEventListener('click', () => openDrawer(card));
-      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDrawer(card); } });
+      card.addEventListener('click', () => openPopover(card));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPopover(card); } });
     });
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeDrawer(); });
-    closeBtn.addEventListener('click', closeDrawer);
-    // One document-level Esc handler, replaced each time this view is wired (no accumulation).
+    if (popClose) popClose.addEventListener('click', closePopover);
+
+    // ---- CHANGE 2: "Edit files" upload mockup (right-side panel, visual only) ----
+    const upBtn = document.getElementById('emf-edit-files-btn');
+    const upOverlay = document.getElementById('emf-upload-overlay');
+    const upClose = document.getElementById('emf-upload-close');
+    function openUpload() { if (!upOverlay) return; upOverlay.hidden = false; requestAnimationFrame(() => upOverlay.classList.add('open')); if (upClose) upClose.focus(); }
+    function closeUpload() { if (!upOverlay) return; upOverlay.classList.remove('open'); setTimeout(() => { if (!upOverlay.classList.contains('open')) upOverlay.hidden = true; }, 260); }
+    if (upBtn) upBtn.addEventListener('click', openUpload);
+    if (upClose) upClose.addEventListener('click', closeUpload);
+    if (upOverlay) upOverlay.addEventListener('click', e => { if (e.target === upOverlay) closeUpload(); });
+
+    // click-outside closes the popover (capture phase; card clicks reposition it instead)
+    if (_emfDocClickHandler) document.removeEventListener('click', _emfDocClickHandler, true);
+    _emfDocClickHandler = function (e) {
+      if (!pop || pop.hidden) return;
+      if (pop.contains(e.target)) return;
+      if (e.target.closest && e.target.closest('.emf-src')) return;
+      closePopover();
+    };
+    document.addEventListener('click', _emfDocClickHandler, true);
+
+    // Esc closes whichever is open. Single document handler, replaced each wire-up.
     if (_emfEscHandler) document.removeEventListener('keydown', _emfEscHandler);
     _emfEscHandler = function (e) {
       if (e.key !== 'Escape') return;
-      const ov = document.getElementById('emf-overlay');
-      if (ov && ov.classList.contains('open')) closeDrawer();
+      if (pop && !pop.hidden) closePopover();
+      if (upOverlay && upOverlay.classList.contains('open')) closeUpload();
     };
     document.addEventListener('keydown', _emfEscHandler);
   }
