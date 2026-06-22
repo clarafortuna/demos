@@ -131,6 +131,38 @@
     }
     .ds-code .c { color: #7FA8D8; }
 
+    /* ---- Architecture SVG (CLCPA-114): only variables NOT already in styles.css, plus diagram classes ---- */
+    :root {
+      --bg: #ffffff; --bg-2: #f7f6f2; --bg-3: #f1efe8;
+      --border: rgba(0,0,0,0.12); --border-2: rgba(0,0,0,0.32);
+      --accent: #185FA5; --accent-bg: #E6F1FB;
+      --proc-bg: #EEEDFE; --proc-line: #6f63d6;
+      --out-bg: #E1F5EE;  --out-line: #2c9377;
+    }
+    body.dark {
+      --bg: #1a1a1a; --bg-2: #232321; --bg-3: #2c2c2a;
+      --border: rgba(255,255,255,0.12); --border-2: rgba(255,255,255,0.36);
+      --accent: #85B7EB; --accent-bg: #0C447C;
+      --proc-bg: #3C3489; --proc-line: #9b8fff;
+      --out-bg: #085041;  --out-line: #4cc6a3;
+    }
+    .arch-wrap { width: 100%; overflow-x: auto; }
+    svg.arch { display: block; min-width: 980px; width: 100%; height: auto; }
+    .ar-box { stroke-width: 1.25; }
+    .ar-box.src  { fill: var(--accent-bg); stroke: var(--accent); }
+    .ar-box.proc { fill: var(--proc-bg);   stroke: var(--proc-line); }
+    .ar-box.out  { fill: var(--out-bg);    stroke: var(--out-line); }
+    .ar-box.run  { fill: var(--bg);        stroke: var(--accent); stroke-width: 1.5; }
+    .ar-title { fill: var(--text); font-family: var(--font); font-size: 12px; font-weight: 600; }
+    .ar-sub   { fill: var(--text-2); font-family: var(--font); font-size: 10px; }
+    .ar-mono  { fill: var(--text); font-family: var(--font-mono); font-size: 11px; }
+    .ar-mono.dim { fill: var(--text-2); }
+    .ar-phase { fill: var(--text-3); font-family: var(--font); font-size: 10px; font-weight: 600; letter-spacing: 0.9px; }
+    .ar-elabel{ fill: var(--text-3); font-family: var(--font); font-size: 9.5px; font-style: italic; }
+    .ar-edge { stroke: var(--border-2); stroke-width: 1.6; fill: none; marker-end: url(#ah); }
+    .ar-edge.lazy { stroke-dasharray: 5 4; }
+    .ar-rail { stroke: var(--border-2); stroke-width: 1.4; fill: none; }
+
     @media print {
       body { background: #fff; }
       .ds-back { display: none; }
@@ -164,23 +196,126 @@
   <div class="ds-part">Part 1</div>
   <h2 class="ds-part-title">Architecture at a glance</h2>
 
+  <p class="ds-note" style="margin-bottom:14px;">
+    Five source datasets feed a four-step Python pipeline. The pipeline writes one file,
+    <span class="ds-mono">map_payload.json</span>, which the browser draws with Leaflet. A side script builds the
+    service-territory overlay, which the map loads lazily on demand.
+  </p>
+
   <div class="ds-arch">
-    <div class="ds-arch-row">
-      <div class="ds-arch-box"><b>Sources</b><span class="m">Census · NYSERDA DAC · NTA · ConEd extracts · network shapefiles</span></div>
-    </div>
-    <div class="ds-arch-flow">build time (Python, run once per data refresh) ▼</div>
-    <div class="ds-arch-row">
-      <div class="ds-arch-box"><b>4-step map pipeline</b><span class="m">build_base → enrich_map → enrich_neighborhoods → enrich_electric_network</span></div>
-      <div class="ds-arch-box"><b>overlay side build</b><span class="m">_make_territories.py</span></div>
-    </div>
-    <div class="ds-arch-flow">committed artifacts ▼</div>
-    <div class="ds-arch-row">
-      <div class="ds-arch-box"><b>map_payload.json</b><span class="m">2,333 tract features + nondac_by_county</span></div>
-      <div class="ds-arch-box"><b>Data/service_territories.geojson</b><span class="m">electric / gas / ORU polygons</span></div>
-    </div>
-    <div class="ds-arch-flow">runtime (browser, on the Executive Summary) ▼</div>
-    <div class="ds-arch-row">
-      <div class="ds-arch-box"><b>Leaflet render in app.js</b><span class="m">renderDACMap() builds the panel · mountDACMap() draws it</span></div>
+    <div class="arch-wrap">
+      <svg class="arch" viewBox="0 0 1080 412" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Five sources feed a four-step pipeline that writes map_payload.json; a side script builds the territory overlay; the browser renders both, loading the overlay lazily">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--border-2)"></path>
+          </marker>
+        </defs>
+
+        <!-- column headers -->
+        <text class="ar-phase" x="16"  y="20">SOURCES</text>
+        <text class="ar-phase" x="300" y="20">BUILD PIPELINE (PYTHON)</text>
+        <text class="ar-phase" x="620" y="20">COMMITTED ARTIFACTS</text>
+        <text class="ar-phase" x="872" y="20">RENDER (BROWSER)</text>
+
+        <!-- ===== SOURCES ===== -->
+        <g>
+          <rect class="ar-box src" x="16" y="48"  width="212" height="44" rx="8"></rect>
+          <text class="ar-title" x="28" y="68">Census tract geometry</text>
+          <text class="ar-sub"   x="28" y="82">ny_tracts.geojson 2020 + 2010 fallback</text>
+
+          <rect class="ar-box src" x="16" y="101" width="212" height="44" rx="8"></rect>
+          <text class="ar-title" x="28" y="121">NYS DAC / NYSERDA</text>
+          <text class="ar-sub"   x="28" y="135">NYS_DAC.geojson + 48 indicators</text>
+
+          <rect class="ar-box src" x="16" y="154" width="212" height="44" rx="8"></rect>
+          <text class="ar-title" x="28" y="174">ConEd customer extracts</text>
+          <text class="ar-sub"   x="28" y="188">Electric.xlsx, Gas.xlsx</text>
+
+          <rect class="ar-box src" x="16" y="207" width="212" height="44" rx="8"></rect>
+          <text class="ar-title" x="28" y="227">NTA crosswalk</text>
+          <text class="ar-sub"   x="28" y="241">2020 Census to NTA equivalency</text>
+
+          <rect class="ar-box src" x="16" y="260" width="212" height="44" rx="8"></rect>
+          <text class="ar-title" x="28" y="280">ESRI shapefiles</text>
+          <text class="ar-sub"   x="28" y="294">Data/Extra_info/ (CECONY, ORU)</text>
+        </g>
+
+        <!-- sources bus -> pipeline entry, with ESRI branch down to the side build -->
+        <path class="ar-rail" d="M228,70 L270,70"></path>
+        <path class="ar-rail" d="M228,123 L270,123"></path>
+        <path class="ar-rail" d="M228,176 L270,176"></path>
+        <path class="ar-rail" d="M228,229 L270,229"></path>
+        <path class="ar-rail" d="M228,282 L270,282"></path>
+        <path class="ar-rail" d="M270,70 L270,322"></path>
+        <path class="ar-edge" d="M270,72 L298,72"></path>
+        <path class="ar-edge" d="M270,322 L298,322"></path>
+
+        <!-- ===== PIPELINE ===== -->
+        <g>
+          <rect class="ar-box proc" x="300" y="52"  width="232" height="40" rx="8"></rect>
+          <text class="ar-mono" x="314" y="76">0 &#183; build_base_map_payload.py</text>
+
+          <rect class="ar-box proc" x="300" y="104" width="232" height="40" rx="8"></rect>
+          <text class="ar-mono" x="314" y="128">1 &#183; enrich_map_payload.py</text>
+
+          <rect class="ar-box proc" x="300" y="156" width="232" height="40" rx="8"></rect>
+          <text class="ar-mono" x="314" y="180">2 &#183; enrich_neighborhoods.py</text>
+
+          <rect class="ar-box proc" x="300" y="208" width="232" height="40" rx="8"></rect>
+          <text class="ar-mono" x="314" y="232">3 &#183; enrich_electric_network.py</text>
+
+          <!-- run order -->
+          <path class="ar-edge" d="M416,92 L416,104"></path>
+          <path class="ar-edge" d="M416,144 L416,156"></path>
+          <path class="ar-edge" d="M416,196 L416,208"></path>
+
+          <!-- side build -->
+          <rect class="ar-box proc" x="300" y="300" width="232" height="40" rx="8"></rect>
+          <text class="ar-mono" x="314" y="324">side &#183; _make_territories.py</text>
+        </g>
+
+        <!-- pipeline output -> payload ; side build -> overlay -->
+        <path class="ar-edge" d="M532,228 L576,228 L576,134 L618,134"></path>
+        <path class="ar-edge" d="M532,320 L618,320"></path>
+
+        <!-- ===== ARTIFACTS ===== -->
+        <rect class="ar-box out" x="620" y="104" width="178" height="60" rx="8"></rect>
+        <text class="ar-mono" x="634" y="128" font-weight="700">map_payload.json</text>
+        <text class="ar-sub"  x="634" y="146">2,333 tracts, all fields</text>
+
+        <rect class="ar-box out" x="620" y="298" width="178" height="48" rx="8"></rect>
+        <text class="ar-mono" x="634" y="320" font-weight="700" font-size="10">service_territories.geojson</text>
+        <text class="ar-sub"  x="634" y="336">electric / gas / ORU polygons</text>
+
+        <!-- artifacts -> render (payload eager, overlay lazy) -->
+        <path class="ar-edge" d="M798,134 L870,134"></path>
+        <text class="ar-elabel" x="834" y="127" text-anchor="middle">loaded on open</text>
+        <path class="ar-edge lazy" d="M798,320 L836,320 L836,210 L870,210"></path>
+        <text class="ar-elabel" x="844" y="268">lazy load</text>
+
+        <!-- ===== RENDER ===== -->
+        <rect class="ar-box run" x="872" y="108" width="192" height="120" rx="9"></rect>
+        <text class="ar-title" x="888" y="136">Leaflet render</text>
+        <text class="ar-sub"   x="888" y="153">app.js</text>
+        <text class="ar-mono dim" x="888" y="176">renderDACMap()</text>
+        <text class="ar-mono dim" x="888" y="192">mountDACMap()</text>
+        <text class="ar-sub"   x="888" y="213">tracts, choropleth, tooltips</text>
+
+        <!-- legend -->
+        <g>
+          <rect class="ar-box src"  x="16"  y="384" width="13" height="13" rx="3"></rect>
+          <text class="ar-sub" x="35" y="394">inputs</text>
+          <rect class="ar-box proc" x="100" y="384" width="13" height="13" rx="3"></rect>
+          <text class="ar-sub" x="119" y="394">build (Python)</text>
+          <rect class="ar-box out"  x="226" y="384" width="13" height="13" rx="3"></rect>
+          <text class="ar-sub" x="245" y="394">committed files</text>
+          <rect class="ar-box run"  x="360" y="384" width="13" height="13" rx="3"></rect>
+          <text class="ar-sub" x="379" y="394">runtime</text>
+          <path class="ar-edge lazy" d="M452,391 L487,391"></path>
+          <text class="ar-sub" x="494" y="394">lazy load</text>
+        </g>
+      </svg>
     </div>
   </div>
   <p class="ds-note">
