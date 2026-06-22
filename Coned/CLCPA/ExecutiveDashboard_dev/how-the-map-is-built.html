@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Con Edison · DAC Map: How the Map Is Built</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Reuse the dashboard's design tokens (CSS variables, fonts, colors) -->
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* ---- Standalone data-provenance reference page ---- */
+    body { background: var(--white-smoke); }
+    .ds-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 28px 28px 64px;
+    }
+    .ds-back {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 12.5px; font-weight: 600; color: #185FA5;
+      text-decoration: none; margin-bottom: 20px;
+    }
+    .ds-back:hover { text-decoration: underline; }
+
+    .ds-head { border-bottom: 2px solid var(--ink); padding-bottom: 14px; margin-bottom: 8px; }
+    .ds-head h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.015em; margin: 0 0 4px; color: var(--ink); }
+    .ds-head .ds-sub { font-size: 13px; color: var(--text-3); margin: 0; }
+
+    .ds-intro { font-size: 13.5px; color: var(--text-2); line-height: 1.6; margin: 16px 0 28px; }
+
+    .ds-part {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      color: #185FA5; margin: 34px 0 4px;
+    }
+    .ds-part-title { font-size: 18px; font-weight: 700; color: var(--ink); margin: 0 0 16px; letter-spacing: -0.01em; }
+
+    /* Source cards */
+    .ds-card {
+      background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+      padding: 16px 18px; margin-bottom: 14px;
+      box-shadow: 0 1px 0 rgba(3,24,36,0.02), 0 3px 10px rgba(3,24,36,0.04);
+    }
+    .ds-card h3 { font-size: 14.5px; font-weight: 700; color: var(--ink); margin: 0 0 2px; }
+    .ds-card .ds-provider { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin: 0 0 10px; }
+    .ds-fields { margin: 0; padding: 0; list-style: none; }
+    .ds-fields li { display: flex; gap: 10px; padding: 4px 0; font-size: 12.5px; border-top: 1px solid var(--line); }
+    .ds-fields li:first-child { border-top: none; }
+    .ds-fields .k { flex: 0 0 118px; font-weight: 700; color: var(--text-3); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; padding-top: 2px; }
+    .ds-fields .v { flex: 1; color: var(--text-2); line-height: 1.55; min-width: 0; }
+    .ds-fields .v a { color: #185FA5; word-break: break-all; }
+
+    /* Pipeline */
+    .ds-step {
+      background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+      padding: 16px 18px; margin-bottom: 14px;
+      box-shadow: 0 1px 0 rgba(3,24,36,0.02), 0 3px 10px rgba(3,24,36,0.04);
+    }
+    .ds-step-num {
+      display: inline-block; min-width: 22px; text-align: center;
+      background: #185FA5; color: #fff; font-weight: 700; font-size: 11px;
+      border-radius: 5px; padding: 2px 7px; margin-right: 8px;
+    }
+    .ds-step h3 { display: inline; font-size: 14.5px; font-weight: 700; color: var(--ink); }
+    .ds-step code, .ds-mono { font-family: var(--font-mono); background: var(--white-smoke); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; color: var(--ink-2); }
+    .ds-io { margin: 10px 0 0; padding: 0; list-style: none; }
+    .ds-io li { font-size: 12.5px; color: var(--text-2); padding: 3px 0; line-height: 1.55; }
+    .ds-io .lbl { font-weight: 700; color: var(--text-3); text-transform: uppercase; font-size: 10px; letter-spacing: 0.05em; margin-right: 6px; }
+    .ds-step p { font-size: 12.5px; color: var(--text-2); line-height: 1.6; margin: 8px 0 0; }
+
+    .ds-note { font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
+    .ds-note strong { color: var(--ink); }
+
+    /* Run order block */
+    .ds-run {
+      background: var(--ink); color: var(--pale-sky); border-radius: 10px;
+      padding: 14px 18px; margin: 6px 0 8px;
+      font-family: var(--font-mono); font-size: 12px; line-height: 1.8;
+      overflow-x: auto;
+    }
+    .ds-run .c { color: #7FA8D8; }
+
+    /* Definitions box */
+    .ds-defs {
+      background: var(--dusk-tint); border: 1px solid var(--dusk); border-left-width: 4px;
+      border-radius: 8px; padding: 16px 18px; margin: 18px 0 8px;
+    }
+    .ds-defs h3 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--dusk); margin: 0 0 8px; }
+    .ds-defs dl { margin: 0; }
+    .ds-defs dt { font-weight: 700; color: var(--ink); font-size: 12.5px; margin-top: 8px; }
+    .ds-defs dt:first-child { margin-top: 0; }
+    .ds-defs dd { margin: 1px 0 0; font-size: 12.5px; color: var(--text-2); line-height: 1.55; }
+
+    .ds-result {
+      background: var(--bright-snow); border: 1px solid var(--line); border-radius: 8px;
+      padding: 14px 18px; margin: 14px 0;
+    }
+    .ds-result h3 { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); margin: 0 0 8px; }
+    .ds-result .ds-nums { display: flex; flex-wrap: wrap; gap: 22px; }
+    .ds-result .ds-num { display: flex; flex-direction: column; }
+    .ds-result .ds-num b { font-size: 22px; font-weight: 800; color: var(--ink); font-feature-settings: "tnum"; line-height: 1.1; }
+    .ds-result .ds-num span { font-size: 10.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.04em; }
+
+    .ds-foot { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11.5px; color: var(--text-3); font-style: italic; }
+
+    a { color: #185FA5; }
+
+    /* ---- Additions for this companion page (architecture + code) ---- */
+    .ds-arch {
+      background: var(--white); border: 1px solid var(--line); border-radius: 10px;
+      padding: 18px; margin-bottom: 14px;
+      box-shadow: 0 1px 0 rgba(3,24,36,0.02), 0 3px 10px rgba(3,24,36,0.04);
+    }
+    .ds-arch-row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+    .ds-arch-box {
+      background: var(--white-smoke); border: 1px solid var(--line); border-radius: 8px;
+      padding: 10px 14px; font-size: 12px; color: var(--text-2); text-align: center; min-width: 150px;
+    }
+    .ds-arch-box b { display: block; color: var(--ink); font-size: 12.5px; margin-bottom: 2px; }
+    .ds-arch-box .m { font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2); }
+    .ds-arch-flow { text-align: center; color: var(--text-3); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin: 8px 0; }
+    .ds-code {
+      background: var(--ink); color: var(--pale-sky); border-radius: 10px;
+      padding: 14px 16px; margin: 10px 0; font-family: var(--font-mono);
+      font-size: 11.5px; line-height: 1.7; overflow-x: auto; white-space: pre;
+    }
+    .ds-code .c { color: #7FA8D8; }
+
+    @media print {
+      body { background: #fff; }
+      .ds-back { display: none; }
+      .ds-card, .ds-step, .ds-defs, .ds-result, .ds-run, .ds-arch, .ds-code { box-shadow: none; break-inside: avoid; }
+      .ds-run, .ds-code { background: #fff; color: var(--ink); border: 1px solid var(--line); }
+      .ds-run .c, .ds-code .c { color: var(--text-3); }
+      .ds-wrap { max-width: none; padding: 0; }
+    }
+  </style>
+</head>
+<body>
+<div class="ds-wrap">
+
+  <a class="ds-back" href="ExecutiveDashboard.html">← Back to dashboard</a>
+
+  <div class="ds-head">
+    <h1>DAC Map: How the Map Is Built</h1>
+    <p class="ds-sub">A walkthrough of how the “DAC Tracts” map is assembled and drawn, detailed enough to rebuild it from scratch or add a new layer. Companion to the <a href="data-sources.html">Data Sources &amp; Reproducibility</a> page.</p>
+  </div>
+
+  <p class="ds-intro">
+    The <a href="data-sources.html">Data Sources</a> page answers <em>where the data comes from</em>. This page answers
+    <em>how the map is built and drawn</em>: the Python pipeline that produces <span class="ds-mono">map_payload.json</span>,
+    the side build that produces the <span class="ds-mono">service_territories.geojson</span> overlay, and the browser
+    code (Leaflet) that turns those files into the interactive choropleth in the dashboard's Executive Summary.
+    Everything below is grounded in the live code: the pipeline scripts in
+    <span class="ds-mono">Data/</span> and the map module in <span class="ds-mono">app.js</span>.
+  </p>
+
+  <!-- ============================ PART 1: ARCHITECTURE ============================ -->
+  <div class="ds-part">Part 1</div>
+  <h2 class="ds-part-title">Architecture at a glance</h2>
+
+  <div class="ds-arch">
+    <div class="ds-arch-row">
+      <div class="ds-arch-box"><b>Sources</b><span class="m">Census · NYSERDA DAC · NTA · ConEd extracts · network shapefiles</span></div>
+    </div>
+    <div class="ds-arch-flow">build time (Python, run once per data refresh) ▼</div>
+    <div class="ds-arch-row">
+      <div class="ds-arch-box"><b>4-step map pipeline</b><span class="m">build_base → enrich_map → enrich_neighborhoods → enrich_electric_network</span></div>
+      <div class="ds-arch-box"><b>overlay side build</b><span class="m">_make_territories.py</span></div>
+    </div>
+    <div class="ds-arch-flow">committed artifacts ▼</div>
+    <div class="ds-arch-row">
+      <div class="ds-arch-box"><b>map_payload.json</b><span class="m">2,333 tract features + nondac_by_county</span></div>
+      <div class="ds-arch-box"><b>Data/service_territories.geojson</b><span class="m">electric / gas / ORU polygons</span></div>
+    </div>
+    <div class="ds-arch-flow">runtime (browser, on the Executive Summary) ▼</div>
+    <div class="ds-arch-row">
+      <div class="ds-arch-box"><b>Leaflet render in app.js</b><span class="m">renderDACMap() builds the panel · mountDACMap() draws it</span></div>
+    </div>
+  </div>
+  <p class="ds-note">
+    The map loads <span class="ds-mono">map_payload.json</span> on first view (the tract choropleth) and lazily loads
+    <span class="ds-mono">Data/service_territories.geojson</span> only when a service-area layer is first toggled on.
+    Geometry plus DAC scores, indicators, ConEd customer counts, neighborhood labels, and the per-tract network and gas
+    overlaps are all baked into <span class="ds-mono">map_payload.json</span> at build time, so the browser does no joins.
+  </p>
+
+  <!-- ============================ PART 2: SOURCES RECAP ============================ -->
+  <div class="ds-part">Part 2</div>
+  <h2 class="ds-part-title">Sources, in one line each</h2>
+
+  <p class="ds-note" style="margin-bottom:14px;">
+    Full provenance (vintages, URLs, access, exact filenames) lives on the
+    <a href="data-sources.html">Data Sources &amp; Reproducibility</a> page. The pipeline below joins five sources, all
+    keyed on the 11-digit <span class="ds-mono">GEOID</span> and filtered to Con Edison's six counties
+    (<span class="ds-mono">Bronx, Kings, New York, Queens, Richmond, Westchester</span>):
+  </p>
+  <div class="ds-card">
+    <ul class="ds-fields">
+      <li><span class="k">Geometry</span><span class="v">U.S. Census tract polygons, 2020 cartographic boundaries with 2010 as a fallback for legacy GEOIDs (<span class="ds-mono">Data/ny_tracts.geojson</span>, <span class="ds-mono">Data/ny_tracts_2010.geojson</span>). Public.</span></li>
+      <li><span class="k">DAC data</span><span class="v">NYSERDA Disadvantaged Communities: designation, scores, and the indicator percentiles (<span class="ds-mono">Data/NYS_DAC.geojson</span>). Public.</span></li>
+      <li><span class="k">Neighborhoods</span><span class="v">NYC Department of City Planning tract-to-NTA crosswalk (<span class="ds-mono">Data/2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv</span>). Public.</span></li>
+      <li><span class="k">ConEd customers</span><span class="v">Per-tract Electric and Gas accounts, EAP enrollment, and bill adjustment (<span class="ds-mono">Data/Electric.xlsx</span>, <span class="ds-mono">Data/Gas.xlsx</span>). Internal Con Edison data.</span></li>
+      <li><span class="k">Networks</span><span class="v">CECONY electric networks, CECONY gas service areas, and the Orange &amp; Rockland (ORU) territory (shapefile sets in <span class="ds-mono">Data/Extra_info/</span>). Internal Con Edison GIS.</span></li>
+    </ul>
+  </div>
+
+  <!-- ============================ PART 3: BUILD PIPELINE ============================ -->
+  <div class="ds-part">Part 3</div>
+  <h2 class="ds-part-title">The build pipeline</h2>
+
+  <p class="ds-note" style="margin-bottom:16px;">
+    <span class="ds-mono">map_payload.json</span> is a GeoJSON <span class="ds-mono">FeatureCollection</span> of 2,333 tract
+    features plus a top-level <span class="ds-mono">nondac_by_county</span> aggregate. It is produced in four idempotent
+    steps; each re-derives its fields from the source files on every run. (A separate script,
+    <span class="ds-mono">Data/build_payload.py</span>, builds <span class="ds-mono">payload.json</span> for the
+    dashboard's section tables and charts; it is not part of the map pipeline.)
+  </p>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">0</span><h3><span class="ds-mono">build_base_map_payload.py</span>: base build</h3></div>
+    <p>
+      Joins census-tract geometry (2020, with 2010 fallback, recorded per feature in <span class="ds-mono">_geom_year</span>),
+      the NYSERDA DAC base scores, and the Con Edison Electric/Gas extracts on <span class="ds-mono">GEOID</span>, restricted
+      to the six counties. Rolls Non-DAC borough totals into <span class="ds-mono">nondac_by_county</span>. The universe is
+      every GEOID present in the Electric, Gas, or DAC data within those counties.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">ny_tracts.geojson</span> · <span class="ds-mono">ny_tracts_2010.geojson</span> · <span class="ds-mono">NYS_DAC.geojson</span> · <span class="ds-mono">Electric.xlsx</span> · <span class="ds-mono">Gas.xlsx</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span>: 2,333 features (1,059 DAC + 1,274 Non-DAC), about 20 base properties each, plus <span class="ds-mono">nondac_by_county</span></li>
+      <li><span class="lbl">Base properties</span> include <span class="ds-mono">GEOID, County, City_Town, DAC_Desig, Pop_Cnt, HH_Cnt, Comb_Sc, Rank_State, Burden_Pct, Vulner_Pct, Energy_Aff</span>, the per-utility <span class="ds-mono">elec_dac/elec_accts/elec_eap/elec_adj</span> and <span class="ds-mono">gas_dac/gas_accts/gas_eap/gas_adj</span>, and <span class="ds-mono">_geom_year</span></li>
+    </ul>
+  </div>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">1</span><h3><span class="ds-mono">enrich_map_payload.py</span>: granular DAC indicators</h3></div>
+    <p>
+      Left-joins <strong>48 fields</strong> from <span class="ds-mono">NYS_DAC.geojson</span> onto each tract: the 44 indicator
+      percentiles plus four secondary rankings/scores (<span class="ds-mono">Rank_NYC, Rank_ROS, Burden_Sc, Vulner_Sc</span>).
+      DAC tracts with a GEOID match copy the values; every other tract gets those 48 fields set to
+      <span class="ds-mono">null</span>, so the schema is uniform across all features.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">NYS_DAC.geojson</span> · <span class="ds-mono">map_payload.json</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> (overwritten, minified), about 68 properties per tract</li>
+    </ul>
+  </div>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">2</span><h3><span class="ds-mono">enrich_neighborhoods.py</span>: borough + neighborhood</h3></div>
+    <p>
+      Sets <span class="ds-mono">borough</span> (display name from County: Kings to Brooklyn, New York to Manhattan,
+      Richmond to Staten Island) and <span class="ds-mono">neighborhood</span> (NYC tracts get the NTA name from the
+      crosswalk; Westchester uses a cleaned <span class="ds-mono">City_Town</span>; anything unmatched is
+      <span class="ds-mono">null</span>). Writes a one-time backup, <span class="ds-mono">map_payload.backup2.json</span>.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv</span> · <span class="ds-mono">map_payload.json</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> (overwritten) · <span class="ds-mono">map_payload.backup2.json</span></li>
+    </ul>
+  </div>
+
+  <div class="ds-step">
+    <div><span class="ds-step-num">3</span><h3><span class="ds-mono">enrich_electric_network.py</span>: network / service-area fields</h3></div>
+    <p>
+      Adds <span class="ds-mono">electric_networks</span> (CECONY networks from <span class="ds-mono">CECONY_Electric.shp</span>,
+      field <span class="ds-mono">NETWORK</span>) and <span class="ds-mono">gas_areas</span> (CECONY gas borough areas from
+      <span class="ds-mono">CECONY_Gas.shp</span>, field <span class="ds-mono">BORONAME</span>) to every tract via polygon
+      overlap: keep each area covering at least 5% of the tract, dominant first; if none reaches 5% but one intersects,
+      keep the single largest; no intersection leaves an empty list. Overlap is computed in the shapefiles' native CRS,
+      <span class="ds-mono">EPSG:2263</span> (NAD83 / NY Long Island, US ft). These values appear in the tract tooltip.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">Data/Extra_info/CECONY_Electric.shp</span> · <span class="ds-mono">Data/Extra_info/CECONY_Gas.shp</span> · <span class="ds-mono">map_payload.json</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> (overwritten), about 72 properties per tract (adds <span class="ds-mono">electric_networks</span>, <span class="ds-mono">gas_areas</span>)</li>
+    </ul>
+  </div>
+
+  <h3 style="font-size:13px; font-weight:700; color:var(--ink); margin:22px 0 6px;">Run order</h3>
+  <div class="ds-run">
+    <span class="c"># from Coned/CLCPA/ExecutiveDashboard_dev/</span><br>
+    python Data/build_base_map_payload.py&nbsp;<span class="c"># 0. base build (geometry + DAC + ConEd extracts)</span><br>
+    python Data/enrich_map_payload.py&nbsp;&nbsp;&nbsp;<span class="c"># 1. add 48 DAC indicator / score fields</span><br>
+    python Data/enrich_neighborhoods.py&nbsp;&nbsp;<span class="c"># 2. add borough + neighborhood</span><br>
+    python Data/enrich_electric_network.py <span class="c"># 3. add electric_networks + gas_areas (tract / network overlap)</span>
+  </div>
+
+  <h3 style="font-size:13px; font-weight:700; color:var(--ink); margin:22px 0 6px;">The overlay side build</h3>
+  <div class="ds-step">
+    <div><h3><span class="ds-mono">_make_territories.py</span>: build the service-area overlay</h3></div>
+    <p>
+      A one-off converter (not part of the four-step pipeline, and not a runtime dependency) that reprojects the same three
+      <span class="ds-mono">Data/Extra_info/</span> shapefiles to WGS84 (<span class="ds-mono">EPSG:4326</span>) and writes one
+      file, <span class="ds-mono">Data/service_territories.geojson</span>, tagging each feature with a
+      <span class="ds-mono">layer</span> property (<span class="ds-mono">electric</span>, <span class="ds-mono">gas</span>, or
+      <span class="ds-mono">oru</span>). It applies a proper datum transform per layer (NAD83 for CECONY; a NADCON grid
+      transform for ORU's NAD27). Re-run it only when the source shapefiles change.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">Data/Extra_info/CECONY_Electric.shp</span> · <span class="ds-mono">CECONY_Gas.shp</span> · <span class="ds-mono">ORU_Territory.shp</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">Data/service_territories.geojson</span> (the committed runtime overlay, about 3.48 MB)</li>
+    </ul>
+  </div>
+
+  <div class="ds-defs">
+    <h3>Reproducibility note (CLCPA-116)</h3>
+    <dl>
+      <dt>The committed <span class="ds-mono">map_payload.json</span> is the richer source of truth.</dt>
+      <dd>
+        A clean run of the pipeline reproduces a <strong>functionally equivalent</strong> file, not a byte-identical one.
+        Known differences in a from-scratch rebuild: <span class="ds-mono">City_Town</span> (and therefore the Westchester
+        <span class="ds-mono">neighborhood</span>) is populated on Non-DAC tracts in the committed file but not by the
+        current base build; the <span class="ds-mono">*_adj</span> values round at a different decimal precision; and a
+        small number of tracts differ in <span class="ds-mono">electric_networks</span> near the 5% overlap threshold
+        (geometry-library version sensitivity). Treat the committed file as authoritative for the dashboard, and the
+        pipeline as the way to regenerate or extend it, confirming any rebuild against the committed values rather than
+        assuming a byte-for-byte match.
+      </dd>
+    </dl>
+  </div>
+
+  <div class="ds-result">
+    <h3>Result · map_payload.json</h3>
+    <div class="ds-nums">
+      <div class="ds-num"><b>2,333</b><span>Total tracts</span></div>
+      <div class="ds-num"><b>1,059</b><span>DAC tracts</span></div>
+      <div class="ds-num"><b>1,274</b><span>Non-DAC tracts</span></div>
+      <div class="ds-num"><b>~72</b><span>Properties / tract</span></div>
+    </div>
+  </div>
+
+  <!-- ============================ PART 4: RENDER ============================ -->
+  <div class="ds-part">Part 4</div>
+  <h2 class="ds-part-title">How the map is drawn (Leaflet, in app.js)</h2>
+
+  <p class="ds-note" style="margin-bottom:14px;">
+    The map is a module inside <span class="ds-mono">app.js</span>. Two functions drive it:
+    <span class="ds-mono">renderDACMap()</span> returns the panel HTML (title, the Borough / Neighborhood / Color-by
+    controls, the legend, the Layers panel, and an empty map container), and the async
+    <span class="ds-mono">mountDACMap()</span> instantiates Leaflet into that container once it is in the DOM. The map uses
+    Leaflet plus turf.js (to dissolve selected-neighborhood tracts into one outline); both load from a CDN in
+    <span class="ds-mono">ExecutiveDashboard.html</span>.
+  </p>
+
+  <div class="ds-step">
+    <div><h3>1. Load the tract data</h3></div>
+    <p>
+      <span class="ds-mono">getMapGeo()</span> fetches the payload once and caches it in
+      <span class="ds-mono">_mapGeoCache</span>. When the app runs hosted on Dataverse it overlays the eight editable
+      ConEd fields onto the features by GEOID; running standalone, the overlay is <span class="ds-mono">null</span> and the
+      file values are used as-is.
+    </p>
+    <div class="ds-code"><span class="c">// app.js</span>
+async function getMapGeo() {
+  if (_mapGeoCache) return _mapGeoCache;
+  const res = await fetch('./map_payload.json');
+  const geo = await res.json();
+  const overlay = await Storage.getMapOverlay(); <span class="c">// null unless hosted on Dataverse</span>
+  if (overlay) applyMapOverlay(geo, overlay);
+  _mapGeoCache = geo;
+  return _mapGeoCache;
+}</div>
+  </div>
+
+  <div class="ds-step">
+    <div><h3>2. Create the base map and draw the tracts</h3></div>
+    <p>
+      <span class="ds-mono">mountDACMap()</span> creates the Leaflet map (custom zoom control bottom-right, fractional zoom),
+      adds a light CARTO basemap, then draws every tract as one GeoJSON layer. The fixed initial view centers the six
+      counties.
+    </p>
+    <div class="ds-code">const map = L.map(containerId, { zoomControl: false, attributionControl: false, zoomSnap: 0.1 });
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+
+const geoLayer = L.geoJSON(geo, { style: styleFeature, onEachFeature: onEach }).addTo(map);
+map.setView([40.93, -73.9], 9.7);</div>
+  </div>
+
+  <div class="ds-step">
+    <div><h3>3. Color tracts: DAC vs Non-DAC, by indicator</h3></div>
+    <p>
+      <span class="ds-mono">styleFeature()</span> decides each tract's fill. A tract is DAC when
+      <span class="ds-mono">DAC_Desig === 'Designated as DAC'</span>. <strong>Non-DAC tracts are always a uniform gray</strong>
+      (<span class="ds-mono">#a8a8a8</span>); they are never colored by score. <strong>DAC tracts</strong> are colored by
+      the currently selected indicator through <span class="ds-mono">colorForFeature()</span>, and a DAC tract with missing
+      data is the lightest blue (<span class="ds-mono">#d4e3f2</span>), never gray. Two ramps exist:
+      <span class="ds-mono">dacMapColor()</span> for the Combined Burden Score (its own bins at 90, 100, 110, 120) and
+      <span class="ds-mono">dacMapColorPct()</span> for the 0 to 100 percentile indicators (bins at 20, 40, 60, 80).
+      DAC tracts are filled at 0.78 opacity, Non-DAC at 0.55, and out-of-scope tracts are dimmed to 0.12.
+    </p>
+    <div class="ds-code">function colorForFeature(props, isDAC) {
+  const keys = _mapState.indicators;
+  if (keys.length === 1) {
+    const meta = mapIndicatorMeta(keys[0]);
+    const raw = props ? props[meta.key] : null;
+    return meta.scale === 'score' ? dacMapColor(raw, isDAC) : dacMapColorPct(raw, isDAC);
+  }
+  return dacMapColorPct(tractMean(props, keys), isDAC); <span class="c">// average of several percentile indicators</span>
+}</div>
+  </div>
+
+  <div class="ds-step">
+    <div><h3>4. The "Color by" indicator dropdown</h3></div>
+    <p>
+      The indicator picker is a custom grouped multi-select built by <span class="ds-mono">mapDropdownHtml()</span> (a native
+      <span class="ds-mono">&lt;select&gt;</span> is avoided so the open list can be fully styled). Options come from
+      <span class="ds-mono">MAP_INDICATOR_GROUPS</span> (Summary, Environmental Burdens, Climate Risks, Health, Demographics /
+      Vulnerability, Affordability &amp; Ranking). The current selection lives in
+      <span class="ds-mono">_mapState.indicators</span> (default <span class="ds-mono">['Comb_Sc']</span>). One selection uses
+      that indicator's own scale; selecting several averages their percentiles. Changing the selection recolors the
+      <span class="ds-mono">geoLayer</span> and rebuilds the legend (<span class="ds-mono">mapLegendHtml()</span>) and title
+      (<span class="ds-mono">mapTitleText()</span>).
+    </p>
+  </div>
+
+  <div class="ds-step">
+    <div><h3>5. Tooltips on hover</h3></div>
+    <p>
+      <span class="ds-mono">onEach()</span> wires each tract's <span class="ds-mono">mouseover</span> to highlight it and fill
+      a floating tooltip from the feature properties: borough (<span class="ds-mono">borough</span> or
+      <span class="ds-mono">boroughLabel(County)</span>), <span class="ds-mono">DAC_Desig</span>,
+      <span class="ds-mono">neighborhood</span>, and for DAC tracts <span class="ds-mono">Comb_Sc</span>,
+      <span class="ds-mono">Rank_State</span>, and <span class="ds-mono">Pop_Cnt</span>. A helper,
+      <span class="ds-mono">utilityBlock()</span>, renders the Electric and Gas figures from
+      <span class="ds-mono">elec_accts/elec_eap</span> and <span class="ds-mono">gas_accts/gas_eap</span>; when both are absent
+      it shows "Outside ConEd ... service area."
+    </p>
+    <div class="ds-code">utilityBlock('Electric', p.elec_accts, p.elec_eap)
+utilityBlock('Gas',      p.gas_accts,  p.gas_eap)</div>
+  </div>
+
+  <div class="ds-step">
+    <div><h3>6. Borough and neighborhood filters</h3></div>
+    <p>
+      The Borough dropdown (built in <span class="ds-mono">renderDACMap()</span>) maps display names to county values
+      (Brooklyn to Kings, Manhattan to New York, Staten Island to Richmond, plus Bronx, Queens, Westchester, and "All
+      boroughs"). Choosing one sets <span class="ds-mono">_mapState.county</span>; <span class="ds-mono">styleFeature()</span>
+      then dims tracts outside it. The Neighborhood dropdown is rebuilt per borough by
+      <span class="ds-mono">rebuildNeighborhoodDropdown()</span> and stored in
+      <span class="ds-mono">_mapState.neighborhoods</span>; selected neighborhoods are outlined (dissolved with turf.js when
+      available). "Clear all" resets both filters.
+    </p>
+  </div>
+
+  <div class="ds-step">
+    <div><h3>7. The Layers panel and the lazy service-area overlay</h3></div>
+    <p>
+      The Layers panel offers five toggles: <strong>DAC criteria</strong> (the tract choropleth itself, on by default),
+      <strong>Electric networks</strong>, <strong>Gas service area</strong>, <strong>ORU territory</strong>, and
+      <strong>EAP enrollment</strong> (a separate heatmap driven by the payload, not the overlay file). The three
+      service-area toggles are backed by <span class="ds-mono">Data/service_territories.geojson</span>, fetched lazily by
+      <span class="ds-mono">ensureTerritoryGeo()</span> on the first toggle and cached in
+      <span class="ds-mono">_territoryGeoCache</span>. <span class="ds-mono">setTerritory(kind, on)</span> filters that file by
+      the feature's <span class="ds-mono">layer</span> property and draws a non-interactive styled layer (so tract hover and
+      click still work underneath); selecting ORU flies the map out to its bounds.
+    </p>
+    <div class="ds-code">function ensureTerritoryGeo() {
+  if (_territoryGeoCache) return Promise.resolve(_territoryGeoCache);
+  if (!_territoryFetchPromise) {
+    _territoryFetchPromise = fetch('./Data/service_territories.geojson')
+      .then(r =&gt; r.ok ? r.json() : Promise.reject(new Error('service_territories.geojson ' + r.status)))
+      .then(j =&gt; (_territoryGeoCache = j));
+  }
+  return _territoryFetchPromise;
+}
+
+<span class="c">// drawn per kind: electric (amber), gas (green), oru (purple)</span>
+const feats = _territoryGeoCache.features.filter(f =&gt; f.properties.layer === kind);
+L.geoJSON({ type: 'FeatureCollection', features: feats }, { interactive: false, style: TERR_STYLE[kind] }).addTo(map);</div>
+  </div>
+
+  <div class="ds-defs">
+    <h3>Overlay location note (CLCPA-101)</h3>
+    <dl>
+      <dt>The overlay's runtime path is provisional.</dt>
+      <dd>
+        <span class="ds-mono">service_territories.geojson</span> currently lives in <span class="ds-mono">Data/</span>,
+        alongside the build inputs and scripts, and the map fetches it from
+        <span class="ds-mono">./Data/service_territories.geojson</span> at runtime. That folder is otherwise build-time
+        only, so its placement as a runtime asset is provisional: if runtime assets are later moved to a dedicated
+        location, both the file path and the <span class="ds-mono">fetch()</span> in
+        <span class="ds-mono">ensureTerritoryGeo()</span> must move together. As of this writing the location is unchanged.
+      </dd>
+    </dl>
+  </div>
+
+  <!-- ============================ PART 5: ADD A LAYER ============================ -->
+  <div class="ds-part">Part 5</div>
+  <h2 class="ds-part-title">Recipe: adding a new layer</h2>
+
+  <div class="ds-card">
+    <h3>A. A new choropleth indicator (color tracts by a new field)</h3>
+    <ul class="ds-io">
+      <li><span class="lbl">1</span> Get the field into <span class="ds-mono">map_payload.json</span>: if it comes from the DAC dataset, it likely already arrives via <span class="ds-mono">enrich_map_payload.py</span>; otherwise add it in the relevant pipeline step, then re-run the pipeline.</li>
+      <li><span class="lbl">2</span> Add one entry to <span class="ds-mono">MAP_INDICATOR_GROUPS</span> in <span class="ds-mono">app.js</span>: <span class="ds-mono">{ key: 'YourField', label: 'Your label', scale: 'pct' }</span> (use <span class="ds-mono">'score'</span> only for a Combined-Burden-style raw bin).</li>
+      <li><span class="lbl">3</span> Nothing else: the dropdown, <span class="ds-mono">colorForFeature()</span>, the legend, and multi-select averaging all read from that catalog automatically.</li>
+      <li><span class="lbl">Note</span> percentile fields share the 0 to 100 ramp; only a <span class="ds-mono">'score'</span>-scale field needs its own bins (see <span class="ds-mono">dacMapColor()</span>).</li>
+    </ul>
+  </div>
+
+  <div class="ds-card">
+    <h3>B. A new service-area overlay (like the network layers)</h3>
+    <ul class="ds-io">
+      <li><span class="lbl">1</span> Drop the shapefile set into <span class="ds-mono">Data/Extra_info/</span> and add it to the <span class="ds-mono">LAYERS</span> list in <span class="ds-mono">_make_territories.py</span> (basename, a <span class="ds-mono">layer</span> tag, the name field), then re-run it to regenerate <span class="ds-mono">service_territories.geojson</span>.</li>
+      <li><span class="lbl">2</span> Add a style for the new tag to <span class="ds-mono">TERR_STYLE</span> in <span class="ds-mono">mountDACMap()</span>.</li>
+      <li><span class="lbl">3</span> Add a toggle to the Layers panel in <span class="ds-mono">renderDACMap()</span>: <span class="ds-mono">&lt;input type="checkbox" data-layer="yourtag"&gt;</span>. The existing change handler routes any non-special tag through <span class="ds-mono">setTerritory()</span>, which filters by <span class="ds-mono">layer</span> and draws it, so no new wiring is needed for a standard overlay.</li>
+      <li><span class="lbl">Note</span> if the new field should also appear in the tract tooltip (like <span class="ds-mono">electric_networks</span>), add a per-tract overlap step modeled on <span class="ds-mono">enrich_electric_network.py</span> so the value is baked into <span class="ds-mono">map_payload.json</span>.</li>
+    </ul>
+  </div>
+
+  <p class="ds-foot">
+    Static reference for the DAC map build and render. For data provenance and vintages, see the
+    <a href="data-sources.html">Data Sources &amp; Reproducibility</a> page.
+  </p>
+
+</div>
+</body>
+</html>
