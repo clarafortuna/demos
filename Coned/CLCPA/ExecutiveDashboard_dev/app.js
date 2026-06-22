@@ -7354,6 +7354,7 @@ function wireHTooltips() {
     let path = (hash || '').replace(/^#/, '') || '/';
     if (path === '/' || path === '') return { name: 'executive' };
     if (path === '/ingest') return { name: 'ingest' };
+    if (path === '/edit-map-files') return { name: 'editmapfiles' };
     const m = path.match(/^\/section\/([A-J])$/);
     if (m) return { name: 'section', sectionId: m[1] };
     return { name: 'notfound', path };
@@ -7376,6 +7377,7 @@ function wireHTooltips() {
       el.textContent = `${r.sectionId}. ${sec.full_name}`;
     }
     else if (r.name === 'ingest') el.textContent = 'Data Ingestion';
+    else if (r.name === 'editmapfiles') el.textContent = 'Edit map files';
     else el.textContent = 'Not found';
   }
 
@@ -7400,6 +7402,10 @@ function wireHTooltips() {
     else if (r.name === 'ingest') {
       view.innerHTML = renderIngestPage();
       wireIngestPage();
+    }
+    else if (r.name === 'editmapfiles') {
+      view.innerHTML = renderEditMapFiles();
+      wireEditMapFiles();
     }
     else view.innerHTML = renderNotFound(r.path);
   }
@@ -7666,6 +7672,175 @@ function wireHTooltips() {
   }
 
   // ---------- renderers ----------
+
+  // ============================================================
+  // EDIT MAP FILES (CLCPA): source list + "update to a newer version" drawer
+  // ============================================================
+  let _emfEscHandler = null;
+
+  function renderEditMapFiles() {
+    const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+    return `
+      <div class="page-header"><h1>Edit map files</h1></div>
+      <div class="emf-wrap">
+        <p class="emf-intro">The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
+
+        <div class="emf-lead">
+          <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit <span class="emf-mono">GEOID</span>, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change flows into <span class="emf-mono">map_payload.json</span>. The one exception is the Con Edison customer data, which updates through a file upload instead of a rebuild.</p>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Census tract geometry">
+          <div class="emf-src-head"><h3>1 &nbsp; Census tract geometry</h3><span class="emf-chip emf-chip-ref">rarely changes</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>2020 boundaries (2010 fallback)</dd>
+            <dt>From</dt><dd>U.S. Census Bureau (TIGER/Line tract boundaries), saved as GeoJSON</dd>
+            <dt>Files</dt><dd><span class="emf-mono">ny_tracts.geojson</span> (2020, primary) and <span class="emf-mono">ny_tracts_2010.geojson</span> (2010, fallback)</dd>
+            <dt>Brings</dt><dd>the polygon shape of every area on the map, and the GEOID that all other sources join on</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>Tract boundaries change only rarely (each decennial census, or an occasional vintage correction).</li>
+            <li>When a newer vintage is published, export the New York tracts for the six counties as GeoJSON, keeping the <code>GEOID</code> property.</li>
+            <li>Replace <strong>ny_tracts.geojson</strong> (same filename, same <code>GEOID</code> field). Only touch the 2010 fallback if you need older-vintage coverage.<button type="button" class="emf-info" data-emf-info aria-expanded="false" aria-label="Why the 2010 fallback is used">i</button><span class="emf-info-note" hidden>The 2010 file is a fallback only: it supplies a boundary for tracts missing from the 2020 file. The exact tracts that fall back are available as a separate export.</span></li>
+            <li>Re-run the base build. A new vintage can add or drop tracts, so re-check the feature count afterward.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYSERDA DAC dataset">
+          <div class="emf-src-head"><h3>2 &nbsp; NYSERDA DAC dataset</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>Final Disadvantaged Communities (DAC) 2023 (criteria finalized 2023-03-27)</dd>
+            <dt>From</dt><dd>NYSERDA / New York State Climate Justice Working Group (the CLCPA Disadvantaged Communities data)</dd>
+            <dt>File</dt><dd><span class="emf-mono">NYS_DAC.geojson</span></dd>
+            <dt>Brings</dt><dd>the DAC / Non-DAC designation, the headline fields (population, households, combined score, ranks, burden, vulnerability, affordability), and the 48 granular indicator percentiles and scores</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>NYSERDA revisits the designations periodically. When a new release is published, download it as GeoJSON keyed by <code>GEOID</code>.</li>
+            <li>Replace <strong>NYS_DAC.geojson</strong>.</li>
+            <li>Re-run the base build and the indicator step so both the headline fields and the 48 indicators refresh.</li>
+            <li>If NYSERDA renames any columns, the field lists in the build need a matching update.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Con Edison customer extracts">
+          <div class="emf-src-head"><h3>3 &nbsp; Con Edison customer extracts</h3><span class="emf-chip emf-chip-edit">editable each cycle</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>to confirm</dd>
+            <dt>From</dt><dd>Con Edison internal account and billing systems</dd>
+            <dt>Files</dt><dd><span class="emf-mono">Electric.xlsx</span> and <span class="emf-mono">Gas.xlsx</span> (the <code>Export</code> sheet)</dd>
+            <dt>Brings</dt><dd>per area: total accounts, accounts in the Energy Affordability Program, bill adjustments, and the DAC class</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>This is the routine update, done each reporting cycle and the only one you maintain directly.</li>
+            <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
+            <li>Upload the file; the data flows in through the upload into the data store. No rebuild and no code change.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYC neighborhood crosswalk">
+          <div class="emf-src-head"><h3>4 &nbsp; NYC neighborhood crosswalk</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>2020 NTAs, file dated 2026-06-01</dd>
+            <dt>From</dt><dd>NYC Department of City Planning (the Census-tracts-to-NTAs equivalency table)</dd>
+            <dt>File</dt><dd><span class="emf-mono">2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_*.csv</span></dd>
+            <dt>Brings</dt><dd>the neighborhood (NTA) name for each New York City area</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>When City Planning publishes a new equivalency (revised NTA names or boundaries), download the new CSV.</li>
+            <li>It must keep the <code>GEOID</code> and <code>NTAName</code> columns (UTF-8).</li>
+            <li>Replace the file and re-run the neighborhood step. If the filename changes, update the reference to it in the build.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Service-territory shapefiles">
+          <div class="emf-src-head"><h3>5 &nbsp; Service-territory shapefiles</h3><span class="emf-chip emf-chip-ref">updated when boundaries change</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>to confirm</dd>
+            <dt>From</dt><dd>Con Edison (CECONY electric and gas) and Orange &amp; Rockland (ORU)</dd>
+            <dt>Files</dt><dd><span class="emf-mono">Data/Extra_info/CECONY_Electric.shp</span>, <span class="emf-mono">CECONY_Gas.shp</span>, <span class="emf-mono">ORU_Territory.shp</span> (each with its <code>.prj</code> and <code>.dbf</code>)</dd>
+            <dt>Brings</dt><dd>the utility service-area boundaries (the drawable overlay) and the per-area network and gas-area tags</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>When the utility boundaries change, get the new shapefile set from the utility.</li>
+            <li>Replace the files, keeping each <code>.shp</code> together with its <code>.dbf</code> and <code>.prj</code>, and keeping the name fields (<code>NETWORK</code>, <code>BORONAME</code>, <code>STATE</code>).</li>
+            <li>Re-run the network step (per-area tags) and rebuild the overlay file.</li>
+            <li>Mind the projection: the Con Edison files are in <code>EPSG:2263</code>, the ORU file is in NAD27.</li>
+          </ol></div>
+        </div>
+      </div>
+
+      <div class="emf-overlay" id="emf-overlay" hidden>
+        <aside class="emf-drawer" id="emf-drawer" role="dialog" aria-modal="true" aria-labelledby="emf-drawer-title">
+          <div class="emf-drawer-head">
+            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Updating to a newer version</span>
+            <button class="emf-drawer-close" id="emf-drawer-close" aria-label="Close">&times;</button>
+            <h3 id="emf-drawer-title"></h3>
+            <span class="emf-chip" id="emf-drawer-chip"></span>
+          </div>
+          <div class="emf-drawer-body" id="emf-drawer-body"></div>
+        </aside>
+      </div>
+    `;
+  }
+
+  function wireEditMapFiles() {
+    const cards = Array.prototype.slice.call(document.querySelectorAll('.emf-src'));
+    const overlay = document.getElementById('emf-overlay');
+    const drawer = document.getElementById('emf-drawer');
+    const closeBtn = document.getElementById('emf-drawer-close');
+    const dTitle = document.getElementById('emf-drawer-title');
+    const dChip = document.getElementById('emf-drawer-chip');
+    const dBody = document.getElementById('emf-drawer-body');
+    if (!overlay || !drawer) return;
+
+    function openDrawer(card) {
+      dTitle.textContent = card.getAttribute('data-title');
+      const chip = card.querySelector('.emf-chip');
+      dChip.textContent = chip ? chip.textContent : '';
+      dChip.className = 'emf-chip ' + (chip && chip.classList.contains('emf-chip-edit') ? 'emf-chip-edit' : 'emf-chip-ref');
+      const steps = card.querySelector('.emf-steps');
+      dBody.innerHTML = steps ? steps.innerHTML : '';
+      cards.forEach(s => s.classList.remove('selected'));
+      card.classList.add('selected');
+      overlay.hidden = false;
+      requestAnimationFrame(() => overlay.classList.add('open'));
+      // Census step-3 info toggle (present only in that card's steps)
+      const info = dBody.querySelector('[data-emf-info]');
+      if (info) {
+        const note = info.parentElement.querySelector('.emf-info-note');
+        info.addEventListener('click', () => {
+          const isHidden = note.hasAttribute('hidden');
+          if (isHidden) { note.removeAttribute('hidden'); info.setAttribute('aria-expanded', 'true'); }
+          else { note.setAttribute('hidden', ''); info.setAttribute('aria-expanded', 'false'); }
+        });
+      }
+      closeBtn.focus();
+    }
+    function closeDrawer() {
+      overlay.classList.remove('open');
+      cards.forEach(s => s.classList.remove('selected'));
+      setTimeout(() => { if (overlay && !overlay.classList.contains('open')) overlay.hidden = true; }, 260);
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => openDrawer(card));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDrawer(card); } });
+    });
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeDrawer(); });
+    closeBtn.addEventListener('click', closeDrawer);
+    // One document-level Esc handler, replaced each time this view is wired (no accumulation).
+    if (_emfEscHandler) document.removeEventListener('keydown', _emfEscHandler);
+    _emfEscHandler = function (e) {
+      if (e.key !== 'Escape') return;
+      const ov = document.getElementById('emf-overlay');
+      if (ov && ov.classList.contains('open')) closeDrawer();
+    };
+    document.addEventListener('keydown', _emfEscHandler);
+  }
 
   /** Main ingest page renderer. */
   function renderIngestPage() {
