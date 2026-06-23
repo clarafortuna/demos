@@ -2420,8 +2420,12 @@
           helpBtn.classList.toggle('active', show);
         });
       }
-      // Panel toggling can change the map container size — keep Leaflet in sync.
-      requestAnimationFrame(() => map.invalidateSize());
+      // Panel toggling can change the map container size — keep Leaflet in sync,
+      // then bring the freshly shown detail panel into view (select only).
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
     }
 
     function clearTractSelection() {
