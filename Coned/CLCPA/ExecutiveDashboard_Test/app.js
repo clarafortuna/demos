@@ -386,6 +386,26 @@
 
     let active = lsBackend;   // default until init() decides
 
+    // Current user identity (the WHO recorded in Change History), captured once at init().
+    let _currentUser = null;
+    async function loadCurrentUser(url) {
+      const api = url.replace(/\/+$/, '') + '/api/data/v9.2/';
+      const H = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' };
+      try {
+        const w = await fetch(api + 'WhoAmI', { credentials: 'same-origin', headers: H });
+        if (!w.ok) throw new Error('WhoAmI ' + w.status);
+        const uid = (await w.json()).UserId;
+        const r = await fetch(api + 'systemusers(' + uid + ')?$select=fullname,internalemailaddress', { credentials: 'same-origin', headers: H });
+        if (!r.ok) throw new Error('systemusers ' + r.status);
+        const u = await r.json();
+        _currentUser = { name: u.fullname || '', email: u.internalemailaddress || '' };
+        console.info('[Storage] identity = ' + _currentUser.name + ' <' + _currentUser.email + '> (Dataverse WhoAmI)');
+      } catch (e) {
+        _currentUser = { name: 'Local preview', email: 'local@preview' };
+        console.warn('[Storage] identity lookup failed; using Local preview:', e);
+      }
+    }
+
     return {
       // Async one-time load. boot() awaits this before applyAddedYears/applyOverrides.
       async init() {
@@ -395,6 +415,7 @@
             await dvBackend.init(url);
             active = dvBackend;
             console.info('[Storage] backend = Dataverse (' + url + ')');
+            await loadCurrentUser(url);
             return;
           } catch (e) {
             const msg = (e && e.message) ? e.message : String(e);
@@ -408,13 +429,16 @@
         }
         active = lsBackend;
         await lsBackend.init();
+        _currentUser = { name: 'Local preview', email: 'local@preview' };
         console.info('[Storage] backend = localStorage' + (url ? ' (Dataverse fallback)' : ' (no Dataverse context)'));
+        console.info('[Storage] identity = Local preview <local@preview> (no Dataverse context)');
       },
       applyOverrides(payload) { return active.applyOverrides(payload); },
       getOverride(tableId, year) { return active.getOverride(tableId, year); },
       saveTable(tableId, year, newRows, ctx) { return active.saveTable(tableId, year, newRows, ctx); },
       getHistoryFor(tableId, year) { return active.getHistoryFor(tableId, year); },
       getAllHistory() { return active.getAllHistory(); },
+      getCurrentUser() { return _currentUser; },
       resetTable(tableId, year) { return active.resetTable(tableId, year); },
       listOverrides() { return active.listOverrides(); },
       addYear(year) { return active.addYear(year); },
@@ -7767,15 +7791,16 @@ function wireHTooltips() {
           <button class="ingest-modal-close" type="button" aria-label="Close">×</button>
         </div>
         <div class="ingest-modal-body">
-          <p>You are about to save <strong>${changeCount}</strong> cell change${changeCount !== 1 ? 's' : ''}. Please identify yourself:</p>
+          <p>You are about to save <strong>${changeCount}</strong> cell change${changeCount !== 1 ? 's' : ''}. It will be recorded under your signed-in identity:</p>
           <div class="ingest-modal-field">
             <label for="ingest-modal-name">Your name</label>
-            <input id="ingest-modal-name" type="text" placeholder="e.g. Maria Lopez" autocomplete="name" />
+            <input id="ingest-modal-name" type="text" autocomplete="name" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
           </div>
           <div class="ingest-modal-field">
             <label for="ingest-modal-email">Your email</label>
-            <input id="ingest-modal-email" type="email" placeholder="e.g. maria@coned.com" autocomplete="email" />
+            <input id="ingest-modal-email" type="email" autocomplete="email" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
           </div>
+          <div class="ingest-modal-hint">From your Power Apps profile</div>
           <div class="ingest-modal-error" id="ingest-modal-error" style="display:none"></div>
         </div>
         <div class="ingest-modal-foot">
@@ -7790,25 +7815,19 @@ function wireHTooltips() {
     modal.querySelector('#ingest-modal-cancel').addEventListener('click', close);
     modal.addEventListener('click', e => { if (e.target === modal) close(); });
 
-    // Pre-fill name/email from last save if available (nice-to-have UX)
-    const lastEntry = Storage.getAllHistory()[0];
-    if (lastEntry) {
-      modal.querySelector('#ingest-modal-name').value = lastEntry.user || '';
-      modal.querySelector('#ingest-modal-email').value = lastEntry.email || '';
-    }
+    // Identity comes from the signed-in Power Apps user (captured at init), not typed.
+    // The fields are read-only; the save records this identity regardless of the inputs.
+    const ident = Storage.getCurrentUser() || { name: 'Local preview', email: 'local@preview' };
+    modal.querySelector('#ingest-modal-name').value = ident.name || '';
+    modal.querySelector('#ingest-modal-email').value = ident.email || '';
 
     modal.querySelector('#ingest-modal-confirm').addEventListener('click', () => {
-      const name = modal.querySelector('#ingest-modal-name').value.trim();
-      const email = modal.querySelector('#ingest-modal-email').value.trim();
-      const err = modal.querySelector('#ingest-modal-error');
-      if (!name) { err.textContent = 'Please enter your name.'; err.style.display = 'block'; return; }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return;
-      }
+      // WHO is the signed-in identity captured at init, never the (read-only) input fields.
+      const who = Storage.getCurrentUser() || ident;
 
       // Persist
       Storage.saveTable(i.tableId, i.year, clone2D(i.draft), {
-        name, email,
+        name: who.name, email: who.email,
         oldRows: clone2D(i.baseline),
         schema: i.schema ? i.schema.slice() : []
       });
@@ -7829,8 +7848,8 @@ function wireHTooltips() {
       rerenderIngestHistory();
     });
 
-    // Focus first field
-    setTimeout(() => modal.querySelector('#ingest-modal-name').focus(), 50);
+    // Fields are read-only (identity is automatic), so focus the confirm button.
+    setTimeout(() => modal.querySelector('#ingest-modal-confirm').focus(), 50);
   }
 
   // ---------- partial re-renderers ----------
