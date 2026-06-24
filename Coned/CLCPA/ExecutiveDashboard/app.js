@@ -30,13 +30,21 @@
   // ============================================================
   // STORAGE LAYER (Phase 6)
   // ============================================================
-  // Abstraction over the persistence backend. Today it reads/writes to
-  // localStorage; tomorrow swap the implementation to talk to Dataverse
-  // and the rest of the app stays untouched.
+  // Abstraction over the persistence backend, with TWO interchangeable
+  // implementations sharing one public interface:
+  //   - dvBackend  : Dataverse Web API (used when hosted in a Dataverse context).
+  //                  Loads all rows into memory at init(); getters serve from
+  //                  cache synchronously; writes update the cache then push to
+  //                  Dataverse in the background (instant UI, never blocks).
+  //   - lsBackend  : localStorage (original behavior; used on localhost / when
+  //                  no Dataverse context is detected).
+  // Storage.init() (awaited once in boot) picks the backend; every other method
+  // keeps its original synchronous signature, so the rest of the app is untouched.
   //
-  // Two buckets:
-  //   dac:overrides   { 'B2:2025': [[...rows...]], ... }
-  //   dac:history     [ { ts, user, tableId, year, changes: [{rowIdx, colIdx, oldVal, newVal}] }, ... ]
+  // Two buckets (localStorage backend) / three tables (Dataverse backend):
+  //   dac:overrides   { 'B2:2025': [[...rows...]], ... }        -> cr2bf_dacingesttesttabledata1s
+  //   dac:history     [ { ts, user, tableId, year, changes }, ... ] -> cr2bf_dacingesttestchangehistories
+  //   dac:years       [ '2026', ... ]                          -> cr2bf_dacingesttestreportingyears
   //
   // applyOverrides(payload) — at boot, merge any saved overrides into the
   //   payload so charts and tables reflect user edits.
@@ -46,305 +54,417 @@
   // ============================================================
 
   const Storage = (function () {
+    // localStorage keys (localStorage backend + dev fallback)
     const OVERRIDES_KEY = 'dac:overrides';
     const HISTORY_KEY = 'dac:history';
     const YEARS_KEY = 'dac:years';
 
-    function readJSON(key, fallback) {
-      try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) : fallback;
-      } catch (e) {
-        console.warn('Storage read failed for ' + key, e);
-        return fallback;
-      }
+    // Dataverse Web API entity sets + primary-id columns
+    const SET_TABLEDATA = 'cr2bf_dacingesttesttabledata1s';
+    const SET_HISTORY   = 'cr2bf_dacingesttestchangehistories';
+    const SET_YEARS     = 'cr2bf_dacingesttestreportingyears';
+    const ID_TABLEDATA  = 'cr2bf_dacingesttesttabledata1id';
+    const ID_HISTORY    = 'cr2bf_dacingesttestchangehistoryid';
+    const ID_YEARS      = 'cr2bf_dacingesttestreportingyearid';
+
+    function overrideKey(tableId, year) { return tableId + ':' + year; }
+    function sectionOf(tableId) { const m = String(tableId).match(/^[A-Za-z]+/); return m ? m[0] : String(tableId); }
+    function deepClone(v) { return JSON.parse(JSON.stringify(v)); }
+
+    // ---- pristine payload.json baseline, captured before applyOverrides mutates it ----
+    // Used by resetTable to revert a table-year to its original payload.json values.
+    let baseline = {};            // 'tableId:year' -> deep-cloned original rows
+    let baselineCaptured = false;
+    function captureBaseline(payload) {
+      if (baselineCaptured || !payload || !payload.tables) return;
+      Object.keys(payload.tables).forEach(tid => {
+        const t = payload.tables[tid];
+        if (!t || !t.data) return;
+        Object.keys(t.data).forEach(y => { baseline[overrideKey(tid, y)] = deepClone(t.data[y]); });
+      });
+      baselineCaptured = true;
     }
 
-    function writeJSON(key, value) {
+    // ---- self-contained toast for background-write failures (no CSS-file dependency) ----
+    function showToast(message, type) {
       try {
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-      } catch (e) {
-        console.error('Storage write failed for ' + key, e);
-        return false;
-      }
+        let host = document.getElementById('dac-toast-host');
+        if (!host) {
+          host = document.createElement('div');
+          host.id = 'dac-toast-host';
+          host.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:99999;display:flex;flex-direction:column;gap:8px;max-width:380px';
+          document.body.appendChild(host);
+        }
+        const el = document.createElement('div');
+        el.textContent = message;
+        el.style.cssText = 'font:13px/1.4 system-ui,Segoe UI,sans-serif;padding:10px 14px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.22);color:#fff;background:' + (type === 'error' ? '#C0392B' : '#185FA5');
+        host.appendChild(el);
+        setTimeout(() => { el.style.transition = 'opacity .4s'; el.style.opacity = '0'; setTimeout(() => el.remove(), 420); }, 6000);
+      } catch (e) { /* DOM not ready — the console error is still emitted by the caller */ }
     }
 
-    function overrideKey(tableId, year) {
-      return tableId + ':' + year;
+    // ---- shared row-diff (identical change-detection used by both backends) ----
+    // Returns the `changes` array for a history entry.
+    function diffRows(oldRows, newRows, schema) {
+      oldRows = oldRows || []; newRows = newRows || []; schema = schema || [];
+      const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
+      const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
+      const oldByLabel = {}; oldLabels.forEach((lbl, i) => { if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i); });
+      const newByLabel = {}; newLabels.forEach((lbl, i) => { if (lbl) (newByLabel[lbl] = newByLabel[lbl] || []).push(i); });
+      const changes = [];
+      // Deleted rows
+      Object.keys(oldByLabel).forEach(lbl => {
+        const oldIdxs = oldByLabel[lbl] || []; const newIdxs = newByLabel[lbl] || [];
+        for (let k = newIdxs.length; k < oldIdxs.length; k++) changes.push({ kind: 'deleted', rowIdx: oldIdxs[k], oldRow: oldRows[oldIdxs[k]] });
+      });
+      // Added rows
+      Object.keys(newByLabel).forEach(lbl => {
+        const oldIdxs = oldByLabel[lbl] || []; const newIdxs = newByLabel[lbl] || [];
+        for (let k = oldIdxs.length; k < newIdxs.length; k++) changes.push({ kind: 'added', rowIdx: newIdxs[k], newRow: newRows[newIdxs[k]] });
+      });
+      // Cell diffs for rows present in both (paired by label)
+      const pairedOld = new Set(); const pairedNew = new Set();
+      Object.keys(oldByLabel).forEach(lbl => {
+        const oIdxs = oldByLabel[lbl] || []; const nIdxs = newByLabel[lbl] || [];
+        const n = Math.min(oIdxs.length, nIdxs.length);
+        for (let i = 0; i < n; i++) {
+          const oi = oIdxs[i], ni = nIdxs[i]; pairedOld.add(oi); pairedNew.add(ni);
+          const oRow = oldRows[oi] || [], nRow = newRows[ni] || [];
+          const colCount = Math.max(oRow.length, nRow.length);
+          for (let c = 1; c < colCount; c++) {   // skip col 0 (label) — covered by pairing
+            if (oRow[c] !== nRow[c]) changes.push({ kind: 'cell', rowIdx: ni, colIdx: c, rowLabel: lbl, colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
+          }
+        }
+      });
+      // Blank-labeled rows — positional fallback
+      for (let r = 0; r < Math.max(oldRows.length, newRows.length); r++) {
+        if (pairedOld.has(r) || pairedNew.has(r)) continue;
+        const oRow = oldRows[r] || [], nRow = newRows[r] || [];
+        if (!oRow[0] && !nRow[0]) {
+          const colCount = Math.max(oRow.length, nRow.length);
+          for (let c = 0; c < colCount; c++) {
+            if (oRow[c] !== nRow[c]) changes.push({ kind: 'cell', rowIdx: r, colIdx: c, rowLabel: '(unlabeled)', colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
+          }
+        }
+      }
+      return changes;
+    }
+
+    // ============================================================
+    // Backend 1 — localStorage (original behavior; dev / no-Dataverse)
+    // ============================================================
+    const lsBackend = (function () {
+      function readJSON(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch (e) { console.warn('Storage read failed for ' + key, e); return fallback; } }
+      function writeJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { console.error('Storage write failed for ' + key, e); return false; } }
+      return {
+        async init() { /* reads are live from localStorage; nothing to preload */ },
+        // No Dataverse context -> the map renders from map_payload.json only.
+        getMapTractOverlay() { return null; },
+        applyOverrides(payload) {
+          captureBaseline(payload);
+          if (!payload || !payload.tables) return payload;
+          const overrides = readJSON(OVERRIDES_KEY, {});
+          Object.entries(overrides).forEach(([key, rows]) => {
+            const sepIdx = key.indexOf(':'); if (sepIdx < 0) return;
+            const tableId = key.slice(0, sepIdx); const year = key.slice(sepIdx + 1);
+            const t = payload.tables[tableId]; if (!t) return;
+            t.data = t.data || {}; t.data[year] = rows;
+          });
+          return payload;
+        },
+        getOverride(tableId, year) { const overrides = readJSON(OVERRIDES_KEY, {}); return overrides[overrideKey(tableId, year)] || null; },
+        saveTable(tableId, year, newRows, ctx) {
+          ctx = ctx || {};
+          const overrides = readJSON(OVERRIDES_KEY, {});
+          const oldRows = ctx.oldRows || overrides[overrideKey(tableId, year)] || [];
+          const changes = diffRows(oldRows, newRows, ctx.schema || []);
+          overrides[overrideKey(tableId, year)] = newRows;
+          writeJSON(OVERRIDES_KEY, overrides);
+          const entry = { ts: Date.now(), user: ctx.name || 'anonymous', email: ctx.email || '', tableId, year, changes };
+          const history = readJSON(HISTORY_KEY, []); history.push(entry); writeJSON(HISTORY_KEY, history);
+          return entry;
+        },
+        getHistoryFor(tableId, year) { return readJSON(HISTORY_KEY, []).filter(e => e.tableId === tableId && (!year || e.year === year)).sort((a, b) => b.ts - a.ts); },
+        getAllHistory() { return readJSON(HISTORY_KEY, []).sort((a, b) => b.ts - a.ts); },
+        resetTable(tableId, year) { const overrides = readJSON(OVERRIDES_KEY, {}); delete overrides[overrideKey(tableId, year)]; writeJSON(OVERRIDES_KEY, overrides); },
+        listOverrides() { return Object.keys(readJSON(OVERRIDES_KEY, {})); },
+        addYear(year) { const y = String(year); const years = readJSON(YEARS_KEY, []); if (years.includes(y)) return false; years.push(y); writeJSON(YEARS_KEY, years); return true; },
+        removeYear(year) {
+          const y = String(year); const years = readJSON(YEARS_KEY, []); const idx = years.indexOf(y); if (idx < 0) return false;
+          years.splice(idx, 1); writeJSON(YEARS_KEY, years);
+          const overrides = readJSON(OVERRIDES_KEY, {});
+          Object.keys(overrides).forEach(k => { if (k.endsWith(':' + y)) delete overrides[k]; });
+          writeJSON(OVERRIDES_KEY, overrides);
+          return true;
+        },
+        getAddedYears() { return readJSON(YEARS_KEY, []); },
+        applyAddedYears(payload) {
+          if (!payload || !payload.meta) return [];
+          const added = readJSON(YEARS_KEY, []); if (added.length === 0) return payload.meta.years;
+          const base = payload.meta.years || []; const all = Array.from(new Set([...base, ...added]));
+          all.sort((a, b) => parseInt(b) - parseInt(a)); payload.meta.years = all; return all;
+        },
+        clearAll() { localStorage.removeItem(OVERRIDES_KEY); localStorage.removeItem(HISTORY_KEY); localStorage.removeItem(YEARS_KEY); },
+      };
+    })();
+
+    // ============================================================
+    // Backend 2 — Dataverse (in-memory cache + async write-behind)
+    // ============================================================
+    // init() loads all three tables into caches; every getter then serves
+    // synchronously from cache (same contract as localStorage). Writes update
+    // the cache synchronously (instant UI) then push to Dataverse in the
+    // background; failures log + toast and never block the UI.
+    const dvBackend = (function () {
+      let API = null;                 // ".../api/data/v9.2/"
+      let cOverrides = {};            // 'tableId:year' -> { id, section, tableId, year, rows }
+      let cHistory = [];              // [{ ts, user, email, tableId, year, changes, _id }]
+      let cYears = [];                // [{ year, id }]
+
+      const GET_HEADERS = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' };
+      const WRITE_HEADERS = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', 'Content-Type': 'application/json' };
+
+      async function getAll(set, query) {
+        let url = API + set + (query ? ('?' + query) : '');
+        const out = [];
+        while (url) {
+          const res = await fetch(url, { credentials: 'same-origin', headers: GET_HEADERS });
+          if (!res.ok) throw new Error(set + ' GET ' + res.status);
+          const j = await res.json();
+          if (j.value) out.push.apply(out, j.value);
+          url = j['@odata.nextLink'] || null;
+        }
+        return out;
+      }
+      async function dvCreate(set, body) {
+        const res = await fetch(API + set, { method: 'POST', credentials: 'same-origin', headers: Object.assign({}, WRITE_HEADERS, { Prefer: 'return=representation' }), body: JSON.stringify(body) });
+        if (!res.ok) throw new Error(set + ' POST ' + res.status + ' ' + (await res.text()));
+        return await res.json();
+      }
+      async function dvUpdate(set, id, body) {
+        const res = await fetch(API + set + '(' + id + ')', { method: 'PATCH', credentials: 'same-origin', headers: WRITE_HEADERS, body: JSON.stringify(body) });
+        if (!res.ok) throw new Error(set + ' PATCH ' + res.status + ' ' + (await res.text()));
+      }
+      async function dvDelete(set, id) {
+        const res = await fetch(API + set + '(' + id + ')', { method: 'DELETE', credentials: 'same-origin', headers: WRITE_HEADERS });
+        if (!res.ok) throw new Error(set + ' DELETE ' + res.status);
+      }
+      // Fire-and-forget a background write; report failures without blocking the UI.
+      function bg(promise, failMsg) {
+        promise.catch(e => { console.error('[Storage] ' + failMsg, e); showToast(failMsg + ': ' + (e && e.message ? e.message : e), 'error'); });
+      }
+
+      return {
+        async init(baseUrl) {
+          API = baseUrl.replace(/\/+$/, '') + '/api/data/v9.2/';
+          // Table Data -> overrides cache
+          const td = await getAll(SET_TABLEDATA, '$select=' + ID_TABLEDATA + ',cr2bf_key,cr2bf_section,cr2bf_tableid,cr2bf_year,cr2bf_rows');
+          cOverrides = {};
+          td.forEach(r => {
+            let rows; try { rows = JSON.parse(r.cr2bf_rows); } catch (e) { rows = []; }
+            const key = r.cr2bf_key || overrideKey(r.cr2bf_tableid, r.cr2bf_year);
+            cOverrides[key] = { id: r[ID_TABLEDATA], section: r.cr2bf_section, tableId: r.cr2bf_tableid, year: String(r.cr2bf_year), rows: rows };
+          });
+          // Change History -> history cache (newest first)
+          const hh = await getAll(SET_HISTORY, '$select=' + ID_HISTORY + ',cr2bf_tableid,cr2bf_year,cr2bf_user,cr2bf_email,cr2bf_savedat,cr2bf_changes&$orderby=cr2bf_savedat desc');
+          cHistory = hh.map(r => {
+            let changes; try { changes = JSON.parse(r.cr2bf_changes); } catch (e) { changes = []; }
+            return { ts: r.cr2bf_savedat ? Date.parse(r.cr2bf_savedat) : 0, user: r.cr2bf_user || '', email: r.cr2bf_email || '', tableId: r.cr2bf_tableid, year: String(r.cr2bf_year), changes: changes, _id: r[ID_HISTORY] };
+          });
+          // Reporting Year -> years cache
+          const yy = await getAll(SET_YEARS, '$select=' + ID_YEARS + ',cr2bf_reportingyear');
+          cYears = yy.map(r => ({ year: String(r.cr2bf_reportingyear), id: r[ID_YEARS] }));
+        },
+        applyOverrides(payload) {
+          captureBaseline(payload);
+          if (!payload || !payload.tables) return payload;
+          Object.keys(cOverrides).forEach(key => {
+            const o = cOverrides[key]; const t = payload.tables[o.tableId]; if (!t) return;
+            t.data = t.data || {}; t.data[o.year] = o.rows;
+          });
+          return payload;
+        },
+        getOverride(tableId, year) { const o = cOverrides[overrideKey(tableId, year)]; return o ? o.rows : null; },
+        saveTable(tableId, year, newRows, ctx) {
+          ctx = ctx || {};
+          const key = overrideKey(tableId, year);
+          const existing = cOverrides[key];
+          const oldRows = ctx.oldRows || (existing ? existing.rows : []) || [];
+          const changes = diffRows(oldRows, newRows, ctx.schema || []);
+
+          // --- synchronous cache update (instant UI) ---
+          cOverrides[key] = { id: existing ? existing.id : null, section: existing ? existing.section : sectionOf(tableId), tableId: tableId, year: String(year), rows: newRows };
+          const entry = { ts: Date.now(), user: ctx.name || 'anonymous', email: ctx.email || '', tableId: tableId, year: year, changes: changes, _id: null };
+          cHistory.unshift(entry);
+
+          // --- background write-behind: upsert Table Data + append Change History ---
+          const yearInt = parseInt(year, 10);
+          const tdBody = { cr2bf_key: key, cr2bf_section: cOverrides[key].section, cr2bf_tableid: tableId, cr2bf_year: yearInt, cr2bf_rows: JSON.stringify(newRows) };
+          bg((async () => {
+            if (cOverrides[key] && cOverrides[key].id) {
+              await dvUpdate(SET_TABLEDATA, cOverrides[key].id, tdBody);
+            } else {
+              const created = await dvCreate(SET_TABLEDATA, tdBody);
+              if (cOverrides[key]) cOverrides[key].id = created[ID_TABLEDATA];
+            }
+          })(), 'Save to Dataverse failed for ' + key);
+
+          const n = changes.length;
+          const hBody = {
+            cr2bf_tableid: tableId, cr2bf_year: yearInt, cr2bf_user: entry.user, cr2bf_email: entry.email,
+            cr2bf_savedat: new Date(entry.ts).toISOString(), cr2bf_changes: JSON.stringify(changes),
+            cr2bf_changedescription: (key + ' — ' + n + ' change' + (n === 1 ? '' : 's')).slice(0, 100)
+          };
+          bg((async () => { const created = await dvCreate(SET_HISTORY, hBody); entry._id = created[ID_HISTORY]; })(), 'Save history to Dataverse failed for ' + key);
+
+          return entry;
+        },
+        getHistoryFor(tableId, year) { return cHistory.filter(e => e.tableId === tableId && (!year || e.year === year)).sort((a, b) => b.ts - a.ts); },
+        getAllHistory() { return cHistory.slice().sort((a, b) => b.ts - a.ts); },
+        resetTable(tableId, year) {
+          const key = overrideKey(tableId, year);
+          const base = baseline[key];
+          // restore live payload to pristine payload.json values
+          if (typeof state !== 'undefined' && state.payload && state.payload.tables && state.payload.tables[tableId]) {
+            const t = state.payload.tables[tableId]; t.data = t.data || {};
+            if (base !== undefined) t.data[year] = deepClone(base);
+          }
+          // restore cache + push baseline back to Dataverse (history untouched)
+          const o = cOverrides[key];
+          if (o) {
+            if (base !== undefined) o.rows = deepClone(base);
+            if (o.id && base !== undefined) bg(dvUpdate(SET_TABLEDATA, o.id, { cr2bf_rows: JSON.stringify(base) }), 'Reset in Dataverse failed for ' + key);
+          }
+        },
+        listOverrides() { return Object.keys(cOverrides); },
+        addYear(year) {
+          const y = String(year);
+          if (cYears.some(o => o.year === y)) return false;
+          const obj = { year: y, id: null }; cYears.push(obj);
+          bg((async () => { const created = await dvCreate(SET_YEARS, { cr2bf_reportingyear: y }); obj.id = created[ID_YEARS]; })(), 'Add year in Dataverse failed for ' + y);
+          return true;
+        },
+        removeYear(year) {
+          const y = String(year);
+          const idx = cYears.findIndex(o => o.year === y); if (idx < 0) return false;
+          const rec = cYears[idx]; cYears.splice(idx, 1);
+          const delIds = [];
+          Object.keys(cOverrides).forEach(k => { if (k.endsWith(':' + y)) { if (cOverrides[k].id) delIds.push(cOverrides[k].id); delete cOverrides[k]; } });
+          bg((async () => {
+            if (rec.id) await dvDelete(SET_YEARS, rec.id);
+            for (let i = 0; i < delIds.length; i++) await dvDelete(SET_TABLEDATA, delIds[i]);
+          })(), 'Remove year in Dataverse failed for ' + y);
+          return true;
+        },
+        getAddedYears() { return cYears.map(o => o.year); },
+        applyAddedYears(payload) {
+          if (!payload || !payload.meta) return [];
+          const added = cYears.map(o => o.year); if (added.length === 0) return payload.meta.years;
+          const base = payload.meta.years || []; const all = Array.from(new Set([...base, ...added]));
+          all.sort((a, b) => parseInt(b) - parseInt(a)); payload.meta.years = all; return all;
+        },
+        // SAFE: never bulk-delete Dataverse. Clear in-memory caches only.
+        clearAll() { cOverrides = {}; cHistory = []; cYears = []; console.warn('[Storage] clearAll: in-memory caches cleared; Dataverse records left intact.'); },
+        // Read-only: load the 8 editable map fields for every tract, keyed by GEOID
+        // (logical column -> map_payload JSON key). Used to overlay onto the file features.
+        async getMapTractOverlay() {
+          const FM = { cr2bf_elecdac: 'elec_dac', cr2bf_elecaccts: 'elec_accts', cr2bf_eleceap: 'elec_eap', cr2bf_elecadj: 'elec_adj', cr2bf_gasdac: 'gas_dac', cr2bf_gasaccts: 'gas_accts', cr2bf_gaseap: 'gas_eap', cr2bf_gasadj: 'gas_adj' };
+          const rows = await getAll('cr2bf_dacmaptractdatas', '$select=cr2bf_censustractgeoid,' + Object.keys(FM).join(','));
+          const byGeoid = {};
+          rows.forEach(r => {
+            const g = r.cr2bf_censustractgeoid;
+            if (g == null) return;
+            const rec = {};
+            Object.keys(FM).forEach(col => { rec[FM[col]] = (r[col] === undefined ? null : r[col]); });
+            byGeoid[g] = rec;
+          });
+          return byGeoid;
+        },
+      };
+    })();
+
+    // ============================================================
+    // Backend detection + facade (delegates to the active backend)
+    // ============================================================
+    function detectDataverseUrl() {
+      const tryCtx = (xrm) => { try { if (xrm && xrm.Utility && xrm.Utility.getGlobalContext) { const u = xrm.Utility.getGlobalContext().getClientUrl(); if (u) return u; } } catch (e) {} return null; };
+      let u = (typeof Xrm !== 'undefined') ? tryCtx(Xrm) : null;
+      if (!u) { try { u = tryCtx(window.parent && window.parent.Xrm); } catch (e) {} }
+      if (!u) { try { if (typeof GetGlobalContext === 'function') { const c = GetGlobalContext(); if (c && c.getClientUrl) u = c.getClientUrl(); } } catch (e) {} }
+      // Final fallback: the web resource is served from the org's own origin, so
+      // when no Xrm context is available but we're on a Dataverse host, use the
+      // origin directly. The Web API is same-origin (${origin}/api/data/v9.2/) and
+      // our fetches send credentials:'same-origin', so the authenticated session
+      // cookies should authorize the calls — no Xrm required. (If those reads come
+      // back 401/403, init() logs it and falls back to localStorage.)
+      if (!u) { try { if (/\.dynamics\.com$/i.test(window.location.hostname)) u = window.location.origin; } catch (e) {} }
+      return u || null;
+    }
+
+    let active = lsBackend;   // default until init() decides
+
+    // Current user identity (the WHO recorded in Change History), captured once at init().
+    let _currentUser = null;
+    async function loadCurrentUser(url) {
+      const api = url.replace(/\/+$/, '') + '/api/data/v9.2/';
+      const H = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' };
+      try {
+        const w = await fetch(api + 'WhoAmI', { credentials: 'same-origin', headers: H });
+        if (!w.ok) throw new Error('WhoAmI ' + w.status);
+        const uid = (await w.json()).UserId;
+        const r = await fetch(api + 'systemusers(' + uid + ')?$select=fullname,internalemailaddress', { credentials: 'same-origin', headers: H });
+        if (!r.ok) throw new Error('systemusers ' + r.status);
+        const u = await r.json();
+        _currentUser = { name: u.fullname || '', email: u.internalemailaddress || '' };
+        console.info('[Storage] identity = ' + _currentUser.name + ' <' + _currentUser.email + '> (Dataverse WhoAmI)');
+      } catch (e) {
+        _currentUser = { name: 'Local preview', email: 'local@preview' };
+        console.warn('[Storage] identity lookup failed; using Local preview:', e);
+      }
     }
 
     return {
-      /**
-       * Apply all saved overrides on top of the payload object. The payload
-       * is mutated in place. Safe to call multiple times.
-       */
-      applyOverrides(payload) {
-        if (!payload || !payload.tables) return payload;
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        Object.entries(overrides).forEach(([key, rows]) => {
-          const sepIdx = key.indexOf(':');
-          if (sepIdx < 0) return;
-          const tableId = key.slice(0, sepIdx);
-          const year = key.slice(sepIdx + 1);
-          const t = payload.tables[tableId];
-          if (!t) return;
-          t.data = t.data || {};
-          t.data[year] = rows;
-        });
-        return payload;
-      },
-
-      /**
-       * Get the override for a specific table/year (or null if none).
-       */
-      getOverride(tableId, year) {
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        return overrides[overrideKey(tableId, year)] || null;
-      },
-
-      /**
-       * Persist a full set of rows for a table/year and record one history
-       * entry describing the changes vs the previous state.
-       *
-       * History entry shape:
-       *   {
-       *     ts, user, email, tableId, year,
-       *     changes: [
-       *       { kind: 'cell',    rowIdx, colIdx, colLabel, rowLabel, oldVal, newVal },
-       *       { kind: 'added',   rowIdx, newRow: [...] },
-       *       { kind: 'deleted', rowIdx, oldRow: [...] }
-       *     ]
-       *   }
-       *
-       * @param {string} tableId
-       * @param {string} year
-       * @param {Array<Array>} newRows
-       * @param {{name, email, oldRows, schema}} ctx
-       */
-      saveTable(tableId, year, newRows, ctx) {
-        ctx = ctx || {};
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        const oldRows = ctx.oldRows || overrides[overrideKey(tableId, year)] || [];
-        const schema = ctx.schema || [];
-
-        // ---- Detect row-level adds/deletes -----------------------------
-        // Heuristic: pair rows by their first-cell label. If a label exists
-        // in only one side, it's an add or delete.
-        const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
-        const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
-
-        const oldByLabel = {};
-        oldLabels.forEach((lbl, i) => {
-          if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i);
-        });
-        const newByLabel = {};
-        newLabels.forEach((lbl, i) => {
-          if (lbl) (newByLabel[lbl] = newByLabel[lbl] || []).push(i);
-        });
-
-        const changes = [];
-
-        // Deleted rows: in oldByLabel but not in newByLabel (or fewer instances)
-        Object.keys(oldByLabel).forEach(lbl => {
-          const oldIdxs = oldByLabel[lbl] || [];
-          const newIdxs = newByLabel[lbl] || [];
-          for (let k = newIdxs.length; k < oldIdxs.length; k++) {
-            changes.push({ kind: 'deleted', rowIdx: oldIdxs[k], oldRow: oldRows[oldIdxs[k]] });
-          }
-        });
-
-        // Added rows: in newByLabel but not in oldByLabel (or more instances)
-        Object.keys(newByLabel).forEach(lbl => {
-          const oldIdxs = oldByLabel[lbl] || [];
-          const newIdxs = newByLabel[lbl] || [];
-          for (let k = oldIdxs.length; k < newIdxs.length; k++) {
-            changes.push({ kind: 'added', rowIdx: newIdxs[k], newRow: newRows[newIdxs[k]] });
-          }
-        });
-
-        // Cell-level diff for rows that exist in BOTH old and new (by label).
-        // Pair them up in encounter order.
-        const pairedOld = new Set();
-        const pairedNew = new Set();
-        Object.keys(oldByLabel).forEach(lbl => {
-          const oIdxs = oldByLabel[lbl] || [];
-          const nIdxs = newByLabel[lbl] || [];
-          const n = Math.min(oIdxs.length, nIdxs.length);
-          for (let i = 0; i < n; i++) {
-            const oi = oIdxs[i], ni = nIdxs[i];
-            pairedOld.add(oi);
-            pairedNew.add(ni);
-            const oRow = oldRows[oi] || [];
-            const nRow = newRows[ni] || [];
-            const colCount = Math.max(oRow.length, nRow.length);
-            for (let c = 1; c < colCount; c++) {   // skip col 0 (label) — covered by pairing
-              const oVal = oRow[c];
-              const nVal = nRow[c];
-              if (oVal !== nVal) {
-                changes.push({
-                  kind: 'cell',
-                  rowIdx: ni,
-                  colIdx: c,
-                  rowLabel: lbl,
-                  colLabel: schema[c] != null ? String(schema[c]) : '',
-                  oldVal: oVal,
-                  newVal: nVal
-                });
-              }
+      // Async one-time load. boot() awaits this before applyAddedYears/applyOverrides.
+      async init() {
+        const url = detectDataverseUrl();
+        if (url) {
+          try {
+            await dvBackend.init(url);
+            active = dvBackend;
+            console.info('[Storage] backend = Dataverse (' + url + ')');
+            await loadCurrentUser(url);
+            return;
+          } catch (e) {
+            const msg = (e && e.message) ? e.message : String(e);
+            if (/\b40[13]\b/.test(msg)) {
+              console.error('[Storage] Dataverse read unauthorized (' + msg + '). Session-cookie auth was not accepted at ' + url + '/api/data/v9.2/ — the page probably needs to run inside a model-driven app (parent.Xrm). Falling back to localStorage.', e);
+            } else {
+              console.error('[Storage] Dataverse init failed (' + msg + '); falling back to localStorage.', e);
             }
-          }
-        });
-
-        // Rows whose label is empty/blank — fall back to positional diff
-        for (let r = 0; r < Math.max(oldRows.length, newRows.length); r++) {
-          if (pairedOld.has(r) || pairedNew.has(r)) continue;
-          const oRow = oldRows[r] || [];
-          const nRow = newRows[r] || [];
-          const oLabel = oRow[0];
-          const nLabel = nRow[0];
-          if (!oLabel && !nLabel) {
-            // Both blank-labeled — positional cell diff
-            const colCount = Math.max(oRow.length, nRow.length);
-            for (let c = 0; c < colCount; c++) {
-              if (oRow[c] !== nRow[c]) {
-                changes.push({
-                  kind: 'cell',
-                  rowIdx: r,
-                  colIdx: c,
-                  rowLabel: '(unlabeled)',
-                  colLabel: schema[c] != null ? String(schema[c]) : '',
-                  oldVal: oRow[c],
-                  newVal: nRow[c]
-                });
-              }
-            }
+            showToast('Could not connect to Dataverse — using local storage.', 'error');
           }
         }
-
-        // Persist the new rows.
-        overrides[overrideKey(tableId, year)] = newRows;
-        writeJSON(OVERRIDES_KEY, overrides);
-
-        // Append a history entry.
-        const entry = {
-          ts: Date.now(),
-          user: ctx.name || 'anonymous',
-          email: ctx.email || '',
-          tableId,
-          year,
-          changes,
-        };
-        const history = readJSON(HISTORY_KEY, []);
-        history.push(entry);
-        writeJSON(HISTORY_KEY, history);
-
-        return entry;
+        active = lsBackend;
+        await lsBackend.init();
+        _currentUser = { name: 'Local preview', email: 'local@preview' };
+        console.info('[Storage] backend = localStorage' + (url ? ' (Dataverse fallback)' : ' (no Dataverse context)'));
+        console.info('[Storage] identity = Local preview <local@preview> (no Dataverse context)');
       },
-
-      /**
-       * Return history entries for a specific table+year (newest first).
-       */
-      getHistoryFor(tableId, year) {
-        const history = readJSON(HISTORY_KEY, []);
-        return history
-          .filter(e => e.tableId === tableId && (!year || e.year === year))
-          .sort((a, b) => b.ts - a.ts);
-      },
-
-      /**
-       * Return ALL history entries (newest first). Used for a global activity log.
-       */
-      getAllHistory() {
-        return readJSON(HISTORY_KEY, []).sort((a, b) => b.ts - a.ts);
-      },
-
-      /**
-       * Drop the override for a table/year. Does NOT touch history.
-       */
-      resetTable(tableId, year) {
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        delete overrides[overrideKey(tableId, year)];
-        writeJSON(OVERRIDES_KEY, overrides);
-      },
-
-      /**
-       * For debugging: list all override keys currently in localStorage.
-       */
-      listOverrides() {
-        return Object.keys(readJSON(OVERRIDES_KEY, {}));
-      },
-
-      /**
-       * Year management (Phase 6c)
-       * --------------------------------
-       * Users can extend the dashboard with new reporting years (e.g. 2026)
-       * without redeploying the payload. Added years are persisted under
-       * 'dac:years' and merged into meta.years at boot.
-       */
-
-      /**
-       * Add a new year. Returns true if added, false if it already existed.
-       */
-      addYear(year) {
-        const y = String(year);
-        const years = readJSON(YEARS_KEY, []);
-        if (years.includes(y)) return false;
-        years.push(y);
-        writeJSON(YEARS_KEY, years);
-        return true;
-      },
-
-      /**
-       * Remove a user-added year (does NOT touch baseline payload.meta.years).
-       * Returns true if removed, false if it wasn't a user-added year.
-       */
-      removeYear(year) {
-        const y = String(year);
-        const years = readJSON(YEARS_KEY, []);
-        const idx = years.indexOf(y);
-        if (idx < 0) return false;
-        years.splice(idx, 1);
-        writeJSON(YEARS_KEY, years);
-        // Also drop any overrides scoped to that year
-        const overrides = readJSON(OVERRIDES_KEY, {});
-        Object.keys(overrides).forEach(k => {
-          if (k.endsWith(':' + y)) delete overrides[k];
-        });
-        writeJSON(OVERRIDES_KEY, overrides);
-        return true;
-      },
-
-      /** Return the list of user-added years (oldest first). */
-      getAddedYears() {
-        return readJSON(YEARS_KEY, []);
-      },
-
-      /**
-       * Merge user-added years into the payload's meta.years (sorted desc).
-       * Returns the resulting array.
-       */
-      applyAddedYears(payload) {
-        if (!payload || !payload.meta) return [];
-        const added = readJSON(YEARS_KEY, []);
-        if (added.length === 0) return payload.meta.years;
-        const base = payload.meta.years || [];
-        const all = Array.from(new Set([...base, ...added]));
-        // Sort newest first
-        all.sort((a, b) => parseInt(b) - parseInt(a));
-        payload.meta.years = all;
-        return all;
-      },
-
-      /**
-       * Hard reset — drop ALL overrides, history, and added years.
-       * Useful during development.
-       */
-      clearAll() {
-        localStorage.removeItem(OVERRIDES_KEY);
-        localStorage.removeItem(HISTORY_KEY);
-        localStorage.removeItem(YEARS_KEY);
-      },
+      applyOverrides(payload) { return active.applyOverrides(payload); },
+      getOverride(tableId, year) { return active.getOverride(tableId, year); },
+      saveTable(tableId, year, newRows, ctx) { return active.saveTable(tableId, year, newRows, ctx); },
+      getHistoryFor(tableId, year) { return active.getHistoryFor(tableId, year); },
+      getAllHistory() { return active.getAllHistory(); },
+      getCurrentUser() { return _currentUser; },
+      resetTable(tableId, year) { return active.resetTable(tableId, year); },
+      listOverrides() { return active.listOverrides(); },
+      addYear(year) { return active.addYear(year); },
+      removeYear(year) { return active.removeYear(year); },
+      getAddedYears() { return active.getAddedYears(); },
+      applyAddedYears(payload) { return active.applyAddedYears(payload); },
+      clearAll() { return active.clearAll(); },
+      // null on localStorage (file-only map); geoid -> {8 fields} on Dataverse.
+      getMapOverlay() { return active.getMapTractOverlay(); },
     };
   })();
 
@@ -1366,11 +1486,41 @@
   let _leafletMapInstance = null;
   let _mapGeoLayer = null;
 
+  // The 8 editable fields overlaid from Dataverse onto each feature by GEOID.
+  // Everything else (geometry, County, neighborhood, indicators, electric_networks, …)
+  // always stays from map_payload.json.
+  const MAP_OVERLAY_FIELDS = ['elec_dac', 'elec_accts', 'elec_eap', 'elec_adj', 'gas_dac', 'gas_accts', 'gas_eap', 'gas_adj'];
+
+  function applyMapOverlay(geo, overlay) {
+    if (!geo || !geo.features || !overlay) return 0;
+    let applied = 0, fileNotInDv = 0;
+    geo.features.forEach(f => {
+      const g = f && f.properties && f.properties.GEOID;
+      const rec = (g != null) ? overlay[g] : null;
+      if (rec) { MAP_OVERLAY_FIELDS.forEach(k => { f.properties[k] = rec[k]; }); applied++; }
+      else { fileNotInDv++; }
+    });
+    const dvNotInFile = Object.keys(overlay).length - applied;
+    console.info('[DAC map] overlaid ' + applied + ' tracts from Dataverse'
+      + (fileNotInDv ? ' (' + fileNotInDv + ' file tracts absent from Dataverse — kept file values)' : '')
+      + (dvNotInFile > 0 ? ' (' + dvNotInFile + ' Dataverse rows with no geometry — skipped)' : ''));
+    return applied;
+  }
+
   async function getMapGeo() {
     if (_mapGeoCache) return _mapGeoCache;
     const res = await fetch('./map_payload.json');
     if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-    _mapGeoCache = await res.json();
+    const geo = await res.json();
+    // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
+    // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
+    try {
+      const overlay = await Storage.getMapOverlay();
+      if (overlay) applyMapOverlay(geo, overlay);
+    } catch (e) {
+      console.warn('[DAC map] Dataverse overlay skipped (kept file values):', e);
+    }
+    _mapGeoCache = geo;
     return _mapGeoCache;
   }
 
@@ -1633,12 +1783,15 @@
     const panel = document.getElementById('dac-map-kpi');
     if (!panel) return;
 
-    // Scope: selected neighborhoods narrow to their tracts (aggregate across
-    // all of them); else the active borough; else all.
+    // Scope, most specific wins: a clicked tract overrides the selected
+    // neighborhoods, which override the active borough, which overrides all.
+    const sel = _mapState.selectedGeoid;
     const nbs = _mapState.neighborhoods;
     const county = _mapState.county;
     let feats;
-    if (nbs.length) {
+    if (sel) {
+      feats = geo.features.filter(f => f.properties.GEOID === sel);
+    } else if (nbs.length) {
       feats = geo.features.filter(f => inSelectedNeighborhoods(f.properties));
     } else if (county) {
       feats = geo.features.filter(f => f.properties.County === county);
@@ -1653,7 +1806,7 @@
     let dacGasEap  = 0, ndacGasEap  = 0;
 
     // Component score/percentile averages across DAC tracts in the selection.
-    const acc = { bSc: 0, bScN: 0, vSc: 0, vScN: 0, bPct: 0, bPctN: 0, vPct: 0, vPctN: 0 };
+    const acc = { bSc: 0, bScN: 0, vSc: 0, vScN: 0, bPct: 0, bPctN: 0, vPct: 0, vPctN: 0, cSc: 0, cScN: 0, cPct: 0, cPctN: 0 };
     const addAvg = (raw, key) => {
       if (raw == null || raw === '') return;
       const v = parseFloat(raw);
@@ -1670,6 +1823,8 @@
         dacGasAcc  += (p.gas_accts  || 0);
         dacElecEap += (p.elec_eap   || 0);
         dacGasEap  += (p.gas_eap    || 0);
+        addAvg(p.Comb_Sc, 'cSc');
+        addAvg(p.Rank_State, 'cPct');
         addAvg(p.Burden_Sc, 'bSc');
         addAvg(p.Vulner_Sc, 'vSc');
         addAvg(p.Burden_Pct, 'bPct');
@@ -1684,14 +1839,16 @@
     });
 
     const fmtBig = v => {
-      if (v == null || !isFinite(v)) return '—';
+      if (v == null || !isFinite(v)) return 'n/a';
       if (v >= 1e6) return (v/1e6).toFixed(2) + 'M';
       if (v >= 1e3) return Math.round(v/1e3) + 'K';
       return String(Math.round(v));
     };
-    const fmtFull = v => (v == null || !isFinite(v)) ? '—' : Math.round(v).toLocaleString();
+    const fmtFull = v => (v == null || !isFinite(v)) ? 'n/a' : Math.round(v).toLocaleString();
 
-    const scopeLabel = nbs.length
+    const scopeLabel = sel
+      ? tractDisplayName(sel)
+      : nbs.length
       ? (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods')
       : (county
         ? (county === 'Kings' ? 'Brooklyn'
@@ -1724,8 +1881,8 @@
     const ndacAccTotal2 = ndacElecAcc + ndacGasAcc;
     const dacSharePct  = allAccTotal > 0 ? (dacAccTotal   / allAccTotal * 100) : null;
     const ndacSharePct = allAccTotal > 0 ? (ndacAccTotal2 / allAccTotal * 100) : null;
-    const dacShareStr  = dacSharePct  != null ? dacSharePct.toFixed(1)  + '%' : '—';
-    const ndacShareStr = ndacSharePct != null ? ndacSharePct.toFixed(1) + '%' : '—';
+    const dacShareStr  = dacSharePct  != null ? dacSharePct.toFixed(1)  + '%' : 'n/a';
+    const ndacShareStr = ndacSharePct != null ? ndacSharePct.toFixed(1) + '%' : 'n/a';
 
     // Bar widths (clamp so tiny slivers are still visible)
     const dacBarPct  = dacSharePct  != null ? Math.max(2, Math.min(98, dacSharePct))  : 0;
@@ -1737,17 +1894,28 @@
     const vScAvg  = mean(acc.vSc,  acc.vScN);
     const bPctAvg = mean(acc.bPct, acc.bPctN);
     const vPctAvg = mean(acc.vPct, acc.vPctN);
-    const bmVal = v => (v == null) ? '—' : v.toFixed(1);
+    const cScAvg  = mean(acc.cSc,  acc.cScN);
+    const cPctAvg = mean(acc.cPct, acc.cPctN);
+    const bmVal = v => (v == null) ? 'n/a' : v.toFixed(1);
     const bmPct = v => (v == null) ? '' : '<span class="dac-kpi-bm-pct">' + ordinal(v) + ' percentile</span>';
 
     const burdenTT =
       '<div class="dac-kpi-tt-title">Burden scores · ' + scopeLabel + '</div>' +
       '<div class="dac-kpi-tt-desc">Average across the DAC tracts in the current selection. ' +
-      'Score is the composite burden value; percentile is the statewide rank (0–100; higher = more disadvantaged).</div>' +
+      'Score is the composite burden value; percentile is the statewide rank (0 to 100; higher = more disadvantaged).</div>' +
+      '<div class="dac-kpi-tt-desc">Percentiles are statewide rankings across all New York census tracts. A higher percentile means greater burden or vulnerability than that share of the state. Example: 80th percentile is higher than 80 percent of New York tracts.</div>' +
+      '<div class="dac-kpi-tt-row"><span>Combined Burden Score</span><span class="v">' + bmVal(cScAvg) + (cPctAvg != null ? ' · ' + ordinal(cPctAvg) + ' pct' : '') + '</span></div>' +
       '<div class="dac-kpi-tt-row"><span>Environmental Burden</span><span class="v">' + bmVal(bScAvg) + (bPctAvg != null ? ' · ' + ordinal(bPctAvg) + ' pct' : '') + '</span></div>' +
       '<div class="dac-kpi-tt-row"><span>Population Vulnerability</span><span class="v">' + bmVal(vScAvg) + (vPctAvg != null ? ' · ' + ordinal(vPctAvg) + ' pct' : '') + '</span></div>';
 
     const burdenCard =
+      // Box 1: Combined Burden Score (its own card)
+      '<div class="dac-kpi-card dac-kpi-burden">' +
+        '<div class="dac-kpi-tt">' + burdenTT + '</div>' +
+        '<p class="dac-kpi-label">Combined Burden Score</p>' +
+        '<div class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + bmVal(cScAvg) + '</div>' +
+      '</div>' +
+      // Box 2: Environmental Burden + Population Vulnerability (its own card)
       '<div class="dac-kpi-card dac-kpi-burden">' +
         '<div class="dac-kpi-tt">' + burdenTT + '</div>' +
         '<div class="dac-kpi-burden-row">' +
@@ -1771,42 +1939,75 @@
       '<div class="dac-kpi-tt-row"><span>Non-DAC accounts</span><span class="v">' + fmtFull(ndacAccTotal2) + ' (' + ndacShareStr + ')</span></div>' +
       '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total accounts</span><span class="v">' + fmtFull(allAccTotal) + '</span></div>';
 
-    panel.innerHTML =
-      '<div class="dac-kpi-head">' +
-        '<span class="dac-kpi-title">Customer Counts</span>' +
-        '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
-      '</div>' +
-      // ----- DAC Accounts card (electric + gas only, no total hero) -----
-      '<div class="dac-kpi-card dac-kpi-card-dac">' +
-        '<div class="dac-kpi-tt">' + dacTT + '</div>' +
-        '<p class="dac-kpi-label dac-kpi-label-dac">DAC Accounts</p>' +
-        '<div class="dac-kpi-breakdown dac-kpi-breakdown-dac dac-kpi-breakdown-noborder">' +
-          '<div class="dac-kpi-bd-cell">' +
-            '<span class="dac-kpi-bd-k">Electric</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac dac-kpi-bd-v-lg">' + fmtBig(dacElecAcc) + '</span>' +
-          '</div>' +
-          '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
-            '<span class="dac-kpi-bd-k">Gas</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-dac dac-kpi-bd-v-lg">' + fmtBig(dacGasAcc) + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-      // ----- Non-DAC Accounts card (electric + gas only, no total hero) -----
-      '<div class="dac-kpi-card dac-kpi-card-ndac">' +
-        '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
-        '<p class="dac-kpi-label">Non-DAC Accounts</p>' +
+    // ---- EAP Enrolled (Energy Affordability Program), visible: DAC / Non-DAC (electric+gas) ----
+    // The per-utility split lives in the hover tooltip only. Reuses the scope-pass sums;
+    // gas is 0 where ConEd has no gas service (null -> 0 above).
+    const dacEap  = dacElecEap + dacGasEap;
+    const ndacEap = ndacElecEap + ndacGasEap;
+    const eapTotal = dacEap + ndacEap;
+    const eapTT =
+      '<div class="dac-kpi-tt-title">EAP Enrolled · ' + scopeLabel + '</div>' +
+      '<div class="dac-kpi-tt-desc">Customers enrolled in the Energy Affordability Program, summed over the tracts in scope and split by DAC status. Gas shows 0 where ConEd has no gas service (e.g. Brooklyn, Staten Island).</div>' +
+      '<div class="dac-kpi-tt-row"><span>DAC electric</span><span class="v">' + fmtFull(dacElecEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Non-DAC electric</span><span class="v">' + fmtFull(ndacElecEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>DAC gas</span><span class="v">' + fmtFull(dacGasEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row"><span>Non-DAC gas</span><span class="v">' + fmtFull(ndacGasEap) + '</span></div>' +
+      '<div class="dac-kpi-tt-row dac-kpi-tt-row-foot"><span>Total EAP enrolled</span><span class="v">' + fmtFull(eapTotal) + '</span></div>';
+    const eapCard =
+      '<div class="dac-kpi-card dac-kpi-card-eap">' +
+        '<div class="dac-kpi-tt">' + eapTT + '</div>' +
+        '<p class="dac-kpi-label dac-kpi-label-eap">EAP Enrolled</p>' +
         '<div class="dac-kpi-breakdown dac-kpi-breakdown-noborder">' +
           '<div class="dac-kpi-bd-cell">' +
-            '<span class="dac-kpi-bd-k">Electric</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacElecAcc) + '</span>' +
+            '<span class="dac-kpi-bd-k">DAC</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(dacEap) + '</span>' +
           '</div>' +
           '<div class="dac-kpi-bd-cell dac-kpi-bd-cell-right">' +
-            '<span class="dac-kpi-bd-k">Gas</span>' +
-            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacGasAcc) + '</span>' +
+            '<span class="dac-kpi-bd-k">Non-DAC</span>' +
+            '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacEap) + '</span>' +
           '</div>' +
         '</div>' +
+      '</div>';
+
+    panel.innerHTML =
+      // ===== Customer counts section (its own box) =====
+      '<div class="dac-kpi-section dac-kpi-section-counts">' +
+        '<div class="dac-kpi-head">' +
+          '<span class="dac-kpi-title">Customer counts</span>' +
+          '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
+        '</div>' +
+        // Accounts row: DAC + Non-DAC side by side, one combined total each
+        // (electric + gas combined; the Electric/Gas split lives in each card's tooltip)
+        '<div class="dac-kpi-row">' +
+          '<div class="dac-kpi-card dac-kpi-card-dac">' +
+            '<div class="dac-kpi-tt">' + dacTT + '</div>' +
+            '<div class="dac-kpi-bd-cell">' +
+              '<span class="dac-kpi-bd-k">DAC</span>' +
+              '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(dacAcctsTotal) + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="dac-kpi-card dac-kpi-card-ndac">' +
+            '<div class="dac-kpi-tt">' + ndacTT + '</div>' +
+            '<div class="dac-kpi-bd-cell">' +
+              '<span class="dac-kpi-bd-k">Non-DAC</span>' +
+              '<span class="dac-kpi-bd-v dac-kpi-bd-v-lg">' + fmtBig(ndacAcctsTotal) + '</span>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        // Placeholder card (reserved for a future feature; no data)
+        '<div class="dac-kpi-card dac-kpi-card-placeholder">' +
+          '<p class="dac-kpi-label dac-kpi-label-placeholder">Coming soon</p>' +
+        '</div>' +
+        eapCard +
       '</div>' +
-      burdenCard ;
+      // ===== Burden scores section (its own box) =====
+      '<div class="dac-kpi-section dac-kpi-section-burden">' +
+        '<div class="dac-kpi-head">' +
+          '<span class="dac-kpi-title">Burden scores</span>' +
+          '<span class="dac-kpi-scope">' + scopeLabel + '</span>' +
+        '</div>' +
+        burdenCard +
+      '</div>';
 
   }
   // "Census Tract N" from an 11-digit GEOID (last 6 digits = tract code /100).
@@ -2038,12 +2239,14 @@
           <div class="dac-map-leftcol">
             <div id="dac-map-kpi" class="dac-map-kpi-panel"></div>
           </div>
+          <div class="dac-map-panels" id="dac-map-panels">
           <div class="dac-map-terr" id="dac-map-terr">
             <div class="dac-map-terr-title">Layers</div>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="burden" checked><span class="dac-map-terr-sw dac-map-terr-sw-burden"></span>DAC criteria</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
+          </div>
           </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
         </div>
@@ -2089,6 +2292,14 @@
     });
     _leafletMapInstance = map;
 
+    // EAP heatmap state (declared up here so styleFeature, used at geoLayer
+    // creation below, can read _eapState/_eapColorCtx without a TDZ). The EAP
+    // layer colors tracts by enrollment, overriding the default Color-by
+    // choropleth while on. _eapColorCtx is rebuilt on utility/metric/group-by
+    // change and holds the per-tract values + max for the ramp.
+    const _eapState = { on: false, utility: 'total', metric: 'count', groupBy: 'borough' };
+    let _eapColorCtx = null;
+
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
       maxZoom: 19,
     }).addTo(map);
@@ -2120,12 +2331,17 @@
       let color = '#ffffff', weight = 0.6;
       if (isSelected) { color = '#0a2540'; weight = 3; }
       else if (!_useTurf && inNbhd) { color = '#E03131'; weight = 1.6; }
+      else if (!_useTurf && active && p2.County === active) { color = '#185FA5'; weight = 1.6; }   // blue borough edge (no-turf fallback)
+      // While the EAP heatmap is on, color every tract by EAP enrollment
+      // (overriding the Color-by choropleth) with a uniform fill opacity so the
+      // ramp reads evenly across DAC and Non-DAC tracts.
       return {
-        fillColor: colorForFeature(p2, isDAC),
-        fillOpacity: dimmed ? 0.12 : (isDAC ? 0.78 : 0.55),
+        fillColor: _eapState.on ? eapFillColor(p2) : colorForFeature(p2, isDAC),
+        fillOpacity: dimmed ? 0.12 : (_eapState.on ? 0.72 : (isDAC ? 0.78 : 0.55)),
         color: color,
         weight: weight,
         opacity: dimmed ? 0.2 : 1,
+        className: 'map-tract',
       };
     }
 
@@ -2290,6 +2506,7 @@
           geoLayer.setStyle(styleFeature); // apply selected border
           this.bringToFront();
           showTractDetail(p);
+          renderMapKPI(geo);               // scope the Customer Counts panel to this tract
         }
       });
     }
@@ -2299,6 +2516,153 @@
       onEachFeature: onEach,
     }).addTo(map);
     _mapGeoLayer = geoLayer;
+
+    // ============================================================
+    // EAP enrollment heatmap (opt-in; OFF by default)
+    // ------------------------------------------------------------
+    // Colors every tract by EAP enrollment for the selected Utility / Metric,
+    // overriding the default Color-by choropleth while on. "Group by" sets the
+    // aggregation level: Tract colors each tract by its own value; Borough /
+    // Neighborhood color each tract by its group's aggregate (a regional view).
+    // Coloring is scope-independent (the in/out-of-scope dimming in styleFeature
+    // still applies). _eapState/_eapColorCtx are declared near map init above so
+    // styleFeature can read them at geoLayer creation.
+    const EAP_UTIL = {
+      electric: { eap: 'elec_eap', accts: 'elec_accts', label: 'Electric' },
+      gas:      { eap: 'gas_eap',  accts: 'gas_accts',  label: 'Gas' },
+      total:    { label: 'Total' },   // electric + gas, computed in eapUtilVals
+    };
+    // Sequential blue ramp (mirrors the burden choropleth); gray = no service.
+    const EAP_RAMP = ['#d4e3f2', '#6fa0d6', '#2f5496', '#1e4d80', '#0a2540'];
+    const EAP_NODATA = '#e2e6ea';
+
+    // Per-utility values for a tract: { eap, accts, hasData }. hasData=false means
+    // the utility isn't served here (null accounts) -> rendered as "no service".
+    // Total = electric + gas (served if either side is served); null EAP => 0.
+    function eapUtilVals(p, util) {
+      if (util === 'total') {
+        const ea = p.elec_accts, ga = p.gas_accts;
+        if (ea == null && ga == null) return { eap: 0, accts: 0, hasData: false };
+        const accts = (ea != null ? ea : 0) + (ga != null ? ga : 0);
+        const eap = (p.elec_eap != null ? p.elec_eap : 0) + (p.gas_eap != null ? p.gas_eap : 0);
+        return { eap: eap, accts: accts, hasData: true };
+      }
+      const u = EAP_UTIL[util] || EAP_UTIL.electric;
+      const accts = p[u.accts];
+      if (accts == null) return { eap: 0, accts: 0, hasData: false };   // outside service area
+      return { eap: (p[u.eap] != null ? p[u.eap] : 0), accts: accts, hasData: true };
+    }
+
+    // Group key for the active aggregation level.
+    function eapGroupKey(p, level) {
+      if (level === 'borough') return p.borough || '(Unknown borough)';
+      if (level === 'neighborhood') return (p.neighborhood ? p.neighborhood : '(No neighborhood)') + ', ' + (p.borough || '(Unknown borough)');
+      return p.GEOID;   // tract
+    }
+
+    // Build the per-tract coloring context for the current utility / metric /
+    // group-by. Aggregates EAP + accounts per group over served tracts, then maps
+    // every tract to its group's value (count = enrolled; pct = enrolled /
+    // accounts * 100). A tract whose group has no served accounts -> null (gray).
+    // `max` is the largest group value (count ramp domain; pct is fixed 0-100).
+    function buildEapColorCtx() {
+      const util = _eapState.utility, level = _eapState.groupBy;
+      const isPct = _eapState.metric === 'pct';
+      const agg = {};   // key -> { eap, accts }
+      geo.features.forEach(f => {
+        const v = eapUtilVals(f.properties, util);
+        if (!v.hasData) return;
+        const key = eapGroupKey(f.properties, level);
+        let g = agg[key]; if (!g) g = agg[key] = { eap: 0, accts: 0 };
+        g.eap += v.eap; g.accts += v.accts;
+      });
+      const groupVal = {};
+      let max = 0;
+      Object.keys(agg).forEach(k => {
+        const g = agg[k];
+        const val = isPct ? (g.accts > 0 ? (g.eap / g.accts) * 100 : null) : g.eap;
+        groupVal[k] = val;
+        if (val != null && val > max) max = val;
+      });
+      const valueByGeoid = {};
+      geo.features.forEach(f => {
+        const key = eapGroupKey(f.properties, level);
+        valueByGeoid[f.properties.GEOID] = (key in groupVal) ? groupVal[key] : null;
+      });
+      return { valueByGeoid: valueByGeoid, max: max, isPct: isPct, util: util, level: level };
+    }
+
+    // Ramp color for a tract value within the active context (gray when no data).
+    function eapRampColor(v, ctx) {
+      if (v == null) return EAP_NODATA;
+      const frac = ctx.isPct ? v / 100 : (ctx.max > 0 ? v / ctx.max : 0);
+      if (frac >= 0.8) return EAP_RAMP[4];
+      if (frac >= 0.6) return EAP_RAMP[3];
+      if (frac >= 0.4) return EAP_RAMP[2];
+      if (frac >= 0.2) return EAP_RAMP[1];
+      return EAP_RAMP[0];
+    }
+
+    // Fill color for a tract while the EAP heatmap is on (used by styleFeature).
+    function eapFillColor(p) {
+      if (!_eapColorCtx) return EAP_NODATA;
+      return eapRampColor(_eapColorCtx.valueByGeoid[p.GEOID], _eapColorCtx);
+    }
+
+    // Compact count label for the legend bucket edges (k/M abbreviations).
+    function eapCountLabel(v) {
+      if (v >= 1e6) { const mv = v / 1e6; return (mv >= 10 ? Math.round(mv) : +mv.toFixed(1)) + 'M'; }
+      if (v >= 1e3) { const kv = v / 1e3; return (kv >= 10 ? Math.round(kv) : +kv.toFixed(1)) + 'k'; }
+      return String(Math.round(v));
+    }
+
+    // EAP ramp legend HTML (burden-legend style: label + swatches + bins). Count
+    // shows ascending bucket edges up to max; pct shows fixed 0-100% bins. A gray
+    // "No service" swatch closes the row.
+    function eapLegendHtml(ctx) {
+      const sw = c => '<span class="dac-map-leg-swatch" style="background:' + c + '"></span>';
+      const tx = t => '<span class="dac-map-leg-text">' + t + '</span>';
+      const uLbl = EAP_UTIL[ctx.util] ? EAP_UTIL[ctx.util].label : '';
+      let label, bins;
+      if (ctx.isPct) {
+        label = uLbl + ' EAP rate:';
+        bins = sw(EAP_RAMP[0]) + tx('0-20%') + sw(EAP_RAMP[1]) + tx('20-40%') +
+               sw(EAP_RAMP[2]) + tx('40-60%') + sw(EAP_RAMP[3]) + tx('60-80%') +
+               sw(EAP_RAMP[4]) + tx('80-100%');
+      } else {
+        label = uLbl + ' EAP enrolled:';
+        const m = ctx.max || 0;
+        const edge = f => eapCountLabel(m * f);
+        bins = sw(EAP_RAMP[0]) + tx('0') + sw(EAP_RAMP[1]) + tx(edge(0.2)) +
+               sw(EAP_RAMP[2]) + tx(edge(0.4)) + sw(EAP_RAMP[3]) + tx(edge(0.6)) +
+               sw(EAP_RAMP[4]) + tx(edge(0.8) + '+');
+      }
+      return '<span class="dac-map-legend-label">' + label + '</span>' + bins +
+             sw(EAP_NODATA) + tx('No service');
+    }
+
+    // Set the top map legend to the EAP ramp (while on) or the Color-by legend.
+    function updateMapLegend() {
+      const el = document.getElementById('dac-map-legend');
+      if (!el) return;
+      el.innerHTML = (_eapState.on && _eapColorCtx) ? eapLegendHtml(_eapColorCtx) : mapLegendHtml(activeScale());
+    }
+
+    // Rebuild the EAP coloring context, recolor the tracts, and swap the legend.
+    // When off, ctx is cleared (styleFeature falls back to the Color-by
+    // choropleth) and the legend reverts to the active indicator.
+    function applyEapColoring() {
+      _eapColorCtx = _eapState.on ? buildEapColorCtx() : null;
+      geoLayer.setStyle(styleFeature);
+      updateMapLegend();
+    }
+
+    function setEap(on) {
+      _eapState.on = !!on;
+      const box = document.getElementById('dac-map-eapbox');   // separate card below LAYERS
+      if (box) box.hidden = !on;
+      applyEapColoring();
+    }
 
     // ---- Selected-tract detail panel (below the map) ----
     function showTractDetail(props) {
@@ -2335,6 +2699,7 @@
         panel.hidden = true;
         panel.innerHTML = '';
       }
+      renderMapKPI(geo);                 // return the Customer Counts panel to the active filter scope
       requestAnimationFrame(() => map.invalidateSize());
     }
 
@@ -2537,6 +2902,7 @@
 
     // ---- Orange dissolved boundary around each selected neighborhood (turf) ----
     let _nbOutlineLayer = null;
+    let _boroOutlineLayer = null;
     function unionAll(features) {
       if (!features.length) return null;
       try {
@@ -2548,6 +2914,27 @@
         }
         return acc;
       }
+    }
+    // Outer perimeter of a tract set: union, weld sub-tract sliver seams + pinhole
+    // interior rings via a tiny buffer out-then-in (morphological close), then drop
+    // any remaining interior rings so ONLY the outer boundary is drawn (no internal lines).
+    function stripHoles(feat) {
+      const g = (feat && feat.geometry) ? feat.geometry : feat;
+      try {
+        if (g.type === 'Polygon') return turf.polygon([g.coordinates[0]]);
+        if (g.type === 'MultiPolygon') return turf.multiPolygon(g.coordinates.map(poly => [poly[0]]));
+      } catch (e) { /* fall through */ }
+      return feat;
+    }
+    function dissolveOuter(features) {
+      let u = unionAll(features);
+      if (!u) return null;
+      try {
+        const out = turf.buffer(u, 0.02, { units: 'kilometers' });          // weld seams/pinholes (~20 m)
+        const back = out && turf.buffer(out, -0.02, { units: 'kilometers' });
+        if (back && back.geometry) u = back;
+      } catch (e) { /* keep the unbuffered union */ }
+      return stripHoles(u);
     }
     function updateNbOutline() {
       if (_nbOutlineLayer) { map.removeLayer(_nbOutlineLayer); _nbOutlineLayer = null; }
@@ -2562,27 +2949,90 @@
       if (!boundaries.length) return;
       _nbOutlineLayer = L.geoJSON({ type: 'FeatureCollection', features: boundaries }, {
         interactive: false,                  // clicks pass through to the tracts beneath
-        style: { color: '#E03131', weight: 3, opacity: 1, fill: false },
+        style: { color: '#E03131', weight: 1.5, opacity: 1, fill: false, className: 'map-outline' },
       }).addTo(map);
       _nbOutlineLayer.bringToFront();
+    }
+
+    // Dissolved BLUE outline around the selected borough (mirrors updateNbOutline,
+    // keyed on County). Drawn only when a specific borough is selected; sits UNDER
+    // the red neighborhood outline. Rebuilt on every borough change; removed when
+    // the borough is cleared (county = null) — all via applyNeighborhoods().
+    function updateBoroOutline() {
+      if (_boroOutlineLayer) { map.removeLayer(_boroOutlineLayer); _boroOutlineLayer = null; }
+      const county = _mapState.county;
+      if (!county || !_useTurf) return;     // no turf -> per-tract blue edge via styleFeature
+      const feats = geo.features.filter(f => f.properties.County === county);
+      const u = dissolveOuter(feats);        // outer perimeter only (no internal lines)
+      if (!u) return;
+      _boroOutlineLayer = L.geoJSON(u, {
+        interactive: false,                  // clicks pass through to the tracts beneath
+        style: { color: '#185FA5', weight: 1.5, opacity: 1, fill: false, className: 'map-outline' },
+      }).addTo(map);
+      _boroOutlineLayer.bringToFront();
+    }
+    // Keep the outlines stacked: blue borough UNDER red neighborhood (both on top).
+    function bringOutlinesToFront() {
+      if (_boroOutlineLayer) _boroOutlineLayer.bringToFront();
+      if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();
     }
 
     // ---- Apply the current neighborhood selection everywhere ----
     function applyNeighborhoods() {
       geoLayer.setStyle(styleFeature);
       renderMapKPI(geo);
+      updateBoroOutline();   // blue borough boundary (sits under the red neighborhood outline)
       updateNbOutline();
       fitToScope();
+      // EAP heatmap coloring is scope-independent; the setStyle above already
+      // re-applies it (and out-of-scope dimming) when the layer is on.
       const nbs = _mapState.neighborhoods;
-      const cur = document.getElementById('dac-map-nb-current');
-      if (cur) cur.textContent = nbs.length === 0 ? 'All neighborhoods'
-        : (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods');
       const nbDd = document.getElementById('dac-map-nb');
+      // Sync each neighborhood option's checked state from the selection set.
       if (nbDd) nbDd.querySelectorAll('.dac-map-dd-opt').forEach(o => {
         const on = nbs.some(s => s.name === o.dataset.name && s.boro === o.dataset.boro);
         o.classList.toggle('active', on);
         o.setAttribute('aria-checked', on ? 'true' : 'false');
       });
+      updateNbGroupStates();   // tri-state borough headers + "Select all neighborhoods"
+      // Trigger label. empty selection = no filter = EVERY tract ("All neighborhoods");
+      // all named neighborhoods selected = "All named neighborhoods" (excludes the 129
+      // unattributed tracts) — visibly distinct from the empty/cleared state.
+      const cur = document.getElementById('dac-map-nb-current');
+      if (cur) {
+        const total = nbDd ? nbDd.querySelectorAll('.dac-map-dd-opt').length : 0;
+        cur.textContent = nbs.length === 0 ? 'All neighborhoods'
+          : (total > 0 && nbs.length >= total ? 'All named neighborhoods'
+          : (nbs.length === 1 ? nbs[0].name : nbs.length + ' neighborhoods'));
+      }
+    }
+
+    // Tri-state sync (checked / indeterminate / unchecked) for the borough
+    // "select all" checkboxes and the global "Select all neighborhoods" row,
+    // computed from _mapState.neighborhoods over each group's full listed set.
+    function setNbTri(el, on, total) {
+      if (!el) return;
+      const checked = total > 0 && on >= total;
+      const mixed = on > 0 && on < total;
+      el.classList.toggle('active', checked);
+      el.classList.toggle('indeterminate', mixed);
+      el.setAttribute('aria-checked', checked ? 'true' : (mixed ? 'mixed' : 'false'));
+    }
+    function updateNbGroupStates() {
+      const nbDd = document.getElementById('dac-map-nb');
+      if (!nbDd) return;
+      const sel = _mapState.neighborhoods;
+      let allTotal = 0, allOn = 0;
+      nbDd.querySelectorAll('.dac-map-dd-group').forEach(g => {
+        let total = 0, on = 0;
+        g.querySelectorAll('.dac-map-dd-opt').forEach(o => {
+          total++;
+          if (sel.some(s => s.name === o.dataset.name && s.boro === o.dataset.boro)) on++;
+        });
+        allTotal += total; allOn += on;
+        setNbTri(g.querySelector('.dac-map-dd-groupcheck'), on, total);
+      });
+      setNbTri(nbDd.querySelector('.dac-map-dd-selectall'), allOn, allTotal);
     }
 
     // ---- Neighborhood dropdown: build the (re-)scoped checkbox option list ----
@@ -2602,10 +3052,27 @@
         const ia = order.indexOf(a), ib = order.indexOf(b);
         return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
       });
-      let html = '';
+      // "Select all neighborhoods" row (named neighborhoods only — never the
+      // null-neighborhood tracts). Tri-state set by updateNbGroupStates().
+      let html = '<button type="button" class="dac-map-dd-selectall" data-selectall role="option" aria-checked="false">' +
+        '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+        '<span class="dac-map-dd-optlabel">Select all neighborhoods</span></button>';
       boros.forEach(boro => {
         const names = Array.from(byBoro[boro]).sort((a, b) => a.localeCompare(b));
-        html += '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + escMap(boro) + '</div>';
+        // Header has TWO independent targets: a collapse toggle (chevron+label+count)
+        // and a tri-state select-all checkbox. Groups start collapsed.
+        html += '<div class="dac-map-dd-group" data-boro="' + escMap(boro) + '">' +
+          '<div class="dac-map-dd-grouphdr">' +
+            '<button type="button" class="dac-map-dd-grouptoggle" data-toggle-boro="' + escMap(boro) + '" aria-expanded="false">' +
+              '<span class="dac-map-dd-chev" aria-hidden="true">▸</span>' +
+              '<span class="dac-map-dd-grouplabel">' + escMap(boro) + '</span>' +
+              '<span class="dac-map-dd-groupcount">(' + names.length + ')</span>' +
+            '</button>' +
+            '<button type="button" class="dac-map-dd-groupcheck" data-group-boro="' + escMap(boro) + '" role="option" aria-checked="false" title="Select all in ' + escMap(boro) + '">' +
+              '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
+            '</button>' +
+          '</div>' +
+          '<div class="dac-map-dd-groupitems" hidden>';
         names.forEach(nm => {
           const on = _mapState.neighborhoods.some(s => s.name === nm && s.boro === boro);
           html += '<button type="button" class="dac-map-dd-opt' + (on ? ' active' : '') + '" data-name="' + escMap(nm) +
@@ -2613,7 +3080,7 @@
             '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
             '<span class="dac-map-dd-optlabel">' + escMap(nm) + '</span></button>';
         });
-        html += '</div>';
+        html += '</div></div>';
       });
       return html;
     }
@@ -2628,6 +3095,7 @@
     }
     function filterNbOptions(nbDd, q) {
       const ql = q.trim().toLowerCase();
+      const searching = ql.length > 0;
       nbDd.querySelectorAll('.dac-map-dd-group').forEach(g => {
         let any = false;
         g.querySelectorAll('.dac-map-dd-opt').forEach(o => {
@@ -2635,7 +3103,16 @@
           o.style.display = match ? '' : 'none';
           if (match) any = true;
         });
-        g.style.display = any ? '' : 'none';
+        // Hide a whole group only while searching with no matches.
+        g.style.display = (searching && !any) ? 'none' : '';
+        // Auto-expand groups with matches while searching; collapse back to the
+        // default (collapsed) when the search is cleared.
+        const expand = searching && any;
+        const toggle = g.querySelector('.dac-map-dd-grouptoggle');
+        const items = g.querySelector('.dac-map-dd-groupitems');
+        if (toggle) toggle.setAttribute('aria-expanded', expand ? 'true' : 'false');
+        if (items) items.hidden = !expand;
+        g.classList.toggle('expanded', expand);
       });
     }
 
@@ -2675,11 +3152,52 @@
         input.addEventListener('click', e => e.stopPropagation());
         input.addEventListener('input', () => filterNbOptions(nbDd, input.value));
       }
+      // Helper: collect {name,boro} for every listed opt under a root (full group,
+      // ignoring the search filter — search only finds items, it doesn't limit
+      // borough/Select-all actions).
+      const optsUnder = root => Array.from(root.querySelectorAll('.dac-map-dd-opt'))
+        .map(o => ({ name: o.dataset.name, boro: o.dataset.boro }));
+      const isSelected = s => _mapState.neighborhoods.some(x => x.name === s.name && x.boro === s.boro);
+      const addMissing = arr => arr.forEach(s => { if (!isSelected(s)) _mapState.neighborhoods.push(s); });
+      const removeAll = arr => arr.forEach(s => {
+        const i = _mapState.neighborhoods.findIndex(x => x.name === s.name && x.boro === s.boro);
+        if (i >= 0) _mapState.neighborhoods.splice(i, 1);
+      });
+
       if (menu) menu.addEventListener('click', function (e) {
         if (e.target.closest('.dac-map-nb-search')) {
           if (e.target.closest('.dac-map-dd-clear')) { _mapState.neighborhoods = []; applyNeighborhoods(); }
           return;                                          // ignore clicks on the search input
         }
+        // Collapse/expand a borough group (separate target — no selection change).
+        const toggle = e.target.closest('.dac-map-dd-grouptoggle');
+        if (toggle) {
+          const group = toggle.closest('.dac-map-dd-group');
+          const items = group ? group.querySelector('.dac-map-dd-groupitems') : null;
+          const expanded = toggle.getAttribute('aria-expanded') === 'true';
+          toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+          if (items) items.hidden = expanded;
+          if (group) group.classList.toggle('expanded', !expanded);
+          return;
+        }
+        // "Select all neighborhoods" — checked => clear; otherwise select every listed (named) neighborhood.
+        if (e.target.closest('.dac-map-dd-selectall')) {
+          const all = optsUnder(nbDd);
+          if (all.length && all.every(isSelected)) _mapState.neighborhoods = [];
+          else addMissing(all);
+          applyNeighborhoods();
+          return;
+        }
+        // Borough select-all checkbox — toggles the whole borough's listed neighborhoods.
+        const gcheck = e.target.closest('.dac-map-dd-groupcheck');
+        if (gcheck) {
+          const group = gcheck.closest('.dac-map-dd-group');
+          const arr = optsUnder(group);
+          if (arr.length && arr.every(isSelected)) removeAll(arr); else addMissing(arr);
+          applyNeighborhoods();
+          return;
+        }
+        // Individual neighborhood toggle.
         const opt = e.target.closest('.dac-map-dd-opt');
         if (!opt) return;
         const sel = { name: opt.dataset.name, boro: opt.dataset.boro };
@@ -2693,6 +3211,7 @@
     // ---- "Clear all": reset borough + neighborhood scope in one click ----
     const clearAllBtn = document.getElementById('dac-map-clearall');
     if (clearAllBtn) clearAllBtn.addEventListener('click', function () {
+      if (_mapState.selectedGeoid) clearTractSelection();   // drop any clicked-tract scope + close detail
       _mapState.county = null;
       _mapState.neighborhoods = [];
       _mapState.indicators = ['Comb_Sc'];   // reset Color by to its default
@@ -2831,7 +3350,7 @@
           }
           _terrLayers[kind].addTo(map);
           _terrLayers[kind].bringToFront();
-          if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();   // keep the neighborhood outline on top
+          bringOutlinesToFront();   // keep borough (blue) under neighborhood (red), both above the overlay
           // ORU sits NW of the six-county extent — fit to it so it's visible.
           if (kind === 'oru') map.flyToBounds(_terrLayers[kind].getBounds(), { padding: [25, 25], duration: 0.6 });
         }).catch(function () { /* already reported in ensureTerritoryGeo */ });
@@ -2854,7 +3373,21 @@
       const cb = e.target.closest('input[data-layer]');
       if (!cb) return;
       if (cb.dataset.layer === 'burden') setBurden(cb.checked);
+      else if (cb.dataset.layer === 'eap') setEap(cb.checked);
       else setTerritory(cb.dataset.layer, cb.checked);
+    });
+
+    // EAP sub-panel: Utility / Metric segmented selectors (one choice per group).
+    const eapPanel = document.getElementById('dac-map-eap');
+    if (eapPanel) eapPanel.addEventListener('click', function (e) {
+      const b = e.target.closest('button[data-eap-utility], button[data-eap-metric], button[data-eap-groupby]');
+      if (!b) return;
+      if (b.dataset.eapUtility) _eapState.utility = b.dataset.eapUtility;
+      if (b.dataset.eapMetric)  _eapState.metric  = b.dataset.eapMetric;
+      if (b.dataset.eapGroupby) _eapState.groupBy = b.dataset.eapGroupby;
+      const group = b.parentElement;   // toggle active within this group only
+      group.querySelectorAll('button').forEach(x => x.classList.toggle('active', x === b));
+      applyEapColoring();
     });
 
     // Apply the current Color-by selection to map, legend, subtitle, the
@@ -2863,8 +3396,9 @@
     function applyIndicatorSelection() {
       const sel = _mapState.indicators;
       geoLayer.setStyle(styleFeature);
-      const legend = document.getElementById('dac-map-legend');
-      if (legend) legend.innerHTML = mapLegendHtml(activeScale());
+      // Route the legend through updateMapLegend so the EAP ramp is preserved
+      // when the heatmap is overriding the Color-by choropleth.
+      updateMapLegend();
       const sub = document.getElementById('dac-map-subind');
       if (sub) sub.textContent = mapTitleText();
       const cbCur = document.getElementById('dac-map-dd-current');
@@ -6819,6 +7353,7 @@ function wireHTooltips() {
     let path = (hash || '').replace(/^#/, '') || '/';
     if (path === '/' || path === '') return { name: 'executive' };
     if (path === '/ingest') return { name: 'ingest' };
+    if (path === '/edit-map-files') return { name: 'editmapfiles' };
     const m = path.match(/^\/section\/([A-J])$/);
     if (m) return { name: 'section', sectionId: m[1] };
     return { name: 'notfound', path };
@@ -6841,6 +7376,7 @@ function wireHTooltips() {
       el.textContent = `${r.sectionId}. ${sec.full_name}`;
     }
     else if (r.name === 'ingest') el.textContent = 'Data Ingestion';
+    else if (r.name === 'editmapfiles') el.textContent = 'Edit map files';
     else el.textContent = 'Not found';
   }
 
@@ -6865,6 +7401,10 @@ function wireHTooltips() {
     else if (r.name === 'ingest') {
       view.innerHTML = renderIngestPage();
       wireIngestPage();
+    }
+    else if (r.name === 'editmapfiles') {
+      view.innerHTML = renderEditMapFiles();
+      wireEditMapFiles();
     }
     else view.innerHTML = renderNotFound(r.path);
   }
@@ -7131,6 +7671,238 @@ function wireHTooltips() {
   }
 
   // ---------- renderers ----------
+
+  // ============================================================
+  // EDIT MAP FILES (CLCPA): source list + "update to a newer version" drawer
+  // ============================================================
+  let _emfEscHandler = null;
+  let _emfDocClickHandler = null;
+
+  function renderEditMapFiles() {
+    const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+    return `
+      <div class="page-header emf-header">
+        <h1>Edit map files</h1>
+        <button class="btn" id="emf-edit-files-btn" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          Edit files
+        </button>
+      </div>
+      <div class="emf-wrap">
+        <p class="emf-intro">The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
+
+        <div class="emf-lead">
+          <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit <span class="emf-mono">GEOID</span>, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change flows into <span class="emf-mono">map_payload.json</span>. The one exception is the Con Edison customer data, which updates through a file upload instead of a rebuild.</p>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Census tract geometry">
+          <div class="emf-src-head"><h3>1 &nbsp; Census tract geometry</h3><span class="emf-chip emf-chip-ref">rarely changes</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>2020 boundaries (2010 fallback)</dd>
+            <dt>From</dt><dd>U.S. Census Bureau (TIGER/Line tract boundaries), saved as GeoJSON</dd>
+            <dt>Files</dt><dd><span class="emf-mono">ny_tracts.geojson</span> (2020, primary) and <span class="emf-mono">ny_tracts_2010.geojson</span> (2010, fallback)</dd>
+            <dt>Brings</dt><dd>the polygon shape of every area on the map, and the GEOID that all other sources join on</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>Tract boundaries change only rarely (each decennial census, or an occasional vintage correction).</li>
+            <li>When a newer vintage is published, export the New York tracts for the six counties as GeoJSON, keeping the <code>GEOID</code> property.</li>
+            <li>Replace <strong>ny_tracts.geojson</strong> (same filename, same <code>GEOID</code> field). Only touch the 2010 fallback if you need older-vintage coverage.<button type="button" class="emf-info" data-emf-info aria-expanded="false" aria-label="Why the 2010 fallback is used">i</button><span class="emf-info-note" hidden>The 2010 file is a fallback only: it supplies a boundary for tracts missing from the 2020 file. The exact tracts that fall back are available as a separate export.</span></li>
+            <li>Re-run the base build. A new vintage can add or drop tracts, so re-check the feature count afterward.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYSERDA DAC dataset">
+          <div class="emf-src-head"><h3>2 &nbsp; NYSERDA DAC dataset</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>Final Disadvantaged Communities (DAC) 2023 (criteria finalized 2023-03-27)</dd>
+            <dt>From</dt><dd>NYSERDA / New York State Climate Justice Working Group (the CLCPA Disadvantaged Communities data)</dd>
+            <dt>File</dt><dd><span class="emf-mono">NYS_DAC.geojson</span></dd>
+            <dt>Brings</dt><dd>the DAC / Non-DAC designation, the headline fields (population, households, combined score, ranks, burden, vulnerability, affordability), and the 48 granular indicator percentiles and scores</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>NYSERDA revisits the designations periodically. When a new release is published, download it as GeoJSON keyed by <code>GEOID</code>.</li>
+            <li>Replace <strong>NYS_DAC.geojson</strong>.</li>
+            <li>Re-run the base build and the indicator step so both the headline fields and the 48 indicators refresh.</li>
+            <li>If NYSERDA renames any columns, the field lists in the build need a matching update.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Con Edison customer extracts">
+          <div class="emf-src-head"><h3>3 &nbsp; Con Edison customer extracts</h3><span class="emf-chip emf-chip-edit">editable each cycle</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>to confirm</dd>
+            <dt>From</dt><dd>Con Edison internal account and billing systems</dd>
+            <dt>Files</dt><dd><span class="emf-mono">Electric.xlsx</span> and <span class="emf-mono">Gas.xlsx</span> (the <code>Export</code> sheet)</dd>
+            <dt>Brings</dt><dd>per area: total accounts, accounts in the Energy Affordability Program, bill adjustments, and the DAC class</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>This is the routine update, done each reporting cycle and the only one you maintain directly.</li>
+            <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
+            <li>Upload the file; the data flows in through the upload into the data store. No rebuild and no code change.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYC neighborhood crosswalk">
+          <div class="emf-src-head"><h3>4 &nbsp; NYC neighborhood crosswalk</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>2020 NTAs, file dated 2026-06-01</dd>
+            <dt>From</dt><dd>NYC Department of City Planning (the Census-tracts-to-NTAs equivalency table)</dd>
+            <dt>File</dt><dd><span class="emf-mono">2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_*.csv</span></dd>
+            <dt>Brings</dt><dd>the neighborhood (NTA) name for each New York City area</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>When City Planning publishes a new equivalency (revised NTA names or boundaries), download the new CSV.</li>
+            <li>It must keep the <code>GEOID</code> and <code>NTAName</code> columns (UTF-8).</li>
+            <li>Replace the file and re-run the neighborhood step. If the filename changes, update the reference to it in the build.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Service-territory shapefiles">
+          <div class="emf-src-head"><h3>5 &nbsp; Service-territory shapefiles</h3><span class="emf-chip emf-chip-ref">updated when boundaries change</span></div>
+          <dl class="emf-row">
+            <dt>Using</dt><dd>to confirm</dd>
+            <dt>From</dt><dd>Con Edison (CECONY electric and gas) and Orange &amp; Rockland (ORU)</dd>
+            <dt>Files</dt><dd><span class="emf-mono">Data/Extra_info/CECONY_Electric.shp</span>, <span class="emf-mono">CECONY_Gas.shp</span>, <span class="emf-mono">ORU_Territory.shp</span> (each with its <code>.prj</code> and <code>.dbf</code>)</dd>
+            <dt>Brings</dt><dd>the utility service-area boundaries (the drawable overlay) and the per-area network and gas-area tags</dd>
+          </dl>
+          <span class="emf-hint">How to update ${chev}</span>
+          <div class="emf-steps" hidden><ol>
+            <li>When the utility boundaries change, get the new shapefile set from the utility.</li>
+            <li>Replace the files, keeping each <code>.shp</code> together with its <code>.dbf</code> and <code>.prj</code>, and keeping the name fields (<code>NETWORK</code>, <code>BORONAME</code>, <code>STATE</code>).</li>
+            <li>Re-run the network step (per-area tags) and rebuild the overlay file.</li>
+            <li>Mind the projection: the Con Edison files are in <code>EPSG:2263</code>, the ORU file is in NAD27.</li>
+          </ol></div>
+        </div>
+
+        <div class="emf-popover" id="emf-popover" hidden role="dialog" aria-modal="false" aria-labelledby="emf-pop-title">
+          <div class="emf-pop-head">
+            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Updating to a newer version</span>
+            <button class="emf-pop-close" id="emf-pop-close" aria-label="Close">&times;</button>
+            <h3 id="emf-pop-title"></h3>
+            <span class="emf-chip" id="emf-pop-chip"></span>
+          </div>
+          <div class="emf-pop-body" id="emf-pop-body"></div>
+        </div>
+      </div>
+
+      <div class="emf-overlay" id="emf-upload-overlay" hidden>
+        <aside class="emf-drawer" role="dialog" aria-modal="true" aria-labelledby="emf-upload-title">
+          <div class="emf-drawer-head">
+            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Source versions</span>
+            <button class="emf-drawer-close" id="emf-upload-close" aria-label="Close">&times;</button>
+            <h3 id="emf-upload-title">Upload new source versions</h3>
+          </div>
+          <div class="emf-drawer-body">
+            <p class="emf-up-intro">Drop a newer source file here or browse for one. It will be matched to the source it belongs to by filename, then validated before anything changes.</p>
+            <div class="emf-dropzone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <div class="emf-dz-title">Drag and drop a file here</div>
+              <div class="emf-dz-sub">or</div>
+              <label class="btn btn-secondary">Browse files<input type="file" hidden></label>
+            </div>
+            <p class="emf-up-maps">Maps to: <strong>auto-detected from the filename</strong> (for example <span class="emf-mono">ny_tracts.geojson</span> to Census tract geometry, or <span class="emf-mono">NYS_DAC.geojson</span> to the NYSERDA dataset).</p>
+            <div class="emf-up-actions"><button class="btn" type="button" disabled>Upload</button></div>
+            <p class="emf-up-note">Not yet connected. This panel is a visual mockup: no file is uploaded, and nothing is sent to the data store or the build.</p>
+          </div>
+        </aside>
+      </div>
+    `;
+  }
+
+  function wireEditMapFiles() {
+    const wrap = document.querySelector('.emf-wrap');
+    const cards = Array.prototype.slice.call(document.querySelectorAll('.emf-src'));
+    const pop = document.getElementById('emf-popover');
+    const popClose = document.getElementById('emf-pop-close');
+    const popTitle = document.getElementById('emf-pop-title');
+    const popChip = document.getElementById('emf-pop-chip');
+    const popBody = document.getElementById('emf-pop-body');
+
+    // ---- CHANGE 1: update panel as a card beside the selected source ----
+    function positionPopover(card) {
+      const GAP = 16;
+      pop.classList.remove('emf-pop-below');
+      pop.style.width = '';                       // CSS width (380) while measuring
+      const wrapRect = wrap.getBoundingClientRect();
+      const popW = pop.offsetWidth || 380;
+      const roomRight = (wrapRect.right + GAP + popW) <= (window.innerWidth - 12);
+      if (roomRight) {                            // beside: top-aligned, in the empty space to the right
+        pop.style.left = (wrap.clientWidth + GAP) + 'px';
+        pop.style.top = card.offsetTop + 'px';
+      } else {                                    // fallback: directly below the selected card
+        pop.classList.add('emf-pop-below');
+        pop.style.left = card.offsetLeft + 'px';
+        pop.style.top = (card.offsetTop + card.offsetHeight + GAP) + 'px';
+        pop.style.width = card.offsetWidth + 'px';
+      }
+    }
+    function openPopover(card) {
+      popTitle.textContent = card.getAttribute('data-title');
+      const chip = card.querySelector('.emf-chip');
+      popChip.textContent = chip ? chip.textContent : '';
+      popChip.className = 'emf-chip ' + (chip && chip.classList.contains('emf-chip-edit') ? 'emf-chip-edit' : 'emf-chip-ref');
+      const steps = card.querySelector('.emf-steps');
+      popBody.innerHTML = steps ? steps.innerHTML : '';
+      cards.forEach(s => s.classList.remove('selected'));
+      card.classList.add('selected');            // only one open at a time
+      pop.hidden = false;
+      positionPopover(card);
+      const info = popBody.querySelector('[data-emf-info]');   // Census step-3 info toggle
+      if (info) {
+        const note = info.parentElement.querySelector('.emf-info-note');
+        info.addEventListener('click', () => {
+          const isHidden = note.hasAttribute('hidden');
+          if (isHidden) { note.removeAttribute('hidden'); info.setAttribute('aria-expanded', 'true'); }
+          else { note.setAttribute('hidden', ''); info.setAttribute('aria-expanded', 'false'); }
+          positionPopover(card);
+        });
+      }
+      popClose.focus();
+    }
+    function closePopover() {
+      if (pop) pop.hidden = true;
+      cards.forEach(s => s.classList.remove('selected'));
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => openPopover(card));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPopover(card); } });
+    });
+    if (popClose) popClose.addEventListener('click', closePopover);
+
+    // ---- CHANGE 2: "Edit files" upload mockup (right-side panel, visual only) ----
+    const upBtn = document.getElementById('emf-edit-files-btn');
+    const upOverlay = document.getElementById('emf-upload-overlay');
+    const upClose = document.getElementById('emf-upload-close');
+    function openUpload() { if (!upOverlay) return; upOverlay.hidden = false; requestAnimationFrame(() => upOverlay.classList.add('open')); if (upClose) upClose.focus(); }
+    function closeUpload() { if (!upOverlay) return; upOverlay.classList.remove('open'); setTimeout(() => { if (!upOverlay.classList.contains('open')) upOverlay.hidden = true; }, 260); }
+    if (upBtn) upBtn.addEventListener('click', openUpload);
+    if (upClose) upClose.addEventListener('click', closeUpload);
+    if (upOverlay) upOverlay.addEventListener('click', e => { if (e.target === upOverlay) closeUpload(); });
+
+    // click-outside closes the popover (capture phase; card clicks reposition it instead)
+    if (_emfDocClickHandler) document.removeEventListener('click', _emfDocClickHandler, true);
+    _emfDocClickHandler = function (e) {
+      if (!pop || pop.hidden) return;
+      if (pop.contains(e.target)) return;
+      if (e.target.closest && e.target.closest('.emf-src')) return;
+      closePopover();
+    };
+    document.addEventListener('click', _emfDocClickHandler, true);
+
+    // Esc closes whichever is open. Single document handler, replaced each wire-up.
+    if (_emfEscHandler) document.removeEventListener('keydown', _emfEscHandler);
+    _emfEscHandler = function (e) {
+      if (e.key !== 'Escape') return;
+      if (pop && !pop.hidden) closePopover();
+      if (upOverlay && upOverlay.classList.contains('open')) closeUpload();
+    };
+    document.addEventListener('keydown', _emfEscHandler);
+  }
 
   /** Main ingest page renderer. */
   function renderIngestPage() {
@@ -7694,15 +8466,16 @@ function wireHTooltips() {
           <button class="ingest-modal-close" type="button" aria-label="Close">×</button>
         </div>
         <div class="ingest-modal-body">
-          <p>You are about to save <strong>${changeCount}</strong> cell change${changeCount !== 1 ? 's' : ''}. Please identify yourself:</p>
+          <p>You are about to save <strong>${changeCount}</strong> cell change${changeCount !== 1 ? 's' : ''}. It will be recorded under your signed-in identity:</p>
           <div class="ingest-modal-field">
             <label for="ingest-modal-name">Your name</label>
-            <input id="ingest-modal-name" type="text" placeholder="e.g. Maria Lopez" autocomplete="name" />
+            <input id="ingest-modal-name" type="text" autocomplete="name" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
           </div>
           <div class="ingest-modal-field">
             <label for="ingest-modal-email">Your email</label>
-            <input id="ingest-modal-email" type="email" placeholder="e.g. maria@coned.com" autocomplete="email" />
+            <input id="ingest-modal-email" type="email" autocomplete="email" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
           </div>
+          <div class="ingest-modal-hint">From your Power Apps profile</div>
           <div class="ingest-modal-error" id="ingest-modal-error" style="display:none"></div>
         </div>
         <div class="ingest-modal-foot">
@@ -7717,25 +8490,19 @@ function wireHTooltips() {
     modal.querySelector('#ingest-modal-cancel').addEventListener('click', close);
     modal.addEventListener('click', e => { if (e.target === modal) close(); });
 
-    // Pre-fill name/email from last save if available (nice-to-have UX)
-    const lastEntry = Storage.getAllHistory()[0];
-    if (lastEntry) {
-      modal.querySelector('#ingest-modal-name').value = lastEntry.user || '';
-      modal.querySelector('#ingest-modal-email').value = lastEntry.email || '';
-    }
+    // Identity comes from the signed-in Power Apps user (captured at init), not typed.
+    // The fields are read-only; the save records this identity regardless of the inputs.
+    const ident = Storage.getCurrentUser() || { name: 'Local preview', email: 'local@preview' };
+    modal.querySelector('#ingest-modal-name').value = ident.name || '';
+    modal.querySelector('#ingest-modal-email').value = ident.email || '';
 
     modal.querySelector('#ingest-modal-confirm').addEventListener('click', () => {
-      const name = modal.querySelector('#ingest-modal-name').value.trim();
-      const email = modal.querySelector('#ingest-modal-email').value.trim();
-      const err = modal.querySelector('#ingest-modal-error');
-      if (!name) { err.textContent = 'Please enter your name.'; err.style.display = 'block'; return; }
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return;
-      }
+      // WHO is the signed-in identity captured at init, never the (read-only) input fields.
+      const who = Storage.getCurrentUser() || ident;
 
       // Persist
       Storage.saveTable(i.tableId, i.year, clone2D(i.draft), {
-        name, email,
+        name: who.name, email: who.email,
         oldRows: clone2D(i.baseline),
         schema: i.schema ? i.schema.slice() : []
       });
@@ -7756,8 +8523,8 @@ function wireHTooltips() {
       rerenderIngestHistory();
     });
 
-    // Focus first field
-    setTimeout(() => modal.querySelector('#ingest-modal-name').focus(), 50);
+    // Fields are read-only (identity is automatic), so focus the confirm button.
+    setTimeout(() => modal.querySelector('#ingest-modal-confirm').focus(), 50);
   }
 
   // ---------- partial re-renderers ----------
@@ -7854,6 +8621,10 @@ function wireHTooltips() {
     } catch (err) {
       return; // Error already surfaced
     }
+
+    // Load the persistence backend (Dataverse if hosted there, else localStorage)
+    // into memory before any overrides/years are applied below.
+    await Storage.init();
 
     // Merge user-added years (e.g. 2026) into meta.years FIRST so that
     // any per-year overrides applied below can target them.
