@@ -160,6 +160,8 @@
         async init() { /* reads are live from localStorage; nothing to preload */ },
         // No Dataverse context -> the map renders from map_payload.json only.
         getMapTractOverlay() { return null; },
+        async getMapHistory() { return []; },
+        async saveMapTracts() { throw new Error('Map data editing requires the hosted Dataverse app.'); },
         applyOverrides(payload) {
           captureBaseline(payload);
           if (!payload || !payload.tables) return payload;
@@ -380,6 +382,44 @@
           });
           return byGeoid;
         },
+        // Map change-history rows (newest first) from cr2bf_dacmapchangehistory.
+        async getMapHistory() {
+          const rows = await getAll('cr2bf_dacmapchangehistories', '$select=cr2bf_user,cr2bf_email,cr2bf_savedat,cr2bf_changedescription,cr2bf_changes&$orderby=cr2bf_savedat desc');
+          return rows.map(r => ({ user: r.cr2bf_user || '', email: r.cr2bf_email || '', ts: r.cr2bf_savedat ? Date.parse(r.cr2bf_savedat) : 0, description: r.cr2bf_changedescription || '', changes: r.cr2bf_changes || '' }));
+        },
+        // CLCPA-115 write path. changed: [{ geoid, logical:{cr2bf_*: value} }] — only changed tracts.
+        // Upsert by GEOID alt key via $batch (create-or-update), THEN one history row.
+        // Data is committed before history; a history failure is returned (not thrown) so the
+        // caller can report it loudly while acknowledging the data did save. NOTE: batches of
+        // 1000 are each atomic; across >1000 changed tracts a later batch failure leaves earlier
+        // batches committed (re-upload corrects — fix-forward).
+        async saveMapTracts(changed, summary, ctx) {
+          const CH = 1000;
+          for (let i = 0; i < changed.length; i += CH) {
+            const slice = changed.slice(i, i + CH);
+            const bb = 'batch_' + i, cs = 'changeset_' + i;
+            const parts = ['--' + bb, 'Content-Type: multipart/mixed; boundary=' + cs, ''];
+            slice.forEach((rec, idx) => {
+              const url = API + "cr2bf_dacmaptractdatas(cr2bf_censustractgeoid='" + rec.geoid + "')";
+              parts.push('--' + cs, 'Content-Type: application/http', 'Content-Transfer-Encoding: binary', 'Content-ID: ' + (idx + 1), '',
+                'PATCH ' + url + ' HTTP/1.1', 'Content-Type: application/json; type=entry', 'OData-Version: 4.0', '', JSON.stringify(rec.logical));
+            });
+            parts.push('--' + cs + '--', '--' + bb + '--');
+            const res = await fetch(API + '$batch', { method: 'POST', credentials: 'same-origin', headers: Object.assign({}, GET_HEADERS, { 'Content-Type': 'multipart/mixed; boundary=' + bb }), body: parts.join('\r\n') });
+            const txt = await res.text();
+            if (!res.ok || /"error"\s*:/.test(txt)) throw new Error('map upsert batch failed (HTTP ' + res.status + '): ' + txt.slice(0, 400));
+          }
+          let historyOk = true, historyError = null;
+          try {
+            await dvCreate('cr2bf_dacmapchangehistories', {
+              cr2bf_user: ctx.name || '', cr2bf_email: ctx.email || '',
+              cr2bf_savedat: new Date().toISOString(),
+              cr2bf_changedescription: String(summary.description || '').slice(0, 100),
+              cr2bf_changes: JSON.stringify(summary.changes || {})
+            });
+          } catch (e) { historyOk = false; historyError = (e && e.message) ? e.message : String(e); }
+          return { upserted: changed.length, historyOk: historyOk, historyError: historyError };
+        },
       };
     })();
 
@@ -465,6 +505,10 @@
       clearAll() { return active.clearAll(); },
       // null on localStorage (file-only map); geoid -> {8 fields} on Dataverse.
       getMapOverlay() { return active.getMapTractOverlay(); },
+      getMapHistory() { return active.getMapHistory(); },
+      saveMapTracts(changed, summary, ctx) { return active.saveMapTracts(changed, summary, ctx); },
+      isDataverse() { return active === dvBackend; },
+      toast(msg, type) { return showToast(msg, type); },
     };
   })();
 
@@ -7935,9 +7979,23 @@ function wireHTooltips() {
 
   /** Main ingest page renderer. */
   function renderIngestPage() {
-    const p = state.payload;
     initIngestState();
-    const i = state.ingest;
+    const mapMode = state.ingest.mapMode === true;
+
+    const tabs = `
+      <div class="ingest-modeswitch" role="tablist" style="display:flex;gap:8px;margin:8px 0 16px">
+        <button class="ingest-modetab btn ${mapMode ? 'btn-secondary' : 'btn-primary'}" data-ingmode="tabular" type="button">Tabular data</button>
+        <button class="ingest-modetab btn ${mapMode ? 'btn-primary' : 'btn-secondary'}" data-ingmode="map" type="button">Map tract data</button>
+      </div>`;
+
+    const body = mapMode
+      ? renderMapIngest()
+      : `
+      ${renderIngestPicker()}
+
+      <div id="ingest-editor-mount">${renderIngestEditor()}</div>
+
+      <div id="ingest-history-mount">${renderIngestHistory()}</div>`;
 
     return `
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -7947,11 +8005,8 @@ function wireHTooltips() {
         </div>
       </div>
 
-      ${renderIngestPicker()}
-
-      <div id="ingest-editor-mount">${renderIngestEditor()}</div>
-
-      <div id="ingest-history-mount">${renderIngestHistory()}</div>
+      ${tabs}
+      ${body}
     `;
   }
 
@@ -8234,6 +8289,18 @@ function wireHTooltips() {
 
   /** Wire all clicks and input events for the ingest page. */
   function wireIngestPage() {
+    // Mode switch: Tabular data (grid) vs Map tract data (CSV upload).
+    document.querySelectorAll('.ingest-modetab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const wantMap = btn.dataset.ingmode === 'map';
+        if (wantMap === (state.ingest.mapMode === true)) return;
+        if (!wantMap && state.ingest.dirty && !confirm('Discard unsaved changes?')) return;
+        state.ingest.mapMode = wantMap;
+        rerenderIngestAll();
+      });
+    });
+    if (state.ingest.mapMode === true) { wireMapIngest(); return; }
+
     // Picker dropdowns
     const selSection = document.getElementById('ingest-section');
     const selTable = document.getElementById('ingest-table');
@@ -8554,6 +8621,292 @@ function wireHTooltips() {
 
     // Fields are read-only (identity is automatic), so focus the confirm button.
     setTimeout(() => modal.querySelector('#ingest-modal-confirm').focus(), 50);
+  }
+
+  // ============================================================
+  // MAP DATA UPLOAD (CLCPA-115) — CSV write path for cr2bf_dacmaptractdata
+  // ============================================================
+  const MAP_FIELDS = [
+    { key: 'elec_dac',   col: 'cr2bf_elecdac',   label: 'Electric DAC classification',     type: 'dac' },
+    { key: 'elec_accts', col: 'cr2bf_elecaccts', label: 'Electric customer accounts',      type: 'int' },
+    { key: 'elec_eap',   col: 'cr2bf_eleceap',   label: 'Electric EAP-enrolled accounts',  type: 'int' },
+    { key: 'elec_adj',   col: 'cr2bf_elecadj',   label: 'Electric bill adjustment ($, stored to 4 dp)', type: 'num' },
+    { key: 'gas_dac',    col: 'cr2bf_gasdac',    label: 'Gas DAC classification',          type: 'dac' },
+    { key: 'gas_accts',  col: 'cr2bf_gasaccts',  label: 'Gas customer accounts',           type: 'int' },
+    { key: 'gas_eap',    col: 'cr2bf_gaseap',    label: 'Gas EAP-enrolled accounts',       type: 'int' },
+    { key: 'gas_adj',    col: 'cr2bf_gasadj',    label: 'Gas bill adjustment ($, stored to 4 dp)', type: 'num' },
+  ];
+  const MAP_CSV_COLS = ['census_tract_geoid'].concat(MAP_FIELDS.map(f => f.key));
+  const MAP_DAC_VALUES = ['DAC', 'Non-DAC'];
+  function round4(v) { return Math.round(v * 1e4) / 1e4; }
+
+  // Re-apply a fresh Dataverse overlay onto the cached map geo (no 4.8 MB file re-fetch).
+  async function refreshMapOverlay() {
+    if (!_mapGeoCache) return;   // not cached yet -> next map mount fetches fresh anyway
+    try {
+      const overlay = await Storage.getMapOverlay();
+      if (overlay) applyMapOverlay(_mapGeoCache, overlay);
+    } catch (e) { console.warn('[DAC map] overlay refresh after upload failed:', e); }
+  }
+
+  // Minimal RFC-4180-ish CSV parse (quotes, quoted commas, CRLF, BOM).
+  function parseCsv(text) {
+    text = String(text).replace(/^﻿/, '');
+    const rows = []; let row = [], cell = '', q = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ',') { row.push(cell); cell = ''; }
+      else if (ch === '\n') { row.push(cell); rows.push(row); row = []; cell = ''; }
+      else if (ch === '\r') { /* skip */ }
+      else cell += ch;
+    }
+    if (cell !== '' || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter(r => r.length && !(r.length === 1 && r[0].trim() === ''));
+  }
+  function csvCell(v) { if (v == null) return ''; const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+
+  // Template/backup CSV pre-filled with current Dataverse values for every tract.
+  function buildMapTemplateCsv(currentByGeoid) {
+    const lines = [MAP_CSV_COLS.join(',')];
+    Object.keys(currentByGeoid).sort().forEach(g => {
+      lines.push([g].concat(MAP_FIELDS.map(f => csvCell(currentByGeoid[g][f.key]))).join(','));
+    });
+    return lines.join('\r\n');
+  }
+
+  // Parse + validate uploaded CSV against the live tract set. Returns { records, errors }.
+  function parseMapCsv(text, validGeoids) {
+    const rows = parseCsv(text);
+    const errors = [];
+    if (!rows.length) { errors.push({ line: 0, geoid: '', col: '', msg: 'File is empty.' }); return { records: {}, errors: errors }; }
+    const header = rows[0].map(h => h.trim());
+    const idx = {}; header.forEach((h, i) => { idx[h] = i; });
+    const missing = MAP_CSV_COLS.filter(c => !(c in idx));
+    if (missing.length) { errors.push({ line: 1, geoid: '', col: '', msg: 'Missing required column(s): ' + missing.join(', ') }); return { records: {}, errors: errors }; }
+
+    const records = {}; const seen = {};
+    for (let r = 1; r < rows.length; r++) {
+      const line = r + 1; const cells = rows[r];
+      const geoid = (cells[idx['census_tract_geoid']] || '').trim();
+      if (!geoid) { errors.push({ line: line, geoid: '', col: 'census_tract_geoid', msg: 'GEOID is blank.' }); continue; }
+      if (!/^\d{11}$/.test(geoid)) { errors.push({ line: line, geoid: geoid, col: 'census_tract_geoid', msg: 'GEOID must be 11 digits.' }); continue; }
+      if (!validGeoids.has(geoid)) { errors.push({ line: line, geoid: geoid, col: 'census_tract_geoid', msg: 'Unknown tract (not in the map) — rejected.' }); continue; }
+      if (seen[geoid]) { errors.push({ line: line, geoid: geoid, col: 'census_tract_geoid', msg: 'Duplicate GEOID (also line ' + seen[geoid] + ') — file rejected.' }); }
+      seen[geoid] = line;
+      const rec = {}; let rowOk = true;
+      MAP_FIELDS.forEach(f => {
+        const raw = (cells[idx[f.key]] == null ? '' : String(cells[idx[f.key]])).trim();
+        if (raw === '') { rec[f.key] = null; return; }            // blank = clear (null)
+        if (f.type === 'dac') {
+          if (MAP_DAC_VALUES.indexOf(raw) < 0) { errors.push({ line: line, geoid: geoid, col: f.key, msg: 'Must be DAC, Non-DAC, or blank.' }); rowOk = false; }
+          else rec[f.key] = raw;
+        } else if (f.type === 'int') {
+          if (!/^\d+$/.test(raw)) { errors.push({ line: line, geoid: geoid, col: f.key, msg: 'Must be a whole number >= 0 or blank.' }); rowOk = false; }
+          else rec[f.key] = parseInt(raw, 10);
+        } else {
+          const n = Number(raw);
+          if (!isFinite(n)) { errors.push({ line: line, geoid: geoid, col: f.key, msg: 'Must be a number or blank.' }); rowOk = false; }
+          else rec[f.key] = round4(n);
+        }
+      });
+      if (rowOk) records[geoid] = rec;
+    }
+    return { records: records, errors: errors };
+  }
+
+  // Diff CSV records vs current Dataverse values (adj compared at 4 dp).
+  function diffTracts(currentByGeoid, csvRecords) {
+    const updated = []; const fieldCounts = {}; let unchanged = 0;
+    MAP_FIELDS.forEach(f => { fieldCounts[f.key] = 0; });
+    Object.keys(csvRecords).forEach(g => {
+      const cur = currentByGeoid[g] || {}; const nw = csvRecords[g];
+      let changed = false; const logical = {};
+      MAP_FIELDS.forEach(f => {
+        let a = cur[f.key], b = nw[f.key];
+        if (f.type === 'num') { a = (a == null ? null : round4(a)); b = (b == null ? null : round4(b)); }
+        if (a !== b) { changed = true; fieldCounts[f.key]++; }
+        logical[f.col] = b;
+      });
+      if (changed) updated.push({ geoid: g, logical: logical }); else unchanged++;
+    });
+    return { updated: updated, unchanged: unchanged, fieldCounts: fieldCounts };
+  }
+
+  function downloadTextFile(name, text) {
+    const blob = new Blob([text], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  function renderMapIngest() {
+    if (!Storage.isDataverse()) {
+      return `<div class="ingest-card"><div class="ingest-history-empty" style="padding:18px">
+        <strong>Map data editing requires the hosted Dataverse app.</strong>
+        <p class="page-sub" style="margin-top:6px">You are running standalone (local storage), where the map renders from <code>map_payload.json</code> only. Open the hosted dev app to upload tract data.</p>
+      </div></div>`;
+    }
+    const dict = MAP_FIELDS.map(f => `<tr><td><code>${f.key}</code></td><td>${escapeHtml(f.label)}</td><td>${f.type === 'dac' ? 'DAC / Non-DAC / blank' : f.type === 'int' ? 'whole number &ge; 0 / blank' : 'number / blank'}</td></tr>`).join('');
+    return `
+      <div class="ingest-card">
+        <h4>Map tract data — CSV upload</h4>
+        <p class="page-sub">Upload a CSV keyed by <code>census_tract_geoid</code> (11 digits). Only the 8 fields below are editable; geometry is fixed. Tracts you omit are left unchanged; a blank cell clears that value.</p>
+        <details class="map-ingest-dict" open><summary><strong>Data dictionary — CSV columns</strong></summary>
+          <table class="map-ingest-dict-table" style="margin-top:8px"><thead><tr><th>CSV column</th><th>Meaning</th><th>Allowed values</th></tr></thead>
+          <tbody><tr><td><code>census_tract_geoid</code></td><td>Census tract id (the key)</td><td>11 digits; must already exist</td></tr>${dict}</tbody></table>
+        </details>
+        <div class="map-ingest-actions" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0">
+          <button id="map-ingest-template" class="btn btn-secondary" type="button">Download current data (backup / template)</button>
+          <label class="btn btn-secondary" style="cursor:pointer;margin:0">Choose CSV&hellip;<input id="map-ingest-file" type="file" accept=".csv,text/csv" hidden></label>
+          <span id="map-ingest-file-name" class="page-sub"></span>
+        </div>
+        <p class="page-sub"><em>Fix-forward only — there is no rollback.</em> Download the current data as a backup before uploading, review the preview, then commit.</p>
+        <div id="map-ingest-preview"></div>
+      </div>
+      <div id="map-ingest-history-mount" class="ingest-history"><p class="page-sub">Loading change history&hellip;</p></div>`;
+  }
+
+  function renderMapPreview() {
+    const up = state.ingest.mapUpload;
+    if (!up) return '';
+    if (up.errors && up.errors.length) {
+      const rows = up.errors.slice(0, 200).map(e => `<tr><td>${e.line}</td><td>${escapeHtml(e.geoid)}</td><td>${escapeHtml(e.col)}</td><td>${escapeHtml(e.msg)}</td></tr>`).join('');
+      const more = up.errors.length > 200 ? `<p class="page-sub">&hellip;and ${up.errors.length - 200} more.</p>` : '';
+      return `<div class="map-ingest-result" style="margin-top:10px">
+        <p style="color:#C0392B"><strong>${up.errors.length} error${up.errors.length !== 1 ? 's' : ''}</strong> — fix and re-upload. Commit is disabled until the file is clean.</p>
+        <table class="map-ingest-err-table"><thead><tr><th>Line</th><th>GEOID</th><th>Column</th><th>Problem</th></tr></thead><tbody>${rows}</tbody></table>${more}
+        <button id="map-ingest-error-dl" class="btn-link" type="button">Download error report (CSV)</button>
+      </div>`;
+    }
+    const d = up.diff; const updated = d.updated.length;
+    const fieldSummary = MAP_FIELDS.filter(f => d.fieldCounts[f.key] > 0).map(f => f.key + ': ' + d.fieldCounts[f.key]).join(' · ') || 'none';
+    return `<div class="map-ingest-result" style="margin-top:10px">
+      <p><strong>${updated}</strong> tract${updated !== 1 ? 's' : ''} to update &middot; <strong>${d.unchanged}</strong> unchanged &middot; 0 errors</p>
+      <p class="page-sub">Field changes — ${escapeHtml(fieldSummary)}</p>
+      <button id="map-ingest-commit" class="btn btn-primary" type="button"${updated === 0 ? ' disabled' : ''}>Commit ${updated} change${updated !== 1 ? 's' : ''}&hellip;</button>
+      ${updated === 0 ? '<span class="page-sub"> Nothing to commit — file matches current data.</span>' : ''}
+    </div>`;
+  }
+
+  function renderMapHistoryList(entries) {
+    if (!entries || !entries.length) return '<h4>Map change history</h4><p class="ingest-history-empty">No uploads yet.</p>';
+    const lis = entries.slice(0, 20).map(e => {
+      let counts = '';
+      try { const c = JSON.parse(e.changes); if (c && c.fieldCounts) counts = Object.keys(c.fieldCounts).filter(k => c.fieldCounts[k]).map(k => k + ':' + c.fieldCounts[k]).join(' · '); } catch (x) {}
+      return `<li class="ingest-history-entry">
+        <div class="ingest-history-meta"><span class="ingest-history-who"><strong>${escapeHtml(e.user)}</strong>${e.email ? ' <span class="ingest-history-email">&lt;' + escapeHtml(e.email) + '&gt;</span>' : ''}</span>
+        <span class="ingest-history-when">${escapeHtml(e.ts ? formatTimeAgo(e.ts) : '')}</span></div>
+        <div class="ingest-history-body"><span class="ingest-history-summary">${escapeHtml(e.description)}</span></div>
+        ${counts ? '<div class="page-sub">' + escapeHtml(counts) + '</div>' : ''}
+      </li>`;
+    }).join('');
+    return `<h4>Map change history <span class="ingest-history-count">(${entries.length})</span></h4><ul class="ingest-history-list">${lis}</ul>`;
+  }
+
+  async function loadMapCurrentAndHistory() {
+    try { state.ingest.mapCurrent = await Storage.getMapOverlay(); }
+    catch (e) { state.ingest.mapCurrent = null; console.warn('[map upload] could not load current tract data:', e); }
+    const histMount = document.getElementById('map-ingest-history-mount');
+    try { const hist = await Storage.getMapHistory(); if (histMount) histMount.innerHTML = renderMapHistoryList(hist); }
+    catch (e) { if (histMount) histMount.innerHTML = '<h4>Map change history</h4><p class="ingest-history-empty">Could not load history.</p>'; }
+  }
+
+  function rerenderMapPreview() {
+    const mount = document.getElementById('map-ingest-preview');
+    if (!mount) return;
+    mount.innerHTML = renderMapPreview();
+    const up = state.ingest.mapUpload;
+    const dl = document.getElementById('map-ingest-error-dl');
+    if (dl && up) dl.addEventListener('click', () => {
+      const lines = ['line,census_tract_geoid,column,problem'].concat(up.errors.map(e => [e.line, e.geoid, e.col, csvCell(e.msg)].join(',')));
+      downloadTextFile('map_upload_errors.csv', lines.join('\r\n'));
+    });
+    const commit = document.getElementById('map-ingest-commit');
+    if (commit) commit.addEventListener('click', () => openMapCommitModal());
+  }
+
+  function wireMapIngest() {
+    if (!Storage.isDataverse()) return;
+    state.ingest.mapUpload = null;
+    loadMapCurrentAndHistory();
+    const tplBtn = document.getElementById('map-ingest-template');
+    if (tplBtn) tplBtn.addEventListener('click', () => {
+      if (!state.ingest.mapCurrent) { Storage.toast('Current data still loading — try again in a moment.', 'error'); return; }
+      downloadTextFile('map_tract_data_current.csv', buildMapTemplateCsv(state.ingest.mapCurrent));
+    });
+    const fileInput = document.getElementById('map-ingest-file');
+    if (fileInput) fileInput.addEventListener('change', e => {
+      const file = e.target.files && e.target.files[0]; if (!file) return;
+      const nameEl = document.getElementById('map-ingest-file-name'); if (nameEl) nameEl.textContent = file.name;
+      if (!state.ingest.mapCurrent) { Storage.toast('Current data still loading — try again in a moment.', 'error'); return; }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const validGeoids = new Set(Object.keys(state.ingest.mapCurrent));
+        const parsed = parseMapCsv(String(reader.result), validGeoids);
+        state.ingest.mapUpload = parsed.errors.length
+          ? { errors: parsed.errors }
+          : { errors: [], diff: diffTracts(state.ingest.mapCurrent, parsed.records) };
+        rerenderMapPreview();
+      };
+      reader.readAsText(file);
+    });
+    rerenderMapPreview();
+  }
+
+  function openMapCommitModal() {
+    const up = state.ingest.mapUpload;
+    if (!up || up.errors.length || !up.diff || !up.diff.updated.length) return;
+    const d = up.diff; const updated = d.updated.length;
+    const modal = document.createElement('div'); modal.className = 'ingest-modal-overlay';
+    modal.innerHTML = `
+      <div class="ingest-modal" role="dialog" aria-labelledby="map-commit-title">
+        <div class="ingest-modal-head"><h3 id="map-commit-title">Commit map data &middot; ${updated} tract${updated !== 1 ? 's' : ''}</h3>
+          <button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>
+        <div class="ingest-modal-body">
+          <p>You are about to update <strong>${updated}</strong> tract${updated !== 1 ? 's' : ''} in Dataverse. Please identify yourself:</p>
+          <div class="ingest-modal-field"><label for="map-commit-name">Your name</label><input id="map-commit-name" type="text" placeholder="e.g. Maria Lopez" autocomplete="name" /></div>
+          <div class="ingest-modal-field"><label for="map-commit-email">Your email</label><input id="map-commit-email" type="email" placeholder="e.g. maria@coned.com" autocomplete="email" /></div>
+          <div class="ingest-modal-error" id="map-commit-error" style="display:none"></div>
+        </div>
+        <div class="ingest-modal-foot"><button class="btn btn-secondary" id="map-commit-cancel" type="button">Cancel</button>
+          <button class="btn btn-primary" id="map-commit-confirm" type="button">Commit</button></div>
+      </div>`;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('.ingest-modal-close').addEventListener('click', close);
+    modal.querySelector('#map-commit-cancel').addEventListener('click', close);
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    const lastEntry = state.ingest.mapLastIdentity;
+    if (lastEntry) { modal.querySelector('#map-commit-name').value = lastEntry.name || ''; modal.querySelector('#map-commit-email').value = lastEntry.email || ''; }
+
+    modal.querySelector('#map-commit-confirm').addEventListener('click', async () => {
+      const name = modal.querySelector('#map-commit-name').value.trim();
+      const email = modal.querySelector('#map-commit-email').value.trim();
+      const err = modal.querySelector('#map-commit-error');
+      if (!name) { err.textContent = 'Please enter your name.'; err.style.display = 'block'; return; }
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = 'Please enter a valid email address.'; err.style.display = 'block'; return; }
+      const btn = modal.querySelector('#map-commit-confirm'); btn.disabled = true; btn.textContent = 'Committing…';
+      const summary = { description: 'map upload — ' + updated + ' tract' + (updated !== 1 ? 's' : '') + ' updated',
+        changes: { tractsUpdated: updated, fieldCounts: d.fieldCounts, geoids: d.updated.map(u => u.geoid) } };
+      try {
+        const res = await Storage.saveMapTracts(d.updated, summary, { name: name, email: email });
+        state.ingest.mapLastIdentity = { name: name, email: email };
+        close();
+        if (res.historyOk) Storage.toast('Committed ' + res.upserted + ' tract' + (res.upserted !== 1 ? 's' : '') + ' to Dataverse.', 'info');
+        else Storage.toast('Data saved (' + res.upserted + ' tracts) BUT the history record failed: ' + res.historyError, 'error');
+        state.ingest.mapUpload = null;
+        const fn = document.getElementById('map-ingest-file-name'); if (fn) fn.textContent = '';
+        await refreshMapOverlay();
+        await loadMapCurrentAndHistory();
+        rerenderMapPreview();
+      } catch (e) {
+        btn.disabled = false; btn.textContent = 'Commit';
+        err.textContent = 'Commit failed: ' + ((e && e.message) ? e.message : e); err.style.display = 'block';
+      }
+    });
+    setTimeout(() => modal.querySelector('#map-commit-name').focus(), 50);
   }
 
   // ---------- partial re-renderers ----------
