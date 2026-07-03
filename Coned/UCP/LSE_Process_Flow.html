@@ -119,10 +119,55 @@
   .swatch{width:10px; height:10px; border-radius:3px;}
   .diakey{width:11px; height:11px; border:2px solid var(--ms-blue); transform:rotate(45deg) scale(.8); border-radius:2px;}
   .src{font-size:10.5px; color:var(--ink-3);}
+  /* ---------- Password gate ---------- */
+  body.locked .slide{display:none;}
+  .gate{
+    position:fixed; inset:0; background:var(--bg); display:none;
+    align-items:center; justify-content:center; z-index:100;
+  }
+  body.locked .gate{display:flex;}
+  .gate-card{
+    background:#fff; border-radius:12px; box-shadow:var(--shadow-lg);
+    border-top:4px solid var(--ms-blue); padding:34px 38px 30px;
+    width:min(400px, 92vw); text-align:center;
+  }
+  .gate-card h2{font-size:17px; font-weight:600; margin:14px 0 4px;}
+  .gate-card p{font-size:12.5px; color:var(--ink-2); margin-bottom:18px;}
+  .gate-lock{
+    width:44px; height:44px; border-radius:50%; background:var(--ms-blue-soft);
+    display:inline-flex; align-items:center; justify-content:center; color:var(--ms-blue-deep);
+  }
+  .gate-lock svg{width:20px; height:20px;}
+  .gate-row{display:flex; gap:8px;}
+  .gate-row input{
+    flex:1; font:inherit; font-size:13.5px; padding:9px 12px;
+    border:1px solid var(--line); border-radius:4px; outline:none;
+  }
+  .gate-row input:focus{border-color:var(--ms-blue); box-shadow:0 0 0 1px var(--ms-blue);}
+  .gate-row button{
+    font:inherit; font-size:13px; font-weight:600; cursor:pointer;
+    background:var(--ms-blue); color:#fff; border:1px solid var(--ms-blue);
+    border-radius:4px; padding:9px 20px; transition:.15s;
+  }
+  .gate-row button:hover{background:#106EBE;}
+  .gate-err{font-size:12px; color:var(--red); margin-top:10px; min-height:16px; visibility:hidden;}
+  .gate-err.show{visibility:visible;}
   @media (prefers-reduced-motion: reduce){ .step,.edge,.strip{transition:none;} }
 </style>
 </head>
-<body>
+<body class="locked">
+<div class="gate">
+  <div class="gate-card">
+    <span class="gate-lock"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></svg></span>
+    <h2>Clara Fortuna's Process Flow Analyzer</h2>
+    <p>This presentation is protected. Enter the password to continue.</p>
+    <div class="gate-row">
+      <input type="password" id="gatePw" placeholder="Password" autocomplete="off">
+      <button id="gateBtn">Enter</button>
+    </div>
+    <div class="gate-err" id="gateErr">That password isn't right. Please try again.</div>
+  </div>
+</div>
 <div class="slide">
   <header>
     <div>
@@ -507,6 +552,33 @@
 </div>
 
 <script>
+(function(){
+  const HASH = '1c1b40546f150b99b05def284bf0772a0394a145d4d3bbb411ce923556e01db9';
+  const gatePw = document.getElementById('gatePw');
+  const gateBtn = document.getElementById('gateBtn');
+  const gateErr = document.getElementById('gateErr');
+  async function sha256(t){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  function unlock(){
+    document.body.classList.remove('locked');
+    sessionStorage.setItem('lseGate','ok');
+  }
+  async function check(){
+    const v = gatePw.value.trim();
+    if(!v) return;
+    let ok = false;
+    if(window.crypto && crypto.subtle){ ok = (await sha256(v) === HASH); }
+    else { ok = (v === atob('bHNlZGVtbw==')); }
+    if(ok){ unlock(); }
+    else { gateErr.classList.add('show'); gatePw.value=''; gatePw.focus(); }
+  }
+  gateBtn.addEventListener('click', check);
+  gatePw.addEventListener('keydown', e=>{ if(e.key==='Enter') check(); gateErr.classList.remove('show'); });
+  if(sessionStorage.getItem('lseGate')==='ok'){ document.body.classList.remove('locked'); }
+  else { setTimeout(()=>gatePw.focus(), 100); }
+})();
 (function(){
   const tabs = document.querySelectorAll('.tab');
   const flows = {csr: document.getElementById('flow-csr'), sup: document.getElementById('flow-sup'), risk: document.getElementById('flow-risk')};
