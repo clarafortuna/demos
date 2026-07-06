@@ -452,7 +452,16 @@
       },
       applyOverrides(payload) { return active.applyOverrides(payload); },
       getOverride(tableId, year) { return active.getOverride(tableId, year); },
-      saveTable(tableId, year, newRows, ctx) { return active.saveTable(tableId, year, newRows, ctx); },
+      saveTable(tableId, year, newRows, ctx) {
+        // CLCPA-88: never persist derived columns for stripped tables — the app
+        // re-derives them at render. Strip newRows AND ctx.oldRows so the change-
+        // history diff reflects base-input edits only (no derived-column noise).
+        const rows = stripDerivedForPersist(newRows, tableId);
+        const cleanCtx = (ctx && ctx.oldRows)
+          ? Object.assign({}, ctx, { oldRows: stripDerivedForPersist(ctx.oldRows, tableId) })
+          : ctx;
+        return active.saveTable(tableId, year, rows, cleanCtx);
+      },
       getHistoryFor(tableId, year) { return active.getHistoryFor(tableId, year); },
       getAllHistory() { return active.getAllHistory(); },
       getCurrentUser() { return _currentUser; },
@@ -995,6 +1004,36 @@
       }
     });
     return clone;
+  }
+
+  // CLCPA-88: tables whose derived cells are consumed ONLY via the shared re-derive
+  // path (report source tables + ingest editor) — safe to NOT persist their derived
+  // columns, because the app recomputes them at render from the base inputs.
+  //
+  // F8, G1–G10 and EVERY J-table are intentionally EXCLUDED: renderSectionF (F8
+  // borough cards), renderSectionG (readPair) and renderSectionJ (KPI panel) read
+  // those tables' STORED derived cells directly, so stripping them here would blank
+  // those KPIs. Extending the strip to F/G/J requires first routing those section
+  // renderers through applyDerivedCols (follow-up #3). Deferred J1/J2 are never
+  // stripped either — the app cannot re-derive them yet.
+  const PERSIST_STRIP_TABLES = new Set(['A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A10', 'F2']);
+
+  /**
+   * Return a persistence copy of `rows` with derived columns nulled, so the store
+   * never holds a derived total/percentage (the app re-derives at render). Only
+   * strips tables in PERSIST_STRIP_TABLES; additive columns and base inputs are left
+   * intact. Clones only when it actually strips. Used by Storage.saveTable for both
+   * the localStorage and Dataverse backends.
+   */
+  function stripDerivedForPersist(rows, tableId) {
+    if (!Array.isArray(rows) || !PERSIST_STRIP_TABLES.has(tableId)) return rows;
+    const cols = (DERIVED_COLS[tableId] || []).map(d => d.column);
+    if (!cols.length) return rows;
+    return rows.map(r => {
+      const c = r.slice();
+      cols.forEach(ci => { if (ci < c.length) c[ci] = null; });
+      return c;
+    });
   }
 
   /** Returns an array of booleans: which columns are percentage columns. */
