@@ -1064,6 +1064,31 @@
     });
   }
 
+  /**
+   * CLCPA-140: per-column numeric mask (boolean[] indexed by column). A column
+   * (index >= 1) is numeric if it is currency, percentage or a DERIVED_COLS column,
+   * OR any non-empty body cell passes the existing isNumeric. Column 0 (the row
+   * label) is always text. Reuses the existing classifiers only — no new heuristic.
+   * Alignment is applied per column (never per cell), so "—", blank and
+   * embedded-string cells follow their column's alignment.
+   */
+  function columnNumericMask(headerRow, body, tableId) {
+    const curr = detectCurrencyColumns(headerRow);
+    const pct = detectPctColumns(headerRow);
+    const derived = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
+    const len = headerRow.length;
+    const mask = new Array(len).fill(false);
+    for (let c = 1; c < len; c++) {
+      if (curr[c] || pct[c] || derived.has(c)) { mask[c] = true; continue; }
+      for (let r = 0; r < body.length; r++) {
+        const v = body[r][c];
+        if (v == null || v === '') continue;
+        if (isNumeric(v)) { mask[c] = true; break; }
+      }
+    }
+    return mask;
+  }
+
   /** True if a row has text in column 0 and empty/null in the rest (a sub-header). */
   function isSubheaderRow(row) {
     if (!row || !row[0] || typeof row[0] !== 'string') return false;
@@ -1191,6 +1216,8 @@
 
     // Build body
     const body = rows.slice(headerLevels);
+    // CLCPA-140: classify columns once; alignment is applied per column, not per cell.
+    const numericCol = columnNumericMask(pctHeader, body, opts.tableId);
     const bodyRows = body.map((row, idx) => {
       let cls = '';
       if (isTotalRow(row)) {
@@ -1203,10 +1230,10 @@
         cls = ' class="is-rowhead"';
       }
       const cells = row.map((c, i) => {
-        if (c == null || c === '') return '<td></td>';
-        const isNAish = typeof c === 'string' && /^(n\/a|na|—|-)$/i.test(c.trim());
-        const isNum = (typeof c === 'number' || (isNumeric(c) && i > 0) || (isNAish && i > 0));
-        const numCls = isNum ? ' class="num"' : (c === 'Yes' && i > 0) ? ' class="dac-yes"' : '';
+        // CLCPA-140: alignment follows the COLUMN (numericCol mask), never the cell —
+        // so "—", blank and embedded-string cells in a numeric column align right too.
+        const numCls = numericCol[i] ? ' class="num"' : (c === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
+        if (c == null || c === '') return `<td${numCls}></td>`;
         return `<td${numCls}>${formatCell(c, i, row[0])}</td>`;
       }).join('');
       return `<tr${cls}>${cells}</tr>`;
@@ -8221,6 +8248,8 @@ function wireHTooltips() {
     // calc cells (like Total cells) — the user only edits the additive inputs.
     const derivedByCol = {};
     ((DERIVED_COLS[i.tableId]) || []).forEach(d => { derivedByCol[d.column] = d; });
+    // CLCPA-140: same per-column numeric mask as the report, so both views match.
+    const numericCol = columnNumericMask(i.schema, i.draft, i.tableId);
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
       const isTotal = isTotalRowLabel(row[0]);
       const cells = i.schema.map((_, colIdx) => {
@@ -8237,15 +8266,17 @@ function wireHTooltips() {
           return `<td class="ingest-td-calc"><span class="ingest-cell-calc">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
         }
         if (isTotal) {
-          // Calculated cell — readonly, gray
+          // Calculated cell — readonly, gray. Alignment follows the column.
           const display = (v == null || v === '') ? '—' :
             (typeof v === 'number' ? v.toLocaleString() : String(v));
-          return `<td class="ingest-td-calc"><span class="ingest-cell-calc">${escapeHtml(display)}</span></td>`;
+          const calcCls = numericCol[colIdx] ? 'ingest-cell-calc' : 'ingest-cell-calc ingest-cell-calc-text';
+          return `<td class="ingest-td-calc"><span class="${calcCls}">${escapeHtml(display)}</span></td>`;
         }
-        // Regular editable numeric cell
+        // Regular editable cell — alignment follows the column (numeric = right, text = left).
         const cellValue = v == null || v === '' ? '' : (typeof v === 'number' ? String(v) : String(v));
+        const inputAlign = numericCol[colIdx] ? 'ingest-cell-num' : 'ingest-cell-text';
         return `<td>
-          <input type="text" inputmode="decimal" value="${escapeHtml(cellValue)}" data-row="${rowIdx}" data-col="${colIdx}" class="ingest-cell ingest-cell-num" />
+          <input type="text" inputmode="decimal" value="${escapeHtml(cellValue)}" data-row="${rowIdx}" data-col="${colIdx}" class="ingest-cell ${inputAlign}" />
         </td>`;
       }).join('');
       return `<tr${isTotal ? ' class="ingest-row-total"' : ''} data-row="${rowIdx}">
