@@ -864,6 +864,51 @@
            /\btotal\s+installations?$/i.test(s);
   }
 
+  // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
+  // ratios that must be COMPUTED, never summed). Keyed by table id; column indices
+  // are 0-based (0 = row label). Consumed by recomputeTotals.
+  //   type              : 'percentage' (fraction stored, shown ×100 + '%') | 'ratio'
+  //   numerator/denominator : column indices summed to form each side
+  //   denominatorScope  : 'row'   -> per-row divisor is that row's own denominator cells
+  //                       'total' -> per-row divisor is the denominator columns' grand total
+  // The Total row is always Σ(numerator col totals) / Σ(denominator col totals),
+  // regardless of scope. Divide-by-zero / non-numeric inputs leave the cell as-is.
+  const DERIVED_COLS = (function () {
+    const pct = (column, numerator, denominator, denominatorScope, decimals) =>
+      ({ column, type: 'percentage', numerator, denominator, denominatorScope, decimals });
+    const gPct = [pct(2, [1], [1], 'total', 2)];           // G tables: feet/mT ÷ column total
+    const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
+    const jSplit = (dp) => [pct(2, [1], [1, 3], 'row', dp), pct(4, [3], [1, 3], 'row', dp)];
+    return {
+      // Tier 1 — sibling / column ratios
+      A1: [pct(3, [2], [1], 'row', 1)],
+      A2: [pct(3, [2], [1], 'row', 1)],
+      A5: [pct(3, [2], [1], 'row', 1)],
+      A6: [pct(3, [2], [1], 'row', 1)],
+      A7: [pct(3, [2], [1], 'row', 1)],
+      A8: [pct(3, [2], [1], 'row', 1)],
+      A10: [pct(3, [2], [1], 'row', 0), pct(6, [5], [4], 'row', 0)],
+      F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4)],
+      G1: gPct, G2: gPct, G3: gPct, G4: gPct, G5: gPct,
+      G6: gPct, G7: gPct, G8: gPct, G9: gPct, G10: gPct,
+      J3: jShare, J4: jShare, J6: jShare,
+      // Tier 2 — multi-column denominator
+      F8: [pct(2, [1], [1, 3], 'total', 4), pct(4, [3], [1, 3], 'total', 4)],
+      J5: jSplit(0), J9: jSplit(2),
+      // J1/J2 deferred: they mix a non-summable "Average usage" row into the body and
+      // store their totals as strings, so a column-derived total is unsafe here — they
+      // need row-level handling + numeric data. Tracked with the Tier-3 follow-ups.
+      J7: [pct(4, [1, 2, 3], [1, 2, 3], 'total', 0)]
+    };
+  })();
+
+  /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
+  function fmtDerivedCell(v, d) {
+    if (v == null || v === '' || typeof v !== 'number' || !isFinite(v)) return '—';
+    if (d.type === 'percentage') return (Math.abs(v) <= 1 ? v * 100 : v).toFixed(d.decimals) + '%';
+    return v.toFixed(d.decimals);
+  }
+
   /** Returns an array of booleans: which columns are percentage columns. */
   function detectPctColumns(headerRow) {
     return headerRow.map(h => {
@@ -7624,8 +7669,11 @@ function wireHTooltips() {
    * like a total, sum the numeric values in each non-label column from all
    * non-total rows above. Mutates the array.
    */
-  function recomputeTotals(draft, schema) {
+  function recomputeTotals(draft, schema, tableId) {
     if (!draft || !schema) return;
+    const derived = (tableId && DERIVED_COLS[tableId]) || [];
+    const derivedSet = new Set(derived.map(d => d.column));
+
     // Identify total rows by their label (col 0)
     const totalRowIdxs = [];
     const nonTotalRows = [];
@@ -7633,21 +7681,63 @@ function wireHTooltips() {
       if (isTotalRowLabel(row[0])) totalRowIdxs.push(idx);
       else nonTotalRows.push(row);
     });
+
+    // Column grand-totals over non-total rows. Used for additive Total cells and
+    // for 'total'-scope derived denominators. (Additive behavior is unchanged from
+    // the previous implementation.)
+    const colSum = new Array(schema.length).fill(null);
+    const colHasNum = new Array(schema.length).fill(false);
+    for (let c = 1; c < schema.length; c++) {
+      let sum = 0, any = false;
+      nonTotalRows.forEach(r => {
+        const v = r[c];
+        if (typeof v === 'number' && isFinite(v)) { sum += v; any = true; }
+      });
+      colSum[c] = any ? sum : null;
+      colHasNum[c] = any;
+    }
+
+    // Sum a set of columns from a source row/array; null if any cell is non-numeric.
+    function sumCols(src, cols) {
+      let s = 0;
+      for (const c of cols) {
+        const v = src[c];
+        if (typeof v !== 'number' || !isFinite(v)) return null;
+        s += v;
+      }
+      return s;
+    }
+
+    // (b) Per-row derived cells: recompute each row's %/ratio from its own inputs
+    // (or the column grand-total, for 'total' scope). Guards divide-by-zero and
+    // non-numeric rows (sub-headers, average rows) by leaving the cell untouched.
+    if (derived.length) {
+      nonTotalRows.forEach(row => {
+        derived.forEach(d => {
+          const num = sumCols(row, d.numerator);
+          const den = d.denominatorScope === 'total'
+            ? sumCols(colSum, d.denominator)
+            : sumCols(row, d.denominator);
+          if (num == null || den == null || den === 0) return;
+          row[d.column] = num / den;
+        });
+      });
+    }
+
     if (totalRowIdxs.length === 0) return;
 
+    // (a) Total row: additive columns sum; derived columns are derived from the
+    // numerator/denominator column totals — never summed.
     totalRowIdxs.forEach(idx => {
       for (let c = 1; c < schema.length; c++) {
-        let sum = 0;
-        let anyNumeric = false;
-        nonTotalRows.forEach(r => {
-          const v = r[c];
-          if (typeof v === 'number' && isFinite(v)) {
-            sum += v;
-            anyNumeric = true;
-          }
-        });
-        draft[idx][c] = anyNumeric ? sum : null;
+        if (derivedSet.has(c)) continue;
+        draft[idx][c] = colHasNum[c] ? colSum[c] : null;
       }
+      derived.forEach(d => {
+        const num = sumCols(colSum, d.numerator);
+        const den = sumCols(colSum, d.denominator);
+        draft[idx][d.column] = (num != null && den != null && den !== 0) ? num / den : null;
+      });
     });
   }
 
@@ -8020,7 +8110,7 @@ function wireHTooltips() {
       return `<div class="empty-pane">Table ${i.tableId} not found.</div>`;
     }
 
-    recomputeTotals(i.draft, i.schema);
+    recomputeTotals(i.draft, i.schema, i.tableId);
     recomputeDirty();
 
     const tableNum = i.tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
@@ -8040,6 +8130,10 @@ function wireHTooltips() {
     ).join('');
 
     // Build body rows
+    // CLCPA-88: derived (%/ratio) columns are computed, so they render as read-only
+    // calc cells (like Total cells) — the user only edits the additive inputs.
+    const derivedByCol = {};
+    ((DERIVED_COLS[i.tableId]) || []).forEach(d => { derivedByCol[d.column] = d; });
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
       const isTotal = isTotalRowLabel(row[0]);
       const cells = i.schema.map((_, colIdx) => {
@@ -8049,6 +8143,11 @@ function wireHTooltips() {
           return `<td class="ingest-td-label">
             <input type="text" value="${escapeHtml(rawNum(v))}" data-row="${rowIdx}" data-col="0" class="ingest-cell ingest-cell-label" />
           </td>`;
+        }
+        const dDesc = derivedByCol[colIdx];
+        if (dDesc) {
+          // Derived cell — computed (read-only), formatted as % / ratio.
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
         }
         if (isTotal) {
           // Calculated cell — readonly, gray
@@ -8414,7 +8513,7 @@ function wireHTooltips() {
         } else {
           state.ingest.draft[r][c] = parseNumericInput(e.target.value);
         }
-        recomputeTotals(state.ingest.draft, state.ingest.schema);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
         // Re-render editor to update calculated rows and status bar
         rerenderIngestEditor();
       });
@@ -8431,7 +8530,7 @@ function wireHTooltips() {
         }
         if (!confirm('Delete this row?')) return;
         state.ingest.draft.splice(r, 1);
-        recomputeTotals(state.ingest.draft, state.ingest.schema);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
         rerenderIngestEditor();
       });
     });
@@ -8443,7 +8542,7 @@ function wireHTooltips() {
         const newRow = state.ingest.schema.map(() => null);
         newRow[0] = '';
         state.ingest.draft.push(newRow);
-        recomputeTotals(state.ingest.draft, state.ingest.schema);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
         rerenderIngestEditor();
       });
     }
