@@ -547,15 +547,8 @@ body {
 .data-table td.num { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-2); }
 .data-table tbody tr.is-total td.num { color: var(--text); }
 
-/* I1: center the Unique / Non-Unique value columns (cols 2 and 3, 1-indexed) */
-.data-table[data-table-id="I1"] td:nth-child(2),
-.data-table[data-table-id="I1"] td:nth-child(3) {
-  text-align: center;
-}
-.data-table[data-table-id="I1"] th:nth-child(2),
-.data-table[data-table-id="I1"] th:nth-child(3) {
-  text-align: center;
-}
+/* CLCPA-140: the I1 Unique / Non-Unique columns now follow the standard numeric
+   right alignment (the one-off center override was removed for consistency). */
 .data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; text-align: center; }
 .year-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .year-col { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
@@ -961,11 +954,9 @@ a.nav-item { text-decoration: none; }
    TABLE STYLING — APPEND TO END OF shared.css
    ============================================================= */
 
-/* 1) Center numeric cells; keep label cells (first col) left-aligned */
-.data-table td.num {
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
+/* CLCPA-140: headers centered; label (first col) left. Numeric alignment is the
+   single source of truth in `.data-table td.num` above (right-aligned) — the old
+   center override here was removed to avoid a cascade conflict. */
 .data-table th { text-align: center; }
 .data-table th:first-child { text-align: left; }
 .data-table td:first-child { text-align: left; }
@@ -5467,7 +5458,7 @@ a.nav-item { text-decoration: none; }
 .ingest-grid thead th {
   background: var(--bright-snow);
   padding: 8px 10px;
-  text-align: left;
+  text-align: center;                 /* CLCPA-140: headers centered (match report) */
   font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
@@ -5476,7 +5467,7 @@ a.nav-item { text-decoration: none; }
   border-bottom: 2px solid var(--line);
   white-space: nowrap;
 }
-.ingest-grid th.ingest-th-label { min-width: 160px; }
+.ingest-grid th.ingest-th-label { min-width: 160px; text-align: left; } /* label header left */
 .ingest-grid tbody td {
   padding: 4px 6px;
   border-bottom: 1px solid var(--white-smoke);
@@ -5508,6 +5499,7 @@ a.nav-item { text-decoration: none; }
   text-align: left;
 }
 .ingest-cell-num { text-align: right; }
+.ingest-cell-text { text-align: left; }   /* CLCPA-140: editable text-column inputs */
 
 .ingest-td-calc {
   padding: 6px 8px;
@@ -5524,6 +5516,7 @@ a.nav-item { text-decoration: none; }
   font-weight: 600;
   border: 1px dashed var(--line);
 }
+.ingest-cell-calc-text { text-align: left; }   /* CLCPA-140: text-column calc/total cells */
 
 .ingest-row-total td {
   background: rgba(20, 81, 153, 0.03);
