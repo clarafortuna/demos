@@ -452,7 +452,16 @@
       },
       applyOverrides(payload) { return active.applyOverrides(payload); },
       getOverride(tableId, year) { return active.getOverride(tableId, year); },
-      saveTable(tableId, year, newRows, ctx) { return active.saveTable(tableId, year, newRows, ctx); },
+      saveTable(tableId, year, newRows, ctx) {
+        // CLCPA-88: never persist derived columns for stripped tables — the app
+        // re-derives them at render. Strip newRows AND ctx.oldRows so the change-
+        // history diff reflects base-input edits only (no derived-column noise).
+        const rows = stripDerivedForPersist(newRows, tableId);
+        const cleanCtx = (ctx && ctx.oldRows)
+          ? Object.assign({}, ctx, { oldRows: stripDerivedForPersist(ctx.oldRows, tableId) })
+          : ctx;
+        return active.saveTable(tableId, year, rows, cleanCtx);
+      },
       getHistoryFor(tableId, year) { return active.getHistoryFor(tableId, year); },
       getAllHistory() { return active.getAllHistory(); },
       getCurrentUser() { return _currentUser; },
@@ -864,6 +873,169 @@
            /\btotal\s+installations?$/i.test(s);
   }
 
+  // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
+  // ratios that must be COMPUTED, never summed). Keyed by table id; column indices
+  // are 0-based (0 = row label). Consumed by recomputeTotals.
+  //   type              : 'percentage' (fraction stored, shown ×100 + '%') | 'ratio'
+  //   numerator/denominator : column indices summed to form each side
+  //   denominatorScope  : 'row'   -> per-row divisor is that row's own denominator cells
+  //                       'total' -> per-row divisor is the denominator columns' grand total
+  // The Total row is always Σ(numerator col totals) / Σ(denominator col totals),
+  // regardless of scope. Divide-by-zero / non-numeric inputs leave the cell as-is.
+  const DERIVED_COLS = (function () {
+    const pct = (column, numerator, denominator, denominatorScope, decimals) =>
+      ({ column, type: 'percentage', numerator, denominator, denominatorScope, decimals });
+    const gPct = [pct(2, [1], [1], 'total', 2)];           // G tables: feet/mT ÷ column total
+    const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
+    const jSplit = (dp) => [pct(2, [1], [1, 3], 'row', dp), pct(4, [3], [1, 3], 'row', dp)];
+    return {
+      // Tier 1 — sibling / column ratios
+      A1: [pct(3, [2], [1], 'row', 1)],
+      A2: [pct(3, [2], [1], 'row', 1)],
+      A5: [pct(3, [2], [1], 'row', 1)],
+      A6: [pct(3, [2], [1], 'row', 1)],
+      A7: [pct(3, [2], [1], 'row', 1)],
+      A8: [pct(3, [2], [1], 'row', 1)],
+      A10: [pct(3, [2], [1], 'row', 0), pct(6, [5], [4], 'row', 0)],
+      F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4)],
+      G1: gPct, G2: gPct, G3: gPct, G4: gPct, G5: gPct,
+      G6: gPct, G7: gPct, G8: gPct, G9: gPct, G10: gPct,
+      J3: jShare, J4: jShare, J6: jShare,
+      // Tier 2 — multi-column denominator
+      F8: [pct(2, [1], [1, 3], 'total', 4), pct(4, [3], [1, 3], 'total', 4)],
+      J5: jSplit(0), J9: jSplit(2),
+      // J1/J2 deferred: they mix a non-summable "Average usage" row into the body and
+      // store their totals as strings, so a column-derived total is unsafe here — they
+      // need row-level handling + numeric data. Tracked with the Tier-3 follow-ups.
+      J7: [pct(4, [1, 2, 3], [1, 2, 3], 'total', 0)]
+    };
+  })();
+
+  /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
+  function fmtDerivedCell(v, d) {
+    if (v == null || v === '' || typeof v !== 'number' || !isFinite(v)) return '—';
+    if (d.type === 'percentage') return (Math.abs(v) <= 1 ? v * 100 : v).toFixed(d.decimals) + '%';
+    return v.toFixed(d.decimals);
+  }
+
+  // CLCPA-88: shared derived-total engine — the SINGLE source of truth for the
+  // percentage/ratio rule, used by both the ingest editor (recomputeTotals) and
+  // the report view (rowsForDisplay). No stored derived total is ever trusted.
+
+  /** Sum a set of columns from a source row/array; null if any cell is non-numeric. */
+  function sumDerivedCols(src, cols) {
+    let s = 0;
+    for (const c of cols) {
+      const v = src[c];
+      if (typeof v !== 'number' || !isFinite(v)) return null;
+      s += v;
+    }
+    return s;
+  }
+
+  /** Column grand-totals (sum of finite values per column) over the given rows. */
+  function columnGrandTotals(rows, len) {
+    const colSum = new Array(len).fill(null);
+    const colHasNum = new Array(len).fill(false);
+    for (let c = 1; c < len; c++) {
+      let sum = 0, any = false;
+      rows.forEach(r => { const v = r[c]; if (typeof v === 'number' && isFinite(v)) { sum += v; any = true; } });
+      colSum[c] = any ? sum : null;
+      colHasNum[c] = any;
+    }
+    return { colSum, colHasNum };
+  }
+
+  /**
+   * Recompute the derived (%/ratio) cells for a table from DERIVED_COLS[tableId]:
+   * per-row cells from each row's own inputs (or the column grand-total for
+   * 'total' scope), and Total-row cells from the numerator/denominator column
+   * totals. Never touches additive cells. Mutates `rows` in place — callers pass
+   * either the editor draft or a display-only clone. `colSum` = column grand-totals
+   * over the non-total rows. Divide-by-zero / non-numeric inputs leave per-row cells
+   * unchanged and blank the Total cell (renders as "—").
+   */
+  function applyDerivedCols(rows, tableId, colSum) {
+    const derived = (tableId && DERIVED_COLS[tableId]) || [];
+    if (!derived.length) return;
+    rows.forEach(row => {
+      const isTot = isTotalRowLabel(row[0]);
+      derived.forEach(d => {
+        let num, den;
+        if (isTot) {
+          num = sumDerivedCols(colSum, d.numerator);
+          den = sumDerivedCols(colSum, d.denominator);
+        } else {
+          num = sumDerivedCols(row, d.numerator);
+          den = d.denominatorScope === 'total'
+            ? sumDerivedCols(colSum, d.denominator)
+            : sumDerivedCols(row, d.denominator);
+        }
+        if (num == null || den == null || den === 0) {
+          if (isTot) row[d.column] = null; // can't derive -> blank Total (renders "—")
+          return;                          // per-row: leave stored value as-is
+        }
+        row[d.column] = num / den;
+      });
+    });
+  }
+
+  /**
+   * Return a DISPLAY-ONLY copy of a table's body rows with derived cells computed
+   * via the shared rule, so the report/PDF never show a stored/summed derived
+   * total. Clones the input — never mutates state.payload or the store. Additive
+   * cells are left exactly as stored. Percentage columns NOT covered by DERIVED_COLS
+   * (deferred: J1/J2, Tier 3) render as "—" in the Total row rather than a wrong sum.
+   */
+  function rowsForDisplay(rawRows, schema, tableId) {
+    if (!rawRows || rawRows.length === 0) return rawRows;
+    const clone = rawRows.map(r => r.slice());
+    const len = schema ? schema.length : (clone[0] ? clone[0].length : 0);
+    const nonTotal = clone.filter(r => !isTotalRowLabel(r[0]));
+    const { colSum } = columnGrandTotals(nonTotal, len);
+    applyDerivedCols(clone, tableId, colSum);
+    // Deferred derived totals -> "—" (never render a summed percentage).
+    const covered = new Set(((DERIVED_COLS[tableId]) || []).map(d => d.column));
+    const pctCols = schema ? detectPctColumns(schema) : [];
+    clone.forEach(row => {
+      if (!isTotalRowLabel(row[0])) return;
+      for (let c = 1; c < row.length; c++) {
+        if (pctCols[c] && !covered.has(c)) row[c] = '—';
+      }
+    });
+    return clone;
+  }
+
+  // CLCPA-88: tables whose derived cells are consumed ONLY via the shared re-derive
+  // path (report source tables + ingest editor) — safe to NOT persist their derived
+  // columns, because the app recomputes them at render from the base inputs.
+  //
+  // F8, G1–G10 and EVERY J-table are intentionally EXCLUDED: renderSectionF (F8
+  // borough cards), renderSectionG (readPair) and renderSectionJ (KPI panel) read
+  // those tables' STORED derived cells directly, so stripping them here would blank
+  // those KPIs. Extending the strip to F/G/J requires first routing those section
+  // renderers through applyDerivedCols (follow-up #3). Deferred J1/J2 are never
+  // stripped either — the app cannot re-derive them yet.
+  const PERSIST_STRIP_TABLES = new Set(['A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A10', 'F2']);
+
+  /**
+   * Return a persistence copy of `rows` with derived columns nulled, so the store
+   * never holds a derived total/percentage (the app re-derives at render). Only
+   * strips tables in PERSIST_STRIP_TABLES; additive columns and base inputs are left
+   * intact. Clones only when it actually strips. Used by Storage.saveTable for both
+   * the localStorage and Dataverse backends.
+   */
+  function stripDerivedForPersist(rows, tableId) {
+    if (!Array.isArray(rows) || !PERSIST_STRIP_TABLES.has(tableId)) return rows;
+    const cols = (DERIVED_COLS[tableId] || []).map(d => d.column);
+    if (!cols.length) return rows;
+    return rows.map(r => {
+      const c = r.slice();
+      cols.forEach(ci => { if (ci < c.length) c[ci] = null; });
+      return c;
+    });
+  }
+
   /** Returns an array of booleans: which columns are percentage columns. */
   function detectPctColumns(headerRow) {
     return headerRow.map(h => {
@@ -1095,7 +1267,10 @@
       const raw = yr ? (t.data || {})[yr] : null;
       if (!raw || raw.length === 0) return raw;
       const schema = (t.schema_by_year || {})[yr];
-      return schema ? [schema, ...raw] : raw;
+      // CLCPA-88: derive %/ratio cells for display via the shared rule (clones raw;
+      // never mutates payload/store). Deferred derived totals render "—".
+      const body = rowsForDisplay(raw, schema, t.id);
+      return schema ? [schema, ...body] : body;
     };
 
     const dataCurrent = resolveRows(year);
@@ -7624,8 +7799,10 @@ function wireHTooltips() {
    * like a total, sum the numeric values in each non-label column from all
    * non-total rows above. Mutates the array.
    */
-  function recomputeTotals(draft, schema) {
+  function recomputeTotals(draft, schema, tableId) {
     if (!draft || !schema) return;
+    const derivedSet = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
+
     // Identify total rows by their label (col 0)
     const totalRowIdxs = [];
     const nonTotalRows = [];
@@ -7633,22 +7810,22 @@ function wireHTooltips() {
       if (isTotalRowLabel(row[0])) totalRowIdxs.push(idx);
       else nonTotalRows.push(row);
     });
-    if (totalRowIdxs.length === 0) return;
 
+    // Column grand-totals over non-total rows (drives additive Total cells and,
+    // via applyDerivedCols, the derived denominators).
+    const { colSum, colHasNum } = columnGrandTotals(nonTotalRows, schema.length);
+
+    // (a) Additive Total cells: sum (behavior unchanged). Derived Total cells are
+    // handled by the shared applyDerivedCols below, never summed here.
     totalRowIdxs.forEach(idx => {
       for (let c = 1; c < schema.length; c++) {
-        let sum = 0;
-        let anyNumeric = false;
-        nonTotalRows.forEach(r => {
-          const v = r[c];
-          if (typeof v === 'number' && isFinite(v)) {
-            sum += v;
-            anyNumeric = true;
-          }
-        });
-        draft[idx][c] = anyNumeric ? sum : null;
+        if (derivedSet.has(c)) continue;
+        draft[idx][c] = colHasNum[c] ? colSum[c] : null;
       }
     });
+
+    // (b) Derived per-row + Total cells via the shared rule (same as the report).
+    applyDerivedCols(draft, tableId, colSum);
   }
 
   /** Initialize state.ingest based on current selection. */
@@ -8020,7 +8197,7 @@ function wireHTooltips() {
       return `<div class="empty-pane">Table ${i.tableId} not found.</div>`;
     }
 
-    recomputeTotals(i.draft, i.schema);
+    recomputeTotals(i.draft, i.schema, i.tableId);
     recomputeDirty();
 
     const tableNum = i.tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
@@ -8040,6 +8217,10 @@ function wireHTooltips() {
     ).join('');
 
     // Build body rows
+    // CLCPA-88: derived (%/ratio) columns are computed, so they render as read-only
+    // calc cells (like Total cells) — the user only edits the additive inputs.
+    const derivedByCol = {};
+    ((DERIVED_COLS[i.tableId]) || []).forEach(d => { derivedByCol[d.column] = d; });
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
       const isTotal = isTotalRowLabel(row[0]);
       const cells = i.schema.map((_, colIdx) => {
@@ -8049,6 +8230,11 @@ function wireHTooltips() {
           return `<td class="ingest-td-label">
             <input type="text" value="${escapeHtml(rawNum(v))}" data-row="${rowIdx}" data-col="0" class="ingest-cell ingest-cell-label" />
           </td>`;
+        }
+        const dDesc = derivedByCol[colIdx];
+        if (dDesc) {
+          // Derived cell — computed (read-only), formatted as % / ratio.
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
         }
         if (isTotal) {
           // Calculated cell — readonly, gray
@@ -8414,7 +8600,7 @@ function wireHTooltips() {
         } else {
           state.ingest.draft[r][c] = parseNumericInput(e.target.value);
         }
-        recomputeTotals(state.ingest.draft, state.ingest.schema);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
         // Re-render editor to update calculated rows and status bar
         rerenderIngestEditor();
       });
@@ -8431,7 +8617,7 @@ function wireHTooltips() {
         }
         if (!confirm('Delete this row?')) return;
         state.ingest.draft.splice(r, 1);
-        recomputeTotals(state.ingest.draft, state.ingest.schema);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
         rerenderIngestEditor();
       });
     });
@@ -8443,7 +8629,7 @@ function wireHTooltips() {
         const newRow = state.ingest.schema.map(() => null);
         newRow[0] = '';
         state.ingest.draft.push(newRow);
-        recomputeTotals(state.ingest.draft, state.ingest.schema);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
         rerenderIngestEditor();
       });
     }
