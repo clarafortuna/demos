@@ -7807,6 +7807,18 @@ function wireHTooltips() {
     return isFinite(n) ? n : trimmed;
   }
 
+  /**
+   * Format a raw draft value for DISPLAY in an ingest input on blur — visual only;
+   * the stored value stays the raw number. Money columns get a leading "$", numeric
+   * columns get thousands separators; negatives render as -$212,177. Non-numeric
+   * values (text columns, string residuals) are returned unchanged.
+   */
+  function formatIngestValue(v, isCurrency) {
+    if (v == null || v === '') return '';
+    if (typeof v !== 'number' || !isFinite(v)) return String(v);
+    return (v < 0 ? '-' : '') + (isCurrency ? '$' : '') + Math.abs(v).toLocaleString('en-US');
+  }
+
   /** Format a timestamp for the history strip. */
   function formatTimeAgo(ts) {
     const now = Date.now();
@@ -8250,6 +8262,8 @@ function wireHTooltips() {
     ((DERIVED_COLS[i.tableId]) || []).forEach(d => { derivedByCol[d.column] = d; });
     // CLCPA-140: same per-column numeric mask as the report, so both views match.
     const numericCol = columnNumericMask(i.schema, i.draft, i.tableId);
+    // Money columns get a "$" on blur; other numeric columns get commas only.
+    const currencyCol = detectCurrencyColumns(i.schema);
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
       const isTotal = isTotalRowLabel(row[0]);
       const cells = i.schema.map((_, colIdx) => {
@@ -8263,20 +8277,23 @@ function wireHTooltips() {
         const dDesc = derivedByCol[colIdx];
         if (dDesc) {
           // Derived cell — computed (read-only), formatted as % / ratio.
-          return `<td class="ingest-td-calc"><span class="ingest-cell-calc">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
         }
         if (isTotal) {
           // Calculated cell — readonly, gray. Alignment follows the column.
           const display = (v == null || v === '') ? '—' :
             (typeof v === 'number' ? v.toLocaleString() : String(v));
           const calcCls = numericCol[colIdx] ? 'ingest-cell-calc' : 'ingest-cell-calc ingest-cell-calc-text';
-          return `<td class="ingest-td-calc"><span class="${calcCls}">${escapeHtml(display)}</span></td>`;
+          return `<td class="ingest-td-calc"><span class="${calcCls}" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(display)}</span></td>`;
         }
-        // Regular editable cell — alignment follows the column (numeric = right, text = left).
-        const cellValue = v == null || v === '' ? '' : (typeof v === 'number' ? String(v) : String(v));
+        // Regular editable cell. CLCPA-140 alignment + on-blur formatting: show the
+        // formatted value at rest; the focus/blur handlers swap raw <-> formatted.
         const inputAlign = numericCol[colIdx] ? 'ingest-cell-num' : 'ingest-cell-text';
+        const fmt = currencyCol[colIdx] ? 'money' : (numericCol[colIdx] ? 'num' : '');
+        const display = fmt ? formatIngestValue(v, fmt === 'money') : (v == null || v === '' ? '' : String(v));
+        const fmtAttr = fmt ? ` data-fmt="${fmt}"` : '';
         return `<td>
-          <input type="text" inputmode="decimal" value="${escapeHtml(cellValue)}" data-row="${rowIdx}" data-col="${colIdx}" class="ingest-cell ${inputAlign}" />
+          <input type="text" inputmode="decimal" value="${escapeHtml(display)}" data-row="${rowIdx}" data-col="${colIdx}"${fmtAttr} class="ingest-cell ${inputAlign}" />
         </td>`;
       }).join('');
       return `<tr${isTotal ? ' class="ingest-row-total"' : ''} data-row="${rowIdx}">
@@ -8621,19 +8638,35 @@ function wireHTooltips() {
   function wireIngestEditor() {
     // Cell inputs
     document.querySelectorAll('.ingest-cell').forEach(input => {
+      // Commit the raw value on every keystroke — IN MEMORY ONLY, no re-render, so
+      // the focused <input> is never rebuilt and multi-digit typing keeps focus.
       input.addEventListener('input', e => {
         const r = parseInt(e.target.dataset.row, 10);
         const c = parseInt(e.target.dataset.col, 10);
         if (isNaN(r) || isNaN(c)) return;
-        const isLabel = c === 0;
-        if (isLabel) {
-          state.ingest.draft[r][c] = e.target.value;
-        } else {
-          state.ingest.draft[r][c] = parseNumericInput(e.target.value);
-        }
+        state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
+      });
+      // Editing a formatted cell shows the raw number (no $/commas) for clean input.
+      input.addEventListener('focus', e => {
+        if (!e.target.dataset.fmt) return;
+        const r = parseInt(e.target.dataset.row, 10);
+        const c = parseInt(e.target.dataset.col, 10);
+        if (isNaN(r) || isNaN(c)) return;
+        e.target.value = rawNum(state.ingest.draft[r][c]);
+      });
+      // On blur: commit, recompute totals, reformat THIS cell, and refresh the
+      // read-only calc cells + status in place (no grid rebuild → focus/tab kept).
+      input.addEventListener('blur', e => {
+        const r = parseInt(e.target.dataset.row, 10);
+        const c = parseInt(e.target.dataset.col, 10);
+        if (isNaN(r) || isNaN(c)) return;
+        state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
         recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
-        // Re-render editor to update calculated rows and status bar
-        rerenderIngestEditor();
+        if (e.target.dataset.fmt) {
+          e.target.value = formatIngestValue(state.ingest.draft[r][c], e.target.dataset.fmt === 'money');
+        }
+        refreshIngestCalcCells();
+        refreshIngestStatus();
       });
     });
 
@@ -8787,6 +8820,43 @@ function wireHTooltips() {
     if (!mount) return;
     mount.innerHTML = renderIngestEditor();
     wireIngestEditor();
+  }
+
+  /**
+   * Update the read-only calc cells (total-row + derived) in place from the current
+   * draft, without rebuilding the grid — so editing keeps focus and tab order.
+   * Mirrors the calc-cell formatting in renderIngestEditor.
+   */
+  function refreshIngestCalcCells() {
+    const i = state.ingest;
+    if (!i || !i.draft) return;
+    const derivedByCol = {};
+    ((DERIVED_COLS[i.tableId]) || []).forEach(d => { derivedByCol[d.column] = d; });
+    document.querySelectorAll('.ingest-grid .ingest-cell-calc[data-col]').forEach(span => {
+      const r = parseInt(span.dataset.row, 10);
+      const c = parseInt(span.dataset.col, 10);
+      if (isNaN(r) || isNaN(c) || !i.draft[r]) return;
+      const v = i.draft[r][c];
+      const d = derivedByCol[c];
+      span.textContent = d
+        ? fmtDerivedCell(v, d)
+        : ((v == null || v === '') ? '—' : (typeof v === 'number' ? v.toLocaleString() : String(v)));
+    });
+  }
+
+  /** Update the dirty indicator + Save/Reset disabled state in place (no rebuild). */
+  function refreshIngestStatus() {
+    recomputeDirty();
+    const dirty = !!(state.ingest && state.ingest.dirty);
+    const status = document.querySelector('.ingest-status');
+    if (status) {
+      status.textContent = dirty ? '● Unsaved changes' : '○ No changes';
+      status.className = 'ingest-status ' + (dirty ? 'modified' : 'clean');
+    }
+    const save = document.getElementById('ingest-save');
+    const reset = document.getElementById('ingest-reset');
+    if (save) save.disabled = !dirty;
+    if (reset) reset.disabled = !dirty;
   }
 
   function rerenderIngestHistory() {
