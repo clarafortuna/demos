@@ -186,6 +186,18 @@
     </ul>
   </div>
 
+  <div class="ds-card">
+    <h3>Networks / service-territory data</h3>
+    <p class="ds-provider">Con Edison, internal GIS (CECONY &amp; ORU)</p>
+    <ul class="ds-fields">
+      <li><span class="k">Provides</span><span class="v">Con Edison service-area geometry: CECONY <strong>electric distribution networks</strong>, CECONY <strong>gas service areas</strong> by borough, and the <strong>Orange &amp; Rockland (ORU)</strong> territory.</span></li>
+      <li><span class="k">Files</span><span class="v">Three ESRI shapefile sets in <span class="ds-mono">Data/Extra_info/</span>: <span class="ds-mono">CECONY_Electric.shp</span> (network names in field <span class="ds-mono">NETWORK</span>), <span class="ds-mono">CECONY_Gas.shp</span> (borough areas in field <span class="ds-mono">BORONAME</span>), and <span class="ds-mono">ORU_Territory.shp</span> (field <span class="ds-mono">STATE</span>).</span></li>
+      <li><span class="k">Projections</span><span class="v">CECONY Electric and Gas are <strong>NAD83</strong>; ORU is <strong>NAD27</strong> (reprojected with a proper datum transform when the overlay is built).</span></li>
+      <li><span class="k">Access</span><span class="v">Not public, sourced from Con Edison internally (treat as internal, like the customer extracts above). Committed to the repo in this dev workspace.</span></li>
+      <li><span class="k">Feeds two outputs</span><span class="v">(1) the per-tract <span class="ds-mono">electric_networks</span> and <span class="ds-mono">gas_areas</span> fields (Part 2, Step 3); and (2) the drawn map overlay <span class="ds-mono">Data/service_territories.geojson</span> (see "Service-area overlay" below).</span></li>
+    </ul>
+  </div>
+
   <!-- ============================ PART 2 ============================ -->
   <div class="ds-part">Part 2</div>
   <h2 class="ds-part-title">How the map data is built &amp; how to reproduce it</h2>
@@ -193,7 +205,7 @@
   <p class="ds-note" style="margin-bottom:16px;">
     The map loads a single file, <span class="ds-mono">map_payload.json</span>, a GeoJSON
     <span class="ds-mono">FeatureCollection</span> of 2,333 tract features plus a top-level
-    <span class="ds-mono">nondac_by_county</span> aggregate. It is produced in three steps from the sources
+    <span class="ds-mono">nondac_by_county</span> aggregate. It is produced in four steps from the sources
     above. The <strong>join key throughout is the 11-digit <span class="ds-mono">GEOID</span></strong>
     (state 36 + county FIPS + tract), and everything is filtered to the
     <strong>six Con Edison counties</strong>:
@@ -268,26 +280,74 @@
     </ul>
   </div>
 
+  <div class="ds-step">
+    <div><span class="ds-step-num">3</span><h3><span class="ds-mono">Data/enrich_electric_network.py</span>: add the Con Edison network / service-area fields</h3></div>
+    <p>
+      Adds two fields to every tract by overlapping it against the Con Edison service-area shapefiles:
+      <span class="ds-mono">electric_networks</span> (the CECONY electric networks the tract falls in, from
+      <span class="ds-mono">CECONY_Electric.shp</span>, field <span class="ds-mono">NETWORK</span>) and
+      <span class="ds-mono">gas_areas</span> (the CECONY gas borough areas, from
+      <span class="ds-mono">CECONY_Gas.shp</span>, field <span class="ds-mono">BORONAME</span>).
+    </p>
+    <p style="margin-top:6px;">
+      <strong>Overlap rule.</strong> For each layer it keeps every area covering at least <strong>5%</strong> of the
+      tract's area, ordered by overlap (dominant first); if none reaches 5% but at least one intersects, it keeps the
+      single largest; no intersection leaves an empty list (so, for example, gas is correctly blank in Brooklyn and
+      Staten Island, which Con Edison does not serve for gas). Overlap areas are computed in the shapefiles' native
+      projected CRS, <span class="ds-mono">EPSG:2263</span> (NAD83 / NY Long Island, US ft), not in lat/long degrees.
+      Applies to all tracts (DAC and Non-DAC); these values surface in the map's tract tooltip. Idempotent.
+    </p>
+    <ul class="ds-io">
+      <li><span class="lbl">Inputs</span> <span class="ds-mono">Data/Extra_info/CECONY_Electric.shp</span> · <span class="ds-mono">Data/Extra_info/CECONY_Gas.shp</span> · <span class="ds-mono">map_payload.json</span></li>
+      <li><span class="lbl">Output</span> <span class="ds-mono">map_payload.json</span> (overwritten, minified), now ~72 properties per tract (adds <span class="ds-mono">electric_networks</span>, <span class="ds-mono">gas_areas</span>)</li>
+    </ul>
+    <p style="margin-top:6px;">
+      <strong>Side script: <span class="ds-mono">Data/_make_territories.py</span>.</strong> A one-off converter (not part
+      of the pipeline above, and not a runtime dependency) that reprojects the same three shapefiles to WGS84
+      (<span class="ds-mono">EPSG:4326</span>), applying a proper datum transform for each (NAD83 for CECONY; a NADCON
+      grid transform for ORU's NAD27). Its deliverable is the committed overlay file
+      <span class="ds-mono">Data/service_territories.geojson</span>; re-run it only when the source shapefiles change.
+    </p>
+  </div>
+
   <h3 style="font-size:13px; font-weight:700; color:var(--ink); margin:22px 0 6px;">Run order</h3>
   <div class="ds-run">
     <span class="c"># from Coned/CLCPA/ExecutiveDashboard_dev/</span><br>
     python Data/build_base_map_payload.py&nbsp;<span class="c"># 0. base build (geometry + DAC + ConEd extracts)</span><br>
     python Data/enrich_map_payload.py&nbsp;&nbsp;&nbsp;<span class="c"># 1. add 48 DAC indicator / score fields</span><br>
-    python Data/enrich_neighborhoods.py&nbsp;&nbsp;<span class="c"># 2. add borough + neighborhood</span>
+    python Data/enrich_neighborhoods.py&nbsp;&nbsp;<span class="c"># 2. add borough + neighborhood</span><br>
+    python Data/enrich_electric_network.py <span class="c"># 3. add electric_networks + gas_areas (tract / network overlap)</span>
   </div>
   <p class="ds-note">
     Re-running the pipeline on the same inputs reproduces the same result: all three steps are idempotent
     (each re-derives its fields from the source files on every run).
   </p>
   <p class="ds-note">
-    <strong>Reproducibility.</strong> The geometry inputs come from the public Census files above and are committed,
-    already filtered to the six counties (<span class="ds-mono">Data/ny_tracts.geojson</span>,
-    <span class="ds-mono">Data/ny_tracts_2010.geojson</span>); <span class="ds-mono">Data/NYS_DAC.geojson</span> and the NTA
-    crosswalk are public as well. Only <span class="ds-mono">Data/Electric.xlsx</span> and
-    <span class="ds-mono">Data/Gas.xlsx</span> are internal Con Edison data and are <strong>not committed to the
-    repo</strong>. Drop them into <span class="ds-mono">Data/</span> to run Step 0; everything else regenerates from
-    the public sources.
+    <strong>Reproducibility.</strong> Every input and script needed to rebuild the dataset is committed in this dev
+    workspace, so the pipeline runs as-is. The <strong>public</strong> sources are the Census geometry
+    (<span class="ds-mono">Data/ny_tracts.geojson</span>, <span class="ds-mono">Data/ny_tracts_2010.geojson</span>, already
+    filtered to the six counties), <span class="ds-mono">Data/NYS_DAC.geojson</span>, and the NTA crosswalk CSV. The
+    <strong>internal Con Edison</strong> sources are the customer extracts (<span class="ds-mono">Data/Electric.xlsx</span>,
+    <span class="ds-mono">Data/Gas.xlsx</span>) and the network / service-territory shapefiles in
+    <span class="ds-mono">Data/Extra_info/</span>: these are committed here for reproducibility, but are sourced from Con
+    Edison internally and are not for public redistribution. The build scripts and the overlay deliverable
+    (<span class="ds-mono">Data/service_territories.geojson</span>) are committed as well.
   </p>
+
+  <h3 style="font-size:13px; font-weight:700; color:var(--ink); margin:22px 0 6px;">Service-area overlay</h3>
+  <div class="ds-card">
+    <p class="ds-note" style="margin:0;">
+      Separately from <span class="ds-mono">map_payload.json</span>, the map can draw Con Edison's service areas as
+      toggleable overlays. These come from a single runtime file,
+      <span class="ds-mono">Data/service_territories.geojson</span> (committed, about 3.48 MB), produced by
+      <span class="ds-mono">_make_territories.py</span> (above). The map loads it lazily, only on the first toggle, via
+      <span class="ds-mono">fetch('./Data/service_territories.geojson')</span>.
+    </p>
+    <ul class="ds-io" style="margin-top:10px;">
+      <li><span class="lbl">Backs</span> the LAYERS-panel toggles <strong>Electric networks</strong>, <strong>Gas service area</strong>, and <strong>ORU territory</strong>.</li>
+      <li><span class="lbl">Not this file</span> the other two LAYERS toggles, <strong>DAC criteria</strong> (the tract choropleth) and <strong>EAP enrollment</strong> (the heatmap), are driven by <span class="ds-mono">map_payload.json</span>, not by the overlay.</li>
+    </ul>
+  </div>
 
   <div class="ds-result">
     <h3>Result · map_payload.json</h3>

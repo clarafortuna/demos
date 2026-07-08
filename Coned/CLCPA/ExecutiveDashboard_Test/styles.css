@@ -547,15 +547,8 @@ body {
 .data-table td.num { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-2); }
 .data-table tbody tr.is-total td.num { color: var(--text); }
 
-/* I1: center the Unique / Non-Unique value columns (cols 2 and 3, 1-indexed) */
-.data-table[data-table-id="I1"] td:nth-child(2),
-.data-table[data-table-id="I1"] td:nth-child(3) {
-  text-align: center;
-}
-.data-table[data-table-id="I1"] th:nth-child(2),
-.data-table[data-table-id="I1"] th:nth-child(3) {
-  text-align: center;
-}
+/* CLCPA-140: the I1 Unique / Non-Unique columns now follow the standard numeric
+   right alignment (the one-off center override was removed for consistency). */
 .data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; text-align: center; }
 .year-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .year-col { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
@@ -961,11 +954,9 @@ a.nav-item { text-decoration: none; }
    TABLE STYLING — APPEND TO END OF shared.css
    ============================================================= */
 
-/* 1) Center numeric cells; keep label cells (first col) left-aligned */
-.data-table td.num {
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
+/* CLCPA-140: headers centered; label (first col) left. Numeric alignment is the
+   single source of truth in `.data-table td.num` above (right-aligned) — the old
+   center override here was removed to avoid a cascade conflict. */
 .data-table th { text-align: center; }
 .data-table th:first-child { text-align: left; }
 .data-table td:first-child { text-align: left; }
@@ -5467,7 +5458,7 @@ a.nav-item { text-decoration: none; }
 .ingest-grid thead th {
   background: var(--bright-snow);
   padding: 8px 10px;
-  text-align: left;
+  text-align: center;                 /* CLCPA-140: headers centered (match report) */
   font-weight: 700;
   font-size: 11px;
   text-transform: uppercase;
@@ -5476,7 +5467,7 @@ a.nav-item { text-decoration: none; }
   border-bottom: 2px solid var(--line);
   white-space: nowrap;
 }
-.ingest-grid th.ingest-th-label { min-width: 160px; }
+.ingest-grid th.ingest-th-label { min-width: 160px; text-align: left; } /* label header left */
 .ingest-grid tbody td {
   padding: 4px 6px;
   border-bottom: 1px solid var(--white-smoke);
@@ -5508,6 +5499,7 @@ a.nav-item { text-decoration: none; }
   text-align: left;
 }
 .ingest-cell-num { text-align: right; }
+.ingest-cell-text { text-align: left; }   /* CLCPA-140: editable text-column inputs */
 
 .ingest-td-calc {
   padding: 6px 8px;
@@ -5524,6 +5516,7 @@ a.nav-item { text-decoration: none; }
   font-weight: 600;
   border: 1px dashed var(--line);
 }
+.ingest-cell-calc-text { text-align: left; }   /* CLCPA-140: text-column calc/total cells */
 
 .ingest-row-total td {
   background: rgba(20, 81, 153, 0.03);
@@ -5910,6 +5903,11 @@ a.nav-item { text-decoration: none; }
   background: var(--bright-snow);
   flex-shrink: 0;
 }
+/* Keep vector stroke widths constant during Leaflet's zoom-animation transform
+   (the SVG overlay pane is transform-scaled, which would otherwise fatten strokes
+   until the zoom settles). Applies to the borough/neighborhood outlines and the
+   choropleth tract borders. */
+.map-outline, .map-tract { vector-effect: non-scaling-stroke; }
 
 /* Loading / error states */
 .dac-map-loading {
@@ -6049,13 +6047,29 @@ a.nav-item { text-decoration: none; }
 .dac-map-dd-group { padding: 2px 0; }
 .dac-map-dd-group + .dac-map-dd-group { border-top: 1px solid var(--line); }
 .dac-map-dd-grouphdr {
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 6px 12px 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px 3px 10px;
 }
+.dac-map-dd-grouptoggle {
+  flex: 1 1 auto; min-width: 0;
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: none; cursor: pointer; text-align: left;
+  font-family: var(--font); font-size: 9px; font-weight: 700; color: var(--text-3);
+  text-transform: uppercase; letter-spacing: 0.08em; padding: 3px 0;
+}
+.dac-map-dd-grouptoggle:hover { color: var(--dusk); }
+.dac-map-dd-chev { display: inline-block; font-size: 9px; transition: transform .15s; }
+.dac-map-dd-group.expanded .dac-map-dd-chev { transform: rotate(90deg); }
+.dac-map-dd-grouplabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dac-map-dd-groupcount { color: var(--text-3); font-weight: 600; }
+.dac-map-dd-groupcheck {
+  flex: 0 0 auto; display: inline-flex; align-items: center;
+  background: transparent; border: none; cursor: pointer; padding: 2px;
+}
+.dac-map-dd-groupcheck:hover .dac-map-dd-check { border-color: #185FA5; }
+.dac-map-dd-groupitems .dac-map-dd-opt { padding-left: 24px; }
 .dac-map-dd-opt {
   display: flex;
   align-items: center;
@@ -6101,6 +6115,29 @@ a.nav-item { text-decoration: none; }
   border: solid #fff;
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+}
+/* "Select all neighborhoods" row — distinct from the individual options */
+.dac-map-dd-selectall {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: transparent; border: none; border-bottom: 1px solid var(--line);
+  padding: 7px 12px; font-family: var(--font); font-size: 11px; font-weight: 700;
+  color: var(--text-2); cursor: pointer;
+}
+.dac-map-dd-selectall:hover { background: var(--bright-snow, #f4f7fa); color: var(--dusk); }
+/* Tri-state check (aria-driven) — covers the borough header + Select-all boxes */
+[aria-checked="true"] > .dac-map-dd-check {
+  background: #185FA5; border-color: #185FA5;
+}
+[aria-checked="true"] > .dac-map-dd-check::after {
+  content: ''; position: absolute; left: 4px; top: 1px; width: 3px; height: 7px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+[aria-checked="mixed"] > .dac-map-dd-check {
+  background: #185FA5; border-color: #185FA5;
+}
+[aria-checked="mixed"] > .dac-map-dd-check::after {
+  content: ''; position: absolute; left: 2.5px; top: 5px; width: 6px; height: 0;
+  border-top: 2px solid #fff;
 }
 .dac-map-dd-optlabel {
   flex: 1 1 auto;
@@ -7349,14 +7386,28 @@ a.nav-item { text-decoration: none; }
 }
 
 /* ConEd service-area overlay toggle (glass panel, top-right of the map) */
-.dac-map-terr {
+/* Stack the LAYERS panel and the EAP controls box as siblings, top-right. The EAP
+   box sits BELOW LAYERS, so toggling EAP on/off never resizes the LAYERS panel. */
+.dac-map-panels {
   position: absolute; top: 12px; right: 12px; z-index: 620;
+  display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+}
+.dac-map-terr {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--line); border-radius: 8px;
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.06);
   padding: 9px 11px; font-family: var(--font);
 }
+/* EAP controls card — same glass styling as LAYERS so it reads as a sibling */
+.dac-map-eapbox {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.06);
+  padding: 9px 11px; font-family: var(--font);
+}
+.dac-map-eapbox[hidden] { display: none; }
 .dac-map-terr-title {
   font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-3); margin-bottom: 6px;
@@ -7371,6 +7422,55 @@ a.nav-item { text-decoration: none; }
 .dac-map-terr-sw-elec   { border: 1.5px solid #E8841A; background: rgba(232, 132, 26, 0.18); }
 .dac-map-terr-sw-gas    { border: 1.5px solid #4E8C1E; background: rgba(99, 153, 34, 0.18); }
 .dac-map-terr-sw-oru    { border: 1.5px solid #6741D9; background: rgba(127, 119, 221, 0.14); }
+/* EAP layer swatch: a small chip hinting the blue enrollment ramp (light->dark) */
+.dac-map-terr-sw-eap {
+  width: 12px; height: 12px; border-radius: 50%;
+  border: 1.5px solid #0a2540;
+  background: linear-gradient(135deg, #d4e3f2 0%, #0a2540 100%);
+}
+
+/* EAP controls (inside their own #dac-map-eapbox card below LAYERS) */
+.dac-map-eap {
+  display: flex; flex-direction: column; gap: 7px;
+}
+/* Left-aligned segmented groups: a fixed label column keeps all three groups
+   starting at the same left edge, while each group/button hugs its own text
+   (content width, tight padding) — no forced equal width. */
+.dac-map-eap-row { display: flex; align-items: center; gap: 8px; }
+.dac-map-eap-lbl {
+  flex: 0 0 56px;
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-3);
+}
+.dac-map-eap-seg {
+  display: inline-flex;
+  border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+}
+.dac-map-eap-seg button {
+  appearance: none; border: 0; background: #fff; cursor: pointer;
+  font-family: var(--font); font-size: 10.5px; font-weight: 600; color: var(--text-2);
+  padding: 3px 9px; line-height: 1.4; white-space: nowrap;
+}
+.dac-map-eap-seg button + button { border-left: 1px solid var(--line); }
+.dac-map-eap-seg button:hover { background: #f1f5f9; }
+.dac-map-eap-seg button.active { background: #185FA5; color: #fff; }
+
+/* EAP size legend (reference circles use the same scaling as the map circles) */
+.dac-map-eap-legend { margin-top: 1px; }
+.dac-eap-leg-title {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-3); margin-bottom: 5px;
+}
+.dac-eap-leg-row { display: flex; align-items: flex-end; gap: 12px; min-height: 30px; }
+.dac-eap-leg-item { display: inline-flex; flex-direction: column; align-items: center; gap: 3px; }
+.dac-eap-leg-circ { display: block; border: 1.5px solid; border-radius: 50%; box-sizing: border-box; }
+.dac-eap-leg-val { font-size: 9.5px; font-weight: 600; color: var(--text-2); }
+.dac-eap-leg-empty { font-size: 10px; color: var(--text-3); font-style: italic; }
+
+/* EAP circle tooltip */
+.dac-eap-tooltip { font-family: var(--font); }
+.dac-eap-tooltip .dac-eap-tt { font-size: 11px; line-height: 1.45; }
+.dac-eap-tooltip .dac-eap-tt-util { color: var(--text-3); font-weight: 600; }
 
 /* =============================================================
    DAC MAP · Customer Counts overlay panel
@@ -7378,11 +7478,20 @@ a.nav-item { text-decoration: none; }
    Uses dashboard tokens — matches enterprise aesthetic
    ============================================================= */
 .dac-map-kpi-panel {
+  /* transparent positioning wrapper; each section below is its own bordered box */
   position: absolute !important;
   top: 12px !important;
   left: 12px !important;
   left: 12px;
   width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;                 /* visible gap between the two section boxes */
+  z-index: 500;
+  font-family: var(--font);
+}
+/* Each panel section ("Customer counts" / "Burden scores") is its own card-style box */
+.dac-kpi-section {
   background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -7392,9 +7501,7 @@ a.nav-item { text-decoration: none; }
   display: flex;
   flex-direction: column;
   gap: 8px;
-  z-index: 500;
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.06);
-  font-family: var(--font);
 }
 
 .dac-kpi-head {
@@ -7428,6 +7535,34 @@ a.nav-item { text-decoration: none; }
 .dac-kpi-card:hover { background: var(--bright-snow); }
 .dac-kpi-card-dac  { border-left: 3px solid var(--dusk); }
 .dac-kpi-card-ndac { border-left: 3px solid var(--text-4); }
+/* EAP enrolled — quiet desaturated green accent (distinct from the Non-DAC neutral,
+   cohesive with the panel's blue/amber) */
+.dac-kpi-card-eap  { border-left: 3px solid #5F8C6A; }
+.dac-kpi-label-eap { color: #4F7A60; }
+/* EAP breakdown: match the burden block's two-column template (flex:1 columns, 12px
+   gap, left-aligned) so DAC lines up with Environmental Burden and Non-DAC with
+   Population Vulnerability (left-aligned second column at the midpoint, not far right). */
+.dac-kpi-card-eap .dac-kpi-breakdown { gap: 12px; justify-content: flex-start; align-items: flex-start; }
+.dac-kpi-card-eap .dac-kpi-bd-cell { flex: 1; min-width: 0; align-items: flex-start; text-align: left; }
+/* Accounts row: DAC + Non-DAC cards side by side */
+.dac-kpi-row { display: flex; gap: 8px; }
+.dac-kpi-row > .dac-kpi-card { flex: 1; min-width: 0; }
+/* Reserved/placeholder card — quiet accent, empty of data */
+.dac-kpi-card-placeholder {
+  border-left: 3px solid var(--line);
+  cursor: default;
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+}
+.dac-kpi-label-placeholder {
+  margin: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-style: italic;
+  font-weight: 500;
+  color: var(--text-4);
+}
 
 /* Component burden averages (Environmental / Population) in the KPI panel */
 .dac-kpi-burden { border-left: 3px solid #185FA5; }
