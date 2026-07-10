@@ -4230,8 +4230,31 @@
     const yearLabel = yr;
     const prevYearLabel = prevYr || '';
 
-    // ----- A1 chart data (top 12 programs by funding) -----
-    const a1Chart = (p.charts.A1_programs && p.charts.A1_programs.values[yr]) || [];
+    // ----- A1 program data (live-parsed from the A1 source table) -----
+    // CLCPA-163: Chart 1 (Incentive Spend) and the quadrant both build from the
+    // live A1 table so newly-created years render — the precomputed
+    // payload.charts.A1_programs has no entry for runtime-added years. One parse,
+    // reused for current and prior year (prior degrades to [] when absent).
+    const parseA1Programs = (yy) => {
+      const raw = (p.tables.A1 && p.tables.A1.data && p.tables.A1.data[yy]) || [];
+      const out = [];
+      raw.forEach(row => {
+        if (!row || !row[0]) return;
+        const name = String(row[0]).trim();
+        if (!name || /total|grand total|program name/i.test(name)) return;
+        const total = Number(row[1]);
+        const dac = Number(row[2]);
+        if (!isFinite(total) || total <= 0) return;
+        out.push({
+          name, total,
+          dac: isFinite(dac) ? dac : 0,
+          dac_pct: total > 0 ? (isFinite(dac) ? dac / total : 0) : 0
+        });
+      });
+      return out;
+    };
+    const a1Programs = parseA1Programs(yr);
+    const a1Chart = a1Programs;   // Chart 1 ranks/slices this (same shape the precomputed blob provided)
     const rankBy = state.rankBy || 'total';
     const sorted = [...a1Chart].sort((a, b) => rankBy === 'dac' ? b.dac - a.dac : b.total - a.total);
     const top10 = sorted.slice(0, 8).map(prog => ({
@@ -4263,24 +4286,7 @@
       total: rankBy === 'dac' ? p2.dac : p2.total
     }));
 
-    // ----- A1 FULL table parsed for the quadrant -----
-    const a1Table = p.tables.A1;
-    const a1Raw = (a1Table && a1Table.data && a1Table.data[yr]) || [];
-    const a1Programs = [];
-    a1Raw.forEach(row => {
-      if (!row || !row[0]) return;
-      const name = String(row[0]).trim();
-      if (!name || /total|grand total|program name/i.test(name)) return;
-      const total = Number(row[1]);
-      const dac = Number(row[2]);
-      if (!isFinite(total) || total <= 0) return;
-      a1Programs.push({
-        name, total,
-        dac: isFinite(dac) ? dac : 0,
-        dac_pct: total > 0 ? (isFinite(dac) ? dac / total : 0) : 0
-      });
-    });
-
+    // ----- A1 programs for the quadrant: the same live-parsed list as Chart 1 (CLCPA-163) -----
     const quadrantMetric = state.quadrantMetric || 'dollars';
     let quadrantItems, quadrantXLabel, quadrantXUnit, quadrantSubLabel;
     if (quadrantMetric === 'mmbtu') {
@@ -4301,7 +4307,7 @@
     }
 
     // ----- Prior-year lookups (for tooltips) -----
-    const a1ChartPrev = hasPrev ? ((p.charts.A1_programs && p.charts.A1_programs.values[prevYr]) || []) : [];
+    const a1ChartPrev = hasPrev ? parseA1Programs(prevYr) : [];   // CLCPA-163: prior year live-parsed too (degrades to [] when absent)
     const a2RawPrev = (a2Table && hasPrev && a2Table.data && a2Table.data[prevYr]) || [];
     const a1PrevByName = {};
     a1ChartPrev.forEach(prog => { a1PrevByName[prog.name] = prog; });
