@@ -679,6 +679,18 @@
     return state.payload ? state.payload.meta.years : [];
   }
 
+  /**
+   * CLCPA-156: highest year among all available years (seed meta.years + Dataverse-
+   * added years, since applyAddedYears has already merged them into meta.years).
+   * Recomputed each call, so it self-adjusts as years are added/removed. Both the
+   * report and the ingest editor use this as their default selection.
+   */
+  function mostRecentYear() {
+    const ys = allYears();
+    if (!ys || !ys.length) return null;
+    return ys.reduce((mx, y) => (parseInt(y, 10) > parseInt(mx, 10) ? y : mx));
+  }
+
   /** Year immediately before `year`, or null if none. */
   function prevYearOf(year) {
     const years = allYears();
@@ -7934,7 +7946,7 @@ function wireHTooltips() {
     if (!state.ingest.tableId || !tablesForSec.some(t => t.id === state.ingest.tableId)) {
       state.ingest.tableId = tablesForSec.length ? tablesForSec[0].id : null;
     }
-    if (!state.ingest.year) state.ingest.year = p.meta.current_year;
+    if (!state.ingest.year) state.ingest.year = mostRecentYear() || p.meta.current_year;  // CLCPA-156
 
     loadIngestDraft();
   }
@@ -8631,10 +8643,10 @@ function wireHTooltips() {
 
         // If the user is currently viewing the removed year in the dashboard,
         // bump them back to the current_year
-        if (state.year === yr) state.year = state.payload.meta.current_year;
+        if (state.year === yr) state.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
 
         // Reset ingest state to the current year
-        state.ingest.year = state.payload.meta.current_year;
+        state.ingest.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
         loadIngestDraft();
 
         // Refresh the year selector in the header and the ingest page
@@ -9035,7 +9047,7 @@ function wireHTooltips() {
     Storage.applyOverrides(state.payload);
 
     // Initialize year from payload meta
-    state.year = state.payload.meta.current_year;
+    state.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: default to the most recent year that exists
 
     // Build static UI from payload
     buildSidebar();
