@@ -8252,12 +8252,11 @@ function wireHTooltips() {
       return `<option value="${y}"${y === i.year ? ' selected' : ''}>${label}</option>`;
     }).join('');
 
-    // CLCPA-155: only show Remove-year for genuinely empty, user-added years —
-    // never for seed years or years that hold data.
-    const isCurrentYearUserAdded = addedYears.includes(i.year) && !isYearProtected(i.year);
-    const removeYearBtn = isCurrentYearUserAdded
-      ? `<button id="ingest-remove-year" class="ingest-year-remove" type="button" title="Remove ${i.year} from the dashboard">× Remove ${i.year}</button>`
-      : '';
+    // CLCPA-155/160: always render the button element; syncRemoveYearButton() controls
+    // its visibility + label from the currently-selected year, so a year change updates
+    // it in place (no full-page re-render). It shows only for genuinely empty, user-added
+    // years — never seed years or years that hold data.
+    const removeYearBtn = `<button id="ingest-remove-year" class="ingest-year-remove" type="button" hidden>× Remove</button>`;
 
     return `
       <div class="ingest-picker">
@@ -8522,6 +8521,25 @@ function wireHTooltips() {
 
   // ---------- interactions ----------
 
+  /**
+   * CLCPA-160: sync the Remove-year button (visibility + label) to the currently
+   * selected year, in place — so it updates on a year change without a full-page
+   * re-render (the button lives in the picker bar, which rerenderIngestEditor does
+   * not rebuild). Reuses the CLCPA-155 protection check; shows only for genuinely
+   * empty, user-added years.
+   */
+  function syncRemoveYearButton() {
+    const btn = document.getElementById('ingest-remove-year');
+    if (!btn) return;
+    const yr = state.ingest && state.ingest.year;
+    const show = yr != null && Storage.getAddedYears().includes(yr) && !isYearProtected(yr);
+    btn.hidden = !show;
+    if (show) {
+      btn.textContent = '× Remove ' + yr;
+      btn.title = 'Remove ' + yr + ' from the dashboard';
+    }
+  }
+
   /** Wire all clicks and input events for the ingest page. */
   function wireIngestPage() {
     // Picker dropdowns
@@ -8569,6 +8587,7 @@ function wireHTooltips() {
         loadIngestDraft();
         rerenderIngestEditor();
         rerenderIngestHistory();
+        syncRemoveYearButton();   // CLCPA-160: update the picker-bar button in place on year change
       });
     }
 
@@ -8623,6 +8642,8 @@ function wireHTooltips() {
         rerenderIngestAll();
       });
     }
+
+    syncRemoveYearButton();  // CLCPA-160: set initial visibility/label for the selected year
   }
 
   /** Open the "Add new year" modal. */
