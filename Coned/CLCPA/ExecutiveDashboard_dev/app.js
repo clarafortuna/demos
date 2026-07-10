@@ -468,7 +468,15 @@
       resetTable(tableId, year) { return active.resetTable(tableId, year); },
       listOverrides() { return active.listOverrides(); },
       addYear(year) { return active.addYear(year); },
-      removeYear(year) { return active.removeYear(year); },
+      removeYear(year) {
+        // CLCPA-155: last line of defense — never delete a seed year or a year with
+        // data, regardless of caller. Refuses without performing any Dataverse/LS delete.
+        if (isYearProtected(year)) {
+          console.warn('[Storage] removeYear refused — ' + year + ' is a seed year or has data; no delete performed.');
+          return false;
+        }
+        return active.removeYear(year);
+      },
       getAddedYears() { return active.getAddedYears(); },
       applyAddedYears(payload) { return active.applyAddedYears(payload); },
       clearAll() { return active.clearAll(); },
@@ -663,6 +671,27 @@
     const i = years.indexOf(year);
     if (i < 0 || i + 1 >= years.length) return null;
     return years[i + 1];
+  }
+
+  /** CLCPA-155: true if any table holds non-empty data for `year`. */
+  function yearHasData(year) {
+    const p = state.payload;
+    if (!p || !p.tables) return false;
+    const y = String(year);
+    return Object.values(p.tables).some(t => {
+      const rows = (t.data || {})[y];
+      return rows && !isEmptyYearData(rows);
+    });
+  }
+
+  /**
+   * CLCPA-155: a year is protected from removal if it is a seed year (shipped in
+   * payload.meta.years) OR holds data. Only genuinely empty, user-added years are
+   * removable. Drives both the Remove-year button visibility and the removeYear guard.
+   */
+  function isYearProtected(year) {
+    const y = String(year);
+    return (state.seedYears || []).map(String).includes(y) || yearHasData(y);
   }
 
   // ============================================================
@@ -8198,7 +8227,9 @@ function wireHTooltips() {
       return `<option value="${y}"${y === i.year ? ' selected' : ''}>${label}</option>`;
     }).join('');
 
-    const isCurrentYearUserAdded = addedYears.includes(i.year);
+    // CLCPA-155: only show Remove-year for genuinely empty, user-added years —
+    // never for seed years or years that hold data.
+    const isCurrentYearUserAdded = addedYears.includes(i.year) && !isYearProtected(i.year);
     const removeYearBtn = isCurrentYearUserAdded
       ? `<button id="ingest-remove-year" class="ingest-year-remove" type="button" title="Remove ${i.year} from the dashboard">× Remove ${i.year}</button>`
       : '';
@@ -8538,8 +8569,12 @@ function wireHTooltips() {
         const msg = `Remove ${yr} from the dashboard?\n\nThis will also delete any saved data for ${yr}. This cannot be undone.`;
         if (!confirm(msg)) return;
 
-        // Remove from storage
-        Storage.removeYear(yr);
+        // Remove from storage. CLCPA-155: the guard returns false for seed/has-data
+        // years — if refused, bail without touching the in-memory year list or tables.
+        if (Storage.removeYear(yr) === false) {
+          alert(`${yr} has data (or is a seed year) and cannot be removed.`);
+          return;
+        }
 
         // Remove from in-memory meta.years
         const idx = state.payload.meta.years.indexOf(yr);
@@ -8937,6 +8972,10 @@ function wireHTooltips() {
     } catch (err) {
       return; // Error already surfaced
     }
+
+    // CLCPA-155: capture the ORIGINAL seed years before applyAddedYears() merges
+    // user-added years into meta.years, so removal can protect seed years.
+    state.seedYears = ((state.payload.meta && state.payload.meta.years) || []).map(String);
 
     // Load the persistence backend (Dataverse if hosted there, else localStorage)
     // into memory before any overrides/years are applied below.
