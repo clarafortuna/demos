@@ -1348,11 +1348,15 @@
     const resolveRows = (yr) => {
       const raw = yr ? (t.data || {})[yr] : null;
       if (!raw || raw.length === 0) return raw;
-      const schema = (t.schema_by_year || {})[yr];
+      // CLCPA-152: get headers from getTableSchema (same source as the editor) so a
+      // newly-created year with no schema_by_year[yr] falls back to another year's
+      // schema, instead of renderTable treating data row 0 as the header.
+      const schema = getTableSchema(t, yr);
+      const hasSchema = schema && schema.length > 0;
       // CLCPA-88: derive %/ratio cells for display via the shared rule (clones raw;
       // never mutates payload/store). Deferred derived totals render "—".
-      const body = rowsForDisplay(raw, schema, t.id);
-      return schema ? [schema, ...body] : body;
+      const body = rowsForDisplay(raw, hasSchema ? schema : undefined, t.id);
+      return hasSchema ? [schema, ...body] : body;
     };
 
     const dataCurrent = resolveRows(year);
