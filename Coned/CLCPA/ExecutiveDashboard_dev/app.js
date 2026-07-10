@@ -643,6 +643,20 @@
   }
 
   /**
+   * CLCPA-118: shown when a section renderer throws. Replaces any stale content so the
+   * previous section's DOM never lingers under the wrong breadcrumb. Wording is distinct
+   * from emptyYearPane so a real bug isn't mistaken for an empty reporting year.
+   */
+  function renderSectionError(letter) {
+    return `
+      <div class="empty-year-pane">
+        <div class="empty-year-icon">⚠</div>
+        <div class="empty-year-msg">This section could not be displayed.</div>
+        <div class="empty-year-hint">The problem has been logged. Try a different reporting year or reload the page; if it persists, contact support.</div>
+      </div>`;
+  }
+
+  /**
    * Render an empty chart-card (head + empty body) — used when an entire
    * card needs an "no data" placeholder.
    */
@@ -4683,7 +4697,7 @@ function renderSectionC() {
       // Prior year data for tooltips
       const c5Prev = hasPrevData ? ((p.charts.C5_programs && p.charts.C5_programs.values[prevYr]) || []) : [];
       const c3Prev = hasPrevData ? ((p.charts.C3_programs && p.charts.C3_programs.values[prevYr]) || []) : [];
-      const c4PrevRaw = c4Table && hasPrevData ? c4Table.data[prevYr] : [];
+      const c4PrevRaw = c4Table && hasPrevData ? (c4Table.data[prevYr] || []) : [];  // CLCPA-118: guard absent prior year (matches c4Raw)
       const c4Prev = [];
       c4PrevRaw.forEach(row => {
         if (!row || !row[0]) return;
@@ -7655,7 +7669,18 @@ function wireHTooltips() {
       wireExecutiveInteractions();
     }
     else if (r.name === 'section') {
-      view.innerHTML = renderSection(r.sectionId);
+      // CLCPA-118: build first, assign only on success. If a section renderer throws,
+      // clear the view to an error state instead of stranding the previous section's
+      // DOM under this section's breadcrumb. Surface the error (do not swallow).
+      let html;
+      try {
+        html = renderSection(r.sectionId);
+      } catch (err) {
+        console.error('[view] Section ' + r.sectionId + ' failed to render:', err);
+        view.innerHTML = renderSectionError(r.sectionId);
+        return;
+      }
+      view.innerHTML = html;
       wireSectionInteractions(r.sectionId);
     }
     else if (r.name === 'ingest') {
