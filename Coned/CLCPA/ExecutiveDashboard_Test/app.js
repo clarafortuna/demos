@@ -679,6 +679,18 @@
     return state.payload ? state.payload.meta.years : [];
   }
 
+  /**
+   * CLCPA-156: highest year among all available years (seed meta.years + Dataverse-
+   * added years, since applyAddedYears has already merged them into meta.years).
+   * Recomputed each call, so it self-adjusts as years are added/removed. Both the
+   * report and the ingest editor use this as their default selection.
+   */
+  function mostRecentYear() {
+    const ys = allYears();
+    if (!ys || !ys.length) return null;
+    return ys.reduce((mx, y) => (parseInt(y, 10) > parseInt(mx, 10) ? y : mx));
+  }
+
   /** Year immediately before `year`, or null if none. */
   function prevYearOf(year) {
     const years = allYears();
@@ -7891,7 +7903,7 @@ function wireHTooltips() {
     if (!state.ingest.tableId || !tablesForSec.some(t => t.id === state.ingest.tableId)) {
       state.ingest.tableId = tablesForSec.length ? tablesForSec[0].id : null;
     }
-    if (!state.ingest.year) state.ingest.year = p.meta.current_year;
+    if (!state.ingest.year) state.ingest.year = mostRecentYear() || p.meta.current_year;  // CLCPA-156
 
     loadIngestDraft();
   }
@@ -8209,12 +8221,11 @@ function wireHTooltips() {
       return `<option value="${y}"${y === i.year ? ' selected' : ''}>${label}</option>`;
     }).join('');
 
-    // CLCPA-155: only show Remove-year for genuinely empty, user-added years —
-    // never for seed years or years that hold data.
-    const isCurrentYearUserAdded = addedYears.includes(i.year) && !isYearProtected(i.year);
-    const removeYearBtn = isCurrentYearUserAdded
-      ? `<button id="ingest-remove-year" class="ingest-year-remove" type="button" title="Remove ${i.year} from the dashboard">× Remove ${i.year}</button>`
-      : '';
+    // CLCPA-155/160: always render the button element; syncRemoveYearButton() controls
+    // its visibility + label from the currently-selected year, so a year change updates
+    // it in place (no full-page re-render). It shows only for genuinely empty, user-added
+    // years — never seed years or years that hold data.
+    const removeYearBtn = `<button id="ingest-remove-year" class="ingest-year-remove" type="button" hidden>× Remove</button>`;
 
     return `
       <div class="ingest-picker">
@@ -8479,6 +8490,25 @@ function wireHTooltips() {
 
   // ---------- interactions ----------
 
+  /**
+   * CLCPA-160: sync the Remove-year button (visibility + label) to the currently
+   * selected year, in place — so it updates on a year change without a full-page
+   * re-render (the button lives in the picker bar, which rerenderIngestEditor does
+   * not rebuild). Reuses the CLCPA-155 protection check; shows only for genuinely
+   * empty, user-added years.
+   */
+  function syncRemoveYearButton() {
+    const btn = document.getElementById('ingest-remove-year');
+    if (!btn) return;
+    const yr = state.ingest && state.ingest.year;
+    const show = yr != null && Storage.getAddedYears().includes(yr) && !isYearProtected(yr);
+    btn.hidden = !show;
+    if (show) {
+      btn.textContent = '× Remove ' + yr;
+      btn.title = 'Remove ' + yr + ' from the dashboard';
+    }
+  }
+
   /** Wire all clicks and input events for the ingest page. */
   function wireIngestPage() {
     // Picker dropdowns
@@ -8526,6 +8556,7 @@ function wireHTooltips() {
         loadIngestDraft();
         rerenderIngestEditor();
         rerenderIngestHistory();
+        syncRemoveYearButton();   // CLCPA-160: update the picker-bar button in place on year change
       });
     }
 
@@ -8569,10 +8600,10 @@ function wireHTooltips() {
 
         // If the user is currently viewing the removed year in the dashboard,
         // bump them back to the current_year
-        if (state.year === yr) state.year = state.payload.meta.current_year;
+        if (state.year === yr) state.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
 
         // Reset ingest state to the current year
-        state.ingest.year = state.payload.meta.current_year;
+        state.ingest.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
         loadIngestDraft();
 
         // Refresh the year selector in the header and the ingest page
@@ -8580,6 +8611,8 @@ function wireHTooltips() {
         rerenderIngestAll();
       });
     }
+
+    syncRemoveYearButton();  // CLCPA-160: set initial visibility/label for the selected year
   }
 
   /** Open the "Add new year" modal. */
@@ -8971,7 +9004,7 @@ function wireHTooltips() {
     Storage.applyOverrides(state.payload);
 
     // Initialize year from payload meta
-    state.year = state.payload.meta.current_year;
+    state.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: default to the most recent year that exists
 
     // Build static UI from payload
     buildSidebar();

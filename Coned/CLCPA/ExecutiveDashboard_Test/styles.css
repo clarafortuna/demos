@@ -78,10 +78,29 @@ body {
 .topbar-title .crumb { color: var(--text-3); font-weight: 500; }
 .topbar-title .crumb-sep { color: var(--text-4); margin: 0 6px; }
 .topbar-actions { display: flex; gap: 8px; align-items: center; }
-.year-select {
-  background: var(--white); border: 1px solid var(--line-strong);
-  color: var(--text); padding: 6px 10px 6px 12px; border-radius: 6px;
-  font-family: var(--font); font-size: 12px; font-weight: 500; cursor: pointer;
+/* CLCPA-154: shared on-brand native <select> style — matches the map's
+   .dac-map-dd-trigger and the cards/tables (hairline border, 6px radius,
+   Inter, custom chevron). Per-context width is set by each class below. */
+.year-select, .ingest-select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  background-color: var(--white);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236B7B8C' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 28px 7px 10px;
+  cursor: pointer;
+}
+.year-select:hover, .year-select:focus,
+.ingest-select:hover, .ingest-select:focus {
+  border-color: var(--dusk);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--dusk-tint);
 }
 .btn {
   background: var(--ink); color: var(--white); border: none;
@@ -5342,20 +5361,10 @@ a.nav-item { text-decoration: none; }
   letter-spacing: 0.08em;
   color: var(--text-3);
 }
+/* CLCPA-154: visuals come from the shared .year-select, .ingest-select rule
+   above; the picker selects only need full width. */
 .ingest-select {
-  padding: 8px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  border: 1px solid var(--line);
-  border-radius: 5px;
-  background: var(--white);
-  color: var(--text);
-  cursor: pointer;
   width: 100%;
-}
-.ingest-select:hover, .ingest-select:focus {
-  border-color: var(--dusk);
-  outline: none;
 }
 
 /* ---------- Editor card ---------- */
