@@ -3810,10 +3810,9 @@
     const prevYear = prevYearOf(year);
 
     // ---- Card 1: Strategic Capital Investments (Section E) ----
-    const eCats = (p.charts.E1_categories && p.charts.E1_categories.values[year]) || [];
-    const eCatsPrev = prevYear
-      ? ((p.charts.E1_categories && p.charts.E1_categories.values[prevYear]) || [])
-      : [];
+    // CLCPA-164: live from the E1 table (same helper Section E uses).
+    const eCats = parseE1Categories(p.tables.E1, year);
+    const eCatsPrev = prevYear ? parseE1Categories(p.tables.E1, prevYear) : [];
     const eTotal = eCats.reduce((s, c) => s + (c.total || 0), 0);
     const eDacTotal = eCats.reduce((s, c) => s + (c.total || 0) * (c.dac_pct || 0), 0);
     const eDacPct = eTotal > 0 ? (eDacTotal / eTotal * 100) : null;
@@ -5291,8 +5290,8 @@ function renderSectionE() {
       // Read directly from the selected year and the prior year (if exists).
       // Variable names kept as e2024/e2023 only for backward compatibility
       // with the original code; semantically they are "current" and "prev".
-      const eCurr = (p.charts.E1_categories && p.charts.E1_categories.values[yr]) || [];
-      const ePrev = prevYr ? ((p.charts.E1_categories && p.charts.E1_categories.values[prevYr]) || []) : [];
+      const eCurr = parseE1Categories(p.tables.E1, yr);                 // CLCPA-164: live from E1 table
+      const ePrev = prevYr ? parseE1Categories(p.tables.E1, prevYr) : [];
 
       // Normalize names (2023 has "Safety and Security", 2024 has "Safety And Security")
       const normalize = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
@@ -7835,6 +7834,31 @@ function wireHTooltips() {
   function isTotalRowLabel(label) {
     if (label == null) return false;
     return /total|grand total|subtotal/i.test(String(label).trim());
+  }
+
+  /**
+   * CLCPA-164: Section E "Strategic Capital" categories, live-parsed from the E1
+   * source table so newly-created years render (the precomputed
+   * charts.E1_categories has no entry for runtime-added years). Returns the same
+   * shape the precomputed blob had: [{ name, total, dac_pct }]. Excludes the
+   * trailing "Grand Total" row via isTotalRowLabel. Module scope so Section E and
+   * the Executive Summary header card (CLCPA-157) share one source.
+   */
+  function parseE1Categories(table, yr) {
+    const rows = table && table.data ? table.data[yr] : null;
+    if (!rows) return [];
+    const out = [];
+    rows.forEach(row => {
+      if (!row || !row[0]) return;
+      const name = String(row[0]).trim();
+      if (!name || isTotalRowLabel(name)) return;
+      out.push({
+        name: name,
+        total: Number(row[1]) || 0,
+        dac_pct: Number(row[2]) || 0
+      });
+    });
+    return out;
   }
 
   /** Get the schema (column headers) for a given table+year. */
