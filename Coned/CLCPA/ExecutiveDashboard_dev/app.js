@@ -4560,7 +4560,7 @@
     })();
 
     // ---- B2: Plugs data for tornado ----
-    const cur = (p.charts.B2_plugs && p.charts.B2_plugs.values[yr]) || {};
+    const cur = parseB2Plugs(p.tables.B2, yr);   // CLCPA-165: live from B2 table (schema-aware)
     const b2DacL2   = (cur.DAC || {}).L2 || 0;
     const b2DacDCFC = (cur.DAC || {}).DCFC || 0;
     const b2DacTot  = (cur.DAC || {}).Total || 0;
@@ -4568,7 +4568,7 @@
     const b2NonDCFC = (cur['Non-DAC'] || {}).DCFC || 0;
     const b2NonTot  = (cur['Non-DAC'] || {}).Total || 0;
 
-    const b2Prev = hasPrev ? (p.charts.B2_plugs && p.charts.B2_plugs.values[prevYr]) : null;
+    const b2Prev = hasPrev ? parseB2Plugs(p.tables.B2, prevYr) : null;   // CLCPA-165: live from B2 table
     const b2DacTotPrev = b2Prev ? (b2Prev.DAC || {}).Total || null : null;
     const b2NonTotPrev = b2Prev ? (b2Prev['Non-DAC'] || {}).Total || null : null;
     const b2DacYoy = (b2DacTotPrev && b2DacTotPrev > 0)
@@ -7857,6 +7857,35 @@ function wireHTooltips() {
         total: Number(row[1]) || 0,
         dac_pct: Number(row[2]) || 0
       });
+    });
+    return out;
+  }
+
+  /**
+   * CLCPA-165: Section B plug counts, live-parsed from the B2 source table so
+   * newly-created years render (the precomputed charts.B2_plugs has no entry for
+   * runtime-added years). Returns the same shape the blob had, keyed by category:
+   *   { [category]: { L2, DCFC, (Micromobility only if that column exists), Total } }
+   * Columns are located by header substring (NOT fixed index) — the B2 schema
+   * drifts by year: 2023/2024 have 4 columns (no Micromobility), 2025 has 5.
+   */
+  function parseB2Plugs(table, yr) {
+    const rows = table && table.data ? table.data[yr] : null;
+    if (!rows) return {};
+    const schema = (table.schema_by_year || {})[yr] || [];
+    const colOf = needle => schema.findIndex(h => h != null && String(h).toLowerCase().includes(needle));
+    const iL2 = colOf('l2'), iDCFC = colOf('dcfc'), iMicro = colOf('micromobility'), iTotal = colOf('total');
+    const out = {};
+    rows.forEach(row => {
+      if (!row || !row[0]) return;
+      const cat = String(row[0]).trim();
+      if (!cat) return;
+      const entry = {};
+      entry.L2 = iL2 >= 0 ? (Number(row[iL2]) || 0) : 0;
+      entry.DCFC = iDCFC >= 0 ? (Number(row[iDCFC]) || 0) : 0;
+      if (iMicro >= 0) entry.Micromobility = Number(row[iMicro]) || 0;
+      entry.Total = iTotal >= 0 ? (Number(row[iTotal]) || 0) : 0;
+      out[cat] = entry;
     });
     return out;
   }
