@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Staffing Projection</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg:#F4F5F7;--surface:#fff;--border:#E2E5EA;--text:#1A1D23;--text-muted:#6B7280;
+  --accent:#0F62FE;--accent-light:#E8F0FE;
+  --header-bg:#0D1117;--header-text:#F0F3F6;
+  --ovr-1:#991B1B;--ovr-2:#C2410C;--ovr-3:#64748B;--ovr-4:#1E40AF;--ovr-5:#047857;
+  --gold:#D4A017;--gold-bg:#FFFBEB;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.05);--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-lg:0 4px 12px rgba(0,0,0,.1);
+  --radius:8px;--radius-lg:12px;
+  --font-display:'Plus Jakarta Sans',sans-serif;--font-body:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font-body);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+.hdr{background:var(--header-bg);color:var(--header-text);padding:34px 32px 30px}
+.hdr-inner{max-width:1160px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap}
+.hdr .eyebrow{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8B949E;margin-bottom:10px}
+.hdr h1{font-family:var(--font-display);font-size:30px;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.hdr .sub{font-size:14px;color:#B7C0CA;margin-top:6px}
+.pill{display:inline-block;background:rgba(240,243,246,.1);border:1px solid rgba(240,243,246,.22);border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+main{max-width:1160px;margin:0 auto;padding:30px 32px 64px}
+.lede{font-size:15.5px;line-height:1.65;color:var(--text);max-width:860px;margin-bottom:28px}
+.lede strong{font-weight:600}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px;margin-bottom:36px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm);padding:16px 18px;border-left:3px solid var(--accent)}
+.kpi.e{border-left-color:var(--ovr-2)}.kpi.g{border-left-color:var(--ovr-5)}.kpi.n{border-left-color:var(--ovr-4)}.kpi.s{border-left-color:var(--ovr-3)}
+.kpi .v{font-family:var(--font-display);font-size:24px;font-weight:800;letter-spacing:-.02em}
+.kpi .v small{font-size:13px;font-weight:600;color:var(--text-muted);letter-spacing:0}
+.kpi .l{font-size:12px;color:var(--text-muted);margin-top:3px;line-height:1.4}
+h2{font-family:var(--font-display);font-size:19px;font-weight:700;letter-spacing:-.01em;margin:38px 0 6px}
+.sec-sub{font-size:13.5px;color:var(--text-muted);margin-bottom:16px;max-width:820px;line-height:1.55}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:20px 22px}
+.card h3{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:2px}
+.card .h3sub{font-size:12px;color:var(--text-muted);margin-bottom:12px}
+.chart-wrap{position:relative;height:340px}
+.chart-wrap.sm{height:240px}
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:16px;align-items:stretch}
+.grid-2eq{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:stretch}
+@media(max-width:880px){.grid-2,.grid-2eq{grid-template-columns:1fr}}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:14px}
+.fact{background:var(--accent-light);border-radius:var(--radius);padding:12px 14px;font-size:12.5px;line-height:1.5;color:#1A1D23}
+.fact b{font-weight:600}
+.note-card{display:flex;flex-direction:column;justify-content:center;background:var(--surface);border:1px dashed var(--border);border-radius:var(--radius-lg);padding:20px 22px;color:var(--text-muted);font-size:13px;line-height:1.6}
+.note-card b{color:var(--text);font-weight:600}
+.callout{background:var(--gold-bg);border:1px solid var(--gold);border-radius:var(--radius);padding:14px 16px;font-size:13px;line-height:1.55;margin-top:16px}
+.callout b{font-weight:700}
+details{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+details summary{cursor:pointer;padding:13px 18px;font-family:var(--font-display);font-weight:600;font-size:13.5px;list-style:none;display:flex;align-items:center;gap:10px}
+details summary::before{content:'';width:7px;height:7px;border-right:2px solid var(--text-muted);border-bottom:2px solid var(--text-muted);transform:rotate(-45deg);transition:transform .25s cubic-bezier(0.16,1,0.3,1)}
+details[open] summary::before{transform:rotate(45deg)}
+details .body{padding:2px 18px 16px;font-size:13px;line-height:1.65;color:var(--text)}
+details .body ul{margin:6px 0 0 18px}
+details .body li{margin-bottom:6px}
+footer{border-top:1px solid var(--border);margin-top:44px;padding-top:18px;font-size:12px;color:var(--text-muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.legend-inline{display:flex;gap:18px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-top:10px}
+.legend-inline span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:3px;border-radius:2px;display:inline-block}
+.sw.dash{background:repeating-linear-gradient(90deg,#0D1117 0 6px,transparent 6px 10px);height:3px}
+</style>
+</head>
+<body>
+<header class="hdr">
+  <div class="hdr-inner">
+    <div>
+      <div class="eyebrow">Unified CSR Portal · Workforce Analytics</div>
+      <h1>2026 Staffing Projection</h1>
+      <div class="sub">Hourly coverage vs. approved leave across the 5 centers</div>
+    </div>
+    <div class="pill">Data as of Jul 10, 2026</div>
+  </div>
+</header>
+<main>
+  <p class="lede">Across the 5 centers, <strong>665 CSRs</strong> are projected to cover about <strong>1.16&nbsp;million phone hours</strong> in 2026, based on the current schedule and after breaks and lunches. Approved leave takes away <strong>85,291 of those hours</strong>, about 7%. We call those hours Exceptions. This page shows how many people are on the phones each hour, what pulls them away, and how that changes through the year. One thing to keep in mind: most leave for the second half of the year has not been booked yet, so those months look better staffed than they really will be.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v" id="kNet"></div><div class="l">Yearly projection of CSR-hours on the phones: 1,283,284 scheduled minus 120,512 break and lunch hours, based on the current schedule</div></div>
+    <div class="kpi e"><div class="v" id="kExc"></div><div class="l">Exception hours removed by approved leave (<span id="kPct"></span> of the projection)</div></div>
+    <div class="kpi g"><div class="v" id="kCsr"></div><div class="l">CSRs in scope across the 5 centers (682 schedule lines)</div></div>
+    <div class="kpi n"><div class="v" id="kPeak"></div><div class="l">Weekday peak net staffing at <span id="kPeakH"></span>, after leave and lunches</div></div>
+    <div class="kpi s"><div class="v" id="kBrk"></div><div class="l">Break &amp; lunch hours deducted from the gross schedule</div></div>
+  </div>
+
+  <h2>The shape of a weekday</h2>
+  <p class="sec-sub">Average Monday to Friday across all 261 weekdays of 2026. The blue line is scheduled phone coverage; the dark dashed line is what remains after approved leave. The gap between them is the Exceptions.</p>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Concurrent CSRs by hour, Mon–Fri average</h3>
+      <div class="h3sub">Breaks and lunches already deducted from both lines</div>
+      <div class="chart-wrap"><canvas id="chWeekday"></canvas></div>
+      <div class="legend-inline">
+        <span><span class="sw" style="background:#0F62FE"></span>Scheduled (on phones)</span>
+        <span><span class="sw dash"></span>Net staffed after leave</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <h3>Saturday</h3>
+        <div class="h3sub">Average of 52 Saturdays. The 12 AM to 7 AM staffing is the Friday overnight crew finishing their shift; the small midday block is the actual Saturday day crew.</div>
+        <div class="chart-wrap sm"><canvas id="chSat"></canvas></div>
+      </div>
+      <div class="note-card"><b>Sunday: no coverage.</b> None of the 5 centers schedules anyone on Sundays, so Sunday staffing is zero and Sunday-dated leave has no impact.</div>
+    </div>
+  </div>
+  <div class="facts">
+    <div class="fact"><b>Overnight floor:</b> <span id="fOvernight"></span> CSRs hold the phones through the small hours. One sick call moves the needle here far more than at noon.</div>
+    <div class="fact"><b>Morning ramp:</b> coverage climbs from <span id="fRamp"></span> between 7 and 9 AM as day-shift starts stack up.</div>
+    <div class="fact"><b>Peak at 2 PM, not noon:</b> lunches cluster around midday, so the true net peak lands at 2 PM once they're deducted.</div>
+  </div>
+
+  <h2>What takes CSRs off the phones</h2>
+  <p class="sec-sub">Exception hours by leave type, full-year 2026. Vacation and Sick together account for roughly 62% of all removed hours. Slate bars are redeployments: the CSR is working, just not on inbound calls.</p>
+  <div class="card">
+    <h3>Removed on-phone hours by leave type</h3>
+    <div class="h3sub">Top eight types plus everything else, net of breaks</div>
+    <div class="chart-wrap" style="height:380px"><canvas id="chTypes"></canvas></div>
+  </div>
+
+  <h2>The quarterly lens</h2>
+  <p class="sec-sub">Two views of seasonality: how the net weekday staffing curve shifts by quarter, and how much leave is booked in each month. Both tell the same story: Q2 carries the vacation load, and the back half of the year is not yet real.</p>
+  <div class="grid-2eq">
+    <div class="card">
+      <h3>Net CSRs by hour, weekday average per quarter</h3>
+      <div class="h3sub">Scheduled minus booked leave, Mon–Fri, breaks deducted</div>
+      <div class="chart-wrap"><canvas id="chQuarter"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Booked leave person-days by month</h3>
+      <div class="h3sub">Gray bars = bookings to date only, not a forecast</div>
+      <div class="chart-wrap"><canvas id="chMonth"></canvas></div>
+    </div>
+  </div>
+  <div class="grid-2eq" style="margin-top:16px">
+    <div class="card">
+      <h3>Exception hours by quarter</h3>
+      <div class="h3sub">On-phone hours removed by approved leave; gray bars are bookings to date only</div>
+      <div class="chart-wrap sm"><canvas id="chQExc"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>What each quarter's leave is made of</h3>
+      <div class="h3sub">Booked person-days by leave type, top five types plus everything else</div>
+      <div class="chart-wrap sm"><canvas id="chQMix"></canvas></div>
+    </div>
+  </div>
+  <div class="callout"><b>Read the second half of the year with care.</b> Leave data is as of July 10, 2026. Q1 and Q2 are near-actuals; Q3 is partly booked; Q4 is early bookings only (<span id="cQ4"></span> person-days vs. <span id="cQ2"></span> in Q2). Expect Q3 and Q4 exception levels to rise toward Q1 levels as sick days and remaining vacation get logged. The elevated Q4 line in the chart reflects what is not booked yet, not a staffing surplus.</div>
+
+  <h2>How the projection works</h2>
+  <p class="sec-sub">One sentence: every Active schedule line in the 5 centers is walked across the 2026 calendar hour by hour, breaks and lunches are subtracted, and approved leave removes the staffed portion of the shift that starts on the leave date. The details live in the collapsibles, and every number here ties to the <em>Hourly_Staffing_Projection_2026.xlsx</em> workbook to the decimal.</p>
+  <details>
+    <summary>Scope &amp; sources</summary>
+    <div class="body">
+      <ul>
+        <li><b>In scope:</b> 682 Active schedule lines / 665 CSRs in CUST OPS Cent Day, Cent Night, North, South, and Immersive Enrichment. Other Cust Ops areas do not take calls; their schedules and leave are fully excluded, as are the 15 On-Leave lines.</li>
+        <li><b>Leave data:</b> 15,631 approved leave-detail rows joined from cf_LeaveRequestDetail → cf_LeaveRequest → master schedule; 13,257 rows in scope → 12,720.5 leave person-days. The Dataverse exports were truncated on their visible sheets; full data was recovered from each file's embedded cache.</li>
+        <li><b>Leave-type names</b> come from the code → name list supplied on 07/10/26 (the cf_LeaveType export contained no rows).</li>
+      </ul>
+    </div>
+  </details>
+  <details>
+    <summary>Leave &amp; break rules</summary>
+    <div class="body">
+      <ul>
+        <li>Only <b>Approved</b> detail rows count; Canceled and Denied are ignored. One person's same-date bookings cap at 1.0 day.</li>
+        <li>A leave day removes the shift that <b>starts</b> on that date; overnight spill lands on the next calendar day. A half day omits the <b>later half of the shift</b>.</li>
+        <li><b>Breaks and lunches are deducted</b> from both scheduled coverage and removed hours: only genuinely staffed phone time is counted on either side.</li>
+        <li>Redeployment-style types (Campaign, Loaned Assignment, Shift Swap) count as Exceptions because the CSR is off inbound calls, even though they're working.</li>
+      </ul>
+    </div>
+  </details>
+  <details>
+    <summary>Data-quality notes &amp; limits</summary>
+    <div class="body">
+      <ul>
+        <li>The schedule is a <b>snapshot</b> (07/09/26) applied to all of 2026: no hires, terminations, shift bids, or holiday closures are modeled.</li>
+        <li>Break-window cleanup: 51 unparseable placeholders ("AM X"), 2 impossible 12-hour "breaks", and 1 window entirely outside its shift were treated as no break; overlapping windows were merged.</li>
+        <li>237.5 leave person-days fall on dates the person is not scheduled, so they have zero staffing impact.</li>
+        <li>1 CSR = 1 concurrent staffed hour; no shrinkage, occupancy, or call-volume modeling. This is a coverage view, not an Erlang model.</li>
+      </ul>
+    </div>
+  </details>
+
+  <footer>
+    <div>Unified CSR Portal · Workforce Analytics · ties to <b>Hourly_Staffing_Projection_2026.xlsx</b></div>
+    <div>Sources: 070926_MANNY_MASTERLIST · cf_LeaveRequest / Detail / Type · Generated Jul 13, 2026</div>
+  </footer>
+</main>
+<script>
+const D = {"monfriSched": [26.81, 26.41, 24.91, 22.41, 23.91, 21.71, 26.41, 64.0, 158.0, 439.5, 438.35, 499.56, 483.15, 515.73, 528.68, 338.39, 331.31, 134.63, 110.41, 57.81, 37.25, 31.5, 30.5, 36.5], "monfriExc": [0.93, 0.91, 0.84, 0.73, 0.99, 0.95, 1.05, 4.05, 15.33, 34.89, 34.45, 37.17, 36.24, 38.75, 38.78, 27.27, 27.16, 8.35, 6.7, 3.55, 1.84, 1.38, 1.35, 1.21], "monfriNet": [25.88, 25.5, 24.07, 21.68, 22.92, 20.76, 25.36, 59.95, 142.67, 404.61, 403.9, 462.39, 446.91, 476.98, 489.9, 311.12, 304.15, 126.28, 103.71, 54.26, 35.41, 30.12, 29.15, 35.29], "satSched": [18.5, 18.0, 18.0, 15.5, 15.5, 14.0, 18.0, 10.0, 9.0, 8.75, 7.75, 8.0, 8.0, 8.5, 12.5, 12.25, 5.0, 4.5, 4.5, 4.5, 5.5, 5.25, 5.5, 0.0], "satExc": [0.63, 0.62, 0.62, 0.55, 0.63, 0.6, 0.71, 0.42, 0.36, 0.38, 0.29, 0.35, 0.37, 0.43, 0.61, 0.57, 0.22, 0.23, 0.17, 0.21, 0.25, 0.23, 0.25, 0.0], "satNet": [17.87, 17.38, 17.38, 14.95, 14.87, 13.4, 17.29, 9.58, 8.64, 8.37, 7.46, 7.65, 7.63, 8.07, 11.89, 11.68, 4.78, 4.27, 4.33, 4.29, 5.25, 5.02, 5.25, 0.0], "qNet": {"Q1": [25.64, 25.27, 23.85, 21.45, 22.65, 20.46, 25.03, 60.23, 147.95, 417.45, 416.48, 475.2, 457.9, 487.84, 501.42, 318.6, 312.32, 127.57, 104.74, 54.55, 35.52, 30.21, 29.32, 35.06], "Q2": [24.81, 24.43, 23.08, 20.97, 21.81, 19.59, 24.18, 55.95, 119.09, 350.03, 350.49, 404.68, 391.61, 418.73, 430.86, 269.98, 261.62, 114.32, 94.0, 48.92, 32.93, 28.36, 27.4, 33.55], "Q3": [26.32, 25.92, 24.47, 21.9, 23.36, 21.3, 25.83, 61.05, 149.03, 418.62, 417.74, 477.48, 462.12, 493.01, 505.79, 322.36, 315.93, 129.87, 106.48, 56.01, 36.16, 30.57, 29.55, 36.02], "Q4": [26.77, 26.36, 24.86, 22.4, 23.86, 21.65, 26.36, 62.52, 154.39, 431.9, 430.45, 491.73, 475.48, 507.78, 521.0, 333.17, 326.35, 133.2, 109.53, 57.49, 36.99, 31.31, 30.31, 36.5]}, "monthDays": [644.0, 590.0, 988.0, 2694.0, 2482.5, 2779.0, 1093.0, 518.0, 295.5, 200.5, 186.0, 250.0], "qDays": [2222.0, 7955.5, 1906.5, 636.5], "ltNames": ["Vacation", "Sick", "Campaign - Outbound Collection Calls", "NY Paid Family Leave", "Loaned Assignment", "Leave of Absence", "Adjustment", "Diversity", "All other types"], "ltHours": [37478.7, 15662.3, 6612.6, 5101.8, 4186.9, 2329.9, 1883.1, 1778.5, 10257.7], "kpi": {"netSched": 1162772.5, "excHours": 85291.4, "pctOut": 7.3, "grossSched": 1283284.0, "breakHours": 120511.5, "csrs": 665, "lines": 682, "peakHour": 14, "peakSched": 528.68, "peakNet": 489.9, "personDays": 12720.5}, "qExc": [14882.1, 53324.5, 12727.4, 4357.4], "qSched": [285124.2, 289579.3, 294034.5, 294034.5], "ltq": {"Vacation": [1703.0, 2013.2, 1299.0, 606.0], "Sick": [113.5, 2107.0, 191.0, 0.0], "Campaign": [0.0, 809.0, 75.0, 0.0], "NY Paid Family Leave": [84.0, 591.5, 77.0, 0.0], "Loaned Assignment": [18.0, 534.0, 49.0, 0.0], "All other types": [303.5, 1900.8, 215.5, 30.5]}};
+
+// ---- number formatting ----
+const fmt = n => n.toLocaleString('en-US', {maximumFractionDigits: 0});
+document.getElementById('kNet').innerHTML  = fmt(D.kpi.netSched) + ' <small>hrs</small>';
+document.getElementById('kExc').innerHTML  = fmt(D.kpi.excHours) + ' <small>hrs</small>';
+document.getElementById('kPct').textContent = D.kpi.pctOut.toFixed(1) + '%';
+document.getElementById('kCsr').innerHTML  = fmt(D.kpi.csrs) + ' <small>CSRs</small>';
+document.getElementById('kPeak').innerHTML = Math.round(D.kpi.peakNet) + ' <small>net CSRs</small>';
+document.getElementById('kPeakH').textContent = (D.kpi.peakHour % 12 || 12) + (D.kpi.peakHour < 12 ? ' AM' : ' PM');
+document.getElementById('kBrk').innerHTML  = fmt(D.kpi.breakHours) + ' <small>hrs</small>';
+const overnightMin = Math.round(Math.min(...D.monfriNet.slice(0, 5)));
+document.getElementById('fOvernight').textContent = '~' + overnightMin;
+document.getElementById('fRamp').textContent = Math.round(D.monfriNet[7]) + ' to ' + Math.round(D.monfriNet[9]);
+document.getElementById('cQ4').textContent = fmt(D.qDays[3]);
+document.getElementById('cQ2').textContent = fmt(D.qDays[1]);
+
+// ---- Chart.js defaults, mirroring csr_performance.html ----
+Chart.defaults.font.family = "'DM Sans',sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.animation = false;
+Chart.defaults.animations = {};
+
+// Visibility-gated canvas fade-in, same pattern as the portal: opacity 0 to 1
+// (850ms cubic-bezier(0.16,1,0.3,1)) when ~15% of the canvas enters the viewport.
+// Honors prefers-reduced-motion.
+const _PRM = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const chartFadeInPlugin = {
+  id: 'chartFadeIn',
+  afterInit(chart){
+    if(_PRM) return;
+    const cv = chart.canvas;
+    if(!cv) return;
+    cv.style.opacity = '0';
+    cv.style.transition = 'opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1)';
+    const reveal = () => { cv.style.opacity = '1'; };
+    if(!('IntersectionObserver' in window)){ reveal(); return; }
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => { if(en.isIntersecting){ reveal(); io.disconnect(); } });
+    }, {threshold: 0.15});
+    io.observe(cv);
+  }
+};
+Chart.register(chartFadeInPlugin);
+
+const HOURS = Array.from({length:24}, (_,h) => (h % 12 || 12) + (h < 12 ? ' AM' : ' PM'));
+const yAxis = {beginAtZero:true, ticks:{font:{size:9}, maxTicksLimit:5}, grid:{color:'rgba(0,0,0,.04)'}};
+const xAxis = {ticks:{font:{size:9}, maxRotation:0, autoSkip:true, maxTicksLimit:8}, grid:{display:false}};
+const hoverCfg = {mode:'nearest', intersect:false};
+
+// ---- Weekday chart ----
+new Chart(document.getElementById('chWeekday'), {
+  type: 'line',
+  data: {labels: HOURS, datasets: [
+    {label:'Scheduled (on phones)', data: D.monfriSched, borderColor:'#0F62FE', backgroundColor:'rgba(15,98,254,.08)',
+     borderWidth:2.5, tension:.25, pointRadius:2.5, pointBackgroundColor:'#0F62FE', fill:true},
+    {label:'Net staffed after leave', data: D.monfriNet, borderColor:'#0D1117', backgroundColor:'rgba(13,17,23,.06)',
+     borderWidth:2.5, borderDash:[6,4], tension:.25, pointRadius:2.5, pointBackgroundColor:'#0D1117', fill:true}
+  ]},
+  options: {responsive:true, maintainAspectRatio:false, interaction:hoverCfg,
+    plugins: {legend:{display:false}, tooltip:{callbacks:{
+      afterBody: items => {
+        const h = items[0].dataIndex;
+        return 'Out on leave: ' + (D.monfriSched[h] - D.monfriNet[h]).toFixed(1) + ' CSRs';
+      },
+      label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1)
+    }}},
+    scales: {y: yAxis, x: xAxis}}
+});
+
+// ---- Saturday chart ----
+new Chart(document.getElementById('chSat'), {
+  type: 'line',
+  data: {labels: HOURS, datasets: [
+    {label:'Scheduled', data: D.satSched, borderColor:'#0F62FE', backgroundColor:'rgba(15,98,254,.08)',
+     borderWidth:2, tension:.25, pointRadius:2, pointBackgroundColor:'#0F62FE', fill:true},
+    {label:'Net staffed', data: D.satNet, borderColor:'#0D1117', backgroundColor:'rgba(13,17,23,.06)',
+     borderWidth:2, borderDash:[6,4], tension:.25, pointRadius:2, pointBackgroundColor:'#0D1117', fill:true}
+  ]},
+  options: {responsive:true, maintainAspectRatio:false, interaction:hoverCfg,
+    plugins: {legend:{display:false}, tooltip:{callbacks:{label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1)}}},
+    scales: {y: yAxis, x: {...xAxis, ticks:{...xAxis.ticks, maxTicksLimit:6}}}}
+});
+
+// ---- Leave types horizontal bar ----
+const REDEPLOY = new Set(['Campaign - Outbound Collection Calls','Loaned Assignment','Shift Swap']);
+new Chart(document.getElementById('chTypes'), {
+  type: 'bar',
+  data: {labels: D.ltNames, datasets: [{
+    data: D.ltHours,
+    backgroundColor: D.ltNames.map(n => n === 'All other types' ? '#CBD5E1' : (REDEPLOY.has(n) ? '#64748B' : '#0F62FE')),
+    borderRadius: 3, barPercentage: .72
+  }]},
+  options: {responsive:true, maintainAspectRatio:false, indexAxis:'y', interaction:hoverCfg,
+    plugins: {legend:{display:false}, tooltip:{callbacks:{
+      label: ctx => fmt(ctx.parsed.x) + ' hrs (' + (100*ctx.parsed.x/D.kpi.excHours).toFixed(1) + '% of exceptions)'
+    }}},
+    scales: {
+      x: {beginAtZero:true, ticks:{font:{size:9}, maxTicksLimit:6, callback:v => fmt(v)}, grid:{color:'rgba(0,0,0,.04)'}},
+      y: {ticks:{font:{size:10}}, grid:{display:false}}
+    }}
+});
+
+// ---- Quarterly net lines: Q1..Q4 ----
+const QCOLORS = {Q1:'#0F62FE', Q2:'#047857', Q3:'#C2410C', Q4:'#64748B'};
+new Chart(document.getElementById('chQuarter'), {
+  type: 'line',
+  data: {labels: HOURS, datasets: ['Q1','Q2','Q3','Q4'].map(q => ({
+    label: q, data: D.qNet[q], borderColor: QCOLORS[q], backgroundColor: QCOLORS[q],
+    borderWidth: 2, tension: .25, pointRadius: 0, fill: false
+  }))},
+  options: {responsive:true, maintainAspectRatio:false, interaction:hoverCfg,
+    plugins: {legend:{display:true, position:'top', labels:{boxWidth:14, boxHeight:3, font:{size:11}}},
+      tooltip:{callbacks:{label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + ' net CSRs'}}},
+    scales: {y: yAxis, x: xAxis}}
+});
+
+// ---- Monthly booked leave bars ----
+const MNAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+new Chart(document.getElementById('chMonth'), {
+  type: 'bar',
+  data: {labels: MNAMES, datasets: [{
+    data: D.monthDays,
+    backgroundColor: MNAMES.map((_, i) => i < 6 ? '#0F62FE' : '#CBD5E1'),
+    borderRadius: 3, barPercentage: .72
+  }]},
+  options: {responsive:true, maintainAspectRatio:false, interaction:hoverCfg,
+    plugins: {legend:{display:false}, tooltip:{callbacks:{
+      label: ctx => fmt(ctx.parsed.y) + ' person-days' + (ctx.dataIndex >= 6 ? ' (booked to date)' : '')
+    }}},
+    scales: {y: {...yAxis, ticks:{...yAxis.ticks, callback:v => fmt(v)}}, x: {ticks:{font:{size:9}}, grid:{display:false}}}}
+});
+
+// ---- Exception hours by quarter ----
+new Chart(document.getElementById('chQExc'), {
+  type: 'bar',
+  data: {labels: ['Q1','Q2','Q3','Q4'], datasets: [{
+    data: D.qExc,
+    backgroundColor: ['#0F62FE','#0F62FE','#CBD5E1','#CBD5E1'],
+    borderRadius: 3, barPercentage: .6
+  }]},
+  options: {responsive:true, maintainAspectRatio:false, interaction:hoverCfg,
+    plugins: {legend:{display:false}, tooltip:{callbacks:{
+      label: ctx => fmt(ctx.parsed.y) + ' hrs (' + (100*ctx.parsed.y/D.qSched[ctx.dataIndex]).toFixed(1) + '% of the quarter)' + (ctx.dataIndex >= 2 ? ' · booked to date' : '')
+    }}},
+    scales: {y: {...yAxis, ticks:{...yAxis.ticks, callback:v => fmt(v)}}, x: {ticks:{font:{size:10}}, grid:{display:false}}}}
+});
+
+// ---- Leave composition by quarter (stacked) ----
+const MIXCOLORS = {'Vacation':'#0F62FE','Sick':'#C2410C','Campaign':'#64748B','NY Paid Family Leave':'#047857','Loaned Assignment':'#94A3B8','All other types':'#E2E5EA'};
+new Chart(document.getElementById('chQMix'), {
+  type: 'bar',
+  data: {labels: ['Q1','Q2','Q3','Q4'], datasets: Object.keys(D.ltq).map(name => ({
+    label: name, data: D.ltq[name], backgroundColor: MIXCOLORS[name], borderRadius: 2, barPercentage: .6
+  }))},
+  options: {responsive:true, maintainAspectRatio:false, interaction:hoverCfg,
+    plugins: {legend:{display:true, position:'top', labels:{boxWidth:10, boxHeight:10, font:{size:10}}},
+      tooltip:{callbacks:{label: ctx => ctx.dataset.label + ': ' + fmt(ctx.parsed.y) + ' person-days'}}},
+    scales: {y: {...yAxis, stacked:true, ticks:{...yAxis.ticks, callback:v => fmt(v)}}, x: {stacked:true, ticks:{font:{size:10}}, grid:{display:false}}}}
+});
+</script>
+</body>
+</html>
