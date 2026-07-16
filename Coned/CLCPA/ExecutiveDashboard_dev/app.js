@@ -4694,45 +4694,19 @@ function renderSectionC() {
     const yearLabel = yr;
     const prevYearLabel = prevYr || '';
       // ===== Source data =====
-      const c5 = (p.charts.C5_programs && p.charts.C5_programs.values[yr]) || [];
-      const c3 = (p.charts.C3_programs && p.charts.C3_programs.values[yr]) || [];
+      // CLCPA-166: all three groups now live-parsed from their source tables via
+      // the shared parseCPrograms helper (C3 = DAC, C5 = Total; C4 = Low-Income,
+      // previously already live, now on the same helper).
+      const c5 = parseCPrograms(p.tables.C5, yr);
+      const c3 = parseCPrograms(p.tables.C3, yr);
+      const c4 = parseCPrograms(p.tables.C4, yr);
 
-      // Parse C4 (Low-Income) from Object.values(p.tables)
-      const c4Table = p.tables.C4;
-      const c4Raw = c4Table ? (c4Table.data[yr] || []) : [];
-      const c4 = [];
-      c4Raw.forEach(row => {
-        if (!row || !row[0]) return;
-        const name = String(row[0]).trim();
-        if (!name || /program name|^total$/i.test(name)) return;
-        const nums = row.slice(1).filter(v => v !== null && v !== undefined && v !== '');
-        if (nums.length < 3) return;
-        c4.push({
-          name: name,
-          participants: Number(nums[0]) || 0,
-          committed: Number(nums[1]) || 0,
-          delivered: Number(nums[2]) || 0
-        });
-      });
-
-      // Prior year data for tooltips
-      const c5Prev = hasPrevData ? ((p.charts.C5_programs && p.charts.C5_programs.values[prevYr]) || []) : [];
-      const c3Prev = hasPrevData ? ((p.charts.C3_programs && p.charts.C3_programs.values[prevYr]) || []) : [];
-      const c4PrevRaw = c4Table && hasPrevData ? (c4Table.data[prevYr] || []) : [];  // CLCPA-118: guard absent prior year (matches c4Raw)
-      const c4Prev = [];
-      c4PrevRaw.forEach(row => {
-        if (!row || !row[0]) return;
-        const name = String(row[0]).trim();
-        if (!name || /program name|^total$/i.test(name)) return;
-        const nums = row.slice(1).filter(v => v !== null && v !== undefined && v !== '');
-        if (nums.length < 3) return;
-        c4Prev.push({
-          name: name,
-          participants: Number(nums[0]) || 0,
-          committed: Number(nums[1]) || 0,
-          delivered: Number(nums[2]) || 0
-        });
-      });
+      // Prior year data for tooltips (CLCPA-166: same shared helper, all three groups;
+      // parseCPrograms returns [] when the prior-year table/data is absent — matches
+      // the previous hasPrevData / c4Table guards, incl. CLCPA-118's absent-prior guard).
+      const c5Prev = hasPrevData ? parseCPrograms(p.tables.C5, prevYr) : [];
+      const c3Prev = hasPrevData ? parseCPrograms(p.tables.C3, prevYr) : [];
+      const c4Prev = hasPrevData ? parseCPrograms(p.tables.C4, prevYr) : [];
 
       // ===== Totals per segment =====
       const sumKey = (arr, key) => arr.reduce((a, x) => a + (Number(x[key]) || 0), 0);
@@ -7886,6 +7860,35 @@ function wireHTooltips() {
       if (iMicro >= 0) entry.Micromobility = Number(row[iMicro]) || 0;
       entry.Total = iTotal >= 0 ? (Number(row[iTotal]) || 0) : 0;
       out[cat] = entry;
+    });
+    return out;
+  }
+
+  /**
+   * CLCPA-166: Section C program rows (Demand Response), live-parsed from a C-series
+   * source table (C3 = DAC, C4 = Low-Income, C5 = Total) so newly-created years
+   * render — C3/C5 previously read the precomputed charts.C3_programs/C5_programs
+   * which have no entry for runtime-added years. Returns the same shape those blobs
+   * (and the existing live C4 parse) produced: [{ name, participants, committed, delivered }].
+   * Verbatim port of the prior C4 logic: row.slice(1).filter(non-empty) collapses the
+   * null-padded schema (2023 has 4 cols, 2024/2025 have 8) to [participants, committed,
+   * delivered] without fixed indices; skips header/total rows and rows with <3 values.
+   */
+  function parseCPrograms(table, yr) {
+    const rows = table && table.data ? (table.data[yr] || []) : [];
+    const out = [];
+    rows.forEach(row => {
+      if (!row || !row[0]) return;
+      const name = String(row[0]).trim();
+      if (!name || /program name|^total$/i.test(name)) return;
+      const nums = row.slice(1).filter(v => v !== null && v !== undefined && v !== '');
+      if (nums.length < 3) return;
+      out.push({
+        name: name,
+        participants: Number(nums[0]) || 0,
+        committed: Number(nums[1]) || 0,
+        delivered: Number(nums[2]) || 0
+      });
     });
     return out;
   }
