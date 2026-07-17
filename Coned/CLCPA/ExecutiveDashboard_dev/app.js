@@ -2037,6 +2037,9 @@
   // Lazy-loaded ConEd service-territory overlay (electric networks + gas area).
   let _territoryGeoCache = null;
   let _territoryFetchPromise = null;
+  // Lazy-loaded Heat Vulnerability Index (HVI) ZCTA overlay (visual only).
+  let _hviGeoCache = null;
+  let _hviFetchPromise = null;
 // Compute and render KPI overlay for the DAC map
   // Compute and render Customer Counts panel for the DAC map
   function renderMapKPI(geo) {
@@ -2507,6 +2510,7 @@
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="hvi"><span class="dac-map-terr-sw dac-map-terr-sw-hvi"></span>Heat Vulnerability Index (HVI)</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="eap"><span class="dac-map-terr-sw dac-map-terr-sw-eap"></span>EAP enrollment</label>
           </div>
           <!-- EAP controls live in their own card below LAYERS so the LAYERS panel never resizes -->
@@ -2536,6 +2540,21 @@
                 </span>
               </div>
             </div>
+          </div>
+          <!-- HVI legend: 1-5 warm color scale + source label; shown only while the HVI layer is on -->
+          <div class="dac-map-hvibox" id="dac-map-hvibox" hidden>
+            <div class="dac-map-hvi-title">Heat Vulnerability Index</div>
+            <div class="dac-map-hvi-scale">
+              <span class="dac-map-hvi-lbl">Low</span>
+              <span class="dac-map-hvi-sw" style="background:#ffffb2"></span>
+              <span class="dac-map-hvi-sw" style="background:#fecc5c"></span>
+              <span class="dac-map-hvi-sw" style="background:#fd8d3c"></span>
+              <span class="dac-map-hvi-sw" style="background:#f03b20"></span>
+              <span class="dac-map-hvi-sw" style="background:#bd0026"></span>
+              <span class="dac-map-hvi-lbl">High</span>
+            </div>
+            <div class="dac-map-hvi-ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+            <div class="dac-map-hvi-src">HVI (2022, assumed) - NYC DOHMH, 2020 ZCTA</div>
           </div>
           </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
@@ -2752,6 +2771,18 @@
             '</span><span class="dac-tt-v" style="color:#4E8C1E">' + gareas.map(escMap).join(', ') + '</span></div>'
           : '';
 
+        // HVI: read the enriched per-tract field only (never computed here).
+        // Tracts with no HVI coverage have no `hvi` field -> no line (not 0/n-a).
+        // Multiple ZCTAs are listed largest-overlap-first (already sorted in the
+        // enrichment), matching how multi-network tracts are shown above.
+        const hviList = p.hvi;
+        const hviLine = (hviList && hviList.length)
+          ? '<div class="dac-tt-row"><span>' + (hviList.length > 1 ? 'HVI (ZCTAs)' : 'HVI') +
+            '</span><span class="dac-tt-v" style="color:#bd0026">' +
+            hviList.map(function (h) { return escMap(h.zcta) + ': ' + escMap(h.score); }).join(', ') +
+            '</span></div>'
+          : '';
+
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
@@ -2761,7 +2792,8 @@
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
           netLine +
           utilityBlock('Gas',      p.gas_accts,  p.gas_eap) +
-          gasLine;
+          gasLine +
+          hviLine;
 
         tooltip.style.opacity = '1';
       });
@@ -3648,6 +3680,53 @@
         map.removeLayer(_terrLayers[kind]);
       }
     }
+
+    // ---- HVI overlay (lazy-loaded ZCTA polygons, colored by score 1-5) ----
+    // Same non-interactive technique as the ConEd overlays: the layer never
+    // captures hover/click, so the tract choropleth underneath keeps its
+    // tooltip. Colored per feature by score, so it needs its own draw path
+    // (setTerritory uses one flat color per layer).
+    function ensureHviGeo() {
+      if (_hviGeoCache) return Promise.resolve(_hviGeoCache);
+      if (!_hviFetchPromise) {
+        _hviFetchPromise = fetch('./Data/hvi_zcta.geojson')
+          .then(r => r.ok ? r.json() : Promise.reject(new Error('hvi_zcta.geojson ' + r.status)))
+          .then(j => (_hviGeoCache = j))
+          .catch(err => {
+            console.warn('[DAC map] Could not load Data/hvi_zcta.geojson:', err);
+            _hviFetchPromise = null;   // allow a retry on the next toggle
+            throw err;
+          });
+      }
+      return _hviFetchPromise;
+    }
+    // YlOrRd sequential ramp, score 1 (low) -> 5 (high). Any other value is
+    // drawn grey rather than dropped, so bad data is visible, not silent.
+    const HVI_RAMP = { 1: '#ffffb2', 2: '#fecc5c', 3: '#fd8d3c', 4: '#f03b20', 5: '#bd0026' };
+    function hviStyle(feature) {
+      const c = HVI_RAMP[feature.properties.score] || '#cccccc';
+      return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
+    }
+    let _hviLayer = null;
+    const _hviBox = document.getElementById('dac-map-hvibox');
+    function setHvi(on) {
+      if (on) {
+        ensureHviGeo().then(function () {
+          if (!_hviLayer) {
+            // interactive:false -> overlay is transparent to hover/click; tract
+            // choropleth beneath still fires its tooltip (mirrors setTerritory).
+            _hviLayer = L.geoJSON(_hviGeoCache, { interactive: false, style: hviStyle });
+          }
+          _hviLayer.addTo(map);
+          _hviLayer.bringToFront();
+          bringOutlinesToFront();   // keep borough/neighborhood outlines above the overlay
+          if (_hviBox) _hviBox.hidden = false;
+        }).catch(function () { /* already reported in ensureHviGeo */ });
+      } else {
+        if (_hviLayer) map.removeLayer(_hviLayer);
+        if (_hviBox) _hviBox.hidden = true;
+      }
+    }
     // Burden choropleth (the tract geoLayer) toggle. Default on; off removes it
     // (its hover tooltips go with it). Kept at the back so overlay outlines sit on top.
     function setBurden(on) {
@@ -3664,6 +3743,7 @@
       if (!cb) return;
       if (cb.dataset.layer === 'burden') setBurden(cb.checked);
       else if (cb.dataset.layer === 'eap') setEap(cb.checked);
+      else if (cb.dataset.layer === 'hvi') setHvi(cb.checked);
       else setTerritory(cb.dataset.layer, cb.checked);
     });
 
