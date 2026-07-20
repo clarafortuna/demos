@@ -7400,8 +7400,14 @@ a.nav-item { text-decoration: none; }
 .dac-map-panels {
   position: absolute; top: 12px; right: 12px; z-index: 620;
   display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+  /* Shared panel width so LAYERS, the toggles box and the HVI legend align.
+     Value = the LAYERS panel's natural width (its widest row, the "Heat
+     Vulnerability Index (HVI)" label). Set here in one place; inherited by the
+     three panel rules below via var(). */
+  --dac-map-panel-w: 221px;
 }
 .dac-map-terr {
+  width: var(--dac-map-panel-w);
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--line); border-radius: 8px;
@@ -7410,6 +7416,7 @@ a.nav-item { text-decoration: none; }
 }
 /* EAP controls card — same glass styling as LAYERS so it reads as a sibling */
 .dac-map-eapbox {
+  width: var(--dac-map-panel-w);
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--line); border-radius: 8px;
@@ -7437,26 +7444,51 @@ a.nav-item { text-decoration: none; }
   border: 1.5px solid #0a2540;
   background: linear-gradient(135deg, #d4e3f2 0%, #0a2540 100%);
 }
+/* HVI layer swatch: a chip hinting the YlOrRd warm ramp (low->high) */
+.dac-map-terr-sw-hvi {
+  border: 1.5px solid #bd0026;
+  background: linear-gradient(90deg, #ffffb2 0%, #fecc5c 25%, #fd8d3c 50%, #f03b20 75%, #bd0026 100%);
+}
+
+/* HVI legend (inside #dac-map-hvibox, shown only while the HVI layer is on) */
+.dac-map-hvibox {
+  width: var(--dac-map-panel-w);
+  margin-top: 6px; padding: 7px 9px;
+  background: var(--surface-1, #fff); border: 1px solid var(--line);
+  border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.dac-map-hvi-title {
+  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-3); margin-bottom: 6px;
+}
+.dac-map-hvi-scale { display: flex; align-items: center; gap: 3px; }
+.dac-map-hvi-sw { width: 18px; height: 10px; flex-shrink: 0; }
+.dac-map-hvi-lbl { font-size: 9px; color: var(--text-3); padding: 0 2px; }
+.dac-map-hvi-ticks {
+  display: flex; justify-content: space-between;
+  width: calc(5 * 18px + 4 * 3px); margin: 2px 0 0 26px;
+  font-size: 9px; color: var(--text-3);
+}
+.dac-map-hvi-src { font-size: 9px; color: var(--text-3); margin-top: 5px; }
 
 /* EAP controls (inside their own #dac-map-eapbox card below LAYERS) */
 .dac-map-eap {
   display: flex; flex-direction: column; gap: 7px;
 }
-/* Left-aligned segmented groups: a fixed label column keeps all three groups
-   starting at the same left edge, while each group/button hugs its own text
-   (content width, tight padding) — no forced equal width. */
-.dac-map-eap-row { display: flex; align-items: center; gap: 8px; }
+/* Stacked groups: the label sits on its own line above a full-width segmented
+   control whose buttons split the row evenly (flex: 1). */
+.dac-map-eap-row { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
 .dac-map-eap-lbl {
-  flex: 0 0 56px;
   font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
   color: var(--text-3);
 }
 .dac-map-eap-seg {
-  display: inline-flex;
+  display: flex;
   border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
 }
 .dac-map-eap-seg button {
   appearance: none; border: 0; background: #fff; cursor: pointer;
+  flex: 1 1 0;
   font-family: var(--font); font-size: 10.5px; font-weight: 600; color: var(--text-2);
   padding: 3px 9px; line-height: 1.4; white-space: nowrap;
 }
