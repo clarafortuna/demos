@@ -3707,25 +3707,86 @@
       const c = HVI_RAMP[feature.properties.score] || '#cccccc';
       return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
     }
+    // HVI overlay state. The overlay is normally non-interactive so the tract
+    // choropleth beneath keeps its hover/tooltip (and the tract tooltip already
+    // carries the HVI line). BUT when "DAC criteria" is off the tract layer is
+    // removed and takes hover with it, so nothing would show HVI on hover. In
+    // that one case we rebuild the overlay as interactive with its own tooltip.
+    // Leaflet bakes `interactive` in at render time, so we REBUILD the layer
+    // (never mutate) whenever the required interactivity flips.
     let _hviLayer = null;
+    let _hviLayerInteractive = null;   // interactivity baked into _hviLayer (null = not built yet)
     const _hviBox = document.getElementById('dac-map-hvibox');
-    function setHvi(on) {
-      if (on) {
-        ensureHviGeo().then(function () {
-          if (!_hviLayer) {
-            // interactive:false -> overlay is transparent to hover/click; tract
-            // choropleth beneath still fires its tooltip (mirrors setTerritory).
-            _hviLayer = L.geoJSON(_hviGeoCache, { interactive: false, style: hviStyle });
-          }
-          _hviLayer.addTo(map);
-          _hviLayer.bringToFront();
-          bringOutlinesToFront();   // keep borough/neighborhood outlines above the overlay
-          if (_hviBox) _hviBox.hidden = false;
-        }).catch(function () { /* already reported in ensureHviGeo */ });
-      } else {
-        if (_hviLayer) map.removeLayer(_hviLayer);
-        if (_hviBox) _hviBox.hidden = true;
+
+    function _dacCriteriaOn() {
+      const cb = document.querySelector('#dac-map-terr input[data-layer="burden"]');
+      return !!(cb && cb.checked);
+    }
+    function _hviToggleOn() {
+      const cb = document.querySelector('#dac-map-terr input[data-layer="hvi"]');
+      return !!(cb && cb.checked);
+    }
+
+    // Build the HVI ZCTA layer. When interactive, bind a self-contained tooltip
+    // (it never touches geoLayer/_hoveredLayer). When not, this is byte-identical
+    // to the original non-interactive overlay.
+    function buildHviLayer(interactive) {
+      const opts = { interactive: interactive, style: hviStyle };
+      if (interactive) {
+        opts.onEachFeature = function (feature, lyr) {
+          const zcta = feature.properties.zcta;
+          const score = feature.properties.score;
+          lyr.on('mouseover', function () {
+            if (!tooltip) return;
+            tooltip.innerHTML = 'ZCTA ' + escMap(zcta) +
+              ' - Heat Vulnerability Index: ' + escMap(score);
+            tooltip.style.opacity = '1';
+          });
+          // Same positioning math as the tract tooltip's mousemove handler.
+          lyr.on('mousemove', function (e) {
+            if (!tooltip || !tooltipWrapper) return;
+            const rect = tooltipWrapper.getBoundingClientRect();
+            let x = e.originalEvent.clientX - rect.left + 12;
+            let y = e.originalEvent.clientY - rect.top  - 8;
+            const tw = tooltip.offsetWidth  || 210;
+            const th = tooltip.offsetHeight || 180;
+            if (x + tw > rect.width  - 4) x = x - tw - 20;
+            if (y + th > rect.height - 4) y = y - th;
+            if (x < 4) x = 4;
+            if (y < 4) y = 4;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top  = y + 'px';
+          });
+          lyr.on('mouseout', function () {
+            if (tooltip) tooltip.style.opacity = '0';
+          });
+        };
       }
+      return L.geoJSON(_hviGeoCache, opts);
+    }
+
+    // Single source of truth for the HVI overlay: add/remove and rebuild with
+    // the correct interactivity from the current toggle states. Called by both
+    // the HVI toggle and the DAC-criteria toggle so flipping either re-evaluates.
+    function refreshHviLayer() {
+      if (!_hviToggleOn()) {
+        if (_hviLayer && map.hasLayer(_hviLayer)) map.removeLayer(_hviLayer);
+        if (_hviBox) _hviBox.hidden = true;
+        return;
+      }
+      ensureHviGeo().then(function () {
+        // Interactive only when HVI is the sole hover target (DAC criteria off).
+        const want = !_dacCriteriaOn();
+        if (!_hviLayer || _hviLayerInteractive !== want) {
+          if (_hviLayer && map.hasLayer(_hviLayer)) map.removeLayer(_hviLayer);
+          _hviLayer = buildHviLayer(want);
+          _hviLayerInteractive = want;
+        }
+        if (!map.hasLayer(_hviLayer)) _hviLayer.addTo(map);
+        _hviLayer.bringToFront();
+        bringOutlinesToFront();   // keep borough/neighborhood outlines above the overlay
+        if (_hviBox) _hviBox.hidden = false;
+      }).catch(function () { /* already reported in ensureHviGeo */ });
     }
     // Burden choropleth (the tract geoLayer) toggle. Default on; off removes it
     // (its hover tooltips go with it). Kept at the back so overlay outlines sit on top.
@@ -3741,9 +3802,9 @@
     if (terrPanel) terrPanel.addEventListener('change', function (e) {
       const cb = e.target.closest('input[data-layer]');
       if (!cb) return;
-      if (cb.dataset.layer === 'burden') setBurden(cb.checked);
+      if (cb.dataset.layer === 'burden') { setBurden(cb.checked); refreshHviLayer(); }
       else if (cb.dataset.layer === 'eap') setEap(cb.checked);
-      else if (cb.dataset.layer === 'hvi') setHvi(cb.checked);
+      else if (cb.dataset.layer === 'hvi') refreshHviLayer();
       else setTerritory(cb.dataset.layer, cb.checked);
     });
 
