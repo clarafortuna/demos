@@ -2670,6 +2670,12 @@
         _hoveredLayer = this;
         this.setStyle({ weight: 2, color: '#185FA5', fillOpacity: 0.92 });
         this.bringToFront();
+        // Re-assert the intended stack: the bringToFront above would otherwise
+        // paint the hovered tract (near-opaque) over the HVI overlay and hide
+        // its color. Raise HVI back on top (then outlines), mirroring
+        // refreshHviLayer's ordering. No-op when HVI is off.
+        if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+        bringOutlinesToFront();
         if (!tooltip) return;
 
         const fmtInt = v => v != null && isFinite(v) ? Math.round(v).toLocaleString() : null;
@@ -2827,6 +2833,10 @@
           _mapState.selectedGeoid = geoid;
           geoLayer.setStyle(styleFeature); // apply selected border
           this.bringToFront();
+          // Keep the HVI overlay above the selected tract so its color isn't
+          // persistently occluded (same re-assert as the hover handler).
+          if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+          bringOutlinesToFront();
           showTractDetail(p);
           renderMapKPI(geo);               // scope the Customer Counts panel to this tract
         }
