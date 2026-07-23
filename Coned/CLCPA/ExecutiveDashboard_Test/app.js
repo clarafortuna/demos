@@ -2029,6 +2029,9 @@
   // Lazy-loaded ConEd service-territory overlay (electric networks + gas area).
   let _territoryGeoCache = null;
   let _territoryFetchPromise = null;
+  // Lazy-loaded Heat Vulnerability Index (HVI) ZCTA overlay (visual only).
+  let _hviGeoCache = null;
+  let _hviFetchPromise = null;
 // Compute and render KPI overlay for the DAC map
   // Compute and render Customer Counts panel for the DAC map
   function renderMapKPI(geo) {
@@ -2499,6 +2502,22 @@
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
+            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="hvi"><span class="dac-map-terr-sw dac-map-terr-sw-hvi"></span>Heat Vulnerability Index (HVI)</label>
+          </div>
+          <!-- HVI legend: 1-5 warm color scale + source label; shown only while the HVI layer is on -->
+          <div class="dac-map-hvibox" id="dac-map-hvibox" hidden>
+            <div class="dac-map-hvi-title">Heat Vulnerability Index</div>
+            <div class="dac-map-hvi-scale">
+              <span class="dac-map-hvi-lbl">Low</span>
+              <span class="dac-map-hvi-sw" style="background:#ffffb2"></span>
+              <span class="dac-map-hvi-sw" style="background:#fecc5c"></span>
+              <span class="dac-map-hvi-sw" style="background:#fd8d3c"></span>
+              <span class="dac-map-hvi-sw" style="background:#f03b20"></span>
+              <span class="dac-map-hvi-sw" style="background:#bd0026"></span>
+              <span class="dac-map-hvi-lbl">High</span>
+            </div>
+            <div class="dac-map-hvi-ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+            <div class="dac-map-hvi-src">HVI (2022, assumed) - NYC DOHMH, 2020 ZCTA</div>
           </div>
           </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
@@ -2614,6 +2633,12 @@
         _hoveredLayer = this;
         this.setStyle({ weight: 2, color: '#185FA5', fillOpacity: 0.92 });
         this.bringToFront();
+        // Re-assert the intended stack: the bringToFront above would otherwise
+        // paint the hovered tract (near-opaque) over the HVI overlay and hide
+        // its color. Raise HVI back on top (then outlines), mirroring
+        // refreshHviLayer's ordering. No-op when HVI is off.
+        if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+        bringOutlinesToFront();
         if (!tooltip) return;
 
         const fmtInt = v => v != null && isFinite(v) ? Math.round(v).toLocaleString() : null;
@@ -2715,6 +2740,18 @@
             '</span><span class="dac-tt-v" style="color:#4E8C1E">' + gareas.map(escMap).join(', ') + '</span></div>'
           : '';
 
+        // HVI: read the enriched per-tract field only (never computed here).
+        // Tracts with no HVI coverage have no `hvi` field -> no line (not 0/n-a).
+        // Multiple ZCTAs are listed largest-overlap-first (already sorted in the
+        // enrichment), matching how multi-network tracts are shown above.
+        const hviList = p.hvi;
+        const hviLine = (hviList && hviList.length)
+          ? '<div class="dac-tt-row"><span>' + (hviList.length > 1 ? 'HVI (ZCTAs)' : 'HVI') +
+            '</span><span class="dac-tt-v" style="color:#bd0026">' +
+            hviList.map(function (h) { return escMap(h.zcta) + ': ' + escMap(h.score); }).join(', ') +
+            '</span></div>'
+          : '';
+
         tooltip.innerHTML =
           '<div class="dac-tt-geoid">' + (p.GEOID || '') + '</div>' +
           '<div class="dac-tt-county">' + subline + '</div>' +
@@ -2724,7 +2761,8 @@
           utilityBlock('Electric', p.elec_accts, p.elec_eap) +
           netLine +
           utilityBlock('Gas',      p.gas_accts,  p.gas_eap) +
-          gasLine;
+          gasLine +
+          hviLine;
 
         tooltip.style.opacity = '1';
       });
@@ -2758,6 +2796,10 @@
           _mapState.selectedGeoid = geoid;
           geoLayer.setStyle(styleFeature); // apply selected border
           this.bringToFront();
+          // Keep the HVI overlay above the selected tract so its color isn't
+          // persistently occluded (same re-assert as the hover handler).
+          if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+          bringOutlinesToFront();
           showTractDetail(p);
           renderMapKPI(geo);               // scope the Customer Counts panel to this tract
         }
@@ -3611,6 +3653,114 @@
         map.removeLayer(_terrLayers[kind]);
       }
     }
+
+    // ---- HVI overlay (lazy-loaded ZCTA polygons, colored by score 1-5) ----
+    // Same non-interactive technique as the ConEd overlays: the layer never
+    // captures hover/click, so the tract choropleth underneath keeps its
+    // tooltip. Colored per feature by score, so it needs its own draw path
+    // (setTerritory uses one flat color per layer).
+    function ensureHviGeo() {
+      if (_hviGeoCache) return Promise.resolve(_hviGeoCache);
+      if (!_hviFetchPromise) {
+        _hviFetchPromise = fetch('./Data/hvi_zcta.geojson')
+          .then(r => r.ok ? r.json() : Promise.reject(new Error('hvi_zcta.geojson ' + r.status)))
+          .then(j => (_hviGeoCache = j))
+          .catch(err => {
+            console.warn('[DAC map] Could not load Data/hvi_zcta.geojson:', err);
+            _hviFetchPromise = null;   // allow a retry on the next toggle
+            throw err;
+          });
+      }
+      return _hviFetchPromise;
+    }
+    // YlOrRd sequential ramp, score 1 (low) -> 5 (high). Any other value is
+    // drawn grey rather than dropped, so bad data is visible, not silent.
+    const HVI_RAMP = { 1: '#ffffb2', 2: '#fecc5c', 3: '#fd8d3c', 4: '#f03b20', 5: '#bd0026' };
+    function hviStyle(feature) {
+      const c = HVI_RAMP[feature.properties.score] || '#cccccc';
+      return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
+    }
+    // HVI overlay state. The overlay is normally non-interactive so the tract
+    // choropleth beneath keeps its hover/tooltip (and the tract tooltip already
+    // carries the HVI line). BUT when "DAC criteria" is off the tract layer is
+    // removed and takes hover with it, so nothing would show HVI on hover. In
+    // that one case we rebuild the overlay as interactive with its own tooltip.
+    // Leaflet bakes `interactive` in at render time, so we REBUILD the layer
+    // (never mutate) whenever the required interactivity flips.
+    let _hviLayer = null;
+    let _hviLayerInteractive = null;   // interactivity baked into _hviLayer (null = not built yet)
+    const _hviBox = document.getElementById('dac-map-hvibox');
+
+    function _dacCriteriaOn() {
+      const cb = document.querySelector('#dac-map-terr input[data-layer="burden"]');
+      return !!(cb && cb.checked);
+    }
+    function _hviToggleOn() {
+      const cb = document.querySelector('#dac-map-terr input[data-layer="hvi"]');
+      return !!(cb && cb.checked);
+    }
+
+    // Build the HVI ZCTA layer. When interactive, bind a self-contained tooltip
+    // (it never touches geoLayer/_hoveredLayer). When not, this is byte-identical
+    // to the original non-interactive overlay.
+    function buildHviLayer(interactive) {
+      const opts = { interactive: interactive, style: hviStyle };
+      if (interactive) {
+        opts.onEachFeature = function (feature, lyr) {
+          const zcta = feature.properties.zcta;
+          const score = feature.properties.score;
+          lyr.on('mouseover', function () {
+            if (!tooltip) return;
+            tooltip.innerHTML = 'ZCTA ' + escMap(zcta) +
+              ' - Heat Vulnerability Index: ' + escMap(score);
+            tooltip.style.opacity = '1';
+          });
+          // Same positioning math as the tract tooltip's mousemove handler.
+          lyr.on('mousemove', function (e) {
+            if (!tooltip || !tooltipWrapper) return;
+            const rect = tooltipWrapper.getBoundingClientRect();
+            let x = e.originalEvent.clientX - rect.left + 12;
+            let y = e.originalEvent.clientY - rect.top  - 8;
+            const tw = tooltip.offsetWidth  || 210;
+            const th = tooltip.offsetHeight || 180;
+            if (x + tw > rect.width  - 4) x = x - tw - 20;
+            if (y + th > rect.height - 4) y = y - th;
+            if (x < 4) x = 4;
+            if (y < 4) y = 4;
+            tooltip.style.left = x + 'px';
+            tooltip.style.top  = y + 'px';
+          });
+          lyr.on('mouseout', function () {
+            if (tooltip) tooltip.style.opacity = '0';
+          });
+        };
+      }
+      return L.geoJSON(_hviGeoCache, opts);
+    }
+
+    // Single source of truth for the HVI overlay: add/remove and rebuild with
+    // the correct interactivity from the current toggle states. Called by both
+    // the HVI toggle and the DAC-criteria toggle so flipping either re-evaluates.
+    function refreshHviLayer() {
+      if (!_hviToggleOn()) {
+        if (_hviLayer && map.hasLayer(_hviLayer)) map.removeLayer(_hviLayer);
+        if (_hviBox) _hviBox.hidden = true;
+        return;
+      }
+      ensureHviGeo().then(function () {
+        // Interactive only when HVI is the sole hover target (DAC criteria off).
+        const want = !_dacCriteriaOn();
+        if (!_hviLayer || _hviLayerInteractive !== want) {
+          if (_hviLayer && map.hasLayer(_hviLayer)) map.removeLayer(_hviLayer);
+          _hviLayer = buildHviLayer(want);
+          _hviLayerInteractive = want;
+        }
+        if (!map.hasLayer(_hviLayer)) _hviLayer.addTo(map);
+        _hviLayer.bringToFront();
+        bringOutlinesToFront();   // keep borough/neighborhood outlines above the overlay
+        if (_hviBox) _hviBox.hidden = false;
+      }).catch(function () { /* already reported in ensureHviGeo */ });
+    }
     // Burden choropleth (the tract geoLayer) toggle. Default on; off removes it
     // (its hover tooltips go with it). Kept at the back so overlay outlines sit on top.
     function setBurden(on) {
@@ -3625,8 +3775,9 @@
     if (terrPanel) terrPanel.addEventListener('change', function (e) {
       const cb = e.target.closest('input[data-layer]');
       if (!cb) return;
-      if (cb.dataset.layer === 'burden') setBurden(cb.checked);
+      if (cb.dataset.layer === 'burden') { setBurden(cb.checked); refreshHviLayer(); }
       else if (cb.dataset.layer === 'eap') setEap(cb.checked);
+      else if (cb.dataset.layer === 'hvi') refreshHviLayer();
       else setTerritory(cb.dataset.layer, cb.checked);
     });
 
@@ -3773,10 +3924,9 @@
     const prevYear = prevYearOf(year);
 
     // ---- Card 1: Strategic Capital Investments (Section E) ----
-    const eCats = (p.charts.E1_categories && p.charts.E1_categories.values[year]) || [];
-    const eCatsPrev = prevYear
-      ? ((p.charts.E1_categories && p.charts.E1_categories.values[prevYear]) || [])
-      : [];
+    // CLCPA-164: live from the E1 table (same helper Section E uses).
+    const eCats = parseE1Categories(p.tables.E1, year);
+    const eCatsPrev = prevYear ? parseE1Categories(p.tables.E1, prevYear) : [];
     const eTotal = eCats.reduce((s, c) => s + (c.total || 0), 0);
     const eDacTotal = eCats.reduce((s, c) => s + (c.total || 0) * (c.dac_pct || 0), 0);
     const eDacPct = eTotal > 0 ? (eDacTotal / eTotal * 100) : null;
@@ -4524,7 +4674,7 @@
     })();
 
     // ---- B2: Plugs data for tornado ----
-    const cur = (p.charts.B2_plugs && p.charts.B2_plugs.values[yr]) || {};
+    const cur = parseB2Plugs(p.tables.B2, yr);   // CLCPA-165: live from B2 table (schema-aware)
     const b2DacL2   = (cur.DAC || {}).L2 || 0;
     const b2DacDCFC = (cur.DAC || {}).DCFC || 0;
     const b2DacTot  = (cur.DAC || {}).Total || 0;
@@ -4532,7 +4682,7 @@
     const b2NonDCFC = (cur['Non-DAC'] || {}).DCFC || 0;
     const b2NonTot  = (cur['Non-DAC'] || {}).Total || 0;
 
-    const b2Prev = hasPrev ? (p.charts.B2_plugs && p.charts.B2_plugs.values[prevYr]) : null;
+    const b2Prev = hasPrev ? parseB2Plugs(p.tables.B2, prevYr) : null;   // CLCPA-165: live from B2 table
     const b2DacTotPrev = b2Prev ? (b2Prev.DAC || {}).Total || null : null;
     const b2NonTotPrev = b2Prev ? (b2Prev['Non-DAC'] || {}).Total || null : null;
     const b2DacYoy = (b2DacTotPrev && b2DacTotPrev > 0)
@@ -4658,45 +4808,19 @@ function renderSectionC() {
     const yearLabel = yr;
     const prevYearLabel = prevYr || '';
       // ===== Source data =====
-      const c5 = (p.charts.C5_programs && p.charts.C5_programs.values[yr]) || [];
-      const c3 = (p.charts.C3_programs && p.charts.C3_programs.values[yr]) || [];
+      // CLCPA-166: all three groups now live-parsed from their source tables via
+      // the shared parseCPrograms helper (C3 = DAC, C5 = Total; C4 = Low-Income,
+      // previously already live, now on the same helper).
+      const c5 = parseCPrograms(p.tables.C5, yr);
+      const c3 = parseCPrograms(p.tables.C3, yr);
+      const c4 = parseCPrograms(p.tables.C4, yr);
 
-      // Parse C4 (Low-Income) from Object.values(p.tables)
-      const c4Table = p.tables.C4;
-      const c4Raw = c4Table ? (c4Table.data[yr] || []) : [];
-      const c4 = [];
-      c4Raw.forEach(row => {
-        if (!row || !row[0]) return;
-        const name = String(row[0]).trim();
-        if (!name || /program name|^total$/i.test(name)) return;
-        const nums = row.slice(1).filter(v => v !== null && v !== undefined && v !== '');
-        if (nums.length < 3) return;
-        c4.push({
-          name: name,
-          participants: Number(nums[0]) || 0,
-          committed: Number(nums[1]) || 0,
-          delivered: Number(nums[2]) || 0
-        });
-      });
-
-      // Prior year data for tooltips
-      const c5Prev = hasPrevData ? ((p.charts.C5_programs && p.charts.C5_programs.values[prevYr]) || []) : [];
-      const c3Prev = hasPrevData ? ((p.charts.C3_programs && p.charts.C3_programs.values[prevYr]) || []) : [];
-      const c4PrevRaw = c4Table && hasPrevData ? (c4Table.data[prevYr] || []) : [];  // CLCPA-118: guard absent prior year (matches c4Raw)
-      const c4Prev = [];
-      c4PrevRaw.forEach(row => {
-        if (!row || !row[0]) return;
-        const name = String(row[0]).trim();
-        if (!name || /program name|^total$/i.test(name)) return;
-        const nums = row.slice(1).filter(v => v !== null && v !== undefined && v !== '');
-        if (nums.length < 3) return;
-        c4Prev.push({
-          name: name,
-          participants: Number(nums[0]) || 0,
-          committed: Number(nums[1]) || 0,
-          delivered: Number(nums[2]) || 0
-        });
-      });
+      // Prior year data for tooltips (CLCPA-166: same shared helper, all three groups;
+      // parseCPrograms returns [] when the prior-year table/data is absent — matches
+      // the previous hasPrevData / c4Table guards, incl. CLCPA-118's absent-prior guard).
+      const c5Prev = hasPrevData ? parseCPrograms(p.tables.C5, prevYr) : [];
+      const c3Prev = hasPrevData ? parseCPrograms(p.tables.C3, prevYr) : [];
+      const c4Prev = hasPrevData ? parseCPrograms(p.tables.C4, prevYr) : [];
 
       // ===== Totals per segment =====
       const sumKey = (arr, key) => arr.reduce((a, x) => a + (Number(x[key]) || 0), 0);
@@ -5254,8 +5378,8 @@ function renderSectionE() {
       // Read directly from the selected year and the prior year (if exists).
       // Variable names kept as e2024/e2023 only for backward compatibility
       // with the original code; semantically they are "current" and "prev".
-      const eCurr = (p.charts.E1_categories && p.charts.E1_categories.values[yr]) || [];
-      const ePrev = prevYr ? ((p.charts.E1_categories && p.charts.E1_categories.values[prevYr]) || []) : [];
+      const eCurr = parseE1Categories(p.tables.E1, yr);                 // CLCPA-164: live from E1 table
+      const ePrev = prevYr ? parseE1Categories(p.tables.E1, prevYr) : [];
 
       // Normalize names (2023 has "Safety and Security", 2024 has "Safety And Security")
       const normalize = s => String(s).toLowerCase().replace(/\s+/g, ' ').trim();
@@ -7794,6 +7918,89 @@ function wireHTooltips() {
     return /total|grand total|subtotal/i.test(String(label).trim());
   }
 
+  /**
+   * CLCPA-164: Section E "Strategic Capital" categories, live-parsed from the E1
+   * source table so newly-created years render (the precomputed
+   * charts.E1_categories has no entry for runtime-added years). Returns the same
+   * shape the precomputed blob had: [{ name, total, dac_pct }]. Excludes the
+   * trailing "Grand Total" row via isTotalRowLabel. Module scope so Section E and
+   * the Executive Summary header card (CLCPA-157) share one source.
+   */
+  function parseE1Categories(table, yr) {
+    const rows = table && table.data ? table.data[yr] : null;
+    if (!rows) return [];
+    const out = [];
+    rows.forEach(row => {
+      if (!row || !row[0]) return;
+      const name = String(row[0]).trim();
+      if (!name || isTotalRowLabel(name)) return;
+      out.push({
+        name: name,
+        total: Number(row[1]) || 0,
+        dac_pct: Number(row[2]) || 0
+      });
+    });
+    return out;
+  }
+
+  /**
+   * CLCPA-165: Section B plug counts, live-parsed from the B2 source table so
+   * newly-created years render (the precomputed charts.B2_plugs has no entry for
+   * runtime-added years). Returns the same shape the blob had, keyed by category:
+   *   { [category]: { L2, DCFC, (Micromobility only if that column exists), Total } }
+   * Columns are located by header substring (NOT fixed index) — the B2 schema
+   * drifts by year: 2023/2024 have 4 columns (no Micromobility), 2025 has 5.
+   */
+  function parseB2Plugs(table, yr) {
+    const rows = table && table.data ? table.data[yr] : null;
+    if (!rows) return {};
+    const schema = (table.schema_by_year || {})[yr] || [];
+    const colOf = needle => schema.findIndex(h => h != null && String(h).toLowerCase().includes(needle));
+    const iL2 = colOf('l2'), iDCFC = colOf('dcfc'), iMicro = colOf('micromobility'), iTotal = colOf('total');
+    const out = {};
+    rows.forEach(row => {
+      if (!row || !row[0]) return;
+      const cat = String(row[0]).trim();
+      if (!cat) return;
+      const entry = {};
+      entry.L2 = iL2 >= 0 ? (Number(row[iL2]) || 0) : 0;
+      entry.DCFC = iDCFC >= 0 ? (Number(row[iDCFC]) || 0) : 0;
+      if (iMicro >= 0) entry.Micromobility = Number(row[iMicro]) || 0;
+      entry.Total = iTotal >= 0 ? (Number(row[iTotal]) || 0) : 0;
+      out[cat] = entry;
+    });
+    return out;
+  }
+
+  /**
+   * CLCPA-166: Section C program rows (Demand Response), live-parsed from a C-series
+   * source table (C3 = DAC, C4 = Low-Income, C5 = Total) so newly-created years
+   * render — C3/C5 previously read the precomputed charts.C3_programs/C5_programs
+   * which have no entry for runtime-added years. Returns the same shape those blobs
+   * (and the existing live C4 parse) produced: [{ name, participants, committed, delivered }].
+   * Verbatim port of the prior C4 logic: row.slice(1).filter(non-empty) collapses the
+   * null-padded schema (2023 has 4 cols, 2024/2025 have 8) to [participants, committed,
+   * delivered] without fixed indices; skips header/total rows and rows with <3 values.
+   */
+  function parseCPrograms(table, yr) {
+    const rows = table && table.data ? (table.data[yr] || []) : [];
+    const out = [];
+    rows.forEach(row => {
+      if (!row || !row[0]) return;
+      const name = String(row[0]).trim();
+      if (!name || /program name|^total$/i.test(name)) return;
+      const nums = row.slice(1).filter(v => v !== null && v !== undefined && v !== '');
+      if (nums.length < 3) return;
+      out.push({
+        name: name,
+        participants: Number(nums[0]) || 0,
+        committed: Number(nums[1]) || 0,
+        delivered: Number(nums[2]) || 0
+      });
+    });
+    return out;
+  }
+
   /** Get the schema (column headers) for a given table+year. */
   function getTableSchema(table, year) {
     if (!table) return [];
@@ -7949,238 +8156,6 @@ function wireHTooltips() {
   }
 
   // ---------- renderers ----------
-
-  // ============================================================
-  // EDIT MAP FILES (CLCPA): source list + "update to a newer version" drawer
-  // ============================================================
-  let _emfEscHandler = null;
-  let _emfDocClickHandler = null;
-
-  function renderEditMapFiles() {
-    const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
-    return `
-      <div class="page-header emf-header">
-        <h1>Edit map files</h1>
-        <button class="btn" id="emf-edit-files-btn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Edit files
-        </button>
-      </div>
-      <div class="emf-wrap">
-        <p class="emf-intro">The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
-
-        <div class="emf-lead">
-          <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit <span class="emf-mono">GEOID</span>, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change flows into <span class="emf-mono">map_payload.json</span>. The one exception is the Con Edison customer data, which updates through a file upload instead of a rebuild.</p>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Census tract geometry">
-          <div class="emf-src-head"><h3>1 &nbsp; Census tract geometry</h3><span class="emf-chip emf-chip-ref">rarely changes</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>2020 boundaries (2010 fallback)</dd>
-            <dt>From</dt><dd>U.S. Census Bureau (TIGER/Line tract boundaries), saved as GeoJSON</dd>
-            <dt>Files</dt><dd><span class="emf-mono">ny_tracts.geojson</span> (2020, primary) and <span class="emf-mono">ny_tracts_2010.geojson</span> (2010, fallback)</dd>
-            <dt>Brings</dt><dd>the polygon shape of every area on the map, and the GEOID that all other sources join on</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>Tract boundaries change only rarely (each decennial census, or an occasional vintage correction).</li>
-            <li>When a newer vintage is published, export the New York tracts for the six counties as GeoJSON, keeping the <code>GEOID</code> property.</li>
-            <li>Replace <strong>ny_tracts.geojson</strong> (same filename, same <code>GEOID</code> field). Only touch the 2010 fallback if you need older-vintage coverage.<button type="button" class="emf-info" data-emf-info aria-expanded="false" aria-label="Why the 2010 fallback is used">i</button><span class="emf-info-note" hidden>The 2010 file is a fallback only: it supplies a boundary for tracts missing from the 2020 file. The exact tracts that fall back are available as a separate export.</span></li>
-            <li>Re-run the base build. A new vintage can add or drop tracts, so re-check the feature count afterward.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYSERDA DAC dataset">
-          <div class="emf-src-head"><h3>2 &nbsp; NYSERDA DAC dataset</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>Final Disadvantaged Communities (DAC) 2023 (criteria finalized 2023-03-27)</dd>
-            <dt>From</dt><dd>NYSERDA / New York State Climate Justice Working Group (the CLCPA Disadvantaged Communities data)</dd>
-            <dt>File</dt><dd><span class="emf-mono">NYS_DAC.geojson</span></dd>
-            <dt>Brings</dt><dd>the DAC / Non-DAC designation, the headline fields (population, households, combined score, ranks, burden, vulnerability, affordability), and the 48 granular indicator percentiles and scores</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>NYSERDA revisits the designations periodically. When a new release is published, download it as GeoJSON keyed by <code>GEOID</code>.</li>
-            <li>Replace <strong>NYS_DAC.geojson</strong>.</li>
-            <li>Re-run the base build and the indicator step so both the headline fields and the 48 indicators refresh.</li>
-            <li>If NYSERDA renames any columns, the field lists in the build need a matching update.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Con Edison customer extracts">
-          <div class="emf-src-head"><h3>3 &nbsp; Con Edison customer extracts</h3><span class="emf-chip emf-chip-edit">editable each cycle</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>to confirm</dd>
-            <dt>From</dt><dd>Con Edison internal account and billing systems</dd>
-            <dt>Files</dt><dd><span class="emf-mono">Electric.xlsx</span> and <span class="emf-mono">Gas.xlsx</span> (the <code>Export</code> sheet)</dd>
-            <dt>Brings</dt><dd>per area: total accounts, accounts in the Energy Affordability Program, bill adjustments, and the DAC class</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>This is the routine update, done each reporting cycle and the only one you maintain directly.</li>
-            <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
-            <li>Upload the file; the data flows in through the upload into the data store. No rebuild and no code change.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYC neighborhood crosswalk">
-          <div class="emf-src-head"><h3>4 &nbsp; NYC neighborhood crosswalk</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>2020 NTAs, file dated 2026-06-01</dd>
-            <dt>From</dt><dd>NYC Department of City Planning (the Census-tracts-to-NTAs equivalency table)</dd>
-            <dt>File</dt><dd><span class="emf-mono">2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_*.csv</span></dd>
-            <dt>Brings</dt><dd>the neighborhood (NTA) name for each New York City area</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>When City Planning publishes a new equivalency (revised NTA names or boundaries), download the new CSV.</li>
-            <li>It must keep the <code>GEOID</code> and <code>NTAName</code> columns (UTF-8).</li>
-            <li>Replace the file and re-run the neighborhood step. If the filename changes, update the reference to it in the build.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Service-territory shapefiles">
-          <div class="emf-src-head"><h3>5 &nbsp; Service-territory shapefiles</h3><span class="emf-chip emf-chip-ref">updated when boundaries change</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>to confirm</dd>
-            <dt>From</dt><dd>Con Edison (CECONY electric and gas) and Orange &amp; Rockland (ORU)</dd>
-            <dt>Files</dt><dd><span class="emf-mono">Data/Extra_info/CECONY_Electric.shp</span>, <span class="emf-mono">CECONY_Gas.shp</span>, <span class="emf-mono">ORU_Territory.shp</span> (each with its <code>.prj</code> and <code>.dbf</code>)</dd>
-            <dt>Brings</dt><dd>the utility service-area boundaries (the drawable overlay) and the per-area network and gas-area tags</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>When the utility boundaries change, get the new shapefile set from the utility.</li>
-            <li>Replace the files, keeping each <code>.shp</code> together with its <code>.dbf</code> and <code>.prj</code>, and keeping the name fields (<code>NETWORK</code>, <code>BORONAME</code>, <code>STATE</code>).</li>
-            <li>Re-run the network step (per-area tags) and rebuild the overlay file.</li>
-            <li>Mind the projection: the Con Edison files are in <code>EPSG:2263</code>, the ORU file is in NAD27.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-popover" id="emf-popover" hidden role="dialog" aria-modal="false" aria-labelledby="emf-pop-title">
-          <div class="emf-pop-head">
-            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Updating to a newer version</span>
-            <button class="emf-pop-close" id="emf-pop-close" aria-label="Close">&times;</button>
-            <h3 id="emf-pop-title"></h3>
-            <span class="emf-chip" id="emf-pop-chip"></span>
-          </div>
-          <div class="emf-pop-body" id="emf-pop-body"></div>
-        </div>
-      </div>
-
-      <div class="emf-overlay" id="emf-upload-overlay" hidden>
-        <aside class="emf-drawer" role="dialog" aria-modal="true" aria-labelledby="emf-upload-title">
-          <div class="emf-drawer-head">
-            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Source versions</span>
-            <button class="emf-drawer-close" id="emf-upload-close" aria-label="Close">&times;</button>
-            <h3 id="emf-upload-title">Upload new source versions</h3>
-          </div>
-          <div class="emf-drawer-body">
-            <p class="emf-up-intro">Drop a newer source file here or browse for one. It will be matched to the source it belongs to by filename, then validated before anything changes.</p>
-            <div class="emf-dropzone">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <div class="emf-dz-title">Drag and drop a file here</div>
-              <div class="emf-dz-sub">or</div>
-              <label class="btn btn-secondary">Browse files<input type="file" hidden></label>
-            </div>
-            <p class="emf-up-maps">Maps to: <strong>auto-detected from the filename</strong> (for example <span class="emf-mono">ny_tracts.geojson</span> to Census tract geometry, or <span class="emf-mono">NYS_DAC.geojson</span> to the NYSERDA dataset).</p>
-            <div class="emf-up-actions"><button class="btn" type="button" disabled>Upload</button></div>
-            <p class="emf-up-note">Not yet connected. This panel is a visual mockup: no file is uploaded, and nothing is sent to the data store or the build.</p>
-          </div>
-        </aside>
-      </div>
-    `;
-  }
-
-  function wireEditMapFiles() {
-    const wrap = document.querySelector('.emf-wrap');
-    const cards = Array.prototype.slice.call(document.querySelectorAll('.emf-src'));
-    const pop = document.getElementById('emf-popover');
-    const popClose = document.getElementById('emf-pop-close');
-    const popTitle = document.getElementById('emf-pop-title');
-    const popChip = document.getElementById('emf-pop-chip');
-    const popBody = document.getElementById('emf-pop-body');
-
-    // ---- CHANGE 1: update panel as a card beside the selected source ----
-    function positionPopover(card) {
-      const GAP = 16;
-      pop.classList.remove('emf-pop-below');
-      pop.style.width = '';                       // CSS width (380) while measuring
-      const wrapRect = wrap.getBoundingClientRect();
-      const popW = pop.offsetWidth || 380;
-      const roomRight = (wrapRect.right + GAP + popW) <= (window.innerWidth - 12);
-      if (roomRight) {                            // beside: top-aligned, in the empty space to the right
-        pop.style.left = (wrap.clientWidth + GAP) + 'px';
-        pop.style.top = card.offsetTop + 'px';
-      } else {                                    // fallback: directly below the selected card
-        pop.classList.add('emf-pop-below');
-        pop.style.left = card.offsetLeft + 'px';
-        pop.style.top = (card.offsetTop + card.offsetHeight + GAP) + 'px';
-        pop.style.width = card.offsetWidth + 'px';
-      }
-    }
-    function openPopover(card) {
-      popTitle.textContent = card.getAttribute('data-title');
-      const chip = card.querySelector('.emf-chip');
-      popChip.textContent = chip ? chip.textContent : '';
-      popChip.className = 'emf-chip ' + (chip && chip.classList.contains('emf-chip-edit') ? 'emf-chip-edit' : 'emf-chip-ref');
-      const steps = card.querySelector('.emf-steps');
-      popBody.innerHTML = steps ? steps.innerHTML : '';
-      cards.forEach(s => s.classList.remove('selected'));
-      card.classList.add('selected');            // only one open at a time
-      pop.hidden = false;
-      positionPopover(card);
-      const info = popBody.querySelector('[data-emf-info]');   // Census step-3 info toggle
-      if (info) {
-        const note = info.parentElement.querySelector('.emf-info-note');
-        info.addEventListener('click', () => {
-          const isHidden = note.hasAttribute('hidden');
-          if (isHidden) { note.removeAttribute('hidden'); info.setAttribute('aria-expanded', 'true'); }
-          else { note.setAttribute('hidden', ''); info.setAttribute('aria-expanded', 'false'); }
-          positionPopover(card);
-        });
-      }
-      popClose.focus();
-    }
-    function closePopover() {
-      if (pop) pop.hidden = true;
-      cards.forEach(s => s.classList.remove('selected'));
-    }
-
-    cards.forEach(card => {
-      card.addEventListener('click', () => openPopover(card));
-      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPopover(card); } });
-    });
-    if (popClose) popClose.addEventListener('click', closePopover);
-
-    // ---- CHANGE 2: "Edit files" upload mockup (right-side panel, visual only) ----
-    const upBtn = document.getElementById('emf-edit-files-btn');
-    const upOverlay = document.getElementById('emf-upload-overlay');
-    const upClose = document.getElementById('emf-upload-close');
-    function openUpload() { if (!upOverlay) return; upOverlay.hidden = false; requestAnimationFrame(() => upOverlay.classList.add('open')); if (upClose) upClose.focus(); }
-    function closeUpload() { if (!upOverlay) return; upOverlay.classList.remove('open'); setTimeout(() => { if (!upOverlay.classList.contains('open')) upOverlay.hidden = true; }, 260); }
-    if (upBtn) upBtn.addEventListener('click', openUpload);
-    if (upClose) upClose.addEventListener('click', closeUpload);
-    if (upOverlay) upOverlay.addEventListener('click', e => { if (e.target === upOverlay) closeUpload(); });
-
-    // click-outside closes the popover (capture phase; card clicks reposition it instead)
-    if (_emfDocClickHandler) document.removeEventListener('click', _emfDocClickHandler, true);
-    _emfDocClickHandler = function (e) {
-      if (!pop || pop.hidden) return;
-      if (pop.contains(e.target)) return;
-      if (e.target.closest && e.target.closest('.emf-src')) return;
-      closePopover();
-    };
-    document.addEventListener('click', _emfDocClickHandler, true);
-
-    // Esc closes whichever is open. Single document handler, replaced each wire-up.
-    if (_emfEscHandler) document.removeEventListener('keydown', _emfEscHandler);
-    _emfEscHandler = function (e) {
-      if (e.key !== 'Escape') return;
-      if (pop && !pop.hidden) closePopover();
-      if (upOverlay && upOverlay.classList.contains('open')) closeUpload();
-    };
-    document.addEventListener('keydown', _emfEscHandler);
-  }
 
   /** Main ingest page renderer. */
   function renderIngestPage() {
