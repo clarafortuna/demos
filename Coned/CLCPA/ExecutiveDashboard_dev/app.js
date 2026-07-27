@@ -5037,18 +5037,20 @@ function renderSectionC() {
             </div>`;
         }
 
-        const commPct = (segData.committed / panelMax) * 100;
-        const delvPct = (segData.delivered / panelMax) * 100;
         const ratio = (segData.delivered / segData.committed) * 100;
+        // Option A performance meter: the committed bar is the full-width baseline
+        // (committed = 100% of the track); the delivered bar fills to the ratio,
+        // capped at 100% so it never overflows the container. Over-100% shows full;
+        // the numeric ratio label still reports the true value.
+        const fillPct = Math.min(ratio, 100);
         const rCls = ratioClass(segData.committed, segData.delivered);
         const segModifier = segCls === 'c2-dac' ? '' : (segCls === 'c2-li' ? ' c2-li' : ' c2-tot');
 
-        const showInsideLabel = delvPct > 12;
+        const showInsideLabel = fillPct > 12;
         const deliveredLabel = showInsideLabel ? fmtMW(segData.delivered) + ' MW' : '';
 
-        const labelPosStyle = commPct > 70
-          ? `right:6px`
-          : `left:calc(${commPct.toFixed(2)}% + 4px)`;
+        // Committed baseline is the full track, so its MW label sits at the right edge.
+        const labelPosStyle = `right:6px`;
 
         // YoY pills (small inline)
         const commYoyPill = yoyPill(commYoy);
@@ -5076,8 +5078,8 @@ function renderSectionC() {
         return `
           <div class="c2-prog-cell">
             <div class="c2-prog-bar">
-              <div class="c2-prog-comm${segModifier}" style="width:${commPct.toFixed(2)}%"></div>
-              <div class="c2-prog-deliv${segModifier}" style="width:${delvPct.toFixed(2)}%">${deliveredLabel}</div>
+              <div class="c2-prog-comm${segModifier}" style="width:100%"></div>
+              <div class="c2-prog-deliv${segModifier}" style="width:${fillPct.toFixed(2)}%">${deliveredLabel}</div>
               <div class="c2-prog-comm-label" style="${labelPosStyle}">${fmtMW(segData.committed)} committed</div>
             </div>
             <div class="c2-prog-ratio ${rCls}">${ratio.toFixed(1)}%</div>
