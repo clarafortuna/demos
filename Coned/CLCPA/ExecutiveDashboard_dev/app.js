@@ -1114,8 +1114,7 @@
              /electric\s*$/.test(s) ||
              /^gas\s*$/.test(s) ||
              /balance/.test(s) ||
-             /investment/.test(s) ||
-             /^20\d\d$/.test(s.trim());
+             /investment/.test(s);
     });
   }
 
