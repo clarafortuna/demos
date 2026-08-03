@@ -2449,6 +2449,12 @@
     return (entry && entry.ramp && entry.ramp.colors) || ML_RAMP;
   }
 
+  /** `linear-gradient(...)` across the 5 class colours, low (left) -> high. */
+  function mlRampGradient(colors) {
+    const stops = colors.map(function (c, i) { return c + ' ' + (i * 25) + '%'; }).join(', ');
+    return 'linear-gradient(90deg, ' + stops + ')';
+  }
+
   /**
    * CSS gradient for a layer's swatch, or '' for the default ramp — the
    * .ml-terr-sw / .ml-row-sw rules already paint YlOrRd, so a default layer
@@ -2457,10 +2463,9 @@
   function mlSwatchStyle(entry) {
     const r = entry && entry.ramp;
     if (!r || mlIsDefaultRamp(r.low, r.high)) return '';
-    const stops = r.colors.map(function (c, i) { return c + ' ' + (i * 25) + '%'; }).join(', ');
     // Border too: the CSS rule hardcodes YlOrRd's dark red, which would frame a
     // blue or green ramp in the wrong colour.
-    return ' style="background:linear-gradient(90deg, ' + stops + ');border-color:' +
+    return ' style="background:' + mlRampGradient(r.colors) + ';border-color:' +
       r.colors[4] + '"';
   }
 
@@ -9064,16 +9069,19 @@ function wireHTooltips() {
   // Registered layers live in the module-level `_mlLayers` registry.
   // ============================================================
 
+  // Document-level Esc handler for the requirements drawer (removed before
+  // re-adding on each page render so they can't accumulate), and the opener the
+  // re-rendered upload card hooks its button up to.
+  let _mlEscHandler = null;
+  let _mlOpenRequirements = null;
+
   function initMapLayersState() {
     if (!state.mapLayers) state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
     return state.mapLayers;
   }
 
   function mlResetDraft() {
-    // helpOpen is a page preference, not part of the upload draft — carry it
-    // across resets so the help box doesn't snap shut under the user.
-    const helpOpen = state.mapLayers ? state.mapLayers.helpOpen === true : false;
-    state.mapLayers = { stage: 'idle', errors: [], warnings: [], helpOpen: helpOpen };
+    state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
   }
 
   function renderMapLayersPage() {
@@ -9097,6 +9105,8 @@ function wireHTooltips() {
       <div id="ml-upload-mount">${renderMlUploadCard()}</div>
 
       <div id="ml-list-mount">${renderMlSessionList()}</div>
+
+      ${renderMlRequirementsDrawer()}
     `;
   }
 
@@ -9131,8 +9141,9 @@ function wireHTooltips() {
             <input type="file" id="ml-file" accept=".geojson,.json" hidden />
           </label>
           <span class="ml-picker-hint">.geojson or .json · up to ${mlFmtBytes(ML_MAX_BYTES)}</span>
-        </div>
-        ${renderMlHelp()}`;
+          <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
+                  aria-haspopup="dialog">File requirements</button>
+        </div>`;
     }
 
     return `
@@ -9155,60 +9166,66 @@ function wireHTooltips() {
   }
 
   /**
-   * Collapsible "File requirements" box, collapsed by default. Uses the
-   * aria-expanded + hidden-panel pattern the rest of the app uses for
-   * disclosures rather than a <details> element (there are none in this app).
+   * "File requirements" right-side slide-over. Same visual pattern as the Edit
+   * map files "Upload new source versions" drawer: fixed backdrop, panel from
+   * the right, title with a close X top-right, Esc and backdrop to dismiss.
+   *
+   * Rendered once at PAGE level, outside #ml-upload-mount, so re-rendering the
+   * upload card (a rejection, a field change) can't disturb an open panel —
+   * which is why this needs none of the open-state bookkeeping the old inline
+   * collapsible carried.
    */
-  function renderMlHelp() {
-    const open = state.mapLayers && state.mapLayers.helpOpen === true;
+  function renderMlRequirementsDrawer() {
     return `
-      <div class="ml-help">
-        <button class="ml-help-toggle" id="ml-help-toggle" type="button"
-                aria-expanded="${open ? 'true' : 'false'}" aria-controls="ml-help-body">
-          <span class="ml-help-chev" aria-hidden="true">${open ? '▾' : '▸'}</span>
-          File requirements
-        </button>
-        <div class="ml-help-body" id="ml-help-body"${open ? '' : ' hidden'}>
-          <dl class="ml-help-list">
-            <dt>File type</dt>
-            <dd>A <span class="ml-mono">.geojson</span> or <span class="ml-mono">.json</span> file
-            holding a <span class="ml-mono">FeatureCollection</span> with at least one feature — the
-            standard GeoJSON export from QGIS or ArcGIS.</dd>
-
-            <dt>Geometry</dt>
-            <dd><span class="ml-mono">Polygon</span> or <span class="ml-mono">MultiPolygon</span> only.
-            Point and line layers aren't supported yet.</dd>
-
-            <dt>Coordinates</dt>
-            <dd>WGS84 (<span class="ml-mono">EPSG:4326</span>), as longitude/latitude degrees. Around
-            New York City longitude is near <span class="ml-mono">-74</span> and latitude near
-            <span class="ml-mono">40.7</span>. If your numbers look like
-            <span class="ml-mono">987000</span> and <span class="ml-mono">210000</span> the file is in
-            NY State Plane feet and has to be reprojected first — in QGIS: right-click the layer,
-            <em>Export</em>, <em>Save Features As</em>, and set CRS to
-            <span class="ml-mono">EPSG:4326</span>.</dd>
-
-            <dt>The colour field</dt>
-            <dd>At least one property has to be numeric on <strong>every</strong> feature — that's the
-            field that colours the map, and you choose it after upload. A field with text values, or
-            missing on even one feature, can't be used. Extra text fields are fine to keep as
-            information.</dd>
-
-            <dt>Size</dt>
-            <dd>Up to ${mlFmtBytes(ML_MAX_BYTES)}. Above ${mlFmtBytes(ML_WARN_BYTES)} it still works,
-            but drawing and panning start to feel slow.</dd>
-
-            <dt>If something's wrong</dt>
-            <dd>Uploads are all-or-nothing — a file is either added whole or rejected whole, never
-            partly drawn. Rejection messages name the exact features and fields at fault so you can
-            fix them.</dd>
-          </dl>
-          <div class="ml-help-foot">
-            <button class="btn btn-secondary" id="ml-example-dl" type="button">Download example file</button>
-            <span class="ml-help-foot-note">Five small polygons over New York City with a numeric
-            <span class="ml-mono">risk_score</span> — a valid file to compare yours against.</span>
+      <div class="ml-overlay" id="ml-req-overlay" hidden>
+        <aside class="ml-drawer" role="dialog" aria-modal="true" aria-labelledby="ml-req-title">
+          <div class="ml-drawer-head">
+            <span class="ml-drawer-kicker"><span class="ml-drawer-dot"></span> Before you upload</span>
+            <button class="ml-drawer-close" id="ml-req-close" aria-label="Close">&times;</button>
+            <h3 id="ml-req-title">File requirements</h3>
           </div>
-        </div>
+          <div class="ml-drawer-body">
+            <dl class="ml-help-list">
+              <dt>File type</dt>
+              <dd>A <span class="ml-mono">.geojson</span> or <span class="ml-mono">.json</span> file
+              holding a <span class="ml-mono">FeatureCollection</span> with at least one feature — the
+              standard GeoJSON export from QGIS or ArcGIS.</dd>
+
+              <dt>Geometry</dt>
+              <dd><span class="ml-mono">Polygon</span> or <span class="ml-mono">MultiPolygon</span> only.
+              Point and line layers aren't supported yet.</dd>
+
+              <dt>Coordinates</dt>
+              <dd>WGS84 (<span class="ml-mono">EPSG:4326</span>), as longitude/latitude degrees. Around
+              New York City longitude is near <span class="ml-mono">-74</span> and latitude near
+              <span class="ml-mono">40.7</span>. If your numbers look like
+              <span class="ml-mono">987000</span> and <span class="ml-mono">210000</span> the file is in
+              NY State Plane feet and has to be reprojected first — in QGIS: right-click the layer,
+              <em>Export</em>, <em>Save Features As</em>, and set CRS to
+              <span class="ml-mono">EPSG:4326</span>.</dd>
+
+              <dt>The colour field</dt>
+              <dd>At least one property has to be numeric on <strong>every</strong> feature — that's the
+              field that colours the map, and you choose it after upload. A field with text values, or
+              missing on even one feature, can't be used. Extra text fields are fine to keep as
+              information.</dd>
+
+              <dt>Size</dt>
+              <dd>Up to ${mlFmtBytes(ML_MAX_BYTES)}. Above ${mlFmtBytes(ML_WARN_BYTES)} it still works,
+              but drawing and panning start to feel slow.</dd>
+
+              <dt>If something's wrong</dt>
+              <dd>Uploads are all-or-nothing — a file is either added whole or rejected whole, never
+              partly drawn. Rejection messages name the exact features and fields at fault so you can
+              fix them.</dd>
+            </dl>
+            <div class="ml-help-foot">
+              <button class="btn btn-secondary" id="ml-example-dl" type="button">Download example file</button>
+              <span class="ml-help-foot-note">Five small polygons over New York City with a numeric
+              <span class="ml-mono">risk_score</span> — a valid file to compare yours against.</span>
+            </div>
+          </div>
+        </aside>
       </div>`;
   }
 
@@ -9314,16 +9331,29 @@ function wireHTooltips() {
         </div>
         <div class="ml-classes">${classes}</div>
         <div class="ml-ramp">
-          <div class="ml-ramp-field">
-            <label for="ml-ramp-low">Low colour</label>
-            <input type="color" id="ml-ramp-low" value="${escapeHtml(ramp.low)}" />
+          <div class="ml-ramp-head">
+            <span class="ml-ramp-title">Colour range</span>
+            <button class="btn-link ml-ramp-reset" id="ml-ramp-reset" type="button"${
+              mlIsDefaultRamp(ramp.low, ramp.high) ? ' hidden' : ''}>Reset to default</button>
           </div>
-          <div class="ml-ramp-field">
-            <label for="ml-ramp-high">High colour</label>
-            <input type="color" id="ml-ramp-high" value="${escapeHtml(ramp.high)}" />
+          <div class="ml-ramp-row">
+            <div class="ml-ramp-field">
+              <label for="ml-ramp-low">Low colour</label>
+              <div class="ml-ramp-input">
+                <input type="color" id="ml-ramp-low" value="${escapeHtml(ramp.low)}" />
+                <span class="ml-mono ml-ramp-hex" id="ml-ramp-low-hex">${escapeHtml(ramp.low)}</span>
+              </div>
+            </div>
+            <div class="ml-ramp-strip" id="ml-ramp-strip" aria-hidden="true"
+                 style="background:${mlRampGradient(ramp.colors)}"></div>
+            <div class="ml-ramp-field ml-ramp-field-end">
+              <label for="ml-ramp-high">High colour</label>
+              <div class="ml-ramp-input">
+                <span class="ml-mono ml-ramp-hex" id="ml-ramp-high-hex">${escapeHtml(ramp.high)}</span>
+                <input type="color" id="ml-ramp-high" value="${escapeHtml(ramp.high)}" />
+              </div>
+            </div>
           </div>
-          <button class="btn-link ml-ramp-reset" id="ml-ramp-reset" type="button"${
-            mlIsDefaultRamp(ramp.low, ramp.high) ? ' hidden' : ''}>Reset colours</button>
         </div>
         <p class="ml-preview-note">${modeNote} The three middle colours are blended between your two
         end colours. Adding the layer opens the Executive Summary map with it switched on. It sits above
@@ -9354,6 +9384,12 @@ function wireHTooltips() {
     document.querySelectorAll('.ml-classes [data-ml-swatch]').forEach(function (el) {
       el.style.background = ramp.colors[parseInt(el.dataset.mlSwatch, 10)];
     });
+    const strip = document.getElementById('ml-ramp-strip');
+    if (strip) strip.style.background = mlRampGradient(ramp.colors);
+    const loHex = document.getElementById('ml-ramp-low-hex');
+    if (loHex) loHex.textContent = ramp.low;
+    const hiHex = document.getElementById('ml-ramp-high-hex');
+    if (hiHex) hiHex.textContent = ramp.high;
     const reset = document.getElementById('ml-ramp-reset');
     if (reset) reset.hidden = mlIsDefaultRamp(ramp.low, ramp.high);
   }
@@ -9418,10 +9454,52 @@ function wireHTooltips() {
     wireMlList();
   }
 
-  /** Wire the Map Layers page (both cards). */
+  /** Wire the Map Layers page (both cards plus the requirements drawer). */
   function wireMapLayersPage() {
     wireMlUploadCard();
     wireMlList();
+    wireMlRequirementsDrawer();
+  }
+
+  /**
+   * Open/close wiring for the requirements slide-over, mirroring the Edit map
+   * files drawer: rAF before adding .open so the transform transition runs,
+   * a matching delay before re-hiding, backdrop click, and one document-level
+   * Esc handler that is removed before being re-added so handlers can't
+   * accumulate across page renders.
+   */
+  function wireMlRequirementsDrawer() {
+    const overlay = document.getElementById('ml-req-overlay');
+    const close = document.getElementById('ml-req-close');
+    if (!overlay) return;
+
+    const isOpen = () => overlay.classList.contains('open');
+    const openDrawer = () => {
+      overlay.hidden = false;
+      requestAnimationFrame(() => overlay.classList.add('open'));
+      if (close) close.focus();
+    };
+    const closeDrawer = () => {
+      overlay.classList.remove('open');
+      setTimeout(() => { if (!overlay.classList.contains('open')) overlay.hidden = true; }, 260);
+      const btn = document.getElementById('ml-req-open');
+      if (btn) btn.focus();
+    };
+    // Exposed so the card's re-rendered "File requirements" button can reopen it.
+    _mlOpenRequirements = openDrawer;
+
+    if (close) close.addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeDrawer(); });
+
+    const dl = document.getElementById('ml-example-dl');
+    if (dl) dl.addEventListener('click', mlDownloadExample);
+
+    if (_mlEscHandler) document.removeEventListener('keydown', _mlEscHandler);
+    _mlEscHandler = function (e) {
+      if (e.key !== 'Escape') return;
+      if (isOpen()) closeDrawer();
+    };
+    document.addEventListener('keydown', _mlEscHandler);
   }
 
   function wireMlUploadCard() {
@@ -9435,22 +9513,13 @@ function wireHTooltips() {
       });
     }
 
-    // Help box: toggle in place (no card re-render) and remember the state on
-    // the draft so a rejection message doesn't collapse it again.
-    const helpToggle = document.getElementById('ml-help-toggle');
-    if (helpToggle) helpToggle.addEventListener('click', function () {
-      const body = document.getElementById('ml-help-body');
-      if (!body) return;
-      const open = body.hidden;
-      body.hidden = !open;
-      this.setAttribute('aria-expanded', open ? 'true' : 'false');
-      const chev = this.querySelector('.ml-help-chev');
-      if (chev) chev.textContent = open ? '▾' : '▸';
-      initMapLayersState().helpOpen = open;
+    // "File requirements" opens the page-level slide-over. This button is inside
+    // the card, so it is re-created on every card render and re-bound here; the
+    // drawer itself and its Esc/backdrop wiring live outside and persist.
+    const reqBtn = document.getElementById('ml-req-open');
+    if (reqBtn) reqBtn.addEventListener('click', function () {
+      if (_mlOpenRequirements) _mlOpenRequirements();
     });
-
-    const exampleBtn = document.getElementById('ml-example-dl');
-    if (exampleBtn) exampleBtn.addEventListener('click', mlDownloadExample);
 
     const sel = document.getElementById('ml-value-field');
     if (sel) {
@@ -9534,13 +9603,9 @@ function wireHTooltips() {
   /** Read + validate a picked file, then move to the field-selection step. */
   function mlHandleFile(file) {
     const reader = new FileReader();
-    // The help box's open/closed state is a page preference, not part of the
-    // draft this file replaces, so it survives both outcomes below.
-    const helpOpen = state.mapLayers ? state.mapLayers.helpOpen === true : false;
     reader.onerror = function () {
       state.mapLayers = {
         stage: 'idle', errors: ['Could not read the file. Try picking it again.'], warnings: [],
-        helpOpen: helpOpen,
       };
       rerenderMlUpload();
     };
@@ -9548,14 +9613,13 @@ function wireHTooltips() {
       const res = mlValidateGeoJSON(String(reader.result), file.size);
       if (!res.ok) {
         state.mapLayers = {
-          stage: 'idle', errors: res.errors, warnings: res.warnings, helpOpen: helpOpen,
+          stage: 'idle', errors: res.errors, warnings: res.warnings,
         };
         rerenderMlUpload();
         return;
       }
       state.mapLayers = {
         stage: 'fields',
-        helpOpen: helpOpen,
         fileName: file.name,
         // Layer label: the filename without its extension, which the user can
         // recognize in the Layers panel.
