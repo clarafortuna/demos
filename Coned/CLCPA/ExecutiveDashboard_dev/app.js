@@ -2208,7 +2208,7 @@
         out.errors.push(
           'Coordinate reference system "' + (crsName || String(geo.crs.type || 'unknown')) +
           '" is not supported. GeoJSON must be in EPSG:4326 (WGS84 longitude/latitude) ' +
-          'per RFC 7946 — reproject the file to WGS84 before uploading.'
+          'per RFC 7946. Reproject the file to WGS84 before uploading.'
         );
         return out;
       }
@@ -2254,7 +2254,7 @@
     }
     if (badGeomType.length) {
       out.errors.push(
-        'This release draws Polygon and MultiPolygon layers only — points and ' +
+        'This release draws Polygon and MultiPolygon layers only. Points and ' +
         'lines are not supported yet. ' + badGeomType.length + ' of ' +
         geo.features.length + ' features have another geometry type: ' +
         mlJoinLabels(badGeomType) + '.'
@@ -2264,7 +2264,7 @@
       out.errors.push(
         'Coordinates look projected, not geographic: ' + outOfRange +
         ' position' + (outOfRange === 1 ? '' : 's') + ' fall outside the WGS84 ' +
-        'range (longitude ±180, latitude ±90) — for example [' +
+        'range (longitude ±180, latitude ±90), for example [' +
         sampleBad[0] + ', ' + sampleBad[1] + ']. Reproject the file to WGS84 ' +
         '(EPSG:4326) before uploading.'
       );
@@ -2368,7 +2368,7 @@
 
   /** Compact number for legends and previews (no fixed unit assumptions). */
   function mlFmtNum(v) {
-    if (v == null || !isFinite(v)) return '—';
+    if (v == null || !isFinite(v)) return '-';
     const abs = Math.abs(v);
     if (abs >= 1e6) return (v / 1e6).toFixed(2) + 'M';
     if (abs >= 1e4) return Math.round(v).toLocaleString();
@@ -9069,11 +9069,9 @@ function wireHTooltips() {
   // Registered layers live in the module-level `_mlLayers` registry.
   // ============================================================
 
-  // Document-level Esc handler for the requirements drawer (removed before
-  // re-adding on each page render so they can't accumulate), and the opener the
-  // re-rendered upload card hooks its button up to.
+  // Document-level Esc handler for the requirements drawer, removed before
+  // re-adding on each page render so handlers can't accumulate.
   let _mlEscHandler = null;
-  let _mlOpenRequirements = null;
 
   function initMapLayersState() {
     if (!state.mapLayers) state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
@@ -9087,11 +9085,13 @@ function wireHTooltips() {
   function renderMapLayersPage() {
     initMapLayersState();
     return `
-      <div class="page-header">
+      <div class="page-header ml-page-header">
         <div>
           <h1>Map Layers</h1>
           <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
         </div>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
+                aria-haspopup="dialog">File requirements</button>
       </div>
 
       <div class="ml-note">
@@ -9116,7 +9116,7 @@ function wireHTooltips() {
 
     const errors = (d.errors || []).length
       ? `<div class="ml-msgs ml-msgs-err" role="alert">
-          <div class="ml-msgs-head">File rejected — nothing was added to the map</div>
+          <div class="ml-msgs-head">File rejected: nothing was added to the map</div>
           <ul>${d.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
         </div>`
       : '';
@@ -9134,15 +9134,13 @@ function wireHTooltips() {
     } else {
       body = `
         <p class="ml-intro">Choose a GeoJSON file of polygons in WGS84 (EPSG:4326). It is checked in
-        your browser before anything is drawn — no file leaves this page.</p>
+        your browser before anything is drawn; no file leaves this page.</p>
         <div class="ml-picker">
           <label class="btn btn-secondary ml-browse">
             Choose GeoJSON file
             <input type="file" id="ml-file" accept=".geojson,.json" hidden />
           </label>
           <span class="ml-picker-hint">.geojson or .json · up to ${mlFmtBytes(ML_MAX_BYTES)}</span>
-          <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                  aria-haspopup="dialog">File requirements</button>
         </div>`;
     }
 
@@ -9170,10 +9168,10 @@ function wireHTooltips() {
    * map files "Upload new source versions" drawer: fixed backdrop, panel from
    * the right, title with a close X top-right, Esc and backdrop to dismiss.
    *
-   * Rendered once at PAGE level, outside #ml-upload-mount, so re-rendering the
-   * upload card (a rejection, a field change) can't disturb an open panel —
-   * which is why this needs none of the open-state bookkeeping the old inline
-   * collapsible carried.
+   * Rendered once at PAGE level, outside #ml-upload-mount, alongside its opener
+   * in the page header. Re-rendering the upload card (a rejection, a field
+   * change) therefore can't disturb an open panel, which is why this needs none
+   * of the open-state bookkeeping the old inline collapsible carried.
    */
   function renderMlRequirementsDrawer() {
     return `
@@ -9188,8 +9186,8 @@ function wireHTooltips() {
             <dl class="ml-help-list">
               <dt>File type</dt>
               <dd>A <span class="ml-mono">.geojson</span> or <span class="ml-mono">.json</span> file
-              holding a <span class="ml-mono">FeatureCollection</span> with at least one feature — the
-              standard GeoJSON export from QGIS or ArcGIS.</dd>
+              holding a <span class="ml-mono">FeatureCollection</span> with at least one feature,
+              the standard GeoJSON export from QGIS or ArcGIS.</dd>
 
               <dt>Geometry</dt>
               <dd><span class="ml-mono">Polygon</span> or <span class="ml-mono">MultiPolygon</span> only.
@@ -9200,12 +9198,12 @@ function wireHTooltips() {
               New York City longitude is near <span class="ml-mono">-74</span> and latitude near
               <span class="ml-mono">40.7</span>. If your numbers look like
               <span class="ml-mono">987000</span> and <span class="ml-mono">210000</span> the file is in
-              NY State Plane feet and has to be reprojected first — in QGIS: right-click the layer,
+              NY State Plane feet and has to be reprojected first. In QGIS: right-click the layer,
               <em>Export</em>, <em>Save Features As</em>, and set CRS to
               <span class="ml-mono">EPSG:4326</span>.</dd>
 
               <dt>The colour field</dt>
-              <dd>At least one property has to be numeric on <strong>every</strong> feature — that's the
+              <dd>At least one property has to be numeric on <strong>every</strong> feature: that's the
               field that colours the map, and you choose it after upload. A field with text values, or
               missing on even one feature, can't be used. Extra text fields are fine to keep as
               information.</dd>
@@ -9215,14 +9213,14 @@ function wireHTooltips() {
               but drawing and panning start to feel slow.</dd>
 
               <dt>If something's wrong</dt>
-              <dd>Uploads are all-or-nothing — a file is either added whole or rejected whole, never
+              <dd>Uploads are all-or-nothing: a file is either added whole or rejected whole, never
               partly drawn. Rejection messages name the exact features and fields at fault so you can
               fix them.</dd>
             </dl>
             <div class="ml-help-foot">
               <button class="btn btn-secondary" id="ml-example-dl" type="button">Download example file</button>
               <span class="ml-help-foot-note">Five small polygons over New York City with a numeric
-              <span class="ml-mono">risk_score</span> — a valid file to compare yours against.</span>
+              <span class="ml-mono">risk_score</span>, a valid file to compare yours against.</span>
             </div>
           </div>
         </aside>
@@ -9308,7 +9306,7 @@ function wireHTooltips() {
       const colorIdx = s.mode === 'single' ? 2 : i;
       return `<div class="ml-class">
         <span class="ml-class-sw" data-ml-swatch="${colorIdx}" style="background:${ramp.colors[colorIdx]}"></span>
-        <span class="ml-class-range">${escapeHtml(mlFmtNum(e[0]))} – ${escapeHtml(mlFmtNum(e[1]))}</span>
+        <span class="ml-class-range">${escapeHtml(mlFmtNum(e[0]))} - ${escapeHtml(mlFmtNum(e[1]))}</span>
         <span class="ml-class-count">${counts[colorIdx].toLocaleString()}</span>
       </div>`;
     }).join('');
@@ -9316,7 +9314,7 @@ function wireHTooltips() {
     const modeNote = s.mode === 'quantile'
       ? 'Quantile classes (roughly equal feature counts per colour).'
       : s.mode === 'linear'
-      ? 'Equal-interval classes — repeated values collapsed the quantile breaks, so the range was cut evenly instead.'
+      ? 'Equal-interval classes: repeated values collapsed the quantile breaks, so the range was cut evenly instead.'
       : 'Every feature has the same value, so the layer draws in one colour.';
 
     return `
@@ -9485,8 +9483,11 @@ function wireHTooltips() {
       const btn = document.getElementById('ml-req-open');
       if (btn) btn.focus();
     };
-    // Exposed so the card's re-rendered "File requirements" button can reopen it.
-    _mlOpenRequirements = openDrawer;
+    // The opener lives in the page header, a sibling of this overlay, so both
+    // are created together by renderMapLayersPage and neither is affected by a
+    // card re-render. That means it can be bound directly here.
+    const openBtn = document.getElementById('ml-req-open');
+    if (openBtn) openBtn.addEventListener('click', openDrawer);
 
     if (close) close.addEventListener('click', closeDrawer);
     overlay.addEventListener('click', e => { if (e.target === overlay) closeDrawer(); });
@@ -9512,14 +9513,6 @@ function wireHTooltips() {
         this.value = '';   // allow re-picking the same file after a rejection
       });
     }
-
-    // "File requirements" opens the page-level slide-over. This button is inside
-    // the card, so it is re-created on every card render and re-bound here; the
-    // drawer itself and its Esc/backdrop wiring live outside and persist.
-    const reqBtn = document.getElementById('ml-req-open');
-    if (reqBtn) reqBtn.addEventListener('click', function () {
-      if (_mlOpenRequirements) _mlOpenRequirements();
-    });
 
     const sel = document.getElementById('ml-value-field');
     if (sel) {

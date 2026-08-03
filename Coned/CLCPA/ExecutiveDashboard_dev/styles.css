@@ -8234,7 +8234,12 @@ a.nav-item { text-decoration: none; }
 .ml-drawer-close:hover { background: var(--line); color: var(--ink); }
 .ml-drawer-body { padding: 18px 22px 26px; overflow-y: auto; }
 
-/* The "File requirements" button that opens it. */
+/* The "File requirements" button that opens it: top right of the page, on the
+   same line as the "Map Layers" title. .page-header is already
+   justify-content: space-between so the right alignment comes for free, but its
+   align-items: flex-end would drop the button to the subtitle line instead, so
+   this opts out to sit level with the h1. */
+.ml-page-header .ml-req-btn { flex-shrink: 0; align-self: flex-start; }
 .ml-req-btn { flex-shrink: 0; }
 
 /* ---- Requirements content (inside the drawer) ---- */
