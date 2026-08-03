@@ -8042,7 +8042,8 @@ a.nav-item { text-decoration: none; }
 .ml-card-sub { font-size: 11px; color: var(--text-3); margin: 0; }
 .ml-card-body { padding: 16px; }
 
-.ml-intro { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin: 0 0 14px; max-width: 620px; }
+/* Card prose flows to the full usable card width — no fixed narrow cap. */
+.ml-intro { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin: 0 0 14px; }
 .ml-empty { font-size: 12px; color: var(--text-3); margin: 0; }
 
 .ml-mono {
@@ -8125,12 +8126,15 @@ a.nav-item { text-decoration: none; }
   color: var(--text-3); font-weight: 700;
 }
 .ml-preview-range { font-size: 12px; color: var(--text-2); margin-bottom: 10px; }
-.ml-classes { display: flex; flex-direction: column; gap: 3px; max-width: 420px; }
-.ml-class { display: flex; align-items: center; gap: 9px; font-size: 11.5px; color: var(--text-2); }
+/* Sized to its content rather than capped at a fixed width: the rows stay
+   together at any card width instead of the count column drifting to the far
+   right edge as the card grows. */
+.ml-classes { display: flex; flex-direction: column; gap: 3px; width: fit-content; }
+.ml-class { display: flex; align-items: center; gap: 12px; font-size: 11.5px; color: var(--text-2); }
 .ml-class-sw { width: 22px; height: 11px; border-radius: 2px; flex-shrink: 0; border: 1px solid rgba(0,0,0,0.10); }
-.ml-class-range { font-family: var(--font-mono); flex: 1; }
-.ml-class-count { color: var(--text-4); font-variant-numeric: tabular-nums; }
-.ml-preview-note { font-size: 11.5px; color: var(--text-3); line-height: 1.55; margin: 11px 0 0; max-width: 620px; }
+.ml-class-range { font-family: var(--font-mono); min-width: 130px; }
+.ml-class-count { color: var(--text-4); font-variant-numeric: tabular-nums; min-width: 58px; text-align: right; }
+.ml-preview-note { font-size: 11.5px; color: var(--text-3); line-height: 1.55; margin: 11px 0 0; }
 
 .ml-actions { display: flex; justify-content: flex-end; gap: 8px; }
 .ml-actions .btn[disabled] { opacity: 0.45; cursor: not-allowed; }
@@ -8189,58 +8193,109 @@ a.nav-item { text-decoration: none; }
 .ml-legend-src { font-size: 8.5px; color: var(--text-4); margin-top: 5px; line-height: 1.4; }
 
 /* ==========================================================================
- * MAP LAYERS · Slice 1b additions (CLCPA-171): collapsible file-requirements
- * help box, example-file download, and the per-layer colour range pickers.
+ * MAP LAYERS · Slice 1c (CLCPA-171): "File requirements" right-side slide-over,
+ * example-file download, and the colour-range control group.
+ * The drawer mirrors the Edit map files "Upload new source versions" panel
+ * (whose rules live inline in ExecutiveDashboard.html); the values here are
+ * kept in step with it deliberately rather than shared, so restyling one page
+ * can never move the other.
  * ========================================================================== */
 
-/* ---- Collapsible "File requirements" box ---- */
-.ml-help { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
-.ml-help-toggle {
-  display: inline-flex; align-items: center; gap: 7px;
-  background: none; border: 0; padding: 0; cursor: pointer;
-  font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--text-2);
+/* ---- Right-side slide-over ---- */
+.ml-overlay {
+  position: fixed; inset: 0; background: rgba(3, 24, 36, 0.32);
+  z-index: 4000; opacity: 0; transition: opacity .2s ease;
 }
-.ml-help-toggle:hover { color: var(--text); }
-.ml-help-chev { font-size: 11px; color: var(--text-3); width: 10px; text-align: center; line-height: 1; }
-.ml-help-body { padding: 12px 0 0 16px; max-width: 720px; }
-.ml-help-body[hidden] { display: none; }
+.ml-overlay[hidden] { display: none; }
+.ml-overlay.open { opacity: 1; }
+.ml-drawer {
+  position: fixed; top: 0; right: 0; height: 100%; width: min(460px, 92vw);
+  background: var(--white); border-left: 1px solid var(--line);
+  box-shadow: -10px 0 36px rgba(3, 24, 36, 0.18);
+  transform: translateX(102%);
+  transition: transform .26s cubic-bezier(.22, .61, .36, 1);
+  display: flex; flex-direction: column;
+}
+.ml-overlay.open .ml-drawer { transform: translateX(0); }
+.ml-drawer-head { padding: 20px 22px 16px; border-bottom: 1px solid var(--line); position: relative; }
+.ml-drawer-kicker {
+  font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--dusk); font-weight: 700; display: inline-flex; align-items: center; gap: 8px;
+}
+.ml-drawer-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dusk); }
+.ml-drawer-head h3 {
+  font-size: 18px; font-weight: 700; color: var(--ink); margin: 8px 0 10px; padding-right: 34px;
+}
+.ml-drawer-close {
+  position: absolute; top: 16px; right: 16px; width: 30px; height: 30px;
+  border: none; border-radius: 7px; background: var(--white-smoke);
+  color: var(--text-2); font-size: 18px; line-height: 1; cursor: pointer;
+}
+.ml-drawer-close:hover { background: var(--line); color: var(--ink); }
+.ml-drawer-body { padding: 18px 22px 26px; overflow-y: auto; }
 
+/* The "File requirements" button that opens it. */
+.ml-req-btn { flex-shrink: 0; }
+
+/* ---- Requirements content (inside the drawer) ---- */
 .ml-help-list { margin: 0; }
 .ml-help-list dt {
   font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-4); font-weight: 600; margin-bottom: 3px;
 }
 .ml-help-list dd {
-  margin: 0 0 12px; font-size: 12px; line-height: 1.6; color: var(--text-2);
+  margin: 0 0 14px; font-size: 12.5px; line-height: 1.6; color: var(--text-2);
 }
 .ml-help-list dd:last-child { margin-bottom: 0; }
 .ml-help-list dd em { font-style: normal; font-weight: 600; color: var(--text); }
 .ml-help-list dd strong { color: var(--text); }
 
 .ml-help-foot {
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--line);
 }
-.ml-help-foot-note { font-size: 11px; color: var(--text-3); line-height: 1.5; flex: 1; min-width: 220px; }
+.ml-help-foot-note {
+  display: block; margin-top: 9px;
+  font-size: 11.5px; color: var(--text-3); line-height: 1.55;
+}
 
-/* ---- Colour range pickers (preview step) ---- */
-.ml-ramp {
-  display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap;
-  margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line);
+/* ---- Colour range control group (preview step) ---- */
+.ml-ramp { margin-top: 14px; padding-top: 13px; border-top: 1px solid var(--line); }
+.ml-ramp-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 10px;
 }
-.ml-ramp-field { display: flex; flex-direction: column; gap: 4px; }
+.ml-ramp-title {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-3); font-weight: 700;
+}
+.ml-ramp-reset { font-size: 11px; }
+.ml-ramp-reset[hidden] { display: none; }
+
+.ml-ramp-row { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.ml-ramp-field { display: flex; flex-direction: column; gap: 5px; }
+.ml-ramp-field-end { align-items: flex-end; }
 .ml-ramp-field label {
   font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-4); font-weight: 600;
 }
-/* Native colour input, trimmed to a flat swatch so it reads as part of the UI. */
+.ml-ramp-input { display: flex; align-items: center; gap: 8px; }
+.ml-ramp-hex { font-size: 11px; letter-spacing: 0.02em; }
+
+/* Native colour input: the OS popup can't be restyled, but the trigger can be
+   a comfortable, flat swatch that matches the rest of the card. */
 .ml-ramp-field input[type="color"] {
-  width: 52px; height: 26px; padding: 0; cursor: pointer;
-  background: none; border: 1px solid var(--line); border-radius: 4px;
+  width: 62px; height: 34px; padding: 0; cursor: pointer;
+  background: none; border: 1px solid var(--line); border-radius: 5px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.6);
 }
-.ml-ramp-field input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
-.ml-ramp-field input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 2px; }
-.ml-ramp-field input[type="color"]::-moz-color-swatch { border: 0; border-radius: 2px; }
-.ml-ramp-field input[type="color"]:focus { outline: none; border-color: #185FA5; }
-.ml-ramp-reset { font-size: 11px; padding-bottom: 5px; }
-.ml-ramp-reset[hidden] { display: none; }
+.ml-ramp-field input[type="color"]:hover { border-color: var(--text-4); }
+.ml-ramp-field input[type="color"]::-webkit-color-swatch-wrapper { padding: 3px; }
+.ml-ramp-field input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 3px; }
+.ml-ramp-field input[type="color"]::-moz-color-swatch { border: 0; border-radius: 3px; }
+.ml-ramp-field input[type="color"]:focus-visible { outline: 2px solid var(--dusk); outline-offset: 1px; }
+
+/* The full ramp, read at a glance, between the two end pickers. */
+.ml-ramp-strip {
+  flex: 1; min-width: 140px; height: 34px; border-radius: 5px;
+  border: 1px solid var(--line);
+}
