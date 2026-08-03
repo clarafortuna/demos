@@ -2057,7 +2057,11 @@
   // reload drops every uploaded layer. Persistence to Dataverse is Slice 2.
   //
   // Registry entry shape:
-  //   { id, name, geo, valueField, featureCount, geomTypes[], scale, previewOnce }
+  //   { id, name, geo, valueField, featureCount, geomTypes[], scale, ramp,
+  //     previewOnce }
+  // where ramp is a self-contained { low, high, colors[5] } — per-layer, so two
+  // layers never fight over one ramp, and serializable as-is into the Slice 2
+  // Ramp Config column.
   const _mlLayers = [];
   let _mlIdSeq = 0;
   // YlOrRd 5-class sequential ramp, low -> high. This is deliberately a
@@ -2066,12 +2070,37 @@
   // and Slice 1 is additive-only. Deduplication is CLCPA-170.
   const ML_RAMP = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
   const ML_NODATA = '#cccccc';
+  // CLCPA-171 Slice 1b: the endpoints offered in the colour pickers.
+  const ML_DEFAULT_LOW = ML_RAMP[0];
+  const ML_DEFAULT_HIGH = ML_RAMP[4];
   // Size gates. Soft warn is advisory; the hard reject is a Slice 1 limit
   // (everything is held in memory and re-styled on each mount).
   const ML_WARN_BYTES = 5 * 1024 * 1024;
   const ML_MAX_BYTES = 50 * 1024 * 1024;
   // How many failing feature identifiers to name before collapsing to "+N more".
   const ML_ERR_LIST_MAX = 10;
+
+  // CLCPA-171 Slice 1b: a minimal valid file, offered as a download from the
+  // help box so the shape is copyable rather than only described. Held inline
+  // as a const and served via a Blob, deliberately NOT as a file under Data/ —
+  // a new runtime asset would drag in the CLCPA-101 promotion question.
+  // Five WGS84 polygons over NYC: one numeric property (risk_score, what the
+  // map would colour by) plus two text ones, to show extra text fields are fine.
+  const ML_EXAMPLE_GEOJSON = {
+    type: 'FeatureCollection',
+    features: [
+      { type: 'Feature', properties: { zone_name: 'Lower Manhattan', risk_score: 5, source: 'Example data, not real' },
+        geometry: { type: 'Polygon', coordinates: [[[-74.017, 40.701], [-73.972, 40.701], [-73.972, 40.739], [-74.017, 40.739], [-74.017, 40.701]]] } },
+      { type: 'Feature', properties: { zone_name: 'Midtown', risk_score: 4, source: 'Example data, not real' },
+        geometry: { type: 'Polygon', coordinates: [[[-74.008, 40.745], [-73.963, 40.745], [-73.963, 40.783], [-74.008, 40.783], [-74.008, 40.745]]] } },
+      { type: 'Feature', properties: { zone_name: 'South Bronx', risk_score: 3, source: 'Example data, not real' },
+        geometry: { type: 'Polygon', coordinates: [[[-73.930, 40.805], [-73.885, 40.805], [-73.885, 40.843], [-73.930, 40.843], [-73.930, 40.805]]] } },
+      { type: 'Feature', properties: { zone_name: 'Central Brooklyn', risk_score: 2, source: 'Example data, not real' },
+        geometry: { type: 'Polygon', coordinates: [[[-73.960, 40.650], [-73.915, 40.650], [-73.915, 40.688], [-73.960, 40.688], [-73.960, 40.650]]] } },
+      { type: 'Feature', properties: { zone_name: 'Western Queens', risk_score: 1, source: 'Example data, not real' },
+        geometry: { type: 'Polygon', coordinates: [[[-73.950, 40.735], [-73.905, 40.735], [-73.905, 40.773], [-73.950, 40.773], [-73.950, 40.735]]] } },
+    ],
+  };
 
   /**
    * Coerce a property value to a finite number, or null if it isn't one.
@@ -2353,6 +2382,88 @@
     return bytes + ' B';
   }
 
+  // ---- Colour ramp (CLCPA-171 Slice 1b) ---------------------------------
+  // A layer's 5 class colours come from a low/high pair the user can change.
+  //
+  // The default pair is a SENTINEL for the canonical ramp, not a seed for
+  // interpolation. YlOrRd is a hand-tuned ColorBrewer ramp that bends through
+  // orange; a straight RGB line between its endpoints cuts that corner and
+  // lands on muddy pink-browns (#efbf8f / #de806c / #ce4049 instead of
+  // #fecc5c / #fd8d3c / #f03b20). So when both endpoints are still the
+  // defaults we hand back ML_RAMP verbatim, which keeps default-colour layers
+  // pixel-for-pixel identical to Slice 1. Changing either endpoint switches to
+  // interpolation; setting them back returns to the canonical ramp.
+
+  /** Parse '#rrggbb' (or '#rgb') to [r,g,b]; null if unparseable. */
+  function mlHexToRgb(hex) {
+    if (typeof hex !== 'string') return null;
+    let h = hex.trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(h)) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (!/^[0-9a-f]{6}$/i.test(h)) return null;
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  }
+
+  function mlRgbToHex(rgb) {
+    return '#' + rgb.map(function (v) {
+      const n = Math.max(0, Math.min(255, Math.round(v)));
+      return (n < 16 ? '0' : '') + n.toString(16);
+    }).join('');
+  }
+
+  /** True when a hex pair is the untouched default (case-insensitive). */
+  function mlIsDefaultRamp(low, high) {
+    return String(low).toLowerCase() === ML_DEFAULT_LOW &&
+      String(high).toLowerCase() === ML_DEFAULT_HIGH;
+  }
+
+  /**
+   * Build a layer's ramp config from a low/high pair.
+   * @returns {{low:string, high:string, colors:string[]}} 5 colours, low -> high
+   */
+  function mlBuildRamp(low, high) {
+    const lo = mlHexToRgb(low), hi = mlHexToRgb(high);
+    // Unparseable input (only reachable if something other than the colour
+    // inputs supplies it) falls back to the canonical ramp rather than drawing
+    // an invalid fill.
+    if (!lo || !hi) {
+      return { low: ML_DEFAULT_LOW, high: ML_DEFAULT_HIGH, colors: ML_RAMP.slice() };
+    }
+    const lowHex = mlRgbToHex(lo), highHex = mlRgbToHex(hi);
+    if (mlIsDefaultRamp(lowHex, highHex)) {
+      return { low: lowHex, high: highHex, colors: ML_RAMP.slice() };
+    }
+    const colors = [];
+    for (let i = 0; i < 5; i++) {
+      const t = i / 4;
+      colors.push(mlRgbToHex([
+        lo[0] + (hi[0] - lo[0]) * t,
+        lo[1] + (hi[1] - lo[1]) * t,
+        lo[2] + (hi[2] - lo[2]) * t,
+      ]));
+    }
+    return { low: lowHex, high: highHex, colors: colors };
+  }
+
+  /** The ramp colours of an entry, tolerating a Slice 1-shaped entry. */
+  function mlRampColors(entry) {
+    return (entry && entry.ramp && entry.ramp.colors) || ML_RAMP;
+  }
+
+  /**
+   * CSS gradient for a layer's swatch, or '' for the default ramp — the
+   * .ml-terr-sw / .ml-row-sw rules already paint YlOrRd, so a default layer
+   * gets no inline style at all and its DOM stays exactly as Slice 1 built it.
+   */
+  function mlSwatchStyle(entry) {
+    const r = entry && entry.ramp;
+    if (!r || mlIsDefaultRamp(r.low, r.high)) return '';
+    const stops = r.colors.map(function (c, i) { return c + ' ' + (i * 25) + '%'; }).join(', ');
+    // Border too: the CSS rule hardcodes YlOrRd's dark red, which would frame a
+    // blue or green ramp in the wrong colour.
+    return ' style="background:linear-gradient(90deg, ' + stops + ');border-color:' +
+      r.colors[4] + '"';
+  }
+
   /**
    * Legend card markup for one uploaded layer, mirroring the HVI legend block:
    * title, the 5-class ramp, end labels, and a source line naming the value
@@ -2364,7 +2475,7 @@
    * class boundaries are listed on the Map Layers page instead.
    */
   function mlLegendHtml(entry) {
-    const sw = ML_RAMP.map(function (c) {
+    const sw = mlRampColors(entry).map(function (c) {
       return '<span class="ml-legend-sw" style="background:' + c + '"></span>';
     }).join('');
     const s = entry.scale;
@@ -2395,6 +2506,9 @@
       featureCount: rec.featureCount,
       geomTypes: rec.geomTypes,
       scale: rec.scale,
+      // Per-layer { low, high, colors } (CLCPA-171 Slice 1b). Defaults to the
+      // canonical ramp when the caller supplies none.
+      ramp: rec.ramp || mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
       // One-shot: the upload's Confirm turns the layer on for its first sight
       // of the map. Consumed at mount, after which it defaults OFF like HVI.
       previewOnce: true,
@@ -4205,12 +4319,13 @@
 
     /** Choropleth style closure for one registry entry. */
     function mlStyleFor(entry) {
+      const ramp = mlRampColors(entry);   // this layer's own 5 colours
       return function (feature) {
         const raw = feature.properties ? feature.properties[entry.valueField] : null;
         const v = mlToNumber(raw);
         // Validation guarantees every feature is numeric at upload time, so the
         // nodata colour is a belt-and-braces path, not an expected one.
-        const c = v == null ? ML_NODATA : ML_RAMP[mlClassIndex(v, entry.scale)];
+        const c = v == null ? ML_NODATA : ramp[mlClassIndex(v, entry.scale)];
         return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
       };
     }
@@ -4273,7 +4388,7 @@
         label.title = entry.valueField;
         label.innerHTML =
           '<input type="checkbox" data-ml-layer="' + escapeHtml(entry.id) + '">' +
-          '<span class="dac-map-terr-sw ml-terr-sw"></span>' +
+          '<span class="dac-map-terr-sw ml-terr-sw"' + mlSwatchStyle(entry) + '></span>' +
           '<span class="ml-terr-name">' + escapeHtml(entry.name) + '</span>';
         panel.appendChild(label);
 
@@ -8955,7 +9070,10 @@ function wireHTooltips() {
   }
 
   function mlResetDraft() {
-    state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
+    // helpOpen is a page preference, not part of the upload draft — carry it
+    // across resets so the help box doesn't snap shut under the user.
+    const helpOpen = state.mapLayers ? state.mapLayers.helpOpen === true : false;
+    state.mapLayers = { stage: 'idle', errors: [], warnings: [], helpOpen: helpOpen };
   }
 
   function renderMapLayersPage() {
@@ -9013,7 +9131,8 @@ function wireHTooltips() {
             <input type="file" id="ml-file" accept=".geojson,.json" hidden />
           </label>
           <span class="ml-picker-hint">.geojson or .json · up to ${mlFmtBytes(ML_MAX_BYTES)}</span>
-        </div>`;
+        </div>
+        ${renderMlHelp()}`;
     }
 
     return `
@@ -9033,6 +9152,78 @@ function wireHTooltips() {
           ${body}
         </div>
       </div>`;
+  }
+
+  /**
+   * Collapsible "File requirements" box, collapsed by default. Uses the
+   * aria-expanded + hidden-panel pattern the rest of the app uses for
+   * disclosures rather than a <details> element (there are none in this app).
+   */
+  function renderMlHelp() {
+    const open = state.mapLayers && state.mapLayers.helpOpen === true;
+    return `
+      <div class="ml-help">
+        <button class="ml-help-toggle" id="ml-help-toggle" type="button"
+                aria-expanded="${open ? 'true' : 'false'}" aria-controls="ml-help-body">
+          <span class="ml-help-chev" aria-hidden="true">${open ? '▾' : '▸'}</span>
+          File requirements
+        </button>
+        <div class="ml-help-body" id="ml-help-body"${open ? '' : ' hidden'}>
+          <dl class="ml-help-list">
+            <dt>File type</dt>
+            <dd>A <span class="ml-mono">.geojson</span> or <span class="ml-mono">.json</span> file
+            holding a <span class="ml-mono">FeatureCollection</span> with at least one feature — the
+            standard GeoJSON export from QGIS or ArcGIS.</dd>
+
+            <dt>Geometry</dt>
+            <dd><span class="ml-mono">Polygon</span> or <span class="ml-mono">MultiPolygon</span> only.
+            Point and line layers aren't supported yet.</dd>
+
+            <dt>Coordinates</dt>
+            <dd>WGS84 (<span class="ml-mono">EPSG:4326</span>), as longitude/latitude degrees. Around
+            New York City longitude is near <span class="ml-mono">-74</span> and latitude near
+            <span class="ml-mono">40.7</span>. If your numbers look like
+            <span class="ml-mono">987000</span> and <span class="ml-mono">210000</span> the file is in
+            NY State Plane feet and has to be reprojected first — in QGIS: right-click the layer,
+            <em>Export</em>, <em>Save Features As</em>, and set CRS to
+            <span class="ml-mono">EPSG:4326</span>.</dd>
+
+            <dt>The colour field</dt>
+            <dd>At least one property has to be numeric on <strong>every</strong> feature — that's the
+            field that colours the map, and you choose it after upload. A field with text values, or
+            missing on even one feature, can't be used. Extra text fields are fine to keep as
+            information.</dd>
+
+            <dt>Size</dt>
+            <dd>Up to ${mlFmtBytes(ML_MAX_BYTES)}. Above ${mlFmtBytes(ML_WARN_BYTES)} it still works,
+            but drawing and panning start to feel slow.</dd>
+
+            <dt>If something's wrong</dt>
+            <dd>Uploads are all-or-nothing — a file is either added whole or rejected whole, never
+            partly drawn. Rejection messages name the exact features and fields at fault so you can
+            fix them.</dd>
+          </dl>
+          <div class="ml-help-foot">
+            <button class="btn btn-secondary" id="ml-example-dl" type="button">Download example file</button>
+            <span class="ml-help-foot-note">Five small polygons over New York City with a numeric
+            <span class="ml-mono">risk_score</span> — a valid file to compare yours against.</span>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  /**
+   * Serve the inline example as a download. Mirrors the map CSV export's
+   * Blob + object-URL approach, so no runtime asset file is added.
+   */
+  function mlDownloadExample() {
+    const text = JSON.stringify(ML_EXAMPLE_GEOJSON, null, 2);
+    const blob = new Blob([text], { type: 'application/geo+json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'example_layer.geojson';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }
 
   /** Step 2: pick the value field, see the per-field check, then confirm. */
@@ -9091,10 +9282,15 @@ function wireHTooltips() {
       : [[s.min, s.breaks[0]], [s.breaks[0], s.breaks[1]], [s.breaks[1], s.breaks[2]],
          [s.breaks[2], s.breaks[3]], [s.breaks[3], s.max]];
 
+    // Ramp for the draft. mlSetDraftRamp keeps this in sync with the pickers;
+    // the swatches below carry data-ml-swatch so a colour change can repaint
+    // them in place instead of re-rendering the card (which would close the
+    // OS colour picker mid-drag).
+    const ramp = mlDraftRamp(d);
     const classes = edges.map(function (e, i) {
       const colorIdx = s.mode === 'single' ? 2 : i;
       return `<div class="ml-class">
-        <span class="ml-class-sw" style="background:${ML_RAMP[colorIdx]}"></span>
+        <span class="ml-class-sw" data-ml-swatch="${colorIdx}" style="background:${ramp.colors[colorIdx]}"></span>
         <span class="ml-class-range">${escapeHtml(mlFmtNum(e[0]))} – ${escapeHtml(mlFmtNum(e[1]))}</span>
         <span class="ml-class-count">${counts[colorIdx].toLocaleString()}</span>
       </div>`;
@@ -9117,10 +9313,49 @@ function wireHTooltips() {
           ranges ${escapeHtml(mlFmtNum(s.min))} to ${escapeHtml(mlFmtNum(s.max))}
         </div>
         <div class="ml-classes">${classes}</div>
-        <p class="ml-preview-note">${modeNote} Adding the layer opens the Executive Summary map with it
-        switched on. It sits above the tract choropleth and doesn't capture the mouse, so tract hover
-        and selection keep working.</p>
+        <div class="ml-ramp">
+          <div class="ml-ramp-field">
+            <label for="ml-ramp-low">Low colour</label>
+            <input type="color" id="ml-ramp-low" value="${escapeHtml(ramp.low)}" />
+          </div>
+          <div class="ml-ramp-field">
+            <label for="ml-ramp-high">High colour</label>
+            <input type="color" id="ml-ramp-high" value="${escapeHtml(ramp.high)}" />
+          </div>
+          <button class="btn-link ml-ramp-reset" id="ml-ramp-reset" type="button"${
+            mlIsDefaultRamp(ramp.low, ramp.high) ? ' hidden' : ''}>Reset colours</button>
+        </div>
+        <p class="ml-preview-note">${modeNote} The three middle colours are blended between your two
+        end colours. Adding the layer opens the Executive Summary map with it switched on. It sits above
+        the tract choropleth and doesn't capture the mouse, so tract hover and selection keep working.</p>
       </div>`;
+  }
+
+  /** The draft's ramp, defaulting to the canonical one until a picker is used. */
+  function mlDraftRamp(d) {
+    return mlBuildRamp(
+      d.rampLow || ML_DEFAULT_LOW,
+      d.rampHigh || ML_DEFAULT_HIGH
+    );
+  }
+
+  /**
+   * Apply a colour change to the draft and repaint the preview swatches in
+   * place. Deliberately NOT a card re-render: <input type="color"> fires `input`
+   * continuously while the user drags in the OS picker, and replacing the DOM
+   * under it would close the picker and drop focus on every tick.
+   */
+  function mlSetDraftRamp(low, high) {
+    const d = state.mapLayers;
+    if (!d) return;
+    d.rampLow = low;
+    d.rampHigh = high;
+    const ramp = mlDraftRamp(d);
+    document.querySelectorAll('.ml-classes [data-ml-swatch]').forEach(function (el) {
+      el.style.background = ramp.colors[parseInt(el.dataset.mlSwatch, 10)];
+    });
+    const reset = document.getElementById('ml-ramp-reset');
+    if (reset) reset.hidden = mlIsDefaultRamp(ramp.low, ramp.high);
   }
 
   /** The session list: every layer registered in this tab, with Remove. */
@@ -9142,7 +9377,7 @@ function wireHTooltips() {
 
     const rows = _mlLayers.map(entry => `
       <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
-        <span class="ml-row-sw" aria-hidden="true"></span>
+        <span class="ml-row-sw" aria-hidden="true"${mlSwatchStyle(entry)}></span>
         <div class="ml-row-main">
           <div class="ml-row-name">${escapeHtml(entry.name)}</div>
           <div class="ml-row-meta">
@@ -9200,6 +9435,23 @@ function wireHTooltips() {
       });
     }
 
+    // Help box: toggle in place (no card re-render) and remember the state on
+    // the draft so a rejection message doesn't collapse it again.
+    const helpToggle = document.getElementById('ml-help-toggle');
+    if (helpToggle) helpToggle.addEventListener('click', function () {
+      const body = document.getElementById('ml-help-body');
+      if (!body) return;
+      const open = body.hidden;
+      body.hidden = !open;
+      this.setAttribute('aria-expanded', open ? 'true' : 'false');
+      const chev = this.querySelector('.ml-help-chev');
+      if (chev) chev.textContent = open ? '▾' : '▸';
+      initMapLayersState().helpOpen = open;
+    });
+
+    const exampleBtn = document.getElementById('ml-example-dl');
+    if (exampleBtn) exampleBtn.addEventListener('click', mlDownloadExample);
+
     const sel = document.getElementById('ml-value-field');
     if (sel) {
       sel.addEventListener('change', function () {
@@ -9213,6 +9465,22 @@ function wireHTooltips() {
           else d.fieldErrors = res.errors;
         }
         rerenderMlUpload();
+      });
+    }
+
+    // Colour range. `input` (not `change`) so the swatches track the OS picker
+    // live; mlSetDraftRamp repaints them without touching the card's DOM.
+    const rampLow = document.getElementById('ml-ramp-low');
+    const rampHigh = document.getElementById('ml-ramp-high');
+    if (rampLow && rampHigh) {
+      const onRamp = function () { mlSetDraftRamp(rampLow.value, rampHigh.value); };
+      rampLow.addEventListener('input', onRamp);
+      rampHigh.addEventListener('input', onRamp);
+      const reset = document.getElementById('ml-ramp-reset');
+      if (reset) reset.addEventListener('click', function () {
+        rampLow.value = ML_DEFAULT_LOW;
+        rampHigh.value = ML_DEFAULT_HIGH;
+        mlSetDraftRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH);
       });
     }
 
@@ -9233,6 +9501,7 @@ function wireHTooltips() {
         featureCount: d.featureCount,
         geomTypes: d.geomTypes,
         scale: d.scale,
+        ramp: mlDraftRamp(d),
       });
       mlResetDraft();
       rerenderMlUpload();
@@ -9265,9 +9534,13 @@ function wireHTooltips() {
   /** Read + validate a picked file, then move to the field-selection step. */
   function mlHandleFile(file) {
     const reader = new FileReader();
+    // The help box's open/closed state is a page preference, not part of the
+    // draft this file replaces, so it survives both outcomes below.
+    const helpOpen = state.mapLayers ? state.mapLayers.helpOpen === true : false;
     reader.onerror = function () {
       state.mapLayers = {
         stage: 'idle', errors: ['Could not read the file. Try picking it again.'], warnings: [],
+        helpOpen: helpOpen,
       };
       rerenderMlUpload();
     };
@@ -9275,13 +9548,14 @@ function wireHTooltips() {
       const res = mlValidateGeoJSON(String(reader.result), file.size);
       if (!res.ok) {
         state.mapLayers = {
-          stage: 'idle', errors: res.errors, warnings: res.warnings,
+          stage: 'idle', errors: res.errors, warnings: res.warnings, helpOpen: helpOpen,
         };
         rerenderMlUpload();
         return;
       }
       state.mapLayers = {
         stage: 'fields',
+        helpOpen: helpOpen,
         fileName: file.name,
         // Layer label: the filename without its extension, which the user can
         // recognize in the Layers panel.

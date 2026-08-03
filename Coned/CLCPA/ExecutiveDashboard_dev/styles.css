@@ -8187,3 +8187,60 @@ a.nav-item { text-decoration: none; }
   margin: 2px 0 0 22px; width: calc(5 * 18px + 4 * 3px);
 }
 .ml-legend-src { font-size: 8.5px; color: var(--text-4); margin-top: 5px; line-height: 1.4; }
+
+/* ==========================================================================
+ * MAP LAYERS · Slice 1b additions (CLCPA-171): collapsible file-requirements
+ * help box, example-file download, and the per-layer colour range pickers.
+ * ========================================================================== */
+
+/* ---- Collapsible "File requirements" box ---- */
+.ml-help { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.ml-help-toggle {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--text-2);
+}
+.ml-help-toggle:hover { color: var(--text); }
+.ml-help-chev { font-size: 11px; color: var(--text-3); width: 10px; text-align: center; line-height: 1; }
+.ml-help-body { padding: 12px 0 0 16px; max-width: 720px; }
+.ml-help-body[hidden] { display: none; }
+
+.ml-help-list { margin: 0; }
+.ml-help-list dt {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-4); font-weight: 600; margin-bottom: 3px;
+}
+.ml-help-list dd {
+  margin: 0 0 12px; font-size: 12px; line-height: 1.6; color: var(--text-2);
+}
+.ml-help-list dd:last-child { margin-bottom: 0; }
+.ml-help-list dd em { font-style: normal; font-weight: 600; color: var(--text); }
+.ml-help-list dd strong { color: var(--text); }
+
+.ml-help-foot {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.ml-help-foot-note { font-size: 11px; color: var(--text-3); line-height: 1.5; flex: 1; min-width: 220px; }
+
+/* ---- Colour range pickers (preview step) ---- */
+.ml-ramp {
+  display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap;
+  margin-top: 13px; padding-top: 12px; border-top: 1px solid var(--line);
+}
+.ml-ramp-field { display: flex; flex-direction: column; gap: 4px; }
+.ml-ramp-field label {
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-4); font-weight: 600;
+}
+/* Native colour input, trimmed to a flat swatch so it reads as part of the UI. */
+.ml-ramp-field input[type="color"] {
+  width: 52px; height: 26px; padding: 0; cursor: pointer;
+  background: none; border: 1px solid var(--line); border-radius: 4px;
+}
+.ml-ramp-field input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+.ml-ramp-field input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 2px; }
+.ml-ramp-field input[type="color"]::-moz-color-swatch { border: 0; border-radius: 2px; }
+.ml-ramp-field input[type="color"]:focus { outline: none; border-color: #185FA5; }
+.ml-ramp-reset { font-size: 11px; padding-bottom: 5px; }
+.ml-ramp-reset[hidden] { display: none; }
