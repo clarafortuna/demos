@@ -68,6 +68,29 @@
     const ID_HISTORY    = 'cr2bf_dacingesttestchangehistoryid';
     const ID_YEARS      = 'cr2bf_dacingesttestreportingyearid';
 
+    // ---- CLCPA-171 Slice 2: saved map layers -------------------------------
+    // Logical names of the DAC Map Layer table and its columns, plus the
+    // map-upload audit table. Entity set names are verified live in the hosted
+    // app (cr2bf_dacmaplayers / cr2bf_dacmapchangehistories) and used as the
+    // defaults below, but init() still resolves them from EntityDefinitions so
+    // a pluralization change in a future environment can't break the app.
+    const ENT_MAPLAYER   = 'cr2bf_dacmaplayer';
+    const ENT_MAPHISTORY = 'cr2bf_dacmapchangehistory';
+    const SET_MAPLAYER_DEFAULT   = 'cr2bf_dacmaplayers';
+    const SET_MAPHISTORY_DEFAULT = 'cr2bf_dacmapchangehistories';
+    const ID_MAPLAYER   = 'cr2bf_dacmaplayerid';
+    const COL_FILE      = 'cr2bf_geojsonfile';
+    // Documented single-request ceiling is 128 MB, but a 50 MB PATCH is exactly
+    // the request that dies in a gateway, and chunking also gives per-chunk
+    // progress. Switch to chunked at the server's own recommended chunk size.
+    const ML_CHUNK_THRESHOLD = 4 * 1024 * 1024;
+    const ML_CHUNK_FALLBACK  = 4 * 1024 * 1024;   // if x-ms-chunk-size is absent
+    // Preferred audit fields. init() intersects these with the columns that
+    // actually exist, so a schema drift drops fields instead of failing writes.
+    const MAPHISTORY_FIELDS = [
+      'cr2bf_changedescription', 'cr2bf_user', 'cr2bf_email', 'cr2bf_savedat', 'cr2bf_changes',
+    ];
+
     function overrideKey(tableId, year) { return tableId + ':' + year; }
     function sectionOf(tableId) { const m = String(tableId).match(/^[A-Za-z]+/); return m ? m[0] : String(tableId); }
     function deepClone(v) { return JSON.parse(JSON.stringify(v)); }
@@ -206,6 +229,16 @@
           all.sort((a, b) => parseInt(b) - parseInt(a)); payload.meta.years = all; return all;
         },
         clearAll() { localStorage.removeItem(OVERRIDES_KEY); localStorage.removeItem(HISTORY_KEY); localStorage.removeItem(YEARS_KEY); },
+
+        // ---- CLCPA-171 Slice 2: saved map layers ------------------------
+        // No persistence without Dataverse: the Map Layers page hides Save and
+        // the Saved-layers group, so uploads stay session-only. These exist so
+        // the facade has one shape and callers never branch on the backend.
+        isDataverse() { return false; },
+        async listMapLayers() { return []; },
+        getMapLayerFile() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
+        saveMapLayer() { return Promise.reject(new Error('Saving layers needs Dataverse.')); },
+        deactivateMapLayer() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
       };
     })();
 
@@ -255,6 +288,178 @@
         promise.catch(e => { console.error('[Storage] ' + failMsg, e); showToast(failMsg + ': ' + (e && e.message ? e.message : e), 'error'); });
       }
 
+      // ====================================================================
+      // CLCPA-171 Slice 2 · saved map layers (metadata + GeoJSON File column)
+      // ====================================================================
+      let setMapLayer = SET_MAPLAYER_DEFAULT;
+      let setMapHistory = SET_MAPHISTORY_DEFAULT;
+      let mapHistoryFields = MAPHISTORY_FIELDS.slice();   // narrowed at init()
+      let fileMaxBytes = null;                            // from MaxSizeInKB, or null
+
+      /** Resolve an entity set name from metadata; fall back to the known default. */
+      async function resolveEntitySet(logicalName, fallback) {
+        try {
+          const res = await fetch(
+            API + "EntityDefinitions(LogicalName='" + logicalName + "')?$select=EntitySetName",
+            { credentials: 'same-origin', headers: GET_HEADERS });
+          if (!res.ok) throw new Error('EntityDefinitions ' + res.status);
+          const j = await res.json();
+          if (j && j.EntitySetName) return j.EntitySetName;
+          throw new Error('EntitySetName missing');
+        } catch (e) {
+          console.warn('[Storage] Could not resolve the entity set for ' + logicalName +
+            '; using "' + fallback + '".', e);
+          return fallback;
+        }
+      }
+
+      /**
+       * Narrow MAPHISTORY_FIELDS to the columns the audit table actually has.
+       * Cheap insurance: a schema drift drops fields (logged) instead of making
+       * every audit write fail with a 400.
+       */
+      async function resolveMapHistoryFields() {
+        try {
+          const res = await fetch(
+            API + "EntityDefinitions(LogicalName='" + ENT_MAPHISTORY +
+            "')/Attributes?$select=LogicalName",
+            { credentials: 'same-origin', headers: GET_HEADERS });
+          if (!res.ok) throw new Error('Attributes ' + res.status);
+          const have = ((await res.json()).value || []).map(a => a.LogicalName);
+          const keep = MAPHISTORY_FIELDS.filter(f => have.indexOf(f) >= 0);
+          const dropped = MAPHISTORY_FIELDS.filter(f => have.indexOf(f) < 0);
+          if (dropped.length) {
+            console.warn('[Storage] Map audit table is missing ' + dropped.join(', ') +
+              '; those fields will not be written.');
+          }
+          return keep.length ? keep : MAPHISTORY_FIELDS.slice();
+        } catch (e) {
+          console.warn('[Storage] Could not read map audit columns; writing all preferred fields.', e);
+          return MAPHISTORY_FIELDS.slice();
+        }
+      }
+
+      /** The configured Maximum file size for the GeoJSON column, in bytes. */
+      async function resolveFileMaxBytes() {
+        try {
+          const res = await fetch(
+            API + "EntityDefinitions(LogicalName='" + ENT_MAPLAYER + "')/Attributes(LogicalName='" +
+            COL_FILE + "')/Microsoft.Dynamics.CRM.FileAttributeMetadata?$select=MaxSizeInKB",
+            { credentials: 'same-origin', headers: GET_HEADERS });
+          if (!res.ok) throw new Error('FileAttributeMetadata ' + res.status);
+          const kb = (await res.json()).MaxSizeInKB;
+          return (typeof kb === 'number' && kb > 0) ? kb * 1024 : null;
+        } catch (e) {
+          console.warn('[Storage] Could not read the GeoJSON column max size; skipping the pre-check.', e);
+          return null;
+        }
+      }
+
+      /** Prepare the map-layer surface. Never throws: degrades to defaults. */
+      async function initMapLayers() {
+        const [sl, sh, hf, mb] = await Promise.all([
+          resolveEntitySet(ENT_MAPLAYER, SET_MAPLAYER_DEFAULT),
+          resolveEntitySet(ENT_MAPHISTORY, SET_MAPHISTORY_DEFAULT),
+          resolveMapHistoryFields(),
+          resolveFileMaxBytes(),
+        ]);
+        setMapLayer = sl; setMapHistory = sh; mapHistoryFields = hf; fileMaxBytes = mb;
+        console.info('[Storage] map layers: set=' + setMapLayer + ', audit=' + setMapHistory +
+          ', auditFields=[' + mapHistoryFields.join(',') + ']' +
+          ', fileMax=' + (fileMaxBytes ? Math.round(fileMaxBytes / 1048576) + ' MB' : 'unknown'));
+      }
+
+      /** One audit row per layer save / deactivate. Background: never blocks. */
+      function writeMapAudit(action, layer, extra) {
+        const user = _currentUser || { name: '', email: '' };
+        const desc = (action === 'save'
+          ? 'Saved map layer ' + layer.layerKey + ' (' + layer.featureCount + ' features)'
+          : 'Deactivated map layer ' + layer.layerKey);
+        const all = {
+          cr2bf_changedescription: desc.slice(0, 100),
+          cr2bf_user: user.name || 'anonymous',
+          cr2bf_email: user.email || '',
+          cr2bf_savedat: new Date().toISOString(),
+          cr2bf_changes: JSON.stringify(Object.assign({
+            action: action,
+            layerKey: layer.layerKey,
+            layerName: layer.name,
+            valueField: layer.valueField,
+            featureCount: layer.featureCount,
+            geometryType: (layer.geomTypes || []).join('+'),
+            rampConfig: layer.ramp || null,
+          }, extra || {})),
+        };
+        const body = {};
+        mapHistoryFields.forEach(f => { if (all[f] !== undefined) body[f] = all[f]; });
+        bg(dvCreate(setMapHistory, body),
+          'Map layer audit write failed for ' + layer.layerKey);
+      }
+
+      /**
+       * Upload a GeoJSON string to the record's File column.
+       * Single PATCH under 4 MB; chunked at/above, using the server's own
+       * recommended chunk size from x-ms-chunk-size.
+       * @param {function(number,number):void} [onProgress] (chunkIndex, chunkTotal)
+       */
+      async function uploadLayerFile(id, fileName, text, onProgress) {
+        const bytes = new TextEncoder().encode(text);
+        const base = API + setMapLayer + '(' + id + ')/' + COL_FILE;
+
+        if (bytes.length < ML_CHUNK_THRESHOLD) {
+          const res = await fetch(base, {
+            method: 'PATCH', credentials: 'same-origin',
+            headers: { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0',
+                       'Content-Type': 'application/octet-stream', 'x-ms-file-name': fileName },
+            body: bytes,
+          });
+          if (!res.ok) throw new Error('file upload PATCH ' + res.status + ' ' + (await res.text()));
+          if (onProgress) onProgress(1, 1);
+          return;
+        }
+
+        // 1. Initialize: returns a Location carrying a sessiontoken, plus the
+        //    recommended chunk size.
+        const initRes = await fetch(base + '?x-ms-file-name=' + encodeURIComponent(fileName), {
+          method: 'PATCH', credentials: 'same-origin',
+          headers: { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0',
+                     'x-ms-transfer-mode': 'chunked' },
+        });
+        if (!initRes.ok) throw new Error('chunked init PATCH ' + initRes.status + ' ' + (await initRes.text()));
+        const loc = initRes.headers.get('Location');
+        if (!loc) throw new Error('chunked init returned no Location header');
+        const chunkSize = parseInt(initRes.headers.get('x-ms-chunk-size'), 10) || ML_CHUNK_FALLBACK;
+
+        // 2. Send sequential ranges: 206 for each partial, 204 for the last.
+        const total = bytes.length;
+        const chunkTotal = Math.ceil(total / chunkSize);
+        for (let i = 0; i < chunkTotal; i++) {
+          const start = i * chunkSize;
+          const end = Math.min(start + chunkSize, total) - 1;
+          const res = await fetch(loc, {
+            method: 'PATCH', credentials: 'same-origin',
+            headers: { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0',
+                       'Content-Type': 'application/octet-stream', 'x-ms-file-name': fileName,
+                       'Content-Range': 'bytes ' + start + '-' + end + '/' + total },
+            body: bytes.subarray(start, end + 1),
+          });
+          if (!res.ok) {
+            throw new Error('chunk ' + (i + 1) + '/' + chunkTotal + ' PATCH ' + res.status +
+              ' ' + (await res.text()));
+          }
+          if (onProgress) onProgress(i + 1, chunkTotal);
+        }
+      }
+
+      /** Download a layer's GeoJSON as text. */
+      async function downloadLayerFile(id) {
+        const res = await fetch(API + setMapLayer + '(' + id + ')/' + COL_FILE + '/$value',
+          { credentials: 'same-origin',
+            headers: { 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' } });
+        if (!res.ok) throw new Error('file GET ' + res.status);
+        return await res.text();
+      }
+
       return {
         async init(baseUrl) {
           API = baseUrl.replace(/\/+$/, '') + '/api/data/v9.2/';
@@ -275,6 +480,10 @@
           // Reporting Year -> years cache
           const yy = await getAll(SET_YEARS, '$select=' + ID_YEARS + ',cr2bf_reportingyear');
           cYears = yy.map(r => ({ year: String(r.cr2bf_reportingyear), id: r[ID_YEARS] }));
+          // CLCPA-171 Slice 2: resolve the map-layer surface. Deliberately last
+          // and non-throwing — saved layers are an addition, so a problem here
+          // must not stop the tabular backend from coming up.
+          await initMapLayers();
         },
         applyOverrides(payload) {
           captureBaseline(payload);
@@ -381,6 +590,138 @@
           });
           return byGeoid;
         },
+
+        // ---- CLCPA-171 Slice 2: saved map layers ------------------------
+        isDataverse() { return true; },
+
+        /**
+         * Active saved layers, metadata only (no file bodies).
+         * `$select`s the File column so a row whose upload never landed can be
+         * skipped: retrieving a file column yields a file id, or null when empty.
+         */
+        async listMapLayers() {
+          const cols = [ID_MAPLAYER, 'cr2bf_layername', 'cr2bf_layerkey', 'cr2bf_valuefield',
+            'cr2bf_rampconfig', 'cr2bf_sourcelabel', 'cr2bf_featurecount', 'cr2bf_geometrytype',
+            'cr2bf_isactive', COL_FILE, 'createdon'].join(',');
+          const rows = await getAll(setMapLayer,
+            '$select=' + cols + '&$expand=createdby($select=fullname)' +
+            '&$filter=cr2bf_isactive eq true&$orderby=createdon asc');
+          const out = [];
+          rows.forEach(r => {
+            if (r[COL_FILE] == null) {
+              console.warn('[Storage] Saved layer "' + (r.cr2bf_layerkey || r[ID_MAPLAYER]) +
+                '" has no GeoJSON file attached; skipping it.');
+              return;
+            }
+            let ramp = null;
+            try { ramp = r.cr2bf_rampconfig ? JSON.parse(r.cr2bf_rampconfig) : null; } catch (e) {
+              console.warn('[Storage] Saved layer "' + r.cr2bf_layerkey +
+                '" has an unreadable ramp config; falling back to the default ramp.', e);
+            }
+            out.push({
+              dvId: r[ID_MAPLAYER],
+              name: r.cr2bf_layername || r.cr2bf_layerkey || '(unnamed layer)',
+              layerKey: r.cr2bf_layerkey || '',
+              valueField: r.cr2bf_valuefield || '',
+              ramp: ramp,
+              sourceLabel: r.cr2bf_sourcelabel || '',
+              featureCount: r.cr2bf_featurecount || 0,
+              geometryType: r.cr2bf_geometrytype || '',
+              savedBy: (r.createdby && r.createdby.fullname) || '',
+              savedOn: r.createdon || '',
+            });
+          });
+          return out;
+        },
+
+        getMapLayerFile(dvId) { return downloadLayerFile(dvId); },
+
+        /**
+         * Persist a session layer: create the metadata row, upload the file,
+         * verify it landed, then flip IsActive on.
+         *
+         * Ordering is forced by the Web API — the upload endpoint is
+         * {set}({id})/{column}, so the record must exist first. What that buys
+         * us is the failure contract: IsActive is only ever true AFTER a
+         * verified upload, and a failed upload deletes the seconds-old shell it
+         * just made. If even that delete fails, the row stays inactive and
+         * file-less, and listMapLayers() skips null-file rows anyway, so no
+         * state exists where metadata pretends to have a file.
+         */
+        async saveMapLayer(layer, geojsonText, onProgress) {
+          const bytes = new TextEncoder().encode(geojsonText).length;
+          if (fileMaxBytes && bytes > fileMaxBytes) {
+            throw new Error('This layer is ' + Math.round(bytes / 1048576) +
+              ' MB, over the ' + Math.round(fileMaxBytes / 1048576) +
+              ' MB limit configured on the GeoJSON column.');
+          }
+          // Reject a duplicate key up front: renaming and editing a saved layer
+          // are out of scope for v1, so deactivate-then-re-upload is the story.
+          const existing = await getAll(setMapLayer, '$select=cr2bf_layerkey&$filter=' +
+            "cr2bf_isactive eq true and cr2bf_layerkey eq '" +
+            String(layer.layerKey).replace(/'/g, "''") + "'");
+          if (existing.length) {
+            throw new Error('A saved layer already uses the key "' + layer.layerKey +
+              '". Deactivate it first, or rename the file before uploading.');
+          }
+
+          const fileName = (layer.layerKey || 'layer') + '.geojson';
+          if (onProgress) onProgress({ phase: 'creating' });
+          const created = await dvCreate(setMapLayer, {
+            cr2bf_layername: String(layer.name || '').slice(0, 100),
+            cr2bf_layerkey: String(layer.layerKey || '').slice(0, 100),
+            cr2bf_valuefield: String(layer.valueField || '').slice(0, 200),
+            cr2bf_rampconfig: JSON.stringify(layer.ramp || null).slice(0, 4000),
+            cr2bf_sourcelabel: String(layer.sourceLabel || '').slice(0, 300),
+            cr2bf_featurecount: layer.featureCount || 0,
+            cr2bf_geometrytype: (layer.geomTypes || []).join('+').slice(0, 50),
+            cr2bf_isactive: false,      // flipped on only after a verified upload
+          });
+          const id = created[ID_MAPLAYER];
+
+          try {
+            if (onProgress) onProgress({ phase: 'uploading', bytes: bytes, chunk: 0, chunks: 0 });
+            await uploadLayerFile(id, fileName, geojsonText, (chunk, chunks) => {
+              if (onProgress) onProgress({ phase: 'uploading', bytes: bytes, chunk: chunk, chunks: chunks });
+            });
+            // Verify: re-read the column and require a non-null file id.
+            if (onProgress) onProgress({ phase: 'verifying' });
+            const check = await fetch(API + setMapLayer + '(' + id + ')?$select=' + COL_FILE,
+              { credentials: 'same-origin', headers: GET_HEADERS });
+            if (!check.ok) throw new Error('verify GET ' + check.status);
+            if ((await check.json())[COL_FILE] == null) {
+              throw new Error('the upload reported success but the file column is still empty');
+            }
+            await dvUpdate(setMapLayer, id, { cr2bf_isactive: true });
+          } catch (err) {
+            // Clean up the shell we just created so metadata can never pretend
+            // to have a file. A hard delete is right here: the record is
+            // seconds old, was created by this call, and has nothing attached.
+            try {
+              await dvDelete(setMapLayer, id);
+              console.warn('[Storage] Upload failed; removed the incomplete layer record ' + id + '.');
+            } catch (delErr) {
+              console.error('[Storage] Upload failed AND cleanup failed. Record ' + id +
+                ' is left inactive with no file; it will be ignored on load.', delErr);
+            }
+            throw err;
+          }
+
+          const saved = {
+            dvId: id, name: layer.name, layerKey: layer.layerKey, valueField: layer.valueField,
+            ramp: layer.ramp, sourceLabel: layer.sourceLabel || '',
+            featureCount: layer.featureCount, geometryType: (layer.geomTypes || []).join('+'),
+            savedBy: (_currentUser && _currentUser.name) || '', savedOn: new Date().toISOString(),
+          };
+          writeMapAudit('save', layer, { fileBytes: bytes });
+          return saved;
+        },
+
+        /** Soft delete: hide the layer for everyone, keep the record and file. */
+        async deactivateMapLayer(dvId, layer) {
+          await dvUpdate(setMapLayer, dvId, { cr2bf_isactive: false });
+          writeMapAudit('deactivate', layer, {});
+        },
       };
     })();
 
@@ -483,6 +824,16 @@
       clearAll() { return active.clearAll(); },
       // null on localStorage (file-only map); geoid -> {8 fields} on Dataverse.
       getMapOverlay() { return active.getMapTractOverlay(); },
+
+      // ---- CLCPA-171 Slice 2: saved map layers --------------------------
+      isDataverse() { return active.isDataverse(); },
+      listMapLayers() { return active.listMapLayers(); },
+      getMapLayerFile(dvId) { return active.getMapLayerFile(dvId); },
+      saveMapLayer(layer, geojsonText, onProgress) { return active.saveMapLayer(layer, geojsonText, onProgress); },
+      deactivateMapLayer(dvId, layer) { return active.deactivateMapLayer(dvId, layer); },
+      // Exposed for the Map Layers page: showToast is private to this IIFE and
+      // there is no second notification system to reach for.
+      toast(message, type) { return showToast(message, type); },
     };
   })();
 
@@ -2501,6 +2852,16 @@
         modeLabel + ' · uploaded this session</div>';
   }
 
+  /**
+   * Slug a layer name into a Dataverse-safe unique key (cr2bf_LayerKey).
+   * e.g. "hvi_zcta_2020 (final)" -> "hvi_zcta_2020_final"
+   */
+  function mlLayerKey(name) {
+    const slug = String(name || '').toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 100);
+    return slug || 'layer';
+  }
+
   /** Register a validated layer for this session. Returns its registry entry. */
   function mlRegisterLayer(rec) {
     const entry = {
@@ -2516,11 +2877,30 @@
       ramp: rec.ramp || mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
       // One-shot: the upload's Confirm turns the layer on for its first sight
       // of the map. Consumed at mount, after which it defaults OFF like HVI.
-      previewOnce: true,
+      previewOnce: rec.previewOnce !== false,
+      // ---- CLCPA-171 Slice 2 ----
+      // 'session' = uploaded here, unsaved. 'saved' = backed by a Dataverse
+      // record. The draw path reads neither: it keys off `id` as it always has.
+      origin: rec.origin || 'session',
+      layerKey: rec.layerKey || mlLayerKey(rec.name),
+      dvId: rec.dvId || null,
+      sourceLabel: rec.sourceLabel || '',
+      savedBy: rec.savedBy || '',
+      savedOn: rec.savedOn || '',
+      saveState: null,     // null | {phase, ...} while a save is in flight
     };
     _mlLayers.push(entry);
     return entry;
   }
+
+  /** Find a registry entry by its map id. */
+  function mlFindLayer(id) {
+    for (let i = 0; i < _mlLayers.length; i++) if (_mlLayers[i].id === id) return _mlLayers[i];
+    return null;
+  }
+
+  function mlSessionLayers() { return _mlLayers.filter(e => e.origin === 'session'); }
+  function mlSavedLayers() { return _mlLayers.filter(e => e.origin === 'saved'); }
 
   /** Unregister a session layer. The live map layer is removed at mount scope. */
   function mlUnregisterLayer(id) {
@@ -2528,6 +2908,118 @@
       if (_mlLayers[i].id === id) return _mlLayers.splice(i, 1)[0];
     }
     return null;
+  }
+
+  // ---- Hydration from Dataverse (CLCPA-171 Slice 2) ----------------------
+  // Saved layers are loaded AFTER the dashboard renders, never before: boot()
+  // fires this without awaiting it, so a slow or broken Dataverse cannot delay
+  // or break the page. Whatever arrives is pushed into the same _mlLayers
+  // registry session uploads use, then the built map (if any) is asked to
+  // materialize the new entries in place.
+  let _mlHydrated = false;
+
+  /**
+   * Turn a saved record + its downloaded GeoJSON into a registry entry.
+   * Recomputes the scale from the file rather than storing it: the scale is
+   * derived data, and recomputing keeps one code path with session uploads.
+   */
+  function mlHydrateOne(rec, text) {
+    const parsed = mlValidateGeoJSON(text, new TextEncoder().encode(text).length);
+    if (!parsed.ok) {
+      throw new Error('stored GeoJSON no longer validates: ' + parsed.errors.join(' '));
+    }
+    const field = rec.valueField;
+    const fieldRes = mlValidateValueField(parsed.geo, field);
+    if (!fieldRes.ok) {
+      throw new Error('stored value field "' + field + '" no longer validates: ' +
+        fieldRes.errors.join(' '));
+    }
+    return mlRegisterLayer({
+      name: rec.name,
+      geo: parsed.geo,
+      valueField: field,
+      featureCount: parsed.featureCount,
+      geomTypes: parsed.geomTypes,
+      scale: fieldRes.scale,
+      ramp: (rec.ramp && rec.ramp.colors && rec.ramp.colors.length === 5)
+        ? rec.ramp
+        : mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
+      // Saved layers are shared, so they must NOT switch themselves on for
+      // every user on every load. OFF by default, exactly like HVI.
+      previewOnce: false,
+      origin: 'saved',
+      layerKey: rec.layerKey,
+      dvId: rec.dvId,
+      sourceLabel: rec.sourceLabel,
+      savedBy: rec.savedBy,
+      savedOn: rec.savedOn,
+    });
+  }
+
+  /**
+   * Load active saved layers and add them to the registry. Non-blocking and
+   * non-fatal: any failure logs and leaves the app session-only.
+   */
+  async function mlHydrateSavedLayers() {
+    if (_mlHydrated || !Storage.isDataverse()) return;
+    _mlHydrated = true;
+    let records;
+    try {
+      records = await Storage.listMapLayers();
+    } catch (e) {
+      console.warn('[Map Layers] Could not list saved layers; staying session-only.', e);
+      return;
+    }
+    if (!records.length) return;
+
+    let added = 0;
+    for (let i = 0; i < records.length; i++) {
+      const rec = records[i];
+      let text;
+      try {
+        text = await Storage.getMapLayerFile(rec.dvId);
+      } catch (e) {
+        console.warn('[Map Layers] Skipped saved layer "' + rec.layerKey + '": ' +
+          (e && e.message ? e.message : e));
+        continue;
+      }
+      // Key collision, checked HERE and not before the download: the only window
+      // in which one can happen is a session upload landing while this file was
+      // in flight, so the check has to sit immediately before we touch the
+      // registry. Keep both rows in their own groups, but let the session copy
+      // own the map — it is the file the user just looked at. The saved copy is
+      // registered without geometry, so the draw path skips it.
+      if (_mlLayers.some(e => e.origin === 'session' && e.layerKey === rec.layerKey)) {
+        console.info('[Map Layers] Saved layer "' + rec.layerKey +
+          '" matches a layer uploaded in this session; the session copy stays on the map.');
+        mlRegisterLayer({
+          name: rec.name, geo: null, valueField: rec.valueField,
+          featureCount: rec.featureCount, geomTypes: (rec.geometryType || '').split('+').filter(Boolean),
+          scale: null, ramp: rec.ramp, previewOnce: false, origin: 'saved',
+          layerKey: rec.layerKey, dvId: rec.dvId, sourceLabel: rec.sourceLabel,
+          savedBy: rec.savedBy, savedOn: rec.savedOn,
+        });
+        continue;
+      }
+      try {
+        mlHydrateOne(rec, text);
+        added++;
+      } catch (e) {
+        console.warn('[Map Layers] Skipped saved layer "' + rec.layerKey + '": ' +
+          (e && e.message ? e.message : e));
+      }
+    }
+    console.info('[Map Layers] hydrated ' + added + ' of ' + records.length + ' saved layer(s).');
+
+    // Draw them on a map that is already built, without rebuilding it (a
+    // rebuild would clear the user's tract selection).
+    if (typeof window._dacMapSyncUploadedLayers === 'function') {
+      try { window._dacMapSyncUploadedLayers(); } catch (e) {
+        console.warn('[Map Layers] Could not add saved layers to the live map.', e);
+      }
+    }
+    // Refresh the Map Layers page if the user is sitting on it.
+    if (state.route && state.route.name === 'maplayers') rerenderMlList();
   }
 
 // Compute and render KPI overlay for the DAC map
@@ -4387,6 +4879,13 @@
       const panels = document.getElementById('dac-map-panels');
       if (!panel || !panels) return;
       _mlLayers.forEach(function (entry) {
+        // Nothing to draw: a saved layer whose key collided with a session
+        // upload is registered for the page list only, without geometry
+        // (CLCPA-171 Slice 2).
+        if (!entry.geo) return;
+        // Idempotent: Slice 2 calls this again when saved layers hydrate after
+        // the map is already built, so skip anything already materialized.
+        if (panel.querySelector('.ml-terr-opt[data-ml-row="' + entry.id + '"]')) return;
         const label = document.createElement('label');
         label.className = 'dac-map-terr-opt ml-terr-opt';
         label.setAttribute('data-ml-row', entry.id);
@@ -4413,6 +4912,10 @@
         refreshUploadedLayer(entry);
       });
     }
+    // Exposed so saved layers arriving from Dataverse after the map is built can
+    // be drawn in place, without a mountDACMap rebuild (which would clear the
+    // user's tract selection). Idempotent, so calling it twice is harmless.
+    window._dacMapSyncUploadedLayers = initUploadedLayers;
 
     const terrPanel = document.getElementById('dac-map-terr');
     if (terrPanel) terrPanel.addEventListener('change', function (e) {
@@ -9094,13 +9597,7 @@ function wireHTooltips() {
                 aria-haspopup="dialog">File requirements</button>
       </div>
 
-      <div class="ml-note">
-        <span class="ml-note-dot" aria-hidden="true"></span>
-        <div>
-          <strong>Layers are session-only.</strong> They live in this browser tab and disappear on reload
-          or when you close it. Saving layers so they persist for everyone is the next piece of work.
-        </div>
-      </div>
+      ${renderMlNote()}
 
       <div id="ml-upload-mount">${renderMlUploadCard()}</div>
 
@@ -9108,6 +9605,26 @@ function wireHTooltips() {
 
       ${renderMlRequirementsDrawer()}
     `;
+  }
+
+  /**
+   * The banner above the cards. Its wording depends on whether saving is
+   * possible: with Dataverse a layer is session-only *until saved*, without it
+   * everything stays in this tab (CLCPA-171 Slice 2).
+   */
+  function renderMlNote() {
+    const body = Storage.isDataverse()
+      ? '<strong>Uploads start in this browser tab.</strong> Choose Save layer to keep one in ' +
+        'Dataverse, where it loads for everyone who opens the dashboard. Anything left unsaved ' +
+        'disappears when you close the tab.'
+      : '<strong>Layers are session-only here.</strong> They live in this browser tab and disappear ' +
+        'on reload or when you close it. Saving to Dataverse needs the hosted app; this preview ' +
+        'cannot reach it.';
+    return `
+      <div class="ml-note">
+        <span class="ml-note-dot" aria-hidden="true"></span>
+        <div>${body}</div>
+      </div>`;
   }
 
   /** The upload card: file picker, then validation results, then field pick. */
@@ -9392,50 +9909,126 @@ function wireHTooltips() {
     if (reset) reset.hidden = mlIsDefaultRamp(ramp.low, ramp.high);
   }
 
-  /** The session list: every layer registered in this tab, with Remove. */
-  function renderMlSessionList() {
-    if (!_mlLayers.length) {
-      return `
-        <div class="ml-card">
-          <div class="ml-card-head">
-            <div>
-              <h3>Layers this session</h3>
-              <p class="ml-card-sub">Uploaded layers appear here and in the map's Layers panel.</p>
-            </div>
-          </div>
-          <div class="ml-card-body">
-            <p class="ml-empty">No layers uploaded yet.</p>
-          </div>
-        </div>`;
-    }
+  /** Short "12 Aug 2026" for a saved-on timestamp. */
+  function mlFmtSavedOn(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
+  }
 
-    const rows = _mlLayers.map(entry => `
-      <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
-        <span class="ml-row-sw" aria-hidden="true"${mlSwatchStyle(entry)}></span>
-        <div class="ml-row-main">
-          <div class="ml-row-name">${escapeHtml(entry.name)}</div>
-          <div class="ml-row-meta">
-            ${entry.featureCount.toLocaleString()} features ·
-            ${entry.geomTypes.map(escapeHtml).join(' + ')} ·
-            <span class="ml-mono">${escapeHtml(entry.valueField)}</span>
+  /** The metadata line shared by both groups. */
+  function mlRowMeta(entry) {
+    const geom = (entry.geomTypes && entry.geomTypes.length)
+      ? entry.geomTypes.map(escapeHtml).join(' + ')
+      : escapeHtml(entry.geometryType || '');
+    const bits = [
+      (entry.featureCount || 0).toLocaleString() + ' features',
+      geom,
+      '<span class="ml-mono">' + escapeHtml(entry.valueField) + '</span>',
+    ].filter(Boolean);
+    return bits.join(' · ');
+  }
+
+  /** Saved-layers group: Dataverse-backed, visible to everyone, Deactivate only. */
+  function renderMlSavedGroup() {
+    const saved = mlSavedLayers();
+    if (!Storage.isDataverse()) return '';
+    const body = saved.length
+      ? '<ul class="ml-list">' + saved.map(entry => {
+          const who = [entry.savedBy, mlFmtSavedOn(entry.savedOn)].filter(Boolean).join(' · ');
+          const orphan = !entry.geo
+            ? '<span class="ml-chip ml-chip-warn">superseded by a session upload</span>'
+            : '';
+          return `
+        <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
+          <span class="ml-row-sw" aria-hidden="true"${mlSwatchStyle(entry)}></span>
+          <div class="ml-row-main">
+            <div class="ml-row-name">${escapeHtml(entry.name)} ${orphan}</div>
+            <div class="ml-row-meta">${mlRowMeta(entry)}${who ? ' · ' + escapeHtml(who) : ''}</div>
           </div>
-        </div>
-        <button class="btn btn-secondary ml-remove" type="button" data-ml-remove="${escapeHtml(entry.id)}">Remove</button>
-      </li>`).join('');
+          <button class="btn btn-secondary ml-remove" type="button"
+                  data-ml-deactivate="${escapeHtml(entry.id)}">Deactivate</button>
+        </li>`;
+        }).join('') + '</ul>'
+      : '<p class="ml-empty">No saved layers yet. Upload one below, then choose Save layer.</p>';
 
     return `
       <div class="ml-card">
         <div class="ml-card-head">
           <div>
-            <h3>Layers this session</h3>
-            <p class="ml-card-sub">Toggle them from the Layers panel on the Executive Summary map.</p>
+            <h3>Saved layers</h3>
+            <p class="ml-card-sub">Stored in Dataverse and visible to everyone who opens the dashboard.</p>
           </div>
-          <span class="ml-chip">${_mlLayers.length} layer${_mlLayers.length === 1 ? '' : 's'}</span>
+          ${saved.length ? `<span class="ml-chip">${saved.length} layer${saved.length === 1 ? '' : 's'}</span>` : ''}
         </div>
-        <div class="ml-card-body">
-          <ul class="ml-list">${rows}</ul>
-        </div>
+        <div class="ml-card-body">${body}</div>
       </div>`;
+  }
+
+  /** Session group: uploaded here and not yet saved. Remove, and Save when possible. */
+  function renderMlSessionGroup() {
+    const session = mlSessionLayers();
+    const canSave = Storage.isDataverse();
+    const body = session.length
+      ? '<ul class="ml-list">' + session.map(entry => {
+          let action;
+          const st = entry.saveState;
+          if (st && st.phase && st.phase !== 'error') {
+            action = `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(st))}</span>`;
+          } else {
+            action = `
+            <button class="btn btn-secondary ml-remove" type="button" data-ml-remove="${escapeHtml(entry.id)}">Remove</button>
+            <button class="btn btn-primary ml-save-btn" type="button" data-ml-save="${escapeHtml(entry.id)}"${canSave ? '' : ' disabled'}>Save layer</button>`;
+          }
+          const err = (st && st.phase === 'error')
+            ? `<div class="ml-row-error" role="alert">Save failed: ${escapeHtml(st.message)}</div>`
+            : '';
+          return `
+        <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
+          <span class="ml-row-sw" aria-hidden="true"${mlSwatchStyle(entry)}></span>
+          <div class="ml-row-main">
+            <div class="ml-row-name">${escapeHtml(entry.name)}</div>
+            <div class="ml-row-meta">${mlRowMeta(entry)} · <span class="ml-mono">${escapeHtml(entry.layerKey)}</span></div>
+            ${err}
+          </div>
+          <div class="ml-row-actions">${action}</div>
+        </li>`;
+        }).join('') + '</ul>'
+      : '<p class="ml-empty">No layers uploaded in this session.</p>';
+
+    const note = canSave
+      ? '<p class="ml-card-sub">Save a layer to keep it for everyone; unsaved layers disappear when you close this tab.</p>'
+      : '<p class="ml-card-sub">Saving needs Dataverse, which this preview cannot reach, so layers stay in this tab only.</p>';
+
+    return `
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>This session (unsaved)</h3>
+            ${note}
+          </div>
+          ${session.length ? `<span class="ml-chip">${session.length} layer${session.length === 1 ? '' : 's'}</span>` : ''}
+        </div>
+        <div class="ml-card-body">${body}</div>
+      </div>`;
+  }
+
+  /** In-progress label for a save. */
+  function mlSaveStatusText(st) {
+    if (st.phase === 'creating') return 'Creating record…';
+    if (st.phase === 'uploading') {
+      const mb = st.bytes ? (st.bytes / 1048576).toFixed(1) + ' MB' : '';
+      if (st.chunks > 1) return 'Uploading ' + mb + ', chunk ' + st.chunk + ' of ' + st.chunks + '…';
+      return 'Uploading ' + mb + '…';
+    }
+    if (st.phase === 'verifying') return 'Verifying…';
+    if (st.phase === 'saved') return 'Saved';
+    return 'Working…';
+  }
+
+  function renderMlSessionList() {
+    return renderMlSavedGroup() + renderMlSessionGroup();
   }
 
   function rerenderMlUpload() {
@@ -9574,23 +10167,105 @@ function wireHTooltips() {
     });
   }
 
-  function wireMlList() {
-    const list = document.querySelector('.ml-list');
-    if (!list) return;
-    list.addEventListener('click', function (e) {
-      const btn = e.target.closest('button[data-ml-remove]');
-      if (!btn) return;
-      const id = btn.dataset.mlRemove;
-      mlUnregisterLayer(id);
-      // Drop it from a built map too (its Layers-panel row and legend go with
-      // it). Absent when the map has never been mounted this session.
-      if (typeof window._dacMapDetachUploadedLayer === 'function') {
-        try { window._dacMapDetachUploadedLayer(id); } catch (err) {
-          console.warn('[Map Layers] Could not detach layer from the map:', err);
-        }
+  /** Drop a layer from the registry and from a built map (rows + legend). */
+  function mlDropLayer(id) {
+    mlUnregisterLayer(id);
+    // Absent when the map has never been mounted this session.
+    if (typeof window._dacMapDetachUploadedLayer === 'function') {
+      try { window._dacMapDetachUploadedLayer(id); } catch (err) {
+        console.warn('[Map Layers] Could not detach layer from the map:', err);
       }
-      rerenderMlList();
+    }
+  }
+
+  /**
+   * Wire both groups. Delegated from the mount rather than a single .ml-list,
+   * because Slice 2 renders two lists (saved + session).
+   */
+  function wireMlList() {
+    const mount = document.getElementById('ml-list-mount');
+    if (!mount) return;
+    // rerenderMlList() replaces the mount's innerHTML but not the mount itself,
+    // so bind once or every re-render would add another handler and clicks
+    // would fire twice.
+    if (mount.dataset.mlWired === '1') return;
+    mount.dataset.mlWired = '1';
+    mount.addEventListener('click', function (e) {
+      const rm = e.target.closest('button[data-ml-remove]');
+      if (rm) { mlDropLayer(rm.dataset.mlRemove); rerenderMlList(); return; }
+
+      const sv = e.target.closest('button[data-ml-save]');
+      if (sv) { mlSaveLayer(sv.dataset.mlSave); return; }
+
+      const de = e.target.closest('button[data-ml-deactivate]');
+      if (de) { mlDeactivateLayer(de.dataset.mlDeactivate); return; }
     });
+  }
+
+  /**
+   * Persist a session layer, then move its row into Saved layers using the
+   * geometry already in memory: it is the very file that was just uploaded, so
+   * re-downloading it would only add latency and a new failure mode.
+   */
+  async function mlSaveLayer(id) {
+    const entry = mlFindLayer(id);
+    if (!entry || entry.origin !== 'session') return;
+    if (entry.saveState && entry.saveState.phase && entry.saveState.phase !== 'error') return;
+
+    const text = JSON.stringify(entry.geo);
+    entry.saveState = { phase: 'creating' };
+    rerenderMlList();
+    try {
+      const saved = await Storage.saveMapLayer({
+        name: entry.name,
+        layerKey: entry.layerKey,
+        valueField: entry.valueField,
+        ramp: entry.ramp,
+        featureCount: entry.featureCount,
+        geomTypes: entry.geomTypes,
+        sourceLabel: entry.sourceLabel ||
+          (entry.valueField + ' · uploaded ' + mlFmtSavedOn(new Date().toISOString())),
+      }, text, function (st) {
+        entry.saveState = st;
+        // Re-render on phase changes and chunk ticks so progress is visible.
+        rerenderMlList();
+      });
+      // Promote in place: same registry entry, same map id, same geometry, so
+      // the drawn layer and its Layers-panel row are untouched by the move.
+      entry.origin = 'saved';
+      entry.dvId = saved.dvId;
+      entry.sourceLabel = saved.sourceLabel || entry.sourceLabel;
+      entry.savedBy = saved.savedBy;
+      entry.savedOn = saved.savedOn;
+      entry.saveState = null;
+      rerenderMlList();
+      Storage.toast('Saved "' + entry.name + '" for everyone.');
+    } catch (err) {
+      const msg = (err && err.message) ? err.message : String(err);
+      entry.saveState = { phase: 'error', message: msg };
+      rerenderMlList();
+      console.error('[Map Layers] Save failed for ' + entry.layerKey + ':', err);
+    }
+  }
+
+  /** Soft-delete a saved layer: hidden for everyone, record and file retained. */
+  async function mlDeactivateLayer(id) {
+    const entry = mlFindLayer(id);
+    if (!entry || entry.origin !== 'saved' || !entry.dvId) return;
+    const ok = window.confirm('Deactivate "' + entry.name + '"?\n\n' +
+      'It disappears from the map for everyone. The record and its file are kept, ' +
+      'so it can be switched back on in Dataverse.');
+    if (!ok) return;
+    try {
+      await Storage.deactivateMapLayer(entry.dvId, entry);
+      mlDropLayer(id);
+      rerenderMlList();
+      Storage.toast('Deactivated "' + entry.name + '".');
+    } catch (err) {
+      console.error('[Map Layers] Deactivate failed for ' + entry.layerKey + ':', err);
+      Storage.toast('Could not deactivate "' + entry.name + '": ' +
+        (err && err.message ? err.message : err), 'error');
+    }
   }
 
   /** Read + validate a picked file, then move to the field-selection step. */
@@ -10475,6 +11150,12 @@ function wireHTooltips() {
     // Wire router and trigger initial render (which also wires tables)
     window.addEventListener('hashchange', onRouteChange);
     onRouteChange();
+
+    // CLCPA-171 Slice 2: load saved map layers AFTER the first render, and
+    // deliberately without awaiting. The dashboard is fully usable already;
+    // saved layers appear in the Layers panel when they arrive, and a Dataverse
+    // problem degrades to session-only (logged) rather than breaking the page.
+    mlHydrateSavedLayers();
   }
 
   // Kick off
