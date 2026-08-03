@@ -22,9 +22,10 @@
   const state = {
     payload: null,
     year: null,              // currently selected year (string, e.g. "2024")
-    route: null,             // { name: 'executive' | 'section' | 'ingest', sectionId?: 'A' }
+    route: null,             // { name: 'executive' | 'section' | 'ingest' | 'maplayers', sectionId?: 'A' }
     perTableYearView: {},    // per-table "current" vs "both" toggle state
     activeTableId: null,     // currently selected source-table tab
+    mapLayers: null,         // CLCPA-171 Map Layers page: in-progress upload draft
   };
 
   // ============================================================
@@ -2039,6 +2040,377 @@
   // Lazy-loaded Heat Vulnerability Index (HVI) ZCTA overlay (visual only).
   let _hviGeoCache = null;
   let _hviFetchPromise = null;
+
+  // ============================================================
+  // CLCPA-171 (Slice 1) · Session-uploaded GeoJSON overlay layers
+  // ------------------------------------------------------------
+  // Generalizes the CLCPA-167 HVI overlay into a frontend path: a user uploads
+  // a GeoJSON on the Map Layers page, it is validated client-side, then drawn
+  // on the DAC map as a toggleable choropleth.
+  //
+  // The registry lives HERE, at module scope, not inside mountDACMap: the map
+  // is torn down and rebuilt on every Executive Summary mount, and an upload
+  // happens on a different route entirely. Each mount re-materializes the
+  // Leaflet layers, Layers-panel rows and legend blocks from this list.
+  //
+  // SESSION-ONLY. Nothing is persisted and nothing is read back — a page
+  // reload drops every uploaded layer. Persistence to Dataverse is Slice 2.
+  //
+  // Registry entry shape:
+  //   { id, name, geo, valueField, featureCount, geomTypes[], scale, previewOnce }
+  const _mlLayers = [];
+  let _mlIdSeq = 0;
+  // YlOrRd 5-class sequential ramp, low -> high. This is deliberately a
+  // separate copy of the same hexes HVI_RAMP uses: HVI's is a discrete
+  // {1..5} -> hex map while uploads need an index into a continuous ramp,
+  // and Slice 1 is additive-only. Deduplication is CLCPA-170.
+  const ML_RAMP = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
+  const ML_NODATA = '#cccccc';
+  // Size gates. Soft warn is advisory; the hard reject is a Slice 1 limit
+  // (everything is held in memory and re-styled on each mount).
+  const ML_WARN_BYTES = 5 * 1024 * 1024;
+  const ML_MAX_BYTES = 50 * 1024 * 1024;
+  // How many failing feature identifiers to name before collapsing to "+N more".
+  const ML_ERR_LIST_MAX = 10;
+
+  /**
+   * Coerce a property value to a finite number, or null if it isn't one.
+   * Accepts real numbers and numeric-parseable strings (thousands separators
+   * and surrounding whitespace tolerated). Booleans, null, '' and anything
+   * with trailing junk ("12 units") are NOT numeric.
+   */
+  function mlToNumber(v) {
+    if (typeof v === 'number') return isFinite(v) ? v : null;
+    if (typeof v !== 'string') return null;
+    const s = v.trim().replace(/,/g, '');
+    if (s === '') return null;
+    if (!/^[+-]?(\d+\.?\d*|\.\d+)([eE][+-]?\d+)?$/.test(s)) return null;
+    const n = parseFloat(s);
+    return isFinite(n) ? n : null;
+  }
+
+  /** Human label for a feature in an error message: its id, else its position. */
+  function mlFeatureLabel(feature, idx) {
+    if (feature && feature.id != null && feature.id !== '') return String(feature.id);
+    return '#' + (idx + 1);
+  }
+
+  /** Join a list of feature labels, capped so one bad file can't flood the UI. */
+  function mlJoinLabels(labels) {
+    if (labels.length <= ML_ERR_LIST_MAX) return labels.join(', ');
+    return labels.slice(0, ML_ERR_LIST_MAX).join(', ') +
+      ', +' + (labels.length - ML_ERR_LIST_MAX) + ' more';
+  }
+
+  /** Visit every [x, y] position in a Polygon / MultiPolygon coordinate array. */
+  function mlEachPosition(coords, depth, cb) {
+    if (!Array.isArray(coords)) return;
+    if (depth === 0) { cb(coords); return; }
+    for (let i = 0; i < coords.length; i++) mlEachPosition(coords[i], depth - 1, cb);
+  }
+
+  /**
+   * Validate an uploaded GeoJSON file, structurally (not yet against a chosen
+   * value field — that's mlValidateValueField, run after the user picks one).
+   *
+   * Whole-file semantics: any error means the file is rejected outright. A
+   * partial layer is never produced.
+   *
+   * @param {string} text raw file contents
+   * @param {number} bytes file size in bytes (checked before parsing)
+   * @returns {{ok:boolean, errors:string[], warnings:string[], geo:object|null,
+   *            propKeys:string[], featureCount:number, geomTypes:string[]}}
+   */
+  function mlValidateGeoJSON(text, bytes) {
+    const out = {
+      ok: false, errors: [], warnings: [], geo: null,
+      propKeys: [], featureCount: 0, geomTypes: [],
+    };
+
+    // --- Size gates (before parse: a 200 MB string shouldn't be JSON.parsed) --
+    if (bytes > ML_MAX_BYTES) {
+      out.errors.push(
+        'File is ' + mlFmtBytes(bytes) + ', over the ' + mlFmtBytes(ML_MAX_BYTES) +
+        ' limit for this release. Larger files are supported once layer ' +
+        'persistence lands (they will be stored server-side instead of held ' +
+        'in the browser).'
+      );
+      return out;
+    }
+    if (bytes > ML_WARN_BYTES) {
+      out.warnings.push(
+        'File is ' + mlFmtBytes(bytes) + ', above the ' + mlFmtBytes(ML_WARN_BYTES) +
+        ' comfort threshold. It will work, but drawing and panning may feel slow.'
+      );
+    }
+
+    // --- Parse ---------------------------------------------------------------
+    let geo;
+    try {
+      geo = JSON.parse(text);
+    } catch (err) {
+      out.errors.push('Not valid JSON: ' + err.message);
+      return out;
+    }
+    if (!geo || typeof geo !== 'object' || Array.isArray(geo)) {
+      out.errors.push('The file must contain a GeoJSON object at the top level.');
+      return out;
+    }
+
+    // --- FeatureCollection with at least one feature -------------------------
+    if (geo.type !== 'FeatureCollection') {
+      out.errors.push(
+        'Top-level "type" is ' + (geo.type ? '"' + geo.type + '"' : 'missing') +
+        '. This release accepts a FeatureCollection only.'
+      );
+      return out;
+    }
+    if (!Array.isArray(geo.features) || geo.features.length === 0) {
+      out.errors.push('The FeatureCollection has no features.');
+      return out;
+    }
+
+    // --- CRS: EPSG:4326 or no crs member (RFC 7946) --------------------------
+    if (geo.crs != null) {
+      const crsName = geo.crs && geo.crs.properties ? String(geo.crs.properties.name || '') : '';
+      const ok4326 = /(^|[:])(EPSG|epsg)[:]{1,2}4326$/.test(crsName) ||
+        /CRS84|4326/.test(crsName);
+      if (!ok4326) {
+        out.errors.push(
+          'Coordinate reference system "' + (crsName || String(geo.crs.type || 'unknown')) +
+          '" is not supported. GeoJSON must be in EPSG:4326 (WGS84 longitude/latitude) ' +
+          'per RFC 7946 — reproject the file to WGS84 before uploading.'
+        );
+        return out;
+      }
+    }
+
+    // --- Per-feature geometry + coordinate range -----------------------------
+    const badGeomType = [];     // labels of features with a non-polygon geometry
+    const missingGeom = [];     // labels of features with no geometry at all
+    const geomTypes = {};
+    const propKeys = {};
+    let outOfRange = 0;         // count of positions outside WGS84 bounds
+    let sampleBad = null;       // one offending position, for the message
+
+    for (let i = 0; i < geo.features.length; i++) {
+      const f = geo.features[i];
+      const g = f && f.geometry;
+      if (!g || !g.type) { missingGeom.push(mlFeatureLabel(f, i)); continue; }
+      if (g.type !== 'Polygon' && g.type !== 'MultiPolygon') {
+        badGeomType.push(mlFeatureLabel(f, i) + ' (' + g.type + ')');
+        continue;
+      }
+      geomTypes[g.type] = true;
+      // Polygon coords nest 3 deep to a position, MultiPolygon 4 deep.
+      mlEachPosition(g.coordinates, g.type === 'Polygon' ? 2 : 3, function (pos) {
+        if (!Array.isArray(pos) || pos.length < 2) return;
+        const x = pos[0], y = pos[1];
+        if (typeof x !== 'number' || typeof y !== 'number') return;
+        if (Math.abs(x) > 180 || Math.abs(y) > 90) {
+          outOfRange++;
+          if (!sampleBad) sampleBad = [x, y];
+        }
+      });
+      if (f.properties && typeof f.properties === 'object') {
+        Object.keys(f.properties).forEach(function (k) { propKeys[k] = true; });
+      }
+    }
+
+    if (missingGeom.length) {
+      out.errors.push(
+        missingGeom.length + ' of ' + geo.features.length +
+        ' features have no geometry: ' + mlJoinLabels(missingGeom) + '.'
+      );
+    }
+    if (badGeomType.length) {
+      out.errors.push(
+        'This release draws Polygon and MultiPolygon layers only — points and ' +
+        'lines are not supported yet. ' + badGeomType.length + ' of ' +
+        geo.features.length + ' features have another geometry type: ' +
+        mlJoinLabels(badGeomType) + '.'
+      );
+    }
+    if (outOfRange > 0) {
+      out.errors.push(
+        'Coordinates look projected, not geographic: ' + outOfRange +
+        ' position' + (outOfRange === 1 ? '' : 's') + ' fall outside the WGS84 ' +
+        'range (longitude ±180, latitude ±90) — for example [' +
+        sampleBad[0] + ', ' + sampleBad[1] + ']. Reproject the file to WGS84 ' +
+        '(EPSG:4326) before uploading.'
+      );
+    }
+    if (out.errors.length) return out;
+
+    const keys = Object.keys(propKeys).sort();
+    if (!keys.length) {
+      out.errors.push(
+        'No feature properties found, so there is no field to colour the layer by.'
+      );
+      return out;
+    }
+
+    out.ok = true;
+    out.geo = geo;
+    out.propKeys = keys;
+    out.featureCount = geo.features.length;
+    out.geomTypes = Object.keys(geomTypes).sort();
+    return out;
+  }
+
+  /**
+   * Check a chosen value field: present and numeric on EVERY feature.
+   * Reports the failing count and the identifiers of the offending features.
+   */
+  function mlValidateValueField(geo, field) {
+    const missing = [];
+    const nonNumeric = [];
+    const values = [];
+    for (let i = 0; i < geo.features.length; i++) {
+      const f = geo.features[i];
+      const props = f && f.properties;
+      const has = props && typeof props === 'object' &&
+        Object.prototype.hasOwnProperty.call(props, field);
+      if (!has) { missing.push(mlFeatureLabel(f, i)); continue; }
+      const n = mlToNumber(props[field]);
+      if (n == null) {
+        nonNumeric.push(mlFeatureLabel(f, i) + ' = ' + JSON.stringify(props[field]));
+        continue;
+      }
+      values.push(n);
+    }
+    const errors = [];
+    if (missing.length) {
+      errors.push(
+        'Field "' + field + '" is missing on ' + missing.length + ' of ' +
+        geo.features.length + ' features: ' + mlJoinLabels(missing) + '.'
+      );
+    }
+    if (nonNumeric.length) {
+      errors.push(
+        'Field "' + field + '" is not numeric on ' + nonNumeric.length + ' of ' +
+        geo.features.length + ' features: ' + mlJoinLabels(nonNumeric) + '.'
+      );
+    }
+    if (errors.length) return { ok: false, errors: errors, scale: null };
+    return { ok: true, errors: [], scale: mlComputeScale(values) };
+  }
+
+  /**
+   * Build a 5-class scale over the feature values.
+   * Quantile by preference; falls back to equal-interval when ties collapse the
+   * quantile breaks (they must be strictly increasing to define 5 classes), and
+   * to a single class when every value is identical.
+   * @returns {{mode:'quantile'|'linear'|'single', breaks:number[], min:number, max:number}}
+   */
+  function mlComputeScale(values) {
+    const sorted = values.slice().sort(function (a, b) { return a - b; });
+    const min = sorted[0];
+    const max = sorted[sorted.length - 1];
+    if (min === max) return { mode: 'single', breaks: [], min: min, max: max };
+
+    // Quantile: the 20/40/60/80th percentiles are the 4 class boundaries.
+    const q = [];
+    for (let k = 1; k <= 4; k++) {
+      const pos = (k / 5) * (sorted.length - 1);
+      const lo = Math.floor(pos), hi = Math.ceil(pos);
+      q.push(lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo));
+    }
+    let strictly = q[0] > min;
+    for (let k = 1; k < q.length && strictly; k++) strictly = q[k] > q[k - 1];
+    if (strictly && q[3] < max) return { mode: 'quantile', breaks: q, min: min, max: max };
+
+    // Equal-interval fallback.
+    const step = (max - min) / 5;
+    return {
+      mode: 'linear',
+      breaks: [min + step, min + 2 * step, min + 3 * step, min + 4 * step],
+      min: min, max: max,
+    };
+  }
+
+  /** Ramp index (0-4) for a value under a scale from mlComputeScale. */
+  function mlClassIndex(v, scale) {
+    if (!scale || scale.mode === 'single') return 2;   // flat field -> mid colour
+    const b = scale.breaks;
+    for (let i = 0; i < b.length; i++) if (v < b[i]) return i;
+    return b.length;
+  }
+
+  /** Compact number for legends and previews (no fixed unit assumptions). */
+  function mlFmtNum(v) {
+    if (v == null || !isFinite(v)) return '—';
+    const abs = Math.abs(v);
+    if (abs >= 1e6) return (v / 1e6).toFixed(2) + 'M';
+    if (abs >= 1e4) return Math.round(v).toLocaleString();
+    if (Number.isInteger(v)) return String(v);
+    return String(Math.round(v * 100) / 100);
+  }
+
+  function mlFmtBytes(bytes) {
+    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes >= 1024) return Math.round(bytes / 1024) + ' KB';
+    return bytes + ' B';
+  }
+
+  /**
+   * Legend card markup for one uploaded layer, mirroring the HVI legend block:
+   * title, the 5-class ramp, end labels, and a source line naming the value
+   * field and how the classes were cut.
+   *
+   * Only the min and max are ticked, not each class boundary: the panel is a
+   * fixed 221px and an arbitrary numeric field (populations, areas, dollars)
+   * produces labels far too wide for six of them to sit side by side. The exact
+   * class boundaries are listed on the Map Layers page instead.
+   */
+  function mlLegendHtml(entry) {
+    const sw = ML_RAMP.map(function (c) {
+      return '<span class="ml-legend-sw" style="background:' + c + '"></span>';
+    }).join('');
+    const s = entry.scale;
+    const ticks = s.mode === 'single'
+      ? '<span>' + escapeHtml(mlFmtNum(s.min)) + '</span>'
+      : '<span>' + escapeHtml(mlFmtNum(s.min)) + '</span>' +
+        '<span>' + escapeHtml(mlFmtNum(s.max)) + '</span>';
+    const modeLabel = s.mode === 'quantile' ? '5 quantile classes'
+      : s.mode === 'linear' ? '5 equal-interval classes'
+      : 'single value';
+    return '<div class="ml-legend-title">' + escapeHtml(entry.name) + '</div>' +
+      '<div class="ml-legend-scale">' +
+        '<span class="ml-legend-lbl">Low</span>' + sw +
+        '<span class="ml-legend-lbl">High</span>' +
+      '</div>' +
+      '<div class="ml-legend-ticks">' + ticks + '</div>' +
+      '<div class="ml-legend-src">' + escapeHtml(entry.valueField) + ' · ' +
+        modeLabel + ' · uploaded this session</div>';
+  }
+
+  /** Register a validated layer for this session. Returns its registry entry. */
+  function mlRegisterLayer(rec) {
+    const entry = {
+      id: 'ml' + (++_mlIdSeq),
+      name: rec.name,
+      geo: rec.geo,
+      valueField: rec.valueField,
+      featureCount: rec.featureCount,
+      geomTypes: rec.geomTypes,
+      scale: rec.scale,
+      // One-shot: the upload's Confirm turns the layer on for its first sight
+      // of the map. Consumed at mount, after which it defaults OFF like HVI.
+      previewOnce: true,
+    };
+    _mlLayers.push(entry);
+    return entry;
+  }
+
+  /** Unregister a session layer. The live map layer is removed at mount scope. */
+  function mlUnregisterLayer(id) {
+    for (let i = 0; i < _mlLayers.length; i++) {
+      if (_mlLayers[i].id === id) return _mlLayers.splice(i, 1)[0];
+    }
+    return null;
+  }
+
 // Compute and render KPI overlay for the DAC map
   // Compute and render Customer Counts panel for the DAC map
   function renderMapKPI(geo) {
@@ -2671,9 +3043,9 @@
         this.bringToFront();
         // Re-assert the intended stack: the bringToFront above would otherwise
         // paint the hovered tract (near-opaque) over the HVI overlay and hide
-        // its color. Raise HVI back on top (then outlines), mirroring
-        // refreshHviLayer's ordering. No-op when HVI is off.
-        if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+        // its color. Raise the overlays back on top (then outlines), mirroring
+        // refreshHviLayer's ordering. No-op when no overlay is on.
+        bringOverlaysToFront();
         bringOutlinesToFront();
         if (!tooltip) return;
 
@@ -2832,9 +3204,9 @@
           _mapState.selectedGeoid = geoid;
           geoLayer.setStyle(styleFeature); // apply selected border
           this.bringToFront();
-          // Keep the HVI overlay above the selected tract so its color isn't
+          // Keep the overlays above the selected tract so their colors aren't
           // persistently occluded (same re-assert as the hover handler).
-          if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+          bringOverlaysToFront();
           bringOutlinesToFront();
           showTractDetail(p);
           renderMapKPI(geo);               // scope the Customer Counts panel to this tract
@@ -3306,6 +3678,19 @@
     function bringOutlinesToFront() {
       if (_boroOutlineLayer) _boroOutlineLayer.bringToFront();
       if (_nbOutlineLayer) _nbOutlineLayer.bringToFront();
+    }
+    // Re-assert the overlay half of the CLCPA-169 stacking order, which a
+    // tract's own bringToFront (hover / select) would otherwise break by
+    // painting a near-opaque tract over the overlays. Order is:
+    // tracts -> HVI -> session-uploaded layers -> outlines (raised separately).
+    // With no uploaded layers registered this is exactly the single HVI call
+    // it replaced — the loop body never runs.
+    function bringOverlaysToFront() {
+      if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
+      for (let i = 0; i < _mlLayers.length; i++) {
+        const lyr = _mlLeaflet[_mlLayers[i].id];
+        if (lyr && map.hasLayer(lyr)) lyr.bringToFront();
+      }
     }
 
     // ---- Apply the current neighborhood selection everywhere ----
@@ -3807,8 +4192,119 @@
         map.removeLayer(geoLayer);
       }
     }
+    // ---- CLCPA-171: session-uploaded GeoJSON overlays ---------------------
+    // A parallel path to refreshHviLayer, deliberately NOT a generalization of
+    // it: HVI's rebuild-on-interactivity-flip state machine exists only for the
+    // "DAC criteria off, so HVI is the sole hover target" case. Uploaded layers
+    // are always non-interactive, so tract hover and select keep working, and
+    // this path stays a plain add / remove.
+    //
+    // Leaflet layers are per-mount (the map instance is rebuilt on every
+    // Executive Summary render); the registry they come from is module scope.
+    const _mlLeaflet = {};   // registry id -> L.GeoJSON for THIS mount
+
+    /** Choropleth style closure for one registry entry. */
+    function mlStyleFor(entry) {
+      return function (feature) {
+        const raw = feature.properties ? feature.properties[entry.valueField] : null;
+        const v = mlToNumber(raw);
+        // Validation guarantees every feature is numeric at upload time, so the
+        // nodata colour is a belt-and-braces path, not an expected one.
+        const c = v == null ? ML_NODATA : ML_RAMP[mlClassIndex(v, entry.scale)];
+        return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
+      };
+    }
+
+    function _mlToggleOn(id) {
+      const cb = document.querySelector('#dac-map-terr input[data-ml-layer="' + id + '"]');
+      return !!(cb && cb.checked);
+    }
+
+    /** Single add/remove entry point for one uploaded layer (+ its legend). */
+    function refreshUploadedLayer(entry) {
+      const box = document.getElementById('ml-legendbox-' + entry.id);
+      if (!_mlToggleOn(entry.id)) {
+        if (_mlLeaflet[entry.id] && map.hasLayer(_mlLeaflet[entry.id])) {
+          map.removeLayer(_mlLeaflet[entry.id]);
+        }
+        if (box) box.hidden = true;
+        return;
+      }
+      if (!_mlLeaflet[entry.id]) {
+        _mlLeaflet[entry.id] = L.geoJSON(entry.geo, {
+          interactive: false,          // tract hover/click passes straight through
+          style: mlStyleFor(entry),
+        });
+      }
+      if (!map.hasLayer(_mlLeaflet[entry.id])) _mlLeaflet[entry.id].addTo(map);
+      _mlLeaflet[entry.id].bringToFront();
+      bringOutlinesToFront();          // outlines stay above every overlay
+      if (box) box.hidden = false;
+    }
+
+    /** Drop an uploaded layer from this map instance (called by page Remove). */
+    function mlDetachLayer(id) {
+      if (_mlLeaflet[id]) {
+        if (map.hasLayer(_mlLeaflet[id])) map.removeLayer(_mlLeaflet[id]);
+        delete _mlLeaflet[id];
+      }
+      const row = document.querySelector('#dac-map-terr .ml-terr-opt[data-ml-row="' + id + '"]');
+      if (row) row.remove();
+      const box = document.getElementById('ml-legendbox-' + id);
+      if (box) box.remove();
+    }
+    // Exposed so the Map Layers page can unregister a layer while the map is
+    // built but off-screen. Cleared and re-set by each mount.
+    window._dacMapDetachUploadedLayer = mlDetachLayer;
+
+    /**
+     * Re-materialize every registered upload: one Layers-panel row and one
+     * legend card each, appended to the existing static markup (which is left
+     * untouched). No registered uploads -> nothing appended, nothing drawn.
+     */
+    function initUploadedLayers() {
+      const panel = document.getElementById('dac-map-terr');
+      const panels = document.getElementById('dac-map-panels');
+      if (!panel || !panels) return;
+      _mlLayers.forEach(function (entry) {
+        const label = document.createElement('label');
+        label.className = 'dac-map-terr-opt ml-terr-opt';
+        label.setAttribute('data-ml-row', entry.id);
+        label.title = entry.valueField;
+        label.innerHTML =
+          '<input type="checkbox" data-ml-layer="' + escapeHtml(entry.id) + '">' +
+          '<span class="dac-map-terr-sw ml-terr-sw"></span>' +
+          '<span class="ml-terr-name">' + escapeHtml(entry.name) + '</span>';
+        panel.appendChild(label);
+
+        const box = document.createElement('div');
+        box.className = 'ml-legendbox';
+        box.id = 'ml-legendbox-' + entry.id;
+        box.hidden = true;
+        box.innerHTML = mlLegendHtml(entry);
+        panels.appendChild(box);
+
+        // One-shot preview: the upload's Confirm navigated here to show the
+        // layer once. Every later mount leaves it OFF, same as HVI.
+        if (entry.previewOnce) {
+          entry.previewOnce = false;
+          label.querySelector('input').checked = true;
+        }
+        refreshUploadedLayer(entry);
+      });
+    }
+
     const terrPanel = document.getElementById('dac-map-terr');
     if (terrPanel) terrPanel.addEventListener('change', function (e) {
+      // CLCPA-171: uploaded layers carry their own data attribute, so this
+      // dispatch and the built-in data-layer one can never collide.
+      const mlcb = e.target.closest('input[data-ml-layer]');
+      if (mlcb) {
+        const id = mlcb.dataset.mlLayer;
+        const entry = _mlLayers.filter(function (x) { return x.id === id; })[0];
+        if (entry) refreshUploadedLayer(entry);
+        return;
+      }
       const cb = e.target.closest('input[data-layer]');
       if (!cb) return;
       if (cb.dataset.layer === 'burden') { setBurden(cb.checked); refreshHviLayer(); }
@@ -3816,6 +4312,8 @@
       else if (cb.dataset.layer === 'hvi') refreshHviLayer();
       else setTerritory(cb.dataset.layer, cb.checked);
     });
+
+    initUploadedLayers();
 
     // EAP sub-panel: Utility / Metric segmented selectors (one choice per group).
     const eapPanel = document.getElementById('dac-map-eap');
@@ -7774,6 +8272,7 @@ function wireHTooltips() {
     let path = (hash || '').replace(/^#/, '') || '/';
     if (path === '/' || path === '') return { name: 'executive' };
     if (path === '/ingest') return { name: 'ingest' };
+    if (path === '/maplayers') return { name: 'maplayers' };
     if (path === '/edit-map-files') return { name: 'editmapfiles' };
     const m = path.match(/^\/section\/([A-J])$/);
     if (m) return { name: 'section', sectionId: m[1] };
@@ -7797,6 +8296,7 @@ function wireHTooltips() {
       el.textContent = `${r.sectionId}. ${sec.full_name}`;
     }
     else if (r.name === 'ingest') el.textContent = 'Data Ingestion';
+    else if (r.name === 'maplayers') el.textContent = 'Map Layers';
     else if (r.name === 'editmapfiles') el.textContent = 'Edit map files';
     else el.textContent = 'Not found';
   }
@@ -7833,6 +8333,10 @@ function wireHTooltips() {
     else if (r.name === 'ingest') {
       view.innerHTML = renderIngestPage();
       wireIngestPage();
+    }
+    else if (r.name === 'maplayers') {
+      view.innerHTML = renderMapLayersPage();
+      wireMapLayersPage();
     }
     else if (r.name === 'editmapfiles') {
       view.innerHTML = renderEditMapFiles();
@@ -8431,6 +8935,371 @@ function wireHTooltips() {
       if (upOverlay && upOverlay.classList.contains('open')) closeUpload();
     };
     document.addEventListener('keydown', _emfEscHandler);
+  }
+
+  // ============================================================
+  // MAP LAYERS PAGE (CLCPA-171 Slice 1)
+  // ------------------------------------------------------------
+  // Upload a GeoJSON overlay, validate it client-side, pick the value field,
+  // preview it, and register it as a toggleable layer on the DAC map.
+  //
+  // Draft state (`state.mapLayers`) is the in-progress upload only:
+  //   { stage: 'idle' | 'fields', fileName, bytes, geo, propKeys, featureCount,
+  //     geomTypes, valueField, errors[], warnings[], fieldErrors[], scale }
+  // Registered layers live in the module-level `_mlLayers` registry.
+  // ============================================================
+
+  function initMapLayersState() {
+    if (!state.mapLayers) state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
+    return state.mapLayers;
+  }
+
+  function mlResetDraft() {
+    state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
+  }
+
+  function renderMapLayersPage() {
+    initMapLayersState();
+    return `
+      <div class="page-header">
+        <div>
+          <h1>Map Layers</h1>
+          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+        </div>
+      </div>
+
+      <div class="ml-note">
+        <span class="ml-note-dot" aria-hidden="true"></span>
+        <div>
+          <strong>Layers are session-only.</strong> They live in this browser tab and disappear on reload
+          or when you close it. Saving layers so they persist for everyone is the next piece of work.
+        </div>
+      </div>
+
+      <div id="ml-upload-mount">${renderMlUploadCard()}</div>
+
+      <div id="ml-list-mount">${renderMlSessionList()}</div>
+    `;
+  }
+
+  /** The upload card: file picker, then validation results, then field pick. */
+  function renderMlUploadCard() {
+    const d = initMapLayersState();
+
+    const errors = (d.errors || []).length
+      ? `<div class="ml-msgs ml-msgs-err" role="alert">
+          <div class="ml-msgs-head">File rejected — nothing was added to the map</div>
+          <ul>${d.errors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
+        </div>`
+      : '';
+
+    const warnings = (d.warnings || []).length
+      ? `<div class="ml-msgs ml-msgs-warn">
+          <div class="ml-msgs-head">Heads up</div>
+          <ul>${d.warnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
+        </div>`
+      : '';
+
+    let body;
+    if (d.stage === 'fields') {
+      body = renderMlFieldStep(d);
+    } else {
+      body = `
+        <p class="ml-intro">Choose a GeoJSON file of polygons in WGS84 (EPSG:4326). It is checked in
+        your browser before anything is drawn — no file leaves this page.</p>
+        <div class="ml-picker">
+          <label class="btn btn-secondary ml-browse">
+            Choose GeoJSON file
+            <input type="file" id="ml-file" accept=".geojson,.json" hidden />
+          </label>
+          <span class="ml-picker-hint">.geojson or .json · up to ${mlFmtBytes(ML_MAX_BYTES)}</span>
+        </div>`;
+    }
+
+    return `
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Add a layer</h3>
+            <p class="ml-card-sub">Polygon or MultiPolygon features, coloured by one numeric property.</p>
+          </div>
+          ${d.stage === 'fields'
+            ? `<span class="ml-chip ml-chip-ok">${escapeHtml(d.fileName)} · ${mlFmtBytes(d.bytes)}</span>`
+            : ''}
+        </div>
+        <div class="ml-card-body">
+          ${errors}
+          ${warnings}
+          ${body}
+        </div>
+      </div>`;
+  }
+
+  /** Step 2: pick the value field, see the per-field check, then confirm. */
+  function renderMlFieldStep(d) {
+    const opts = ['<option value="">Select a field…</option>'].concat(
+      d.propKeys.map(k =>
+        `<option value="${escapeHtml(k)}"${k === d.valueField ? ' selected' : ''}>${escapeHtml(k)}</option>`)
+    ).join('');
+
+    const fieldErrors = (d.fieldErrors || []).length
+      ? `<div class="ml-msgs ml-msgs-err" role="alert">
+          <div class="ml-msgs-head">This field can't colour the layer</div>
+          <ul>${d.fieldErrors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
+          <p class="ml-msgs-foot">Pick a different field, or fix the file and upload it again.
+          Layers are all-or-nothing: a partial layer is never drawn.</p>
+        </div>`
+      : '';
+
+    const preview = d.scale ? renderMlPreview(d) : '';
+
+    return `
+      <dl class="ml-facts">
+        <div><dt>File</dt><dd class="ml-mono">${escapeHtml(d.fileName)}</dd></div>
+        <div><dt>Features</dt><dd>${d.featureCount.toLocaleString()}</dd></div>
+        <div><dt>Geometry</dt><dd>${d.geomTypes.map(escapeHtml).join(' + ')}</dd></div>
+        <div><dt>Properties</dt><dd>${d.propKeys.length}</dd></div>
+      </dl>
+
+      <div class="ml-field-row">
+        <label for="ml-value-field">Colour by</label>
+        <select id="ml-value-field" class="ml-select">${opts}</select>
+        <span class="ml-field-hint">Must be numeric on every feature.</span>
+      </div>
+
+      ${fieldErrors}
+      ${preview}
+
+      <div class="ml-actions">
+        <button class="btn btn-secondary" id="ml-cancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="ml-confirm" type="button"${d.scale ? '' : ' disabled'}>Add to map</button>
+      </div>`;
+  }
+
+  /** Preview block: value range, class breaks and per-class feature counts. */
+  function renderMlPreview(d) {
+    const s = d.scale;
+    // Count features per ramp class so the user sees the distribution, not just
+    // the cut points.
+    const counts = [0, 0, 0, 0, 0];
+    d.geo.features.forEach(function (f) {
+      const v = mlToNumber(f.properties[d.valueField]);
+      if (v != null) counts[mlClassIndex(v, s)]++;
+    });
+    const edges = s.mode === 'single'
+      ? [[s.min, s.max]]
+      : [[s.min, s.breaks[0]], [s.breaks[0], s.breaks[1]], [s.breaks[1], s.breaks[2]],
+         [s.breaks[2], s.breaks[3]], [s.breaks[3], s.max]];
+
+    const classes = edges.map(function (e, i) {
+      const colorIdx = s.mode === 'single' ? 2 : i;
+      return `<div class="ml-class">
+        <span class="ml-class-sw" style="background:${ML_RAMP[colorIdx]}"></span>
+        <span class="ml-class-range">${escapeHtml(mlFmtNum(e[0]))} – ${escapeHtml(mlFmtNum(e[1]))}</span>
+        <span class="ml-class-count">${counts[colorIdx].toLocaleString()}</span>
+      </div>`;
+    }).join('');
+
+    const modeNote = s.mode === 'quantile'
+      ? 'Quantile classes (roughly equal feature counts per colour).'
+      : s.mode === 'linear'
+      ? 'Equal-interval classes — repeated values collapsed the quantile breaks, so the range was cut evenly instead.'
+      : 'Every feature has the same value, so the layer draws in one colour.';
+
+    return `
+      <div class="ml-preview">
+        <div class="ml-preview-head">
+          <span class="ml-preview-title">Preview</span>
+          <span class="ml-chip ml-chip-ok">${d.featureCount.toLocaleString()} features valid</span>
+        </div>
+        <div class="ml-preview-range">
+          <span class="ml-mono">${escapeHtml(d.valueField)}</span>
+          ranges ${escapeHtml(mlFmtNum(s.min))} to ${escapeHtml(mlFmtNum(s.max))}
+        </div>
+        <div class="ml-classes">${classes}</div>
+        <p class="ml-preview-note">${modeNote} Adding the layer opens the Executive Summary map with it
+        switched on. It sits above the tract choropleth and doesn't capture the mouse, so tract hover
+        and selection keep working.</p>
+      </div>`;
+  }
+
+  /** The session list: every layer registered in this tab, with Remove. */
+  function renderMlSessionList() {
+    if (!_mlLayers.length) {
+      return `
+        <div class="ml-card">
+          <div class="ml-card-head">
+            <div>
+              <h3>Layers this session</h3>
+              <p class="ml-card-sub">Uploaded layers appear here and in the map's Layers panel.</p>
+            </div>
+          </div>
+          <div class="ml-card-body">
+            <p class="ml-empty">No layers uploaded yet.</p>
+          </div>
+        </div>`;
+    }
+
+    const rows = _mlLayers.map(entry => `
+      <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
+        <span class="ml-row-sw" aria-hidden="true"></span>
+        <div class="ml-row-main">
+          <div class="ml-row-name">${escapeHtml(entry.name)}</div>
+          <div class="ml-row-meta">
+            ${entry.featureCount.toLocaleString()} features ·
+            ${entry.geomTypes.map(escapeHtml).join(' + ')} ·
+            <span class="ml-mono">${escapeHtml(entry.valueField)}</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary ml-remove" type="button" data-ml-remove="${escapeHtml(entry.id)}">Remove</button>
+      </li>`).join('');
+
+    return `
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Layers this session</h3>
+            <p class="ml-card-sub">Toggle them from the Layers panel on the Executive Summary map.</p>
+          </div>
+          <span class="ml-chip">${_mlLayers.length} layer${_mlLayers.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list">${rows}</ul>
+        </div>
+      </div>`;
+  }
+
+  function rerenderMlUpload() {
+    const mount = document.getElementById('ml-upload-mount');
+    if (!mount) return;
+    mount.innerHTML = renderMlUploadCard();
+    wireMlUploadCard();
+  }
+
+  function rerenderMlList() {
+    const mount = document.getElementById('ml-list-mount');
+    if (!mount) return;
+    mount.innerHTML = renderMlSessionList();
+    wireMlList();
+  }
+
+  /** Wire the Map Layers page (both cards). */
+  function wireMapLayersPage() {
+    wireMlUploadCard();
+    wireMlList();
+  }
+
+  function wireMlUploadCard() {
+    const fileInput = document.getElementById('ml-file');
+    if (fileInput) {
+      fileInput.addEventListener('change', function () {
+        const file = this.files && this.files[0];
+        if (!file) return;
+        mlHandleFile(file);
+        this.value = '';   // allow re-picking the same file after a rejection
+      });
+    }
+
+    const sel = document.getElementById('ml-value-field');
+    if (sel) {
+      sel.addEventListener('change', function () {
+        const d = state.mapLayers;
+        d.valueField = this.value || null;
+        d.fieldErrors = [];
+        d.scale = null;
+        if (d.valueField) {
+          const res = mlValidateValueField(d.geo, d.valueField);
+          if (res.ok) d.scale = res.scale;
+          else d.fieldErrors = res.errors;
+        }
+        rerenderMlUpload();
+      });
+    }
+
+    const cancel = document.getElementById('ml-cancel');
+    if (cancel) cancel.addEventListener('click', function () {
+      mlResetDraft();
+      rerenderMlUpload();
+    });
+
+    const confirm = document.getElementById('ml-confirm');
+    if (confirm) confirm.addEventListener('click', function () {
+      const d = state.mapLayers;
+      if (!d || !d.scale) return;
+      mlRegisterLayer({
+        name: d.layerName,
+        geo: d.geo,
+        valueField: d.valueField,
+        featureCount: d.featureCount,
+        geomTypes: d.geomTypes,
+        scale: d.scale,
+      });
+      mlResetDraft();
+      rerenderMlUpload();
+      rerenderMlList();
+      // Show it: the map lives on the Executive Summary, and the entry's
+      // previewOnce flag has that mount switch this one layer on.
+      location.hash = '#/';
+    });
+  }
+
+  function wireMlList() {
+    const list = document.querySelector('.ml-list');
+    if (!list) return;
+    list.addEventListener('click', function (e) {
+      const btn = e.target.closest('button[data-ml-remove]');
+      if (!btn) return;
+      const id = btn.dataset.mlRemove;
+      mlUnregisterLayer(id);
+      // Drop it from a built map too (its Layers-panel row and legend go with
+      // it). Absent when the map has never been mounted this session.
+      if (typeof window._dacMapDetachUploadedLayer === 'function') {
+        try { window._dacMapDetachUploadedLayer(id); } catch (err) {
+          console.warn('[Map Layers] Could not detach layer from the map:', err);
+        }
+      }
+      rerenderMlList();
+    });
+  }
+
+  /** Read + validate a picked file, then move to the field-selection step. */
+  function mlHandleFile(file) {
+    const reader = new FileReader();
+    reader.onerror = function () {
+      state.mapLayers = {
+        stage: 'idle', errors: ['Could not read the file. Try picking it again.'], warnings: [],
+      };
+      rerenderMlUpload();
+    };
+    reader.onload = function () {
+      const res = mlValidateGeoJSON(String(reader.result), file.size);
+      if (!res.ok) {
+        state.mapLayers = {
+          stage: 'idle', errors: res.errors, warnings: res.warnings,
+        };
+        rerenderMlUpload();
+        return;
+      }
+      state.mapLayers = {
+        stage: 'fields',
+        fileName: file.name,
+        // Layer label: the filename without its extension, which the user can
+        // recognize in the Layers panel.
+        layerName: file.name.replace(/\.(geojson|json)$/i, ''),
+        bytes: file.size,
+        geo: res.geo,
+        propKeys: res.propKeys,
+        featureCount: res.featureCount,
+        geomTypes: res.geomTypes,
+        valueField: null,
+        errors: [],
+        warnings: res.warnings,
+        fieldErrors: [],
+        scale: null,
+      };
+      rerenderMlUpload();
+    };
+    reader.readAsText(file);
   }
 
   /** Main ingest page renderer. */
