@@ -235,10 +235,16 @@
         // the Saved-layers group, so uploads stay session-only. These exist so
         // the facade has one shape and callers never branch on the backend.
         isDataverse() { return false; },
+        // Slice 3: nothing to gate without Dataverse; the page hides the saved
+        // group entirely and Save is disabled, so these are never the deciding
+        // factor. False keeps the "no controls you cannot use" rule uniform.
+        async initPrivileges() { /* no privileges to resolve */ },
+        canCreateLayers() { return false; },
+        canWriteLayers() { return false; },
         async listMapLayers() { return []; },
         getMapLayerFile() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
         saveMapLayer() { return Promise.reject(new Error('Saving layers needs Dataverse.')); },
-        deactivateMapLayer() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
+        setMapLayerActive() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
       };
     })();
 
@@ -314,6 +320,66 @@
       }
 
       /**
+       * CLCPA-171 Slice 3: can this user create / write cr2bf_dacmaplayer rows?
+       *
+       * Dataverse is the real enforcement; this only decides whether to show the
+       * controls. RetrievePrincipalAccess cannot answer it (it is record-level
+       * and needs a Target, so it cannot express "may create"), and joining
+       * systemuserroles -> roleprivileges is fragile and misses team-derived
+       * depth. RetrieveUserPrivilegeByPrivilegeName is the right message: bound
+       * to systemuser, and its RolePrivileges collection explicitly includes
+       * privileges inherited from team roles. Non-empty means the user holds it.
+       *
+       * The privilege NAME is read from the table's own metadata rather than
+       * guessed as prvCreate + logical name, so a naming surprise cannot silently
+       * hide every control.
+       *
+       * Fails closed: any error leaves both flags false, i.e. read-only.
+       */
+      async function resolveMapLayerPrivileges(userId) {
+        const out = { canCreate: false, canWrite: false, detected: false };
+        if (!userId) {
+          console.warn('[Storage] No user id available; map layer controls stay read-only.');
+          return out;
+        }
+        try {
+          const res = await fetch(
+            API + "EntityDefinitions(LogicalName='" + ENT_MAPLAYER + "')?$select=Privileges",
+            { credentials: 'same-origin', headers: GET_HEADERS });
+          if (!res.ok) throw new Error('EntityDefinitions Privileges ' + res.status);
+          const privs = (await res.json()).Privileges || [];
+          // PrivilegeType is an enum surfaced as a string over the Web API.
+          const nameFor = (type) => {
+            const hit = privs.filter(p => String(p.PrivilegeType) === type)[0];
+            return hit ? hit.Name : null;
+          };
+          const createName = nameFor('Create');
+          const writeName = nameFor('Write');
+          if (!createName || !writeName) {
+            throw new Error('table metadata lists no Create/Write privilege ' +
+              '(found: ' + privs.map(p => p.PrivilegeType).join(',') + ')');
+          }
+          const holds = async (privName) => {
+            const r = await fetch(API + 'systemusers(' + userId +
+              ')/Microsoft.Dynamics.CRM.RetrieveUserPrivilegeByPrivilegeName(PrivilegeName=@p)' +
+              "?@p='" + privName.replace(/'/g, "''") + "'",
+              { credentials: 'same-origin', headers: GET_HEADERS });
+            if (!r.ok) throw new Error('RetrieveUserPrivilegeByPrivilegeName ' + r.status);
+            const j = await r.json();
+            return Array.isArray(j.RolePrivileges) && j.RolePrivileges.length > 0;
+          };
+          const [c, w] = await Promise.all([holds(createName), holds(writeName)]);
+          out.canCreate = c; out.canWrite = w; out.detected = true;
+          console.info('[Storage] map layer privileges: create=' + c + ' write=' + w +
+            ' (' + createName + ' / ' + writeName + ')');
+        } catch (e) {
+          console.warn('[Storage] Could not determine map layer privileges; ' +
+            'showing saved layers read-only. Dataverse still enforces the real rules.', e);
+        }
+        return out;
+      }
+
+      /**
        * Narrow MAPHISTORY_FIELDS to the columns the audit table actually has.
        * Cheap insurance: a schema drift drops fields (logged) instead of making
        * every audit write fail with a 400.
@@ -369,12 +435,22 @@
           ', fileMax=' + (fileMaxBytes ? Math.round(fileMaxBytes / 1048576) + ' MB' : 'unknown'));
       }
 
-      /** One audit row per layer save / deactivate. Background: never blocks. */
+      // CLCPA-171 Slice 3: privilege flags, resolved in a separate step because
+      // the probe needs the signed-in user id, which the facade only has after
+      // loadCurrentUser() runs. Both stay false until proven otherwise.
+      let mapPrivs = { canCreate: false, canWrite: false, detected: false };
+
+      /**
+       * One audit row per save / activate / deactivate. Background: never blocks,
+       * and a failure here never fails the operation it describes.
+       */
       function writeMapAudit(action, layer, extra) {
         const user = _currentUser || { name: '', email: '' };
-        const desc = (action === 'save'
+        const desc = action === 'save'
           ? 'Saved map layer ' + layer.layerKey + ' (' + layer.featureCount + ' features)'
-          : 'Deactivated map layer ' + layer.layerKey);
+          : action === 'activate'
+          ? 'Activated map layer ' + layer.layerKey
+          : 'Deactivated map layer ' + layer.layerKey;
         const all = {
           cr2bf_changedescription: desc.slice(0, 100),
           cr2bf_user: user.name || 'anonymous',
@@ -594,6 +670,15 @@
         // ---- CLCPA-171 Slice 2: saved map layers ------------------------
         isDataverse() { return true; },
 
+        // ---- CLCPA-171 Slice 3: capability flags ------------------------
+        async initPrivileges(userId) {
+          mapPrivs = await resolveMapLayerPrivileges(userId);
+        },
+        // Saving needs Create (the record) AND Write (the file + IsActive
+        // PATCHes). Toggling active needs Write alone.
+        canCreateLayers() { return mapPrivs.canCreate && mapPrivs.canWrite; },
+        canWriteLayers() { return mapPrivs.canWrite; },
+
         /**
          * Active saved layers, metadata only (no file bodies).
          * `$select`s the File column so a row whose upload never landed can be
@@ -603,9 +688,12 @@
           const cols = [ID_MAPLAYER, 'cr2bf_layername', 'cr2bf_layerkey', 'cr2bf_valuefield',
             'cr2bf_rampconfig', 'cr2bf_sourcelabel', 'cr2bf_featurecount', 'cr2bf_geometrytype',
             'cr2bf_isactive', COL_FILE, 'createdon'].join(',');
+          // Slice 3: no IsActive filter. The page lists inactive layers too
+          // (muted, info intact) so they can be switched back on; only active
+          // ones materialize on the map, which the draw path decides.
           const rows = await getAll(setMapLayer,
             '$select=' + cols + '&$expand=createdby($select=fullname)' +
-            '&$filter=cr2bf_isactive eq true&$orderby=createdon asc');
+            '&$orderby=createdon asc');
           const out = [];
           rows.forEach(r => {
             if (r[COL_FILE] == null) {
@@ -629,6 +717,7 @@
               geometryType: r.cr2bf_geometrytype || '',
               savedBy: (r.createdby && r.createdby.fullname) || '',
               savedOn: r.createdon || '',
+              active: r.cr2bf_isactive === true,
             });
           });
           return out;
@@ -717,10 +806,14 @@
           return saved;
         },
 
-        /** Soft delete: hide the layer for everyone, keep the record and file. */
-        async deactivateMapLayer(dvId, layer) {
-          await dvUpdate(setMapLayer, dvId, { cr2bf_isactive: false });
-          writeMapAudit('deactivate', layer, {});
+        /**
+         * Flip a saved layer's IsActive. Slice 3 generalizes Slice 2's one-way
+         * deactivate: nothing is ever deleted, so switching back on restores the
+         * layer for everyone. Each flip writes its own audit row.
+         */
+        async setMapLayerActive(dvId, layer, active) {
+          await dvUpdate(setMapLayer, dvId, { cr2bf_isactive: !!active });
+          writeMapAudit(active ? 'activate' : 'deactivate', layer, {});
         },
       };
     })();
@@ -747,6 +840,7 @@
 
     // Current user identity (the WHO recorded in Change History), captured once at init().
     let _currentUser = null;
+    let _currentUserId = null;   // systemuserid, for the Slice 3 privilege probe
     async function loadCurrentUser(url) {
       const api = url.replace(/\/+$/, '') + '/api/data/v9.2/';
       const H = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' };
@@ -754,6 +848,7 @@
         const w = await fetch(api + 'WhoAmI', { credentials: 'same-origin', headers: H });
         if (!w.ok) throw new Error('WhoAmI ' + w.status);
         const uid = (await w.json()).UserId;
+        _currentUserId = uid;   // CLCPA-171 Slice 3: needed by the privilege probe
         const r = await fetch(api + 'systemusers(' + uid + ')?$select=fullname,internalemailaddress', { credentials: 'same-origin', headers: H });
         if (!r.ok) throw new Error('systemusers ' + r.status);
         const u = await r.json();
@@ -775,6 +870,11 @@
             active = dvBackend;
             console.info('[Storage] backend = Dataverse (' + url + ')');
             await loadCurrentUser(url);
+            // CLCPA-171 Slice 3: needs the user id from the lookup above, so it
+            // runs here rather than inside dvBackend.init(). Awaited so a user
+            // who lands straight on #/maplayers already has correct controls;
+            // it never throws, and both flags stay false if it cannot decide.
+            await dvBackend.initPrivileges(_currentUserId);
             return;
           } catch (e) {
             const msg = (e && e.message) ? e.message : String(e);
@@ -827,10 +927,14 @@
 
       // ---- CLCPA-171 Slice 2: saved map layers --------------------------
       isDataverse() { return active.isDataverse(); },
+      // Slice 3: UX gating only. Dataverse remains the real enforcement, and
+      // these are false whenever detection could not prove otherwise.
+      canCreateLayers() { return active.canCreateLayers(); },
+      canWriteLayers() { return active.canWriteLayers(); },
       listMapLayers() { return active.listMapLayers(); },
       getMapLayerFile(dvId) { return active.getMapLayerFile(dvId); },
       saveMapLayer(layer, geojsonText, onProgress) { return active.saveMapLayer(layer, geojsonText, onProgress); },
-      deactivateMapLayer(dvId, layer) { return active.deactivateMapLayer(dvId, layer); },
+      setMapLayerActive(dvId, layer, isActive) { return active.setMapLayerActive(dvId, layer, isActive); },
       // Exposed for the Map Layers page: showToast is private to this IIFE and
       // there is no second notification system to reach for.
       toast(message, type) { return showToast(message, type); },
@@ -2848,8 +2952,16 @@
         '<span class="ml-legend-lbl">High</span>' +
       '</div>' +
       '<div class="ml-legend-ticks">' + ticks + '</div>' +
+      // Slice 3: the provenance line finally shows cr2bf_SourceLabel. Slice 1b
+      // hardcoded "uploaded this session", which was false for a saved layer
+      // loaded by another user. The fallback stays origin-aware rather than
+      // neutral-for-everything: for an unsaved session layer that phrase was
+      // accurate, so it is kept, and only the saved case changes.
       '<div class="ml-legend-src">' + escapeHtml(entry.valueField) + ' · ' +
-        modeLabel + ' · uploaded this session</div>';
+        modeLabel + ' · ' +
+        escapeHtml(entry.sourceLabel ||
+          (entry.origin === 'saved' ? 'saved layer' : 'uploaded this session')) +
+        '</div>';
   }
 
   /**
@@ -2888,6 +3000,14 @@
       savedBy: rec.savedBy || '',
       savedOn: rec.savedOn || '',
       saveState: null,     // null | {phase, ...} while a save is in flight
+      // ---- CLCPA-171 Slice 3 ----
+      // Saved layers carry cr2bf_isactive; inactive ones stay listed but are
+      // never drawn. Session layers are always "active" (there is nothing to
+      // deactivate until they are saved).
+      active: rec.active !== false,
+      // Set when a saved layer's file could not be downloaded: it is listed with
+      // a "couldn't load" badge rather than silently skipped.
+      loadError: rec.loadError || null,
     };
     _mlLayers.push(entry);
     return entry;
@@ -2953,12 +3073,15 @@
       sourceLabel: rec.sourceLabel,
       savedBy: rec.savedBy,
       savedOn: rec.savedOn,
+      // Slice 3: hydrated whether active or not; the draw path is what filters.
+      active: rec.active,
     });
   }
 
   /**
-   * Load active saved layers and add them to the registry. Non-blocking and
-   * non-fatal: any failure logs and leaves the app session-only.
+   * Load saved layers and add them to the registry. Non-blocking and non-fatal:
+   * any failure logs and leaves the app session-only. Slice 3 loads inactive
+   * layers too, so they can be switched back on from the page.
    */
   async function mlHydrateSavedLayers() {
     if (_mlHydrated || !Storage.isDataverse()) return;
@@ -2972,15 +3095,23 @@
     }
     if (!records.length) return;
 
-    let added = 0;
+    let added = 0, failed = 0;
     for (let i = 0; i < records.length; i++) {
       const rec = records[i];
       let text;
       try {
         text = await Storage.getMapLayerFile(rec.dvId);
       } catch (e) {
-        console.warn('[Map Layers] Skipped saved layer "' + rec.layerKey + '": ' +
-          (e && e.message ? e.message : e));
+        // Slice 3: list it with a "couldn't load" badge instead of vanishing.
+        // Registered without geometry, so the draw path skips it.
+        const msg = (e && e.message ? e.message : String(e));
+        console.warn('[Map Layers] Could not load saved layer "' + rec.layerKey + '": ' + msg);
+        mlRegisterLayer(Object.assign({}, rec, {
+          geo: null, scale: null, previewOnce: false, origin: 'saved',
+          geomTypes: (rec.geometryType || '').split('+').filter(Boolean),
+          loadError: msg,
+        }));
+        failed++;
         continue;
       }
       // Key collision, checked HERE and not before the download: the only window
@@ -2997,7 +3128,7 @@
           featureCount: rec.featureCount, geomTypes: (rec.geometryType || '').split('+').filter(Boolean),
           scale: null, ramp: rec.ramp, previewOnce: false, origin: 'saved',
           layerKey: rec.layerKey, dvId: rec.dvId, sourceLabel: rec.sourceLabel,
-          savedBy: rec.savedBy, savedOn: rec.savedOn,
+          savedBy: rec.savedBy, savedOn: rec.savedOn, active: rec.active,
         });
         continue;
       }
@@ -3009,7 +3140,8 @@
           (e && e.message ? e.message : e));
       }
     }
-    console.info('[Map Layers] hydrated ' + added + ' of ' + records.length + ' saved layer(s).');
+    console.info('[Map Layers] hydrated ' + added + ' of ' + records.length + ' saved layer(s)' +
+      (failed ? ', ' + failed + ' could not load' : '') + '.');
 
     // Draw them on a map that is already built, without rebuilding it (a
     // rebuild would clear the user's tract selection).
@@ -4881,8 +5013,11 @@
       _mlLayers.forEach(function (entry) {
         // Nothing to draw: a saved layer whose key collided with a session
         // upload is registered for the page list only, without geometry
-        // (CLCPA-171 Slice 2).
+        // (CLCPA-171 Slice 2), as is one whose file failed to download (Slice 3).
         if (!entry.geo) return;
+        // Slice 3: inactive saved layers stay listed on the Map Layers page but
+        // never reach the map, for anyone.
+        if (entry.active === false) return;
         // Idempotent: Slice 2 calls this again when saved layers hydrate after
         // the map is already built, so skip anything already materialized.
         if (panel.querySelector('.ml-terr-opt[data-ml-row="' + entry.id + '"]')) return;
@@ -9591,20 +9726,38 @@ function wireHTooltips() {
       <div class="page-header ml-page-header">
         <div>
           <h1>Map Layers</h1>
-          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+          <p class="page-sub">${mlCanUpload()
+            ? 'Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.'
+            : 'The GeoJSON overlays saved for this dashboard, and which of them are on the DAC map.'}</p>
         </div>
-        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                aria-haspopup="dialog">File requirements</button>
+        ${mlCanUpload()
+          ? `<button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
+                aria-haspopup="dialog">File requirements</button>`
+          : ''}
       </div>
 
       ${renderMlNote()}
 
-      <div id="ml-upload-mount">${renderMlUploadCard()}</div>
+      <div id="ml-upload-mount">${mlCanUpload() ? renderMlUploadCard() : ''}</div>
 
       <div id="ml-list-mount">${renderMlSessionList()}</div>
 
-      ${renderMlRequirementsDrawer()}
+      ${mlCanUpload() ? renderMlRequirementsDrawer() : ''}
     `;
+  }
+
+  /**
+   * May this user upload at all? (CLCPA-171 Slice 3 item 2.)
+   *
+   * On localStorage there is nothing to gate: uploads are session-only and that
+   * behavior is unchanged from Slice 1. On Dataverse, a user without create and
+   * write access to cr2bf_dacmaplayer is shown saved layers read-only, with no
+   * upload card and no Save — there is no point offering a control whose only
+   * possible outcome is a 403. Dataverse is still the real enforcement.
+   */
+  function mlCanUpload() {
+    if (!Storage.isDataverse()) return true;
+    return Storage.canCreateLayers();
   }
 
   /**
@@ -9613,13 +9766,19 @@ function wireHTooltips() {
    * everything stays in this tab (CLCPA-171 Slice 2).
    */
   function renderMlNote() {
-    const body = Storage.isDataverse()
-      ? '<strong>Uploads start in this browser tab.</strong> Choose Save layer to keep one in ' +
-        'Dataverse, where it loads for everyone who opens the dashboard. Anything left unsaved ' +
-        'disappears when you close the tab.'
-      : '<strong>Layers are session-only here.</strong> They live in this browser tab and disappear ' +
+    const body = !Storage.isDataverse()
+      ? '<strong>Layers are session-only here.</strong> They live in this browser tab and disappear ' +
         'on reload or when you close it. Saving to Dataverse needs the hosted app; this preview ' +
-        'cannot reach it.';
+        'cannot reach it.'
+      : !Storage.canCreateLayers()
+      // Slice 3: read-only access. Say so plainly rather than showing controls
+      // that would only fail.
+      ? '<strong>You have read-only access to map layers.</strong> Saved layers below load onto the ' +
+        'DAC map as usual. Adding or changing them needs create and write access to DAC Map Layer, ' +
+        'which an administrator grants.'
+      : '<strong>Uploads start in this browser tab.</strong> Choose Save layer to keep one in ' +
+        'Dataverse, where it loads for everyone who opens the dashboard. Anything left unsaved ' +
+        'disappears when you close the tab.';
     return `
       <div class="ml-note">
         <span class="ml-note-dot" aria-hidden="true"></span>
@@ -9785,6 +9944,14 @@ function wireHTooltips() {
       </dl>
 
       <div class="ml-field-row">
+        <label for="ml-layer-name">Layer name</label>
+        <input type="text" id="ml-layer-name" class="ml-text" maxlength="100"
+               value="${escapeHtml(d.layerName || '')}" />
+        <span class="ml-field-hint">Shown in the map's Layers panel and legend.
+          Key: <span class="ml-mono" id="ml-key-preview">${escapeHtml(mlSessionKeyFor(d.layerName, null))}</span></span>
+      </div>
+
+      <div class="ml-field-row">
         <label for="ml-value-field">Colour by</label>
         <select id="ml-value-field" class="ml-select">${opts}</select>
         <span class="ml-field-hint">Must be numeric on every feature.</span>
@@ -9797,6 +9964,33 @@ function wireHTooltips() {
         <button class="btn btn-secondary" id="ml-cancel" type="button">Cancel</button>
         <button class="btn btn-primary" id="ml-confirm" type="button"${d.scale ? '' : ' disabled'}>Add to map</button>
       </div>`;
+  }
+
+  /**
+   * A session-unique layer key derived from a display name.
+   *
+   * Slice 3 item 4: two uploads in one session can easily slug to the same key
+   * ("risk 2024.geojson" and "risk-2024.geojson" both give risk_2024), and the
+   * key is what Save writes to cr2bf_LayerKey, so a silent duplicate would be a
+   * problem later rather than now. Auto-suffix -2, -3 against other SESSION
+   * layers. Saved-key collisions are deliberately NOT handled here: Slice 2
+   * rejects those at save time, since deactivate-or-rename is the v1 story.
+   *
+   * @param {string} name display name
+   * @param {string|null} exceptId registry id to ignore (the row being renamed)
+   */
+  function mlSessionKeyFor(name, exceptId) {
+    const base = mlLayerKey(name);
+    const taken = {};
+    _mlLayers.forEach(function (e) {
+      if (e.origin === 'session' && e.id !== exceptId) taken[e.layerKey] = true;
+    });
+    if (!taken[base]) return base;
+    for (let n = 2; n < 1000; n++) {
+      const cand = base + '-' + n;
+      if (!taken[cand]) return cand;
+    }
+    return base + '-' + Date.now();
   }
 
   /** Preview block: value range, class breaks and per-class feature counts. */
@@ -9934,31 +10128,58 @@ function wireHTooltips() {
   function renderMlSavedGroup() {
     const saved = mlSavedLayers();
     if (!Storage.isDataverse()) return '';
+    // Slice 3: the toggle is a write, so it needs Write privilege. Without it
+    // the list is read-only and no control is offered that would only 403.
+    const canToggle = Storage.canWriteLayers();
     const body = saved.length
       ? '<ul class="ml-list">' + saved.map(entry => {
           const who = [entry.savedBy, mlFmtSavedOn(entry.savedOn)].filter(Boolean).join(' · ');
-          const orphan = !entry.geo
-            ? '<span class="ml-chip ml-chip-warn">superseded by a session upload</span>'
-            : '';
+          const badges =
+            (entry.loadError
+              ? '<span class="ml-chip ml-chip-err" title="' + escapeHtml(entry.loadError) +
+                '">couldn\'t load</span>'
+              : '') +
+            (!entry.geo && !entry.loadError
+              ? '<span class="ml-chip ml-chip-warn">superseded by a session upload</span>'
+              : '') +
+            (entry.active === false
+              ? '<span class="ml-chip ml-chip-off">inactive</span>'
+              : '');
+          const busy = entry.toggleBusy === true;
+          const toggle = canToggle
+            ? `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
+                 <input type="checkbox" data-ml-active="${escapeHtml(entry.id)}"${
+                   entry.active !== false ? ' checked' : ''}${busy ? ' disabled' : ''} />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+                 <span class="ml-toggle-label">${busy ? 'Saving…' : (entry.active !== false ? 'Active' : 'Inactive')}</span>
+               </label>`
+            : `<span class="ml-chip">${entry.active !== false ? 'Active' : 'Inactive'}</span>`;
+          const src = entry.sourceLabel
+            ? `<div class="ml-row-src">${escapeHtml(entry.sourceLabel)}</div>` : '';
           return `
-        <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
+        <li class="ml-row${entry.active === false ? ' ml-row-inactive' : ''}" data-ml-entry="${escapeHtml(entry.id)}">
           <span class="ml-row-sw" aria-hidden="true"${mlSwatchStyle(entry)}></span>
           <div class="ml-row-main">
-            <div class="ml-row-name">${escapeHtml(entry.name)} ${orphan}</div>
+            <div class="ml-row-name">${escapeHtml(entry.name)} ${badges}</div>
             <div class="ml-row-meta">${mlRowMeta(entry)}${who ? ' · ' + escapeHtml(who) : ''}</div>
+            ${src}
           </div>
-          <button class="btn btn-secondary ml-remove" type="button"
-                  data-ml-deactivate="${escapeHtml(entry.id)}">Deactivate</button>
+          <div class="ml-row-actions">${toggle}</div>
         </li>`;
         }).join('') + '</ul>'
-      : '<p class="ml-empty">No saved layers yet. Upload one below, then choose Save layer.</p>';
+      : '<p class="ml-empty">No saved layers yet.' +
+        (Storage.canCreateLayers() ? ' Upload one below, then choose Save layer.' : '') + '</p>';
+
+    const sub = canToggle
+      ? 'Stored in Dataverse and visible to everyone who opens the dashboard. Switch one off to take it off everyone\'s map without deleting it.'
+      : 'Stored in Dataverse and visible to everyone who opens the dashboard. You have read-only access, so these cannot be changed here.';
 
     return `
       <div class="ml-card">
         <div class="ml-card-head">
           <div>
             <h3>Saved layers</h3>
-            <p class="ml-card-sub">Stored in Dataverse and visible to everyone who opens the dashboard.</p>
+            <p class="ml-card-sub">${sub}</p>
           </div>
           ${saved.length ? `<span class="ml-chip">${saved.length} layer${saved.length === 1 ? '' : 's'}</span>` : ''}
         </div>
@@ -9969,27 +10190,52 @@ function wireHTooltips() {
   /** Session group: uploaded here and not yet saved. Remove, and Save when possible. */
   function renderMlSessionGroup() {
     const session = mlSessionLayers();
-    const canSave = Storage.isDataverse();
+    // Saving creates a record and writes a file, so it needs both privileges.
+    const canSave = Storage.isDataverse() && Storage.canCreateLayers();
+    // Without Dataverse there is no privilege question: keep Slice 2's disabled
+    // Save plus its explanatory note, unchanged. The privilege gating in Slice 3
+    // item 2 is about Dataverse access, and a read-only Dataverse user never
+    // reaches this group at all (mlCanUpload hides it).
+    const showSave = canSave || !Storage.isDataverse();
     const body = session.length
       ? '<ul class="ml-list">' + session.map(entry => {
-          let action;
           const st = entry.saveState;
-          if (st && st.phase && st.phase !== 'error') {
+          const inFlight = st && st.phase && st.phase !== 'error';
+          let action;
+          if (inFlight) {
             action = `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(st))}</span>`;
           } else {
             action = `
-            <button class="btn btn-secondary ml-remove" type="button" data-ml-remove="${escapeHtml(entry.id)}">Remove</button>
-            <button class="btn btn-primary ml-save-btn" type="button" data-ml-save="${escapeHtml(entry.id)}"${canSave ? '' : ' disabled'}>Save layer</button>`;
+            <button class="btn btn-secondary ml-remove" type="button" data-ml-remove="${escapeHtml(entry.id)}">Remove</button>` +
+            (showSave
+              ? `<button class="btn btn-primary ml-save-btn" type="button" data-ml-save="${escapeHtml(entry.id)}"${
+                  canSave ? '' : ' disabled'}>Save layer</button>`
+              : '');
           }
-          const err = (st && st.phase === 'error')
-            ? `<div class="ml-row-error" role="alert">Save failed: ${escapeHtml(st.message)}</div>`
-            : '';
+
+          // Slice 3: the source label is required to save, so it is collected on
+          // the row rather than behind a dialog, with a placeholder that teaches
+          // the format. Session-only layers may leave it blank.
+          const srcField = canSave && !inFlight
+            ? `<div class="ml-row-src-field">
+                 <label for="ml-src-${escapeHtml(entry.id)}">Source and publication${
+                   ' <span class="ml-req" title="Required to save">*</span>'}</label>
+                 <input type="text" class="ml-text ml-src-input" id="ml-src-${escapeHtml(entry.id)}"
+                        data-ml-src="${escapeHtml(entry.id)}" maxlength="300"
+                        placeholder="NYC DOHMH Heat Vulnerability Index, 2022 release"
+                        value="${escapeHtml(entry.sourceLabel || '')}" />
+               </div>`
+            : (entry.sourceLabel
+                ? `<div class="ml-row-src">${escapeHtml(entry.sourceLabel)}</div>` : '');
+
+          const err = (st && st.phase === 'error') ? mlSaveErrorHtml(entry, st) : '';
           return `
         <li class="ml-row" data-ml-entry="${escapeHtml(entry.id)}">
           <span class="ml-row-sw" aria-hidden="true"${mlSwatchStyle(entry)}></span>
           <div class="ml-row-main">
             <div class="ml-row-name">${escapeHtml(entry.name)}</div>
             <div class="ml-row-meta">${mlRowMeta(entry)} · <span class="ml-mono">${escapeHtml(entry.layerKey)}</span></div>
+            ${srcField}
             ${err}
           </div>
           <div class="ml-row-actions">${action}</div>
@@ -9997,9 +10243,11 @@ function wireHTooltips() {
         }).join('') + '</ul>'
       : '<p class="ml-empty">No layers uploaded in this session.</p>';
 
-    const note = canSave
+    const note = !Storage.isDataverse()
+      ? '<p class="ml-card-sub">Saving needs Dataverse, which this preview cannot reach, so layers stay in this tab only.</p>'
+      : canSave
       ? '<p class="ml-card-sub">Save a layer to keep it for everyone; unsaved layers disappear when you close this tab.</p>'
-      : '<p class="ml-card-sub">Saving needs Dataverse, which this preview cannot reach, so layers stay in this tab only.</p>';
+      : '<p class="ml-card-sub">You have read-only access to saved layers, so uploads here stay in this tab only.</p>';
 
     return `
       <div class="ml-card">
@@ -10012,6 +10260,56 @@ function wireHTooltips() {
         </div>
         <div class="ml-card-body">${body}</div>
       </div>`;
+  }
+
+  /**
+   * Classify a save failure and render the row's error block.
+   *
+   * Retry is offered only where retrying can actually help. A restart is the
+   * right retry (see mlSaveLayer), but restarting into a 403 or a duplicate key
+   * just fails again more slowly, so those get an explanation instead of a
+   * button.
+   */
+  function mlSaveErrorHtml(entry, st) {
+    const kind = st.kind || 'unknown';
+    const RETRYABLE = { network: 1, server: 1, unknown: 1 };
+    const head = kind === 'permission'
+      ? "You don't have permission to save layers"
+      : kind === 'duplicate' ? 'That layer key is already saved'
+      : kind === 'toobig' ? 'That file is too large to save'
+      : kind === 'network' ? 'The connection dropped while saving'
+      : kind === 'missing-source' ? 'Add a source and publication first'
+      : 'Save failed';
+    const extra = kind === 'permission'
+      ? 'Dataverse refused the write. Ask an administrator for create and write access to DAC Map Layer; the layer is still on your map for this session.'
+      : kind === 'network'
+      ? 'Nothing partial was left behind. Trying again restarts the upload from the beginning.'
+      : '';
+    const retry = RETRYABLE[kind]
+      ? `<button class="btn btn-secondary ml-retry-btn" type="button" data-ml-retry="${escapeHtml(entry.id)}">Try again</button>`
+      : '';
+    return `<div class="ml-row-error" role="alert">
+      <strong>${escapeHtml(head)}</strong>
+      <div class="ml-row-error-detail">${escapeHtml(st.message)}</div>
+      ${extra ? `<div class="ml-row-error-hint">${escapeHtml(extra)}</div>` : ''}
+      ${retry}
+    </div>`;
+  }
+
+  /**
+   * Bucket a save error so the row can offer the right affordance.
+   * A fetch that rejects (rather than returning a status) is a network drop:
+   * our Dataverse helpers always throw an Error carrying the status when the
+   * server answered.
+   */
+  function mlClassifySaveError(err) {
+    const msg = (err && err.message) ? err.message : String(err);
+    if (/\b403\b/.test(msg)) return 'permission';
+    if (/already uses the key/i.test(msg)) return 'duplicate';
+    if (/limit configured on the GeoJSON column|too large/i.test(msg)) return 'toobig';
+    if (/Failed to fetch|NetworkError|network|ERR_|load failed/i.test(msg)) return 'network';
+    if (/\b5\d\d\b/.test(msg)) return 'server';
+    return 'unknown';
   }
 
   /** In-progress label for a save. */
@@ -10028,7 +10326,9 @@ function wireHTooltips() {
   }
 
   function renderMlSessionList() {
-    return renderMlSavedGroup() + renderMlSessionGroup();
+    // Slice 3: a read-only Dataverse user cannot upload, so the session group
+    // would be permanently empty. Show saved layers only.
+    return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '');
   }
 
   function rerenderMlUpload() {
@@ -10107,6 +10407,19 @@ function wireHTooltips() {
       });
     }
 
+    // Slice 3 item 4: the display name is editable at upload time. The key is
+    // re-derived from it live so the user can see what Save will store.
+    const nameInput = document.getElementById('ml-layer-name');
+    if (nameInput) {
+      nameInput.addEventListener('input', function () {
+        const d = state.mapLayers;
+        if (!d) return;
+        d.layerName = this.value;
+        const prev = document.getElementById('ml-key-preview');
+        if (prev) prev.textContent = mlSessionKeyFor(d.layerName, null);
+      });
+    }
+
     const sel = document.getElementById('ml-value-field');
     if (sel) {
       sel.addEventListener('change', function () {
@@ -10149,8 +10462,14 @@ function wireHTooltips() {
     if (confirm) confirm.addEventListener('click', function () {
       const d = state.mapLayers;
       if (!d || !d.scale) return;
+      // Slice 3: take the edited name (the input is the source of truth), and
+      // derive a key that no other SESSION layer already uses.
+      const nameEl = document.getElementById('ml-layer-name');
+      if (nameEl) d.layerName = nameEl.value;
+      const name = String(d.layerName || '').trim() || d.fileName.replace(/\.(geojson|json)$/i, '');
       mlRegisterLayer({
-        name: d.layerName,
+        name: name,
+        layerKey: mlSessionKeyFor(name, null),
         geo: d.geo,
         valueField: d.valueField,
         featureCount: d.featureCount,
@@ -10197,8 +10516,30 @@ function wireHTooltips() {
       const sv = e.target.closest('button[data-ml-save]');
       if (sv) { mlSaveLayer(sv.dataset.mlSave); return; }
 
-      const de = e.target.closest('button[data-ml-deactivate]');
-      if (de) { mlDeactivateLayer(de.dataset.mlDeactivate); return; }
+      // Slice 3: retry restarts the same verified save path, not a resume.
+      const rt = e.target.closest('button[data-ml-retry]');
+      if (rt) { mlSaveLayer(rt.dataset.mlRetry); return; }
+    });
+
+    // Slice 3: the Active/Inactive toggle (a checkbox, so it fires `change`).
+    mount.addEventListener('change', function (e) {
+      const cb = e.target.closest('input[data-ml-active]');
+      if (cb) mlSetLayerActive(cb.dataset.mlActive, cb.checked);
+    });
+
+    // Slice 3: keep the source label on the entry as it is typed, so it survives
+    // the re-renders a save's progress ticks cause.
+    mount.addEventListener('input', function (e) {
+      const src = e.target.closest('input[data-ml-src]');
+      if (!src) return;
+      const entry = mlFindLayer(src.dataset.mlSrc);
+      if (!entry) return;
+      entry.sourceLabel = src.value;
+      // Clear a "source required" error as soon as they start typing.
+      if (entry.saveState && entry.saveState.kind === 'missing-source' && src.value.trim()) {
+        entry.saveState = null;
+        rerenderMlList();
+      }
     });
   }
 
@@ -10211,6 +10552,26 @@ function wireHTooltips() {
     const entry = mlFindLayer(id);
     if (!entry || entry.origin !== 'session') return;
     if (entry.saveState && entry.saveState.phase && entry.saveState.phase !== 'error') return;
+    // Belt and braces behind the hidden controls: Dataverse enforces this, but
+    // there is no reason to start a save we know will 403.
+    if (!Storage.canCreateLayers()) {
+      entry.saveState = { phase: 'error', kind: 'permission',
+        message: 'Your account does not have create and write access to DAC Map Layer.' };
+      rerenderMlList();
+      return;
+    }
+    // Slice 3: the source label is required to save. Read the live input as well
+    // as the entry, so a value typed but not yet committed still counts.
+    const liveSrc = document.querySelector('input[data-ml-src="' + id + '"]');
+    if (liveSrc) entry.sourceLabel = liveSrc.value;
+    if (!String(entry.sourceLabel || '').trim()) {
+      entry.saveState = { phase: 'error', kind: 'missing-source',
+        message: 'Saved layers need a source so the legend can credit where the data came from.' };
+      rerenderMlList();
+      const again = document.querySelector('input[data-ml-src="' + id + '"]');
+      if (again) again.focus();
+      return;
+    }
 
     const text = JSON.stringify(entry.geo);
     entry.saveState = { phase: 'creating' };
@@ -10223,8 +10584,7 @@ function wireHTooltips() {
         ramp: entry.ramp,
         featureCount: entry.featureCount,
         geomTypes: entry.geomTypes,
-        sourceLabel: entry.sourceLabel ||
-          (entry.valueField + ' · uploaded ' + mlFmtSavedOn(new Date().toISOString())),
+        sourceLabel: String(entry.sourceLabel).trim(),
       }, text, function (st) {
         entry.saveState = st;
         // Re-render on phase changes and chunk ticks so progress is visible.
@@ -10242,29 +10602,65 @@ function wireHTooltips() {
       Storage.toast('Saved "' + entry.name + '" for everyone.');
     } catch (err) {
       const msg = (err && err.message) ? err.message : String(err);
-      entry.saveState = { phase: 'error', message: msg };
+      entry.saveState = { phase: 'error', kind: mlClassifySaveError(err), message: msg };
       rerenderMlList();
-      console.error('[Map Layers] Save failed for ' + entry.layerKey + ':', err);
+      console.error('[Map Layers] Save failed for ' + entry.layerKey +
+        ' (' + entry.saveState.kind + '):', err);
     }
   }
 
-  /** Soft-delete a saved layer: hidden for everyone, record and file retained. */
-  async function mlDeactivateLayer(id) {
+  /**
+   * Flip a saved layer active or inactive (Slice 3, replacing Slice 2's one-way
+   * deactivate). Nothing is deleted either way, so this is reversible: the row
+   * stays listed and switching it back on returns the layer to everyone's map.
+   *
+   * The registry entry is kept in both directions; only materialization changes,
+   * so turning a layer off and on again costs no download.
+   */
+  async function mlSetLayerActive(id, active) {
     const entry = mlFindLayer(id);
     if (!entry || entry.origin !== 'saved' || !entry.dvId) return;
-    const ok = window.confirm('Deactivate "' + entry.name + '"?\n\n' +
-      'It disappears from the map for everyone. The record and its file are kept, ' +
-      'so it can be switched back on in Dataverse.');
-    if (!ok) return;
-    try {
-      await Storage.deactivateMapLayer(entry.dvId, entry);
-      mlDropLayer(id);
+    if (entry.toggleBusy) return;
+    if (!Storage.canWriteLayers()) {
+      Storage.toast('You have read-only access to saved layers.', 'error');
       rerenderMlList();
-      Storage.toast('Deactivated "' + entry.name + '".');
+      return;
+    }
+    const was = entry.active !== false;
+    entry.toggleBusy = true;
+    rerenderMlList();
+    try {
+      await Storage.setMapLayerActive(entry.dvId, entry, active);
+      entry.active = !!active;
+      entry.toggleBusy = false;
+      if (active) {
+        // Draw it in place on a map that is already built (no rebuild, so the
+        // user's tract selection survives). Absent if the map never mounted.
+        if (typeof window._dacMapSyncUploadedLayers === 'function') {
+          try { window._dacMapSyncUploadedLayers(); } catch (e) {
+            console.warn('[Map Layers] Could not add the layer to the live map.', e);
+          }
+        }
+      } else if (typeof window._dacMapDetachUploadedLayer === 'function') {
+        // Off the map, but keep the registry entry so the row stays listed.
+        try { window._dacMapDetachUploadedLayer(id); } catch (e) {
+          console.warn('[Map Layers] Could not remove the layer from the live map.', e);
+        }
+      }
+      rerenderMlList();
+      Storage.toast(active
+        ? 'Activated "' + entry.name + '" for everyone.'
+        : 'Deactivated "' + entry.name + '". The record and its file are kept.');
     } catch (err) {
-      console.error('[Map Layers] Deactivate failed for ' + entry.layerKey + ':', err);
-      Storage.toast('Could not deactivate "' + entry.name + '": ' +
-        (err && err.message ? err.message : err), 'error');
+      entry.toggleBusy = false;
+      entry.active = was;   // the write failed, so the UI must not claim it flipped
+      rerenderMlList();
+      const msg = (err && err.message) ? err.message : String(err);
+      const denied = /\b403\b/.test(msg);
+      console.error('[Map Layers] Could not change active state for ' + entry.layerKey + ':', err);
+      Storage.toast(denied
+        ? "You don't have permission to change saved layers."
+        : 'Could not update "' + entry.name + '": ' + msg, 'error');
     }
   }
 

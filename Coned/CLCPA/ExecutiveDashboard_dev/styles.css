@@ -8332,3 +8332,80 @@ a.nav-item { text-decoration: none; }
   border-color: rgba(184, 134, 11, 0.24);
   margin-left: 6px; font-weight: 600;
 }
+
+/* ==========================================================================
+ * MAP LAYERS · Slice 3 (CLCPA-171): Active/Inactive toggle, muted inactive
+ * rows, load-failure and permission states, guided source label, name edit.
+ * ========================================================================== */
+
+/* ---- Text inputs (layer name, source and publication) ---- */
+.ml-text {
+  font-family: var(--font); font-size: 12.5px; color: var(--text);
+  background: var(--white); border: 1px solid var(--line); border-radius: 5px;
+  padding: 6px 9px; min-width: 260px;
+}
+.ml-text:focus { outline: none; border-color: var(--dusk); }
+.ml-text::placeholder { color: var(--text-4); }
+
+.ml-row-src-field { margin-top: 8px; }
+.ml-row-src-field label {
+  display: block; margin-bottom: 4px;
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-4); font-weight: 600;
+}
+.ml-row-src-field .ml-text { width: 100%; max-width: 520px; }
+.ml-req { color: var(--red); font-weight: 700; }
+
+/* Provenance line on a saved row. */
+.ml-row-src { margin-top: 4px; font-size: 11px; color: var(--text-3); font-style: italic; }
+
+/* ---- Active / Inactive toggle ---- */
+.ml-toggle {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 8px;
+  cursor: pointer; user-select: none; flex-shrink: 0;
+}
+/* The native checkbox is transparent but still SIZED over the track, so it stays
+   keyboard-focusable and directly clickable. A 0x0 input is neither. */
+.ml-toggle input {
+  position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 34px; height: 18px; margin: 0; opacity: 0; cursor: pointer;
+}
+.ml-toggle-track {
+  position: relative; width: 34px; height: 18px; border-radius: 9px;
+  background: var(--text-4); transition: background .16s ease; flex-shrink: 0;
+}
+.ml-toggle-knob {
+  position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+  border-radius: 50%; background: var(--white);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.25); transition: transform .16s ease;
+}
+.ml-toggle input:checked + .ml-toggle-track { background: var(--green); }
+.ml-toggle input:checked + .ml-toggle-track .ml-toggle-knob { transform: translateX(16px); }
+.ml-toggle input:focus-visible + .ml-toggle-track { outline: 2px solid var(--dusk); outline-offset: 2px; }
+.ml-toggle-label { font-size: 11.5px; font-weight: 600; color: var(--text-2); min-width: 56px; }
+.ml-toggle-busy { opacity: 0.6; cursor: progress; }
+.ml-toggle input:disabled + .ml-toggle-track { cursor: progress; }
+
+/* ---- Inactive saved row: muted, but every detail still readable ---- */
+.ml-row-inactive .ml-row-name,
+.ml-row-inactive .ml-row-meta,
+.ml-row-inactive .ml-row-src { opacity: 0.55; }
+.ml-row-inactive .ml-row-sw { opacity: 0.35; filter: grayscale(0.6); }
+
+/* ---- Badges ---- */
+.ml-chip-off {
+  background: var(--white-smoke); color: var(--text-3);
+  border-color: var(--line); margin-left: 6px; font-weight: 600;
+}
+.ml-chip-err {
+  background: rgba(178, 59, 42, 0.10); color: var(--red);
+  border-color: rgba(178, 59, 42, 0.26); margin-left: 6px; font-weight: 600;
+  cursor: help;
+}
+
+/* ---- Row error block: headline, detail, hint, retry ---- */
+.ml-row-error strong { display: block; color: var(--red); font-size: 12px; margin-bottom: 3px; }
+.ml-row-error-detail { color: var(--text-3); font-size: 11px; line-height: 1.5; }
+.ml-row-error-hint { color: var(--text-2); font-size: 11.5px; line-height: 1.5; margin-top: 5px; }
+.ml-retry-btn { margin-top: 8px; }
