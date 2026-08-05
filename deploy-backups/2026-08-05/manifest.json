@@ -1,0 +1,42 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-08-05T21:11:10.772Z",
+  "note": "Byte-exact pre-deploy snapshot of the live cr2bf_dactest web resources, taken before the tract-dataset deploy. Bodies here are the authoritative rollback copy: git stores LF while the deployed content is CRLF, so `git show` does NOT reproduce these bytes. deploy-backups/.gitattributes sets \"* -text\" so git leaves this archive alone. Verify sha256 before pushing anything back. See README.md.",
+  "resources": [
+    {
+      "file": "app.js",
+      "webResourceName": "cr2bf_dactest/app.js",
+      "webResourceId": "79151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 571965,
+      "sha256": "1454efe1fde4084f0d360d152cd2e8048087f2a232228382a2d7cf32fed6419f",
+      "savedAs": "app.js",
+      "willBeReplaced": true,
+      "gitContentNote": "same content as e1757f1:Coned/CLCPA/ExecutiveDashboard_dev/app.js, but that blob is LF (core.autocrlf) while these bytes are CRLF as deployed",
+      "matchesCommit": "e1757f1"
+    },
+    {
+      "file": "styles.css",
+      "webResourceName": "cr2bf_dactest/styles.css",
+      "webResourceId": "7b151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 236432,
+      "sha256": "1d9aec659b2c795906fd908fa7d7ecdc464572050e70dc62f2247f6174eda52a",
+      "savedAs": "styles.css",
+      "willBeReplaced": true,
+      "gitContentNote": "same content as e1757f1:Coned/CLCPA/ExecutiveDashboard_dev/styles.css, but that blob is LF (core.autocrlf) while these bytes are CRLF as deployed",
+      "matchesCommit": "e1757f1"
+    },
+    {
+      "file": "ExecutiveDashboard.html",
+      "webResourceName": "cr2bf_dactest/ExecutiveDashboard.html",
+      "webResourceId": "77151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 10738,
+      "sha256": "4102f1c4f724a63a8d2677ad56b834731251952cc2293237d16b93be3654a952",
+      "savedAs": "ExecutiveDashboard.html",
+      "willBeReplaced": false,
+      "gitContentNote": "same content as e1757f1:Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html, but that blob is LF (core.autocrlf) while these bytes are CRLF as deployed",
+      "matchesCommit": "e1757f1"
+    }
+  ],
+  "deployedFromCommit": "ed2e7c3",
+  "deployedFromPR": 86
+}
