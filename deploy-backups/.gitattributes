@@ -1,0 +1,3 @@
+# Deploy snapshots are byte-exact copies of what was live in Dataverse.
+# Never apply EOL conversion to them.
+* -text
