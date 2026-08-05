@@ -3515,8 +3515,8 @@
         (DS_MIN_COVERAGE * 100) + '% floor). Declared GEOID vintage is ' + cov.declaredVintage +
         '; the map draws 2020 geometry with a 2010 fallback. This looks like a vintage mismatch.');
     } else if (share < 1) {
-      warnings.push(matched + ' of ' + cov.datasetKeys + ' dataset tracts matched; ' +
-        cov.keysNotDrawn + ' dataset key(s) have no drawn feature.');
+      warnings.push(matched + ' of ' + cov.datasetKeys + ' tracts in this file matched the map; ' +
+        cov.keysNotDrawn + ' tract(s) in the file are not on the map.');
     }
     if (absentDac > 0) {
       warnings.push(absentDac + ' drawn DAC tract(s) have no row in this dataset and will show ' +
@@ -4326,7 +4326,19 @@
       return;
     }
 
-    container.innerHTML = '';
+    // The container was verified BEFORE that await, and the view may have been
+    // replaced while the payload was in flight. The user navigating from the
+    // Executive Summary to another page is enough, and going back and forth to
+    // Map Layers makes it easy. L.map() on a container that is no longer in the
+    // document throws "Map container not found", and mountDACMap is deliberately
+    // called without await, so that surfaced as an unhandled promise rejection.
+    // Re-resolve the element, and also check no NEWER mount has claimed the id.
+    const live = document.getElementById(containerId);
+    if (!live || window._dacMapContainerId !== containerId) {
+      return;   // this mount was superseded; the newer one will draw
+    }
+
+    live.innerHTML = '';
 
     const map = L.map(containerId, {
       zoomControl: false,
@@ -6211,7 +6223,12 @@
     wireBaselineToggle();
     wireExecutiveTooltips();
     wireHeaderCardsTooltips();
-    mountDACMap();   // async – mounts Leaflet after HTML is in DOM
+    // async: mounts Leaflet after HTML is in DOM. Deliberately not awaited, so
+    // catch here. An unhandled rejection from a mount is a console error the user
+    // can do nothing about, and the page is fine without the map.
+    mountDACMap().catch(err => {
+      console.error('[DAC map] mount failed:', err);
+    });
   }
 
   // ============================================================
@@ -11011,7 +11028,7 @@ function wireHTooltips() {
       return '<span class="ml-chip ml-chip-ok">live: ' +
         escapeHtml(st.rec.datasetKey + ' v' + st.rec.version) + '</span>';
     }
-    return '<span class="ml-chip">live: map_payload.json</span>';
+    return '<span class="ml-chip">live: built-in indicators</span>';
   }
 
   function renderDsCard() {
@@ -11060,14 +11077,14 @@ function wireHTooltips() {
             ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
             ${r.active && st.source === 'dataset' && st.rec && st.rec.dvId === r.dvId ? cov : ''}
             ${r.loadError ? `<div class="ml-row-error" role="alert">
-                 <strong>Refused; the payload is still in charge</strong>
+                 <strong>Not used; the map kept its previous indicators</strong>
                  <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
                </div>` : ''}
           </div>
           <div class="ml-row-actions">${toggle}</div>
         </li>`;
         }).join('') + '</ul>'
-      : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators baked into map_payload.json.</p>';
+      : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators it ships with.</p>';
 
     const d = state.mapLayers || {};
     const up = d.dsStage === 'ready'
@@ -11085,9 +11102,9 @@ function wireHTooltips() {
              <div class="ml-msgs-head">Heads up</div>
              <ul>${d.dsWarnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
            </div>` : ''}
-           <p class="ml-preview-note">Uploading stores this version inactive. Activate it from the
-           list above once it is stored; activating deactivates any other version of the same
-           dataset key, and the map revalidates before switching.</p>
+           <p class="ml-preview-note">Uploading stores this version without switching to it.
+           Activate it from the list above when you are ready. Activating one version switches off
+           the other versions of the same dataset, and the checks run again before the map changes.</p>
            <div class="ml-actions">
              <button class="btn btn-secondary" id="ds-cancel" type="button">Cancel</button>
              <button class="btn btn-primary" id="ds-upload" type="button">Upload version</button>
@@ -11099,18 +11116,18 @@ function wireHTooltips() {
            <ul>${d.dsErrors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
          </div>
          <div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose dataset JSON
+           <label class="btn btn-secondary ml-browse">Choose dataset file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
          </div>`
       : d.dsStage === 'saving'
       ? `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' }))}</span>`
-      : `<p class="ml-intro">Upload the file produced by <span class="ml-mono">Data/build_tract_dataset.py</span>.
-         It is validated here — manifest, roles, formats, layout and tract coverage — before anything
-         is stored, and again before it goes live.</p>
+      : `<p class="ml-intro">Upload a new NYSERDA dataset version as a .json file. It is checked for
+         completeness and map coverage before it is stored, and checked again before it can go live.
+         The map does not change until you activate a version.</p>
          <div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose dataset JSON
+           <label class="btn btn-secondary ml-browse">Choose dataset file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
-           <span class="ml-picker-hint">.json · from the migration script</span>
+           <span class="ml-picker-hint">.json file</span>
          </div>`;
 
     return `
@@ -11118,8 +11135,8 @@ function wireHTooltips() {
         <div class="ml-card-head">
           <div>
             <h3>Tract datasets</h3>
-            <p class="ml-card-sub">Versioned NYSERDA per-tract releases. The active version drives the
-            Color by dropdown, tract tooltips, the detail box and the CSV export.</p>
+            <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what
+            the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
           </div>
           ${dsSourceChip()}
         </div>
@@ -11317,7 +11334,7 @@ function wireHTooltips() {
       if (!geo) {
         try { geo = await getMapGeo(); } catch (e) {
           d.dsStage = null;
-          d.dsErrors = ['Could not load map_payload.json to check tract coverage: ' +
+          d.dsErrors = ['Could not load the map data needed to check tract coverage: ' +
             (e && e.message ? e.message : e)];
           rerenderMlList(); return;
         }
@@ -11447,7 +11464,7 @@ function wireHTooltips() {
         }
         rerenderMlList();
         Storage.toast('Deactivated ' + rec.datasetKey + ' v' + rec.version +
-          '. The map is back on map_payload.json.');
+          '. The map is back on its built-in indicators.');
       }
     } catch (err) {
       rec.busy = false;

@@ -51,6 +51,25 @@ Usage
   python Data/build_tract_dataset.py [--decimals 6]
       --> writes Data/out/nyserda_dac_v1_0.json  and prints the record fields
           to paste into Dataverse (TractCount / FieldCount / KeyChecksum / ...)
+
+  python Data/build_tract_dataset.py --synthetic-v2
+      --> writes Data/out/nyserda_dac_v2_0-test.json, a SYNTHETIC fixture for
+          exercising the GEOID-vintage coverage guard. See SYNTHETIC V2 below.
+
+SYNTHETIC V2
+------------
+The vintage guard is an acceptance criterion, but it cannot be exercised with a
+real file until NYSERDA actually ships a 2020-keyed release. --synthetic-v2
+builds the file that release would look like: identical values and manifest,
+but the 150 tracts the map draws on 2010 fallback geometry are re-keyed to
+2020-style GEOIDs, which is precisely what a re-vintaged release would do.
+
+The 2020 GEOIDs are INVENTED, not crosswalked - there is no 2010-to-2020 tract
+crosswalk in this repo, and a real one is not needed to trip the guard. They are
+generated as the next free tract code inside the same county and verified to
+collide with nothing the map draws, so the coverage arithmetic is exact and
+repeatable. The file names itself synthetic in dataset.name and sourceLabel so
+it can never be mistaken for a NYSERDA release inside Dataverse.
 """
 
 import hashlib
@@ -76,6 +95,18 @@ GEOID_VINTAGE = "2010"
 # None = full precision (default; required for a byte-identical render).
 # An integer rounds to that many places. See the module docstring.
 DECIMALS = None
+
+# ---- --synthetic-v2 overrides (see SYNTHETIC V2 in the module docstring) ------
+SYNTH_VERSION_LABEL = "2.0-test"
+SYNTH_GEOID_VINTAGE = "2020"
+SYNTH_DATASET_NAME = "SYNTHETIC TEST FILE, NYSERDA DAC indicators v2.0-test"
+SYNTH_SOURCE_LABEL = (
+    "SYNTHETIC TEST FIXTURE, NOT A NYSERDA RELEASE. Built by "
+    "Data/build_tract_dataset.py --synthetic-v2 from the v1.0 values, with the "
+    "150 tracts drawn on 2010 fallback geometry re-keyed to invented 2020-style "
+    "GEOIDs. Exists only to exercise the GEOID-vintage coverage guard. Do not "
+    "activate as a real dataset version."
+)
 
 # Fields consumed by the map that come from the same NYSERDA release but are NOT
 # in the Color By dropdown. They ride in the dataset because leaving them behind
@@ -175,10 +206,45 @@ def r6(v):
     return v
 
 
+def revintage_2020(rows, drawn_geoids):
+    """Re-key the 2010-fallback tracts to invented, collision-free 2020 GEOIDs.
+
+    Returns (geoids, remapped_count). A real 2020 release would carry the true
+    crosswalked codes; what matters for the guard is only that the keys are no
+    longer the ones the map draws, which is what re-vintaging actually causes.
+    """
+    taken = set(drawn_geoids)
+    out, remapped = [], 0
+    for p in rows:
+        gid = p["GEOID"]
+        if p.get("_geom_year") != 2010:
+            out.append(gid)
+            continue
+        county, tract = gid[:5], gid[5:]
+        # 001900 -> 001901, the shape a real 2020 tract split takes. Step until
+        # the code is free, so no synthetic key can shadow a drawn tract.
+        n = int(tract)
+        while True:
+            n += 1
+            cand = county + str(n).zfill(len(tract))
+            if cand not in taken:
+                break
+        taken.add(cand)
+        out.append(cand)
+        remapped += 1
+    return out, remapped
+
+
 def main():
-    global DECIMALS
+    global DECIMALS, VERSION_LABEL, GEOID_VINTAGE, DATASET_NAME, SOURCE_LABEL
     if "--decimals" in sys.argv:
         DECIMALS = int(sys.argv[sys.argv.index("--decimals") + 1])
+    synthetic = "--synthetic-v2" in sys.argv
+    if synthetic:
+        VERSION_LABEL = SYNTH_VERSION_LABEL
+        GEOID_VINTAGE = SYNTH_GEOID_VINTAGE
+        DATASET_NAME = SYNTH_DATASET_NAME
+        SOURCE_LABEL = SYNTH_SOURCE_LABEL
     groups_raw = parse_indicator_catalog(APP_JS)
     dropdown = [it for g in groups_raw for it in g["items"]]
     dropdown_keys = [it["key"] for it in dropdown]
@@ -200,6 +266,11 @@ def main():
             rows.append(p)
 
     geoids = [p["GEOID"] for p in rows]
+    remapped = 0
+    if synthetic:
+        geoids, remapped = revintage_2020(rows, [f["properties"]["GEOID"] for f in feats])
+        if not remapped:
+            sys.exit("--synthetic-v2 remapped nothing; no 2010-fallback tracts found")
     if len(set(geoids)) != len(geoids):
         sys.exit("duplicate GEOIDs among data-carrying tracts")
 
@@ -280,6 +351,37 @@ def main():
     print("  cr2bf_ManifestVersion: %d" % MANIFEST_SCHEMA)
     print("  cr2bf_IsActive       : No  (the app flips this after validating)")
     print("=" * 66)
+
+    if synthetic:
+        # State the arithmetic the coverage guard will do, and the message it
+        # will produce, so the hosted test has a pass/fail line to compare to.
+        drawn = [f["properties"] for f in feats]
+        keys = set(geoids)
+        matched = sum(1 for p in drawn if p["GEOID"] in keys)
+        share = matched / len(geoids)
+        absent_dac = sum(1 for p in drawn
+                         if p["GEOID"] not in keys and p.get("DAC_Desig") == DAC_FLAG_TRUE)
+        absent_2010 = sum(1 for p in drawn
+                          if p["GEOID"] not in keys and p.get("DAC_Desig") == DAC_FLAG_TRUE
+                          and p.get("_geom_year") == 2010)
+        print("SYNTHETIC FIXTURE, NOT A NYSERDA RELEASE")
+        print("-" * 66)
+        print("re-keyed tracts : %d (every tract drawn on 2010 fallback geometry)" % remapped)
+        print("coverage        : %d of %d dataset keys match a drawn tract = %.1f%%"
+              % (matched, len(geoids), share * 100))
+        print("floor           : 98.0%%  ->  %s"
+              % ("REFUSED (as intended)" if share < 0.98 else "WOULD PASS, fixture is not doing its job"))
+        print("-" * 66)
+        print("Expected refusal message on activation:")
+        print("  only %d of the dataset's %d tracts match drawn features (%.1f%%, below" % (
+            matched, len(geoids), share * 100))
+        print("  the 98%% floor). Declared GEOID vintage is %s; the map draws 2020" % GEOID_VINTAGE)
+        print("  geometry with a 2010 fallback. This looks like a vintage mismatch.")
+        print("Expected accompanying warning:")
+        print("  %d drawn DAC tract(s) have no row in this dataset and will show no" % absent_dac)
+        print("  indicators (%d of them are drawn on 2010 fallback geometry, the" % absent_2010)
+        print("  classic vintage symptom).")
+        print("=" * 66)
 
 
 if __name__ == "__main__":
