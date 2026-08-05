@@ -1,0 +1,39 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-08-04T20:13:20.925Z",
+  "note": "Byte-exact pre-deploy snapshot of the live cr2bf_dactest web resources. Bodies are stored alongside this file and are the authoritative rollback copy; verify sha256 before pushing anything back. deploy-backups/.gitattributes sets \"* -text\" so git does not EOL-normalize them. See README.md for the restore steps.",
+  "resources": [
+    {
+      "file": "app.js",
+      "webResourceName": "cr2bf_dactest/app.js",
+      "webResourceId": "79151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 550803,
+      "sha256": "75d2327b8d52d624eed8389e379522e73d5880ba6bced25764e5109452c0fb13",
+      "willBeReplaced": true,
+      "savedAs": "app.js",
+      "gitContentNote": "same content as 7a8f5f8:Coned/CLCPA/ExecutiveDashboard_dev/app.js, but that blob is LF (git core.autocrlf) while these bytes are CRLF as deployed"
+    },
+    {
+      "file": "styles.css",
+      "webResourceName": "cr2bf_dactest/styles.css",
+      "webResourceId": "7b151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 232871,
+      "sha256": "e7911c7b4ffe4ef4051ab7d70d995b57f43e05453b7ed8c6c4e01245f3c6d302",
+      "willBeReplaced": true,
+      "savedAs": "styles.css",
+      "gitContentNote": "same content as 7a8f5f8:Coned/CLCPA/ExecutiveDashboard_dev/styles.css, but that blob is LF (git core.autocrlf) while these bytes are CRLF as deployed"
+    },
+    {
+      "file": "ExecutiveDashboard.html",
+      "webResourceName": "cr2bf_dactest/ExecutiveDashboard.html",
+      "webResourceId": "77151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 10738,
+      "sha256": "4102f1c4f724a63a8d2677ad56b834731251952cc2293237d16b93be3654a952",
+      "willBeReplaced": false,
+      "savedAs": "ExecutiveDashboard.html",
+      "gitContentNote": "same content as 8d3f842:Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html, but that blob is LF (git core.autocrlf) while these bytes are CRLF as deployed"
+    }
+  ],
+  "deployedFromCommit": "e1757f1",
+  "deployedFromPR": 84
+}
