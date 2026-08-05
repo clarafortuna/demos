@@ -8409,3 +8409,10 @@ a.nav-item { text-decoration: none; }
 .ml-row-error-detail { color: var(--text-3); font-size: 11px; line-height: 1.5; }
 .ml-row-error-hint { color: var(--text-2); font-size: 11.5px; line-height: 1.5; margin-top: 5px; }
 .ml-retry-btn { margin-top: 8px; }
+
+/* ==========================================================================
+ * TRACT DATASETS (CLCPA): the admin card on the Map Layers page.
+ * ========================================================================== */
+
+.ds-upload { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.ds-upload .ml-picker { margin-top: 10px; }
