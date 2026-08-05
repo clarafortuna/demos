@@ -91,6 +91,15 @@
       'cr2bf_changedescription', 'cr2bf_user', 'cr2bf_email', 'cr2bf_savedat', 'cr2bf_changes',
     ];
 
+    // ---- CLCPA tract datasets: versioned NYSERDA per-tract releases ---------
+    // One row per dataset VERSION. The whole release (manifest + per-tract
+    // values) rides in the File column, so a NYSERDA v2.0 is an upload plus an
+    // IsActive flip rather than a payload rebuild and redeploy.
+    const ENT_TRACTDATASET = 'cr2bf_dactractdataset';
+    const SET_TRACTDATASET_DEFAULT = 'cr2bf_dactractdatasets';
+    const ID_TRACTDATASET = 'cr2bf_dactractdatasetid';
+    const COL_DATAFILE = 'cr2bf_datafile';
+
     function overrideKey(tableId, year) { return tableId + ':' + year; }
     function sectionOf(tableId) { const m = String(tableId).match(/^[A-Za-z]+/); return m ? m[0] : String(tableId); }
     function deepClone(v) { return JSON.parse(JSON.stringify(v)); }
@@ -245,6 +254,12 @@
         getMapLayerFile() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
         saveMapLayer() { return Promise.reject(new Error('Saving layers needs Dataverse.')); },
         setMapLayerActive() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
+        canCreateDatasets() { return false; },
+        canWriteDatasets() { return false; },
+        async listTractDatasets() { return []; },
+        getTractDatasetFile() { return Promise.reject(new Error('Tract datasets need Dataverse.')); },
+        saveTractDataset() { return Promise.reject(new Error('Tract datasets need Dataverse.')); },
+        setTractDatasetActive() { return Promise.reject(new Error('Tract datasets need Dataverse.')); },
       };
     })();
 
@@ -298,6 +313,7 @@
       // CLCPA-171 Slice 2 · saved map layers (metadata + GeoJSON File column)
       // ====================================================================
       let setMapLayer = SET_MAPLAYER_DEFAULT;
+      let setTractDataset = SET_TRACTDATASET_DEFAULT;
       let setMapHistory = SET_MAPHISTORY_DEFAULT;
       let mapHistoryFields = MAPHISTORY_FIELDS.slice();   // narrowed at init()
       let fileMaxBytes = null;                            // from MaxSizeInKB, or null
@@ -336,15 +352,15 @@
        *
        * Fails closed: any error leaves both flags false, i.e. read-only.
        */
-      async function resolveMapLayerPrivileges(userId) {
+      async function resolveTablePrivileges(entityLogical, userId) {
         const out = { canCreate: false, canWrite: false, detected: false };
         if (!userId) {
-          console.warn('[Storage] No user id available; map layer controls stay read-only.');
+          console.warn('[Storage] No user id available; ' + entityLogical + ' controls stay read-only.');
           return out;
         }
         try {
           const res = await fetch(
-            API + "EntityDefinitions(LogicalName='" + ENT_MAPLAYER + "')?$select=Privileges",
+            API + "EntityDefinitions(LogicalName='" + entityLogical + "')?$select=Privileges",
             { credentials: 'same-origin', headers: GET_HEADERS });
           if (!res.ok) throw new Error('EntityDefinitions Privileges ' + res.status);
           const privs = (await res.json()).Privileges || [];
@@ -370,11 +386,11 @@
           };
           const [c, w] = await Promise.all([holds(createName), holds(writeName)]);
           out.canCreate = c; out.canWrite = w; out.detected = true;
-          console.info('[Storage] map layer privileges: create=' + c + ' write=' + w +
-            ' (' + createName + ' / ' + writeName + ')');
+          console.info('[Storage] privileges on ' + entityLogical + ': create=' + c +
+            ' write=' + w + ' (' + createName + ' / ' + writeName + ')');
         } catch (e) {
-          console.warn('[Storage] Could not determine map layer privileges; ' +
-            'showing saved layers read-only. Dataverse still enforces the real rules.', e);
+          console.warn('[Storage] Could not determine privileges on ' + entityLogical +
+            '; that surface stays read-only. Dataverse still enforces the real rules.', e);
         }
         return out;
       }
@@ -423,13 +439,16 @@
 
       /** Prepare the map-layer surface. Never throws: degrades to defaults. */
       async function initMapLayers() {
-        const [sl, sh, hf, mb] = await Promise.all([
+        const [sl, sh, hf, mb, sd] = await Promise.all([
           resolveEntitySet(ENT_MAPLAYER, SET_MAPLAYER_DEFAULT),
           resolveEntitySet(ENT_MAPHISTORY, SET_MAPHISTORY_DEFAULT),
           resolveMapHistoryFields(),
           resolveFileMaxBytes(),
+          resolveEntitySet(ENT_TRACTDATASET, SET_TRACTDATASET_DEFAULT),
         ]);
         setMapLayer = sl; setMapHistory = sh; mapHistoryFields = hf; fileMaxBytes = mb;
+        setTractDataset = sd;
+        console.info('[Storage] tract datasets: set=' + setTractDataset);
         console.info('[Storage] map layers: set=' + setMapLayer + ', audit=' + setMapHistory +
           ', auditFields=[' + mapHistoryFields.join(',') + ']' +
           ', fileMax=' + (fileMaxBytes ? Math.round(fileMaxBytes / 1048576) + ' MB' : 'unknown'));
@@ -438,7 +457,11 @@
       // CLCPA-171 Slice 3: privilege flags, resolved in a separate step because
       // the probe needs the signed-in user id, which the facade only has after
       // loadCurrentUser() runs. Both stay false until proven otherwise.
-      let mapPrivs = { canCreate: false, canWrite: false, detected: false };
+      // Per-table, keyed by entity logical name. Both start denied and only a
+      // successful probe grants; a failure anywhere leaves the surface read-only.
+      const NO_PRIVS = { canCreate: false, canWrite: false, detected: false };
+      let mapPrivs = NO_PRIVS;
+      let dsPrivs = NO_PRIVS;
 
       /**
        * One audit row per save / activate / deactivate. Background: never blocks,
@@ -450,7 +473,15 @@
           ? 'Saved map layer ' + layer.layerKey + ' (' + layer.featureCount + ' features)'
           : action === 'activate'
           ? 'Activated map layer ' + layer.layerKey
-          : 'Deactivated map layer ' + layer.layerKey;
+          : action === 'deactivate'
+          ? 'Deactivated map layer ' + layer.layerKey
+          : action === 'dataset-upload'
+          ? 'Uploaded tract dataset ' + layer.layerKey + ' (' + layer.featureCount + ' tracts)'
+          : action === 'dataset-activate'
+          ? 'Activated tract dataset ' + layer.layerKey
+          : action === 'dataset-deactivate'
+          ? 'Deactivated tract dataset ' + layer.layerKey
+          : action + ' ' + layer.layerKey;
         const all = {
           cr2bf_changedescription: desc.slice(0, 100),
           cr2bf_user: user.name || 'anonymous',
@@ -478,9 +509,9 @@
        * recommended chunk size from x-ms-chunk-size.
        * @param {function(number,number):void} [onProgress] (chunkIndex, chunkTotal)
        */
-      async function uploadLayerFile(id, fileName, text, onProgress) {
+      async function uploadFileColumn(set, id, column, fileName, text, onProgress) {
         const bytes = new TextEncoder().encode(text);
-        const base = API + setMapLayer + '(' + id + ')/' + COL_FILE;
+        const base = API + set + '(' + id + ')/' + column;
 
         if (bytes.length < ML_CHUNK_THRESHOLD) {
           const res = await fetch(base, {
@@ -528,8 +559,8 @@
       }
 
       /** Download a layer's GeoJSON as text. */
-      async function downloadLayerFile(id) {
-        const res = await fetch(API + setMapLayer + '(' + id + ')/' + COL_FILE + '/$value',
+      async function downloadFileColumn(set, id, column) {
+        const res = await fetch(API + set + '(' + id + ')/' + column + '/$value',
           { credentials: 'same-origin',
             headers: { 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' } });
         if (!res.ok) throw new Error('file GET ' + res.status);
@@ -672,12 +703,19 @@
 
         // ---- CLCPA-171 Slice 3: capability flags ------------------------
         async initPrivileges(userId) {
-          mapPrivs = await resolveMapLayerPrivileges(userId);
+          // Probed per table: a user may administer layers but not datasets.
+          const [ml, ds] = await Promise.all([
+            resolveTablePrivileges(ENT_MAPLAYER, userId),
+            resolveTablePrivileges(ENT_TRACTDATASET, userId),
+          ]);
+          mapPrivs = ml; dsPrivs = ds;
         },
         // Saving needs Create (the record) AND Write (the file + IsActive
         // PATCHes). Toggling active needs Write alone.
         canCreateLayers() { return mapPrivs.canCreate && mapPrivs.canWrite; },
         canWriteLayers() { return mapPrivs.canWrite; },
+        canCreateDatasets() { return dsPrivs.canCreate && dsPrivs.canWrite; },
+        canWriteDatasets() { return dsPrivs.canWrite; },
 
         /**
          * Active saved layers, metadata only (no file bodies).
@@ -723,7 +761,7 @@
           return out;
         },
 
-        getMapLayerFile(dvId) { return downloadLayerFile(dvId); },
+        getMapLayerFile(dvId) { return downloadFileColumn(setMapLayer, dvId, COL_FILE); },
 
         /**
          * Persist a session layer: create the metadata row, upload the file,
@@ -770,7 +808,7 @@
 
           try {
             if (onProgress) onProgress({ phase: 'uploading', bytes: bytes, chunk: 0, chunks: 0 });
-            await uploadLayerFile(id, fileName, geojsonText, (chunk, chunks) => {
+            await uploadFileColumn(setMapLayer, id, COL_FILE, fileName, geojsonText, (chunk, chunks) => {
               if (onProgress) onProgress({ phase: 'uploading', bytes: bytes, chunk: chunk, chunks: chunks });
             });
             // Verify: re-read the column and require a non-null file id.
@@ -814,6 +852,138 @@
         async setMapLayerActive(dvId, layer, active) {
           await dvUpdate(setMapLayer, dvId, { cr2bf_isactive: !!active });
           writeMapAudit(active ? 'activate' : 'deactivate', layer, {});
+        },
+
+        // ================================================================
+        // Tract datasets — versioned NYSERDA per-tract releases
+        // ================================================================
+
+        /**
+         * Every dataset version, newest first, metadata only. Selecting the file
+         * column too so a record whose upload never landed can be skipped:
+         * retrieving a File column yields a file id, or null when empty.
+         */
+        async listTractDatasets() {
+          const cols = [ID_TRACTDATASET, 'cr2bf_datasetname', 'cr2bf_datasetkey',
+            'cr2bf_versionlabel', 'cr2bf_sourcelabel', 'cr2bf_geoidvintage',
+            'cr2bf_tractcount', 'cr2bf_fieldcount', 'cr2bf_keychecksum',
+            'cr2bf_manifestversion', 'cr2bf_isactive', COL_DATAFILE, 'createdon'].join(',');
+          const rows = await getAll(setTractDataset,
+            '$select=' + cols + '&$expand=createdby($select=fullname)' +
+            '&$orderby=createdon desc');
+          const out = [];
+          rows.forEach(r => {
+            if (r[COL_DATAFILE] == null) {
+              console.warn('[Tract datasets] "' + (r.cr2bf_datasetkey || r[ID_TRACTDATASET]) +
+                ' v' + (r.cr2bf_versionlabel || '?') + '" has no data file attached; skipping it.');
+              return;
+            }
+            out.push({
+              dvId: r[ID_TRACTDATASET],
+              name: r.cr2bf_datasetname || '',
+              datasetKey: r.cr2bf_datasetkey || '',
+              version: r.cr2bf_versionlabel || '',
+              sourceLabel: r.cr2bf_sourcelabel || '',
+              geoidVintage: r.cr2bf_geoidvintage == null ? '' : String(r.cr2bf_geoidvintage),
+              tractCount: r.cr2bf_tractcount == null ? null : Number(r.cr2bf_tractcount),
+              fieldCount: r.cr2bf_fieldcount == null ? null : Number(r.cr2bf_fieldcount),
+              keyChecksum: r.cr2bf_keychecksum || '',
+              manifestVersion: r.cr2bf_manifestversion == null ? null : Number(r.cr2bf_manifestversion),
+              active: r.cr2bf_isactive === true,
+              savedBy: (r.createdby && r.createdby.fullname) || '',
+              savedOn: r.createdon || '',
+            });
+          });
+          return out;
+        },
+
+        getTractDatasetFile(dvId) {
+          return downloadFileColumn(setTractDataset, dvId, COL_DATAFILE);
+        },
+
+        /**
+         * Create a dataset version and upload its file. Same ordering and failure
+         * contract as saveMapLayer: create inactive, upload, verify the column is
+         * non-null, and delete the seconds-old shell if the upload fails, so no
+         * record ever pretends to have a file. Activation is deliberately a
+         * SEPARATE step, because it has to pass validation first.
+         */
+        async saveTractDataset(rec, text, onProgress) {
+          const bytes = new TextEncoder().encode(text).length;
+          if (fileMaxBytes && bytes > fileMaxBytes) {
+            throw new Error('This dataset is ' + Math.round(bytes / 1048576) +
+              ' MB, over the ' + Math.round(fileMaxBytes / 1048576) +
+              ' MB limit configured on the data file column.');
+          }
+          const fileName = (rec.datasetKey || 'dataset') + '_v' +
+            String(rec.version || '0').replace(/\./g, '_') + '.json';
+          if (onProgress) onProgress({ phase: 'creating' });
+          const created = await dvCreate(setTractDataset, {
+            cr2bf_datasetname: String(rec.name || '').slice(0, 100),
+            cr2bf_datasetkey: String(rec.datasetKey || '').slice(0, 100),
+            cr2bf_versionlabel: String(rec.version || '').slice(0, 50),
+            cr2bf_sourcelabel: String(rec.sourceLabel || '').slice(0, 300),
+            cr2bf_geoidvintage: String(rec.geoidVintage || '').slice(0, 10),
+            cr2bf_tractcount: rec.tractCount || 0,
+            cr2bf_fieldcount: rec.fieldCount || 0,
+            cr2bf_keychecksum: String(rec.keyChecksum || '').slice(0, 100),
+            cr2bf_manifestversion: rec.manifestVersion || 0,
+            cr2bf_isactive: false,
+          });
+          const id = created[ID_TRACTDATASET];
+          try {
+            if (onProgress) onProgress({ phase: 'uploading', bytes: bytes, chunk: 0, chunks: 0 });
+            await uploadFileColumn(setTractDataset, id, COL_DATAFILE, fileName, text,
+              (chunk, chunks) => {
+                if (onProgress) onProgress({ phase: 'uploading', bytes: bytes, chunk: chunk, chunks: chunks });
+              });
+            if (onProgress) onProgress({ phase: 'verifying' });
+            const check = await fetch(API + setTractDataset + '(' + id + ')?$select=' + COL_DATAFILE,
+              { credentials: 'same-origin', headers: GET_HEADERS });
+            if (!check.ok) throw new Error('verify GET ' + check.status);
+            if ((await check.json())[COL_DATAFILE] == null) {
+              throw new Error('the upload reported success but the data file column is still empty');
+            }
+          } catch (err) {
+            try {
+              await dvDelete(setTractDataset, id);
+              console.warn('[Tract datasets] Upload failed; removed the incomplete record ' + id + '.');
+            } catch (delErr) {
+              console.error('[Tract datasets] Upload failed AND cleanup failed. Record ' + id +
+                ' is left inactive with no file; it will be ignored on load.', delErr);
+            }
+            throw err;
+          }
+          writeMapAudit('dataset-upload', {
+            layerKey: rec.datasetKey + ' v' + rec.version, name: rec.name,
+            valueField: '', featureCount: rec.tractCount || 0, geomTypes: [],
+          }, { fileBytes: bytes, geoidVintage: rec.geoidVintage, fieldCount: rec.fieldCount });
+          return { dvId: id };
+        },
+
+        /**
+         * Flip a dataset version active. One-active-per-DatasetKey is enforced
+         * here rather than by a Dataverse rule: deactivate every other version of
+         * the same family first, so two releases can never both be live.
+         */
+        async setTractDatasetActive(dvId, rec, makeActive) {
+          if (makeActive) {
+            const siblings = await getAll(setTractDataset,
+              '$select=' + ID_TRACTDATASET + ",cr2bf_versionlabel&$filter=cr2bf_isactive eq true and cr2bf_datasetkey eq '" +
+              String(rec.datasetKey).replace(/'/g, "''") + "'");
+            for (let i = 0; i < siblings.length; i++) {
+              const sid = siblings[i][ID_TRACTDATASET];
+              if (String(sid).toLowerCase() === String(dvId).toLowerCase()) continue;
+              await dvUpdate(setTractDataset, sid, { cr2bf_isactive: false });
+              console.info('[Tract datasets] deactivated sibling version ' +
+                (siblings[i].cr2bf_versionlabel || sid) + ' of ' + rec.datasetKey);
+            }
+          }
+          await dvUpdate(setTractDataset, dvId, { cr2bf_isactive: !!makeActive });
+          writeMapAudit(makeActive ? 'dataset-activate' : 'dataset-deactivate', {
+            layerKey: rec.datasetKey + ' v' + rec.version, name: rec.name,
+            valueField: '', featureCount: rec.tractCount || 0, geomTypes: [],
+          }, { geoidVintage: rec.geoidVintage });
         },
       };
     })();
@@ -931,6 +1101,12 @@
       // these are false whenever detection could not prove otherwise.
       canCreateLayers() { return active.canCreateLayers(); },
       canWriteLayers() { return active.canWriteLayers(); },
+      canCreateDatasets() { return active.canCreateDatasets(); },
+      canWriteDatasets() { return active.canWriteDatasets(); },
+      listTractDatasets() { return active.listTractDatasets(); },
+      getTractDatasetFile(dvId) { return active.getTractDatasetFile(dvId); },
+      saveTractDataset(rec, text, onProgress) { return active.saveTractDataset(rec, text, onProgress); },
+      setTractDatasetActive(dvId, rec, makeActive) { return active.setTractDatasetActive(dvId, rec, makeActive); },
       listMapLayers() { return active.listMapLayers(); },
       getMapLayerFile(dvId) { return active.getMapLayerFile(dvId); },
       saveMapLayer(layer, geojsonText, onProgress) { return active.saveMapLayer(layer, geojsonText, onProgress); },
@@ -2223,21 +2399,32 @@
     return applied;
   }
 
+  // The in-flight fetch, memoized. Without this, two concurrent callers each see
+  // a null cache and each build their OWN geo object: mountDACMap draws one while
+  // a later mutation (the tract-dataset merge) lands on the other, so the merge
+  // silently does nothing. ensureHviGeo already memoizes for the same reason.
+  let _mapGeoPromise = null;
+
   async function getMapGeo() {
     if (_mapGeoCache) return _mapGeoCache;
-    const res = await fetch('./map_payload.json');
-    if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-    const geo = await res.json();
-    // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
-    // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
-    try {
-      const overlay = await Storage.getMapOverlay();
-      if (overlay) applyMapOverlay(geo, overlay);
-    } catch (e) {
-      console.warn('[DAC map] Dataverse overlay skipped (kept file values):', e);
+    if (!_mapGeoPromise) {
+      _mapGeoPromise = (async () => {
+        const res = await fetch('./map_payload.json');
+        if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
+        const geo = await res.json();
+        // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
+        // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
+        try {
+          const overlay = await Storage.getMapOverlay();
+          if (overlay) applyMapOverlay(geo, overlay);
+        } catch (e) {
+          console.warn('[DAC map] Dataverse overlay skipped (kept file values):', e);
+        }
+        _mapGeoCache = geo;
+        return geo;
+      })().catch(e => { _mapGeoPromise = null; throw e; });   // allow a retry
     }
-    _mapGeoCache = geo;
-    return _mapGeoCache;
+    return _mapGeoPromise;
   }
 
   function dacMapColor(score, isDAC) {
@@ -2341,20 +2528,120 @@
     ]},
   ];
 
-  const _mapIndicatorByKey = (function () {
-    const m = {};
-    MAP_INDICATOR_GROUPS.forEach(g => g.items.forEach(it => { m[it.key] = it; }));
-    return m;
-  })();
+  // ============================================================
+  // INDICATOR CATALOG (tract datasets)
+  // ------------------------------------------------------------
+  // Everything the map needs to know ABOUT the indicators — labels, grouping,
+  // formats, which key plays which privileged role, and how the detail box is
+  // laid out — lives in one catalog object. It is built from the payload literal
+  // above by default, and replaced wholesale by an active Dataverse tract
+  // dataset's manifest once one validates. That indirection is the whole point:
+  // a NYSERDA v2.0 that renames, relabels, reorders or adds indicators changes
+  // the catalog, not the code.
+  //
+  // The app owns the colour ramps; a manifest may only reference ramps named
+  // here, so an unknown format refuses activation rather than rendering blank.
+  const IND_KNOWN_RAMPS = { 'pct-0-100': 1, 'score-90-120': 1 };
 
-  function mapIndicatorMeta(key) {
-    return _mapIndicatorByKey[key] || _mapIndicatorByKey['Comb_Sc'];
+  // Roles the payload catalog declares, so the default behaves exactly as the
+  // hardcoded keys it replaces.
+  const IND_DEFAULT_ROLES = {
+    defaultIndicator: 'Comb_Sc',
+    headlineScore: 'Comb_Sc',
+    headlinePercentile: 'Rank_State',
+    envScore: 'Burden_Sc',
+    envPercentile: 'Burden_Pct',
+    popScore: 'Vulner_Sc',
+    popPercentile: 'Vulner_Pct',
+    dacFlag: 'DAC_Desig',
+    dacFlagTrueValue: 'Designated as DAC',
+    population: 'Pop_Cnt',
+    households: 'HH_Cnt',
+  };
+
+  // Group id <-> payload group label, and the env/pop component colouring.
+  const IND_DEFAULT_GROUP_IDS = {
+    'Summary': ['summary', null],
+    'Environmental Burdens': ['env_burdens', 'env'],
+    'Climate Risks': ['climate', 'env'],
+    'Health': ['health', 'pop'],
+    'Demographics / Vulnerability': ['demographics', 'pop'],
+    'Affordability & Ranking': ['affordability', null],
+  };
+
+  // The detail box is a curated two-zone layout, not a dump of every group:
+  // Summary and Affordability are deliberately absent, and one column's title
+  // differs from its group label.
+  const IND_DEFAULT_LAYOUT = {
+    detailZones: [
+      { title: 'Environmental Burden', component: 'env', columns: [
+        { title: 'Environmental Burdens', group: 'env_burdens' },
+        { title: 'Climate Risks', group: 'climate' },
+      ] },
+      { title: 'Population Vulnerability', component: 'pop', columns: [
+        { title: 'Health', group: 'health' },
+        { title: 'Demographics / Socioeconomic', group: 'demographics' },
+      ] },
+    ],
+    csvThematicGroups: ['env_burdens', 'climate', 'health', 'demographics'],
+  };
+
+  /** Build the default catalog from the payload literal above. */
+  function indBuildDefaultCatalog() {
+    const groups = MAP_INDICATOR_GROUPS.map((g, i) => {
+      const pair = IND_DEFAULT_GROUP_IDS[g.group] || [g.group, null];
+      return {
+        id: pair[0], label: g.group, component: pair[1], order: i + 1,
+        items: g.items.map((it, j) => ({
+          id: it.key, key: it.key, label: it.label,
+          // The payload literal calls this `scale`; the manifest calls it
+          // `format`. Both carry the same two values, so keep them in step.
+          format: it.scale, scale: it.scale, order: j + 1,
+        })),
+      };
+    });
+    const byKey = {};
+    groups.forEach(g => g.items.forEach(it => { byKey[it.key] = it; }));
+    return {
+      source: 'payload', label: 'map_payload.json', version: '',
+      groups: groups, byKey: byKey,
+      roles: Object.assign({}, IND_DEFAULT_ROLES),
+      formats: { pct: { ramp: 'pct-0-100' }, score: { ramp: 'score-90-120' } },
+      layout: IND_DEFAULT_LAYOUT,
+    };
   }
 
-  // A raw-scale score (e.g. Comb_Sc) uses its own binned legend and can't be
-  // averaged with percentile indicators.
+  let _indCatalog = indBuildDefaultCatalog();
+
+  /** Value of a role's field on one tract's properties, or null. */
+  function indRoleVal(props, role) {
+    const k = indRole(role);
+    return (props && k) ? props[k] : null;
+  }
+  /** Is this tract a designated DAC, per the catalog's dacFlag role? */
+  function indIsDAC(props) {
+    return indRoleVal(props, 'dacFlag') === indRole('dacFlagTrueValue');
+  }
+
+  function indGroups() { return _indCatalog.groups; }
+  function indGroupById(id) {
+    const g = _indCatalog.groups.filter(x => x.id === id)[0];
+    return g || { id: id, label: id, items: [] };
+  }
+  /** The key playing a privileged role, e.g. indRole('headlineScore'). */
+  function indRole(name) { return _indCatalog.roles[name]; }
+  function indLayout() { return _indCatalog.layout; }
+  function indCatalogSource() { return _indCatalog; }
+
+  function mapIndicatorMeta(key) {
+    return _indCatalog.byKey[key] || _indCatalog.byKey[indRole('defaultIndicator')] ||
+      { key: key, id: key, label: key, format: 'pct', scale: 'pct' };
+  }
+
+  // A raw-scale score (e.g. the headline score) uses its own binned legend and
+  // can't be averaged with percentile indicators.
   function isRawKey(key) {
-    return mapIndicatorMeta(key).scale === 'score';
+    return mapIndicatorMeta(key).format === 'score';
   }
 
   // Mean of the selected indicators' values for one tract. Includes a real 0.0;
@@ -2439,7 +2726,7 @@
   // browser/OS and cannot be styled. Same grouped structure + behavior.
   function mapDropdownHtml() {
     const sel = _mapState.indicators;
-    const groups = MAP_INDICATOR_GROUPS.map(g => {
+    const groups = indGroups().map(g => {
       const opts = g.items.map(it => {
         const on = sel.indexOf(it.key) >= 0;
         return '<button type="button" class="dac-map-dd-opt' + (on ? ' active' : '') +
@@ -2448,7 +2735,7 @@
           '<span class="dac-map-dd-optlabel">' + it.label + '</span>' +
         '</button>';
       }).join('');
-      return '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + g.group + '</div>' + opts + '</div>';
+      return '<div class="dac-map-dd-group"><div class="dac-map-dd-grouphdr">' + g.label + '</div>' + opts + '</div>';
     }).join('');
     const summary = indicatorSummary();
     return '' +
@@ -2466,7 +2753,7 @@
       '</div>';
   }
 
-  const _mapState = { county: null, neighborhoods: [], indicators: ['Comb_Sc'], selectedGeoid: null };
+  const _mapState = { county: null, neighborhoods: [], indicators: [IND_DEFAULT_ROLES.defaultIndicator], selectedGeoid: null };
 
   // True iff a given feature is within the current neighborhood selection.
   function inSelectedNeighborhoods(props) {
@@ -3030,6 +3317,342 @@
     return null;
   }
 
+  // ============================================================
+  // TRACT DATASETS — validation, coverage guard, merge, hydration
+  // ============================================================
+  // A dataset only becomes the live source of indicators if it passes BOTH
+  // gates below. Anything short of that keeps map_payload.json as the source and
+  // logs exactly why, because the failure mode we are guarding against is silent:
+  // "no row for this GEOID" and "this field is empty" look identical downstream,
+  // so a vintage mismatch would blank 88 DAC tracts without an error.
+
+  // Refuse below this share of the declared tracts matching drawn features;
+  // warn on anything short of complete.
+  const DS_MIN_COVERAGE = 0.98;
+
+  // { rec, doc, catalog, absent:Set, coverage:{}, source } once one is live.
+  let _dsState = { rec: null, catalog: null, absent: null, coverage: null, source: 'payload' };
+  let _dsHydrated = false;
+  // Every dataset version seen, for the admin card. Populated by hydration.
+  let _dsRecords = [];
+
+  function dsState() { return _dsState; }
+  function dsRecords() { return _dsRecords; }
+
+  /**
+   * Gate 1 — is the document internally coherent, and does it agree with the
+   * record's integrity fields? Returns a catalog ready to install, or errors.
+   */
+  function dsValidateDoc(doc, rec) {
+    const errors = [], warnings = [];
+    const fail = (m) => { errors.push(m); return { ok: false, errors: errors, warnings: warnings }; };
+
+    if (!doc || typeof doc !== 'object') return fail('the data file is not a JSON object.');
+    if (doc.schema !== 1) {
+      return fail('manifest schema ' + JSON.stringify(doc.schema) +
+        ' is not supported by this build (expected 1).');
+    }
+    const t = doc.tracts;
+    if (!t || !Array.isArray(t.geoids) || !t.fields || typeof t.fields !== 'object') {
+      return fail('the data file has no tracts.geoids array and tracts.fields object.');
+    }
+    const n = t.geoids.length;
+    if (!n) return fail('the dataset carries no tracts.');
+    const fieldIds = Object.keys(t.fields);
+    if (!fieldIds.length) return fail('the dataset carries no fields.');
+    // Columnar arrays must align to the GEOID index, or values would silently
+    // attach to the wrong tract.
+    const ragged = fieldIds.filter(k => !Array.isArray(t.fields[k]) || t.fields[k].length !== n);
+    if (ragged.length) {
+      return fail(ragged.length + ' field column(s) do not align to the ' + n +
+        ' GEOIDs (first: ' + ragged[0] + '). Refusing rather than mis-attaching values.');
+    }
+    if (new Set(t.geoids).size !== n) return fail('tracts.geoids contains duplicates.');
+
+    // ---- indicators / groups / formats ----
+    const indicators = Array.isArray(doc.indicators) ? doc.indicators : [];
+    if (!indicators.length) return fail('the manifest lists no indicators.');
+    const groups = Array.isArray(doc.groups) ? doc.groups : [];
+    if (!groups.length) return fail('the manifest lists no groups.');
+    const groupIds = {};
+    groups.forEach(g => { groupIds[g.id] = g; });
+    if (Object.keys(groupIds).length !== groups.length) return fail('group ids are not unique.');
+
+    const formats = doc.formats || {};
+    const unknownRamp = Object.keys(formats).filter(f => !IND_KNOWN_RAMPS[formats[f] && formats[f].ramp]);
+    if (unknownRamp.length) {
+      return fail('format(s) ' + unknownRamp.join(', ') + ' reference a colour ramp this build ' +
+        'does not know. Known ramps: ' + Object.keys(IND_KNOWN_RAMPS).join(', ') + '.');
+    }
+    const badFmt = indicators.filter(i => !formats[i.format]);
+    if (badFmt.length) {
+      return fail(badFmt.length + ' indicator(s) use an undeclared format (first: ' +
+        badFmt[0].id + ' -> ' + badFmt[0].format + ').');
+    }
+    const badGroup = indicators.filter(i => !groupIds[i.group]);
+    if (badGroup.length) {
+      return fail(badGroup.length + ' indicator(s) reference an unknown group (first: ' +
+        badGroup[0].id + ' -> ' + badGroup[0].group + ').');
+    }
+    const carried = {};
+    fieldIds.forEach(k => { carried[k] = 1; });
+    const notCarried = indicators.filter(i => !carried[i.id]);
+    if (notCarried.length) {
+      return fail(notCarried.length + ' indicator(s) are described but carry no data column ' +
+        '(first: ' + notCarried[0].id + ').');
+    }
+
+    // ---- roles ----
+    const roles = doc.roles || {};
+    const needed = ['defaultIndicator', 'headlineScore', 'headlinePercentile',
+      'envScore', 'envPercentile', 'popScore', 'popPercentile', 'dacFlag', 'population'];
+    const missingRole = needed.filter(r => !roles[r]);
+    if (missingRole.length) return fail('missing role(s): ' + missingRole.join(', ') + '.');
+    const unresolved = needed.filter(r => !carried[roles[r]]);
+    if (unresolved.length) {
+      return fail('role(s) point at fields the dataset does not carry: ' +
+        unresolved.map(r => r + ' -> ' + roles[r]).join(', ') + '.');
+    }
+    if (!roles.dacFlagTrueValue) warnings.push('roles.dacFlagTrueValue is unset; no tract will read as DAC.');
+    // defaultIndicator must also be selectable in the dropdown, or Color by opens empty.
+    if (!indicators.some(i => i.id === roles.defaultIndicator)) {
+      return fail('roles.defaultIndicator (' + roles.defaultIndicator +
+        ') is not one of the listed indicators, so Color by would have no default.');
+    }
+
+    // ---- layout ----
+    const layout = doc.layout || {};
+    const zones = Array.isArray(layout.detailZones) ? layout.detailZones : [];
+    if (!zones.length) return fail('layout.detailZones is empty; the detail box would render nothing.');
+    const badRef = [];
+    zones.forEach(z => (z.columns || []).forEach(c => { if (!groupIds[c.group]) badRef.push(c.group); }));
+    (layout.csvThematicGroups || []).forEach(g => { if (!groupIds[g]) badRef.push(g); });
+    if (badRef.length) {
+      return fail('layout references unknown group(s): ' + Array.from(new Set(badRef)).join(', ') + '.');
+    }
+
+    // ---- record integrity ----
+    if (rec) {
+      if (rec.tractCount != null && rec.tractCount !== n) {
+        return fail('record TractCount (' + rec.tractCount + ') disagrees with the file (' + n + ').');
+      }
+      if (rec.fieldCount != null && rec.fieldCount !== fieldIds.length) {
+        return fail('record FieldCount (' + rec.fieldCount + ') disagrees with the file (' +
+          fieldIds.length + ').');
+      }
+      const declared = (doc.dataset && doc.dataset.geoidVintage) || '';
+      if (rec.geoidVintage && declared && String(rec.geoidVintage) !== String(declared)) {
+        return fail('record GeoidVintage (' + rec.geoidVintage +
+          ') disagrees with the file (' + declared + ').');
+      }
+    }
+
+    // ---- build the catalog ----
+    const byGroup = {};
+    indicators.slice()
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .forEach(i => { (byGroup[i.group] = byGroup[i.group] || []).push(i); });
+    const catGroups = groups.slice()
+      .sort((a, b) => (a.order || 0) - (b.order || 0))
+      .map(g => ({
+        id: g.id, label: g.label, component: g.component || null, order: g.order || 0,
+        items: (byGroup[g.id] || []).map(i => ({
+          id: i.id, key: i.id, label: i.label,
+          format: i.format, scale: i.format, order: i.order || 0,
+        })),
+      }))
+      .filter(g => g.items.length);
+    const byKey = {};
+    catGroups.forEach(g => g.items.forEach(it => { byKey[it.key] = it; }));
+    const ds = doc.dataset || {};
+    return {
+      ok: true, errors: errors, warnings: warnings,
+      fieldIds: fieldIds,
+      catalog: {
+        source: 'dataset',
+        label: ds.name || (rec && rec.name) || 'Dataverse dataset',
+        version: ds.version || (rec && rec.version) || '',
+        groups: catGroups, byKey: byKey,
+        roles: Object.assign({}, roles),
+        formats: formats, layout: layout,
+      },
+    };
+  }
+
+  /**
+   * Gate 2 — does this dataset actually cover the tracts the map draws?
+   * This is the vintage guard: v1.0 keys to 2010-era GEOIDs and 88 drawn DAC
+   * tracts exist only in that vintage, so a 2020-keyed dataset would leave them
+   * unmatched. Unmatched is reported, never silently nulled.
+   */
+  function dsCheckCoverage(doc, geo, rec) {
+    const errors = [], warnings = [];
+    const keys = new Set(doc.tracts.geoids);
+    const feats = (geo && geo.features) || [];
+    let matched = 0, absentDrawn = 0, absentDac = 0, absent2010 = 0;
+    const absent = new Set();
+    feats.forEach(f => {
+      const p = f.properties || {};
+      if (keys.has(p.GEOID)) { matched++; return; }
+      absent.add(p.GEOID);
+      absentDrawn++;
+      // Count the 2010-fallback share of the DAC misses specifically: that is
+      // the vintage symptom worth naming, not the fallback count overall.
+      if (indIsDAC(p)) { absentDac++; if (p._geom_year === 2010) absent2010++; }
+    });
+    const declared = (doc.dataset && doc.dataset.geoidVintage) ||
+      (rec && rec.geoidVintage) || 'unknown';
+    const share = doc.tracts.geoids.length ? matched / doc.tracts.geoids.length : 0;
+    const cov = {
+      declaredVintage: String(declared), drawn: feats.length, matched: matched,
+      absentDrawn: absentDrawn, absentDac: absentDac, absent2010: absent2010,
+      datasetKeys: doc.tracts.geoids.length,
+      keysNotDrawn: doc.tracts.geoids.length - matched, share: share,
+    };
+    if (share < DS_MIN_COVERAGE) {
+      errors.push('only ' + matched + ' of the dataset\'s ' + cov.datasetKeys +
+        ' tracts match drawn features (' + (share * 100).toFixed(1) + '%, below the ' +
+        (DS_MIN_COVERAGE * 100) + '% floor). Declared GEOID vintage is ' + cov.declaredVintage +
+        '; the map draws 2020 geometry with a 2010 fallback. This looks like a vintage mismatch.');
+    } else if (share < 1) {
+      warnings.push(matched + ' of ' + cov.datasetKeys + ' dataset tracts matched; ' +
+        cov.keysNotDrawn + ' dataset key(s) have no drawn feature.');
+    }
+    if (absentDac > 0) {
+      warnings.push(absentDac + ' drawn DAC tract(s) have no row in this dataset and will show ' +
+        'no indicators' + (absent2010 ? ' (' + absent2010 + ' of them are drawn on 2010 fallback ' +
+        'geometry, the classic vintage symptom)' : '') + '.');
+    }
+    return { ok: errors.length === 0, errors: errors, warnings: warnings, coverage: cov, absent: absent };
+  }
+
+  /**
+   * Merge a validated dataset into the cached geo, in place.
+   * Matched tracts take the dataset's values. Unmatched tracts have every
+   * dataset-owned field set to null AND are recorded in `absent`, so "no row"
+   * stays distinguishable from "row with an empty value".
+   */
+  function dsApplyToGeo(geo, doc, fieldIds, absent) {
+    if (!geo || !geo.features) return 0;
+    const t = doc.tracts;
+    const idx = {};
+    for (let i = 0; i < t.geoids.length; i++) idx[t.geoids[i]] = i;
+    let applied = 0;
+    geo.features.forEach(f => {
+      const p = f.properties;
+      const i = idx[p && p.GEOID];
+      if (i === undefined) {
+        for (let k = 0; k < fieldIds.length; k++) p[fieldIds[k]] = null;
+        return;
+      }
+      for (let k = 0; k < fieldIds.length; k++) p[fieldIds[k]] = t.fields[fieldIds[k]][i];
+      applied++;
+    });
+    void absent;
+    return applied;
+  }
+
+  /**
+   * Install a validated dataset: swap the catalog, merge the values, repaint.
+   * Returns true when it became live.
+   */
+  function dsInstall(rec, doc, val, cov) {
+    _indCatalog = val.catalog;
+    _dsState = {
+      rec: rec, catalog: val.catalog, absent: cov.absent,
+      coverage: cov.coverage, source: 'dataset',
+    };
+    const merged = _mapGeoCache
+      ? dsApplyToGeo(_mapGeoCache, doc, val.fieldIds, cov.absent)
+      : 0;
+    if (_mapGeoCache) {
+      console.info('[Tract datasets] merged ' + merged + ' tracts from "' + rec.datasetKey +
+        ' v' + rec.version + '" into the map.');
+    }
+    // Rebuild the Color by dropdown and repaint, if the map is already built.
+    if (typeof window._dacMapRefreshIndicators === 'function') {
+      try { window._dacMapRefreshIndicators(); } catch (e) {
+        console.warn('[Tract datasets] Could not refresh the live map.', e);
+      }
+    }
+    if (state.route && state.route.name === 'maplayers') rerenderMlList();
+    return true;
+  }
+
+  /** Revert to the payload catalog. Used when no dataset is live. */
+  function dsUsePayload(why) {
+    _indCatalog = indBuildDefaultCatalog();
+    _dsState = { rec: null, catalog: null, absent: null, coverage: null, source: 'payload' };
+    if (why) console.info('[Tract datasets] using map_payload.json indicators: ' + why);
+  }
+
+  /**
+   * Load the active tract dataset, AFTER the first render and without being
+   * awaited, exactly like saved-layer hydration. Any failure at any step leaves
+   * the payload in charge and says why.
+   */
+  async function dsHydrateActiveDataset() {
+    if (_dsHydrated || !Storage.isDataverse()) return;
+    _dsHydrated = true;
+    let recs;
+    try {
+      recs = await Storage.listTractDatasets();
+    } catch (e) {
+      console.warn('[Tract datasets] Could not list datasets; keeping the payload indicators.', e);
+      return;
+    }
+    _dsRecords = recs;
+    if (state.route && state.route.name === 'maplayers') rerenderMlList();
+    const act = recs.filter(r => r.active);
+    if (!act.length) { dsUsePayload('no active dataset'); return; }
+    if (act.length > 1) {
+      console.warn('[Tract datasets] ' + act.length + ' datasets are marked active (' +
+        act.map(r => r.datasetKey + ' v' + r.version).join(', ') +
+        '); using the newest and leaving the rest alone.');
+    }
+    const rec = act[0];
+    let text;
+    try {
+      text = await Storage.getTractDatasetFile(rec.dvId);
+    } catch (e) {
+      console.warn('[Tract datasets] Could not download "' + rec.datasetKey + ' v' + rec.version +
+        '"; keeping the payload indicators.', e);
+      return;
+    }
+    let doc;
+    try { doc = JSON.parse(text); } catch (e) {
+      console.error('[Tract datasets] "' + rec.datasetKey + ' v' + rec.version +
+        '" is not valid JSON; keeping the payload indicators.', e);
+      return;
+    }
+    const val = dsValidateDoc(doc, rec);
+    if (!val.ok) {
+      console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
+        '": ' + val.errors.join(' ') + ' Keeping the payload indicators.');
+      rec.loadError = val.errors.join(' ');
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      return;
+    }
+    val.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
+
+    // The coverage gate needs the drawn features, so make sure the geo is loaded.
+    let geo = _mapGeoCache;
+    if (!geo) { try { geo = await getMapGeo(); } catch (e) { geo = null; } }
+    const cov = dsCheckCoverage(doc, geo, rec);
+    if (!cov.ok) {
+      console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
+        '": ' + cov.errors.join(' ') + ' Keeping the payload indicators.');
+      rec.loadError = cov.errors.join(' ');
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      return;
+    }
+    cov.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
+    dsInstall(rec, doc, val, cov);
+    console.info('[Tract datasets] active: "' + rec.datasetKey + ' v' + rec.version +
+      '" (' + cov.coverage.matched + '/' + cov.coverage.drawn + ' drawn tracts, vintage ' +
+      cov.coverage.declaredVintage + ', ' + val.fieldIds.length + ' fields).');
+  }
+
   // ---- Hydration from Dataverse (CLCPA-171 Slice 2) ----------------------
   // Saved layers are loaded AFTER the dashboard renders, never before: boot()
   // fires this without awaiting it, so a slow or broken Dataverse cannot delay
@@ -3194,19 +3817,19 @@
 
     feats.forEach(f => {
       const p = f.properties;
-      const isDAC = p.DAC_Desig === 'Designated as DAC';
+      const isDAC = indIsDAC(p);
       if (isDAC) {
         dacN++;
         dacElecAcc += (p.elec_accts || 0);
         dacGasAcc  += (p.gas_accts  || 0);
         dacElecEap += (p.elec_eap   || 0);
         dacGasEap  += (p.gas_eap    || 0);
-        addAvg(p.Comb_Sc, 'cSc');
-        addAvg(p.Rank_State, 'cPct');
-        addAvg(p.Burden_Sc, 'bSc');
-        addAvg(p.Vulner_Sc, 'vSc');
-        addAvg(p.Burden_Pct, 'bPct');
-        addAvg(p.Vulner_Pct, 'vPct');
+        addAvg(indRoleVal(p, 'headlineScore'), 'cSc');
+        addAvg(indRoleVal(p, 'headlinePercentile'), 'cPct');
+        addAvg(indRoleVal(p, 'envScore'), 'bSc');
+        addAvg(indRoleVal(p, 'popScore'), 'vSc');
+        addAvg(indRoleVal(p, 'envPercentile'), 'bPct');
+        addAvg(indRoleVal(p, 'popPercentile'), 'vPct');
       } else {
         ndacN++;
         ndacElecAcc += (p.elec_accts || 0);
@@ -3415,7 +4038,7 @@
   // Build the selected-tract detail panel content (header + 4 thematic blocks).
   // Pure function of the clicked feature's properties + MAP_INDICATOR_GROUPS.
   function renderTractDetailContent(props) {
-    const isDAC = props.DAC_Desig === 'Designated as DAC';
+    const isDAC = indIsDAC(props);
     const name = tractDisplayName(props.GEOID);
     const boro = boroughLabel(props.County);
     const badge = isDAC
@@ -3452,9 +4075,12 @@
           '</div>' +
           '<div class="dac-td-headright">' +
             '<div class="dac-td-stats">' +
-              metricHtml('dac-td-metric-comb', 'Combined Burden Score', props.Comb_Sc, props.Rank_State) +
-              metricHtml('dac-td-metric-env', 'Environmental Burden', props.Burden_Sc, props.Burden_Pct) +
-              metricHtml('dac-td-metric-pop', 'Population Vulnerability', props.Vulner_Sc, props.Vulner_Pct) +
+              metricHtml('dac-td-metric-comb', 'Combined Burden Score',
+                indRoleVal(props, 'headlineScore'), indRoleVal(props, 'headlinePercentile')) +
+              metricHtml('dac-td-metric-env', 'Environmental Burden',
+                indRoleVal(props, 'envScore'), indRoleVal(props, 'envPercentile')) +
+              metricHtml('dac-td-metric-pop', 'Population Vulnerability',
+                indRoleVal(props, 'popScore'), indRoleVal(props, 'popPercentile')) +
               statsTt +
             '</div>' +
             '<button type="button" class="dac-td-close" id="dac-td-close" aria-label="Close detail panel">&times;</button>' +
@@ -3513,10 +4139,9 @@
         '</div>';
     }
 
-    // Build one sub-table (column) from a named group in MAP_INDICATOR_GROUPS.
-    function buildCol(title, groupName, comp) {
-      const g = MAP_INDICATOR_GROUPS.find(x => x.group === groupName);
-      const items = g ? g.items : [];
+    // Build one sub-table (column) from a group id in the catalog layout.
+    function buildCol(title, groupId, comp) {
+      const items = indGroupById(groupId).items;
       const rows = items.map(it => buildRow(it, comp)).join('');
       return '<div class="dac-td-col">' +
           '<div class="dac-td-coltitle">' + title + '</div>' +
@@ -3524,22 +4149,19 @@
         '</div>';
     }
 
+    // Zones, their titles, their columns and the env/pop colouring all come
+    // from the catalog layout, so a dataset can restructure this panel.
     const body =
       '<div class="dac-td-body">' +
-        '<div class="dac-td-zone dac-td-zone-env">' +
-          '<div class="dac-td-zone-hdr">Environmental Burden</div>' +
-          '<div class="dac-td-zone-cols">' +
-            buildCol('Environmental Burdens', 'Environmental Burdens', 'env') +
-            buildCol('Climate Risks', 'Climate Risks', 'env') +
-          '</div>' +
-        '</div>' +
-        '<div class="dac-td-zone dac-td-zone-pop">' +
-          '<div class="dac-td-zone-hdr">Population Vulnerability</div>' +
-          '<div class="dac-td-zone-cols">' +
-            buildCol('Health', 'Health', 'pop') +
-            buildCol('Demographics / Socioeconomic', 'Demographics / Vulnerability', 'pop') +
-          '</div>' +
-        '</div>' +
+        (indLayout().detailZones || []).map(function (z) {
+          return '<div class="dac-td-zone dac-td-zone-' + z.component + '">' +
+            '<div class="dac-td-zone-hdr">' + z.title + '</div>' +
+            '<div class="dac-td-zone-cols">' +
+              (z.columns || []).map(function (c) {
+                return buildCol(c.title, c.group, z.component);
+              }).join('') +
+            '</div>';
+        }).join('') +
       '</div>';
 
     return header + body + footer + note;
@@ -3747,7 +4369,7 @@
       const dimmed = nbs.length
         ? !inNbhd
         : (active && p2.County !== active);
-      const isDAC = p2.DAC_Desig === 'Designated as DAC';
+      const isDAC = indIsDAC(p2);
       const isSelected = _mapState.selectedGeoid && p2.GEOID === _mapState.selectedGeoid;
       // Per-tract orange edge only as a fallback when turf can't dissolve into a
       // single boundary; otherwise the orange is drawn as a separate layer.
@@ -3803,7 +4425,7 @@
           return sign + '$' + abs.toFixed(2);
         };
 
-        const dacDesig = p.DAC_Desig || '';
+        const dacDesig = indRoleVal(p, 'dacFlag') || '';
         const isDAC = dacDesig === 'Designated as DAC';
         // Borough display name (Kings -> Brooklyn, etc.) instead of raw county.
         const boroDisp = p.borough || boroughLabel(p.County);
@@ -3813,13 +4435,14 @@
 
         // Score/Rank/Pop line: only for DAC tracts (Non-DAC don't have these)
         let metaLine = '';
-        if (isDAC && p.Comb_Sc != null) {
-          const score  = parseFloat(p.Comb_Sc).toFixed(1);
-          const rankSt = p.Rank_State != null ? parseFloat(p.Rank_State).toFixed(1) + '%' : '—';
-          const pop    = fmtInt(p.Pop_Cnt) || '—';
+        if (isDAC && indRoleVal(p, 'headlineScore') != null) {
+          const score  = parseFloat(indRoleVal(p, 'headlineScore')).toFixed(1);
+          const rsRaw  = indRoleVal(p, 'headlinePercentile');
+          const rankSt = rsRaw != null ? parseFloat(rsRaw).toFixed(1) + '%' : '—';
+          const pop    = fmtInt(indRoleVal(p, 'population')) || '—';
           metaLine = '<div class="dac-tt-meta">Score ' + score + ' · State rank ' + rankSt + ' · pop ' + pop + '</div>';
-        } else if (p.Pop_Cnt != null) {
-          metaLine = '<div class="dac-tt-meta">pop ' + (fmtInt(p.Pop_Cnt) || '—') + '</div>';
+        } else if (indRoleVal(p, 'population') != null) {
+          metaLine = '<div class="dac-tt-meta">pop ' + (fmtInt(indRoleVal(p, 'population')) || '—') + '</div>';
         }
 
         
@@ -4673,7 +5296,7 @@
       if (_mapState.selectedGeoid) clearTractSelection();   // drop any clicked-tract scope + close detail
       _mapState.county = null;
       _mapState.neighborhoods = [];
-      _mapState.indicators = ['Comb_Sc'];   // reset Color by to its default
+      _mapState.indicators = [indRole('defaultIndicator')];   // reset Color by to its default
       const bDd = document.getElementById('dac-map-borough');
       if (bDd) {
         bDd.querySelectorAll('.dac-map-dd-opt').forEach(o => o.classList.toggle('active', !o.dataset.county));
@@ -4718,16 +5341,16 @@
       // Indicator columns depend on the current Color by:
       //  - default (Combined Burden Score) -> all 44 thematic indicators
       //  - specific indicator(s)           -> only those, minus core duplicates
-      const THEMATIC = ['Environmental Burdens', 'Climate Risks', 'Health', 'Demographics / Vulnerability'];
+      const THEMATIC = indLayout().csvThematicGroups || [];
       const sel = _mapState.indicators;
       let extraKeys;
-      if (sel.length === 1 && sel[0] === 'Comb_Sc') {
+      if (sel.length === 1 && sel[0] === indRole('defaultIndicator')) {
         extraKeys = [];
-        MAP_INDICATOR_GROUPS.forEach(g => {
-          if (THEMATIC.indexOf(g.group) >= 0) g.items.forEach(it => extraKeys.push(it.key));
-        });
+        THEMATIC.forEach(gid => indGroupById(gid).items.forEach(it => extraKeys.push(it.key)));
       } else {
-        const inCore = { Comb_Sc: 1, Burden_Pct: 1, Vulner_Pct: 1 };  // already in core columns
+        const inCore = {};   // already present as core columns
+        [indRole('headlineScore'), indRole('envPercentile'), indRole('popPercentile')]
+          .forEach(k => { if (k) inCore[k] = 1; });
         extraKeys = sel.filter(k => !inCore[k]);
       }
       const extraCols = extraKeys.map(k => ({ key: k, label: mapIndicatorMeta(k).label }));
@@ -4752,10 +5375,10 @@
           p.GEOID || '',
           p.borough || '',
           p.neighborhood || '',
-          p.DAC_Desig === 'Designated as DAC' ? 'DAC' : 'Non-DAC',
-          dec1(p.Comb_Sc), intf(p.Rank_State),
-          dec1(p.Burden_Sc), intf(p.Burden_Pct),
-          dec1(p.Vulner_Sc), intf(p.Vulner_Pct),
+          indIsDAC(p) ? 'DAC' : 'Non-DAC',
+          dec1(indRoleVal(p, 'headlineScore')), intf(indRoleVal(p, 'headlinePercentile')),
+          dec1(indRoleVal(p, 'envScore')), intf(indRoleVal(p, 'envPercentile')),
+          dec1(indRoleVal(p, 'popScore')), intf(indRoleVal(p, 'popPercentile')),
           intf(p.elec_accts), intf(p.gas_accts),
         ];
         const extra = extraCols.map(c => intf(p[c.key]));   // percentiles 0–100; null -> empty
@@ -5114,9 +5737,46 @@
       }
     }
 
+    /**
+     * A tract dataset became live after this map was built: rebuild the Color by
+     * dropdown from the new catalog, drop a stale selection, repaint the
+     * choropleth and refresh the KPI panel and any open detail box.
+     *
+     * Exposed like _dacMapSyncUploadedLayers so hydration can land without a
+     * mountDACMap rebuild, which would clear the user's tract selection.
+     */
+    function refreshIndicatorCatalog() {
+      // A key from the previous catalog may not exist in the new one.
+      const keep = _mapState.indicators.filter(k => !!_indCatalog.byKey[k]);
+      _mapState.indicators = keep.length ? keep : [indRole('defaultIndicator')];
+      const dd = document.getElementById('dac-map-indicator');
+      if (dd) {
+        const holder = document.createElement('div');
+        holder.innerHTML = mapDropdownHtml();
+        const fresh = holder.firstChild;
+        if (fresh) {
+          dd.parentNode.replaceChild(fresh, dd);
+          wireIndicatorDropdown();   // the old node's listeners went with it
+        }
+      }
+      renderMapKPI(geo);
+      applyIndicatorSelection();
+      // Rebuild an open detail box: its rows come from the catalog layout.
+      const panel = document.getElementById('dac-tract-detail');
+      if (panel && !panel.hidden && _mapState.selectedGeoid) {
+        const f = geo.features.filter(x => x.properties.GEOID === _mapState.selectedGeoid)[0];
+        if (f) showTractDetail(f.properties);
+      }
+    }
+    window._dacMapRefreshIndicators = refreshIndicatorCatalog;
+
     // Indicator color selector (custom dropdown) — independent of the borough
     // filter. Recolors tracts, updates the subtitle, swaps the legend, and
     // updates the trigger label. Does NOT touch the county filter or KPI panel.
+    //
+    // Extracted into a function so refreshIndicatorCatalog can re-bind it after
+    // replacing the dropdown node when a tract dataset becomes live.
+    function wireIndicatorDropdown() {
     const dd = document.getElementById('dac-map-indicator');
     if (dd) {
       const trigger = dd.querySelector('.dac-map-dd-trigger');
@@ -5139,7 +5799,7 @@
         menu.addEventListener('click', function (e) {
           // "Clear" → revert to the default Combined Burden Score view.
           if (e.target.closest('.dac-map-dd-clear')) {
-            _mapState.indicators = ['Comb_Sc'];
+            _mapState.indicators = [indRole('defaultIndicator')];
             applyIndicatorSelection();
             return;
           }
@@ -5160,14 +5820,18 @@
             const i = sel.indexOf(key);
             if (i >= 0) sel.splice(i, 1); else sel.push(key);
           }
-          if (sel.length === 0) sel = ['Comb_Sc']; // empty → revert to default
+          if (sel.length === 0) sel = [indRole('defaultIndicator')]; // empty → revert to default
 
           _mapState.indicators = sel;
           applyIndicatorSelection();
           // Multi-select: keep the menu open (closes via trigger / outside / Esc).
         });
       }
+    }
+    }
+    wireIndicatorDropdown();
 
+    {
       // Close ANY open dropdown (Borough / Neighborhood / Color by) on
       // outside-click or Escape. Replace prior handlers so they don't pile up
       // across re-renders.
@@ -10328,7 +10992,142 @@ function wireHTooltips() {
   function renderMlSessionList() {
     // Slice 3: a read-only Dataverse user cannot upload, so the session group
     // would be permanently empty. Show saved layers only.
-    return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '');
+    return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '') +
+      renderDsCard();
+  }
+
+  // ============================================================
+  // Tract dataset admin card
+  // ------------------------------------------------------------
+  // Where a NYSERDA release gets uploaded and activated. Deliberately small: it
+  // reuses the layer machinery wholesale, and the interesting work is the
+  // validation that runs before Activate is offered at all.
+  // ============================================================
+
+  /** Which source is driving the indicators right now, for the card header. */
+  function dsSourceChip() {
+    const st = dsState();
+    if (st.source === 'dataset' && st.rec) {
+      return '<span class="ml-chip ml-chip-ok">live: ' +
+        escapeHtml(st.rec.datasetKey + ' v' + st.rec.version) + '</span>';
+    }
+    return '<span class="ml-chip">live: map_payload.json</span>';
+  }
+
+  function renderDsCard() {
+    if (!Storage.isDataverse()) return '';
+    const canAdmin = Storage.canCreateDatasets();
+    const canToggle = Storage.canWriteDatasets();
+    const recs = dsRecords();
+    const st = dsState();
+
+    const cov = st.coverage
+      ? `<div class="ml-row-src">Covers ${st.coverage.matched.toLocaleString()} of
+         ${st.coverage.drawn.toLocaleString()} drawn tracts · GEOID vintage
+         ${escapeHtml(st.coverage.declaredVintage)}${
+           st.coverage.absentDac ? ' · ' + st.coverage.absentDac + ' DAC tract(s) unmatched' : ''}</div>`
+      : '';
+
+    const rows = recs.length
+      ? '<ul class="ml-list">' + recs.map(r => {
+          const badges =
+            (r.active ? '<span class="ml-chip ml-chip-ok">active</span>'
+                      : '<span class="ml-chip ml-chip-off">inactive</span>') +
+            (r.loadError
+              ? '<span class="ml-chip ml-chip-err" title="' + escapeHtml(r.loadError) +
+                '">refused</span>'
+              : '');
+          const who = [r.savedBy, mlFmtSavedOn(r.savedOn)].filter(Boolean).join(' · ');
+          const busy = r.busy === true;
+          const toggle = canToggle
+            ? `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
+                 <input type="checkbox" data-ds-active="${escapeHtml(r.dvId)}"${
+                   r.active ? ' checked' : ''}${busy ? ' disabled' : ''} />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+                 <span class="ml-toggle-label">${busy ? 'Saving…' : (r.active ? 'Active' : 'Inactive')}</span>
+               </label>`
+            : `<span class="ml-chip">${r.active ? 'Active' : 'Inactive'}</span>`;
+          return `
+        <li class="ml-row${r.active ? '' : ' ml-row-inactive'}" data-ds-row="${escapeHtml(r.dvId)}">
+          <div class="ml-row-main">
+            <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+              <span class="ml-mono">v${escapeHtml(r.version)}</span> ${badges}</div>
+            <div class="ml-row-meta">
+              ${(r.tractCount || 0).toLocaleString()} tracts ·
+              ${r.fieldCount || 0} fields ·
+              vintage ${escapeHtml(r.geoidVintage || '?')}${who ? ' · ' + escapeHtml(who) : ''}
+            </div>
+            ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+            ${r.active && st.source === 'dataset' && st.rec && st.rec.dvId === r.dvId ? cov : ''}
+            ${r.loadError ? `<div class="ml-row-error" role="alert">
+                 <strong>Refused; the payload is still in charge</strong>
+                 <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
+               </div>` : ''}
+          </div>
+          <div class="ml-row-actions">${toggle}</div>
+        </li>`;
+        }).join('') + '</ul>'
+      : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators baked into map_payload.json.</p>';
+
+    const d = state.mapLayers || {};
+    const up = d.dsStage === 'ready'
+      ? `<div class="ml-preview">
+           <div class="ml-preview-head">
+             <span class="ml-preview-title">Validated</span>
+             <span class="ml-chip ml-chip-ok">${d.dsSummary.tracts.toLocaleString()} tracts · ${d.dsSummary.fields} fields</span>
+           </div>
+           <div class="ml-preview-range">
+             <span class="ml-mono">${escapeHtml(d.dsSummary.key)} v${escapeHtml(d.dsSummary.version)}</span>
+             · vintage ${escapeHtml(d.dsSummary.vintage)}
+             · ${d.dsSummary.indicators} indicators in ${d.dsSummary.groups} groups
+           </div>
+           ${(d.dsWarnings || []).length ? `<div class="ml-msgs ml-msgs-warn">
+             <div class="ml-msgs-head">Heads up</div>
+             <ul>${d.dsWarnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
+           </div>` : ''}
+           <p class="ml-preview-note">Uploading stores this version inactive. Activate it from the
+           list above once it is stored; activating deactivates any other version of the same
+           dataset key, and the map revalidates before switching.</p>
+           <div class="ml-actions">
+             <button class="btn btn-secondary" id="ds-cancel" type="button">Cancel</button>
+             <button class="btn btn-primary" id="ds-upload" type="button">Upload version</button>
+           </div>
+         </div>`
+      : (d.dsErrors || []).length
+      ? `<div class="ml-msgs ml-msgs-err" role="alert">
+           <div class="ml-msgs-head">This file can't be used as a dataset</div>
+           <ul>${d.dsErrors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
+         </div>
+         <div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose dataset JSON
+             <input type="file" id="ds-file" accept=".json" hidden /></label>
+         </div>`
+      : d.dsStage === 'saving'
+      ? `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' }))}</span>`
+      : `<p class="ml-intro">Upload the file produced by <span class="ml-mono">Data/build_tract_dataset.py</span>.
+         It is validated here — manifest, roles, formats, layout and tract coverage — before anything
+         is stored, and again before it goes live.</p>
+         <div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose dataset JSON
+             <input type="file" id="ds-file" accept=".json" hidden /></label>
+           <span class="ml-picker-hint">.json · from the migration script</span>
+         </div>`;
+
+    return `
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Tract datasets</h3>
+            <p class="ml-card-sub">Versioned NYSERDA per-tract releases. The active version drives the
+            Color by dropdown, tract tooltips, the detail box and the CSV export.</p>
+          </div>
+          ${dsSourceChip()}
+        </div>
+        <div class="ml-card-body">
+          ${rows}
+          ${canAdmin ? `<div class="ds-upload">${up}</div>` : ''}
+        </div>
+      </div>`;
   }
 
   function rerenderMlUpload() {
@@ -10486,6 +11285,182 @@ function wireHTooltips() {
     });
   }
 
+  // ---- Tract dataset admin wiring ----------------------------------------
+
+  /** Read a picked dataset file, validate it, and stage it for upload. */
+  function dsHandleFile(file) {
+    const d = initMapLayersState();
+    const reader = new FileReader();
+    reader.onerror = function () {
+      d.dsStage = null; d.dsErrors = ['Could not read the file. Try picking it again.'];
+      rerenderMlList();
+    };
+    reader.onload = async function () {
+      const text = String(reader.result);
+      let doc;
+      try { doc = JSON.parse(text); } catch (e) {
+        d.dsStage = null; d.dsErrors = ['Not valid JSON: ' + e.message];
+        rerenderMlList(); return;
+      }
+      // Same validator the load path uses, so what passes here passes there.
+      const val = dsValidateDoc(doc, null);
+      if (!val.ok) {
+        d.dsStage = null; d.dsErrors = val.errors; d.dsWarnings = [];
+        rerenderMlList(); return;
+      }
+      // Coverage is checked against the drawn features too, so a vintage
+      // mismatch is caught before the file is ever stored. The map may never
+      // have been mounted in this session (the admin lands straight on this
+      // page), in which case there are no drawn features to compare against and
+      // every upload would be refused for 0% coverage — so load the geo first.
+      let geo = _mapGeoCache;
+      if (!geo) {
+        try { geo = await getMapGeo(); } catch (e) {
+          d.dsStage = null;
+          d.dsErrors = ['Could not load map_payload.json to check tract coverage: ' +
+            (e && e.message ? e.message : e)];
+          rerenderMlList(); return;
+        }
+      }
+      const cov = dsCheckCoverage(doc, geo, null);
+      if (!cov.ok) {
+        d.dsStage = null; d.dsErrors = cov.errors; d.dsWarnings = cov.warnings;
+        rerenderMlList(); return;
+      }
+      const ds = doc.dataset || {};
+      const geoids = doc.tracts.geoids;
+      d.dsStage = 'ready';
+      d.dsErrors = [];
+      d.dsWarnings = val.warnings.concat(cov.warnings);
+      d.dsText = text;
+      d.dsSummary = {
+        key: ds.key || '', version: ds.version || '', name: ds.name || '',
+        sourceLabel: ds.sourceLabel || '', vintage: ds.geoidVintage || '',
+        tracts: geoids.length, fields: val.fieldIds.length,
+        indicators: (doc.indicators || []).length, groups: val.catalog.groups.length,
+        manifestVersion: doc.schema,
+      };
+      dsStageChecksumInput(geoids);
+      rerenderMlList();
+    };
+    reader.readAsText(file);
+  }
+
+  // SHA-256 of the sorted GEOID list, matching the migration script, so the
+  // stored record's checksum describes the file that was actually uploaded.
+  // Staged during validation and hashed at upload time, because SubtleCrypto is
+  // async while the validation path is not.
+  let _dsChecksumInput = null;
+  function dsStageChecksumInput(geoids) {
+    _dsChecksumInput = geoids.slice().sort().join('\n');
+  }
+  /** '' where SubtleCrypto is unavailable; the record then stores no checksum. */
+  async function dsComputeChecksum() {
+    try {
+      if (!_dsChecksumInput || !window.crypto || !window.crypto.subtle) return '';
+      const buf = new TextEncoder().encode(_dsChecksumInput);
+      const hash = await window.crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(hash))
+        .map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (e) {
+      console.warn('[Tract datasets] Could not compute the key checksum in-browser.', e);
+      return '';
+    }
+  }
+
+  /** Upload the staged dataset as a new, inactive version. */
+  async function dsUploadStaged() {
+    const d = state.mapLayers;
+    if (!d || d.dsStage !== 'ready' || !d.dsText) return;
+    if (!Storage.canCreateDatasets()) {
+      d.dsStage = null;
+      d.dsErrors = ['Your account does not have create and write access to DAC Tract Dataset.'];
+      rerenderMlList(); return;
+    }
+    const s = d.dsSummary;
+    d.dsStage = 'saving'; d.dsProgress = { phase: 'creating' };
+    rerenderMlList();
+    try {
+      const checksum = await dsComputeChecksum();
+      await Storage.saveTractDataset({
+        name: s.name || s.key, datasetKey: s.key, version: s.version,
+        sourceLabel: s.sourceLabel, geoidVintage: s.vintage,
+        tractCount: s.tracts, fieldCount: s.fields,
+        keyChecksum: checksum, manifestVersion: s.manifestVersion,
+      }, d.dsText, function (st) { d.dsProgress = st; rerenderMlList(); });
+      d.dsStage = null; d.dsText = null; d.dsSummary = null;
+      d.dsErrors = []; d.dsWarnings = [];
+      // Re-list so the new version appears, inactive.
+      _dsRecords = await Storage.listTractDatasets();
+      rerenderMlList();
+      Storage.toast('Uploaded ' + s.key + ' v' + s.version + '. Activate it when ready.');
+    } catch (err) {
+      const msg = (err && err.message) ? err.message : String(err);
+      d.dsStage = null;
+      d.dsErrors = [/\b403\b/.test(msg)
+        ? "You don't have permission to upload tract datasets. " + msg
+        : msg];
+      rerenderMlList();
+      console.error('[Tract datasets] Upload failed:', err);
+    }
+  }
+
+  /**
+   * Flip a dataset version active or inactive.
+   *
+   * Activating revalidates the file first: the record's integrity fields and the
+   * coverage guard are re-checked against the map as drawn right now, so a
+   * dataset can never go live on a mismatch just because it uploaded cleanly.
+   */
+  async function dsSetActive(dvId, makeActive) {
+    const rec = _dsRecords.filter(r => r.dvId === dvId)[0];
+    if (!rec || rec.busy) return;
+    if (!Storage.canWriteDatasets()) {
+      Storage.toast('You have read-only access to tract datasets.', 'error');
+      rerenderMlList(); return;
+    }
+    rec.busy = true; rec.loadError = null;
+    rerenderMlList();
+    try {
+      if (makeActive) {
+        const doc = JSON.parse(await Storage.getTractDatasetFile(dvId));
+        const val = dsValidateDoc(doc, rec);
+        if (!val.ok) throw new Error(val.errors.join(' '));
+        let geo = _mapGeoCache;
+        if (!geo) { try { geo = await getMapGeo(); } catch (e) { geo = null; } }
+        const cov = dsCheckCoverage(doc, geo, rec);
+        if (!cov.ok) throw new Error(cov.errors.join(' '));
+        await Storage.setTractDatasetActive(dvId, rec, true);
+        _dsRecords.forEach(r => { r.active = (r.datasetKey === rec.datasetKey)
+          ? (r.dvId === dvId) : r.active; });
+        rec.busy = false;
+        dsInstall(rec, doc, val, cov);
+        Storage.toast('Activated ' + rec.datasetKey + ' v' + rec.version + ' for everyone.');
+      } else {
+        await Storage.setTractDatasetActive(dvId, rec, false);
+        rec.active = false; rec.busy = false;
+        dsUsePayload('the active dataset was switched off');
+        if (typeof window._dacMapRefreshIndicators === 'function') {
+          try { window._dacMapRefreshIndicators(); } catch (e) {
+            console.warn('[Tract datasets] Could not refresh the live map.', e);
+          }
+        }
+        rerenderMlList();
+        Storage.toast('Deactivated ' + rec.datasetKey + ' v' + rec.version +
+          '. The map is back on map_payload.json.');
+      }
+    } catch (err) {
+      rec.busy = false;
+      const msg = (err && err.message) ? err.message : String(err);
+      rec.loadError = msg;
+      rerenderMlList();
+      console.error('[Tract datasets] Could not change active state:', err);
+      Storage.toast(/\b403\b/.test(msg)
+        ? "You don't have permission to change tract datasets."
+        : 'Could not activate: ' + msg, 'error');
+    }
+  }
+
   /** Drop a layer from the registry and from a built map (rows + legend). */
   function mlDropLayer(id) {
     mlUnregisterLayer(id);
@@ -10519,12 +11494,31 @@ function wireHTooltips() {
       // Slice 3: retry restarts the same verified save path, not a resume.
       const rt = e.target.closest('button[data-ml-retry]');
       if (rt) { mlSaveLayer(rt.dataset.mlRetry); return; }
+
+      // ---- tract dataset admin ----
+      if (e.target.closest('#ds-upload')) { dsUploadStaged(); return; }
+      if (e.target.closest('#ds-cancel')) {
+        const d = initMapLayersState();
+        d.dsStage = null; d.dsText = null; d.dsSummary = null;
+        d.dsErrors = []; d.dsWarnings = [];
+        rerenderMlList();
+        return;
+      }
     });
 
     // Slice 3: the Active/Inactive toggle (a checkbox, so it fires `change`).
     mount.addEventListener('change', function (e) {
       const cb = e.target.closest('input[data-ml-active]');
-      if (cb) mlSetLayerActive(cb.dataset.mlActive, cb.checked);
+      if (cb) { mlSetLayerActive(cb.dataset.mlActive, cb.checked); return; }
+      // Tract dataset activation.
+      const ds = e.target.closest('input[data-ds-active]');
+      if (ds) { dsSetActive(ds.dataset.dsActive, ds.checked); return; }
+      // The dataset file picker lives inside this mount, so it is delegated too.
+      const df = e.target.closest('#ds-file');
+      if (df && df.files && df.files[0]) {
+        dsHandleFile(df.files[0]);
+        df.value = '';   // allow re-picking the same file after a rejection
+      }
     });
 
     // Slice 3: keep the source label on the entry as it is typed, so it survives
@@ -11552,6 +12546,11 @@ function wireHTooltips() {
     // saved layers appear in the Layers panel when they arrive, and a Dataverse
     // problem degrades to session-only (logged) rather than breaking the page.
     mlHydrateSavedLayers();
+
+    // Tract datasets: same contract — fired without awaiting, after the first
+    // render. The payload's indicators stay live until one validates, so a slow,
+    // broken or refused dataset changes nothing the user sees.
+    dsHydrateActiveDataset();
   }
 
   // Kick off
