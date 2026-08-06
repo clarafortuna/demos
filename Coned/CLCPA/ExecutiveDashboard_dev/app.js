@@ -958,11 +958,35 @@
             }
             throw err;
           }
+          // One published geometry per vintage. Enforced here rather than by a
+          // Dataverse rule, and deliberately AFTER the file is uploaded and
+          // verified: retiring the incumbent for an upload that then failed
+          // would leave the vintage with no geometry at all and break the
+          // pairing for everyone. The new version has to be proven good first.
+          const retired = [];
+          if (rec.isActive === true) {
+            const sibs = await getAll(setTractDataset,
+              '$select=' + ID_TRACTDATASET + ',cr2bf_versionlabel' +
+              "&$filter=cr2bf_isactive eq true and cr2bf_datasetkey eq '" +
+              String(rec.datasetKey).replace(/'/g, "''") +
+              "' and cr2bf_geoidvintage eq '" +
+              String(rec.geoidVintage || '').replace(/'/g, "''") + "'");
+            for (let i = 0; i < sibs.length; i++) {
+              const sid = sibs[i][ID_TRACTDATASET];
+              if (String(sid).toLowerCase() === String(id).toLowerCase()) continue;
+              await dvUpdate(setTractDataset, sid, { cr2bf_isactive: false });
+              retired.push(sibs[i].cr2bf_versionlabel || sid);
+              console.info('[Tract geometry] retired "' + (sibs[i].cr2bf_versionlabel || sid) +
+                '": only one geometry per vintage stays published, and vintage ' +
+                (rec.geoidVintage || '?') + ' is now served by "' + rec.version + '".');
+            }
+          }
           writeMapAudit('dataset-upload', {
             layerKey: rec.datasetKey + ' v' + rec.version, name: rec.name,
             valueField: '', featureCount: rec.tractCount || 0, geomTypes: [],
-          }, { fileBytes: bytes, geoidVintage: rec.geoidVintage, fieldCount: rec.fieldCount });
-          return { dvId: id };
+          }, { fileBytes: bytes, geoidVintage: rec.geoidVintage, fieldCount: rec.fieldCount,
+               retiredForVintage: retired });
+          return { dvId: id, retired: retired };
         },
 
         /**
@@ -3525,8 +3549,15 @@
     const feats = (geo && geo.features) || [];
     let matched = 0, absentDrawn = 0, absentDac = 0, absent2010 = 0;
     const absent = new Set();
+    // Which source vintages the drawn polygons actually came from. "Fallback"
+    // is only a meaningful word when that set has more than one member: under a
+    // pure-vintage geometry dataset every tract carries the same _geom_year, so
+    // the old unconditional test called 2010 a fallback when it was the primary
+    // vintage, and said nothing at all under 2020.
+    const drawnYears = new Set();
     feats.forEach(f => {
       const p = f.properties || {};
+      if (p._geom_year != null) drawnYears.add(p._geom_year);
       if (keys.has(p.GEOID)) { matched++; return; }
       absent.add(p.GEOID);
       absentDrawn++;
@@ -3534,6 +3565,14 @@
       // the vintage symptom worth naming, not the fallback count overall.
       if (indIsDAC(p)) { absentDac++; if (p._geom_year === 2010) absent2010++; }
     });
+    const geometryIsMixed = drawnYears.size > 1;
+    const years = Array.from(drawnYears).sort((a, b) => b - a);
+    // Mixed keeps today's exact wording, so the hybrid pairing reads as it always
+    // has; a pure vintage gets described as what it is.
+    const drawsPhrase = geometryIsMixed
+      ? 'the map draws ' + years[0] + ' geometry with a ' + years[years.length - 1] + ' fallback'
+      : (years.length === 1 ? 'the map draws ' + years[0] + ' geometry'
+                            : 'the map does not say which vintage it draws');
     const declared = (doc.dataset && doc.dataset.geoidVintage) ||
       (rec && rec.geoidVintage) || 'unknown';
     const share = doc.tracts.geoids.length ? matched / doc.tracts.geoids.length : 0;
@@ -3542,20 +3581,22 @@
       absentDrawn: absentDrawn, absentDac: absentDac, absent2010: absent2010,
       datasetKeys: doc.tracts.geoids.length,
       keysNotDrawn: doc.tracts.geoids.length - matched, share: share,
+      drawnVintages: years, geometryIsMixed: geometryIsMixed,
     };
     if (share < DS_MIN_COVERAGE) {
       errors.push('only ' + matched + ' of the dataset\'s ' + cov.datasetKeys +
         ' tracts match drawn features (' + (share * 100).toFixed(1) + '%, below the ' +
         (DS_MIN_COVERAGE * 100) + '% floor). Declared GEOID vintage is ' + cov.declaredVintage +
-        '; the map draws 2020 geometry with a 2010 fallback. This looks like a vintage mismatch.');
+        '; ' + drawsPhrase + '. This looks like a vintage mismatch.');
     } else if (share < 1) {
       warnings.push(matched + ' of ' + cov.datasetKeys + ' tracts in this file matched the map; ' +
         cov.keysNotDrawn + ' tract(s) in the file are not on the map.');
     }
     if (absentDac > 0) {
       warnings.push(absentDac + ' drawn DAC tract(s) have no row in this dataset and will show ' +
-        'no indicators' + (absent2010 ? ' (' + absent2010 + ' of them are drawn on 2010 fallback ' +
-        'geometry, the classic vintage symptom)' : '') + '.');
+        'no indicators' + ((geometryIsMixed && absent2010)
+          ? ' (' + absent2010 + ' of them are drawn on 2010 fallback ' +
+            'geometry, the classic vintage symptom)' : '') + '.');
     }
     return { ok: errors.length === 0, errors: errors, warnings: warnings, coverage: cov, absent: absent };
   }
@@ -3823,6 +3864,71 @@
     _dsGeometry = { rec: res.rec, doc: gdoc, fieldIds: gval.fieldIds };
     dsInvalidateGeo();
     return { ok: true, changed: true };
+  }
+
+  /**
+   * Re-resolve the pairing after the geometry family changed underneath it,
+   * which is what a fresh geometry upload does. Only acts when an indicator
+   * dataset is live; with none live there is nothing to pair and the payload is
+   * already drawing.
+   */
+  async function dsRepairGeometryPairing() {
+    const live = dsState();
+    if (!live || live.source !== 'dataset' || !live.rec) return;
+    const rec = live.rec;
+    const before = _dsGeometry ? _dsGeometry.rec.dvId : null;
+    const res = await dsPrepareGeometryFor(rec, _dsRecords);
+    if (!res.ok) {
+      // Refuse loudly rather than leaving one vintage's shapes under another's
+      // data: drop back to payload geometry, which always matches nothing and
+      // therefore misleads nobody.
+      console.error('[Tract geometry] the new geometry does not pair with the live dataset: ' +
+        res.error + ' Falling back to the payload geometry.');
+      rec.loadError = res.error;
+      if (dsClearGeometry()) dsRemountMap();
+      return;
+    }
+    const after = _dsGeometry ? _dsGeometry.rec.dvId : null;
+    if (before === after) return;
+
+    // Changing the geometry throws away the cached geo, and the indicator values
+    // were merged INTO that object. Rebuilding it restores the payload's own
+    // values, so the dataset has to be merged again or the map quietly reverts
+    // to payload indicators while the card still says the dataset is live. The
+    // values happen to match for v1.0, which was extracted from the payload, so
+    // this would have stayed invisible until a version whose values differ.
+    //
+    // Re-read the file rather than holding the parsed document forever: a
+    // geometry swap is a rare administrative action, and a few megabytes of
+    // resident dataset is a poor trade for it.
+    let doc;
+    try {
+      doc = JSON.parse(await Storage.getTractDatasetFile(rec.dvId));
+    } catch (e) {
+      console.error('[Tract datasets] could not re-read "' + rec.datasetKey + ' v' + rec.version +
+        '" after the geometry changed; falling back to the payload.', e);
+      dsUsePayload('the dataset could not be re-read after a geometry change');
+      dsClearGeometry();
+      dsRemountMap();
+      return;
+    }
+    const val = dsValidateDoc(doc, rec);
+    let geo = null;
+    try { geo = await getMapGeo(); } catch (e) { geo = null; }
+    const cov = val.ok ? dsCheckCoverage(doc, geo, rec) : null;
+    if (!val.ok || !cov.ok) {
+      const why = val.ok ? cov.errors.join(' ') : val.errors.join(' ');
+      console.error('[Tract datasets] "' + rec.datasetKey + ' v' + rec.version +
+        '" no longer passes against the new geometry: ' + why + ' Falling back to the payload.');
+      rec.loadError = why;
+      dsUsePayload('the live dataset does not fit the new geometry');
+      dsClearGeometry();
+      dsRemountMap();
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      return;
+    }
+    cov.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
+    dsInstall(rec, doc, val, cov, true);
   }
 
   /** Back to payload geometry. Used when no indicator dataset is live. */
@@ -11833,7 +11939,7 @@ function wireHTooltips() {
     try {
       const checksum = await dsComputeChecksum();
       const isGeometry = s.kind === 'geometry';
-      await Storage.saveTractDataset({
+      const saved = await Storage.saveTractDataset({
         name: s.name || s.key, datasetKey: s.key, version: s.version,
         sourceLabel: s.sourceLabel, geoidVintage: s.vintage,
         tractCount: s.tracts, fieldCount: s.fields,
@@ -11844,10 +11950,17 @@ function wireHTooltips() {
       d.dsErrors = []; d.dsWarnings = [];
       // Re-list so the new version appears.
       _dsRecords = await Storage.listTractDatasets();
+      const retired = (saved && saved.retired) || [];
+      // A new geometry for the vintage currently in use replaces what the map is
+      // drawing, so re-resolve the pair rather than waiting for a reload.
+      if (isGeometry) await dsRepairGeometryPairing();
       rerenderMlList();
       Storage.toast(isGeometry
-        ? 'Uploaded ' + s.version + ' geometry. It will be used by any dataset version ' +
-          'that declares vintage ' + (s.vintage || '(none)') + '.'
+        ? 'Uploaded ' + s.version + ' geometry.' +
+          (retired.length
+            ? ' It replaces ' + retired.join(', ') + ' for vintage ' + (s.vintage || '(none)') + '.'
+            : ' It will be used by any dataset version that declares vintage ' +
+              (s.vintage || '(none)') + '.')
         : 'Uploaded ' + s.key + ' v' + s.version + '. Activate it when ready.');
     } catch (err) {
       const msg = (err && err.message) ? err.message : String(err);

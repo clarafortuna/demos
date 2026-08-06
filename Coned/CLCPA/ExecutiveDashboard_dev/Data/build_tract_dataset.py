@@ -56,6 +56,28 @@ Usage
       --> writes Data/out/nyserda_dac_v2_0-test.json, a SYNTHETIC fixture for
           exercising the GEOID-vintage coverage guard. See SYNTHETIC V2 below.
 
+  python Data/build_tract_dataset.py --synthetic-v2-demo
+      --> writes Data/out/nyserda_dac_v2_0-demo.json, a SYNTHETIC fixture built
+          to PASS. See SYNTHETIC V2 DEMO below.
+
+SYNTHETIC V2 DEMO
+-----------------
+--synthetic-v2 is built to be refused: it re-keys the 150 legacy tracts to
+invented GEOIDs so coverage lands at 93.6% and the floor rejects it. That proves
+the guard bites, but it can never demonstrate what a successful vintage switch
+looks like.
+
+--synthetic-v2-demo is the other half. It keeps only the GEOIDs that are REAL
+2020 census tracts and carries each one's v1.0 values unchanged. Nothing is
+invented, interpolated or re-allocated: it is a strict subset of v1.0, so every
+number on screen under it is a number that was already on screen under v1.0.
+
+Paired with the pure 2020 geometry, every key it carries is drawn, so coverage
+is 100% and it activates cleanly. The 150 tracts that exist only in the 2010
+vintage are absent, which is exactly what a genuinely re-vintaged NYSERDA
+release would look like, and the map showing 150 fewer tracts is the honest
+consequence of a vintage migration rather than a defect to hide.
+
 SYNTHETIC V2
 ------------
 The vintage guard is an acceptance criterion, but it cannot be exercised with a
@@ -106,6 +128,23 @@ SYNTH_SOURCE_LABEL = (
     "150 tracts drawn on 2010 fallback geometry re-keyed to invented 2020-style "
     "GEOIDs. Exists only to exercise the GEOID-vintage coverage guard. Do not "
     "activate as a real dataset version."
+)
+
+# ---- --synthetic-v2-demo overrides (see SYNTHETIC V2 DEMO in the docstring) ---
+# The counterpart of --synthetic-v2: that one is built to FAIL the coverage
+# guard, this one is built to PASS it, so the pairing can be demonstrated end to
+# end. Every GEOID in it is a REAL 2020 census tract.
+DEMO_VERSION_LABEL = "2.0-demo"
+DEMO_GEOID_VINTAGE = "2020"
+DEMO_DATASET_NAME = "SYNTHETIC DEMO, NYSERDA DAC indicators v2.0-demo"
+DEMO_SOURCE_LABEL = (
+    "SYNTHETIC DEMO FIXTURE, NOT A NYSERDA RELEASE. Built by "
+    "Data/build_tract_dataset.py --synthetic-v2-demo. Every GEOID is a real 2020 "
+    "census tract and every value is carried unchanged from v1.0 for that same "
+    "GEOID; no value is invented, interpolated or re-allocated. The 150 tracts "
+    "that exist only in the 2010 vintage are simply absent, which is what a real "
+    "re-vintaged release would look like. Exists to demonstrate vintage pairing. "
+    "Do not mistake it for NYSERDA v2.0 data."
 )
 
 # Fields consumed by the map that come from the same NYSERDA release but are NOT
@@ -239,12 +278,20 @@ def main():
     global DECIMALS, VERSION_LABEL, GEOID_VINTAGE, DATASET_NAME, SOURCE_LABEL
     if "--decimals" in sys.argv:
         DECIMALS = int(sys.argv[sys.argv.index("--decimals") + 1])
-    synthetic = "--synthetic-v2" in sys.argv
+    demo = "--synthetic-v2-demo" in sys.argv
+    # --synthetic-v2-demo also contains the string "--synthetic-v2", so test for
+    # the demo flag first and exclude it explicitly.
+    synthetic = (not demo) and ("--synthetic-v2" in sys.argv)
     if synthetic:
         VERSION_LABEL = SYNTH_VERSION_LABEL
         GEOID_VINTAGE = SYNTH_GEOID_VINTAGE
         DATASET_NAME = SYNTH_DATASET_NAME
         SOURCE_LABEL = SYNTH_SOURCE_LABEL
+    if demo:
+        VERSION_LABEL = DEMO_VERSION_LABEL
+        GEOID_VINTAGE = DEMO_GEOID_VINTAGE
+        DATASET_NAME = DEMO_DATASET_NAME
+        SOURCE_LABEL = DEMO_SOURCE_LABEL
     groups_raw = parse_indicator_catalog(APP_JS)
     dropdown = [it for g in groups_raw for it in g["items"]]
     dropdown_keys = [it["key"] for it in dropdown]
@@ -264,6 +311,20 @@ def main():
         p = f["properties"]
         if any(p.get(k) is not None for k in all_fields):
             rows.append(p)
+
+    if demo:
+        # Restrict to GEOIDs that are REAL 2020 census tracts. This is a strict
+        # subset of v1.0, not a transformation of it: the tracts that survive
+        # into 2020 keep their own values untouched, and the ones that do not
+        # are absent rather than re-keyed or re-allocated.
+        real2020 = set()
+        with open(os.path.join(HERE, "ny_tracts.geojson"), encoding="utf-8") as fh:
+            for f in json.load(fh)["features"]:
+                real2020.add(str(f["properties"].get("GEOID", "")).zfill(11))
+        before = len(rows)
+        rows = [p for p in rows if p["GEOID"] in real2020]
+        print("--synthetic-v2-demo: kept %d of %d tracts (dropped %d that exist "
+              "only in the 2010 vintage)" % (len(rows), before, before - len(rows)))
 
     geoids = [p["GEOID"] for p in rows]
     remapped = 0
