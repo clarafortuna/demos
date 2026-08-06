@@ -3875,20 +3875,60 @@
   async function dsRepairGeometryPairing() {
     const live = dsState();
     if (!live || live.source !== 'dataset' || !live.rec) return;
+    const rec = live.rec;
     const before = _dsGeometry ? _dsGeometry.rec.dvId : null;
-    const res = await dsPrepareGeometryFor(live.rec, _dsRecords);
+    const res = await dsPrepareGeometryFor(rec, _dsRecords);
     if (!res.ok) {
       // Refuse loudly rather than leaving one vintage's shapes under another's
       // data: drop back to payload geometry, which always matches nothing and
       // therefore misleads nobody.
       console.error('[Tract geometry] the new geometry does not pair with the live dataset: ' +
         res.error + ' Falling back to the payload geometry.');
-      live.rec.loadError = res.error;
+      rec.loadError = res.error;
       if (dsClearGeometry()) dsRemountMap();
       return;
     }
     const after = _dsGeometry ? _dsGeometry.rec.dvId : null;
-    if (before !== after) dsRemountMap();
+    if (before === after) return;
+
+    // Changing the geometry throws away the cached geo, and the indicator values
+    // were merged INTO that object. Rebuilding it restores the payload's own
+    // values, so the dataset has to be merged again or the map quietly reverts
+    // to payload indicators while the card still says the dataset is live. The
+    // values happen to match for v1.0, which was extracted from the payload, so
+    // this would have stayed invisible until a version whose values differ.
+    //
+    // Re-read the file rather than holding the parsed document forever: a
+    // geometry swap is a rare administrative action, and a few megabytes of
+    // resident dataset is a poor trade for it.
+    let doc;
+    try {
+      doc = JSON.parse(await Storage.getTractDatasetFile(rec.dvId));
+    } catch (e) {
+      console.error('[Tract datasets] could not re-read "' + rec.datasetKey + ' v' + rec.version +
+        '" after the geometry changed; falling back to the payload.', e);
+      dsUsePayload('the dataset could not be re-read after a geometry change');
+      dsClearGeometry();
+      dsRemountMap();
+      return;
+    }
+    const val = dsValidateDoc(doc, rec);
+    let geo = null;
+    try { geo = await getMapGeo(); } catch (e) { geo = null; }
+    const cov = val.ok ? dsCheckCoverage(doc, geo, rec) : null;
+    if (!val.ok || !cov.ok) {
+      const why = val.ok ? cov.errors.join(' ') : val.errors.join(' ');
+      console.error('[Tract datasets] "' + rec.datasetKey + ' v' + rec.version +
+        '" no longer passes against the new geometry: ' + why + ' Falling back to the payload.');
+      rec.loadError = why;
+      dsUsePayload('the live dataset does not fit the new geometry');
+      dsClearGeometry();
+      dsRemountMap();
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      return;
+    }
+    cov.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
+    dsInstall(rec, doc, val, cov, true);
   }
 
   /** Back to payload geometry. Used when no indicator dataset is live. */
