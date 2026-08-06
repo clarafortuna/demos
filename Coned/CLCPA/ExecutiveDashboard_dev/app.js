@@ -4160,7 +4160,11 @@
               (z.columns || []).map(function (c) {
                 return buildCol(c.title, c.group, z.component);
               }).join('') +
-            '</div>';
+            '</div>' +           // closes dac-td-zone-cols
+          '</div>';              // closes dac-td-zone -- without this the next
+                                 // zone parses as a CHILD of this one, and
+                                 // .dac-td-body's two grid columns collapse to
+                                 // one, stacking the zones vertically.
         }).join('') +
       '</div>';
 
