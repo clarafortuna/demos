@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAC Impact (CLCPA) Deliverables: Con Edison</title>
+<style>
+  :root{
+    --navy:#0b2545;
+    --blue:#13598f;
+    --sky:#eaf1f7;
+    --green:#1e7f4f;
+    --green-soft:#e3f2ea;
+    --ink:#1c2733;
+    --muted:#5a6b7b;
+    --line:#d5dfe8;
+    --bg:#f7f9fb;
+    --card:#ffffff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.55;
+  }
+  .wrap{max-width:1060px;margin:0 auto;padding:0 28px;}
+
+  /* Header */
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:56px 0 48px;
+    border-bottom:4px solid var(--green);
+  }
+  .eyebrow{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    letter-spacing:.02em;
+        color:#9fc3e0;
+    margin-bottom:14px;
+  }
+  h1{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-weight:700;
+    font-size:clamp(28px,4vw,42px);
+    line-height:1.12;
+    max-width:720px;
+  }
+  header p.sub{
+    margin-top:14px;
+    color:#c4d6e6;
+    max-width:640px;
+    font-size:15.5px;
+  }
+
+  /* Timeline */
+  .timeline{
+    margin:52px 0 8px;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:30px 32px 26px;
+    box-shadow:0 2px 10px rgba(11,37,69,.05);
+  }
+  .timeline .tl-title{
+    font-size:15px;
+    font-weight:600;
+    color:var(--navy);
+    margin-bottom:22px;
+  }
+  .track{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    position:relative;
+  }
+  .track::before{
+    content:"";
+    position:absolute;
+    top:10px;left:0;right:0;
+    height:5px;
+    border-radius:3px;
+    background:var(--line);
+  }
+  .track::after{
+    content:"";
+    position:absolute;
+    top:10px;left:0;
+    width:55%;
+    height:5px;
+    border-radius:3px;
+    background:var(--green);
+  }
+  .stop{position:relative;padding-top:36px;z-index:1;}
+  .stop::before{
+    content:"";
+    position:absolute;
+    top:0;left:0;
+    width:24px;height:24px;
+    border-radius:50%;
+    background:var(--card);
+    border:5px solid var(--blue);
+    box-shadow:0 0 0 3px var(--card);
+  }
+  .stop.done::before{background:var(--green);border-color:var(--green);}
+  .stop.done::after{
+    content:"✓";
+    position:absolute;
+    top:3px;left:6px;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+  }
+  .stop .date{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:16px;
+    font-weight:600;
+    color:var(--navy);
+  }
+  .stop .name{font-size:14px;color:var(--muted);margin-top:3px;padding-right:20px;}
+
+  /* Deliverable cards */
+  .cards{margin:36px 0 72px;display:flex;flex-direction:column;gap:22px;}
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:28px 30px;
+    display:grid;
+    grid-template-columns:84px 1fr;
+    gap:24px;
+    transition:box-shadow .18s ease;
+  }
+  .card:hover{box-shadow:0 4px 18px rgba(11,37,69,.08);}
+  .ref{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-weight:700;
+    font-size:30px;
+    color:var(--blue);
+    line-height:1;
+  }
+  .ref small{
+    display:block;
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-weight:400;
+    font-size:11px;
+    letter-spacing:.02em;
+    color:var(--muted);
+    margin-top:8px;
+      }
+  .card h2{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:20px;
+    font-weight:600;
+    color:var(--navy);
+  }
+  .meta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0 14px;
+  }
+  .tag{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:13px;
+    font-weight:500;
+    padding:4px 10px;
+    border-radius:4px;
+    background:var(--sky);
+    color:var(--blue);
+    white-space:nowrap;
+  }
+  .tag.date{background:var(--green-soft);color:var(--green);font-weight:500;}
+  .card p.desc{font-size:14.5px;color:var(--muted);max-width:640px;}
+
+  /* D1 links */
+  .links{
+    margin-top:20px;
+    border-top:1px solid var(--line);
+    padding-top:18px;
+  }
+  .card-foot{
+    margin-top:18px;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+    font-size:13px;
+    color:var(--muted);
+  }
+  .card-foot strong{color:var(--green);font-weight:600;}
+  .links h3{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    font-weight:500;
+    letter-spacing:.02em;
+        color:var(--muted);
+    margin-bottom:12px;
+  }
+  .link-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:10px;
+  }
+  .link-grid a, .link-grid .pending{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    font-size:14px;
+    font-weight:500;
+    color:var(--navy);
+    text-decoration:none;
+    background:var(--bg);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .link-grid a:hover{border-color:var(--blue);background:var(--sky);}
+  .link-grid a:focus-visible{outline:2px solid var(--blue);outline-offset:2px;}
+  .link-grid a::before{
+    content:"";
+    width:10px;height:10px;
+    border-radius:50%;
+    background:var(--green);
+    flex-shrink:0;
+  }
+  .link-grid .pending{
+    color:var(--muted);
+    border-style:dashed;
+    cursor:default;
+  }
+  .link-grid .pending::before{
+    content:"";
+    width:10px;height:10px;
+    border-radius:50%;
+    background:#e8a800;
+    flex-shrink:0;
+  }
+  .link-grid a.pending{cursor:pointer;}
+  .link-grid a.pending::before{background:#e8a800;}
+  .link-grid a.pending:hover{border-color:var(--blue);border-style:dashed;background:var(--sky);}
+  .link-grid .pending em{
+    font-style:normal;
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    margin-left:auto;
+    color:#93a3b1;
+  }
+
+  /* Scope + definitions sections */
+  .section-head{
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-weight:600;
+    font-size:22px;
+    color:var(--navy);
+    margin-bottom:6px;
+  }
+  .section-sub{
+    font-size:14.5px;
+    color:var(--muted);
+    max-width:720px;
+    margin-bottom:22px;
+  }
+  .scope{margin:48px 0 8px;}
+  .scope-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:22px;
+  }
+  .scope-panel{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:24px 26px;
+  }
+  .scope-panel h3{
+    font-size:15px;
+    font-weight:600;
+    color:var(--blue);
+    margin-bottom:12px;
+  }
+  .scope-panel ol, .scope-panel ul{
+    padding-left:20px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    font-size:14px;
+    color:var(--ink);
+  }
+  .scope-panel li::marker{color:var(--green);font-weight:600;}
+  .defs{margin:56px 0 64px;}
+  .def-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .def{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:3px solid var(--blue);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .def dt{
+    font-weight:600;
+    font-size:14px;
+    color:var(--navy);
+    margin-bottom:4px;
+  }
+  .def dd{font-size:13.5px;color:var(--muted);}
+  .phase-tag{
+    background:#f0ebf8;
+    color:#5b3d8f;
+  }
+  @media (max-width:720px){
+    .scope-grid,.def-grid{grid-template-columns:1fr;}
+  }
+
+  footer{
+    border-top:1px solid var(--line);
+    padding:24px 0 40px;
+    font-family:'Segoe UI',-apple-system,'Helvetica Neue',Arial,sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+
+  @media (max-width:640px){
+    .card{grid-template-columns:1fr;gap:12px;}
+    .ref{display:flex;align-items:baseline;gap:10px;}
+    .ref small{margin-top:0;}
+    .track{grid-template-columns:1fr;gap:20px;padding-left:24px;}
+    .track::before{top:0;bottom:0;left:9px;right:auto;width:5px;height:auto;}
+    .track::after{display:none;}
+    .stop{padding-top:0;padding-left:16px;}
+    .stop::before{left:-24px;top:2px;}
+    .stop.done::after{left:-18px;top:5px;}
+  }
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto;}
+    .card{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Con Edison · DAC Impact (CLCPA) Reporting Program · 2026</div>
+    <h1>DAC Impact (CLCPA) Deliverables</h1>
+    <p class="sub">A unified DAC Impact reporting framework focused on emissions transparency, disadvantaged community benefit tracking, and regulatory readiness. The engagement delivers a centralized DAC Impact analytics dashboard and a supporting data intake and tracking, establishing a strong analytical foundation for DAC Impact Year 1 reporting while defining a clear roadmap for future phases.</p>
+    <p class="sub" style="margin-top:8px;font-size:13.5px;">Engagement period: January 1 to September 1, 2026 · Clara Fortuna LLC for Consolidated Edison Company of New York, Inc.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="timeline" aria-label="Delivery timeline">
+    <div class="tl-title">Delivery timeline</div>
+    <div class="track">
+      <div class="stop done">
+        <div class="date">Mar 1, 2026</div>
+        <div class="name">D1 · Strategy &amp; Reporting Framework</div>
+      </div>
+      <div class="stop done">
+        <div class="date">May 1, 2026</div>
+        <div class="name">D2 · Dashboard &amp; Intake Application</div>
+      </div>
+      <div class="stop">
+        <div class="date">Sep 1, 2026</div>
+        <div class="name">D3 · Readiness Package &amp; Phase 2 Roadmap</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scope" aria-label="Project scope">
+    <h2 class="section-head">Project scope</h2>
+    <p class="section-sub">Design, develop, and implement a technology solution to support CLCPA initiatives: a DAC/EJ analytics dashboard, automation workflows, and advanced analytics for metrics tracking, analysis, and regulatory reporting. The application is built as a highly customized model-driven solution within the Microsoft Power Apps ecosystem, leveraging Microsoft Dataverse as the core data layer and deployed within Con Edison's enterprise cloud environment.</p>
+    <div class="scope-grid">
+      <div class="scope-panel">
+        <h3>Objectives</h3>
+        <ol>
+          <li>Establish a unified DAC Impact analytics and reporting framework.</li>
+          <li>Design and build a DAC Impact dashboard with emissions, equity, and DAC metrics.</li>
+          <li>Implement a structured data intake and tracking application to support ongoing reporting.</li>
+          <li>Align data definitions and metrics to CLCPA and Environmental Justice requirements.</li>
+          <li>Deliver strategic guidance and a Phase 2 roadmap for expanded DAC Impact capabilities.</li>
+        </ol>
+      </div>
+      <div class="scope-panel">
+        <h3>Solution components</h3>
+        <ul>
+          <li>Server-side business logic (C# plugins within Dataverse) and client-side scripting (JavaScript/TypeScript).</li>
+          <li>Workflow orchestration via Power Automate with custom logic and expressions.</li>
+          <li>Custom data models, relational schema design, and optimized SQL-based querying.</li>
+          <li>REST/JSON API integrations for secure data exchange.</li>
+          <li>Validation frameworks, audit logging, and governance controls.</li>
+          <li>Embedded analytics integrations (e.g., Power BI).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section style="margin-top:52px;">
+    <h2 class="section-head">Deliverables</h2>
+    <p class="section-sub">Each milestone deliverable is subject to formal written acceptance by Con Edison.</p>
+  </section>
+
+  <section class="cards" style="margin-top:0;">
+
+    <!-- D1 -->
+    <article class="card">
+      <div class="ref">D1<small>Ref</small></div>
+      <div>
+        <h2>DAC Impact Strategy and Reporting Framework</h2>
+        <div class="meta">
+          <span class="tag date">Target · March 1, 2026</span>
+          <span class="tag phase-tag">Phase 1: Strategy and Foundation</span>
+          <span class="tag">Word / PPT</span>
+        </div>
+        <p class="desc">Regulatory and Environmental Justice requirements, defined DAC Impact metrics, SME questionnaire results, data element inventory, dashboard wireframes, and intake form design.</p>
+        <div class="links">
+          <h3>Deliverable artifacts</h3>
+          <div class="link-grid">
+            <a href="https://www.canva.com/design/DAG9hwELT9Q/L96NnNg9Xw_uUs7g3X-5bg/edit" target="_blank" rel="noopener">Requirements Gathering</a>
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/InternalDashboardDemo1.html" target="_blank" rel="noopener">Internal DAC Impact Dashboard: Concept 1</a>
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/InternalDashboardDemo2.html" target="_blank" rel="noopener">Internal DAC Impact Dashboard: Concept 2</a>
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/ExternalDashboardDemo2.html" target="_blank" rel="noopener">External DAC Impact Dashboard: Concept</a>
+            <a href="https://canva.link/cygqx39tuedmzbx" target="_blank" rel="noopener">SME Questionnaire &amp; Integration Feasibility Report</a>
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/Intake_Form_Demo.html" target="_blank" rel="noopener">Intake Form Demo</a>
+            <a href="https://clarafortuna.sharepoint.com/:x:/s/ConEdison/IQCL7hSo9pHLQIK6eFyYXKuWAa_44VFwPB4eNR2EYHIngK8?e=hQtm2B" target="_blank" rel="noopener">DAC Impact Report (Excel)</a>
+          </div>
+        </div>
+        <div class="card-foot"><strong>Submitted</strong> · Deliverable emailed March 26, 2026</div>
+      </div>
+    </article>
+
+    <!-- D2 -->
+    <article class="card">
+      <div class="ref">D2<small>Ref</small></div>
+      <div>
+        <h2>DAC Impact Dashboard and Intake Application</h2>
+        <div class="meta">
+          <span class="tag date">Target · May 1, 2026</span>
+          <span class="tag phase-tag">Phase 2: Build and Implementation</span>
+          <span class="tag">BI Platform + App + Documentation</span>
+        </div>
+        <p class="desc">DAC Impact analytics dashboard and supporting intake and tracking application, DAC and EJ indicators, validation rules, audit logging, and user documentation. Dashboards may be delivered using Microsoft or Google analytics platforms based on Con Edison preference.</p>
+        <div class="links">
+          <h3>Deliverable artifacts</h3>
+          <div class="link-grid">
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/ExecutiveDashboard/index.html" target="_blank" rel="noopener">Initial DAC Impact Dashboard</a>
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/ExecutiveDashboard/index.html" target="_blank" rel="noopener">DAC Dashboard Data Schema</a>
+            <a href="https://clarafortuna.sharepoint.com/:b:/s/ConEdison/IQAgXLRH93SwQqawvhYdJ05LAdJx7m3K3WGIlDE3ekvh3gU?e=EOzclt" target="_blank" rel="noopener">DAC Dashboard System Flow (PDF)</a>
+            <a href="https://clarafortuna.sharepoint.com/:b:/s/ConEdison/IQC3g4JsOg5pTIIYETWzY3C9AW_KgqZVVR2DkDErmL1hfYY?e=4aOtKL" target="_blank" rel="noopener">DAC Dashboard Technical User Guide (PDF)</a>
+          </div>
+          <h3 style="margin-top:20px;">CREATE IT process artifacts</h3>
+          <div class="link-grid">
+            <a href="https://clarafortuna.sharepoint.com/:w:/s/ConEdison/IQAFV1_FwK0wTZrBV4JNYeAVAYEjlo_cQD8oKTZFwNeVwRk?e=r5bERc" target="_blank" rel="noopener">Application Security Checklist (Word)</a>
+            <a href="https://clarafortuna.sharepoint.com/:b:/s/ConEdison/IQDthmLBBZouTYAJHn3TROx5AR_G8kLsirFSCn_KLeOSxQA?e=p4NCR9" target="_blank" rel="noopener">Privacy Threshold Assessment (PDF)</a>
+            <a href="https://clarafortuna.sharepoint.com/:b:/s/ConEdison/IQDthmLBBZouTYAJHn3TROx5AR_G8kLsirFSCn_KLeOSxQA?e=p4NCR9" target="_blank" rel="noopener">Network Diagram (PDF)</a>
+            <a href="https://clarafortuna.sharepoint.com/:w:/s/ConEdison/IQButkOgneUsSovT6RBic9y4AZlfg4zsmKqgVrHO0hx3wBA?e=PmML9y" target="_blank" rel="noopener">Power Apps Detailed Form (Word)</a>
+          </div>
+        </div>
+        <div class="card-foot"><strong>Submitted</strong> · Deliverable emailed June 24, 2026</div>
+      </div>
+    </article>
+
+    <!-- D3 -->
+    <article class="card">
+      <div class="ref">D3<small>Ref</small></div>
+      <div>
+        <h2>DAC Impact Readiness Package and Phase 2 Roadmap</h2>
+        <div class="meta">
+          <span class="tag date">Target · September 1, 2026</span>
+          <span class="tag phase-tag">Phase 3: Refinement and Readiness</span>
+          <span class="tag">BI Platform + App</span>
+        </div>
+        <p class="desc">Finalized DAC Impact reporting solution, refinements based on stakeholder feedback, training materials, governance recommendations, and a forward-looking Phase 2 roadmap covering expanded DAC Impact analytics, automation, and regulatory evolution.</p>
+        <div class="links">
+          <h3>Deliverable artifacts</h3>
+          <div class="link-grid">
+            <a href="https://www.canva.com/design/DAHNsxiTK1U/D-tDS2Bvu_4fJPfMMKVEFQ/edit" target="_blank" rel="noopener">Phase 2 Roadmap</a>
+            <span class="pending">Stakeholder Alignment <em>pending</em></span>
+            <span class="pending">Training Materials &amp; Governance Recommendations <em>pending</em></span>
+            <a class="pending" href="https://demo.clarafortuna.com/Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html#/" target="_blank" rel="noopener">Final DAC Impact Dashboard in Production <em>pending</em></a>
+          </div>
+          <h3 style="margin-top:20px;">CREATE IT inquiry submissions</h3>
+          <div class="link-grid">
+            <a href="https://clarafortuna.sharepoint.com/:u:/s/ConEdison/IQDbVL2mjbkdTrkeg4_CPgTaAYX3V0X0DqiaYERQmgDxMRY?e=yhRRFK" target="_blank" rel="noopener">EA Inquiry: Build &amp; Run (CREAT)</a>
+            <a href="https://clarafortuna.sharepoint.com/:u:/s/ConEdison/IQAudE6lHEgTSLUh9AhaTh4gAd2NuU6FeekmMU7wseyY6D8?e=rMCSS0" target="_blank" rel="noopener">DCE Inquiry: Build &amp; Run (CREAT)</a>
+            <a href="https://clarafortuna.sharepoint.com/:u:/s/ConEdison/IQD5lIDwdvk5QKdGYfLWETjgAfqHcu_ELy8Z0i-07pq2m5Y?e=4wgibL" target="_blank" rel="noopener">CGIP Inquiry: Build &amp; Run (CREAT)</a>
+            <a href="https://clarafortuna.sharepoint.com/:u:/s/ConEdison/IQAP6gwJu_UoR4pPQMhiPYZSAV9ljT66TqpmFMRJ66_gF_E?e=d6bwG1" target="_blank" rel="noopener">EUS Inquiry: Build &amp; Run (CREAT)</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Additional Artifacts -->
+    <article class="card" style="border-left:4px solid var(--green);">
+      <div class="ref" style="color:var(--green);">+<small>Add'l</small></div>
+      <div>
+        <h2>Additional Artifacts</h2>
+        <div class="meta">
+          <span class="tag">Ongoing</span>
+        </div>
+        <p class="desc">Items requested throughout the initiative that were not part of the initial deliverables. This section will grow as ad-hoc analyses, supporting documents, and other requests are completed.</p>
+        <div class="links">
+          <h3>Artifacts</h3>
+          <div class="link-grid">
+            <a href="https://www.canva.com/design/DAHKVM8FlpE/FaIjO3VETzHx0qY7FaApeA/edit" target="_blank" rel="noopener">DAC Impact Dashboard Executive Update</a>
+            <a href="https://www.canva.com/design/DAHI0nAJzNo/7LuSnSqnuLNrwZUrcumNBw/edit" target="_blank" rel="noopener">White Paper Process: Current State and Future Direction</a>
+            <a href="https://www.canva.com/design/DAHNsxiTK1U/D-tDS2Bvu_4fJPfMMKVEFQ/edit" target="_blank" rel="noopener">Unified Sustainability and Impact Portal: Proposal for Next Phase</a>
+            <a href="https://demo.clarafortuna.com/Coned/CLCPA/GHG_Tracker.html" target="_blank" rel="noopener">GHG Tracker Demo</a>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="defs" aria-label="Key definitions">
+    <h2 class="section-head">Key definitions</h2>
+    <p class="section-sub">Core terms used throughout this engagement and its deliverables.</p>
+    <dl class="def-grid">
+      <div class="def">
+        <dt>DAC Impact Dashboard</dt>
+        <dd>A centralized analytics solution that visualizes emissions, program benefits, DAC impacts, and regulatory metrics.</dd>
+      </div>
+      <div class="def">
+        <dt>DAC (Disadvantaged Communities)</dt>
+        <dd>Disadvantaged Communities as defined by New York State and NYSERDA. CLCPA requires that 35 to 40 percent of program benefits flow to these communities.</dd>
+      </div>
+      <div class="def">
+        <dt>Environmental Justice (EJ)</dt>
+        <dd>Frameworks and metrics used to evaluate equitable distribution of program benefits.</dd>
+      </div>
+      <div class="def">
+        <dt>DAC Impact Intake Application</dt>
+        <dd>A Power Apps or equivalent form used to capture, validate, and track DAC Impact related data submissions.</dd>
+      </div>
+      <div class="def">
+        <dt>Analytics Platform</dt>
+        <dd>An analytics and visualization platform approved by Con Edison, which may include Microsoft or Google-based tools.</dd>
+      </div>
+      <div class="def">
+        <dt>Post-Delivery Refinement</dt>
+        <dd>A limited support period following delivery during which Clara Fortuna addresses clarification requests and minor refinements related to delivered analytics artifacts.</dd>
+      </div>
+    </dl>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span>Clara Fortuna · Con Edison DAC Impact (CLCPA) Program</span>
+    <span>Updated Aug 2026</span>
+  </div>
+</footer>
+
+</body>
+</html>
