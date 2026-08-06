@@ -928,7 +928,11 @@
             cr2bf_fieldcount: rec.fieldCount || 0,
             cr2bf_keychecksum: String(rec.keyChecksum || '').slice(0, 100),
             cr2bf_manifestversion: rec.manifestVersion || 0,
-            cr2bf_isactive: false,
+            // Indicator versions land inactive: going live is a separate,
+            // revalidated decision. Geometry versions land PUBLISHED, because
+            // for them IsActive means "available to pair with", and several
+            // vintages have to be publishable at once for switching to work.
+            cr2bf_isactive: rec.isActive === true,
           });
           const id = created[ID_TRACTDATASET];
           try {
@@ -2405,13 +2409,36 @@
   // silently does nothing. ensureHviGeo already memoizes for the same reason.
   let _mapGeoPromise = null;
 
+  // Bumped whenever the geometry source changes. A build that started under an
+  // older generation must not write the cache when it lands: dropping the
+  // in-flight promise is not enough, because its body still runs to completion
+  // and would happily overwrite the newer geo with the geometry it was built
+  // from. Whichever finished last used to win, which is a coin toss, not a rule.
+  let _mapGeoGen = 0;
+
   async function getMapGeo() {
     if (_mapGeoCache) return _mapGeoCache;
     if (!_mapGeoPromise) {
+      const gen = _mapGeoGen;
       _mapGeoPromise = (async () => {
         const res = await fetch('./map_payload.json');
         if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-        const geo = await res.json();
+        let geo = await res.json();
+        // A paired geometry dataset replaces the polygons and the tract universe
+        // before anything else reads them, so the overlay and the indicator merge
+        // both key against the vintage actually being drawn. Nothing is paired
+        // during the first paint (hydration has not run yet), which is what keeps
+        // the payload-only path unchanged.
+        const gset = dsGeometry();
+        if (gset) {
+          geo = dsApplyGeometryToGeo(geo, gset.doc, gset.fieldIds);
+          const s = geo._dsGeometryStats || {};
+          console.info('[Tract geometry] drawing "' + gset.rec.datasetKey + ' v' +
+            gset.rec.version + '" (vintage ' + (gset.rec.geoidVintage || '?') + '): ' +
+            geo.features.length + ' tracts' +
+            (s.fresh ? ', ' + s.fresh + ' not in map_payload.json' : '') +
+            (s.dropped ? ', ' + s.dropped + ' payload tract(s) not in this vintage' : '') + '.');
+        }
         // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
         // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
         try {
@@ -2419,6 +2446,13 @@
           if (overlay) applyMapOverlay(geo, overlay);
         } catch (e) {
           console.warn('[DAC map] Dataverse overlay skipped (kept file values):', e);
+        }
+        if (gen !== _mapGeoGen) {
+          // The geometry source changed while this build was in flight. Hand the
+          // result to whoever is awaiting THIS promise, but do not cache it: a
+          // newer build is authoritative and callers after it must not see this.
+          console.info('[DAC map] discarded a geo build superseded by a geometry change.');
+          return geo;
         }
         _mapGeoCache = geo;
         return geo;
@@ -3552,11 +3586,270 @@
     return applied;
   }
 
+  // ==========================================================================
+  // TRACT GEOMETRY DATASETS (Phase 1, slices 1-2)
+  //
+  // A second DatasetKey family in the same table. The record-level
+  // discriminator is the DatasetKey, so the family is known from the list call
+  // without downloading anything; the file-level discriminator is the
+  // manifest's `kind`. Validation requires the two to agree, so a geometry file
+  // cannot be filed as indicators or the reverse.
+  //
+  // Geometry is NEVER activated on its own. The active indicator dataset
+  // declares its GeoidVintage and the app pairs it with the published geometry
+  // dataset carrying the same vintage. IsActive on a geometry row means
+  // "published, i.e. available for pairing", not "live" -- several vintages are
+  // published at once, which is what makes switching possible at all.
+  // ==========================================================================
+
+  const DS_GEOMETRY_KEY = 'tract_geometry';
+
+  /** 'geometry' | 'indicators'. Absent kind means indicators: v1.0 predates it. */
+  function dsDocKind(doc) {
+    return (doc && doc.kind === 'geometry') ? 'geometry' : 'indicators';
+  }
+  /** Family of a RECORD, known without downloading its file. */
+  function dsRecIsGeometry(rec) {
+    return !!rec && rec.datasetKey === DS_GEOMETRY_KEY;
+  }
+
+  // The paired geometry, once one is live: { rec, doc, fieldIds }.
+  let _dsGeometry = null;
+  function dsGeometry() { return _dsGeometry; }
+
+  /**
+   * Gate 1 for the geometry family. Same columnar contract as the indicator
+   * file -- every column aligned to tracts.geoids -- plus the polygons.
+   */
+  function dsValidateGeometryDoc(doc, rec) {
+    const errors = [], warnings = [];
+    const fail = (m) => { errors.push(m); return { ok: false, errors: errors, warnings: warnings }; };
+
+    if (!doc || typeof doc !== 'object') return fail('the data file is not a JSON object.');
+    if (doc.schema !== 1) {
+      return fail('manifest schema ' + JSON.stringify(doc.schema) +
+        ' is not supported by this build (expected 1).');
+    }
+    if (dsDocKind(doc) !== 'geometry') {
+      return fail('this file does not declare itself as geometry (kind: "geometry").');
+    }
+    const ds = doc.dataset || {};
+    if (ds.key !== DS_GEOMETRY_KEY) {
+      return fail('dataset.key must be "' + DS_GEOMETRY_KEY + '" in a geometry file, not ' +
+        JSON.stringify(ds.key) + '.');
+    }
+    const t = doc.tracts;
+    if (!t || !Array.isArray(t.geoids) || !Array.isArray(t.geometry)) {
+      return fail('the data file has no tracts.geoids array and tracts.geometry array.');
+    }
+    const n = t.geoids.length;
+    if (!n) return fail('the file carries no tracts.');
+    if (t.geometry.length !== n) {
+      return fail('tracts.geometry has ' + t.geometry.length + ' shapes for ' + n +
+        ' GEOIDs. Refusing rather than drawing shapes on the wrong tracts.');
+    }
+    if (new Set(t.geoids).size !== n) return fail('tracts.geoids contains duplicates.');
+
+    // Every shape must be drawable, or Leaflet fails mid-render with part of the
+    // map already painted.
+    let bad = null, badAt = -1;
+    for (let i = 0; i < n; i++) {
+      const g = t.geometry[i];
+      if (!g || (g.type !== 'Polygon' && g.type !== 'MultiPolygon') ||
+          !Array.isArray(g.coordinates) || !g.coordinates.length) {
+        bad = g; badAt = i; break;
+      }
+    }
+    if (badAt >= 0) {
+      return fail('the shape for ' + t.geoids[badAt] + ' is not a usable Polygon or ' +
+        'MultiPolygon (got ' + JSON.stringify(bad && bad.type) + ').');
+    }
+
+    // Property columns are optional but must align when present.
+    const fields = t.fields || {};
+    const fieldIds = Object.keys(fields);
+    const ragged = fieldIds.filter(k => !Array.isArray(fields[k]) || fields[k].length !== n);
+    if (ragged.length) {
+      return fail(ragged.length + ' property column(s) do not align to the ' + n +
+        ' GEOIDs (first: ' + ragged[0] + '). Refusing rather than mis-attaching values.');
+    }
+    if (fieldIds.indexOf('GEOID') >= 0) {
+      return fail('GEOID is the key and must not also be a property column.');
+    }
+
+    // ---- record integrity ----
+    if (rec) {
+      if (rec.tractCount != null && rec.tractCount !== n) {
+        return fail('record TractCount (' + rec.tractCount + ') disagrees with the file (' + n + ').');
+      }
+      if (rec.fieldCount != null && rec.fieldCount !== fieldIds.length) {
+        return fail('record FieldCount (' + rec.fieldCount + ') disagrees with the file (' +
+          fieldIds.length + ').');
+      }
+      const declared = ds.geoidVintage || '';
+      if (rec.geoidVintage && declared && String(rec.geoidVintage) !== String(declared)) {
+        return fail('record GeoidVintage (' + rec.geoidVintage +
+          ') disagrees with the file (' + declared + ').');
+      }
+    }
+    if (!ds.geoidVintage) {
+      warnings.push('this geometry declares no GEOID vintage, so no indicator dataset can pair with it.');
+    }
+    return { ok: true, errors: errors, warnings: warnings, fieldIds: fieldIds, count: n };
+  }
+
+  /**
+   * Rebuild a FeatureCollection so the geometry dataset defines what is drawn.
+   *
+   * The dataset owns the tract universe and the polygon; the payload keeps
+   * contributing everything else it has for that GEOID (indicator values, the
+   * ConEd operational fields), so a tract present in both keeps its data. A
+   * tract the geometry does not carry is NOT drawn in this vintage; a tract only
+   * the geometry carries is drawn with whatever data later merges onto it.
+   */
+  function dsApplyGeometryToGeo(geo, gdoc, fieldIds) {
+    const t = gdoc.tracts;
+    const byGeoid = {};
+    ((geo && geo.features) || []).forEach(f => {
+      const g = f && f.properties && f.properties.GEOID;
+      if (g != null) byGeoid[g] = f.properties;
+    });
+    let carried = 0, fresh = 0;
+    const features = t.geoids.map((gid, i) => {
+      const base = byGeoid[gid];
+      if (base) carried++; else fresh++;
+      const props = base ? Object.assign({}, base) : { GEOID: gid };
+      props.GEOID = gid;
+      for (let k = 0; k < fieldIds.length; k++) {
+        const key = fieldIds[k];
+        const v = t.fields[key][i];
+        // A columnar file cannot say "absent" -- it can only say null -- so a
+        // null must not conjure a key that was never there. map_payload.json
+        // omits `hvi` entirely on the 216 tracts with no ZCTA overlap, and
+        // writing hvi:null there would be a difference with no meaning. Where
+        // the key does exist, null still overwrites: that is a real "cleared".
+        if (v === null && !(key in props)) continue;
+        props[key] = v;
+      }
+      return { type: 'Feature', geometry: t.geometry[i], properties: props };
+    });
+    const dropped = Object.keys(byGeoid).length - carried;
+    return {
+      type: 'FeatureCollection',
+      nondac_by_county: geo && geo.nondac_by_county,
+      features: features,
+      _dsGeometryStats: { carried: carried, fresh: fresh, dropped: dropped },
+    };
+  }
+
+  /**
+   * Pick the geometry that pairs with an indicator record.
+   *
+   * Returns { rec } on a match, or { none: true } when the family is empty
+   * (state 2: the payload keeps drawing), or { mismatch: [...] } when geometry
+   * versions exist but none carries this vintage, which is a refusal.
+   */
+  function dsResolveGeometryRec(indicatorRec, recs) {
+    const family = (recs || []).filter(dsRecIsGeometry);
+    const published = family.filter(r => r.active);
+    if (!family.length) return { none: true };
+    const want = String((indicatorRec && indicatorRec.geoidVintage) || '');
+    const hit = published.filter(r => String(r.geoidVintage || '') === want);
+    if (hit.length) return { rec: hit[0], extra: hit.length - 1 };
+    return {
+      mismatch: published.map(r => r.geoidVintage || '?'),
+      unpublished: family.length - published.length,
+      want: want,
+    };
+  }
+
+  /** Drop the cached geo so the next getMapGeo() rebuilds on the new geometry. */
+  function dsInvalidateGeo() {
+    _mapGeoCache = null;
+    _mapGeoPromise = null;
+    _mapGeoGen++;   // fences any build already in flight out of the cache
+  }
+
+  /**
+   * Resolve, download and install the geometry that pairs with an indicator
+   * record. Returns { ok, changed, error }.
+   *
+   * The refusal is deliberately narrow. No geometry family at all is not an
+   * error, it is the fallback the whole design rests on: the payload keeps
+   * drawing and the vintage guard keeps watching it. Only a family that exists
+   * but cannot supply this vintage is a refusal, because that is an admin who
+   * meant to pair and got it wrong.
+   */
+  async function dsPrepareGeometryFor(rec, recs) {
+    const res = dsResolveGeometryRec(rec, recs);
+
+    if (res.none) {
+      if (_dsGeometry) { _dsGeometry = null; dsInvalidateGeo(); return { ok: true, changed: true }; }
+      return { ok: true, changed: false };
+    }
+    if (res.mismatch) {
+      const have = res.mismatch.length
+        ? 'Published geometry covers ' + Array.from(new Set(res.mismatch)).join(', ') + '.'
+        : 'No geometry version is published.';
+      return { ok: false, error: 'this dataset declares GEOID vintage ' +
+        (res.want || '(none)') + ', and no published tract geometry carries that vintage. ' +
+        have + (res.unpublished ? ' ' + res.unpublished + ' geometry version(s) are retired.' : '') +
+        ' Publish the matching geometry version first.' };
+    }
+    if (res.extra) {
+      console.warn('[Tract geometry] ' + (res.extra + 1) + ' published geometry versions carry ' +
+        'vintage ' + res.want + '; using "' + res.rec.version + '".');
+    }
+    if (_dsGeometry && _dsGeometry.rec.dvId === res.rec.dvId) return { ok: true, changed: false };
+
+    let text;
+    try {
+      text = await Storage.getTractDatasetFile(res.rec.dvId);
+    } catch (e) {
+      return { ok: false, error: 'could not download the paired geometry "' +
+        res.rec.version + '": ' + ((e && e.message) ? e.message : e) };
+    }
+    let gdoc;
+    try { gdoc = JSON.parse(text); } catch (e) {
+      return { ok: false, error: 'the paired geometry "' + res.rec.version +
+        '" is not valid JSON.' };
+    }
+    const gval = dsValidateGeometryDoc(gdoc, res.rec);
+    if (!gval.ok) {
+      return { ok: false, error: 'the paired geometry "' + res.rec.version +
+        '" did not validate: ' + gval.errors.join(' ') };
+    }
+    gval.warnings.forEach(w => console.warn('[Tract geometry] ' + w));
+    _dsGeometry = { rec: res.rec, doc: gdoc, fieldIds: gval.fieldIds };
+    dsInvalidateGeo();
+    return { ok: true, changed: true };
+  }
+
+  /** Back to payload geometry. Used when no indicator dataset is live. */
+  function dsClearGeometry() {
+    if (!_dsGeometry) return false;
+    _dsGeometry = null;
+    dsInvalidateGeo();
+    return true;
+  }
+
+  /**
+   * Redraw the Executive Summary map from scratch. Swapping polygons is not a
+   * restyle: Leaflet has to rebuild its layer, so this goes through the normal
+   * mount rather than the indicator refresh hook. Harmless when the map is not
+   * on screen -- mountDACMap returns if its container is gone.
+   */
+  function dsRemountMap() {
+    if (typeof mountDACMap !== 'function') return;
+    if (!document.getElementById(window._dacMapContainerId)) return;
+    mountDACMap().catch(err => console.error('[Tract geometry] remount failed:', err));
+  }
+
   /**
    * Install a validated dataset: swap the catalog, merge the values, repaint.
    * Returns true when it became live.
    */
-  function dsInstall(rec, doc, val, cov) {
+  function dsInstall(rec, doc, val, cov, geometryChanged) {
     _indCatalog = val.catalog;
     _dsState = {
       rec: rec, catalog: val.catalog, absent: cov.absent,
@@ -3569,8 +3862,14 @@
       console.info('[Tract datasets] merged ' + merged + ' tracts from "' + rec.datasetKey +
         ' v' + rec.version + '" into the map.');
     }
-    // Rebuild the Color by dropdown and repaint, if the map is already built.
-    if (typeof window._dacMapRefreshIndicators === 'function') {
+    if (geometryChanged) {
+      // New polygons and possibly a different set of tracts: the layer has to be
+      // rebuilt, which also resets the selected tract, whose GEOID may not exist
+      // in this vintage. The remount reads the merged geo, so it picks up the
+      // indicator values above in the same pass.
+      dsRemountMap();
+    } else if (typeof window._dacMapRefreshIndicators === 'function') {
+      // Rebuild the Color by dropdown and repaint, if the map is already built.
       try { window._dacMapRefreshIndicators(); } catch (e) {
         console.warn('[Tract datasets] Could not refresh the live map.', e);
       }
@@ -3603,8 +3902,15 @@
     }
     _dsRecords = recs;
     if (state.route && state.route.name === 'maplayers') rerenderMlList();
-    const act = recs.filter(r => r.active);
-    if (!act.length) { dsUsePayload('no active dataset'); return; }
+    // Only the indicator family can be "live". Geometry rows are published, not
+    // active, and several vintages are published at once by design, so counting
+    // them here would report a conflict that does not exist.
+    const act = recs.filter(r => r.active && !dsRecIsGeometry(r));
+    if (!act.length) {
+      if (dsClearGeometry()) dsRemountMap();
+      dsUsePayload('no active dataset');
+      return;
+    }
     if (act.length > 1) {
       console.warn('[Tract datasets] ' + act.length + ' datasets are marked active (' +
         act.map(r => r.datasetKey + ' v' + r.version).join(', ') +
@@ -3635,6 +3941,19 @@
     }
     val.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
 
+    // Pair the geometry BEFORE the coverage gate: coverage is measured against
+    // the tracts actually drawn, so it has to see this dataset's own vintage,
+    // not whatever was on screen a moment ago.
+    const gres = await dsPrepareGeometryFor(rec, recs);
+    if (!gres.ok) {
+      console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
+        '": ' + gres.error + ' Keeping the payload indicators.');
+      rec.loadError = gres.error;
+      if (dsClearGeometry()) dsRemountMap();
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      return;
+    }
+
     // The coverage gate needs the drawn features, so make sure the geo is loaded.
     let geo = _mapGeoCache;
     if (!geo) { try { geo = await getMapGeo(); } catch (e) { geo = null; } }
@@ -3643,14 +3962,19 @@
       console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
         '": ' + cov.errors.join(' ') + ' Keeping the payload indicators.');
       rec.loadError = cov.errors.join(' ');
+      // The geometry was paired before this gate ran, so undo it: geometry from
+      // one vintage under indicators from another is precisely the mismatch the
+      // gate exists to prevent.
+      if (dsClearGeometry()) dsRemountMap();
       if (state.route && state.route.name === 'maplayers') rerenderMlList();
       return;
     }
     cov.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
-    dsInstall(rec, doc, val, cov);
+    dsInstall(rec, doc, val, cov, gres.changed);
     console.info('[Tract datasets] active: "' + rec.datasetKey + ' v' + rec.version +
       '" (' + cov.coverage.matched + '/' + cov.coverage.drawn + ' drawn tracts, vintage ' +
-      cov.coverage.declaredVintage + ', ' + val.fieldIds.length + ' fields).');
+      cov.coverage.declaredVintage + ', ' + val.fieldIds.length + ' fields' +
+      (_dsGeometry ? ', geometry "' + _dsGeometry.rec.version + '"' : ', payload geometry') + ').');
   }
 
   // ---- Hydration from Dataverse (CLCPA-171 Slice 2) ----------------------
@@ -10406,7 +10730,13 @@ function wireHTooltips() {
   }
 
   function renderMapLayersPage() {
-    initMapLayersState();
+    const mlp = initMapLayersState();
+    // Entering the page starts clean: a refusal notice describes a file the
+    // admin picked earlier, and it should not greet them on the way back in
+    // (UX item a). A staged, still-pending upload keeps its notices.
+    if (mlp.dsStage !== 'ready' && mlp.dsStage !== 'saving') {
+      mlp.dsErrors = []; mlp.dsWarnings = [];
+    }
     return `
       <div class="page-header ml-page-header">
         <div>
@@ -11049,8 +11379,14 @@ function wireHTooltips() {
            st.coverage.absentDac ? ' · ' + st.coverage.absentDac + ' DAC tract(s) unmatched' : ''}</div>`
       : '';
 
-    const rows = recs.length
-      ? '<ul class="ml-list">' + recs.map(r => {
+    // Only indicator versions are listed as activatable. Geometry gets its own
+    // read-only section below: it is selected by vintage, never toggled.
+    const indRecs = recs.filter(r => !dsRecIsGeometry(r));
+    const geoRecs = recs.filter(dsRecIsGeometry);
+    const liveGeom = dsGeometry();
+
+    const rows = indRecs.length
+      ? '<ul class="ml-list">' + indRecs.map(r => {
           const badges =
             (r.active ? '<span class="ml-chip ml-chip-ok">active</span>'
                       : '<span class="ml-chip ml-chip-off">inactive</span>') +
@@ -11090,25 +11426,74 @@ function wireHTooltips() {
         }).join('') + '</ul>'
       : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators it ships with.</p>';
 
+    // Tract shapes. Deliberately has no switch: the map draws whichever shapes
+    // match the active dataset's vintage, so there is nothing here to choose.
+    const geomSection = geoRecs.length
+      ? `<div class="ds-geom">
+           <div class="ds-geom-head">Tract shapes</div>
+           <p class="ds-geom-note">The map draws the shapes whose vintage matches the active
+           dataset above, so there is nothing to switch here. Uploading a new set of shapes
+           makes it available to any dataset version that declares the same vintage.</p>
+           <ul class="ml-list ds-geom-list">${geoRecs.map(r => {
+             const inUse = liveGeom && liveGeom.rec.dvId === r.dvId;
+             return `
+             <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
+               <div class="ml-row-main">
+                 <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+                   <span class="ml-mono">${escapeHtml(r.version)}</span>
+                   ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
+                           : (r.active ? '<span class="ml-chip">available</span>'
+                                       : '<span class="ml-chip ml-chip-off">retired</span>')}</div>
+                 <div class="ml-row-meta">
+                   ${(r.tractCount || 0).toLocaleString()} tracts ·
+                   ${r.fieldCount || 0} properties ·
+                   vintage ${escapeHtml(r.geoidVintage || '?')}
+                 </div>
+                 ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+               </div>
+             </li>`;
+           }).join('')}</ul>
+         </div>`
+      : '';
+
     const d = state.mapLayers || {};
+    const isGeom = d.dsSummary && d.dsSummary.kind === 'geometry';
+    // Both notices are dismissible (UX item a): a refusal used to sit on the
+    // card until another file was picked, with no way to just close it.
+    const warnBlock = (d.dsWarnings || []).length
+      ? `<div class="ml-msgs ml-msgs-warn">
+           <button type="button" class="ml-msgs-x" data-ds-dismiss="warnings"
+             aria-label="Dismiss these notes">&times;</button>
+           <div class="ml-msgs-head">Heads up</div>
+           <ul>${d.dsWarnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
+         </div>`
+      : '';
+
     const up = d.dsStage === 'ready'
       ? `<div class="ml-preview">
            <div class="ml-preview-head">
              <span class="ml-preview-title">Validated</span>
-             <span class="ml-chip ml-chip-ok">${d.dsSummary.tracts.toLocaleString()} tracts · ${d.dsSummary.fields} fields</span>
+             <span class="ml-chip ml-chip-ok">${d.dsSummary.tracts.toLocaleString()} tracts · ${
+               d.dsSummary.fields} ${isGeom ? 'properties' : 'fields'}</span>
            </div>
            <div class="ml-preview-range">
-             <span class="ml-mono">${escapeHtml(d.dsSummary.key)} v${escapeHtml(d.dsSummary.version)}</span>
+             <span class="ml-mono">${escapeHtml(d.dsSummary.key)}${
+               isGeom ? ' ' : ' v'}${escapeHtml(d.dsSummary.version)}</span>
              · vintage ${escapeHtml(d.dsSummary.vintage)}
-             · ${d.dsSummary.indicators} indicators in ${d.dsSummary.groups} groups
+             · ${isGeom
+                  ? 'tract shapes'
+                  : d.dsSummary.indicators + ' indicators in ' + d.dsSummary.groups + ' groups'}
            </div>
-           ${(d.dsWarnings || []).length ? `<div class="ml-msgs ml-msgs-warn">
-             <div class="ml-msgs-head">Heads up</div>
-             <ul>${d.dsWarnings.map(w => `<li>${escapeHtml(w)}</li>`).join('')}</ul>
-           </div>` : ''}
-           <p class="ml-preview-note">Uploading stores this version without switching to it.
-           Activate it from the list above when you are ready. Activating one version switches off
-           the other versions of the same dataset, and the checks run again before the map changes.</p>
+           ${warnBlock}
+           <p class="ml-preview-note">${isGeom
+             ? `Uploading stores these shapes and makes them available. The map will draw them
+                whenever the active dataset declares vintage ${escapeHtml(d.dsSummary.vintage)}${
+                  (d.dsSummary.pairsWith || []).length
+                    ? ', which ' + escapeHtml(d.dsSummary.pairsWith.join(', ')) + ' does'
+                    : ''}. Nothing on the map changes right now.`
+             : `Uploading stores this version without switching to it.
+                Activate it from the list above when you are ready. Activating one version switches off
+                the other versions of the same dataset, and the checks run again before the map changes.`}</p>
            <div class="ml-actions">
              <button class="btn btn-secondary" id="ds-cancel" type="button">Cancel</button>
              <button class="btn btn-primary" id="ds-upload" type="button">Upload version</button>
@@ -11116,9 +11501,12 @@ function wireHTooltips() {
          </div>`
       : (d.dsErrors || []).length
       ? `<div class="ml-msgs ml-msgs-err" role="alert">
+           <button type="button" class="ml-msgs-x" data-ds-dismiss="errors"
+             aria-label="Dismiss this notice">&times;</button>
            <div class="ml-msgs-head">This file can't be used as a dataset</div>
            <ul>${d.dsErrors.map(e => `<li>${escapeHtml(e)}</li>`).join('')}</ul>
          </div>
+         ${warnBlock}
          <div class="ml-picker">
            <label class="btn btn-secondary ml-browse">Choose dataset file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
@@ -11146,6 +11534,7 @@ function wireHTooltips() {
         </div>
         <div class="ml-card-body">
           ${rows}
+          ${geomSection}
           ${canAdmin ? `<div class="ds-upload">${up}</div>` : ''}
         </div>
       </div>`;
@@ -11311,6 +11700,10 @@ function wireHTooltips() {
   /** Read a picked dataset file, validate it, and stage it for upload. */
   function dsHandleFile(file) {
     const d = initMapLayersState();
+    // Picking a file clears whatever notice the previous attempt left, so the
+    // card never shows a refusal that belongs to a file the admin has moved on
+    // from (UX item a).
+    d.dsErrors = []; d.dsWarnings = [];
     const reader = new FileReader();
     reader.onerror = function () {
       d.dsStage = null; d.dsErrors = ['Could not read the file. Try picking it again.'];
@@ -11323,6 +11716,41 @@ function wireHTooltips() {
         d.dsStage = null; d.dsErrors = ['Not valid JSON: ' + e.message];
         rerenderMlList(); return;
       }
+
+      // Geometry files take a different gate: they DEFINE the drawn tracts, so
+      // there is nothing for a coverage check to measure them against.
+      if (dsDocKind(doc) === 'geometry') {
+        const gval = dsValidateGeometryDoc(doc, null);
+        if (!gval.ok) {
+          d.dsStage = null; d.dsErrors = gval.errors; d.dsWarnings = gval.warnings;
+          rerenderMlList(); return;
+        }
+        const gds = doc.dataset || {};
+        d.dsStage = 'ready';
+        d.dsErrors = [];
+        d.dsWarnings = gval.warnings.slice();
+        const pairs = dsRecords().filter(r => !dsRecIsGeometry(r) &&
+          String(r.geoidVintage || '') === String(gds.geoidVintage || ''));
+        if (!pairs.length) {
+          d.dsWarnings.push('No indicator dataset declares vintage ' +
+            (gds.geoidVintage || '(none)') + ' yet, so nothing will pair with this ' +
+            'geometry until one does. Storing it now is fine.');
+        }
+        d.dsText = text;
+        d.dsSummary = {
+          kind: 'geometry',
+          key: gds.key || '', version: gds.version || '', name: gds.name || '',
+          sourceLabel: gds.sourceLabel || '', vintage: gds.geoidVintage || '',
+          tracts: doc.tracts.geoids.length, fields: gval.fieldIds.length,
+          properties: gval.fieldIds.slice(),
+          pairsWith: pairs.map(r => r.datasetKey + ' v' + r.version),
+          manifestVersion: doc.schema,
+        };
+        dsStageChecksumInput(doc.tracts.geoids);
+        rerenderMlList();
+        return;
+      }
+
       // Same validator the load path uses, so what passes here passes there.
       const val = dsValidateDoc(doc, null);
       if (!val.ok) {
@@ -11355,6 +11783,7 @@ function wireHTooltips() {
       d.dsWarnings = val.warnings.concat(cov.warnings);
       d.dsText = text;
       d.dsSummary = {
+        kind: 'indicators',
         key: ds.key || '', version: ds.version || '', name: ds.name || '',
         sourceLabel: ds.sourceLabel || '', vintage: ds.geoidVintage || '',
         tracts: geoids.length, fields: val.fieldIds.length,
@@ -11403,18 +11832,23 @@ function wireHTooltips() {
     rerenderMlList();
     try {
       const checksum = await dsComputeChecksum();
+      const isGeometry = s.kind === 'geometry';
       await Storage.saveTractDataset({
         name: s.name || s.key, datasetKey: s.key, version: s.version,
         sourceLabel: s.sourceLabel, geoidVintage: s.vintage,
         tractCount: s.tracts, fieldCount: s.fields,
         keyChecksum: checksum, manifestVersion: s.manifestVersion,
+        isActive: isGeometry,
       }, d.dsText, function (st) { d.dsProgress = st; rerenderMlList(); });
       d.dsStage = null; d.dsText = null; d.dsSummary = null;
       d.dsErrors = []; d.dsWarnings = [];
-      // Re-list so the new version appears, inactive.
+      // Re-list so the new version appears.
       _dsRecords = await Storage.listTractDatasets();
       rerenderMlList();
-      Storage.toast('Uploaded ' + s.key + ' v' + s.version + '. Activate it when ready.');
+      Storage.toast(isGeometry
+        ? 'Uploaded ' + s.version + ' geometry. It will be used by any dataset version ' +
+          'that declares vintage ' + (s.vintage || '(none)') + '.'
+        : 'Uploaded ' + s.key + ' v' + s.version + '. Activate it when ready.');
     } catch (err) {
       const msg = (err && err.message) ? err.message : String(err);
       d.dsStage = null;
@@ -11447,6 +11881,10 @@ function wireHTooltips() {
         const doc = JSON.parse(await Storage.getTractDatasetFile(dvId));
         const val = dsValidateDoc(doc, rec);
         if (!val.ok) throw new Error(val.errors.join(' '));
+        // Pair the geometry first, for the same reason hydration does: coverage
+        // is only meaningful against the tracts this dataset's vintage draws.
+        const gres = await dsPrepareGeometryFor(rec, _dsRecords);
+        if (!gres.ok) throw new Error(gres.error);
         let geo = _mapGeoCache;
         if (!geo) { try { geo = await getMapGeo(); } catch (e) { geo = null; } }
         const cov = dsCheckCoverage(doc, geo, rec);
@@ -11455,13 +11893,26 @@ function wireHTooltips() {
         _dsRecords.forEach(r => { r.active = (r.datasetKey === rec.datasetKey)
           ? (r.dvId === dvId) : r.active; });
         rec.busy = false;
-        dsInstall(rec, doc, val, cov);
-        Storage.toast('Activated ' + rec.datasetKey + ' v' + rec.version + ' for everyone.');
+        dsInstall(rec, doc, val, cov, gres.changed);
+        // Same line hydration prints, so the hosted console tells the same story
+        // however the version went live.
+        console.info('[Tract datasets] active: "' + rec.datasetKey + ' v' + rec.version +
+          '" (' + cov.coverage.matched + '/' + cov.coverage.drawn + ' drawn tracts, vintage ' +
+          cov.coverage.declaredVintage + ', ' + val.fieldIds.length + ' fields' +
+          (_dsGeometry ? ', geometry "' + _dsGeometry.rec.version + '"' : ', payload geometry') + ').');
+        Storage.toast('Activated ' + rec.datasetKey + ' v' + rec.version + ' for everyone.' +
+          (gres.changed && _dsGeometry
+            ? ' The map is now drawing ' + _dsGeometry.rec.version + ' geometry.' : ''));
       } else {
         await Storage.setTractDatasetActive(dvId, rec, false);
         rec.active = false; rec.busy = false;
         dsUsePayload('the active dataset was switched off');
-        if (typeof window._dacMapRefreshIndicators === 'function') {
+        // Its paired geometry goes with it: geometry only ever exists as the
+        // partner of a live indicator dataset.
+        const geomWent = dsClearGeometry();
+        if (geomWent) {
+          dsRemountMap();
+        } else if (typeof window._dacMapRefreshIndicators === 'function') {
           try { window._dacMapRefreshIndicators(); } catch (e) {
             console.warn('[Tract datasets] Could not refresh the live map.', e);
           }
@@ -11517,6 +11968,13 @@ function wireHTooltips() {
       if (rt) { mlSaveLayer(rt.dataset.mlRetry); return; }
 
       // ---- tract dataset admin ----
+      const dx = e.target.closest('[data-ds-dismiss]');
+      if (dx) {
+        const d = initMapLayersState();
+        if (dx.dataset.dsDismiss === 'errors') d.dsErrors = []; else d.dsWarnings = [];
+        rerenderMlList();
+        return;
+      }
       if (e.target.closest('#ds-upload')) { dsUploadStaged(); return; }
       if (e.target.closest('#ds-cancel')) {
         const d = initMapLayersState();
