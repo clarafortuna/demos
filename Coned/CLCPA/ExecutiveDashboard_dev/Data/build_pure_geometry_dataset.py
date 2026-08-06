@@ -508,6 +508,68 @@ def write_artifact(geoids, geometry, fields, payload, tf, resolve_name, name_pro
                 "census_m2": b.area * SQFT_TO_SQM,
             })
     ds = sorted(d["sym_pct"] for d in drift)
+    # ---- supersede the earlier "0 of 2,235 identical" figure -----------------
+    shared = sorted(set(g20) & set(load_tracts("2010"))) if g20 else []
+    t10_all = load_tracts("2010") if g20 else {}
+    exact_same = 0
+    thr_same = 0
+    for gid in shared:
+        if json.dumps(g20[gid], sort_keys=True) == json.dumps(t10_all[gid], sort_keys=True):
+            exact_same += 1
+        a, b = proj(g20[gid]), proj(t10_all[gid])
+        if not a.area or a.symmetric_difference(b).area / a.area * 100 <= SHAPE_EPS:
+            thr_same += 1
+    w("## Reconciliation: this supersedes the earlier \"0 of 2,235 identical\"")
+    w("")
+    w("Earlier records for this work state that **0 of the %s GEOIDs present in" % format(len(shared), ","))
+    w("both vintage files have identical geometry**. That figure was carried into")
+    w("the plan for this slice. It is superseded here, and should not be cited")
+    w("again.")
+    w("")
+    w("It came from comparing the two Census files by exact JSON equality, which")
+    w("is not a test of shape. Two identical polygons compare unequal in those")
+    w("files for two reasons that have nothing to do with geography. The files")
+    w("start a ring at different vertices, so the same boundary is written in a")
+    w("rotated order, and they carry different float representations of the same")
+    w("coordinate, `-73.86670699999999` against `-73.866707`. Under exact")
+    w("equality every tract therefore differs, which is what produced the 0, and")
+    w("that number measured serialisation rather than geometry.")
+    w("")
+    already2010 = sum(1 for g in geoids
+                      if payload[g]["properties"].get("_geom_year") == 2010)
+    shared_identical = len(identical) - already2010
+    w("Measured properly, the noise has a ceiling. Compared against the %d tracts" % already2010)
+    w("`map_payload.json` already draws from the 2010 file, where any difference")
+    w("must be representational, the symmetric difference never exceeds")
+    w("2.4e-10% of tract area. Across all tracts the band [1e-8%, 1e-6%] contains")
+    w("no tract at all, so a threshold placed anywhere inside that gap separates")
+    w("noise from geography without a judgement call, and moving it within the")
+    w("gap changes no count. This document uses %g%%." % SHAPE_EPS)
+    w("")
+    w("Restating the same file-to-file comparison under that threshold:")
+    w("")
+    w("| comparison | identical | differing |")
+    w("|---|---:|---:|")
+    w("| exact JSON equality, as previously reported | %d | %s |" % (exact_same, format(len(shared) - exact_same, ",")))
+    w("| symmetric difference in EPSG:2263 | **%d** | %s |" % (thr_same, format(len(shared) - thr_same, ",")))
+    w("")
+    w("So %d of the %s shared GEOIDs genuinely did not change boundary between the"
+      % (thr_same, format(len(shared), ",")))
+    w("two vintages, not zero.")
+    w("")
+    w("Two counts in this document are easy to collide, so to be explicit. The %d"
+      % thr_same)
+    w("above is a **file-to-file** count over the %s GEOIDs the two Census files" % format(len(shared), ","))
+    w("share. The headline is a **payload-to-pure-2010** count over the %s tracts" % format(len(geoids), ","))
+    w("the map actually draws: %d identical, of which %d are tracts the payload"
+      % (len(identical), already2010))
+    w("already drew from the 2010 file and %d are shared-GEOID tracts whose" % shared_identical)
+    w("boundary did not move. The two differ because the populations differ, %s"
+      % format(len(shared), ","))
+    w("against %s, and because the baselines differ: the payload is not the 2020" % format(len(geoids), ","))
+    w("file, disagreeing with it on %d tracts as the appendix below sets out. Both" % len(drift))
+    w("numbers are correct for the comparison each one names.")
+    w("")
     w("## Appendix: map_payload.json does not match its own Census source")
     w("")
     w("Found while validating the 2020 build, and recorded here because it is a")

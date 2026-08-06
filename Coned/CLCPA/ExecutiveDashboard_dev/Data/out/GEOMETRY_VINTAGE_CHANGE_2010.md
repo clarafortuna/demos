@@ -142,6 +142,50 @@ reads `2010-table`.
 
 0. The rule exists so that this number is zero.
 
+## Reconciliation: this supersedes the earlier "0 of 2,235 identical"
+
+Earlier records for this work state that **0 of the 2,235 GEOIDs present in
+both vintage files have identical geometry**. That figure was carried into
+the plan for this slice. It is superseded here, and should not be cited
+again.
+
+It came from comparing the two Census files by exact JSON equality, which
+is not a test of shape. Two identical polygons compare unequal in those
+files for two reasons that have nothing to do with geography. The files
+start a ring at different vertices, so the same boundary is written in a
+rotated order, and they carry different float representations of the same
+coordinate, `-73.86670699999999` against `-73.866707`. Under exact
+equality every tract therefore differs, which is what produced the 0, and
+that number measured serialisation rather than geometry.
+
+Measured properly, the noise has a ceiling. Compared against the 150 tracts
+`map_payload.json` already draws from the 2010 file, where any difference
+must be representational, the symmetric difference never exceeds
+2.4e-10% of tract area. Across all tracts the band [1e-8%, 1e-6%] contains
+no tract at all, so a threshold placed anywhere inside that gap separates
+noise from geography without a judgement call, and moving it within the
+gap changes no count. This document uses 1e-06%.
+
+Restating the same file-to-file comparison under that threshold:
+
+| comparison | identical | differing |
+|---|---:|---:|
+| exact JSON equality, as previously reported | 0 | 2,235 |
+| symmetric difference in EPSG:2263 | **86** | 2,149 |
+
+So 86 of the 2,235 shared GEOIDs genuinely did not change boundary between the
+two vintages, not zero.
+
+Two counts in this document are easy to collide, so to be explicit. The 86
+above is a **file-to-file** count over the 2,235 GEOIDs the two Census files
+share. The headline is a **payload-to-pure-2010** count over the 2,333 tracts
+the map actually draws: 265 identical, of which 150 are tracts the payload
+already drew from the 2010 file and 115 are shared-GEOID tracts whose
+boundary did not move. The two differ because the populations differ, 2,235
+against 2,333, and because the baselines differ: the payload is not the 2020
+file, disagreeing with it on 967 tracts as the appendix below sets out. Both
+numbers are correct for the comparison each one names.
+
 ## Appendix: map_payload.json does not match its own Census source
 
 Found while validating the 2020 build, and recorded here because it is a
