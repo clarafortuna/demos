@@ -13,6 +13,23 @@
  * renderers, replacing the placeholders below.
  * ========================================================================== */
 
+/* Build identity.
+ *
+ * The deploy script rewrites the line below, and stamps the SAME value onto the
+ * script tag in ExecutiveDashboard.html as ?v=<id>, so the URL that fetched this
+ * file and the file's own claim about itself always agree.
+ *
+ * It stays 'dev' in the repo on purpose: a locally served or standalone copy is
+ * never stamped and should say so rather than impersonate a deploy.
+ *
+ * This exists because a deploy being byte-verified on the server says nothing
+ * about which build a BROWSER is running. A client held a three-generation-old
+ * app.js through several deploys, and the only way we eventually identified it
+ * was archaeology on strings that happened to have been renamed. Now the running
+ * code states its own build id at boot, so that question takes one glance.
+ */
+var APP_BUILD = 'dev';   /* BUILD_ID */
+
 (function () {
   'use strict';
 
@@ -10864,6 +10881,8 @@ function wireHTooltips() {
       <div id="ml-list-mount">${renderMlSessionList()}</div>
 
       ${mlCanUpload() ? renderMlRequirementsDrawer() : ''}
+
+      <p class="ml-build" id="ml-build">Build ${escapeHtml(APP_BUILD)}</p>
     `;
   }
 
@@ -11450,7 +11469,7 @@ function wireHTooltips() {
     // Slice 3: a read-only Dataverse user cannot upload, so the session group
     // would be permanently empty. Show saved layers only.
     return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '') +
-      renderDsCard();
+      renderDsCard() + renderGeomCard();
   }
 
   // ============================================================
@@ -11485,11 +11504,9 @@ function wireHTooltips() {
            st.coverage.absentDac ? ' · ' + st.coverage.absentDac + ' DAC tract(s) unmatched' : ''}</div>`
       : '';
 
-    // Only indicator versions are listed as activatable. Geometry gets its own
-    // read-only section below: it is selected by vintage, never toggled.
+    // Only indicator versions are listed as activatable. Geometry has its own
+    // card, renderGeomCard, because it is selected by vintage and never toggled.
     const indRecs = recs.filter(r => !dsRecIsGeometry(r));
-    const geoRecs = recs.filter(dsRecIsGeometry);
-    const liveGeom = dsGeometry();
 
     const rows = indRecs.length
       ? '<ul class="ml-list">' + indRecs.map(r => {
@@ -11531,36 +11548,6 @@ function wireHTooltips() {
         </li>`;
         }).join('') + '</ul>'
       : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators it ships with.</p>';
-
-    // Tract shapes. Deliberately has no switch: the map draws whichever shapes
-    // match the active dataset's vintage, so there is nothing here to choose.
-    const geomSection = geoRecs.length
-      ? `<div class="ds-geom">
-           <div class="ds-geom-head">Tract shapes</div>
-           <p class="ds-geom-note">The map draws the shapes whose vintage matches the active
-           dataset above, so there is nothing to switch here. Uploading a new set of shapes
-           makes it available to any dataset version that declares the same vintage.</p>
-           <ul class="ml-list ds-geom-list">${geoRecs.map(r => {
-             const inUse = liveGeom && liveGeom.rec.dvId === r.dvId;
-             return `
-             <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
-               <div class="ml-row-main">
-                 <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-                   <span class="ml-mono">${escapeHtml(r.version)}</span>
-                   ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
-                           : (r.active ? '<span class="ml-chip">available</span>'
-                                       : '<span class="ml-chip ml-chip-off">retired</span>')}</div>
-                 <div class="ml-row-meta">
-                   ${(r.tractCount || 0).toLocaleString()} tracts ·
-                   ${r.fieldCount || 0} properties ·
-                   vintage ${escapeHtml(r.geoidVintage || '?')}
-                 </div>
-                 ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
-               </div>
-             </li>`;
-           }).join('')}</ul>
-         </div>`
-      : '';
 
     const d = state.mapLayers || {};
     const isGeom = d.dsSummary && d.dsSummary.kind === 'geometry';
@@ -11640,8 +11627,61 @@ function wireHTooltips() {
         </div>
         <div class="ml-card-body">
           ${rows}
-          ${geomSection}
           ${canAdmin ? `<div class="ds-upload">${up}</div>` : ''}
+        </div>
+      </div>`;
+  }
+
+  /**
+   * Tract shapes, a card of its own beside Tract datasets rather than a section
+   * inside it. The two answer different questions -- which data is live, and
+   * which shapes it is drawn on -- and sharing a container implied they shared
+   * a control, which they do not.
+   *
+   * Read-only by design: no toggle, and no upload button. The map draws whichever
+   * shapes match the active dataset's vintage, so there is nothing here to
+   * choose, and geometry files go through the same picker in Tract datasets,
+   * which routes on the manifest's `kind`.
+   *
+   * Presentational only. It derives everything from the same module accessors
+   * renderDsCard uses, so no state is threaded and no resolver is involved.
+   */
+  function renderGeomCard() {
+    if (!Storage.isDataverse()) return '';
+    const geoRecs = dsRecords().filter(dsRecIsGeometry);
+    if (!geoRecs.length) return '';
+    const liveGeom = dsGeometry();
+
+    return `
+      <div class="ml-card ds-geom">
+        <div class="ml-card-head">
+          <div>
+            <h3>Tract shapes</h3>
+            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active
+            dataset, so there is nothing to switch here. Uploading a new set of shapes makes it
+            available to any dataset version that declares the same vintage.</p>
+          </div>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-geom-list">${geoRecs.map(r => {
+            const inUse = liveGeom && liveGeom.rec.dvId === r.dvId;
+            return `
+            <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
+              <div class="ml-row-main">
+                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+                  <span class="ml-mono">${escapeHtml(r.version)}</span>
+                  ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
+                          : (r.active ? '<span class="ml-chip">available</span>'
+                                      : '<span class="ml-chip ml-chip-off">retired</span>')}</div>
+                <div class="ml-row-meta">
+                  ${(r.tractCount || 0).toLocaleString()} tracts ·
+                  ${r.fieldCount || 0} properties ·
+                  vintage ${escapeHtml(r.geoidVintage || '?')}
+                </div>
+                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+              </div>
+            </li>`;
+          }).join('')}</ul>
         </div>
       </div>`;
   }
@@ -13099,7 +13139,18 @@ function wireHTooltips() {
   // BOOT
   // ============================================================
 
+  /**
+   * Say which build is running, first thing, before anything can fail. Checking
+   * a client against the deploy output is now a step of the deploy ritual, and
+   * this line is what that step reads.
+   */
+  function logBuildId() {
+    console.info('[DAC dashboard] build ' + APP_BUILD +
+      (APP_BUILD === 'dev' ? ' (unstamped: served from the repo, not a deploy)' : ''));
+  }
+
   async function boot() {
+    logBuildId();
     try {
       state.payload = await loadPayload();
     } catch (err) {
