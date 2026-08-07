@@ -8188,6 +8188,39 @@ a.nav-item { text-decoration: none; }
 }
 .ml-legend-src { font-size: 8.5px; color: var(--text-4); margin-top: 5px; line-height: 1.4; }
 
+/* Title row: the name takes the space, the info button never shrinks away. */
+.ml-legend-head { display: flex; align-items: flex-start; gap: 6px; }
+.ml-legend-head .ml-legend-title { flex: 1; min-width: 0; }
+.ml-legend-info {
+  flex-shrink: 0;
+  width: 13px; height: 13px; padding: 0; margin-top: -1px;
+  border: 1px solid var(--line); border-radius: 50%;
+  background: transparent; color: var(--text-3);
+  font-family: var(--font); font-size: 9px; font-weight: 700; line-height: 1;
+  cursor: pointer;
+}
+.ml-legend-info:hover { border-color: var(--text-3); color: var(--text-2); }
+
+/* The provenance and class ranges the card itself has no room for. Sits inside
+   the card, so it widens nothing and pushes the panels below it down instead. */
+.ml-legend-note {
+  margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--line);
+  font-size: 8.5px; color: var(--text-3); line-height: 1.5;
+}
+.ml-legend-note-h {
+  font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text-4); margin: 5px 0 3px;
+}
+.ml-legend-note-h:first-child { margin-top: 0; }
+.ml-legend-note-row {
+  display: flex; align-items: center; gap: 5px;
+  font-variant-numeric: tabular-nums;
+}
+/* Same look as a ramp swatch, deliberately a different class: .ml-legend-sw
+   means "a swatch of the ramp" and must stay countable as exactly five. */
+.ml-legend-note-sw { width: 14px; height: 8px; flex-shrink: 0; border-radius: 1px; }
+.ml-legend-note-sub { color: var(--text-4); margin-top: 4px; }
+
 /* ==========================================================================
  * MAP LAYERS · Slice 1c (CLCPA-171): "File requirements" right-side slide-over,
  * example-file download, and the colour-range control group.

@@ -3183,13 +3183,38 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     return b.length;
   }
 
-  /** Compact number for legends and previews (no fixed unit assumptions). */
+  /**
+   * At most one decimal, and none at all once the number is big enough that a
+   * decimal is noise. 2.8489 -> "2.8", 270.157 -> "270", 17.8 -> "17.8".
+   */
+  function mlFmt1(x) {
+    if (Math.abs(x) >= 100) return String(Math.round(x));
+    const r = Math.round(x * 10) / 10;
+    return Number.isInteger(r) ? String(r) : r.toFixed(1);
+  }
+
+  /**
+   * Compact, humanized number for legends and previews (no unit assumptions).
+   *
+   *   2848.9 -> "2.8k"      12423   -> "12.4k"     270157 -> "270k"
+   *   73.02  -> "73"        7.72e6  -> "7.7M"      0.418  -> "0.42"
+   *
+   * A legend tick has ~40px and an arbitrary field can be dollars, counts or
+   * areas, so precision past three significant digits only costs width. The
+   * DATA keeps full precision -- this is display, and the exact class
+   * boundaries are in the legend's info popup.
+   *
+   * Deliberately shared with the upload preview rather than legend-only: the
+   * same value shown two ways in two panels is its own defect.
+   */
   function mlFmtNum(v) {
     if (v == null || !isFinite(v)) return '-';
     const abs = Math.abs(v);
-    if (abs >= 1e6) return (v / 1e6).toFixed(2) + 'M';
-    if (abs >= 1e4) return Math.round(v).toLocaleString();
+    if (abs >= 1e6) return mlFmt1(v / 1e6) + 'M';
+    if (abs >= 1e3) return mlFmt1(v / 1e3) + 'k';
     if (Number.isInteger(v)) return String(v);
+    if (abs >= 10) return String(Math.round(v));
+    if (abs >= 1) return mlFmt1(v);
     return String(Math.round(v * 100) / 100);
   }
 
@@ -3308,22 +3333,77 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const modeLabel = s.mode === 'quantile' ? '5 quantile classes'
       : s.mode === 'linear' ? '5 equal-interval classes'
       : 'single value';
-    return '<div class="ml-legend-title">' + escapeHtml(entry.name) + '</div>' +
+    // Slice 3: the provenance line finally shows cr2bf_SourceLabel. Slice 1b
+    // hardcoded "uploaded this session", which was false for a saved layer
+    // loaded by another user. The fallback stays origin-aware rather than
+    // neutral-for-everything: for an unsaved session layer that phrase was
+    // accurate, so it is kept, and only the saved case changes.
+    const provenance = entry.sourceLabel ||
+      (entry.origin === 'saved' ? 'saved layer' : 'uploaded this session');
+    return '<div class="ml-legend-head">' +
+        '<div class="ml-legend-title">' + escapeHtml(entry.name) + '</div>' +
+        '<button type="button" class="ml-legend-info" data-ml-info="' +
+          escapeHtml(entry.id) + '" aria-expanded="false" ' +
+          'aria-label="Source and class ranges for ' + escapeHtml(entry.name) +
+          '">i</button>' +
+      '</div>' +
       '<div class="ml-legend-scale">' +
         '<span class="ml-legend-lbl">Low</span>' + sw +
         '<span class="ml-legend-lbl">High</span>' +
       '</div>' +
       '<div class="ml-legend-ticks">' + ticks + '</div>' +
-      // Slice 3: the provenance line finally shows cr2bf_SourceLabel. Slice 1b
-      // hardcoded "uploaded this session", which was false for a saved layer
-      // loaded by another user. The fallback stays origin-aware rather than
-      // neutral-for-everything: for an unsaved session layer that phrase was
-      // accurate, so it is kept, and only the saved case changes.
+      // The card keeps only what fits: field and how the classes were cut. The
+      // provenance text runs to 300 characters against a 221px panel, so it
+      // moves into the popup rather than wrapping the card to six lines.
       '<div class="ml-legend-src">' + escapeHtml(entry.valueField) + ' · ' +
-        modeLabel + ' · ' +
-        escapeHtml(entry.sourceLabel ||
-          (entry.origin === 'saved' ? 'saved layer' : 'uploaded this session')) +
-        '</div>';
+        modeLabel + '</div>' +
+      '<div class="ml-legend-note" hidden>' + mlLegendNoteHtml(entry, provenance) +
+      '</div>';
+  }
+
+  /**
+   * The legend's info popup: the full provenance the card cannot hold, plus the
+   * exact class boundaries. Those boundaries previously appeared only on the
+   * Map Layers page, because six numeric labels will not sit across a 221px
+   * legend -- the popup is where they finally live next to the ramp they cut.
+   */
+  function mlLegendNoteHtml(entry, provenance) {
+    const s = entry.scale;
+    let ranges;
+    if (!s || s.mode === 'single') {
+      ranges = '<div class="ml-legend-note-row">Every feature carries the same ' +
+        'value (' + escapeHtml(mlFmtNum(s ? s.min : null)) + '), so there is ' +
+        'one class, not five.</div>';
+    } else {
+      // Five closed ranges from four breaks, each labelled with the colour that
+      // paints it, so the popup reads against the ramp above rather than
+      // restating it in words.
+      const colors = mlRampColors(entry);
+      const edges = [s.min].concat(s.breaks, [s.max]);
+      const rows = [];
+      for (let i = 0; i < 5; i++) {
+        // Its own class, not .ml-legend-sw: that selector means "a swatch of
+        // the ramp", and five more of them inside the popup would make any
+        // query for the ramp ambiguous.
+        rows.push('<div class="ml-legend-note-row">' +
+          '<span class="ml-legend-note-sw" style="background:' + colors[i] + '"></span>' +
+          '<span>' + escapeHtml(mlFmtNum(edges[i])) + ' to ' +
+          escapeHtml(mlFmtNum(edges[i + 1])) + '</span></div>');
+      }
+      ranges = rows.join('');
+    }
+    return '<div class="ml-legend-note-h">Class ranges</div>' + ranges +
+      // Rounded for width; the underlying values are untouched. Saying so is
+      // cheaper than someone re-deriving a boundary from a rounded label.
+      '<div class="ml-legend-note-sub">Ranges are rounded for display. The ' +
+        'stored values keep full precision.</div>' +
+      // Which convention this layer uses for features that paint no colour.
+      // A second convention (value 0 rendered transparent) is a per-layer
+      // upload setting in its own slice; this line is where it will be stated.
+      '<div class="ml-legend-note-sub">A feature with no usable value is drawn ' +
+        'grey rather than dropped, so missing data stays visible.</div>' +
+      '<div class="ml-legend-note-h">Source</div>' +
+      '<div class="ml-legend-note-row">' + escapeHtml(provenance) + '</div>';
   }
 
   /**
@@ -4868,6 +4948,50 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const tooltipWrapper = container.parentElement;
     const tooltip = tooltipWrapper ? tooltipWrapper.querySelector('#dac-map-tooltip') : null;
 
+    /**
+     * Place the shared tooltip beside the cursor, flipping it back inside the
+     * wrapper near the edges. One implementation for every layer that shows a
+     * tooltip -- tracts, the HVI overlay and uploaded layers all call this.
+     *
+     * It used to be copied per layer, which is how the copies could drift.
+     */
+    function positionTooltipAt(e) {
+      if (!tooltip || !tooltipWrapper) return;
+      const rect = tooltipWrapper.getBoundingClientRect();
+      let x = e.originalEvent.clientX - rect.left + 12;
+      let y = e.originalEvent.clientY - rect.top  - 8;
+      const tw = tooltip.offsetWidth  || 210;
+      const th = tooltip.offsetHeight || 180;
+      if (x + tw > rect.width  - 4) x = x - tw - 20;
+      if (y + th > rect.height - 4) y = y - th;
+      if (x < 4) x = 4;
+      if (y < 4) y = 4;
+      tooltip.style.left = x + 'px';
+      tooltip.style.top  = y + 'px';
+    }
+
+    /**
+     * Bind hover-tooltip handlers to one feature of an overlay layer.
+     * `html(feature)` returns the tooltip body; returning '' shows nothing.
+     *
+     * This is the generalization of what buildHviLayer did on its own. It never
+     * touches geoLayer or _hoveredLayer, so an overlay tooltip cannot disturb
+     * tract hover or the tract selection.
+     */
+    function bindOverlayTooltip(feature, lyr, html) {
+      lyr.on('mouseover', function () {
+        if (!tooltip) return;
+        const body = html(feature);
+        if (!body) return;
+        tooltip.innerHTML = body;
+        tooltip.style.opacity = '1';
+      });
+      lyr.on('mousemove', positionTooltipAt);
+      lyr.on('mouseout', function () {
+        if (tooltip) tooltip.style.opacity = '0';
+      });
+    }
+
     let _hoveredLayer = null;
 
     function onEach(feature, layer) {
@@ -4992,7 +5116,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         // Tracts with no HVI coverage have no `hvi` field -> no line (not 0/n-a).
         // Multiple ZCTAs are listed largest-overlap-first (already sorted in the
         // enrichment), matching how multi-network tracts are shown above.
-        const hviList = p.hvi;
+        const hviList = SHOW_TRACT_HVI_LINE ? p.hvi : null;
         const hviLine = (hviList && hviList.length)
           ? '<div class="dac-tt-row"><span>' + (hviList.length > 1 ? 'HVI (ZCTAs)' : 'HVI') +
             '</span><span class="dac-tt-v" style="color:#bd0026">' +
@@ -5014,20 +5138,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
         tooltip.style.opacity = '1';
       });
-      layer.on('mousemove', function(e) {
-        if (!tooltip || !tooltipWrapper) return;
-        const rect = tooltipWrapper.getBoundingClientRect();
-        let x = e.originalEvent.clientX - rect.left + 12;
-        let y = e.originalEvent.clientY - rect.top  - 8;
-        const tw = tooltip.offsetWidth  || 210;
-        const th = tooltip.offsetHeight || 180;
-        if (x + tw > rect.width  - 4) x = x - tw - 20;
-        if (y + th > rect.height - 4) y = y - th;
-        if (x < 4) x = 4;
-        if (y < 4) y = 4;
-        tooltip.style.left = x + 'px';
-        tooltip.style.top  = y + 'px';
-      });
+      layer.on('mousemove', positionTooltipAt);
       layer.on('mouseout', function() {
         geoLayer.resetStyle(this);
         if (_hoveredLayer === this) _hoveredLayer = null;
@@ -5968,31 +6079,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const opts = { interactive: interactive, style: hviStyle };
       if (interactive) {
         opts.onEachFeature = function (feature, lyr) {
-          const zcta = feature.properties.zcta;
-          const score = feature.properties.score;
-          lyr.on('mouseover', function () {
-            if (!tooltip) return;
-            tooltip.innerHTML = 'ZCTA ' + escMap(zcta) +
-              ' - Heat Vulnerability Index: ' + escMap(score);
-            tooltip.style.opacity = '1';
-          });
-          // Same positioning math as the tract tooltip's mousemove handler.
-          lyr.on('mousemove', function (e) {
-            if (!tooltip || !tooltipWrapper) return;
-            const rect = tooltipWrapper.getBoundingClientRect();
-            let x = e.originalEvent.clientX - rect.left + 12;
-            let y = e.originalEvent.clientY - rect.top  - 8;
-            const tw = tooltip.offsetWidth  || 210;
-            const th = tooltip.offsetHeight || 180;
-            if (x + tw > rect.width  - 4) x = x - tw - 20;
-            if (y + th > rect.height - 4) y = y - th;
-            if (x < 4) x = 4;
-            if (y < 4) y = 4;
-            tooltip.style.left = x + 'px';
-            tooltip.style.top  = y + 'px';
-          });
-          lyr.on('mouseout', function () {
-            if (tooltip) tooltip.style.opacity = '0';
+          bindOverlayTooltip(feature, lyr, function (f) {
+            return 'ZCTA ' + escMap(f.properties.zcta) +
+              ' - Heat Vulnerability Index: ' + escMap(f.properties.score);
           });
         };
       }
@@ -6033,11 +6122,19 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       }
     }
     // ---- CLCPA-171: session-uploaded GeoJSON overlays ---------------------
-    // A parallel path to refreshHviLayer, deliberately NOT a generalization of
-    // it: HVI's rebuild-on-interactivity-flip state machine exists only for the
-    // "DAC criteria off, so HVI is the sole hover target" case. Uploaded layers
-    // are always non-interactive, so tract hover and select keep working, and
-    // this path stays a plain add / remove.
+    // This path USED to be deliberately non-general: uploaded layers were always
+    // non-interactive, so it needed none of HVI's rebuild-on-flip machinery.
+    // That premise is gone. A saved layer now carries its own tooltip under the
+    // same precedence rule HVI follows, so both paths share bindOverlayTooltip
+    // and both rebuild when the required interactivity flips (Leaflet bakes
+    // `interactive` in at render time; mutating it afterwards does nothing).
+    //
+    // The rule, in one place (mlWantsInteractive):
+    //   DAC criteria ON   -> tract hover owns the map; overlays stay inert
+    //   DAC criteria OFF  -> the ONE layer that is on becomes hoverable
+    //   two or more on    -> all stay inert, because the topmost would silently
+    //                        win hover and the others would be unreachable.
+    //                        Stacking is its own slice; this is the seam.
     //
     // Leaflet layers are per-mount (the map instance is rebuilt on every
     // Executive Summary render); the registry they come from is module scope.
@@ -6061,6 +6158,42 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return !!(cb && cb.checked);
     }
 
+    // Interactivity baked into each built layer, so a flip can be detected.
+    const _mlInteractive = {};
+    let _mlLoggedStack = false;
+
+    /** Ids of the uploaded layers currently switched on. */
+    function mlLayersOn() {
+      return _mlLayers.filter(function (e) {
+        return e.geo && e.active !== false && _mlToggleOn(e.id);
+      }).map(function (e) { return e.id; });
+    }
+
+    /** The precedence rule, in one place. See the block comment above. */
+    function mlWantsInteractive(entryId) {
+      if (_dacCriteriaOn()) return false;
+      const on = mlLayersOn();
+      if (on.length === 1) return on[0] === entryId;
+      if (on.length > 1 && !_mlLoggedStack) {
+        _mlLoggedStack = true;
+        console.info('[DAC map] ' + on.length + ' saved layers are on at once, so ' +
+          'none of them takes hover: the topmost would answer for all of them. ' +
+          'Switch off all but one to read a layer\'s values.');
+      }
+      if (on.length <= 1) _mlLoggedStack = false;
+      return false;
+    }
+
+    /** One feature's tooltip: the value field, its value, and the layer name. */
+    function mlTooltipHtml(entry, feature) {
+      const raw = feature.properties ? feature.properties[entry.valueField] : null;
+      const v = mlToNumber(raw);
+      return '<div class="dac-tt-row"><span>' + escMap(entry.valueField) +
+        '</span><span class="dac-tt-v">' +
+        escMap(v == null ? 'no value' : mlFmtNum(v)) + '</span></div>' +
+        '<div class="dac-tt-county">' + escMap(entry.name) + '</div>';
+    }
+
     /** Single add/remove entry point for one uploaded layer (+ its legend). */
     function refreshUploadedLayer(entry) {
       const box = document.getElementById('ml-legendbox-' + entry.id);
@@ -6071,11 +6204,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         if (box) box.hidden = true;
         return;
       }
-      if (!_mlLeaflet[entry.id]) {
-        _mlLeaflet[entry.id] = L.geoJSON(entry.geo, {
-          interactive: false,          // tract hover/click passes straight through
-          style: mlStyleFor(entry),
-        });
+      const want = mlWantsInteractive(entry.id);
+      if (!_mlLeaflet[entry.id] || _mlInteractive[entry.id] !== want) {
+        if (_mlLeaflet[entry.id] && map.hasLayer(_mlLeaflet[entry.id])) {
+          map.removeLayer(_mlLeaflet[entry.id]);
+        }
+        const opts = { interactive: want, style: mlStyleFor(entry) };
+        if (want) {
+          opts.onEachFeature = function (feature, lyr) {
+            bindOverlayTooltip(feature, lyr, function (f) {
+              return mlTooltipHtml(entry, f);
+            });
+          };
+        }
+        _mlLeaflet[entry.id] = L.geoJSON(entry.geo, opts);
+        _mlInteractive[entry.id] = want;
       }
       if (!map.hasLayer(_mlLeaflet[entry.id])) _mlLeaflet[entry.id].addTo(map);
       _mlLeaflet[entry.id].bringToFront();
@@ -6083,11 +6226,23 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       if (box) box.hidden = false;
     }
 
+    /**
+     * Re-evaluate EVERY switched-on layer. Whether one layer may take hover
+     * depends on how many others are on and on the DAC-criteria toggle, so a
+     * change to any of them can flip a different layer's interactivity.
+     */
+    function refreshAllUploadedLayers() {
+      _mlLayers.forEach(function (e) {
+        if (e.geo && e.active !== false) refreshUploadedLayer(e);
+      });
+    }
+
     /** Drop an uploaded layer from this map instance (called by page Remove). */
     function mlDetachLayer(id) {
       if (_mlLeaflet[id]) {
         if (map.hasLayer(_mlLeaflet[id])) map.removeLayer(_mlLeaflet[id]);
         delete _mlLeaflet[id];
+        delete _mlInteractive[id];
       }
       const row = document.querySelector('#dac-map-terr .ml-terr-opt[data-ml-row="' + id + '"]');
       if (row) row.remove();
@@ -6149,20 +6304,40 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // user's tract selection). Idempotent, so calling it twice is harmless.
     window._dacMapSyncUploadedLayers = initUploadedLayers;
 
+    // Legend info buttons. Delegated on the panels container because legend
+    // cards are appended per layer and removed on Remove, so binding per card
+    // would leak handlers and miss cards added after this runs.
+    const panelsEl = document.getElementById('dac-map-panels');
+    if (panelsEl) panelsEl.addEventListener('click', function (e) {
+      const btn = e.target.closest('[data-ml-info]');
+      if (!btn) return;
+      const card = btn.closest('.ml-legendbox');
+      const note = card ? card.querySelector('.ml-legend-note') : null;
+      if (!note) return;
+      const opening = note.hasAttribute('hidden');
+      if (opening) note.removeAttribute('hidden');
+      else note.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+    });
+
     const terrPanel = document.getElementById('dac-map-terr');
     if (terrPanel) terrPanel.addEventListener('change', function (e) {
       // CLCPA-171: uploaded layers carry their own data attribute, so this
       // dispatch and the built-in data-layer one can never collide.
       const mlcb = e.target.closest('input[data-ml-layer]');
       if (mlcb) {
-        const id = mlcb.dataset.mlLayer;
-        const entry = _mlLayers.filter(function (x) { return x.id === id; })[0];
-        if (entry) refreshUploadedLayer(entry);
+        // Every switched-on layer, not just this one: turning a second layer on
+        // has to take hover away from the first.
+        refreshAllUploadedLayers();
         return;
       }
       const cb = e.target.closest('input[data-layer]');
       if (!cb) return;
-      if (cb.dataset.layer === 'burden') { setBurden(cb.checked); refreshHviLayer(); }
+      // The DAC-criteria toggle decides whether ANY overlay may take hover, so
+      // it re-evaluates the uploaded layers alongside HVI.
+      if (cb.dataset.layer === 'burden') {
+        setBurden(cb.checked); refreshHviLayer(); refreshAllUploadedLayers();
+      }
       else if (cb.dataset.layer === 'eap') setEap(cb.checked);
       else if (cb.dataset.layer === 'hvi') refreshHviLayer();
       else setTerritory(cb.dataset.layer, cb.checked);
@@ -11558,6 +11733,18 @@ function wireHTooltips() {
   const SHOW_HELP_BUTTONS = false;     // the "How to update" openers; the drawer
                                        // machinery below stays wired so this is
                                        // the only line that gates it
+
+  // The HVI row in the TRACT tooltip. Heat Vulnerability now lives as a saved
+  // layer with its own provenance and its own tooltip, so carrying it a second
+  // time inside the tract tooltip states the same thing twice from a source
+  // that cannot say where it came from.
+  //
+  // This gates the RENDER only. The `hvi` property is still read from whatever
+  // the geometry dataset carries, so flipping this back needs no rebuild and no
+  // re-upload -- as long as the property is still there. A separate slice
+  // removes it from the geometry pipeline, and after that this flag shows
+  // nothing until both are reversed. Read them as one decision in two places.
+  const SHOW_TRACT_HVI_LINE = false;
 
   // ============================================================
   // In-context documentation
