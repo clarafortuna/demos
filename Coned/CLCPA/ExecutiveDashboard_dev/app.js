@@ -30,6 +30,140 @@
  */
 var APP_BUILD = 'dev';   /* BUILD_ID */
 
+/* ============================================================================
+ * MAP DIAGNOSTIC (opt-in, off by default, zero cost when off)
+ * ============================================================================
+ * "All the dropdowns stop responding until I reload" took several sessions to
+ * even describe, because the evidence lived in a console that the reload
+ * destroyed, and because the two people who saw it were not the one holding the
+ * debugger. Two candidate causes were eliminated by directed testing and the
+ * remaining one has never been caught in the act.
+ *
+ * So this records the handful of facts that would identify it, silently, during
+ * ordinary use, and keeps them across reloads.
+ *
+ * The certain fact about the failure is narrow: Leaflet throws
+ *   TypeError: Cannot read properties of undefined (reading 'appendChild')
+ * at Renderer.onAdd, and getPane() is undefined only after map.remove(). So a
+ * layer is being added to a map that has already been removed. What we do not
+ * know is WHO adds it. That is one stack trace away, and this captures it.
+ *
+ * One failure usually records SEVERAL 'ADD-TO-DEAD-MAP' lines, not one: a
+ * GeoJSON layer adds itself and then each of its paths, and every one hits the
+ * same dead map. Read the first line's stack; the rest are the same event.
+ *
+ * ARM IT (once; it persists until cleared):
+ *     localStorage.setItem('dac_diag', '1')     then reload
+ * READ IT (survives the reload after a freeze):
+ *     dacDiag()
+ * DISARM / CLEAR:
+ *     dacDiag('off')      dacDiag('clear')
+ *
+ * Cost when off: nothing is wrapped and no listener is added -- the whole block
+ * returns after one localStorage read. Cost when armed: one boolean test per
+ * map.addLayer, which happens a few dozen times per mount.
+ *
+ * It must never be the thing that breaks the page, so every probe body is
+ * wrapped and failures are swallowed. A diagnostic that can throw is worse than
+ * no diagnostic.
+ */
+(function () {
+  'use strict';
+  var KEY = 'dac_diag', BUF = 'dac_diag_log', MAX = 40;
+
+  function read() {
+    try { return JSON.parse(localStorage.getItem(BUF) || '[]'); } catch (e) { return []; }
+  }
+  function push(kind, data) {
+    try {
+      var log = read();
+      log.push(Object.assign({ kind: kind, t: new Date().toISOString(), build: APP_BUILD }, data));
+      // Keep the OLDEST entries: the first divergence explains the rest, and a
+      // freeze produces a burst that would otherwise push it out.
+      localStorage.setItem(BUF, JSON.stringify(log.slice(0, MAX)));
+    } catch (e) { /* full or unavailable: drop it, never throw */ }
+  }
+
+  // The reader is always defined, armed or not, so "dacDiag()" is never a
+  // confusing ReferenceError when someone is told to run it.
+  window.dacDiag = function (cmd) {
+    try {
+      if (cmd === 'off') { localStorage.removeItem(KEY); return 'diagnostic disarmed (reload to take effect)'; }
+      if (cmd === 'on') { localStorage.setItem(KEY, '1'); return 'diagnostic armed (reload to take effect)'; }
+      if (cmd === 'clear') { localStorage.removeItem(BUF); return 'log cleared'; }
+      var log = read();
+      var armed = localStorage.getItem(KEY) === '1';
+      if (!armed) console.warn('[DAC diag] NOT armed. Run dacDiag("on") and reload.');
+      console.log('[DAC diag] armed=' + armed + '  entries=' + log.length +
+        '  mounts this page=' + window.__dacDiagMounts);
+      log.forEach(function (e, i) {
+        console.log('  ' + (i + 1) + '. ' + e.kind + '  ' + e.t + '  build ' + e.build +
+          '  ' + JSON.stringify(Object.assign({}, e, { kind: undefined, t: undefined, build: undefined })));
+      });
+      return log;
+    } catch (e) { return 'diagnostic unavailable: ' + e.message; }
+  };
+
+  var armed = false;
+  try { armed = localStorage.getItem(KEY) === '1'; } catch (e) { /* private mode */ }
+  if (!armed) return;                    // <- zero cost path
+
+  window.__dacDiagMounts = 0;
+
+  // Wrap Leaflet. It is loaded by its own script tag before this file, so it is
+  // already on window; if that ever changes, bail rather than guess.
+  var L = window.L;
+  if (!L || !L.Map || !L.map) { push('probe-failed', { why: 'Leaflet not present at arm time' }); return; }
+
+  var origMap = L.map;
+  L.map = function () {
+    var m = origMap.apply(this, arguments);
+    try {
+      m.__diagSerial = ++window.__dacDiagMounts;
+      push('mount', { serial: m.__diagSerial });
+    } catch (e) {}
+    return m;
+  };
+
+  var origRemove = L.Map.prototype.remove;
+  L.Map.prototype.remove = function () {
+    try { this.__diagDead = true; push('map-removed', { serial: this.__diagSerial }); } catch (e) {}
+    return origRemove.apply(this, arguments);
+  };
+
+  // THE one that matters: a layer added to a map that has been removed.
+  var origAddLayer = L.Map.prototype.addLayer;
+  L.Map.prototype.addLayer = function (layer) {
+    try {
+      if (this.__diagDead) {
+        push('ADD-TO-DEAD-MAP', {
+          deadSerial: this.__diagSerial, currentMounts: window.__dacDiagMounts,
+          layer: (layer && layer.constructor && layer.constructor.name) || '?',
+          stack: String((new Error()).stack || '').split('\n').slice(1, 7).join(' | ').slice(0, 700),
+        });
+      }
+    } catch (e) {}
+    return origAddLayer.apply(this, arguments);
+  };
+
+  // Uncaught errors and rejections, with the mount count at the time -- the
+  // organic occurrences were both late in long sessions, so that number is
+  // itself a data point.
+  window.addEventListener('error', function (e) {
+    push('window-error', { msg: String(e.message).slice(0, 200),
+      file: String(e.filename || '').split('/').pop(), line: e.lineno,
+      mounts: window.__dacDiagMounts });
+  });
+  window.addEventListener('unhandledrejection', function (e) {
+    push('unhandled-rejection', {
+      msg: String((e.reason && e.reason.message) || e.reason).slice(0, 200),
+      mounts: window.__dacDiagMounts });
+  });
+
+  console.info('[DAC diag] armed. Run dacDiag() after anything odd; the log ' +
+    'survives reloads. dacDiag("off") to stop.');
+})();
+
 (function () {
   'use strict';
 
