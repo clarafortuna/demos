@@ -17,12 +17,18 @@ This script builds the pure article, from the Census tract file of that vintage.
 
 Not a filter over the payload
 -----------------------------
-Three of the eight carried properties are computed FROM the polygons by area
+Two of the seven carried properties are computed FROM the polygons by area
 intersection, so they cannot be copied across a vintage change:
 
   electric_networks  >= 5% of the tract's area, CECONY_Electric.shp NETWORK
   gas_areas          >= 5% of the tract's area, CECONY_Gas.shp BORONAME
-  hvi                >= 5% of the tract's area, hvi_zcta.geojson ZCTAs
+
+An `hvi` property used to be computed here the same way. It was removed once
+Heat Vulnerability became a saved map layer carrying its own provenance: the
+only thing that ever read this copy was the tract tooltip, and that line is
+gone. It cost roughly 9% of every geometry file to duplicate a dataset the map
+can now load directly, and it is reproducible from hvi_zcta.geojson at any time
+by reverting this commit.
 
 They are recomputed here with the same rules and the same projected CRS the
 enrich_* scripts use (EPSG:2263, NAD83 / New York Long Island, US survey feet).
@@ -85,7 +91,6 @@ SRC = {
 }
 ELEC = os.path.join(HERE, "Extra_info", "CECONY_Electric")
 GAS = os.path.join(HERE, "Extra_info", "CECONY_Gas")
-HVI = os.path.join(HERE, "hvi_zcta.geojson")
 
 CROSSWALK_2020 = os.path.join(
     HERE, "2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv")
@@ -115,7 +120,7 @@ SOURCE_LABEL_MAX = 300
 MIN_FRAC = 0.05
 GEOM_PROPERTIES = [
     "County", "City_Town", "borough", "neighborhood", "neighborhoodSource",
-    "electric_networks", "gas_areas", "hvi", "_geom_year",
+    "electric_networks", "gas_areas", "_geom_year",
 ]
 COUNTY_NAMES = {"005": "Bronx", "047": "Kings", "061": "New York",
                 "081": "Queens", "085": "Richmond", "119": "Westchester"}
@@ -286,24 +291,6 @@ def assign_named(tg, area, names, geoms, tree, fallback_largest):
     if not kept and hits and fallback_largest:
         kept = [hits[0][1]]
     return kept
-
-
-def assign_hvi(tg, area, zids, scores, geoms, tree):
-    """Same rule as enrich_hvi.py: >=5%, dominant first, NO fallback."""
-    if area <= 0:
-        return []
-    thr = MIN_FRAC * area
-    hits = []
-    for idx in tree.query(tg):
-        i = int(idx)
-        if not tg.intersects(geoms[i]):
-            continue
-        a = tg.intersection(geoms[i]).area
-        if a >= thr:
-            hits.append((a, zids[i], scores[i]))
-    hits.sort(key=lambda t: t[0], reverse=True)
-    return [{"zcta": z, "score": s, "overlap_fraction": round(a / area, 4)}
-            for a, z, s in hits]
 
 
 def pct(v, p):
@@ -691,10 +678,12 @@ def main():
     # See build_name_resolver for why, and the generated artifact for the numbers.
     resolve_name, name_provenance = build_name_resolver()
 
-    # ---- recompute the three spatial properties, in EPSG:2263 --------------
+    # ---- recompute the two spatial properties, in EPSG:2263 ----------------
+    # reproj still carries the TRACT polygons: they arrive in WGS84 and every
+    # area and intersection below is computed projected. Only the ZCTA loading
+    # that also used it is gone.
     elec_names, elec_geoms, elec_tree, elec_crs = load_layer(ELEC, "NETWORK")
     gas_names, gas_geoms, gas_tree, _ = load_layer(GAS, "BORONAME")
-    hz = json.load(open(HVI, encoding="utf-8"))
     tf = Transformer.from_crs(CRS.from_epsg(4326), elec_crs, always_xy=True)
 
     def reproj(coords):
@@ -702,18 +691,6 @@ def main():
             x, y = tf.transform(coords[0], coords[1])
             return [x, y]
         return [reproj(c) for c in coords]
-
-    zids, zscores, zgeoms = [], [], []
-    for f in hz["features"]:
-        p = f["properties"]
-        g = shape({"type": f["geometry"]["type"], "coordinates": reproj(f["geometry"]["coordinates"])})
-        if not g.is_valid:
-            g = g.buffer(0)
-        zgeoms.append(g)
-        zids.append(p.get("zcta") or p.get("ZCTA") or p.get("MODZCTA"))
-        zscores.append(p.get("score") if p.get("score") is not None
-                       else p.get("HVI") or p.get("Heat_Vulnerability_Index__HVI_"))
-    ztree = STRtree(zgeoms)
 
     warn_if_territories_stale()
     print("recomputing spatial properties for %d tracts in %s ..." % (len(geoids), elec_crs.name))
@@ -747,7 +724,6 @@ def main():
         if nb is None:
             nb_source = None
         source_tally[nb_source] = source_tally.get(nb_source, 0) + 1
-        hvi = assign_hvi(tg, area, zids, zscores, zgeoms, ztree)
         fields["County"].append(county)
         fields["City_Town"].append(city_town)
         fields["borough"].append(BOROUGH.get(county))
@@ -757,9 +733,6 @@ def main():
             assign_named(tg, area, elec_names, elec_geoms, elec_tree, True))
         fields["gas_areas"].append(
             assign_named(tg, area, gas_names, gas_geoms, gas_tree, True))
-        # Match the payload exactly: no >=5% overlap means NO hvi, not an empty
-        # list. The reader turns a null back into an absent property.
-        fields["hvi"].append(hvi if hvi else None)
         fields["_geom_year"].append(int(vintage))
         if (n + 1) % 500 == 0:
             print("   %d/%d" % (n + 1, len(geoids)))
@@ -779,7 +752,7 @@ def main():
             # generated change document, not in a table cell.
             "sourceLabel": (
                 "U.S. Census Bureau cartographic boundary file, %s vintage, six Con Edison "
-                "counties. Network, gas and HVI overlaps recomputed against these polygons "
+                "counties. Network and gas overlaps recomputed against these polygons "
                 "in %s. Display names come from the newest crosswalk holding each tract."
                 % (vintage, elec_crs.name)),
             "geoidVintage": vintage,
