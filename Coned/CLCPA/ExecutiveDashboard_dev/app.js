@@ -80,7 +80,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       log.push(Object.assign({ kind: kind, t: new Date().toISOString(), build: APP_BUILD }, data));
       // Keep the OLDEST entries: the first divergence explains the rest, and a
       // freeze produces a burst that would otherwise push it out.
-      localStorage.setItem(BUF, JSON.stringify(log.slice(0, MAX)));
+      var kept = log.slice(0, MAX);
+      localStorage.setItem(BUF, JSON.stringify(kept));
+      // Addressable without calling anything and without depending on what the
+      // console does with a return value.
+      if (window.dacDiag) window.dacDiag.entries = kept;
     } catch (e) { /* full or unavailable: drop it, never throw */ }
   }
 
@@ -90,12 +94,24 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     try {
       if (cmd === 'off') { localStorage.removeItem(KEY); return 'diagnostic disarmed (reload to take effect)'; }
       if (cmd === 'on') { localStorage.setItem(KEY, '1'); return 'diagnostic armed (reload to take effect)'; }
-      if (cmd === 'clear') { localStorage.removeItem(BUF); return 'log cleared'; }
+      if (cmd === 'clear') {
+        localStorage.removeItem(BUF);
+        window.dacDiag.entries = [];
+        return 'log cleared';
+      }
+      // A quiet copy for pasting somewhere: no console output, just the data.
+      if (cmd === 'json') {
+        var raw = read();
+        window.dacDiag.entries = raw;
+        return JSON.stringify(raw, null, 2);
+      }
       var log = read();
       var armed = localStorage.getItem(KEY) === '1';
       if (!armed) console.warn('[DAC diag] NOT armed. Run dacDiag("on") and reload.');
+      window.dacDiag.entries = log;
       console.log('[DAC diag] armed=' + armed + '  entries=' + log.length +
-        '  mounts this page=' + window.__dacDiagMounts);
+        '  mounts this page=' + window.__dacDiagMounts +
+        '   (also on dacDiag.entries; dacDiag("json") for a copy-paste dump)');
       log.forEach(function (e, i) {
         console.log('  ' + (i + 1) + '. ' + e.kind + '  ' + e.t + '  build ' + e.build +
           '  ' + JSON.stringify(Object.assign({}, e, { kind: undefined, t: undefined, build: undefined })));
@@ -103,6 +119,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return log;
     } catch (e) { return 'diagnostic unavailable: ' + e.message; }
   };
+
+  window.dacDiag.entries = [];
 
   var armed = false;
   try { armed = localStorage.getItem(KEY) === '1'; } catch (e) { /* private mode */ }
@@ -159,6 +177,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       msg: String((e.reason && e.reason.message) || e.reason).slice(0, 200),
       mounts: window.__dacDiagMounts });
   });
+
+  // The app calls this when a mount-generation guard stops a stale continuation.
+  // Recording the guard WORKING is the point: a fix you cannot observe is a fix
+  // you have to trust. Defined only when armed, so the call sites cost one
+  // property lookup in a normal build.
+  window.__dacDiagNote = function (kind, data) {
+    try { push(String(kind).slice(0, 40), data || {}); } catch (e) {}
+  };
 
   console.info('[DAC diag] armed. Run dacDiag() after anything odd; the log ' +
     'survives reloads. dacDiag("off") to stop.');
@@ -2989,6 +3015,23 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   let _territoryGeoCache = null;
   let _territoryFetchPromise = null;
 
+  // ---- Mount generation -----------------------------------------------------
+  // The map is torn down and rebuilt more often than it looks: every load with a
+  // live geometry dataset mounts once from the payload, then remounts a second
+  // or two later when the dataset hydrates and the polygons change. So a dead
+  // map exists on essentially every page load.
+  //
+  // Anything asynchronous started by one mount and landing after the next one
+  // has begun is therefore holding a map that Leaflet has already removed, and
+  // adding a layer to it throws inside Leaflet (getPane() is undefined once
+  // remove() has cleared the panes). That is FAIL 2, and it has now happened
+  // twice with two different callers -- the HVI overlay, then the territory
+  // overlay -- so the fix is for the class, not the caller.
+  //
+  // Every mount captures this number and checks it before touching `map` in any
+  // continuation. Same shape as _mapGeoGen, which guards the geo cache.
+  let _mountGen = 0;
+
   // ============================================================
   // CLCPA-171 (Slice 1) · Session-uploaded GeoJSON overlay layers
   // ------------------------------------------------------------
@@ -4954,6 +4997,20 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const container = document.getElementById(containerId);
     if (!container) return;
 
+    // Claim this generation before the first await, so a mount that starts while
+    // this one is still loading supersedes it rather than racing it.
+    const myGen = ++_mountGen;
+    const stillCurrent = function () { return myGen === _mountGen; };
+    /** True when a newer mount has taken over; notes it for the diagnostic. */
+    const superseded = function (where) {
+      if (stillCurrent()) return false;
+      if (window.__dacDiagNote) {
+        window.__dacDiagNote('mount-superseded', { serial: myGen, at: where,
+                                                   current: _mountGen });
+      }
+      return true;
+    };
+
     // Each fresh mount starts with no tract selected (the detail panel in the
     // freshly rendered DOM is hidden, so keep state in sync). The neighborhood
     // filter also resets (the dropdown re-renders to "All neighborhoods").
@@ -4964,6 +5021,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       try { _leafletMapInstance.remove(); } catch(e) {}
       _leafletMapInstance = null;
       _mapGeoLayer = null;
+      // These three point INTO the previous mount's closure, so between here and
+      // the moment this mount re-points them they would hand a caller a function
+      // holding a map that no longer exists. Callers all test for a function
+      // first and the new mount draws the layers itself, so clearing is safe and
+      // removes the whole category.
+      window._dacMapSyncUploadedLayers = null;
+      window._dacMapDetachUploadedLayer = null;
+      window._dacMapRefreshIndicators = null;
     }
 
     container.innerHTML = '<div class="dac-map-loading">Loading tract data…</div>';
@@ -4987,6 +5052,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (!live || window._dacMapContainerId !== containerId) {
       return;   // this mount was superseded; the newer one will draw
     }
+    // The container id is the same for every Executive Summary mount, so the
+    // check above cannot tell two of them apart. The generation can.
+    if (superseded('after getMapGeo')) return;
 
     live.innerHTML = '';
 
@@ -5448,6 +5516,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       // Panel toggling can change the map container size — keep Leaflet in sync,
       // then bring the freshly shown detail panel into view (select only).
       requestAnimationFrame(() => {
+        if (superseded('selectTract raf')) return;
         map.invalidateSize();
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
@@ -5462,7 +5531,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         panel.innerHTML = '';
       }
       renderMapKPI(geo);                 // return the Customer Counts panel to the active filter scope
-      requestAnimationFrame(() => map.invalidateSize());
+      requestAnimationFrame(() => { if (!superseded('clearSelection raf')) map.invalidateSize(); });
     }
 
     // Clicking the base map (water / empty area / outside any tract) clears the
@@ -5614,6 +5683,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const initialZoom = 9.7;
 
     requestAnimationFrame(() => {
+      if (superseded('initial view raf')) return;
       map.invalidateSize();
       map.setView(initialCenter, initialZoom, { animate: false });
       updateLabelVisibility();   // run after the zoom is set so minors hide correctly
@@ -5624,6 +5694,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // Leaflet has initialized. Recalculate once the layout has fully settled
     // so the tiles fill the whole container (no blank strip at the bottom).
     setTimeout(() => {
+      if (superseded('settle timeout')) return;
       map.invalidateSize();
       map.setView(initialCenter, initialZoom, { animate: false });
       updateLabelVisibility();
@@ -6116,6 +6187,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     function setTerritory(kind, on) {
       if (on) {
         ensureTerritoryGeo().then(function () {
+          // THE FAIL 2 SITE. ensureTerritoryGeo's promise and cache are module
+          // scope and shared by every mount, but this callback closes over THIS
+          // mount's map, and service_territories.geojson is 3.5 MB. Toggle a
+          // territory, get remounted while the fetch is in flight, and without
+          // this line the layer is added to a removed map.
+          if (superseded('territory fetch')) return;
           if (!_terrLayers[kind]) {
             const feats = _territoryGeoCache.features.filter(f => f.properties.layer === kind);
             _terrLayers[kind] = L.geoJSON({ type: 'FeatureCollection', features: feats },
