@@ -7441,33 +7441,6 @@ a.nav-item { text-decoration: none; }
   border: 1.5px solid #0a2540;
   background: linear-gradient(135deg, #d4e3f2 0%, #0a2540 100%);
 }
-/* HVI layer swatch: a chip hinting the YlOrRd warm ramp (low->high) */
-.dac-map-terr-sw-hvi {
-  border: 1.5px solid #bd0026;
-  background: linear-gradient(90deg, #ffffb2 0%, #fecc5c 25%, #fd8d3c 50%, #f03b20 75%, #bd0026 100%);
-}
-
-/* HVI legend (inside #dac-map-hvibox, shown only while the HVI layer is on) */
-.dac-map-hvibox {
-  width: var(--dac-map-panel-w);
-  margin-top: 6px; padding: 7px 9px;
-  background: var(--surface-1, #fff); border: 1px solid var(--line);
-  border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
-.dac-map-hvi-title {
-  font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--text-3); margin-bottom: 6px;
-}
-.dac-map-hvi-scale { display: flex; align-items: center; gap: 3px; }
-.dac-map-hvi-sw { width: 18px; height: 10px; flex-shrink: 0; }
-.dac-map-hvi-lbl { font-size: 9px; color: var(--text-3); padding: 0 2px; }
-.dac-map-hvi-ticks {
-  display: flex; justify-content: space-between;
-  width: calc(5 * 18px + 4 * 3px); margin: 2px 0 0 26px;
-  font-size: 9px; color: var(--text-3);
-}
-.dac-map-hvi-src { font-size: 9px; color: var(--text-3); margin-top: 5px; }
-
 /* EAP controls (inside their own #dac-map-eapbox card below LAYERS) */
 .dac-map-eap {
   display: flex; flex-direction: column; gap: 7px;
@@ -8156,7 +8129,8 @@ a.nav-item { text-decoration: none; }
 
 /* ==========================================================================
  * Uploaded layers on the DAC map: Layers-panel row + legend card.
- * Deliberately separate rules from .dac-map-terr-sw-hvi / .dac-map-hvibox.
+ * These were deliberately kept separate from the built-in HVI overlay's
+ * rules, which have since been retired along with the overlay itself.
  * ========================================================================== */
 
 .ml-terr-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 132px; }
@@ -8201,10 +8175,17 @@ a.nav-item { text-decoration: none; }
 }
 .ml-legend-info:hover { border-color: var(--text-3); color: var(--text-2); }
 
-/* The provenance and class ranges the card itself has no room for. Sits inside
-   the card, so it widens nothing and pushes the panels below it down instead. */
-.ml-legend-note {
-  margin-top: 7px; padding-top: 7px; border-top: 1px solid var(--line);
+/* The provenance and class ranges the card has no room for, in a SEPARATE
+   floating panel. It used to expand inside the legend card, which grew a tall
+   box over the map and pushed the panels below it down -- the opposite of what a
+   small legend is for. Positioned in JS beside the button that opened it, inside
+   the map's relative wrapper. */
+.ml-info-panel {
+  position: absolute; z-index: 9998;      /* under the tooltip (9999), over the map */
+  width: 232px; max-height: 60%; overflow-y: auto;
+  padding: 9px 11px;
+  background: var(--surface-1, #fff); border: 1px solid var(--line);
+  border-radius: 8px; box-shadow: 0 4px 16px rgba(15, 23, 42, 0.14);
   font-size: 8.5px; color: var(--text-3); line-height: 1.5;
 }
 .ml-legend-note-h {
