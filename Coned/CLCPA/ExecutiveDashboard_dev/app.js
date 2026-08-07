@@ -3661,6 +3661,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // ==========================================================================
 
   const DS_GEOMETRY_KEY = 'tract_geometry';
+  // cr2bf_SourceLabel is Text 300 and saveTractDataset truncates to fit.
+  const DS_SOURCE_LABEL_MAX = 300;
 
   /** 'geometry' | 'indicators'. Absent kind means indicators: v1.0 predates it. */
   function dsDocKind(doc) {
@@ -11353,6 +11355,7 @@ function wireHTooltips() {
    * loads, so there is nothing to read from Dataverse and nothing to re-render.
    */
   function renderTerritoryCard() {
+    if (!SHOW_TERRITORY_CARD) return '';
     const rows = [
       ['Electric networks', 'Con Edison electric network boundaries'],
       ['Gas service area', 'Con Edison gas service area boundaries'],
@@ -11539,6 +11542,24 @@ function wireHTooltips() {
   // ============================================================
 
   // ============================================================
+  // Surface flags
+  // ------------------------------------------------------------
+  // Things built, kept, and deliberately not shown for now. Same policy as the
+  // Edit map files page and the built-in HVI layer: hide the way in, keep the
+  // code, make restoring it a one-word change rather than an archaeology
+  // exercise. Flipping any of these to true is the whole restoration.
+  //
+  // Both were shown once and pulled back after review: the page had grown more
+  // explaining than doing, and a delivery is the wrong moment to be teaching a
+  // reader five cards' worth of provenance.
+  // ============================================================
+
+  const SHOW_TERRITORY_CARD = false;   // renderTerritoryCard, built and idle
+  const SHOW_HELP_BUTTONS = false;     // the "How to update" openers; the drawer
+                                       // machinery below stays wired so this is
+                                       // the only line that gates it
+
+  // ============================================================
   // In-context documentation
   // ------------------------------------------------------------
   // Each card explains its own data, in a drawer opened from its header. This
@@ -11551,8 +11572,9 @@ function wireHTooltips() {
   // handler on #ml-list-mount and are matched on data-ds-help.
   // ============================================================
 
-  /** The opener, for a card header. */
+  /** The opener, for a card header. Gated: see SHOW_HELP_BUTTONS. */
   function dsHelpButton(topic) {
+    if (!SHOW_HELP_BUTTONS) return '';
     return '<button type="button" class="btn btn-secondary ml-help-btn" data-ds-help="' +
       escapeHtml(topic) + '">How to update</button>';
   }
@@ -11896,7 +11918,11 @@ function wireHTooltips() {
    */
   function renderGeomCard() {
     if (!Storage.isDataverse()) return '';
-    const geoRecs = dsRecords().filter(dsRecIsGeometry);
+    // Published sets only. A retired set stays in Dataverse untouched -- it is
+    // the rollback, and re-uploading it is how you go back -- but listing it
+    // here only invited the question of what to do about it, when the answer is
+    // nothing.
+    const geoRecs = dsRecords().filter(r => dsRecIsGeometry(r) && r.active);
     if (!geoRecs.length) return '';
     const liveGeom = dsGeometry();
 
@@ -12227,6 +12253,14 @@ function wireHTooltips() {
           d.dsWarnings.push('No indicator dataset declares vintage ' +
             (gds.geoidVintage || '(none)') + ' yet, so nothing will pair with this ' +
             'geometry until one does. Storing it now is fine.');
+        }
+        // The column holds 300 characters and the write path truncates to fit.
+        // That truncation used to be silent, and a long label reached the card
+        // ending mid-word. Say so before it is stored, not after.
+        if ((gds.sourceLabel || '').length > DS_SOURCE_LABEL_MAX) {
+          d.dsWarnings.push('The source note is ' + gds.sourceLabel.length +
+            ' characters and only the first ' + DS_SOURCE_LABEL_MAX +
+            ' are stored, so it will be cut short on the card.');
         }
         d.dsText = text;
         d.dsSummary = {

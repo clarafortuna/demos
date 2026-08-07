@@ -109,6 +109,9 @@ SQFT_TO_SQM = FT_TO_M * FT_TO_M
 # [1e-8, 1e-6) is empty, so the threshold sits in a real gap and moving it
 # anywhere inside that band changes no count.
 SHAPE_EPS = 1e-6
+# cr2bf_SourceLabel is Text 300 and the app truncates to fit, silently. A longer
+# label reached the card ending mid-word, so the builder refuses to emit one.
+SOURCE_LABEL_MAX = 300
 MIN_FRAC = 0.05
 GEOM_PROPERTIES = [
     "County", "City_Town", "borough", "neighborhood", "neighborhoodSource",
@@ -770,18 +773,25 @@ def main():
             "key": DATASET_KEY,
             "version": version,
             "name": "Census tract geometry, %s" % vintage,
+            # Must fit SOURCE_LABEL_MAX: the Dataverse column is Text 300 and the
+            # app truncates to fit, so a longer label reached the card ending
+            # mid-word. Kept short deliberately; the detail belongs in the
+            # generated change document, not in a table cell.
             "sourceLabel": (
                 "U.S. Census Bureau cartographic boundary file, %s vintage, six Con Edison "
-                "counties. electric_networks, gas_areas and hvi recomputed against these "
-                "polygons at a 5%% area threshold in %s. Display names resolve per tract "
-                "from the newest crosswalk holding the key, recorded in "
-                "neighborhoodSource; see Data/out/%s. Built by "
-                "Data/build_pure_geometry_dataset.py --vintage %s."
-                % (vintage, elec_crs.name, ARTIFACT_NAME, vintage)),
+                "counties. Network, gas and HVI overlaps recomputed against these polygons "
+                "in %s. Display names come from the newest crosswalk holding each tract."
+                % (vintage, elec_crs.name)),
             "geoidVintage": vintage,
         },
         "tracts": {"geoids": geoids, "geometry": geometry, "fields": fields},
     }
+
+    label = doc["dataset"]["sourceLabel"]
+    if len(label) > SOURCE_LABEL_MAX:
+        sys.exit("the source label is %d characters and the column holds %d, so it would be "
+                 "stored truncated and end mid-word on the card. Shorten it:\n  %r"
+                 % (len(label), SOURCE_LABEL_MAX, label))
 
     os.makedirs(OUT_DIR, exist_ok=True)
     out_path = os.path.join(OUT_DIR, "%s_%s.json" % (DATASET_KEY, version))
