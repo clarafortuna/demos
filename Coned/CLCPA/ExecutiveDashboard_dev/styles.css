@@ -7432,6 +7432,11 @@ a.nav-item { text-decoration: none; }
   display: flex; align-items: center; gap: 7px;
   font-size: 11px; font-weight: 500; color: var(--text-2); cursor: pointer; padding: 2px 0;
 }
+/* An author `display` beats the browser's own [hidden] { display: none }, so a
+   row marked hidden stayed on screen. The built-in HVI row was hidden in markup
+   and still rendered because of the rule above. .ml-overlay carries the same
+   guard for the same reason. */
+.dac-map-terr-opt[hidden] { display: none; }
 .dac-map-terr-opt input { accent-color: #185FA5; cursor: pointer; margin: 0; }
 .dac-map-terr-sw { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 .dac-map-terr-sw-burden { border: 1.5px solid #185FA5; background: #185FA5; }
