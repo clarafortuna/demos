@@ -2581,7 +2581,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // The in-flight fetch, memoized. Without this, two concurrent callers each see
   // a null cache and each build their OWN geo object: mountDACMap draws one while
   // a later mutation (the tract-dataset merge) lands on the other, so the merge
-  // silently does nothing. ensureHviGeo already memoizes for the same reason.
+  // silently does nothing, so the fetch is memoized.
   let _mapGeoPromise = null;
 
   // Bumped whenever the geometry source changes. A build that started under an
@@ -2988,9 +2988,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // Lazy-loaded ConEd service-territory overlay (electric networks + gas area).
   let _territoryGeoCache = null;
   let _territoryFetchPromise = null;
-  // Lazy-loaded Heat Vulnerability Index (HVI) ZCTA overlay (visual only).
-  let _hviGeoCache = null;
-  let _hviFetchPromise = null;
 
   // ============================================================
   // CLCPA-171 (Slice 1) · Session-uploaded GeoJSON overlay layers
@@ -3016,7 +3013,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   const _mlLayers = [];
   let _mlIdSeq = 0;
   // YlOrRd 5-class sequential ramp, low -> high. This is deliberately a
-  // separate copy of the same hexes HVI_RAMP uses: HVI's is a discrete
+  // separate copy of the same hexes the retired HVI overlay used: that one was
   // {1..5} -> hex map while uploads need an index into a continuous ramp,
   // and Slice 1 is additive-only. Deduplication is CLCPA-170.
   const ML_RAMP = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
@@ -3467,13 +3464,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const modeLabel = s.mode === 'quantile' ? '5 quantile classes'
       : s.mode === 'linear' ? '5 equal-interval classes'
       : 'single value';
-    // Slice 3: the provenance line finally shows cr2bf_SourceLabel. Slice 1b
-    // hardcoded "uploaded this session", which was false for a saved layer
-    // loaded by another user. The fallback stays origin-aware rather than
-    // neutral-for-everything: for an unsaved session layer that phrase was
-    // accurate, so it is kept, and only the saved case changes.
-    const provenance = entry.sourceLabel ||
-      (entry.origin === 'saved' ? 'saved layer' : 'uploaded this session');
+    const provenance = mlProvenance(entry);
     return '<div class="ml-legend-head">' +
         '<div class="ml-legend-title">' + escapeHtml(entry.name) + '</div>' +
         '<button type="button" class="ml-legend-info" data-ml-info="' +
@@ -3490,9 +3481,19 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       // provenance text runs to 300 characters against a 221px panel, so it
       // moves into the popup rather than wrapping the card to six lines.
       '<div class="ml-legend-src">' + escapeHtml(entry.valueField) + ' · ' +
-        modeLabel + '</div>' +
-      '<div class="ml-legend-note" hidden>' + mlLegendNoteHtml(entry, provenance) +
-      '</div>';
+        modeLabel + '</div>';
+  }
+
+  /**
+   * Where a layer's values came from. Slice 3 made this show cr2bf_SourceLabel;
+   * Slice 1b hardcoded "uploaded this session", which was false for a saved
+   * layer loaded by someone else. The fallback stays origin-aware rather than
+   * neutral-for-everything: for an unsaved session layer that phrase was
+   * accurate, so it is kept, and only the saved case changes.
+   */
+  function mlProvenance(entry) {
+    return entry.sourceLabel ||
+      (entry.origin === 'saved' ? 'saved layer' : 'uploaded this session');
   }
 
   /**
@@ -3526,18 +3527,16 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       }
       ranges = rows.join('');
     }
-    return '<div class="ml-legend-note-h">Class ranges</div>' + ranges +
-      // Rounded for width; the underlying values are untouched. Saying so is
-      // cheaper than someone re-deriving a boundary from a rounded label.
-      '<div class="ml-legend-note-sub">Ranges are rounded for display. The ' +
-        'stored values keep full precision.</div>' +
-      // Which convention this layer uses for features that paint no colour.
-      // A second convention (value 0 rendered transparent) is a per-layer
-      // upload setting in its own slice; this line is where it will be stated.
-      '<div class="ml-legend-note-sub">A feature with no usable value is drawn ' +
-        'grey rather than dropped, so missing data stays visible.</div>' +
-      '<div class="ml-legend-note-h">Source</div>' +
-      '<div class="ml-legend-note-row">' + escapeHtml(provenance) + '</div>';
+    // Source and class ranges, and nothing else. Two explanatory notes lived
+    // here and were cut: that ranges are rounded, and that a valueless feature
+    // is drawn grey. Both are true and neither was worth the room -- an
+    // of-course note crowds out the two things a reader opened this for.
+    //
+    // When the per-layer zero-transparency setting lands it belongs as ONE LINE
+    // inside Class ranges, next to the range it modifies, not as a paragraph.
+    return '<div class="ml-legend-note-h">Source</div>' +
+      '<div class="ml-legend-note-row">' + escapeHtml(provenance) + '</div>' +
+      '<div class="ml-legend-note-h">Class ranges</div>' + ranges;
   }
 
   /**
@@ -4913,16 +4912,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
-            <!-- Built-in HVI overlay: hidden from the Layers control for V1. Its
-                 replacement is an uploaded saved layer, which carries its own
-                 source label and can be relabelled at upload time. The layer code,
-                 its legend and Data/hvi_zcta.geojson all stay; only the way in is
-                 gone, and unhiding it is a one-word change.
-
-                 This does NOT touch the per-tract HVI value in the tract tooltip.
-                 That comes from the tract shapes dataset, is recomputed per
-                 vintage, and shares no code with this overlay. -->
-            <label class="dac-map-terr-opt" hidden><input type="checkbox" data-layer="hvi"><span class="dac-map-terr-sw dac-map-terr-sw-hvi"></span>Heat Vulnerability Index (HVI)</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="eap"><span class="dac-map-terr-sw dac-map-terr-sw-eap"></span>EAP enrollment</label>
           </div>
           <!-- EAP controls live in their own card below LAYERS so the LAYERS panel never resizes -->
@@ -4952,21 +4941,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
                 </span>
               </div>
             </div>
-          </div>
-          <!-- HVI legend: 1-5 warm color scale + source label; shown only while the HVI layer is on -->
-          <div class="dac-map-hvibox" id="dac-map-hvibox" hidden>
-            <div class="dac-map-hvi-title">Heat Vulnerability Index</div>
-            <div class="dac-map-hvi-scale">
-              <span class="dac-map-hvi-lbl">Low</span>
-              <span class="dac-map-hvi-sw" style="background:#ffffb2"></span>
-              <span class="dac-map-hvi-sw" style="background:#fecc5c"></span>
-              <span class="dac-map-hvi-sw" style="background:#fd8d3c"></span>
-              <span class="dac-map-hvi-sw" style="background:#f03b20"></span>
-              <span class="dac-map-hvi-sw" style="background:#bd0026"></span>
-              <span class="dac-map-hvi-lbl">High</span>
-            </div>
-            <div class="dac-map-hvi-ticks"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
-            <div class="dac-map-hvi-src">HVI (2022, assumed) - NYC DOHMH, 2020 ZCTA</div>
           </div>
           </div>
           <div id="dac-map-tooltip" class="dac-map-tooltip" style="opacity:0;position:absolute;z-index:9999;pointer-events:none;transition:opacity .12s"></div>
@@ -5108,7 +5082,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
      * Bind hover-tooltip handlers to one feature of an overlay layer.
      * `html(feature)` returns the tooltip body; returning '' shows nothing.
      *
-     * This is the generalization of what buildHviLayer did on its own. It never
+     * This generalizes what the retired built-in HVI overlay did, and never
      * touches geoLayer or _hoveredLayer, so an overlay tooltip cannot disturb
      * tract hover or the tract selection.
      */
@@ -5139,9 +5113,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         this.setStyle({ weight: 2, color: '#185FA5', fillOpacity: 0.92 });
         this.bringToFront();
         // Re-assert the intended stack: the bringToFront above would otherwise
-        // paint the hovered tract (near-opaque) over the HVI overlay and hide
+        // paint the hovered tract (near-opaque) over a saved layer and hide
         // its color. Raise the overlays back on top (then outlines), mirroring
-        // refreshHviLayer's ordering. No-op when no overlay is on.
+        // No-op when no layer is on.
         bringOverlaysToFront();
         bringOutlinesToFront();
         if (!tooltip) return;
@@ -5767,11 +5741,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // Re-assert the overlay half of the CLCPA-169 stacking order, which a
     // tract's own bringToFront (hover / select) would otherwise break by
     // painting a near-opaque tract over the overlays. Order is:
-    // tracts -> HVI -> session-uploaded layers -> outlines (raised separately).
-    // With no uploaded layers registered this is exactly the single HVI call
-    // it replaced — the loop body never runs.
+    // tracts -> saved layers -> outlines (raised separately). With no layers
+    // registered the loop body never runs and this costs nothing.
     function bringOverlaysToFront() {
-      if (_hviLayer && map.hasLayer(_hviLayer)) _hviLayer.bringToFront();
       for (let i = 0; i < _mlLayers.length; i++) {
         const lyr = _mlLeaflet[_mlLayers[i].id];
         if (lyr && map.hasLayer(lyr)) lyr.bringToFront();
@@ -6160,90 +6132,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       }
     }
 
-    // ---- HVI overlay (lazy-loaded ZCTA polygons, colored by score 1-5) ----
-    // Same non-interactive technique as the ConEd overlays: the layer never
-    // captures hover/click, so the tract choropleth underneath keeps its
-    // tooltip. Colored per feature by score, so it needs its own draw path
-    // (setTerritory uses one flat color per layer).
-    function ensureHviGeo() {
-      if (_hviGeoCache) return Promise.resolve(_hviGeoCache);
-      if (!_hviFetchPromise) {
-        _hviFetchPromise = fetch('./Data/hvi_zcta.geojson')
-          .then(r => r.ok ? r.json() : Promise.reject(new Error('hvi_zcta.geojson ' + r.status)))
-          .then(j => (_hviGeoCache = j))
-          .catch(err => {
-            console.warn('[DAC map] Could not load Data/hvi_zcta.geojson:', err);
-            _hviFetchPromise = null;   // allow a retry on the next toggle
-            throw err;
-          });
-      }
-      return _hviFetchPromise;
-    }
-    // YlOrRd sequential ramp, score 1 (low) -> 5 (high). Any other value is
-    // drawn grey rather than dropped, so bad data is visible, not silent.
-    const HVI_RAMP = { 1: '#ffffb2', 2: '#fecc5c', 3: '#fd8d3c', 4: '#f03b20', 5: '#bd0026' };
-    function hviStyle(feature) {
-      const c = HVI_RAMP[feature.properties.score] || '#cccccc';
-      return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
-    }
-    // HVI overlay state. The overlay is normally non-interactive so the tract
-    // choropleth beneath keeps its hover/tooltip (and the tract tooltip already
-    // carries the HVI line). BUT when "DAC criteria" is off the tract layer is
-    // removed and takes hover with it, so nothing would show HVI on hover. In
-    // that one case we rebuild the overlay as interactive with its own tooltip.
-    // Leaflet bakes `interactive` in at render time, so we REBUILD the layer
-    // (never mutate) whenever the required interactivity flips.
-    let _hviLayer = null;
-    let _hviLayerInteractive = null;   // interactivity baked into _hviLayer (null = not built yet)
-    const _hviBox = document.getElementById('dac-map-hvibox');
 
     function _dacCriteriaOn() {
       const cb = document.querySelector('#dac-map-terr input[data-layer="burden"]');
       return !!(cb && cb.checked);
-    }
-    function _hviToggleOn() {
-      const cb = document.querySelector('#dac-map-terr input[data-layer="hvi"]');
-      return !!(cb && cb.checked);
-    }
-
-    // Build the HVI ZCTA layer. When interactive, bind a self-contained tooltip
-    // (it never touches geoLayer/_hoveredLayer). When not, this is byte-identical
-    // to the original non-interactive overlay.
-    function buildHviLayer(interactive) {
-      const opts = { interactive: interactive, style: hviStyle };
-      if (interactive) {
-        opts.onEachFeature = function (feature, lyr) {
-          bindOverlayTooltip(feature, lyr, function (f) {
-            return 'ZCTA ' + escMap(f.properties.zcta) +
-              ' - Heat Vulnerability Index: ' + escMap(f.properties.score);
-          });
-        };
-      }
-      return L.geoJSON(_hviGeoCache, opts);
-    }
-
-    // Single source of truth for the HVI overlay: add/remove and rebuild with
-    // the correct interactivity from the current toggle states. Called by both
-    // the HVI toggle and the DAC-criteria toggle so flipping either re-evaluates.
-    function refreshHviLayer() {
-      if (!_hviToggleOn()) {
-        if (_hviLayer && map.hasLayer(_hviLayer)) map.removeLayer(_hviLayer);
-        if (_hviBox) _hviBox.hidden = true;
-        return;
-      }
-      ensureHviGeo().then(function () {
-        // Interactive only when HVI is the sole hover target (DAC criteria off).
-        const want = !_dacCriteriaOn();
-        if (!_hviLayer || _hviLayerInteractive !== want) {
-          if (_hviLayer && map.hasLayer(_hviLayer)) map.removeLayer(_hviLayer);
-          _hviLayer = buildHviLayer(want);
-          _hviLayerInteractive = want;
-        }
-        if (!map.hasLayer(_hviLayer)) _hviLayer.addTo(map);
-        _hviLayer.bringToFront();
-        bringOutlinesToFront();   // keep borough/neighborhood outlines above the overlay
-        if (_hviBox) _hviBox.hidden = false;
-      }).catch(function () { /* already reported in ensureHviGeo */ });
     }
     // Burden choropleth (the tract geoLayer) toggle. Default on; off removes it
     // (its hover tooltips go with it). Kept at the back so overlay outlines sit on top.
@@ -6318,14 +6210,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return false;
     }
 
-    /** One feature's tooltip: the value field, its value, and the layer name. */
+    /**
+     * One feature's tooltip: the layer's NAME and the value, e.g.
+     * "Heat Vulnerability Index: 4".
+     *
+     * Not the value field key. `Heat_Vulnerability_Index__HVI_` is how the
+     * source file spells a column; the layer name is what the person naming the
+     * layer chose to call it. Showing the key put machinery in front of a
+     * reader who has no use for it, and made the tooltip twice as wide.
+     */
     function mlTooltipHtml(entry, feature) {
       const raw = feature.properties ? feature.properties[entry.valueField] : null;
       const v = mlToNumber(raw);
-      return '<div class="dac-tt-row"><span>' + escMap(entry.valueField) +
+      return '<div class="dac-tt-row"><span>' + escMap(entry.name) +
         '</span><span class="dac-tt-v">' +
-        escMap(v == null ? 'no value' : mlFmtNum(v)) + '</span></div>' +
-        '<div class="dac-tt-county">' + escMap(entry.name) + '</div>';
+        escMap(v == null ? 'no value' : mlFmtNum(v)) + '</span></div>';
     }
 
     /** Single add/remove entry point for one uploaded layer (+ its legend). */
@@ -6438,20 +6337,81 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // user's tract selection). Idempotent, so calling it twice is harmless.
     window._dacMapSyncUploadedLayers = initUploadedLayers;
 
-    // Legend info buttons. Delegated on the panels container because legend
-    // cards are appended per layer and removed on Remove, so binding per card
-    // would leak handlers and miss cards added after this runs.
+    // ---- Legend info panel -------------------------------------------------
+    // A SEPARATE floating panel, not an expanding section of the legend card.
+    // Expanding the card grew a tall box over the map and pushed the panels
+    // below it down, which is the opposite of what a small legend is for. This
+    // floats beside the button instead, and the card never changes size.
+    //
+    // One panel for the whole map, reused by every legend, so N layers do not
+    // mean N detached panels to keep in sync.
+    let _mlInfoPanel = null;
+    let _mlInfoFor = null;         // id of the layer whose info is showing
+
+    function mlInfoPanel() {
+      if (_mlInfoPanel && _mlInfoPanel.isConnected) return _mlInfoPanel;
+      if (!tooltipWrapper) return null;
+      _mlInfoPanel = document.createElement('div');
+      _mlInfoPanel.className = 'ml-info-panel';
+      _mlInfoPanel.hidden = true;
+      // Inside the map's relative wrapper, so absolute offsets land correctly
+      // and the panel is clipped by the same box as the tooltip.
+      tooltipWrapper.appendChild(_mlInfoPanel);
+      return _mlInfoPanel;
+    }
+
+    function mlInfoClose() {
+      const pnl = _mlInfoPanel;
+      if (pnl) pnl.hidden = true;
+      _mlInfoFor = null;
+      const open = document.querySelector('[data-ml-info][aria-expanded="true"]');
+      if (open) open.setAttribute('aria-expanded', 'false');
+    }
+
+    function mlInfoOpen(btn, entry) {
+      const pnl = mlInfoPanel();
+      if (!pnl) return;
+      pnl.innerHTML = mlLegendNoteHtml(entry, mlProvenance(entry));
+      pnl.hidden = false;
+      // Place it beside the button, then pull it back inside the wrapper. The
+      // panel has to be visible first or its size reads as zero.
+      const wrap = tooltipWrapper.getBoundingClientRect();
+      const b = btn.getBoundingClientRect();
+      let left = b.left - wrap.left - pnl.offsetWidth - 10;   // prefer the left
+      if (left < 6) left = b.right - wrap.left + 10;          // else the right
+      let top = b.top - wrap.top - 4;
+      if (top + pnl.offsetHeight > wrap.height - 6) top = wrap.height - pnl.offsetHeight - 6;
+      if (top < 6) top = 6;
+      pnl.style.left = Math.round(left) + 'px';
+      pnl.style.top = Math.round(top) + 'px';
+      btn.setAttribute('aria-expanded', 'true');
+      _mlInfoFor = entry.id;
+    }
+
+    // Delegated on the panels container: legend cards are appended per layer and
+    // removed on Remove, so binding per card would leak handlers and miss cards
+    // added after this runs.
     const panelsEl = document.getElementById('dac-map-panels');
     if (panelsEl) panelsEl.addEventListener('click', function (e) {
       const btn = e.target.closest('[data-ml-info]');
       if (!btn) return;
-      const card = btn.closest('.ml-legendbox');
-      const note = card ? card.querySelector('.ml-legend-note') : null;
-      if (!note) return;
-      const opening = note.hasAttribute('hidden');
-      if (opening) note.removeAttribute('hidden');
-      else note.setAttribute('hidden', '');
-      btn.setAttribute('aria-expanded', opening ? 'true' : 'false');
+      const id = btn.getAttribute('data-ml-info');
+      const entry = _mlLayers.filter(function (x) { return x.id === id; })[0];
+      if (!entry) return;
+      if (_mlInfoFor === id) { mlInfoClose(); return; }   // same button toggles
+      mlInfoClose();                                     // switching layers
+      mlInfoOpen(btn, entry);
+    });
+
+    // Anywhere else closes it, including the map. The panel itself does not, so
+    // a source label stays selectable.
+    document.addEventListener('click', function (e) {
+      if (!_mlInfoFor) return;
+      if (e.target.closest('.ml-info-panel') || e.target.closest('[data-ml-info]')) return;
+      mlInfoClose();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && _mlInfoFor) mlInfoClose();
     });
 
     const terrPanel = document.getElementById('dac-map-terr');
@@ -6470,10 +6430,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       // The DAC-criteria toggle decides whether ANY overlay may take hover, so
       // it re-evaluates the uploaded layers alongside HVI.
       if (cb.dataset.layer === 'burden') {
-        setBurden(cb.checked); refreshHviLayer(); refreshAllUploadedLayers();
+        setBurden(cb.checked); refreshAllUploadedLayers();
       }
       else if (cb.dataset.layer === 'eap') setEap(cb.checked);
-      else if (cb.dataset.layer === 'hvi') refreshHviLayer();
       else setTerritory(cb.dataset.layer, cb.checked);
     });
 

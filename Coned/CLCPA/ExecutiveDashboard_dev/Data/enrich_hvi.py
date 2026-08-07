@@ -1,6 +1,11 @@
 """enrich_hvi.py — add an `hvi` field to each tract in map_payload.json and emit
 the drawable ZCTA overlay (Data/hvi_zcta.geojson) for the DAC map.
 
+NOTE: nothing consumes that overlay file any more. The built-in HVI overlay it
+fed was retired once Heat Vulnerability became an uploaded saved layer with its
+own provenance, and Data/hvi_zcta.geojson was deleted with it. Re-running this
+script recreates the file harmlessly; the app will not read it.
+
 Heat Vulnerability Index (HVI) is published per NYC ZCTA (ZIP Code Tabulation
 Area), not per census tract, so this offline step spatially joins the ZCTAs to
 the tracts. For every tract feature it lists the intersecting ZCTAs:
