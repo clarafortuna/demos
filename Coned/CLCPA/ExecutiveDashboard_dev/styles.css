@@ -6291,7 +6291,6 @@ a.nav-item { text-decoration: none; }
   padding: 14px 16px 12px;
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.05);
 }
-.dac-tract-detail[hidden] { display: none; }
 
 /* Header: top row (name/borough/badge + close) above a stats strip */
 .dac-td-header {
@@ -6401,7 +6400,6 @@ a.nav-item { text-decoration: none; }
   margin-top: 10px;
   font-size: 10.5px; line-height: 1.5; color: var(--text-2);
 }
-.dac-td-note[hidden] { display: none; }
 .dac-td-note-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
 .dac-td-note ul { margin: 0; padding-left: 16px; }
 .dac-td-note li { margin-bottom: 5px; }
@@ -7423,7 +7421,6 @@ a.nav-item { text-decoration: none; }
   box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02), 0 4px 16px rgba(15, 23, 42, 0.06);
   padding: 9px 11px; font-family: var(--font);
 }
-.dac-map-eapbox[hidden] { display: none; }
 .dac-map-terr-title {
   font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-3); margin-bottom: 6px;
@@ -7432,11 +7429,6 @@ a.nav-item { text-decoration: none; }
   display: flex; align-items: center; gap: 7px;
   font-size: 11px; font-weight: 500; color: var(--text-2); cursor: pointer; padding: 2px 0;
 }
-/* An author `display` beats the browser's own [hidden] { display: none }, so a
-   row marked hidden stayed on screen. The built-in HVI row was hidden in markup
-   and still rendered because of the rule above. .ml-overlay carries the same
-   guard for the same reason. */
-.dac-map-terr-opt[hidden] { display: none; }
 .dac-map-terr-opt input { accent-color: #185FA5; cursor: pointer; margin: 0; }
 .dac-map-terr-sw { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 .dac-map-terr-sw-burden { border: 1.5px solid #185FA5; background: #185FA5; }
@@ -8179,7 +8171,6 @@ a.nav-item { text-decoration: none; }
   background: var(--surface-1, #fff); border: 1px solid var(--line);
   border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
 }
-.ml-legendbox[hidden] { display: none; }
 .ml-legend-title {
   font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
   color: var(--text-3); margin-bottom: 6px;
@@ -8211,7 +8202,6 @@ a.nav-item { text-decoration: none; }
   position: fixed; inset: 0; background: rgba(3, 24, 36, 0.32);
   z-index: 4000; opacity: 0; transition: opacity .2s ease;
 }
-.ml-overlay[hidden] { display: none; }
 .ml-overlay.open { opacity: 1; }
 .ml-drawer {
   position: fixed; top: 0; right: 0; height: 100%; width: min(460px, 92vw);
@@ -8279,7 +8269,6 @@ a.nav-item { text-decoration: none; }
   color: var(--text-3); font-weight: 700;
 }
 .ml-ramp-reset { font-size: 11px; }
-.ml-ramp-reset[hidden] { display: none; }
 
 .ml-ramp-row { display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
 .ml-ramp-field { display: flex; flex-direction: column; gap: 5px; }
@@ -8483,3 +8472,39 @@ a.nav-item { text-decoration: none; }
 
 /* The upload control now stands on its own below the two cards it feeds. */
 .ds-upload-card .ds-upload { margin-top: 0; padding-top: 0; border-top: 0; }
+/* ======================== HIDDEN ATTRIBUTE ========================
+ * One rule for the whole class of bug, and it has to live at the very
+ * bottom of this file.
+ *
+ * `[hidden] { display: none }` is a browser (UA) rule, and ANY author
+ * declaration outranks a UA one no matter how specific it is. So every
+ * `display` we set here silently un-hides elements marked hidden in
+ * markup: `.nav-item { display: flex }` kept the retired "Edit map
+ * files" entry in the sidebar, and `.dac-map-terr-opt { display: flex }`
+ * kept the retired built-in HVI row in the Layers panel. Both shipped
+ * hidden, both rendered anyway.
+ *
+ * Why `!important`: it beats all 439 non-important `display` rules in
+ * this file at any specificity, which a plain rule cannot do -- 44 of
+ * them are more specific than `[hidden]` and would win.
+ *
+ * Why the END of the file and not the top: seven rules are `!important`
+ * AND specificity (0,1,0), tying with this one -- `.dac-map-card`,
+ * `.section-pane`, `.exec-shares-grid`, `.exec-shares-grid-4`,
+ * `.dumb-row`, `.dumb-axis`, `.dumb-axis-inner`. Ties break on source
+ * order, so at the top this rule loses to all seven. Do not move it up.
+ *
+ * This replaced seven per-class guards (.dac-tract-detail, .dac-td-note,
+ * .dac-map-eapbox, .dac-map-terr-opt, .ml-legendbox, .ml-overlay,
+ * .ml-ramp-reset), each added reactively after someone noticed one more
+ * element failing. Do not add an eighth: fix it here, or the element has
+ * a genuine reason not to use the attribute. Data/check_hidden_guard.js
+ * asserts both that this rule is present and that no per-class guard has
+ * come back.
+ *
+ * Still unbeaten by this rule: the nine `!important` display rules at
+ * specificity (0,2,0) or higher, all in the .dac-map-card cluster. None
+ * of them matches an element the app marks hidden today. The route sweep
+ * in the browser harness is what catches it if that ever changes.
+ * ================================================================== */
+[hidden] { display: none !important; }
