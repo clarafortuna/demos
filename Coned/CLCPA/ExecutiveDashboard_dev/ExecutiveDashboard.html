@@ -115,7 +115,12 @@
       <a class="nav-item" href="#/maplayers" data-route="/maplayers">
         <span class="nav-letter">◈</span> Map Layers
       </a>
-      <a class="nav-item" href="#/edit-map-files" data-route="/edit-map-files">
+      <!-- Edit map files: hidden from navigation for V1. Every source it
+           documented now has a "How to update" button on the card that owns
+           that data, so this page is redundant surface rather than the only
+           way in. The route, the page and its wiring are all still present and
+           the URL still works; removing the code properly is its own slice. -->
+      <a class="nav-item" href="#/edit-map-files" data-route="/edit-map-files" hidden>
         <span class="nav-letter">✎</span> Edit map files
       </a>
     </nav>

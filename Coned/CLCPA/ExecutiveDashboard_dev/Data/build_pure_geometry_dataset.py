@@ -631,6 +631,43 @@ def write_artifact(geoids, geometry, fields, payload, tf, resolve_name, name_pro
     return L, changed, identical, gained, relabelled, drift
 
 
+def warn_if_territories_stale():
+    """The CECONY shapefiles feed TWO outputs, and only one of them is built here.
+
+    electric_networks and gas_areas are measured against CECONY_Electric.shp and
+    CECONY_Gas.shp, and the same two files are converted by _make_territories.py
+    into the service_territories.geojson overlay the map draws. Change the
+    shapefiles and rebuild only one side, and the outlines on screen disagree
+    with the per-tract values in the tooltip, silently.
+
+    Folding the two builds into one run is the real fix and is queued: the
+    territory conversion needs a NAD27 grid fetched over the network for the ORU
+    layer, which would make this build require network access where it currently
+    does not. Until then, say so at build time rather than leaving the coupling
+    to memory.
+    """
+    terr = os.path.join(HERE, "service_territories.geojson")
+    if not os.path.exists(terr):
+        print("NOTE: service_territories.geojson is missing; the map's territory "
+              "overlays will not draw. Rebuild it with _make_territories.py.")
+        return
+    t_terr = os.path.getmtime(terr)
+    newer = []
+    for base in (ELEC, GAS):
+        shp = base + ".shp"
+        if os.path.exists(shp) and os.path.getmtime(shp) > t_terr:
+            newer.append(os.path.basename(shp))
+    if newer:
+        print("=" * 66)
+        print("WARNING: the territory overlay looks stale.")
+        print("  Newer than service_territories.geojson: %s" % ", ".join(newer))
+        print("  Those shapefiles feed BOTH the per-tract electric_networks and")
+        print("  gas_areas built here AND the territory outlines the map draws.")
+        print("  Rebuild the overlay with _make_territories.py or the two will")
+        print("  disagree on screen.")
+        print("=" * 66)
+
+
 def main():
     if "--vintage" not in sys.argv:
         sys.exit("usage: python Data/build_pure_geometry_dataset.py --vintage 2010|2020 [--artifact]")
@@ -675,6 +712,7 @@ def main():
                        else p.get("HVI") or p.get("Heat_Vulnerability_Index__HVI_"))
     ztree = STRtree(zgeoms)
 
+    warn_if_territories_stale()
     print("recomputing spatial properties for %d tracts in %s ..." % (len(geoids), elec_crs.name))
     fields = {k: [] for k in GEOM_PROPERTIES}
     geometry = []

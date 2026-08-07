@@ -8449,3 +8449,32 @@ a.nav-item { text-decoration: none; }
   opacity: 0.45;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
+
+/* ---- In-context docs, territory card, relocated upload block (V1) ---- */
+/* Card headers can now carry a chip AND a docs button, so the right-hand side
+   of the header becomes a small cluster rather than a single element. */
+.ml-card-actions {
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; margin-left: 12px;
+}
+.ml-help-btn {
+  white-space: nowrap;
+  font-size: 11.5px;
+  padding: 5px 11px;
+  flex-shrink: 0;
+}
+.ml-card-head > .ml-help-btn { margin-left: 12px; }
+
+/* Sub-heading inside a docs drawer, for the second source on a shared topic. */
+.ml-help-sub {
+  margin: 22px 0 6px;
+  font-size: 12.5px; font-weight: 700;
+}
+.ml-help-lede { font-size: 12px; line-height: 1.6; margin: 0 0 12px; opacity: 0.9; }
+
+/* Territory overlays: read-only, so the rows are quieter than a layer row. */
+.ds-terr-list { margin: 0; }
+.ds-terr-note { margin-top: 12px; opacity: 0.75; }
+
+/* The upload control now stands on its own below the two cards it feeds. */
+.ds-upload-card .ds-upload { margin-top: 0; padding-top: 0; border-top: 0; }
