@@ -4697,7 +4697,16 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="electric"><span class="dac-map-terr-sw dac-map-terr-sw-elec"></span>Electric networks</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="gas"><span class="dac-map-terr-sw dac-map-terr-sw-gas"></span>Gas service area</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="oru"><span class="dac-map-terr-sw dac-map-terr-sw-oru"></span>ORU territory</label>
-            <label class="dac-map-terr-opt"><input type="checkbox" data-layer="hvi"><span class="dac-map-terr-sw dac-map-terr-sw-hvi"></span>Heat Vulnerability Index (HVI)</label>
+            <!-- Built-in HVI overlay: hidden from the Layers control for V1. Its
+                 replacement is an uploaded saved layer, which carries its own
+                 source label and can be relabelled at upload time. The layer code,
+                 its legend and Data/hvi_zcta.geojson all stay; only the way in is
+                 gone, and unhiding it is a one-word change.
+
+                 This does NOT touch the per-tract HVI value in the tract tooltip.
+                 That comes from the tract shapes dataset, is recomputed per
+                 vintage, and shares no code with this overlay. -->
+            <label class="dac-map-terr-opt" hidden><input type="checkbox" data-layer="hvi"><span class="dac-map-terr-sw dac-map-terr-sw-hvi"></span>Heat Vulnerability Index (HVI)</label>
             <label class="dac-map-terr-opt"><input type="checkbox" data-layer="eap"><span class="dac-map-terr-sw dac-map-terr-sw-eap"></span>EAP enrollment</label>
           </div>
           <!-- EAP controls live in their own card below LAYERS so the LAYERS panel never resizes -->
@@ -10881,6 +10890,7 @@ function wireHTooltips() {
       <div id="ml-list-mount">${renderMlSessionList()}</div>
 
       ${mlCanUpload() ? renderMlRequirementsDrawer() : ''}
+      ${renderDsHelpDrawer()}
 
       <p class="ml-build" id="ml-build">Build ${escapeHtml(APP_BUILD)}</p>
     `;
@@ -11321,9 +11331,57 @@ function wireHTooltips() {
             <h3>Saved layers</h3>
             <p class="ml-card-sub">${sub}</p>
           </div>
-          ${saved.length ? `<span class="ml-chip">${saved.length} layer${saved.length === 1 ? '' : 's'}</span>` : ''}
+          <div class="ml-card-actions">${
+            saved.length ? `<span class="ml-chip">${saved.length} layer${saved.length === 1 ? '' : 's'}</span>` : ''
+          }${dsHelpButton('layers')}</div>
         </div>
         <div class="ml-card-body">${body}</div>
+      </div>`;
+  }
+
+  /**
+   * Territory overlays: the three outlines that ship with the dashboard.
+   *
+   * Read-only on purpose. They are not uploadable layers, and the point of
+   * showing them is so nobody mistakes them for one. They also share their
+   * source files with the per-tract network values in the shapes dataset, so
+   * changing one without the other would put the outlines and the tract values
+   * out of step; both are regenerated together offline. Editable in a later
+   * phase.
+   *
+   * Static content: these three are compiled into the overlay file the map
+   * loads, so there is nothing to read from Dataverse and nothing to re-render.
+   */
+  function renderTerritoryCard() {
+    const rows = [
+      ['Electric networks', 'Con Edison electric network boundaries'],
+      ['Gas service area', 'Con Edison gas service area boundaries'],
+      ['ORU territory', 'Orange and Rockland service territory'],
+    ];
+    return `
+      <div class="ml-card ds-terr">
+        <div class="ml-card-head">
+          <div>
+            <h3>Territory overlays</h3>
+            <p class="ml-card-sub">Service boundaries that ship with the dashboard. Switch them on
+            from the Layers control on the map. They are not uploaded here and cannot be changed
+            from this page.</p>
+          </div>
+          ${dsHelpButton('territory')}
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-terr-list">${rows.map(r => `
+            <li class="ml-row">
+              <div class="ml-row-main">
+                <div class="ml-row-name">${escapeHtml(r[0])}
+                  <span class="ml-chip">built in</span></div>
+                <div class="ml-row-meta">${escapeHtml(r[1])}</div>
+              </div>
+            </li>`).join('')}</ul>
+          <p class="ml-row-src ds-terr-note">Supplied together as one overlay the map loads the
+          first time one of them is switched on. Managing them from this page is planned for a
+          later phase.</p>
+        </div>
       </div>`;
   }
 
@@ -11469,7 +11527,7 @@ function wireHTooltips() {
     // Slice 3: a read-only Dataverse user cannot upload, so the session group
     // would be permanently empty. Show saved layers only.
     return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '') +
-      renderDsCard() + renderGeomCard();
+      renderDsCard() + renderGeomCard() + renderTerritoryCard() + renderDsUploadBlock();
   }
 
   // ============================================================
@@ -11479,6 +11537,264 @@ function wireHTooltips() {
   // reuses the layer machinery wholesale, and the interesting work is the
   // validation that runs before Activate is offered at all.
   // ============================================================
+
+  // ============================================================
+  // In-context documentation
+  // ------------------------------------------------------------
+  // Each card explains its own data, in a drawer opened from its header. This
+  // replaces the standalone Edit map files page, which put every source on one
+  // screen far away from the controls they describe.
+  //
+  // One overlay, content swapped by topic. The openers live INSIDE cards, which
+  // re-render on every list refresh, so they cannot be bound directly the way
+  // the File requirements button is; they go through the delegated click
+  // handler on #ml-list-mount and are matched on data-ds-help.
+  // ============================================================
+
+  /** The opener, for a card header. */
+  function dsHelpButton(topic) {
+    return '<button type="button" class="btn btn-secondary ml-help-btn" data-ds-help="' +
+      escapeHtml(topic) + '">How to update</button>';
+  }
+
+  /**
+   * Documentation, by topic. Written for whoever maintains the dashboard, not
+   * for someone holding the repository: no file paths presented as things the
+   * reader can open, no script invocations, no internal tooling names except
+   * where naming the source file is the actual instruction.
+   */
+  function dsHelpContent(topic) {
+    if (topic === 'shapes') {
+      return {
+        kicker: 'Tract shapes',
+        title: 'How the tract shapes are made',
+        body: `
+          <p class="ml-help-lede">A set of shapes is built offline, then uploaded here. It carries
+          one outline per census tract, plus everything about a tract that depends on its outline.</p>
+          <dl class="ml-help-list">
+            <dt>Where the outlines come from</dt>
+            <dd>The U.S. Census Bureau cartographic boundary file for the vintage being built,
+            covering the six Con Edison counties. A set is built for one vintage at a time, so a
+            2010 set draws 2010 tracts and a 2020 set draws 2020 tracts.</dd>
+
+            <dt>Neighborhood names</dt>
+            <dd>New York City Department of City Planning equivalency tables, which map each census
+            tract to a Neighborhood Tabulation Area. A tract takes its name from the newest table
+            that lists it, so a name never changes just because the shapes did. Westchester has no
+            NTAs and uses its city or town name instead. Which table named each tract is recorded
+            in the file.</dd>
+
+            <dt>Electric networks and gas service areas</dt>
+            <dd>Calculated from the Con Edison network shapefiles by measuring how much of each
+            tract each network covers, keeping any that cover at least five percent. These are
+            recalculated for every vintage, never copied, because a tract with a different outline
+            overlaps the networks differently.</dd>
+
+            <dt>Heat Vulnerability Index</dt>
+            <dd>Calculated the same way against the published HVI areas, and shown on the tract
+            tooltip. Tracts with no meaningful overlap carry no HVI value at all, which is
+            deliberate and different from a value of zero.</dd>
+
+            <dt>Uploading a new set</dt>
+            <dd>Upload it below. It is checked before storage, then used automatically by any
+            dataset version declaring the same vintage. Publishing a new set for a vintage retires
+            the previous one for that vintage; nothing is deleted, so returning to it is another
+            upload.</dd>
+          </dl>`,
+      };
+    }
+    if (topic === 'datasets') {
+      return {
+        kicker: 'Tract datasets',
+        title: 'How the indicator data is made',
+        body: `
+          <p class="ml-help-lede">A dataset version holds the per-tract indicator values the map
+          colours by, together with the labels, groupings and layout that describe them.</p>
+          <dl class="ml-help-list">
+            <dt>Where it comes from</dt>
+            <dd>The New York State Energy Research and Development Authority Disadvantaged
+            Communities release, as published by the Climate Justice Working Group.</dd>
+
+            <dt>How a version is produced today</dt>
+            <dd>Offline, by a build step that reads the published release and writes a single file
+            for upload. Loading the published file directly into this page, with the field mapping
+            confirmed on screen, is the next phase of this work and is not available yet. The
+            published file's format has already been examined against what a version needs, so
+            that step is understood rather than speculative.</dd>
+
+            <dt>What a version brings</dt>
+            <dd>One row per tract, with the burden and vulnerability scores, the percentile ranks,
+            the individual indicators behind them, and the designation itself. It also carries the
+            names and groupings the Color by list shows, so a release that renames or regroups an
+            indicator needs no change here.</dd>
+
+            <dt>Going live</dt>
+            <dd>Uploading stores a version without switching to it. Activating one runs the checks
+            again, including whether it covers the tracts currently drawn, and switches every
+            version of the same dataset off. The map does not change until you activate.</dd>
+          </dl>
+          <h4 class="ml-help-sub">Con Edison customer figures</h4>
+          <p class="ml-help-lede">Account totals, Energy Affordability Program enrollment and bill
+          adjustments are per tract as well, but they are not part of a dataset version and are not
+          uploaded here.</p>
+          <dl class="ml-help-list">
+            <dt>Where they come from</dt>
+            <dd>Con Edison internal account and billing systems, exported per area with the account
+            totals, the enrollment counts, the adjustments and the DAC class.</dd>
+
+            <dt>Refreshing them</dt>
+            <dd>Not self-service in this page yet. They reach the map either with a rebuild of the
+            underlying map file or by editing the stored tract records directly. Making this a
+            managed step in the dashboard is planned work.</dd>
+          </dl>`,
+      };
+    }
+    if (topic === 'territory') {
+      return {
+        kicker: 'Territory overlays',
+        title: 'How the territory overlays are made',
+        body: `
+          <p class="ml-help-lede">These three outlines ship with the dashboard. They are drawn on
+          top of the tracts and are not uploaded or edited here.</p>
+          <dl class="ml-help-list">
+            <dt>Where they come from</dt>
+            <dd>Con Edison electric network, Con Edison gas service area and Orange and Rockland
+            territory boundary files, converted once into a single overlay file the map loads the
+            first time one of them is switched on.</dd>
+
+            <dt>Why they are read only</dt>
+            <dd>They change rarely, and the same electric and gas boundaries are also used to work
+            out which networks each tract sits in. Changing one without the other would leave the
+            outlines and the per-tract values disagreeing, so both are regenerated together
+            offline. Managing them from this page is planned for a later phase.</dd>
+
+            <dt>If a boundary changes</dt>
+            <dd>The new boundary file is converted offline and shipped with the dashboard, and the
+            tract shapes are rebuilt from it at the same time so the two stay in step.</dd>
+          </dl>`,
+      };
+    }
+    if (topic === 'layers') {
+      return {
+        kicker: 'Saved layers',
+        title: 'How to add a map layer',
+        body: `
+          <p class="ml-help-lede">Layers are the one thing you can add to the map directly, with no
+          build step. Upload an outline file, choose which of its values to colour by, and it
+          becomes a switch on the map.</p>
+          <dl class="ml-help-list">
+            <dt>What to upload</dt>
+            <dd>A GeoJSON file of areas, the standard export from mapping software. Areas only;
+            point and line files are not supported. The Heat Vulnerability Index areas are a good
+            example of the shape of thing this is for.</dd>
+
+            <dt>Choosing the value</dt>
+            <dd>Pick the field to colour by after the file is read. It has to be a number on every
+            area, and the page shows the range it found so an unexpected field is obvious before
+            you save.</dd>
+
+            <dt>Saying where it came from</dt>
+            <dd>A source and publication note is required before a layer can be saved, so anyone
+            looking at the map later can tell what they are seeing. It is captured when you save
+            and cannot be edited afterwards from this page, so it is worth getting right first
+            time.</dd>
+
+            <dt>Session and saved</dt>
+            <dd>An uploaded layer is yours alone until you save it. Saving stores it for everyone,
+            and the switch next to it controls whether it appears on the map by default.</dd>
+          </dl>
+          <p class="ml-help-lede">The File requirements button at the top of this page covers the
+          file format itself in more detail.</p>`,
+      };
+    }
+    // 'upload'
+    return {
+      kicker: 'Upload data file',
+      title: 'What you can upload here',
+      body: `
+        <p class="ml-help-lede">One control takes both kinds of file. What it is gets read from the
+        file itself, so there is nothing to choose beforehand and no way to file one as the other.</p>
+        <dl class="ml-help-list">
+          <dt>A dataset version</dt>
+          <dd>Per-tract indicator values. Stored without switching to it, and listed under Tract
+          datasets where you choose which one is live.</dd>
+
+          <dt>A set of tract shapes</dt>
+          <dd>One outline per tract for a single vintage. Stored and made available immediately,
+          and listed under Tract shapes. It is used by any dataset version declaring the same
+          vintage, so shapes are never switched on directly.</dd>
+
+          <dt>What happens before anything is stored</dt>
+          <dd>The file is checked for completeness and internal consistency, and a dataset version
+          is also checked against the tracts currently drawn. A file that fails is refused with the
+          reason, and nothing is stored. A dataset version is checked a second time when you
+          activate it, against the map as it stands then.</dd>
+        </dl>`,
+    };
+  }
+
+  /** The shared drawer. One overlay; the content is filled in on open. */
+  function renderDsHelpDrawer() {
+    return `
+      <div class="ml-overlay" id="ds-help-overlay" hidden>
+        <aside class="ml-drawer" role="dialog" aria-modal="true" aria-labelledby="ds-help-title">
+          <div class="ml-drawer-head">
+            <span class="ml-drawer-kicker"><span class="ml-drawer-dot"></span>
+              <span id="ds-help-kicker"></span></span>
+            <button class="ml-drawer-close" id="ds-help-close" aria-label="Close">&times;</button>
+            <h3 id="ds-help-title"></h3>
+          </div>
+          <div class="ml-drawer-body" id="ds-help-body"></div>
+        </aside>
+      </div>`;
+  }
+
+  let _dsHelpEsc = null;
+  let _dsHelpOpener = null;
+
+  function dsOpenHelp(topic, opener) {
+    const overlay = document.getElementById('ds-help-overlay');
+    if (!overlay) return;
+    const c = dsHelpContent(topic);
+    const k = document.getElementById('ds-help-kicker');
+    const t = document.getElementById('ds-help-title');
+    const b = document.getElementById('ds-help-body');
+    if (k) k.textContent = c.kicker;
+    if (t) t.textContent = c.title;
+    if (b) b.innerHTML = c.body;
+    _dsHelpOpener = opener || null;
+    overlay.hidden = false;
+    requestAnimationFrame(() => overlay.classList.add('open'));
+    const close = document.getElementById('ds-help-close');
+    if (close) close.focus();
+  }
+
+  function dsCloseHelp() {
+    const overlay = document.getElementById('ds-help-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('open');
+    setTimeout(() => {
+      if (!overlay.classList.contains('open')) overlay.hidden = true;
+    }, 260);
+    // Return focus to whatever opened it. The button may have been replaced by a
+    // re-render in the meantime, so fall back to not moving focus at all rather
+    // than throwing.
+    try { if (_dsHelpOpener && document.contains(_dsHelpOpener)) _dsHelpOpener.focus(); } catch (e) {}
+  }
+
+  function wireDsHelpDrawer() {
+    const overlay = document.getElementById('ds-help-overlay');
+    if (!overlay || overlay.dataset.wired === '1') return;
+    overlay.dataset.wired = '1';
+    const close = document.getElementById('ds-help-close');
+    if (close) close.addEventListener('click', dsCloseHelp);
+    overlay.addEventListener('click', e => { if (e.target === overlay) dsCloseHelp(); });
+    if (_dsHelpEsc) document.removeEventListener('keydown', _dsHelpEsc);
+    _dsHelpEsc = function (e) {
+      if (e.key === 'Escape' && !overlay.hidden) dsCloseHelp();
+    };
+    document.addEventListener('keydown', _dsHelpEsc);
+  }
 
   /** Which source is driving the indicators right now, for the card header. */
   function dsSourceChip() {
@@ -11492,7 +11808,6 @@ function wireHTooltips() {
 
   function renderDsCard() {
     if (!Storage.isDataverse()) return '';
-    const canAdmin = Storage.canCreateDatasets();
     const canToggle = Storage.canWriteDatasets();
     const recs = dsRecords();
     const st = dsState();
@@ -11549,6 +11864,93 @@ function wireHTooltips() {
         }).join('') + '</ul>'
       : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators it ships with.</p>';
 
+    return `
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Tract datasets</h3>
+            <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what
+            the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
+          </div>
+          <div class="ml-card-actions">${dsSourceChip()}${dsHelpButton('datasets')}</div>
+        </div>
+        <div class="ml-card-body">
+          ${rows}
+        </div>
+      </div>`;
+  }
+
+  /**
+   * Tract shapes, a card of its own beside Tract datasets rather than a section
+   * inside it. The two answer different questions -- which data is live, and
+   * which shapes it is drawn on -- and sharing a container implied they shared
+   * a control, which they do not.
+   *
+   * Read-only by design: no toggle, and no upload button. The map draws whichever
+   * shapes match the active dataset's vintage, so there is nothing here to
+   * choose, and geometry files go through the same picker in Tract datasets,
+   * which routes on the manifest's `kind`.
+   *
+   * Presentational only. It derives everything from the same module accessors
+   * renderDsCard uses, so no state is threaded and no resolver is involved.
+   */
+  function renderGeomCard() {
+    if (!Storage.isDataverse()) return '';
+    const geoRecs = dsRecords().filter(dsRecIsGeometry);
+    if (!geoRecs.length) return '';
+    const liveGeom = dsGeometry();
+
+    return `
+      <div class="ml-card ds-geom">
+        <div class="ml-card-head">
+          <div>
+            <h3>Tract shapes</h3>
+            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active
+            dataset, so there is nothing to switch here. Uploading a new set of shapes makes it
+            available to any dataset version that declares the same vintage.</p>
+          </div>
+          ${dsHelpButton('shapes')}
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-geom-list">${geoRecs.map(r => {
+            const inUse = liveGeom && liveGeom.rec.dvId === r.dvId;
+            return `
+            <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
+              <div class="ml-row-main">
+                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+                  <span class="ml-mono">${escapeHtml(r.version)}</span>
+                  ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
+                          : (r.active ? '<span class="ml-chip">available</span>'
+                                      : '<span class="ml-chip ml-chip-off">retired</span>')}</div>
+                <div class="ml-row-meta">
+                  ${(r.tractCount || 0).toLocaleString()} tracts ·
+                  ${r.fieldCount || 0} properties ·
+                  vintage ${escapeHtml(r.geoidVintage || '?')}
+                </div>
+                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+              </div>
+            </li>`;
+          }).join('')}</ul>
+        </div>
+      </div>`;
+  }
+
+  /**
+   * The upload control, in a block of its own below both cards.
+   *
+   * One picker takes BOTH kinds and routes on the file's manifest, so living
+   * inside the Tract datasets card misstated its scope and misled people into
+   * thinking geometry belonged somewhere else. Nothing about the routing,
+   * validation or storage changed: this is the same control in an honest place,
+   * with copy that says what it accepts.
+   *
+   * It must stay INSIDE #ml-list-mount. The picker, Upload, Cancel and both
+   * dismiss buttons all run through handlers delegated on that mount, and
+   * rendering this outside it would make every one of them silently dead.
+   */
+  function renderDsUploadBlock() {
+    if (!Storage.isDataverse()) return '';
+    if (!Storage.canCreateDatasets()) return '';
     const d = state.mapLayers || {};
     const isGeom = d.dsSummary && d.dsSummary.kind === 'geometry';
     // Both notices are dismissible (UX item a): a refusal used to sit on the
@@ -11606,82 +12008,25 @@ function wireHTooltips() {
          </div>`
       : d.dsStage === 'saving'
       ? `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' }))}</span>`
-      : `<p class="ml-intro">Upload a new NYSERDA dataset version as a .json file. It is checked for
-         completeness and map coverage before it is stored, and checked again before it can go live.
-         The map does not change until you activate a version.</p>
-         <div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose dataset file
+      : `<div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json file</span>
          </div>`;
-
     return `
-      <div class="ml-card">
+      <div class="ml-card ds-upload-card">
         <div class="ml-card-head">
           <div>
-            <h3>Tract datasets</h3>
-            <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what
-            the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
+            <h3>Upload data file</h3>
+            <p class="ml-card-sub">Upload a NYSERDA dataset version or a set of tract shapes. The
+            file itself says which one it is, and it is checked before anything is stored. Dataset
+            versions appear under Tract datasets, where you choose which one is live. Shape sets
+            appear under Tract shapes and are matched to a dataset by vintage.</p>
           </div>
-          ${dsSourceChip()}
+          ${dsHelpButton('upload')}
         </div>
         <div class="ml-card-body">
-          ${rows}
-          ${canAdmin ? `<div class="ds-upload">${up}</div>` : ''}
-        </div>
-      </div>`;
-  }
-
-  /**
-   * Tract shapes, a card of its own beside Tract datasets rather than a section
-   * inside it. The two answer different questions -- which data is live, and
-   * which shapes it is drawn on -- and sharing a container implied they shared
-   * a control, which they do not.
-   *
-   * Read-only by design: no toggle, and no upload button. The map draws whichever
-   * shapes match the active dataset's vintage, so there is nothing here to
-   * choose, and geometry files go through the same picker in Tract datasets,
-   * which routes on the manifest's `kind`.
-   *
-   * Presentational only. It derives everything from the same module accessors
-   * renderDsCard uses, so no state is threaded and no resolver is involved.
-   */
-  function renderGeomCard() {
-    if (!Storage.isDataverse()) return '';
-    const geoRecs = dsRecords().filter(dsRecIsGeometry);
-    if (!geoRecs.length) return '';
-    const liveGeom = dsGeometry();
-
-    return `
-      <div class="ml-card ds-geom">
-        <div class="ml-card-head">
-          <div>
-            <h3>Tract shapes</h3>
-            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active
-            dataset, so there is nothing to switch here. Uploading a new set of shapes makes it
-            available to any dataset version that declares the same vintage.</p>
-          </div>
-        </div>
-        <div class="ml-card-body">
-          <ul class="ml-list ds-geom-list">${geoRecs.map(r => {
-            const inUse = liveGeom && liveGeom.rec.dvId === r.dvId;
-            return `
-            <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
-              <div class="ml-row-main">
-                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-                  <span class="ml-mono">${escapeHtml(r.version)}</span>
-                  ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
-                          : (r.active ? '<span class="ml-chip">available</span>'
-                                      : '<span class="ml-chip ml-chip-off">retired</span>')}</div>
-                <div class="ml-row-meta">
-                  ${(r.tractCount || 0).toLocaleString()} tracts ·
-                  ${r.fieldCount || 0} properties ·
-                  vintage ${escapeHtml(r.geoidVintage || '?')}
-                </div>
-                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
-              </div>
-            </li>`;
-          }).join('')}</ul>
+          <div class="ds-upload">${up}</div>
         </div>
       </div>`;
   }
@@ -11700,11 +12045,12 @@ function wireHTooltips() {
     wireMlList();
   }
 
-  /** Wire the Map Layers page (both cards plus the requirements drawer). */
+  /** Wire the Map Layers page (the cards, the requirements drawer, the docs drawer). */
   function wireMapLayersPage() {
     wireMlUploadCard();
     wireMlList();
     wireMlRequirementsDrawer();
+    wireDsHelpDrawer();
   }
 
   /**
@@ -12119,6 +12465,12 @@ function wireHTooltips() {
       // Slice 3: retry restarts the same verified save path, not a resume.
       const rt = e.target.closest('button[data-ml-retry]');
       if (rt) { mlSaveLayer(rt.dataset.mlRetry); return; }
+
+      // ---- in-context docs ----
+      // Delegated, not bound directly: these buttons live inside cards that
+      // re-render, so a direct listener would die on the first refresh.
+      const hb = e.target.closest('[data-ds-help]');
+      if (hb) { dsOpenHelp(hb.dataset.dsHelp, hb); return; }
 
       // ---- tract dataset admin ----
       const dx = e.target.closest('[data-ds-dismiss]');
