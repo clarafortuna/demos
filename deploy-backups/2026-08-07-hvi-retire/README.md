@@ -5,7 +5,7 @@ Byte-exact state of the live `cr2bf_dactest/` web resources in
 before** the deploy. This is the rollback point for it.
 
 Deployed from `Coned/CLCPA/ExecutiveDashboard_dev/` at `main` = `d59532b`
-(PR #107, built-in HVI overlay retired, plus the layer tooltip and legend popup
+(PR #111, built-in HVI overlay retired, plus the layer tooltip and legend popup
 changes). Sixth deploy of the day.
 
 | Web resource | Web resource id | Bytes | Replaced |

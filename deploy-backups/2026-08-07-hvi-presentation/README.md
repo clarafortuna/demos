@@ -5,7 +5,7 @@ Byte-exact state of the live `cr2bf_dactest/` web resources in
 before** the deploy. This is the rollback point for it.
 
 Deployed from `Coned/CLCPA/ExecutiveDashboard_dev/` at `main` = `e73184d`
-(PRs #104 + #105 — HVI presentation, and `hvi` out of the geometry pipeline).
+(PRs #107 + #106 — HVI presentation, and `hvi` out of the geometry pipeline).
 Fourth and last deploy of the day.
 
 | Web resource | Web resource id | Bytes | Replaced |

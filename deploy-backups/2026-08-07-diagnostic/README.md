@@ -5,7 +5,7 @@ Byte-exact state of the live `cr2bf_dactest/` web resources in
 before** the deploy. This is the rollback point for it.
 
 Deployed from `Coned/CLCPA/ExecutiveDashboard_dev/` at `main` = `fde672d`
-(PR #106, opt-in map diagnostic). Fifth deploy of the day, and deliberately a
+(PR #109, opt-in map diagnostic). Fifth deploy of the day, and deliberately a
 solo one: the diagnostic is only useful if it is live and armed **before** the
 next long session, and before the HVI overlay retirement removes one of the
 remaining FAIL 2 candidates.
