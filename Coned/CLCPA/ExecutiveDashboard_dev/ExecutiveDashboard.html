@@ -2,7 +2,20 @@
 <html lang="en">
 <head>
   <script>
-  if (sessionStorage.getItem('dac_authenticated') !== 'true') {
+  /* Page password gate.
+
+     Inside Dataverse this is redundant friction: the Microsoft login and the
+     Dataverse privilege checks already decide who reaches this page, and a
+     second password in front of them buys nothing.
+
+     On the public demo origin it is the only access control there is, so it
+     stays. Skipping it there would publish this app to anyone with the URL.
+
+     Note what this gate is and is not: it redirects THIS PAGE only. It has
+     never protected the data files next to it, which are fetchable directly on
+     a public origin regardless. Do not read its presence as protection. */
+  if (!/\.crm\.dynamics\.com$/.test(location.hostname) &&
+      sessionStorage.getItem('dac_authenticated') !== 'true') {
     window.location.href = 'index.html';
   }
 </script>
