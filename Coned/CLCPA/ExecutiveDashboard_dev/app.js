@@ -3060,6 +3060,17 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // {1..5} -> hex map while uploads need an index into a continuous ramp,
   // and Slice 1 is additive-only. Deduplication is CLCPA-170.
   const ML_RAMP = ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'];
+  // How many colour classes a layer may be cut into. Five is the default because
+  // ML_RAMP is a five-stop ColorBrewer set and because every layer saved before
+  // the count was selectable has five.
+  const ML_CLASS_MIN = 2, ML_CLASS_MAX = 7, ML_CLASS_DEFAULT = 5;
+
+  /** A layer's class count, tolerating configs written before it existed. */
+  function mlClassCount(ramp) {
+    const n = ramp && ramp.classCount;
+    return (typeof n === 'number' && n >= ML_CLASS_MIN && n <= ML_CLASS_MAX)
+      ? n : ML_CLASS_DEFAULT;
+  }
   const ML_NODATA = '#cccccc';
   // CLCPA-171 Slice 1b: the endpoints offered in the colour pickers.
   const ML_DEFAULT_LOW = ML_RAMP[0];
@@ -3282,7 +3293,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * Check a chosen value field: present and numeric on EVERY feature.
    * Reports the failing count and the identifiers of the offending features.
    */
-  function mlValidateValueField(geo, field) {
+  function mlValidateValueField(geo, field, classCount) {
     const missing = [];
     const nonNumeric = [];
     const values = [];
@@ -3313,7 +3324,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       );
     }
     if (errors.length) return { ok: false, errors: errors, scale: null };
-    return { ok: true, errors: [], scale: mlComputeScale(values) };
+    return { ok: true, errors: [], scale: mlComputeScale(values, classCount),
+             distinct: mlDistinctValues(values) };
   }
 
   /**
@@ -3323,28 +3335,37 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * to a single class when every value is identical.
    * @returns {{mode:'quantile'|'linear'|'single', breaks:number[], min:number, max:number}}
    */
-  function mlComputeScale(values) {
+  function mlComputeScale(values, classCount) {
+    const n = (typeof classCount === 'number' &&
+               classCount >= ML_CLASS_MIN && classCount <= ML_CLASS_MAX)
+      ? classCount : ML_CLASS_DEFAULT;
     const sorted = values.slice().sort(function (a, b) { return a - b; });
     const min = sorted[0];
     const max = sorted[sorted.length - 1];
     if (min === max) return { mode: 'single', breaks: [], min: min, max: max };
 
-    // Quantile: the 20/40/60/80th percentiles are the 4 class boundaries.
+    // Quantile: the k/n percentiles are the n-1 class boundaries.
     const q = [];
-    for (let k = 1; k <= 4; k++) {
-      const pos = (k / 5) * (sorted.length - 1);
+    for (let k = 1; k <= n - 1; k++) {
+      const pos = (k / n) * (sorted.length - 1);
       const lo = Math.floor(pos), hi = Math.ceil(pos);
       q.push(lo === hi ? sorted[lo] : sorted[lo] + (sorted[hi] - sorted[lo]) * (pos - lo));
     }
     let strictly = q[0] > min;
     for (let k = 1; k < q.length && strictly; k++) strictly = q[k] > q[k - 1];
-    if (strictly && q[3] < max) return { mode: 'quantile', breaks: q, min: min, max: max };
+    if (strictly && q[q.length - 1] < max) {
+      return { mode: 'quantile', breaks: q, min: min, max: max };
+    }
 
     // Equal-interval fallback.
-    const step = (max - min) / 5;
+    const step = (max - min) / n;
     return {
       mode: 'linear',
-      breaks: [min + step, min + 2 * step, min + 3 * step, min + 4 * step],
+      breaks: (function () {
+        const b = [];
+        for (let k = 1; k <= n - 1; k++) b.push(min + k * step);
+        return b;
+      })(),
       min: min, max: max,
     };
   }
@@ -3352,6 +3373,20 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   /** Ramp index (0-4) for a value under a scale from mlComputeScale. */
   function mlClassIndex(v, scale) {
     if (!scale || scale.mode === 'single') return 2;   // flat field -> mid colour
+    if (scale.mode === 'discrete') {
+      // One class per listed value. A value not in the list can only arrive from
+      // a file that changed under a saved config, so it takes the nearest class
+      // rather than vanishing.
+      const vals = scale.values;
+      const exact = vals.indexOf(v);
+      if (exact >= 0) return exact;
+      let best = 0, bestD = Infinity;
+      for (let i = 0; i < vals.length; i++) {
+        const d = Math.abs(vals[i] - v);
+        if (d < bestD) { bestD = d; best = i; }
+      }
+      return best;
+    }
     const b = scale.breaks;
     for (let i = 0; i < b.length; i++) if (v < b[i]) return i;
     return b.length;
@@ -3410,6 +3445,35 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // pixel-for-pixel identical to Slice 1. Changing either endpoint switches to
   // interpolation; setting them back returns to the canonical ramp.
 
+  /**
+   * N colours sampled along a stop list, at evenly spaced positions.
+   *
+   * This is how the DEFAULT ramp generalises past five classes. It samples the
+   * canonical YlOrRd path rather than drawing a straight line between its two
+   * ends, because the codebase already measured what the straight line does: it
+   * cuts the corner the ramp bends through and lands on muddy pink-browns.
+   *
+   * The useful property is that it reduces to the canonical colours exactly
+   * wherever the positions land on a stop -- n=5 returns ML_RAMP verbatim, n=3
+   * returns stops 0/2/4, n=2 returns the two ends. So a five-class layer built
+   * before the count was selectable is byte-identical afterwards.
+   */
+  function mlSampleStops(stops, n) {
+    if (n === stops.length) return stops.slice();
+    if (n === 1) return [stops[Math.floor((stops.length - 1) / 2)]];
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const pos = (i / (n - 1)) * (stops.length - 1);
+      const lo = Math.floor(pos), hi = Math.ceil(pos);
+      if (lo === hi) { out.push(stops[lo]); continue; }
+      const a = mlHexToRgb(stops[lo]), b = mlHexToRgb(stops[hi]), t = pos - lo;
+      out.push(mlRgbToHex([a[0] + (b[0] - a[0]) * t,
+                           a[1] + (b[1] - a[1]) * t,
+                           a[2] + (b[2] - a[2]) * t]));
+    }
+    return out;
+  }
+
   /** Parse '#rrggbb' (or '#rgb') to [r,g,b]; null if unparseable. */
   function mlHexToRgb(hex) {
     if (typeof hex !== 'string') return null;
@@ -3441,33 +3505,50 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * because it is one lifetime: all of it is chosen at upload and none of it is
    * editable afterwards.
    *
-   * @param {number[]|null} manualBreaks four strictly ascending cut points, or
-   *   null for the computed quantile/equal-interval breaks
-   * @param {boolean} zeroTransparent draw features whose value is exactly 0
-   *   with no fill, rather than in the lowest class colour
-   * @returns {{low:string, high:string, colors:string[],
-   *            manualBreaks:number[]|null, zeroTransparent:boolean}}
+   * @param {object} [opts]
+   * @param {number}        [opts.classCount]      2..7, default 5
+   * @param {number[]|null} [opts.manualBreaks]    classCount-1 ascending cuts
+   * @param {boolean}       [opts.zeroTransparent] value 0 draws with no fill
+   * @param {number[]|null} [opts.discreteValues]  one class per listed value
+   * @returns {{low:string, high:string, colors:string[], classCount:number,
+   *            manualBreaks:number[]|null, zeroTransparent:boolean,
+   *            discreteValues:number[]|null}}
    */
-  function mlBuildRamp(low, high, manualBreaks, zeroTransparent) {
+  function mlBuildRamp(low, high, opts) {
+    const o = opts || {};
+    const n = (typeof o.classCount === 'number' &&
+               o.classCount >= ML_CLASS_MIN && o.classCount <= ML_CLASS_MAX)
+      ? o.classCount : ML_CLASS_DEFAULT;
+    const disc = Array.isArray(o.discreteValues) &&
+      o.discreteValues.length >= ML_CLASS_MIN && o.discreteValues.length <= ML_CLASS_MAX
+      ? o.discreteValues.slice() : null;
     const extra = {
-      manualBreaks: mlValidBreaks(manualBreaks) ? manualBreaks.slice() : null,
-      zeroTransparent: zeroTransparent === true,
+      classCount: disc ? disc.length : n,
+      manualBreaks: mlValidBreaks(o.manualBreaks, (disc ? disc.length : n) - 1)
+        ? o.manualBreaks.slice() : null,
+      zeroTransparent: o.zeroTransparent === true,
+      discreteValues: disc,
     };
+    const count = extra.classCount;
     const lo = mlHexToRgb(low), hi = mlHexToRgb(high);
     // Unparseable input (only reachable if something other than the colour
     // inputs supplies it) falls back to the canonical ramp rather than drawing
     // an invalid fill.
     if (!lo || !hi) {
       return Object.assign({ low: ML_DEFAULT_LOW, high: ML_DEFAULT_HIGH,
-                             colors: ML_RAMP.slice() }, extra);
+                             colors: mlSampleStops(ML_RAMP, count) }, extra);
     }
     const lowHex = mlRgbToHex(lo), highHex = mlRgbToHex(hi);
     if (mlIsDefaultRamp(lowHex, highHex)) {
-      return Object.assign({ low: lowHex, high: highHex, colors: ML_RAMP.slice() }, extra);
+      // Sampled from the canonical set, not interpolated between its ends.
+      return Object.assign({ low: lowHex, high: highHex,
+                             colors: mlSampleStops(ML_RAMP, count) }, extra);
     }
+    // A user-chosen pair has no canonical path to follow, so this is the only
+    // place a straight interpolation is the right answer.
     const colors = [];
-    for (let i = 0; i < 5; i++) {
-      const t = i / 4;
+    for (let i = 0; i < count; i++) {
+      const t = count === 1 ? 0 : i / (count - 1);
       colors.push(mlRgbToHex([
         lo[0] + (hi[0] - lo[0]) * t,
         lo[1] + (hi[1] - lo[1]) * t,
@@ -3488,9 +3569,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * the data and this predicate is also used on rehydration, where being inside
    * the range is not something the reader can insist on -- see mlScaleFor.
    */
-  function mlValidBreaks(b) {
-    if (!Array.isArray(b) || b.length !== 4) return false;
-    for (let i = 0; i < 4; i++) {
+  function mlValidBreaks(b, want) {
+    const need = typeof want === 'number' ? want : 4;
+    if (!Array.isArray(b) || b.length !== need) return false;
+    for (let i = 0; i < need; i++) {
       if (typeof b[i] !== 'number' || !isFinite(b[i])) return false;
       if (i > 0 && !(b[i] > b[i - 1])) return false;
     }
@@ -3498,21 +3580,42 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   }
 
   /**
+   * Distinct numeric values, sorted, when there are few enough for one class
+   * each. Null when there are too many or too few to be worth offering.
+   */
+  function mlDistinctValues(values) {
+    const seen = [];
+    for (let i = 0; i < values.length; i++) {
+      const v = values[i];
+      if (v == null) continue;
+      if (seen.indexOf(v) < 0) {
+        seen.push(v);
+        if (seen.length > ML_CLASS_MAX) return null;   // too many to enumerate
+      }
+    }
+    if (seen.length < ML_CLASS_MIN) return null;       // one value is 'single'
+    return seen.sort(function (a, b) { return a - b; });
+  }
+
+  /**
    * Human-readable reasons these breaks cannot be used, for the upload card.
    * Empty array means they are fine.
    */
-  function mlBreakErrors(raw, scale) {
+  function mlBreakErrors(raw, scale, want) {
+    const need = typeof want === 'number' ? want : 4;
     const errs = [];
     const nums = raw.map(function (t) {
       const t2 = String(t).trim();
       return t2 === '' ? null : Number(t2);
     });
-    if (nums.some(function (n) { return n === null; })) {
-      errs.push('All four break values are needed.');
+    if (nums.length !== need) {
+      errs.push('Expected ' + need + ' break values.');
+    } else if (nums.some(function (n) { return n === null; })) {
+      errs.push('All ' + need + ' break values are needed.');
     } else if (nums.some(function (n) { return !isFinite(n); })) {
       errs.push('Break values have to be numbers.');
     } else {
-      for (let i = 1; i < 4; i++) {
+      for (let i = 1; i < need; i++) {
         if (!(nums[i] > nums[i - 1])) {
           errs.push('Break values have to increase: ' + mlFmtNum(nums[i - 1]) +
             ' is not below ' + mlFmtNum(nums[i]) + '.');
@@ -3525,7 +3628,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         if (!(nums[0] > scale.min)) {
           errs.push('The first break has to be above the lowest value (' +
             mlFmtNum(scale.min) + ').');
-        } else if (!(nums[3] < scale.max)) {
+        } else if (!(nums[need - 1] < scale.max)) {
           errs.push('The last break has to be below the highest value (' +
             mlFmtNum(scale.max) + ').');
         }
@@ -3544,9 +3647,45 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * quantiles for everybody else -- the author would never see it.
    */
   function mlScaleFor(scale, ramp) {
+    if (!scale || scale.mode === 'single') return scale;
+    // Discrete wins: it is not a different cut of the same ranges, it is a
+    // statement that the field is a small set of values rather than a range.
+    const disc = ramp && ramp.discreteValues;
+    if (Array.isArray(disc) && disc.length >= ML_CLASS_MIN && disc.length <= ML_CLASS_MAX) {
+      return { mode: 'discrete', values: disc.slice(), breaks: [],
+               min: scale.min, max: scale.max };
+    }
     const manual = ramp && ramp.manualBreaks;
-    if (!scale || scale.mode === 'single' || !mlValidBreaks(manual)) return scale;
-    return { mode: 'manual', breaks: manual.slice(), min: scale.min, max: scale.max };
+    if (mlValidBreaks(manual, mlClassCount(ramp) - 1)) {
+      return { mode: 'manual', breaks: manual.slice(), min: scale.min, max: scale.max };
+    }
+    return scale;
+  }
+
+  /**
+   * The class edges to LABEL, as [from, to] pairs, or a bare value per class in
+   * discrete mode. One function so the upload preview, the legend and the info
+   * panel cannot disagree about what a class covers.
+   */
+  function mlClassLabels(scale) {
+    if (!scale) return [];
+    if (scale.mode === 'single') return [mlFmtNum(scale.min)];
+    if (scale.mode === 'discrete') {
+      return scale.values.map(function (v) { return mlFmtNum(v); });
+    }
+    const e = [scale.min].concat(scale.breaks, [scale.max]);
+    const out = [];
+    for (let i = 0; i < e.length - 1; i++) {
+      out.push(mlFmtNum(e[i]) + ' - ' + mlFmtNum(e[i + 1]));
+    }
+    return out;
+  }
+
+  /** How many classes a scale actually has. */
+  function mlScaleClasses(scale) {
+    if (!scale || scale.mode === 'single') return 1;
+    if (scale.mode === 'discrete') return scale.values.length;
+    return scale.breaks.length + 1;
   }
 
   /** True when this layer draws value 0 with no fill at all. */
@@ -3594,13 +3733,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return '<span class="ml-legend-sw" style="background:' + c + '"></span>';
     }).join('');
     const s = mlScaleFor(entry.scale, entry.ramp);
+    // Discrete labels its ends with the actual first and last VALUE, which are
+    // the same numbers but mean something different: not "the range starts here"
+    // but "this class is exactly this".
     const ticks = s.mode === 'single'
       ? '<span>' + escapeHtml(mlFmtNum(s.min)) + '</span>'
+      : s.mode === 'discrete'
+      ? '<span>' + escapeHtml(mlFmtNum(s.values[0])) + '</span>' +
+        '<span>' + escapeHtml(mlFmtNum(s.values[s.values.length - 1])) + '</span>'
       : '<span>' + escapeHtml(mlFmtNum(s.min)) + '</span>' +
         '<span>' + escapeHtml(mlFmtNum(s.max)) + '</span>';
-    const modeLabel = s.mode === 'quantile' ? '5 quantile classes'
-      : s.mode === 'linear' ? '5 equal-interval classes'
-      : s.mode === 'manual' ? '5 custom classes'
+    const n = mlScaleClasses(s);
+    const modeLabel = s.mode === 'quantile' ? n + ' quantile classes'
+      : s.mode === 'linear' ? n + ' equal-interval classes'
+      : s.mode === 'manual' ? n + ' custom classes'
+      : s.mode === 'discrete' ? n + ' classes, one per value'
       : 'single value';
     const provenance = mlProvenance(entry);
     return '<div class="ml-legend-head">' +
@@ -3646,28 +3793,33 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (!s || s.mode === 'single') {
       ranges = '<div class="ml-legend-note-row">Every feature carries the same ' +
         'value (' + escapeHtml(mlFmtNum(s ? s.min : null)) + '), so there is ' +
-        'one class, not five.</div>';
+        'one class rather than several.</div>';
     } else {
-      // Five closed ranges from four breaks, each labelled with the colour that
-      // paints it, so the popup reads against the ramp above rather than
-      // restating it in words.
+      // One row per class, each labelled with the colour that paints it, so the
+      // popup reads against the ramp above rather than restating it in words.
       const colors = mlRampColors(entry);
-      const edges = [s.min].concat(s.breaks, [s.max]);
-      const rows = [];
-      for (let i = 0; i < 5; i++) {
+      const labels = mlClassLabels(s);
+      const zeroOff = mlZeroTransparent(entry);
+      const rows = labels.map(function (label, i) {
+        // In discrete mode a class IS a value, so a zero class can be named
+        // exactly. It stays listed and is marked instead of being dropped: the
+        // value is in the data, and a legend that silently omits it is the same
+        // dishonesty as a range label that does not match the data.
+        const unfilled = zeroOff && s.mode === 'discrete' && s.values[i] === 0;
         // Its own class, not .ml-legend-sw: that selector means "a swatch of
-        // the ramp", and five more of them inside the popup would make any
-        // query for the ramp ambiguous.
-        rows.push('<div class="ml-legend-note-row">' +
-          '<span class="ml-legend-note-sw" style="background:' + colors[i] + '"></span>' +
-          '<span>' + escapeHtml(mlFmtNum(edges[i])) + ' to ' +
-          escapeHtml(mlFmtNum(edges[i + 1])) + '</span></div>');
-      }
-      // One line, inside Class ranges, next to the ranges it modifies. It
-      // belongs here rather than as its own paragraph: a reader looking at the
-      // classes is exactly the reader who needs to know that one value is not
-      // in any of them.
-      if (mlZeroTransparent(entry)) {
+        // the ramp", and more of them inside the popup would make any query for
+        // the ramp ambiguous.
+        return '<div class="ml-legend-note-row' +
+            (unfilled ? ' ml-legend-note-off' : '') + '">' +
+          '<span class="ml-legend-note-sw' + (unfilled ? ' ml-legend-note-sw-off' : '') +
+            '" style="background:' + colors[i] + '"></span>' +
+          '<span>' + escapeHtml(label) +
+            (unfilled ? ' (not filled)' : '') + '</span></div>';
+      });
+      // For a ranged scale there is no single row that owns the zero, so it gets
+      // one line of its own -- still inside Class ranges, next to the ranges it
+      // modifies, per the same reasoning.
+      if (zeroOff && s.mode !== 'discrete') {
         rows.push('<div class="ml-legend-note-row ml-legend-note-zero">' +
           'Features with a value of 0 are not filled.</div>');
       }
@@ -3707,7 +3859,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       scale: rec.scale,
       // Per-layer { low, high, colors } (CLCPA-171 Slice 1b). Defaults to the
       // canonical ramp when the caller supplies none.
-      ramp: rec.ramp || mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH, null, false),
+      ramp: rec.ramp || mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
       // One-shot: the upload's Confirm turns the layer on for its first sight
       // of the map. Consumed at mount, after which it defaults OFF like HVI.
       previewOnce: rec.previewOnce !== false,
@@ -4480,7 +4632,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       throw new Error('stored GeoJSON no longer validates: ' + parsed.errors.join(' '));
     }
     const field = rec.valueField;
-    const fieldRes = mlValidateValueField(parsed.geo, field);
+    // The stored count, before validating: mlComputeScale needs it, or a saved
+    // seven-class layer would be recomputed as five and then relabelled by
+    // mlScaleFor into something that never matches its own breaks.
+    const fieldRes = mlValidateValueField(parsed.geo, field, mlClassCount(rec.ramp));
     if (!fieldRes.ok) {
       throw new Error('stored value field "' + field + '" no longer validates: ' +
         fieldRes.errors.join(' '));
@@ -4497,10 +4652,20 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       // above is RECOMPUTED from the downloaded file, so a layer saved with
       // manual breaks would otherwise render as quantiles for every reader
       // except the person who uploaded it, with nothing to indicate it.
-      ramp: (rec.ramp && rec.ramp.colors && rec.ramp.colors.length === 5)
-        ? mlBuildRamp(rec.ramp.low, rec.ramp.high, rec.ramp.manualBreaks,
-                      rec.ramp.zeroTransparent)
-        : mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH, null, false),
+      // The gate widened from exactly five colours to the allowed range. A
+      // config written before the count was selectable has five and no
+      // classCount, and mlClassCount defaults it to five, so those layers
+      // hydrate exactly as they did.
+      ramp: (rec.ramp && Array.isArray(rec.ramp.colors) &&
+             rec.ramp.colors.length >= ML_CLASS_MIN &&
+             rec.ramp.colors.length <= ML_CLASS_MAX)
+        ? mlBuildRamp(rec.ramp.low, rec.ramp.high, {
+            classCount: mlClassCount(rec.ramp),
+            manualBreaks: rec.ramp.manualBreaks,
+            zeroTransparent: rec.ramp.zeroTransparent,
+            discreteValues: rec.ramp.discreteValues,
+          })
+        : mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
       // Saved layers are shared, so they must NOT switch themselves on for
       // every user on every load. OFF by default, exactly like HVI.
       previewOnce: false,
@@ -11654,37 +11819,43 @@ function wireHTooltips() {
 
   /** Preview block: value range, class breaks and per-class feature counts. */
   function renderMlPreview(d) {
-    const s = d.scale;
+    // The DRAFT scale, not d.scale: d.scale is the computed fallback, and the
+    // card has to show what the layer will draw with -- manual breaks, or one
+    // class per value. mlRepaintDraftClasses already used this; the card render
+    // did not, so discrete mode changed nothing on screen.
+    const s = mlDraftScale(d);
     // Count features per ramp class so the user sees the distribution, not just
     // the cut points.
-    const counts = [0, 0, 0, 0, 0];
+    const nCls = mlScaleClasses(s);
+    const counts = new Array(nCls).fill(0);
     d.geo.features.forEach(function (f) {
       const v = mlToNumber(f.properties[d.valueField]);
       if (v != null) counts[mlClassIndex(v, s)]++;
     });
-    const edges = s.mode === 'single'
-      ? [[s.min, s.max]]
-      : [[s.min, s.breaks[0]], [s.breaks[0], s.breaks[1]], [s.breaks[1], s.breaks[2]],
-         [s.breaks[2], s.breaks[3]], [s.breaks[3], s.max]];
+    const labels = mlClassLabels(s);
 
     // Ramp for the draft. mlSetDraftRamp keeps this in sync with the pickers;
     // the swatches below carry data-ml-swatch so a colour change can repaint
     // them in place instead of re-rendering the card (which would close the
     // OS colour picker mid-drag).
     const ramp = mlDraftRamp(d);
-    const classes = edges.map(function (e, i) {
-      const colorIdx = s.mode === 'single' ? 2 : i;
+    const classes = labels.map(function (label, i) {
+      const colorIdx = s.mode === 'single' ? Math.min(2, ramp.colors.length - 1) : i;
       return `<div class="ml-class">
         <span class="ml-class-sw" data-ml-swatch="${colorIdx}" style="background:${ramp.colors[colorIdx]}"></span>
-        <span class="ml-class-range">${escapeHtml(mlFmtNum(e[0]))} - ${escapeHtml(mlFmtNum(e[1]))}</span>
-        <span class="ml-class-count">${counts[colorIdx].toLocaleString()}</span>
+        <span class="ml-class-range">${escapeHtml(label)}</span>
+        <span class="ml-class-count">${counts[i].toLocaleString()}</span>
       </div>`;
     }).join('');
 
     const modeNote = s.mode === 'quantile'
-      ? 'Quantile classes (roughly equal feature counts per colour).'
+      ? nCls + ' quantile classes (roughly equal feature counts per colour).'
       : s.mode === 'linear'
-      ? 'Equal-interval classes: repeated values collapsed the quantile breaks, so the range was cut evenly instead.'
+      ? nCls + ' equal-interval classes: repeated values collapsed the quantile breaks, so the range was cut evenly instead.'
+      : s.mode === 'manual'
+      ? nCls + ' classes at the break values you entered.'
+      : s.mode === 'discrete'
+      ? nCls + ' classes, one per distinct value, labelled with the value itself.'
       : 'Every feature has the same value, so the layer draws in one colour.';
 
     return `
@@ -11698,6 +11869,7 @@ function wireHTooltips() {
           ranges ${escapeHtml(mlFmtNum(s.min))} to ${escapeHtml(mlFmtNum(s.max))}
         </div>
         <div class="ml-classes">${classes}</div>
+        ${mlBreaksBlockHtml(d)}
         <div class="ml-ramp">
           <div class="ml-ramp-head">
             <span class="ml-ramp-title">Colour range</span>
@@ -11723,8 +11895,7 @@ function wireHTooltips() {
             </div>
           </div>
         </div>
-        ${mlBreaksBlockHtml(d)}
-        <p class="ml-preview-note">${modeNote} The three middle colours are blended between your two
+        <p class="ml-preview-note">${modeNote} The colours in between are blended from your two
         end colours. Adding the layer opens the Executive Summary map with it switched on. It sits above
         the tract choropleth and doesn't capture the mouse, so tract hover and selection keep working.</p>
       </div>`;
@@ -11745,7 +11916,10 @@ function wireHTooltips() {
   function mlBreaksBlockHtml(d) {
     const s = d.scale;
     if (!s || s.mode === 'single') return '';
-    const manual = d.breaksMode === 'manual';
+    const mode = d.breaksMode || 'auto';
+    const manual = mode === 'manual';
+    const discrete = mode === 'discrete';
+    const n = mlDraftClassCount(d);
     const fields = mlDraftBreakFields(d);
     const errs = (d.breakErrors || []);
     const inputs = fields.map(function (v, i) {
@@ -11754,19 +11928,38 @@ function wireHTooltips() {
         'id="ml-break-' + i + '" data-ml-break="' + i + '" ' +
         'value="' + escapeHtml(String(v)) + '"></label>';
     }).join('');
+    const counts = [];
+    for (let k = ML_CLASS_MIN; k <= ML_CLASS_MAX; k++) {
+      counts.push('<option value="' + k + '"' + (k === n ? ' selected' : '') + '>' +
+        k + '</option>');
+    }
+    // Offered, not imposed: the app can see that the field is a small set of
+    // values, but only the person uploading knows whether it is a measurement
+    // that happens to be coarse or a genuine category.
+    const offer = Array.isArray(d.distinct)
+      ? '<label><input type="radio" name="ml-breaks-mode" value="discrete"' +
+        (discrete ? ' checked' : '') + '> One class per value (' +
+        d.distinct.length + ')</label>'
+      : '';
     return `
       <div class="ml-breaks">
         <div class="ml-ramp-head">
           <span class="ml-ramp-title">Class breaks</span>
           <button class="btn-link ml-breaks-reset" id="ml-breaks-reset" type="button"${
-            manual ? '' : ' hidden'}>Reset to quantiles</button>
+            mode === 'auto' ? ' hidden' : ''}>Reset to computed</button>
         </div>
         <div class="ml-breaks-mode">
           <label><input type="radio" name="ml-breaks-mode" value="auto"${
-            manual ? '' : ' checked'}> Computed (${s.mode === 'quantile' ? 'quantile' : 'equal interval'})</label>
+            mode === 'auto' ? ' checked' : ''}> Computed (${
+            s.mode === 'quantile' ? 'quantile' : 'equal interval'})</label>
           <label><input type="radio" name="ml-breaks-mode" value="manual"${
             manual ? ' checked' : ''}> Manual</label>
+        ${offer}
         </div>
+        <label class="ml-class-pick"${discrete ? ' hidden' : ''}>
+          <span>Classes</span>
+          <select id="ml-class-count">${counts.join('')}</select>
+        </label>
         <div class="ml-breaks-row"${manual ? '' : ' hidden'}>${inputs}</div>
         <div class="ml-breaks-err" id="ml-breaks-err"${
           errs.length ? '' : ' hidden'}>${escapeHtml(errs.join(' '))}</div>
@@ -11784,12 +11977,14 @@ function wireHTooltips() {
   function mlApplyDraftBreaks() {
     const d = state.mapLayers;
     if (!d || !d.scale) return;
-    const raw = [0, 1, 2, 3].map(function (i) {
+    const need = mlDraftClassCount(d) - 1;
+    const raw = [];
+    for (let i = 0; i < need; i++) {
       const el = document.getElementById('ml-break-' + i);
-      return el ? el.value : '';
-    });
+      raw.push(el ? el.value : '');
+    }
     d.breaksRaw = raw;
-    const res = mlBreakErrors(raw, d.scale);
+    const res = mlBreakErrors(raw, d.scale, need);
     d.breakErrors = res.errors;
     d.breaks = res.values;
     const err = document.getElementById('ml-breaks-err');
@@ -11812,19 +12007,16 @@ function wireHTooltips() {
     if (!d || !d.scale || !host) return;
     const s = mlDraftScale(d);
     const ramp = mlDraftRamp(d);
-    const counts = [0, 0, 0, 0, 0];
+    const counts = new Array(mlScaleClasses(s)).fill(0);
     d.geo.features.forEach(function (f) {
       const v = mlToNumber(f.properties[d.valueField]);
       if (v != null) counts[mlClassIndex(v, s)]++;
     });
-    const edges = [[s.min, s.breaks[0]], [s.breaks[0], s.breaks[1]],
-                   [s.breaks[1], s.breaks[2]], [s.breaks[2], s.breaks[3]], [s.breaks[3], s.max]];
-    host.innerHTML = edges.map(function (e, i) {
+    host.innerHTML = mlClassLabels(s).map(function (label, i) {
       return '<div class="ml-class">' +
         '<span class="ml-class-sw" data-ml-swatch="' + i + '" style="background:' +
           ramp.colors[i] + '"></span>' +
-        '<span class="ml-class-range">' + escapeHtml(mlFmtNum(e[0])) + ' - ' +
-          escapeHtml(mlFmtNum(e[1])) + '</span>' +
+        '<span class="ml-class-range">' + escapeHtml(label) + '</span>' +
         '<span class="ml-class-count">' + counts[i].toLocaleString() + '</span>' +
       '</div>';
     }).join('');
@@ -11835,9 +12027,25 @@ function wireHTooltips() {
     return mlBuildRamp(
       d.rampLow || ML_DEFAULT_LOW,
       d.rampHigh || ML_DEFAULT_HIGH,
-      d.breaksMode === 'manual' ? d.breaks : null,
-      d.zeroTransparent === true
+      {
+        classCount: mlDraftClassCount(d),
+        manualBreaks: d.breaksMode === 'manual' ? d.breaks : null,
+        zeroTransparent: d.zeroTransparent === true,
+        discreteValues: d.breaksMode === 'discrete' ? (d.distinct || null) : null,
+      }
     );
+  }
+
+  /**
+   * The draft's class count. Discrete pins it to the number of distinct values:
+   * offering "one class per value" and a separate count that disagrees with it
+   * would be two controls fighting.
+   */
+  function mlDraftClassCount(d) {
+    if (d.breaksMode === 'discrete' && Array.isArray(d.distinct)) return d.distinct.length;
+    const n = d.classCount;
+    return (typeof n === 'number' && n >= ML_CLASS_MIN && n <= ML_CLASS_MAX)
+      ? n : ML_CLASS_DEFAULT;
   }
 
   /** The scale the draft's preview should show: manual breaks when valid. */
@@ -11845,13 +12053,40 @@ function wireHTooltips() {
     return mlScaleFor(d.scale, mlDraftRamp(d));
   }
 
-  /** The four break inputs as strings, defaulting to the computed breaks. */
+  /** The break inputs as strings, defaulting to the computed breaks. */
   function mlDraftBreakFields(d) {
-    if (Array.isArray(d.breaksRaw) && d.breaksRaw.length === 4) return d.breaksRaw;
+    const need = mlDraftClassCount(d) - 1;
+    if (Array.isArray(d.breaksRaw) && d.breaksRaw.length === need) return d.breaksRaw;
     const b = (d.scale && d.scale.breaks) || [];
-    return [0, 1, 2, 3].map(function (i) {
-      return b[i] == null ? '' : String(Math.round(b[i] * 1e6) / 1e6);
-    });
+    const out = [];
+    for (let i = 0; i < need; i++) {
+      out.push(b[i] == null ? '' : String(Math.round(b[i] * 1e6) / 1e6));
+    }
+    return out;
+  }
+
+  /**
+   * Recompute the draft's COMPUTED scale for its current class count, and drop
+   * any manual breaks that no longer have the right length.
+   *
+   * Called when the count changes. The computed scale is the fallback and the
+   * source of the prefilled break values, so it cannot be left at the count it
+   * was first calculated with.
+   */
+  function mlRecomputeDraftScale(d) {
+    if (!d || !d.geo || !d.valueField) return;
+    const res = mlValidateValueField(d.geo, d.valueField, mlDraftClassCount(d));
+    if (!res.ok) return;
+    d.scale = res.scale;
+    d.distinct = res.distinct;
+    if (d.breaksMode === 'manual') {
+      d.breaksRaw = mlDraftBreakFields(d).slice();
+      const r = mlBreakErrors(d.breaksRaw, d.scale, mlDraftClassCount(d) - 1);
+      d.breakErrors = r.errors;
+      d.breaks = r.values;
+    } else {
+      d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+    }
   }
 
   /**
@@ -12791,9 +13026,16 @@ function wireHTooltips() {
         d.fieldErrors = [];
         d.scale = null;
         if (d.valueField) {
-          const res = mlValidateValueField(d.geo, d.valueField);
-          if (res.ok) d.scale = res.scale;
-          else d.fieldErrors = res.errors;
+          const res = mlValidateValueField(d.geo, d.valueField, mlDraftClassCount(d));
+          if (res.ok) {
+            d.scale = res.scale;
+            // Whether one class per value is even offerable depends on the field,
+            // so it is re-evaluated whenever the field changes -- and any mode
+            // chosen for the previous field is dropped.
+            d.distinct = res.distinct;
+            d.breaksMode = 'auto';
+            d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+          } else d.fieldErrors = res.errors;
         }
         rerenderMlUpload();
       });
@@ -12814,15 +13056,21 @@ function wireHTooltips() {
           const d = state.mapLayers;
           if (!d) return;
           d.breaksMode = this.value;
-          if (this.value === 'manual') {
-            // Start from the computed breaks: a blank set of four boxes is a
-            // worse starting point than the numbers being replaced.
+          // Discrete pins the count to the distinct-value count, so the computed
+          // scale behind it has to be recalculated for that number.
+          if (this.value === 'discrete') {
+            d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+            mlRecomputeDraftScale(d);
+          } else if (this.value === 'manual') {
+            // Start from the computed breaks: a blank set of boxes is a worse
+            // starting point than the numbers being replaced.
             d.breaksRaw = mlDraftBreakFields(d).slice();
-            const r2 = mlBreakErrors(d.breaksRaw, d.scale);
+            const r2 = mlBreakErrors(d.breaksRaw, d.scale, mlDraftClassCount(d) - 1);
             d.breakErrors = r2.errors;
             d.breaks = r2.values;
           } else {
             d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+            mlRecomputeDraftScale(d);
           }
           rerenderMlUpload();
         });
@@ -12830,11 +13078,21 @@ function wireHTooltips() {
       document.querySelectorAll('[data-ml-break]').forEach(function (el) {
         el.addEventListener('input', mlApplyDraftBreaks);
       });
+      const countSel = document.getElementById('ml-class-count');
+      if (countSel) countSel.addEventListener('change', function () {
+        const d = state.mapLayers;
+        if (!d) return;
+        d.classCount = parseInt(this.value, 10);
+        mlRecomputeDraftScale(d);
+        rerenderMlUpload();
+      });
+
       const bReset = document.getElementById('ml-breaks-reset');
       if (bReset) bReset.addEventListener('click', function () {
         const d = state.mapLayers;
         if (!d) return;
         d.breaksMode = 'auto'; d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+        mlRecomputeDraftScale(d);
         rerenderMlUpload();
       });
       const zeroBox = document.getElementById('ml-zero');

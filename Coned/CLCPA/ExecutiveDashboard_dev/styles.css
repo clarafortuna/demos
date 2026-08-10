@@ -8323,6 +8323,21 @@ a.nav-item { text-decoration: none; }
 }
 .ml-break-input:focus { outline: none; border-color: var(--dusk); }
 .ml-breaks-err { margin-top: 7px; font-size: 11px; color: #cf222e; line-height: 1.45; }
+/* Class count selector, beside the mode radios. */
+.ml-class-pick { display: flex; align-items: center; gap: 8px; margin: 0 0 9px; font-size: 12px; }
+.ml-class-pick select {
+  padding: 4px 7px; font-family: var(--font); font-size: 12px;
+  border: 1px solid var(--line); border-radius: 5px; background: var(--white);
+}
+/* A discrete class whose value is drawn unfilled: still listed, visibly not
+   painted. Omitting it would hide a value that is in the data. */
+.ml-legend-note-off { opacity: 0.72; }
+.ml-legend-note-sw-off {
+  position: relative;
+  outline: 1px dashed var(--text-4); outline-offset: -1px;
+  background-image: linear-gradient(45deg, transparent 45%, var(--text-4) 45%,
+                    var(--text-4) 55%, transparent 55%) !important;
+}
 .ml-zero { display: flex; align-items: center; gap: 7px; margin-top: 12px; font-size: 12px; cursor: pointer; }
 /* The zero note inside the legend's Class ranges block: one line, indented to
    sit under the swatch column rather than starting a new topic. */
