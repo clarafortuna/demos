@@ -8311,7 +8311,12 @@ a.nav-item { text-decoration: none; }
 /* Class breaks and the zero-value setting: both chosen at upload only, so they
    sit with the colour range rather than anywhere a saved layer is listed. */
 .ml-breaks { margin-top: 14px; }
-.ml-breaks-mode { display: flex; gap: 16px; margin: 6px 0 8px; font-size: 12px; }
+/* A vertical decision list: the three ways to cut the classes, read one under
+   the other. Laid out in a row they read as three unrelated toggles. */
+.ml-breaks-mode {
+  display: flex; flex-direction: column; gap: 7px;
+  margin: 8px 0 12px; font-size: 12px;
+}
 .ml-breaks-mode label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .ml-breaks-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .ml-break-field { display: flex; flex-direction: column; gap: 3px; font-size: 10.5px; color: var(--text-3); }
@@ -8330,11 +8335,16 @@ a.nav-item { text-decoration: none; }
  * old single column stretched a 92px number input across 1588px; two columns
  * would only have restretched it differently without this.
  * ========================================================================== */
-.ml-style { max-width: 1100px; }
 .ml-style-context { margin-bottom: 12px; }
+/* The cap constrains the GRID, centred, and nothing else. Putting it on the card
+   made the card narrower than its neighbours and opened a gap beside it. At any
+   ordinary viewport the card's content is under 1100px, so the cap does nothing
+   and the grid simply fills the card; it only bites at very wide viewports,
+   where the point is to stop a 92px input being stretched across 1588px. */
 .ml-style-grid {
   display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px;
   align-items: start;
+  max-width: 1100px; margin-left: auto; margin-right: auto;
 }
 /* Below the point where 340px + a usable left column stops fitting, stack. The
    result column stays visible, just underneath, because it is the thing being
