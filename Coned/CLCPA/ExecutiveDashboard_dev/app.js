@@ -4992,6 +4992,43 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     `;
   }
 
+  // ---- Bind-once -----------------------------------------------------------
+  // The Executive Summary card is written by the ROUTE render, but the map is
+  // remounted independently: dsRemountMap() re-runs mountDACMap WITHOUT a route
+  // render, and mountDACMap rewrites only the inner Leaflet div. Every node in
+  // that card therefore survives a remount, and a plain addEventListener
+  // accumulates one handler per mount.
+  //
+  // For anything that TOGGLES, two handlers cancel out. ddToggle flips the
+  // 'open' class, so two of them opened and closed a dropdown inside a single
+  // click: the menus looked dead with a completely clean console, because
+  // nothing failed. The same shape sat under the legend info panel, the detail
+  // box help note and the borough-group collapse, and the CSV export ran twice.
+  //
+  // Every element-level handler in the mount goes through this. Applied
+  // uniformly, not only where double-firing is provably harmful -- judging
+  // idempotence case by case is exactly what let this survive.
+  //
+  // The LIVE mount's handler is the one kept: the previous handler is REMOVED,
+  // not skipped. A stale closure holding the old map must not be what stays
+  // bound. Document- and window-level handlers already did this by hand; this
+  // is the same discipline at the element.
+  function bindOnce(node, type, key, fn) {
+    if (!node) return;
+    var slot = '__bound_' + type + '_' + key;
+    if (node[slot]) {
+      node.removeEventListener(type, node[slot]);
+      // Recording it proves the guard is doing something rather than sitting
+      // there: a remount that rebinds is exactly the condition that used to
+      // kill the menus.
+      if (window.__dacDiagNote) {
+        window.__dacDiagNote('duplicate-binding', { key: key, type: type });
+      }
+    }
+    node[slot] = fn;
+    node.addEventListener(type, fn);
+  }
+
   async function mountDACMap() {
     const containerId = window._dacMapContainerId;
     const container = document.getElementById(containerId);
@@ -5501,12 +5538,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       panel.innerHTML = renderTractDetailContent(props);
       panel.hidden = false;
       const closeBtn = panel.querySelector('#dac-td-close');
-      if (closeBtn) closeBtn.addEventListener('click', clearTractSelection);
+      bindOnce(closeBtn, 'click', 'td-close', clearTractSelection);
       // "How to read" toggle — collapsed by default; shows the note below header.
       const helpBtn = panel.querySelector('#dac-td-help');
       const note = panel.querySelector('#dac-td-note');
       if (helpBtn && note) {
-        helpBtn.addEventListener('click', function() {
+        bindOnce(helpBtn, 'click', 'td-help', function () {
           const show = note.hidden;
           note.hidden = !show;
           helpBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
@@ -5966,8 +6003,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const trigger = boroughDd.querySelector('.dac-map-dd-trigger');
       const menu = boroughDd.querySelector('.dac-map-dd-menu');
       const current = document.getElementById('dac-map-borough-current');
-      if (trigger) trigger.addEventListener('click', e => { e.stopPropagation(); ddToggle(boroughDd); });
-      if (menu) menu.addEventListener('click', function (e) {
+      bindOnce(trigger, 'click', 'borough-trigger',
+        e => { e.stopPropagation(); ddToggle(boroughDd); });
+      bindOnce(menu, 'click', 'borough-menu', function (e) {
         const opt = e.target.closest('.dac-map-dd-opt');
         if (!opt) return;
         _mapState.county = opt.dataset.county || null;
@@ -5987,14 +6025,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const trigger = nbDd.querySelector('.dac-map-dd-trigger');
       const menu = nbDd.querySelector('.dac-map-dd-menu');
       const input = nbDd.querySelector('.dac-map-nb-input');
-      if (trigger) trigger.addEventListener('click', e => {
+      bindOnce(trigger, 'click', 'nb-trigger', e => {
         e.stopPropagation();
         const open = ddToggle(nbDd);
         if (open && input) setTimeout(() => input.focus(), 0);
       });
       if (input) {
-        input.addEventListener('click', e => e.stopPropagation());
-        input.addEventListener('input', () => filterNbOptions(nbDd, input.value));
+        bindOnce(input, 'click', 'nb-input', e => e.stopPropagation());
+        bindOnce(input, 'input', 'nb-input', () => filterNbOptions(nbDd, input.value));
       }
       // Helper: collect {name,boro} for every listed opt under a root (full group,
       // ignoring the search filter — search only finds items, it doesn't limit
@@ -6008,7 +6046,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         if (i >= 0) _mapState.neighborhoods.splice(i, 1);
       });
 
-      if (menu) menu.addEventListener('click', function (e) {
+      bindOnce(menu, 'click', 'nb-menu', function (e) {
         if (e.target.closest('.dac-map-nb-search')) {
           if (e.target.closest('.dac-map-dd-clear')) { _mapState.neighborhoods = []; applyNeighborhoods(); }
           return;                                          // ignore clicks on the search input
@@ -6054,7 +6092,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
     // ---- "Clear all": reset borough + neighborhood scope in one click ----
     const clearAllBtn = document.getElementById('dac-map-clearall');
-    if (clearAllBtn) clearAllBtn.addEventListener('click', function () {
+    bindOnce(clearAllBtn, 'click', 'clear-all', function () {
       if (_mapState.selectedGeoid) clearTractSelection();   // drop any clicked-tract scope + close detail
       _mapState.county = null;
       _mapState.neighborhoods = [];
@@ -6158,7 +6196,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       setTimeout(() => URL.revokeObjectURL(url), 0);
     }
     const exportBtn = document.getElementById('dac-map-export');
-    if (exportBtn) exportBtn.addEventListener('click', exportCsv);
+    // Two handlers here downloaded the CSV twice, which is the same defect
+    // wearing different clothes.
+    bindOnce(exportBtn, 'click', 'export-csv', exportCsv);
 
     // Populate the neighborhood list now that geo is loaded (scoped to county).
     rebuildNeighborhoodDropdown();
@@ -6469,7 +6509,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // removed on Remove, so binding per card would leak handlers and miss cards
     // added after this runs.
     const panelsEl = document.getElementById('dac-map-panels');
-    if (panelsEl) panelsEl.addEventListener('click', function (e) {
+    bindOnce(panelsEl, 'click', 'legend-info', function (e) {
       const btn = e.target.closest('[data-ml-info]');
       if (!btn) return;
       const id = btn.getAttribute('data-ml-info');
@@ -6492,7 +6532,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     });
 
     const terrPanel = document.getElementById('dac-map-terr');
-    if (terrPanel) terrPanel.addEventListener('change', function (e) {
+    bindOnce(terrPanel, 'change', 'terr-panel', function (e) {
       // CLCPA-171: uploaded layers carry their own data attribute, so this
       // dispatch and the built-in data-layer one can never collide.
       const mlcb = e.target.closest('input[data-ml-layer]');
@@ -6517,7 +6557,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
     // EAP sub-panel: Utility / Metric segmented selectors (one choice per group).
     const eapPanel = document.getElementById('dac-map-eap');
-    if (eapPanel) eapPanel.addEventListener('click', function (e) {
+    bindOnce(eapPanel, 'click', 'eap-panel', function (e) {
       const b = e.target.closest('button[data-eap-utility], button[data-eap-metric], button[data-eap-groupby]');
       if (!b) return;
       if (b.dataset.eapUtility) _eapState.utility = b.dataset.eapUtility;
@@ -6608,14 +6648,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       }
 
       if (trigger) {
-        trigger.addEventListener('click', function (e) {
+        bindOnce(trigger, 'click', 'indicator-trigger', function (e) {
           e.stopPropagation();
           ddToggle(dd);
         });
       }
 
       if (menu) {
-        menu.addEventListener('click', function (e) {
+        bindOnce(menu, 'click', 'indicator-menu', function (e) {
           // "Clear" → revert to the default Combined Burden Score view.
           if (e.target.closest('.dac-map-dd-clear')) {
             _mapState.indicators = [indRole('defaultIndicator')];
