@@ -3433,20 +3433,37 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   }
 
   /**
-   * Build a layer's ramp config from a low/high pair.
-   * @returns {{low:string, high:string, colors:string[]}} 5 colours, low -> high
+   * Build a layer's display config from a low/high pair, plus the two
+   * per-layer settings chosen at upload.
+   *
+   * This blob is what gets persisted to cr2bf_RampConfig, so it is really
+   * "per-layer display config" and not only a colour ramp. It stays one column
+   * because it is one lifetime: all of it is chosen at upload and none of it is
+   * editable afterwards.
+   *
+   * @param {number[]|null} manualBreaks four strictly ascending cut points, or
+   *   null for the computed quantile/equal-interval breaks
+   * @param {boolean} zeroTransparent draw features whose value is exactly 0
+   *   with no fill, rather than in the lowest class colour
+   * @returns {{low:string, high:string, colors:string[],
+   *            manualBreaks:number[]|null, zeroTransparent:boolean}}
    */
-  function mlBuildRamp(low, high) {
+  function mlBuildRamp(low, high, manualBreaks, zeroTransparent) {
+    const extra = {
+      manualBreaks: mlValidBreaks(manualBreaks) ? manualBreaks.slice() : null,
+      zeroTransparent: zeroTransparent === true,
+    };
     const lo = mlHexToRgb(low), hi = mlHexToRgb(high);
     // Unparseable input (only reachable if something other than the colour
     // inputs supplies it) falls back to the canonical ramp rather than drawing
     // an invalid fill.
     if (!lo || !hi) {
-      return { low: ML_DEFAULT_LOW, high: ML_DEFAULT_HIGH, colors: ML_RAMP.slice() };
+      return Object.assign({ low: ML_DEFAULT_LOW, high: ML_DEFAULT_HIGH,
+                             colors: ML_RAMP.slice() }, extra);
     }
     const lowHex = mlRgbToHex(lo), highHex = mlRgbToHex(hi);
     if (mlIsDefaultRamp(lowHex, highHex)) {
-      return { low: lowHex, high: highHex, colors: ML_RAMP.slice() };
+      return Object.assign({ low: lowHex, high: highHex, colors: ML_RAMP.slice() }, extra);
     }
     const colors = [];
     for (let i = 0; i < 5; i++) {
@@ -3457,7 +3474,84 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         lo[2] + (hi[2] - lo[2]) * t,
       ]));
     }
-    return { low: lowHex, high: highHex, colors: colors };
+    return Object.assign({ low: lowHex, high: highHex, colors: colors }, extra);
+  }
+
+  /**
+   * Are these four numbers usable as class breaks?
+   *
+   * Four values, every one finite, strictly ascending. Strictly, not merely
+   * non-decreasing: two equal breaks would define an empty class, and
+   * mlClassIndex would then have a colour no value can ever land in.
+   *
+   * The min/max fit is checked separately, by mlBreakErrors, because it needs
+   * the data and this predicate is also used on rehydration, where being inside
+   * the range is not something the reader can insist on -- see mlScaleFor.
+   */
+  function mlValidBreaks(b) {
+    if (!Array.isArray(b) || b.length !== 4) return false;
+    for (let i = 0; i < 4; i++) {
+      if (typeof b[i] !== 'number' || !isFinite(b[i])) return false;
+      if (i > 0 && !(b[i] > b[i - 1])) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Human-readable reasons these breaks cannot be used, for the upload card.
+   * Empty array means they are fine.
+   */
+  function mlBreakErrors(raw, scale) {
+    const errs = [];
+    const nums = raw.map(function (t) {
+      const t2 = String(t).trim();
+      return t2 === '' ? null : Number(t2);
+    });
+    if (nums.some(function (n) { return n === null; })) {
+      errs.push('All four break values are needed.');
+    } else if (nums.some(function (n) { return !isFinite(n); })) {
+      errs.push('Break values have to be numbers.');
+    } else {
+      for (let i = 1; i < 4; i++) {
+        if (!(nums[i] > nums[i - 1])) {
+          errs.push('Break values have to increase: ' + mlFmtNum(nums[i - 1]) +
+            ' is not below ' + mlFmtNum(nums[i]) + '.');
+          break;
+        }
+      }
+      if (scale && errs.length === 0) {
+        // Outside the data the class would be empty, which is the same defect
+        // as two equal breaks arriving by a different route.
+        if (!(nums[0] > scale.min)) {
+          errs.push('The first break has to be above the lowest value (' +
+            mlFmtNum(scale.min) + ').');
+        } else if (!(nums[3] < scale.max)) {
+          errs.push('The last break has to be below the highest value (' +
+            mlFmtNum(scale.max) + ').');
+        }
+      }
+    }
+    return { errors: errs, values: errs.length ? null : nums };
+  }
+
+  /**
+   * The scale a layer actually draws with: its manual breaks when it has them,
+   * otherwise the computed one.
+   *
+   * This exists because a saved layer's scale is RECOMPUTED from the downloaded
+   * file on every hydration (see mlHydrateOne). Without this, manual breaks
+   * would render correctly for whoever set them and silently revert to
+   * quantiles for everybody else -- the author would never see it.
+   */
+  function mlScaleFor(scale, ramp) {
+    const manual = ramp && ramp.manualBreaks;
+    if (!scale || scale.mode === 'single' || !mlValidBreaks(manual)) return scale;
+    return { mode: 'manual', breaks: manual.slice(), min: scale.min, max: scale.max };
+  }
+
+  /** True when this layer draws value 0 with no fill at all. */
+  function mlZeroTransparent(entry) {
+    return !!(entry && entry.ramp && entry.ramp.zeroTransparent);
   }
 
   /** The ramp colours of an entry, tolerating a Slice 1-shaped entry. */
@@ -3499,13 +3593,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const sw = mlRampColors(entry).map(function (c) {
       return '<span class="ml-legend-sw" style="background:' + c + '"></span>';
     }).join('');
-    const s = entry.scale;
+    const s = mlScaleFor(entry.scale, entry.ramp);
     const ticks = s.mode === 'single'
       ? '<span>' + escapeHtml(mlFmtNum(s.min)) + '</span>'
       : '<span>' + escapeHtml(mlFmtNum(s.min)) + '</span>' +
         '<span>' + escapeHtml(mlFmtNum(s.max)) + '</span>';
     const modeLabel = s.mode === 'quantile' ? '5 quantile classes'
       : s.mode === 'linear' ? '5 equal-interval classes'
+      : s.mode === 'manual' ? '5 custom classes'
       : 'single value';
     const provenance = mlProvenance(entry);
     return '<div class="ml-legend-head">' +
@@ -3546,7 +3641,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * legend -- the popup is where they finally live next to the ramp they cut.
    */
   function mlLegendNoteHtml(entry, provenance) {
-    const s = entry.scale;
+    const s = mlScaleFor(entry.scale, entry.ramp);
     let ranges;
     if (!s || s.mode === 'single') {
       ranges = '<div class="ml-legend-note-row">Every feature carries the same ' +
@@ -3567,6 +3662,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           '<span class="ml-legend-note-sw" style="background:' + colors[i] + '"></span>' +
           '<span>' + escapeHtml(mlFmtNum(edges[i])) + ' to ' +
           escapeHtml(mlFmtNum(edges[i + 1])) + '</span></div>');
+      }
+      // One line, inside Class ranges, next to the ranges it modifies. It
+      // belongs here rather than as its own paragraph: a reader looking at the
+      // classes is exactly the reader who needs to know that one value is not
+      // in any of them.
+      if (mlZeroTransparent(entry)) {
+        rows.push('<div class="ml-legend-note-row ml-legend-note-zero">' +
+          'Features with a value of 0 are not filled.</div>');
       }
       ranges = rows.join('');
     }
@@ -3604,7 +3707,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       scale: rec.scale,
       // Per-layer { low, high, colors } (CLCPA-171 Slice 1b). Defaults to the
       // canonical ramp when the caller supplies none.
-      ramp: rec.ramp || mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
+      ramp: rec.ramp || mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH, null, false),
       // One-shot: the upload's Confirm turns the layer on for its first sight
       // of the map. Consumed at mount, after which it defaults OFF like HVI.
       previewOnce: rec.previewOnce !== false,
@@ -4389,9 +4492,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       featureCount: parsed.featureCount,
       geomTypes: parsed.geomTypes,
       scale: fieldRes.scale,
+      // The ramp config carries the manual breaks and the zero setting, and it
+      // has to be taken from the record rather than rebuilt: fieldRes.scale
+      // above is RECOMPUTED from the downloaded file, so a layer saved with
+      // manual breaks would otherwise render as quantiles for every reader
+      // except the person who uploaded it, with nothing to indicate it.
       ramp: (rec.ramp && rec.ramp.colors && rec.ramp.colors.length === 5)
-        ? rec.ramp
-        : mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH),
+        ? mlBuildRamp(rec.ramp.low, rec.ramp.high, rec.ramp.manualBreaks,
+                      rec.ramp.zeroTransparent)
+        : mlBuildRamp(ML_DEFAULT_LOW, ML_DEFAULT_HIGH, null, false),
       // Saved layers are shared, so they must NOT switch themselves on for
       // every user on every load. OFF by default, exactly like HVI.
       previewOnce: false,
@@ -6286,12 +6395,25 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     /** Choropleth style closure for one registry entry. */
     function mlStyleFor(entry) {
       const ramp = mlRampColors(entry);   // this layer's own 5 colours
+      // The scale the layer draws with, which is NOT always entry.scale: a saved
+      // layer recomputes its scale on hydration, so manual breaks live in the
+      // ramp config and are re-applied here.
+      const scale = mlScaleFor(entry.scale, entry.ramp);
+      const zeroOff = mlZeroTransparent(entry);
       return function (feature) {
         const raw = feature.properties ? feature.properties[entry.valueField] : null;
         const v = mlToNumber(raw);
+        // Zero means different things in different datasets: no trees on this
+        // block is arguably absence, a normalised index of 0 is a measurement.
+        // So it is a per-layer choice made at upload, not a global rule, and it
+        // draws nothing at all rather than a pale colour -- a faint fill still
+        // reads as a low value.
+        if (zeroOff && v === 0) {
+          return { stroke: false, weight: 0, fill: false, fillOpacity: 0 };
+        }
         // Validation guarantees every feature is numeric at upload time, so the
         // nodata colour is a belt-and-braces path, not an expected one.
-        const c = v == null ? ML_NODATA : ramp[mlClassIndex(v, entry.scale)];
+        const c = v == null ? ML_NODATA : ramp[mlClassIndex(v, scale)];
         return { color: c, weight: 0.6, opacity: 0.7, fillColor: c, fillOpacity: 0.5 };
       };
     }
@@ -11601,18 +11723,135 @@ function wireHTooltips() {
             </div>
           </div>
         </div>
+        ${mlBreaksBlockHtml(d)}
         <p class="ml-preview-note">${modeNote} The three middle colours are blended between your two
         end colours. Adding the layer opens the Executive Summary map with it switched on. It sits above
         the tract choropleth and doesn't capture the mouse, so tract hover and selection keep working.</p>
       </div>`;
   }
 
+
+  /**
+   * Class breaks and the zero-value setting, both chosen at upload only.
+   *
+   * Upload-time only on purpose: a saved layer is shared, and letting one reader
+   * re-cut another reader's classes would change what everybody sees with no
+   * record of who did it. Re-upload is the way to change them, which also gives
+   * the change a new row and an audit entry.
+   *
+   * The single-value case offers neither: with one value there are no classes to
+   * cut, and no colour to make transparent that is not the only colour there is.
+   */
+  function mlBreaksBlockHtml(d) {
+    const s = d.scale;
+    if (!s || s.mode === 'single') return '';
+    const manual = d.breaksMode === 'manual';
+    const fields = mlDraftBreakFields(d);
+    const errs = (d.breakErrors || []);
+    const inputs = fields.map(function (v, i) {
+      return '<label class="ml-break-field"><span>Break ' + (i + 1) + '</span>' +
+        '<input type="text" inputmode="decimal" class="ml-break-input" ' +
+        'id="ml-break-' + i + '" data-ml-break="' + i + '" ' +
+        'value="' + escapeHtml(String(v)) + '"></label>';
+    }).join('');
+    return `
+      <div class="ml-breaks">
+        <div class="ml-ramp-head">
+          <span class="ml-ramp-title">Class breaks</span>
+          <button class="btn-link ml-breaks-reset" id="ml-breaks-reset" type="button"${
+            manual ? '' : ' hidden'}>Reset to quantiles</button>
+        </div>
+        <div class="ml-breaks-mode">
+          <label><input type="radio" name="ml-breaks-mode" value="auto"${
+            manual ? '' : ' checked'}> Computed (${s.mode === 'quantile' ? 'quantile' : 'equal interval'})</label>
+          <label><input type="radio" name="ml-breaks-mode" value="manual"${
+            manual ? ' checked' : ''}> Manual</label>
+        </div>
+        <div class="ml-breaks-row"${manual ? '' : ' hidden'}>${inputs}</div>
+        <div class="ml-breaks-err" id="ml-breaks-err"${
+          errs.length ? '' : ' hidden'}>${escapeHtml(errs.join(' '))}</div>
+        <label class="ml-zero"><input type="checkbox" id="ml-zero"${
+          d.zeroTransparent ? ' checked' : ''}> Draw features whose value is 0 with no fill</label>
+      </div>`;
+  }
+
+  /**
+   * Read the four inputs, validate, and repaint the class list and the error
+   * line WITHOUT re-rendering the card -- re-rendering would drop focus out of
+   * the input on every keystroke, the same reason mlSetDraftRamp repaints in
+   * place.
+   */
+  function mlApplyDraftBreaks() {
+    const d = state.mapLayers;
+    if (!d || !d.scale) return;
+    const raw = [0, 1, 2, 3].map(function (i) {
+      const el = document.getElementById('ml-break-' + i);
+      return el ? el.value : '';
+    });
+    d.breaksRaw = raw;
+    const res = mlBreakErrors(raw, d.scale);
+    d.breakErrors = res.errors;
+    d.breaks = res.values;
+    const err = document.getElementById('ml-breaks-err');
+    if (err) {
+      err.textContent = res.errors.join(' ');
+      if (res.errors.length) err.removeAttribute('hidden');
+      else err.setAttribute('hidden', '');
+    }
+    // Invalid breaks must not be addable: the layer would draw with a scale the
+    // person never approved.
+    const confirm = document.getElementById('ml-confirm');
+    if (confirm) confirm.disabled = !!res.errors.length;
+    mlRepaintDraftClasses();
+  }
+
+  /** Recompute the class rows for the draft's current scale, in place. */
+  function mlRepaintDraftClasses() {
+    const d = state.mapLayers;
+    const host = document.querySelector('.ml-classes');
+    if (!d || !d.scale || !host) return;
+    const s = mlDraftScale(d);
+    const ramp = mlDraftRamp(d);
+    const counts = [0, 0, 0, 0, 0];
+    d.geo.features.forEach(function (f) {
+      const v = mlToNumber(f.properties[d.valueField]);
+      if (v != null) counts[mlClassIndex(v, s)]++;
+    });
+    const edges = [[s.min, s.breaks[0]], [s.breaks[0], s.breaks[1]],
+                   [s.breaks[1], s.breaks[2]], [s.breaks[2], s.breaks[3]], [s.breaks[3], s.max]];
+    host.innerHTML = edges.map(function (e, i) {
+      return '<div class="ml-class">' +
+        '<span class="ml-class-sw" data-ml-swatch="' + i + '" style="background:' +
+          ramp.colors[i] + '"></span>' +
+        '<span class="ml-class-range">' + escapeHtml(mlFmtNum(e[0])) + ' - ' +
+          escapeHtml(mlFmtNum(e[1])) + '</span>' +
+        '<span class="ml-class-count">' + counts[i].toLocaleString() + '</span>' +
+      '</div>';
+    }).join('');
+  }
+
   /** The draft's ramp, defaulting to the canonical one until a picker is used. */
   function mlDraftRamp(d) {
     return mlBuildRamp(
       d.rampLow || ML_DEFAULT_LOW,
-      d.rampHigh || ML_DEFAULT_HIGH
+      d.rampHigh || ML_DEFAULT_HIGH,
+      d.breaksMode === 'manual' ? d.breaks : null,
+      d.zeroTransparent === true
     );
+  }
+
+  /** The scale the draft's preview should show: manual breaks when valid. */
+  function mlDraftScale(d) {
+    return mlScaleFor(d.scale, mlDraftRamp(d));
+  }
+
+  /** The four break inputs as strings, defaulting to the computed breaks. */
+  function mlDraftBreakFields(d) {
+    if (Array.isArray(d.breaksRaw) && d.breaksRaw.length === 4) return d.breaksRaw;
+    const b = (d.scale && d.scale.breaks) || [];
+    return [0, 1, 2, 3].map(function (i) {
+      return b[i] == null ? '' : String(Math.round(b[i] * 1e6) / 1e6);
+    });
   }
 
   /**
@@ -12568,6 +12807,44 @@ function wireHTooltips() {
       const onRamp = function () { mlSetDraftRamp(rampLow.value, rampHigh.value); };
       rampLow.addEventListener('input', onRamp);
       rampHigh.addEventListener('input', onRamp);
+      // Class-breaks mode, the four inputs, Reset, and the zero setting.
+      const modeRadios = document.querySelectorAll('input[name="ml-breaks-mode"]');
+      modeRadios.forEach(function (r) {
+        r.addEventListener('change', function () {
+          const d = state.mapLayers;
+          if (!d) return;
+          d.breaksMode = this.value;
+          if (this.value === 'manual') {
+            // Start from the computed breaks: a blank set of four boxes is a
+            // worse starting point than the numbers being replaced.
+            d.breaksRaw = mlDraftBreakFields(d).slice();
+            const r2 = mlBreakErrors(d.breaksRaw, d.scale);
+            d.breakErrors = r2.errors;
+            d.breaks = r2.values;
+          } else {
+            d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+          }
+          rerenderMlUpload();
+        });
+      });
+      document.querySelectorAll('[data-ml-break]').forEach(function (el) {
+        el.addEventListener('input', mlApplyDraftBreaks);
+      });
+      const bReset = document.getElementById('ml-breaks-reset');
+      if (bReset) bReset.addEventListener('click', function () {
+        const d = state.mapLayers;
+        if (!d) return;
+        d.breaksMode = 'auto'; d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
+        rerenderMlUpload();
+      });
+      const zeroBox = document.getElementById('ml-zero');
+      if (zeroBox) zeroBox.addEventListener('change', function () {
+        const d = state.mapLayers;
+        if (!d) return;
+        d.zeroTransparent = this.checked;
+        // Nothing in the card's layout depends on it, so no re-render.
+      });
+
       const reset = document.getElementById('ml-ramp-reset');
       if (reset) reset.addEventListener('click', function () {
         rampLow.value = ML_DEFAULT_LOW;
@@ -12586,6 +12863,7 @@ function wireHTooltips() {
     if (confirm) confirm.addEventListener('click', function () {
       const d = state.mapLayers;
       if (!d || !d.scale) return;
+      if (d.breakErrors && d.breakErrors.length) return;   // gated in the UI too
       // Slice 3: take the edited name (the input is the source of truth), and
       // derive a key that no other SESSION layer already uses.
       const nameEl = document.getElementById('ml-layer-name');
@@ -12598,6 +12876,10 @@ function wireHTooltips() {
         valueField: d.valueField,
         featureCount: d.featureCount,
         geomTypes: d.geomTypes,
+        // The computed scale, deliberately: mlScaleFor overlays the manual
+        // breaks from the ramp config at draw time, and that is the same path a
+        // hydrated saved layer takes. One code path, so the uploader sees
+        // exactly what the next reader will.
         scale: d.scale,
         ramp: mlDraftRamp(d),
       });
