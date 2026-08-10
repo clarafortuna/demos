@@ -3325,7 +3325,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }
     if (errors.length) return { ok: false, errors: errors, scale: null };
     return { ok: true, errors: [], scale: mlComputeScale(values, classCount),
-             distinct: mlDistinctValues(values) };
+             distinct: mlDistinctValues(values),
+             distinctCount: mlDistinctCount(values) };
   }
 
   /**
@@ -3583,6 +3584,16 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * Distinct numeric values, sorted, when there are few enough for one class
    * each. Null when there are too many or too few to be worth offering.
    */
+  function mlDistinctCount(values) {
+    const seen = [];
+    for (let i = 0; i < values.length; i++) {
+      const v = values[i];
+      if (v == null) continue;
+      if (seen.indexOf(v) < 0) seen.push(v);
+    }
+    return seen.length;
+  }
+
   function mlDistinctValues(values) {
     const seen = [];
     for (let i = 0; i < values.length; i++) {
@@ -11821,8 +11832,8 @@ function wireHTooltips() {
   function renderMlPreview(d) {
     // The DRAFT scale, not d.scale: d.scale is the computed fallback, and the
     // card has to show what the layer will draw with -- manual breaks, or one
-    // class per value. mlRepaintDraftClasses already used this; the card render
-    // did not, so discrete mode changed nothing on screen.
+    // class per value. The repaint path already used this; the card render did
+    // not, so discrete mode changed nothing on screen.
     const s = mlDraftScale(d);
     // Count features per ramp class so the user sees the distribution, not just
     // the cut points.
@@ -11858,42 +11869,60 @@ function wireHTooltips() {
       ? nCls + ' classes, one per distinct value, labelled with the value itself.'
       : 'Every feature has the same value, so the layer draws in one colour.';
 
+    // The context line: what the reader needs to judge a class count before
+    // choosing one. The distinct count is a plain count, not the offer decision
+    // -- mlDistinctValues deliberately returns null above the class maximum.
+    const kDistinct = (typeof d.distinctCount === 'number')
+      ? d.distinctCount : mlDistinctCount(d.geo.features.map(function (f) {
+          return mlToNumber(f.properties[d.valueField]);
+        }));
+
     return `
-      <div class="ml-preview">
+      <div class="ml-preview ml-style">
         <div class="ml-preview-head">
-          <span class="ml-preview-title">Preview</span>
+          <span class="ml-preview-title">Layer style</span>
           <span class="ml-chip ml-chip-ok">${d.featureCount.toLocaleString()} features valid</span>
         </div>
-        <div class="ml-preview-range">
-          <span class="ml-mono">${escapeHtml(d.valueField)}</span>
-          ranges ${escapeHtml(mlFmtNum(s.min))} to ${escapeHtml(mlFmtNum(s.max))}
+        <div class="ml-preview-range ml-style-context">
+          Field <span class="ml-mono">${escapeHtml(d.valueField)}</span>
+          &middot; values ${escapeHtml(mlFmtNum(s.min))} to ${escapeHtml(mlFmtNum(s.max))}
+          &middot; ${kDistinct.toLocaleString()} distinct value${kDistinct === 1 ? '' : 's'}
         </div>
-        <div class="ml-classes">${classes}</div>
-        ${mlBreaksBlockHtml(d)}
-        <div class="ml-ramp">
-          <div class="ml-ramp-head">
-            <span class="ml-ramp-title">Colour range</span>
-            <button class="btn-link ml-ramp-reset" id="ml-ramp-reset" type="button"${
-              mlIsDefaultRamp(ramp.low, ramp.high) ? ' hidden' : ''}>Reset to default</button>
-          </div>
-          <div class="ml-ramp-row">
-            <div class="ml-ramp-field">
-              <label for="ml-ramp-low">Low colour</label>
-              <div class="ml-ramp-input">
-                <input type="color" id="ml-ramp-low" value="${escapeHtml(ramp.low)}" />
-                <span class="ml-mono ml-ramp-hex" id="ml-ramp-low-hex">${escapeHtml(ramp.low)}</span>
+        <div class="ml-style-grid">
+          <div class="ml-style-left">
+            ${mlBreaksBlockHtml(d)}
+            <div class="ml-ramp">
+              <div class="ml-ramp-head">
+                <span class="ml-ramp-title">Colours</span>
+                <button class="btn-link ml-ramp-reset" id="ml-ramp-reset" type="button"${
+                  mlIsDefaultRamp(ramp.low, ramp.high) ? ' hidden' : ''}>Reset to default</button>
+              </div>
+              <div class="ml-ramp-row">
+                <div class="ml-ramp-field">
+                  <label for="ml-ramp-low">Low colour</label>
+                  <div class="ml-ramp-input">
+                    <input type="color" id="ml-ramp-low" value="${escapeHtml(ramp.low)}" />
+                    <span class="ml-mono ml-ramp-hex" id="ml-ramp-low-hex">${escapeHtml(ramp.low)}</span>
+                  </div>
+                </div>
+                <div class="ml-ramp-strip" id="ml-ramp-strip" aria-hidden="true"
+                     style="background:${mlRampGradient(ramp.colors)}"></div>
+                <div class="ml-ramp-field ml-ramp-field-end">
+                  <label for="ml-ramp-high">High colour</label>
+                  <div class="ml-ramp-input">
+                    <span class="ml-mono ml-ramp-hex" id="ml-ramp-high-hex">${escapeHtml(ramp.high)}</span>
+                    <input type="color" id="ml-ramp-high" value="${escapeHtml(ramp.high)}" />
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="ml-ramp-strip" id="ml-ramp-strip" aria-hidden="true"
-                 style="background:${mlRampGradient(ramp.colors)}"></div>
-            <div class="ml-ramp-field ml-ramp-field-end">
-              <label for="ml-ramp-high">High colour</label>
-              <div class="ml-ramp-input">
-                <span class="ml-mono ml-ramp-hex" id="ml-ramp-high-hex">${escapeHtml(ramp.high)}</span>
-                <input type="color" id="ml-ramp-high" value="${escapeHtml(ramp.high)}" />
-              </div>
+            <div class="ml-opts">
+              <div class="ml-ramp-head"><span class="ml-ramp-title">Options</span></div>
+              <label class="ml-zero"><input type="checkbox" id="ml-zero"${
+                d.zeroTransparent ? ' checked' : ''}> Draw features whose value is 0 with no fill</label>
             </div>
           </div>
+          <div class="ml-style-right">${mlStyleResultHtml(d)}</div>
         </div>
         <p class="ml-preview-note">${modeNote} The colours in between are blended from your two
         end colours. Adding the layer opens the Executive Summary map with it switched on. It sits above
@@ -11922,24 +11951,19 @@ function wireHTooltips() {
     const n = mlDraftClassCount(d);
     const fields = mlDraftBreakFields(d);
     const errs = (d.breakErrors || []);
-    const inputs = fields.map(function (v, i) {
-      return '<label class="ml-break-field"><span>Break ' + (i + 1) + '</span>' +
-        '<input type="text" inputmode="decimal" class="ml-break-input" ' +
-        'id="ml-break-' + i + '" data-ml-break="' + i + '" ' +
-        'value="' + escapeHtml(String(v)) + '"></label>';
-    }).join('');
-    const counts = [];
-    for (let k = ML_CLASS_MIN; k <= ML_CLASS_MAX; k++) {
-      counts.push('<option value="' + k + '"' + (k === n ? ' selected' : '') + '>' +
-        k + '</option>');
-    }
+    // Manual mode shows the CLASSES, each with the edge you can move, rather
+    // than a row of numbered inputs detached from what they cut. The last class
+    // has no editable upper bound: its top is the data maximum, which is a fact
+    // about the file and not a choice.
+    const rows = mlManualRowsHtml(d);
     // Offered, not imposed: the app can see that the field is a small set of
     // values, but only the person uploading knows whether it is a measurement
     // that happens to be coarse or a genuine category.
     const offer = Array.isArray(d.distinct)
       ? '<label><input type="radio" name="ml-breaks-mode" value="discrete"' +
         (discrete ? ' checked' : '') + '> One class per value (' +
-        d.distinct.length + ')</label>'
+        d.distinct.length + ')' +
+        '<span class="ml-badge-suggested">suggested</span></label>'
       : '';
     return `
       <div class="ml-breaks">
@@ -11956,20 +11980,70 @@ function wireHTooltips() {
             manual ? ' checked' : ''}> Manual</label>
         ${offer}
         </div>
-        <label class="ml-class-pick"${discrete ? ' hidden' : ''}>
-          <span>Classes</span>
-          <select id="ml-class-count">${counts.join('')}</select>
-        </label>
-        <div class="ml-breaks-row"${manual ? '' : ' hidden'}>${inputs}</div>
+        <div class="ml-class-pick"${discrete ? ' hidden' : ''}>
+          <span>Number of classes</span>
+          <span class="ml-stepper">
+            <button type="button" class="ml-step" id="ml-class-down"${
+              n <= ML_CLASS_MIN ? ' disabled' : ''} aria-label="Fewer classes">-</button>
+            <output class="ml-step-n" id="ml-class-count" data-n="${n}">${n}</output>
+            <button type="button" class="ml-step" id="ml-class-up"${
+              n >= ML_CLASS_MAX ? ' disabled' : ''} aria-label="More classes">+</button>
+          </span>
+          <span class="ml-step-range">${ML_CLASS_MIN} to ${ML_CLASS_MAX}</span>
+        </div>
+        <div class="ml-breaks-rows" id="ml-breaks-rows"${manual ? '' : ' hidden'}>${rows}</div>
         <div class="ml-breaks-err" id="ml-breaks-err"${
           errs.length ? '' : ' hidden'}>${escapeHtml(errs.join(' '))}</div>
-        <label class="ml-zero"><input type="checkbox" id="ml-zero"${
-          d.zeroTransparent ? ' checked' : ''}> Draw features whose value is 0 with no fill</label>
       </div>`;
   }
 
+
   /**
-   * Read the four inputs, validate, and repaint the class list and the error
+   * One row per class in manual mode: the colour it paints, its label, the upper
+   * boundary you can move, and how many features currently land in it.
+   *
+   * The last row's upper bound is the data maximum. It is rendered as text, not
+   * an input, because it is not a decision -- the top class ends where the data
+   * ends. Offering it as editable would invite a value that silently excludes
+   * features.
+   */
+  function mlManualRowsHtml(d) {
+    const s = mlDraftScale(d);
+    const ramp = mlDraftRamp(d);
+    const nCls = mlScaleClasses(s);
+    const fields = mlDraftBreakFields(d);
+    const counts = new Array(nCls).fill(0);
+    d.geo.features.forEach(function (f) {
+      const v = mlToNumber(f.properties[d.valueField]);
+      if (v != null) counts[mlClassIndex(v, s)]++;
+    });
+    const lowEdge = function (i) {
+      return i === 0 ? mlFmtNum(s.min) : String(fields[i - 1]);
+    };
+    const out = [];
+    for (let i = 0; i < nCls; i++) {
+      const last = i === nCls - 1;
+      const upper = last
+        ? '<span class="ml-break-fixed" title="The top class ends at the data maximum">' +
+            escapeHtml(mlFmtNum(s.max)) + '</span>'
+        : '<input type="text" inputmode="decimal" class="ml-break-input" ' +
+            'id="ml-break-' + i + '" data-ml-break="' + i + '" ' +
+            'aria-label="Upper boundary of class ' + (i + 1) + '" ' +
+            'value="' + escapeHtml(String(fields[i])) + '">';
+      out.push('<div class="ml-brow' + (counts[i] === 0 ? ' ml-brow-empty' : '') + '">' +
+        '<span class="ml-brow-sw" data-ml-swatch="' + i + '" style="background:' +
+          ramp.colors[i] + '"></span>' +
+        '<span class="ml-brow-label">' + escapeHtml(String(lowEdge(i))) + ' to</span>' +
+        '<span class="ml-brow-edge">' + upper + '</span>' +
+        '<span class="ml-brow-n" data-ml-rowcount="' + i + '">' +
+          counts[i].toLocaleString() + '</span>' +
+      '</div>');
+    }
+    return out.join('');
+  }
+
+  /**
+   * Read the inputs, validate, and repaint the result column and the error
    * line WITHOUT re-rendering the card -- re-rendering would drop focus out of
    * the input on every keystroke, the same reason mlSetDraftRamp repaints in
    * place.
@@ -11997,14 +12071,23 @@ function wireHTooltips() {
     // person never approved.
     const confirm = document.getElementById('ml-confirm');
     if (confirm) confirm.disabled = !!res.errors.length;
-    mlRepaintDraftClasses();
+    mlRepaintStyleResult();
   }
 
-  /** Recompute the class rows for the draft's current scale, in place. */
-  function mlRepaintDraftClasses() {
+  /**
+   * Repaint the RESULT column -- the live legend and the data bars -- plus the
+   * per-row counts and low edges on the left.
+   *
+   * The left column's inputs are updated in place rather than re-rendered, so
+   * focus and the caret survive a keystroke. The right column has no focusable
+   * control except the info button, so it is rebuilt wholesale.
+   */
+  function mlRepaintStyleResult() {
     const d = state.mapLayers;
-    const host = document.querySelector('.ml-classes');
-    if (!d || !d.scale || !host) return;
+    if (!d || !d.scale) return;
+    const right = document.querySelector('.ml-style-right');
+    if (right) right.innerHTML = mlStyleResultHtml(d);
+
     const s = mlDraftScale(d);
     const ramp = mlDraftRamp(d);
     const counts = new Array(mlScaleClasses(s)).fill(0);
@@ -12012,14 +12095,91 @@ function wireHTooltips() {
       const v = mlToNumber(f.properties[d.valueField]);
       if (v != null) counts[mlClassIndex(v, s)]++;
     });
-    host.innerHTML = mlClassLabels(s).map(function (label, i) {
-      return '<div class="ml-class">' +
-        '<span class="ml-class-sw" data-ml-swatch="' + i + '" style="background:' +
-          ramp.colors[i] + '"></span>' +
-        '<span class="ml-class-range">' + escapeHtml(label) + '</span>' +
-        '<span class="ml-class-count">' + counts[i].toLocaleString() + '</span>' +
+    // Row counts, swatches and the "from" edge of each row follow the numbers
+    // being typed, without touching the input the caret is in.
+    const fields = mlDraftBreakFields(d);
+    document.querySelectorAll('[data-ml-rowcount]').forEach(function (el) {
+      const i = parseInt(el.dataset.mlRowcount, 10);
+      el.textContent = (counts[i] || 0).toLocaleString();
+      const row = el.closest('.ml-brow');
+      if (row) row.classList.toggle('ml-brow-empty', counts[i] === 0);
+    });
+    document.querySelectorAll('.ml-brow').forEach(function (row, i) {
+      const lab = row.querySelector('.ml-brow-label');
+      if (lab) lab.textContent = (i === 0 ? mlFmtNum(s.min) : String(fields[i - 1])) + ' to';
+      const sw = row.querySelector('[data-ml-swatch]');
+      if (sw) sw.style.background = ramp.colors[i];
+    });
+  }
+
+
+  /**
+   * The RESULT column: the actual map legend as it will appear, and a bar per
+   * class over the per-class feature counts.
+   *
+   * The legend is rendered by mlLegendHtml -- the same function the map calls --
+   * fed a draft-shaped entry. Not a lookalike: a lookalike drifts, and the whole
+   * point of showing it here is that what you see is what gets drawn.
+   *
+   * It is wrapped in #ml-style-preview and marked data-ml-preview so that "the
+   * legend on the map" and "a preview of the legend" are never the same query.
+   * Three separate debugging sessions this week came from one class meaning two
+   * things (.ml-legend-sw, .ml-class-count, .ml-legendbox on two pages).
+   */
+  function mlStyleResultHtml(d) {
+    const s = mlDraftScale(d);
+    const ramp = mlDraftRamp(d);
+    const entry = mlDraftEntry(d);
+    const counts = new Array(mlScaleClasses(s)).fill(0);
+    d.geo.features.forEach(function (f) {
+      const v = mlToNumber(f.properties[d.valueField]);
+      if (v != null) counts[mlClassIndex(v, s)]++;
+    });
+    const max = Math.max.apply(null, counts.concat([1]));
+    const labels = mlClassLabels(s);
+    // A bar per class. An empty class is the thing this strip exists to show:
+    // five classes over a three-value field leaves two colours nothing uses, and
+    // until now that was only visible by reading a column of counts.
+    const bars = counts.map(function (c, i) {
+      const pct = Math.round((c / max) * 100);
+      return '<div class="ml-bar' + (c === 0 ? ' ml-bar-empty' : '') + '"' +
+        ' title="' + escapeHtml(labels[i] || '') + ': ' + c.toLocaleString() + '">' +
+        '<div class="ml-bar-track"><div class="ml-bar-fill" style="height:' + pct +
+          '%;background:' + ramp.colors[i] + '"></div></div>' +
+        '<div class="ml-bar-n">' + c.toLocaleString() + '</div>' +
       '</div>';
     }).join('');
+    const empties = counts.filter(function (c) { return c === 0; }).length;
+    return `
+      <div class="ml-result">
+        <div class="ml-ramp-head"><span class="ml-ramp-title">On the map</span></div>
+        <div class="ml-legend-preview" id="ml-style-preview" data-ml-preview="1">
+          <div class="ml-legendbox" id="ml-legendbox-draft">${mlLegendHtml(entry)}</div>
+        </div>
+        <div class="ml-ramp-head ml-data-head"><span class="ml-ramp-title">Your data</span></div>
+        <div class="ml-bars">${bars}</div>
+        <div class="ml-bars-note"${empties ? '' : ' hidden'}>${empties} class${
+          empties === 1 ? '' : 'es'} would draw nothing: no feature falls in ${
+          empties === 1 ? 'it' : 'them'}.</div>
+      </div>`;
+  }
+
+  /**
+   * A registry-shaped entry for the draft, so the real legend renderer can be
+   * used on it. mlLegendHtml reads id, name, ramp, scale and valueField, plus
+   * sourceLabel and origin through mlProvenance -- nothing else.
+   */
+  function mlDraftEntry(d) {
+    return {
+      id: 'draft',
+      name: String(d.layerName || '').trim() ||
+            String(d.fileName || '').replace(/\.(geojson|json)$/i, '') || 'New layer',
+      valueField: d.valueField,
+      scale: d.scale,
+      ramp: mlDraftRamp(d),
+      sourceLabel: '',
+      origin: 'session',
+    };
   }
 
   /** The draft's ramp, defaulting to the canonical one until a picker is used. */
@@ -12101,9 +12261,9 @@ function wireHTooltips() {
     d.rampLow = low;
     d.rampHigh = high;
     const ramp = mlDraftRamp(d);
-    document.querySelectorAll('.ml-classes [data-ml-swatch]').forEach(function (el) {
-      el.style.background = ramp.colors[parseInt(el.dataset.mlSwatch, 10)];
-    });
+    // The live legend and the data bars follow the colours immediately; the
+    // left column's row swatches are updated by the same call.
+    mlRepaintStyleResult();
     const strip = document.getElementById('ml-ramp-strip');
     if (strip) strip.style.background = mlRampGradient(ramp.colors);
     const loHex = document.getElementById('ml-ramp-low-hex');
@@ -13078,13 +13238,52 @@ function wireHTooltips() {
       document.querySelectorAll('[data-ml-break]').forEach(function (el) {
         el.addEventListener('input', mlApplyDraftBreaks);
       });
-      const countSel = document.getElementById('ml-class-count');
-      if (countSel) countSel.addEventListener('change', function () {
+      // The stepper. A full re-render is right here (unlike a keystroke in a
+      // break input): the number of rows changes, so there is nothing to
+      // preserve in place, and no control holds focus that a rebuild would lose
+      // beyond the button itself.
+      const stepBy = function (delta) {
         const d = state.mapLayers;
         if (!d) return;
-        d.classCount = parseInt(this.value, 10);
+        const now = mlDraftClassCount(d);
+        const next = Math.max(ML_CLASS_MIN, Math.min(ML_CLASS_MAX, now + delta));
+        if (next === now) return;
+        d.classCount = next;
         mlRecomputeDraftScale(d);
         rerenderMlUpload();
+      };
+      const cDown = document.getElementById('ml-class-down');
+      const cUp = document.getElementById('ml-class-up');
+      if (cDown) cDown.addEventListener('click', function () { stepBy(-1); });
+      if (cUp) cUp.addEventListener('click', function () { stepBy(1); });
+
+      // The live preview renders the real legend, including its (i). On the map
+      // that button is handled by a delegate on #dac-map-panels, which does not
+      // exist on this page -- so without this the control would be dead, and a
+      // dead control in a preview teaches the wrong thing.
+      //
+      // The panel opens INLINE beneath the legend rather than floating: there is
+      // no map here to float over. Same content, rendered by the same function.
+      const styleRight = document.querySelector('.ml-style-right');
+      if (styleRight) styleRight.addEventListener('click', function (e) {
+        const btn = e.target.closest('[data-ml-info]');
+        if (!btn) return;
+        const d = state.mapLayers;
+        if (!d || !d.scale) return;
+        const host = document.getElementById('ml-style-preview');
+        if (!host) return;
+        let note = host.querySelector('.ml-preview-note-panel');
+        if (note) {
+          note.remove();
+          btn.setAttribute('aria-expanded', 'false');
+          return;
+        }
+        const entry = mlDraftEntry(d);
+        note = document.createElement('div');
+        note.className = 'ml-info-panel ml-preview-note-panel';
+        note.innerHTML = mlLegendNoteHtml(entry, mlProvenance(entry));
+        host.appendChild(note);
+        btn.setAttribute('aria-expanded', 'true');
       });
 
       const bReset = document.getElementById('ml-breaks-reset');
@@ -13100,7 +13299,9 @@ function wireHTooltips() {
         const d = state.mapLayers;
         if (!d) return;
         d.zeroTransparent = this.checked;
-        // Nothing in the card's layout depends on it, so no re-render.
+        // The live legend states the convention, so the result column has to
+        // follow. The left column is untouched, so the checkbox keeps focus.
+        mlRepaintStyleResult();
       });
 
       const reset = document.getElementById('ml-ramp-reset');
