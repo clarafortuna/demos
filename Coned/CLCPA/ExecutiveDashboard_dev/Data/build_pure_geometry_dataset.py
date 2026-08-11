@@ -92,11 +92,20 @@ SRC = {
 ELEC = os.path.join(HERE, "Extra_info", "CECONY_Electric")
 GAS = os.path.join(HERE, "Extra_info", "CECONY_Gas")
 
-CROSSWALK_2020 = os.path.join(
-    HERE, "2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv")
-# Filename pattern for the 2010 table; resolved by prefix so the date suffix of
-# whatever was downloaded does not have to be hardcoded.
-CROSSWALK_2010_PREFIX = "2010_Census_Tract"
+# Both crosswalks are resolved by prefix, so the date suffix of whatever was
+# downloaded does not have to be hardcoded. The 2020 table used to be a full
+# hardcoded filename ending _20260601.csv: stage a fresh hm78-6dwm export as
+# _20260810.csv and this build silently kept reading the June file and labelled
+# the dataset with a crosswalk it had not used.
+CROSSWALK_PREFIX = {"2010": "2010_Census_Tract", "2020": "2020_Census_Tract"}
+# Portal ids, for the message when a table is missing. Naming the dataset is the
+# difference between a solvable error and a search.
+CROSSWALK_PORTAL = {
+    "2010": ("8ius-dhrr", "2010 Census Tract to Neighborhood Tabulation Area "
+                          "Equivalency table"),
+    "2020": ("hm78-6dwm", "2020 Census Tracts to 2020 NTAs and CDTAs "
+                          "Equivalency table"),
+}
 
 MANIFEST_SCHEMA = 1
 DATASET_KEY = "tract_geometry"
@@ -154,18 +163,56 @@ def load_tracts(vintage):
     return out
 
 
-def find_crosswalk_2010():
-    for name in sorted(os.listdir(HERE)):
-        if name.startswith(CROSSWALK_2010_PREFIX) and name.lower().endswith(".csv"):
-            return os.path.join(HERE, name)
-    return None
+def find_crosswalk(vintage, where=None):
+    """The single crosswalk resolver, for both vintages.
+
+    Returns the one matching path, or None if there is none. Two matches is a
+    refusal, not a choice: the 2010 side used to take the first in sorted order,
+    which means dropping a newer export beside an older one picked whichever
+    sorted first and said nothing. That is the same silent-divergence failure the
+    hardcoded 2020 filename had, arrived at from the other direction, so both are
+    fixed here rather than in two places.
+
+    `where` reads HERE at call time so a test can point it at a temp directory.
+    """
+    root = where or HERE
+    prefix = CROSSWALK_PREFIX[vintage]
+    hits = [n for n in sorted(os.listdir(root))
+            if n.startswith(prefix) and n.lower().endswith(".csv")]
+    if len(hits) > 1:
+        portal = CROSSWALK_PORTAL[vintage][0]
+        sys.exit(
+            "AMBIGUOUS: %d files in Data/ match the %s crosswalk prefix '%s':\n"
+            "%s\n"
+            "  Refusing to guess. Whichever sorted first would be read silently, and\n"
+            "  the dataset would be labelled with a crosswalk it may not have used.\n"
+            "  Keep the one you mean (portal %s) and move the other out of Data/."
+            % (len(hits), vintage, prefix,
+               "\n".join("    " + h for h in hits), portal))
+    return os.path.join(root, hits[0]) if hits else None
 
 
 def load_crosswalk_2020():
-    rows = list(csv.DictReader(open(CROSSWALK_2020, encoding="utf-8-sig")))
+    path = find_crosswalk("2020")
+    if not path:
+        portal, title = CROSSWALK_PORTAL["2020"]
+        sys.exit(
+            "MISSING: the 2020 NTA equivalency table.\n"
+            "  Expected a CSV in Data/ whose name starts with '%s'.\n"
+            "  Source: NYC Department of City Planning, NYC Open Data %s,\n"
+            "  '%s'.\n"
+            "  Columns used: GEOID and NTAName."
+            % (CROSSWALK_PREFIX["2020"], portal, title))
+    rows = list(csv.DictReader(open(path, encoding="utf-8-sig")))
+    missing = [c for c in ("GEOID", "NTAName") if rows and c not in rows[0]]
+    if missing:
+        sys.exit("the 2020 table is missing the %s column(s); got: %s"
+                 % (", ".join(missing), list(rows[0].keys())))
+    # Names the file, as the 2010 side already did: the point of resolving by
+    # prefix is that the label can say WHICH export the names came from.
     return ({r["GEOID"]: r["NTAName"] for r in rows},
-            "NYC DCP, 2020 Census Tracts to 2020 NTAs and CDTAs Equivalency table (%d rows)"
-            % len(rows))
+            "NYC DCP, 2020 Census Tracts to 2020 NTAs and CDTAs Equivalency table "
+            "(%d rows), %s" % (len(rows), os.path.basename(path)))
 
 
 def load_neighborhoods(vintage):
@@ -173,7 +220,7 @@ def load_neighborhoods(vintage):
     if vintage == "2020":
         return load_crosswalk_2020()
 
-    path = find_crosswalk_2010()
+    path = find_crosswalk("2010")
     if not path:
         sys.exit(
             "MISSING: the 2010 NTA equivalency table.\n"
@@ -184,7 +231,7 @@ def load_neighborhoods(vintage):
             "  A 2010 geometry dataset cannot be built without it: naming its tracts\n"
             "  from the 2020 table would put 2020 neighbourhood names on 2010 tracts,\n"
             "  which is the mismatch this whole design exists to prevent."
-            % CROSSWALK_2010_PREFIX)
+            % CROSSWALK_PREFIX["2010"])
 
     rows = list(csv.DictReader(open(path, encoding="utf-8-sig")))
 
