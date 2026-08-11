@@ -11363,9 +11363,9 @@ function wireHTooltips() {
           </dl>
           <span class="emf-hint">How to update ${chev}</span>
           <div class="emf-steps" hidden><ol>
-            <li>This is the routine update, done each reporting cycle and the only one you maintain directly.</li>
+            <li>This is the routine update, done each reporting cycle, and the source you own.</li>
             <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
-            <li>Upload the file; the data flows in through the upload into the data store. No rebuild and no code change.</li>
+            <li>Send the refreshed files to the maintainer. There is no upload for spreadsheets: these figures reach the dashboard only by rebuilding <span class="emf-mono">map_payload.json</span> through the payload pipeline and redeploying it. That procedure is being validated and is not self-service yet.</li>
           </ol></div>
         </div>
 

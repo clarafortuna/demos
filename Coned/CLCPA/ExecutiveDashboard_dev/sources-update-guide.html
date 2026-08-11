@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Sources (list and update guide)</title>
+<style>
+  :root {
+    --bg: #ffffff; --bg-2: #f7f6f2; --bg-3: #f1efe8;
+    --text: #1a1a1a; --text-2: #5f5e5a; --text-3: #888780;
+    --border: rgba(0,0,0,0.12); --border-2: rgba(0,0,0,0.28);
+    --accent: #185FA5; --accent-bg: #E6F1FB;
+    --edit-bg: #E1F5EE; --edit-text: #085041;
+    --ref-bg: #EDF1F4;  --ref-text: #44525e;
+    --up-bg: #FAEEDA;   --up-text: #633806;
+    --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+    --font-mono: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  }
+  body.dark {
+    --bg: #1a1a1a; --bg-2: #232321; --bg-3: #2c2c2a;
+    --text: #e8e6df; --text-2: #b4b2a9; --text-3: #888780;
+    --border: rgba(255,255,255,0.12); --border-2: rgba(255,255,255,0.30);
+    --accent: #85B7EB; --accent-bg: #0C447C;
+    --edit-bg: #085041; --edit-text: #E1F5EE;
+    --ref-bg: #33414d;  --ref-text: #cdd6de;
+    --up-bg: #633806;   --up-text: #FAEEDA;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--font); font-size: 14px; line-height: 1.6; color: var(--text); background: var(--bg-2); margin: 0; padding: 24px; }
+  .container { max-width: 920px; margin: 0 auto; }
+
+  header { margin-bottom: 20px; }
+  header h1 { font-size: 24px; font-weight: 500; margin: 0 0 4px; }
+  header p { color: var(--text-2); margin: 0; max-width: 760px; }
+
+  .lead { background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px 20px; margin-bottom: 18px; }
+  .lead p { margin: 0; color: var(--text-2); font-size: 13px; }
+  .lead strong { color: var(--text); }
+  code { font-family: var(--font-mono); font-size: 12.5px; background: var(--bg-3); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text); }
+
+  .src { background: var(--bg); border: 0.5px solid var(--border); border-radius: 12px; margin-bottom: 14px; padding: 14px 20px 16px;
+         cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .05s; }
+  .src:hover { border-color: var(--border-2); box-shadow: 0 3px 14px rgba(0,0,0,.06); }
+  .src:active { transform: translateY(1px); }
+  .src.selected { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .src:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .src-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .src-head h2 { font-size: 16px; font-weight: 600; margin: 0; }
+  .cad { margin-left: auto; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; font-weight: 500; letter-spacing: 0.3px; white-space: nowrap; }
+  .c-edit { background: var(--edit-bg); color: var(--edit-text); }
+  .c-ref  { background: var(--ref-bg);  color: var(--ref-text); }
+
+  .row { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; }
+  .row dt { color: var(--text-3); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; padding-top: 2px; }
+  .row dd { margin: 0; color: var(--text-2); }
+  .row dd .file { font-family: var(--font-mono); font-size: 12px; color: var(--text); }
+
+  .hint { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px;
+          font-size: 12.5px; font-weight: 600; color: var(--accent); }
+  .hint svg { width: 13px; height: 13px; }
+  .footnote { color: var(--text-3); font-size: 12px; margin-top: 10px; }
+
+  /* drawer */
+  .backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.28); opacity: 0; visibility: hidden;
+              transition: opacity .2s ease, visibility .2s ease; z-index: 40; }
+  .backdrop.open { opacity: 1; visibility: visible; }
+  .drawer { position: fixed; top: 0; right: 0; height: 100%; width: min(440px, 92vw);
+            background: var(--bg); border-left: 0.5px solid var(--border);
+            box-shadow: -10px 0 36px rgba(0,0,0,0.14); transform: translateX(102%);
+            transition: transform .26s cubic-bezier(.22,.61,.36,1); z-index: 50; display: flex; flex-direction: column; }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head { padding: 20px 22px 16px; border-bottom: 0.5px solid var(--border); position: relative; }
+  .drawer-head .k { font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--up-text); font-weight: 600; display: inline-flex; align-items: center; gap: 8px; }
+  .drawer-head .k .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--up-text); }
+  .drawer-head h2 { font-size: 19px; font-weight: 600; margin: 8px 0 10px; padding-right: 30px; }
+  .close { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border: none; border-radius: 7px;
+           background: var(--bg-3); color: var(--text-2); font-size: 17px; line-height: 1; cursor: pointer; }
+  .close:hover { background: var(--border); color: var(--text); }
+  .drawer-body { padding: 18px 22px 26px; overflow-y: auto; }
+  .drawer-body ol { margin: 0; padding-left: 20px; }
+  .drawer-body li { margin: 0 0 12px; color: var(--text-2); font-size: 13.5px; line-height: 1.55; }
+  .drawer-body li strong { color: var(--text); }
+  .drawer-foot { margin-top: 14px; padding-top: 14px; border-top: 0.5px solid var(--border); font-size: 12px; color: var(--text-3); }
+
+  footer { color: var(--text-3); font-size: 12px; text-align: center; padding: 8px 0 24px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>Data Sources</h1>
+    <p>The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
+  </header>
+
+  <div class="lead">
+    <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit GEOID, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change flows into <code>map_payload.json</code>. The one exception is the Con Edison customer data, which updates through a file upload instead of a rebuild.</p>
+  </div>
+
+  <!-- 1 -->
+  <div class="src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Census tract geometry">
+    <div class="src-head">
+      <h2>1 &nbsp; Census tract geometry</h2>
+      <span class="cad c-ref">rarely changes</span>
+    </div>
+    <dl class="row">
+      <dt>From</dt><dd>U.S. Census Bureau (TIGER/Line tract boundaries), saved as GeoJSON</dd>
+      <dt>Files</dt><dd><span class="file">ny_tracts.geojson</span> (2020, primary) and <span class="file">ny_tracts_2010.geojson</span> (2010, fallback)</dd>
+      <dt>Brings</dt><dd>the polygon shape of every area on the map, and the GEOID that all other sources join on</dd>
+    </dl>
+    <span class="hint">How to update <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+    <p class="footnote">The 2010 file is a fallback only: it supplies a boundary for tracts missing from the 2020 file. The exact tracts that fall back are available as a separate export.</p>
+    <div class="update-steps" hidden>
+      <ol>
+        <li>Tract boundaries change only rarely (each decennial census, or an occasional vintage correction).</li>
+        <li>When a newer vintage is published, export the New York tracts for the six counties as GeoJSON, keeping the <code>GEOID</code> property.</li>
+        <li>Replace <strong>ny_tracts.geojson</strong> (same filename, same <code>GEOID</code> field). Only touch the 2010 fallback if you need older-vintage coverage.</li>
+        <li>Re-run the base build. A new vintage can add or drop tracts, so re-check the feature count afterward.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYSERDA DAC dataset">
+    <div class="src-head">
+      <h2>2 &nbsp; NYSERDA DAC dataset</h2>
+      <span class="cad c-ref">updated when republished</span>
+    </div>
+    <dl class="row">
+      <dt>From</dt><dd>NYSERDA / New York State Climate Justice Working Group (the CLCPA Disadvantaged Communities data)</dd>
+      <dt>File</dt><dd><span class="file">NYS_DAC.geojson</span></dd>
+      <dt>Brings</dt><dd>the DAC / Non-DAC designation, the headline fields (population, households, combined score, ranks, burden, vulnerability, affordability), and the 48 granular indicator percentiles and scores</dd>
+    </dl>
+    <span class="hint">How to update <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+    <div class="update-steps" hidden>
+      <ol>
+        <li>NYSERDA revisits the designations periodically. When a new release is published, download it as GeoJSON keyed by <code>GEOID</code>.</li>
+        <li>Replace <strong>NYS_DAC.geojson</strong>.</li>
+        <li>Re-run the base build and the indicator step so both the headline fields and the 48 indicators refresh.</li>
+        <li>If NYSERDA renames any columns, the field lists in the build need a matching update.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Con Edison customer extracts">
+    <div class="src-head">
+      <h2>3 &nbsp; Con Edison customer extracts</h2>
+      <span class="cad c-edit">editable each cycle</span>
+    </div>
+    <dl class="row">
+      <dt>From</dt><dd>Con Edison internal account and billing systems</dd>
+      <dt>Files</dt><dd><span class="file">Electric.xlsx</span> and <span class="file">Gas.xlsx</span> (the <code>Export</code> sheet)</dd>
+      <dt>Brings</dt><dd>per area: total accounts, accounts in the Energy Affordability Program, bill adjustments, and the DAC class</dd>
+    </dl>
+    <span class="hint">How to update <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+    <div class="update-steps" hidden>
+      <ol>
+        <li>This is the routine update, done each reporting cycle, and the source you own.</li>
+        <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
+        <li>Send the refreshed files to the maintainer. There is no upload for spreadsheets: these figures reach the dashboard only by rebuilding <code>map_payload.json</code> through the payload pipeline and redeploying it. That procedure is being validated and is not self-service yet.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYC neighborhood crosswalk">
+    <div class="src-head">
+      <h2>4 &nbsp; NYC neighborhood crosswalk</h2>
+      <span class="cad c-ref">updated when republished</span>
+    </div>
+    <dl class="row">
+      <dt>From</dt><dd>NYC Department of City Planning (the Census-tracts-to-NTAs equivalency table)</dd>
+      <dt>File</dt><dd><span class="file">2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_*.csv</span></dd>
+      <dt>Brings</dt><dd>the neighborhood (NTA) name for each New York City area</dd>
+    </dl>
+    <span class="hint">How to update <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+    <div class="update-steps" hidden>
+      <ol>
+        <li>When City Planning publishes a new equivalency (revised NTA names or boundaries), download the new CSV.</li>
+        <li>It must keep the <code>GEOID</code> and <code>NTAName</code> columns (UTF-8).</li>
+        <li>Replace the file and re-run the neighborhood step. If the filename changes, update the reference to it in the build.</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Service-territory shapefiles">
+    <div class="src-head">
+      <h2>5 &nbsp; Service-territory shapefiles</h2>
+      <span class="cad c-ref">updated when boundaries change</span>
+    </div>
+    <dl class="row">
+      <dt>From</dt><dd>Con Edison (CECONY electric and gas) and Orange &amp; Rockland (ORU)</dd>
+      <dt>Files</dt><dd><span class="file">Data/Extra_info/CECONY_Electric.shp</span>, <span class="file">CECONY_Gas.shp</span>, <span class="file">ORU_Territory.shp</span> (each with its <code>.prj</code> and <code>.dbf</code>)</dd>
+      <dt>Brings</dt><dd>the utility service-area boundaries (the drawable overlay) and the per-area network and gas-area tags</dd>
+    </dl>
+    <span class="hint">How to update <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></span>
+    <div class="update-steps" hidden>
+      <ol>
+        <li>When the utility boundaries change, get the new shapefile set from the utility.</li>
+        <li>Replace the files, keeping each <code>.shp</code> together with its <code>.dbf</code> and <code>.prj</code>, and keeping the name fields (<code>NETWORK</code>, <code>BORONAME</code>, <code>STATE</code>).</li>
+        <li>Re-run the network step (per-area tags) and rebuild the overlay file.</li>
+        <li>Mind the projection: the Con Edison files are in <code>EPSG:2263</code>, the ORU file is in NAD27.</li>
+      </ol>
+    </div>
+  </div>
+
+  <footer>Source list and update guide for the DAC map.</footer>
+
+</div>
+
+<!-- right-side panel -->
+<div class="backdrop" id="backdrop"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+  <div class="drawer-head">
+    <span class="k"><span class="dot"></span> Updating to a newer version</span>
+    <button class="close" id="closeBtn" aria-label="Close">&times;</button>
+    <h2 id="drawerTitle"></h2>
+    <span class="cad c-ref" id="drawerCad"></span>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</aside>
+
+<script>
+  var cards = Array.prototype.slice.call(document.querySelectorAll('.src'));
+  var backdrop = document.getElementById('backdrop');
+  var drawer = document.getElementById('drawer');
+  var closeBtn = document.getElementById('closeBtn');
+  var dTitle = document.getElementById('drawerTitle');
+  var dCad = document.getElementById('drawerCad');
+  var dBody = document.getElementById('drawerBody');
+
+  function openDrawer(card) {
+    dTitle.textContent = card.getAttribute('data-title');
+    var cad = card.querySelector('.cad');
+    dCad.textContent = cad.textContent;
+    dCad.className = 'cad ' + (cad.classList.contains('c-edit') ? 'c-edit' : 'c-ref');
+    dBody.innerHTML = card.querySelector('.update-steps').innerHTML;
+    cards.forEach(function(s){ s.classList.remove('selected'); });
+    card.classList.add('selected');
+    backdrop.classList.add('open');
+    drawer.classList.add('open');
+    closeBtn.focus();
+  }
+  function closeDrawer() {
+    backdrop.classList.remove('open');
+    drawer.classList.remove('open');
+    cards.forEach(function(s){ s.classList.remove('selected'); });
+  }
+  cards.forEach(function(card){
+    card.addEventListener('click', function(){ openDrawer(card); });
+    card.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openDrawer(card); }
+    });
+  });
+  backdrop.addEventListener('click', closeDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeDrawer(); });
+</script>
+</body>
+</html>
