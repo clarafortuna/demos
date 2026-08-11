@@ -8150,15 +8150,31 @@ a.nav-item { text-decoration: none; }
   color: var(--text-3); margin-bottom: 6px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.ml-legend-scale { display: flex; align-items: center; gap: 3px; }
+/* flex-start, not center: the swatch row carries the tick row below it now, so
+   centring would drop Low/High by half the ticks' height. The labels get a
+   line-height equal to the swatch height instead, which centres them on the
+   swatches exactly as before. */
+.ml-legend-scale { display: flex; align-items: flex-start; gap: 3px; }
+.ml-legend-sws {
+  display: flex; gap: 3px;
+  /* Anchor for the ticks, plus the vertical room they need while out of flow.
+     11px line + 2px gap; horizontal geometry is never restated here. */
+  position: relative; margin-bottom: 13px;
+}
 .ml-legend-sw { width: 18px; height: 10px; flex-shrink: 0; }
-.ml-legend-lbl { font-size: 9px; color: var(--text-3); padding: 0 2px; }
+.ml-legend-lbl { font-size: 9px; color: var(--text-3); padding: 0 2px; line-height: 10px; }
 /* Min / max only — see mlLegendHtml: arbitrary numeric fields produce labels
-   far too wide to tick each class boundary in a 221px panel. */
+   far too wide to tick each class boundary in a 221px panel.
+
+   left:0 / right:0 against the strip is the whole fix: the row is exactly as
+   wide as the swatches actually rendered, at 2 classes or 7, with no class
+   count and no swatch size restated anywhere. Out of flow, so it cannot widen
+   the strip either -- a wide max label overflows to the right of the last
+   swatch rather than stretching the ramp to fit itself. */
 .ml-legend-ticks {
+  position: absolute; left: 0; right: 0; top: calc(100% + 2px);
   display: flex; justify-content: space-between; gap: 6px;
   font-size: 8.5px; color: var(--text-4); font-variant-numeric: tabular-nums;
-  margin: 2px 0 0 22px; width: calc(5 * 18px + 4 * 3px);
 }
 .ml-legend-src { font-size: 8.5px; color: var(--text-4); margin-top: 5px; line-height: 1.4; }
 
