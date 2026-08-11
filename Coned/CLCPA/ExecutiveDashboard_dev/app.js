@@ -13223,22 +13223,20 @@ function wireHTooltips() {
           const d = state.mapLayers;
           if (!d) return;
           d.breaksMode = this.value;
-          // Discrete pins the count to the distinct-value count, so the computed
-          // scale behind it has to be recalculated for that number.
-          if (this.value === 'discrete') {
-            d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
-            mlRecomputeDraftScale(d);
-          } else if (this.value === 'manual') {
-            // Start from the computed breaks: a blank set of boxes is a worse
-            // starting point than the numbers being replaced.
-            d.breaksRaw = mlDraftBreakFields(d).slice();
-            const r2 = mlBreakErrors(d.breaksRaw, d.scale, mlDraftClassCount(d) - 1);
-            d.breakErrors = r2.errors;
-            d.breaks = r2.values;
-          } else {
-            d.breaksRaw = null; d.breakErrors = []; d.breaks = null;
-            mlRecomputeDraftScale(d);
-          }
+          // Every mode recomputes the draft scale for the count it is about to
+          // display. mlRecomputeDraftScale already does both halves of this and
+          // in the right order: it refreshes d.scale for the current class
+          // count, THEN prefills the manual boxes from it (or clears them for
+          // the other modes).
+          //
+          // Manual used to be the exception, prefilling from whatever scale was
+          // already there. Coming out of discrete that scale was the 3-class
+          // one, so the source line kept counting 3 while the stepper and the
+          // ramp went back to 5, the data strip drew 3 bars, and the manual
+          // prefill arrived two values short -- which the break validator then
+          // rejected with "All 4 break values are needed". Three numbers on one
+          // screen, from one branch not calling this.
+          mlRecomputeDraftScale(d);
           rerenderMlUpload();
         });
       });
