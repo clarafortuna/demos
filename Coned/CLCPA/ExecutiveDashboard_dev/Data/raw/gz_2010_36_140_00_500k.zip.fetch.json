@@ -1,0 +1,10 @@
+{
+  "bytes": 1592988,
+  "contentType": "application/zip",
+  "fetchedAt": "2026-08-11T21:29:45Z",
+  "fetchedBy": "update_map_data.py",
+  "savedAs": "gz_2010_36_140_00_500k.zip",
+  "serverDate": "Thu, 01 Mar 2012 21:58:53 GMT",
+  "sha256": "b682123647cf49af4931d2b18302dd15c0b7082ba83897b8c0402636dc19537c",
+  "url": "https://www2.census.gov/geo/tiger/GENZ2010/gz_2010_36_140_00_500k.zip"
+}
