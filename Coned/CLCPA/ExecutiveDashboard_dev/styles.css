@@ -8336,15 +8336,16 @@ a.nav-item { text-decoration: none; }
  * would only have restretched it differently without this.
  * ========================================================================== */
 .ml-style-context { margin-bottom: 12px; }
-/* The cap constrains the GRID, centred, and nothing else. Putting it on the card
-   made the card narrower than its neighbours and opened a gap beside it. At any
-   ordinary viewport the card's content is under 1100px, so the cap does nothing
-   and the grid simply fills the card; it only bites at very wide viewports,
-   where the point is to stop a 92px input being stretched across 1588px. */
+/* The cap constrains the GRID and nothing else. On the card it made the card
+   narrower than its neighbours and opened a gap beside it.
+   LEFT-ALIGNED, not centred: centring split the leftover width into two gutters,
+   and the left one read as dead space because the header and the context line
+   above start at the card's edge. The grid now starts there too, and the leftover
+   width all goes to the right. */
 .ml-style-grid {
   display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px;
   align-items: start;
-  max-width: 1100px; margin-left: auto; margin-right: auto;
+  max-width: 1100px; margin-left: 0; margin-right: auto;
 }
 /* Below the point where 340px + a usable left column stops fitting, stack. The
    result column stays visible, just underneath, because it is the thing being
