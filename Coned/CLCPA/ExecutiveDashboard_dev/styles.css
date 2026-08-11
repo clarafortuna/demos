@@ -8336,16 +8336,17 @@ a.nav-item { text-decoration: none; }
  * would only have restretched it differently without this.
  * ========================================================================== */
 .ml-style-context { margin-bottom: 12px; }
-/* The cap constrains the GRID and nothing else. On the card it made the card
-   narrower than its neighbours and opened a gap beside it.
-   LEFT-ALIGNED, not centred: centring split the leftover width into two gutters,
-   and the left one read as dead space because the header and the context line
-   above start at the card's edge. The grid now starts there too, and the leftover
-   width all goes to the right. */
+/* Full width, no cap. The result column is a fixed 340px, so it sits against the
+   card's right edge at every viewport, and the 1fr decision column absorbs the
+   whole difference -- which means what grows and shrinks is the COLOURS gradient
+   strip, the one control that reads better wide.
+   Two earlier attempts got this wrong and are worth not repeating: capping the
+   CARD made it narrower than its neighbours, and capping the GRID left dead space
+   on whichever side the leftover width fell. Nothing here needs a cap, because
+   nothing in the decision column stretches except the gradient. */
 .ml-style-grid {
   display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 22px;
   align-items: start;
-  max-width: 1100px; margin-left: 0; margin-right: auto;
 }
 /* Below the point where 340px + a usable left column stops fitting, stack. The
    result column stays visible, just underneath, because it is the thing being
@@ -8373,9 +8374,13 @@ a.nav-item { text-decoration: none; }
 
 /* ---- Manual mode: one row per class, with the edge you can move ---- */
 .ml-breaks-rows { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+/* Capped per ROW, not on the grid: the count column is the only part of a manual
+   row that would stretch, so it is the only thing that needs constraining. The
+   gradient beside it is free to fill the column. */
 .ml-brow {
   display: grid; grid-template-columns: 18px minmax(84px, auto) 100px 1fr;
   align-items: center; gap: 8px;
+  max-width: 420px;
   font-size: 11.5px; font-variant-numeric: tabular-nums;
 }
 .ml-brow-sw { width: 18px; height: 12px; border-radius: 2px; }
