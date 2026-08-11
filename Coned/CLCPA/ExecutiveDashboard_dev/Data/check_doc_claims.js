@@ -65,18 +65,37 @@ function accepted(src) {
   return out;
 }
 
-/* Sentences that name a spreadsheet AND claim it is uploaded. Split on <li> and
- * sentence ends rather than lines: the app builds this markup inside a template
- * literal, so one source line can hold a whole paragraph. */
+/* Sentences that name a spreadsheet AND claim it reaches the app by itself.
+ * Split on <li> and sentence ends rather than lines: the app builds this markup
+ * inside a template literal, so one source line can hold a whole paragraph.
+ *
+ * The verb list is deliberately wider than "upload". The first version of this
+ * guard only looked for that word, and a planted rewording -- "Drop
+ * Electric.xlsx straight into the app and it is ingested automatically" -- made
+ * the identical false promise and passed. The claim class is "a spreadsheet
+ * enters the app without a rebuild", however it is phrased. */
+const ENTERS_APP = new RegExp([
+  '\\bupload(ed|s|ing)?\\b',
+  '\\bingest(ed|s|ion|ing)?\\b',
+  '\\bimport(ed|s|ing)?\\b',
+  '\\bdrag(ged|s)?\\b',
+  '\\bdrops? (it |them |the file )?in(to)?\\b',
+  'flows? in',
+  'picked up',
+  'no rebuild',
+  'no code change',
+  'automatic(ally)?',
+].join('|'), 'i');
+
 function uploadClaims(src) {
   return src
     .split(/<\/li>|<\/p>|\. (?=[A-Z])/)
     .map(function (s) { return s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(); })
     .filter(function (s) {
       if (!SPREADSHEET.test(s)) return false;
-      // "there is no upload for spreadsheets" is a denial, not a claim.
-      if (/no upload|not self-service|cannot be uploaded/i.test(s)) return false;
-      return /\bupload(ed|s|ing)?\b/i.test(s);
+      // Denials are the correction, not the bug.
+      if (/no upload|not self-service|cannot be uploaded|there is no/i.test(s)) return false;
+      return ENTERS_APP.test(s);
     });
 }
 
