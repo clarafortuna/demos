@@ -1,3 +1,16 @@
 # Local map-payload snapshots written by the pipeline — not versioned.
 map_payload.backup.json
 map_payload.backup2.json
+
+# Archives staged by update_map_data.py. The ARCHIVE is not versioned; its
+# SIDECAR is. Each .fetch.json records the url, the server's date, the byte count
+# and the sha256, so the 3.8 MB of Census zip is reproducible from the record and
+# checkable against it. Committing the record and not the payload keeps the
+# provenance without the binary churn.
+Data/raw/*.zip
+
+# Written when a sibling script imports the builder for its constants.
+# update_map_data.py sets sys.dont_write_bytecode, but running the test or the
+# builder directly still produces these.
+Data/__pycache__/
+__pycache__/
