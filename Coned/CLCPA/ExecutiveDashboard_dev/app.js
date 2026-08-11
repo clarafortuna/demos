@@ -3768,11 +3768,18 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           'aria-label="Source and class ranges for ' + escapeHtml(entry.name) +
           '">i</button>' +
       '</div>' +
+      // The ticks live INSIDE the swatch strip, not beside it, so their box is
+      // the strip's box at any class count. They used to be a sibling sized by
+      // calc(5 * 18px + 4 * 3px) -- a second copy of the swatch geometry, which
+      // was right only at five classes and put the max label 45px short of the
+      // end at seven.
       '<div class="ml-legend-scale">' +
-        '<span class="ml-legend-lbl">Low</span>' + sw +
+        '<span class="ml-legend-lbl">Low</span>' +
+        '<span class="ml-legend-sws">' + sw +
+          '<span class="ml-legend-ticks">' + ticks + '</span>' +
+        '</span>' +
         '<span class="ml-legend-lbl">High</span>' +
       '</div>' +
-      '<div class="ml-legend-ticks">' + ticks + '</div>' +
       // The card keeps only what fits: field and how the classes were cut. The
       // provenance text runs to 300 characters against a 221px panel, so it
       // moves into the popup rather than wrapping the card to six lines.
