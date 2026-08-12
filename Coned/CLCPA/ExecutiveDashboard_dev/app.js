@@ -2617,28 +2617,188 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // from. Whichever finished last used to win, which is a coin toss, not a rule.
   let _mapGeoGen = 0;
 
+  // Slice 5c. 'dataverse' composes the map from the geometry dataset, the
+  // indicator dataset and the editable overlay. 'payload' is the pre-5c
+  // behaviour: fetch map_payload.json and treat the datasets as overlays onto it.
+  //
+  // This exists so a problem in the hosted app is one word and a redeploy of
+  // app.js, with no data change and no payload rollback. It is scaffolding, not a
+  // feature: slice 5d removes it along with the payload path, once the standalone
+  // and public-origin question is settled. Do not build anything on it.
+  const MAP_BASE = 'dataverse';
+
+  // How long the map card waits for hydration before drawing from the payload
+  // instead. A hard ceiling, not a retry: a Dataverse call that has not answered
+  // in this long is not going to make the first paint, and a map drawn from the
+  // payload is far better than a skeleton that never resolves.
+  const MAP_HYDRATION_TIMEOUT_MS = 8000;
+  let _dsHydrationPromise = null;
+  let _dsHydrationDone = false;
+  let _dsHydrationMs = null;
+
+  /**
+   * Whether the MAP should hold its first paint for hydration. Separate from
+   * whether hydration RUNS, and the two were briefly conflated: an early cut of
+   * this gate returned Promise.resolve() without starting hydration whenever the
+   * map did not need to wait, so MAP_BASE='payload' -- the rollback lever -- and
+   * every standalone session loaded no datasets at all. The proof harness caught
+   * it as a baseline that drew the payload's hybrid geometry forever.
+   */
+  function dsMapWaitsForHydration() {
+    return !_dsHydrationDone && MAP_BASE === 'dataverse' && Storage.isDataverse();
+  }
+
+  /** True once hydration has finished or timed out, so the mount need not wait. */
+  function dsHydrationSettled() {
+    return !dsMapWaitsForHydration();
+  }
+
+  /**
+   * Start hydration, exactly once, ALWAYS. Unawaited by boot: the dashboard's
+   * first paint never depends on it, exactly as before slice 5c.
+   */
+  function dsHydrationStart() {
+    if (_dsHydrationPromise) return _dsHydrationPromise;
+    const t0 = (window.performance && performance.now) ? performance.now() : Date.now();
+    const settle = () => {
+      if (_dsHydrationDone) return;
+      _dsHydrationDone = true;
+      const t1 = (window.performance && performance.now) ? performance.now() : Date.now();
+      _dsHydrationMs = Math.round(t1 - t0);
+    };
+    _dsHydrationPromise = dsHydrateActiveDataset().then(() => {
+      settle();
+      console.info('[Tract datasets] hydration settled in ' + _dsHydrationMs + 'ms.');
+    }).catch(e => {
+      settle();
+      console.warn('[Tract datasets] hydration failed after ' + _dsHydrationMs +
+        'ms; the map draws from map_payload.json.', e);
+    });
+    return _dsHydrationPromise;
+  }
+
+  /**
+   * What the map card awaits: hydration, or the hard timeout, whichever comes
+   * first. Never rejects -- the next step is always "draw with what is here".
+   */
+  function dsHydrationGate() {
+    const run = dsHydrationStart();
+    if (!dsMapWaitsForHydration()) return Promise.resolve();
+    return Promise.race([
+      run,
+      new Promise(r => setTimeout(() => {
+        if (!_dsHydrationDone) {
+          console.warn('[Tract datasets] hydration did not answer within ' +
+            MAP_HYDRATION_TIMEOUT_MS + 'ms; drawing from map_payload.json instead. ' +
+            'A dataset that arrives later still repaints the map.');
+        }
+        r();
+      }, MAP_HYDRATION_TIMEOUT_MS)),
+    ]);
+  }
+
+  /**
+   * Copy the payload's indicator values onto an already-composed base, for the
+   * four cases where the geometry dataset is live but the indicator dataset is
+   * not. Everything the geometry dataset owns is left alone, and so is anything
+   * already present, so this can only fill gaps.
+   */
+  async function applyPayloadIndicators(geo, geometryFieldIds) {
+    const res = await fetch('./map_payload.json');
+    if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
+    const payload = await res.json();
+    const owned = {};
+    (geometryFieldIds || []).forEach(k => { owned[k] = true; });
+    owned.GEOID = true;
+    const byGeoid = {};
+    (payload.features || []).forEach(f => {
+      const g = f && f.properties && f.properties.GEOID;
+      if (g != null) byGeoid[g] = f.properties;
+    });
+    let filled = 0, absent = 0;
+    geo.features.forEach(f => {
+      const src = byGeoid[f.properties.GEOID];
+      if (!src) { absent++; return; }
+      Object.keys(src).forEach(k => {
+        if (owned[k]) return;
+        f.properties[k] = src[k];
+      });
+      filled++;
+    });
+    console.info('[DAC map] payload indicators applied to ' + filled + ' tracts' +
+      (absent ? ' (' + absent + ' drawn tracts absent from the payload)' : '') + '.');
+    return filled;
+  }
+
   async function getMapGeo() {
     if (_mapGeoCache) return _mapGeoCache;
     if (!_mapGeoPromise) {
       const gen = _mapGeoGen;
       _mapGeoPromise = (async () => {
-        const res = await fetch('./map_payload.json');
-        if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-        let geo = await res.json();
-        // A paired geometry dataset replaces the polygons and the tract universe
-        // before anything else reads them, so the overlay and the indicator merge
-        // both key against the vintage actually being drawn. Nothing is paired
-        // during the first paint (hydration has not run yet), which is what keeps
-        // the payload-only path unchanged.
-        const gset = dsGeometry();
+        const gset = MAP_BASE === 'dataverse' ? dsGeometry() : null;
+        let geo;
         if (gset) {
-          geo = dsApplyGeometryToGeo(geo, gset.doc, gset.fieldIds);
-          const s = geo._dsGeometryStats || {};
-          console.info('[Tract geometry] drawing "' + gset.rec.datasetKey + ' v' +
-            gset.rec.version + '" (vintage ' + (gset.rec.geoidVintage || '?') + '): ' +
-            geo.features.length + ' tracts' +
-            (s.fresh ? ', ' + s.fresh + ' not in map_payload.json' : '') +
-            (s.dropped ? ', ' + s.dropped + ' payload tract(s) not in this vintage' : '') + '.');
+          // ---- composed from Dataverse (slice 5c) ---------------------------
+          // The geometry dataset IS the base: it carries the tract universe, the
+          // polygons and 8 fields. The indicator dataset adds 56 more, and the
+          // overlay 8 below. Post-5b that is exactly the 72 properties the
+          // payload had, with no gaps and no overlap between the two datasets.
+          geo = dsApplyGeometryToGeo(null, gset.doc, gset.fieldIds);
+          let indSource;
+          if (_dsIndicators) {
+            dsApplyToGeo(geo, _dsIndicators.doc, _dsIndicators.fieldIds, _dsIndicators.absent);
+            indSource = '"' + (dsState().rec ? dsState().rec.version : 'dataset') + '"';
+          } else {
+            // No indicator dataset: the four dsUsePayloadIndicators cases. The
+            // geometry dataset still draws, but the 56 indicator values have to
+            // come from the payload, so it is fetched for those and nothing else.
+            // This is why 5c does not remove the file.
+            indSource = 'map_payload.json';
+            try {
+              await applyPayloadIndicators(geo, gset.fieldIds);
+            } catch (e) {
+              console.error('[DAC map] the geometry dataset is drawing but the payload ' +
+                'indicators could not be loaded, so the map has geometry and no values.', e);
+              indSource = 'NONE';
+            }
+          }
+          // Keeps the word "drawing" and the '"key vversion"' shape deliberately:
+          // geom_ui asserts on this line, and the contract it checks -- which
+          // geometry reached the map -- has not changed. Composing is new
+          // information ADDED to that line, not a replacement for it.
+          console.info('[Tract geometry] drawing "' + gset.rec.datasetKey +
+            ' v' + gset.rec.version + '", composed from Dataverse (vintage ' +
+            (gset.rec.geoidVintage || '?') + '): ' + geo.features.length +
+            ' tracts, indicators from ' + indSource + '.');
+        } else {
+          // ---- the payload is the base -------------------------------------
+          // Reached when MAP_BASE is 'payload', when there is no Dataverse context
+          // at all (the standalone and public-origin case), or when no geometry
+          // dataset could be prepared -- the fifth failure mode, which says so at
+          // the point it happens rather than leaving this silent.
+          const res = await fetch('./map_payload.json');
+          if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
+          geo = await res.json();
+          // Pre-5c behaviour, kept intact: a published geometry dataset still
+          // replaces the polygons and the tract universe ON TOP of the payload.
+          // Dropping this was a real regression in the first cut of this slice --
+          // MAP_BASE='payload' became payload-ONLY, so the flag no longer restored
+          // the old path, and the proof harness caught it as 2,333 differing
+          // polygons (the payload's 2020/2010 hybrid against pure-2010).
+          const pset = dsGeometry();
+          if (pset) {
+            geo = dsApplyGeometryToGeo(geo, pset.doc, pset.fieldIds);
+            const s = geo._dsGeometryStats || {};
+            console.info('[Tract geometry] drawing "' + pset.rec.datasetKey + ' v' +
+              pset.rec.version + '" over map_payload.json (vintage ' +
+              (pset.rec.geoidVintage || '?') + '): ' + geo.features.length + ' tracts' +
+              (s.fresh ? ', ' + s.fresh + ' not in map_payload.json' : '') +
+              (s.dropped ? ', ' + s.dropped + ' payload tract(s) not in this vintage' : '') + '.');
+          } else if (MAP_BASE === 'dataverse' && Storage.isDataverse()) {
+            console.warn('[Tract geometry] no geometry dataset is available, so the map is ' +
+              'drawing map_payload.json geometry (the 2020/2010 hybrid). Indicator values ' +
+              'and the editable overlay are unaffected.');
+          }
         }
         // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
         // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
@@ -2654,6 +2814,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // newer build is authoritative and callers after it must not see this.
           console.info('[DAC map] discarded a geo build superseded by a geometry change.');
           return geo;
+        }
+        // Optional test seam, same shape and same cost as window.__dacDiagNote:
+        // absent in every real session, so this is one property read per geo
+        // build. It exists because slice 5c has to prove the composed collection
+        // is identical to the payload-built one, and scraping it back out of the
+        // live Leaflet layer is a race, not a proof.
+        if (typeof window.__dacGeoProbe === 'function') {
+          try { window.__dacGeoProbe(geo); } catch (e) { /* never break a build */ }
         }
         _mapGeoCache = geo;
         return geo;
@@ -3939,6 +4107,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   let _dsHydrated = false;
   // Every dataset version seen, for the admin card. Populated by hydration.
   let _dsRecords = [];
+  // { doc, fieldIds, absent } while an indicator dataset is live, so getMapGeo can
+  // apply its 56 fields when it composes the base from Dataverse (slice 5c).
+  // Cleared by dsUsePayloadIndicators.
+  let _dsIndicators = null;
 
   function dsState() { return _dsState; }
   function dsRecords() { return _dsRecords; }
@@ -4296,8 +4468,16 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * tract the geometry does not carry is NOT drawn in this vintage; a tract only
    * the geometry carries is drawn with whatever data later merges onto it.
    */
+  /**
+   * @param {object|null} geo   the collection to re-base, or null to BUILD one
+   *                            from the dataset alone (slice 5c, MAP_BASE).
+   */
   function dsApplyGeometryToGeo(geo, gdoc, fieldIds) {
     const t = gdoc.tracts;
+    // No incoming collection means this dataset IS the base: there are no prior
+    // properties to preserve, so a null field value is the dataset stating null
+    // rather than a key that must not be conjured. See the skip rule below.
+    const asBase = !geo || !geo.features;
     const byGeoid = {};
     ((geo && geo.features) || []).forEach(f => {
       const g = f && f.properties && f.properties.GEOID;
@@ -4317,7 +4497,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         // omits `hvi` entirely on the 216 tracts with no ZCTA overlap, and
         // writing hvi:null there would be a difference with no meaning. Where
         // the key does exist, null still overwrites: that is a real "cleared".
-        if (v === null && !(key in props)) continue;
+        //
+        // Building the base is the exception: with nothing to preserve, the
+        // dataset's field list defines the shape, so a null is written as null.
+        // Skipping it there would make the field set vary tract by tract.
+        if (!asBase && v === null && !(key in props)) continue;
         props[key] = v;
       }
       return { type: 'Feature', geometry: t.geometry[i], properties: props };
@@ -4458,7 +4642,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     } catch (e) {
       console.error('[Tract datasets] could not re-read "' + rec.datasetKey + ' v' + rec.version +
         '" after the geometry changed; falling back to the payload.', e);
-      dsUsePayload('the dataset could not be re-read after a geometry change');
+      dsUsePayloadIndicators('the dataset could not be re-read after a geometry change');
       dsClearGeometry();
       dsRemountMap();
       return;
@@ -4472,7 +4656,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       console.error('[Tract datasets] "' + rec.datasetKey + ' v' + rec.version +
         '" no longer passes against the new geometry: ' + why + ' Falling back to the payload.');
       rec.loadError = why;
-      dsUsePayload('the live dataset does not fit the new geometry');
+      dsUsePayloadIndicators('the live dataset does not fit the new geometry');
       dsClearGeometry();
       dsRemountMap();
       if (state.route && state.route.name === 'maplayers') rerenderMlList();
@@ -4512,6 +4696,16 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       rec: rec, catalog: val.catalog, absent: cov.absent,
       coverage: cov.coverage, source: 'dataset',
     };
+    // Retained for getMapGeo (slice 5c). Hydration used to run AFTER the first
+    // paint, so _mapGeoCache always existed here and merging into it was enough.
+    // Inverted, hydration runs BEFORE the first paint, the cache is empty at this
+    // point, and `merged` is 0 -- so without keeping the document the 56
+    // indicator fields would be silently dropped from the composed base.
+    //
+    // The geometry document is already held resident the same way (_dsGeometry.doc),
+    // so this is the existing trade, not a new one: about 1.2 MB parsed, against
+    // re-downloading and re-parsing on every compose.
+    _dsIndicators = { doc: doc, fieldIds: val.fieldIds, absent: cov.absent };
     const merged = _mapGeoCache
       ? dsApplyToGeo(_mapGeoCache, doc, val.fieldIds, cov.absent)
       : 0;
@@ -4535,10 +4729,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     return true;
   }
 
-  /** Revert to the payload catalog. Used when no dataset is live. */
-  function dsUsePayload(why) {
+  /**
+   * Fall back to the payload's INDICATOR values. Renamed in slice 5c, because the
+   * old name (dsUsePayload) had stopped being true: with the base composed from
+   * the geometry dataset, none of the four callers abandons Dataverse. They lose
+   * the indicator dataset while the geometry dataset stays live, and the map keeps
+   * drawing the right polygons.
+   *
+   * The payload is still genuinely required here -- it is where the 56 indicator
+   * values come from when the dataset is unavailable -- which is why 5c does not
+   * remove the file. That is 5d, after the standalone decision.
+   */
+  function dsUsePayloadIndicators(why) {
     _indCatalog = indBuildDefaultCatalog();
     _dsState = { rec: null, catalog: null, absent: null, coverage: null, source: 'payload' };
+    _dsIndicators = null;
     if (why) console.info('[Tract datasets] using map_payload.json indicators: ' + why);
   }
 
@@ -4565,7 +4770,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const act = recs.filter(r => r.active && !dsRecIsGeometry(r));
     if (!act.length) {
       if (dsClearGeometry()) dsRemountMap();
-      dsUsePayload('no active dataset');
+      dsUsePayloadIndicators('no active dataset');
       return;
     }
     if (act.length > 1) {
@@ -5342,6 +5547,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       }
       return true;
     };
+
+    // Slice 5c: the map waits for the Dataverse composition, the dashboard does
+    // not. Hydration is started in boot() without being awaited, so every other
+    // card paints immediately; only this container holds until the geometry
+    // dataset is known, because painting the payload's hybrid geometry first and
+    // repainting a moment later is the flash this slice exists to remove.
+    if (!dsHydrationSettled()) {
+      container.innerHTML = '<div class="dac-map-skeleton">Preparing the map' +
+        '<span class="dac-map-skeleton-sub">loading published tract geometry</span></div>';
+      await dsHydrationGate();
+      // The gate is an await, so the FAIL 2 rule applies: a newer mount may have
+      // claimed the generation while this one was waiting.
+      if (superseded('hydration gate')) return;
+      if (!document.getElementById(containerId)) return;
+    }
 
     // Each fresh mount starts with no tract selected (the detail panel in the
     // freshly rendered DOM is hidden, so keep state in sync). The neighborhood
@@ -6936,6 +7156,26 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       }
     }
     window._dacMapRefreshIndicators = refreshIndicatorCatalog;
+
+    // Adopt a catalog that was installed while this mount was waiting.
+    //
+    // The "Color by" markup is built by renderDACMap -- the ROUTE render -- from
+    // whatever catalog exists at that moment, and only refreshIndicatorCatalog
+    // ever rebuilds it. Before slice 5c the map mounted BEFORE hydration, so
+    // dsInstall always found this callback wired and called it. Now the map waits
+    // for hydration, dsInstall runs first, the callback does not exist yet, and
+    // its own guarded call is correctly skipped -- leaving the dropdown showing
+    // the DEFAULT catalog's labels for a live dataset. ds_test caught it as four
+    // reds: renamed labels absent, relabelled PM2.5 absent, the trigger and the
+    // group order stale.
+    //
+    // So the mount adopts it here. Same function dsInstall would have called, and
+    // idempotent, so the two orderings converge instead of one of them losing.
+    if (dsState().source === 'dataset') {
+      try { refreshIndicatorCatalog(); } catch (e) {
+        console.warn('[Tract datasets] could not apply the live catalog to a fresh mount.', e);
+      }
+    }
 
     // Indicator color selector (custom dropdown) — independent of the borough
     // filter. Recolors tracts, updates the subtitle, swaps the legend, and
@@ -13587,7 +13827,7 @@ function wireHTooltips() {
       } else {
         await Storage.setTractDatasetActive(dvId, rec, false);
         rec.active = false; rec.busy = false;
-        dsUsePayload('the active dataset was switched off');
+        dsUsePayloadIndicators('the active dataset was switched off');
         // Its paired geometry goes with it: geometry only ever exists as the
         // partner of a live indicator dataset.
         const geomWent = dsClearGeometry();
@@ -14724,10 +14964,12 @@ function wireHTooltips() {
     // problem degrades to session-only (logged) rather than breaking the page.
     mlHydrateSavedLayers();
 
-    // Tract datasets: same contract — fired without awaiting, after the first
-    // render. The payload's indicators stay live until one validates, so a slow,
-    // broken or refused dataset changes nothing the user sees.
-    dsHydrateActiveDataset();
+    // Tract datasets: started here without awaiting, so the dashboard's first
+    // paint is unaffected -- but slice 5c makes the MAP card wait on this gate
+    // rather than painting payload geometry and repainting a moment later. The
+    // gate carries a hard timeout, so a slow or broken Dataverse still ends in a
+    // drawn map, from the payload, with a console line saying which.
+    dsHydrationStart();
   }
 
   // Kick off
