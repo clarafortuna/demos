@@ -4323,9 +4323,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return { type: 'Feature', geometry: t.geometry[i], properties: props };
     });
     const dropped = Object.keys(byGeoid).length - carried;
+    // `nondac_by_county` was carried across the swap here so a geometry change
+    // would not drop it. Nothing ever read it back -- this line was its only
+    // mention in the app, and the dashboard's own payload.json does not contain
+    // it -- so slice 5b removed the block from map_payload.json and this with it.
     return {
       type: 'FeatureCollection',
-      nondac_by_county: geo && geo.nondac_by_county,
       features: features,
       _dsGeometryStats: { carried: carried, fresh: fresh, dropped: dropped },
     };
@@ -12590,11 +12593,13 @@ function wireHTooltips() {
   // time inside the tract tooltip states the same thing twice from a source
   // that cannot say where it came from.
   //
-  // This gates the RENDER only. The `hvi` property is still read from whatever
-  // the geometry dataset carries, so flipping this back needs no rebuild and no
-  // re-upload -- as long as the property is still there. A separate slice
-  // removes it from the geometry pipeline, and after that this flag shows
-  // nothing until both are reversed. Read them as one decision in two places.
+  // This gates the RENDER only, and as of slice 5b there is nothing left to
+  // render: `hvi` is gone from the geometry pipeline (9 fields -> 8) AND out of
+  // map_payload.json. Flipping this to true now shows an empty line, not the old
+  // one. Restoring the feature means reversing three things -- this flag, the
+  // geometry builder, and Data/enrich_hvi.py's retirement guard -- which is why
+  // the property left rather than the code: Heat Vulnerability is an uploaded
+  // layer with its own provenance and its own tooltip.
   const SHOW_TRACT_HVI_LINE = false;
 
   // ============================================================
