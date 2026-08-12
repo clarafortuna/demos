@@ -2747,7 +2747,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           let indSource;
           if (_dsIndicators) {
             dsApplyToGeo(geo, _dsIndicators.doc, _dsIndicators.fieldIds, _dsIndicators.absent);
-            indSource = '"' + (dsState().rec ? dsState().rec.version : 'dataset') + '"';
+            indSource = '"' + (_dsIndicators.version ||
+              (dsState().rec ? dsState().rec.version : 'dataset')) + '"';
           } else {
             // No indicator dataset: the four dsUsePayloadIndicators cases. The
             // geometry dataset still draws, but the 56 indicator values have to
@@ -4556,7 +4557,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * but cannot supply this vintage is a refusal, because that is an admin who
    * meant to pair and got it wrong.
    */
-  async function dsPrepareGeometryFor(rec, recs) {
+  /**
+   * @param {Promise<{ok,text,err}>|null} prefetch  a download already in flight
+   *        for the geometry this record pairs with, started by the caller so it
+   *        overlaps the indicator download instead of queueing behind it. Its
+   *        rejection is already captured into the result shape. Ignored if it
+   *        turns out not to be the record we resolve to here, so a caller that
+   *        guesses wrong costs a wasted request rather than the wrong geometry.
+   */
+  async function dsPrepareGeometryFor(rec, recs, prefetch) {
     const res = dsResolveGeometryRec(rec, recs);
 
     if (res.none) {
@@ -4579,11 +4588,30 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (_dsGeometry && _dsGeometry.rec.dvId === res.rec.dvId) return { ok: true, changed: false };
 
     let text;
-    try {
-      text = await Storage.getTractDatasetFile(res.rec.dvId);
-    } catch (e) {
-      return { ok: false, error: 'could not download the paired geometry "' +
-        res.rec.version + '": ' + ((e && e.message) ? e.message : e) };
+    // Only usable if the caller prefetched THIS record. dsResolveGeometryRec is
+    // deterministic over the same records, so in practice it always is; the guard
+    // is here so a future caller cannot accidentally pair one vintage's shapes
+    // with another's data, which is the failure this whole family exists to stop.
+    let pre = prefetch ? await prefetch : null;
+    if (pre && pre.forDvId !== res.rec.dvId) {
+      console.warn('[Tract geometry] a prefetched geometry file was for a different record (' +
+        pre.forDvId + ') than the one this dataset pairs with (' + res.rec.dvId +
+        '); ignoring it and downloading the right one.');
+      pre = null;
+    }
+    if (pre && pre.ok) {
+      text = pre.text;
+    } else {
+      if (pre && !pre.ok) {
+        console.warn('[Tract geometry] the parallel geometry download failed; retrying it ' +
+          'in sequence.', pre.err);
+      }
+      try {
+        text = await Storage.getTractDatasetFile(res.rec.dvId);
+      } catch (e) {
+        return { ok: false, error: 'could not download the paired geometry "' +
+          res.rec.version + '": ' + ((e && e.message) ? e.message : e) };
+      }
     }
     let gdoc;
     try { gdoc = JSON.parse(text); } catch (e) {
@@ -4779,6 +4807,24 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         '); using the newest and leaving the rest alone.');
     }
     const rec = act[0];
+
+    // Start the GEOMETRY download alongside the indicator one. Measured on the
+    // hosted org: the indicator file is 1,154 KB / 416ms and the paired geometry
+    // 1,585 KB / 701ms, and they were strictly serial -- the geometry request did
+    // not leave until the indicator file had fully arrived, for no reason. Which
+    // geometry to fetch depends only on the record's declared vintage, which is
+    // known from the list call, so nothing has to be parsed first.
+    //
+    // The rejection is captured into the result rather than left floating: an
+    // un-awaited promise that rejects is an unhandled rejection, and this one is
+    // only awaited further down.
+    const gpre = dsResolveGeometryRec(rec, recs);
+    const geoPrefetch = (gpre && gpre.rec && !(_dsGeometry && _dsGeometry.rec.dvId === gpre.rec.dvId))
+      ? Storage.getTractDatasetFile(gpre.rec.dvId)
+          .then(t => ({ ok: true, text: t, forDvId: gpre.rec.dvId }),
+                e => ({ ok: false, err: e, forDvId: gpre.rec.dvId }))
+      : null;
+
     let text;
     try {
       text = await Storage.getTractDatasetFile(rec.dvId);
@@ -4803,10 +4849,34 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }
     val.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
 
+    // Retain the validated document NOW, before anything composes.
+    //
+    // getMapGeo runs below, inside this function, for the coverage gate -- and it
+    // used to reach that point with _dsIndicators still null, because only
+    // dsInstall set it. So the composed base took the "no indicator dataset"
+    // branch, fetched map_payload.json for its 56 values, and dsInstall then
+    // overwrote them. The settled map was correct, which is why the 5c proof
+    // passed, but every healthy hosted boot still downloaded the payload and threw
+    // the values away. Confirmed in the hosted console:
+    //   [DAC map] payload indicators applied to 2333 tracts.
+    //   ... composed from Dataverse ... indicators from map_payload.json.
+    //   [Tract datasets] merged 2333 tracts from "nyserda_dac v1.0" into the map.
+    //
+    // Validation has passed here, so the document is known good. `absent` is not
+    // available until coverage runs, and does not need to be: dsApplyToGeo takes
+    // it only to ignore it (`void absent;`). dsInstall refreshes this with the
+    // final coverage result, and dsUsePayloadIndicators clears it if the coverage
+    // gate below rejects the dataset.
+    // `version` rides along so the compose log can name the dataset it used. It
+    // cannot read dsState() for that: at compose time dsInstall has not run, so
+    // the state still says 'payload' and the line said `indicators from "dataset"`
+    // -- true but useless for confirming WHICH dataset reached the map.
+    _dsIndicators = { doc: doc, fieldIds: val.fieldIds, absent: null, version: rec.version };
+
     // Pair the geometry BEFORE the coverage gate: coverage is measured against
     // the tracts actually drawn, so it has to see this dataset's own vintage,
     // not whatever was on screen a moment ago.
-    const gres = await dsPrepareGeometryFor(rec, recs);
+    const gres = await dsPrepareGeometryFor(rec, recs, geoPrefetch);
     if (!gres.ok) {
       console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
         '": ' + gres.error + ' Keeping the payload indicators.');
