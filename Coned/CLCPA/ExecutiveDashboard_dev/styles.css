@@ -8637,6 +8637,18 @@ a.nav-item { text-decoration: none; }
 
 /* The upload control now stands on its own below the two cards it feeds. */
 .ds-upload-card .ds-upload { margin-top: 0; padding-top: 0; border-top: 0; }
+/* Slice 5c: the map card holds for the Dataverse composition instead of painting
+   the payload's hybrid geometry and repainting a moment later. Sized to the map
+   so the card does not resize when the real map replaces it. */
+.dac-map-skeleton {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; height: 100%; min-height: 320px;
+  background: var(--surface-2, #f4f6f8);
+  border-radius: 6px;
+  color: var(--text-3); font-size: 13px; letter-spacing: 0.01em;
+}
+.dac-map-skeleton-sub { font-size: 11px; color: var(--text-4); }
+
 /* ======================== HIDDEN ATTRIBUTE ========================
  * One rule for the whole class of bug, and it has to live at the very
  * bottom of this file.
