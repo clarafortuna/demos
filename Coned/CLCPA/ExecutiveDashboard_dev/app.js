@@ -7157,6 +7157,26 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }
     window._dacMapRefreshIndicators = refreshIndicatorCatalog;
 
+    // Adopt a catalog that was installed while this mount was waiting.
+    //
+    // The "Color by" markup is built by renderDACMap -- the ROUTE render -- from
+    // whatever catalog exists at that moment, and only refreshIndicatorCatalog
+    // ever rebuilds it. Before slice 5c the map mounted BEFORE hydration, so
+    // dsInstall always found this callback wired and called it. Now the map waits
+    // for hydration, dsInstall runs first, the callback does not exist yet, and
+    // its own guarded call is correctly skipped -- leaving the dropdown showing
+    // the DEFAULT catalog's labels for a live dataset. ds_test caught it as four
+    // reds: renamed labels absent, relabelled PM2.5 absent, the trigger and the
+    // group order stale.
+    //
+    // So the mount adopts it here. Same function dsInstall would have called, and
+    // idempotent, so the two orderings converge instead of one of them losing.
+    if (dsState().source === 'dataset') {
+      try { refreshIndicatorCatalog(); } catch (e) {
+        console.warn('[Tract datasets] could not apply the live catalog to a fresh mount.', e);
+      }
+    }
+
     // Indicator color selector (custom dropdown) — independent of the borough
     // filter. Recolors tracts, updates the subtitle, swaps the legend, and
     // updates the trigger label. Does NOT touch the county filter or KPI panel.
