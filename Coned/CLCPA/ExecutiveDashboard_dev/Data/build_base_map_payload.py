@@ -1,14 +1,24 @@
 #!/usr/bin/env python3
 """
-build_base_map_payload.py  —  STEP 0 of the DAC map data pipeline.
+build_base_map_payload.py  --  STEP 0 of the DAC map data pipeline.
 
 Builds the BASE map_payload.json for Con Edison's six-county service area by
 combining census-tract geometry with the NYSERDA DAC base and the Con Edison
 Electric/Gas extracts. The later steps add the rest:
 
-    python Data/build_base_map_payload.py   # 0. base build  (this script)
-    python Data/enrich_map_payload.py       # 1. + 48 DAC indicator / score fields
-    python Data/enrich_neighborhoods.py     # 2. + borough + neighborhood
+    python Data/build_base_map_payload.py     # 0. base build  (this script)
+    python Data/enrich_map_payload.py         # 1. + 48 DAC indicator / score fields
+    python Data/enrich_neighborhoods.py       # 2. + borough + neighborhood
+    python Data/enrich_electric_network.py    # 3. + electric_networks + gas_areas
+    #      Data/enrich_hvi.py                 # 4. RETIRED (slice 5b): it refuses
+    #                                         #    to run. Both of its outputs were
+    #                                         #    dead -- see its own docstring.
+
+This list used to stop at step 2, which is how it stood while steps 3 and 4 were
+in the tree writing to the same file. Following it produced a payload with no
+electric_networks and no gas_areas at all, silently. Steps are listed here in
+full, and a retired step stays listed rather than vanishing, so the gap cannot
+reopen by omission.
 
 Run from the dashboard root (ExecutiveDashboard_dev/), with all inputs in Data/.
 
@@ -41,16 +51,24 @@ INPUTS  (place in Data/)
 OUTPUT
 ------------------------------------------------------------------------------
   map_payload.json   FeatureCollection, 2,333 features (1,059 DAC + 1,274 Non-DAC),
-                     ~20 base properties per feature, plus a root `nondac_by_county`
-                     block. Written minified.
+                     ~20 base properties per feature. Written minified.
 
 Idempotent: re-running with the same inputs overwrites map_payload.json with the
-same result. After this, run enrich_map_payload.py then enrich_neighborhoods.py.
+same result.
+
+BUT NOT REPRODUCIBLE, and this matters more than the idempotence above.
+Re-running this chain does NOT reproduce the map_payload.json that is live.
+MAP_PAYLOAD_DIVERGENCE.md measured it: 69 of 73 properties come back identical,
+but City_Town comes out null on the 1,274 Non-DAC tracts, because the DAC_FIELDS
+below are copied from NYS_DAC.geojson and that file holds DAC tracts only. The
+live values are a county fill that exists in no committed script, and 116
+Westchester `neighborhood` values are derived from them. Do not rebuild the live
+payload expecting to get it back.
 """
 
 import json
 import openpyxl
-from collections import defaultdict
+# collections.defaultdict was only used by the Non-DAC roll-up, removed in 5b.
 
 # ---- paths (relative to the dashboard root; run: python Data/build_base_map_payload.py) ----
 IN_2020 = "Data/ny_tracts.geojson"
@@ -171,37 +189,14 @@ def main():
         })
         features.append({"type": "Feature", "geometry": geom["geometry"], "properties": props})
 
-    # Non-DAC borough roll-up (averages + sums per county per utility)
-    nondac_by_county = defaultdict(lambda: {"electric": None, "gas": None})
-    for utility, src in (("electric", elec), ("gas", gas)):
-        agg = defaultdict(lambda: {"n": 0, "accts": 0, "eap": 0, "adj": 0.0})
-        for gid, row in src.items():
-            if row["class"] != "Non-DAC":
-                continue
-            cname = COUNTY_NAMES.get(gid[2:5])
-            if not cname:
-                continue
-            a = agg[cname]
-            a["n"] += 1
-            a["accts"] += row["accts"] or 0
-            a["eap"]   += row["eap"]   or 0
-            a["adj"]   += row["adj"]   or 0.0
-        for cname, a in agg.items():
-            n = a["n"]
-            if not n:
-                continue
-            nondac_by_county[cname][utility] = {
-                "n_tracts": n,
-                "avg_accts": round(a["accts"] / n, 1),
-                "avg_eap":   round(a["eap"]   / n, 1),
-                "avg_adj":   round(a["adj"]   / n, 2),
-                "sum_accts": a["accts"],
-                "sum_eap":   a["eap"],
-                "sum_adj":   round(a["adj"], 2),
-            }
-
+    # The Non-DAC borough roll-up that used to be emitted here as a root
+    # `nondac_by_county` block is gone (slice 5b). It was never read: one
+    # occurrence in app.js, inside dsApplyGeometryToGeo, which copied it onto the
+    # new FeatureCollection so a geometry swap would not drop it, and nothing read
+    # it back. payload.json -- the dashboard's separate file, which feeds the
+    # borough charts -- does not contain it at all. See MAP_PAYLOAD_DIVERGENCE.md,
+    # where it also reproduced exactly, so it was dead rather than divergent.
     payload = {"type": "FeatureCollection",
-               "nondac_by_county": dict(nondac_by_county),
                "features": features}
     with open(OUT, "w") as f:
         json.dump(payload, f, separators=(",", ":"))

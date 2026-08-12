@@ -1,10 +1,23 @@
-"""enrich_hvi.py — add an `hvi` field to each tract in map_payload.json and emit
-the drawable ZCTA overlay (Data/hvi_zcta.geojson) for the DAC map.
+"""enrich_hvi.py -- RETIRED (slice 5b). It refuses to run; see main().
 
-NOTE: nothing consumes that overlay file any more. The built-in HVI overlay it
-fed was retired once Heat Vulnerability became an uploaded saved layer with its
-own provenance, and Data/hvi_zcta.geojson was deleted with it. Re-running this
-script recreates the file harmlessly; the app will not read it.
+It used to add an `hvi` field to each tract in map_payload.json and emit the
+drawable ZCTA overlay (Data/hvi_zcta.geojson) for the DAC map. BOTH outputs are
+dead, so running it would only write `hvi` back onto 2,117 tracts and undo the
+retirement.
+
+The overlay's reader went first: the built-in HVI overlay was retired once Heat
+Vulnerability became an uploaded saved layer with its own provenance, and
+Data/hvi_zcta.geojson was deleted with it. The `hvi` property outlived its reader
+too -- app.js evaluates it only behind SHOW_TRACT_HVI_LINE, which is false -- and
+it was removed from map_payload.json in slice 5b by
+Data/retire_dead_payload_fields.py.
+
+Everything below the guard is left intact deliberately: this spatial join is the
+only record of how the HVI layer data was derived, and MAP_PAYLOAD_DIVERGENCE.md
+cites its output when explaining why recomputed geometry is not stable across a
+toolchain change.
+
+The description that follows is what it DID.
 
 Heat Vulnerability Index (HVI) is published per NYC ZCTA (ZIP Code Tabulation
 Area), not per census tract, so this offline step spatially joins the ZCTAs to
@@ -13,7 +26,7 @@ the tracts. For every tract feature it lists the intersecting ZCTAs:
   hvi: [ {zcta, score, overlap_fraction}, ... ]   sorted overlap-desc (dominant
         first). Only ZCTAs whose intersection is >= 5% of the TRACT's area are
         kept. A tract with no >=5% intersection gets NO hvi field (not a zero
-        score) — including the degenerate case where a tract clips one or more
+        score) -- including the degenerate case where a tract clips one or more
         ZCTAs but every overlap is below 5%. There is deliberately NO
         single-largest fallback (unlike enrich_electric_network.py): HVI must
         be omitted, not forced. HVI covers the five NYC boroughs only, so the
@@ -24,19 +37,19 @@ the tracts. For every tract feature it lists the intersecting ZCTAs:
         how Data/service_territories.geojson feeds the network overlay.
 
 Areas are computed in a projected CRS (EPSG:2263, NAD83 / NY Long Island,
-US ft) — the same CRS enrich_electric_network.py uses — never in 4326 degrees.
+US ft) -- the same CRS enrich_electric_network.py uses -- never in 4326 degrees.
 Applies to all tracts (DAC + Non-DAC); no other field is touched. Idempotent:
 recomputes + overwrites both outputs on each run (re-running produces byte-
-identical files — stable ordering, no duplicated fields).
+identical files -- stable ordering, no duplicated fields).
 
-The year in SOURCE_LABEL is a display label ONLY — no code depends on it, so a
+The year in SOURCE_LABEL is a display label ONLY -- no code depends on it, so a
 future correction is a one-line edit here.
 
 Pipeline order:  0 build_base -> 1 enrich_map_payload -> 2 enrich_neighborhoods
                  -> 3 enrich_electric_network -> 4 enrich_hvi (this script)
 Run from ExecutiveDashboard_dev/:  python Data/enrich_hvi.py
 """
-import json, os, collections
+import json, os, sys, collections
 from pyproj import CRS, Transformer
 from shapely.geometry import shape
 from shapely.strtree import STRtree
@@ -54,7 +67,7 @@ SCORE_FIELD = "Heat_Vulnerability_Index__HVI_"
 # docstring), so correcting the vintage later is a single edit right here.
 SOURCE_LABEL = "HVI (2022, assumed) - NYC DOHMH, 2020 ZCTA"
 
-# EPSG:2263 (NAD83 / NY Long Island, ftUS) — matches enrich_electric_network.py.
+# EPSG:2263 (NAD83 / NY Long Island, ftUS) -- matches enrich_electric_network.py.
 CRS_PROJ = CRS.from_epsg(2263)
 CRS_WGS84 = CRS.from_epsg(4326)
 tf = Transformer.from_crs(CRS_WGS84, CRS_PROJ, always_xy=True)
@@ -106,6 +119,31 @@ def assign(tg, tract_area, zids, scores, geoms, tree):
 
 
 def main():
+    # RETIRED, slice 5b. Both outputs of this script were dead, and running it now
+    # would undo the retirement by writing `hvi` back onto every tract.
+    #
+    #   hvi on each tract      read at exactly one place in app.js:
+    #                            const hviList = SHOW_TRACT_HVI_LINE ? p.hvi : null;
+    #                          SHOW_TRACT_HVI_LINE is false, so the ternary never
+    #                          evaluates p.hvi. Heat Vulnerability is a saved map
+    #                          layer now with its own provenance, and the property
+    #                          was already out of the geometry pipeline (9 -> 8).
+    #   Data/hvi_zcta.geojson  nothing has read it since the built-in HVI overlay
+    #                          was retired; the file was deleted with it.
+    #
+    # The code below is left intact rather than deleted: the ZCTA spatial join is
+    # the only record of how the HVI layer data was derived, and MAP_PAYLOAD_DIVERGENCE.md
+    # cites its output. Reviving it means deleting this guard deliberately, which
+    # is the point.
+    sys.exit(
+        "enrich_hvi.py is RETIRED (slice 5b) and will not run.\n"
+        "  Both of its outputs were dead: `hvi` on each tract, which nothing\n"
+        "  reads, and Data/hvi_zcta.geojson, which nothing has read since the\n"
+        "  built-in HVI overlay was retired.\n"
+        "  Running it would write `hvi` back onto 2,117 tracts and undo the\n"
+        "  retirement. Heat Vulnerability is an uploaded map layer now.\n"
+        "  If you genuinely need it back, delete this guard on purpose.")
+
     zids, scores, geoms, tree = load_zctas()
 
     mp = json.load(open(MAP, encoding="utf-8"))
