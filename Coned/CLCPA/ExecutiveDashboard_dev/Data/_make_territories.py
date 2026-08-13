@@ -147,8 +147,32 @@ if _fingerprint is None:
         "be stamped with the source it came from. Writing an unstamped file would "
         "put the coupling back on trust.")
 
+# Slice 6d: the overlay is also a DATASET, so it carries a manifest.
+#
+# One file serving two transports, on purpose. `schema`, `kind` and `dataset` sit
+# beside `features` as GeoJSON foreign members, so these exact bytes validate as a
+# territories dataset in Dataverse AND still parse as the web resource the map
+# falls back to -- which is what lets slice 6e delete that web resource without a
+# second producer, and without the two drifting apart the way the overlay and the
+# per-tract network values used to.
+#
+# The fingerprint stays at the ROOT rather than moving into `dataset`. It describes
+# the FeatureCollection, and the app reads either position (dsSourceFingerprint),
+# so moving it would only invalidate the 6c guard that already asserts it here.
+DATASET = {
+    "key": "service_territories",
+    "version": "1.0",
+    "name": "ConEd & ORU service territories",
+    "sourceLabel": "Con Edison electric networks and gas service area, ORU territory; "
+                   "reprojected to WGS84 from " +
+                   ", ".join(b + ".shp" for b, _l, _n, _e in LAYERS),
+}
+
 with open(OUT, "w", encoding="utf-8") as f:
     json.dump({"type": "FeatureCollection",
+               "schema": 1,
+               "kind": "territories",
+               "dataset": DATASET,
                "sourceFingerprint": _fingerprint,
                "features": features},
               f, separators=(",", ":"), ensure_ascii=False)
