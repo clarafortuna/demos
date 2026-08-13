@@ -4129,6 +4129,18 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return fail('manifest schema ' + JSON.stringify(doc.schema) +
         ' is not supported by this build (expected 1).');
     }
+    // Refuse an unrecognised or not-yet-supported kind BEFORE measuring it as an
+    // indicator file. Without this, a territories file reached the checks below and
+    // was rejected for missing tracts.geoids -- true, and useless to whoever
+    // uploaded it.
+    const kindProblem = dsKindRefusal(doc);
+    if (kindProblem) return fail(kindProblem);
+    if (dsDocKind(doc) !== 'indicators') {
+      return fail('this file declares kind ' + JSON.stringify(dsDocKind(doc)) +
+        ' and is being validated as an indicator dataset. Upload it from the ' +
+        'card for its own family.');
+    }
+
     const t = doc.tracts;
     if (!t || !Array.isArray(t.geoids) || !t.fields || typeof t.fields !== 'object') {
       return fail('the data file has no tracts.geoids array and tracts.fields object.');
@@ -4367,12 +4379,70 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   const DS_SOURCE_LABEL_MAX = 300;
 
   /** 'geometry' | 'indicators'. Absent kind means indicators: v1.0 predates it. */
+  // The families this build understands. A file declares its own with `kind`;
+  // a RECORD declares its own with DatasetKey, which is why the family is known
+  // from the list call without downloading anything.
+  //
+  // 'territories' is RECOGNISED here before it is supported, on purpose: slice 6d
+  // implements it, and until then an operator who uploads one should be told
+  // exactly that rather than watch it fail as a malformed indicator file.
+  const DS_KINDS = ['indicators', 'geometry', 'territories'];
+  const DS_SUPPORTED_KINDS = ['indicators', 'geometry'];
+  const DS_TERRITORY_KEY = 'service_territories';
+
+  /**
+   * The family a FILE declares. Returns null when `kind` is present but not one
+   * this build knows -- callers must refuse those rather than guess.
+   *
+   * Absent `kind` means 'indicators'. That is not tidiness, it is the live data:
+   * nyserda_dac v1.0 and v2.0-demo carry no `kind` at all, so treating absence as
+   * unknown would refuse the dataset currently drawing the map. This used to read
+   *
+   *     return (doc && doc.kind === 'geometry') ? 'geometry' : 'indicators';
+   *
+   * which meant ANY other value -- including a future 'territories' -- was
+   * silently accepted as indicators. The guarantee that a file cannot be filed as
+   * the wrong family only held while there were exactly two of them.
+   */
   function dsDocKind(doc) {
-    return (doc && doc.kind === 'geometry') ? 'geometry' : 'indicators';
+    if (!doc || typeof doc !== 'object') return null;
+    if (doc.kind === undefined || doc.kind === null) return 'indicators';   // legacy
+    return DS_KINDS.indexOf(doc.kind) >= 0 ? doc.kind : null;
   }
+
+  /** True when this build can act on that kind (not merely name it). */
+  function dsKindSupported(kind) {
+    return DS_SUPPORTED_KINDS.indexOf(kind) >= 0;
+  }
+
+  /**
+   * One sentence explaining a refusal, so the message names the reason instead of
+   * whatever downstream validator happened to fail first.
+   */
+  function dsKindRefusal(doc) {
+    const kind = dsDocKind(doc);
+    if (kind === null) {
+      return 'this file declares kind ' + JSON.stringify(doc && doc.kind) +
+        ', which this build does not recognise. Expected one of: ' +
+        DS_KINDS.join(', ') + ' (or no kind at all, which means indicators).';
+    }
+    if (!dsKindSupported(kind)) {
+      return 'this file declares kind ' + JSON.stringify(kind) +
+        ', which this build recognises but cannot yet use. Territory datasets ' +
+        'arrive in a later slice; nothing has been changed.';
+    }
+    return null;
+  }
+
   /** Family of a RECORD, known without downloading its file. */
+  function dsRecFamily(rec) {
+    if (!rec) return 'indicators';
+    if (rec.datasetKey === DS_GEOMETRY_KEY) return 'geometry';
+    if (rec.datasetKey === DS_TERRITORY_KEY) return 'territories';
+    return 'indicators';
+  }
   function dsRecIsGeometry(rec) {
-    return !!rec && rec.datasetKey === DS_GEOMETRY_KEY;
+    return dsRecFamily(rec) === 'geometry';
   }
 
   // The paired geometry, once one is live: { rec, doc, fieldIds }.
@@ -4392,6 +4462,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return fail('manifest schema ' + JSON.stringify(doc.schema) +
         ' is not supported by this build (expected 1).');
     }
+    const kindProblem = dsKindRefusal(doc);
+    if (kindProblem) return fail(kindProblem);
     if (dsDocKind(doc) !== 'geometry') {
       return fail('this file does not declare itself as geometry (kind: "geometry").');
     }
