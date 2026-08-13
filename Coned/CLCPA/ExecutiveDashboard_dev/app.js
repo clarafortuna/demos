@@ -257,10 +257,27 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const SET_MAPHISTORY_DEFAULT = 'cr2bf_dacmapchangehistories';
     const ID_MAPLAYER   = 'cr2bf_dacmaplayerid';
     const COL_FILE      = 'cr2bf_geojsonfile';
-    // Documented single-request ceiling is 128 MB, but a 50 MB PATCH is exactly
-    // the request that dies in a gateway, and chunking also gives per-chunk
-    // progress. Switch to chunked at the server's own recommended chunk size.
-    const ML_CHUNK_THRESHOLD = 4 * 1024 * 1024;
+    // Documented single-request ceiling is 128 MB -- measured, not assumed:
+    // MaxSizeInKB reads 131072 on both cr2bf_datafile and cr2bf_geojsonfile in
+    // org9076e69b. But a 50 MB PATCH is exactly the request that dies in a
+    // gateway, and chunking also gives per-chunk progress.
+    //
+    // LOWERED from 4 MB to 1 MB for slice 6, and the reason is evidence rather
+    // than caution. The territory overlay is 3,484,369 bytes, which is 4,645,828
+    // once base64-encoded -- the largest single request this app would ever make,
+    // on a path whose biggest real payload to date is about 2.1 MB encoded. The
+    // chunked path, by contrast, is PROVEN in this org: the saved
+    // heat_vulnerability_index layer is ~4.34 MB and has been uploading through it
+    // all along. Given a choice between a bigger untested request and a smaller
+    // tested protocol, take the tested one.
+    //
+    // Consequence, deliberate and asserted rather than discovered: every dataset
+    // upload now chunks too. The indicator file is 1.13 MB and the geometry files
+    // are 1.3-1.6 MB, so each becomes init + exactly ONE chunk -- one extra
+    // round-trip, in exchange for contiguous-range checks and per-chunk retry.
+    // Saved layers under 1 MB are untouched; those between 1 and 4 MB change path
+    // and are asserted to read back byte-identical.
+    const ML_CHUNK_THRESHOLD = 1 * 1024 * 1024;
     const ML_CHUNK_FALLBACK  = 4 * 1024 * 1024;   // if x-ms-chunk-size is absent
     // Preferred audit fields. init() intersects these with the columns that
     // actually exist, so a schema drift drops fields instead of failing writes.
