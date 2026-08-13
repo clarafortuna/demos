@@ -5601,7 +5601,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
   async function mountDACMap() {
     const containerId = window._dacMapContainerId;
-    const container = document.getElementById(containerId);
+    // `let`, not `const`: the gate below is an await, and the node this points
+    // at can be replaced while we wait. See the re-resolve after the gate.
+    let container = document.getElementById(containerId);
     if (!container) return;
 
     // Claim this generation before the first await, so a mount that starts while
@@ -5630,7 +5632,25 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       // The gate is an await, so the FAIL 2 rule applies: a newer mount may have
       // claimed the generation while this one was waiting.
       if (superseded('hydration gate')) return;
-      if (!document.getElementById(containerId)) return;
+      // RE-RESOLVE the node, do not merely check that one exists.
+      //
+      // renderDACMap mints the container id from Date.now() on every render,
+      // and this mount captured both the id and the NODE before the await. A
+      // re-render during the wait detaches what we hold; two renders inside one
+      // millisecond reuse the id, so the old check passed while the mount went on
+      // to build Leaflet into a detached div -- an invisible map and no error.
+      // This is the FAIL 2 rule applied to the DOM reference, not just to
+      // _mountGen, which is the half that was missing.
+      const fresh = document.getElementById(containerId);
+      if (!fresh) return;
+      if (fresh !== container) {
+        if (window.__dacDiagNote) {
+          window.__dacDiagNote('container-replaced', { at: 'hydration gate', id: containerId });
+        }
+        console.info('[DAC map] the map container was replaced while this mount waited ' +
+          'for hydration; continuing on the current node.');
+        container = fresh;
+      }
     }
 
     // Each fresh mount starts with no tract selected (the detail panel in the
