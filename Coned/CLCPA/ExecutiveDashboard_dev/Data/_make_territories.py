@@ -126,8 +126,31 @@ for basename, layer, name_field, extra in LAYERS:
     r.close()
     report.append((basename, layer, n, (min(xs), min(ys), max(xs), max(ys))))
 
+# Slice 6c: stamp WHICH CECONY shapefiles this overlay was built from.
+#
+# The same two files also produce the per-tract electric_networks and gas_areas in
+# build_pure_geometry_dataset.py, and rebuilding one output without the other used
+# to be caught only by comparing mtimes and printing a warning. Both halves were
+# weak. The fingerprint is imported from the builder rather than reimplemented
+# here, because two copies of a hash rule is how the two sides drift apart --
+# which is the very failure this field exists to detect.
+#
+# ORU is excluded from the fingerprint by design: it feeds only this overlay, so
+# including it would report a mismatch when nothing shared had changed. See the
+# note beside FINGERPRINT_PARTS in the builder.
+import build_pure_geometry_dataset as _bpg   # noqa: E402  (same directory)
+
+_fingerprint = _bpg.coned_source_fingerprint()
+if _fingerprint is None:
+    raise SystemExit(
+        "REFUSING: a CECONY shapefile part is missing, so this overlay could not "
+        "be stamped with the source it came from. Writing an unstamped file would "
+        "put the coupling back on trust.")
+
 with open(OUT, "w", encoding="utf-8") as f:
-    json.dump({"type": "FeatureCollection", "features": features},
+    json.dump({"type": "FeatureCollection",
+               "sourceFingerprint": _fingerprint,
+               "features": features},
               f, separators=(",", ":"), ensure_ascii=False)
 
 print("\nlayers:")

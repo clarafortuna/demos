@@ -7,11 +7,27 @@ build. The operator-facing front door to build_pure_geometry_dataset.py.
 
 WHY THIS IS A SEPARATE SCRIPT
 -----------------------------
-Across the eleven scripts in Data/ there is not one HTTP call. Every input is
-placed here by hand. That isolation is deliberate and recorded: see
-warn_if_territories_stale() in build_pure_geometry_dataset.py, which declined to
-fold in the territory conversion precisely because it would "make this build
-require network access where it currently does not".
+Across the other scripts in Data/ there is not one HTTP call. Every input is
+placed there by hand. That isolation was deliberate and recorded: the builder's
+own note declined to fold in the territory conversion precisely because it would
+"make this build require network access where it currently does not".
+
+WHERE THAT ISOLATION NOW STANDS, narrowed by slice 6c
+----------------------------------------------------
+The geometry BUILD is still offline. It reads files and writes a dataset, and
+nothing in it opens a socket.
+
+THIS ORCHESTRATOR IS NOT, and as of slice 6c that is true even with --no-fetch
+in play, because it is now the single producer of BOTH outputs and the territory
+conversion needs the network: _make_territories.py enables the PROJ network to
+fetch a NADCON grid for the ORU layer, which is NAD27 and therefore needs a real
+datum transform rather than an ellipsoid swap. ORU stays in the overlay because
+it is a visible product feature whose removal is Con Edison's call, so the
+network requirement stays with it.
+
+Read that as: "the build is offline, the orchestrator is not". Anyone who needs a
+fully offline run should call build_pure_geometry_dataset.py directly and accept
+that nothing then checks the territory coupling for them.
 
 So this script is the only one that opens a socket, and it runs the builder as a
 SUBPROCESS rather than importing and calling it. That boundary is the point, not
@@ -179,7 +195,7 @@ def rel(path):
 def parse_args(argv):
     a = {"vintage": None, "census_url": None, "crosswalk_id": None,
          "refetch": False, "no_fetch": False, "dry_run": False,
-         "force": False, "artifact": False}
+         "force": False, "artifact": False, "refresh_territories": False}
     i = 0
     while i < len(argv):
         t = argv[i]
@@ -202,11 +218,17 @@ def parse_args(argv):
             a["force"] = True
         elif t == "--artifact":
             a["artifact"] = True
+        elif t == "--refresh-territories":
+            a["refresh_territories"] = True
         else:
             raise Refuse("unknown argument %r.\n%s" % (t, USAGE))
         i += 1
     if a["vintage"] not in ("2010", "2020"):
         raise Refuse("--vintage must be 2010 or 2020.\n" + USAGE)
+    if a["refresh_territories"] and a["no_fetch"]:
+        raise Refuse("--refresh-territories needs the network and --no-fetch forbids "
+                     "it. The territory conversion fetches a NADCON grid for the ORU "
+                     "layer, which is NAD27 and cannot be transformed without one.")
     if a["refetch"] and a["no_fetch"]:
         raise Refuse("--refetch and --no-fetch contradict each other: one says "
                      "replace every input, the other says open no socket.")
@@ -227,7 +249,11 @@ USAGE = """usage: python Data/update_map_data.py --vintage 2010|2020
   --no-fetch      verify and build from what is on disk; opens no socket
   --dry-run       preflight only: no writes, no network
   --force         allow overwriting an existing dataset in Data/out/
-  --artifact      passed through to the builder"""
+  --artifact      passed through to the builder
+  --refresh-territories
+                  rebuild service_territories.geojson even when its stamp already
+                  matches the shapefiles. It is rebuilt automatically when the
+                  stamp is absent or disagrees; this forces it otherwise."""
 
 
 # ---------------------------------------------------------------------------
@@ -515,23 +541,55 @@ def preflight(a):
     else:
         rows.append(("dataset output", "WILL WRITE", rel(out_path)))
 
+    # The two-outputs coupling, now decided here rather than mentioned.
+    #
+    # This used to compare mtimes and print a note ending "Not fixed here." It is
+    # fixed here now: this script is the single producer of both outputs, so it
+    # decides whether the overlay has to be rebuilt and then rebuilds it. mtimes
+    # are gone -- one survives a copy or a checkout without meaning anything --
+    # and the comparison is between the fingerprint stamped in the overlay and the
+    # shapefile bytes on disk.
+    terr = os.path.join(HERE, "service_territories.geojson")
+    mine = B.coned_source_fingerprint()
+    theirs = B.territory_fingerprint(terr)
+    terr_action = None
+    if mine is None:
+        rows.append(("territory overlay", "UNCHECKABLE", "a CECONY shapefile part is missing"))
+    elif not os.path.exists(terr):
+        terr_action = "missing"
+        rows.append(("territory overlay", "WILL BUILD", rel(terr)))
+    elif theirs is None:
+        terr_action = "unstamped"
+        rows.append(("territory overlay", "WILL REBUILD", "no fingerprint: predates slice 6c"))
+    elif theirs != mine:
+        terr_action = "mismatch"
+        rows.append(("territory overlay", "WILL REBUILD",
+                     "stamp " + theirs[:12] + " != shapefiles " + mine[:12]))
+    elif a["refresh_territories"]:
+        terr_action = "forced"
+        rows.append(("territory overlay", "WILL REBUILD", "--refresh-territories"))
+    else:
+        rows.append(("territory overlay", "PRESENT", "stamp matches " + mine[:12]))
+
+    if terr_action:
+        # No extra line here: the table row above already states it, and printing
+        # it twice put a stray entry above the header.
+        if a["no_fetch"]:
+            fatal.append(
+                "the territory overlay needs rebuilding (%s) and --no-fetch forbids it: "
+                "the conversion fetches a NADCON grid for the ORU layer.\n"
+                "  Drop --no-fetch, or run the builder directly and accept that nothing "
+                "checks the coupling for you." % terr_action)
+
+    out("-" * 74)
     out("PREFLIGHT  vintage %s" % v)
     out("-" * 74)
     for name, state, note in rows:
         out("  %-26s %-14s %s" % (name, state, note))
     out("-" * 74)
 
-    # The coupling warn_if_territories_stale() documents, reported rather than
-    # left to memory: the CECONY shapefiles feed both this build and the
-    # service_territories.geojson overlay, and only one is built here.
-    terr = os.path.join(HERE, "service_territories.geojson")
-    shp = os.path.join(HERE, "Extra_info", "CECONY_Electric.shp")
-    if os.path.exists(terr) and os.path.exists(shp):
-        if os.path.getmtime(shp) > os.path.getmtime(terr):
-            out("  NOTE  CECONY_Electric.shp is newer than service_territories.geojson.")
-            out("        The overlay on screen and the per-tract values will disagree")
-            out("        until _make_territories.py is re-run. Not fixed here.")
-    return fatal, {"geo": geo, "zip": zip_path, "out": out_path, "crosswalk": found}
+    return fatal, {"geo": geo, "zip": zip_path, "out": out_path, "crosswalk": found,
+                   "terr": terr, "terr_action": terr_action, "fingerprint": mine}
 
 
 # ---------------------------------------------------------------------------
@@ -607,6 +665,37 @@ def run(argv):
         check_geojson(paths["geo"], v)
 
     # ---- build, as a subprocess -------------------------------------------
+    # ---- territories: the other half of what these shapefiles produce --------
+    # Run BEFORE the builder, because the builder now refuses when the overlay's
+    # stamp disagrees with the shapefiles. Doing it here is what makes this script
+    # the single producer: one run, one set of shapefiles, both outputs stamped
+    # with the same fingerprint.
+    #
+    # A subprocess, like the builder, and for a sharper reason: _make_territories.py
+    # has no main() and does its work at module scope, so importing it would run it
+    # as a side effect of reading its constants.
+    if paths.get("terr_action"):
+        out("\nTERRITORIES  (subprocess; this step needs the network, see the header)")
+        out("  reason: " + paths["terr_action"])
+        out("  python Data/_make_territories.py")
+        out("")
+        tproc = subprocess.run([sys.executable, os.path.join(HERE, "_make_territories.py")],
+                               cwd=ROOT)
+        if tproc.returncode != 0:
+            raise Refuse(
+                "_make_territories.py exited %d, so the overlay was not rebuilt.\n"
+                "  The builder would refuse against a stale stamp, and building only\n"
+                "  one of the two outputs is the trap this step exists to close.\n"
+                "  Nothing has been written to Data/out/." % tproc.returncode)
+        after = B.territory_fingerprint(paths["terr"])
+        if after != paths["fingerprint"]:
+            raise Refuse(
+                "the rebuilt overlay carries fingerprint %s but the shapefiles hash to "
+                "%s.\n  The two producers disagree, which is exactly what the stamp "
+                "exists to catch.\n  Nothing has been written to Data/out/."
+                % (str(after)[:16], str(paths["fingerprint"])[:16]))
+        out("  overlay stamped %s, matching the shapefiles." % str(after)[:16])
+
     out("\nBUILD  (subprocess: the builder stays offline)")
     cmd = [sys.executable, BUILDER, "--vintage", v]
     if a["artifact"]:
