@@ -5753,8 +5753,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
      *
      * It used to be copied per layer, which is how the copies could drift.
      */
+    /**
+     * @returns {boolean} true when the tooltip was actually placed. Callers must
+     * not reveal it otherwise: showing an unplaced tooltip is what produced the
+     * reported defect. It renders fully populated at its STATIC position -- left
+     * 0, top = wrapper height, i.e. just below the map -- which at most scroll
+     * positions is off screen. Nothing throws and nothing is null, so it looks
+     * exactly like "tooltips stopped working", and a resize or a route change
+     * heals it because either produces a pointer move that finally places it.
+     */
     function positionTooltipAt(e) {
-      if (!tooltip || !tooltipWrapper) return;
+      if (!tooltip || !tooltipWrapper) return false;
+      // No usable coordinates means no placement, and therefore no reveal.
+      if (!e || !e.originalEvent ||
+          typeof e.originalEvent.clientX !== 'number' ||
+          typeof e.originalEvent.clientY !== 'number') return false;
       const rect = tooltipWrapper.getBoundingClientRect();
       let x = e.originalEvent.clientX - rect.left + 12;
       let y = e.originalEvent.clientY - rect.top  - 8;
@@ -5766,6 +5779,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       if (y < 4) y = 4;
       tooltip.style.left = x + 'px';
       tooltip.style.top  = y + 'px';
+      return true;
     }
 
     /**
@@ -5777,11 +5791,17 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
      * tract hover or the tract selection.
      */
     function bindOverlayTooltip(feature, lyr, html) {
-      lyr.on('mouseover', function () {
+      lyr.on('mouseover', function (e) {
         if (!tooltip) return;
         const body = html(feature);
         if (!body) return;
         tooltip.innerHTML = body;
+        // Place BEFORE revealing, and only reveal if placing worked. mousemove
+        // used to be the only thing that ever set left/top, so a hover that fired
+        // mouseover without a following mousemove on this layer showed an opaque,
+        // fully populated tooltip at its static position. Content first, because
+        // the edge-flip below measures offsetWidth/offsetHeight.
+        if (!positionTooltipAt(e)) return;
         tooltip.style.opacity = '1';
       });
       lyr.on('mousemove', positionTooltipAt);
@@ -5794,7 +5814,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
     function onEach(feature, layer) {
       const p = feature.properties;
-      layer.on('mouseover', function() {
+      layer.on('mouseover', function(e) {
         // Clear any previously hovered layer that didn't get mouseout
         if (_hoveredLayer && _hoveredLayer !== this) {
           geoLayer.resetStyle(_hoveredLayer);
@@ -5934,6 +5954,18 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           gasLine +
           hviLine;
 
+        // Place BEFORE revealing, and only reveal if placing worked. Until this
+        // slice, mousemove was the ONLY thing that set left/top, so a hover that
+        // fired mouseover without a following mousemove on this layer left the
+        // tooltip at its STATIC position -- left 0, top = wrapper height, just
+        // below the map -- fully populated and fully opaque, and off screen at
+        // most scroll positions. That is the reported "tract tooltips stop
+        // working": nothing threw, nothing was null, and a resize or a route
+        // change healed it by producing the move event that finally placed it.
+        //
+        // Content is assigned first because the edge-flip inside
+        // positionTooltipAt measures offsetWidth/offsetHeight.
+        if (!positionTooltipAt(e)) return;
         tooltip.style.opacity = '1';
       });
       layer.on('mousemove', positionTooltipAt);
