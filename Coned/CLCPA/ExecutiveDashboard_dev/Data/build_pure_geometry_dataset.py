@@ -138,6 +138,57 @@ BOROUGH = {"Kings": "Brooklyn", "New York": "Manhattan", "Richmond": "Staten Isl
 NYC_COUNTIES = {"Kings", "New York", "Richmond", "Bronx", "Queens"}
 
 
+# ---------------------------------------------------------------------------
+# The shapefile fingerprint (slice 6c)
+# ---------------------------------------------------------------------------
+# The CECONY shapefiles feed TWO outputs: electric_networks / gas_areas per tract
+# here, and the service_territories.geojson overlay via _make_territories.py.
+# Rebuild one and not the other and the outlines on screen disagree with the
+# tooltip numbers, silently.
+#
+# This is the invariant that makes the disagreement detectable: both producers
+# stamp the same fingerprint into what they write, so a mismatch is a fact carried
+# by the data rather than a guess about file timestamps. mtimes were the old
+# check, and a mtime survives a copy, a checkout, or a touch without meaning
+# anything.
+#
+# ORU_Territory is deliberately EXCLUDED. It feeds only the overlay, so including
+# it would report a mismatch every time the ORU layer changed even though nothing
+# shared had moved. The fingerprint covers exactly what both outputs derive from.
+FINGERPRINT_PARTS = [".shp", ".dbf", ".prj"]
+
+
+def coned_source_fingerprint():
+    """sha256 over the CECONY electric+gas shapefile bytes, in a fixed order."""
+    h = hashlib.sha256()
+    for base in (ELEC, GAS):
+        for ext in FINGERPRINT_PARTS:
+            p = base + ext
+            if not os.path.exists(p):
+                return None                     # incomplete input: refuse to claim one
+            h.update(os.path.basename(p).encode("utf-8"))
+            with open(p, "rb") as fh:
+                for chunk in iter(lambda: fh.read(1 << 20), b""):
+                    h.update(chunk)
+    return h.hexdigest()
+
+
+def territory_fingerprint(path=None):
+    """The fingerprint the territory overlay was built from, or None if it carries
+    none. A file written before slice 6c has none, which is not an error -- it is
+    simply unverifiable, and the caller says so rather than refusing."""
+    terr = path or os.path.join(HERE, "service_territories.geojson")
+    if not os.path.exists(terr):
+        return None
+    try:
+        with open(terr, encoding="utf-8") as fh:
+            doc = json.load(fh)
+    except Exception:
+        return None
+    fp = doc.get("sourceFingerprint")
+    return fp if isinstance(fp, str) and fp else None
+
+
 def clean_city_town(name):
     if not name:
         return None
@@ -668,41 +719,62 @@ def write_artifact(geoids, geometry, fields, payload, tf, resolve_name, name_pro
     return L, changed, identical, gained, relabelled, drift
 
 
-def warn_if_territories_stale():
-    """The CECONY shapefiles feed TWO outputs, and only one of them is built here.
+def assert_territories_match():
+    """The two-outputs coupling, enforced instead of mentioned (slice 6c).
 
-    electric_networks and gas_areas are measured against CECONY_Electric.shp and
-    CECONY_Gas.shp, and the same two files are converted by _make_territories.py
-    into the service_territories.geojson overlay the map draws. Change the
-    shapefiles and rebuild only one side, and the outlines on screen disagree
-    with the per-tract values in the tooltip, silently.
+    The CECONY shapefiles feed electric_networks / gas_areas here AND the
+    service_territories.geojson overlay via _make_territories.py. Rebuild one and
+    not the other and the outlines on screen disagree with the tooltip numbers,
+    silently.
 
-    Folding the two builds into one run is the real fix and is queued: the
-    territory conversion needs a NAD27 grid fetched over the network for the ORU
-    layer, which would make this build require network access where it currently
-    does not. Until then, say so at build time rather than leaving the coupling
-    to memory.
+    This used to compare MTIMES and print a warning. Both halves were weak: an
+    mtime survives a copy, a checkout or a touch without meaning anything, and a
+    warning in a terminal is not a control. It now compares the FINGERPRINT both
+    producers stamp into their output, and it refuses.
+
+    Graduated on purpose, the same way slice 6a treats an absent `kind`:
+
+      overlay missing            -> note. The map simply draws no outlines.
+      overlay carries NO stamp   -> warn. It was built before 6c, so the claim
+                                    cannot be checked either way. Refusing here
+                                    would block every build until the overlay is
+                                    rebuilt, which is a worse trade than saying so.
+      stamp DISAGREES            -> REFUSE. This is the trap itself, caught.
     """
     terr = os.path.join(HERE, "service_territories.geojson")
     if not os.path.exists(terr):
         print("NOTE: service_territories.geojson is missing; the map's territory "
-              "overlays will not draw. Rebuild it with _make_territories.py.")
+              "overlays will not draw. Rebuild it with _make_territories.py, or let "
+              "update_map_data.py do it.")
         return
-    t_terr = os.path.getmtime(terr)
-    newer = []
-    for base in (ELEC, GAS):
-        shp = base + ".shp"
-        if os.path.exists(shp) and os.path.getmtime(shp) > t_terr:
-            newer.append(os.path.basename(shp))
-    if newer:
+
+    mine = coned_source_fingerprint()
+    theirs = territory_fingerprint(terr)
+    if mine is None:
+        print("NOTE: a CECONY shapefile part is missing, so no fingerprint could be "
+              "computed and the overlay cannot be checked against this build.")
+        return
+    if theirs is None:
         print("=" * 66)
-        print("WARNING: the territory overlay looks stale.")
-        print("  Newer than service_territories.geojson: %s" % ", ".join(newer))
-        print("  Those shapefiles feed BOTH the per-tract electric_networks and")
-        print("  gas_areas built here AND the territory outlines the map draws.")
-        print("  Rebuild the overlay with _make_territories.py or the two will")
-        print("  disagree on screen.")
+        print("WARNING: the territory overlay carries no source fingerprint.")
+        print("  It predates slice 6c, so whether it was built from these same")
+        print("  shapefiles cannot be established. Rebuild it once with")
+        print("  update_map_data.py and this becomes checkable.")
+        print("  Expected fingerprint: %s" % mine[:16])
         print("=" * 66)
+        return
+    if theirs != mine:
+        sys.exit("\n".join([
+            "REFUSING: the territory overlay was built from DIFFERENT CECONY "
+            "shapefiles than this build.",
+            "  overlay   : %s" % theirs[:16],
+            "  this build: %s" % mine[:16],
+            "  Those shapefiles feed BOTH the per-tract electric_networks and",
+            "  gas_areas built here AND the territory outlines the map draws, so",
+            "  shipping this would put one vintage's numbers under another's",
+            "  outlines. Rebuild both from one set of shapefiles:",
+            "      python Data/update_map_data.py --vintage 2010 --refresh-territories",
+        ]))
 
 
 def main():
@@ -739,7 +811,7 @@ def main():
             return [x, y]
         return [reproj(c) for c in coords]
 
-    warn_if_territories_stale()
+    assert_territories_match()
     print("recomputing spatial properties for %d tracts in %s ..." % (len(geoids), elec_crs.name))
     fields = {k: [] for k in GEOM_PROPERTIES}
     geometry = []
@@ -803,6 +875,12 @@ def main():
                 "in %s. Display names come from the newest crosswalk holding each tract."
                 % (vintage, elec_crs.name)),
             "geoidVintage": vintage,
+            # Slice 6c: which CECONY shapefiles the electric_networks and
+            # gas_areas in this file were measured against. The territory overlay
+            # stamps the same value, so the two can be checked against each other
+            # instead of trusted. Absent on datasets built before 6c, which is why
+            # every reader treats absence as "unverifiable" rather than "wrong".
+            "sourceFingerprint": coned_source_fingerprint(),
         },
         "tracts": {"geoids": geoids, "geometry": geometry, "fields": fields},
     }
