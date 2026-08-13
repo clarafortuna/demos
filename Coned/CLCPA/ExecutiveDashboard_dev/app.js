@@ -1152,27 +1152,46 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             }
             throw err;
           }
-          // One published geometry per vintage. Enforced here rather than by a
-          // Dataverse rule, and deliberately AFTER the file is uploaded and
-          // verified: retiring the incumbent for an upload that then failed
-          // would leave the vintage with no geometry at all and break the
-          // pairing for everyone. The new version has to be proven good first.
+          // One published set per SCOPE. Enforced here rather than by a Dataverse
+          // rule, and deliberately AFTER the file is uploaded and verified:
+          // retiring the incumbent for an upload that then failed would leave the
+          // scope with nothing published at all and break it for everyone. The new
+          // version has to be proven good first.
+          //
+          // The scope is not the same for both families, and treating it as if it
+          // were is a trap rather than a gap. Geometry is one-published-per
+          // DatasetKey + GeoidVintage, because several vintages are published at
+          // once by design. A territory overlay has NO vintage, so that filter
+          // would have asked for `cr2bf_geoidvintage eq ''` -- which does not match
+          // a row stored as null -- and the incumbent would have stayed published
+          // beside the newcomer, with nothing on screen to say which one drew.
+          // Callers state the scope; absent, it stays 'vintage', which is what
+          // every existing caller means.
+          const byKeyOnly = rec.retireBy === 'key';
           const retired = [];
           if (rec.isActive === true) {
             const sibs = await getAll(setTractDataset,
               '$select=' + ID_TRACTDATASET + ',cr2bf_versionlabel' +
               "&$filter=cr2bf_isactive eq true and cr2bf_datasetkey eq '" +
-              String(rec.datasetKey).replace(/'/g, "''") +
-              "' and cr2bf_geoidvintage eq '" +
-              String(rec.geoidVintage || '').replace(/'/g, "''") + "'");
+              String(rec.datasetKey).replace(/'/g, "''") + "'" +
+              (byKeyOnly ? '' : " and cr2bf_geoidvintage eq '" +
+                String(rec.geoidVintage || '').replace(/'/g, "''") + "'"));
             for (let i = 0; i < sibs.length; i++) {
               const sid = sibs[i][ID_TRACTDATASET];
               if (String(sid).toLowerCase() === String(id).toLowerCase()) continue;
               await dvUpdate(setTractDataset, sid, { cr2bf_isactive: false });
               retired.push(sibs[i].cr2bf_versionlabel || sid);
-              console.info('[Tract geometry] retired "' + (sibs[i].cr2bf_versionlabel || sid) +
-                '": only one geometry per vintage stays published, and vintage ' +
-                (rec.geoidVintage || '?') + ' is now served by "' + rec.version + '".');
+              // The PREFIX stays family-specific. Collapsing both branches under
+              // one label cost nothing on screen and broke geom_ui's console
+              // filter, which watches [Tract geometry] -- a red that pointed at
+              // churn in this function rather than at anything 6d needed.
+              console.info(byKeyOnly
+                ? '[Service territories] retired "' + (sibs[i].cr2bf_versionlabel || sid) +
+                  '": only one "' + rec.datasetKey + '" stays published, and it is now "' +
+                  rec.version + '".'
+                : '[Tract geometry] retired "' + (sibs[i].cr2bf_versionlabel || sid) +
+                  '": only one geometry per vintage stays published, and vintage ' +
+                  (rec.geoidVintage || '?') + ' is now served by "' + rec.version + '".');
             }
           }
           writeMapAudit('dataset-upload', {
@@ -3200,6 +3219,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // Lazy-loaded ConEd service-territory overlay (electric networks + gas area).
   let _territoryGeoCache = null;
   let _territoryFetchPromise = null;
+  // 'dataverse' | 'webresource' | null -- which route produced the cache. Needed
+  // because the cache is module scope and long-lived while the published overlay
+  // becomes known asynchronously: without this, a toggle before hydration would
+  // memoise the web resource for the whole session, and 6e deletes that file.
+  let _territorySource = null;
 
   // ---- Mount generation -----------------------------------------------------
   // The map is torn down and rebuilt more often than it looks: every load with a
@@ -4400,12 +4424,25 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // a RECORD declares its own with DatasetKey, which is why the family is known
   // from the list call without downloading anything.
   //
-  // 'territories' is RECOGNISED here before it is supported, on purpose: slice 6d
-  // implements it, and until then an operator who uploads one should be told
-  // exactly that rather than watch it fail as a malformed indicator file.
+  // 'territories' was RECOGNISED here before it was supported (slice 6a) so an
+  // operator who uploaded one was told exactly that rather than watching it fail
+  // as a malformed indicator file. Slice 6d supports it, so the two lists now
+  // agree -- and they stay separate lists, because the next family will need the
+  // same staging ground.
   const DS_KINDS = ['indicators', 'geometry', 'territories'];
-  const DS_SUPPORTED_KINDS = ['indicators', 'geometry'];
+  const DS_SUPPORTED_KINDS = ['indicators', 'geometry', 'territories'];
   const DS_TERRITORY_KEY = 'service_territories';
+  // The layers one territory file may carry. Membership is checked, presence is
+  // not: ORU feeds only this overlay and could legitimately leave it, so a
+  // missing layer warns while an UNKNOWN layer refuses -- an unknown tag would
+  // draw nothing at all, silently, because setTerritory filters on it.
+  const DS_TERRITORY_LAYERS = ['electric', 'gas', 'oru'];
+  // Coordinates must be WGS84 degrees over New York and its edges (ORU reaches
+  // into NJ/PA). The failure this catches is a projection that did not happen:
+  // the sources are NY State Plane FEET, so an unprojected file carries values
+  // like 300000 rather than -73.9, and Leaflet would draw it somewhere off the
+  // planet with no error at all. Swapped lat/lon fails it too.
+  const DS_TERRITORY_BBOX = { minLon: -80.5, maxLon: -71.0, minLat: 40.0, maxLat: 45.5 };
 
   /**
    * The family a FILE declares. Returns null when `kind` is present but not one
@@ -4445,10 +4482,29 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }
     if (!dsKindSupported(kind)) {
       return 'this file declares kind ' + JSON.stringify(kind) +
-        ', which this build recognises but cannot yet use. Territory datasets ' +
-        'arrive in a later slice; nothing has been changed.';
+        ', which this build recognises but cannot yet use. A later build adds it; ' +
+        'nothing has been changed.';
     }
     return null;
+  }
+
+  /**
+   * The source fingerprint a dataset file carries, from either family, or ''.
+   *
+   * Slice 6c stamps the same sha256 -- over the CECONY electric+gas shapefile
+   * bytes -- into both producers' output, so a territory overlay and a tract
+   * geometry set can be checked against each other at runtime. The two carry it
+   * in different places for a reason rather than by accident: the territory file
+   * IS a GeoJSON FeatureCollection, so the stamp is a foreign member at its root,
+   * while the geometry file is a manifest with no root collection to hang it on.
+   * One accessor so callers never have to know which they are holding.
+   */
+  function dsSourceFingerprint(doc) {
+    if (!doc || typeof doc !== 'object') return '';
+    if (typeof doc.sourceFingerprint === 'string') return doc.sourceFingerprint;
+    const ds = doc.dataset;
+    if (ds && typeof ds.sourceFingerprint === 'string') return ds.sourceFingerprint;
+    return '';
   }
 
   /** Family of a RECORD, known without downloading its file. */
@@ -4460,6 +4516,22 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   }
   function dsRecIsGeometry(rec) {
     return dsRecFamily(rec) === 'geometry';
+  }
+  /**
+   * The indicator family, stated positively.
+   *
+   * Three call sites asked for it as `!dsRecIsGeometry(rec)`, which was exact
+   * while there were two families and became wrong the moment a third row could
+   * exist: a published territory row would have been listed as an activatable
+   * dataset version, and -- worse -- picked up by dsHydrateActiveDataset as THE
+   * active indicator dataset, because it is `active` and it is not geometry.
+   * dsRecFamily has existed since 6a; these were the sites still negating.
+   */
+  function dsRecIsIndicators(rec) {
+    return dsRecFamily(rec) === 'indicators';
+  }
+  function dsRecIsTerritories(rec) {
+    return dsRecFamily(rec) === 'territories';
   }
 
   // The paired geometry, once one is live: { rec, doc, fieldIds }.
@@ -4547,6 +4619,315 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       warnings.push('this geometry declares no GEOID vintage, so no indicator dataset can pair with it.');
     }
     return { ok: true, errors: errors, warnings: warnings, fieldIds: fieldIds, count: n };
+  }
+
+  // ==========================================================================
+  // SERVICE TERRITORY DATASETS (slice 6d) -- the third DatasetKey family
+  //
+  // The ConEd electric / gas / ORU outlines drawn over the tracts. Unlike the
+  // other two families this one is NOT tract-keyed at all: it carries no GEOIDs,
+  // pairs with nothing, and declares no vintage. Three consequences follow, and
+  // each is a place the geometry family's rules had to be narrowed rather than
+  // copied:
+  //
+  //   - retiring is scoped by DatasetKey ALONE, not by DatasetKey + vintage. A
+  //     territory row has no vintage, so the geometry filter would have compared
+  //     against '' and matched nothing stored as null, leaving two published
+  //     overlays and no way to tell which one drew. See saveTractDataset.
+  //   - it is never "active" in the indicator sense. IsActive means published,
+  //     i.e. THE overlay, and exactly one is published at a time.
+  //   - it is loaded lazily on first toggle and never on boot, because 3.5 MB for
+  //     a layer most viewers never switch on is the boot cost this app has spent
+  //     two slices removing.
+  //
+  // The file is a GeoJSON FeatureCollection with a manifest laid on top of it --
+  // `schema`, `kind`, `dataset` beside the root `features`. That is one file
+  // serving two transports: the same bytes validate as a dataset AND still parse
+  // as the web resource the map falls back to, which is what lets 6e delete the
+  // web resource without a second producer.
+  // ==========================================================================
+
+  /**
+   * Walk every coordinate in a GeoJSON geometry, accumulating the bounding box
+   * and stopping at the first structurally bad pair.
+   *
+   * Iterative rather than recursive: the overlay carries roughly 200,000 points
+   * and a stack frame per point is a cost with nothing to buy it.
+   */
+  function dsScanCoords(coords, acc) {
+    const stack = [coords];
+    while (stack.length) {
+      const c = stack.pop();
+      if (!Array.isArray(c) || !c.length) { acc.bad = 'an empty coordinate array'; return; }
+      if (typeof c[0] === 'number') {
+        const lon = c[0], lat = c[1];
+        if (typeof lat !== 'number' || !isFinite(lon) || !isFinite(lat)) {
+          acc.bad = 'a coordinate that is not a finite [lon, lat] pair'; return;
+        }
+        if (lon < acc.minLon) acc.minLon = lon;
+        if (lon > acc.maxLon) acc.maxLon = lon;
+        if (lat < acc.minLat) acc.minLat = lat;
+        if (lat > acc.maxLat) acc.maxLat = lat;
+        acc.points++;
+        continue;
+      }
+      for (let i = 0; i < c.length; i++) stack.push(c[i]);
+    }
+  }
+
+  /**
+   * Gate for the territory family. Refusals are kept to the things that would
+   * draw something WRONG or draw nothing while looking fine; everything else
+   * warns, which is the same line the other two validators hold.
+   */
+  function dsValidateTerritoryDoc(doc, rec) {
+    const errors = [], warnings = [];
+    const fail = (m) => { errors.push(m); return { ok: false, errors: errors, warnings: warnings }; };
+
+    if (!doc || typeof doc !== 'object') return fail('the data file is not a JSON object.');
+    if (doc.schema !== 1) {
+      return fail('manifest schema ' + JSON.stringify(doc.schema) +
+        ' is not supported by this build (expected 1).');
+    }
+    const kindProblem = dsKindRefusal(doc);
+    if (kindProblem) return fail(kindProblem);
+    if (dsDocKind(doc) !== 'territories') {
+      return fail('this file does not declare itself as territories (kind: "territories").');
+    }
+    const ds = doc.dataset || {};
+    if (ds.key !== DS_TERRITORY_KEY) {
+      return fail('dataset.key must be "' + DS_TERRITORY_KEY + '" in a territory file, not ' +
+        JSON.stringify(ds.key) + '.');
+    }
+    const feats = doc.features;
+    if (!Array.isArray(feats)) {
+      return fail('the file has no features array. A territory file is a GeoJSON ' +
+        'FeatureCollection with a manifest on it, not a manifest of its own.');
+    }
+    const n = feats.length;
+    if (!n) return fail('the file carries no features.');
+
+    const acc = { minLon: Infinity, maxLon: -Infinity, minLat: Infinity, maxLat: -Infinity,
+                  points: 0, bad: null };
+    const counts = {}, named = {}, unknown = [];
+    let unnamed = 0;
+    for (let i = 0; i < n; i++) {
+      const f = feats[i];
+      if (!f || typeof f !== 'object') return fail('feature ' + i + ' is not an object.');
+      const g = f.geometry;
+      if (!g || (g.type !== 'Polygon' && g.type !== 'MultiPolygon') ||
+          !Array.isArray(g.coordinates) || !g.coordinates.length) {
+        return fail('feature ' + i + ' is not a usable Polygon or MultiPolygon (got ' +
+          JSON.stringify(g && g.type) + '). Refusing rather than letting Leaflet fail ' +
+          'mid-render with part of the overlay already painted.');
+      }
+      const p = f.properties || {};
+      const layer = p.layer;
+      if (DS_TERRITORY_LAYERS.indexOf(layer) < 0) {
+        if (unknown.indexOf(String(layer)) < 0) unknown.push(String(layer));
+      } else {
+        counts[layer] = (counts[layer] || 0) + 1;
+        const hasName = !(p.name === undefined || p.name === null || String(p.name) === '');
+        if (hasName) named[layer] = (named[layer] || 0) + 1; else unnamed++;
+      }
+      dsScanCoords(g.coordinates, acc);
+      if (acc.bad) {
+        return fail('feature ' + i + ' (' + (p.name || 'unnamed') + ', layer ' +
+          JSON.stringify(layer) + ') has ' + acc.bad + '.');
+      }
+    }
+
+    // An unrecognised layer tag is a refusal rather than a warning because
+    // setTerritory FILTERS on it: those features would be stored, reported as
+    // uploaded, and then draw nothing whatever the operator toggled.
+    if (unknown.length) {
+      return fail(unknown.length + ' feature(s) carry a layer tag this build does not draw (' +
+        unknown.slice(0, 4).map(u => JSON.stringify(u)).join(', ') +
+        (unknown.length > 4 ? ', …' : '') + '). Expected ' + DS_TERRITORY_LAYERS.join(', ') +
+        '. Refusing rather than storing features that would silently draw nothing.');
+    }
+
+    const bb = DS_TERRITORY_BBOX;
+    if (acc.minLon < bb.minLon || acc.maxLon > bb.maxLon ||
+        acc.minLat < bb.minLat || acc.maxLat > bb.maxLat) {
+      return fail('coordinates span lon ' + acc.minLon.toFixed(3) + '…' + acc.maxLon.toFixed(3) +
+        ', lat ' + acc.minLat.toFixed(3) + '…' + acc.maxLat.toFixed(3) +
+        ', which is outside New York and its edges (lon ' + bb.minLon + '…' + bb.maxLon +
+        ', lat ' + bb.minLat + '…' + bb.maxLat + '). These are not WGS84 degrees over the ' +
+        'service area: an unprojected State Plane file reads exactly like this. Refusing ' +
+        'rather than drawing the overlay off the map.');
+    }
+
+    // A layer whose features are ALL unnamed is a refusal: it means the producer
+    // read the wrong attribute -- pyshp returns None for a field name that does
+    // not exist, so a renamed source column empties the whole layer in silence.
+    // Some unnamed features among named ones is just patchy source data.
+    const empty = DS_TERRITORY_LAYERS.filter(l => counts[l] && !named[l]);
+    if (empty.length) {
+      return fail('every feature in the ' + empty.join(' and ') + ' layer carries no name. ' +
+        'That is what a renamed source attribute looks like, not sparse data, because the ' +
+        'producer reads one named field per layer.');
+    }
+    if (unnamed) {
+      warnings.push(unnamed + ' of ' + n + ' features carry no name; those outlines will draw ' +
+        'but have nothing to label them with.');
+    }
+
+    const missing = DS_TERRITORY_LAYERS.filter(l => !counts[l]);
+    if (missing.length) {
+      warnings.push('this overlay carries no ' + missing.join(' or ') + ' features, so ' +
+        'toggling ' + (missing.length > 1 ? 'those layers' : 'that layer') + ' on will draw nothing.');
+    }
+
+    // ---- record integrity ----
+    // TractCount holds the FEATURE count for this family. A reused column rather
+    // than a new one: both families mean "records in the file", and adding a
+    // column is a maker-portal schema change. The card says "features", not
+    // "tracts", so nothing on screen repeats the reuse.
+    if (rec) {
+      if (rec.tractCount != null && rec.tractCount !== n) {
+        return fail('record TractCount (' + rec.tractCount + ') disagrees with the file (' +
+          n + ' features).');
+      }
+      const layerCount = Object.keys(counts).length;
+      if (rec.fieldCount != null && rec.fieldCount !== layerCount) {
+        return fail('record FieldCount (' + rec.fieldCount + ') disagrees with the file (' +
+          layerCount + ' layers).');
+      }
+      if (rec.geoidVintage) {
+        warnings.push('this record declares GEOID vintage ' + rec.geoidVintage +
+          ', which means nothing for a territory overlay: it carries no GEOIDs and pairs ' +
+          'with no dataset.');
+      }
+    }
+    if (!dsSourceFingerprint(doc)) {
+      warnings.push('this overlay carries no source fingerprint, so it cannot be checked ' +
+        'against the tract geometry it should agree with. Files built before slice 6c have none.');
+    }
+    return { ok: true, errors: errors, warnings: warnings, count: n,
+             layers: counts, points: acc.points,
+             fingerprint: dsSourceFingerprint(doc) };
+  }
+
+  /** The published territory overlay, or null. */
+  function dsTerritoryRec() {
+    const pub = dsRecords().filter(r => dsRecIsTerritories(r) && r.active);
+    if (pub.length > 1) {
+      console.warn('[Service territories] ' + pub.length + ' territory overlays are published (' +
+        pub.map(r => 'v' + r.version).join(', ') + '); using the newest. Retire the rest.');
+    }
+    return pub.length ? pub[0] : null;   // listTractDatasets orders createdon desc
+  }
+
+  /** Drop the memoised overlay so the next toggle re-resolves its source. */
+  function dsInvalidateTerritories() {
+    _territoryGeoCache = null;
+    _territoryFetchPromise = null;
+    _territorySource = null;
+  }
+
+  /**
+   * Compare a territory overlay against the tract geometry currently drawing.
+   *
+   * This is slice 6c's build-time coupling check, carried to runtime, and it has
+   * to be: the two files reach the browser by different routes and nothing on the
+   * way here re-runs the builder. Same graduated rule --
+   *
+   *     either side unstamped -> unverifiable, say so and draw
+   *     stamps disagree       -> REFUSE
+   *
+   * Absence is tolerated on purpose. The overlay live as a web resource today
+   * predates 6c and carries no stamp, so refusing on absence would take the
+   * outlines away from the deployed app for a reason that is not evidence of
+   * anything. A DISAGREEMENT is evidence.
+   */
+  function dsTerritoryCoupling(doc) {
+    const mine = dsSourceFingerprint(doc);
+    const geom = _dsGeometry ? dsSourceFingerprint(_dsGeometry.doc) : '';
+    if (!mine || !geom) {
+      return { ok: true, verified: false,
+               why: !mine
+                 ? 'the overlay carries no source fingerprint'
+                 : 'the tract geometry in use carries no source fingerprint' };
+    }
+    if (mine !== geom) {
+      return { ok: false, verified: true,
+               error: 'this territory overlay was built from different source shapefiles than ' +
+                 'the tract geometry now drawing: overlay ' + mine.slice(0, 16) + '…, geometry ' +
+                 geom.slice(0, 16) + '…. The outlines and the per-tract electric/gas numbers ' +
+                 'would disagree with each other. Rebuild both with ' +
+                 'update_map_data.py --refresh-territories and upload them together.' };
+    }
+    return { ok: true, verified: true };
+  }
+
+  /**
+   * Fetch the overlay from the web resource. The fallback, and 6e deletes it.
+   */
+  function dsFetchTerritoryWebResource() {
+    return fetch('./Data/service_territories.geojson')
+      .then(r => r.ok ? r.json()
+                      : Promise.reject(new Error('service_territories.geojson ' + r.status)))
+      .then(j => {
+        _territorySource = 'webresource';
+        console.info('[Service territories] using the web resource ' +
+          'Data/service_territories.geojson (' + ((j && j.features || []).length) +
+          ' features). No overlay is published in Dataverse.');
+        return j;
+      });
+  }
+
+  /**
+   * Resolve where the overlay comes from, download it, and validate it.
+   *
+   * Prefers the published Dataverse dataset; falls back to the web resource when
+   * none is published, when the download fails, or when the file does not
+   * validate -- all three are "we have no usable published overlay", and the web
+   * resource is the copy that has been drawing all along.
+   *
+   * A COUPLING refusal does not fall back, and that asymmetry is the point. The
+   * web resource is an older copy of the same overlay, carrying no fingerprint,
+   * so falling back would turn a caught disagreement into a silent draw -- which
+   * is precisely the failure the fingerprint exists to surface.
+   */
+  async function dsLoadTerritoryDoc() {
+    const rec = dsTerritoryRec();
+    if (!rec) return dsFetchTerritoryWebResource();
+
+    let doc;
+    try {
+      doc = JSON.parse(await Storage.getTractDatasetFile(rec.dvId));
+    } catch (e) {
+      console.warn('[Service territories] Could not read the published overlay "v' + rec.version +
+        '"; falling back to the web resource.', e);
+      return dsFetchTerritoryWebResource();
+    }
+    const val = dsValidateTerritoryDoc(doc, rec);
+    if (!val.ok) {
+      console.error('[Service territories] REFUSED the published overlay "v' + rec.version +
+        '": ' + val.errors.join(' ') + ' Falling back to the web resource.');
+      rec.loadError = val.errors.join(' ');
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      return dsFetchTerritoryWebResource();
+    }
+    val.warnings.forEach(w => console.warn('[Service territories] ' + w));
+
+    const cpl = dsTerritoryCoupling(doc);
+    if (!cpl.ok) {
+      console.error('[Service territories] REFUSED the published overlay "v' + rec.version +
+        '": ' + cpl.error);
+      rec.loadError = cpl.error;
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      throw new Error(cpl.error);
+    }
+    rec.loadError = null;
+    _territorySource = 'dataverse';
+    console.info('[Service territories] using published overlay "v' + rec.version + '": ' +
+      val.count + ' features across ' + Object.keys(val.layers).length + ' layers, ' +
+      (cpl.verified
+        ? 'source fingerprint matches the tract geometry in use'
+        : 'fingerprint unverified (' + cpl.why + ')') + '.');
+    return doc;
   }
 
   /**
@@ -4881,10 +5262,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }
     _dsRecords = recs;
     if (state.route && state.route.name === 'maplayers') rerenderMlList();
-    // Only the indicator family can be "live". Geometry rows are published, not
-    // active, and several vintages are published at once by design, so counting
-    // them here would report a conflict that does not exist.
-    const act = recs.filter(r => r.active && !dsRecIsGeometry(r));
+    // Only the indicator family can be "live". Geometry and territory rows are
+    // PUBLISHED, not active -- several geometry vintages are published at once by
+    // design -- so counting them here would report a conflict that does not
+    // exist, and taking one as the live dataset would be a straight defect.
+    const act = recs.filter(r => r.active && dsRecIsIndicators(r));
     if (!act.length) {
       if (dsClearGeometry()) dsRemountMap();
       dsUsePayloadIndicators('no active dataset');
@@ -6946,14 +7328,35 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     rebuildNeighborhoodDropdown();
 
     // ---- ConEd service-area overlays (lazy-loaded on first toggle) ----
+    // Memoised exactly as before -- one download per session, shared by every
+    // mount, retried on the next toggle after a failure -- with one correction
+    // slice 6d forced. The SOURCE is now resolved rather than hardcoded, and it
+    // becomes known asynchronously: dsHydrateActiveDataset lists the records, and
+    // a viewer can toggle a territory before that finishes. A cache built from
+    // the fallback is therefore not final.
     function ensureTerritoryGeo() {
+      if (_territoryGeoCache && _territorySource === 'webresource' && dsTerritoryRec()) {
+        const built = Object.keys(_terrLayers).filter(k => _terrLayers[k]);
+        if (built.length) {
+          // Bounded on purpose. Swapping the features under layers already on the
+          // map means rebuilding them mid-session, and the map is remounted on
+          // every Executive Summary render anyway, so the next mount picks the
+          // published overlay up. Stating the wait beats machinery for it.
+          console.info('[Service territories] a published overlay is available, but ' +
+            built.join(' and ') + ' already drew from the web resource in this mount; ' +
+            'switching on the next mount rather than swapping features under the map.');
+        } else {
+          _territoryGeoCache = null; _territoryFetchPromise = null;
+          console.info('[Service territories] a published overlay appeared after the web ' +
+            'resource had loaded; using it instead.');
+        }
+      }
       if (_territoryGeoCache) return Promise.resolve(_territoryGeoCache);
       if (!_territoryFetchPromise) {
-        _territoryFetchPromise = fetch('./Data/service_territories.geojson')
-          .then(r => r.ok ? r.json() : Promise.reject(new Error('service_territories.geojson ' + r.status)))
+        _territoryFetchPromise = dsLoadTerritoryDoc()
           .then(j => (_territoryGeoCache = j))
           .catch(err => {
-            console.warn('[DAC map] Could not load Data/service_territories.geojson:', err);
+            console.warn('[DAC map] Could not load the service territory overlay:', err);
             _territoryFetchPromise = null;   // allow a retry on the next toggle
             throw err;
           });
@@ -6985,7 +7388,17 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           bringOutlinesToFront();   // keep borough (blue) under neighborhood (red), both above the overlay
           // ORU sits NW of the six-county extent — fit to it so it's visible.
           if (kind === 'oru') map.flyToBounds(_terrLayers[kind].getBounds(), { padding: [25, 25], duration: 0.6 });
-        }).catch(function () { /* already reported in ensureTerritoryGeo */ });
+        }).catch(function (err) {
+          // Reported already; what was missing is that the CHECKBOX stayed on with
+          // nothing drawn, which reads as "this layer is empty" rather than "this
+          // layer was refused". A coupling refusal in particular has to be visible
+          // to whoever flipped the switch, not only in the console.
+          if (superseded('territory refusal')) return;
+          const cb = document.querySelector('#dac-map-terr input[data-layer="' + kind + '"]');
+          if (cb) cb.checked = false;
+          Storage.toast('Could not draw the ' + kind + ' overlay. ' +
+            ((err && err.message) ? err.message : err), 'error');
+        });
       } else if (_terrLayers[kind]) {
         map.removeLayer(_terrLayers[kind]);
       }
@@ -12838,48 +13251,71 @@ function wireHTooltips() {
   }
 
   /**
-   * Territory overlays: the three outlines that ship with the dashboard.
+   * Territory overlays: the published service-boundary overlay, as a record.
    *
-   * Read-only on purpose. They are not uploadable layers, and the point of
-   * showing them is so nobody mistakes them for one. They also share their
-   * source files with the per-tract network values in the shapes dataset, so
-   * changing one without the other would put the outlines and the tract values
-   * out of step; both are regenerated together offline. Editable in a later
-   * phase.
+   * This card used to be three hardcoded rows saying "built in", behind
+   * SHOW_TERRITORY_CARD = false. Two reasons it is not that any more. The copy
+   * became false -- the outlines are a Dataverse dataset as of slice 6d, not
+   * something compiled into a file that ships -- and there is now a record with a
+   * version, a feature count and a refusal to show, which is doing rather than
+   * explaining. That was the objection the static card was pulled for.
    *
-   * Static content: these three are compiled into the overlay file the map
-   * loads, so there is nothing to read from Dataverse and nothing to re-render.
+   * Follows renderGeomCard's rule rather than a flag: nothing to list, no card. So
+   * in the state the app is in today -- no overlay published, the map still on the
+   * web resource -- this page looks exactly as it did before, and the card appears
+   * the moment the family is real.
+   *
+   * Read-only. There is no toggle because there is nothing to choose: exactly one
+   * overlay is published, and uploading a new one retires it.
    */
   function renderTerritoryCard() {
-    if (!SHOW_TERRITORY_CARD) return '';
-    const rows = [
-      ['Electric networks', 'Con Edison electric network boundaries'],
-      ['Gas service area', 'Con Edison gas service area boundaries'],
-      ['ORU territory', 'Orange and Rockland service territory'],
-    ];
+    if (!Storage.isDataverse()) return '';
+    const terrRecs = dsRecords().filter(dsRecIsTerritories);
+    if (!terrRecs.length) return '';
+    const live = dsTerritoryRec();
+    const drawing = _territorySource === 'dataverse' && live;
+
     return `
       <div class="ml-card ds-terr">
         <div class="ml-card-head">
           <div>
             <h3>Territory overlays</h3>
-            <p class="ml-card-sub">Service boundaries that ship with the dashboard. Switch them on
-            from the Layers control on the map. They are not uploaded here and cannot be changed
-            from this page.</p>
+            <p class="ml-card-sub">The Con Edison electric, gas and ORU boundaries, drawn over the
+            tracts. Switch them on from the Layers control on the map; they download the first time
+            one is used. Uploading a new overlay replaces the published one.</p>
           </div>
-          ${dsHelpButton('territory')}
+          <div class="ml-card-actions">${
+            drawing ? '<span class="ml-chip ml-chip-ok">loaded</span>'
+                    : (_territorySource === 'webresource'
+                        ? '<span class="ml-chip">map is on the built-in copy</span>'
+                        : '<span class="ml-chip">not loaded yet</span>')
+          }</div>
         </div>
         <div class="ml-card-body">
-          <ul class="ml-list ds-terr-list">${rows.map(r => `
-            <li class="ml-row">
+          <ul class="ml-list ds-terr-list">${terrRecs.map(r => {
+            const isLive = live && live.dvId === r.dvId;
+            const who = [r.savedBy, mlFmtSavedOn(r.savedOn)].filter(Boolean).join(' · ');
+            return `
+            <li class="ml-row${isLive ? '' : ' ml-row-inactive'}">
               <div class="ml-row-main">
-                <div class="ml-row-name">${escapeHtml(r[0])}
-                  <span class="ml-chip">built in</span></div>
-                <div class="ml-row-meta">${escapeHtml(r[1])}</div>
+                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+                  <span class="ml-mono">v${escapeHtml(r.version)}</span>
+                  ${isLive ? '<span class="ml-chip ml-chip-ok">published</span>'
+                           : '<span class="ml-chip ml-chip-off">retired</span>'}
+                  ${r.loadError ? '<span class="ml-chip ml-chip-err" title="' +
+                      escapeHtml(r.loadError) + '">refused</span>' : ''}</div>
+                <div class="ml-row-meta">
+                  ${(r.tractCount || 0).toLocaleString()} features ·
+                  ${r.fieldCount || 0} layers${who ? ' · ' + escapeHtml(who) : ''}
+                </div>
+                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+                ${r.loadError ? `<div class="ml-row-error" role="alert">
+                     <strong>Not drawn; the map kept the outlines it had</strong>
+                     <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
+                   </div>` : ''}
               </div>
-            </li>`).join('')}</ul>
-          <p class="ml-row-src ds-terr-note">Supplied together as one overlay the map loads the
-          first time one of them is switched on. Managing them from this page is planned for a
-          later phase.</p>
+            </li>`;
+          }).join('')}</ul>
         </div>
       </div>`;
   }
@@ -13048,9 +13484,14 @@ function wireHTooltips() {
   // Both were shown once and pulled back after review: the page had grown more
   // explaining than doing, and a delivery is the wrong moment to be teaching a
   // reader five cards' worth of provenance.
+  //
+  // SHOW_TERRITORY_CARD is gone as of slice 6d. It gated a card of three hardcoded
+  // "built in" rows, and both halves of that stopped being true: the outlines are
+  // a Dataverse dataset now, and the card lists records. It follows renderGeomCard
+  // instead -- nothing published, no card -- so the page in its current state
+  // renders exactly as this flag made it render, without a flag.
   // ============================================================
 
-  const SHOW_TERRITORY_CARD = false;   // renderTerritoryCard, built and idle
   const SHOW_HELP_BUTTONS = false;     // the "How to update" openers; the drawer
                                        // machinery below stays wired so this is
                                        // the only line that gates it
@@ -13351,9 +13792,11 @@ function wireHTooltips() {
            st.coverage.absentDac ? ' · ' + st.coverage.absentDac + ' DAC tract(s) unmatched' : ''}</div>`
       : '';
 
-    // Only indicator versions are listed as activatable. Geometry has its own
-    // card, renderGeomCard, because it is selected by vintage and never toggled.
-    const indRecs = recs.filter(r => !dsRecIsGeometry(r));
+    // Only indicator versions are listed as activatable. Geometry and territories
+    // each have their own card -- renderGeomCard, renderTerrCard -- because
+    // neither is toggled: one is selected by vintage, the other is simply the
+    // published overlay.
+    const indRecs = recs.filter(dsRecIsIndicators);
 
     const rows = indRecs.length
       ? '<ul class="ml-list">' + indRecs.map(r => {
@@ -13489,6 +13932,7 @@ function wireHTooltips() {
     if (!Storage.canCreateDatasets()) return '';
     const d = state.mapLayers || {};
     const isGeom = d.dsSummary && d.dsSummary.kind === 'geometry';
+    const isTerr = d.dsSummary && d.dsSummary.kind === 'territories';
     // Both notices are dismissible (UX item a): a refusal used to sit on the
     // card until another file was picked, with no way to just close it.
     const warnBlock = (d.dsWarnings || []).length
@@ -13504,19 +13948,26 @@ function wireHTooltips() {
       ? `<div class="ml-preview">
            <div class="ml-preview-head">
              <span class="ml-preview-title">Validated</span>
-             <span class="ml-chip ml-chip-ok">${d.dsSummary.tracts.toLocaleString()} tracts · ${
-               d.dsSummary.fields} ${isGeom ? 'properties' : 'fields'}</span>
+             <span class="ml-chip ml-chip-ok">${d.dsSummary.tracts.toLocaleString()} ${
+               isTerr ? 'features' : 'tracts'} · ${
+               d.dsSummary.fields} ${isTerr ? 'layers' : isGeom ? 'properties' : 'fields'}</span>
            </div>
            <div class="ml-preview-range">
              <span class="ml-mono">${escapeHtml(d.dsSummary.key)}${
                isGeom ? ' ' : ' v'}${escapeHtml(d.dsSummary.version)}</span>
-             · vintage ${escapeHtml(d.dsSummary.vintage)}
-             · ${isGeom
+             ${isTerr ? '' : '· vintage ' + escapeHtml(d.dsSummary.vintage)}
+             · ${isTerr
+                  ? escapeHtml((d.dsSummary.layerCounts || []).join(' · '))
+                  : isGeom
                   ? 'tract shapes'
                   : d.dsSummary.indicators + ' indicators in ' + d.dsSummary.groups + ' groups'}
            </div>
            ${warnBlock}
-           <p class="ml-preview-note">${isGeom
+           <p class="ml-preview-note">${isTerr
+             ? `Uploading stores this overlay and publishes it, retiring whichever one is published
+                now. The map draws it the next time one of the territory layers is switched on;
+                nothing on screen changes until then.`
+             : isGeom
              ? `Uploading stores these shapes and makes them available. The map will draw them
                 whenever the active dataset declares vintage ${escapeHtml(d.dsSummary.vintage)}${
                   (d.dsSummary.pairsWith || []).length
@@ -13554,10 +14005,12 @@ function wireHTooltips() {
         <div class="ml-card-head">
           <div>
             <h3>Upload data file</h3>
-            <p class="ml-card-sub">Upload a NYSERDA dataset version or a set of tract shapes. The
-            file itself says which one it is, and it is checked before anything is stored. Dataset
-            versions appear under Tract datasets, where you choose which one is live. Shape sets
-            appear under Tract shapes and are matched to a dataset by vintage.</p>
+            <p class="ml-card-sub">Upload a NYSERDA dataset version, a set of tract shapes, or a
+            service territory overlay. The file itself says which one it is, and it is checked
+            before anything is stored. Dataset versions appear under Tract datasets, where you
+            choose which one is live. Shape sets appear under Tract shapes and are matched to a
+            dataset by vintage. A territory overlay appears under Territory overlays and replaces
+            the published one.</p>
           </div>
           ${dsHelpButton('upload')}
         </div>
@@ -13862,7 +14315,7 @@ function wireHTooltips() {
         d.dsStage = 'ready';
         d.dsErrors = [];
         d.dsWarnings = gval.warnings.slice();
-        const pairs = dsRecords().filter(r => !dsRecIsGeometry(r) &&
+        const pairs = dsRecords().filter(r => dsRecIsIndicators(r) &&
           String(r.geoidVintage || '') === String(gds.geoidVintage || ''));
         if (!pairs.length) {
           d.dsWarnings.push('No indicator dataset declares vintage ' +
@@ -13888,6 +14341,61 @@ function wireHTooltips() {
           manifestVersion: doc.schema,
         };
         dsStageChecksumInput(doc.tracts.geoids);
+        rerenderMlList();
+        return;
+      }
+
+      // Territory files take a third gate. They carry no GEOIDs, so neither the
+      // coverage check nor the vintage pairing has anything to measure them
+      // against -- the same reason geometry needs its own gate, for the opposite
+      // cause: geometry DEFINES the tracts, territories ignore them.
+      if (dsDocKind(doc) === 'territories') {
+        const tval = dsValidateTerritoryDoc(doc, null);
+        if (!tval.ok) {
+          d.dsStage = null; d.dsErrors = tval.errors; d.dsWarnings = tval.warnings;
+          rerenderMlList(); return;
+        }
+        const tds = doc.dataset || {};
+        d.dsStage = 'ready';
+        d.dsErrors = [];
+        d.dsWarnings = tval.warnings.slice();
+        const live = dsTerritoryRec();
+        if (live) {
+          d.dsWarnings.push('Uploading this retires the published overlay v' +
+            (live.version || '?') + ': exactly one territory overlay is published at a time. ' +
+            'The old one stays in Dataverse, and re-uploading it is how you go back.');
+        }
+        // The coupling is a WARNING here and a refusal at draw time, deliberately.
+        // Rebuilding both outputs and uploading them one at a time means the first
+        // upload necessarily disagrees with whatever is still live, so refusing
+        // here would block the correct sequence rather than a mistake.
+        const stageCpl = dsTerritoryCoupling(doc);
+        if (!stageCpl.ok) {
+          d.dsWarnings.push('This overlay was built from different source shapefiles than the ' +
+            'tract geometry currently in use, so the map will refuse to draw it until the ' +
+            'matching geometry is published too. Storing it now is fine if that is the next step.');
+        }
+        if ((tds.sourceLabel || '').length > DS_SOURCE_LABEL_MAX) {
+          d.dsWarnings.push('The source note is ' + tds.sourceLabel.length +
+            ' characters and only the first ' + DS_SOURCE_LABEL_MAX +
+            ' are stored, so it will be cut short on the card.');
+        }
+        d.dsText = text;
+        d.dsSummary = {
+          kind: 'territories',
+          key: tds.key || '', version: tds.version || '', name: tds.name || '',
+          sourceLabel: tds.sourceLabel || '', vintage: '',
+          tracts: tval.count, fields: Object.keys(tval.layers).length,
+          layerCounts: DS_TERRITORY_LAYERS.filter(l => tval.layers[l])
+            .map(l => l + ' ' + tval.layers[l]),
+          points: tval.points,
+          fingerprint: tval.fingerprint,
+          manifestVersion: doc.schema,
+        };
+        // No GEOIDs, so no key checksum: an empty input makes dsComputeChecksum
+        // return '' and the column stays empty, rather than storing a hash of
+        // nothing and implying the file was checked against a tract list.
+        dsStageChecksumInput([]);
         rerenderMlList();
         return;
       }
@@ -13974,12 +14482,19 @@ function wireHTooltips() {
     try {
       const checksum = await dsComputeChecksum();
       const isGeometry = s.kind === 'geometry';
+      const isTerritories = s.kind === 'territories';
       const saved = await Storage.saveTractDataset({
         name: s.name || s.key, datasetKey: s.key, version: s.version,
         sourceLabel: s.sourceLabel, geoidVintage: s.vintage,
         tractCount: s.tracts, fieldCount: s.fields,
         keyChecksum: checksum, manifestVersion: s.manifestVersion,
-        isActive: isGeometry,
+        // Territories land published for the same reason geometry does: there is
+        // no second decision to make. What differs is the SCOPE of the retire that
+        // publishing triggers -- see retireBy.
+        isActive: isGeometry || isTerritories,
+        // Geometry is one-published-per-VINTAGE; territories are
+        // one-published-per-KEY, because they have no vintage to be scoped by.
+        retireBy: isTerritories ? 'key' : 'vintage',
       }, d.dsText, function (st) { d.dsProgress = st; rerenderMlList(); });
       d.dsStage = null; d.dsText = null; d.dsSummary = null;
       d.dsErrors = []; d.dsWarnings = [];
@@ -13989,6 +14504,12 @@ function wireHTooltips() {
       // A new geometry for the vintage currently in use replaces what the map is
       // drawing, so re-resolve the pair rather than waiting for a reload.
       if (isGeometry) await dsRepairGeometryPairing();
+      // The overlay is memoised for the whole session and shared by every mount,
+      // so a fresh upload has to drop it or the next toggle would draw the copy it
+      // just replaced. Layers already built in a live mount keep their old
+      // features until that mount is rebuilt -- and uploading happens on Map
+      // Layers, where no map is mounted, so returning to the summary rebuilds it.
+      if (isTerritories) dsInvalidateTerritories();
       rerenderMlList();
       Storage.toast(isGeometry
         ? 'Uploaded ' + s.version + ' geometry.' +
@@ -13996,6 +14517,10 @@ function wireHTooltips() {
             ? ' It replaces ' + retired.join(', ') + ' for vintage ' + (s.vintage || '(none)') + '.'
             : ' It will be used by any dataset version that declares vintage ' +
               (s.vintage || '(none)') + '.')
+        : isTerritories
+        ? 'Uploaded territory overlay v' + s.version + ' (' + s.tracts + ' features).' +
+          (retired.length ? ' It replaces ' + retired.join(', ') + '.'
+                          : ' It is now the published overlay.')
         : 'Uploaded ' + s.key + ' v' + s.version + '. Activate it when ready.');
     } catch (err) {
       const msg = (err && err.message) ? err.message : String(err);
