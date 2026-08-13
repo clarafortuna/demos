@@ -5985,6 +5985,22 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         //
         // Content is assigned first because the edge-flip inside
         // positionTooltipAt measures offsetWidth/offsetHeight.
+        //
+        // THE TRIGGER, measured on the hosted boot mount with devtools closed:
+        //
+        //     mouseover: 618    mousemove: 0    mouseout: 0
+        //
+        // Six hundred and eighteen enter events across tract paths and not one
+        // move event delivered to an interactive layer. At that volume this is not
+        // an unlucky sample: move delivery is dead on that mount, so binding the
+        // placement to mousemove meant it never ran at all. Positioning on show is
+        // the only shape that works when the move event never arrives.
+        //
+        // Consequence worth knowing rather than discovering: on such a mount the
+        // tooltip is placed where the pointer ENTERED the tract and does not track
+        // the cursor inside it, because the event that would move it never comes.
+        // It re-places on entering the next tract. Correct and visible beats
+        // smooth and off screen.
         if (!positionTooltipAt(e)) return;
         tooltip.style.opacity = '1';
       });
