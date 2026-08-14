@@ -8649,6 +8649,19 @@ a.nav-item { text-decoration: none; }
 }
 .dac-map-skeleton-sub { font-size: 11px; color: var(--text-4); }
 
+/* Slice 5d: the map has no data source. Same box as the skeleton, because it
+ * occupies the same slot for the same reason -- but it is a terminal state, not a
+ * wait, so it does not borrow the skeleton's loading language. Placed here, above
+ * the [hidden] rule at the bottom of this file, per the guard that owns it. */
+.dac-map-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; height: 100%; min-height: 320px; padding: 0 32px;
+  background: var(--surface-2, #f4f6f8);
+  border-radius: 6px; text-align: center;
+  color: var(--text-2); font-size: 14px;
+}
+.dac-map-empty-why { font-size: 12.5px; color: var(--text-3); max-width: 46ch; line-height: 1.5; }
+
 /* ======================== HIDDEN ATTRIBUTE ========================
  * One rule for the whole class of bug, and it has to live at the very
  * bottom of this file.

@@ -385,7 +385,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       function writeJSON(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (e) { console.error('Storage write failed for ' + key, e); return false; } }
       return {
         async init() { /* reads are live from localStorage; nothing to preload */ },
-        // No Dataverse context -> the map renders from map_payload.json only.
+        // No Dataverse context -> the map has no data source at all (slice 5d).
         getMapTractOverlay() { return null; },
         applyOverrides(payload) {
           captureBaseline(payload);
@@ -2621,7 +2621,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
   // The 8 editable fields overlaid from Dataverse onto each feature by GEOID.
   // Everything else (geometry, County, neighborhood, indicators, electric_networks, …)
-  // always stays from map_payload.json.
+  // always stays from the live indicator dataset (slice 5d retired the payload).
   const MAP_OVERLAY_FIELDS = ['elec_dac', 'elec_accts', 'elec_eap', 'elec_adj', 'gas_dac', 'gas_accts', 'gas_eap', 'gas_adj'];
 
   function applyMapOverlay(geo, overlay) {
@@ -2669,6 +2669,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // a later mutation (the tract-dataset merge) lands on the other, so the merge
   // silently does nothing, so the fetch is memoized.
   let _mapGeoPromise = null;
+  // Slice 5d: why the map has nothing to draw, or '' when it does. Read by the
+  // mount to render a message instead of an empty Leaflet canvas.
+  let _mapGeoUnavailable = '';
+  function mapGeoUnavailable() { return _mapGeoUnavailable; }
 
   // Bumped whenever the geometry source changes. A build that started under an
   // older generation must not write the cache when it lands: dropping the
@@ -2679,18 +2683,31 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
   // Slice 5c. 'dataverse' composes the map from the geometry dataset, the
   // indicator dataset and the editable overlay. 'payload' is the pre-5c
-  // behaviour: fetch map_payload.json and treat the datasets as overlays onto it.
+  // behaviour, removed in 5d: fetch map_payload.json and overlay the datasets.
   //
   // This exists so a problem in the hosted app is one word and a redeploy of
   // app.js, with no data change and no payload rollback. It is scaffolding, not a
   // feature: slice 5d removes it along with the payload path, once the standalone
   // and public-origin question is settled. Do not build anything on it.
-  const MAP_BASE = 'dataverse';
+  // Slice 5d: MAP_BASE is gone. It was scaffolding with a scheduled removal --
+  // one word and a redeploy to restore the pre-5c behaviour while the composed
+  // path was new. The composed path has now been live across four deploys, all
+  // four data families are in Dataverse, and the payload web resource is being
+  // retired, so the flag guarded a fallback that no longer exists.
+  //
+  // What replaced it is Storage.isDataverse(), which is not a rename: the old
+  // flag said "compose, or fetch the file"; the new test says "compose, or there
+  // is no map". Those are different questions and the second one has an error
+  // state, which is most of this slice.
 
-  // How long the map card waits for hydration before drawing from the payload
-  // instead. A hard ceiling, not a retry: a Dataverse call that has not answered
-  // in this long is not going to make the first paint, and a map drawn from the
-  // payload is far better than a skeleton that never resolves.
+  // How long the map card waits for hydration before giving up on the first
+  // paint. A hard ceiling, not a retry.
+  //
+  // Its meaning narrowed in 5d. It used to mean "draw from the payload instead",
+  // which was a complete map from a different source. There is no other source
+  // now, so a timeout means the map draws with whatever hydration managed to
+  // install -- possibly nothing, in which case the card says so. Hydration keeps
+  // running and repaints if it lands late.
   const MAP_HYDRATION_TIMEOUT_MS = 8000;
   let _dsHydrationPromise = null;
   let _dsHydrationDone = false;
@@ -2700,12 +2717,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * Whether the MAP should hold its first paint for hydration. Separate from
    * whether hydration RUNS, and the two were briefly conflated: an early cut of
    * this gate returned Promise.resolve() without starting hydration whenever the
-   * map did not need to wait, so MAP_BASE='payload' -- the rollback lever -- and
+   * map did not need to wait, so the rollback lever (MAP_BASE, since removed) and
    * every standalone session loaded no datasets at all. The proof harness caught
    * it as a baseline that drew the payload's hybrid geometry forever.
    */
   function dsMapWaitsForHydration() {
-    return !_dsHydrationDone && MAP_BASE === 'dataverse' && Storage.isDataverse();
+    return !_dsHydrationDone && Storage.isDataverse();
   }
 
   /** True once hydration has finished or timed out, so the mount need not wait. */
@@ -2732,7 +2749,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }).catch(e => {
       settle();
       console.warn('[Tract datasets] hydration failed after ' + _dsHydrationMs +
-        'ms; the map draws from map_payload.json.', e);
+        'ms; the map draws with whatever is installed, which may be nothing.', e);
     });
     return _dsHydrationPromise;
   }
@@ -2749,7 +2766,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       new Promise(r => setTimeout(() => {
         if (!_dsHydrationDone) {
           console.warn('[Tract datasets] hydration did not answer within ' +
-            MAP_HYDRATION_TIMEOUT_MS + 'ms; drawing from map_payload.json instead. ' +
+            MAP_HYDRATION_TIMEOUT_MS + 'ms; drawing with whatever is installed. ' +
             'A dataset that arrives later still repaints the map.');
         }
         r();
@@ -2757,45 +2774,13 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     ]);
   }
 
-  /**
-   * Copy the payload's indicator values onto an already-composed base, for the
-   * four cases where the geometry dataset is live but the indicator dataset is
-   * not. Everything the geometry dataset owns is left alone, and so is anything
-   * already present, so this can only fill gaps.
-   */
-  async function applyPayloadIndicators(geo, geometryFieldIds) {
-    const res = await fetch('./map_payload.json');
-    if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-    const payload = await res.json();
-    const owned = {};
-    (geometryFieldIds || []).forEach(k => { owned[k] = true; });
-    owned.GEOID = true;
-    const byGeoid = {};
-    (payload.features || []).forEach(f => {
-      const g = f && f.properties && f.properties.GEOID;
-      if (g != null) byGeoid[g] = f.properties;
-    });
-    let filled = 0, absent = 0;
-    geo.features.forEach(f => {
-      const src = byGeoid[f.properties.GEOID];
-      if (!src) { absent++; return; }
-      Object.keys(src).forEach(k => {
-        if (owned[k]) return;
-        f.properties[k] = src[k];
-      });
-      filled++;
-    });
-    console.info('[DAC map] payload indicators applied to ' + filled + ' tracts' +
-      (absent ? ' (' + absent + ' drawn tracts absent from the payload)' : '') + '.');
-    return filled;
-  }
-
   async function getMapGeo() {
     if (_mapGeoCache) return _mapGeoCache;
     if (!_mapGeoPromise) {
       const gen = _mapGeoGen;
       _mapGeoPromise = (async () => {
-        const gset = MAP_BASE === 'dataverse' ? dsGeometry() : null;
+        _mapGeoUnavailable = '';
+        const gset = Storage.isDataverse() ? dsGeometry() : null;
         let geo;
         if (gset) {
           // ---- composed from Dataverse (slice 5c) ---------------------------
@@ -2810,18 +2795,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             indSource = '"' + (_dsIndicators.version ||
               (dsState().rec ? dsState().rec.version : 'dataset')) + '"';
           } else {
-            // No indicator dataset: the four dsUsePayloadIndicators cases. The
-            // geometry dataset still draws, but the 56 indicator values have to
-            // come from the payload, so it is fetched for those and nothing else.
-            // This is why 5c does not remove the file.
-            indSource = 'map_payload.json';
-            try {
-              await applyPayloadIndicators(geo, gset.fieldIds);
-            } catch (e) {
-              console.error('[DAC map] the geometry dataset is drawing but the payload ' +
-                'indicators could not be loaded, so the map has geometry and no values.', e);
-              indSource = 'NONE';
-            }
+            // No indicator dataset. Before 5d the payload filled this in, which
+            // meant the state was invisible: the map looked complete and nothing
+            // said the 56 values had come from a file rather than a release.
+            //
+            // There is nothing to fill it with now, so the shapes draw and the
+            // card says the values are missing. That is the honest rendering of
+            // "geometry is published, no indicator dataset is active" -- a state
+            // an operator can fix in one toggle, and could not previously see.
+            indSource = 'NONE (no active indicator dataset)';
           }
           // Keeps the word "drawing" and the '"key vversion"' shape deliberately:
           // geom_ui asserts on this line, and the contract it checks -- which
@@ -2832,34 +2814,72 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             (gset.rec.geoidVintage || '?') + '): ' + geo.features.length +
             ' tracts, indicators from ' + indSource + '.');
         } else {
-          // ---- the payload is the base -------------------------------------
-          // Reached when MAP_BASE is 'payload', when there is no Dataverse context
-          // at all (the standalone and public-origin case), or when no geometry
-          // dataset could be prepared -- the fifth failure mode, which says so at
-          // the point it happens rather than leaving this silent.
-          const res = await fetch('./map_payload.json');
-          if (!res.ok) throw new Error('map_payload.json not found (' + res.status + ')');
-          geo = await res.json();
-          // Pre-5c behaviour, kept intact: a published geometry dataset still
-          // replaces the polygons and the tract universe ON TOP of the payload.
-          // Dropping this was a real regression in the first cut of this slice --
-          // MAP_BASE='payload' became payload-ONLY, so the flag no longer restored
-          // the old path, and the proof harness caught it as 2,333 differing
-          // polygons (the payload's 2020/2010 hybrid against pure-2010).
-          const pset = dsGeometry();
-          if (pset) {
-            geo = dsApplyGeometryToGeo(geo, pset.doc, pset.fieldIds);
-            const s = geo._dsGeometryStats || {};
-            console.info('[Tract geometry] drawing "' + pset.rec.datasetKey + ' v' +
-              pset.rec.version + '" over map_payload.json (vintage ' +
-              (pset.rec.geoidVintage || '?') + '): ' + geo.features.length + ' tracts' +
-              (s.fresh ? ', ' + s.fresh + ' not in map_payload.json' : '') +
-              (s.dropped ? ', ' + s.dropped + ' payload tract(s) not in this vintage' : '') + '.');
-          } else if (MAP_BASE === 'dataverse' && Storage.isDataverse()) {
-            console.warn('[Tract geometry] no geometry dataset is available, so the map is ' +
-              'drawing map_payload.json geometry (the 2020/2010 hybrid). Indicator values ' +
-              'and the editable overlay are unaffected.');
+          // ---- NO BASE AT ALL: the fifth mode, now a real state ---------------
+          //
+          // Two ways here, and they need different words, because one is a
+          // deployment fact and the other is a fixable data state:
+          //
+          //   no Dataverse context -- the standalone or public-origin case. The
+          //     map has no source, and no amount of waiting changes that.
+          //   Dataverse, but no published geometry -- the fifth failure mode. An
+          //     operator fixes it by publishing a geometry dataset.
+          //
+          // Before 5d both silently fell back to map_payload.json, so neither was
+          // ever seen. `geo` stays null and the caller renders the message; it
+          // does not throw, because a thrown error here is indistinguishable from
+          // a network failure and reads as a bug rather than a missing upload.
+          // An EMPTY collection rather than null, deliberately. getMapGeo has
+          // several callers -- the mount, the upload coverage check, both pairing
+          // repairs -- and null would need a guard in each. An empty
+          // FeatureCollection is the same shape they already handle, so the only
+          // new thing to read is the reason.
+          geo = { type: 'FeatureCollection', features: [] };
+          if (!Storage.isDataverse()) {
+            _mapGeoUnavailable = 'This map reads its data from Dataverse and this page is not ' +
+              'running inside it, so there is nothing to draw.';
+            console.warn('[DAC map] no Dataverse context, so there is no map data source. ' +
+              'Slice 5d removed the map_payload.json fallback.');
+          } else {
+            // Two different fixes, so two different messages. Geometry is only
+            // ever paired through the ACTIVE indicator dataset's vintage -- it is
+            // never live on its own -- so "geometry published but no dataset
+            // active" is a real and reachable state, and telling that operator to
+            // publish geometry they already published would send them the wrong
+            // way. Found by probing the state rather than by reading the code:
+            // the first cut printed the publish-geometry message here.
+            const recs = dsRecords() || [];
+            const geomPublished = recs.filter(r => dsRecIsGeometry(r) && r.active);
+            const indActive = recs.filter(r => dsRecIsIndicators(r) && r.active);
+            const want = indActive.length ? String(indActive[0].geoidVintage || '') : '';
+            const haveWanted = geomPublished.filter(r => String(r.geoidVintage || '') === want);
+            if (geomPublished.length && indActive.length && !haveWanted.length) {
+              // Geometry exists, a dataset is live, and their vintages disagree.
+              // Saying "publish geometry" here would be wrong twice over: geometry
+              // IS published, just not for this vintage.
+              const covers = Array.from(new Set(geomPublished.map(r => r.geoidVintage || '?')));
+              _mapGeoUnavailable = 'The active dataset is keyed to GEOID vintage ' +
+                (want || '(none)') + ', and the published tract geometry covers ' +
+                covers.join(', ') + '. Publish geometry for vintage ' + (want || '(none)') +
+                ', or activate a dataset that matches what is published.';
+              console.warn('[Tract geometry] vintage mismatch: the active dataset wants ' +
+                (want || '(none)') + ' and published geometry covers ' + covers.join(', ') +
+                '. The map cannot draw.');
+            } else if (geomPublished.length && !indActive.length) {
+              _mapGeoUnavailable = 'No dataset version is active, so there is no vintage to ' +
+                'draw the tract shapes for. Activate a dataset version from Map Layers.';
+              console.warn('[Tract geometry] ' + geomPublished.length + ' geometry version(s) are ' +
+                'published but no indicator dataset is active, so no vintage resolves and the ' +
+                'map cannot draw. Activate a dataset version.');
+            } else {
+              _mapGeoUnavailable = 'No tract geometry is published, so the map has no shapes to ' +
+                'draw. Publish a tract geometry dataset from Map Layers.';
+              console.warn('[Tract geometry] no geometry dataset is published, so the map cannot ' +
+                'draw. The payload fallback was removed in slice 5d; publish a geometry ' +
+                'dataset to restore the map.');
+            }
           }
+          if (gen === _mapGeoGen) _mapGeoCache = geo;
+          return geo;
         }
         // ---- ConEd figures (slice 7b), UNDER the editable overlay ------------
         // Order is the whole point. This supplies the eight fields as the SOURCE
@@ -2942,71 +2962,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // coloring function and the legend:
   //   'score' = Comb_Sc's own binned scale (90/100/110/120)
   //   'pct'   = 0–100 percentile ramp
-  const MAP_INDICATOR_GROUPS = [
-    { group: 'Summary', items: [
-      { key: 'Comb_Sc',    label: 'Combined Burden Score',         scale: 'score' },
-      { key: 'Burden_Pct', label: 'Environmental Burden (pct)',    scale: 'pct' },
-      { key: 'Vulner_Pct', label: 'Population Vulnerability (pct)', scale: 'pct' },
-    ]},
-    { group: 'Environmental Burdens', items: [
-      { key: 'PM25',      label: 'PM2.5',                      scale: 'pct' },
-      { key: 'Benzene',   label: 'Benzene',                    scale: 'pct' },
-      { key: 'Traff_Trk', label: 'Truck Traffic',              scale: 'pct' },
-      { key: 'Traff_Veh', label: 'Vehicle Traffic',            scale: 'pct' },
-      { key: 'Waste_H2O', label: 'Wastewater Discharge',       scale: 'pct' },
-      { key: 'Vacancy',   label: 'Housing Vacancy',            scale: 'pct' },
-      { key: 'Ind_LU',    label: 'Industrial Land Use',        scale: 'pct' },
-      { key: 'Landfills', label: 'Active Landfills',           scale: 'pct' },
-      { key: 'Oil_Stor',  label: 'Major Oil Storage',          scale: 'pct' },
-      { key: 'Waste_Com', label: 'Regulated Waste Facilities', scale: 'pct' },
-      { key: 'Pwr_Gen',   label: 'Power Generation',           scale: 'pct' },
-      { key: 'RMP_Sites', label: 'RMP Sites',                  scale: 'pct' },
-      { key: 'Rem_Sites', label: 'Remediation Sites',          scale: 'pct' },
-      { key: 'Scrap_Met', label: 'Scrap Metal Processing',     scale: 'pct' },
-    ]},
-    { group: 'Climate Risks', items: [
-      { key: 'Coast_Fld',  label: 'Coastal Flooding',          scale: 'pct' },
-      { key: 'Days_90_D',  label: 'Days Above 90°F',           scale: 'pct' },
-      { key: 'In_Flood',   label: 'Inland Flooding',           scale: 'pct' },
-      { key: 'Low_Veg',    label: 'Low Vegetative Cover',      scale: 'pct' },
-      { key: 'Drv_Health', label: 'Drive Time to Health Care', scale: 'pct' },
-      { key: 'Ag_LU',      label: 'Agricultural Land Use',     scale: 'pct' },
-    ]},
-    { group: 'Health', items: [
-      { key: 'Asthma',     label: 'Asthma',                   scale: 'pct' },
-      { key: 'COPD',       label: 'COPD',                     scale: 'pct' },
-      { key: 'HH_Disab',   label: 'Households w/ Disability', scale: 'pct' },
-      { key: 'Birth_Wt',   label: 'Low Birth Weight',         scale: 'pct' },
-      { key: 'MI_Rates',   label: 'Heart Attack (MI) Rate',   scale: 'pct' },
-      { key: 'Health_Ins', label: 'No Health Insurance',      scale: 'pct' },
-      { key: 'Prem_Death', label: 'Premature Death',          scale: 'pct' },
-    ]},
-    { group: 'Demographics / Vulnerability', items: [
-      { key: 'Age_Ovr_65', label: 'Population Over 65',                 scale: 'pct' },
-      { key: 'Asian_Pct',  label: 'Asian Population',                   scale: 'pct' },
-      { key: 'Black_Pct',  label: 'Black Population',                   scale: 'pct' },
-      { key: 'Lat_Pct',    label: 'Hispanic/Latino Population',         scale: 'pct' },
-      { key: 'Native_Pct', label: 'Native American Population',         scale: 'pct' },
-      { key: 'Redline',    label: 'Historically Redlined',             scale: 'pct' },
-      { key: 'Eng_Prof',   label: 'Limited English Proficiency',       scale: 'pct' },
-      { key: 'LMI_80_AMI', label: 'Low-to-Moderate Income (≤80% AMI)', scale: 'pct' },
-      { key: 'LMI_Fed',    label: 'Low Income (Federal)',              scale: 'pct' },
-      { key: 'No_College', label: 'No College Degree',                 scale: 'pct' },
-      { key: 'HH_Single',  label: 'Single-Parent Households',          scale: 'pct' },
-      { key: 'Unemploymt', label: 'Unemployment',                      scale: 'pct' },
-      { key: 'Internet',   label: 'No Internet Access',                scale: 'pct' },
-      { key: 'Homes_1960', label: 'Homes Built Before 1960',           scale: 'pct' },
-      { key: 'Mobile',     label: 'Mobile Homes',                      scale: 'pct' },
-      { key: 'Rent_Inc',   label: 'Rent Burden',                       scale: 'pct' },
-      { key: 'Rent_Pct',   label: 'Renter-Occupied',                   scale: 'pct' },
-    ]},
-    { group: 'Affordability & Ranking', items: [
-      { key: 'Energy_Aff', label: 'Energy Affordability (pct)',   scale: 'pct' },
-      { key: 'Rank_NYC',   label: 'NYC DAC Rank (pct)',           scale: 'pct' },
-      { key: 'Rank_ROS',   label: 'Rest-of-State DAC Rank (pct)', scale: 'pct' },
-    ]},
-  ];
-
   // ============================================================
   // INDICATOR CATALOG (tract datasets)
   // ------------------------------------------------------------
@@ -3024,73 +2979,39 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
   // Roles the payload catalog declares, so the default behaves exactly as the
   // hardcoded keys it replaces.
-  const IND_DEFAULT_ROLES = {
-    defaultIndicator: 'Comb_Sc',
-    headlineScore: 'Comb_Sc',
-    headlinePercentile: 'Rank_State',
-    envScore: 'Burden_Sc',
-    envPercentile: 'Burden_Pct',
-    popScore: 'Vulner_Sc',
-    popPercentile: 'Vulner_Pct',
-    dacFlag: 'DAC_Desig',
-    dacFlagTrueValue: 'Designated as DAC',
-    population: 'Pop_Cnt',
-    households: 'HH_Cnt',
-  };
-
   // Group id <-> payload group label, and the env/pop component colouring.
-  const IND_DEFAULT_GROUP_IDS = {
-    'Summary': ['summary', null],
-    'Environmental Burdens': ['env_burdens', 'env'],
-    'Climate Risks': ['climate', 'env'],
-    'Health': ['health', 'pop'],
-    'Demographics / Vulnerability': ['demographics', 'pop'],
-    'Affordability & Ranking': ['affordability', null],
-  };
-
   // The detail box is a curated two-zone layout, not a dump of every group:
   // Summary and Affordability are deliberately absent, and one column's title
   // differs from its group label.
-  const IND_DEFAULT_LAYOUT = {
-    detailZones: [
-      { title: 'Environmental Burden', component: 'env', columns: [
-        { title: 'Environmental Burdens', group: 'env_burdens' },
-        { title: 'Climate Risks', group: 'climate' },
-      ] },
-      { title: 'Population Vulnerability', component: 'pop', columns: [
-        { title: 'Health', group: 'health' },
-        { title: 'Demographics / Socioeconomic', group: 'demographics' },
-      ] },
-    ],
-    csvThematicGroups: ['env_burdens', 'climate', 'health', 'demographics'],
-  };
-
-  /** Build the default catalog from the payload literal above. */
-  function indBuildDefaultCatalog() {
-    const groups = MAP_INDICATOR_GROUPS.map((g, i) => {
-      const pair = IND_DEFAULT_GROUP_IDS[g.group] || [g.group, null];
-      return {
-        id: pair[0], label: g.group, component: pair[1], order: i + 1,
-        items: g.items.map((it, j) => ({
-          id: it.key, key: it.key, label: it.label,
-          // The payload literal calls this `scale`; the manifest calls it
-          // `format`. Both carry the same two values, so keep them in step.
-          format: it.scale, scale: it.scale, order: j + 1,
-        })),
-      };
-    });
-    const byKey = {};
-    groups.forEach(g => g.items.forEach(it => { byKey[it.key] = it; }));
+  /**
+   * The catalogue when no indicator dataset is live. Slice 5d.
+   *
+   * This replaces indBuildDefaultCatalog, which built a full catalogue from the
+   * MAP_INDICATOR_GROUPS literal above -- the payload-era copy of the indicator
+   * list. Retiring it removes the last place the app carried its own idea of what
+   * the indicators are: the live dataset is now the only answer, so there is one
+   * source of truth rather than two that could disagree.
+   *
+   * It keeps the SHAPE rather than returning null, and that is the whole trick.
+   * Seven accessors and every downstream renderer read this object; null would
+   * need a guard in each, and a missed one is a thrown error on the summary page.
+   * With empty groups and an empty byKey they all render nothing, which is what
+   * "no indicators" should look like, and the card says so out loud.
+   *
+   * `formats` is kept populated because it is a static ramp definition, not data
+   * -- a dataset that omits it should still get sane ramps.
+   */
+  function indEmptyCatalog() {
     return {
-      source: 'payload', label: 'map_payload.json', version: '',
-      groups: groups, byKey: byKey,
-      roles: Object.assign({}, IND_DEFAULT_ROLES),
+      source: 'none', label: 'no indicator dataset', version: '',
+      groups: [], byKey: {},
+      roles: {},
       formats: { pct: { ramp: 'pct-0-100' }, score: { ramp: 'score-90-120' } },
-      layout: IND_DEFAULT_LAYOUT,
+      layout: { detailZones: [], csvThematicGroups: [] },
     };
   }
 
-  let _indCatalog = indBuildDefaultCatalog();
+  let _indCatalog = indEmptyCatalog();
 
   /** Value of a role's field on one tract's properties, or null. */
   function indRoleVal(props, role) {
@@ -3232,7 +3153,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       '</div>';
   }
 
-  const _mapState = { county: null, neighborhoods: [], indicators: [IND_DEFAULT_ROLES.defaultIndicator], selectedGeoid: null };
+  // Slice 5d: seeded EMPTY, not with a payload-era indicator key. The catalogue
+  // now arrives with the dataset, so the only honest starting selection is none;
+  // dsInstall's self-heal below replaces it with the dataset's own
+  // defaultIndicator the moment one is live.
+  const _mapState = { county: null, neighborhoods: [], indicators: [], selectedGeoid: null };
 
   // True iff a given feature is within the current neighborhood selection.
   function inSelectedNeighborhoods(props) {
@@ -4174,7 +4099,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // TRACT DATASETS — validation, coverage guard, merge, hydration
   // ============================================================
   // A dataset only becomes the live source of indicators if it passes BOTH
-  // gates below. Anything short of that keeps map_payload.json as the source and
+  // gates below. Anything short of that leaves the map without indicator values and
   // logs exactly why, because the failure mode we are guarding against is silent:
   // "no row for this GEOID" and "this field is empty" look identical downstream,
   // so a vintage mismatch would blank 88 DAC tracts without an error.
@@ -4190,7 +4115,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   let _dsRecords = [];
   // { doc, fieldIds, absent } while an indicator dataset is live, so getMapGeo can
   // apply its 56 fields when it composes the base from Dataverse (slice 5c).
-  // Cleared by dsUsePayloadIndicators.
+  // Cleared by dsNoIndicators.
   let _dsIndicators = null;
 
   function dsState() { return _dsState; }
@@ -5404,7 +5329,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     } catch (e) {
       console.error('[Tract datasets] could not re-read "' + rec.datasetKey + ' v' + rec.version +
         '" after the geometry changed; falling back to the payload.', e);
-      dsUsePayloadIndicators('the dataset could not be re-read after a geometry change');
+      dsNoIndicators('the dataset could not be re-read after a geometry change');
       dsClearGeometry();
       dsRemountMap();
       return;
@@ -5416,9 +5341,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (!val.ok || !cov.ok) {
       const why = val.ok ? cov.errors.join(' ') : val.errors.join(' ');
       console.error('[Tract datasets] "' + rec.datasetKey + ' v' + rec.version +
-        '" no longer passes against the new geometry: ' + why + ' Falling back to the payload.');
+        '" no longer passes against the new geometry: ' + why +
+        ' The map keeps its shapes and loses the indicator values.');
       rec.loadError = why;
-      dsUsePayloadIndicators('the live dataset does not fit the new geometry');
+      dsNoIndicators('the live dataset does not fit the new geometry');
       dsClearGeometry();
       dsRemountMap();
       if (state.route && state.route.name === 'maplayers') rerenderMlList();
@@ -5502,11 +5428,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * values come from when the dataset is unavailable -- which is why 5c does not
    * remove the file. That is 5d, after the standalone decision.
    */
-  function dsUsePayloadIndicators(why) {
-    _indCatalog = indBuildDefaultCatalog();
+  function dsNoIndicators(why) {
+    _indCatalog = indEmptyCatalog();
     _dsState = { rec: null, catalog: null, absent: null, coverage: null, source: 'payload' };
     _dsIndicators = null;
-    if (why) console.info('[Tract datasets] using map_payload.json indicators: ' + why);
+    if (why) console.info('[Tract datasets] no indicator dataset is live: ' + why +
+      '. The map draws its shapes with no indicator values.');
   }
 
   /**
@@ -5521,7 +5448,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     try {
       recs = await Storage.listTractDatasets();
     } catch (e) {
-      console.warn('[Tract datasets] Could not list datasets; keeping the payload indicators.', e);
+      console.warn('[Tract datasets] Could not list datasets, so the map has no data ' +
+        'source at all.', e);
       return;
     }
     _dsRecords = recs;
@@ -5533,7 +5461,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const act = recs.filter(r => r.active && dsRecIsIndicators(r));
     if (!act.length) {
       if (dsClearGeometry()) dsRemountMap();
-      dsUsePayloadIndicators('no active dataset');
+      dsNoIndicators('no active dataset');
       return;
     }
     if (act.length > 1) {
@@ -5560,26 +5488,57 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
                 e => ({ ok: false, err: e, forDvId: gpre.rec.dvId }))
       : null;
 
+    /**
+     * Slice 5d: when the indicator dataset cannot be used, still pair the geometry.
+     *
+     * Before 5d every one of these bail-outs left map_payload.json drawing, so the
+     * map kept its shapes and showed payload values. With the payload gone,
+     * returning here leaves dsGeometry() null and the map draws NOTHING -- a blank
+     * card because one file was malformed, which is a worse outcome than the
+     * problem it reports.
+     *
+     * The record's declared vintage survives a bad FILE, so the pairing is still
+     * resolvable: the shapes draw, the values are absent, and the card says so.
+     * Found by running the refusal scenarios, not by reasoning about them.
+     */
+    async function pairGeometryWithoutIndicators(why) {
+      dsNoIndicators(why);
+      try {
+        const gres = await dsPrepareGeometryFor(rec, recs, geoPrefetch);
+        if (!gres.ok) {
+          console.warn('[Tract geometry] no shapes either: ' + gres.error);
+          dsClearGeometry();
+        }
+      } catch (e) {
+        console.warn('[Tract geometry] could not pair shapes after the dataset was refused.', e);
+      }
+      dsInvalidateGeo();
+      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+    }
+
     let text;
     try {
       text = await Storage.getTractDatasetFile(rec.dvId);
     } catch (e) {
       console.warn('[Tract datasets] Could not download "' + rec.datasetKey + ' v' + rec.version +
-        '"; keeping the payload indicators.', e);
+        '"; the map draws its shapes with no indicator values.', e);
+      await pairGeometryWithoutIndicators('the active dataset could not be downloaded');
       return;
     }
     let doc;
     try { doc = JSON.parse(text); } catch (e) {
       console.error('[Tract datasets] "' + rec.datasetKey + ' v' + rec.version +
-        '" is not valid JSON; keeping the payload indicators.', e);
+        '" is not valid JSON; the map draws its shapes with no indicator values.', e);
+      await pairGeometryWithoutIndicators('the active dataset is not valid JSON');
       return;
     }
     const val = dsValidateDoc(doc, rec);
     if (!val.ok) {
       console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
-        '": ' + val.errors.join(' ') + ' Keeping the payload indicators.');
+        '": ' + val.errors.join(' ') +
+        ' The map draws its shapes with no indicator values.');
       rec.loadError = val.errors.join(' ');
-      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      await pairGeometryWithoutIndicators('the active dataset did not validate');
       return;
     }
     val.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
@@ -5600,7 +5559,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // Validation has passed here, so the document is known good. `absent` is not
     // available until coverage runs, and does not need to be: dsApplyToGeo takes
     // it only to ignore it (`void absent;`). dsInstall refreshes this with the
-    // final coverage result, and dsUsePayloadIndicators clears it if the coverage
+    // final coverage result, and dsNoIndicators clears it if the coverage
     // gate below rejects the dataset.
     // `version` rides along so the compose log can name the dataset it used. It
     // cannot read dsState() for that: at compose time dsInstall has not run, so
@@ -5614,7 +5573,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const gres = await dsPrepareGeometryFor(rec, recs, geoPrefetch);
     if (!gres.ok) {
       console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
-        '": ' + gres.error + ' Keeping the payload indicators.');
+        '": ' + gres.error + ' The map cannot draw until that is fixed.');
       rec.loadError = gres.error;
       if (dsClearGeometry()) dsRemountMap();
       if (state.route && state.route.name === 'maplayers') rerenderMlList();
@@ -5638,13 +5597,17 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const cov = dsCheckCoverage(doc, geo, rec);
     if (!cov.ok) {
       console.error('[Tract datasets] REFUSED "' + rec.datasetKey + ' v' + rec.version +
-        '": ' + cov.errors.join(' ') + ' Keeping the payload indicators.');
+        '": ' + cov.errors.join(' ') + ' The map draws its shapes with no values.');
       rec.loadError = cov.errors.join(' ');
-      // The geometry was paired before this gate ran, so undo it: geometry from
-      // one vintage under indicators from another is precisely the mismatch the
-      // gate exists to prevent.
-      if (dsClearGeometry()) dsRemountMap();
-      if (state.route && state.route.name === 'maplayers') rerenderMlList();
+      // The mismatch this gate exists to prevent is indicators from one vintage
+      // over geometry from another. Until 5d it was undone by clearing the
+      // GEOMETRY, which was safe only because map_payload.json then drew instead.
+      // With the payload gone that leaves a blank map.
+      //
+      // Dropping the INDICATORS removes exactly the same mismatch -- _dsIndicators
+      // was retained before this gate so the compose could see it -- and leaves the
+      // shapes on screen. Same guarantee, better failure.
+      await pairGeometryWithoutIndicators('the active dataset did not pass the coverage gate');
       return;
     }
     cov.warnings.forEach(w => console.warn('[Tract datasets] ' + w));
@@ -6425,7 +6388,27 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     try {
       geo = await getMapGeo();
     } catch(err) {
-      container.innerHTML = '<div class="dac-map-loading dac-map-error">⚠ Could not load map_payload.json.</div>';
+      // Slice 5d: the message no longer names map_payload.json, because nothing
+      // fetches it. A throw here is now a genuine failure -- a Dataverse call or
+      // a dataset download -- so it says that instead of naming a file the
+      // operator cannot check.
+      console.error('[DAC map] could not build the map data.', err);
+      container.innerHTML = '<div class="dac-map-loading dac-map-error">' +
+        '&#9888; Could not load the map data. ' +
+        escapeHtml((err && err.message) ? err.message : String(err)) + '</div>';
+      return;
+    }
+
+    // Slice 5d: the fifth mode, on screen. getMapGeo returns an empty collection
+    // with a reason when there is no source at all -- no Dataverse context, or no
+    // published geometry. Both used to fall back to map_payload.json and were
+    // therefore invisible; drawing an empty Leaflet canvas instead would be a
+    // blank grey box with no explanation.
+    if (mapGeoUnavailable()) {
+      container.innerHTML = '<div class="dac-map-loading dac-map-empty">' +
+        '<strong>The map has no data to draw</strong>' +
+        '<span class="dac-map-empty-why">' + escapeHtml(mapGeoUnavailable()) + '</span>' +
+        '</div>';
       return;
     }
 
@@ -8050,7 +8033,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     function refreshIndicatorCatalog() {
       // A key from the previous catalog may not exist in the new one.
       const keep = _mapState.indicators.filter(k => !!_indCatalog.byKey[k]);
-      _mapState.indicators = keep.length ? keep : [indRole('defaultIndicator')];
+      // filter(Boolean): with no catalogue indRole('defaultIndicator') is
+      // undefined, and [undefined] is worse than [] -- it renders a dropdown row
+      // for an indicator that does not exist.
+      _mapState.indicators = keep.length ? keep
+        : [indRole('defaultIndicator')].filter(Boolean);
       const dd = document.getElementById('dac-map-indicator');
       if (dd) {
         const holder = document.createElement('div');
@@ -12474,7 +12461,7 @@ function wireHTooltips() {
         <p class="emf-intro">The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
 
         <div class="emf-lead">
-          <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit <span class="emf-mono">GEOID</span>, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change flows into <span class="emf-mono">map_payload.json</span>. The one exception is the Con Edison customer data, which updates through a file upload instead of a rebuild.</p>
+          <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit <span class="emf-mono">GEOID</span>, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change reaches the dashboard as a dataset you upload here. As of slices 6 and 7 every source ends in a Dataverse dataset rather than in <span class="emf-mono">map_payload.json</span>, which the map no longer reads.</p>
         </div>
 
         <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Census tract geometry">
@@ -12523,7 +12510,7 @@ function wireHTooltips() {
           <div class="emf-steps" hidden><ol>
             <li>This is the routine update, done each reporting cycle, and the source you own.</li>
             <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
-            <li>Send the refreshed files to the maintainer. There is no upload for spreadsheets: these figures reach the dashboard only by rebuilding <span class="emf-mono">map_payload.json</span> through the payload pipeline and redeploying it. That procedure is being validated and is not self-service yet.</li>
+            <li>Send the refreshed files to the maintainer. There is no upload for spreadsheets: a script converts them into an <span class="emf-mono">Electric &amp; gas figures</span> dataset, which is then uploaded here like any other data file. Slices 7a to 7c replaced the old route, which rebuilt and redeployed <span class="emf-mono">map_payload.json</span>.</li>
           </ol></div>
         </div>
 
@@ -14805,10 +14792,27 @@ function wireHTooltips() {
           rerenderMlList(); return;
         }
       }
-      const cov = dsCheckCoverage(doc, geo, null);
+      // Slice 5d: with nothing drawn there is nothing to measure coverage against,
+      // and refusing on that basis blocks the ONLY action that fixes it -- you
+      // could not upload the first indicator dataset into an org that has none.
+      // Before 5d this could not happen, because map_payload.json always supplied
+      // 2,333 drawn tracts to measure against.
+      //
+      // The gate is deferred, not dropped: dsSetActive runs the same coverage check
+      // against the live map before anything goes live, which is where it has
+      // always mattered most. Storing a version was never the risky step.
+      const drawn = (geo && geo.features) ? geo.features.length : 0;
+      const cov = drawn ? dsCheckCoverage(doc, geo, null)
+                        : { ok: true, errors: [], warnings: [], deferred: true };
       if (!cov.ok) {
         d.dsStage = null; d.dsErrors = cov.errors; d.dsWarnings = cov.warnings;
         rerenderMlList(); return;
+      }
+      if (cov.deferred) {
+        cov.warnings = cov.warnings.concat([
+          'The map is not drawing anything yet, so tract coverage could not be checked ' +
+          'here. It is checked again when you activate this version, and activation ' +
+          'will refuse it if it does not fit.']);
       }
       const ds = doc.dataset || {};
       const geoids = doc.tracts.geoids;
@@ -14983,7 +14987,7 @@ function wireHTooltips() {
       } else {
         await Storage.setTractDatasetActive(dvId, rec, false);
         rec.active = false; rec.busy = false;
-        dsUsePayloadIndicators('the active dataset was switched off');
+        dsNoIndicators('the active dataset was switched off');
         // Its paired geometry goes with it: geometry only ever exists as the
         // partner of a live indicator dataset. So do the ConEd figures, for the
         // same reason -- they are resolved by the live dataset's vintage, so with
