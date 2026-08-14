@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2 &middot; Tract geometry and service territories &mdash; the update command</title>
+<style>
+  :root {
+    --bg:#fff; --bg-2:#f7f6f2; --bg-3:#f1efe8;
+    --text:#1a1a1a; --text-2:#5f5e5a; --text-3:#888780;
+    --border:rgba(0,0,0,0.12); --border-2:rgba(0,0,0,0.28);
+    --accent:#185FA5; --accent-bg:#E6F1FB;
+    --warn-bg:#FAEEDA; --warn-text:#633806;
+    --stop-bg:#FBE9E7; --stop-text:#8A2318;
+    --ok-bg:#E1F5EE; --ok-text:#085041;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;
+    --mono:"SF Mono",Menlo,Monaco,Consolas,"Courier New",monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#1a1a1a; --bg-2:#232321; --bg-3:#2c2c2a;
+      --text:#e8e6df; --text-2:#b4b2a9; --text-3:#888780;
+      --border:rgba(255,255,255,0.12); --border-2:rgba(255,255,255,0.30);
+      --accent:#85B7EB; --accent-bg:#0C447C;
+      --warn-bg:#4a2f0c; --warn-text:#FAEEDA;
+      --stop-bg:#5a201a; --stop-text:#FBE9E7;
+      --ok-bg:#085041; --ok-text:#E1F5EE;
+    }
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--font);font-size:14px;line-height:1.62;color:var(--text);background:var(--bg-2);margin:0;padding:24px}
+  .container{max-width:920px;margin:0 auto}
+  header{margin-bottom:18px}
+  .kicker{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--text-3);margin:0 0 6px}
+  header h1{font-size:25px;font-weight:500;margin:0 0 6px;line-height:1.25}
+  header p{color:var(--text-2);margin:0;max-width:760px}
+  section{background:var(--bg);border:.5px solid var(--border);border-radius:12px;padding:18px 22px 20px;margin-bottom:14px}
+  section > h2{font-size:17px;font-weight:600;margin:0 0 4px}
+  section > .sub{color:var(--text-2);margin:0 0 14px;font-size:13px}
+  h3{font-size:14px;font-weight:600;margin:18px 0 6px}
+  h3:first-of-type{margin-top:8px}
+  p{margin:0 0 10px}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--bg-3);border:.5px solid var(--border);border-radius:4px;padding:1px 5px}
+  pre{font-family:var(--mono);font-size:12.5px;background:var(--bg-3);border:.5px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 12px;line-height:1.5}
+  pre code{background:none;border:none;padding:0;font-size:inherit}
+  table{border-collapse:collapse;width:100%;margin:0 0 12px;font-size:13px}
+  th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:.5px solid var(--border)}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);font-weight:600}
+  td.mono,th.mono{font-family:var(--mono);font-size:12px}
+  .nw{white-space:nowrap}
+  .note{border-radius:8px;padding:12px 15px;margin:0 0 12px;font-size:13px}
+  .note p{margin:0 0 8px}.note p:last-child{margin:0}
+  .note .t{font-weight:600;display:block;margin-bottom:4px}
+  .warn{background:var(--warn-bg);color:var(--warn-text)}
+  .stop{background:var(--stop-bg);color:var(--stop-text)}
+  .ok{background:var(--ok-bg);color:var(--ok-text)}
+  .info{background:var(--accent-bg);color:var(--text)}
+  ol,ul{margin:0 0 12px;padding-left:22px}
+  li{margin-bottom:6px}
+  .steps{counter-reset:s;list-style:none;padding-left:0}
+  .steps > li{counter-increment:s;position:relative;padding-left:34px;margin-bottom:14px}
+  .steps > li::before{content:counter(s);position:absolute;left:0;top:1px;width:23px;height:23px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  footer{color:var(--text-3);font-size:12px;text-align:center;padding:18px 0 6px}
+  .tag{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:600;letter-spacing:.3px}
+  .tag-req{background:var(--stop-bg);color:var(--stop-text)}
+  .tag-opt{background:var(--bg-3);color:var(--text-2)}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <p class="kicker">Con Edison &middot; DAC dashboard &middot; Operator guide 2 of 3</p>
+  <h1>Tract geometry and service territories</h1>
+  <p>One command builds both. This guide covers the command, what each of its
+  options really does, and the procedure to follow when eGIS sends new
+  shapefiles.</p>
+</header>
+
+<section>
+  <h2>Start here: one command, not several</h2>
+
+  <pre><code>python Data/update_map_data.py --vintage 2010</code></pre>
+
+  <p>This is the entry point. It checks what is on disk, downloads what is missing,
+  converts it, rebuilds the service territory overlay when that is needed, and then
+  runs the geometry builder. You do not run the individual scripts yourself.</p>
+
+  <div class="note info">
+    <span class="t">If you have seen an older instruction naming a different script</span>
+    <p>The builder underneath is <code>build_pure_geometry_dataset.py</code>.</p>
+    <p>A file called <code>build_geometry_dataset.py</code> also exists. It is the
+    <strong>older version</strong>, it produces <strong>9</strong> properties
+    instead of 8, and it is kept only as a fallback. Running it by hand produces a
+    file the dashboard will refuse on the field-count check. If an instruction names
+    it, that instruction is out of date.</p>
+  </div>
+
+  <h3>What you need installed</h3>
+  <pre><code>pip install pyshp pyproj shapely</code></pre>
+  <p>Verified on Python 3.14.5 with pyshp 3.0.9, pyproj 3.7.2, shapely 2.1.2. Run
+  from the folder that contains <code>Data/</code>.</p>
+</section>
+
+<section>
+  <h2>The options, and what each one is for</h2>
+
+  <table>
+    <tr><th>Option</th><th></th><th>What it does</th></tr>
+    <tr><td class="mono nw">--vintage 2010|2020</td><td><span class="tag tag-req">required</span></td>
+        <td>Which tract vintage to build. There is no default &mdash; the command
+        refuses to guess.</td></tr>
+    <tr><td class="mono nw">--force</td><td><span class="tag tag-opt">as needed</span></td>
+        <td><strong>Only</strong> permits overwriting a dataset file that already
+        exists in <code>Data/out/</code>. It does not skip checks and it does not
+        override anything else.</td></tr>
+    <tr><td class="mono nw">--dry-run</td><td><span class="tag tag-opt">recommended first</span></td>
+        <td>Prints the preflight table and stops. No downloads, no writes.
+        <strong>Run this first every time.</strong></td></tr>
+    <tr><td class="mono nw">--refresh-territories</td><td><span class="tag tag-opt">as needed</span></td>
+        <td>Rebuilds the territory overlay even when it already agrees with the
+        shapefiles. It is rebuilt automatically when it is missing or disagrees;
+        this forces it otherwise.</td></tr>
+    <tr><td class="mono nw">--refetch</td><td><span class="tag tag-opt">rare</span></td>
+        <td>Re-downloads inputs that are already present. Use when you suspect a
+        stale or truncated download.</td></tr>
+    <tr><td class="mono nw">--no-fetch</td><td><span class="tag tag-opt">rare</span></td>
+        <td>Builds from what is on disk and opens no network connection.</td></tr>
+    <tr><td class="mono nw">--artifact</td><td><span class="tag tag-opt">optional</span></td>
+        <td>Also writes the 2010 change document. Applies to the 2010 build only.</td></tr>
+    <tr><td class="mono nw">--census-url URL</td><td><span class="tag tag-opt">rare</span></td>
+        <td>Overrides where the Census boundary file is fetched from.</td></tr>
+    <tr><td class="mono nw">--crosswalk-id ID</td><td><span class="tag tag-opt">rare</span></td>
+        <td>Overrides the NYC Open Data dataset used for the neighbourhood
+        crosswalk.</td></tr>
+  </table>
+
+  <div class="note warn">
+    <span class="t"><code>--refresh-territories</code> and <code>--no-fetch</code> cannot be combined</span>
+    <p>The command refuses the pair rather than half-working. Rebuilding the
+    territory overlay requires the network: the ORU layer is in an older coordinate
+    system and converting it correctly needs a transformation grid downloaded at
+    the time. <strong>The geometry build itself is offline; the territory rebuild
+    is not.</strong></p>
+  </div>
+</section>
+
+<section>
+  <h2>The preflight table</h2>
+  <p class="sub">Printed before anything is written. This is the part to actually read.</p>
+
+  <pre><code>--------------------------------------------------------------------------
+PREFLIGHT  vintage 2010
+--------------------------------------------------------------------------
+  Census tract GeoJSON       PRESENT        Data/ny_tracts_2010.geojson
+  Census archive             PRESENT        Data/raw/gz_2010_36_140_00_500k.zip
+  NTA crosswalk              PRESENT        Data/2010_Census_Tract_to_..._20260806.csv
+  map_payload.json           PRESENT        the tract universe and City_Town
+  CECONY_Electric.shp        PRESENT        electric_networks is measured against it
+  CECONY_Electric.dbf        PRESENT        its NETWORK attribute
+  CECONY_Electric.prj        PRESENT        its CRS
+  CECONY_Gas.shp             PRESENT        gas_areas is measured against it
+  CECONY_Gas.dbf             PRESENT        its BORONAME attribute
+  CECONY_Gas.prj             PRESENT        its CRS
+  dataset output             EXISTS         Data/out/tract_geometry_pure-2010.json
+  territory overlay          PRESENT        stamp matches 682970681ce9
+--------------------------------------------------------------------------</code></pre>
+
+  <table>
+    <tr><th>Status</th><th>Meaning</th></tr>
+    <tr><td class="mono">PRESENT</td><td>On disk, will be used as-is.</td></tr>
+    <tr><td class="mono">MISSING</td><td>Not on disk and cannot be fetched. The run stops.</td></tr>
+    <tr><td class="mono">WILL FETCH</td><td>Missing, will be downloaded.</td></tr>
+    <tr><td class="mono">WILL REFETCH</td><td>Present, will be downloaded again because you passed <code>--refetch</code>.</td></tr>
+    <tr><td class="mono">EXISTS</td><td>The output file is already there. Without <code>--force</code> the run stops here.</td></tr>
+    <tr><td class="mono">WILL OVERWRITE</td><td>The output will be replaced, because you passed <code>--force</code>.</td></tr>
+    <tr><td class="mono">WILL BUILD</td><td>The territory overlay is missing and will be created.</td></tr>
+    <tr><td class="mono">WILL REBUILD</td><td>The territory overlay will be rebuilt &mdash; forced, or because it disagrees.</td></tr>
+    <tr><td class="mono">UNCHECKABLE</td><td>The territory overlay predates the stamping and cannot be verified either way. Not an error.</td></tr>
+  </table>
+
+  <div class="note ok">
+    <span class="t">The output-exists stop is a safety feature, not an obstacle</span>
+    <pre style="margin:8px 0 0"><code>REFUSED
+  Data/out/tract_geometry_pure-2010.json already exists. It may be the copy
+  that is live in Dataverse. Pass --force to overwrite it.</code></pre>
+  </div>
+</section>
+
+<section>
+  <h2>What a real run prints</h2>
+
+  <pre><code>CHECK  Data/ny_tracts_2010.geojson
+    checks passed: GEO_ID present, six counties (6), lon/lat in range, 2390 features
+
+TERRITORIES  (subprocess; this step needs the network, see the header)
+  reason: forced
+  python Data/_make_territories.py
+
+  overlay stamped 682970681ce90681, matching the shapefiles.
+
+BUILD  (subprocess: the builder stays offline)
+  python Data/build_pure_geometry_dataset.py --vintage 2010
+
+==========================================================================</code></pre>
+
+  <p>and then the summary, which names the file it produced and every input it was
+  built from:</p>
+
+  <pre><code>DATASET READY
+  file    : Data/out/tract_geometry_pure-2010.json
+  bytes   : 1587328 (1.59 MB)
+  sha256  : 6e9f09f7414f59ed4381b59d0d66bb6b...
+  built from
+    tracts    : Data/ny_tracts_2010.geojson
+    crosswalk : the 2010 neighbourhood equivalency table
+    payload   : map_payload.json</code></pre>
+
+  <p>Its last line reminds you that the file now has to be taken to the Map Layers
+  card by hand, and that nothing the command did touched the dashboard&rsquo;s stored
+  data.</p>
+
+  <p>The builder also prints the exact values to enter when uploading:</p>
+
+  <pre><code>Paste these into the Dataverse record:
+  cr2bf_DatasetName    : Census tract geometry, 2010
+  cr2bf_DatasetKey     : tract_geometry
+  cr2bf_VersionLabel   : pure-2010
+  cr2bf_GeoidVintage   : 2010
+  cr2bf_TractCount     : 2333
+  cr2bf_FieldCount     : 8
+  cr2bf_ManifestVersion: 1
+  cr2bf_IsActive       : Yes  (published; uploading retires the previous 2010 set)</code></pre>
+
+  <div class="note stop">
+    <span class="t"><code>cr2bf_FieldCount</code> is 8. This is worth checking twice.</span>
+    <p>The dashboard compares the stored record against the uploaded file and
+    <strong>refuses the whole dataset</strong> if they disagree:</p>
+    <pre style="margin:8px 0"><code>record FieldCount (9) disagrees with the file (8).</code></pre>
+    <p>For geometry a refusal means the map has <em>no shapes</em> for that vintage.
+    A record left at 9 from an older upload is the most likely way this goes wrong.</p>
+  </div>
+
+  <p>For 2020 the numbers differ: <strong>2,183</strong> tracts,
+  <strong>1,284,965</strong> bytes, version label <code>pure-2020</code>.</p>
+</section>
+
+<section>
+  <h2>The neighbourhood crosswalks</h2>
+  <p class="sub">Two files from NYC Open Data, one per vintage.</p>
+
+  <table>
+    <tr><th>Vintage</th><th>NYC Open Data dataset</th><th>Title</th></tr>
+    <tr><td>2010</td><td class="mono">8ius-dhrr</td>
+        <td>2010 Census Tract to Neighborhood Tabulation Area Equivalency table</td></tr>
+    <tr><td>2020</td><td class="mono">hm78-6dwm</td>
+        <td>2020 Census Tracts to 2020 NTAs and CDTAs Equivalency</td></tr>
+  </table>
+
+  <p>The 2020 identifier was previously unrecorded. It is
+  <strong><code>hm78-6dwm</code></strong>.</p>
+
+  <h3>Filenames are matched by prefix, not exactly</h3>
+  <p>The command looks for a file <em>beginning</em> <code>2010_Census_Tract</code>
+  or <code>2020_Census_Tract</code>, so a fresh export keeps whatever date suffix
+  the portal gives it. You do not have to rename it to match an old filename.</p>
+
+  <div class="note warn">
+    <span class="t">Two matching files is an error, on purpose</span>
+    <p>If you leave both an old and a new export in the folder, the command stops
+    and names both rather than silently picking one. Remove the old one.</p>
+  </div>
+
+  <div class="note stop">
+    <span class="t">Do not tidy up the CSV before using it. Use it exactly as downloaded.</span>
+    <p>The 2010 file has no GEOID column, so the builder constructs the key itself
+    from the county and tract columns, stripping thousands separators and padding as
+    it goes. All of that happens inside the builder. Pre-formatting the spreadsheet
+    will break the key and is never required.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Service territories &mdash; why they are built by the same command</h2>
+
+  <p>The two Con Edison shapefiles feed <strong>two</strong> different outputs:</p>
+  <ul>
+    <li>the per-tract <code>electric_networks</code> and <code>gas_areas</code>
+    values inside the geometry dataset &mdash; what the tooltip shows;</li>
+    <li>the <strong>service territory overlay</strong> &mdash; the orange, green and
+    purple outlines the map draws.</li>
+  </ul>
+
+  <p>Rebuild one without the other and the outlines on screen disagree with the
+  numbers in the tooltip, with nothing on screen to say so. That is why one command
+  now produces both, and why they are stamped.</p>
+
+  <h3>The stamp</h3>
+  <p>Both outputs record a fingerprint of the shapefiles they were built from. The
+  command compares them and behaves differently depending on what it finds:</p>
+
+  <table>
+    <tr><th>Situation</th><th>What happens</th></tr>
+    <tr><td>The overlay is missing</td><td>A note. It is rebuilt.</td></tr>
+    <tr><td>The overlay has no stamp</td><td>A warning. It predates stamping, so it cannot be
+        checked either way &mdash; the build continues.</td></tr>
+    <tr><td><strong>The stamps disagree</strong></td>
+        <td><strong>The run stops</strong>, prints both fingerprints, and names the
+        command that fixes it.</td></tr>
+  </table>
+
+  <p>The ORU layer is deliberately excluded from the fingerprint: it feeds only the
+  overlay, so including it would report a disagreement when nothing shared had
+  changed.</p>
+
+  <div class="note info">
+    <span class="t">The dashboard checks the same thing again, in the browser</span>
+    <p>The first time somebody switches on a territory layer, the dashboard compares
+    the overlay&rsquo;s stamp against the tract geometry it is drawing.</p>
+    <p>If they <strong>match</strong>, it draws and says so in the browser console.
+    If they <strong>disagree</strong>, it <strong>refuses to draw</strong>, switches
+    the checkbox back off, and shows a message &mdash; rather than showing outlines
+    that do not match the numbers. If either side has no stamp, it draws and reports
+    that it could not verify.</p>
+  </div>
+</section>
+
+<section>
+  <h2>When eGIS sends new shapefiles</h2>
+  <p class="sub">The full procedure. Follow it in order; the order is the part that matters.</p>
+
+  <ol class="steps">
+    <li>
+      <strong>Replace the files.</strong> Put the new
+      <code>CECONY_Electric</code> and <code>CECONY_Gas</code> files into
+      <code>Data/Extra_info/</code>, replacing the old ones. Each needs
+      <strong>all four parts</strong> &mdash; <code>.shp</code>, <code>.shx</code>,
+      <code>.dbf</code>, <code>.prj</code>. A missing <code>.prj</code> means the
+      coordinate system is unknown and the build stops.
+    </li>
+    <li>
+      <strong>Look before you build.</strong>
+      <pre style="margin:8px 0 0"><code>python Data/update_map_data.py --vintage 2010 --dry-run</code></pre>
+      The territory overlay row should read <code>WILL REBUILD</code>, because the
+      stamp no longer matches the new shapefiles. If it says <code>PRESENT</code>,
+      the new files did not land where you think they did.
+    </li>
+    <li>
+      <strong>Build both vintages.</strong> The shapefiles are shared by both, so
+      both are now out of date.
+      <pre style="margin:8px 0 0"><code>python Data/update_map_data.py --vintage 2010 --refresh-territories --force
+python Data/update_map_data.py --vintage 2020 --force</code></pre>
+      Only the first needs <code>--refresh-territories</code> &mdash; the overlay is
+      not per-vintage, so rebuilding it once is enough.
+    </li>
+    <li>
+      <strong>Upload 2020 geometry first, then 2010.</strong> 2010 is the vintage
+      currently paired with the live dataset, so it is the one that can visibly
+      break. Doing 2020 first proves the file and the record values before you touch
+      the live pairing.
+    </li>
+    <li>
+      <strong>Upload the territory overlay</strong>
+      (<code>Data/service_territories.geojson</code>). It publishes immediately and
+      retires the previous overlay; there is no separate activation step.
+    </li>
+    <li>
+      <strong>Check it in the browser.</strong> Reload the dashboard, switch on
+      <em>Electric networks</em>, and confirm the outlines draw. If they do not, the
+      stamps disagree &mdash; which means one of the two uploads did not happen.
+    </li>
+  </ol>
+
+  <div class="note warn">
+    <span class="t">Do the geometry and the overlay in the same sitting</span>
+    <p>Between the two uploads the stamps disagree, and during that window the
+    dashboard will refuse to draw the outlines. That is the safety check doing its
+    job, not a fault &mdash; but it is visible to anyone using the dashboard, so keep
+    the window short.</p>
+  </div>
+
+  <div class="note info">
+    <span class="t">What this does <em>not</em> change</span>
+    <p>New shapefiles do not affect the electric and gas <em>account figures</em>.
+    Those come from the Con Edison spreadsheets on a separate cycle &mdash; guide 3.
+    You do not need to rebuild them when eGIS sends new boundaries.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Uploading, and what happens after</h2>
+
+  <ol>
+    <li>Dashboard &rarr; <strong>Map Layers</strong> &rarr; <strong>Upload data
+    file</strong>.</li>
+    <li>Choose the built file. The file states its own kind; you do not pick one.</li>
+    <li>Check the <strong>Validated</strong> panel against what the builder printed
+    &mdash; particularly the tract count and the field count.</li>
+    <li>Press <strong>Upload version</strong>.</li>
+  </ol>
+
+  <p>Geometry and territories are <strong>published on upload</strong>. There is no
+  Active toggle, because there is nothing to choose: the dashboard picks the
+  geometry whose vintage matches the live dataset, and there is only ever one
+  published territory overlay.</p>
+
+  <div class="note ok">
+    <span class="t">The previous version is retired, not deleted</span>
+    <p>Uploading a new set retires the one it replaces &mdash; and only <em>after</em>
+    the new file has been uploaded and verified, so a failed upload can never leave a
+    vintage with no geometry at all.</p>
+    <p>Retired sets disappear from the card but stay stored. Re-uploading one is how
+    you go back.</p>
+  </div>
+</section>
+
+<section>
+  <h2>What travels with these scripts</h2>
+
+  <p>To run this on another machine you need, alongside the scripts:</p>
+  <ul>
+    <li><code>Data/ny_tracts.geojson</code> and <code>Data/ny_tracts_2010.geojson</code>
+    &mdash; or let the command download and convert them for you;</li>
+    <li>both neighbourhood crosswalk CSVs;</li>
+    <li><code>Data/Extra_info/</code> with all four parts of each shapefile;</li>
+    <li><code>map_payload.json</code>, in the folder <em>above</em> <code>Data/</code>;</li>
+    <li>a <code>Data/out/</code> folder that exists or can be created.</li>
+  </ul>
+
+  <div class="note stop">
+    <span class="t">Two of those files are Con Edison internal data</span>
+    <p><code>map_payload.json</code> and the <code>CECONY_*</code> shapefiles contain
+    per-tract customer account counts, energy affordability enrolment, and network
+    geometry. Anyone assembling this package is handling Con Edison data. Appropriate
+    within Con Edison; not appropriate anywhere else.</p>
+  </div>
+</section>
+
+<footer>Guide 2 of 3 &middot; Con Edison DAC dashboard &middot; Geometry and territories</footer>
+</div>
+</body>
+</html>

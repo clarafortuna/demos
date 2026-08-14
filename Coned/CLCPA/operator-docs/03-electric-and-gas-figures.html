@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3 &middot; Electric and gas figures &mdash; from the Con Edison extracts to the dashboard</title>
+<style>
+  :root {
+    --bg:#fff; --bg-2:#f7f6f2; --bg-3:#f1efe8;
+    --text:#1a1a1a; --text-2:#5f5e5a; --text-3:#888780;
+    --border:rgba(0,0,0,0.12); --border-2:rgba(0,0,0,0.28);
+    --accent:#185FA5; --accent-bg:#E6F1FB;
+    --warn-bg:#FAEEDA; --warn-text:#633806;
+    --stop-bg:#FBE9E7; --stop-text:#8A2318;
+    --ok-bg:#E1F5EE; --ok-text:#085041;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen,Ubuntu,sans-serif;
+    --mono:"SF Mono",Menlo,Monaco,Consolas,"Courier New",monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#1a1a1a; --bg-2:#232321; --bg-3:#2c2c2a;
+      --text:#e8e6df; --text-2:#b4b2a9; --text-3:#888780;
+      --border:rgba(255,255,255,0.12); --border-2:rgba(255,255,255,0.30);
+      --accent:#85B7EB; --accent-bg:#0C447C;
+      --warn-bg:#4a2f0c; --warn-text:#FAEEDA;
+      --stop-bg:#5a201a; --stop-text:#FBE9E7;
+      --ok-bg:#085041; --ok-text:#E1F5EE;
+    }
+  }
+  *{box-sizing:border-box}
+  body{font-family:var(--font);font-size:14px;line-height:1.62;color:var(--text);background:var(--bg-2);margin:0;padding:24px}
+  .container{max-width:920px;margin:0 auto}
+  header{margin-bottom:18px}
+  .kicker{font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--text-3);margin:0 0 6px}
+  header h1{font-size:25px;font-weight:500;margin:0 0 6px;line-height:1.25}
+  header p{color:var(--text-2);margin:0;max-width:760px}
+  section{background:var(--bg);border:.5px solid var(--border);border-radius:12px;padding:18px 22px 20px;margin-bottom:14px}
+  section > h2{font-size:17px;font-weight:600;margin:0 0 4px}
+  section > .sub{color:var(--text-2);margin:0 0 14px;font-size:13px}
+  h3{font-size:14px;font-weight:600;margin:18px 0 6px}
+  h3:first-of-type{margin-top:8px}
+  p{margin:0 0 10px}
+  code{font-family:var(--mono);font-size:12.5px;background:var(--bg-3);border:.5px solid var(--border);border-radius:4px;padding:1px 5px}
+  pre{font-family:var(--mono);font-size:12.5px;background:var(--bg-3);border:.5px solid var(--border);border-radius:8px;padding:12px 14px;overflow-x:auto;margin:0 0 12px;line-height:1.5}
+  pre code{background:none;border:none;padding:0;font-size:inherit}
+  table{border-collapse:collapse;width:100%;margin:0 0 12px;font-size:13px}
+  th,td{text-align:left;vertical-align:top;padding:7px 10px;border-bottom:.5px solid var(--border)}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-3);font-weight:600}
+  td.mono,th.mono{font-family:var(--mono);font-size:12px}
+  .nw{white-space:nowrap}
+  .num{text-align:right;font-family:var(--mono);font-size:12px}
+  .note{border-radius:8px;padding:12px 15px;margin:0 0 12px;font-size:13px}
+  .note p{margin:0 0 8px}.note p:last-child{margin:0}
+  .note .t{font-weight:600;display:block;margin-bottom:4px}
+  .warn{background:var(--warn-bg);color:var(--warn-text)}
+  .stop{background:var(--stop-bg);color:var(--stop-text)}
+  .ok{background:var(--ok-bg);color:var(--ok-text)}
+  .info{background:var(--accent-bg);color:var(--text)}
+  ol,ul{margin:0 0 12px;padding-left:22px}
+  li{margin-bottom:6px}
+  .steps{counter-reset:s;list-style:none;padding-left:0}
+  .steps > li{counter-increment:s;position:relative;padding-left:34px;margin-bottom:14px}
+  .steps > li::before{content:counter(s);position:absolute;left:0;top:1px;width:23px;height:23px;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center}
+  .stack{display:flex;flex-direction:column;gap:0;margin:0 0 12px;border:.5px solid var(--border);border-radius:8px;overflow:hidden}
+  .stack div{padding:10px 14px;font-size:13px;border-bottom:.5px solid var(--border)}
+  .stack div:last-child{border-bottom:none}
+  .stack .top{background:var(--ok-bg);color:var(--ok-text);font-weight:600}
+  .stack .mid{background:var(--bg-3)}
+  footer{color:var(--text-3);font-size:12px;text-align:center;padding:18px 0 6px}
+  .tag{display:inline-block;font-size:10.5px;padding:2px 8px;border-radius:999px;font-weight:600;letter-spacing:.3px}
+  .tag-req{background:var(--stop-bg);color:var(--stop-text)}
+  .tag-opt{background:var(--bg-3);color:var(--text-2)}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <p class="kicker">Con Edison &middot; DAC dashboard &middot; Operator guide 3 of 3</p>
+  <h1>Electric and gas figures</h1>
+  <p>How the account counts, energy-affordability enrolment and adjustment figures
+  in the two Con Edison extracts reach the dashboard.</p>
+</header>
+
+<section>
+  <h2>The one thing to know first</h2>
+
+  <div class="note stop">
+    <span class="t">There is no upload for spreadsheets. The dashboard cannot read one.</span>
+    <p>The file picker in the dashboard accepts <code>.json</code> and
+    <code>.geojson</code> files only. A spreadsheet cannot be uploaded to the
+    dashboard, dropped onto it, or read by it in any other way.</p>
+    <p>The cycle is always: <strong>run a script to convert, then upload what the
+    script produced.</strong> This is a deliberate design decision, not a missing
+    feature, and it is not going to change.</p>
+  </div>
+
+  <p>So the whole cycle looks like this:</p>
+  <pre><code>  the two Con Edison extracts
+             |
+             |   build_coned_dataset.py          (a script, on your machine)
+             v
+  coned_operational_v1_0-2010.json               (this is what the dashboard takes)</code></pre>
+</section>
+
+<section>
+  <h2>Step 1 &mdash; Put the extracts in place</h2>
+
+  <p>Two files, saved with exactly these names:</p>
+  <pre><code>Data/Electric.xlsx
+Data/Gas.xlsx</code></pre>
+
+  <p>Each must contain a sheet named <strong><code>Export</code></strong> with these
+  columns. Column order does not matter; the names do.</p>
+
+  <table>
+    <tr><th>Column</th><th>What it is</th></tr>
+    <tr><td class="mono">Geo ID</td><td>The 11-character census tract identifier. Must be the first column.</td></tr>
+    <tr><td class="mono">DAC Indicator</td><td><code>DAC</code> or <code>Non-DAC</code>.</td></tr>
+    <tr><td class="mono">Total Accts</td><td>Account count for the tract.</td></tr>
+    <tr><td class="mono">Total EAP Accts</td><td>Energy Affordability Program enrolment.</td></tr>
+    <tr><td class="mono">Total Adjustment</td><td>The adjustment figure. Carries many decimal places; see below.</td></tr>
+  </table>
+
+  <div class="note info">
+    <span class="t">Leave the filter description at the bottom alone</span>
+    <p>Both extracts end with a row whose first cell is a description of the query
+    that produced them &mdash; <code>Applied filters: SVC_TYPE_CD is E / Year is
+    2025 / ...</code>. That is normal, and the converter drops it deliberately and
+    tells you it did.</p>
+    <p>You do not need to delete it, and deleting other rows to &ldquo;tidy up&rdquo;
+    the file is more likely to cause a problem than solve one.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Step 2 &mdash; Build the geometry first, if you have not</h2>
+
+  <p>The converter takes its list of tracts from the tract geometry dataset for the
+  vintage you are building. If that file is not there, it stops and says so.</p>
+
+  <pre><code>REFUSED: no geometry dataset at Data/out/tract_geometry_pure-2010.json.
+  The tract universe comes from the geometry that is drawn, not from
+  map_payload.json, so this dataset does not depend on the file it
+  exists to replace. Build it with update_map_data.py --vintage 2010.</code></pre>
+
+  <p>Guide 2 covers that command. If the geometry is already built, skip this step.</p>
+</section>
+
+<section>
+  <h2>Step 3 &mdash; Convert</h2>
+
+  <pre><code>python Data/build_coned_dataset.py --vintage 2010</code></pre>
+
+  <table>
+    <tr><th>Option</th><th></th><th>What it does</th></tr>
+    <tr><td class="mono nw">--vintage 2010|2020</td><td><span class="tag tag-opt">defaults to 2010</span></td>
+        <td>Which tract vintage to build for. Must match a geometry dataset you have
+        already built.</td></tr>
+    <tr><td class="mono nw">--force</td><td><span class="tag tag-opt">as needed</span></td>
+        <td>Permits overwriting an output file that already exists in
+        <code>Data/out/</code>. Nothing else.</td></tr>
+  </table>
+
+  <p>Requires Python and the <code>openpyxl</code> package:</p>
+  <pre><code>pip install openpyxl</code></pre>
+
+  <h3>What it prints</h3>
+
+  <pre><code>==========================================================================
+CONED OPERATIONAL DATASET  v1.0-2010
+==========================================================================
+  universe   : 2333 tracts, from Data\out\tract_geometry_pure-2010.json
+  electric   : 2288 rows read
+  gas        : 1037 rows read
+
+  values carried, by field:
+    elec_dac      2283 of 2333 tracts
+    elec_accts    2283 of 2333 tracts
+    elec_eap      2283 of 2333 tracts
+    elec_adj      2253 of 2333 tracts
+    gas_dac       1036 of 2333 tracts
+    gas_accts     1036 of 2333 tracts
+    gas_eap       1036 of 2333 tracts
+    gas_adj        972 of 2333 tracts
+
+  DELIBERATELY DROPPED
+    footer row   elec  'Applied filters: / SVC_TYPE_CD is E / Year is 2025 ...
+    footer row   gas   'Applied filters: / SVC_TYPE_CD is G / Year is 2025 ...
+    outside the 2010 universe: 4 (elec 36079010800, elec 36079010900, ...)
+
+  fingerprint: cc8591640a231a1193e0fe52c004c42b9f0753cff933481f4a2a2cb8272f8fa3
+               (over Electric.xlsx + Gas.xlsx, NOT the shapefiles)
+  output     : Data\out\coned_operational_v1_0-2010.json (176215 bytes)
+==========================================================================</code></pre>
+
+  <h3>Reading that output</h3>
+
+  <ul>
+    <li><strong>Not every tract has figures, and that is correct.</strong> 2,283 of
+    2,333 tracts have electric data; only 1,036 have gas. The rest are blank because
+    the extracts have no row for them.</li>
+    <li><strong>The dropped list is not an error list.</strong> It names the filter
+    footer from each file, and any tract outside the vintage&rsquo;s universe.</li>
+    <li><strong>Four Putnam County tracts</strong> appear in the electric extract but
+    are outside the Con Edison six-county area, so they are excluded and named.</li>
+  </ul>
+
+  <div class="note warn">
+    <span class="t">Building for 2020 drops considerably more &mdash; and that is expected</span>
+    <p>The 2020 tract universe is 2,183 tracts, and <strong>219 tract identifiers
+    that carry electric data under 2010 numbering do not exist in 2020 at all.</strong>
+    The 2020 build reports them as outside the universe.</p>
+    <p>This is the census renumbering between the two vintages, not a data fault.
+    It is also why the two builds produce separate files rather than one.</p>
+  </div>
+
+  <h3>Where the file lands</h3>
+  <pre><code>Data/out/coned_operational_v1_0-2010.json     176,215 bytes
+Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
+  <p>The version label carries the vintage &mdash; <code>1.0-2010</code>,
+  <code>1.0-2020</code> &mdash; because the two cover different tract lists and are
+  not interchangeable.</p>
+</section>
+
+<section>
+  <h2>Step 4 &mdash; Upload</h2>
+
+  <ol class="steps">
+    <li>Dashboard &rarr; <strong>Map Layers</strong> &rarr; <strong>Upload data
+    file</strong> &rarr; choose <code>coned_operational_v1_0-2010.json</code>.</li>
+    <li>The <strong>Validated</strong> panel shows the tract count and the per-field
+    counts. Check them against what the converter printed.</li>
+    <li>Read the <strong>Heads up</strong> block. One of its notes always appears and
+    is the important one &mdash; see the next section.</li>
+    <li>Press <strong>Upload version</strong>. It publishes immediately; there is no
+    separate activation step.</li>
+  </ol>
+
+  <p>It appears afterwards on the <strong>Electric &amp; gas figures</strong> card.
+  The version whose vintage matches the live NYSERDA dataset is marked
+  <em>in use</em>; others are <em>available</em>.</p>
+
+  <div class="note ok">
+    <span class="t">Uploading a new version retires the previous one for that vintage</span>
+    <p>The retired version stays stored and re-uploading it is how you go back.
+    Uploading a 2010 version does not affect a published 2020 version, and the
+    reverse.</p>
+  </div>
+</section>
+
+<section>
+  <h2>How these figures combine with manual corrections</h2>
+  <p class="sub">The most important behaviour in this guide, and the least visible.</p>
+
+  <p>The dashboard has a separate store of per-tract electric and gas values that can
+  be corrected by hand. Both that store and this dataset supply the same eight
+  fields, so the order matters:</p>
+
+  <div class="stack">
+    <div class="top">Manual corrections &mdash; applied last, so they win</div>
+    <div class="mid">Electric &amp; gas figures dataset &mdash; what the extracts say</div>
+  </div>
+
+  <p>In plain terms:</p>
+  <ul>
+    <li>If a tract has been corrected by hand, <strong>the correction stays</strong>.
+    Uploading a new dataset does not overwrite it.</li>
+    <li>If a tract has not been corrected, it shows the dataset value.</li>
+    <li>A blank correction does not erase the dataset value beneath it.</li>
+  </ul>
+
+  <div class="note warn">
+    <span class="t">Corrected adjustment values will show fewer decimal places. That is correct.</span>
+    <p>The dataset carries the adjustment figures at full precision &mdash; fourteen
+    or fifteen decimal places, exactly as the extract supplies them. The corrections
+    store keeps <strong>four</strong>.</p>
+    <p>So a corrected tract legitimately shows a shorter number than an uncorrected
+    one. It is not a rounding fault, and it is not a sign that the upload went wrong.</p>
+  </div>
+
+  <div class="note info">
+    <span class="t">Today, no tract has been corrected</span>
+    <p>At the time of writing the corrections store holds a copy of the extract
+    figures rather than any actual corrections. Until that changes, uploading this
+    dataset produces <strong>no visible change on the map</strong> &mdash; which is
+    expected, and was verified before release.</p>
+    <p>What it does give you is a record of <em>where the figures came from</em>: a
+    version, a source label, and a fingerprint of the two extracts. That did not
+    exist before.</p>
+  </div>
+</section>
+
+<section>
+  <h2>When you need to do this</h2>
+
+  <table>
+    <tr><th>Situation</th><th>Rebuild these figures?</th></tr>
+    <tr><td>Con Edison sends new <code>Electric.xlsx</code> / <code>Gas.xlsx</code></td>
+        <td><strong>Yes.</strong> This is the only trigger.</td></tr>
+    <tr><td>eGIS sends new network shapefiles</td>
+        <td>No. Those change the boundaries and the tooltip network names &mdash;
+        guide 2 &mdash; not the account figures.</td></tr>
+    <tr><td>A new NYSERDA release</td>
+        <td>No. Different data entirely &mdash; guide 1.</td></tr>
+    <tr><td>You publish geometry for a vintage you had not used before</td>
+        <td>Yes, build these figures for that vintage too, or tracts will show no
+        electric or gas values.</td></tr>
+  </table>
+
+  <div class="note info">
+    <span class="t">The fingerprint is of the spreadsheets, not the shapefiles</span>
+    <p>This dataset records a fingerprint of <code>Electric.xlsx</code> and
+    <code>Gas.xlsx</code>. The geometry and territory files record a fingerprint of
+    the <em>shapefiles</em>. They answer different questions and are never compared
+    to each other &mdash; the file says which is which, so nothing can confuse them.</p>
+  </div>
+</section>
+
+<section>
+  <h2>If something goes wrong</h2>
+
+  <table>
+    <tr><th>Message</th><th>What to do</th></tr>
+    <tr><td><code>REFUSED: no geometry dataset at &hellip;</code></td>
+        <td>Build the geometry for that vintage first &mdash; guide 2.</td></tr>
+    <tr><td><code>REFUSED: &hellip; already exists. Pass --force to overwrite it.</code></td>
+        <td>The output is already there. Re-run with <code>--force</code> if you
+        meant to replace it.</td></tr>
+    <tr><td><code>this file is missing N of the eight ConEd fields</code></td>
+        <td>A column is missing from one of the extracts, or its header was renamed.
+        Check the sheet against the column table above.</td></tr>
+    <tr><td><code>N column(s) do not align to the &hellip; GEOIDs</code></td>
+        <td>The file was edited after it was built. Rebuild it rather than repairing
+        it.</td></tr>
+    <tr><td><code>record TractCount &hellip; disagrees with the file</code></td>
+        <td>The stored record and the file describe different things. Rebuild and
+        re-upload rather than editing the record.</td></tr>
+  </table>
+
+  <p>None of these damage anything. A refused upload changes nothing, and a refused
+  dataset leaves whatever was there before still working.</p>
+</section>
+
+<footer>Guide 3 of 3 &middot; Con Edison DAC dashboard &middot; Electric and gas figures</footer>
+</div>
+</body>
+</html>
