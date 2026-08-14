@@ -39,6 +39,11 @@ const APP = path.join(ROOT, 'app.js');
 // time of writing, so its absence is not a failure -- but if it is here, it
 // must not disagree with the app.
 const GUIDE = path.join(ROOT, 'sources-update-guide.html');
+// The three Con Edison operator guides. They are the surface most likely to make
+// this claim -- they exist to explain the refresh cycles, they are written for
+// readers with no repository access, and nobody reading them can check. Absence
+// is not a failure; a guide that IS here must not disagree with the app.
+const OPERATOR_DOCS = path.join(ROOT, '..', 'operator-docs');
 
 const SPREADSHEET = /\.xlsx\b|\.xls\b|\.csv\b/i;
 // Phrasings that shipped. Kept literal so the failure message can name what it
@@ -88,8 +93,14 @@ const ENTERS_APP = new RegExp([
 ].join('|'), 'i');
 
 function uploadClaims(src) {
+  // `</pre>` is in the split list because a code block is its own unit. Without
+  // it, a pasted script transcript became ONE chunk, and any transcript that
+  // happened to mention a .csv input AND end with "Upload it from the Map Layers
+  // card" was reported as claiming the csv is uploaded. Splitting there makes the
+  // chunks smaller and therefore the match MORE precise -- it does not weaken the
+  // check, since a real claim of this kind lives inside a single sentence.
   return src
-    .split(/<\/li>|<\/p>|\. (?=[A-Z])/)
+    .split(/<\/li>|<\/p>|<\/pre>|\. (?=[A-Z])/)
     .map(function (s) { return s.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(); })
     .filter(function (s) {
       if (!SPREADSHEET.test(s)) return false;
@@ -105,6 +116,15 @@ function main() {
   const surfaces = [{ name: 'app.js', src: app }];
   if (fs.existsSync(GUIDE)) {
     surfaces.push({ name: 'sources-update-guide.html', src: fs.readFileSync(GUIDE, 'utf8') });
+  }
+  if (fs.existsSync(OPERATOR_DOCS)) {
+    fs.readdirSync(OPERATOR_DOCS)
+      .filter(function (f) { return /\.html?$/i.test(f); })
+      .sort()
+      .forEach(function (f) {
+        surfaces.push({ name: 'operator-docs/' + f,
+                        src: fs.readFileSync(path.join(OPERATOR_DOCS, f), 'utf8') });
+      });
   }
 
   // 1. the capability, from the code
