@@ -214,7 +214,15 @@ LAYOUT = {
 
 
 def parse_indicator_catalog(app_js_path):
-    """Read MAP_INDICATOR_GROUPS out of app.js so the manifest matches the UI."""
+    """Read MAP_INDICATOR_GROUPS out of app.js.
+
+    NO LONGER THE PATH THE CONVERTER TAKES. Slice 5d retired that literal, so this
+    raises ValueError against any current app.js. It is kept because
+    build_indicator_catalog.py calls it to GENERATE the frozen catalogue from a
+    pre-5d app.js, and having one parser rather than two is what keeps the frozen
+    file matching what the converter expects. Runtime callers want
+    load_indicator_catalog().
+    """
     src = open(app_js_path, encoding="utf-8").read()
     start = src.index("const MAP_INDICATOR_GROUPS")
     # The literal is followed by the INDICATOR CATALOG section that consumes it.
@@ -238,6 +246,49 @@ def parse_indicator_catalog(app_js_path):
                                      "format": im.group(3)})
     if not groups:
         sys.exit("could not parse MAP_INDICATOR_GROUPS out of app.js")
+    return groups
+
+
+CATALOG_PATH = os.path.join(DATA, "indicator_catalog.json")
+
+
+def load_indicator_catalog(path=None):
+    """The indicator groups and items, from Data/indicator_catalog.json.
+
+    Returns exactly what parse_indicator_catalog returned -- a list of
+    {label, items:[{key,label,format}]} -- so every call site is unchanged apart
+    from where the data comes from.
+
+    This replaces reading app.js. Slice 5d retired the literal that was parsed, and
+    the frozen file is what lets app.js stay out of the operator package: it was
+    carried there, all 800 KB of it, to supply a list of 50 indicator names.
+    """
+    p = path or CATALOG_PATH
+    if not os.path.exists(p):
+        sys.exit("REFUSED: %s is missing.\n"
+                 "  It carries the indicator groups the dataset manifest is built from.\n"
+                 "  Generate it once with:\n"
+                 "    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js > app_pre5d.js\n"
+                 "    python Data/build_indicator_catalog.py --app-js app_pre5d.js"
+                 % os.path.relpath(p, ROOT))
+    with open(p, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    if doc.get("schema") != 1 or doc.get("kind") != "indicator_catalog":
+        sys.exit("REFUSED: %s is not a schema-1 indicator_catalog file "
+                 "(got schema=%r kind=%r)."
+                 % (os.path.relpath(p, ROOT), doc.get("schema"), doc.get("kind")))
+    groups = doc.get("groups")
+    if not isinstance(groups, list) or not groups:
+        sys.exit("REFUSED: %s carries no groups." % os.path.relpath(p, ROOT))
+    for g in groups:
+        if not isinstance(g.get("label"), str) or not isinstance(g.get("items"), list):
+            sys.exit("REFUSED: %s has a group with no label or no items array."
+                     % os.path.relpath(p, ROOT))
+        for it in g["items"]:
+            missing = [k for k in ("key", "label", "format") if k not in it]
+            if missing:
+                sys.exit("REFUSED: %s has an item in group %r missing %s."
+                         % (os.path.relpath(p, ROOT), g["label"], ", ".join(missing)))
     return groups
 
 
@@ -297,7 +348,7 @@ def main():
         GEOID_VINTAGE = DEMO_GEOID_VINTAGE
         DATASET_NAME = DEMO_DATASET_NAME
         SOURCE_LABEL = DEMO_SOURCE_LABEL
-    groups_raw = parse_indicator_catalog(APP_JS)
+    groups_raw = load_indicator_catalog()
     dropdown = [it for g in groups_raw for it in g["items"]]
     dropdown_keys = [it["key"] for it in dropdown]
     all_fields = dropdown_keys + NON_DROPDOWN_FIELDS

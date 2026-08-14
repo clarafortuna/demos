@@ -91,11 +91,18 @@
   does need extra packages; this one does not.)</p>
 
   <div class="note info">
-    <span class="t">The dashboard file <code>app.js</code> must be present, and this is the least obvious requirement here.</span>
-    <p>The converter reads the indicator catalogue <em>out of</em> <code>app.js</code>,
-    so that the dataset it produces provably matches the dashboard as shipped. If
-    <code>app.js</code> is missing, the converter stops. Use the same
-    <code>app.js</code> that is currently deployed &mdash; not an older copy.</p>
+    <span class="t">One file in <code>Data/</code> decides what the indicators are called</span>
+    <p><code>Data/indicator_catalog.json</code> holds the six indicator groups and the
+    fifty indicators inside them &mdash; their keys, their labels, and whether each is
+    a percentage or a score. The converter reads it to build the dataset&rsquo;s own
+    description of itself, which is what lets the dashboard&rsquo;s Color by list,
+    tooltips and CSV export rebuild themselves from an upload rather than from a code
+    change.</p>
+    <p>You do not normally touch it. It matters in one situation: <strong>if a future
+    NYSERDA release adds, renames or removes an indicator, that file is where the
+    change goes</strong> &mdash; see the <code>NOTE:</code> paragraph in step 3.</p>
+    <p>It records which dashboard build it was taken from, by checksum, so a dataset
+    built with it can always be traced back.</p>
   </div>
 </section>
 

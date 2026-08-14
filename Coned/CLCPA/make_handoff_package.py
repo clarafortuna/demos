@@ -13,8 +13,8 @@ run, and a package without them fails on the first command:
     convert_nyserda_raw.py      imports build_tract_dataset  -->  ships
     build_coned_dataset.py      imports build_base_map_payload -->  ships
 
-`build_tract_dataset.py` is where the indicator catalogue is parsed out of
-`app.js`; `build_base_map_payload.py` is where the spreadsheet reader lives, and
+`build_tract_dataset.py` holds the manifest builder and the indicator-catalogue
+loader; `build_base_map_payload.py` is where the spreadsheet reader lives, and
 build_coned_dataset imports it rather than reimplementing the header matching.
 Both are import-safe: each has an `if __name__ == "__main__"` guard, so importing
 one does not run it.
@@ -56,9 +56,15 @@ so nobody forwards the package by accident:
     Electric.xlsx / Gas.xlsx  per-tract account counts and EAP enrolment
     Extra_info/CECONY_*       the electric and gas network geometry
 
-`app.js` is the deployed dashboard and is Con Edison's own application.
-`tract_universe.json` carries tract numbers and place names -- public geography,
-not customer data.
+`app.js` no longer ships either. It was carried, all 800 KB of it, so that ONE
+function could parse the indicator names out of `const MAP_INDICATOR_GROUPS` --
+which slice 5d then retired. `build_indicator_catalog.py` froze that list into
+`Data/indicator_catalog.json` (6 KB) with the sha256 of the app.js it came from,
+so the traceability is kept and the application stays out of the package.
+
+Neither remaining generated input is customer data: `tract_universe.json` carries
+tract numbers and place names, `indicator_catalog.json` carries indicator labels.
+Both are public geography and public NYSERDA vocabulary.
 
 Run:  python Coned/CLCPA/make_handoff_package.py [--out DIR]
 """
@@ -116,12 +122,13 @@ MUST_NOT_SHIP = [
     "build_payload.py",
     "retire_dead_payload_fields.py",
     "map_payload.json",
+    "app.js",
 ]
 
 # Inputs the scripts read at runtime. `client` marks Con Edison internal data.
 INPUTS = [
-    ("app.js", "app.js", False,
-     "the deployed dashboard; the indicator catalogue is parsed out of it"),
+    ("Data/indicator_catalog.json", "Data/indicator_catalog.json", False,
+     "the six indicator groups and fifty indicators the dataset manifest is built from; replaces app.js, which was carried only to be parsed for this"),
     ("Data/tract_universe.json", "Data/tract_universe.json", False,
      "the 2,333-GEOID tract universe and City_Town, with provenance recorded; "
      "replaces map_payload.json as the geometry builder's universe input"),

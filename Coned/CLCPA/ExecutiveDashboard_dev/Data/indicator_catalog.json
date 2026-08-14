@@ -1,0 +1,295 @@
+{
+ "schema": 1,
+ "kind": "indicator_catalog",
+ "provenance": {
+  "generatedBy": "Data/build_indicator_catalog.py",
+  "derivedFrom": "app.js, const MAP_INDICATOR_GROUPS",
+  "derivedFromSha256": "1e7f95a839841e5e75936fa329aefe42178ae1938bffebf4a98ffa3bebc102cf",
+  "derivedFromBytes": 786247,
+  "derivedFromRef": "1d4a5f9 (slice 7b merge, last commit before 5d)",
+  "note": "Parsed out of an app.js from BEFORE slice 5d, which retired the MAP_INDICATOR_GROUPS literal. The converter reads this file instead, which is what lets app.js stay out of the operator package. A future NYSERDA release that adds or renames an indicator is handled by editing this file and rebuilding.",
+  "usedBy": "convert_nyserda_raw.py, via build_tract_dataset.load_indicator_catalog(), to build the dataset manifest's group and item list."
+ },
+ "groups": [
+  {
+   "label": "Summary",
+   "items": [
+    {
+     "key": "Comb_Sc",
+     "label": "Combined Burden Score",
+     "format": "score"
+    },
+    {
+     "key": "Burden_Pct",
+     "label": "Environmental Burden (pct)",
+     "format": "pct"
+    },
+    {
+     "key": "Vulner_Pct",
+     "label": "Population Vulnerability (pct)",
+     "format": "pct"
+    }
+   ]
+  },
+  {
+   "label": "Environmental Burdens",
+   "items": [
+    {
+     "key": "PM25",
+     "label": "PM2.5",
+     "format": "pct"
+    },
+    {
+     "key": "Benzene",
+     "label": "Benzene",
+     "format": "pct"
+    },
+    {
+     "key": "Traff_Trk",
+     "label": "Truck Traffic",
+     "format": "pct"
+    },
+    {
+     "key": "Traff_Veh",
+     "label": "Vehicle Traffic",
+     "format": "pct"
+    },
+    {
+     "key": "Waste_H2O",
+     "label": "Wastewater Discharge",
+     "format": "pct"
+    },
+    {
+     "key": "Vacancy",
+     "label": "Housing Vacancy",
+     "format": "pct"
+    },
+    {
+     "key": "Ind_LU",
+     "label": "Industrial Land Use",
+     "format": "pct"
+    },
+    {
+     "key": "Landfills",
+     "label": "Active Landfills",
+     "format": "pct"
+    },
+    {
+     "key": "Oil_Stor",
+     "label": "Major Oil Storage",
+     "format": "pct"
+    },
+    {
+     "key": "Waste_Com",
+     "label": "Regulated Waste Facilities",
+     "format": "pct"
+    },
+    {
+     "key": "Pwr_Gen",
+     "label": "Power Generation",
+     "format": "pct"
+    },
+    {
+     "key": "RMP_Sites",
+     "label": "RMP Sites",
+     "format": "pct"
+    },
+    {
+     "key": "Rem_Sites",
+     "label": "Remediation Sites",
+     "format": "pct"
+    },
+    {
+     "key": "Scrap_Met",
+     "label": "Scrap Metal Processing",
+     "format": "pct"
+    }
+   ]
+  },
+  {
+   "label": "Climate Risks",
+   "items": [
+    {
+     "key": "Coast_Fld",
+     "label": "Coastal Flooding",
+     "format": "pct"
+    },
+    {
+     "key": "Days_90_D",
+     "label": "Days Above 90°F",
+     "format": "pct"
+    },
+    {
+     "key": "In_Flood",
+     "label": "Inland Flooding",
+     "format": "pct"
+    },
+    {
+     "key": "Low_Veg",
+     "label": "Low Vegetative Cover",
+     "format": "pct"
+    },
+    {
+     "key": "Drv_Health",
+     "label": "Drive Time to Health Care",
+     "format": "pct"
+    },
+    {
+     "key": "Ag_LU",
+     "label": "Agricultural Land Use",
+     "format": "pct"
+    }
+   ]
+  },
+  {
+   "label": "Health",
+   "items": [
+    {
+     "key": "Asthma",
+     "label": "Asthma",
+     "format": "pct"
+    },
+    {
+     "key": "COPD",
+     "label": "COPD",
+     "format": "pct"
+    },
+    {
+     "key": "HH_Disab",
+     "label": "Households w/ Disability",
+     "format": "pct"
+    },
+    {
+     "key": "Birth_Wt",
+     "label": "Low Birth Weight",
+     "format": "pct"
+    },
+    {
+     "key": "MI_Rates",
+     "label": "Heart Attack (MI) Rate",
+     "format": "pct"
+    },
+    {
+     "key": "Health_Ins",
+     "label": "No Health Insurance",
+     "format": "pct"
+    },
+    {
+     "key": "Prem_Death",
+     "label": "Premature Death",
+     "format": "pct"
+    }
+   ]
+  },
+  {
+   "label": "Demographics / Vulnerability",
+   "items": [
+    {
+     "key": "Age_Ovr_65",
+     "label": "Population Over 65",
+     "format": "pct"
+    },
+    {
+     "key": "Asian_Pct",
+     "label": "Asian Population",
+     "format": "pct"
+    },
+    {
+     "key": "Black_Pct",
+     "label": "Black Population",
+     "format": "pct"
+    },
+    {
+     "key": "Lat_Pct",
+     "label": "Hispanic/Latino Population",
+     "format": "pct"
+    },
+    {
+     "key": "Native_Pct",
+     "label": "Native American Population",
+     "format": "pct"
+    },
+    {
+     "key": "Redline",
+     "label": "Historically Redlined",
+     "format": "pct"
+    },
+    {
+     "key": "Eng_Prof",
+     "label": "Limited English Proficiency",
+     "format": "pct"
+    },
+    {
+     "key": "LMI_80_AMI",
+     "label": "Low-to-Moderate Income (≤80% AMI)",
+     "format": "pct"
+    },
+    {
+     "key": "LMI_Fed",
+     "label": "Low Income (Federal)",
+     "format": "pct"
+    },
+    {
+     "key": "No_College",
+     "label": "No College Degree",
+     "format": "pct"
+    },
+    {
+     "key": "HH_Single",
+     "label": "Single-Parent Households",
+     "format": "pct"
+    },
+    {
+     "key": "Unemploymt",
+     "label": "Unemployment",
+     "format": "pct"
+    },
+    {
+     "key": "Internet",
+     "label": "No Internet Access",
+     "format": "pct"
+    },
+    {
+     "key": "Homes_1960",
+     "label": "Homes Built Before 1960",
+     "format": "pct"
+    },
+    {
+     "key": "Mobile",
+     "label": "Mobile Homes",
+     "format": "pct"
+    },
+    {
+     "key": "Rent_Inc",
+     "label": "Rent Burden",
+     "format": "pct"
+    },
+    {
+     "key": "Rent_Pct",
+     "label": "Renter-Occupied",
+     "format": "pct"
+    }
+   ]
+  },
+  {
+   "label": "Affordability & Ranking",
+   "items": [
+    {
+     "key": "Energy_Aff",
+     "label": "Energy Affordability (pct)",
+     "format": "pct"
+    },
+    {
+     "key": "Rank_NYC",
+     "label": "NYC DAC Rank (pct)",
+     "format": "pct"
+    },
+    {
+     "key": "Rank_ROS",
+     "label": "Rest-of-State DAC Rank (pct)",
+     "format": "pct"
+    }
+   ]
+  }
+ ]
+}

@@ -207,7 +207,7 @@ def build_doc(args, all_fields, scoped, universe, source_label):
                 # Non-DAC: present with nulls, never absent. See ABSENT vs NULL.
                 fields[k].append(NON_DAC_VALUE if k == "DAC_Desig" else None)
 
-    groups_raw = BTD.parse_indicator_catalog(BTD.APP_JS)
+    groups_raw = BTD.load_indicator_catalog()
     manifest_groups = []
     for order, g in enumerate(groups_raw, start=1):
         gid, comp = BTD.GROUP_IDS[g["label"]]
@@ -333,7 +333,7 @@ def main():
         source_label = check_label_length(
             build_source_label(args.raw, raw_date), 'generated')
 
-    groups_raw = BTD.parse_indicator_catalog(BTD.APP_JS)
+    groups_raw = BTD.load_indicator_catalog()
     all_fields = [it["key"] for g in groups_raw for it in g["items"]] \
         + BTD.NON_DROPDOWN_FIELDS
     dupes = [k for k in set(all_fields) if all_fields.count(k) > 1]
