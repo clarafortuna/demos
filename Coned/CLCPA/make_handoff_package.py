@@ -13,11 +13,19 @@ run, and a package without them fails on the first command:
     convert_nyserda_raw.py      imports build_tract_dataset  -->  ships
     build_coned_dataset.py      imports build_base_map_payload -->  ships
 
-`build_tract_dataset.py` is where the indicator catalogue is parsed out of
-`app.js`; `build_base_map_payload.py` is where the spreadsheet reader lives, and
+`build_tract_dataset.py` holds the manifest builder and the indicator-catalogue
+loader; `build_base_map_payload.py` is where the spreadsheet reader lives, and
 build_coned_dataset imports it rather than reimplementing the header matching.
 Both are import-safe: each has an `if __name__ == "__main__"` guard, so importing
 one does not run it.
+
+LAYOUT
+------
+Three parts, and the shape is the instruction:
+
+    <root>/*.py        the scripts, where a reader meets them first
+    <root>/Data/       inputs only; outputs land in Data/out/
+    <root>/docs/       the three operator guides
 
 WHAT DOES NOT GO IN
 -------------------
@@ -27,21 +35,36 @@ package's own first command produces it. Shipping a prebuilt copy would let an
 operator run guide 1 successfully without ever running guide 2, and never learn
 that the two are ordered.
 
-Also excluded: `service_territories.geojson` (an output), the saved-layer
-GeoJSON, and every dataset already uploaded to the dashboard.
+`map_payload.json` no longer ships AT ALL. It was carried only to give the
+geometry builder a list of tract numbers and City_Town, so a 4.8 MB file of
+customer account data was being shipped to satisfy a dependency on ~71 KB of
+information. `build_tract_universe.py` extracted the two into
+`Data/tract_universe.json` with its provenance recorded, the builder reads that,
+and both vintages rebuild byte-identically through it.
+
+Also excluded, each asserted at build time rather than merely listed:
+`build_geometry_dataset.py` (the older 9-property builder, whose output the app
+refuses), `build_tract_universe.py` (its only input is the file this package
+excludes), our `check_*.py` guards, and the superseded `enrich_*` scripts.
 
 CLIENT DATA, FLAGGED RATHER THAN QUIETLY BUNDLED
 ------------------------------------------------
-Four payload items are Con Edison internal data. They are included because the
-package is FOR Con Edison and the scripts cannot run without them, and they are
-listed in MANIFEST.txt under their own heading so nobody ships this onward by
-accident:
+Con Edison internal data, included because the scripts cannot run without it and
+this package is FOR Con Edison, and listed in MANIFEST.txt under its own heading
+so nobody forwards the package by accident:
 
-    map_payload.json          per-tract account counts and EAP enrolment
-    Electric.xlsx / Gas.xlsx  the same figures at source
+    Electric.xlsx / Gas.xlsx  per-tract account counts and EAP enrolment
     Extra_info/CECONY_*       the electric and gas network geometry
 
-`app.js` is the deployed dashboard and is Con Edison's own application.
+`app.js` no longer ships either. It was carried, all 800 KB of it, so that ONE
+function could parse the indicator names out of `const MAP_INDICATOR_GROUPS` --
+which slice 5d then retired. `build_indicator_catalog.py` froze that list into
+`Data/indicator_catalog.json` (6 KB) with the sha256 of the app.js it came from,
+so the traceability is kept and the application stays out of the package.
+
+Neither remaining generated input is customer data: `tract_universe.json` carries
+tract numbers and place names, `indicator_catalog.json` carries indicator labels.
+Both are public geography and public NYSERDA vocabulary.
 
 Run:  python Coned/CLCPA/make_handoff_package.py [--out DIR]
 """
@@ -59,22 +82,56 @@ DOCS = os.path.join(HERE, "operator-docs")
 PKG_NAME = "coned-dac-dashboard-data-tools"
 
 # (source path relative to DEV, destination relative to the package root)
+# THE .py FILES LIVE AT THE PACKAGE ROOT, not inside Data/.
+#
+# Scripts at the top where a reader meets them first; Data/ holding only inputs;
+# docs/ holding only documentation. It also removes the commonest operator error
+# this package can produce -- running a script from inside Data/, which fails on
+# every input path.
+#
+# The scripts resolve their own location, so HERE becomes the package root and
+# their inputs resolve to HERE/Data/. That is the repository's layout shifted up one
+# level, so nothing inside the scripts changes.
 SCRIPTS = [
-    ("Data/convert_nyserda_raw.py", "Data/convert_nyserda_raw.py"),
-    ("Data/build_tract_dataset.py", "Data/build_tract_dataset.py"),
-    ("Data/update_map_data.py", "Data/update_map_data.py"),
-    ("Data/build_pure_geometry_dataset.py", "Data/build_pure_geometry_dataset.py"),
-    ("Data/_make_territories.py", "Data/_make_territories.py"),
-    ("Data/build_coned_dataset.py", "Data/build_coned_dataset.py"),
-    ("Data/build_base_map_payload.py", "Data/build_base_map_payload.py"),
+    ("Data/convert_nyserda_raw.py", "convert_nyserda_raw.py"),
+    ("Data/build_tract_dataset.py", "build_tract_dataset.py"),
+    ("Data/update_map_data.py", "update_map_data.py"),
+    ("Data/build_pure_geometry_dataset.py", "build_pure_geometry_dataset.py"),
+    ("Data/_make_territories.py", "_make_territories.py"),
+    ("Data/build_coned_dataset.py", "build_coned_dataset.py"),
+    ("Data/build_base_map_payload.py", "build_base_map_payload.py"),
+]
+
+# Deliberately NOT packaged. Asserted at build time below, not just listed here.
+#
+#   build_geometry_dataset.py   the OLDER builder. Produces 9 properties instead of
+#                               8, so a file it builds is REFUSED by the app on the
+#                               field-count check. Kept in the repository as a
+#                               fallback; shipping it would place a wrong-output
+#                               script beside the right one with nothing but a
+#                               filename to tell them apart.
+#   build_tract_universe.py     generates tract_universe.json FROM map_payload.json.
+#                               Run once, by us, already done. Shipping it would ship
+#                               a script whose only input this package excludes.
+#   check_*.py                  our guards; they assert against repository state.
+#   enrich_*.py, build_payload.py, retire_dead_payload_fields.py
+#                               superseded or one-off.
+MUST_NOT_SHIP = [
+    "build_geometry_dataset.py",
+    "build_tract_universe.py",
+    "build_payload.py",
+    "retire_dead_payload_fields.py",
+    "map_payload.json",
+    "app.js",
 ]
 
 # Inputs the scripts read at runtime. `client` marks Con Edison internal data.
 INPUTS = [
-    ("app.js", "app.js", False,
-     "the deployed dashboard; the indicator catalogue is parsed out of it"),
-    ("map_payload.json", "map_payload.json", True,
-     "supplies the 2,333-GEOID tract universe to the geometry builder"),
+    ("Data/indicator_catalog.json", "Data/indicator_catalog.json", False,
+     "the six indicator groups and fifty indicators the dataset manifest is built from; replaces app.js, which was carried only to be parsed for this"),
+    ("Data/tract_universe.json", "Data/tract_universe.json", False,
+     "the 2,333-GEOID tract universe and City_Town, with provenance recorded; "
+     "replaces map_payload.json as the geometry builder's universe input"),
     ("Data/NYS_DAC.geojson", "Data/NYS_DAC.geojson", False,
      "NYSERDA DAC release, from the NY DOS Geographic Information Gateway"),
     ("Data/ny_tracts.geojson", "Data/ny_tracts.geojson", False,
@@ -137,9 +194,13 @@ Open the guides in a browser, in order:
 
 HOW TO RUN ANYTHING
 -------------------
-Open a terminal in THIS folder -- the one containing `Data/` -- and run scripts
-as `python Data/<script>.py`. The scripts resolve their own paths and will fail
-on missing inputs if run from anywhere else.
+Open a terminal in THIS folder -- the one containing `Data/` and `docs/` -- and run
+a script by name:
+
+    python update_map_data.py --vintage 2010
+
+The scripts are here at the top level. Their inputs are in `Data/`. Everything they
+write lands in `Data/out/`. Run them from THIS folder, not from inside `Data/`.
 
     pip install -r requirements.txt
 
@@ -148,10 +209,10 @@ ORDER MATTERS THE FIRST TIME
 `Data/out/` is empty on purpose. The tract geometry is the tract list that the
 other two builders read, so build it first:
 
-    python Data/update_map_data.py --vintage 2010          (guide 2)
-    python Data/convert_nyserda_raw.py --version 1.0 \\
+    python update_map_data.py --vintage 2010          (guide 2)
+    python convert_nyserda_raw.py --version 1.0 \\
         --geoid-vintage 2010 --raw-date 2023-03-27         (guide 1)
-    python Data/build_coned_dataset.py --vintage 2010      (guide 3)
+    python build_coned_dataset.py --vintage 2010      (guide 3)
 
 Everything the scripts write lands in `Data/out/`. Nothing in this package
 contacts the dashboard: uploading is a separate, manual step, described in the
@@ -244,6 +305,18 @@ def main():
             lines.append("  %-58s %s" % (dst_rel, note))
     with open(os.path.join(stage, "MANIFEST.txt"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
+
+    # Assert the exclusions rather than trusting the lists above. A file that
+    # should never ship is exactly the thing a future edit adds back by accident,
+    # and "it is not in SCRIPTS" is not the same as "it is not in the package".
+    staged = []
+    for root, _dirs, files in os.walk(stage):
+        for f in files:
+            staged.append(os.path.relpath(os.path.join(root, f), stage).replace("\\", "/"))
+    leaked = [n for n in MUST_NOT_SHIP if any(s.endswith("/" + n) or s == n for s in staged)]
+    if leaked:
+        sys.exit("REFUSED: %d file(s) that must never ship are in the package: %s"
+                 % (len(leaked), ", ".join(leaked)))
 
     zip_path = os.path.join(a.out, PKG_NAME + ".zip")
     if os.path.exists(zip_path):

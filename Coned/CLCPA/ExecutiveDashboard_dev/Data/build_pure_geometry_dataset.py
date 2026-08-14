@@ -50,8 +50,10 @@ tract carries depends on which equivalency table names it:
   2010  Data/2010_Census_Tract_to_2010_NTA_Equivalency_*.csv
         NYC Department of City Planning, NYC Open Data dataset 8ius-dhrr,
         "2010 Census Tract to Neighborhood Tabulation Area Equivalency table",
-        2,168 rows, published 2015-02-18. NOT YET IN THE REPO. It has no GEOID
-        column, so the key is built as '36' + FIPS county (3) + tract (6).
+        2,168 rows, published 2015-02-18. Present since 2026-08-06, and resolved
+        by PREFIX rather than by exact filename, so a fresh export keeps whatever
+        date suffix the portal gives it. It has no GEOID column, so the key is
+        built as '36' + FIPS county (3) + tract (6).
 
 Westchester has no NTAs in either vintage and takes its name from City_Town,
 which is vintage-independent, exactly as the payload pipeline does today.
@@ -81,16 +83,66 @@ from shapely.geometry import shape
 from shapely.strtree import STRtree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-MAP_PATH = os.path.join(ROOT, "map_payload.json")
-OUT_DIR = os.path.join(HERE, "out")
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+ROOT = os.path.dirname(DATA)
+MAP_PATH = os.path.join(ROOT, "map_payload.json")   # --artifact only; see main()
+UNIVERSE_PATH = os.path.join(DATA, "tract_universe.json")
+
+
+def load_tract_universe():
+    """The tract universe and City_Town, from Data/tract_universe.json.
+
+    Returns { "byGeoid": {geoid: {"City_Town": value}}, "provenance": {...} }, in
+    the shape the old payload read produced, so the call site below is unchanged
+    apart from where the data comes from.
+    """
+    if not os.path.exists(UNIVERSE_PATH):
+        sys.exit("REFUSED: %s is missing.\n"
+                 "  It defines which tracts exist and carries City_Town. Generate it once\n"
+                 "  with `python Data/build_tract_universe.py`, which needs map_payload.json;\n"
+                 "  after that nothing reads the payload again."
+                 % os.path.relpath(UNIVERSE_PATH, ROOT))
+    with open(UNIVERSE_PATH, encoding="utf-8") as fh:
+        doc = json.load(fh)
+    if doc.get("schema") != 1 or doc.get("kind") != "tract_universe":
+        sys.exit("REFUSED: %s is not a schema-1 tract_universe file (got schema=%r kind=%r)."
+                 % (os.path.relpath(UNIVERSE_PATH, ROOT), doc.get("schema"), doc.get("kind")))
+    t = doc.get("tracts") or {}
+    geoids = t.get("geoids")
+    city = (t.get("fields") or {}).get("City_Town")
+    if not isinstance(geoids, list) or not geoids:
+        sys.exit("REFUSED: %s carries no tracts.geoids." % os.path.relpath(UNIVERSE_PATH, ROOT))
+    if not isinstance(city, list) or len(city) != len(geoids):
+        sys.exit("REFUSED: %s has %s City_Town values for %d GEOIDs. Refusing rather than\n"
+                 "  attaching names to the wrong tracts."
+                 % (os.path.relpath(UNIVERSE_PATH, ROOT),
+                    "no" if city is None else len(city), len(geoids)))
+    if len(set(geoids)) != len(geoids):
+        sys.exit("REFUSED: %s contains duplicate GEOIDs." % os.path.relpath(UNIVERSE_PATH, ROOT))
+    # The {"properties": {...}} wrapper is deliberate: main() reads
+    # payload[gid]["properties"].get("City_Town"), and keeping that shape means the
+    # only thing this change alters is where the data comes from. Returning the
+    # bare dict instead was the first cut, and it raised KeyError: 'properties'
+    # inside the build -- caught in the clean room, and NOT caught by my own
+    # byte-identical check beforehand, because that check hashed the output file
+    # after a build whose exit code it had discarded. Hashing an unchanged file
+    # proves nothing.
+    return {
+        "byGeoid": {g: {"properties": {"City_Town": city[i]}} for i, g in enumerate(geoids)},
+        "provenance": doc.get("provenance") or {},
+    }
+OUT_DIR = os.path.join(DATA, "out")
 
 SRC = {
-    "2010": os.path.join(HERE, "ny_tracts_2010.geojson"),
-    "2020": os.path.join(HERE, "ny_tracts.geojson"),
+    "2010": os.path.join(DATA, "ny_tracts_2010.geojson"),
+    "2020": os.path.join(DATA, "ny_tracts.geojson"),
 }
-ELEC = os.path.join(HERE, "Extra_info", "CECONY_Electric")
-GAS = os.path.join(HERE, "Extra_info", "CECONY_Gas")
+ELEC = os.path.join(DATA, "Extra_info", "CECONY_Electric")
+GAS = os.path.join(DATA, "Extra_info", "CECONY_Gas")
 
 # Both crosswalks are resolved by prefix, so the date suffix of whatever was
 # downloaded does not have to be hardcoded. The 2020 table used to be a full
@@ -177,7 +229,7 @@ def territory_fingerprint(path=None):
     """The fingerprint the territory overlay was built from, or None if it carries
     none. A file written before slice 6c has none, which is not an error -- it is
     simply unverifiable, and the caller says so rather than refusing."""
-    terr = path or os.path.join(HERE, "service_territories.geojson")
+    terr = path or os.path.join(DATA, "service_territories.geojson")
     if not os.path.exists(terr):
         return None
     try:
@@ -224,9 +276,9 @@ def find_crosswalk(vintage, where=None):
     hardcoded 2020 filename had, arrived at from the other direction, so both are
     fixed here rather than in two places.
 
-    `where` reads HERE at call time so a test can point it at a temp directory.
+    `where` reads DATA at call time so a test can point it at a temp directory.
     """
-    root = where or HERE
+    root = where or DATA
     prefix = CROSSWALK_PREFIX[vintage]
     hits = [n for n in sorted(os.listdir(root))
             if n.startswith(prefix) and n.lower().endswith(".csv")]
@@ -741,7 +793,7 @@ def assert_territories_match():
                                     rebuilt, which is a worse trade than saying so.
       stamp DISAGREES            -> REFUSE. This is the trap itself, caught.
     """
-    terr = os.path.join(HERE, "service_territories.geojson")
+    terr = os.path.join(DATA, "service_territories.geojson")
     if not os.path.exists(terr):
         print("NOTE: service_territories.geojson is missing; the map's territory "
               "overlays will not draw. Rebuild it with _make_territories.py, or let "
@@ -784,14 +836,24 @@ def main():
     if vintage not in SRC:
         sys.exit("vintage must be 2010 or 2020")
 
-    mp = json.load(open(MAP_PATH, encoding="utf-8"))
-    payload = {f["properties"]["GEOID"]: f for f in mp["features"]}
+    # The universe comes from tract_universe.json, not map_payload.json.
+    #
+    # Only two things were ever taken from the payload here -- the GEOID set and
+    # City_Town -- and carrying them in a 4.8 MB file of customer account data meant
+    # the handoff package could not be assembled without shipping that data to
+    # satisfy a dependency on a list of tract numbers. build_tract_universe.py
+    # extracted the two into a 71 KB file with its provenance recorded; see its
+    # header for why City_Town is copied rather than rebuilt.
+    universe = load_tract_universe()
+    payload = universe["byGeoid"]
     tracts = load_tracts(vintage)
 
     # Scope: the tracts this vintage can populate with data (see the docstring).
+    # The universe is vintage-independent and this intersection is what makes it
+    # vintage-specific: 2,333 for 2010, 2,183 for 2020.
     geoids = sorted(g for g in payload if g in tracts)
     if not geoids:
-        sys.exit("no overlap between the payload universe and the %s tract file" % vintage)
+        sys.exit("no overlap between the tract universe and the %s tract file" % vintage)
 
     # Display names follow the newest-crosswalk rule, NOT the geometry vintage.
     # See build_name_resolver for why, and the generated artifact for the numbers.
@@ -923,8 +985,25 @@ def main():
     print("=" * 66)
 
     if "--artifact" in sys.argv:
+        # --artifact still needs map_payload.json, and only --artifact does.
+        #
+        # The change document it writes compares this build against the payload's
+        # 2020/2010 HYBRID geometry -- it needs that geometry, plus borough,
+        # DAC_Desig and neighborhood per tract. It is a one-off analysis ABOUT the
+        # payload, so it cannot be reproduced without it and should not pretend to
+        # be. It is not part of any operator flow and is not in the handoff
+        # package; the normal build needs only tract_universe.json.
+        if not os.path.exists(MAP_PATH):
+            sys.exit("REFUSED: --artifact needs %s, which is not here.\n"
+                     "  The change document compares this build against the payload's hybrid\n"
+                     "  geometry, so the payload is the thing it measures. The normal build\n"
+                     "  does not need it -- drop --artifact and the build completes."
+                     % os.path.relpath(MAP_PATH, ROOT))
+        with open(MAP_PATH, encoding="utf-8") as fh:
+            _mp = json.load(fh)
+        art_payload = {f["properties"]["GEOID"]: f for f in _mp["features"]}
         lines, changed, identical, gained, relabelled, drift = write_artifact(
-            geoids, geometry, fields, payload, tf, resolve_name, name_provenance,
+            geoids, geometry, fields, art_payload, tf, resolve_name, name_provenance,
             elec_crs.name, OUT_DIR)
         art = os.path.join(OUT_DIR, ARTIFACT_NAME)
         with open(art, "w", encoding="utf-8") as fh:

@@ -58,13 +58,13 @@ def write_overlay(path, fingerprint):
 
 def run_case(label, fingerprint_in_overlay, computed, overlay_exists=True):
     """Call assert_territories_match() against a temp overlay, returning
-    ('exit', message) or ('ok', None). B.HERE is redirected so the real overlay is
+    ('exit', message) or ('ok', None). B.DATA is redirected so the real overlay is
     never touched; the hash function is stubbed so the comparison logic is what is
     under test rather than the hashing."""
     tmp = tempfile.mkdtemp(prefix="terr_")
-    orig_here, orig_fp = B.HERE, B.coned_source_fingerprint
+    orig_here, orig_fp = B.DATA, B.coned_source_fingerprint
     try:
-        B.HERE = tmp
+        B.DATA = tmp
         B.coned_source_fingerprint = lambda: computed
         if overlay_exists:
             write_overlay(os.path.join(tmp, "service_territories.geojson"),
@@ -75,7 +75,7 @@ def run_case(label, fingerprint_in_overlay, computed, overlay_exists=True):
         except SystemExit as e:
             return ("exit", str(e))
     finally:
-        B.HERE, B.coned_source_fingerprint = orig_here, orig_fp
+        B.DATA, B.coned_source_fingerprint = orig_here, orig_fp
         shutil.rmtree(tmp, ignore_errors=True)
 
 
@@ -117,7 +117,7 @@ check("the shipped overlay carries a stamp", isinstance(live_terr, str), live_te
 check("and it matches the shapefiles on disk", live_terr == fp,
       "overlay %s vs shapefiles %s" % (str(live_terr)[:16], str(fp)[:16]))
 
-out = os.path.join(B.HERE, "out", "tract_geometry_pure-2010.json")
+out = os.path.join(B.DATA, "out", "tract_geometry_pure-2010.json")
 if os.path.exists(out):
     with open(out, encoding="utf-8") as fh:
         ds = json.load(fh)

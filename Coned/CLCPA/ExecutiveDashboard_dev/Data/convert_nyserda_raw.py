@@ -100,15 +100,20 @@ import sys
 from datetime import date, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+ROOT = os.path.dirname(DATA)
 sys.path.insert(0, HERE)
 
 # The manifest machinery, imported rather than restated. build_tract_dataset
 # guards its main() behind __main__, so importing it is side-effect free.
 import build_tract_dataset as BTD  # noqa: E402
 
-RAW_DEFAULT = os.path.join(HERE, "NYS_DAC.geojson")
-OUT_DIR = os.path.join(HERE, "out")
+RAW_DEFAULT = os.path.join(DATA, "NYS_DAC.geojson")
+OUT_DIR = os.path.join(DATA, "out")
 
 # The six Con Edison counties, as NYSERDA spells them.
 CONED_COUNTIES = {"Bronx", "Kings", "New York", "Queens", "Richmond", "Westchester"}
@@ -202,7 +207,7 @@ def build_doc(args, all_fields, scoped, universe, source_label):
                 # Non-DAC: present with nulls, never absent. See ABSENT vs NULL.
                 fields[k].append(NON_DAC_VALUE if k == "DAC_Desig" else None)
 
-    groups_raw = BTD.parse_indicator_catalog(BTD.APP_JS)
+    groups_raw = BTD.load_indicator_catalog()
     manifest_groups = []
     for order, g in enumerate(groups_raw, start=1):
         gid, comp = BTD.GROUP_IDS[g["label"]]
@@ -328,7 +333,7 @@ def main():
         source_label = check_label_length(
             build_source_label(args.raw, raw_date), 'generated')
 
-    groups_raw = BTD.parse_indicator_catalog(BTD.APP_JS)
+    groups_raw = BTD.load_indicator_catalog()
     all_fields = [it["key"] for g in groups_raw for it in g["items"]] \
         + BTD.NON_DROPDOWN_FIELDS
     dupes = [k for k in set(all_fields) if all_fields.count(k) > 1]

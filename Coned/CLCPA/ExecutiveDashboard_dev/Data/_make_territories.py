@@ -16,8 +16,13 @@ from pyproj import CRS, Transformer
 pyproj.network.set_network_enabled(True)   # allow PROJ to fetch NADCON grid for NAD27
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, "Extra_info")
-OUT = os.path.join(HERE, "service_territories.geojson")
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+SRC = os.path.join(DATA, "Extra_info")
+OUT = os.path.join(DATA, "service_territories.geojson")
 # Simplification disabled for now (lazy-load covers the page-load cost). Set a
 # positive value (e.g. 50.0 ≈ 15 m, source units = US ft) to re-enable.
 TOL_FT = 0.0

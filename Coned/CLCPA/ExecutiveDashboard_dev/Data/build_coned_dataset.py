@@ -65,7 +65,12 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+ROOT = os.path.dirname(DATA)
 
 # The spreadsheet reader is IMPORTED, not reimplemented. Two copies of the header
 # matching and the zfill rule is exactly how this dataset would drift away from
@@ -76,8 +81,8 @@ _spec = importlib.util.spec_from_file_location(
 _bbmp = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_bbmp)
 
-IN_ELEC = os.path.join(HERE, "Electric.xlsx")
-IN_GAS = os.path.join(HERE, "Gas.xlsx")
+IN_ELEC = os.path.join(DATA, "Electric.xlsx")
+IN_GAS = os.path.join(DATA, "Gas.xlsx")
 
 DATASET_KEY = "coned_operational"
 DATASET_NAME = "Con Edison per-tract operational figures"
@@ -111,7 +116,7 @@ FIELD_SOURCE = [
 
 
 def geometry_path(vintage):
-    return os.path.join(HERE, "out", "tract_geometry_pure-%s.json" % vintage)
+    return os.path.join(DATA, "out", "tract_geometry_pure-%s.json" % vintage)
 
 
 def source_fingerprint():
@@ -196,7 +201,7 @@ def build(vintage, force):
         "tracts": {"geoids": list(geoids), "fields": fields},
     }
 
-    out = os.path.join(HERE, "out", "coned_operational_v%s.json"
+    out = os.path.join(DATA, "out", "coned_operational_v%s.json"
                        % dataset_version(vintage).replace(".", "_"))
     if os.path.exists(out) and not force:
         sys.exit("REFUSED: %s already exists. It may be the copy that is live in\n"
