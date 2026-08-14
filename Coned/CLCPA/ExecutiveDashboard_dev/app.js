@@ -2630,8 +2630,32 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     geo.features.forEach(f => {
       const g = f && f.properties && f.properties.GEOID;
       const rec = (g != null) ? overlay[g] : null;
-      if (rec) { MAP_OVERLAY_FIELDS.forEach(k => { f.properties[k] = rec[k]; }); applied++; }
-      else { fileNotInDv++; }
+      if (rec) {
+        // Slice 7b: a NULL in the override table no longer erases the value
+        // underneath it. This table is columnar like the dataset files, so it
+        // cannot say "absent" -- only null -- and with a ConEd dataset now
+        // sitting beneath it, writing that null through would delete a figure
+        // the source supplies and call it an edit. Same rule, and the same
+        // reason, as the null-skip in dsApplyGeometryToGeo.
+        //
+        // Before 7b there was nothing underneath on the composed path, so this
+        // could not have been observed: null overwrote null.
+        MAP_OVERLAY_FIELDS.forEach(k => {
+          const v = rec[k];
+          if (v === null || v === undefined) {
+            // Skipping outright made the KEY disappear on the composed base,
+            // where nothing underneath had created it -- and the payload base
+            // carries an explicit null there. The 5c proof caught it as 2,333
+            // differing tracts: null and absent are not the same property set.
+            // So a null still establishes the key; it just stops overwriting a
+            // value that something beneath it supplied.
+            if (!(k in f.properties)) f.properties[k] = null;
+            return;
+          }
+          f.properties[k] = v;
+        });
+        applied++;
+      } else { fileNotInDv++; }
     });
     const dvNotInFile = Object.keys(overlay).length - applied;
     console.info('[DAC map] overlaid ' + applied + ' tracts from Dataverse'
@@ -2836,6 +2860,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
               'drawing map_payload.json geometry (the 2020/2010 hybrid). Indicator values ' +
               'and the editable overlay are unaffected.');
           }
+        }
+        // ---- ConEd figures (slice 7b), UNDER the editable overlay ------------
+        // Order is the whole point. This supplies the eight fields as the SOURCE
+        // says them; applyMapOverlay runs after and lets an edit win. Put it the
+        // other way round and every correction in cr2bf_dacmaptractdata would be
+        // overwritten by the spreadsheet on the next boot.
+        //
+        // It applies on BOTH bases. On the payload base these eight already exist
+        // and are replaced by the dataset's; on the composed base nothing carries
+        // them and the dataset is the first thing that does.
+        if (_dsConed) {
+          const nApplied = dsApplyToGeo(geo, _dsConed.doc, _dsConed.fieldIds, null);
+          console.info('[ConEd figures] applied "' + _dsConed.rec.version + '" to ' +
+            nApplied + ' of ' + geo.features.length + ' tracts (vintage ' +
+            (_dsConed.rec.geoidVintage || '?') + ').');
         }
         // Read-only overlay: when hosted on Dataverse, layer the 8 editable fields from
         // cr2bf_dacmaptractdatas onto features by GEOID. Standalone -> null -> file only.
@@ -4429,9 +4468,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // as a malformed indicator file. Slice 6d supports it, so the two lists now
   // agree -- and they stay separate lists, because the next family will need the
   // same staging ground.
-  const DS_KINDS = ['indicators', 'geometry', 'territories'];
-  const DS_SUPPORTED_KINDS = ['indicators', 'geometry', 'territories'];
+  const DS_KINDS = ['indicators', 'geometry', 'territories', 'coned'];
+  const DS_SUPPORTED_KINDS = ['indicators', 'geometry', 'territories', 'coned'];
   const DS_TERRITORY_KEY = 'service_territories';
+  const DS_CONED_KEY = 'coned_operational';
   // The layers one territory file may carry. Membership is checked, presence is
   // not: ORU feeds only this overlay and could legitimately leave it, so a
   // missing layer warns while an UNKNOWN layer refuses -- an unknown tag would
@@ -4512,6 +4552,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (!rec) return 'indicators';
     if (rec.datasetKey === DS_GEOMETRY_KEY) return 'geometry';
     if (rec.datasetKey === DS_TERRITORY_KEY) return 'territories';
+    if (rec.datasetKey === DS_CONED_KEY) return 'coned';
     return 'indicators';
   }
   function dsRecIsGeometry(rec) {
@@ -4532,6 +4573,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   }
   function dsRecIsTerritories(rec) {
     return dsRecFamily(rec) === 'territories';
+  }
+  function dsRecIsConed(rec) {
+    return dsRecFamily(rec) === 'coned';
   }
 
   // The paired geometry, once one is live: { rec, doc, fieldIds }.
@@ -4619,6 +4663,226 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       warnings.push('this geometry declares no GEOID vintage, so no indicator dataset can pair with it.');
     }
     return { ok: true, errors: errors, warnings: warnings, fieldIds: fieldIds, count: n };
+  }
+
+  // ==========================================================================
+  // CONED OPERATIONAL DATASETS (slice 7b) -- the fourth DatasetKey family
+  //
+  // The eight per-tract electric and gas figures: DAC class, accounts, EAP
+  // accounts and adjustment, for each fuel. Converted offline from the two Con
+  // Edison spreadsheets by build_coned_dataset.py, because an .xlsx is a zip of
+  // XML and this build takes no library to read one.
+  //
+  // WHERE THIS SITS, AND WHY IT IS NOT WHERE THE PLAN SAID
+  //
+  // These eight are ALREADY Dataverse-resident on the composed path, and not via
+  // this family: applyMapOverlay writes them from cr2bf_dacmaptractdata, and the
+  // composed base carries no version of them at all (geometry 8 + indicators 56
+  // + overlay 8 = the 72 the payload had). So the payload only supplies them on
+  // the payload-BASE path -- standalone, public origin, or no geometry dataset.
+  //
+  // What this family adds is therefore not "getting them into Dataverse". It is:
+  //   - provenance and rollback: a version, a source label, a fingerprint over
+  //     the spreadsheets they came from. cr2bf_dacmaptractdata is current-state
+  //     only and cannot say where a number came from or what it was before.
+  //   - making the override table an OVERRIDE. With no base beneath it, it is the
+  //     sole source, and an edit is indistinguishable from a bulk load. With a
+  //     base, "what the source says" and "what somebody corrected" are separable.
+  //   - the payload-base path stops needing the payload for these too.
+  //
+  // Resolved by VINTAGE, like geometry and unlike indicators: the 2010 and 2020
+  // tract universes genuinely differ (2,183 tracts, and 219 GEOIDs carrying
+  // electric data under 2010 numbering are absent from 2020), so a version is
+  // only meaningful against the universe it was built for. IsActive means
+  // published, several vintages are published at once, and the live indicator
+  // dataset's vintage picks one.
+  // ==========================================================================
+
+  let _dsConed = null;              // { rec, doc, fieldIds }
+  function dsConed() { return _dsConed; }
+
+  /**
+   * Gate for the coned family. The same columnar contract as the others: every
+   * column aligned to tracts.geoids.
+   */
+  function dsValidateConedDoc(doc, rec) {
+    const errors = [], warnings = [];
+    const fail = (m) => { errors.push(m); return { ok: false, errors: errors, warnings: warnings }; };
+
+    if (!doc || typeof doc !== 'object') return fail('the data file is not a JSON object.');
+    if (doc.schema !== 1) {
+      return fail('manifest schema ' + JSON.stringify(doc.schema) +
+        ' is not supported by this build (expected 1).');
+    }
+    const kindProblem = dsKindRefusal(doc);
+    if (kindProblem) return fail(kindProblem);
+    if (dsDocKind(doc) !== 'coned') {
+      return fail('this file does not declare itself as ConEd figures (kind: "coned").');
+    }
+    const ds = doc.dataset || {};
+    if (ds.key !== DS_CONED_KEY) {
+      return fail('dataset.key must be "' + DS_CONED_KEY + '" in a ConEd file, not ' +
+        JSON.stringify(ds.key) + '.');
+    }
+    const t = doc.tracts;
+    if (!t || !Array.isArray(t.geoids)) {
+      return fail('the data file has no tracts.geoids array.');
+    }
+    const n = t.geoids.length;
+    if (!n) return fail('the file carries no tracts.');
+    if (new Set(t.geoids).size !== n) return fail('tracts.geoids contains duplicates.');
+
+    const fields = t.fields || {};
+    const fieldIds = Object.keys(fields);
+    // The eight are named to match what the map already reads, so a missing one
+    // is a column the tooltip, the detail panel and the CSV would silently lose.
+    const missing = MAP_OVERLAY_FIELDS.filter(k => fieldIds.indexOf(k) < 0);
+    if (missing.length) {
+      return fail('this file is missing ' + missing.length + ' of the eight ConEd fields (' +
+        missing.join(', ') + '). Refusing rather than blanking columns the tooltip, ' +
+        'the detail panel and the CSV all read.');
+    }
+    const extra = fieldIds.filter(k => MAP_OVERLAY_FIELDS.indexOf(k) < 0);
+    if (extra.length) {
+      // Not a refusal: an extra column is inert until something reads it. But it
+      // would be written onto every feature, so it is worth saying out loud.
+      warnings.push('this file carries ' + extra.length + ' column(s) beyond the eight ConEd ' +
+        'fields (' + extra.slice(0, 4).join(', ') + '). They will be written onto every tract ' +
+        'and nothing reads them.');
+    }
+    const ragged = fieldIds.filter(k => !Array.isArray(fields[k]) || fields[k].length !== n);
+    if (ragged.length) {
+      return fail(ragged.length + ' column(s) do not align to the ' + n +
+        ' GEOIDs (first: ' + ragged[0] + '). Refusing rather than mis-attaching values.');
+    }
+    if (fieldIds.indexOf('GEOID') >= 0) {
+      return fail('GEOID is the key and must not also be a property column.');
+    }
+
+    // ---- record integrity ----
+    if (rec) {
+      if (rec.tractCount != null && rec.tractCount !== n) {
+        return fail('record TractCount (' + rec.tractCount + ') disagrees with the file (' + n + ').');
+      }
+      if (rec.fieldCount != null && rec.fieldCount !== fieldIds.length) {
+        return fail('record FieldCount (' + rec.fieldCount + ') disagrees with the file (' +
+          fieldIds.length + ').');
+      }
+      const declared = ds.geoidVintage || '';
+      if (rec.geoidVintage && declared && String(rec.geoidVintage) !== String(declared)) {
+        return fail('record GeoidVintage (' + rec.geoidVintage +
+          ') disagrees with the file (' + declared + ').');
+      }
+    }
+    if (!ds.geoidVintage) {
+      warnings.push('this file declares no GEOID vintage, so no dataset can pair with it. ' +
+        'The 2010 and 2020 tract universes differ by 219 GEOIDs, so the vintage is not optional ' +
+        'bookkeeping.');
+    }
+    return { ok: true, errors: errors, warnings: warnings, fieldIds: fieldIds, count: n };
+  }
+
+  /**
+   * Pick the ConEd figures that pair with an indicator record. Same three
+   * outcomes as dsResolveGeometryRec, and the same reasons.
+   */
+  function dsResolveConedRec(indicatorRec, recs) {
+    const family = (recs || []).filter(dsRecIsConed);
+    const published = family.filter(r => r.active);
+    if (!family.length) return { none: true };
+    const want = String((indicatorRec && indicatorRec.geoidVintage) || '');
+    const hit = published.filter(r => String(r.geoidVintage || '') === want);
+    if (hit.length) return { rec: hit[0], extra: hit.length - 1 };
+    return {
+      mismatch: published.map(r => r.geoidVintage || '?'),
+      unpublished: family.length - published.length,
+      want: want,
+    };
+  }
+
+  /** Forget the paired ConEd figures. Returns true if something was dropped. */
+  function dsClearConed() {
+    if (!_dsConed) return false;
+    _dsConed = null;
+    dsInvalidateGeo();
+    return true;
+  }
+
+  /**
+   * Resolve, download and install the ConEd figures for an indicator record.
+   *
+   * The refusal is narrower than geometry's on purpose. Wrong-vintage geometry
+   * draws one vintage's shapes under another's data, which is silently wrong.
+   * Wrong-vintage ConEd figures merge by GEOID, so the failure is partial
+   * coverage rather than misattached values -- but partial coverage across 219
+   * tracts reads as data loss, so it is still refused rather than half-applied.
+   */
+  async function dsPrepareConedFor(rec, recs) {
+    const res = dsResolveConedRec(rec, recs);
+    if (res.none) {
+      return { ok: true, changed: dsClearConed() };
+    }
+    if (res.mismatch) {
+      const have = res.mismatch.length
+        ? 'Published ConEd figures cover ' + Array.from(new Set(res.mismatch)).join(', ') + '.'
+        : 'No ConEd version is published.';
+      return { ok: false, error: 'this dataset declares GEOID vintage ' + (res.want || '(none)') +
+        ', and no published ConEd figures carry that vintage. ' + have +
+        ' The 2010 and 2020 tract universes differ, so applying the wrong one would leave ' +
+        'hundreds of tracts without electric or gas values.' };
+    }
+    if (res.extra) {
+      console.warn('[ConEd figures] ' + (res.extra + 1) + ' published versions carry vintage ' +
+        res.want + '; using "' + res.rec.version + '".');
+    }
+    if (_dsConed && _dsConed.rec.dvId === res.rec.dvId) return { ok: true, changed: false };
+
+    let text;
+    try {
+      text = await Storage.getTractDatasetFile(res.rec.dvId);
+    } catch (e) {
+      return { ok: false, error: 'could not download the ConEd figures "' + res.rec.version +
+        '": ' + ((e && e.message) ? e.message : e) };
+    }
+    let cdoc;
+    try { cdoc = JSON.parse(text); } catch (e) {
+      return { ok: false, error: 'the ConEd figures "' + res.rec.version + '" are not valid JSON.' };
+    }
+    const cval = dsValidateConedDoc(cdoc, res.rec);
+    if (!cval.ok) {
+      return { ok: false, error: 'the ConEd figures "' + res.rec.version +
+        '" did not validate: ' + cval.errors.join(' ') };
+    }
+    cval.warnings.forEach(w => console.warn('[ConEd figures] ' + w));
+    _dsConed = { rec: res.rec, doc: cdoc, fieldIds: cval.fieldIds };
+    dsInvalidateGeo();
+    return { ok: true, changed: true };
+  }
+
+  /**
+   * Re-resolve after a fresh ConEd upload, when an indicator dataset is live.
+   * Mirrors dsRepairGeometryPairing, minus the remount: these eight fields are
+   * merged into the geo, so invalidating the cache is enough for the next build
+   * to pick them up.
+   */
+  async function dsRepairConedPairing() {
+    const live = dsState();
+    if (!live || live.source !== 'dataset' || !live.rec) return;
+    const before = _dsConed ? _dsConed.rec.dvId : null;
+    const res = await dsPrepareConedFor(live.rec, _dsRecords);
+    if (!res.ok) {
+      console.error('[ConEd figures] the new version does not pair with the live dataset: ' +
+        res.error + ' The map keeps the values it had.');
+      return;
+    }
+    const after = _dsConed ? _dsConed.rec.dvId : null;
+    if (before === after) return;
+    dsInvalidateGeo();
+    if (typeof window._dacMapRefreshIndicators === 'function') {
+      try { await getMapGeo(); window._dacMapRefreshIndicators(); } catch (e) {
+        console.warn('[ConEd figures] Could not refresh the live map.', e);
+      }
+    }
   }
 
   // ==========================================================================
@@ -5355,6 +5619,17 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       if (dsClearGeometry()) dsRemountMap();
       if (state.route && state.route.name === 'maplayers') rerenderMlList();
       return;
+    }
+
+    // The ConEd figures pair on the same vintage, so they are resolved here too.
+    // A refusal is NOT fatal to the dataset: the eight fields are one card in the
+    // tooltip, while the 56 indicator values are the map itself. Say so and keep
+    // going, rather than dropping a working dataset over an operational extract.
+    const cres = await dsPrepareConedFor(rec, recs);
+    if (!cres.ok) {
+      console.error('[ConEd figures] ' + cres.error +
+        ' The map keeps whatever electric and gas values it already had.');
+      dsClearConed();
     }
 
     // The coverage gate needs the drawn features, so make sure the geo is loaded.
@@ -13251,6 +13526,61 @@ function wireHTooltips() {
   }
 
   /**
+   * ConEd figures: the published operational versions, by vintage.
+   *
+   * Follows renderGeomCard and renderTerritoryCard -- nothing published, no card
+   * -- so a build with no ConEd dataset uploaded renders this page exactly as it
+   * rendered before slice 7b.
+   *
+   * Read-only, and for the same reason Tract shapes is: there is nothing to
+   * choose. The live indicator dataset's vintage picks the version, so a toggle
+   * here would only offer a way to contradict it.
+   */
+  function renderConedCard() {
+    if (!Storage.isDataverse()) return '';
+    const recs = dsRecords().filter(r => dsRecIsConed(r) && r.active);
+    if (!recs.length) return '';
+    const live = dsConed();
+
+    return `
+      <div class="ml-card ds-coned">
+        <div class="ml-card-head">
+          <div>
+            <h3>Electric &amp; gas figures</h3>
+            <p class="ml-card-sub">Account counts, EAP counts and adjustments per tract, converted
+            from the Con Edison extracts. The version matching the active dataset's vintage is the
+            one in use. Tracts corrected by hand in the map data table keep their corrections:
+            these figures sit underneath them.</p>
+          </div>
+          ${dsHelpButton('coned')}
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-coned-list">${recs.map(r => {
+            const inUse = live && live.rec.dvId === r.dvId;
+            const who = [r.savedBy, mlFmtSavedOn(r.savedOn)].filter(Boolean).join(' · ');
+            return `
+            <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
+              <div class="ml-row-main">
+                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+                  <span class="ml-mono">${escapeHtml(r.version)}</span>
+                  ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
+                          : '<span class="ml-chip">available</span>'}
+                  ${r.loadError ? '<span class="ml-chip ml-chip-err" title="' +
+                      escapeHtml(r.loadError) + '">refused</span>' : ''}</div>
+                <div class="ml-row-meta">
+                  ${(r.tractCount || 0).toLocaleString()} tracts ·
+                  ${r.fieldCount || 0} fields ·
+                  vintage ${escapeHtml(r.geoidVintage || '?')}${who ? ' · ' + escapeHtml(who) : ''}
+                </div>
+                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+              </div>
+            </li>`;
+          }).join('')}</ul>
+        </div>
+      </div>`;
+  }
+
+  /**
    * Territory overlays: the published service-boundary overlay, as a record.
    *
    * This card used to be three hardcoded rows saying "built in", behind
@@ -13462,7 +13792,8 @@ function wireHTooltips() {
     // Slice 3: a read-only Dataverse user cannot upload, so the session group
     // would be permanently empty. Show saved layers only.
     return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '') +
-      renderDsCard() + renderGeomCard() + renderTerritoryCard() + renderDsUploadBlock();
+      renderDsCard() + renderGeomCard() + renderConedCard() + renderTerritoryCard() +
+      renderDsUploadBlock();
   }
 
   // ============================================================
@@ -13933,6 +14264,7 @@ function wireHTooltips() {
     const d = state.mapLayers || {};
     const isGeom = d.dsSummary && d.dsSummary.kind === 'geometry';
     const isTerr = d.dsSummary && d.dsSummary.kind === 'territories';
+    const isConed = d.dsSummary && d.dsSummary.kind === 'coned';
     // Both notices are dismissible (UX item a): a refusal used to sit on the
     // card until another file was picked, with no way to just close it.
     const warnBlock = (d.dsWarnings || []).length
@@ -13958,12 +14290,19 @@ function wireHTooltips() {
              ${isTerr ? '' : '· vintage ' + escapeHtml(d.dsSummary.vintage)}
              · ${isTerr
                   ? escapeHtml((d.dsSummary.layerCounts || []).join(' · '))
+                  : isConed
+                  ? escapeHtml((d.dsSummary.filled || []).join(' · '))
                   : isGeom
                   ? 'tract shapes'
                   : d.dsSummary.indicators + ' indicators in ' + d.dsSummary.groups + ' groups'}
            </div>
            ${warnBlock}
-           <p class="ml-preview-note">${isTerr
+           <p class="ml-preview-note">${isConed
+             ? `Uploading stores these figures and publishes them for vintage ${
+                 escapeHtml(d.dsSummary.vintage || '(none)')}. They apply UNDER the map data
+                table, so any tract corrected by hand keeps its corrected value. Nothing on the
+                map changes for tracts that have been edited.`
+             : isTerr
              ? `Uploading stores this overlay and publishes it, retiring whichever one is published
                 now. The map draws it the next time one of the territory layers is switched on;
                 nothing on screen changes until then.`
@@ -14005,12 +14344,12 @@ function wireHTooltips() {
         <div class="ml-card-head">
           <div>
             <h3>Upload data file</h3>
-            <p class="ml-card-sub">Upload a NYSERDA dataset version, a set of tract shapes, or a
-            service territory overlay. The file itself says which one it is, and it is checked
-            before anything is stored. Dataset versions appear under Tract datasets, where you
-            choose which one is live. Shape sets appear under Tract shapes and are matched to a
-            dataset by vintage. A territory overlay appears under Territory overlays and replaces
-            the published one.</p>
+            <p class="ml-card-sub">Upload a NYSERDA dataset version, a set of tract shapes, a
+            service territory overlay, or the electric and gas figures. The file itself says which
+            one it is, and it is checked before anything is stored. Dataset versions appear under
+            Tract datasets, where you choose which one is live. Shape sets appear under Tract
+            shapes and are matched to a dataset by vintage, as do the electric and gas figures. A
+            territory overlay appears under Territory overlays and replaces the published one.</p>
           </div>
           ${dsHelpButton('upload')}
         </div>
@@ -14345,6 +14684,52 @@ function wireHTooltips() {
         return;
       }
 
+      // ConEd files take a fourth gate. They are tract-keyed like the indicator
+      // file, but they define no tract universe and carry no indicators, so the
+      // coverage check has nothing to measure: a version that covers only the
+      // tracts the spreadsheets mention is correct, not deficient.
+      if (dsDocKind(doc) === 'coned') {
+        const cval = dsValidateConedDoc(doc, null);
+        if (!cval.ok) {
+          d.dsStage = null; d.dsErrors = cval.errors; d.dsWarnings = cval.warnings;
+          rerenderMlList(); return;
+        }
+        const cds = doc.dataset || {};
+        d.dsStage = 'ready';
+        d.dsErrors = [];
+        d.dsWarnings = cval.warnings.slice();
+        const pairs = dsRecords().filter(r => dsRecIsIndicators(r) &&
+          String(r.geoidVintage || '') === String(cds.geoidVintage || ''));
+        if (!pairs.length) {
+          d.dsWarnings.push('No indicator dataset declares vintage ' +
+            (cds.geoidVintage || '(none)') + ' yet, so nothing will pair with these figures ' +
+            'until one does. Storing them now is fine.');
+        }
+        // What an operator most needs to know before pressing Upload: this does
+        // NOT take precedence over corrections already made by hand.
+        d.dsWarnings.push('Any tract edited in the map data table keeps its edited value: ' +
+          'these figures sit underneath those corrections, not over them.');
+        if ((cds.sourceLabel || '').length > DS_SOURCE_LABEL_MAX) {
+          d.dsWarnings.push('The source note is ' + cds.sourceLabel.length +
+            ' characters and only the first ' + DS_SOURCE_LABEL_MAX +
+            ' are stored, so it will be cut short on the card.');
+        }
+        d.dsText = text;
+        d.dsSummary = {
+          kind: 'coned',
+          key: cds.key || '', version: cds.version || '', name: cds.name || '',
+          sourceLabel: cds.sourceLabel || '', vintage: cds.geoidVintage || '',
+          tracts: doc.tracts.geoids.length, fields: cval.fieldIds.length,
+          filled: MAP_OVERLAY_FIELDS.map(k => k + ' ' +
+            (doc.tracts.fields[k] || []).filter(v => v !== null && v !== undefined).length),
+          pairsWith: pairs.map(r => r.datasetKey + ' v' + r.version),
+          manifestVersion: doc.schema,
+        };
+        dsStageChecksumInput(doc.tracts.geoids);
+        rerenderMlList();
+        return;
+      }
+
       // Territory files take a third gate. They carry no GEOIDs, so neither the
       // coverage check nor the vintage pairing has anything to measure them
       // against -- the same reason geometry needs its own gate, for the opposite
@@ -14483,6 +14868,9 @@ function wireHTooltips() {
       const checksum = await dsComputeChecksum();
       const isGeometry = s.kind === 'geometry';
       const isTerritories = s.kind === 'territories';
+      // ConEd figures publish like geometry: resolved by vintage, several
+      // vintages published at once, no separate activate decision.
+      const isConed = s.kind === 'coned';
       const saved = await Storage.saveTractDataset({
         name: s.name || s.key, datasetKey: s.key, version: s.version,
         sourceLabel: s.sourceLabel, geoidVintage: s.vintage,
@@ -14491,7 +14879,7 @@ function wireHTooltips() {
         // Territories land published for the same reason geometry does: there is
         // no second decision to make. What differs is the SCOPE of the retire that
         // publishing triggers -- see retireBy.
-        isActive: isGeometry || isTerritories,
+        isActive: isGeometry || isTerritories || isConed,
         // Geometry is one-published-per-VINTAGE; territories are
         // one-published-per-KEY, because they have no vintage to be scoped by.
         retireBy: isTerritories ? 'key' : 'vintage',
@@ -14504,6 +14892,10 @@ function wireHTooltips() {
       // A new geometry for the vintage currently in use replaces what the map is
       // drawing, so re-resolve the pair rather than waiting for a reload.
       if (isGeometry) await dsRepairGeometryPairing();
+      // A fresh ConEd version for the live vintage replaces what the map shows,
+      // so re-resolve rather than waiting for a reload -- the same reason
+      // geometry repairs its pairing above.
+      if (isConed) await dsRepairConedPairing();
       // The overlay is memoised for the whole session and shared by every mount,
       // so a fresh upload has to drop it or the next toggle would draw the copy it
       // just replaced. Layers already built in a live mount keep their old
@@ -14517,6 +14909,10 @@ function wireHTooltips() {
             ? ' It replaces ' + retired.join(', ') + ' for vintage ' + (s.vintage || '(none)') + '.'
             : ' It will be used by any dataset version that declares vintage ' +
               (s.vintage || '(none)') + '.')
+        : isConed
+        ? 'Uploaded ConEd figures ' + s.version + ' for vintage ' + (s.vintage || '(none)') + '.' +
+          (retired.length ? ' It replaces ' + retired.join(', ') + '.'
+                          : ' Tracts edited by hand keep their edited values.')
         : isTerritories
         ? 'Uploaded territory overlay v' + s.version + ' (' + s.tracts + ' features).' +
           (retired.length ? ' It replaces ' + retired.join(', ') + '.'
@@ -14558,6 +14954,14 @@ function wireHTooltips() {
         // is only meaningful against the tracts this dataset's vintage draws.
         const gres = await dsPrepareGeometryFor(rec, _dsRecords);
         if (!gres.ok) throw new Error(gres.error);
+        // Same non-fatal treatment hydration gives it: eight operational fields
+        // are not worth refusing a dataset over.
+        const cres = await dsPrepareConedFor(rec, _dsRecords);
+        if (!cres.ok) {
+          console.error('[ConEd figures] ' + cres.error +
+            ' Activating anyway; the electric and gas values are unchanged.');
+          dsClearConed();
+        }
         let geo = _mapGeoCache;
         if (!geo) { try { geo = await getMapGeo(); } catch (e) { geo = null; } }
         const cov = dsCheckCoverage(doc, geo, rec);
@@ -14581,9 +14985,12 @@ function wireHTooltips() {
         rec.active = false; rec.busy = false;
         dsUsePayloadIndicators('the active dataset was switched off');
         // Its paired geometry goes with it: geometry only ever exists as the
-        // partner of a live indicator dataset.
+        // partner of a live indicator dataset. So do the ConEd figures, for the
+        // same reason -- they are resolved by the live dataset's vintage, so with
+        // none live there is no vintage to have resolved them.
+        const conedWent = dsClearConed();
         const geomWent = dsClearGeometry();
-        if (geomWent) {
+        if (geomWent || conedWent) {
           dsRemountMap();
         } else if (typeof window._dacMapRefreshIndicators === 'function') {
           try { window._dacMapRefreshIndicators(); } catch (e) {
