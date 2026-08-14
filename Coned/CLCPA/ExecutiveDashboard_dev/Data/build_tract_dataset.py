@@ -101,10 +101,15 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+ROOT = os.path.dirname(DATA)
 APP_JS = os.path.join(ROOT, "app.js")
 MAP_PATH = os.path.join(ROOT, "map_payload.json")
-OUT_DIR = os.path.join(HERE, "out")
+OUT_DIR = os.path.join(DATA, "out")
 
 MANIFEST_SCHEMA = 1
 DATASET_KEY = "nyserda_dac"
@@ -318,7 +323,7 @@ def main():
         # into 2020 keep their own values untouched, and the ones that do not
         # are absent rather than re-keyed or re-allocated.
         real2020 = set()
-        with open(os.path.join(HERE, "ny_tracts.geojson"), encoding="utf-8") as fh:
+        with open(os.path.join(DATA, "ny_tracts.geojson"), encoding="utf-8") as fh:
             for f in json.load(fh)["features"]:
                 real2020.add(str(f["properties"].get("GEOID", "")).zfill(11))
         before = len(rows)

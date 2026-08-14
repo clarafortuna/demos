@@ -66,14 +66,14 @@ def write_2010(path, rows=3):
 
 
 def with_dir(fn):
-    """Run fn(tmp) with B.HERE pointed at a fresh temp dir."""
+    """Run fn(tmp) with B.DATA pointed at a fresh temp dir."""
     tmp = tempfile.mkdtemp(prefix="xwalk_")
-    orig = B.HERE
+    orig = B.DATA
     try:
-        B.HERE = tmp
+        B.DATA = tmp
         return fn(tmp)
     finally:
-        B.HERE = orig
+        B.DATA = orig
         shutil.rmtree(tmp, ignore_errors=True)
 
 

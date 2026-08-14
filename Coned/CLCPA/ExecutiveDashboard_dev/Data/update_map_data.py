@@ -89,8 +89,13 @@ from datetime import datetime, timezone
 from urllib.request import Request, urlopen
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
-RAW = os.path.join(HERE, "raw")
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+ROOT = os.path.dirname(DATA)
+RAW = os.path.join(DATA, "raw")
 SUPERSEDED = os.path.join(RAW, "superseded")
 
 sys.path.insert(0, HERE)
@@ -147,16 +152,16 @@ GEO_ID_PREFIX = "1400000US"
 # Con Edison inputs. Not downloadable: if these are missing the run stops with
 # the exact paths, because no flag can fix it.
 CONED_INPUTS = [
-    (os.path.join(ROOT, "map_payload.json"),
-     "the tract universe and City_Town; built by build_base_map_payload.py"),
-    (os.path.join(HERE, "Extra_info", "CECONY_Electric.shp"),
+    (os.path.join(DATA, "tract_universe.json"),
+     "the tract universe and City_Town; generated once by build_tract_universe.py"),
+    (os.path.join(DATA, "Extra_info", "CECONY_Electric.shp"),
      "electric_networks is measured against it"),
-    (os.path.join(HERE, "Extra_info", "CECONY_Electric.dbf"), "its NETWORK attribute"),
-    (os.path.join(HERE, "Extra_info", "CECONY_Electric.prj"), "its CRS"),
-    (os.path.join(HERE, "Extra_info", "CECONY_Gas.shp"),
+    (os.path.join(DATA, "Extra_info", "CECONY_Electric.dbf"), "its NETWORK attribute"),
+    (os.path.join(DATA, "Extra_info", "CECONY_Electric.prj"), "its CRS"),
+    (os.path.join(DATA, "Extra_info", "CECONY_Gas.shp"),
      "gas_areas is measured against it"),
-    (os.path.join(HERE, "Extra_info", "CECONY_Gas.dbf"), "its BORONAME attribute"),
-    (os.path.join(HERE, "Extra_info", "CECONY_Gas.prj"), "its CRS"),
+    (os.path.join(DATA, "Extra_info", "CECONY_Gas.dbf"), "its BORONAME attribute"),
+    (os.path.join(DATA, "Extra_info", "CECONY_Gas.prj"), "its CRS"),
 ]
 
 # Plausible lon/lat for New York. A projected file (EPSG:2263, US survey feet)
@@ -531,7 +536,7 @@ def preflight(a):
                          "downloaded: %s" % (rel(path), why))
 
     # the output
-    out_path = os.path.join(HERE, "out", "tract_geometry_pure-%s.json" % v)
+    out_path = os.path.join(DATA, "out", "tract_geometry_pure-%s.json" % v)
     if os.path.exists(out_path) and not a["force"]:
         rows.append(("dataset output", "EXISTS", rel(out_path)))
         fatal.append("%s already exists. It may be the copy that is live in "
@@ -549,7 +554,7 @@ def preflight(a):
     # are gone -- one survives a copy or a checkout without meaning anything --
     # and the comparison is between the fingerprint stamped in the overlay and the
     # shapefile bytes on disk.
-    terr = os.path.join(HERE, "service_territories.geojson")
+    terr = os.path.join(DATA, "service_territories.geojson")
     mine = B.coned_source_fingerprint()
     theirs = B.territory_fingerprint(terr)
     terr_action = None
@@ -640,7 +645,7 @@ def run(argv):
                                                rel(moved)))
             stamp = datetime.now(timezone.utc).strftime("%Y%m%d")
             name = "%s_%s.csv" % (B.CROSSWALK_PREFIX[v].rstrip("_"), stamp)
-            dest = os.path.join(HERE, name)
+            dest = os.path.join(DATA, name)
             fetch(SOCRATA % portal, dest, "NTA crosswalk (NYC Open Data %s)" % portal)
             # The sidecar belongs with the other provenance, not in Data/.
             os.makedirs(RAW, exist_ok=True)
@@ -724,7 +729,7 @@ def run(argv):
     out("  built from")
     out("    tracts    : %s" % rel(paths["geo"]))
     out("    crosswalk : %s" % rel(paths["crosswalk"] or "(unresolved)"))
-    out("    payload   : %s" % rel(os.path.join(ROOT, "map_payload.json")))
+    out("    universe  : %s" % rel(os.path.join(DATA, "tract_universe.json")))
     out("")
     out("  Upload it from the Map Layers admin card, with the field block the")
     out("  builder printed above. Nothing here touches Dataverse.")

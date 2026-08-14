@@ -100,15 +100,20 @@ import sys
 from datetime import date, datetime
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
+# Edison handoff package it sits at the package root with Data/ beside it. DATA is
+# the same folder in both layouts, so one copy of the script serves both and the
+# clean-room proof exercises the very file the repository holds.
+DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+ROOT = os.path.dirname(DATA)
 sys.path.insert(0, HERE)
 
 # The manifest machinery, imported rather than restated. build_tract_dataset
 # guards its main() behind __main__, so importing it is side-effect free.
 import build_tract_dataset as BTD  # noqa: E402
 
-RAW_DEFAULT = os.path.join(HERE, "NYS_DAC.geojson")
-OUT_DIR = os.path.join(HERE, "out")
+RAW_DEFAULT = os.path.join(DATA, "NYS_DAC.geojson")
+OUT_DIR = os.path.join(DATA, "out")
 
 # The six Con Edison counties, as NYSERDA spells them.
 CONED_COUNTIES = {"Bronx", "Kings", "New York", "Queens", "Richmond", "Westchester"}
