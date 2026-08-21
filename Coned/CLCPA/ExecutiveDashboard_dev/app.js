@@ -3183,10 +3183,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // Lazy-loaded ConEd service-territory overlay (electric networks + gas area).
   let _territoryGeoCache = null;
   let _territoryFetchPromise = null;
-  // 'dataverse' | 'webresource' | null -- which route produced the cache. Needed
-  // because the cache is module scope and long-lived while the published overlay
-  // becomes known asynchronously: without this, a toggle before hydration would
-  // memoise the web resource for the whole session, and 6e deletes that file.
+  // 'dataverse' | null -- whether the overlay has been loaded yet. It carried a
+  // third value, 'webresource', while a file fallback existed; that route is gone
+  // (CLCPA-177 corrective) so the only question left is loaded or not, which the
+  // Territory overlays card reads for its chip.
   let _territorySource = null;
 
   // ---- Mount generation -----------------------------------------------------
@@ -5050,21 +5050,23 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     return { ok: true, verified: true };
   }
 
-  /**
-   * Fetch the overlay from the web resource. The fallback, and 6e deletes it.
-   */
-  function dsFetchTerritoryWebResource() {
-    return fetch('./Data/service_territories.geojson')
-      .then(r => r.ok ? r.json()
-                      : Promise.reject(new Error('service_territories.geojson ' + r.status)))
-      .then(j => {
-        _territorySource = 'webresource';
-        console.info('[Service territories] using the web resource ' +
-          'Data/service_territories.geojson (' + ((j && j.features || []).length) +
-          ' features). No overlay is published in Dataverse.');
-        return j;
-      });
-  }
+  // The web-resource fallback is GONE (CLCPA-177 corrective).
+  //
+  // dsFetchTerritoryWebResource fetched ./Data/service_territories.geojson. Slice 6e
+  // then deleted that web resource, which left live code pointing at a 404: with no
+  // published overlay the app made a request that could only fail, and reported the
+  // failure as a fetch error rather than as the fixable data state it actually was.
+  //
+  // It survived because it is unreachable in this org -- an overlay IS published --
+  // so nothing exercised it. That is exactly the shape of thing that fires first in
+  // a fresh environment, where nothing is published yet, which is where this app is
+  // going. Slice 5d's acceptance said no code path may fetch file-served map data;
+  // this was the last one.
+  //
+  // The three callers now refuse, with three different reasons, because they are
+  // three different problems and one message would send an operator the wrong way.
+  // That mistake is on the record: 5d's first cut printed "publish geometry" for
+  // every empty-map state, including the ones where geometry was already published.
 
   /**
    * Resolve where the overlay comes from, download it, and validate it.
@@ -5081,23 +5083,38 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    */
   async function dsLoadTerritoryDoc() {
     const rec = dsTerritoryRec();
-    if (!rec) return dsFetchTerritoryWebResource();
+    if (!rec) {
+      // NOT an error condition -- a data state an operator fixes in one upload.
+      // Worded as the instruction rather than the symptom.
+      console.warn('[Service territories] no territory overlay is published, so there ' +
+        'are no boundaries to draw. Upload one from Map Layers.');
+      throw new Error('No territory overlay is published. Upload one from Map Layers ' +
+        'and switch this layer on again.');
+    }
 
     let doc;
     try {
       doc = JSON.parse(await Storage.getTractDatasetFile(rec.dvId));
     } catch (e) {
-      console.warn('[Service territories] Could not read the published overlay "v' + rec.version +
-        '"; falling back to the web resource.', e);
-      return dsFetchTerritoryWebResource();
+      // Transient: the row and its file exist, the download or the parse failed.
+      // Retryable, and it IS retried -- ensureTerritoryGeo clears the memoised
+      // promise on rejection, so the next toggle tries again.
+      console.warn('[Service territories] could not read the published overlay "v' +
+        rec.version + '".', e);
+      throw new Error('Could not read the published territory overlay (v' + rec.version +
+        '). Switching the layer on again will retry it.');
     }
     const val = dsValidateTerritoryDoc(doc, rec);
     if (!val.ok) {
+      // The stored file is malformed. Not retryable and not an outage: the fix is a
+      // new upload. rec.loadError puts the same reason on the Territory overlays
+      // card, so it is visible where the fix happens as well as where it broke.
       console.error('[Service territories] REFUSED the published overlay "v' + rec.version +
-        '": ' + val.errors.join(' ') + ' Falling back to the web resource.');
+        '": ' + val.errors.join(' '));
       rec.loadError = val.errors.join(' ');
       if (state.route && state.route.name === 'maplayers') rerenderMlList();
-      return dsFetchTerritoryWebResource();
+      throw new Error('The published territory overlay (v' + rec.version +
+        ') did not validate: ' + val.errors.join(' '));
     }
     val.warnings.forEach(w => console.warn('[Service territories] ' + w));
 
@@ -7593,22 +7610,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // a viewer can toggle a territory before that finishes. A cache built from
     // the fallback is therefore not final.
     function ensureTerritoryGeo() {
-      if (_territoryGeoCache && _territorySource === 'webresource' && dsTerritoryRec()) {
-        const built = Object.keys(_terrLayers).filter(k => _terrLayers[k]);
-        if (built.length) {
-          // Bounded on purpose. Swapping the features under layers already on the
-          // map means rebuilding them mid-session, and the map is remounted on
-          // every Executive Summary render anyway, so the next mount picks the
-          // published overlay up. Stating the wait beats machinery for it.
-          console.info('[Service territories] a published overlay is available, but ' +
-            built.join(' and ') + ' already drew from the web resource in this mount; ' +
-            'switching on the next mount rather than swapping features under the map.');
-        } else {
-          _territoryGeoCache = null; _territoryFetchPromise = null;
-          console.info('[Service territories] a published overlay appeared after the web ' +
-            'resource had loaded; using it instead.');
-        }
-      }
+      // The late-source swap that used to live here is gone with the fallback.
+      //
+      // It existed for one situation: a cache built from the web resource before
+      // hydration had listed the records, which then had to be discarded once a
+      // published overlay became known. With one source there is nothing to swap
+      // from -- a cache is either absent or built from the published overlay -- so
+      // the branch was unreachable, and unreachable cache-invalidation logic reads
+      // as live machinery to whoever meets it next.
       if (_territoryGeoCache) return Promise.resolve(_territoryGeoCache);
       if (!_territoryFetchPromise) {
         _territoryFetchPromise = dsLoadTerritoryDoc()
@@ -13603,9 +13612,7 @@ function wireHTooltips() {
           </div>
           <div class="ml-card-actions">${
             drawing ? '<span class="ml-chip ml-chip-ok">loaded</span>'
-                    : (_territorySource === 'webresource'
-                        ? '<span class="ml-chip">map is on the built-in copy</span>'
-                        : '<span class="ml-chip">not loaded yet</span>')
+                    : '<span class="ml-chip">not loaded yet</span>'
           }</div>
         </div>
         <div class="ml-card-body">
