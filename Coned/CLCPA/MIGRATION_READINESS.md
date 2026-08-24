@@ -3,7 +3,8 @@
 **For Randy, who directs the migration. This document supplies facts, not a plan.**
 
 Everything below was read from `org9076e69b.crm.dynamics.com` (Clara Fortuna Dev,
-solution `CLCPADACDashboardDev`, publisher prefix `cr2bf`) on **2026-08-14**, by a
+solution `CLCPADACDashboardDev`, publisher prefix `cr2bf`) on **2026-08-14**, with the
+dead-weight section re-verified on **2026-08-24**, by a
 read-only audit that performed no write of any kind. Row counts, byte sizes,
 privilege names and column facts are measured, not recalled. Where something could
 not be read, it says so rather than guessing.
@@ -47,7 +48,7 @@ The file itself lives in a **File column** (`cr2bf_DataFile`), configured at
 live report data.** See open question 1 — logical names cannot be changed after
 creation.
 
-### 1b. Web resources — nine, 7.75 MB total
+### 1b. Web resources — seven live, about 1.39 MB (was nine, 7.75 MB)
 
 | Name | Type | Bytes | What it is |
 |---|---|---|---|
@@ -56,8 +57,8 @@ creation.
 | `cr2bf_dactest/ExecutiveDashboard.html` | HTML | 11,856 | The page. Loads the two above with `?v=` cache stamps. |
 | `cr2bf_dactest/index.html` | HTML | 3,764 | The entry/sign-in shim. |
 | `cr2bf_dactest/payload.json` | XML* | 296,646 | **Live and required.** Feeds the borough charts and the report figures. |
-| `cr2bf_dactest/map_payload.json` | XML* | 4,794,147 | **No longer read.** See dead weight. |
-| `cr2bf_dactest/Data/hvi_zcta.geojson` | XML* | 1,566,418 | **No longer read.** See dead weight. |
+| ~~`cr2bf_dactest/map_payload.json`~~ | XML* | 4,794,147 | **DELETED 2026-08-24.** Row kept here for the record. |
+| ~~`cr2bf_dactest/Data/hvi_zcta.geojson`~~ | XML* | 1,566,418 | **DELETED 2026-08-14.** Row kept here for the record. |
 | `cr2bf_dactest/logo/ConEd_Logo_completo.svg` | SVG | 8,075 | Logo. |
 | `cr2bf_dactest/logo/ConEd_Logo_fondo_blanco.jpeg` | JPG | 10,418 | Logo. |
 
@@ -65,18 +66,24 @@ creation.
 stored as type XML. That is normal and not a defect.
 
 **`payload.json` and `map_payload.json` are different files with confusingly
-similar names.** The first is live; the second is dead. Anyone deleting one should
-work from the id, not the name — see dead weight below.
+similar names, and this has already caused real trouble twice.** `payload.json` is
+live and must survive. `cr2bf_dactest/map_payload.json` is deleted. A **third** file,
+`cr2bf_dacdev/map_payload.json` (`6fe0259a-276c-f111-ab0e-7c1e521963d9`), is live and
+belongs to the Dev app — leave it alone. **Work from the id, never the name.**
 
 ---
 
-## 2. Dead weight — what can be deleted before migrating
+## 2. Dead weight — both items now deleted
 
-Two candidates. **Both were verified by reading the content of all nine web
-resources, not by assuming `app.js` was the only place to look.** Nothing is listed
-here on the strength of "it looks unused".
+Two candidates, **both now deleted and confirmed by API listing**. Each was verified
+unread first by reading the content of all nine web resources, not by assuming
+`app.js` was the only place to look. Nothing here was listed on the strength of
+"it looks unused".
 
-### 2a. `map_payload.json` — 4,794,147 bytes, **safe to delete**
+**Current state: 7 web resources remain under `cr2bf_dactest/`, about 1.39 MB
+together** — down from nine and 7.75 MB.
+
+### 2a. `map_payload.json` — 4,794,147 bytes, **DELETED 2026-08-24**
 
 Web resource id **`9a93efd4-296b-f111-ab0d-7c1e521c7110`**.
 
@@ -99,14 +106,46 @@ The blunt string search reported "not clean" and the classification is what
 settles it. Recorded that way because a future reviewer running the same grep
 should not conclude the check failed.
 
-**One consequence to hold, because it is the only real risk here.** Rolling the app
-back to build `da3ba85ac5` or earlier gives a client that *does* fetch this file.
-**So the rollback path depends on the resource existing.** Once it is deleted,
-restoring it is part of any such rollback. The bytes are preserved in the repository
-under `deploy-backups/2026-08-14-payload-funeral/` and in every earlier folder in
-that series.
+**Deleted and verified, 2026-08-24.** An API listing of `webresourceset` filtered to
+the `cr2bf_dactest/` prefix returns **exactly 7** resources and this is not among
+them. That listing is the evidence; see the note below on why a browser check is not.
 
-### 2b. `Data/hvi_zcta.geojson` — 1,566,418 bytes, **safe to delete**
+**There is a second `map_payload.json` in this environment and it must NOT be
+deleted:** `cr2bf_dacdev/map_payload.json`, id
+**`6fe0259a-276c-f111-ab0e-7c1e521963d9`**. It belongs to the Dev app, which still
+reads it. Only the `cr2bf_dactest/` copy is retired.
+
+**Rollback consequence.** Rolling the app back to build `da3ba85ac5` or earlier gives
+a client that *does* fetch this file, so **restoring the resource is now part of any
+such rollback.** The bytes are preserved under
+`deploy-backups/2026-08-14-payload-funeral/` and in every earlier folder in that
+series.
+
+#### How this deletion went wrong twice first, because the lesson generalises
+
+Two portal attempts (2026-08-14 and 2026-08-22) were each reported as successful and
+neither reached the row. `modifiedon` stayed at `2026-08-12T14:36:36Z` throughout —
+the timestamp of the last deploy that wrote it — which is what proved no delete had
+touched it.
+
+**The cause: the resource's display name was `map_payload.json` with no prefix**, so
+in portal surfaces that group or sort by prefix it did not appear near the other
+`DAC Test` components and was invisible to the person looking for it. It was found
+and deleted through the classic Web Resources list (Default Solution, raw
+environment view), which shows the environment rather than a filtered projection of
+it.
+
+Two corollaries worth carrying into the migration:
+
+- **Confirm a web resource deletion by API listing, never by loading the URL.** A
+  browser 404 was taken as proof on 2026-08-14 and was wrong. It also remains
+  unexplained: the row was `componentstate 0` (Published) at the time, so a 404 was
+  not what its state predicted.
+- **A portal view can hide a row.** Component state was *not* the explanation here —
+  the row was Published throughout — so "it isn't in my list" and "it isn't in the
+  environment" are different claims, and only the second one is answerable by query.
+
+### 2b. `Data/hvi_zcta.geojson` — 1,566,418 bytes, **DELETED 2026-08-14**
 
 Web resource id **`36dfa2aa-b686-f111-8075-6045bddab7dd`**.
 
@@ -118,9 +157,13 @@ Same verification: nine resources grepped, one mention — a comment in `app.js`
 illustrating how layer names are turned into slugs (`"hvi_zcta_2020 (final)" ->
 "hvi_zcta_2020_final"`). **No fetch of it exists anywhere.**
 
-Deleting both removes **6.36 MB, 82% of the solution's total web-resource
-payload**, and removes the last two large files that would otherwise be carried
-into the new environment for no purpose.
+This one deleted cleanly on the first attempt, which is why the `map_payload.json`
+failures below were not obviously a portal problem.
+
+Both are now gone, removing **6.36 MB — 82% of the solution's former web-resource
+payload** — the last two large files that would otherwise have been carried into
+the new environment for no purpose. Confirmed by API listing on 2026-08-24:
+**7 resources remain** under `cr2bf_dactest/`, together about 1.39 MB.
 
 ### 2c. What is NOT dead weight, stated so nobody tidies it away
 
