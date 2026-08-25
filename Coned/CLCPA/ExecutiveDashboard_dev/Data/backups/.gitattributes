@@ -1,0 +1,7 @@
+# Dataverse exports are byte-exact records of a live table, and README.md quotes a
+# sha256 that a rollback would be checked against. EOL conversion would change
+# those bytes on checkout, so a clean clone would hash differently and read as
+# tampered with when nothing had happened. Never convert.
+#
+# Same rule and same reason as deploy-backups/.gitattributes.
+* -text

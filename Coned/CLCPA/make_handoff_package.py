@@ -123,6 +123,30 @@ MUST_NOT_SHIP = [
     "retire_dead_payload_fields.py",
     "map_payload.json",
     "app.js",
+    # Writes to Con Edison's live Dataverse (creates and deletes rows in
+    # cr2bf_dacmaptractdata). It is operational tooling for the CLCPA-191 rollback,
+    # not a build step, and it has no business in a package meant to be run by
+    # someone reproducing the inputs.
+    "restore_map_tract_data.js",
+]
+
+# Whole DIRECTORIES that must never ship, matched by path prefix rather than by
+# filename.
+#
+# Data/backups/ holds Dataverse exports taken before a destructive change -- the
+# CLCPA-191 export of cr2bf_dacmaptractdata is the first. They are internal
+# operational backups of Con Edison's own live table, they are the only rollback
+# for the change they precede, and they have no business in a package whose whole
+# point is "here is how you rebuild the inputs".
+#
+# A prefix rule, not a filename rule, and deliberately so: these files are dated,
+# so listing cr2bf_dacmaptractdata_2026-08-24.json in MUST_NOT_SHIP would guard
+# exactly one export and silently let the next one through. Elsewhere in this
+# project substring matching on names has caused real damage (payload.json vs
+# map_payload.json); the lesson is not "never match on prefixes", it is "match the
+# thing you actually mean". Here the thing meant is the directory.
+MUST_NOT_SHIP_DIRS = [
+    "Data/backups/",
 ]
 
 # Inputs the scripts read at runtime. `client` marks Con Edison internal data.
@@ -317,6 +341,15 @@ def main():
     if leaked:
         sys.exit("REFUSED: %d file(s) that must never ship are in the package: %s"
                  % (len(leaked), ", ".join(leaked)))
+    # Directory rule, checked separately: a staged path under any of these is a
+    # leak regardless of what it is called.
+    leaked_dirs = sorted({d for d in MUST_NOT_SHIP_DIRS
+                          for s in staged if s.startswith(d) or ("/" + d) in ("/" + s)})
+    if leaked_dirs:
+        offenders = [s for s in staged
+                     if any(s.startswith(d) or ("/" + d) in ("/" + s) for d in leaked_dirs)]
+        sys.exit("REFUSED: %d file(s) from a directory that must never ship (%s): %s"
+                 % (len(offenders), ", ".join(leaked_dirs), ", ".join(sorted(offenders)[:6])))
 
     zip_path = os.path.join(a.out, PKG_NAME + ".zip")
     if os.path.exists(zip_path):
