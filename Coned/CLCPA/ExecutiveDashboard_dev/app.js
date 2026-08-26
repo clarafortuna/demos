@@ -6448,7 +6448,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
 
     const map = L.map(containerId, {
       zoomControl: false,
-      attributionControl: false,
+      // Was false. Esri's tiles require attribution, and CARTO's did too -- this
+      // was suppressed, which was a licence gap regardless of provider.
+      attributionControl: true,
       zoomSnap: 0.1,        // allow fractional zoom (9.7 stays 9.7, not snapped to 10)
       zoomDelta: 0.5,       // zoom buttons step by 0.5 instead of 1
       wheelPxPerZoomLevel: 80,
@@ -6463,9 +6465,40 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const _eapState = { on: false, utility: 'total', metric: 'count', groupBy: 'borough' };
     let _eapColorCtx = null;
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+    // Basemap: Esri World Light Gray Base, replacing CARTO light_nolabels.
+    //
+    // 2026-08-26, observed mid-presentation: CARTO began serving these tiles with
+    // an "API KEY REQUIRED" watermark painted INTO the image. It is not an error --
+    // HTTP 200, a valid 23 KB PNG -- so nothing in this app could detect or handle
+    // it, and no console warning appeared. The URL had not changed since 333f183.
+    // A runtime third-party tile service is the one part of this stack that no
+    // build freeze or harness of ours controls.
+    //
+    // Three details, each verified against real NYC tiles rather than assumed:
+    //
+    //   1. Esri orders the path {z}/{y}/{x} -- ROW BEFORE COLUMN, the opposite of
+    //      CARTO. Getting it backwards returns tiles for the wrong place, not an
+    //      error.
+    //   2. This layer stops at z16. z17+ answer 200 with a ~2.5 KB placeholder, so
+    //      declaring maxZoom 19 alone would blank the basemap on deep zoom.
+    //      maxNativeZoom keeps Leaflet upscaling z16 instead of asking for tiles
+    //      that do not exist.
+    //   3. No {s} subdomain and no {r} retina suffix -- both are CARTO-isms.
+    //
+    // Attribution is now REQUIRED and was previously suppressed outright
+    // (attributionControl: false, and no attribution on the layer). That gap
+    // predates this change and is closed here. Plain hyphen, not an em dash: the
+    // dash guard sweeps rendered UI strings and Esri's canonical form uses one.
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/' +
+                'World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      maxNativeZoom: 16,
       maxZoom: 19,
+      attribution: 'Tiles &copy; Esri - Esri, DeLorme, NAVTEQ',
     }).addTo(map);
+
+    // Bottom LEFT: the zoom control owns bottom right, and Leaflet defaults the
+    // attribution to the same corner, so the two would overlap.
+    if (map.attributionControl) map.attributionControl.setPosition('bottomleft');
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
     map.on('mouseout', function() {
