@@ -6729,6 +6729,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         // working": nothing threw, nothing was null, and a resize or a route
         // change healed it by producing the move event that finally placed it.
         //
+        // CORRECTION (CLCPA-198, 2026-08-26). "A resize healed it" was read as
+        // "a resize restores event delivery", and that reading is FALSE. Tested on
+        // hosted: with the filter applied, a real window resize left the counters
+        // unchanged -- mouseover 263, mousemove 0, mouseout 0, click 0, before and
+        // after. A resize produces one placement, it does not repair the pipeline,
+        // so map.invalidateSize() is not a fix for this. Do not re-test it.
+        //
+        // What the same session established is narrower and much more useful: only
+        // the MOUSE-COMPATIBILITY events die. The pointer family is untouched --
+        // pointerdown 4, pointerup 4, pointermove 400 against click 0, mousedown 0,
+        // mouseup 0. Tract selection now runs on pointer events for that reason
+        // (see wireTractPointerSelect). This tooltip could be migrated the same way,
+        // which would restore cursor tracking inside a tract; it is deliberately
+        // NOT part of CLCPA-198 and is recorded as the known residual there.
+        //
         // Content is assigned first because the edge-flip inside
         // positionTooltipAt measures offsetWidth/offsetHeight.
         //
@@ -6756,25 +6771,90 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         if (_hoveredLayer === this) _hoveredLayer = null;
         if (tooltip) tooltip.style.opacity = '0';
       });
+      // CLCPA-198: selection moved OFF this handler onto pointer events.
+      //
+      // After a map filter is applied, mouse-compatibility events stop being
+      // dispatched to these SVG paths entirely. Measured on hosted, filtered, with
+      // capture-phase listeners on path.map-tract:
+      //
+      //     mouseover 270   mousemove 0   mouseout 0   click 0   mousedown 0
+      //     pointerdown 4   pointerup 4   pointermove 400
+      //
+      // The POINTER family is untouched; only the mouse-compat family dies. So
+      // selection lives on pointerdown/pointerup (see wireTractPointerSelect),
+      // which are delivered in both states -- there is no second code path to keep
+      // in step and no double-fire to suppress, because the pointer events are the
+      // primary ones and the mouse events are the compatibility layer on top.
+      //
+      // Two reasons this handler still exists:
+      //
+      //   1. THE SHIELD. On a healthy mount a press still produces a mouse click,
+      //      which bubbles to the map-level handler that clears the selection. The
+      //      pointer path would select and this would immediately unselect it. The
+      //      stopPropagation below is what prevents that, and it is now this
+      //      handler's only job.
+      //   2. THE FALLBACK. Where PointerEvent does not exist, wireTractPointerSelect
+      //      does nothing and selection has to happen here after all.
+      //
+      // The resize hypothesis recorded in the mouseover comment below was TESTED on
+      // hosted and is FALSE: a real window resize left the counters unchanged
+      // (mousemove 0, click 0 before and after). invalidateSize does not heal this.
       layer.on('click', function(e) {
-        // Stop the click from reaching the map-level handler (which clears the
-        // selection), so clicking a tract selects it normally.
         L.DomEvent.stopPropagation(e);
-        const geoid = p.GEOID;
-        if (_mapState.selectedGeoid === geoid) {
-          clearTractSelection();          // toggle off
-        } else {
-          _mapState.selectedGeoid = geoid;
-          geoLayer.setStyle(styleFeature); // apply selected border
-          this.bringToFront();
-          // Keep the overlays above the selected tract so their colors aren't
-          // persistently occluded (same re-assert as the hover handler).
-          bringOverlaysToFront();
-          bringOutlinesToFront();
-          showTractDetail(p);
-          renderMapKPI(geo);               // scope the Customer Counts panel to this tract
-        }
+        // Suppress only a click the pointer path HAS ALREADY ACTED ON, identified
+        // by tract and recency -- not every click.
+        //
+        // The first version of this returned early whenever PointerEvent existed,
+        // which is wrong: a click can arrive with no pointer sequence in front of
+        // it. Keyboard activation and assistive technology both synthesise clicks
+        // directly, and so does any programmatic dispatch -- ds_test section 10
+        // caught it by selecting a tract that way and then waiting forever for a
+        // panel that never opened. Suppressing the whole event type to avoid a
+        // double-fire also removed the only path those callers have.
+        if (pointerJustHandled(p.GEOID)) return;
+        selectTractByGeoid(p.GEOID, this);
       });
+    }
+
+    /**
+     * Did the pointer path just act on this tract? Window is generous: the mouse
+     * click that follows a real press arrives within a few ms, and nothing else
+     * legitimately re-clicks the same tract inside it.
+     */
+    const POINTER_CLAIM_MS = 700;
+    let _pointerClaim = { geoid: null, t: 0 };
+    function pointerJustHandled(geoid) {
+      return _pointerClaim.geoid === geoid &&
+        (Date.now() - _pointerClaim.t) < POINTER_CLAIM_MS;
+    }
+
+    /** Whether pointer events can carry selection. */
+    const TRACT_POINTER_SELECT = typeof window.PointerEvent === 'function';
+
+    /**
+     * Select a tract, or toggle it off if it is already selected.
+     *
+     * Lifted verbatim out of the old click handler so the pointer path and the
+     * no-PointerEvent fallback cannot drift apart. `lyr` is the Leaflet layer for
+     * the tract when the caller has it (so it can be raised); optional.
+     */
+    function selectTractByGeoid(geoid, lyr) {
+      if (geoid == null) return;
+      if (_mapState.selectedGeoid === geoid) {
+        clearTractSelection();            // toggle off
+        return;
+      }
+      const f = geo.features.find(x => x.properties && x.properties.GEOID === geoid);
+      if (!f) return;
+      _mapState.selectedGeoid = geoid;
+      geoLayer.setStyle(styleFeature);    // apply selected border
+      if (lyr && lyr.bringToFront) lyr.bringToFront();
+      // Keep the overlays above the selected tract so their colors aren't
+      // persistently occluded (same re-assert as the hover handler).
+      bringOverlaysToFront();
+      bringOutlinesToFront();
+      showTractDetail(f.properties);
+      renderMapKPI(geo);                  // scope the Customer Counts panel to this tract
     }
 
     const geoLayer = L.geoJSON(geo, {
@@ -6782,6 +6862,80 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       onEachFeature: onEach,
     }).addTo(map);
     _mapGeoLayer = geoLayer;
+
+    /**
+     * CLCPA-198: tract selection on pointer events.
+     *
+     * ONE delegated listener pair on the overlay pane rather than two per tract:
+     * 2,333 features would mean 4,666 listeners, and the pane is the common
+     * ancestor of every tract path anyway.
+     *
+     * Press-then-release, not press alone. pointerdown fires at the START of a
+     * gesture, including the start of a pan, so committing on it would select a
+     * tract every time someone begins dragging the map -- trading this bug for a
+     * worse one. The candidate is recorded on down and committed on up only if the
+     * pointer stayed put and stayed on the same tract.
+     *
+     * DRAG_SLOP is in CSS pixels and deliberately small: a pan moves far further
+     * than this, while a press on a trackpad routinely wobbles a pixel or two.
+     */
+    const DRAG_SLOP = 6;
+    function wireTractPointerSelect() {
+      if (!TRACT_POINTER_SELECT) {
+        console.info('[DAC map] PointerEvent unavailable; tract selection stays on ' +
+          'the click handler.');
+        return;
+      }
+      const pane = map.getPane('overlayPane');
+      if (!pane) return;
+      let cand = null;   // { id, geoid, x, y }
+
+      const geoidAt = (target) => {
+        if (!target || !target.closest) return null;
+        const el = target.closest('path.map-tract');
+        if (!el) return null;
+        // Element -> feature. Leaflet keeps the SVG node on the layer as _path, so
+        // the lookup is a scan of the layer set: 2,333 identity comparisons per
+        // press, which is far cheaper than stamping every path on every restyle.
+        let found = null;
+        geoLayer.eachLayer(l => {
+          if (!found && l._path === el) found = l;
+        });
+        return found && found.feature && found.feature.properties
+          ? { geoid: found.feature.properties.GEOID, lyr: found }
+          : null;
+      };
+
+      pane.addEventListener('pointerdown', function (e) {
+        if (e.button !== undefined && e.button !== 0) return;   // primary only
+        const hit = geoidAt(e.target);
+        cand = hit ? { id: e.pointerId, geoid: hit.geoid, x: e.clientX, y: e.clientY } : null;
+      }, true);
+
+      pane.addEventListener('pointerup', function (e) {
+        const c = cand;
+        cand = null;
+        if (!c || c.id !== e.pointerId) return;
+        if (Math.abs(e.clientX - c.x) > DRAG_SLOP ||
+            Math.abs(e.clientY - c.y) > DRAG_SLOP) return;      // that was a drag
+        const hit = geoidAt(e.target);
+        if (!hit || hit.geoid !== c.geoid) return;               // released elsewhere
+        // Claim the tract BEFORE acting, so the mouse click that follows on a
+        // healthy mount is recognised as already handled whichever way this went --
+        // a toggle-off has to be claimed exactly as a select does, or the click
+        // would arrive and immediately re-select what was just closed.
+        _pointerClaim = { geoid: c.geoid, t: Date.now() };
+        selectTractByGeoid(c.geoid, hit.lyr);
+      }, true);
+
+      // A cancelled pointer (gesture stolen, window blurred) must not leave a
+      // candidate that commits on the next unrelated release.
+      pane.addEventListener('pointercancel', function () { cand = null; }, true);
+
+      console.info('[DAC map] tract selection wired to pointer events ' +
+        '(CLCPA-198: mouse-compat events stop dispatching after a filter).');
+    }
+    wireTractPointerSelect();
 
     // ============================================================
     // EAP enrollment heatmap (opt-in; OFF by default)
