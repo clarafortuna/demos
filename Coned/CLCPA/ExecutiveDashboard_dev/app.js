@@ -12713,6 +12713,44 @@ function wireHTooltips() {
    * like a total, sum the numeric values in each non-label column from all
    * non-total rows above. Mutates the array.
    */
+  /**
+   * Tables whose "Total ..."-labelled row is DATA, not a total, so the ingest
+   * editor must NOT auto-calculate it.
+   *
+   * J1 and J2 only. Each has one row the loose predicate flags -- "Total amount of
+   * residential electric usage (kWh)" / "... gas usage (ccf)" -- and exactly one
+   * row it does not, which is a NON-SUMMABLE AVERAGE. So nonTotalRows was
+   * [the average row], and recomputeTotals wrote that "sum" straight over the
+   * total:
+   *
+   *     J1/2025 row 0 stored   5,223,783,448 | 40% | 7,980,741,755 | 60%
+   *             editor wrote           347.1 | 40% |          992.2 | 60%
+   *
+   * 347.1 and 992.2 are the AVERAGE row's values. recomputeTotals runs on every
+   * render of the editor, so opening the table was enough to flag "Unsaved
+   * changes", and J1 is not in PERSIST_STRIP_TABLES -- a save would have persisted
+   * 347.1 in place of 5.2 billion kWh. J2 was worse: its percentages are stored as
+   * numbers rather than strings, so all four columns were overwritten.
+   *
+   * DERIVED_COLS already documented the hazard -- "J1/J2 deferred: they mix a
+   * non-summable Average usage row into the body" -- but only the derive path acted
+   * on it. This is the editor acting on it too.
+   *
+   * Per-table rather than global, for the reason the CLCPA-203 audit established:
+   * A5-A8 and G1-G9 have genuine hierarchical subtotals labelled "X Total", and the
+   * editor SHOULD auto-calculate those. Tightening the predicate everywhere would
+   * stop it.
+   *
+   * NOT extended to J3/J4/J6/J7/G10. Under the strict predicate their editor would
+   * auto-calculate the Total row correctly, which is an improvement rather than a
+   * bug fix, and it is filed as its own decision.
+   */
+  const EDITOR_STRICT_TOTALS = new Set(['J1', 'J2']);
+
+  function editorTotalRowTest(tableId) {
+    return EDITOR_STRICT_TOTALS.has(tableId) ? isStrictTotalRowLabel : isTotalRowLabel;
+  }
+
   function recomputeTotals(draft, schema, tableId) {
     if (!draft || !schema) return;
     const derivedSet = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
@@ -12720,8 +12758,9 @@ function wireHTooltips() {
     // Identify total rows by their label (col 0)
     const totalRowIdxs = [];
     const nonTotalRows = [];
+    const isTotalHere = editorTotalRowTest(tableId);
     draft.forEach((row, idx) => {
-      if (isTotalRowLabel(row[0])) totalRowIdxs.push(idx);
+      if (isTotalHere(row[0])) totalRowIdxs.push(idx);
       else nonTotalRows.push(row);
     });
 
@@ -15746,7 +15785,10 @@ function wireHTooltips() {
     // Money columns get a "$" on blur; other numeric columns get commas only.
     const currencyCol = detectCurrencyColumns(i.schema);
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
-      const isTotal = isTotalRowLabel(row[0]);
+      // Same test recomputeTotals uses, or the two disagree: a row that is no
+      // longer auto-calculated would still render grey and read-only, leaving it
+      // uneditable and the fix half-applied.
+      const isTotal = editorTotalRowTest(i.tableId)(row[0]);
       const cells = i.schema.map((_, colIdx) => {
         const v = row[colIdx];
         if (colIdx === 0) {
@@ -15810,7 +15852,7 @@ function wireHTooltips() {
         </div>
         <div class="ingest-card-foot">
           <button id="ingest-add-row" class="btn btn-link" type="button">+ Add row</button>
-          ${i.draft.some(r => isTotalRowLabel(r[0]))
+          ${i.draft.some(r => editorTotalRowTest(i.tableId)(r[0]))
             ? '<span class="ingest-foot-note">Rows labeled "Total" are auto-calculated from numeric rows above (read-only, shown in grey).</span>'
             : ''}
         </div>
