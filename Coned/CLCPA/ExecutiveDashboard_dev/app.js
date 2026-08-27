@@ -1926,12 +1926,75 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const covered = new Set(((DERIVED_COLS[tableId]) || []).map(d => d.column));
     const pctCols = schema ? detectPctColumns(schema) : [];
     clone.forEach(row => {
-      if (!isTotalRowLabel(row[0])) return;
+      // CLCPA-200: the STRICT predicate, not isTotalRowLabel.
+      //
+      // isTotalRowLabel is an unanchored /total|grand total|subtotal/i substring
+      // match, so it classified DATA rows as totals and this loop overwrote their
+      // percentage cells. Swept across the whole payload: 30 cells blanked, 28 of
+      // which previously showed a value. Two rows were proven data rows -- they do
+      // not sum their columns, 0 of 2 additive columns matching:
+      //
+      //   J1 "Total amount of residential electric usage (kWh)"  39%/40%, 61%/60%
+      //   J2 "Total amount of residential gas usage (ccf)"       0.46/0.41/0.4, ...
+      //
+      // Anchoring the match at the start does NOT fix them: both labels BEGIN with
+      // "Total". Only a whole-label match does. Scored against the swept list, it
+      // fixes both and breaks nothing -- E1 and F9's "Grand Total" rows are still
+      // classified as totals, correctly, because they genuinely sum their columns.
+      if (!totalRowTestFor(tableId)(row[0])) return;
       for (let c = 1; c < row.length; c++) {
         if (pctCols[c] && !covered.has(c)) row[c] = '—';
       }
     });
     return clone;
+  }
+
+  /**
+   * Tables held on the OLD loose predicate, deliberately, so this fix does not
+   * change them.
+   *
+   * J8 only. Six of its rows are flagged by isTotalRowLabel -- "Total in DAC",
+   * "Total in Non-DAC", "Total", "% of total in DAC", "% of total in non-DAC" --
+   * and the sweep could NOT classify any of them: J8 has no additive column, so the
+   * does-it-sum-its-column test never ran and "these are data rows" was never
+   * proven. Switching J8 to the strict predicate would restore four cells
+   * ("66%"/"34%" and friends) on rows that might genuinely be totals, which is
+   * exactly the wrong-percentage-on-a-total the blanking pass exists to prevent.
+   *
+   * So J8 keeps its current behaviour until someone reads the table and rules.
+   * Removing it from this set is the whole change when that happens.
+   */
+  const TOTAL_ROW_STRICT_PENDING = new Set(['J8']);
+
+  function totalRowTestFor(tableId) {
+    return TOTAL_ROW_STRICT_PENDING.has(tableId) ? isTotalRowLabel : isStrictTotalRowLabel;
+  }
+
+  /**
+   * Is this row label a TOTALS row, strictly?
+   *
+   * Whole label only: "Total", "Totals", "Grand Total", "Subtotal", case and
+   * surrounding space insensitive. A descriptive label that merely contains the
+   * word -- "Total amount of residential electric usage (kWh)" -- is a data row and
+   * must not be treated as a total.
+   *
+   * DELIBERATELY SEPARATE from isTotalRowLabel rather than tightening it. That
+   * predicate has six callers and two of them change NUMBERS if it narrows:
+   * rowsForDisplay's own `nonTotal` filter feeds columnGrandTotals (a data row
+   * would start being added into the column sums), and the row-building path at
+   * ~12383 skips total rows (a data row would start being included). Narrowing the
+   * shared predicate is a bigger change with a real chance of moving figures, so it
+   * is filed as its own follow-up with all six sites enumerated. This fix touches
+   * only the blanking pass, where the false positive actually does harm.
+   *
+   * NOT applied to J8. Six of its rows are flagged by the loose predicate and the
+   * sweep could not classify them -- J8 has no additive column, so the
+   * does-it-sum-its-column test never ran. They are excluded pending a read of that
+   * table rather than swept up by a predicate change nobody has checked against them.
+   */
+  function isStrictTotalRowLabel(label) {
+    if (label == null) return false;
+    return /^(grand\s+|sub)?totals?$/i.test(String(label).trim());
   }
 
   // CLCPA-88: tables whose derived cells are consumed ONLY via the shared re-derive
