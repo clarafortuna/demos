@@ -1950,19 +1950,29 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   }
 
   /**
-   * Tables held on the OLD loose predicate, deliberately, so this fix does not
-   * change them.
+   * Tables held on the OLD loose predicate, deliberately.
    *
-   * J8 only. Six of its rows are flagged by isTotalRowLabel -- "Total in DAC",
-   * "Total in Non-DAC", "Total", "% of total in DAC", "% of total in non-DAC" --
-   * and the sweep could NOT classify any of them: J8 has no additive column, so the
-   * does-it-sum-its-column test never ran and "these are data rows" was never
-   * proven. Switching J8 to the strict predicate would restore four cells
-   * ("66%"/"34%" and friends) on rows that might genuinely be totals, which is
-   * exactly the wrong-percentage-on-a-total the blanking pass exists to prevent.
+   * J8 only, and this is now a RULING rather than an open question. The CLCPA-200
+   * sweep could not classify J8's six flagged rows -- the table has no additive
+   * column, so the does-it-sum-its-column test never ran -- and it was held here
+   * pending a read. Emely read it (2026-08-27) and ruled from the rendered table:
    *
-   * So J8 keeps its current behaviour until someone reads the table and rules.
-   * Removing it from this set is the whole change when that happens.
+   *     "% of total in DAC" Electric shows 67%, and 129.0 / 192.6 = 67%
+   *     Gas shows 59%, and 22.9 / 38.7 = 59%
+   *
+   * Those rows are COMPUTED SUMMARIES of the dollar rows above them, not data. So
+   * blanking them is correct under the current design: they are derived cells with
+   * no derive rule, exactly like E1 and F9's "Grand Total". Restoring their stored
+   * percentages would show a figure the app cannot verify, which is the specific
+   * harm the blanking pass exists to prevent.
+   *
+   * J8 therefore belongs to the derive arc, gated on CLCPA-145 -- which already
+   * flags its "% of Total" column as not reconciling -- with rules to come from
+   * CLCPA-144/145. NOT to be moved onto the strict predicate.
+   *
+   * The set stays rather than being inlined: it is the seam where 144/145 will
+   * remove J8, and one named place is easier to find than a condition buried in
+   * the blanking pass.
    */
   const TOTAL_ROW_STRICT_PENDING = new Set(['J8']);
 
