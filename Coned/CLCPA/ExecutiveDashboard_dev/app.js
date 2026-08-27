@@ -1815,6 +1815,38 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       ({ column, type: 'percentage', numerator, denominator, denominatorScope, decimals });
     const gPct = [pct(2, [1], [1], 'total', 2)];           // G tables: feet/mT ÷ column total
     const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
+
+    /* CLCPA-144: 'totalRow' scope, for tables where EVERY row is a total.
+     *
+     * G10, J3, J4, J6 and J7 label all of their rows "Total in DAC", "Total in
+     * Non-DAC", "Total" (or "Total mT CH4 in ...", "Grand Total"). The column-sum
+     * denominator cannot work there: rowsForDisplay builds colSum over rows that
+     * are NOT totals, that set is empty, colSum is null, and the percentage renders
+     * blank. That is why these columns have been empty rather than wrong.
+     *
+     * Tightening the totals predicate is NOT the fix and was rejected on evidence:
+     * G1-G9 label their grand total "Systemwide Total" / "X Total", so a strict
+     * predicate stops excluding it, it re-enters colSum, and the denominator
+     * DOUBLES -- G1/2025 goes 430,538 to 861,076 and every percentage halves
+     * (47% -> 24%, 100% -> 50%). Nine tables of plausible-looking wrong numbers.
+     *
+     * So the denominator comes from the explicit total row instead, found by the
+     * strict whole-label predicate. Each row divides by that row's value:
+     *
+     *     J3/2025:  252,171 / 381,309 = 66%
+     *               129,138 / 381,309 = 34%
+     *               381,309 / 381,309 = 100%   <- on the Total row itself
+     *
+     * The 100% is arithmetically true and is deliberately kept: suppressing it
+     * would be a presentation opinion inside a correctness fix.
+     *
+     * G10 gets its OWN entry rather than sharing gPct. gPct is G1-G10, and editing
+     * it in place would apply this scope to the nine tables the evidence says must
+     * not change.
+     */
+    const gPctTotalRow = [pct(2, [1], [1], 'totalRow', 2)];                        // G10 only
+    const jShareTotalRow = [pct(2, [1], [1], 'totalRow', 0),
+                            pct(4, [3], [3], 'totalRow', 0)];                      // J3/J4/J6
     const jSplit = (dp) => [pct(2, [1], [1, 3], 'row', dp), pct(4, [3], [1, 3], 'row', dp)];
     return {
       // Tier 1 — sibling / column ratios
@@ -1827,15 +1859,21 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       A10: [pct(3, [2], [1], 'row', 0), pct(6, [5], [4], 'row', 0)],
       F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4)],
       G1: gPct, G2: gPct, G3: gPct, G4: gPct, G5: gPct,
-      G6: gPct, G7: gPct, G8: gPct, G9: gPct, G10: gPct,
-      J3: jShare, J4: jShare, J6: jShare,
+      G6: gPct, G7: gPct, G8: gPct, G9: gPct,
+      // G10 is the odd one out: its data rows are "Total mT CH4 in DACs" /
+      // "... in Non-DACs" with a "Grand Total" beneath, so every row is a total and
+      // the column-sum denominator is null. G1-G9 keep gPct deliberately.
+      G10: gPctTotalRow,
+      // Same shape: "Total in DAC" / "Total in Non-DAC" / "Total".
+      J3: jShareTotalRow, J4: jShareTotalRow, J6: jShareTotalRow,
       // Tier 2 — multi-column denominator
       F8: [pct(2, [1], [1, 3], 'total', 4), pct(4, [3], [1, 3], 'total', 4)],
       J5: jSplit(0), J9: jSplit(2),
       // J1/J2 deferred: they mix a non-summable "Average usage" row into the body and
       // store their totals as strings, so a column-derived total is unsafe here — they
       // need row-level handling + numeric data. Tracked with the Tier-3 follow-ups.
-      J7: [pct(4, [1, 2, 3], [1, 2, 3], 'total', 0)]
+      // J7 is the same all-rows-are-totals shape, with a three-column denominator.
+      J7: [pct(4, [1, 2, 3], [1, 2, 3], 'totalRow', 0)]
     };
   })();
 
@@ -1886,11 +1924,50 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   function applyDerivedCols(rows, tableId, colSum) {
     const derived = (tableId && DERIVED_COLS[tableId]) || [];
     if (!derived.length) return;
+    // CLCPA-144 'totalRow' scope: the denominator is the sum over every row EXCEPT
+    // the table's own total row, identified by the STRICT whole-label predicate.
+    //
+    // The first version of this took the denominator from the explicit total row's
+    // cells. The harness killed it: J3/J4/J6/J7 have no "Total" row in 2023 or
+    // 2024 -- only 2025 does -- so those years derived nothing and silently leaked
+    // the STORED percentages instead, which is the exact thing the derive engine
+    // exists to stop.
+    //
+    // Summing the other rows is equivalent where a total row exists and correct
+    // where it does not:
+    //
+    //     J3/2025  252,171 + 129,138 = 381,309  == the "Total" row's own value
+    //     J3/2023  289,487 + 196,006 = 485,493  (no Total row) -> 60% / 40%,
+    //                                            which is what the source stored
+    //
+    // and the total row, when present, divides its own value by that sum and reads
+    // 100% by computation rather than by assumption.
+    const wantsTotalRow = derived.some(d => d.denominatorScope === 'totalRow');
+    const denomRows = wantsTotalRow
+      ? rows.filter(r => !isStrictTotalRowLabel(r[0]))
+      : null;
+    /** Sum one derived denominator across the non-total rows; null if none are numeric. */
+    function totalRowDenom(cols) {
+      let sum = 0, any = false;
+      for (const r of denomRows) {
+        const v = sumDerivedCols(r, cols);
+        if (v != null) { sum += v; any = true; }
+      }
+      return any ? sum : null;
+    }
+
     rows.forEach(row => {
       const isTot = isTotalRowLabel(row[0]);
       derived.forEach(d => {
         let num, den;
-        if (isTot) {
+        if (d.denominatorScope === 'totalRow') {
+          // Checked BEFORE isTot, deliberately. Under this scope every row is a
+          // total by label, so the isTot branch would take numerator AND
+          // denominator from colSum -- which is null here, which is the bug. The
+          // Total row divides by itself and reads 100%, which is true.
+          num = sumDerivedCols(row, d.numerator);
+          den = totalRowDenom(d.denominator);
+        } else if (isTot) {
           num = sumDerivedCols(colSum, d.numerator);
           den = sumDerivedCols(colSum, d.denominator);
         } else {
@@ -1900,7 +1977,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             : sumDerivedCols(row, d.denominator);
         }
         if (num == null || den == null || den === 0) {
-          if (isTot) row[d.column] = null; // can't derive -> blank Total (renders "—")
+          // 'totalRow' with no total row present cannot derive anything, so it
+          // leaves every stored value alone rather than blanking rows that are not
+          // the table's total. Blanking here would put the dashes back.
+          if (isTot && d.denominatorScope !== 'totalRow') {
+            row[d.column] = null;          // can't derive -> blank Total (renders "—")
+          }
           return;                          // per-row: leave stored value as-is
         }
         row[d.column] = num / den;
@@ -12652,7 +12734,20 @@ function wireHTooltips() {
     totalRowIdxs.forEach(idx => {
       for (let c = 1; c < schema.length; c++) {
         if (derivedSet.has(c)) continue;
-        draft[idx][c] = colHasNum[c] ? colSum[c] : null;
+        // CLCPA-144: keep the stored value when there is nothing to sum.
+        //
+        // This wrote null, and recomputeTotals runs on EVERY RENDER of the ingest
+        // editor -- not just on edit. In tables where every row is labelled a total
+        // ("Total in DAC" / "Total in Non-DAC" / "Total") the non-total set is
+        // empty, colHasNum is false for every column, and merely OPENING the table
+        // nulled its additive cells. Simulated across the payload: 178 real cells in
+        // 11 tables (J3/J4/J6/J7 28 each, J8 25, G10 18, C2 9, J1 6, J9 4, A7 2,
+        // J2 2). The table dropdown has no whitelist and auto-selects the first
+        // table in a section, so section J opens on J1 -- one of them.
+        //
+        // This is a WRITE path: a save after that would have persisted the nulls.
+        // Nothing to sum is not the same as a value of nothing.
+        draft[idx][c] = colHasNum[c] ? colSum[c] : draft[idx][c];
       }
     });
 
