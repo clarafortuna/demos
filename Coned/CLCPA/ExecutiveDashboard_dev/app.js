@@ -2167,10 +2167,14 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * 65.6% while the table showed 62%.
    */
   const NOT_RECONCILED_TABLES = new Set(['F9', 'J8']);
-  const NOT_RECONCILED_NOTE =
-    'The percentage column is shown as reported and has not been reconciled to the ' +
-    'other figures in this table. The underlying denominator is not present in the ' +
-    'source data supplied. Tracked under CLCPA-206.';
+  /* There is deliberately no note string to go with this set. The client-facing
+   * banner was removed in Block 3 phase 2: the report is read by Con Edison
+   * executives and a ticket reference does not belong in front of them. The set
+   * governs RENDERING ONLY -- it makes rowsForDisplay pass the stored percentage
+   * columns through untouched instead of blanking them. See the render site in
+   * the table-card builder for the full reasoning, and CLCPA-206 for the
+   * outstanding question of which denominator produces these figures.
+   */
 
   function totalRowTestFor(tableId) {
     return TOTAL_ROW_STRICT_PENDING.has(tableId) ? isTotalRowLabel : isStrictTotalRowLabel;
@@ -2601,11 +2605,22 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const noteHtml = (mapping.notes && mapping.notes.trim())
       ? `<div class="mapping-note"><strong>Comparability:</strong> ${escapeHtml(mapping.notes)}</div>`
       : '';
-    // CLCPA-206 interim. Reuses the existing mapping-note styling rather than
-    // introducing a class, so no CSS ships with this.
-    const notReconciledHtml = NOT_RECONCILED_TABLES.has(t.id)
-      ? `<div class="mapping-note"><strong>Not reconciled:</strong> ${escapeHtml(NOT_RECONCILED_NOTE)}</div>`
-      : '';
+    /* No "not reconciled" banner renders here, deliberately.
+     *
+     * The CLCPA-206 interim briefly showed one on F9 and J8. It was removed on
+     * Emely's instruction: this report goes in front of Con Edison executives, and
+     * a ticket number plus an admission about our own source data is internal
+     * engineering context, not client-facing content.
+     *
+     * What that decision does NOT change: F9 and J8 still render their stored
+     * percentage columns as reported, via NOT_RECONCILED_TABLES in rowsForDisplay.
+     * The figures are unaffected -- only the banner is gone. The open question of
+     * which denominator produces them lives in CLCPA-206, and nowhere in the UI.
+     *
+     * So do not "helpfully" reintroduce a caveat here. If the reconciliation is
+     * ever resolved, the fix is a derive rule in DERIVED_COLS and the removal of
+     * these tables from NOT_RECONCILED_TABLES -- not a note.
+     */
 
     const yearToggleHtml = `
       <div class="year-toggle" data-table="${t.id}">
@@ -2620,7 +2635,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           <h3>${escapeHtml(cleanTitle)}</h3>
           <div class="table-meta-row">${noPrevBadge}${partialBadge}${yearToggleHtml}</div>
           ${noteHtml}
-          ${notReconciledHtml}
         </div>
         <div class="table-card-body">${bodyHtml}</div>
       </div>`;
@@ -8950,6 +8964,20 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         <div class="exec-reporting-year"><span class="exec-reporting-year-label">Reporting Year</span><span class="exec-reporting-year-value">${year}</span></div>
       </div>`;
 
+    /* CLCPA-158: the DAC map is NOT gated on anyData.
+     *
+     * anyData asks "did anyone enter tabular figures for this reporting year".
+     * The map answers a different question entirely -- it draws census tracts from
+     * the tract datasets, which are geographic reference data with no reporting
+     * year in them. Verified rather than assumed: renderDACMap(baseline, year,
+     * sections) reads NONE of its three arguments; it is driven wholly by
+     * _mapState and the hydrated datasets. So the map's output cannot depend on
+     * whether this year has table data, and hiding it here was collateral damage
+     * from an unrelated check, not a deliberate coupling.
+     *
+     * The empty-state message stays, because the tables really are empty. It just
+     * no longer takes the map down with it.
+     */
     if (!anyData) {
       return header + `
         <div class="chart-card" style="min-height:320px">
@@ -8957,7 +8985,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             message: `No data has been entered for ${year} yet.`,
             hint: 'Switch to a populated year using the selector above, or use Data Ingestion to add values for this year.'
           })}
-        </div>`;
+        </div>
+
+        <div class="kpi-group">
+          <div class="exec-shares-grid" id="exec-shares-grid">
+            ${renderDACMap(baseline, year, sections)}
+          </div>
+        </div>
+
+        <div id="dac-tract-detail" class="dac-tract-detail" hidden></div>`;
     }
 
     return `
@@ -10348,9 +10384,22 @@ function renderSectionF() {
     const f3 = p.tables.F3;
     const f3Curr = f3 && f3.data[yr] ? f3.data[yr] : [];
     const f3Prev = f3 && f3.data[prevYr] ? f3.data[prevYr] : [];
-    const f3MetricLabel = (f3 && f3.schema_by_year && f3.schema_by_year[yr] && f3.schema_by_year[yr][1])
-      ? f3.schema_by_year[yr][1]
-      : 'Customers interrupted per 1,000 served';
+    /* CLCPA-162: read the label through getTableSchema rather than indexing
+     * schema_by_year[yr] directly.
+     *
+     * The direct read had no fallback for a year with no schema entry -- a year
+     * added through Data Ingestion, typically -- so it dropped to the hardcoded
+     * string below. That string is worded and capitalised DIFFERENTLY from the
+     * real schema label ("Customers interrupted per 1,000 served" vs "Customers
+     * Interrupted per 1,000 Customers Served"), so the tile caption quietly
+     * changed wording on a new year instead of inheriting the existing label.
+     *
+     * getTableSchema falls back to any populated year's schema, which is the
+     * behaviour every other table already gets. The literal stays only as a
+     * last resort for a table with no schema at all.
+     */
+    const f3Schema = getTableSchema(f3, yr);
+    const f3MetricLabel = f3Schema[1] || 'Customers interrupted per 1,000 served';
 
     let f3Rows = f3Curr.filter(r =>
       r && r[0] && typeof r[1] === 'number' &&
