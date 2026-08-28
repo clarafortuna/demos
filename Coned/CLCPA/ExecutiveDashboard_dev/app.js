@@ -1813,6 +1813,36 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   const DERIVED_COLS = (function () {
     const pct = (column, numerator, denominator, denominatorScope, decimals) =>
       ({ column, type: 'percentage', numerator, denominator, denominatorScope, decimals });
+
+    /* CLCPA-143: a WEIGHTED MEAN, for a percentage column whose numerator is not in
+     * the table.
+     *
+     * E1's "Percentage Affecting DACs" is each category's own DAC share. There is no
+     * DAC-investment column, so the Grand Total cannot be a ratio of two sums --
+     * pct() cannot express it and E1 has had no rule at all, which is why its Grand
+     * Total rendered as a dash.
+     *
+     * It is the investment-weighted mean of the body rows:
+     *
+     *     sum(weight_col * pct_col) / sum(weight_col)
+     *
+     * Verified against ALL THREE YEARS, which is the point:
+     *
+     *     year   stored   simple mean   weighted
+     *     2023    0.40      0.4675 X     0.3991 OK
+     *     2024    0.50      0.5125 X     0.4987 OK
+     *     2025    0.45      0.4500 OK    0.4528 OK
+     *
+     * 2025 alone would have said "simple mean" -- it matches there exactly and fails
+     * the other two years by four and one points. Checking one year is how the wrong
+     * formula gets shipped; this is the third time in this codebase that a
+     * single-year reading nearly did it.
+     *
+     * Per-row cells are left ALONE: each category's percentage is source data, not
+     * derived. Only the total row is computed. */
+    const wmean = (column, weight, decimals) =>
+      ({ column, type: 'weightedMean', weight, numerator: [column], denominator: [weight],
+         denominatorScope: 'weightedMean', decimals });
     const gPct = [pct(2, [1], [1], 'total', 2)];           // G tables: feet/mT ÷ column total
     const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
 
@@ -1866,6 +1896,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       G10: gPctTotalRow,
       // Same shape: "Total in DAC" / "Total in Non-DAC" / "Total".
       J3: jShareTotalRow, J4: jShareTotalRow, J6: jShareTotalRow,
+      // Tier 3 — a weighted mean, where the numerator is not a column
+      // E1 col 2 = "Percentage Affecting DACs", weighted by col 1 investment.
+      E1: [wmean(2, 1, 2)],
       // Tier 2 — multi-column denominator
       F8: [pct(2, [1], [1, 3], 'total', 4), pct(4, [3], [1, 3], 'total', 4)],
       J5: jSplit(0), J9: jSplit(2),
@@ -1942,6 +1975,27 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     //
     // and the total row, when present, divides its own value by that sum and reads
     // 100% by computation rather than by assumption.
+    /* CLCPA-143: if there is nothing to total, the row is not a total.
+     *
+     * A row the loose predicate flags is normally derived from the column sums over
+     * the OTHER rows. When there are no other rows that sum is empty, the derive
+     * fails, and the isTot branch blanks the cell -- destroying the only figure the
+     * table has.
+     *
+     * J9/2023 is exactly that: one row, labelled "Total Number of Residential
+     * Customers", so the label matches and there is nothing to sum. It blanked, and
+     * routing the KPI panel through this function would have carried the blank into
+     * the panel and shown 0% where the source says 43%.
+     *
+     * Treated as data it derives correctly from its own cells:
+     * 1,344,495 / (1,344,495 + 1,760,050) = 0.4331, matching the stored 0.43.
+     *
+     * General rather than another per-table exception, and narrow in effect: every
+     * other table with a rule has non-total rows, the 'totalRow' scope bypasses this
+     * branch, and weightedMean handles its own. J9/2023 is the only cell in the
+     * payload it changes. */
+    const hasNonTotalRows = rows.some(r => !isTotalRowLabel(r[0]));
+
     const wantsTotalRow = derived.some(d => d.denominatorScope === 'totalRow');
     const denomRows = wantsTotalRow
       ? rows.filter(r => !isStrictTotalRowLabel(r[0]))
@@ -1960,6 +2014,22 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const isTot = isTotalRowLabel(row[0]);
       derived.forEach(d => {
         let num, den;
+        if (d.type === 'weightedMean') {
+          // Total row only: sum(weight * pct) / sum(weight) over the body rows.
+          // Per-row cells are source data and are never touched.
+          if (!isTot) return;
+          let wsum = 0, psum = 0, any = false;
+          for (const r of rows) {
+            if (isTotalRowLabel(r[0])) continue;
+            const w = r[d.weight], v = r[d.column];
+            if (typeof w !== 'number' || !isFinite(w)) continue;
+            if (typeof v !== 'number' || !isFinite(v)) continue;
+            wsum += w; psum += w * v; any = true;
+          }
+          if (!any || wsum === 0) { row[d.column] = null; return; }
+          row[d.column] = psum / wsum;
+          return;
+        }
         if (d.denominatorScope === 'totalRow') {
           // Checked BEFORE isTot, deliberately. Under this scope every row is a
           // total by label, so the isTot branch would take numerator AND
@@ -1967,7 +2037,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // Total row divides by itself and reads 100%, which is true.
           num = sumDerivedCols(row, d.numerator);
           den = totalRowDenom(d.denominator);
-        } else if (isTot) {
+        } else if (isTot && hasNonTotalRows) {
           num = sumDerivedCols(colSum, d.numerator);
           den = sumDerivedCols(colSum, d.denominator);
         } else {
@@ -1980,7 +2050,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // 'totalRow' with no total row present cannot derive anything, so it
           // leaves every stored value alone rather than blanking rows that are not
           // the table's total. Blanking here would put the dashes back.
-          if (isTot && d.denominatorScope !== 'totalRow') {
+          // hasNonTotalRows guards this too: a lone flagged row took the data
+          // branch above, so a failure there must leave the stored value alone
+          // rather than blank the table's only figure.
+          if (isTot && hasNonTotalRows && d.denominatorScope !== 'totalRow') {
             row[d.column] = null;          // can't derive -> blank Total (renders "—")
           }
           return;                          // per-row: leave stored value as-is
@@ -2007,6 +2080,12 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     // Deferred derived totals -> "—" (never render a summed percentage).
     const covered = new Set(((DERIVED_COLS[tableId]) || []).map(d => d.column));
     const pctCols = schema ? detectPctColumns(schema) : [];
+    // CLCPA-206 interim: tables whose percentage column has a denominator that is
+    // NOT IN THE TABLE. Show what the source stored, with a visible note, rather
+    // than a dash -- the values are the source's own and are the only figures
+    // available until the formula is reproduced from the shared extracts.
+    if (NOT_RECONCILED_TABLES.has(tableId)) return clone;
+
     clone.forEach(row => {
       // CLCPA-200: the STRICT predicate, not isTotalRowLabel.
       //
@@ -2058,6 +2137,41 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    */
   const TOTAL_ROW_STRICT_PENDING = new Set(['J8']);
 
+  /**
+   * CLCPA-206 interim: percentage columns whose denominator is not in the table.
+   *
+   * Both were verified across all three years, and nothing available in either
+   * table reproduces the stored figure:
+   *
+   *   J8 "% of Total"                stores 62 / 38 / 100. Five candidate
+   *                                  denominators give 59.1 to 67.0, none 62.
+   *   F9 "DAC/Non-DAC % of System    stores 0.04/0.07, 0.043/0.083, 0.10/0.17
+   *      Total"                      across 2023-25. DAC/(DAC+non-DAC) gives
+   *                                  0.375/0.343/0.316. "System Total" is not a
+   *                                  column.
+   *
+   * In both, the ROW-level percentages reconcile from the table and the column's
+   * denominator does not -- a figure that was in the source and did not survive
+   * into the payload. CLCPA-206 looks for it in the shared extracts; asking Con
+   * Edison is the step after that, not before.
+   *
+   * Until then these render as stored, with the note below, instead of a dash.
+   * Showing the source's own number and saying it is unverified beats showing
+   * nothing and saying nothing.
+   *
+   * F9 was folded into 206 during Block 3 planning: same missing-denominator
+   * family, same charter. J8's interim was ruled first and is applied here rather
+   * than in phase 2 because routing the KPI panel through rowsForDisplay forces the
+   * question -- get('J8', 0, 3) would otherwise read a dash, fall through to its
+   * own fallback, and quietly move that KPI from the stored 62% to a computed
+   * 65.6% while the table showed 62%.
+   */
+  const NOT_RECONCILED_TABLES = new Set(['F9', 'J8']);
+  const NOT_RECONCILED_NOTE =
+    'The percentage column is shown as reported and has not been reconciled to the ' +
+    'other figures in this table. The underlying denominator is not present in the ' +
+    'source data supplied. Tracked under CLCPA-206.';
+
   function totalRowTestFor(tableId) {
     return TOTAL_ROW_STRICT_PENDING.has(tableId) ? isTotalRowLabel : isStrictTotalRowLabel;
   }
@@ -2099,7 +2213,31 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   // those KPIs. Extending the strip to F/G/J requires first routing those section
   // renderers through applyDerivedCols (follow-up #3). Deferred J1/J2 are never
   // stripped either — the app cannot re-derive them yet.
-  const PERSIST_STRIP_TABLES = new Set(['A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A10', 'F2']);
+  // CLCPA-143: extended from 8 to 25 -- every table with a derive rule except E1.
+  //
+  // The 17 added are F8, G1-G10, J3-J7 and J9. They were held back because three
+  // consumers read their derived cells straight off the store, so stripping them
+  // would have blanked what those consumers show:
+  //
+  //   getJData's get()      8 derived reads across J4/J5/J6/J7/J9 (the J KPI panel)
+  //   readPair              col 2 for every G table (the G borough cards)
+  //   parseE1Categories     E1 col 2 (Section E + the Executive Summary card)
+  //
+  // All three now route through rowsForDisplay, so the store no longer has to hold
+  // a derived value for anything to render. buildBoroughCard needed no change: it
+  // reads cols 1 and 3, which are additive, and computes its own percentage -- the
+  // comment that used to warn about renderSectionF was over-cautious.
+  //
+  // E1 is deliberately NOT here despite gaining a rule in this slice. Adding it
+  // would take the set to 18 and that was not in the agreed scope; its stored total
+  // is simply ignored on display, which is the same position as every other
+  // unstripped table. Flagged for a decision rather than taken.
+  const PERSIST_STRIP_TABLES = new Set([
+    'A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A10', 'F2',
+    'F8',
+    'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10',
+    'J3', 'J4', 'J5', 'J6', 'J7', 'J9',
+  ]);
 
   /**
    * Return a persistence copy of `rows` with derived columns nulled, so the store
@@ -2112,9 +2250,50 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (!Array.isArray(rows) || !PERSIST_STRIP_TABLES.has(tableId)) return rows;
     const cols = (DERIVED_COLS[tableId] || []).map(d => d.column);
     if (!cols.length) return rows;
-    return rows.map(r => {
+
+    /* CLCPA-143: strip a cell ONLY IF the app can rebuild it.
+     *
+     * This used to null every derived cell unconditionally, which is safe exactly
+     * as long as the derive can recompute all of them. It cannot always:
+     *
+     *   G1/2023 and G1/2024 store "Feet Replaced within DAC" percentages with NO
+     *   feet column at all -- numerator and denominator are both null. The
+     *   percentage is the only data in the row. Nulling it on save would delete it
+     *   permanently, and nothing could bring it back.
+     *
+     * Found by the round-trip check: strip, render, and compare against rendering
+     * the unstripped rows. G1 was among the 17 tables this slice adds, so extending
+     * the strip without this would have opened a new data-loss path on save.
+     *
+     * A1/2025 and the A5-A8 group-header rows show the same shape and were ALREADY
+     * exposed under the original eight, so this closes a pre-existing hole as well
+     * as preventing a new one.
+     *
+     * The rule is now self-limiting: run the derive, and null only the cells it
+     * actually produced a value for. A cell the derive cannot rebuild is data, and
+     * data is kept. */
+    // The probe has its derived columns EMPTIED FIRST. Without that, a failed
+    // derive leaves the stored value sitting in the cell and the check below cannot
+    // tell "the engine computed this" from "the engine left it alone" -- which is
+    // precisely the case that must not be stripped. Blank first, and anything that
+    // comes back as a number was genuinely rebuilt.
+    const probe = rows.map(r => {
       const c = r.slice();
       cols.forEach(ci => { if (ci < c.length) c[ci] = null; });
+      return c;
+    });
+    const nonTotal = probe.filter(r => !isTotalRowLabel(r[0]));
+    const len = probe.reduce((m, r) => Math.max(m, r.length), 0);
+    const { colSum } = columnGrandTotals(nonTotal, len);
+    applyDerivedCols(probe, tableId, colSum);
+
+    return rows.map((r, i) => {
+      const c = r.slice();
+      cols.forEach(ci => {
+        if (ci >= c.length) return;
+        const rebuilt = probe[i] ? probe[i][ci] : null;
+        if (typeof rebuilt === 'number' && isFinite(rebuilt)) c[ci] = null;
+      });
       return c;
     });
   }
@@ -2422,6 +2601,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const noteHtml = (mapping.notes && mapping.notes.trim())
       ? `<div class="mapping-note"><strong>Comparability:</strong> ${escapeHtml(mapping.notes)}</div>`
       : '';
+    // CLCPA-206 interim. Reuses the existing mapping-note styling rather than
+    // introducing a class, so no CSS ships with this.
+    const notReconciledHtml = NOT_RECONCILED_TABLES.has(t.id)
+      ? `<div class="mapping-note"><strong>Not reconciled:</strong> ${escapeHtml(NOT_RECONCILED_NOTE)}</div>`
+      : '';
 
     const yearToggleHtml = `
       <div class="year-toggle" data-table="${t.id}">
@@ -2436,6 +2620,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           <h3>${escapeHtml(cleanTitle)}</h3>
           <div class="table-meta-row">${noPrevBadge}${partialBadge}${yearToggleHtml}</div>
           ${noteHtml}
+          ${notReconciledHtml}
         </div>
         <div class="table-card-body">${bodyHtml}</div>
       </div>`;
@@ -10347,7 +10532,18 @@ function renderSectionG() {
       if (!t || !t.data || !t.data[year]) {
         return { dac: null, nondac: null, total: null, dacPct: null };
       }
-      const rows = t.data[year];
+      /* CLCPA-143: derived cells come from the shared rule, not the store.
+       *
+       * This read r[2] -- the derived percentage column for every G table -- off
+       * t.data[year] directly, which is why extending PERSIST_STRIP_TABLES to
+       * G1-G10 would have emptied these borough cards. rowsForDisplay clones and
+       * derives, so the cards now show the same number the report does.
+       *
+       * The fall-back below (compute dacPct from feet when the stored percentage is
+       * absent) is kept deliberately: G10 renders its percentages through the
+       * 'totalRow' scope and the G1-G9 grand-total rows still blank, so a null can
+       * legitimately arrive here. */
+      const rows = rowsForDisplay(t.data[year], getTableSchema(t, year), tableId);
       let dacFeet = null, nondacFeet = null;
       let dacPctRaw = null, nondacPctRaw = null;
 
@@ -11220,10 +11416,32 @@ function renderSectionJ() {
         allYears().forEach(yr => {
           const d = result[yr];
 
+          /* CLCPA-143: read DERIVED cells through the shared rule, not off the store.
+           *
+           * Eight of the 33 get() calls below land on a derived column -- J4 col2/col4,
+           * J5 col2, J6 col2/col4, J7 col4, J9 col2 -- and this helper was reading
+           * t.data[yr] directly. That is why extending PERSIST_STRIP_TABLES to the J
+           * tables would have blanked these KPIs: the store stops holding those
+           * percentages and nothing recomputed them on the way in.
+           *
+           * rowsForDisplay clones and derives, so routing through it makes the KPI
+           * panel read the same numbers the report shows, and makes the strip safe.
+           * Memoised per table because getJData loops every year and the panel asks
+           * for the same table repeatedly. */
+          const displayCache = {};
+          const displayRows = (id) => {
+            if (!(id in displayCache)) {
+              const t = p.tables[id];
+              displayCache[id] = (t && t.data && t.data[yr])
+                ? rowsForDisplay(t.data[yr], getTableSchema(t, yr), id)
+                : null;
+            }
+            return displayCache[id];
+          };
           const get = (id, rowIdx, colIdx) => {
-            const t = p.tables[id];
-            if (!t || !t.data || !t.data[yr] || !t.data[yr][rowIdx]) return null;
-            const v = t.data[yr][rowIdx][colIdx];
+            const rows = displayRows(id);
+            if (!rows || !rows[rowIdx]) return null;
+            const v = rows[rowIdx][colIdx];
             if (typeof v === 'number') return v;
             if (typeof v === 'string') {
               const s = v.trim();
@@ -12562,8 +12780,13 @@ function wireHTooltips() {
    * the Executive Summary header card (CLCPA-157) share one source.
    */
   function parseE1Categories(table, yr) {
-    const rows = table && table.data ? table.data[yr] : null;
-    if (!rows) return [];
+    const raw = table && table.data ? table.data[yr] : null;
+    if (!raw) return [];
+    /* CLCPA-143: dac_pct below is E1 col 2, which becomes a DERIVED column in this
+     * slice. Reading it off the store would return null once E1 joins
+     * PERSIST_STRIP_TABLES, emptying Section E's categories and the Executive
+     * Summary header card. Routed through the shared rule. */
+    const rows = rowsForDisplay(raw, getTableSchema(table, yr), table.id || 'E1');
     const out = [];
     rows.forEach(row => {
       if (!row || !row[0]) return;
