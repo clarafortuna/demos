@@ -11636,7 +11636,7 @@
         "id": "ev_equity_ratio",
         "label": "EV Plug Equity Ratio",
         "format": "ratio",
-        "narrative": "DAC share of EV plug installations divided by the DAC share of residential customers (43.5%). A ratio of 1.0 = parity. Below 1.0 = under-served; above 1.0 = over-indexed (a positive equity outcome).",
+        "narrative": "DAC share of EV plug installations divided by the DAC share of residential customers. A ratio of 1.0 = parity. Below 1.0 = under-served; above 1.0 = over-indexed (a positive equity outcome).",
         "source_calc": "B2 plugs DAC% ÷ J9 customers DAC%",
         "section": "B",
         "values": {
