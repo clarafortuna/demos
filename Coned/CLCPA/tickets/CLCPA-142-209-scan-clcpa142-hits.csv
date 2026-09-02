@@ -1,0 +1,645 @@
+family,tableId,year,row,col,rowLabel,storedValue
+"CLCPA-142","G3","2025",0,2,"Feet Abandoned within DAC",1
+"CLCPA-142","G3","2025",1,2,"Feet Abandoned not in a DAC",0
+"CLCPA-142","G3","2025",2,2,"County Total",1
+"CLCPA-142","G7","2024",0,2,"Feet Abandoned within DAC",0
+"CLCPA-142","G7","2024",1,2,"Feet Abandoned not in a DAC",1
+"CLCPA-142","G7","2024",2,2,"County Total",1
+"CLCPA-142","J3","2024",0,2,"Total in DAC","64%"
+"CLCPA-142","J3","2024",0,4,"Total in DAC","63%"
+"CLCPA-142","J3","2024",1,2,"Total in Non-DAC","36%"
+"CLCPA-142","J3","2024",1,4,"Total in Non-DAC","37%"
+"CLCPA-142","J4","2024",0,2,"Total in DAC","65%"
+"CLCPA-142","J4","2024",0,4,"Total in DAC","66%"
+"CLCPA-142","J4","2024",1,2,"Total in Non-DAC","35%"
+"CLCPA-142","J4","2024",1,4,"Total in Non-DAC","34%"
+"CLCPA-142","J6","2024",0,2,"Total in DAC","60%"
+"CLCPA-142","J6","2024",0,4,"Total in DAC","59%"
+"CLCPA-142","J6","2024",1,2,"Total in Non-DAC","40%"
+"CLCPA-142","J6","2024",1,4,"Total in Non-DAC","41%"
+"CLCPA-142","J6","2023",0,2,"Total in DAC","61%"
+"CLCPA-142","J6","2023",0,4,"Total in DAC","56%"
+"CLCPA-142","J6","2023",1,2,"Total in Non-DAC","39%"
+"CLCPA-142","J6","2023",1,4,"Total in Non-DAC","44%"
+"CLCPA-142","J7","2024",0,4,"Total in DAC","66%"
+"CLCPA-142","J7","2024",1,4,"Total in Non-DAC","34%"
+"CLCPA-142","J7","2023",0,4,"Total in DAC","66%"
+"CLCPA-142","J7","2023",1,4,"Total in Non-DAC","34%"
+"CLCPA-142","J9","2024",0,2,"Residential Customers",0.43
+"CLCPA-142","J9","2024",0,4,"Residential Customers",0.57
+"CLCPA-142","J9","2023",0,2,"Total Number of Residential Customers",0.43
+"CLCPA-142","J9","2023",0,4,"Total Number of Residential Customers",0.57
+"CLCPA-142","J9","2025",0,2,"Residential Customers",0.44
+"CLCPA-142","J9","2025",0,4,"Residential Customers",0.56
+"CLCPA-142","A1","2024",0,3,"Affordable Multifamily Energy Efficiency Program",0.92
+"CLCPA-142","A1","2024",1,3,"Clean Heat – Commercial & Industrial Air Source Heat Pump",0.24
+"CLCPA-142","A1","2024",2,3,"Clean Heat – Commercial & Industrial Ground Source Heat Pump",0
+"CLCPA-142","A1","2024",3,3,"Clean Heat – Midstream Heat Pump Water Heater",0.37
+"CLCPA-142","A1","2024",4,3,"Clean Heat – Multifamily Air Source Heat Pump",0.65
+"CLCPA-142","A1","2024",5,3,"Clean Heat – Multifamily Ground Source Heat Pump",0.98
+"CLCPA-142","A1","2024",6,3,"Clean Heat – Residential Air Source Heat Pump",0.48
+"CLCPA-142","A1","2024",7,3,"Clean Heat – Residential Ground Source Heat Pump",0.1
+"CLCPA-142","A1","2024",8,3,"Clean Heat – Small-Medium Business Air Source Heat Pump",0.32
+"CLCPA-142","A1","2024",9,3,"Commercial & Industrial",0.17
+"CLCPA-142","A1","2024",10,3,"Commercial Kitchen",0.46
+"CLCPA-142","A1","2024",11,3,"Efficiency Starter Program - LMI",1
+"CLCPA-142","A1","2024",12,3,"EmPower+",1
+"CLCPA-142","A1","2024",13,3,"Instant Lighting",0.38
+"CLCPA-142","A1","2024",14,3,"Marketplace",0.33
+"CLCPA-142","A1","2024",15,3,"Midstream Water and Space Heating",0.82
+"CLCPA-142","A1","2024",16,3,"Multifamily",0.45
+"CLCPA-142","A1","2024",17,3,"Multifamily - Fuel-Switch",0.04
+"CLCPA-142","A1","2024",18,3,"Commercial Water Heaters PEI (Pump Energy Index)",0.08
+"CLCPA-142","A1","2024",19,3,"Pilots",0.37
+"CLCPA-142","A1","2024",20,3,"Real Time Energy Management",0.57
+"CLCPA-142","A1","2024",21,3,"Retail Lighting",-0.76
+"CLCPA-142","A1","2024",22,3,"Retail Lighting - LMI",1
+"CLCPA-142","A1","2024",23,3,"Retail Products",0.63
+"CLCPA-142","A1","2024",24,3,"Small-Medium Business",0.52
+"CLCPA-142","A1","2024",25,3,"Smart Kids",0.98
+"CLCPA-142","A1","2024",26,3,"Weather Ready",0.21
+"CLCPA-142","A1","2024",27,3,"Total",0.54
+"CLCPA-142","A1","2023",0,3,"AMEEP - Electric & Gas",0.93
+"CLCPA-142","A1","2023",1,3,"Clean Heat – C&I ASHP",0.43
+"CLCPA-142","A1","2023",2,3,"Clean Heat – C&I GSHP",0
+"CLCPA-142","A1","2023",3,3,"Clean Heat – Multifamily ASHP",0.74
+"CLCPA-142","A1","2023",4,3,"Clean Heat – Multifamily GSHP",1
+"CLCPA-142","A1","2023",5,3,"Clean Heat – Residential ASHP",0.43
+"CLCPA-142","A1","2023",6,3,"Clean Heat – Residential GSHP",0.08
+"CLCPA-142","A1","2023",7,3,"Clean Heat – SMB ASHP",0.4
+"CLCPA-142","A1","2023",8,3,"C&I Program – Electric & Gas",0.28
+"CLCPA-142","A1","2023",9,3,"Commercial Kitchen",0.47
+"CLCPA-142","A1","2023",10,3,"Efficiency Starter Program - LMI",1
+"CLCPA-142","A1","2023",11,3,"Instant Lighting",0.18
+"CLCPA-142","A1","2023",12,3,"Marketplace – Electric & Gas",0.34
+"CLCPA-142","A1","2023",13,3,"Multifamily Program – Electric & Gas",0.41
+"CLCPA-142","A1","2023",14,3,"Pilots",0.35
+"CLCPA-142","A1","2023",15,3,"Residential Weatherization – Electric & Gas",0.13
+"CLCPA-142","A1","2023",16,3,"Retail Lighting",0.56
+"CLCPA-142","A1","2023",17,3,"Retail Lighting - LMI",1
+"CLCPA-142","A1","2023",18,3,"Retail Products – Electric & Gas",0.56
+"CLCPA-142","A1","2023",19,3,"SMB Program",0.43
+"CLCPA-142","A1","2023",20,3,"Smart Kids – Electric & Gas",0.53
+"CLCPA-142","A1","2023",21,3,"Smart Kids LMI – Electric & Gas",1
+"CLCPA-142","A1","2023",22,3,"Midstream Water and Space Heating",0.52
+"CLCPA-142","A1","2023",23,3,"Residential Program – Gas",0.02
+"CLCPA-142","A1","2023",24,3,"Total",0.49
+"CLCPA-142","A1","2025",0,3,"Affordable Multifamily Energy Efficiency Program",0.88
+"CLCPA-142","A1","2025",1,3,"Clean Heat – Commercial & Industrial Air Source Heat Pump",0.16
+"CLCPA-142","A1","2025",2,3,"Clean Heat – Commercial & Industrial Ground Source Heat Pump",0
+"CLCPA-142","A1","2025",3,3,"Clean Heat – Midstream Heat Pump Water Heater",0.45
+"CLCPA-142","A1","2025",4,3,"Clean Heat – Multifamily Air Source Heat Pump",0.68
+"CLCPA-142","A1","2025",5,3,"Clean Heat – Multifamily Ground Source Heat Pump",0.97
+"CLCPA-142","A1","2025",6,3,"Clean Heat – Residential Air Source Heat Pump",0.58
+"CLCPA-142","A1","2025",7,3,"Clean Heat – Residential Ground Source Heat Pump",0.17
+"CLCPA-142","A1","2025",8,3,"Clean Heat – Small-Medium Business Air Source Heat Pump",0.44
+"CLCPA-142","A1","2025",9,3,"Commercial & Industrial",0.2
+"CLCPA-142","A1","2025",10,3,"Commercial Kitchen",0
+"CLCPA-142","A1","2025",11,3,"EmPower+",1
+"CLCPA-142","A1","2025",12,3,"Instant Lighting",0.51
+"CLCPA-142","A1","2025",13,3,"Midstream Water and Space Heating",0.7
+"CLCPA-142","A1","2025",14,3,"Multifamily",0.52
+"CLCPA-142","A1","2025",15,3,"Multifamily - Fuel-Switch",0.08
+"CLCPA-142","A1","2025",16,3,"Commercial Water Heaters PEI (Pump Energy Index)",0.12
+"CLCPA-142","A1","2025",17,3,"Pilots",0
+"CLCPA-142","A1","2025",18,3,"Real Time Energy Management",0.68
+"CLCPA-142","A1","2025",19,3,"Retail Products",0.63
+"CLCPA-142","A1","2025",20,3,"Small-Medium Business",0.46
+"CLCPA-142","A1","2025",21,3,"Weather Ready",0.25
+"CLCPA-142","A1","2025",22,3,"Total",9.480000000000002
+"CLCPA-142","A2","2024",0,3,"Affordable Multifamily Energy Efficiency Program",0.91
+"CLCPA-142","A2","2024",1,3,"Clean Heat – Commercial & Industrial Air Source Heat Pump",0.17
+"CLCPA-142","A2","2024",2,3,"Clean Heat – Commercial & Industrial Ground Source Heat Pump",0
+"CLCPA-142","A2","2024",3,3,"Clean Heat – Midstream Heat Pump Water Heater",0.49
+"CLCPA-142","A2","2024",4,3,"Clean Heat – Multifamily Air Source Heat Pump",0.64
+"CLCPA-142","A2","2024",5,3,"Clean Heat – Multifamily Ground Source Heat Pump",0.99
+"CLCPA-142","A2","2024",6,3,"Clean Heat – Residential Air Source Heat Pump",0.43
+"CLCPA-142","A2","2024",7,3,"Clean Heat – Residential Ground Source Heat Pump",0.08
+"CLCPA-142","A2","2024",8,3,"Clean Heat – Small-Medium Business Air Source Heat Pump",0.39
+"CLCPA-142","A2","2024",9,3,"Commercial & Industrial",0.29
+"CLCPA-142","A2","2024",10,3,"Commercial Water Heaters PEI (Pump Energy Index)",0.04
+"CLCPA-142","A2","2024",11,3,"Efficiency Starter Program - LMI",1
+"CLCPA-142","A2","2024",12,3,"EmPower+",1
+"CLCPA-142","A2","2024",13,3,"Instant Lighting",0.36
+"CLCPA-142","A2","2024",14,3,"Marketplace",0.36
+"CLCPA-142","A2","2024",15,3,"Midstream Water and Space Heating",0.56
+"CLCPA-142","A2","2024",16,3,"Multifamily",0.36
+"CLCPA-142","A2","2024",17,3,"Multifamily - Fuel-Switch",0.06
+"CLCPA-142","A2","2024",18,3,"Real Time Energy Management",0.57
+"CLCPA-142","A2","2024",19,3,"Residential Home Energy Reports",0.43
+"CLCPA-142","A2","2024",20,3,"Retail Lighting - LMI27",1
+"CLCPA-142","A2","2024",21,3,"Retail Products",0.65
+"CLCPA-142","A2","2024",22,3,"Small-Medium Business",0.53
+"CLCPA-142","A2","2024",23,3,"Smart Kids",1
+"CLCPA-142","A2","2024",24,3,"Weather Ready",0.2
+"CLCPA-142","A2","2024",25,3,"Grand Total",0.57
+"CLCPA-142","A2","2023",0,3,"AMEEP – Electric & Gas",0.89
+"CLCPA-142","A2","2023",1,3,"Clean Heat – C&I ASHP",0.57
+"CLCPA-142","A2","2023",2,3,"Clean Heat – C&I GSHP",0
+"CLCPA-142","A2","2023",3,3,"Clean Heat – Midstream Heat Pump Water Heater",0.02
+"CLCPA-142","A2","2023",4,3,"Clean Heat – Multifamily ASHP",0.68
+"CLCPA-142","A2","2023",5,3,"Clean Heat – Multifamily GSHP",1
+"CLCPA-142","A2","2023",6,3,"Clean Heat – Residential ASHP",0.39
+"CLCPA-142","A2","2023",7,3,"Clean Heat – Residential GSHP",0.08
+"CLCPA-142","A2","2023",8,3,"Clean Heat – SMB ASHP",0.32
+"CLCPA-142","A2","2023",9,3,"C&I Program – Electric & Gas",0.16
+"CLCPA-142","A2","2023",10,3,"Commercial Kitchen",0.37
+"CLCPA-142","A2","2023",11,3,"Efficiency Starter Program - LMI",1
+"CLCPA-142","A2","2023",12,3,"EmPower – Electric & Gas",1
+"CLCPA-142","A2","2023",13,3,"Instant Lighting",0.17
+"CLCPA-142","A2","2023",14,3,"Marketplace – Electric & Gas",0.32
+"CLCPA-142","A2","2023",15,3,"Midstream Water and Space Heating",0.44
+"CLCPA-142","A2","2023",16,3,"Multifamily Program – Electric & Gas",0.36
+"CLCPA-142","A2","2023",17,3,"Multifamily - Fuel-Switch",0.36
+"CLCPA-142","A2","2023",18,3,"Real Time Energy Management",1
+"CLCPA-142","A2","2023",19,3,"Residential Home Energy Reports – Electric & Gas",0.41
+"CLCPA-142","A2","2023",20,3,"Residential Weatherization",0.14
+"CLCPA-142","A2","2023",21,3,"Retail Lighting",0.54
+"CLCPA-142","A2","2023",22,3,"Retail Lighting - LMI",1
+"CLCPA-142","A2","2023",23,3,"Retail Products – Electric & Gas",0.55
+"CLCPA-142","A2","2023",24,3,"SMB Program – Electric & Gas",0.42
+"CLCPA-142","A2","2023",25,3,"Smart Kids – Electric & Gas",0.55
+"CLCPA-142","A2","2023",26,3,"Smart Kids LMI – Electric & Gas",1
+"CLCPA-142","A2","2023",27,3,"Virtual Commissioning",0.34
+"CLCPA-142","A2","2023",28,3,"Total",0.41
+"CLCPA-142","A2","2025",0,3,"Affordable Multifamily Energy Efficiency Program",0.88
+"CLCPA-142","A2","2025",1,3,"Clean Heat – Commercial & Industrial Air Source Heat Pump",0.18
+"CLCPA-142","A2","2025",3,3,"Clean Heat – Midstream Heat Pump Water Heater",0.45
+"CLCPA-142","A2","2025",4,3,"Clean Heat – Multifamily Air Source Heat Pump",0.64
+"CLCPA-142","A2","2025",5,3,"Clean Heat – Multifamily Ground Source Heat Pump",0.96
+"CLCPA-142","A2","2025",6,3,"Clean Heat – Residential Air Source Heat Pump",0.53
+"CLCPA-142","A2","2025",7,3,"Clean Heat – Residential Ground Source Heat Pump",0.13
+"CLCPA-142","A2","2025",8,3,"Clean Heat – Small-Medium Business Air Source Heat Pump",0.45
+"CLCPA-142","A2","2025",9,3,"Commercial & Industrial",0.23
+"CLCPA-142","A2","2025",10,3,"Commercial Water Heaters PEI (Pump Energy Index)",0.14
+"CLCPA-142","A2","2025",11,3,"EmPower+",1
+"CLCPA-142","A2","2025",12,3,"Instant Lighting",0.49
+"CLCPA-142","A2","2025",13,3,"Midstream Water and Space Heating",0.7
+"CLCPA-142","A2","2025",14,3,"Multifamily",0.51
+"CLCPA-142","A2","2025",16,3,"Real Time Energy Management",0.47
+"CLCPA-142","A2","2025",17,3,"Residential Home Energy Reports",0.43
+"CLCPA-142","A2","2025",18,3,"Retail Products",0.6
+"CLCPA-142","A2","2025",19,3,"Small-Medium Business",0.42
+"CLCPA-142","A2","2025",20,3,"Virtual Commissioning",0.65
+"CLCPA-142","A2","2025",21,3,"Weather Ready",0.2
+"CLCPA-142","A2","2025",22,3,"Grand Total",0.52
+"CLCPA-142","A5","2024",1,3,"HVAC",0.09
+"CLCPA-142","A5","2024",2,3,"Clean Heat – Commercial & Industrial Air Source Heat Pump To",0.09
+"CLCPA-142","A5","2024",4,3,"HVAC",0
+"CLCPA-142","A5","2024",5,3,"Clean Heat – Commercial & Industrial Ground Source Heat Pump",0
+"CLCPA-142","A5","2024",7,3,"HVAC",0.44
+"CLCPA-142","A5","2024",8,3,"Clean Heat – Small-Medium Business Air Source Heat Pump Tota",0.44
+"CLCPA-142","A5","2024",10,3,"Appliances",1
+"CLCPA-142","A5","2024",11,3,"Building Shell",0.26
+"CLCPA-142","A5","2024",12,3,"Compressed Air",0.36
+"CLCPA-142","A5","2024",13,3,"Domestic Hot Water",0.5
+"CLCPA-142","A5","2024",14,3,"HVAC",0.29
+"CLCPA-142","A5","2024",15,3,"HVAC - Control",0.33
+"CLCPA-142","A5","2024",16,3,"Lighting",0.24
+"CLCPA-142","A5","2024",17,3,"Lighting - Control",0.45
+"CLCPA-142","A5","2024",18,3,"Motors and Drives",0.23
+"CLCPA-142","A5","2024",19,3,"Process Equipment",0.27
+"CLCPA-142","A5","2024",20,3,"Refrigeration",0.5
+"CLCPA-142","A5","2024",21,3,"Commercial & Industrial Total",0.29
+"CLCPA-142","A5","2024",23,3,"Motors and Drives",0.11
+"CLCPA-142","A5","2024",24,3,"Commercial Water Heaters PEI Total",0.11
+"CLCPA-142","A5","2024",26,3,"Lighting",0.31
+"CLCPA-142","A5","2024",27,3,"Instant Lighting Total",0.31
+"CLCPA-142","A5","2024",29,3,"Domestic Hot Water",0.44
+"CLCPA-142","A5","2024",30,3,"HVAC",0.58
+"CLCPA-142","A5","2024",31,3,"Midstream Water and Space Heating Total",0.49
+"CLCPA-142","A5","2024",33,3,"Building Shell",0.86
+"CLCPA-142","A5","2024",34,3,"Domestic Hot Water",0
+"CLCPA-142","A5","2024",35,3,"HVAC",0.69
+"CLCPA-142","A5","2024",36,3,"HVAC - Control",0.51
+"CLCPA-142","A5","2024",37,3,"Lighting",0.49
+"CLCPA-142","A5","2024",38,3,"Lighting - Control",0.66
+"CLCPA-142","A5","2024",39,3,"Motors and Drives",0.51
+"CLCPA-142","A5","2024",40,3,"Refrigeration",0.61
+"CLCPA-142","A5","2024",41,3,"Refrigeration - Control",0.56
+"CLCPA-142","A5","2024",42,3,"Small-Medium Business Total",0.5
+"CLCPA-142","A5","2024",43,3,"Commercial Total",0.48
+"CLCPA-142","A5","2023",1,3,"HVAC",0.33
+"CLCPA-142","A5","2023",2,3,"Subtotal",0.33
+"CLCPA-142","A5","2023",4,3,"HVAC",0
+"CLCPA-142","A5","2023",5,3,"Subtotal",0
+"CLCPA-142","A5","2023",7,3,"HVAC",0.08
+"CLCPA-142","A5","2023",8,3,"Subtotal",0.08
+"CLCPA-142","A5","2023",10,3,"HVAC",0.38
+"CLCPA-142","A5","2023",11,3,"Subtotal",0.38
+"CLCPA-142","A5","2023",13,3,"Appliance",0.67
+"CLCPA-142","A5","2023",14,3,"Appliance Controls",0
+"CLCPA-142","A5","2023",15,3,"Building Shell",0.24
+"CLCPA-142","A5","2023",16,3,"Compressed Air",0.55
+"CLCPA-142","A5","2023",17,3,"HVAC",0.35
+"CLCPA-142","A5","2023",18,3,"HVAC Control",0.24
+"CLCPA-142","A5","2023",19,3,"Lighting",0.34
+"CLCPA-142","A5","2023",20,3,"Lighting Control",0.33
+"CLCPA-142","A5","2023",21,3,"Motors and Drives",0.16
+"CLCPA-142","A5","2023",22,3,"Process Equipment",0.32
+"CLCPA-142","A5","2023",23,3,"Refrigeration",0.38
+"CLCPA-142","A5","2023",24,3,"Subtotal",0.29
+"CLCPA-142","A5","2023",26,3,"Appliance",0.34
+"CLCPA-142","A5","2023",27,3,"HVAC",0.3
+"CLCPA-142","A5","2023",28,3,"Refrigeration",0.45
+"CLCPA-142","A5","2023",29,3,"Subtotal",0.35
+"CLCPA-142","A5","2023",31,3,"Lighting",0.25
+"CLCPA-142","A5","2023",32,3,"Subtotal",0.25
+"CLCPA-142","A5","2023",34,3,"HVAC Control",1
+"CLCPA-142","A5","2023",35,3,"Subtotal",1
+"CLCPA-142","A5","2023",37,3,"Building Shell",0.45
+"CLCPA-142","A5","2023",38,3,"HVAC",0.45
+"CLCPA-142","A5","2023",39,3,"HVAC Control",0.45
+"CLCPA-142","A5","2023",40,3,"Lighting",0.49
+"CLCPA-142","A5","2023",41,3,"Lighting Control",0.2
+"CLCPA-142","A5","2023",42,3,"Motors and Drives",0.5
+"CLCPA-142","A5","2023",43,3,"Refrigeration",0.6
+"CLCPA-142","A5","2023",44,3,"Refrigeration Control",0.56
+"CLCPA-142","A5","2023",45,3,"Subtotal",0.52
+"CLCPA-142","A5","2023",47,3,"HVAC Control",0.38
+"CLCPA-142","A5","2023",48,3,"Subtotal",0.38
+"CLCPA-142","A5","2023",49,3,"Commercial Programs Total Installations",0.39
+"CLCPA-142","A5","2025",1,3,"HVAC",0.37
+"CLCPA-142","A5","2025",2,3,"Clean Heat – Commercial & Industrial Air Source Heat Pump To",0.37
+"CLCPA-142","A5","2025",4,3,"HVAC",0
+"CLCPA-142","A5","2025",5,3,"Clean Heat – Commercial & Industrial Ground Source Heat Pump",0
+"CLCPA-142","A5","2025",7,3,"Building Shell",0
+"CLCPA-142","A5","2025",8,3,"HVAC",0.47
+"CLCPA-142","A5","2025",9,3,"Clean Heat – Small-Medium Business Air Source Heat Pump Tota",0.47
+"CLCPA-142","A5","2025",11,3,"Appliance",0
+"CLCPA-142","A5","2025",12,3,"Building Shell",0.17
+"CLCPA-142","A5","2025",13,3,"Compressed Air",0.36
+"CLCPA-142","A5","2025",14,3,"Domestic Hot Water",0
+"CLCPA-142","A5","2025",15,3,"HVAC",0.38
+"CLCPA-142","A5","2025",16,3,"HVAC - Control",0.17
+"CLCPA-142","A5","2025",17,3,"Lighting",0.22
+"CLCPA-142","A5","2025",18,3,"Lighting - Control",0.45
+"CLCPA-142","A5","2025",19,3,"Motors and Drives",0.19
+"CLCPA-142","A5","2025",20,3,"Other",0
+"CLCPA-142","A5","2025",21,3,"Process Equipment",0.33
+"CLCPA-142","A5","2025",22,3,"Refrigeration",0.4
+"CLCPA-142","A5","2025",23,3,"Commercial & Industrial Total",0.25
+"CLCPA-142","A5","2025",25,3,"Motors and Drives",0
+"CLCPA-142","A5","2025",26,3,"Refrigeration",0.53
+"CLCPA-142","A5","2025",27,3,"Commercial Water Heaters PEI Total",0.49
+"CLCPA-142","A5","2025",29,3,"Lighting",0.35
+"CLCPA-142","A5","2025",30,3,"Lighting - Control",0.29
+"CLCPA-142","A5","2025",31,3,"Instant Lighting Total",0.34
+"CLCPA-142","A5","2025",33,3,"Domestic Hot Water",0.61
+"CLCPA-142","A5","2025",34,3,"HVAC",0.69
+"CLCPA-142","A5","2025",35,3,"Midstream Water and Space Heating Total",0.65
+"CLCPA-142","A5","2025",37,3,"Building Shell",0.33
+"CLCPA-142","A5","2025",38,3,"HVAC",0.16
+"CLCPA-142","A5","2025",39,3,"HVAC - Control",0.37
+"CLCPA-142","A5","2025",40,3,"Lighting",0.36
+"CLCPA-142","A5","2025",41,3,"Lighting - Control",0.22
+"CLCPA-142","A5","2025",42,3,"Motors and Drives",0.4
+"CLCPA-142","A5","2025",43,3,"Refrigeration",0.53
+"CLCPA-142","A5","2025",44,3,"Refrigeration - Control",0.5
+"CLCPA-142","A5","2025",45,3,"Small-Medium Business Total",0.37
+"CLCPA-142","A5","2025",47,3,"HVAC - Control",0.65
+"CLCPA-142","A5","2025",48,3,"Virtual Commissioning Total",0.65
+"CLCPA-142","A5","2025",49,3,"Commercial Total",0.37
+"CLCPA-142","A6","2024",1,3,"Appliances",1
+"CLCPA-142","A6","2024",2,3,"Building Shell",0.95
+"CLCPA-142","A6","2024",3,3,"Domestic Hot Water",0.94
+"CLCPA-142","A6","2024",4,3,"Domestic Hot Water - Control",0.96
+"CLCPA-142","A6","2024",5,3,"HVAC",0.93
+"CLCPA-142","A6","2024",6,3,"HVAC - Control",0.91
+"CLCPA-142","A6","2024",7,3,"Lighting",0.76
+"CLCPA-142","A6","2024",8,3,"Lighting - Control",1
+"CLCPA-142","A6","2024",9,3,"Motors and Drives",0.82
+"CLCPA-142","A6","2024",10,3,"Affordable Multifamily Energy Efficiency Program Total",0.86
+"CLCPA-142","A6","2024",12,3,"Building Shell",0.58
+"CLCPA-142","A6","2024",13,3,"HVAC",0.73
+"CLCPA-142","A6","2024",14,3,"Clean Heat – Multifamily Air Source Heat Pump Total",0.73
+"CLCPA-142","A6","2024",16,3,"HVAC",0.88
+"CLCPA-142","A6","2024",17,3,"Clean Heat – Multifamily Ground Source Heat Pump Total",0.88
+"CLCPA-142","A6","2024",19,3,"Building Shell",0.56
+"CLCPA-142","A6","2024",20,3,"Domestic Hot Water",0.77
+"CLCPA-142","A6","2024",21,3,"Domestic Hot Water - Control",0
+"CLCPA-142","A6","2024",22,3,"HVAC",0.2
+"CLCPA-142","A6","2024",23,3,"HVAC - Control",0.43
+"CLCPA-142","A6","2024",24,3,"Lighting",0.19
+"CLCPA-142","A6","2024",25,3,"Motors and Drives",0.03
+"CLCPA-142","A6","2024",26,3,"Multifamily Total",0.26
+"CLCPA-142","A6","2024",29,3,"HVAC",0.11
+"CLCPA-142","A6","2024",31,3,"Multifamily - Fuel-Switch Total",0.11
+"CLCPA-142","A6","2024",32,3,"Multifamily Programs Installations Total",0.66
+"CLCPA-142","A6","2023",1,3,"Building Shell",0.94
+"CLCPA-142","A6","2023",2,3,"Domestic Hot Water Control",1
+"CLCPA-142","A6","2023",3,3,"HVAC",0.84
+"CLCPA-142","A6","2023",4,3,"HVAC Control",0.89
+"CLCPA-142","A6","2023",5,3,"Lighting",0.88
+"CLCPA-142","A6","2023",6,3,"Lighting Control",0.88
+"CLCPA-142","A6","2023",7,3,"Motors and Drives",0.55
+"CLCPA-142","A6","2023",8,3,"Process Equipment",0.7
+"CLCPA-142","A6","2023",9,3,"Refrigeration",1
+"CLCPA-142","A6","2023",10,3,"Subtotal",0.92
+"CLCPA-142","A6","2023",12,3,"HVAC",0.65
+"CLCPA-142","A6","2023",13,3,"Subtotal",0.65
+"CLCPA-142","A6","2023",15,3,"HVAC",1
+"CLCPA-142","A6","2023",16,3,"Subtotal",1
+"CLCPA-142","A6","2023",18,3,"Appliance Controls",0
+"CLCPA-142","A6","2023",19,3,"Building Shell",0.73
+"CLCPA-142","A6","2023",20,3,"HVAC",0.27
+"CLCPA-142","A6","2023",21,3,"HVAC Control",0.4
+"CLCPA-142","A6","2023",22,3,"Lighting",0.27
+"CLCPA-142","A6","2023",23,3,"Lighting Control",0.15
+"CLCPA-142","A6","2023",24,3,"Motors and Drives",0.2
+"CLCPA-142","A6","2023",25,3,"Process Equipment",0.13
+"CLCPA-142","A6","2023",26,3,"Subtotal",0.39
+"CLCPA-142","A6","2023",28,3,"HVAC",0.2
+"CLCPA-142","A6","2023",29,3,"Subtotal",0.2
+"CLCPA-142","A6","2023",30,3,"Multifamily Programs Total Installations",0.68
+"CLCPA-142","A6","2025",1,3,"Appliances",1
+"CLCPA-142","A6","2025",2,3,"Building Shell",0.9
+"CLCPA-142","A6","2025",3,3,"Domestic Hot Water",0.64
+"CLCPA-142","A6","2025",4,3,"Domestic Hot Water - Control",0.83
+"CLCPA-142","A6","2025",5,3,"HVAC",0.82
+"CLCPA-142","A6","2025",6,3,"HVAC - Control",0.86
+"CLCPA-142","A6","2025",7,3,"Lighting",0.79
+"CLCPA-142","A6","2025",8,3,"Motors and Drives",0.67
+"CLCPA-142","A6","2025",9,3,"Affordable Multifamily Energy Efficiency Program Total",0.85
+"CLCPA-142","A6","2025",11,3,"Building Shell",0.56
+"CLCPA-142","A6","2025",12,3,"HVAC",0.41
+"CLCPA-142","A6","2025",13,3,"Clean Heat – Multifamily Air Source Heat Pump Total",0.41
+"CLCPA-142","A6","2025",15,3,"Building Shell",0.86
+"CLCPA-142","A6","2025",16,3,"HVAC",0.8
+"CLCPA-142","A6","2025",17,3,"Clean Heat – Multifamily Ground Source Heat Pump Total",0.81
+"CLCPA-142","A6","2025",19,3,"Appliances",1
+"CLCPA-142","A6","2025",20,3,"Building Shell",0.76
+"CLCPA-142","A6","2025",21,3,"Domestic Hot Water",0.43
+"CLCPA-142","A6","2025",22,3,"Domestic Hot Water - Control",0.47
+"CLCPA-142","A6","2025",23,3,"HVAC",0.33
+"CLCPA-142","A6","2025",24,3,"HVAC - Control",0.54
+"CLCPA-142","A6","2025",25,3,"Lighting",0.21
+"CLCPA-142","A6","2025",26,3,"Motors and Drives",0.1
+"CLCPA-142","A6","2025",27,3,"Multifamily Total",0.37
+"CLCPA-142","A6","2025",32,3,"Multifamily Programs Installations Total",0.71
+"CLCPA-142","A7","2024",1,3,"HVAC - Control",0.5
+"CLCPA-142","A7","2024",2,3,"Real Time Energy Management Total",0.5
+"CLCPA-142","A7","2024",3,3,"Multisector Programs Installations Total",0.5
+"CLCPA-142","A8","2024",1,3,"Domestic Hot Water",0.39
+"CLCPA-142","A8","2024",2,3,"Clean Heat – Midstream Heat Pump Water Heater Total",0.39
+"CLCPA-142","A8","2024",4,3,"HVAC",0.43
+"CLCPA-142","A8","2024",5,3,"Clean Heat – Residential Air Source Heat Pump Total",0.43
+"CLCPA-142","A8","2024",7,3,"HVAC",0.09
+"CLCPA-142","A8","2024",8,3,"Clean Heat – Residential Ground Source Heat Pump Total",0.09
+"CLCPA-142","A8","2024",10,3,"Appliances",1
+"CLCPA-142","A8","2024",11,3,"Building Shell",1
+"CLCPA-142","A8","2024",12,3,"Domestic Hot Water",1
+"CLCPA-142","A8","2024",13,3,"Domestic Hot Water - Control",1
+"CLCPA-142","A8","2024",14,3,"HVAC",1
+"CLCPA-142","A8","2024",15,3,"HVAC - Control",1
+"CLCPA-142","A8","2024",16,3,"Lighting",1
+"CLCPA-142","A8","2024",17,3,"Refrigeration",1
+"CLCPA-142","A8","2024",18,3,"EmPower+ Total",1
+"CLCPA-142","A8","2024",20,3,"Appliance - Controls",0.35
+"CLCPA-142","A8","2024",21,3,"Appliances",0.6
+"CLCPA-142","A8","2024",22,3,"Domestic Hot Water - Control",0.5
+"CLCPA-142","A8","2024",23,3,"HVAC",0
+"CLCPA-142","A8","2024",24,3,"HVAC - Control",0.34
+"CLCPA-142","A8","2024",25,3,"Lighting",0.29
+"CLCPA-142","A8","2024",26,3,"Marketplace Total",0.34
+"CLCPA-142","A8","2024",28,3,"Lighting",1
+"CLCPA-142","A8","2024",29,3,"Retail Lighting - LMI Total",1
+"CLCPA-142","A8","2024",31,3,"Building Shell",0.52
+"CLCPA-142","A8","2024",32,3,"Retail Products Total",0.52
+"CLCPA-142","A8","2024",34,3,"Domestic Hot Water - Control",1
+"CLCPA-142","A8","2024",35,3,"Lighting",1
+"CLCPA-142","A8","2024",36,3,"Smart Kids Total",1
+"CLCPA-142","A8","2024",38,3,"Building Shell",0.2
+"CLCPA-142","A8","2024",39,3,"Weather Ready Total",0.2
+"CLCPA-142","A8","2024",40,3,"Residential Programs Installations Total",0.5
+"CLCPA-142","A8","2023",1,3,"HVAC",0.4
+"CLCPA-142","A8","2023",2,3,"Subtotal",0.4
+"CLCPA-142","A8","2023",4,3,"HVAC",0.1
+"CLCPA-142","A8","2023",5,3,"Subtotal",0.1
+"CLCPA-142","A8","2023",7,3,"Appliance",0.07
+"CLCPA-142","A8","2023",8,3,"Appliance Controls",0.4
+"CLCPA-142","A8","2023",9,3,"Domestic Hot Water Control",0.15
+"CLCPA-142","A8","2023",10,3,"HVAC Control",0.32
+"CLCPA-142","A8","2023",11,3,"Lighting",0.35
+"CLCPA-142","A8","2023",12,3,"Subtotal",0.32
+"CLCPA-142","A8","2023",14,3,"HVAC",0.15
+"CLCPA-142","A8","2023",15,3,"Subtotal",0.15
+"CLCPA-142","A8","2023",17,3,"Lighting",0.56
+"CLCPA-142","A8","2023",18,3,"Subtotal",0.56
+"CLCPA-142","A8","2023",20,3,"Lighting",1
+"CLCPA-142","A8","2023",21,3,"Subtotal",1
+"CLCPA-142","A8","2023",23,3,"Appliance",0.52
+"CLCPA-142","A8","2023",24,3,"Appliance Controls",0.66
+"CLCPA-142","A8","2023",25,3,"Building Shell",0.5
+"CLCPA-142","A8","2023",26,3,"Domestic Hot Water Control",0.5
+"CLCPA-142","A8","2023",27,3,"Subtotal",0.53
+"CLCPA-142","A8","2023",29,3,"Domestic Hot Water Control",0.56
+"CLCPA-142","A8","2023",30,3,"Lighting",0.54
+"CLCPA-142","A8","2023",31,3,"Subtotal",0.55
+"CLCPA-142","A8","2023",32,3,"Residential Programs Total Installations",0.36
+"CLCPA-142","A8","2025",1,3,"HVAC",0.49
+"CLCPA-142","A8","2025",2,3,"Clean Heat – Midstream Heat Pump Water Heater Total",0.49
+"CLCPA-142","A8","2025",4,3,"HVAC",0.55
+"CLCPA-142","A8","2025",5,3,"Clean Heat – Residential Air Source Heat Pump Total",0.55
+"CLCPA-142","A8","2025",7,3,"HVAC",0.13
+"CLCPA-142","A8","2025",8,3,"Clean Heat – Residential Ground Source Heat Pump Total",0.13
+"CLCPA-142","A8","2025",10,3,"Building Shell",1
+"CLCPA-142","A8","2025",11,3,"Domestic Hot Water",1
+"CLCPA-142","A8","2025",12,3,"Domestic Hot Water - Control",1
+"CLCPA-142","A8","2025",13,3,"HVAC",1
+"CLCPA-142","A8","2025",14,3,"HVAC - Control",1
+"CLCPA-142","A8","2025",15,3,"Lighting",1
+"CLCPA-142","A8","2025",16,3,"Refrigeration",1
+"CLCPA-142","A8","2025",17,3,"EmPower+ Total",1
+"CLCPA-142","A8","2025",19,3,"Building Shell",0.58
+"CLCPA-142","A8","2025",20,3,"Retail Products Total",0.58
+"CLCPA-142","A8","2025",22,3,"HVAC",0.22
+"CLCPA-142","A8","2025",23,3,"Weather Ready Total",0.22
+"CLCPA-142","A8","2025",24,3,"Residential Programs Installations Total",0.57
+"CLCPA-142","A8","2025",25,3,"Total CES Programs Installations",0.57
+"CLCPA-142","A10","2024",1,3,"Installations","38%"
+"CLCPA-142","A10","2024",1,6,"Installations","51%"
+"CLCPA-142","A10","2024",2,3,"Commercial","39%"
+"CLCPA-142","A10","2024",2,6,"Commercial","48%"
+"CLCPA-142","A10","2024",3,3,"Multifamily","68%"
+"CLCPA-142","A10","2024",3,6,"Multifamily","66%"
+"CLCPA-142","A10","2024",4,6,"Multisector","50%"
+"CLCPA-142","A10","2024",5,3,"Residential","36%"
+"CLCPA-142","A10","2024",5,6,"Residential","50%"
+"CLCPA-142","A10","2025",1,3,"Installations","51%"
+"CLCPA-142","A10","2025",1,6,"Installations","57%"
+"CLCPA-142","A10","2025",2,3,"Commercial","48%"
+"CLCPA-142","A10","2025",2,6,"Commercial","37%"
+"CLCPA-142","A10","2025",3,3,"Multifamily","66%"
+"CLCPA-142","A10","2025",3,6,"Multifamily","71%"
+"CLCPA-142","A10","2025",4,3,"Multisector","50%"
+"CLCPA-142","A10","2025",4,6,"Multisector","0%"
+"CLCPA-142","A10","2025",5,3,"Residential","50%"
+"CLCPA-142","A10","2025",5,6,"Residential","57%"
+"CLCPA-142","F2","2024",0,2,"Non-Excludable",0.11
+"CLCPA-142","F2","2024",0,4,"Non-Excludable",0.89
+"CLCPA-142","F2","2024",1,2,"Excludable",0.19
+"CLCPA-142","F2","2024",1,4,"Excludable",0.81
+"CLCPA-142","F2","2024",2,2,"Grand Total",0.12
+"CLCPA-142","F2","2024",2,4,"Grand Total",0.88
+"CLCPA-142","F2","2023",0,2,"Non-Excludable",0.0797
+"CLCPA-142","F2","2023",0,4,"Non-Excludable",0.9203
+"CLCPA-142","F2","2023",1,2,"Excludable",0.0992
+"CLCPA-142","F2","2023",1,4,"Excludable",0.9008
+"CLCPA-142","F2","2023",2,2,"Grand Total",0.0813
+"CLCPA-142","F2","2023",2,4,"Grand Total",0.9187
+"CLCPA-142","F2","2025",0,2,"Non-Excludable",0.1002
+"CLCPA-142","F2","2025",0,4,"Non-Excludable",0.8998
+"CLCPA-142","F2","2025",1,2,"Excludable",0.41609999999999997
+"CLCPA-142","F2","2025",1,4,"Excludable",0.5839
+"CLCPA-142","F2","2025",2,2,"Grand Total",0.1356
+"CLCPA-142","F2","2025",2,4,"Grand Total",0.8644
+"CLCPA-142","F8","2024",0,2,"Bronx",0.11
+"CLCPA-142","F8","2024",0,4,"Bronx",0.01
+"CLCPA-142","F8","2024",1,2,"Brooklyn",0.1
+"CLCPA-142","F8","2024",1,4,"Brooklyn",0.16
+"CLCPA-142","F8","2024",2,2,"Manhattan",0.07
+"CLCPA-142","F8","2024",2,4,"Manhattan",0.14
+"CLCPA-142","F8","2024",3,2,"Queens",0.1
+"CLCPA-142","F8","2024",3,4,"Queens",0.17
+"CLCPA-142","F8","2024",4,2,"Staten Island",0.01
+"CLCPA-142","F8","2024",4,4,"Staten Island",0.04
+"CLCPA-142","F8","2024",5,2,"Westchester",0.05
+"CLCPA-142","F8","2024",5,4,"Westchester",0.05
+"CLCPA-142","F8","2024",6,2,"Grand Total",0.44
+"CLCPA-142","F8","2024",6,4,"Grand Total",0.56
+"CLCPA-142","F8","2023",0,2,"Bronx",0.12
+"CLCPA-142","F8","2023",0,4,"Bronx",0.02
+"CLCPA-142","F8","2023",1,2,"Brooklyn",0.12
+"CLCPA-142","F8","2023",1,4,"Brooklyn",0.16
+"CLCPA-142","F8","2023",2,2,"Manhattan",0.07
+"CLCPA-142","F8","2023",2,4,"Manhattan",0.14
+"CLCPA-142","F8","2023",3,2,"Queens",0.08
+"CLCPA-142","F8","2023",3,4,"Queens",0.15
+"CLCPA-142","F8","2023",4,2,"Staten Island",0.01
+"CLCPA-142","F8","2023",4,4,"Staten Island",0.04
+"CLCPA-142","F8","2023",5,2,"Westchester",0.05
+"CLCPA-142","F8","2023",5,4,"Westchester",0.06
+"CLCPA-142","F8","2023",6,2,"Grand Total",0.44
+"CLCPA-142","F8","2023",6,4,"Grand Total",0.56
+"CLCPA-142","F8","2025",0,2,"Bronx",0.1211
+"CLCPA-142","F8","2025",0,4,"Bronx",0.0155
+"CLCPA-142","F8","2025",1,2,"Brooklyn",0.1084
+"CLCPA-142","F8","2025",1,4,"Brooklyn",0.17620000000000002
+"CLCPA-142","F8","2025",2,2,"Manhattan",0.0703
+"CLCPA-142","F8","2025",2,4,"Manhattan",0.1367
+"CLCPA-142","F8","2025",3,2,"Queens",0.0834
+"CLCPA-142","F8","2025",3,4,"Queens",0.13849999999999998
+"CLCPA-142","F8","2025",4,2,"Staten Island",0.013300000000000001
+"CLCPA-142","F8","2025",4,4,"Staten Island",0.0363
+"CLCPA-142","F8","2025",5,2,"Westchester",0.049800000000000004
+"CLCPA-142","F8","2025",5,4,"Westchester",0.0506
+"CLCPA-142","F8","2025",6,2,"Grand Total",0.44630000000000003
+"CLCPA-142","F8","2025",6,4,"Grand Total",0.5537
+"CLCPA-142","G1","2025",0,2,"Feet Replaced within DAC",0.47
+"CLCPA-142","G1","2025",1,2,"Feet Replaced not in a DAC",0.53
+"CLCPA-142","G1","2025",2,2,"Systemwide Total",1
+"CLCPA-142","G2","2024",0,2,"Feet Replaced within DAC",0.83
+"CLCPA-142","G2","2024",1,2,"Feet Replaced not in a DAC",0.17
+"CLCPA-142","G2","2024",2,2,"County Total",1
+"CLCPA-142","G2","2023",0,2,"Feet Replaced within DAC",0.9
+"CLCPA-142","G2","2023",1,2,"Feet Replaced not in a DAC",0.1
+"CLCPA-142","G2","2023",2,2,"County Total",1
+"CLCPA-142","G2","2025",0,2,"Feet Replaced within DAC",0.9
+"CLCPA-142","G2","2025",1,2,"Feet Replaced not in a DAC",0.1
+"CLCPA-142","G2","2025",2,2,"County Total",1
+"CLCPA-142","G3","2024",0,2,"Feet Abandoned within DAC",0.7
+"CLCPA-142","G3","2024",1,2,"Feet Abandoned not in a DAC",0.3
+"CLCPA-142","G3","2024",2,2,"County Total",1
+"CLCPA-142","G4","2024",0,2,"Feet Replaced within DAC",0.42
+"CLCPA-142","G4","2024",1,2,"Feet Replaced not in a DAC",0.58
+"CLCPA-142","G4","2024",2,2,"County Total",1
+"CLCPA-142","G4","2023",0,2,"Feet Replaced within DAC",0.34
+"CLCPA-142","G4","2023",1,2,"Feet Replaced not in a DAC",0.66
+"CLCPA-142","G4","2023",2,2,"County Total",1
+"CLCPA-142","G4","2025",0,2,"Feet Replaced within DAC",0.59
+"CLCPA-142","G4","2025",1,2,"Feet Replaced not in a DAC",0.41
+"CLCPA-142","G4","2025",2,2,"County Total",1
+"CLCPA-142","G5","2024",0,2,"Feet Abandoned within DAC",0.54
+"CLCPA-142","G5","2024",1,2,"Feet Abandoned not in a DAC",0.46
+"CLCPA-142","G5","2024",2,2,"County Total",1
+"CLCPA-142","G5","2025",0,2,"Feet Abandoned within DAC",0.91
+"CLCPA-142","G5","2025",1,2,"Feet Abandoned not in a DAC",0.09
+"CLCPA-142","G5","2025",2,2,"County Total",1
+"CLCPA-142","G6","2024",0,2,"Feet Replaced within DAC",0.23
+"CLCPA-142","G6","2024",1,2,"Feet Replaced not in a DAC",0.77
+"CLCPA-142","G6","2024",2,2,"County Total",1
+"CLCPA-142","G6","2023",0,2,"Feet Replaced within DAC",0.34
+"CLCPA-142","G6","2023",1,2,"Feet Replaced not in a DAC",0.66
+"CLCPA-142","G6","2023",2,2,"County Total",1
+"CLCPA-142","G6","2025",0,2,"Feet Replaced within DAC",0.26
+"CLCPA-142","G6","2025",1,2,"Feet Replaced not in a DAC",0.74
+"CLCPA-142","G6","2025",2,2,"County Total",1
+"CLCPA-142","G7","2025",0,2,"Feet Abandoned within DAC",0.46
+"CLCPA-142","G7","2025",1,2,"Feet Abandoned not in a DAC",0.54
+"CLCPA-142","G7","2025",2,2,"County Total",1
+"CLCPA-142","G8","2024",0,2,"Feet Replaced within DAC",0.41
+"CLCPA-142","G8","2024",1,2,"Feet Replaced not in a DAC",0.59
+"CLCPA-142","G8","2024",2,2,"County Total",1
+"CLCPA-142","G8","2023",0,2,"Feet Replaced within DAC",0.35
+"CLCPA-142","G8","2023",1,2,"Feet Replaced not in a DAC",0.65
+"CLCPA-142","G8","2023",2,2,"County Total",1
+"CLCPA-142","G8","2025",0,2,"Feet Replaced within DAC",0.36
+"CLCPA-142","G8","2025",1,2,"Feet Replaced not in a DAC",0.64
+"CLCPA-142","G8","2025",2,2,"County Total",1
+"CLCPA-142","G9","2024",0,2,"Feet Abandoned within DAC",0.32
+"CLCPA-142","G9","2024",1,2,"Feet Abandoned not in a DAC",0.68
+"CLCPA-142","G9","2024",2,2,"County Total",1
+"CLCPA-142","G9","2025",0,2,"Feet Abandoned within DAC",0.53
+"CLCPA-142","G9","2025",1,2,"Feet Abandoned not in a DAC",0.47
+"CLCPA-142","G9","2025",2,2,"County Total",1
+"CLCPA-142","G10","2024",0,2,"Total mT CH4 in Non-DACs",0.48
+"CLCPA-142","G10","2024",1,2,"Total mT CH4 in DACs",0.52
+"CLCPA-142","G10","2024",2,2,"Grand Total",1
+"CLCPA-142","G10","2023",0,2,"Total mT CH4 in Non-DACs",0.54
+"CLCPA-142","G10","2023",1,2,"Total mT CH4 in DACs",0.46
+"CLCPA-142","G10","2023",2,2,"Grand Total",1
+"CLCPA-142","G10","2025",0,2,"Total mT CH4 in Non-DACs",0.46
+"CLCPA-142","G10","2025",1,2,"Total mT CH4 in DACs",0.54
+"CLCPA-142","G10","2025",2,2,"Grand Total",1
+"CLCPA-142","J3","2023",0,2,"Total in DAC","60%"
+"CLCPA-142","J3","2023",0,4,"Total in DAC","57%"
+"CLCPA-142","J3","2023",1,2,"Total in Non-DAC","40%"
+"CLCPA-142","J3","2023",1,4,"Total in Non-DAC","43%"
+"CLCPA-142","J3","2025",0,2,"Total in DAC","66%"
+"CLCPA-142","J3","2025",0,4,"Total in DAC","65%"
+"CLCPA-142","J3","2025",1,2,"Total in Non-DAC","34%"
+"CLCPA-142","J3","2025",1,4,"Total in Non-DAC","35%"
+"CLCPA-142","J3","2025",2,2,"Total","100%"
+"CLCPA-142","J3","2025",2,4,"Total","100%"
+"CLCPA-142","J4","2023",0,2,"Total in DAC","63%"
+"CLCPA-142","J4","2023",0,4,"Total in DAC","66%"
+"CLCPA-142","J4","2023",1,2,"Total in Non-DAC","37%"
+"CLCPA-142","J4","2023",1,4,"Total in Non-DAC","34%"
+"CLCPA-142","J4","2025",0,2,"Total in DAC","68%"
+"CLCPA-142","J4","2025",0,4,"Total in DAC","69%"
+"CLCPA-142","J4","2025",1,2,"Total in Non-DAC","32%"
+"CLCPA-142","J4","2025",1,4,"Total in Non-DAC","31%"
+"CLCPA-142","J4","2025",2,2,"Total","100%"
+"CLCPA-142","J4","2025",2,4,"Total","100%"
+"CLCPA-142","J5","2024",0,2,"Number of residential service disconnections for non-payment",0.6
+"CLCPA-142","J5","2024",0,4,"Number of residential service disconnections for non-payment",0.4
+"CLCPA-142","J5","2024",1,2,"Number of residential service restorations due to payment",0.59
+"CLCPA-142","J5","2024",1,4,"Number of residential service restorations due to payment",0.41
+"CLCPA-142","J5","2023",0,2,"Number of residential service disconnections for non-payment",0.54
+"CLCPA-142","J5","2023",0,4,"Number of residential service disconnections for non-payment",0.46
+"CLCPA-142","J5","2023",1,2,"Number of residential service restorations due to payment",0.54
+"CLCPA-142","J5","2023",1,4,"Number of residential service restorations due to payment",0.46
+"CLCPA-142","J5","2025",0,2,"Number of residential service disconnections for non-payment",0.62
+"CLCPA-142","J5","2025",0,4,"Number of residential service disconnections for non-payment",0.38
+"CLCPA-142","J5","2025",1,2,"Number of residential service restorations due to payment",0.61
+"CLCPA-142","J5","2025",1,4,"Number of residential service restorations due to payment",0.39
+"CLCPA-142","J6","2025",0,2,"Total in DAC","63%"
+"CLCPA-142","J6","2025",0,4,"Total in DAC","64%"
+"CLCPA-142","J6","2025",1,2,"Total in Non-DAC","37%"
+"CLCPA-142","J6","2025",1,4,"Total in Non-DAC","36%"
+"CLCPA-142","J6","2025",2,2,"Total","100%"
+"CLCPA-142","J6","2025",2,4,"Total","100%"
+"CLCPA-142","J7","2025",0,4,"Total in DAC","66%"
+"CLCPA-142","J7","2025",1,4,"Total in Non-DAC","34%"
+"CLCPA-142","J7","2025",2,4,"Total","100%"
