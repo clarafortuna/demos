@@ -1,0 +1,20 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-09-02T17:10:13.284Z",
+  "note": "Pre-deploy snapshot of the live cr2bf_dactest/payload.json. Restore by PATCHing webresourceset({webResourceId}) with the base64 of payload.json, then PublishXml.",
+  "resources": [
+    {
+      "file": "payload.json",
+      "webResourceName": "cr2bf_dactest/payload.json",
+      "webResourceId": "7d151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 296646,
+      "sha256": "8d606ecb9a003f506f679b2dff741094df9f1ad63b7bebaa58b81f4720aff6dd",
+      "savedAs": "payload.json",
+      "willBeReplaced": true
+    }
+  ],
+  "deployed": {
+    "bytes": 296638,
+    "sha256": "4757f60e896850ca857f9291573faa7abf27c0f4372daf4d64069915acfb0c16"
+  }
+}
