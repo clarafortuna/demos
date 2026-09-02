@@ -1,0 +1,162 @@
+[
+  {
+    "@odata.etag": "W/\"7083218\"",
+    "cr2bf_year": 2025,
+    "cr2bf_dacingesttestchangehistoryid": "e037c774-5e79-f111-ab0e-000d3a192d14",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":21,\"colIdx\":2,\"rowLabel\":\"Weather Ready\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":676272,\"newVal\":999},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":2,\"rowLabel\":\"Total\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":148672653,\"newVal\":147997380}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-06T17:16:42Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7083222\"",
+    "cr2bf_year": 2025,
+    "cr2bf_dacingesttestchangehistoryid": "d282448d-5e79-f111-ab0e-000d3a192d14",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":2,\"colIdx\":2,\"rowLabel\":\"Clean Heat – Commercial & Industrial Ground Source Heat Pump\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":null,\"newVal\":0},{\"kind\":\"cell\",\"rowIdx\":10,\"colIdx\":2,\"rowLabel\":\"Commercial Kitchen\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":null,\"newVal\":0},{\"kind\":\"cell\",\"rowIdx\":10,\"colIdx\":3,\"rowLabel\":\"Commercial Kitchen\",\"colLabel\":\"% in DACs\",\"oldVal\":null,\"newVal\":0},{\"kind\":\"cell\",\"rowIdx\":21,\"colIdx\":2,\"rowLabel\":\"Weather Ready\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":999,\"newVal\":676272},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":2,\"rowLabel\":\"Total\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":147997380,\"newVal\":148672653}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-06T17:17:24Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"6730933\"",
+    "cr2bf_year": 2020,
+    "cr2bf_dacingesttestchangehistoryid": "25c0074f-4586-41dd-8d37-6290a8b58cdb",
+    "cr2bf_changes": "Initial creation",
+    "cr2bf_email": "usera@example.com",
+    "cr2bf_tableid": "T1",
+    "cr2bf_savedat": "2024-06-01T13:05:00Z",
+    "cr2bf_user": "UserA"
+  },
+  {
+    "@odata.etag": "W/\"6805257\"",
+    "cr2bf_year": 2025,
+    "cr2bf_dacingesttestchangehistoryid": "079152b6-0765-f111-ab0c-70a8a547ea0e",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":16,\"colIdx\":2,\"rowLabel\":\"Commercial Water Heaters PEI (Pump Energy Index)\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":20000,\"newVal\":999999},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":2,\"rowLabel\":\"Total\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":148672653,\"newVal\":149652652},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":3,\"rowLabel\":\"Total\",\"colLabel\":\"% in DACs\",\"oldVal\":0.53,\"newVal\":9.480000000000002}]",
+    "cr2bf_email": "usere@example.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-06-10T20:05:31Z",
+    "cr2bf_user": "UserE"
+  },
+  {
+    "@odata.etag": "W/\"6797505\"",
+    "cr2bf_year": 2025,
+    "cr2bf_dacingesttestchangehistoryid": "d9e00c61-6664-f111-ab0c-7c1e521c7110",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":16,\"colIdx\":2,\"rowLabel\":\"Commercial Water Heaters PEI (Pump Energy Index)\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":20000,\"newVal\":99999},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":2,\"rowLabel\":\"Total\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":148672653,\"newVal\":148752652},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":3,\"rowLabel\":\"Total\",\"colLabel\":\"% in DACs\",\"oldVal\":0.53,\"newVal\":9.480000000000002}]",
+    "cr2bf_email": "usere@example.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-06-10T00:50:38Z",
+    "cr2bf_user": "UserE"
+  },
+  {
+    "@odata.etag": "W/\"6990004\"",
+    "cr2bf_year": 2025,
+    "cr2bf_dacingesttestchangehistoryid": "6c0c7485-3a6f-f111-ab0d-7c1e521c7110",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":17,\"colIdx\":2,\"rowLabel\":\"Pilots\",\"colLabel\":\"DAC Funding ($)\",\"oldVal\":null,\"newVal\":0},{\"kind\":\"cell\",\"rowIdx\":17,\"colIdx\":3,\"rowLabel\":\"Pilots\",\"colLabel\":\"% in DACs\",\"oldVal\":null,\"newVal\":0},{\"kind\":\"cell\",\"rowIdx\":22,\"colIdx\":3,\"rowLabel\":\"Total\",\"colLabel\":\"% in DACs\",\"oldVal\":0.53,\"newVal\":9.480000000000002}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-06-23T19:34:17Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7181738\"",
+    "cr2bf_year": 2099,
+    "cr2bf_dacingesttestchangehistoryid": "aff81dd7-e27b-f111-ab0e-7ced8d1dac5d",
+    "cr2bf_changes": "[{\"kind\":\"added\",\"rowIdx\":0,\"newRow\":[\"Affordable Multifamily Energy Efficiency Program\",39000000,34000000,null]},{\"kind\":\"added\",\"rowIdx\":1,\"newRow\":[\"Clean Heat – Commercial & Industrial Air Source Heat Pump\",19000000,3000000,null]},{\"kind\":\"added\",\"rowIdx\":2,\"newRow\":[\"Clean Heat – Commercial & Industrial Ground Source Heat Pump\",916000,0,null]}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-09T22:09:23Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7181748\"",
+    "cr2bf_year": 2099,
+    "cr2bf_dacingesttestchangehistoryid": "a6ab4165-e47b-f111-ab0e-7ced8d1dac5d",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":0,\"colIdx\":1,\"rowLabel\":\"Affordable Multifamily Energy Efficiency Program\",\"colLabel\":\"Total Funds Expended ($)\",\"oldVal\":39000000,\"newVal\":49000000},{\"kind\":\"cell\",\"rowIdx\":1,\"colIdx\":1,\"rowLabel\":\"Clean Heat – Commercial & Industrial Air Source Heat Pump\",\"colLabel\":\"Total Funds Expended ($)\",\"oldVal\":19000000,\"newVal\":29000000},{\"kind\":\"cell\",\"rowIdx\":2,\"colIdx\":1,\"rowLabel\":\"Clean Heat – Commercial & Industrial Ground Source Heat Pump\",\"colLabel\":\"Total Funds Expended ($)\",\"oldVal\":916000,\"newVal\":1000000}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-09T22:20:33Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7181752\"",
+    "cr2bf_year": 2099,
+    "cr2bf_dacingesttestchangehistoryid": "3550fa74-e67b-f111-ab0e-7ced8d1dac5d",
+    "cr2bf_changes": "[{\"kind\":\"deleted\",\"rowIdx\":2,\"oldRow\":[\"Clean Heat – Commercial & Industrial Ground Source Heat Pump\",1000000,0,null]}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-09T22:35:17Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7183072\"",
+    "cr2bf_year": 2100,
+    "cr2bf_dacingesttestchangehistoryid": "dd41ffc8-6d7c-f111-ab0e-7ced8d1dac5d",
+    "cr2bf_changes": "[{\"kind\":\"added\",\"rowIdx\":0,\"newRow\":[\"Affordable Multifamily Energy Efficiency Program\",88888888,222222,null]}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-10T14:44:02Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7183089\"",
+    "cr2bf_year": 2100,
+    "cr2bf_dacingesttestchangehistoryid": "4dcc4472-6e7c-f111-ab0e-7ced8d1dac5d",
+    "cr2bf_changes": "[{\"kind\":\"cell\",\"rowIdx\":0,\"colIdx\":1,\"rowLabel\":\"Affordable Multifamily Energy Efficiency Program\",\"colLabel\":\"Total Funds Expended ($)\",\"oldVal\":88888888,\"newVal\":999999}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A1",
+    "cr2bf_savedat": "2026-07-10T14:48:43Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"7183136\"",
+    "cr2bf_year": 2100,
+    "cr2bf_dacingesttestchangehistoryid": "7fc8fc4d-7f7c-f111-ab0e-7ced8d1dac5d",
+    "cr2bf_changes": "[{\"kind\":\"added\",\"rowIdx\":0,\"newRow\":[\"Affordable Multifamily Energy Efficiency Program\",1000000,250000,null]}]",
+    "cr2bf_email": "Emely@clarafortuna.com",
+    "cr2bf_tableid": "A2",
+    "cr2bf_savedat": "2026-07-10T16:49:24Z",
+    "cr2bf_user": "Emely Rodriguez"
+  },
+  {
+    "@odata.etag": "W/\"6730942\"",
+    "cr2bf_year": 2023,
+    "cr2bf_dacingesttestchangehistoryid": "21d70e3f-68d5-435f-8aff-8574fc382943",
+    "cr2bf_changes": "Added new entries",
+    "cr2bf_email": "userd@example.com",
+    "cr2bf_tableid": "T4",
+    "cr2bf_savedat": "2024-06-04T18:05:00Z",
+    "cr2bf_user": "UserD"
+  },
+  {
+    "@odata.etag": "W/\"6730944\"",
+    "cr2bf_year": 2024,
+    "cr2bf_dacingesttestchangehistoryid": "bdb6ac89-6880-4dee-8985-b9b0a628692a",
+    "cr2bf_changes": "Fixed errors",
+    "cr2bf_email": "usere@example.com",
+    "cr2bf_tableid": "T5",
+    "cr2bf_savedat": "2024-06-05T19:20:00Z",
+    "cr2bf_user": "UserE"
+  },
+  {
+    "@odata.etag": "W/\"6730937\"",
+    "cr2bf_year": 2021,
+    "cr2bf_dacingesttestchangehistoryid": "d6ab7498-315c-40fa-89af-c53caa522ed9",
+    "cr2bf_changes": "Updated records",
+    "cr2bf_email": "userb@example.com",
+    "cr2bf_tableid": "T2",
+    "cr2bf_savedat": "2024-06-02T14:35:00Z",
+    "cr2bf_user": "UserB"
+  },
+  {
+    "@odata.etag": "W/\"6730940\"",
+    "cr2bf_year": 2022,
+    "cr2bf_dacingesttestchangehistoryid": "f7002464-d2db-4d8b-8fdf-e6ebe0594bd6",
+    "cr2bf_changes": "Deleted obsolete data",
+    "cr2bf_email": "userc@example.com",
+    "cr2bf_tableid": "T3",
+    "cr2bf_savedat": "2024-06-03T15:50:00Z",
+    "cr2bf_user": "UserC"
+  }
+]

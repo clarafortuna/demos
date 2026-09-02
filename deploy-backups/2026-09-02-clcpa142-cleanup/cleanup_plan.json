@@ -1,0 +1,5019 @@
+{
+  "generatedAt": "2026-09-02T22:27:04.214Z",
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "phase": 1,
+  "readOnly": true,
+  "getRequests": 3,
+  "backupDir": "c:/Users/emely/Desktop/Projects/demos/deploy-backups/2026-09-02-clcpa142-cleanup",
+  "backupManifest": {
+    "org": "https://org9076e69b.crm.dynamics.com",
+    "capturedAt": "2026-09-02T22:27:04.198Z",
+    "capturedBy": "44d1f3d9-8f03-f111-8408-00224831be5d",
+    "note": "Verbatim pre-cleanup snapshot of the CLCPA ingest store. Restore a record by PATCHing cr2bf_dacingesttesttabledata1s(<id>) with its cr2bf_rows, or re-create a deleted record by POSTing its fields. No history entries were touched by the cleanup, so changehistory.json is a reference copy only.",
+    "tables": [
+      {
+        "set": "cr2bf_dacingesttesttabledata1s",
+        "idField": "cr2bf_dacingesttesttabledata1id",
+        "records": 149,
+        "file": "tabledata.json",
+        "bytes": 119254,
+        "sha256": "1fdd355932054c3fce070b0c898a4116226f461d1dcc3542420b95d5d48a08ba"
+      },
+      {
+        "set": "cr2bf_dacingesttestchangehistories",
+        "idField": "cr2bf_dacingesttestchangehistoryid",
+        "records": 16,
+        "file": "changehistory.json",
+        "bytes": 9192,
+        "sha256": "871b58f7e9b03a3e822c73669b17fcf955f6ec82f9fe3793b314575118ce5bd1"
+      }
+    ]
+  },
+  "rule": "Emely 2026-09-02: whole records byte-equal to the payload are DELETED; records where any NON-derived cell differs are KEPT with their derived cells nulled. A1/2025 is pre-ruled: keep the two typed zeros, null 9.48.",
+  "counts": {
+    "total": 149,
+    "toDelete": 148,
+    "keepAndNull": 1,
+    "derivedOnlyDiff": 0,
+    "noPayloadTarget": 0,
+    "unparsable": 0
+  },
+  "buckets": {
+    "delete": [
+      {
+        "id": "6ddb093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "B1:2024",
+        "tableId": "B1",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "6edb093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "B1:2023",
+        "tableId": "B1",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "6fdb093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "B1:2025",
+        "tableId": "B1",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "70db093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "B2:2024",
+        "tableId": "B2",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "71db093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "B2:2023",
+        "tableId": "B2",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "72db093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "B2:2025",
+        "tableId": "B2",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "77db093b-2a64-f111-ab0c-7c1e521c7110",
+        "key": "C2:2023",
+        "tableId": "C2",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "0c982141-2a64-f111-ab0c-7c1e521c7110",
+        "key": "G1:2024",
+        "tableId": "G1",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "0d982141-2a64-f111-ab0c-7c1e521c7110",
+        "key": "G1:2023",
+        "tableId": "G1",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "13982141-2a64-f111-ab0c-7c1e521c7110",
+        "key": "G3:2025",
+        "tableId": "G3",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 1
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "bd9d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "G7:2024",
+        "tableId": "G7",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 1
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "d39d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J3:2024",
+        "tableId": "J3",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "64%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "63%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "36%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "37%"
+          }
+        ]
+      },
+      {
+        "id": "d69d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J4:2024",
+        "tableId": "J4",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "65%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "66%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "35%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "34%"
+          }
+        ]
+      },
+      {
+        "id": "dc9d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J6:2024",
+        "tableId": "J6",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "60%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "59%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "40%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "41%"
+          }
+        ]
+      },
+      {
+        "id": "dd9d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J6:2023",
+        "tableId": "J6",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "61%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "56%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "39%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "44%"
+          }
+        ]
+      },
+      {
+        "id": "df9d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J7:2024",
+        "tableId": "J7",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 2,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "66%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "34%"
+          }
+        ]
+      },
+      {
+        "id": "e09d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J7:2023",
+        "tableId": "J7",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 2,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "66%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "34%"
+          }
+        ]
+      },
+      {
+        "id": "e29d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J8:2024",
+        "tableId": "J8",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "e39d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J8:2023",
+        "tableId": "J8",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "e59d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J9:2024",
+        "tableId": "J9",
+        "year": "2024",
+        "rowCount": 1,
+        "cellsToNull": 2,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.43
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.57
+          }
+        ]
+      },
+      {
+        "id": "e69d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J9:2023",
+        "tableId": "J9",
+        "year": "2023",
+        "rowCount": 1,
+        "cellsToNull": 2,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.43
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.57
+          }
+        ]
+      },
+      {
+        "id": "e79d2347-2a64-f111-ab0c-7c1e521c7110",
+        "key": "J9:2025",
+        "tableId": "J9",
+        "year": "2025",
+        "rowCount": 1,
+        "cellsToNull": 2,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.44
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.56
+          }
+        ]
+      },
+      {
+        "id": "8c3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A1:2024",
+        "tableId": "A1",
+        "year": "2024",
+        "rowCount": 28,
+        "cellsToNull": 28,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 3,
+            "stored": 0.92
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.24
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.98
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.48
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.1
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.32
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.17
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.46
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.82
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.04
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.57
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": -0.76
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.63
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.98
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.21
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.54
+          }
+        ]
+      },
+      {
+        "id": "8d3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A1:2023",
+        "tableId": "A1",
+        "year": "2023",
+        "rowCount": 25,
+        "cellsToNull": 25,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 3,
+            "stored": 0.93
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.74
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.28
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.47
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 0.18
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.41
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.35
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.13
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.53
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.02
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.49
+          }
+        ]
+      },
+      {
+        "id": "8f3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A2:2024",
+        "tableId": "A2",
+        "year": "2024",
+        "rowCount": 26,
+        "cellsToNull": 26,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 3,
+            "stored": 0.91
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.17
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.64
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.99
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.39
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.29
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.04
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.06
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.57
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.53
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.57
+          }
+        ]
+      },
+      {
+        "id": "903bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A2:2023",
+        "tableId": "A2",
+        "year": "2023",
+        "rowCount": 29,
+        "cellsToNull": 29,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 3,
+            "stored": 0.89
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.57
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.02
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.68
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.39
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.32
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.16
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.17
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.32
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.44
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.41
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.14
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.54
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.42
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 28,
+            "col": 3,
+            "stored": 0.41
+          }
+        ]
+      },
+      {
+        "id": "913bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A2:2025",
+        "tableId": "A2",
+        "year": "2025",
+        "rowCount": 23,
+        "cellsToNull": 21,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 3,
+            "stored": 0.88
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.18
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.64
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.96
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.53
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.13
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.23
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.14
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.7
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.51
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.47
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.6
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.42
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.52
+          }
+        ]
+      },
+      {
+        "id": "923bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A3:2024",
+        "tableId": "A3",
+        "year": "2024",
+        "rowCount": 27,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "933bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A3:2023",
+        "tableId": "A3",
+        "year": "2023",
+        "rowCount": 29,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "943bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A3:2025",
+        "tableId": "A3",
+        "year": "2025",
+        "rowCount": 23,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "963bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A4:2024",
+        "tableId": "A4",
+        "year": "2024",
+        "rowCount": 27,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "973bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A4:2023",
+        "tableId": "A4",
+        "year": "2023",
+        "rowCount": 29,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "983bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A4:2025",
+        "tableId": "A4",
+        "year": "2025",
+        "rowCount": 23,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "993bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A5:2024",
+        "tableId": "A5",
+        "year": "2024",
+        "rowCount": 44,
+        "cellsToNull": 36,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.09
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.09
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.44
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.44
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 0.26
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.29
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.24
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.23
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.27
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.29
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.11
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.11
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.31
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.31
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 0.44
+          },
+          {
+            "row": 30,
+            "col": 3,
+            "stored": 0.58
+          },
+          {
+            "row": 31,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 33,
+            "col": 3,
+            "stored": 0.86
+          },
+          {
+            "row": 34,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 35,
+            "col": 3,
+            "stored": 0.69
+          },
+          {
+            "row": 36,
+            "col": 3,
+            "stored": 0.51
+          },
+          {
+            "row": 37,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 38,
+            "col": 3,
+            "stored": 0.66
+          },
+          {
+            "row": 39,
+            "col": 3,
+            "stored": 0.51
+          },
+          {
+            "row": 40,
+            "col": 3,
+            "stored": 0.61
+          },
+          {
+            "row": 41,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 42,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 43,
+            "col": 3,
+            "stored": 0.48
+          }
+        ]
+      },
+      {
+        "id": "9a3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A5:2023",
+        "tableId": "A5",
+        "year": "2023",
+        "rowCount": 50,
+        "cellsToNull": 40,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.67
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.24
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.35
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.24
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.16
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.32
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.29
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.3
+          },
+          {
+            "row": 28,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 0.35
+          },
+          {
+            "row": 31,
+            "col": 3,
+            "stored": 0.25
+          },
+          {
+            "row": 32,
+            "col": 3,
+            "stored": 0.25
+          },
+          {
+            "row": 34,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 35,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 37,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 38,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 39,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 40,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 41,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 42,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 43,
+            "col": 3,
+            "stored": 0.6
+          },
+          {
+            "row": 44,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 45,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 47,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 48,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 49,
+            "col": 3,
+            "stored": 0.39
+          }
+        ]
+      },
+      {
+        "id": "9b3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A5:2025",
+        "tableId": "A5",
+        "year": "2025",
+        "rowCount": 50,
+        "cellsToNull": 41,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.47
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.47
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.17
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.38
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.17
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.22
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.19
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.25
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.53
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 0.35
+          },
+          {
+            "row": 30,
+            "col": 3,
+            "stored": 0.29
+          },
+          {
+            "row": 31,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 33,
+            "col": 3,
+            "stored": 0.61
+          },
+          {
+            "row": 34,
+            "col": 3,
+            "stored": 0.69
+          },
+          {
+            "row": 35,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 37,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 38,
+            "col": 3,
+            "stored": 0.16
+          },
+          {
+            "row": 39,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 40,
+            "col": 3,
+            "stored": 0.36
+          },
+          {
+            "row": 41,
+            "col": 3,
+            "stored": 0.22
+          },
+          {
+            "row": 42,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 43,
+            "col": 3,
+            "stored": 0.53
+          },
+          {
+            "row": 44,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 45,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 47,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 48,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 49,
+            "col": 3,
+            "stored": 0.37
+          }
+        ]
+      },
+      {
+        "id": "9c3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A6:2024",
+        "tableId": "A6",
+        "year": "2024",
+        "rowCount": 33,
+        "cellsToNull": 26,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.95
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.94
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.96
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.93
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.91
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.76
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.82
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.86
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.58
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.73
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.73
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.88
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.88
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.77
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.19
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.03
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.26
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 0.11
+          },
+          {
+            "row": 31,
+            "col": 3,
+            "stored": 0.11
+          },
+          {
+            "row": 32,
+            "col": 3,
+            "stored": 0.66
+          }
+        ]
+      },
+      {
+        "id": "9f01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A6:2023",
+        "tableId": "A6",
+        "year": "2023",
+        "rowCount": 31,
+        "cellsToNull": 26,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.94
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.84
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.89
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.88
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.88
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.7
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.92
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.65
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.73
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.27
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.27
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.15
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.13
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.39
+          },
+          {
+            "row": 28,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 30,
+            "col": 3,
+            "stored": 0.68
+          }
+        ]
+      },
+      {
+        "id": "a001da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A6:2025",
+        "tableId": "A6",
+        "year": "2025",
+        "rowCount": 33,
+        "cellsToNull": 25,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.9
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.64
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.83
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.82
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.86
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.79
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.67
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.85
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.41
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.41
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.86
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.8
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.81
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.76
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.47
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.33
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.54
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.21
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.1
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.37
+          },
+          {
+            "row": 32,
+            "col": 3,
+            "stored": 0.71
+          }
+        ]
+      },
+      {
+        "id": "a101da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A7:2024",
+        "tableId": "A7",
+        "year": "2024",
+        "rowCount": 4,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.5
+          }
+        ]
+      },
+      {
+        "id": "a301da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A7:2025",
+        "tableId": "A7",
+        "year": "2025",
+        "rowCount": 4,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "a401da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A8:2024",
+        "tableId": "A8",
+        "year": "2024",
+        "rowCount": 41,
+        "cellsToNull": 32,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.39
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.39
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.43
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.09
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.09
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.35
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.6
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.29
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.34
+          },
+          {
+            "row": 28,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 31,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 32,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 34,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 35,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 36,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 38,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 39,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 40,
+            "col": 3,
+            "stored": 0.5
+          }
+        ]
+      },
+      {
+        "id": "a501da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A8:2023",
+        "tableId": "A8",
+        "year": "2023",
+        "rowCount": 33,
+        "cellsToNull": 25,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.1
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.1
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.07
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.4
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.15
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0.32
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 0.35
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.32
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.15
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.15
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.66
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 26,
+            "col": 3,
+            "stored": 0.5
+          },
+          {
+            "row": 27,
+            "col": 3,
+            "stored": 0.53
+          },
+          {
+            "row": 29,
+            "col": 3,
+            "stored": 0.56
+          },
+          {
+            "row": 30,
+            "col": 3,
+            "stored": 0.54
+          },
+          {
+            "row": 31,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 32,
+            "col": 3,
+            "stored": 0.36
+          }
+        ]
+      },
+      {
+        "id": "a701da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A8:2025",
+        "tableId": "A8",
+        "year": "2025",
+        "rowCount": 26,
+        "cellsToNull": 20,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0.49
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.55
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.13
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.13
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.58
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.58
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 0.22
+          },
+          {
+            "row": 23,
+            "col": 3,
+            "stored": 0.22
+          },
+          {
+            "row": 24,
+            "col": 3,
+            "stored": 0.57
+          },
+          {
+            "row": 25,
+            "col": 3,
+            "stored": 0.57
+          }
+        ]
+      },
+      {
+        "id": "a801da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A9:2024",
+        "tableId": "A9",
+        "year": "2024",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "a901da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A9:2025",
+        "tableId": "A9",
+        "year": "2025",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "aa01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A10:2024",
+        "tableId": "A10",
+        "year": "2024",
+        "rowCount": 6,
+        "cellsToNull": 9,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": "38%"
+          },
+          {
+            "row": 1,
+            "col": 6,
+            "stored": "51%"
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": "39%"
+          },
+          {
+            "row": 2,
+            "col": 6,
+            "stored": "48%"
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": "68%"
+          },
+          {
+            "row": 3,
+            "col": 6,
+            "stored": "66%"
+          },
+          {
+            "row": 4,
+            "col": 6,
+            "stored": "50%"
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": "36%"
+          },
+          {
+            "row": 5,
+            "col": 6,
+            "stored": "50%"
+          }
+        ]
+      },
+      {
+        "id": "ab01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A10:2025",
+        "tableId": "A10",
+        "year": "2025",
+        "rowCount": 6,
+        "cellsToNull": 10,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 1,
+            "col": 3,
+            "stored": "51%"
+          },
+          {
+            "row": 1,
+            "col": 6,
+            "stored": "57%"
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": "48%"
+          },
+          {
+            "row": 2,
+            "col": 6,
+            "stored": "37%"
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": "66%"
+          },
+          {
+            "row": 3,
+            "col": 6,
+            "stored": "71%"
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": "50%"
+          },
+          {
+            "row": 4,
+            "col": 6,
+            "stored": "0%"
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": "50%"
+          },
+          {
+            "row": 5,
+            "col": 6,
+            "stored": "57%"
+          }
+        ]
+      },
+      {
+        "id": "b001da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C1:2024",
+        "tableId": "C1",
+        "year": "2024",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "b101da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C1:2023",
+        "tableId": "C1",
+        "year": "2023",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "b401da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C1:2025",
+        "tableId": "C1",
+        "year": "2025",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "b501da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C2:2024",
+        "tableId": "C2",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "b601da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C2:2025",
+        "tableId": "C2",
+        "year": "2025",
+        "rowCount": 4,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "b701da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C3:2024",
+        "tableId": "C3",
+        "year": "2024",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "b801da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C3:2023",
+        "tableId": "C3",
+        "year": "2023",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "ba01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C3:2025",
+        "tableId": "C3",
+        "year": "2025",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "bb01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C4:2024",
+        "tableId": "C4",
+        "year": "2024",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "bc01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C4:2023",
+        "tableId": "C4",
+        "year": "2023",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "bd01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C4:2025",
+        "tableId": "C4",
+        "year": "2025",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "be01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C5:2024",
+        "tableId": "C5",
+        "year": "2024",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "bf01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C5:2023",
+        "tableId": "C5",
+        "year": "2023",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c001da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "C5:2025",
+        "tableId": "C5",
+        "year": "2025",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c101da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D1:2023",
+        "tableId": "D1",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c301da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D2:2024",
+        "tableId": "D2",
+        "year": "2024",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c401da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D2:2023",
+        "tableId": "D2",
+        "year": "2023",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c501da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D2:2025",
+        "tableId": "D2",
+        "year": "2025",
+        "rowCount": 6,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c601da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D3:2024",
+        "tableId": "D3",
+        "year": "2024",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c701da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D3:2023",
+        "tableId": "D3",
+        "year": "2023",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c801da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D3:2025",
+        "tableId": "D3",
+        "year": "2025",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "c901da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D4:2024",
+        "tableId": "D4",
+        "year": "2024",
+        "rowCount": 10,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "ca01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D4:2023",
+        "tableId": "D4",
+        "year": "2023",
+        "rowCount": 10,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "cb01da3a-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D4:2025",
+        "tableId": "D4",
+        "year": "2025",
+        "rowCount": 10,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "16eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "E1:2024",
+        "tableId": "E1",
+        "year": "2024",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "17eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "E1:2023",
+        "tableId": "E1",
+        "year": "2023",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "19eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "E1:2025",
+        "tableId": "E1",
+        "year": "2025",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "1aeed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F1:2023",
+        "tableId": "F1",
+        "year": "2023",
+        "rowCount": 14,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "1beed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F2:2024",
+        "tableId": "F2",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 6,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.11
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.89
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.19
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.81
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0.12
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": 0.88
+          }
+        ]
+      },
+      {
+        "id": "1ceed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F2:2023",
+        "tableId": "F2",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 6,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.0797
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.9203
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.0992
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.9008
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0.0813
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": 0.9187
+          }
+        ]
+      },
+      {
+        "id": "1deed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F2:2025",
+        "tableId": "F2",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 6,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.1002
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.8998
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.41609999999999997
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.5839
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0.1356
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": 0.8644
+          }
+        ]
+      },
+      {
+        "id": "1feed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F3:2024",
+        "tableId": "F3",
+        "year": "2024",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "21eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F3:2023",
+        "tableId": "F3",
+        "year": "2023",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "22eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F3:2025",
+        "tableId": "F3",
+        "year": "2025",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "23eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F4:2024",
+        "tableId": "F4",
+        "year": "2024",
+        "rowCount": 8,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "24eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F4:2023",
+        "tableId": "F4",
+        "year": "2023",
+        "rowCount": 8,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "25eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F4:2025",
+        "tableId": "F4",
+        "year": "2025",
+        "rowCount": 8,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "26eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F5:2024",
+        "tableId": "F5",
+        "year": "2024",
+        "rowCount": 39,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "27eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F5:2023",
+        "tableId": "F5",
+        "year": "2023",
+        "rowCount": 47,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "28eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F5:2025",
+        "tableId": "F5",
+        "year": "2025",
+        "rowCount": 39,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "29eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F6:2024",
+        "tableId": "F6",
+        "year": "2024",
+        "rowCount": 25,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "2aeed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F6:2023",
+        "tableId": "F6",
+        "year": "2023",
+        "rowCount": 29,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "2beed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F6:2025",
+        "tableId": "F6",
+        "year": "2025",
+        "rowCount": 25,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "2ceed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F7:2024",
+        "tableId": "F7",
+        "year": "2024",
+        "rowCount": 4,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "2deed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F7:2023",
+        "tableId": "F7",
+        "year": "2023",
+        "rowCount": 4,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "2eeed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F7:2025",
+        "tableId": "F7",
+        "year": "2025",
+        "rowCount": 4,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "2feed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F8:2024",
+        "tableId": "F8",
+        "year": "2024",
+        "rowCount": 7,
+        "cellsToNull": 14,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.11
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.01
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.1
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.16
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0.07
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": 0.14
+          },
+          {
+            "row": 3,
+            "col": 2,
+            "stored": 0.1
+          },
+          {
+            "row": 3,
+            "col": 4,
+            "stored": 0.17
+          },
+          {
+            "row": 4,
+            "col": 2,
+            "stored": 0.01
+          },
+          {
+            "row": 4,
+            "col": 4,
+            "stored": 0.04
+          },
+          {
+            "row": 5,
+            "col": 2,
+            "stored": 0.05
+          },
+          {
+            "row": 5,
+            "col": 4,
+            "stored": 0.05
+          },
+          {
+            "row": 6,
+            "col": 2,
+            "stored": 0.44
+          },
+          {
+            "row": 6,
+            "col": 4,
+            "stored": 0.56
+          }
+        ]
+      },
+      {
+        "id": "30eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F8:2023",
+        "tableId": "F8",
+        "year": "2023",
+        "rowCount": 7,
+        "cellsToNull": 14,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.12
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.02
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.12
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.16
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0.07
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": 0.14
+          },
+          {
+            "row": 3,
+            "col": 2,
+            "stored": 0.08
+          },
+          {
+            "row": 3,
+            "col": 4,
+            "stored": 0.15
+          },
+          {
+            "row": 4,
+            "col": 2,
+            "stored": 0.01
+          },
+          {
+            "row": 4,
+            "col": 4,
+            "stored": 0.04
+          },
+          {
+            "row": 5,
+            "col": 2,
+            "stored": 0.05
+          },
+          {
+            "row": 5,
+            "col": 4,
+            "stored": 0.06
+          },
+          {
+            "row": 6,
+            "col": 2,
+            "stored": 0.44
+          },
+          {
+            "row": 6,
+            "col": 4,
+            "stored": 0.56
+          }
+        ]
+      },
+      {
+        "id": "31eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F8:2025",
+        "tableId": "F8",
+        "year": "2025",
+        "rowCount": 7,
+        "cellsToNull": 14,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.1211
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.0155
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.1084
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.17620000000000002
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0.0703
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": 0.1367
+          },
+          {
+            "row": 3,
+            "col": 2,
+            "stored": 0.0834
+          },
+          {
+            "row": 3,
+            "col": 4,
+            "stored": 0.13849999999999998
+          },
+          {
+            "row": 4,
+            "col": 2,
+            "stored": 0.013300000000000001
+          },
+          {
+            "row": 4,
+            "col": 4,
+            "stored": 0.0363
+          },
+          {
+            "row": 5,
+            "col": 2,
+            "stored": 0.049800000000000004
+          },
+          {
+            "row": 5,
+            "col": 4,
+            "stored": 0.0506
+          },
+          {
+            "row": 6,
+            "col": 2,
+            "stored": 0.44630000000000003
+          },
+          {
+            "row": 6,
+            "col": 4,
+            "stored": 0.5537
+          }
+        ]
+      },
+      {
+        "id": "32eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F9:2024",
+        "tableId": "F9",
+        "year": "2024",
+        "rowCount": 7,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "33eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F9:2023",
+        "tableId": "F9",
+        "year": "2023",
+        "rowCount": 7,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "34eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F9:2025",
+        "tableId": "F9",
+        "year": "2025",
+        "rowCount": 7,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "35eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G1:2025",
+        "tableId": "G1",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.47
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.53
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "36eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G2:2024",
+        "tableId": "G2",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.83
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.17
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "37eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G2:2023",
+        "tableId": "G2",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.9
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.1
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "38eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G2:2025",
+        "tableId": "G2",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.9
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.1
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "39eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G3:2024",
+        "tableId": "G3",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.7
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.3
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3aeed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G4:2024",
+        "tableId": "G4",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.42
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.58
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3beed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G4:2023",
+        "tableId": "G4",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.34
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.66
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3deed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G4:2025",
+        "tableId": "G4",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.59
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.41
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3eeed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G5:2024",
+        "tableId": "G5",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.54
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.46
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3feed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G5:2025",
+        "tableId": "G5",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.91
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.09
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "40eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G6:2024",
+        "tableId": "G6",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.23
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.77
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "41eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G6:2023",
+        "tableId": "G6",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.34
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.66
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "42eed440-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G6:2025",
+        "tableId": "G6",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.26
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.74
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "398dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G7:2025",
+        "tableId": "G7",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.46
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.54
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3a8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G8:2024",
+        "tableId": "G8",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.41
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.59
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3b8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G8:2023",
+        "tableId": "G8",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.35
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.65
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3c8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G8:2025",
+        "tableId": "G8",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.36
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.64
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3d8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G9:2024",
+        "tableId": "G9",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.32
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.68
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "3f8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G9:2025",
+        "tableId": "G9",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.53
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.47
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "408dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G10:2024",
+        "tableId": "G10",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.48
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.52
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "418dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G10:2023",
+        "tableId": "G10",
+        "year": "2023",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.54
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.46
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "428dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "G10:2025",
+        "tableId": "G10",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.46
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.54
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 1
+          }
+        ]
+      },
+      {
+        "id": "438dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "H1:2024",
+        "tableId": "H1",
+        "year": "2024",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "448dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "H1:2023",
+        "tableId": "H1",
+        "year": "2023",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "458dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "H1:2025",
+        "tableId": "H1",
+        "year": "2025",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "468dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "I1:2024",
+        "tableId": "I1",
+        "year": "2024",
+        "rowCount": 9,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "478dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "I1:2023",
+        "tableId": "I1",
+        "year": "2023",
+        "rowCount": 9,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "488dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "I1:2025",
+        "tableId": "I1",
+        "year": "2025",
+        "rowCount": 9,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "498dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J1:2024",
+        "tableId": "J1",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "4a8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J1:2023",
+        "tableId": "J1",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "4b8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J1:2025",
+        "tableId": "J1",
+        "year": "2025",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "4c8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J2:2024",
+        "tableId": "J2",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "4d8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J2:2023",
+        "tableId": "J2",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "4e8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J2:2025",
+        "tableId": "J2",
+        "year": "2025",
+        "rowCount": 2,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "4f8dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J3:2023",
+        "tableId": "J3",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "60%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "57%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "40%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "43%"
+          }
+        ]
+      },
+      {
+        "id": "508dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J3:2025",
+        "tableId": "J3",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 6,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "66%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "65%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "34%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "35%"
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": "100%"
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": "100%"
+          }
+        ]
+      },
+      {
+        "id": "518dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J4:2023",
+        "tableId": "J4",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "63%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "66%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "37%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "34%"
+          }
+        ]
+      },
+      {
+        "id": "528dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J4:2025",
+        "tableId": "J4",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 6,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "68%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "69%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "32%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "31%"
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": "100%"
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": "100%"
+          }
+        ]
+      },
+      {
+        "id": "538dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J5:2024",
+        "tableId": "J5",
+        "year": "2024",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.6
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.4
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.59
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.41
+          }
+        ]
+      },
+      {
+        "id": "548dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J5:2023",
+        "tableId": "J5",
+        "year": "2023",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.54
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.46
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.54
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.46
+          }
+        ]
+      },
+      {
+        "id": "558dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J5:2025",
+        "tableId": "J5",
+        "year": "2025",
+        "rowCount": 2,
+        "cellsToNull": 4,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": 0.62
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": 0.38
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": 0.61
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": 0.39
+          }
+        ]
+      },
+      {
+        "id": "568dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J6:2025",
+        "tableId": "J6",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 6,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 2,
+            "stored": "63%"
+          },
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "64%"
+          },
+          {
+            "row": 1,
+            "col": 2,
+            "stored": "37%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "36%"
+          },
+          {
+            "row": 2,
+            "col": 2,
+            "stored": "100%"
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": "100%"
+          }
+        ]
+      },
+      {
+        "id": "588dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J7:2025",
+        "tableId": "J7",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 3,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 4,
+            "stored": "66%"
+          },
+          {
+            "row": 1,
+            "col": 4,
+            "stored": "34%"
+          },
+          {
+            "row": 2,
+            "col": 4,
+            "stored": "100%"
+          }
+        ]
+      },
+      {
+        "id": "598dff46-2b64-f111-ab0c-7c1e521c7110",
+        "key": "J8:2025",
+        "tableId": "J8",
+        "year": "2025",
+        "rowCount": 5,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "3be87289-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D1:2024",
+        "tableId": "D1",
+        "year": "2024",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "3ce87289-2b64-f111-ab0c-7c1e521c7110",
+        "key": "D1:2025",
+        "tableId": "D1",
+        "year": "2025",
+        "rowCount": 3,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "3de87289-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F1:2024",
+        "tableId": "F1",
+        "year": "2024",
+        "rowCount": 14,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      },
+      {
+        "id": "3ee87289-2b64-f111-ab0c-7c1e521c7110",
+        "key": "F1:2025",
+        "tableId": "F1",
+        "year": "2025",
+        "rowCount": 14,
+        "cellsToNull": 0,
+        "nonDerivedDiffs": [],
+        "derivedDiffs": [],
+        "toNull": []
+      }
+    ],
+    "keepNull": [
+      {
+        "id": "8e3bcb34-2b64-f111-ab0c-7c1e521c7110",
+        "key": "A1:2025",
+        "tableId": "A1",
+        "year": "2025",
+        "rowCount": 23,
+        "cellsToNull": 23,
+        "nonDerivedDiffs": [
+          {
+            "row": 2,
+            "col": 2,
+            "stored": 0,
+            "payload": null,
+            "label": "Clean Heat – Commercial & Industrial Ground "
+          },
+          {
+            "row": 10,
+            "col": 2,
+            "stored": 0,
+            "payload": null,
+            "label": "Commercial Kitchen"
+          },
+          {
+            "row": 17,
+            "col": 2,
+            "stored": 0,
+            "payload": null,
+            "label": "Pilots"
+          }
+        ],
+        "derivedDiffs": [
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0,
+            "payload": null,
+            "label": "Commercial Kitchen"
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0,
+            "payload": null,
+            "label": "Pilots"
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 9.480000000000002,
+            "payload": 0.53,
+            "label": "Total"
+          }
+        ],
+        "toNull": [
+          {
+            "row": 0,
+            "col": 3,
+            "stored": 0.88
+          },
+          {
+            "row": 1,
+            "col": 3,
+            "stored": 0.16
+          },
+          {
+            "row": 2,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 3,
+            "col": 3,
+            "stored": 0.45
+          },
+          {
+            "row": 4,
+            "col": 3,
+            "stored": 0.68
+          },
+          {
+            "row": 5,
+            "col": 3,
+            "stored": 0.97
+          },
+          {
+            "row": 6,
+            "col": 3,
+            "stored": 0.58
+          },
+          {
+            "row": 7,
+            "col": 3,
+            "stored": 0.17
+          },
+          {
+            "row": 8,
+            "col": 3,
+            "stored": 0.44
+          },
+          {
+            "row": 9,
+            "col": 3,
+            "stored": 0.2
+          },
+          {
+            "row": 10,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 11,
+            "col": 3,
+            "stored": 1
+          },
+          {
+            "row": 12,
+            "col": 3,
+            "stored": 0.51
+          },
+          {
+            "row": 13,
+            "col": 3,
+            "stored": 0.7
+          },
+          {
+            "row": 14,
+            "col": 3,
+            "stored": 0.52
+          },
+          {
+            "row": 15,
+            "col": 3,
+            "stored": 0.08
+          },
+          {
+            "row": 16,
+            "col": 3,
+            "stored": 0.12
+          },
+          {
+            "row": 17,
+            "col": 3,
+            "stored": 0
+          },
+          {
+            "row": 18,
+            "col": 3,
+            "stored": 0.68
+          },
+          {
+            "row": 19,
+            "col": 3,
+            "stored": 0.63
+          },
+          {
+            "row": 20,
+            "col": 3,
+            "stored": 0.46
+          },
+          {
+            "row": 21,
+            "col": 3,
+            "stored": 0.25
+          },
+          {
+            "row": 22,
+            "col": 3,
+            "stored": 9.480000000000002
+          }
+        ]
+      }
+    ],
+    "derivedOnly": [],
+    "noPayload": [],
+    "unparsable": []
+  }
+}

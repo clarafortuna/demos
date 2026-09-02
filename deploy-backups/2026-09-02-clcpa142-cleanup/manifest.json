@@ -1,0 +1,24 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-09-02T22:27:04.198Z",
+  "capturedBy": "44d1f3d9-8f03-f111-8408-00224831be5d",
+  "note": "Verbatim pre-cleanup snapshot of the CLCPA ingest store. Restore a record by PATCHing cr2bf_dacingesttesttabledata1s(<id>) with its cr2bf_rows, or re-create a deleted record by POSTing its fields. No history entries were touched by the cleanup, so changehistory.json is a reference copy only.",
+  "tables": [
+    {
+      "set": "cr2bf_dacingesttesttabledata1s",
+      "idField": "cr2bf_dacingesttesttabledata1id",
+      "records": 149,
+      "file": "tabledata.json",
+      "bytes": 119254,
+      "sha256": "1fdd355932054c3fce070b0c898a4116226f461d1dcc3542420b95d5d48a08ba"
+    },
+    {
+      "set": "cr2bf_dacingesttestchangehistories",
+      "idField": "cr2bf_dacingesttestchangehistoryid",
+      "records": 16,
+      "file": "changehistory.json",
+      "bytes": 9192,
+      "sha256": "871b58f7e9b03a3e822c73669b17fcf955f6ec82f9fe3793b314575118ce5bd1"
+    }
+  ]
+}

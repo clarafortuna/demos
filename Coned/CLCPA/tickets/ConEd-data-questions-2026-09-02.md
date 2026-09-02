@@ -2,8 +2,9 @@
 
 **Raised:** 2026-09-02
 **Source of the analysis:** `Coned/CLCPA/tickets/CLCPA-206-findings.md`
-**Related tickets:** CLCPA-206 (investigation, complete), CLCPA-207 (A2/2023), F3
-case (ticket number pending)
+**Related tickets:** CLCPA-206 (investigation, complete), CLCPA-207 (A2/2023),
+CLCPA-210 (F3/2025 Overall), CLCPA-211 (boss sync, the handoff vehicle for this
+package)
 
 Three figures in the published report cannot be reconciled against the other
 figures in their own tables. In one case we have reproduced the formula and can be

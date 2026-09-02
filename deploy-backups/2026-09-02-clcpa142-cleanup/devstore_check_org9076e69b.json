@@ -1,0 +1,12 @@
+{
+  "scannedAt": "2026-09-02T23:07:13.133Z",
+  "origin": "https://org9076e69b.crm.dynamics.com",
+  "href": "https://org9076e69b.crm.dynamics.com/%7b639239777610000131%7d/webresources/cr2bf_dactest/ExecutiveDashboard.html",
+  "isTopFrame": false,
+  "hostLooksLikeDataverse": true,
+  "totalLocalStorageKeys": 18,
+  "dacKeys": { "dac:overrides": null, "dac:history": null, "dac:years": null },
+  "readError": null,
+  "verdict": "CLEAN. 18 keys present so storage was reachable, correct frame confirmed by isTopFrame false and the web-resource href, and zero dac:* keys of any kind. Absence of dac:years and dac:history as well means the app has never written to localStorage on this origin, so the earlier 401 incident did not cause a fallback save.",
+  "coverage": "1 origin scanned. The public build host and localhost/file were ruled out by Emely's declaration that the ingest editor was never used on either."
+}

@@ -1,0 +1,62 @@
+{
+  "scannedAt": "2026-09-02T22:40:22.071Z",
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "whoAmI": "44d1f3d9-8f03-f111-8408-00224831be5d",
+  "readOnly": true,
+  "getRequests": 3,
+  "stores": {
+    "tableData": {
+      "set": "cr2bf_dacingesttesttabledata1s",
+      "records": 1,
+      "parsed": 1,
+      "unparsable": []
+    },
+    "changeHistory": {
+      "set": "cr2bf_dacingesttestchangehistories",
+      "records": 16
+    },
+    "devStore": "NOT READABLE from Node: localStorage dac:overrides is browser-only. See the console snippet in the report."
+  },
+  "family1": {
+    "ticket": "CLCPA-142",
+    "cells": 0,
+    "distribution": {
+      "byTable": {},
+      "byYear": {},
+      "byTableYear": {}
+    }
+  },
+  "family2": {
+    "ticket": "CLCPA-209",
+    "cells": 0,
+    "distribution": {
+      "byTable": {},
+      "byYear": {},
+      "byTableYear": {}
+    }
+  },
+  "overlap": {
+    "cells": 0,
+    "detail": []
+  },
+  "savesByTableYear": {
+    "A2/2100": 1,
+    "A1/2100": 2,
+    "A1/2099": 3,
+    "A1/2025": 5,
+    "T5/2024": 1,
+    "T4/2023": 1,
+    "T3/2022": 1,
+    "T2/2021": 1,
+    "T1/2020": 1
+  },
+  "savedRecordIndex": [
+    {
+      "id": "8e3bcb34-2b64-f111-ab0c-7c1e521c7110",
+      "key": "A1:2025",
+      "tableId": "A1",
+      "year": "2025",
+      "rows": 23
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "family": "CLCPA-142",
+    "recordId": "8e3bcb34-2b64-f111-ab0c-7c1e521c7110",
+    "key": "A1:2025",
+    "tableId": "A1",
+    "year": "2025",
+    "row": 10,
+    "col": 3,
+    "rowLabel": "Commercial Kitchen",
+    "storedValue": 0,
+    "cleanupAction": "set to null",
+    "payloadValue": null
+  },
+  {
+    "family": "CLCPA-142",
+    "recordId": "8e3bcb34-2b64-f111-ab0c-7c1e521c7110",
+    "key": "A1:2025",
+    "tableId": "A1",
+    "year": "2025",
+    "row": 17,
+    "col": 3,
+    "rowLabel": "Pilots",
+    "storedValue": 0,
+    "cleanupAction": "set to null",
+    "payloadValue": null
+  },
+  {
+    "family": "CLCPA-142",
+    "recordId": "8e3bcb34-2b64-f111-ab0c-7c1e521c7110",
+    "key": "A1:2025",
+    "tableId": "A1",
+    "year": "2025",
+    "row": 22,
+    "col": 3,
+    "rowLabel": "Total",
+    "storedValue": 9.480000000000002,
+    "cleanupAction": "set to null",
+    "payloadValue": 0.53
+  }
+]

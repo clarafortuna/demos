@@ -1,12 +1,11 @@
-# CLCPA-2xx: F3/2025 "Con Edison (Overall)" of 6 is below both of its components
+# CLCPA-210: F3/2025 "Con Edison (Overall)" of 6 is below both of its components
 
 **Type:** Bug, data
 **Priority:** Medium
 **Component:** ExecutiveDashboard_dev, source data
 **Found:** 2026-08-28, characterised during CLCPA-206, 2026-09-02
 **Related:** CLCPA-206 (investigation, complete), CLCPA-207 (A2/2023 denominator),
-the consolidated ConEd data-question package dated 2026-09-02
-**Number:** pending assignment
+CLCPA-211 (boss sync, the handoff vehicle for the ConEd data-question package)
 
 ## Summary
 
@@ -65,9 +64,9 @@ Third member of the source-authored-figures family, alongside:
 - **A2/2023's Total** (CLCPA-207), exceeding the sum of its 28 program rows by 7.5%,
   301,691 MMBtu
 
-All three went to Con Edison together in the consolidated data-question package
-dated 2026-09-02. J8's question is a yes or no; these two ask for either the
-underlying extracts or a definition.
+All three go to Con Edison together in the consolidated data-question package dated
+2026-09-02, carried by **CLCPA-211**. J8's question is a yes or no; these two ask for
+either the underlying extracts or a definition.
 
 ## Acceptance
 

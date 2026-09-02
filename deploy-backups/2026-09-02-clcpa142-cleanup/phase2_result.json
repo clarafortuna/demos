@@ -1,0 +1,168 @@
+{
+  "ranAt": "2026-09-02T22:38:37.901Z",
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "by": "44d1f3d9-8f03-f111-8408-00224831be5d",
+  "requestCounts": {
+    "GET": 3,
+    "DELETE": 148,
+    "PATCH": 1
+  },
+  "deleted": 148,
+  "deleteFailures": [],
+  "patched": [
+    {
+      "id": "8e3bcb34-2b64-f111-ab0c-7c1e521c7110",
+      "table": "A1/2025",
+      "cellsNulled": 23
+    }
+  ],
+  "historyEntriesWritten": 0,
+  "verification": {
+    "recordsBefore": 149,
+    "recordsAfter": 1,
+    "deleteTargetsRemaining": 0,
+    "a1MatchesIntended": true,
+    "a1CellsNulled": 23,
+    "a1Col2Preserved": 3
+  },
+  "changedCells": [
+    {
+      "row": 0,
+      "col": 3,
+      "from": 0.88,
+      "to": null
+    },
+    {
+      "row": 1,
+      "col": 3,
+      "from": 0.16,
+      "to": null
+    },
+    {
+      "row": 2,
+      "col": 3,
+      "from": 0,
+      "to": null
+    },
+    {
+      "row": 3,
+      "col": 3,
+      "from": 0.45,
+      "to": null
+    },
+    {
+      "row": 4,
+      "col": 3,
+      "from": 0.68,
+      "to": null
+    },
+    {
+      "row": 5,
+      "col": 3,
+      "from": 0.97,
+      "to": null
+    },
+    {
+      "row": 6,
+      "col": 3,
+      "from": 0.58,
+      "to": null
+    },
+    {
+      "row": 7,
+      "col": 3,
+      "from": 0.17,
+      "to": null
+    },
+    {
+      "row": 8,
+      "col": 3,
+      "from": 0.44,
+      "to": null
+    },
+    {
+      "row": 9,
+      "col": 3,
+      "from": 0.2,
+      "to": null
+    },
+    {
+      "row": 10,
+      "col": 3,
+      "from": 0,
+      "to": null
+    },
+    {
+      "row": 11,
+      "col": 3,
+      "from": 1,
+      "to": null
+    },
+    {
+      "row": 12,
+      "col": 3,
+      "from": 0.51,
+      "to": null
+    },
+    {
+      "row": 13,
+      "col": 3,
+      "from": 0.7,
+      "to": null
+    },
+    {
+      "row": 14,
+      "col": 3,
+      "from": 0.52,
+      "to": null
+    },
+    {
+      "row": 15,
+      "col": 3,
+      "from": 0.08,
+      "to": null
+    },
+    {
+      "row": 16,
+      "col": 3,
+      "from": 0.12,
+      "to": null
+    },
+    {
+      "row": 17,
+      "col": 3,
+      "from": 0,
+      "to": null
+    },
+    {
+      "row": 18,
+      "col": 3,
+      "from": 0.68,
+      "to": null
+    },
+    {
+      "row": 19,
+      "col": 3,
+      "from": 0.63,
+      "to": null
+    },
+    {
+      "row": 20,
+      "col": 3,
+      "from": 0.46,
+      "to": null
+    },
+    {
+      "row": 21,
+      "col": 3,
+      "from": 0.25,
+      "to": null
+    },
+    {
+      "row": 22,
+      "col": 3,
+      "from": 9.480000000000002,
+      "to": null
+    }
+  ]
+}
