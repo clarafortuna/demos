@@ -98,7 +98,17 @@ the harness, so a new divergence fails a test.
 `main_replacement/2025` agrees, because G1/2025 has real feet. That contrast is
 the evidence that 2023 and 2024 are a data gap and not a routing mistake.
 
-Two tickets carry these: one for A2/2023, one for the payload-field issues
-(`strategic_capital` and `main_replacement`). Both cross-reference CLCPA-206,
-whose spelunk may explain the whole family of source-authored figures that do
-not reconcile.
+Two tickets carry these, numbered 2026-08-28:
+
+| ticket | covers |
+|---|---|
+| **CLCPA-207** | A2/2023's stored Total exceeding the sum of its program rows |
+| **CLCPA-208** | the payload field issues, `strategic_capital`'s manufactured `dac` and `main_replacement`'s missing G1 inputs |
+
+Both cross-reference **CLCPA-206**, whose spelunk may explain the whole family of
+source-authored figures that do not reconcile: J8's "% of Total" (206),
+F3/2025's "Con Edison (Overall)" = 6, A2/2023's Total (207) and
+strategic_capital's DAC dollars (208).
+
+Each of the six residuals is pinned in the CLCPA-143 harness, and **the ticket
+that fixes a case must delete its pin**, so neither fix can land silently.
