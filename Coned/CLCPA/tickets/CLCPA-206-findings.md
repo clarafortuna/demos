@@ -209,8 +209,8 @@ Combined with 106 in the prior year, **a data-entry slip is the most economical
 explanation** (106 losing its middle digit, or a 60-ish value truncated), but that is
 inference, not reproduction.
 
-**Verdict: NOT REPRODUCIBLE.** This still has no ticket. It deserves one, and the
-question for ConEd is again narrow: *is F3/2025's Con Edison (Overall) of 6 correct,
+**Verdict: NOT REPRODUCIBLE.** Tracked as **CLCPA-210**. The question for ConEd is
+again narrow: *is F3/2025's Con Edison (Overall) of 6 correct,
 given it is below both the Network and Overhead figures in the same column?*
 
 ## 4. Opportunistic check: the five all-totals tables
@@ -283,8 +283,8 @@ writing this up.
    delivered report.
 2. **Whether `NOT_RECONCILED_TABLES` should still contain J8.** Its justification was
    that the formula was unknown. It is now known.
-3. **CLCPA-207 and the F3 case** both become questions for ConEd rather than further
-   in-house work, and the F3 case still needs a ticket number.
+3. **CLCPA-207 and CLCPA-210** both become questions for ConEd rather than further
+   in-house work. Both travel in the consolidated package, carried by **CLCPA-211**.
 4. **The stored-values-are-the-reference rule** meets its first real edge here: the
    stored 2025 figure is a transcription slip, not an authored answer. Worth deciding
    how the rule should read when those two come apart.
