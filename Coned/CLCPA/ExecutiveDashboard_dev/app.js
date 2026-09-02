@@ -2684,6 +2684,43 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   }
 
   /**
+   * CLCPA-143: the DAC share for one reported-KPI year entry, DERIVED.
+   *
+   * The stored `dac_pct` on a reported KPI is not a computed field. It was
+   * copied from the matching source table's percentage cell back when those
+   * cells held hand-rounded values. Since CLCPA-141 put A1, A2 and J9 into
+   * PERSIST_STRIP_TABLES, those cells derive at render, so the table and the
+   * KPI card drifted apart wherever the stored copy was rounded. 8 of 33
+   * KPI-years disagreed; every one of them was a round 2dp value, while every
+   * value that still agreed carried full precision. That is the signature of a
+   * rounded copy, not of two different measurements.
+   *
+   * `dac / total` is the right rule and needs no table mapping: every reported
+   * KPI's `total` and `dac` equal its source table's stored totals exactly
+   * (asserted in the harness, so data that breaks the equivalence fails a test
+   * instead of diverging quietly). Reported KPIs carry no `source_calc`, so
+   * routing through the tables would have meant inventing a
+   * KPI-to-table-and-column map for 11 KPIs.
+   *
+   * Returns null when there is no share to show, so callers keep their existing
+   * "no value" rendering.
+   */
+  function kpiDacPct(v) {
+    if (!v) return null;
+    const dac = v.dac, total = v.total;
+    if (typeof dac === 'number' && isFinite(dac) &&
+        typeof total === 'number' && isFinite(total) && total > 0) {
+      return dac / total;
+    }
+    /* No usable inputs. Fall back to the stored value rather than blanking a
+     * figure that is currently on screen: a missing input is not evidence that
+     * the stored share is wrong. Unreachable on today's payload, and the
+     * harness asserts that, so if this ever starts firing it means new data
+     * arrived without the inputs to derive from. */
+    return (v.dac_pct != null) ? v.dac_pct : null;
+  }
+
+  /**
    * Build the per-section DAC equity dataset for ALL years available in the
    * payload, year-agnostic. Used by all three equity charts.
    *
@@ -2714,7 +2751,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const pctByYear = {};
       years.forEach(y => {
         const v = kpi && kpi.values && kpi.values[y];
-        pctByYear[y] = (v && v.dac_pct != null) ? v.dac_pct : null;
+        // CLCPA-143 reader 1 of 3. Feeds the radar, the dumbbell and the strip,
+        // so those three inherit the fix without touching their own code.
+        pctByYear[y] = kpiDacPct(v);
       });
       return {
         id: s,
@@ -8758,6 +8797,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     const cesPrev = ces && prevYear && ces.values[prevYear];
     const cesDac = cesCurr ? cesCurr.dac : null;
     const cesDacPrev = cesPrev ? cesPrev.dac : null;
+    /* CLCPA-143 reader 3 of 3: the "DAC share" row in this card's tooltip. This
+     * site was NOT named in the ticket; it turned up by sweeping every
+     * kpis.reported and .values[ access rather than grepping for dac_pct, which
+     * misses aliased reads like this one (ces -> cesCurr -> .dac_pct). */
+    const cesDacPct = kpiDacPct(cesCurr);
     const cesGrow = (cesDacPrev && cesDacPrev > 0 && cesDac != null)
       ? Math.round((cesDac - cesDacPrev) / cesDacPrev * 100)
       : null;
@@ -8846,7 +8890,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
             { label: prevYear || 'Prior year', value: cesDacPrev ? fmtBig(cesDacPrev) : 'n/a' },
             { label: year, value: cesDac != null ? fmtBig(cesDac) : '—' },
             { label: 'Change vs Prior Year', value: cesGrow !== null ? (cesGrow >= 0 ? '+' : '') + cesGrow + '%' : '—' },
-            { label: 'DAC share', value: cesCurr && cesCurr.dac_pct != null ? (cesCurr.dac_pct * 100).toFixed(1) + '%' : '—' },
+            { label: 'DAC share', value: cesDacPct != null ? (cesDacPct * 100).toFixed(1) + '%' : '—' },
           ],
           note: 'Total dollars disbursed as DAC incentives across all Clean Energy programs. From Section A · Table A1 totals.'
         },
@@ -9143,8 +9187,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         .replace(/^Lifetime\s+/i, '');
       const unit = (k.unit && k.unit !== '$' && k.format !== 'currency') ? ' ' + k.unit : '';
       group.push({ label: shortLabel, value: fmtNum(v.total, k.format) + unit });
-      if (v.dac_pct !== null && v.dac_pct !== undefined) {
-        group.push({ label: 'DAC Share', value: (v.dac_pct * 100).toFixed(1) + '%' });
+      // CLCPA-143 reader 2 of 3: the section header stat groups. This is the one
+      // that showed 44.0% on section J for 2025 while table J9 showed 43.7%.
+      const secDacPct = kpiDacPct(v);
+      if (secDacPct !== null && secDacPct !== undefined) {
+        group.push({ label: 'DAC Share', value: (secDacPct * 100).toFixed(1) + '%' });
       }
       groups.push(group);
     });
