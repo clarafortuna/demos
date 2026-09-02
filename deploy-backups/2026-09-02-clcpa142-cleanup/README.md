@@ -124,10 +124,34 @@ through T5/2024 reference table-years that do not exist in the payload. Ruled ou
 of this cleanup on 2026-09-02: audit tables are a different risk class and these
 contaminate nothing. Recorded here and in the CLCPA-142 close as a known leftover.
 
-**The dev store**, `localStorage dac:overrides`, is browser-only and was not read
-by any phase. A read-only console snippet that downloads its contents is in
-`Coned/CLCPA/tickets/CLCPA-142-209-scan-findings.md`. Its check rides the final
-report.
+## The dev store: READ and CLEAN
+
+Checked 2026-09-02 from the web-resource frame on the hosted origin, evidence in
+`devstore_check_org9076e69b.json`:
+
+| field | value |
+|---|---|
+| origin | `https://org9076e69b.crm.dynamics.com` |
+| frame | `isTopFrame: false`, href ends `cr2bf_dactest/ExecutiveDashboard.html` |
+| localStorage keys present | **18**, all Office and UCI shell keys |
+| `dac:overrides` | **null** |
+| `dac:history`, `dac:years` | **null** |
+
+**The zero is a genuine result, not a wrong-frame read.** Storage was reachable, 18
+keys came back, and the frame is confirmed twice over. The snippet reports the key
+count precisely so an empty read in the parent frame cannot be mistaken for a clean
+one.
+
+`dac:years` and `dac:history` being absent too means the app has **never written to
+localStorage on this origin**. That answers a specific concern: the app falls back
+to localStorage when a Dataverse read returns 401, and a 401 did occur earlier in
+this work, but no fallback save followed it.
+
+**Coverage: 1 origin scanned, 2 ruled out by declaration.** The public build's host
+and localhost or file paths were ruled out by Emely on the grounds that the ingest
+editor was never used on either. One caveat worth stating: a browser data clear
+would erase this evidence, so this shows no contamination present rather than
+proving none ever existed.
 
 ## Why the cleanup will last
 
