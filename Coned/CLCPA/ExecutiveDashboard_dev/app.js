@@ -2010,7 +2010,49 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       return any ? sum : null;
     }
 
-    rows.forEach(row => {
+    /* CLCPA-144 item 3: a total row's derived cell comes from ITS OWN SEGMENT.
+     *
+     * The isTot branch below used to take numerator and denominator from the
+     * whole-table colSum, so every total row in a hierarchical table displayed the
+     * table-wide ratio. A5/2025 "Commercial & Industrial Total" rendered 37.0%
+     * where its own segment gives 154/612 = 25.2% and the STORED value is 0.25.
+     * The stored data was right and the derive was wrong, in the client report:
+     * 65 cells across 9 table-years in A5, A6 and A8.
+     *
+     * Segments are positional, the same rule CLCPA-205 item 1 gave recomputeTotals:
+     * the non-total rows between this total row and the previous one. Labels cannot
+     * be used, because they are not consistent even within one table (A5 says
+     * "Subtotal" in 2023 and "<segment> Total" in 2024 and 2025).
+     *
+     * An EMPTY segment falls back to colSum, which is what keeps this safe:
+     *   - a hierarchical table's final grand total row sits directly after the last
+     *     segment total, so it keeps the whole-table ratio, unchanged
+     *   - flat tables have one total row whose segment IS every non-total row. No
+     *     flat table in the payload has data rows after its total row, so segment
+     *     and colSum agree and nothing moves
+     *   - A7's segments are [2, 0] over 2 non-total rows, so its segment is the
+     *     whole table and it was already correct
+     *   - the all-totals tables use denominatorScope 'totalRow', handled before
+     *     this branch, so CLCPA-205 item 2 (ruled: no auto-calculation) is untouched
+     */
+    const segmentSums = (function () {
+      const out = {};
+      let prevTotal = -1;
+      rows.forEach((r, i) => {
+        if (!isTotalRowLabel(r[0])) return;
+        const seg = [];
+        for (let j = prevTotal + 1; j < i; j++) {
+          if (!isTotalRowLabel(rows[j][0])) seg.push(rows[j]);
+        }
+        prevTotal = i;
+        if (!seg.length) return;                 // empty segment: colSum fallback
+        const len = seg.reduce((m, r2) => Math.max(m, r2.length), 0);
+        out[i] = columnGrandTotals(seg, len).colSum;
+      });
+      return out;
+    })();
+
+    rows.forEach((row, rowIdx) => {
       const isTot = isTotalRowLabel(row[0]);
       derived.forEach(d => {
         let num, den;
@@ -2038,8 +2080,19 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           num = sumDerivedCols(row, d.numerator);
           den = totalRowDenom(d.denominator);
         } else if (isTot && hasNonTotalRows) {
-          num = sumDerivedCols(colSum, d.numerator);
-          den = sumDerivedCols(colSum, d.denominator);
+          const seg = segmentSums[rowIdx];
+          /* Numerator always from the segment when there is one.
+           *
+           * Denominator from the segment ONLY for scope 'row'. Scope 'total' means
+           * "share of the table total" by design, so segmenting its denominator
+           * would change what the column means. No table exercises the difference
+           * today, because every 'total'-scope table (F8, G1-G9) is flat and its
+           * segment equals colSum, but the distinction is pinned in the harness so
+           * it cannot be lost to a later refactor. */
+          const numSrc = seg || colSum;
+          const denSrc = (seg && d.denominatorScope !== 'total') ? seg : colSum;
+          num = sumDerivedCols(numSrc, d.numerator);
+          den = sumDerivedCols(denSrc, d.denominator);
         } else {
           num = sumDerivedCols(row, d.numerator);
           den = d.denominatorScope === 'total'
@@ -2053,10 +2106,39 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // hasNonTotalRows guards this too: a lone flagged row took the data
           // branch above, so a failure there must leave the stored value alone
           // rather than blank the table's only figure.
-          if (isTot && hasNonTotalRows && d.denominatorScope !== 'totalRow') {
+          /* CLCPA-144 item 3: a SEGMENT total that cannot derive keeps its stored
+           * value instead of blanking.
+           *
+           * A6/2025 row 31 "Multifamily - Fuel-Switch Total" is the case. Its
+           * segment is rows 29 and 30, whose DAC column holds null rather than 0,
+           * so the segment numerator is null and the derive fails. Blanking would
+           * put a NEW dash into the client report where the stored value, and
+           * ConEd's report, both say 0%. Under the ruling that the stored values
+           * are the reference, a dash there would be a regression: the old code
+           * showed 71.4%, which was wrong, but a dash is not the correction.
+           *
+           * Narrow by construction. It applies only to a total row that HAS a
+           * segment, so the whole-table Grand Total still blanks when it cannot
+           * derive, which is the CLCPA-88 behaviour that put the dashes on E1 and
+           * F9 in the first place.
+           *
+           * Measured: TWO cells in the payload, not one.
+           *
+           *   A6/2025 row 31  0.7139 (wrong, table-wide) -> stored 0
+           *   A7/2025 row  2  a dash                     -> stored 0
+           *
+           * The A7 cell is worth naming because A7 was otherwise provably
+           * unchanged by this slice, and the plan said so. Both cells are the same
+           * situation: a segment total whose segment has no numeric numerator. The
+           * old code only differed between them incidentally, because A6's
+           * whole-table DAC column has numeric data and A7/2025's does not, so the
+           * one got a wrong number and the other got a dash. Treating them alike is
+           * the point; the old split was an artifact. */
+          if (isTot && hasNonTotalRows && d.denominatorScope !== 'totalRow' &&
+              !segmentSums[rowIdx]) {
             row[d.column] = null;          // can't derive -> blank Total (renders "—")
           }
-          return;                          // per-row: leave stored value as-is
+          return;                          // per-row and segment totals: keep stored
         }
         row[d.column] = num / den;
       });
