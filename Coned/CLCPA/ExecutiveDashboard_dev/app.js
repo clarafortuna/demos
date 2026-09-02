@@ -2232,14 +2232,36 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    *                                  0.375/0.343/0.316. "System Total" is not a
    *                                  column.
    *
-   * In both, the ROW-level percentages reconcile from the table and the column's
-   * denominator does not -- a figure that was in the source and did not survive
-   * into the payload. CLCPA-206 looks for it in the shared extracts; asking Con
-   * Edison is the step after that, not before.
+   * CLCPA-206 RAN, 2026-09-02, and the J8 formula is now KNOWN:
    *
-   * Until then these render as stored, with the note below, instead of a dash.
-   * Showing the source's own number and saying it is unverified beats showing
-   * nothing and saying nothing.
+   *     DAC share = (E DAC + G DAC) / ((E DAC + G DAC) + (E Non-DAC + G Non-DAC))
+   *
+   * It reproduces 2023 (65.55 -> 66%) and 2024 (61.75 -> 62%) exactly. The
+   * denominator is DAC plus Non-DAC, NOT the table's Total row, which also carries
+   * an "Unknown" DAC-indicator bucket (2025: 237,431 electric, 148,533 gas). Five
+   * earlier candidates all divided by the Total row and so landed on 65.64. They
+   * were also all tested against 2025 only, which is the one year that disobeys the
+   * formula: 2023 and 2024 have no Total row at all, so DAC plus Non-DAC was the
+   * only denominator available there.
+   *
+   * J8/2025's stored 62/38 is 2024's pair VERBATIM, both cells. The formula gives
+   * 65.75 -> 66/34, matching 2023. That is a copy-forward when the report rolled
+   * years, not a formula anyone still needs to find.
+   *
+   * It is NOT corrected here. Ruled 2026-09-02: the dashboard reproduces ConEd's
+   * report, errors included, until ConEd corrects its own figure. The discrepancy
+   * went out as a data question; this table renders stored either way, so no code
+   * depends on the answer.
+   *
+   * F9's denominator is still unreproduced. Its "System Total" is not a column in
+   * the table and the shared extracts carry no system-wide figure, so it stays an
+   * open question in the same family.
+   *
+   * Both therefore keep rendering as stored rather than as a dash. Showing the
+   * source's own number beats showing nothing, and for J8 we can now say exactly
+   * why the number is what it is.
+   *
+   * Full working: Coned/CLCPA/tickets/CLCPA-206-findings.md
    *
    * F9 was folded into 206 during Block 3 planning: same missing-denominator
    * family, same charter. J8's interim was ruled first and is applied here rather
@@ -2254,8 +2276,13 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * executives and a ticket reference does not belong in front of them. The set
    * governs RENDERING ONLY -- it makes rowsForDisplay pass the stored percentage
    * columns through untouched instead of blanking them. See the render site in
-   * the table-card builder for the full reasoning, and CLCPA-206 for the
-   * outstanding question of which denominator produces these figures.
+   * the table-card builder for the full reasoning.
+   *
+   * J8 stays in this set MECHANICALLY, not because its formula is unknown. CLCPA-206
+   * reproduced that formula; see the block above. It stays because the table must go
+   * on rendering the stored value while ConEd confirms whether its 2025 cell is the
+   * transcription slip the arithmetic says it is. F9's denominator is still genuinely
+   * unreproduced.
    */
 
   function totalRowTestFor(tableId) {
