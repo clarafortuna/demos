@@ -13070,6 +13070,37 @@ function wireHTooltips() {
     return EDITOR_STRICT_TOTALS.has(tableId) ? isStrictTotalRowLabel : isTotalRowLabel;
   }
 
+  /**
+   * CLCPA-205 item 1 containment: tables where recomputeTotals must write NO
+   * additive total cells at all.
+   *
+   * These four are not hierarchical and have no total rows in the intended sense.
+   * Their DATA rows carry labels containing the word "total", the loose editor
+   * predicate classifies them as total rows, and the editor then overwrote real
+   * magnitudes with a sum of the percentage rows. Measured across the payload:
+   * 12 table-years, 74 cells. Examples, all from merely OPENING the table:
+   *
+   *   D2/2025  "Total # of projects"        88,150  became 0.688
+   *   D3/2025  "Total # of subscribers"     20,679  became 0.441
+   *   D4/2025  "Total MW installed"          775.8  became 0.709
+   *   F7/2025  "% of Grand Total"             "32%" became 167965
+   *
+   * recomputeTotals runs on every render of the ingest editor, so those values sat
+   * in the draft and any Save persisted them. This is a WRITE path.
+   *
+   * The hierarchy fix below does NOT address this, and would replace the wrong
+   * values with differently wrong ones, so the containment is separate from it.
+   *
+   * Tightening the predicate is not available as a fix here: A5's own segment
+   * labels fail the strict test ("Small-Medium Business Total" is strict=false),
+   * so the loose predicate is required for the very tables item 1 repairs. That
+   * tension has its own ticket, and none of these four tables has a DERIVED_COLS
+   * rule, so exempting them makes recomputeTotals a complete no-op for them.
+   *
+   * INTERIM. The ticket that resolves the predicate REMOVES this set.
+   */
+  const RECOMPUTE_TOTALS_EXEMPT = new Set(['D2', 'D3', 'D4', 'F7']);
+
   function recomputeTotals(draft, schema, tableId) {
     if (!draft || !schema) return;
     const derivedSet = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
@@ -13087,9 +13118,48 @@ function wireHTooltips() {
     // via applyDerivedCols, the derived denominators).
     const { colSum, colHasNum } = columnGrandTotals(nonTotalRows, schema.length);
 
-    // (a) Additive Total cells: sum (behavior unchanged). Derived Total cells are
-    // handled by the shared applyDerivedCols below, never summed here.
-    totalRowIdxs.forEach(idx => {
+    /* (a) Additive Total cells.
+     *
+     * CLCPA-205 item 1: HIERARCHY-AWARE. This used to write the single whole-table
+     * colSum into every total row, which is right for a flat table with one Total
+     * row and wrong for a hierarchical one. A5/2025 has nine segment totals and all
+     * nine received 27,834 where the real values are 76, 2, 518, 612, 43, 2310,
+     * 527, 23715 and 31. Measured exposure: A5, A6 and A8, 9 table-years, 137
+     * cells. The rows render grey in the editor so nobody saw it, but the wrong
+     * sums sat in the draft and any Save persisted them.
+     *
+     * Each total row now sums ONLY ITS OWN SEGMENT: the non-total rows between it
+     * and the previous total row. Positional, not label-matched, because the labels
+     * are not consistent even within one table -- A5 uses "Subtotal" in 2023 and
+     * "<segment name> Total" in 2024 and 2025.
+     *
+     * An EMPTY segment keeps the whole-table colSum, which is what makes this
+     * change safe rather than merely different:
+     *   - a hierarchical table's final grand total row ("Commercial Total") sits
+     *     directly after the last segment total, so its segment is empty and it
+     *     keeps summing the whole table, exactly as before
+     *   - in the all-totals tables (G10, J3, J4, J6, J7, J8) every segment is
+     *     empty AND there are no non-total rows, so colHasNum is false throughout
+     *     and the CLCPA-144 keep-stored guard still applies. Their auto-calculation
+     *     is CLCPA-205 item 2, a pending decision, and stays untouched here.
+     *   - a flat table has exactly one segment which IS the whole table, so its
+     *     sum is unchanged. G1-G9 are all flat (0 or 1 total row per year), and
+     *     A7 has only one non-empty segment, so it was already correct.
+     */
+    let prevTotalIdx = -1;
+    // CLCPA-205 containment: these tables get no additive total cells at all.
+    // See RECOMPUTE_TOTALS_EXEMPT for why, and for the ticket that removes it.
+    (RECOMPUTE_TOTALS_EXEMPT.has(tableId) ? [] : totalRowIdxs).forEach(idx => {
+      const segment = [];
+      for (let i = prevTotalIdx + 1; i < idx; i++) {
+        // Labels are never rewritten, so classifying from the draft is safe even
+        // though earlier iterations have already written cells above this row.
+        if (!isTotalHere(draft[i][0])) segment.push(draft[i]);
+      }
+      prevTotalIdx = idx;
+      const sums = segment.length
+        ? columnGrandTotals(segment, schema.length)
+        : { colSum: colSum, colHasNum: colHasNum };
       for (let c = 1; c < schema.length; c++) {
         if (derivedSet.has(c)) continue;
         // CLCPA-144: keep the stored value when there is nothing to sum.
@@ -13105,7 +13175,10 @@ function wireHTooltips() {
         //
         // This is a WRITE path: a save after that would have persisted the nulls.
         // Nothing to sum is not the same as a value of nothing.
-        draft[idx][c] = colHasNum[c] ? colSum[c] : draft[idx][c];
+        //
+        // Now read from `sums`, which is this row's own segment when it has one and
+        // the whole-table figure when it does not. The guard itself is unchanged.
+        draft[idx][c] = sums.colHasNum[c] ? sums.colSum[c] : draft[idx][c];
       }
     });
 
