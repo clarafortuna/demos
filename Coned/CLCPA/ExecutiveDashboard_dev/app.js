@@ -2604,6 +2604,129 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     });
   }
 
+  /**
+   * CLCPA-212: columns holding an AVERAGE, which must never be summed.
+   *
+   * Summing an average column is meaningless, and the editor was doing it:
+   * A3/2025's "Avg. Energy Savings by Participant (MMBtu)" total row received
+   * 22,297.18, the sum of 22 rounded per-row averages, over a stored 22,511.
+   *
+   * Header-driven for the same reason detectPctColumns is: the schema is the only
+   * place that says what a column MEANS. Fifteen columns across A3, A4 and C2 match,
+   * every one of them an average that was previously being summed, and the harness
+   * enumerates all fifteen so a silent widening fails.
+   */
+  function detectAvgColumns(headerRow) {
+    return headerRow.map(h => {
+      if (h == null) return false;
+      const s = String(h).toLowerCase().trim();
+      return /\bavg\b/.test(s) || /\baverage\b/.test(s) ||
+             /\bper\s+participant\b/.test(s) || /\bmean\b/.test(s);
+    });
+  }
+
+  /**
+   * CLCPA-212: is a recomputed total close enough to the stored one to be the same
+   * figure, differing only by the source's own rounding?
+   *
+   * Replaces the flat 1.5 absolute floor CLCPA-209 shipped. That floor was chosen
+   * for integer rounding on large counts and is enormous on a fractional column: it
+   * masked F9/2025's DAC percentage differing by 0.87 (stored 0.1 against a summed
+   * 0.97), which is not rounding, it is a column that should never have been summed.
+   * The right outcome for the wrong reason.
+   *
+   * Now scaled to the value: one part in ten thousand, with two floors.
+   *
+   *   0.011  a source rounded to two decimals, and nothing wider. This is what the
+   *          flat 1.5 should always have been on a fractional column.
+   *   1.5    INTEGER pairs only. A total of rounded whole numbers is routinely off
+   *          by one -- A5/2023 row 11 stores 132 where its segment sums to 131, and
+   *          A5/2025's grand total stores 27,833 against 27,834 -- and one part in
+   *          ten thousand of 131 is 0.013, far too tight to call those the same
+   *          figure. Restricting the wide floor to integers is the whole point: it
+   *          covers integer rounding without ever masking a fractional discrepancy
+   *          like F9/2025's 0.1 against a summed 0.97.
+   */
+  function withinSourceRounding(stored, computed) {
+    if (typeof stored !== 'number' || !isFinite(stored)) return false;
+    if (typeof computed !== 'number' || !isFinite(computed)) return false;
+    const bothIntegral = Number.isInteger(stored) && Number.isInteger(computed);
+    const tol = Math.max(Math.abs(computed) * 1e-4, 0.011, bothIntegral ? 1.5 : 0);
+    return Math.abs(stored - computed) <= tol;
+  }
+
+  /**
+   * CLCPA-212: the per-total-row column sums, and the flags that produced them.
+   *
+   * Extracted so that recomputeTotals and unreconciledTotals below run the SAME
+   * segmentation. They used to be one inline block, and adding a second reader meant
+   * either duplicating the segment logic or letting the two drift apart. The segment
+   * rule itself is unchanged from CLCPA-205 item 1 and CLCPA-209: a total row sums
+   * the non-total rows between it and the previous total row, and an empty segment
+   * falls back to every non-total row ABOVE it.
+   */
+  function totalRowSums(rows, schema, tableId, presetFlags) {
+    // CLCPA-212: presetFlags lets the editor classify from the BASELINE while
+    // summing the DRAFT. See the note at its call site in recomputeTotals.
+    const flags = presetFlags || totalRowFlags(rows, tableId, schema);
+    const nonTotal = rows.filter((r, i) => !flags[i]);
+    const whole = columnGrandTotals(nonTotal, schema.length);
+    const byRow = {};
+    let prev = -1;
+    flags.forEach((isTot, idx) => {
+      if (!isTot) return;
+      const segment = [];
+      for (let i = prev + 1; i < idx; i++) if (!flags[i]) segment.push(rows[i]);
+      prev = idx;
+      const above = rows.filter((r, i) => i < idx && !flags[i]);
+      byRow[idx] = segment.length
+        ? columnGrandTotals(segment, schema.length)
+        : (above.length ? columnGrandTotals(above, schema.length) : whole);
+    });
+    return { flags: flags, byRow: byRow, whole: whole };
+  }
+
+  /**
+   * CLCPA-212: which stored totals do NOT reconcile with their own rows, IN THE
+   * SOURCE, before any user edit.
+   *
+   * This is the distinction the fix turns on. A total that disagrees with its rows
+   * because the USER just edited a row should update -- that is what the editor is
+   * for. A total that disagrees in the SOURCE AS PUBLISHED is a data question to
+   * ConEd, and overwriting it would resolve that question by accident, from one
+   * click, in the wrong direction.
+   *
+   * Three cells in the payload, all of them real:
+   *
+   *   A2/2023 r28c1  "Total Energy Savings (MMBtu)"  4,019,790 stored, 3,718,099
+   *                  summed, +8.11%. This one IS CLCPA-207.
+   *   A8/2023 r12c1  "Subtotal"                      34,410 stored, 34,326 summed
+   *   A8/2023 r32c1  "Residential Programs Total Installations"  47,350 / 47,266
+   *
+   * Computed from the BASELINE, never from the draft, so a user edit can never
+   * extend the protected set and can never shrink it either.
+   *
+   * @returns {Set<string>} "row,col" keys the additive write must leave alone
+   */
+  function unreconciledTotals(baseline, schema, tableId) {
+    const out = new Set();
+    if (!Array.isArray(baseline) || !baseline.length || !schema || !schema.length) return out;
+    const derived = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
+    const pct = detectPctColumns(schema);
+    const avg = detectAvgColumns(schema);
+    const sums = totalRowSums(baseline, schema, tableId);
+    Object.keys(sums.byRow).forEach(k => {
+      const idx = Number(k), g = sums.byRow[k];
+      for (let c = 1; c < schema.length; c++) {
+        if (derived.has(c) || pct[c] || avg[c] || !g.colHasNum[c]) continue;
+        const stored = baseline[idx] ? baseline[idx][c] : null;
+        if (typeof stored !== 'number' || !isFinite(stored)) continue;
+        if (!withinSourceRounding(stored, g.colSum[c])) out.add(idx + ',' + c);
+      }
+    });
+    return out;
+  }
+
   function detectCurrencyColumns(headerRow) {
     return headerRow.map(h => {
       if (h == null) return false;
@@ -13359,15 +13482,64 @@ function wireHTooltips() {
    * cannot pass for the wrong reason.
    */
 
-  function recomputeTotals(draft, schema, tableId) {
+  /**
+   * @param {Array} baseline  CLCPA-212: the STORED rows, before any user edit.
+   *   Optional, and the reason it exists is the one distinction this fix turns on:
+   *   a total disagreeing with its rows because the user just edited one should
+   *   update, while a total that disagrees IN THE SOURCE must be left alone. Only
+   *   the baseline can tell those apart. Omitted, the protection is simply not
+   *   applied, so an older caller cannot be made worse by this argument's absence.
+   */
+  function recomputeTotals(draft, schema, tableId, baseline) {
     if (!draft || !schema) return;
     const derivedSet = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
+    /* CLCPA-212: columns that do not sum, whatever the row classification says.
+     *
+     * The additive write skipped only DERIVED columns, so any percentage or average
+     * column without a derive rule was summed. Two live consequences:
+     *
+     *   F9/2025 r6c4  "Non-DAC % of System Total"  stored 0.17, and the editor
+     *                 wrote 1.7999999999999998 -- the six boroughs' percentages
+     *                 added together. F9 is not stripped before persisting, so a
+     *                 Save put a 10x error into a client-facing table.
+     *   A3/2025 r22c4 "Avg. Energy Savings by Participant"  stored 22,511, and the
+     *                 editor wrote 22,297.18, the sum of 22 rounded averages.
+     */
+    const pctCol = detectPctColumns(schema);
+    const avgCol = detectAvgColumns(schema);
+    /* CLCPA-212: totals the SOURCE does not reconcile. Protected from the write.
+     *
+     * The keys are BASELINE row indices, so they only mean anything while the draft
+     * still holds the same rows in the same order. "Add row" and "Delete row" both
+     * call this function, and after either one index 12 in the draft need not be
+     * index 12 in the baseline -- the protection would land on the wrong row. So it
+     * lapses on any structural change, checked by length AND by label, which is
+     * defensible: a user restructuring a table is not the case this protects. */
+    const aligned = Array.isArray(baseline) && baseline.length === draft.length &&
+      baseline.every((r, i) => String((r || [])[0]) === String((draft[i] || [])[0]));
+    const protectedCells = aligned
+      ? unreconciledTotals(baseline, schema, tableId)
+      : new Set();
 
-    // CLCPA-209: identified by totalRowFlags, which reads structure and values.
-    // Not by the label -- that is the defect this ticket fixed.
+    /* CLCPA-209 identifies total rows by structure and values, not by the label.
+     *
+     * CLCPA-212: in the EDITOR the classification must come from the BASELINE, not
+     * from the draft. The classifier confirms a total by arithmetic, and a draft is
+     * mid-edit by definition: the moment a user changes a data row by enough to
+     * break the total's sum, the total row stops being confirmed as a total and
+     * therefore stops updating. Measured on A2/2023 -- adding 500 to one row left
+     * the Total row untouched, because it had just been reclassified as data.
+     *
+     * A row's identity as a total is a property of the table's structure, which the
+     * source defines and an in-progress edit does not. Classifying from the baseline
+     * also makes the protected-cell keys align by construction, since they are
+     * baseline row indices. The draft is still what gets SUMMED; only the question
+     * of which rows are totals comes from the baseline. */
+    const classifySrc = aligned ? baseline : draft;
+    const editorFlags = totalRowFlags(classifySrc, tableId, schema);
+    const sums209 = totalRowSums(draft, schema, tableId, editorFlags);
     const totalRowIdxs = [];
     const nonTotalRows = [];
-    const editorFlags = totalRowFlags(draft, tableId, schema);
     draft.forEach((row, idx) => {
       if (editorFlags[idx]) totalRowIdxs.push(idx);
       else nonTotalRows.push(row);
@@ -13405,26 +13577,16 @@ function wireHTooltips() {
      *     sum is unchanged. G1-G9 are all flat (0 or 1 total row per year), and
      *     A7 has only one non-empty segment, so it was already correct.
      */
-    let prevTotalIdx = -1;
+    /* CLCPA-212: the segment sums come from totalRowSums, computed ONCE above,
+     * before this loop writes anything.
+     *
+     * Two reasons. The classifier reads VALUES and this loop overwrites values in
+     * rows above the current one, so computing mid-loop would let an earlier
+     * iteration's writes change a later row's sums. And unreconciledTotals runs the
+     * same helper over the baseline, so the protection below is decided by exactly
+     * the same segmentation as the write it protects against. */
     totalRowIdxs.forEach(idx => {
-      const segment = [];
-      for (let i = prevTotalIdx + 1; i < idx; i++) {
-        /* CLCPA-209: classified ONCE, before this loop writes anything.
-         *
-         * The old code re-tested each row's LABEL here, which was safe only because
-         * labels are never rewritten. The classifier reads VALUES, and this loop
-         * overwrites values in rows above the current one, so re-classifying mid-loop
-         * would let an earlier iteration's writes change a later row's class. */
-        if (!editorFlags[i]) segment.push(draft[i]);
-      }
-      prevTotalIdx = idx;
-      // CLCPA-209: an empty segment sums the rows ABOVE this one, not the whole
-      // table. See the matching note in applyDerivedCols for why (A8/2025 r24).
-      const above = draft.filter((r, i) => i < idx && !editorFlags[i]);
-      const sums = segment.length
-        ? columnGrandTotals(segment, schema.length)
-        : (above.length ? columnGrandTotals(above, schema.length)
-                        : { colSum: colSum, colHasNum: colHasNum });
+      const sums = sums209.byRow[idx] || { colSum: colSum, colHasNum: colHasNum };
       for (let c = 1; c < schema.length; c++) {
         if (derivedSet.has(c)) continue;
         // CLCPA-144: keep the stored value when there is nothing to sum.
@@ -13443,24 +13605,25 @@ function wireHTooltips() {
         //
         // Now read from `sums`, which is this row's own segment when it has one and
         // the whole-table figure when it does not. The guard itself is unchanged.
+        if (pctCol[c] || avgCol[c]) continue;         // CLCPA-212: does not sum
         if (!sums.colHasNum[c]) continue;             // nothing to sum: keep stored
+        // CLCPA-212: the source's own total does not reconcile here. Leave it; the
+        // editor surfaces a note instead. See unreconciledTotals.
+        if (protectedCells.has(idx + ',' + c)) continue;
         /* CLCPA-209: do NOT overwrite a stored total the arithmetic agrees with.
          *
-         * This is the standing ruling that stored values are the reference, made
-         * general rather than a table list. Without it, reclassifying the all-totals
-         * tables would let the editor rewrite three cells across 18 table-years, all
-         * of them noise: G10/2023 238.89 -> 238.89000000000001 (a float artefact),
-         * G10/2024 241.2279 -> 241.22 (a LOSS of source precision) and J4/2025
-         * 794904947 -> 794904946 (off by one). Each is inside the source's own
-         * rounding, so the stored figure wins and the cell is left alone.
+         * The standing ruling that stored values are the reference, made general
+         * rather than a table list. Without it, reclassifying the all-totals tables
+         * would let the editor rewrite three cells across 18 table-years, all noise:
+         * G10/2023 238.89 -> 238.89000000000001 (a float artefact), G10/2024
+         * 241.2279 -> 241.22 (a LOSS of source precision) and J4/2025 794904947 ->
+         * 794904946 (off by one).
          *
-         * Named no tables, so it retires no carve-out and creates none. */
+         * CLCPA-212 moved the tolerance itself into withinSourceRounding and made it
+         * scale with the value; the flat 1.5 floor it used to carry was masking a
+         * 0.87 discrepancy on a percentage column. */
         const stored = draft[idx][c], computed = sums.colSum[c];
-        if (typeof stored === 'number' && isFinite(stored) &&
-            typeof computed === 'number' && isFinite(computed) &&
-            Math.abs(stored - computed) <= Math.max(1.5, Math.abs(computed) * 1e-4)) {
-          continue;
-        }
+        if (withinSourceRounding(stored, computed)) continue;
         draft[idx][c] = computed;
       }
     });
@@ -16431,7 +16594,7 @@ function wireHTooltips() {
       return `<div class="empty-pane">Table ${i.tableId} not found.</div>`;
     }
 
-    recomputeTotals(i.draft, i.schema, i.tableId);
+    recomputeTotals(i.draft, i.schema, i.tableId, i.baseline);
     recomputeDirty();
 
     const tableNum = i.tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
@@ -16886,7 +17049,8 @@ function wireHTooltips() {
         const c = parseInt(e.target.dataset.col, 10);
         if (isNaN(r) || isNaN(c)) return;
         state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
-        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
+                        state.ingest.baseline);
         if (e.target.dataset.fmt) {
           e.target.value = formatIngestValue(state.ingest.draft[r][c], e.target.dataset.fmt === 'money');
         }
@@ -16906,7 +17070,10 @@ function wireHTooltips() {
         }
         if (!confirm('Delete this row?')) return;
         state.ingest.draft.splice(r, 1);
-        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
+        // The baseline is passed anyway: the alignment check inside will see the
+        // length change and lapse the protection, rather than this site deciding.
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
+                        state.ingest.baseline);
         rerenderIngestEditor();
       });
     });
@@ -16918,7 +17085,8 @@ function wireHTooltips() {
         const newRow = state.ingest.schema.map(() => null);
         newRow[0] = '';
         state.ingest.draft.push(newRow);
-        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId);
+        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
+                        state.ingest.baseline);
         rerenderIngestEditor();
       });
     }
