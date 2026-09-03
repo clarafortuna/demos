@@ -5565,6 +5565,17 @@ a.nav-item { text-decoration: none; }
   font-style: italic;
 }
 
+/* CLCPA-212: the source-does-not-reconcile note. INGEST EDITOR ONLY -- the client
+   report reproduces ConEd as published, which is why the CLCPA-206 banner was
+   removed from F9 and J8. Distinguished from the neutral foot note beside it
+   because it is a finding rather than an instruction, but kept quiet: it is a
+   standing property of the data, not an error the operator caused. */
+.ingest-foot-warn {
+  color: var(--warn-fg, #8a5a00);
+  font-style: normal;
+  font-weight: 500;
+}
+
 /* ---------- History strip ---------- */
 .ingest-history {
   background: var(--white);

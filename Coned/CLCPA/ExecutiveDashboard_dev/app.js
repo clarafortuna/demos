@@ -2616,6 +2616,26 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * every one of them an average that was previously being summed, and the harness
    * enumerates all fifteen so a silent widening fails.
    */
+  /**
+   * CLCPA-213: order table ids the way a person reads them.
+   *
+   * localeCompare compares "G10" against "G2" character by character, and "1" sorts
+   * before "2", so the dropdown read G.1, G.10, G.2, G.3 ... G.9. Same for A.10
+   * between A.1 and A.2. Every other section is unaffected today because none
+   * reaches ten tables, which is exactly why this went unnoticed.
+   *
+   * Splits a letter prefix from a numeric suffix and compares the number as a
+   * number. Ids that do not match that shape fall back to a plain string compare, so
+   * an unexpected id still sorts deterministically rather than throwing.
+   */
+  function compareTableIds(a, b) {
+    const ma = /^([A-Za-z]+)(\d+)$/.exec(String(a == null ? '' : a));
+    const mb = /^([A-Za-z]+)(\d+)$/.exec(String(b == null ? '' : b));
+    if (!ma || !mb) return String(a).localeCompare(String(b));
+    if (ma[1] !== mb[1]) return ma[1].localeCompare(mb[1]);
+    return Number(ma[2]) - Number(mb[2]);
+  }
+
   function detectAvgColumns(headerRow) {
     return headerRow.map(h => {
       if (h == null) return false;
@@ -2647,6 +2667,45 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    *          covers integer rounding without ever masking a fractional discrepancy
    *          like F9/2025's 0.1 against a summed 0.97.
    */
+  /**
+   * CLCPA-212 slice B, item 5: does the recomputation MERELY ADD PRECISION to the
+   * value the source stored?
+   *
+   * E1's Grand Total is the case. The source stores a weighted mean of 0.4, 0.5 and
+   * 0.45 across the three years; the engine computes 0.399065128291635,
+   * 0.49866709233477036 and 0.45279327779072387. Each is the same figure carried to
+   * more places, and E1 is deliberately NOT in PERSIST_STRIP_TABLES (the deviation-4
+   * ruling stands), so a Save was writing the longer number over the source's.
+   *
+   * The test is the stored value's OWN precision: round the recomputation to however
+   * many decimals the stored value carries, and if that equals the stored value, the
+   * source's figure wins. General, with no table list, and it cannot mask a wrong
+   * stored value: CLCPA-141's contaminated 9.48 against a computed 0.527 rounds to
+   * 0.53 at two decimals, nowhere near 9.48, so that still gets corrected.
+   */
+  function addsOnlyPrecision(stored, computed) {
+    if (typeof stored !== 'number' || !isFinite(stored)) return false;
+    if (typeof computed !== 'number' || !isFinite(computed)) return false;
+    const str = String(stored);
+    const dot = str.indexOf('.');
+    const places = dot < 0 ? 0 : (str.length - dot - 1);
+    if (places > 12) return false;                 // already full precision
+    const f = Math.pow(10, places);
+    if (Math.round(computed * f) / f !== stored) return false;
+    /* AND materially the same number, which the rounding test alone does not give.
+     *
+     * A stored value with one decimal has a rounding band of plus or minus 0.05, so
+     * rounding alone would accept a computed 0.44 as "merely more precision" of a
+     * stored 0.4 -- a 10% difference on a percentage. E1's three real cases sit at
+     * 0.234%, 0.267% and 0.621% relative, so a 2% cap separates them from that by
+     * more than an order of magnitude in both directions.
+     *
+     * A tightening beyond the literal ruling, added because the literal rule was
+     * measurably too loose on one-decimal sources. */
+    if (stored !== 0 && Math.abs(stored - computed) / Math.abs(stored) > 0.02) return false;
+    return true;
+  }
+
   function withinSourceRounding(stored, computed) {
     if (typeof stored !== 'number' || !isFinite(stored)) return false;
     if (typeof computed !== 'number' || !isFinite(computed)) return false;
@@ -3214,7 +3273,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   /** Strip chart: each section gets a horizontal DAC-share bar vs baseline. */
   function renderStripWithGap(baseline, year, sections) {
     const goal = baseline / 100;
-    const data = sections.slice().sort((a, b) => a.id.localeCompare(b.id));
+    // CLCPA-213: section ids are single letters, so the order does not change here.
+    // Converted anyway: one comparator for every id list, or the next section to
+    // reach ten entries reintroduces the bug in a place nobody is looking.
+    const data = sections.slice().sort((a, b) => compareTableIds(a.id, b.id));
 
     function statusPill(s) {
       const pct = s.pctByYear[year];
@@ -3317,7 +3379,8 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   function renderDumbbell(baseline, year, sections) {
     const prev = prevYearOf(year);
     const hasPrevYear = prev !== null;
-    const data = sections.slice().sort((a, b) => a.id.localeCompare(b.id));
+    // CLCPA-213: see renderStripWithGap. Single-letter ids, converted for consistency.
+    const data = sections.slice().sort((a, b) => compareTableIds(a.id, b.id));
 
     const rows = data.map(s => {
       const curr = s.pctByYear[year];
@@ -13630,6 +13693,27 @@ function wireHTooltips() {
 
     // (b) Derived per-row + Total cells via the shared rule (same as the report).
     applyDerivedCols(draft, tableId, colSum, schema);
+
+    /* (c) CLCPA-212 slice B item 5: a derived cell that merely gained precision goes
+     * back to the value the source stored.
+     *
+     * EDITOR ONLY, deliberately. The report calls applyDerivedCols directly through
+     * rowsForDisplay and is untouched by this: there, recomputing at full precision
+     * is correct, and the report formats to the places it wants to show. It is the
+     * PERSIST path that must not quietly replace ConEd's figure with a longer one.
+     *
+     * Three cells in the payload, E1/2023-25 r4c2, and they were the last three that
+     * a Save with no user edit would have written. A real edit still persists: once
+     * the underlying rows change, the recomputation no longer rounds to the stored
+     * value and this leaves it alone. */
+    if (aligned) {
+      derivedSet.forEach(c => {
+        for (let r = 0; r < draft.length; r++) {
+          const stored = baseline[r] ? baseline[r][c] : undefined;
+          if (addsOnlyPrecision(stored, draft[r][c])) draft[r][c] = stored;
+        }
+      });
+    }
   }
 
   /** Initialize state.ingest based on current selection. */
@@ -13641,7 +13725,7 @@ function wireHTooltips() {
     if (!state.ingest.sectionId) state.ingest.sectionId = Object.keys(p.sections)[0];
     const tablesForSec = Object.values(p.tables)
       .filter(t => t.section === state.ingest.sectionId)
-      .sort((a, b) => a.id.localeCompare(b.id));
+      .sort((a, b) => compareTableIds(a.id, b.id));   // CLCPA-213
     if (!state.ingest.tableId || !tablesForSec.some(t => t.id === state.ingest.tableId)) {
       state.ingest.tableId = tablesForSec.length ? tablesForSec[0].id : null;
     }
@@ -13661,17 +13745,39 @@ function wireHTooltips() {
     i.schema = getTableSchema(table, i.year);
     i.baseline = getTableBody(table, i.year);
     i.draft = clone2D(i.baseline);
+
+    /* CLCPA-212 slice B item 6: the reference the BADGE compares against.
+     *
+     * i.baseline stays the SOURCE, because unreconciledTotals must see what ConEd
+     * published and nothing else. But the badge cannot compare against it: the
+     * editor runs recomputeTotals on every render, so a table whose stored derived
+     * values are rounded looked edited the moment it opened. 70 of 149 table-years
+     * showed "Unsaved changes" with Reset and Save live and nothing typed --
+     * G1/2025 because the source stores 0.47 where the engine computes
+     * 0.4700723281104107.
+     *
+     * So the badge compares against the draft AS THE EDITOR WOULD FIRST RENDER IT.
+     * One extra recomputeTotals at load, on a throwaway copy, and the badge then
+     * means what it says: the user changed something.
+     *
+     * i.baseline is still what Reset restores and what the protection reads. Only
+     * the dirty comparison moves. */
+    i.dirtyRef = clone2D(i.baseline);
+    recomputeTotals(i.dirtyRef, i.schema, i.tableId, i.baseline);
     i.dirty = false;
   }
 
-  /** Mark the draft as dirty (or clean) by diffing against baseline. */
+  /** Mark the draft as dirty (or clean) by diffing against the render reference. */
   function recomputeDirty() {
     const i = state.ingest;
-    if (!i || !i.draft || !i.baseline) { i && (i.dirty = false); return; }
-    if (i.draft.length !== i.baseline.length) { i.dirty = true; return; }
+    if (!i || !i.draft) { i && (i.dirty = false); return; }
+    // CLCPA-212: i.dirtyRef, not i.baseline. See loadIngestDraft for why.
+    const ref = i.dirtyRef || i.baseline;
+    if (!ref) { i.dirty = false; return; }
+    if (i.draft.length !== ref.length) { i.dirty = true; return; }
     for (let r = 0; r < i.draft.length; r++) {
       const a = i.draft[r] || [];
-      const b = i.baseline[r] || [];
+      const b = ref[r] || [];
       if (a.length !== b.length) { i.dirty = true; return; }
       for (let c = 0; c < a.length; c++) {
         if (a[c] !== b[c]) { i.dirty = true; return; }
@@ -16535,7 +16641,7 @@ function wireHTooltips() {
     const sections = Object.entries(p.sections);
     const tablesForSec = Object.values(p.tables)
       .filter(t => t.section === i.sectionId)
-      .sort((a, b) => a.id.localeCompare(b.id));
+      .sort((a, b) => compareTableIds(a.id, b.id));   // CLCPA-213: the dropdown
     const years = allYears();
     const addedYears = Storage.getAddedYears();
 
@@ -16626,6 +16732,26 @@ function wireHTooltips() {
     // longer auto-calculated would still render grey and read-only, leaving it
     // uneditable and the fix half-applied.
     const editorTotalFlags = totalRowFlags(i.draft, i.tableId, i.schema);
+
+    /* CLCPA-212 slice B item 3: tell the OPERATOR when the source does not add up.
+     *
+     * The visible half of the ruling whose write half shipped in slice A. Three
+     * cells in the payload have a stored total that disagrees with its own rows:
+     * A2/2023 by 8.11%, A8/2023 twice by about 0.2%. The editor leaves them alone,
+     * which protects them -- A2/2023's is CLCPA-207, an open question to ConEd -- but
+     * silence would hide a real problem from the one person placed to ask about it.
+     *
+     * EDITOR ONLY, and that asymmetry is the ruling: the client report reproduces
+     * ConEd as published, which is why the CLCPA-206 banner was removed from F9 and
+     * J8. This note lives in the ingest card, which only Emely and ConEd's data
+     * staff ever open. It names no ticket and no internal detail, just the fact. */
+    const unreconciled = unreconciledTotals(i.baseline, i.schema, i.tableId);
+    const unreconciledNote = unreconciled.size
+      ? '<span class="ingest-foot-note ingest-foot-warn">Note: this table\'s stored ' +
+        'total does not match the sum of its rows (' + unreconciled.size +
+        (unreconciled.size === 1 ? ' cell' : ' cells') + '). The stored figures are ' +
+        'shown as published and are not recalculated.</span>'
+      : '';
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
       const isTotal = editorTotalFlags[rowIdx];
       const cells = i.schema.map((_, colIdx) => {
@@ -16694,6 +16820,7 @@ function wireHTooltips() {
           ${editorTotalFlags.some(Boolean)
             ? '<span class="ingest-foot-note">Rows labeled "Total" are auto-calculated from numeric rows above (read-only, shown in grey).</span>'
             : ''}
+          ${unreconciledNote}
         </div>
       </div>`;
   }
@@ -16864,7 +16991,7 @@ function wireHTooltips() {
         // Pick first table in new section
         const tablesForSec = Object.values(state.payload.tables)
           .filter(t => t.section === state.ingest.sectionId)
-          .sort((a, b) => a.id.localeCompare(b.id));
+          .sort((a, b) => compareTableIds(a.id, b.id));   // CLCPA-213
         state.ingest.tableId = tablesForSec.length ? tablesForSec[0].id : null;
         loadIngestDraft();
         rerenderIngestAll();

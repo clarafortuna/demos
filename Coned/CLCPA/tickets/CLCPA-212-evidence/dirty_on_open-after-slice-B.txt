@@ -1,0 +1,32 @@
+=== OPENS DIRTY (badge shows, no user edits) ===
+  current build      : 38 of 149 table-years
+  pre-CLCPA-209 (7b9add6): 84 of 149
+
+=== A SAVE WOULD WRITE SOMETHING DIFFERING FROM STORED ===
+  current build      : 0 table-years
+  pre-CLCPA-209 (7b9add6): 32 table-years
+
+=== THE THREE TABLES REPORTED FROM THE HOSTED APP ===
+  G1/2025   stripped-on-persist=true   opens dirty: no   was: YES (2)
+      SAVE WOULD WRITE: nothing differing from stored
+
+  G10/2025   stripped-on-persist=true   opens dirty: no   was: YES (2)
+      SAVE WOULD WRITE: nothing differing from stored
+
+  A5/2025   stripped-on-persist=true   opens dirty: YES (2 cells)   was: YES (34)
+      badge  r17c3  Lighting                                      0.22  ->  0.2155688622754491
+      badge  r41c3  Lighting - Control                            0.22  ->  0.21516474791583962
+      SAVE WOULD WRITE: nothing differing from stored
+
+=== EVERY table-year whose SAVE would write something (current build) ===
+  NONE
+
+=== all table-years that open dirty (current build) ===
+  A1/2023(3), A1/2024(3), A1/2025(4), A10/2024(9), A10/2025(10), A2/2023(5), A2/2024(2), A2/2025(1), A5/2023(2), A5/2024(2), A5/2025(2), A6/2023(7), A6/2024(2), A6/2025(4), A8/2023(4), A8/2024(2), F2/2024(1), F2/2025(1), F8/2023(11), F8/2024(8), F8/2025(5), G2/2023(1), G2/2025(1), G3/2024(1), G5/2024(2), G5/2025(1), J3/2023(4), J3/2024(4), J3/2025(6), J4/2023(4), J4/2024(4), J4/2025(6), J6/2023(4), J6/2024(4), J6/2025(6), J7/2023(2), J7/2024(2), J7/2025(3)
+
+=== opens dirty NOW but did NOT before ===
+  NONE
+=== opened dirty BEFORE but not now (fixed by this slice) ===
+  A3/2023, A3/2024, A3/2025, A4/2023, A4/2024, A4/2025, A7/2025, A8/2025, C3/2023, C3/2024, C4/2023, C4/2024, C4/2025, E1/2023, E1/2024, E1/2025, F2/2023, F9/2023, F9/2024, F9/2025, G1/2025, G10/2023, G10/2024, G10/2025, G2/2024, G4/2023, G4/2024, G4/2025, G6/2023, G6/2024, G6/2025, G7/2025, G8/2023, G8/2024, G8/2025, G9/2024, G9/2025, I1/2023, I1/2024, I1/2025, J5/2023, J5/2024, J5/2025, J9/2023, J9/2024, J9/2025
+
+written dirty_on_open.json
