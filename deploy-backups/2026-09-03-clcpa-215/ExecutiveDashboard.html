@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>
+  /* Page password gate.
+
+     Inside Dataverse this is redundant friction: the Microsoft login and the
+     Dataverse privilege checks already decide who reaches this page, and a
+     second password in front of them buys nothing.
+
+     On the public demo origin it is the only access control there is, so it
+     stays. Skipping it there would publish this app to anyone with the URL.
+
+     Note what this gate is and is not: it redirects THIS PAGE only. It has
+     never protected the data files next to it, which are fetchable directly on
+     a public origin regardless. Do not read its presence as protection. */
+  if (!/\.crm\.dynamics\.com$/.test(location.hostname) &&
+      sessionStorage.getItem('dac_authenticated') !== 'true') {
+    window.location.href = 'index.html';
+  }
+</script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Con Edison · DAC Annual Report</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS (for DAC map widget) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <link rel="stylesheet" href="styles.css?v=d36b6f69e2">
+
+  <!-- Edit map files tab: additive, emf-prefixed, reuses the dashboard's design tokens and .btn family -->
+  <style>
+    .emf-wrap { max-width: 900px; position: relative; }
+    .emf-intro { font-size: 13.5px; color: var(--text-2); line-height: 1.6; margin: 0 0 16px; }
+    .emf-lead { background: var(--dusk-tint); border: 1px solid var(--dusk); border-left-width: 4px; border-radius: 8px; padding: 14px 18px; margin: 0 0 18px; }
+    .emf-lead p { margin: 0; font-size: 12.5px; color: var(--text-2); line-height: 1.6; }
+    .emf-lead strong { color: var(--ink); }
+    .emf-mono { font-family: var(--font-mono); background: var(--white-smoke); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; color: var(--ink-2); }
+    .emf-src { background: var(--white); border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px 16px; margin-bottom: 14px; cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .05s; box-shadow: 0 1px 0 rgba(3,24,36,0.02), 0 3px 10px rgba(3,24,36,0.04); }
+    .emf-src:hover { border-color: var(--dusk); box-shadow: 0 3px 14px rgba(3,24,36,.08); }
+    .emf-src:active { transform: translateY(1px); }
+    .emf-src.selected { border-color: var(--dusk); box-shadow: 0 0 0 1px var(--dusk); }
+    .emf-src:focus-visible { outline: 2px solid var(--dusk); outline-offset: 3px; }
+    .emf-src-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+    .emf-src-head h3 { font-size: 15px; font-weight: 700; color: var(--ink); margin: 0; }
+    .emf-chip { margin-left: auto; font-size: 10.5px; padding: 3px 10px; border-radius: 999px; font-weight: 600; letter-spacing: .3px; white-space: nowrap; }
+    .emf-chip-edit { background: #E1F5EE; color: #085041; }
+    .emf-chip-ref { background: var(--dusk-tint); color: var(--dusk); }
+    .emf-row { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0; }
+    .emf-row dt { color: var(--text-3); text-transform: uppercase; font-size: 10px; letter-spacing: .5px; padding-top: 2px; font-weight: 700; }
+    .emf-row dd { margin: 0; color: var(--text-2); font-size: 12.5px; line-height: 1.5; }
+    .emf-hint { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 12.5px; font-weight: 600; color: var(--dusk); }
+    .emf-hint svg { width: 13px; height: 13px; }
+    .emf-overlay { position: fixed; inset: 0; background: rgba(3,24,36,0.32); z-index: 4000; opacity: 0; transition: opacity .2s ease; }
+    .emf-overlay.open { opacity: 1; }
+    .emf-drawer { position: fixed; top: 0; right: 0; height: 100%; width: min(460px, 92vw); background: var(--white); border-left: 1px solid var(--line); box-shadow: -10px 0 36px rgba(3,24,36,0.18); transform: translateX(102%); transition: transform .26s cubic-bezier(.22,.61,.36,1); display: flex; flex-direction: column; }
+    .emf-overlay.open .emf-drawer { transform: translateX(0); }
+    .emf-drawer-head { padding: 20px 22px 16px; border-bottom: 1px solid var(--line); position: relative; }
+    .emf-drawer-kicker { font-size: 10.5px; text-transform: uppercase; letter-spacing: .6px; color: var(--dusk); font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
+    .emf-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dusk); display: inline-block; }
+    .emf-drawer-head h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin: 8px 0 10px; padding-right: 34px; }
+    .emf-drawer-close { position: absolute; top: 16px; right: 16px; width: 30px; height: 30px; border: none; border-radius: 7px; background: var(--white-smoke); color: var(--text-2); font-size: 18px; line-height: 1; cursor: pointer; }
+    .emf-drawer-close:hover { background: var(--line); color: var(--ink); }
+    .emf-drawer-body { padding: 18px 22px 26px; overflow-y: auto; }
+    .emf-drawer-body ol { margin: 0; padding-left: 20px; }
+    .emf-drawer-body li { margin: 0 0 12px; color: var(--text-2); font-size: 13px; line-height: 1.55; }
+    .emf-drawer-body li strong { color: var(--ink); }
+    .emf-drawer-body code { font-family: var(--font-mono); background: var(--white-smoke); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; color: var(--ink-2); }
+    .emf-info { border: none; background: var(--dusk-tint); color: var(--dusk); width: 18px; height: 18px; border-radius: 50%; font-size: 11px; font-weight: 700; font-style: normal; cursor: pointer; margin-left: 6px; line-height: 18px; padding: 0; vertical-align: middle; }
+    .emf-info-note { display: block; margin-top: 8px; padding: 10px 12px; background: var(--white-smoke); border: 1px solid var(--line); border-radius: 7px; font-size: 12px; color: var(--text-3); line-height: 1.5; }
+    /* Update panel as a card beside the selected source (falls back to below at narrow widths) */
+    .emf-popover { position: absolute; z-index: 30; width: 380px; max-width: 92vw; background: var(--white); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 34px rgba(3,24,36,0.18); display: flex; flex-direction: column; max-height: 78vh; }
+    .emf-pop-head { padding: 16px 18px 12px; border-bottom: 1px solid var(--line); position: relative; }
+    .emf-pop-head h3 { font-size: 16px; font-weight: 700; color: var(--ink); margin: 8px 0 8px; padding-right: 30px; }
+    .emf-pop-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border: none; border-radius: 7px; background: var(--white-smoke); color: var(--text-2); font-size: 17px; line-height: 1; cursor: pointer; }
+    .emf-pop-close:hover { background: var(--line); color: var(--ink); }
+    .emf-pop-body { padding: 14px 18px 18px; overflow-y: auto; }
+    .emf-pop-body ol { margin: 0; padding-left: 20px; }
+    .emf-pop-body li { margin: 0 0 12px; color: var(--text-2); font-size: 13px; line-height: 1.55; }
+    .emf-pop-body li strong { color: var(--ink); }
+    .emf-pop-body code { font-family: var(--font-mono); background: var(--white-smoke); border: 1px solid var(--line); border-radius: 4px; padding: 1px 5px; font-size: 11.5px; color: var(--ink-2); }
+    /* Edit files button + upload mockup (visual only) */
+    .emf-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+    .emf-up-intro { font-size: 12.5px; color: var(--text-2); line-height: 1.55; margin: 0 0 14px; }
+    .emf-dropzone { border: 1.5px dashed var(--dusk); border-radius: 10px; background: var(--dusk-tint); padding: 26px 18px; text-align: center; color: var(--text-2); }
+    .emf-dropzone svg { width: 26px; height: 26px; color: var(--dusk); margin-bottom: 8px; }
+    .emf-dz-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+    .emf-dz-sub { font-size: 11.5px; color: var(--text-3); margin: 6px 0 10px; }
+    .emf-up-maps { font-size: 12px; color: var(--text-2); margin: 16px 0 14px; }
+    .emf-up-maps strong { color: var(--ink); }
+    .emf-up-actions { display: flex; }
+    .emf-up-note { font-size: 11.5px; color: var(--text-3); font-style: italic; margin: 14px 0 0; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+      </div>
+      <div class="sidebar-brand-mark">DAC Annual Report</div>
+      <div class="sidebar-brand-sub" id="sidebar-sub">Reporting Year —</div>
+    </div>
+
+    <div class="sidebar-section">Overview</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#/" data-route="/">
+        <span class="nav-letter">⌂</span> Executive Summary
+      </a>
+    </nav>
+
+    <div class="sidebar-section">Reporting Areas</div>
+    <nav class="sidebar-nav" id="sidebar-sections"></nav>
+
+    <div class="sidebar-section">Data</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#/ingest" data-route="/ingest">
+        <span class="nav-letter">↓</span> Data Ingestion
+      </a>
+      <a class="nav-item" href="#/maplayers" data-route="/maplayers">
+        <span class="nav-letter">◈</span> Map Layers
+      </a>
+      <!-- Edit map files: hidden from navigation for V1. Every source it
+           documented now has a "How to update" button on the card that owns
+           that data, so this page is redundant surface rather than the only
+           way in. The route, the page and its wiring are all still present and
+           the URL still works; removing the code properly is its own slice. -->
+      <a class="nav-item" href="#/edit-map-files" data-route="/edit-map-files" hidden>
+        <span class="nav-letter">✎</span> Edit map files
+      </a>
+    </nav>
+
+    <div class="sidebar-foot" id="sidebar-foot"></div>
+  </aside>
+
+  <header class="topbar">
+    <div class="topbar-title">
+      <span class="topbar-logo" aria-hidden="true">
+        <img src="logo/ConEd_Logo_fondo_blanco.jpeg" alt="Con Edison">
+      </span>
+      <span class="crumb">DAC Report</span>
+      <span class="crumb-sep">/</span>
+      <span id="crumb-current">Loading…</span>
+    </div>
+
+    <div class="topbar-actions" id="topbar-actions">
+      <span class="year-label">Reporting Year</span>
+      <select id="year-select" class="year-select" aria-label="Reporting year"></select>
+      <button class="btn" id="btn-export" title="Export this page as PDF">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF
+      </button>
+    </div>
+  </header>
+
+  <main class="content" id="view-container">
+    <div class="view-loading">
+      <div style="padding:40px; text-align:center; color:var(--text-3);">Loading payload…</div>
+    </div>
+  </main>
+
+</div>
+
+<!-- Leaflet JS (for DAC map widget) -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Turf.js (dissolve selected-neighborhood tract boundaries) -->
+<script src="https://unpkg.com/@turf/turf@7/turf.min.js"></script>
+<script src="app.js?v=95ab829f3d"></script>
+
+</body>
+</html>
