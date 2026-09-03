@@ -1,0 +1,64 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+source: ExecutiveDashboard_dev/ at main @ f3e4c85
+note: the dataset JSON files are NOT web resources; they upload via the admin card.
+files: app.js, styles.css, ExecutiveDashboard.html
+
+BUILD IDS (content hashes; the client must report the app.js one):
+   app.js  95ab829f3d
+   styles.css  d36b6f69e2
+   -> ExecutiveDashboard.html references them as ?v=<id>
+   -> app.js prints "[DAC dashboard] build 95ab829f3d" at boot
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  E59VHDV4C
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+known app.js id resolves to name: cr2bf_dactest/app.js
+name prefix: cr2bf_dactest/
+
+web resources under that prefix (7):
+   cr2bf_dactest/app.js  79151fe9-3c64-f111-ab0c-7c1e521c7110
+   cr2bf_dactest/ExecutiveDashboard.html  77151fe9-3c64-f111-ab0c-7c1e521c7110
+   cr2bf_dactest/index.html  75151fe9-3c64-f111-ab0c-7c1e521c7110
+   cr2bf_dactest/logo/ConEd_Logo_completo.svg  9cd6794b-7364-f111-ab0c-7c1e521c7110
+   cr2bf_dactest/logo/ConEd_Logo_fondo_blanco.jpeg  9ed6794b-7364-f111-ab0c-7c1e521c7110
+   cr2bf_dactest/payload.json  7d151fe9-3c64-f111-ab0c-7c1e521c7110
+   cr2bf_dactest/styles.css  7b151fe9-3c64-f111-ab0c-7c1e521c7110
+
+WILL PUSH  app.js   deployed=882500B  local=892444B
+unchanged   styles.css   deployed=252110B  local=252110B
+WILL PUSH  ExecutiveDashboard.html   deployed=11856B  local=11856B
+
+archived  app.js  882500B  sha256=1e5e1f452c46a164…
+archived  styles.css  252110B  sha256=d36b6f69e24ee441…
+archived  ExecutiveDashboard.html  11856B  sha256=642f490fde4d6ea9…
+
+backup written to: C:/Users/emely/Desktop/Projects/demos/deploy-backups/2026-09-03-clcpa-144-tier3
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (892444 B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (11856 B)
+
+POST PublishXml for 2 resource(s)
+published.
+
+VERIFIED app.js  now=892444B  expected=892444B
+VERIFIED ExecutiveDashboard.html  now=11856B  expected=11856B
+
+=== deploy complete: app.js, ExecutiveDashboard.html ===
+pre-deploy backup: C:/Users/emely/Desktop/Projects/demos/deploy-backups/2026-09-03-clcpa-144-tier3
+
+CLIENT CHECK (a required step from this deploy onward): open the hosted app
+and confirm the console reports  [DAC dashboard] build 95ab829f3d
+The Map Layers page shows the same id at the bottom. A different id means the
+browser is on an older build and the deploy has not reached it yet.
+
+[exited with code 0]
