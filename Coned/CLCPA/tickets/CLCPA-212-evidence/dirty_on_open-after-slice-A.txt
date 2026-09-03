@@ -1,0 +1,51 @@
+=== OPENS DIRTY (badge shows, no user edits) ===
+  current build      : 66 of 149 table-years
+  pre-CLCPA-209 (7b9add6): 84 of 149
+
+=== A SAVE WOULD WRITE SOMETHING DIFFERING FROM STORED ===
+  current build      : 3 table-years
+  pre-CLCPA-209 (7b9add6): 32 table-years
+
+=== THE THREE TABLES REPORTED FROM THE HOSTED APP ===
+  G1/2025   stripped-on-persist=true   opens dirty: YES (2 cells)   was: YES (2)
+      badge  r 0c2  Feet Replaced within DAC                      0.47  ->  0.4700723281104107
+      badge  r 1c2  Feet Replaced not in a DAC                    0.53  ->  0.5299276718895893
+      SAVE WOULD WRITE: nothing differing from stored
+
+  G10/2025   stripped-on-persist=true   opens dirty: YES (2 cells)   was: YES (2)
+      badge  r 0c2  Total mT CH4 in Non-DACs                      0.46  ->  0.45567362134491585
+      badge  r 1c2  Total mT CH4 in DACs                          0.54  ->  0.5443263786550842
+      SAVE WOULD WRITE: nothing differing from stored
+
+  A5/2025   stripped-on-persist=true   opens dirty: YES (33 cells)   was: YES (34)
+      badge  r 1c3  HVAC                                          0.37  ->  0.3684210526315789
+      badge  r 2c3  Clean Heat – Commercial & Industrial Air Sou  0.37  ->  0.3684210526315789
+      badge  r 8c3  HVAC                                          0.47  ->  0.4661508704061896
+      badge  r 9c3  Clean Heat – Small-Medium Business Air Sourc  0.47  ->  0.46525096525096526
+      badge  r12c3  Building Shell                                0.17  ->  0.16666666666666666
+      badge  r13c3  Compressed Air                                0.36  ->  0.36363636363636365
+      badge  r15c3  HVAC                                          0.38  ->  0.3783783783783784
+      badge  r16c3  HVAC - Control                                0.17  ->  0.17204301075268819
+      badge  r17c3  Lighting                                      0.22  ->  0.2155688622754491
+      badge  r18c3  Lighting - Control                            0.45  ->  0.4482758620689655
+      badge  r19c3  Motors and Drives                             0.19  ->  0.1875
+      badge  r21c3  Process Equipment                             0.33  ->  0.3333333333333333
+      SAVE WOULD WRITE: nothing differing from stored
+
+=== EVERY table-year whose SAVE would write something (current build) ===
+  E1/2023  (1 cells, stripped=false)
+      r 4c2  Grand Total                                   0.4  ->  0.399065128291635
+  E1/2024  (1 cells, stripped=false)
+      r 4c2  Grand Total                                   0.5  ->  0.49866709233477036
+  E1/2025  (1 cells, stripped=false)
+      r 4c2  Grand Total                                   0.45  ->  0.45279327779072387
+
+=== all table-years that open dirty (current build) ===
+  A1/2023(20), A1/2024(24), A1/2025(19), A10/2024(9), A10/2025(10), A2/2023(22), A2/2024(21), A2/2025(20), A5/2023(31), A5/2024(30), A5/2025(33), A6/2023(19), A6/2024(23), A6/2025(22), A8/2023(22), A8/2024(15), A8/2025(12), E1/2023(1), E1/2024(1), E1/2025(1), F2/2023(6), F2/2024(6), F2/2025(6), F8/2023(14), F8/2024(14), F8/2025(14), G1/2025(2), G10/2023(3), G10/2024(3), G10/2025(2), G2/2023(2), G2/2024(2), G2/2025(2), G3/2024(2), G4/2023(2), G4/2024(2), G4/2025(2), G5/2024(2), G5/2025(2), G6/2023(2), G6/2024(2), G6/2025(2), G7/2025(2), G8/2023(2), G8/2024(2), G8/2025(2), G9/2024(2), G9/2025(2), J3/2023(4), J3/2024(4), J3/2025(6), J4/2023(4), J4/2024(4), J4/2025(6), J5/2023(4), J5/2024(4), J5/2025(4), J6/2023(4), J6/2024(4), J6/2025(6), J7/2023(2), J7/2024(2), J7/2025(3), J9/2023(2), J9/2024(2), J9/2025(2)
+
+=== opens dirty NOW but did NOT before ===
+  NONE
+=== opened dirty BEFORE but not now (fixed by this slice) ===
+  A3/2023, A3/2024, A3/2025, A4/2023, A4/2024, A4/2025, A7/2025, C3/2023, C3/2024, C4/2023, C4/2024, C4/2025, F9/2023, F9/2024, F9/2025, I1/2023, I1/2024, I1/2025
+
+written dirty_on_open.json

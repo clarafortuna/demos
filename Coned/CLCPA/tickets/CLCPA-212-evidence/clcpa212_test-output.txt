@@ -1,0 +1,4 @@
+CLCPA-212 slice A acceptance suite
+  baseline ref : a87e376
+  assertions   : 41   pass 41   controls red 11   FAIL 0
+  ALL PASS
