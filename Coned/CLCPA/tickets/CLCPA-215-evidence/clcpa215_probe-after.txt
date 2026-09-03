@@ -1,0 +1,72 @@
+=== D2/2024 as stored ===
+  schema: ["Metric","Up to 2024",2024]
+  r0  ["Total # of projects",76991,10555]
+  r1  ["Total # of projects in DACs",24882,3584]
+  r2  ["Percentage of projects in DACs",0.323,0.34]
+  r3  ["Total MW installed (All DERs)",1096.44,182.54]
+  r4  ["Total MW installed in DACs (All DERs)",405.92,64.62]
+  r5  ["Percentage of MW installed in DACs (All DERs)",0.37,0.354]
+
+  rules: r2 = r1/r0,  r5 = r4/r3
+  protected cells: NONE
+
+--- r2c1  "Percentage of projects in DACs"
+    stored 0.323   = r1/r0 = 24882/76991 = 0.323181
+    storedDecimals=3  so the rounding band is +/-0.0005 and the 2% cap is +/-0.00646
+      +    1 on r1  -> pct 0.32319362003351043   MOVED   (true ratio 0.323194)
+      +    5 on r1  -> pct 0.32324557415801847   MOVED   (true ratio 0.323246)
+      +   10 on r1  -> pct 0.3233105168136535    MOVED   (true ratio 0.323311)
+      +   25 on r1  -> pct 0.32350534478055876   MOVED   (true ratio 0.323505)
+      +   50 on r1  -> pct 0.32383005805873416   MOVED   (true ratio 0.323830)
+      +  100 on r1  -> pct 0.32447948461508486   MOVED   (true ratio 0.324479)
+      +  200 on r1  -> pct 0.32577833772778636   MOVED   (true ratio 0.325778)
+      +  500 on r1  -> pct 0.3296748970658908    MOVED   (true ratio 0.329675)
+      + 1000 on r1  -> pct 0.3361691626293982    MOVED   (true ratio 0.336169)
+    first edit size that moves the cell: +1
+
+--- r2c2  "Percentage of projects in DACs"
+    stored 0.34   = r1/r0 = 3584/10555 = 0.339555
+    storedDecimals=2  so the rounding band is +/-0.005 and the 2% cap is +/-0.00680
+      +    1 on r1  -> pct 0.33964945523448603   MOVED   (true ratio 0.339649)
+      +    5 on r1  -> pct 0.3400284225485552    MOVED   (true ratio 0.340028)
+      +   10 on r1  -> pct 0.34050213169114163   MOVED   (true ratio 0.340502)
+      +   25 on r1  -> pct 0.341923259118901     MOVED   (true ratio 0.341923)
+      +   50 on r1  -> pct 0.34429180483183325   MOVED   (true ratio 0.344292)
+      +  100 on r1  -> pct 0.3490288962576978    MOVED   (true ratio 0.349029)
+      +  200 on r1  -> pct 0.3585030791094268    MOVED   (true ratio 0.358503)
+      +  500 on r1  -> pct 0.3869256276646139    MOVED   (true ratio 0.386926)
+      + 1000 on r1  -> pct 0.4342965419232591    MOVED   (true ratio 0.434297)
+    first edit size that moves the cell: +1
+
+--- r5c1  "Percentage of MW installed in DACs (All DERs"
+    stored 0.37   = r4/r3 = 405.92/1096.44 = 0.370216
+    storedDecimals=2  so the rounding band is +/-0.005 and the 2% cap is +/-0.00740
+      +    1 on r4  -> pct 0.3711283791178724    MOVED   (true ratio 0.371128)
+      +    5 on r4  -> pct 0.37477654956039547   MOVED   (true ratio 0.374777)
+      +   10 on r4  -> pct 0.3793367626135493    MOVED   (true ratio 0.379337)
+      +   25 on r4  -> pct 0.3930174017730108    MOVED   (true ratio 0.393017)
+      +   50 on r4  -> pct 0.41581846703878006   MOVED   (true ratio 0.415818)
+      +  100 on r4  -> pct 0.4614205975703185    MOVED   (true ratio 0.461421)
+      +  200 on r4  -> pct 0.5526248586333954    MOVED   (true ratio 0.552625)
+      +  500 on r4  -> pct 0.8262376418226259    MOVED   (true ratio 0.826238)
+      + 1000 on r4  -> pct 1.2822589471380104    MOVED   (true ratio 1.282259)
+    first edit size that moves the cell: +1
+
+--- r5c2  "Percentage of MW installed in DACs (All DERs"
+    stored 0.354   = r4/r3 = 64.62/182.54 = 0.354005
+    storedDecimals=3  so the rounding band is +/-0.0005 and the 2% cap is +/-0.00708
+      +    1 on r4  -> pct 0.359482853073299     MOVED   (true ratio 0.359483)
+      +    5 on r4  -> pct 0.38139585844198537   MOVED   (true ratio 0.381396)
+      +   10 on r4  -> pct 0.4087871151528433    MOVED   (true ratio 0.408787)
+      +   25 on r4  -> pct 0.4909608852854169    MOVED   (true ratio 0.490961)
+      +   50 on r4  -> pct 0.6279171688397064    MOVED   (true ratio 0.627917)
+      +  100 on r4  -> pct 0.9018297359482854    MOVED   (true ratio 0.901830)
+      +  200 on r4  -> pct 1.4496548701654433    MOVED   (true ratio 1.449655)
+      +  500 on r4  -> pct 3.093130272816917     MOVED   (true ratio 3.093130)
+      + 1000 on r4  -> pct 5.832255943902706     MOVED   (true ratio 5.832256)
+    first edit size that moves the cell: +1
+
+=== the same question for the OTHER Tier 3 tables, one column each ===
+  D3/2024  r2c1  stored 0.331     first moving edit: +1
+  D4/2024  r2c1  stored 0.059     first moving edit: +1
+  F7/2024  r3c1  stored 34%       first moving edit: +1

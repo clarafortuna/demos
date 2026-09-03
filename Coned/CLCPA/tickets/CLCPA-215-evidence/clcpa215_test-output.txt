@@ -1,0 +1,4 @@
+CLCPA-215 acceptance suite
+  baseline ref : 5ac07f4
+  assertions   : 33   pass 33   controls red 9   FAIL 0
+  ALL PASS
