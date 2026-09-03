@@ -1,0 +1,714 @@
+[
+  {
+    "tableId": "A3",
+    "year": "2023",
+    "row": 28,
+    "label": "Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "A3",
+    "year": "2024",
+    "row": 26,
+    "label": "Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "A4",
+    "year": "2023",
+    "row": 28,
+    "label": "Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "A8",
+    "year": "2025",
+    "row": 25,
+    "label": "Total CES Programs Installations",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2023",
+    "row": 0,
+    "label": "Total # of projects",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2023",
+    "row": 1,
+    "label": "Total # of projects in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2023",
+    "row": 3,
+    "label": "Total MW installed (All DERs)",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2023",
+    "row": 4,
+    "label": "Total MW installed in DACs (All DERs)",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2024",
+    "row": 0,
+    "label": "Total # of projects",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2024",
+    "row": 1,
+    "label": "Total # of projects in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2024",
+    "row": 3,
+    "label": "Total MW installed (All DERs)",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2024",
+    "row": 4,
+    "label": "Total MW installed in DACs (All DERs)",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2025",
+    "row": 0,
+    "label": "Total # of projects",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2025",
+    "row": 1,
+    "label": "Total # of projects in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2025",
+    "row": 3,
+    "label": "Total MW installed (All DERs)",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D2",
+    "year": "2025",
+    "row": 4,
+    "label": "Total MW installed in DACs (All DERs)",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2023",
+    "row": 0,
+    "label": "Total # of subscribers",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2023",
+    "row": 1,
+    "label": "Total # of subscribers in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2023",
+    "row": 3,
+    "label": "Total # of subscribers who are low-income customer",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2024",
+    "row": 0,
+    "label": "Total # of subscribers",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2024",
+    "row": 1,
+    "label": "Total # of subscribers in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2024",
+    "row": 3,
+    "label": "Total # of subscribers who are low-income customer",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2025",
+    "row": 0,
+    "label": "Total # of subscribers",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2025",
+    "row": 1,
+    "label": "Total # of subscribers in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D3",
+    "year": "2025",
+    "row": 3,
+    "label": "Total # of subscribers who are low-income customer",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2023",
+    "row": 0,
+    "label": "Total # of projects",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2023",
+    "row": 1,
+    "label": "Total # of projects installed for low-income custo",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2023",
+    "row": 3,
+    "label": "Total # of projects in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2023",
+    "row": 5,
+    "label": "Total MW installed",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2023",
+    "row": 6,
+    "label": "Total MW installed for low-income customers",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2023",
+    "row": 8,
+    "label": "Total MW installed in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2024",
+    "row": 0,
+    "label": "Total # of projects",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2024",
+    "row": 1,
+    "label": "Total # of projects installed for low-income custo",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2024",
+    "row": 3,
+    "label": "Total # of projects in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2024",
+    "row": 5,
+    "label": "Total MW installed",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2024",
+    "row": 6,
+    "label": "Total MW installed for low-income customers",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2024",
+    "row": 8,
+    "label": "Total MW installed in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2025",
+    "row": 0,
+    "label": "Total # of projects",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2025",
+    "row": 1,
+    "label": "Total # of projects installed for low-income custo",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2025",
+    "row": 3,
+    "label": "Total # of projects in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2025",
+    "row": 5,
+    "label": "Total MW installed",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2025",
+    "row": 6,
+    "label": "Total MW installed for low-income customers",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "D4",
+    "year": "2025",
+    "row": 8,
+    "label": "Total MW installed in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "F7",
+    "year": "2023",
+    "row": 3,
+    "label": "% of Grand Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "F7",
+    "year": "2024",
+    "row": 3,
+    "label": "% of Grand Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "F7",
+    "year": "2025",
+    "row": 3,
+    "label": "% of Grand Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "G10",
+    "year": "2023",
+    "row": 0,
+    "label": "Total mT CH4 in Non-DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "G10",
+    "year": "2023",
+    "row": 1,
+    "label": "Total mT CH4 in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "G10",
+    "year": "2024",
+    "row": 0,
+    "label": "Total mT CH4 in Non-DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "G10",
+    "year": "2024",
+    "row": 1,
+    "label": "Total mT CH4 in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "G10",
+    "year": "2025",
+    "row": 0,
+    "label": "Total mT CH4 in Non-DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "G10",
+    "year": "2025",
+    "row": 1,
+    "label": "Total mT CH4 in DACs",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "I1",
+    "year": "2023",
+    "row": 8,
+    "label": "Total number of hires at Con Edison from [the Acad",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "I1",
+    "year": "2024",
+    "row": 8,
+    "label": "Total number of hires at Con Edison from [the Acad",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "I1",
+    "year": "2025",
+    "row": 8,
+    "label": "Total number of hires at Con Edison from [the Acad",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J3",
+    "year": "2023",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J3",
+    "year": "2023",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J3",
+    "year": "2024",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J3",
+    "year": "2024",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J3",
+    "year": "2025",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J3",
+    "year": "2025",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J4",
+    "year": "2023",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J4",
+    "year": "2023",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J4",
+    "year": "2024",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J4",
+    "year": "2024",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J4",
+    "year": "2025",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J4",
+    "year": "2025",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J6",
+    "year": "2023",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J6",
+    "year": "2023",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J6",
+    "year": "2024",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J6",
+    "year": "2024",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J6",
+    "year": "2025",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J6",
+    "year": "2025",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J7",
+    "year": "2023",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J7",
+    "year": "2023",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J7",
+    "year": "2024",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J7",
+    "year": "2024",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J7",
+    "year": "2025",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J7",
+    "year": "2025",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2023",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2023",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2024",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2024",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2025",
+    "row": 0,
+    "label": "Total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2025",
+    "row": 1,
+    "label": "Total in Non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2025",
+    "row": 2,
+    "label": "Total",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2025",
+    "row": 3,
+    "label": "% of total in DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J8",
+    "year": "2025",
+    "row": 4,
+    "label": "% of total in non-DAC",
+    "today": "TOTAL",
+    "proposed": "data"
+  },
+  {
+    "tableId": "J9",
+    "year": "2023",
+    "row": 0,
+    "label": "Total Number of Residential Customers",
+    "today": "TOTAL",
+    "proposed": "data"
+  }
+]

@@ -1,0 +1,461 @@
+[
+  {
+    "tableId": "A1",
+    "year": "2023",
+    "row": 24,
+    "col": 1,
+    "label": "Total",
+    "before": 262524920,
+    "after": 262524921
+  },
+  {
+    "tableId": "A1",
+    "year": "2024",
+    "row": 27,
+    "col": 1,
+    "label": "Total",
+    "before": 380265713,
+    "after": 380265714
+  },
+  {
+    "tableId": "A1",
+    "year": "2024",
+    "row": 27,
+    "col": 2,
+    "label": "Total",
+    "before": 204785588,
+    "after": 204785586
+  },
+  {
+    "tableId": "A2",
+    "year": "2023",
+    "row": 28,
+    "col": 2,
+    "label": "Total",
+    "before": 1659902,
+    "after": 1659904
+  },
+  {
+    "tableId": "A2",
+    "year": "2024",
+    "row": 25,
+    "col": 2,
+    "label": "Grand Total",
+    "before": 2486962,
+    "after": 2486965
+  },
+  {
+    "tableId": "A2",
+    "year": "2025",
+    "row": 22,
+    "col": 1,
+    "label": "Grand Total",
+    "before": 4043410,
+    "after": 4043415
+  },
+  {
+    "tableId": "A2",
+    "year": "2025",
+    "row": 22,
+    "col": 2,
+    "label": "Grand Total",
+    "before": 2121657,
+    "after": 2121658
+  },
+  {
+    "tableId": "A3",
+    "year": "2023",
+    "row": 28,
+    "col": 2,
+    "label": "Total",
+    "before": 2338967,
+    "after": 2354317
+  },
+  {
+    "tableId": "A3",
+    "year": "2023",
+    "row": 28,
+    "col": 3,
+    "label": "Total",
+    "before": 4515247,
+    "after": ""
+  },
+  {
+    "tableId": "A3",
+    "year": "2023",
+    "row": 28,
+    "col": 4,
+    "label": "Total",
+    "before": 29332.32,
+    "after": ""
+  },
+  {
+    "tableId": "A3",
+    "year": "2024",
+    "row": 26,
+    "col": 2,
+    "label": "Total",
+    "before": 2087688,
+    "after": 2009280
+  },
+  {
+    "tableId": "A3",
+    "year": "2024",
+    "row": 26,
+    "col": 3,
+    "label": "Total",
+    "before": 3764656.98,
+    "after": ""
+  },
+  {
+    "tableId": "A3",
+    "year": "2024",
+    "row": 26,
+    "col": 4,
+    "label": "Total",
+    "before": 15349.029999999999,
+    "after": ""
+  },
+  {
+    "tableId": "A3",
+    "year": "2025",
+    "row": 22,
+    "col": 2,
+    "label": "Total",
+    "before": 2034907,
+    "after": 2034938
+  },
+  {
+    "tableId": "A3",
+    "year": "2025",
+    "row": 22,
+    "col": 3,
+    "label": "Total",
+    "before": 3761329,
+    "after": 3761330
+  },
+  {
+    "tableId": "A4",
+    "year": "2023",
+    "row": 28,
+    "col": 2,
+    "label": "Total",
+    "before": 1205090,
+    "after": 1218703
+  },
+  {
+    "tableId": "A4",
+    "year": "2023",
+    "row": 28,
+    "col": 3,
+    "label": "Total",
+    "before": 1885396,
+    "after": ""
+  },
+  {
+    "tableId": "A4",
+    "year": "2023",
+    "row": 28,
+    "col": 4,
+    "label": "Total",
+    "before": 32643.9,
+    "after": ""
+  },
+  {
+    "tableId": "A4",
+    "year": "2025",
+    "row": 22,
+    "col": 2,
+    "label": "Total",
+    "before": 942490,
+    "after": 942510
+  },
+  {
+    "tableId": "A5",
+    "year": "2023",
+    "row": 11,
+    "col": 1,
+    "label": "Subtotal",
+    "before": 131,
+    "after": 132
+  },
+  {
+    "tableId": "A5",
+    "year": "2023",
+    "row": 49,
+    "col": 1,
+    "label": "Commercial Programs Total Installations",
+    "before": 6590,
+    "after": 6591
+  },
+  {
+    "tableId": "A5",
+    "year": "2025",
+    "row": 49,
+    "col": 1,
+    "label": "Commercial Total",
+    "before": 27834,
+    "after": 27833
+  },
+  {
+    "tableId": "A6",
+    "year": "2023",
+    "row": 10,
+    "col": 2,
+    "label": "Subtotal",
+    "before": 1431,
+    "after": 1432
+  },
+  {
+    "tableId": "A6",
+    "year": "2023",
+    "row": 30,
+    "col": 2,
+    "label": "Multifamily Programs Total Installations",
+    "before": 2048,
+    "after": 2049
+  },
+  {
+    "tableId": "A6",
+    "year": "2024",
+    "row": 10,
+    "col": 2,
+    "label": "Affordable Multifamily Energy Efficiency",
+    "before": 9463,
+    "after": 9464
+  },
+  {
+    "tableId": "A6",
+    "year": "2024",
+    "row": 32,
+    "col": 2,
+    "label": "Multifamily Programs Installations Total",
+    "before": 11768,
+    "after": 11769
+  },
+  {
+    "tableId": "A7",
+    "year": "2025",
+    "row": 3,
+    "col": 3,
+    "label": "Multisector Programs Installations Total",
+    "before": null,
+    "after": 0
+  },
+  {
+    "tableId": "A8",
+    "year": "2025",
+    "row": 25,
+    "col": 1,
+    "label": "Total CES Programs Installations",
+    "before": 283852,
+    "after": 336599
+  },
+  {
+    "tableId": "A8",
+    "year": "2025",
+    "row": 25,
+    "col": 2,
+    "label": "Total CES Programs Installations",
+    "before": 162105,
+    "after": 190180
+  },
+  {
+    "tableId": "A8",
+    "year": "2025",
+    "row": 25,
+    "col": 3,
+    "label": "Total CES Programs Installations",
+    "before": 0.5710898637318039,
+    "after": 0.5650046494493448
+  },
+  {
+    "tableId": "C3",
+    "year": "2023",
+    "row": 5,
+    "col": 3,
+    "label": "Total",
+    "before": 258.36,
+    "after": 258.35
+  },
+  {
+    "tableId": "C3",
+    "year": "2024",
+    "row": 5,
+    "col": 7,
+    "label": "Total",
+    "before": 303.08,
+    "after": 303.07
+  },
+  {
+    "tableId": "C4",
+    "year": "2023",
+    "row": 5,
+    "col": 2,
+    "label": "Total",
+    "before": 7.199999999999999,
+    "after": 7.2
+  },
+  {
+    "tableId": "C4",
+    "year": "2024",
+    "row": 5,
+    "col": 5,
+    "label": "Total",
+    "before": 5.27,
+    "after": 5.26
+  },
+  {
+    "tableId": "C4",
+    "year": "2025",
+    "row": 5,
+    "col": 5,
+    "label": "Total",
+    "before": 6.840000000000001,
+    "after": 6.84
+  },
+  {
+    "tableId": "C4",
+    "year": "2025",
+    "row": 5,
+    "col": 7,
+    "label": "Total",
+    "before": 2.81,
+    "after": 2.82
+  },
+  {
+    "tableId": "F9",
+    "year": "2023",
+    "row": 6,
+    "col": 2,
+    "label": "Grand Total",
+    "before": 0.044300000000000006,
+    "after": 0.04
+  },
+  {
+    "tableId": "F9",
+    "year": "2023",
+    "row": 6,
+    "col": 4,
+    "label": "Grand Total",
+    "before": 0.07300000000000001,
+    "after": 0.07
+  },
+  {
+    "tableId": "F9",
+    "year": "2024",
+    "row": 6,
+    "col": 1,
+    "label": "Grand Total",
+    "before": 164716,
+    "after": 164715
+  },
+  {
+    "tableId": "F9",
+    "year": "2024",
+    "row": 6,
+    "col": 2,
+    "label": "Grand Total",
+    "before": 0.043000000000000003,
+    "after": 0.043
+  },
+  {
+    "tableId": "F9",
+    "year": "2024",
+    "row": 6,
+    "col": 3,
+    "label": "Grand Total",
+    "before": 315748,
+    "after": 315749
+  },
+  {
+    "tableId": "F9",
+    "year": "2024",
+    "row": 6,
+    "col": 4,
+    "label": "Grand Total",
+    "before": 0.082,
+    "after": 0.083
+  },
+  {
+    "tableId": "F9",
+    "year": "2025",
+    "row": 6,
+    "col": 1,
+    "label": "Grand Total",
+    "before": 167966,
+    "after": 167965
+  },
+  {
+    "tableId": "F9",
+    "year": "2025",
+    "row": 6,
+    "col": 2,
+    "label": "Grand Total",
+    "before": 0.97,
+    "after": 0.1
+  },
+  {
+    "tableId": "F9",
+    "year": "2025",
+    "row": 6,
+    "col": 3,
+    "label": "Grand Total",
+    "before": 363681,
+    "after": 363682
+  },
+  {
+    "tableId": "I1",
+    "year": "2023",
+    "row": 8,
+    "col": 1,
+    "label": "Total number of hires at Con Edison from",
+    "before": 830,
+    "after": 1
+  },
+  {
+    "tableId": "I1",
+    "year": "2023",
+    "row": 8,
+    "col": 2,
+    "label": "Total number of hires at Con Edison from",
+    "before": 1208,
+    "after": 1
+  },
+  {
+    "tableId": "I1",
+    "year": "2024",
+    "row": 8,
+    "col": 1,
+    "label": "Total number of hires at Con Edison from",
+    "before": 767,
+    "after": 0
+  },
+  {
+    "tableId": "I1",
+    "year": "2024",
+    "row": 8,
+    "col": 2,
+    "label": "Total number of hires at Con Edison from",
+    "before": 845,
+    "after": 0
+  },
+  {
+    "tableId": "I1",
+    "year": "2025",
+    "row": 8,
+    "col": 1,
+    "label": "Total number of hires at Con Edison from",
+    "before": 791,
+    "after": 0
+  },
+  {
+    "tableId": "I1",
+    "year": "2025",
+    "row": 8,
+    "col": 2,
+    "label": "Total number of hires at Con Edison from",
+    "before": 965,
+    "after": 0
+  }
+]

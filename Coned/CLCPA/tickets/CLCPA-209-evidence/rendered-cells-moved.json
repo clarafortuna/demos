@@ -1,0 +1,20 @@
+[
+  {
+    "tableId": "A7",
+    "year": "2025",
+    "row": 3,
+    "col": 3,
+    "label": "Multisector Programs Installations Total",
+    "before": null,
+    "after": 0
+  },
+  {
+    "tableId": "A8",
+    "year": "2025",
+    "row": 25,
+    "col": 3,
+    "label": "Total CES Programs Installations",
+    "before": 0.5710898637318039,
+    "after": 0.5650046494493448
+  }
+]
