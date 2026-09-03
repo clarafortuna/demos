@@ -1,0 +1,4 @@
+CLCPA-212 slice B + CLCPA-213 acceptance suite
+  baseline ref : fa8466a
+  assertions   : 54   pass 54   controls red 7   FAIL 0
+  ALL PASS

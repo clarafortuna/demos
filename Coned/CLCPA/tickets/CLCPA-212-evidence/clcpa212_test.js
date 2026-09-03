@@ -173,9 +173,29 @@ tids.forEach(t => yearsOf(t).forEach(y => {
     }
   }
 }));
-const EXPECT_PERSIST = ['E1/2023 r4c2', 'E1/2024 r4c2', 'E1/2025 r4c2'];
-eq('a Save with no edit persists ONLY the three deferred E1 cells (slice B item 5)',
-   persists.sort(), EXPECT_PERSIST.slice().sort());
+/* SLICE B FLIPPED THIS PIN, which is what it was pinned for.
+ *
+ * Slice A left three cells that a Save with no edit would still persist, E1/2023-25
+ * r4c2, and they were deferred by ruling rather than missed. Slice B's item 5
+ * closed them: a derived cell that merely gained precision goes back to the stored
+ * value. The expectation is now EMPTY, and the control below proves the three were
+ * real on slice A's own commit, so this cannot pass by having never been broken. */
+eq('a Save with no user edit persists NOTHING (slice B closed the last three)',
+   persists, []);
+control('on ' + BASE_REF + ' the three E1 cells did persist', (function () {
+  const A = X.engineFromRef('fa8466a', {
+    required: ['recomputeTotals', 'stripDerivedForPersist', 'getTableSchema', 'getTableBody'],
+  });
+  const bad = [];
+  yearsOf('E1').forEach(y => {
+    const sch = A.getTableSchema(P.tables.E1, y), base = A.getTableBody(P.tables.E1, y);
+    const d = clone(base); A.recomputeTotals(d, sch, 'E1', base);
+    const a = A.stripDerivedForPersist(clone(d), 'E1');
+    const b = A.stripDerivedForPersist(clone(base), 'E1');
+    if (JSON.stringify(a) !== JSON.stringify(b)) bad.push('E1/' + y);
+  });
+  return bad.length === 3;
+})());
 check('the six urgent cells are all gone from the persist set',
       !persists.some(k => /^(F9|A2|A8|A3|A4)\//.test(k)),
       persists.filter(k => /^(F9|A2|A8|A3|A4)\//.test(k)).join(', '));
@@ -262,16 +282,27 @@ control('on ' + BASE_REF + ' the persist set included F9/2025 and A2/2023', (fun
  * Every render diff against the pinned baseline, so any table this slice touches
  * that is not in the reviewed lists shows up here.
  */
+/* Restricted to NON-DERIVED columns, so this keeps measuring SLICE A alone.
+ *
+ * Slice A changed the additive write, which only ever touches non-derived columns.
+ * Slice B changed derived columns, and nothing else. Diffing every column would mix
+ * the two and turn this assertion into a thirty-table allowlist; diffing the
+ * non-derived columns isolates slice A exactly, and the six-table expectation is
+ * the same one Emely reviewed. */
 const moved = new Set();
 tids.forEach(t => yearsOf(t).forEach(y => {
   const now = render(t, y), was = renderOld(t, y);
   if (!now || !was) return;
+  const derived = new Set((NEW.DERIVED_COLS[t] || []).map(d => d.column));
   for (let r = 0; r < now.draft.length; r++)
-    for (let c = 0; c < (now.draft[r] || []).length; c++)
+    for (let c = 0; c < (now.draft[r] || []).length; c++) {
+      if (derived.has(c)) continue;
       if (JSON.stringify(now.draft[r][c]) !== JSON.stringify(was.draft[r][c])) moved.add(t + '/' + y);
+    }
 }));
 const EXPECT_MOVED = ['A2/2023', 'A3/2025', 'A4/2024', 'A4/2025', 'A8/2023', 'F9/2025'];
-eq('exactly the six reviewed table-years change in the editor', [...moved].sort(), EXPECT_MOVED);
+eq('exactly the six reviewed table-years change in the editor (non-derived columns)',
+   [...moved].sort(), EXPECT_MOVED);
 
 /* ============================== 10. the report is untouched
  * recomputeTotals is editor-only. rowsForDisplay must not move one cell.
