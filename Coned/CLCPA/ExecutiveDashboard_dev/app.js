@@ -2063,9 +2063,34 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     rules.forEach(d => {
       if (!rows[d.row]) return;
       for (let c = 1; c < schema.length; c++) {
-        if (protectedCells.has(d.row + ',' + c)) continue;
         const v = derivedRowValue(rows, d, c, schema);
         if (v === null) continue;
+
+        /* CLCPA-215: is this cell's OWN INPUT unchanged from the source?
+         *
+         * The gap this closes: the two behaviours below -- keeping a stored value
+         * that the recomputation still rounds to, and protecting a cell the source
+         * does not reproduce -- both existed for a cell sitting IDLE. Applied after
+         * the operator edits an input, they made the editor look broken. Measured on
+         * D2/2024: +25 projects moved one percentage, +100 was needed for another,
+         * and F7/2024 never moved at all up to +10,000. Same table, same gesture,
+         * two orders of magnitude apart, because the threshold fell out of the
+         * stored value's decimal count and the denominator's magnitude rather than
+         * out of anything the operator could predict.
+         *
+         * So both behaviours are now keyed to the INPUTS, exactly and per cell: this
+         * rule's numerator cell and its denominator cell. If the operator changed
+         * either, they changed this percentage, and they see the percentage they
+         * asked for at any edit size. If neither moved, the source's figure stands.
+         */
+        const denCol = d.denomCol === 'last' ? (schema.length - 1)
+          : (typeof d.denomCol === 'number' ? d.denomCol : c);
+        const inputsUnchanged = aligned &&
+          rows[d.numerator][c] === baseline[d.numerator][c] &&
+          rows[d.denominator][denCol] === baseline[d.denominator][denCol];
+
+        if (!inputsUnchanged) { rows[d.row][c] = v; continue; }
+        if (protectedCells.has(d.row + ',' + c)) continue;
         const held = derivedRowKeepsStored(rows[d.row][c], v);
         rows[d.row][c] = held.keep ? held.value : v;
       }
@@ -13765,6 +13790,19 @@ function wireHTooltips() {
      * defensible: a user restructuring a table is not the case this protects. */
     const aligned = Array.isArray(baseline) && baseline.length === draft.length &&
       baseline.every((r, i) => String((r || [])[0]) === String((draft[i] || [])[0]));
+    /* CLCPA-215: which COLUMNS have an edited body row feeding the totals?
+     *
+     * The additive write also restores a stored value -- withinSourceRounding keeps a
+     * total the arithmetic agrees with -- and that restoration was not input-keyed
+     * either. It surfaced as a CHAINED failure: editing F7/2024's DAC interruptions
+     * by +1 left the Grand Total at its stored 164,715 (a difference of 1 is inside
+     * the integer tolerance), so the "% of Grand Total" row below it saw an
+     * unchanged input and did not move. The percentage looked frozen because the
+     * total above it was.
+     *
+     * Same ruling, one level up: if a body row feeding a column changed, the totals
+     * in that column show the arithmetic. Computed once, before any write. */
+    const bodyTouched = {};
     const protectedCells = aligned
       ? unreconciledTotals(baseline, schema, tableId)
       : new Set();
@@ -13833,6 +13871,13 @@ function wireHTooltips() {
      * iteration's writes change a later row's sums. And unreconciledTotals runs the
      * same helper over the baseline, so the protection below is decided by exactly
      * the same segmentation as the write it protects against. */
+    if (aligned) {
+      for (let c = 1; c < schema.length; c++) {
+        bodyTouched[c] = draft.some((row, r) =>
+          !editorFlags[r] && baseline[r] && row[c] !== baseline[r][c]);
+      }
+    }
+
     totalRowIdxs.forEach(idx => {
       const sums = sums209.byRow[idx] || { colSum: colSum, colHasNum: colHasNum };
       for (let c = 1; c < schema.length; c++) {
@@ -13855,6 +13900,11 @@ function wireHTooltips() {
         // the whole-table figure when it does not. The guard itself is unchanged.
         if (pctCol[c] || avgCol[c]) continue;         // CLCPA-212: does not sum
         if (!sums.colHasNum[c]) continue;             // nothing to sum: keep stored
+        /* CLCPA-215: an edited body row in this column means the operator changed an
+         * input to this total, so it shows the sum -- past the source-disagreement
+         * protection and past the rounding tolerance alike. Both of those exist for
+         * a total sitting IDLE. */
+        if (bodyTouched[c]) { draft[idx][c] = sums.colSum[c]; continue; }
         // CLCPA-212: the source's own total does not reconcile here. Leave it; the
         // editor surfaces a note instead. See unreconciledTotals.
         if (protectedCells.has(idx + ',' + c)) continue;
@@ -13901,7 +13951,49 @@ function wireHTooltips() {
     applyDerivedRows(draft, tableId, schema, aligned ? baseline : null);
 
     if (aligned) {
+      /* CLCPA-215: restore only where the rule's INPUT COLUMNS are untouched.
+       *
+       * Same ruling as the derived rows above. A derived column reads its numerator,
+       * denominator and (for a weighted mean) weight columns; if any cell in those
+       * columns has been edited anywhere in the table, the operator changed an input
+       * to this column and must see the result.
+       *
+       * Column-scoped rather than cell-scoped here, deliberately: a derived COLUMN's
+       * inputs are whole columns once totals and segments are in play, and a
+       * per-cell answer would have to re-derive the segmentation for every scope.
+       * Erring toward showing the computation is the direction the ruling points.
+       *
+       * THIS FLIPS THE E1 PIN FROM CLCPA-212 SLICE B, ruled explicitly on
+       * 2026-09-03: editing an investment weight now MOVES the weighted mean. The
+       * old behaviour was described as "inert by arithmetic" and was this same gap
+       * wearing a nicer name. Idle E1 still persists the source's figure, which was
+       * the half worth keeping. */
+      const inputCols = {};
+      ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => {
+        const cols = [].concat(d.numerator || [], d.denominator || [],
+                               typeof d.weight === 'number' ? [d.weight] : []);
+        inputCols[d.column] = cols;
+      });
+      const colTouched = {};
       derivedSet.forEach(c => {
+        const cols = inputCols[c] || [];
+        colTouched[c] = cols.some(ic => draft.some((row, r) => {
+          /* A WEIGHTED MEAN IS ITS OWN NUMERATOR: wmean(2, 1) declares
+           * numerator: [column], so E1's input set contains column 2, the column it
+           * writes. applyDerivedCols has already overwritten that column by the time
+           * this runs, so the column always looked touched and the restoration never
+           * fired -- idle E1 started persisting the full-precision mean again, the
+           * exact guarantee CLCPA-212 slice B established.
+           *
+           * The distinction is which ROW: column 2 on a BODY row is an input the
+           * operator can edit, while column 2 on the TOTAL row is the output. Skip
+           * the output cells and the input columns read correctly for both. */
+          if (ic === c && editorFlags[r]) return false;
+          return !baseline[r] || row[ic] !== baseline[r][ic];
+        }));
+      });
+      derivedSet.forEach(c => {
+        if (colTouched[c]) return;                 // an input moved: show the result
         for (let r = 0; r < draft.length; r++) {
           const stored = baseline[r] ? baseline[r][c] : undefined;
           if (addsOnlyPrecision(stored, draft[r][c])) draft[r][c] = stored;
