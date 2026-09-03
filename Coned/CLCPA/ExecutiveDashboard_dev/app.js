@@ -1916,6 +1916,162 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     };
   })();
 
+  /**
+   * CLCPA-144 Tier 3: derived ROWS, for the TRANSPOSED tables.
+   *
+   * D2, D3, D4 and F7 run their metrics DOWN the rows, so a percentage is a row
+   * derived from two other rows within the same column. DERIVED_COLS cannot express
+   * that -- its shape is {column, numerator[], denominator[]} applied per row -- and
+   * that is why Tier 3 was deferred rather than folded into the earlier tiers.
+   *
+   * Every rule here was verified against the stored data, all three years and both
+   * columns, before being written down. 43 of the 49 derivable cells hold precisely
+   * the 3-decimal rounding of what the rule computes, which is the evidence that the
+   * rules are the ones ConEd used.
+   *
+   *   D2  r2 = r1/r0   "Percentage of projects in DACs"
+   *       r5 = r4/r3   "Percentage of MW installed in DACs (All DERs)"
+   *   D3  r2 = r1/r0   r4 = r3/r0     (both over "Total # of subscribers")
+   *   D4  r2 = r1/r0   r4 = r3/r0     (over "Total # of projects")
+   *       r7 = r6/r5   r9 = r8/r5     (over "Total MW installed")
+   *   F7  r3 = r2[c] / r2[LAST COLUMN]   "% of Grand Total"
+   *
+   * F7 is the odd one: its denominator is a FIXED column of the same row, the
+   * overall "Total Customers Interrupted", not the current column. denomCol carries
+   * that; omitted, the denominator is read from the column being computed.
+   *
+   * EDITOR ONLY. Ruled 2026-09-03: the dashboard reproduces ConEd's report, and
+   * deriving these into the report would move five published figures and silently
+   * correct a sixth that is a data question (D4/2024's stored 40% against a computed
+   * 33.97%). So applyDerivedRows is called from recomputeTotals and NEVER from
+   * rowsForDisplay -- the gap this closes is that editing a count used to leave its
+   * percentage row stale.
+   */
+  const DERIVED_ROWS = (function () {
+    const rowPct = (row, numerator, denominator, denomCol) => ({
+      row: row, numerator: numerator, denominator: denominator,
+      denomCol: denomCol === undefined ? null : denomCol,
+      type: 'percentage', decimals: 1,
+    });
+    return {
+      D2: [rowPct(2, 1, 0), rowPct(5, 4, 3)],
+      D3: [rowPct(2, 1, 0), rowPct(4, 3, 0)],
+      D4: [rowPct(2, 1, 0), rowPct(4, 3, 0), rowPct(7, 6, 5), rowPct(9, 8, 5)],
+      F7: [rowPct(3, 2, 2, 'last')],
+    };
+  })();
+
+  /**
+   * CLCPA-144 Tier 3: does a stored derived cell already hold the SAME FIGURE the
+   * rule computes, at the precision the source chose to store it?
+   *
+   * Handles both storage forms these tables use, because F7 uses both: a number
+   * (F7/2023 stores 0.3754) and a whole-percent STRING (F7/2024 and 2025 store
+   * "34%"). ConEd's own precision is inconsistent across years in one table.
+   *
+   * Returns the STORED value to keep when it is the same figure, and null when the
+   * computation genuinely differs. Returning the stored value rather than a boolean
+   * is deliberate: it keeps a string a string, so the editor never replaces "34%"
+   * with 0.342825 and changes the cell's type under the operator.
+   */
+  function derivedRowKeepsStored(stored, computed) {
+    if (typeof computed !== 'number' || !isFinite(computed)) return { keep: true, value: stored };
+    if (typeof stored === 'number' && isFinite(stored)) {
+      return addsOnlyPrecision(stored, computed) ? { keep: true, value: stored } : { keep: false };
+    }
+    if (typeof stored === 'string' && /%/.test(stored)) {
+      const txt = stored.replace(/[%,\s]/g, '');
+      const asNum = Number(txt) / 100;
+      if (!isFinite(asNum)) return { keep: false };
+      // +2 because "34" is zero decimals OF A PERCENT, which is two of a fraction
+      const places = storedDecimals(asNum * 100) + 2;
+      if (places < 2) return { keep: false };
+      const f = Math.pow(10, places);
+      const rounds = Math.round(computed * f) / f === Math.round(asNum * f) / f;
+      const near = asNum === 0 || Math.abs(asNum - computed) / Math.abs(asNum) <= 0.02;
+      return (rounds && near) ? { keep: true, value: stored } : { keep: false };
+    }
+    return { keep: false };
+  }
+
+  /**
+   * CLCPA-144 Tier 3: which derived-row cells does the SOURCE itself not reproduce?
+   *
+   * Exactly the shape of unreconciledTotals, and for exactly the same reason. A
+   * percentage that disagrees with its own two rows IN THE SOURCE AS PUBLISHED is a
+   * data question to ConEd, and recomputing it would resolve that question by
+   * accident. A percentage that disagrees because the user just edited a count
+   * SHOULD update -- that is the gap Tier 3 exists to close. Only the baseline can
+   * tell those apart.
+   *
+   * Six cells in the payload, and they are the six the census flagged as
+   * client-visible movers:
+   *
+   *   D4/2024 r4c2  stored 0.4 against 3,545/10,436 = 0.3397. Not rounding: a
+   *                 6-point gap, and the same class as the A3/A4/A8 gaps.
+   *   D4/2024 r7c2  stored 0.02 against 0.020519, a 2dp-storage edge
+   *   F7/2024 r3c1, r3c2  stored "34%" / "66%" against 34.3% / 65.7%
+   *   F7/2025 r3c1, r3c2  stored "32%" / "68%" against 31.6% / 68.4%
+   *
+   * @returns {Set<string>} "row,col" keys applyDerivedRows must leave alone
+   */
+  function unreconciledDerivedRows(baseline, schema, tableId) {
+    const out = new Set();
+    const rules = (tableId && DERIVED_ROWS[tableId]) || null;
+    if (!rules || !Array.isArray(baseline) || !baseline.length || !schema || !schema.length) return out;
+    rules.forEach(d => {
+      for (let c = 1; c < schema.length; c++) {
+        const v = derivedRowValue(baseline, d, c, schema);
+        if (v === null) continue;
+        const stored = baseline[d.row] ? baseline[d.row][c] : undefined;
+        if (stored === null || stored === undefined || stored === '') continue;
+        if (!derivedRowKeepsStored(stored, v).keep) out.add(d.row + ',' + c);
+      }
+    });
+    return out;
+  }
+
+  /** CLCPA-144 Tier 3: compute one derived-row cell, or null if it cannot derive. */
+  function derivedRowValue(rows, d, col, schema) {
+    const numRow = rows[d.numerator], denRow = rows[d.denominator];
+    if (!numRow || !denRow) return null;
+    const denCol = d.denomCol === 'last' ? (schema.length - 1)
+      : (typeof d.denomCol === 'number' ? d.denomCol : col);
+    const N = numRow[col], D = denRow[denCol];
+    if (typeof N !== 'number' || !isFinite(N)) return null;
+    if (typeof D !== 'number' || !isFinite(D) || D === 0) return null;
+    return N / D;
+  }
+
+  /**
+   * CLCPA-144 Tier 3: recompute the derived ROWS of a transposed table.
+   *
+   * EDITOR ONLY. Called from recomputeTotals and deliberately not from
+   * rowsForDisplay; the harness asserts all 49 cells are unmoved in the report.
+   *
+   * @param {Array} baseline  the SOURCE rows. Optional, and when present the cells
+   *   the source itself does not reproduce are left alone. Without it no protection
+   *   is applied, so an older caller cannot be made worse by its absence.
+   */
+  function applyDerivedRows(rows, tableId, schema, baseline) {
+    const rules = (tableId && DERIVED_ROWS[tableId]) || null;
+    if (!rules || !Array.isArray(rows) || !rows.length || !schema || !schema.length) return;
+    const aligned = Array.isArray(baseline) && baseline.length === rows.length;
+    const protectedCells = aligned
+      ? unreconciledDerivedRows(baseline, schema, tableId)
+      : new Set();
+    rules.forEach(d => {
+      if (!rows[d.row]) return;
+      for (let c = 1; c < schema.length; c++) {
+        if (protectedCells.has(d.row + ',' + c)) continue;
+        const v = derivedRowValue(rows, d, c, schema);
+        if (v === null) continue;
+        const held = derivedRowKeepsStored(rows[d.row][c], v);
+        rows[d.row][c] = held.keep ? held.value : v;
+      }
+    });
+  }
+
   /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
   function fmtDerivedCell(v, d) {
     if (v == null || v === '' || typeof v !== 'number' || !isFinite(v)) return '—';
@@ -2683,15 +2839,44 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * stored value: CLCPA-141's contaminated 9.48 against a computed 0.527 rounds to
    * 0.53 at two decimals, nowhere near 9.48, so that still gets corrected.
    */
+  /**
+   * CLCPA-144: how many decimals did the source actually store?
+   *
+   * NOT `String(v).split('.')[1].length`, which is what CLCPA-212 shipped and what
+   * this replaces. The payload holds float-noise representations -- D3/2025 stores
+   * 0.09300000000000001 and D4/2025 stores 0.059000000000000004, both of which are
+   * plainly 3-decimal figures wearing 17 and 18 decimals of IEEE noise. The string
+   * length read those as full precision, so addsOnlyPrecision refused them and two
+   * perfectly ordinary cells were being treated as source disagreements.
+   *
+   * Found by Tier 3, which derives those two cells. It did no harm in CLCPA-212
+   * because neither is a derived COLUMN, but it would have the moment one was.
+   *
+   * Instead: the smallest number of decimals that reproduces the value to within
+   * 1e-9. Verified against every stored form in play -- 0.4 gives 1, 0.45 gives 2,
+   * 0.3754 gives 4, 9.48 gives 2, 27833 gives 0, and both noisy values give 3.
+   */
+  function storedDecimals(v) {
+    for (let p = 0; p <= 12; p++) {
+      const f = Math.pow(10, p);
+      if (Math.abs(v - Math.round(v * f) / f) < 1e-9) return p;
+    }
+    return -1;                                     // genuinely full precision
+  }
+
   function addsOnlyPrecision(stored, computed) {
     if (typeof stored !== 'number' || !isFinite(stored)) return false;
     if (typeof computed !== 'number' || !isFinite(computed)) return false;
-    const str = String(stored);
-    const dot = str.indexOf('.');
-    const places = dot < 0 ? 0 : (str.length - dot - 1);
-    if (places > 12) return false;                 // already full precision
+    const places = storedDecimals(stored);
+    if (places < 0) return false;                  // already full precision
     const f = Math.pow(10, places);
-    if (Math.round(computed * f) / f !== stored) return false;
+    /* BOTH sides rounded, not the computation against the raw stored value.
+     *
+     * The stored value may itself be float noise: D3/2025 holds
+     * 0.09300000000000001, so "does the computation round to the stored value" is
+     * false for a cell that is plainly the same 0.093. Round both to the precision
+     * the source chose and compare there. */
+    if (Math.round(computed * f) / f !== Math.round(stored * f) / f) return false;
     /* AND materially the same number, which the rounding test alone does not give.
      *
      * A stored value with one decimal has a rounding band of plus or minus 0.05, so
@@ -13706,6 +13891,15 @@ function wireHTooltips() {
      * a Save with no user edit would have written. A real edit still persists: once
      * the underlying rows change, the recomputation no longer rounds to the stored
      * value and this leaves it alone. */
+    /* (d) CLCPA-144 Tier 3: the derived ROWS of a transposed table.
+     *
+     * D2, D3, D4 and F7 keep their percentage rows in step with the counts above
+     * them. Before this, editing a count left the percentage stale: D2/2025's
+     * project count could move and "Percentage of projects in DACs" would not.
+     *
+     * Called HERE and nowhere else. rowsForDisplay does not call it, by ruling. */
+    applyDerivedRows(draft, tableId, schema, aligned ? baseline : null);
+
     if (aligned) {
       derivedSet.forEach(c => {
         for (let r = 0; r < draft.length; r++) {

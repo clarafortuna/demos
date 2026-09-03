@@ -1,0 +1,66 @@
+=== D2 / D3 / D4: percentage ROWS derived from two rows above ===
+  D2/2023  r2c1  r1/r0   stored 0.321                 computed 0.320579   stored is the 3dp rounding
+  D2/2023  r5c1  r4/r3   stored 0.373                 computed 0.373454   stored is the 3dp rounding
+  D2/2024  r2c1  r1/r0   stored 0.323                 computed 0.323181   stored is the 3dp rounding
+  D2/2024  r2c2  r1/r0   stored 0.34                  computed 0.339555   stored is the 3dp rounding
+  D2/2024  r5c1  r4/r3   stored 0.37                  computed 0.370216   stored is the 3dp rounding
+  D2/2024  r5c2  r4/r3   stored 0.354                 computed 0.354005   stored is the 3dp rounding
+  D2/2025  r2c1  r1/r0   stored 0.324                 computed 0.323721   stored is the 3dp rounding
+  D2/2025  r2c2  r1/r0   stored 0.327                 computed 0.327449   stored is the 3dp rounding
+  D2/2025  r5c1  r4/r3   stored 0.364                 computed 0.363798   stored is the 3dp rounding
+  D2/2025  r5c2  r4/r3   stored 0.313                 computed 0.312763   stored is the 3dp rounding
+  D3/2023  r2c1  r1/r0   stored 0.311                 computed 0.311168   stored is the 3dp rounding
+  D3/2023  r4c1  r3/r0   stored 0.049                 computed 0.049351   stored is the 3dp rounding
+  D3/2024  r2c1  r1/r0   stored 0.331                 computed 0.331255   stored is the 3dp rounding
+  D3/2024  r2c2  r1/r0   stored 0.563                 computed 0.562750   stored is the 3dp rounding
+  D3/2024  r4c1  r3/r0   stored 0.063                 computed 0.063213   stored is the 3dp rounding
+  D3/2024  r4c2  r3/r0   stored 0.223                 computed 0.222964   stored is the 3dp rounding
+  D3/2025  r2c1  r1/r0   stored 0.348                 computed 0.348083   stored is the 3dp rounding
+  D3/2025  r2c2  r1/r0   stored 0.513                 computed 0.512780   stored is the 3dp rounding
+  D3/2025  r4c1  r3/r0   stored 0.09300000000000001   computed 0.092703   stored is the 3dp rounding
+  D3/2025  r4c2  r3/r0   stored 0.381                 computed 0.381325   stored is the 3dp rounding
+  D4/2023  r2c1  r1/r0   stored 0.057                 computed 0.057444   stored is the 3dp rounding
+  D4/2023  r4c1  r3/r0   stored 0.317                 computed 0.316992   stored is the 3dp rounding
+  D4/2023  r7c1  r6/r5   stored 0.037                 computed 0.037313   stored is the 3dp rounding
+  D4/2023  r9c1  r8/r5   stored 0.335                 computed 0.334864   stored is the 3dp rounding
+  D4/2024  r2c1  r1/r0   stored 0.059                 computed 0.059473   stored is the 3dp rounding
+  D4/2024  r2c2  r1/r0   stored 0.072                 computed 0.072058   stored is the 3dp rounding
+  D4/2024  r4c1  r3/r0   stored 0.32                  computed 0.320144   stored is the 3dp rounding
+  D4/2024  r4c2  r3/r0   stored 0.4                   computed 0.339690   DIFFERS
+  D4/2024  r7c1  r6/r5   stored 0.033                 computed 0.033270   stored is the 3dp rounding
+  D4/2024  r7c2  r6/r5   stored 0.02                  computed 0.020519   DIFFERS
+  D4/2024  r9c1  r8/r5   stored 0.292                 computed 0.291762   stored is the 3dp rounding
+  D4/2024  r9c2  r8/r5   stored 0.156                 computed 0.155824   stored is the 3dp rounding
+  D4/2025  r2c1  r1/r0   stored 0.059000000000000004  computed 0.058942   stored is the 3dp rounding
+  D4/2025  r2c2  r1/r0   stored 0.055                 computed 0.055324   stored is the 3dp rounding
+  D4/2025  r4c1  r3/r0   stored 0.321                 computed 0.320818   stored is the 3dp rounding
+  D4/2025  r4c2  r3/r0   stored 0.325                 computed 0.325413   stored is the 3dp rounding
+  D4/2025  r7c1  r6/r5   stored 0.034                 computed 0.033900   stored is the 3dp rounding
+  D4/2025  r7c2  r6/r5   stored 0.039                 computed 0.038857   stored is the 3dp rounding
+  D4/2025  r9c1  r8/r5   stored 0.295                 computed 0.295218   stored is the 3dp rounding
+  D4/2025  r9c2  r8/r5   stored 0.3224                computed 0.322400   IDENTICAL
+
+=== F7: r3[c] = r2[c] / r2[last]  (share of the grand total) ===
+  F7/2023  r3c1   162370/432541   stored 0.3754     computed 0.375386   stored is the rounding (38%)
+  F7/2023  r3c2   270171/432541   stored 0.6246     computed 0.624614   stored is the rounding (62%)
+  F7/2023  r3c3   432541/432541   stored 1          computed 1.000000   IDENTICAL
+  F7/2024  r3c1   164715/480464   stored "34%"      computed 0.342825   stored is the rounding (34%)
+  F7/2024  r3c2   315749/480464   stored "66%"      computed 0.657175   stored is the rounding (66%)
+  F7/2024  r3c3   480464/480464   stored "100%"     computed 1.000000   IDENTICAL
+  F7/2025  r3c1   167965/531647   stored "32%"      computed 0.315933   stored is the rounding (32%)
+  F7/2025  r3c2   363682/531647   stored "68%"      computed 0.684067   stored is the rounding (68%)
+  F7/2025  r3c3   531647/531647   stored "100%"     computed 1.000000   IDENTICAL
+
+=== WOULD ANY RENDERED CELL CHANGE? ===
+  cells where stored !== computed exactly : 45 of 49
+
+  displayed at 1 decimal of a percent (the report format for pct columns):
+  cells whose DISPLAYED value moves: 6
+     D4/2024  r4c2  Percentage of projects in DACs                  40.0% -> 34.0%
+     D4/2024  r7c2  Percentage MW installed for low-income custome  2.0% -> 2.1%
+     F7/2024  r3c1  % of Grand Total                                34.0% -> 34.3%
+     F7/2024  r3c2  % of Grand Total                                66.0% -> 65.7%
+     F7/2025  r3c1  % of Grand Total                                32.0% -> 31.6%
+     F7/2025  r3c2  % of Grand Total                                68.0% -> 68.4%
+
+written tier3_census.json  (49 candidate derived cells)
