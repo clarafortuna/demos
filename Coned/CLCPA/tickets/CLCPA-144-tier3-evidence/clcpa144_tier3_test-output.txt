@@ -1,0 +1,4 @@
+CLCPA-144 Tier 3 acceptance suite
+  baseline ref : e8b056e
+  assertions   : 102   pass 102   controls red 6   FAIL 0
+  ALL PASS

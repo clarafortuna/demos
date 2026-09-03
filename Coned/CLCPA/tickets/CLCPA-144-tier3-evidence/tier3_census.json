@@ -1,0 +1,492 @@
+[
+  {
+    "t": "D2",
+    "y": "2023",
+    "row": 2,
+    "col": 1,
+    "stored": 0.321,
+    "computed": 0.32057920404599916,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2023",
+    "row": 5,
+    "col": 1,
+    "stored": 0.373,
+    "computed": 0.37345442608600504,
+    "label": "Percentage of MW installed in DACs (All DERs)",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2024",
+    "row": 2,
+    "col": 1,
+    "stored": 0.323,
+    "computed": 0.3231806315023834,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2024",
+    "row": 2,
+    "col": 2,
+    "stored": 0.34,
+    "computed": 0.3395547134059687,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2024",
+    "row": 5,
+    "col": 1,
+    "stored": 0.37,
+    "computed": 0.3702163365072416,
+    "label": "Percentage of MW installed in DACs (All DERs)",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2024",
+    "row": 5,
+    "col": 2,
+    "stored": 0.354,
+    "computed": 0.35400460173112747,
+    "label": "Percentage of MW installed in DACs (All DERs)",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2025",
+    "row": 2,
+    "col": 1,
+    "stored": 0.324,
+    "computed": 0.32372093023255816,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2025",
+    "row": 2,
+    "col": 2,
+    "stored": 0.327,
+    "computed": 0.327448696119724,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2025",
+    "row": 5,
+    "col": 1,
+    "stored": 0.364,
+    "computed": 0.363797657047491,
+    "label": "Percentage of MW installed in DACs (All DERs)",
+    "same": false
+  },
+  {
+    "t": "D2",
+    "y": "2025",
+    "row": 5,
+    "col": 2,
+    "stored": 0.313,
+    "computed": 0.3127628716461204,
+    "label": "Percentage of MW installed in DACs (All DERs)",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2023",
+    "row": 2,
+    "col": 1,
+    "stored": 0.311,
+    "computed": 0.3111677479147359,
+    "label": "Percentage of subscribers in DACs",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2023",
+    "row": 4,
+    "col": 1,
+    "stored": 0.049,
+    "computed": 0.049351251158480075,
+    "label": "Percentage of subscribers who are low-income custome",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2024",
+    "row": 2,
+    "col": 1,
+    "stored": 0.331,
+    "computed": 0.33125466368191026,
+    "label": "Percentage of subscribers in DACs",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2024",
+    "row": 2,
+    "col": 2,
+    "stored": 0.563,
+    "computed": 0.5627503337783711,
+    "label": "Percentage of subscribers in DACs",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2024",
+    "row": 4,
+    "col": 1,
+    "stored": 0.063,
+    "computed": 0.06321287709199445,
+    "label": "Percentage of subscribers who are low-income custome",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2024",
+    "row": 4,
+    "col": 2,
+    "stored": 0.223,
+    "computed": 0.22296395193591456,
+    "label": "Percentage of subscribers who are low-income custome",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2025",
+    "row": 2,
+    "col": 1,
+    "stored": 0.348,
+    "computed": 0.3480825958702065,
+    "label": "Percentage of subscribers in DACs",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2025",
+    "row": 2,
+    "col": 2,
+    "stored": 0.513,
+    "computed": 0.5127803860198227,
+    "label": "Percentage of subscribers in DACs",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2025",
+    "row": 4,
+    "col": 1,
+    "stored": 0.09300000000000001,
+    "computed": 0.09270274191208472,
+    "label": "Percentage of subscribers who are low-income custome",
+    "same": false
+  },
+  {
+    "t": "D3",
+    "y": "2025",
+    "row": 4,
+    "col": 2,
+    "stored": 0.381,
+    "computed": 0.3813249869587898,
+    "label": "Percentage of subscribers who are low-income custome",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2023",
+    "row": 2,
+    "col": 1,
+    "stored": 0.057,
+    "computed": 0.057443915703602993,
+    "label": "Percentage of projects installed for low-income cust",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2023",
+    "row": 4,
+    "col": 1,
+    "stored": 0.317,
+    "computed": 0.3169921512885483,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2023",
+    "row": 7,
+    "col": 1,
+    "stored": 0.037,
+    "computed": 0.03731343283582089,
+    "label": "Percentage MW installed for low-income customers",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2023",
+    "row": 9,
+    "col": 1,
+    "stored": 0.335,
+    "computed": 0.33486414083429006,
+    "label": "Percentage MW installed in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 2,
+    "col": 1,
+    "stored": 0.059,
+    "computed": 0.05947312400212879,
+    "label": "Percentage of projects installed for low-income cust",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 2,
+    "col": 2,
+    "stored": 0.072,
+    "computed": 0.07205825986968187,
+    "label": "Percentage of projects installed for low-income cust",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 4,
+    "col": 1,
+    "stored": 0.32,
+    "computed": 0.3201436934539649,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 4,
+    "col": 2,
+    "stored": 0.4,
+    "computed": 0.33968953622077425,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 7,
+    "col": 1,
+    "stored": 0.033,
+    "computed": 0.03327037628940869,
+    "label": "Percentage MW installed for low-income customers",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 7,
+    "col": 2,
+    "stored": 0.02,
+    "computed": 0.02051901025950513,
+    "label": "Percentage MW installed for low-income customers",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 9,
+    "col": 1,
+    "stored": 0.292,
+    "computed": 0.2917623129449368,
+    "label": "Percentage MW installed in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2024",
+    "row": 9,
+    "col": 2,
+    "stored": 0.156,
+    "computed": 0.15582377791188898,
+    "label": "Percentage MW installed in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 2,
+    "col": 1,
+    "stored": 0.059000000000000004,
+    "computed": 0.058942287610516786,
+    "label": "Percentage of projects installed for low-income cust",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 2,
+    "col": 2,
+    "stored": 0.055,
+    "computed": 0.05532378015599492,
+    "label": "Percentage of projects installed for low-income cust",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 4,
+    "col": 1,
+    "stored": 0.321,
+    "computed": 0.3208177662265333,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 4,
+    "col": 2,
+    "stored": 0.325,
+    "computed": 0.32541266098313076,
+    "label": "Percentage of projects in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 7,
+    "col": 1,
+    "stored": 0.034,
+    "computed": 0.033900489816963135,
+    "label": "Percentage MW installed for low-income customers",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 7,
+    "col": 2,
+    "stored": 0.039,
+    "computed": 0.038857142857142854,
+    "label": "Percentage MW installed for low-income customers",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 9,
+    "col": 1,
+    "stored": 0.295,
+    "computed": 0.2952178396493942,
+    "label": "Percentage MW installed in DACs",
+    "same": false
+  },
+  {
+    "t": "D4",
+    "y": "2025",
+    "row": 9,
+    "col": 2,
+    "stored": 0.3224,
+    "computed": 0.3224,
+    "label": "Percentage MW installed in DACs",
+    "same": true
+  },
+  {
+    "t": "F7",
+    "y": "2023",
+    "row": 3,
+    "col": 1,
+    "stored": 0.3754,
+    "computed": 0.37538637955708243,
+    "label": "% of Grand Total",
+    "same": false
+  },
+  {
+    "t": "F7",
+    "y": "2023",
+    "row": 3,
+    "col": 2,
+    "stored": 0.6246,
+    "computed": 0.6246136204429176,
+    "label": "% of Grand Total",
+    "same": false
+  },
+  {
+    "t": "F7",
+    "y": "2023",
+    "row": 3,
+    "col": 3,
+    "stored": 1,
+    "computed": 1,
+    "label": "% of Grand Total",
+    "same": true
+  },
+  {
+    "t": "F7",
+    "y": "2024",
+    "row": 3,
+    "col": 1,
+    "stored": "34%",
+    "computed": 0.3428248526424456,
+    "label": "% of Grand Total",
+    "same": false
+  },
+  {
+    "t": "F7",
+    "y": "2024",
+    "row": 3,
+    "col": 2,
+    "stored": "66%",
+    "computed": 0.6571751473575543,
+    "label": "% of Grand Total",
+    "same": false
+  },
+  {
+    "t": "F7",
+    "y": "2024",
+    "row": 3,
+    "col": 3,
+    "stored": "100%",
+    "computed": 1,
+    "label": "% of Grand Total",
+    "same": true
+  },
+  {
+    "t": "F7",
+    "y": "2025",
+    "row": 3,
+    "col": 1,
+    "stored": "32%",
+    "computed": 0.3159333166556004,
+    "label": "% of Grand Total",
+    "same": false
+  },
+  {
+    "t": "F7",
+    "y": "2025",
+    "row": 3,
+    "col": 2,
+    "stored": "68%",
+    "computed": 0.6840666833443996,
+    "label": "% of Grand Total",
+    "same": false
+  },
+  {
+    "t": "F7",
+    "y": "2025",
+    "row": 3,
+    "col": 3,
+    "stored": "100%",
+    "computed": 1,
+    "label": "% of Grand Total",
+    "same": true
+  }
+]
