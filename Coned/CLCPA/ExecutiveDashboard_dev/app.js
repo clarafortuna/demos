@@ -1309,9 +1309,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         // CLCPA-88: never persist derived columns for stripped tables — the app
         // re-derives them at render. Strip newRows AND ctx.oldRows so the change-
         // history diff reflects base-input edits only (no derived-column noise).
-        const rows = stripDerivedForPersist(newRows, tableId);
+        // CLCPA-209: the schema reaches the classifier so the strip decision is
+        // made on the same classification the report renders with.
+        const stripTable = (state.payload && state.payload.tables)
+          ? state.payload.tables[tableId] : null;
+        const stripSchema = stripTable ? getTableSchema(stripTable, year) : null;
+        const rows = stripDerivedForPersist(newRows, tableId, stripSchema);
         const cleanCtx = (ctx && ctx.oldRows)
-          ? Object.assign({}, ctx, { oldRows: stripDerivedForPersist(ctx.oldRows, tableId) })
+          ? Object.assign({}, ctx,
+              { oldRows: stripDerivedForPersist(ctx.oldRows, tableId, stripSchema) })
           : ctx;
         return active.saveTable(tableId, year, rows, cleanCtx);
       },
@@ -1954,7 +1960,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * over the non-total rows. Divide-by-zero / non-numeric inputs leave per-row cells
    * unchanged and blank the Total cell (renders as "—").
    */
-  function applyDerivedCols(rows, tableId, colSum) {
+  function applyDerivedCols(rows, tableId, colSum, schema) {
     const derived = (tableId && DERIVED_COLS[tableId]) || [];
     if (!derived.length) return;
     // CLCPA-144 'totalRow' scope: the denominator is the sum over every row EXCEPT
@@ -1994,7 +2000,16 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
      * other table with a rule has non-total rows, the 'totalRow' scope bypasses this
      * branch, and weightedMean handles its own. J9/2023 is the only cell in the
      * payload it changes. */
-    const hasNonTotalRows = rows.some(r => !isTotalRowLabel(r[0]));
+    /* CLCPA-209: the classifier, computed ONCE and shared by every branch below.
+     *
+     * hasNonTotalRows used to guard the isTot branch here. It existed because the
+     * loose label predicate could classify EVERY row of a table as a total --
+     * J9/2023 is a single row labelled "Total Number of Residential Customers" --
+     * and the branch then had no body rows to derive from. That cannot happen now:
+     * a candidate is only confirmed against rows above it, so the first data row is
+     * never a total and at least one non-total row always exists. The guard is
+     * unreachable and is gone; the harness asserts the property payload-wide. */
+    const totalFlags = totalRowFlags(rows, tableId, schema);
 
     const wantsTotalRow = derived.some(d => d.denominatorScope === 'totalRow');
     const denomRows = wantsTotalRow
@@ -2039,21 +2054,35 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const out = {};
       let prevTotal = -1;
       rows.forEach((r, i) => {
-        if (!isTotalRowLabel(r[0])) return;
+        if (!totalFlags[i]) return;
         const seg = [];
         for (let j = prevTotal + 1; j < i; j++) {
-          if (!isTotalRowLabel(rows[j][0])) seg.push(rows[j]);
+          if (!totalFlags[j]) seg.push(rows[j]);
         }
         prevTotal = i;
-        if (!seg.length) return;                 // empty segment: colSum fallback
-        const len = seg.reduce((m, r2) => Math.max(m, r2.length), 0);
-        out[i] = columnGrandTotals(seg, len).colSum;
+        /* An EMPTY segment falls back to every non-total row ABOVE this row, not to
+         * the whole-table colSum.
+         *
+         * CLCPA-205 and CLCPA-144 could use the whole table safely, because a
+         * hierarchical table's roll-up was always its LAST row and "above" and
+         * "whole table" were the same set. CLCPA-209 breaks that assumption:
+         * A8/2025 r24 "Residential Programs Installations Total" is a roll-up with a
+         * DATA row beneath it, r25 "Total CES Programs Installations" (336,599,
+         * which sums nothing in the table). Falling back to the whole table put r25
+         * into r24's own total and produced 620,451 against a stored 283,852.
+         *
+         * Identical to the old behaviour wherever the roll-up is the last row, which
+         * is every other case in the payload. */
+        const src = seg.length ? seg : rows.filter((r2, j) => j < i && !totalFlags[j]);
+        if (!src.length) return;
+        const len = src.reduce((m, r2) => Math.max(m, r2.length), 0);
+        out[i] = columnGrandTotals(src, len).colSum;
       });
       return out;
     })();
 
     rows.forEach((row, rowIdx) => {
-      const isTot = isTotalRowLabel(row[0]);
+      const isTot = totalFlags[rowIdx];
       derived.forEach(d => {
         let num, den;
         if (d.type === 'weightedMean') {
@@ -2061,8 +2090,9 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // Per-row cells are source data and are never touched.
           if (!isTot) return;
           let wsum = 0, psum = 0, any = false;
-          for (const r of rows) {
-            if (isTotalRowLabel(r[0])) continue;
+          for (let ri = 0; ri < rows.length; ri++) {
+            if (totalFlags[ri]) continue;
+            const r = rows[ri];
             const w = r[d.weight], v = r[d.column];
             if (typeof w !== 'number' || !isFinite(w)) continue;
             if (typeof v !== 'number' || !isFinite(v)) continue;
@@ -2079,7 +2109,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // Total row divides by itself and reads 100%, which is true.
           num = sumDerivedCols(row, d.numerator);
           den = totalRowDenom(d.denominator);
-        } else if (isTot && hasNonTotalRows) {
+        } else if (isTot) {
           const seg = segmentSums[rowIdx];
           /* Numerator always from the segment when there is one.
            *
@@ -2103,9 +2133,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           // 'totalRow' with no total row present cannot derive anything, so it
           // leaves every stored value alone rather than blanking rows that are not
           // the table's total. Blanking here would put the dashes back.
-          // hasNonTotalRows guards this too: a lone flagged row took the data
-          // branch above, so a failure there must leave the stored value alone
-          // rather than blank the table's only figure.
+          // CLCPA-209: the hasNonTotalRows guard that used to be named here is
+          // gone. A lone flagged row cannot occur any more -- the classifier never
+          // marks a table's only row -- so such a row takes the data branch above
+          // by construction rather than by a guard.
           /* CLCPA-144 item 3: a SEGMENT total that cannot derive keeps its stored
            * value instead of blanking.
            *
@@ -2134,8 +2165,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
            * whole-table DAC column has numeric data and A7/2025's does not, so the
            * one got a wrong number and the other got a dash. Treating them alike is
            * the point; the old split was an artifact. */
-          if (isTot && hasNonTotalRows && d.denominatorScope !== 'totalRow' &&
-              !segmentSums[rowIdx]) {
+          if (isTot && d.denominatorScope !== 'totalRow' && !segmentSums[rowIdx]) {
             row[d.column] = null;          // can't derive -> blank Total (renders "—")
           }
           return;                          // per-row and segment totals: keep stored
@@ -2156,9 +2186,10 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     if (!rawRows || rawRows.length === 0) return rawRows;
     const clone = rawRows.map(r => r.slice());
     const len = schema ? schema.length : (clone[0] ? clone[0].length : 0);
-    const nonTotal = clone.filter(r => !isTotalRowLabel(r[0]));
+    const totalFlags = totalRowFlags(clone, tableId, schema);
+    const nonTotal = clone.filter((r, i) => !totalFlags[i]);
     const { colSum } = columnGrandTotals(nonTotal, len);
-    applyDerivedCols(clone, tableId, colSum);
+    applyDerivedCols(clone, tableId, colSum, schema);
     // Deferred derived totals -> "—" (never render a summed percentage).
     const covered = new Set(((DERIVED_COLS[tableId]) || []).map(d => d.column));
     const pctCols = schema ? detectPctColumns(schema) : [];
@@ -2184,7 +2215,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       // "Total". Only a whole-label match does. Scored against the swept list, it
       // fixes both and breaks nothing -- E1 and F9's "Grand Total" rows are still
       // classified as totals, correctly, because they genuinely sum their columns.
-      if (!totalRowTestFor(tableId)(row[0])) return;
+      /* CLCPA-209: isStrictTotalRowLabel directly. totalRowTestFor existed only to
+       * hold J8 on the old loose predicate, and it was already dead code: J8 is in
+       * NOT_RECONCILED_TABLES, which returns above, so J8 has never reached this
+       * loop since Block 3 phase 1 added it there. */
+      if (!isStrictTotalRowLabel(row[0])) return;
       for (let c = 1; c < row.length; c++) {
         if (pctCols[c] && !covered.has(c)) row[c] = '—';
       }
@@ -2192,32 +2227,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     return clone;
   }
 
-  /**
-   * Tables held on the OLD loose predicate, deliberately.
-   *
-   * J8 only, and this is now a RULING rather than an open question. The CLCPA-200
-   * sweep could not classify J8's six flagged rows -- the table has no additive
-   * column, so the does-it-sum-its-column test never ran -- and it was held here
-   * pending a read. Emely read it (2026-08-27) and ruled from the rendered table:
-   *
-   *     "% of total in DAC" Electric shows 67%, and 129.0 / 192.6 = 67%
-   *     Gas shows 59%, and 22.9 / 38.7 = 59%
-   *
-   * Those rows are COMPUTED SUMMARIES of the dollar rows above them, not data. So
-   * blanking them is correct under the current design: they are derived cells with
-   * no derive rule, exactly like E1 and F9's "Grand Total". Restoring their stored
-   * percentages would show a figure the app cannot verify, which is the specific
-   * harm the blanking pass exists to prevent.
-   *
-   * J8 therefore belongs to the derive arc, gated on CLCPA-145 -- which already
-   * flags its "% of Total" column as not reconciling -- with rules to come from
-   * CLCPA-144/145. NOT to be moved onto the strict predicate.
-   *
-   * The set stays rather than being inlined: it is the seam where 144/145 will
-   * remove J8, and one named place is easier to find than a condition buried in
-   * the blanking pass.
-   */
-  const TOTAL_ROW_STRICT_PENDING = new Set(['J8']);
 
   /**
    * CLCPA-206 interim: percentage columns whose denominator is not in the table.
@@ -2285,9 +2294,6 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * unreproduced.
    */
 
-  function totalRowTestFor(tableId) {
-    return TOTAL_ROW_STRICT_PENDING.has(tableId) ? isTotalRowLabel : isStrictTotalRowLabel;
-  }
 
   /**
    * Is this row label a TOTALS row, strictly?
@@ -2297,23 +2303,195 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * word -- "Total amount of residential electric usage (kWh)" -- is a data row and
    * must not be treated as a total.
    *
-   * DELIBERATELY SEPARATE from isTotalRowLabel rather than tightening it. That
-   * predicate has six callers and two of them change NUMBERS if it narrows:
-   * rowsForDisplay's own `nonTotal` filter feeds columnGrandTotals (a data row
-   * would start being added into the column sums), and the row-building path at
-   * ~12383 skips total rows (a data row would start being included). Narrowing the
-   * shared predicate is a bigger change with a real chance of moving figures, so it
-   * is filed as its own follow-up with all six sites enumerated. This fix touches
-   * only the blanking pass, where the false positive actually does harm.
+   * Introduced by CLCPA-200 as a narrow second predicate beside the loose label
+   * test, for the blanking pass only. CLCPA-209 retired that loose test, and this
+   * one SURVIVES with exactly two callers, both deliberate and both unchanged:
    *
-   * NOT applied to J8. Six of its rows are flagged by the loose predicate and the
-   * sweep could not classify them -- J8 has no additive column, so the
-   * does-it-sum-its-column test never ran. They are excluded pending a read of that
-   * table rather than swept up by a predicate change nobody has checked against them.
+   *   - the blanking pass in rowsForDisplay
+   *   - the 'totalRow' derived denominator in applyDerivedCols
+   *
+   * Neither moves to totalRowFlags in CLCPA-209. The denominator in particular was
+   * traced before the all-totals reclassification was approved, and keeping it on
+   * the strict label test is what leaves G10, J3, J4, J6, J7 and J8's rendered
+   * percentages untouched by that change.
    */
   function isStrictTotalRowLabel(label) {
     if (label == null) return false;
     return /^(grand\s+|sub)?totals?$/i.test(String(label).trim());
+  }
+
+  /**
+   * CLCPA-209: THE total-row classifier. Structural, plus arithmetic confirmation.
+   *
+   * Replaces isTotalRowLabel, an unanchored /total|grand total|subtotal/i substring
+   * match on the label alone. That predicate classified 98 DATA rows as totals
+   * across the payload, and the editor then overwrote real magnitudes with sums of
+   * percentage rows -- D2/2025 "Total # of projects" 88,150 became 0.688. Three
+   * carve-out sets existed only to contain it, and this function retires all three.
+   *
+   * A label cannot decide this, in either direction. "Total # of subscribers" is a
+   * data row and "Small-Medium Business Total" is a real segment total, so neither a
+   * loose nor a strict label test separates them. Position alone cannot decide it
+   * either: an earlier draft of this rule used header-delimited segments with no
+   * arithmetic, and promoted the last DATA row of every flat table that has no
+   * total at all -- F3's "Con Edison (Network)", F4's "Woodrow", J1's average-usage
+   * row. Swept across the payload it moved 36 rows the wrong way.
+   *
+   * So: structure proposes, arithmetic confirms.
+   *
+   *   HEADER-DELIMITED TABLES. A header row has a label and no value cells. Within
+   *   each header-delimited block, candidates are tested from the block's end
+   *   BACKWARDS, and the first one confirmed is the block's total. Scanning
+   *   backwards is what lets a block keep its own total when a grand total follows
+   *   it; a forward scan let the grand total absorb it. A trailing row after the
+   *   last confirmed total is the grand total when it sums the segment totals or
+   *   every data row.
+   *
+   *   FLAT TABLES. The trailing row is a candidate, and if it fails, the row above
+   *   it is tried. Two candidates, not one: F7/2023 ends with "% of Grand Total"
+   *   holding NUMBERS (0.3754, 0.6246, 1) where 2024 and 2025 hold strings, so a
+   *   single-candidate rule tested that row, failed, and never reached the real
+   *   "Grand Total" one row above.
+   *
+   * CONFIRMATION. A candidate is a total when a MAJORITY of the columns it can be
+   * compared on match the sum of the rows it would total, within the source's own
+   * rounding. Majority rather than unanimity because ConEd sums rounded per-row
+   * averages: A3/2025's "Avg. Energy Savings by Participant" column is 22,511
+   * stored against 22,297 summed, 0.96% out, while the two columns beside it match
+   * to within 31 and 1. Percentage and derived columns are excluded throughout --
+   * they do not sum, and including them rejected every real total.
+   *
+   * NO EVIDENCE IS NOT EVIDENCE AGAINST. When no column can be compared at all,
+   * the candidate is accepted on position. C2 is the case: its data rows hold
+   * "37,988 (33%)" as strings, so nothing above the Total row is numeric and there
+   * is nothing to test. Accepting on position there is what keeps C2's Total a
+   * total; rejecting for lack of evidence would have declassified it.
+   *
+   * @param {Array<Array>} rows   the table's rows for one year
+   * @param {string} tableId
+   * @param {Array} schema        column headers; used only to find percentage
+   *                              columns, and safe to omit at call sites that have
+   *                              no schema (the derived columns are still excluded)
+   * @returns {Array<boolean>}    one flag per row, parallel to `rows`
+   */
+  function totalRowFlags(rows, tableId, schema) {
+    const out = [];
+    if (!Array.isArray(rows) || !rows.length) return out;
+    for (let i = 0; i < rows.length; i++) out.push(false);
+
+    const numOf = v => (typeof v === 'number' && isFinite(v)) ? v : null;
+    const isEmpty = v => v === null || v === undefined || v === '';
+    const cols = rows.reduce((m, r) => Math.max(m, Array.isArray(r) ? r.length : 0), 0);
+
+    // Columns that do not sum: percentages by header, plus every derived column.
+    const skip = new Set();
+    if (Array.isArray(schema)) {
+      schema.forEach((h, i) => {
+        if (i && typeof h === 'string' && /%|percent/i.test(h)) skip.add(i);
+      });
+    }
+    ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => skip.add(d.column));
+
+    const isHeader = r => Array.isArray(r) && r.length > 1 &&
+      !isEmpty(r[0]) && r.slice(1).every(isEmpty);
+    const hasNumbers = r => Array.isArray(r) && r.slice(1).some(v => numOf(v) !== null);
+
+    /** Does `row` sum `data`? Majority of comparable columns, or no evidence at all. */
+    function confirms(row, data) {
+      let compared = 0, matched = 0;
+      for (let c = 1; c < cols; c++) {
+        if (skip.has(c)) continue;
+        const v = numOf(row[c]);
+        if (v === null) continue;
+        let sum = 0, any = false;
+        for (const r of data) {
+          const x = numOf(r[c]);
+          if (x !== null) { sum += x; any = true; }
+        }
+        if (!any) continue;
+        compared++;
+        // Absolute slack of 1.5 covers integer rounding in the source; the relative
+        // term covers the large magnitudes (J4/2025 sums to 794,904,946 against a
+        // stored 794,904,947).
+        if (Math.abs(v - sum) <= Math.max(1.5, Math.abs(sum) * 1e-4)) matched++;
+      }
+      // No comparable column is NOT confirmation. G1/2023 is the case: its only
+      // numeric column is derived and therefore skipped, so an accept-on-no-evidence
+      // rule promoted "Feet Replaced not in a DAC" -- a data row, in a year with no
+      // Systemwide Total at all. The genuine no-evidence case is handled where it
+      // actually arises, at the flat-table trailing candidate below.
+      if (compared === 0) return false;
+      return matched * 2 >= compared && matched >= 1;
+    }
+
+    const starts = [];
+    rows.forEach((r, i) => { if (isHeader(r)) starts.push(i); });
+
+    if (starts.length) {
+      starts.forEach((s, k) => {
+        const blockEnd = (k + 1 < starts.length ? starts[k + 1] : rows.length) - 1;
+        for (let cand = blockEnd; cand > s; cand--) {
+          if (!hasNumbers(rows[cand])) continue;
+          const data = [];
+          for (let i = s + 1; i < cand; i++) if (hasNumbers(rows[i])) data.push(rows[i]);
+          if (!data.length) continue;
+          if (confirms(rows[cand], data)) { out[cand] = true; break; }
+        }
+      });
+      /* ROLL-UPS below the last segment total. Every remaining row is tested in
+       * order, and marking one lets the next be tested against it.
+       *
+       * A single candidate is not enough, because the hierarchy can be three deep.
+       * A8/2025 ends with BOTH "Residential Programs Installations Total" (283,852,
+       * which rolls up the segment totals above it) and "Total CES Programs
+       * Installations" (336,599, which does not roll up anything in the table -- the
+       * 52,747 difference is CES programs the table does not itemise). Testing one
+       * trailing candidate and stopping left the intermediate roll-up classified as
+       * data, which the reviewed census did not contain.
+       *
+       * Marking in order is also what keeps the top row honest: once the
+       * intermediate roll-up is marked, the row below it is tested against a set
+       * that already includes it, so a row that genuinely sums nothing stays data. */
+      let lastSeg = -1;
+      out.forEach((t, i) => { if (t) lastSeg = i; });
+      if (lastSeg >= 0) {
+        for (let cand = lastSeg + 1; cand < rows.length; cand++) {
+          if (out[cand] || !hasNumbers(rows[cand]) || isHeader(rows[cand])) continue;
+          const totalsAbove = [], dataAbove = [];
+          for (let i = 0; i < cand; i++) {
+            if (isHeader(rows[i]) || !hasNumbers(rows[i])) continue;
+            if (out[i]) totalsAbove.push(rows[i]); else dataAbove.push(rows[i]);
+          }
+          if ((totalsAbove.length && confirms(rows[cand], totalsAbove)) ||
+              (dataAbove.length && confirms(rows[cand], dataAbove))) out[cand] = true;
+        }
+      }
+    } else {
+      // Flat table. Two candidates: the trailing numeric row, then the one above it.
+      let tried = 0;
+      for (let cand = rows.length - 1; cand > 0 && tried < 2; cand--) {
+        if (!hasNumbers(rows[cand])) continue;
+        tried++;
+        const data = [];
+        for (let i = 0; i < cand; i++) if (hasNumbers(rows[i])) data.push(rows[i]);
+        if (!data.length) {
+          /* NO EVIDENCE, and only for the TRAILING candidate: nothing above it
+           * carries a number, so there is nothing the arithmetic could test. C2 is
+           * the case -- its data rows hold "37,988 (33%)" as strings while the
+           * Total row holds 116,581 -- and rejecting for lack of evidence would
+           * declassify a real total.
+           *
+           * Restricted to the first candidate deliberately. Allowing it on the
+           * walked-back candidate would promote J1's row 0 ("Total amount of
+           * residential electric usage"): row 1 is a non-summable average, so the
+           * trailing candidate fails, and row 0 then has nothing above it at all. */
+          if (tried === 1) out[cand] = true;
+          break;
+        }
+        if (confirms(rows[cand], data)) { out[cand] = true; break; }
+      }
+    }
+    return out;
   }
 
   // CLCPA-88: tables whose derived cells are consumed ONLY via the shared re-derive
@@ -2359,7 +2537,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
    * intact. Clones only when it actually strips. Used by Storage.saveTable for both
    * the localStorage and Dataverse backends.
    */
-  function stripDerivedForPersist(rows, tableId) {
+  function stripDerivedForPersist(rows, tableId, schema) {
     if (!Array.isArray(rows) || !PERSIST_STRIP_TABLES.has(tableId)) return rows;
     const cols = (DERIVED_COLS[tableId] || []).map(d => d.column);
     if (!cols.length) return rows;
@@ -2395,10 +2573,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       cols.forEach(ci => { if (ci < c.length) c[ci] = null; });
       return c;
     });
-    const nonTotal = probe.filter(r => !isTotalRowLabel(r[0]));
+    /* CLCPA-209: classify the PROBE, not the original. The probe has its derived
+     * columns nulled, and the classifier excludes derived columns from its
+     * arithmetic, so both classify identically -- but classifying the probe keeps
+     * this path reading the same array it derives. */
+    const probeFlags = totalRowFlags(probe, tableId, schema);
+    const nonTotal = probe.filter((r, i) => !probeFlags[i]);
     const len = probe.reduce((m, r) => Math.max(m, r.length), 0);
     const { colSum } = columnGrandTotals(nonTotal, len);
-    applyDerivedCols(probe, tableId, colSum);
+    applyDerivedCols(probe, tableId, colSum, schema);
 
     return rows.map((r, i) => {
       const c = r.slice();
@@ -12970,18 +13153,21 @@ function wireHTooltips() {
 
   // ---------- helpers ----------
 
-  /** Returns true if the row label looks like a "total" row (case-insensitive). */
-  function isTotalRowLabel(label) {
-    if (label == null) return false;
-    return /total|grand total|subtotal/i.test(String(label).trim());
-  }
+  /* CLCPA-209: isTotalRowLabel is RETIRED, replaced by totalRowFlags.
+   *
+   * It was /total|grand total|subtotal/i, unanchored, on the label alone. Across the
+   * payload it misclassified 90 DATA rows as totals, and three carve-out sets
+   * existed only to contain the damage on the tables where it did the most harm.
+   * isStrictTotalRowLabel remains: the blanking pass and the 'totalRow' derived
+   * denominator both use it, and CLCPA-209 deliberately does not change either.
+   */
 
   /**
    * CLCPA-164: Section E "Strategic Capital" categories, live-parsed from the E1
    * source table so newly-created years render (the precomputed
    * charts.E1_categories has no entry for runtime-added years). Returns the same
    * shape the precomputed blob had: [{ name, total, dac_pct }]. Excludes the
-   * trailing "Grand Total" row via isTotalRowLabel. Module scope so Section E and
+   * trailing "Grand Total" row via totalRowFlags. Module scope so Section E and
    * the Executive Summary header card (CLCPA-157) share one source.
    */
   function parseE1Categories(table, yr) {
@@ -12993,10 +13179,12 @@ function wireHTooltips() {
      * Summary header card. Routed through the shared rule. */
     const rows = rowsForDisplay(raw, getTableSchema(table, yr), table.id || 'E1');
     const out = [];
-    rows.forEach(row => {
+    // CLCPA-209: excludes E1's "Grand Total" row via the shared classifier.
+    const e1Flags = totalRowFlags(rows, table.id || 'E1', getTableSchema(table, yr));
+    rows.forEach((row, rowIdx) => {
       if (!row || !row[0]) return;
       const name = String(row[0]).trim();
-      if (!name || isTotalRowLabel(name)) return;
+      if (!name || e1Flags[rowIdx]) return;
       out.push({
         name: name,
         total: Number(row[1]) || 0,
@@ -13141,85 +13329,47 @@ function wireHTooltips() {
    * like a total, sum the numeric values in each non-label column from all
    * non-total rows above. Mutates the array.
    */
-  /**
-   * Tables whose "Total ..."-labelled row is DATA, not a total, so the ingest
-   * editor must NOT auto-calculate it.
+  /* CLCPA-209: EDITOR_STRICT_TOTALS and editorTotalRowTest are RETIRED.
    *
-   * J1 and J2 only. Each has one row the loose predicate flags -- "Total amount of
-   * residential electric usage (kWh)" / "... gas usage (ccf)" -- and exactly one
-   * row it does not, which is a NON-SUMMABLE AVERAGE. So nonTotalRows was
-   * [the average row], and recomputeTotals wrote that "sum" straight over the
-   * total:
+   * The set held J1 and J2 on the strict label predicate, because the loose one
+   * classified their descriptive first row ("Total amount of residential electric
+   * usage (kWh)") as a total and the editor wrote the AVERAGE row's values over it:
+   * J1/2025 row 0 went from 5,223,783,448 to 347.1, on render, in a table that is
+   * not stripped before persisting.
    *
-   *     J1/2025 row 0 stored   5,223,783,448 | 40% | 7,980,741,755 | 60%
-   *             editor wrote           347.1 | 40% |          992.2 | 60%
-   *
-   * 347.1 and 992.2 are the AVERAGE row's values. recomputeTotals runs on every
-   * render of the editor, so opening the table was enough to flag "Unsaved
-   * changes", and J1 is not in PERSIST_STRIP_TABLES -- a save would have persisted
-   * 347.1 in place of 5.2 billion kWh. J2 was worse: its percentages are stored as
-   * numbers rather than strings, so all four columns were overwritten.
-   *
-   * DERIVED_COLS already documented the hazard -- "J1/J2 deferred: they mix a
-   * non-summable Average usage row into the body" -- but only the derive path acted
-   * on it. This is the editor acting on it too.
-   *
-   * Per-table rather than global, for the reason the CLCPA-203 audit established:
-   * A5-A8 and G1-G9 have genuine hierarchical subtotals labelled "X Total", and the
-   * editor SHOULD auto-calculate those. Tightening the predicate everywhere would
-   * stop it.
-   *
-   * NOT extended to J3/J4/J6/J7/G10. Under the strict predicate their editor would
-   * auto-calculate the Total row correctly, which is an improvement rather than a
-   * bug fix, and it is filed as its own decision.
+   * totalRowFlags reproduces the strict predicate's behaviour on both tables
+   * WITHOUT being told about them -- neither J1 nor J2 appears anywhere in the
+   * CLCPA-209 census -- so the carve-out has nothing left to do. Asserted in the
+   * harness rather than assumed: the pin that used to check the carve-out now
+   * checks that J1 and J2 classify correctly with no carve-out present.
    */
-  const EDITOR_STRICT_TOTALS = new Set(['J1', 'J2']);
 
-  function editorTotalRowTest(tableId) {
-    return EDITOR_STRICT_TOTALS.has(tableId) ? isStrictTotalRowLabel : isTotalRowLabel;
-  }
-
-  /**
-   * CLCPA-205 item 1 containment: tables where recomputeTotals must write NO
-   * additive total cells at all.
+  /* CLCPA-209: RECOMPUTE_TOTALS_EXEMPT is RETIRED.
    *
-   * These four are not hierarchical and have no total rows in the intended sense.
-   * Their DATA rows carry labels containing the word "total", the loose editor
-   * predicate classifies them as total rows, and the editor then overwrote real
-   * magnitudes with a sum of the percentage rows. Measured across the payload:
-   * 12 table-years, 74 cells. Examples, all from merely OPENING the table:
+   * The set made recomputeTotals a complete no-op for D2, D3, D4 and F7, because
+   * the loose predicate classified their DATA rows as totals and the editor then
+   * overwrote real magnitudes with sums of the percentage rows above them --
+   * D2/2025 "Total # of projects" 88,150 became 0.688, across 12 table-years and
+   * 74 cells. The set was explicitly interim: "the ticket that resolves the
+   * predicate REMOVES this set".
    *
-   *   D2/2025  "Total # of projects"        88,150  became 0.688
-   *   D3/2025  "Total # of subscribers"     20,679  became 0.441
-   *   D4/2025  "Total MW installed"          775.8  became 0.709
-   *   F7/2025  "% of Grand Total"             "32%" became 167965
-   *
-   * recomputeTotals runs on every render of the ingest editor, so those values sat
-   * in the draft and any Save persisted them. This is a WRITE path.
-   *
-   * The hierarchy fix below does NOT address this, and would replace the wrong
-   * values with differently wrong ones, so the containment is separate from it.
-   *
-   * Tightening the predicate is not available as a fix here: A5's own segment
-   * labels fail the strict test ("Small-Medium Business Total" is strict=false),
-   * so the loose predicate is required for the very tables item 1 repairs. That
-   * tension has its own ticket, and none of these four tables has a DERIVED_COLS
-   * rule, so exempting them makes recomputeTotals a complete no-op for them.
-   *
-   * INTERIM. The ticket that resolves the predicate REMOVES this set.
+   * totalRowFlags classifies all four correctly with no exemption: 42 of the 90
+   * rows in the CLCPA-209 census are theirs, every one of them TOTAL -> data. The
+   * harness pin that asserted a no-op now asserts the classification instead, so it
+   * cannot pass for the wrong reason.
    */
-  const RECOMPUTE_TOTALS_EXEMPT = new Set(['D2', 'D3', 'D4', 'F7']);
 
   function recomputeTotals(draft, schema, tableId) {
     if (!draft || !schema) return;
     const derivedSet = new Set(((tableId && DERIVED_COLS[tableId]) || []).map(d => d.column));
 
-    // Identify total rows by their label (col 0)
+    // CLCPA-209: identified by totalRowFlags, which reads structure and values.
+    // Not by the label -- that is the defect this ticket fixed.
     const totalRowIdxs = [];
     const nonTotalRows = [];
-    const isTotalHere = editorTotalRowTest(tableId);
+    const editorFlags = totalRowFlags(draft, tableId, schema);
     draft.forEach((row, idx) => {
-      if (isTotalHere(row[0])) totalRowIdxs.push(idx);
+      if (editorFlags[idx]) totalRowIdxs.push(idx);
       else nonTotalRows.push(row);
     });
 
@@ -13256,19 +13406,25 @@ function wireHTooltips() {
      *     A7 has only one non-empty segment, so it was already correct.
      */
     let prevTotalIdx = -1;
-    // CLCPA-205 containment: these tables get no additive total cells at all.
-    // See RECOMPUTE_TOTALS_EXEMPT for why, and for the ticket that removes it.
-    (RECOMPUTE_TOTALS_EXEMPT.has(tableId) ? [] : totalRowIdxs).forEach(idx => {
+    totalRowIdxs.forEach(idx => {
       const segment = [];
       for (let i = prevTotalIdx + 1; i < idx; i++) {
-        // Labels are never rewritten, so classifying from the draft is safe even
-        // though earlier iterations have already written cells above this row.
-        if (!isTotalHere(draft[i][0])) segment.push(draft[i]);
+        /* CLCPA-209: classified ONCE, before this loop writes anything.
+         *
+         * The old code re-tested each row's LABEL here, which was safe only because
+         * labels are never rewritten. The classifier reads VALUES, and this loop
+         * overwrites values in rows above the current one, so re-classifying mid-loop
+         * would let an earlier iteration's writes change a later row's class. */
+        if (!editorFlags[i]) segment.push(draft[i]);
       }
       prevTotalIdx = idx;
+      // CLCPA-209: an empty segment sums the rows ABOVE this one, not the whole
+      // table. See the matching note in applyDerivedCols for why (A8/2025 r24).
+      const above = draft.filter((r, i) => i < idx && !editorFlags[i]);
       const sums = segment.length
         ? columnGrandTotals(segment, schema.length)
-        : { colSum: colSum, colHasNum: colHasNum };
+        : (above.length ? columnGrandTotals(above, schema.length)
+                        : { colSum: colSum, colHasNum: colHasNum });
       for (let c = 1; c < schema.length; c++) {
         if (derivedSet.has(c)) continue;
         // CLCPA-144: keep the stored value when there is nothing to sum.
@@ -13287,12 +13443,30 @@ function wireHTooltips() {
         //
         // Now read from `sums`, which is this row's own segment when it has one and
         // the whole-table figure when it does not. The guard itself is unchanged.
-        draft[idx][c] = sums.colHasNum[c] ? sums.colSum[c] : draft[idx][c];
+        if (!sums.colHasNum[c]) continue;             // nothing to sum: keep stored
+        /* CLCPA-209: do NOT overwrite a stored total the arithmetic agrees with.
+         *
+         * This is the standing ruling that stored values are the reference, made
+         * general rather than a table list. Without it, reclassifying the all-totals
+         * tables would let the editor rewrite three cells across 18 table-years, all
+         * of them noise: G10/2023 238.89 -> 238.89000000000001 (a float artefact),
+         * G10/2024 241.2279 -> 241.22 (a LOSS of source precision) and J4/2025
+         * 794904947 -> 794904946 (off by one). Each is inside the source's own
+         * rounding, so the stored figure wins and the cell is left alone.
+         *
+         * Named no tables, so it retires no carve-out and creates none. */
+        const stored = draft[idx][c], computed = sums.colSum[c];
+        if (typeof stored === 'number' && isFinite(stored) &&
+            typeof computed === 'number' && isFinite(computed) &&
+            Math.abs(stored - computed) <= Math.max(1.5, Math.abs(computed) * 1e-4)) {
+          continue;
+        }
+        draft[idx][c] = computed;
       }
     });
 
     // (b) Derived per-row + Total cells via the shared rule (same as the report).
-    applyDerivedCols(draft, tableId, colSum);
+    applyDerivedCols(draft, tableId, colSum, schema);
   }
 
   /** Initialize state.ingest based on current selection. */
@@ -16285,11 +16459,12 @@ function wireHTooltips() {
     const numericCol = columnNumericMask(i.schema, i.draft, i.tableId);
     // Money columns get a "$" on blur; other numeric columns get commas only.
     const currencyCol = detectCurrencyColumns(i.schema);
+    // Same classifier recomputeTotals uses, or the two disagree: a row that is no
+    // longer auto-calculated would still render grey and read-only, leaving it
+    // uneditable and the fix half-applied.
+    const editorTotalFlags = totalRowFlags(i.draft, i.tableId, i.schema);
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
-      // Same test recomputeTotals uses, or the two disagree: a row that is no
-      // longer auto-calculated would still render grey and read-only, leaving it
-      // uneditable and the fix half-applied.
-      const isTotal = editorTotalRowTest(i.tableId)(row[0]);
+      const isTotal = editorTotalFlags[rowIdx];
       const cells = i.schema.map((_, colIdx) => {
         const v = row[colIdx];
         if (colIdx === 0) {
@@ -16353,7 +16528,7 @@ function wireHTooltips() {
         </div>
         <div class="ingest-card-foot">
           <button id="ingest-add-row" class="btn btn-link" type="button">+ Add row</button>
-          ${i.draft.some(r => editorTotalRowTest(i.tableId)(r[0]))
+          ${editorTotalFlags.some(Boolean)
             ? '<span class="ingest-foot-note">Rows labeled "Total" are auto-calculated from numeric rows above (read-only, shown in grey).</span>'
             : ''}
         </div>
