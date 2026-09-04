@@ -1,0 +1,57 @@
+PRE-FLIGHT  read-only is ENFORCED, not asserted: every request passes a
+            wrapper that permits GET to the org and POST only to the token
+            endpoint, and throws on anything else before it reaches the wire.
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BUEK72BLE
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+entity set: cr2bf_dactractdatasets
+
+columns actually present (31): _createdby_value, _createdonbehalfby_value, _modifiedby_value, _modifiedonbehalfby_value, _ownerid_value, _owningbusinessunit_value, _owningteam_value, _owninguser_value, cr2bf_dactractdatasetid, cr2bf_datafile, cr2bf_datafile_name, cr2bf_datasetkey, cr2bf_datasetname, cr2bf_fieldcount, cr2bf_geoidvintage, cr2bf_isactive, cr2bf_keychecksum, cr2bf_manifestversion, cr2bf_notes, cr2bf_sourcelabel, cr2bf_tractcount, cr2bf_versionlabel, createdon, importsequencenumber, modifiedon, overriddencreatedon, statecode, statuscode, timezoneruleversionnumber, utcconversiontimezonecode, versionnumber
+
+rows in cr2bf_dactractdatasets: 9
+
+datasetKey          version  vintage  active  file?  created
+------------------------------------------------------------------------------
+nyserda_dac         1.0      2010     true    yes    2026-08-05
+tract_geometry      pure-20202020     false   yes    2026-08-07
+tract_geometry      pure-20202020     false   yes    2026-08-07
+tract_geometry      pure-20102010     false   yes    2026-08-07
+service_territories 1.0      -        false   yes    2026-08-13
+tract_geometry      pure-20102010     true    yes    2026-08-13
+coned_operational   1.0-2010 2010     true    yes    2026-08-14
+tract_geometry      pure-20202020     true    yes    2026-08-24
+service_territories 1.1-simp40ft-5dp-        true    yes    2026-08-24
+
+tract_geometry rows: 5, active: 2
+
+=== ACTIVE tract_geometry, vintage 2010 (679a4a6c-6e97-f111-b8db-000d3a8a80a1) ===
+  bytes  : 1587328
+  sha256 : 6e9f09f7414f59ed4381b59d0d66bb6baa24f5c162182934b4f9c7d756413f49
+  dataset.version          : pure-2010
+  dataset.geoidVintage     : 2010
+  dataset.sourceFingerprint: 682970681ce906812e89066841e50f0611c447b4de8e7a0e82532c4a966ba599
+  stamped, but with a DIFFERENT fingerprint than the current repo build:
+           published 682970681ce906812e89066841e50f0611c447b4de8e7a0e82532c4a966ba599
+           repo      682970681ce906812e89066841e50f0611c447b4
+
+=== ACTIVE tract_geometry, vintage 2020 (b6780f57-c29f-f111-aaac-70a8a54403df) ===
+  bytes  : 1285052
+  sha256 : d288460f7907a79e2bc4f9c6f578cf66ac0aee840fbdeffb38670021c24b875e
+  dataset.version          : pure-2020
+  dataset.geoidVintage     : 2020
+  dataset.sourceFingerprint: 682970681ce906812e89066841e50f0611c447b4de8e7a0e82532c4a966ba599
+  stamped, but with a DIFFERENT fingerprint than the current repo build:
+           published 682970681ce906812e89066841e50f0611c447b4de8e7a0e82532c4a966ba599
+           repo      682970681ce906812e89066841e50f0611c447b4
+  vs the clean 2020 build (d288460f7907a79e...): BYTE-IDENTICAL
+
+=== PROBE COMPLETE === read-only. GET 5, writes 0.
+
+[exited with code 0]

@@ -1,8 +1,9 @@
 /* CLCPA-219 F7 probe: is the PUBLISHED 2020 tract geometry stamped?
  *
- * READ ONLY. GET requests only -- no PATCH, no POST, no DELETE, and no
- * activation. The script has no code path that writes; that is asserted below
- * before a token is requested, so the claim is checkable rather than promised.
+ * READ ONLY, and enforced rather than promised: every request passes a wrapper
+ * installed before anything else runs, which permits GET to the org and POST
+ * only to the token endpoint and throws on anything else before it reaches the
+ * network. See the block above that wrapper for why a text audit was not enough.
  *
  * THE QUESTION. The August clean-room record said the repository's
  * tract_geometry_pure-2020.json was stale -- 87 bytes short, missing
@@ -33,7 +34,13 @@ const CLIENT_ID = '51f81489-12ee-4a9e-aaae-a2591f45987d';
 const TENANT = 'organizations';
 
 const EXPECT_REPO_SHA = 'd288460f7907a79e2bc4f9c6f578cf66ac0aee840fbdeffb38670021c24b875e';
-const EXPECT_FINGERPRINT = '682970681ce906812e89066841e50f0611c447b4';
+/* The FULL 64-char sha256. The first run of this probe carried the first 40
+ * characters and duly reported the published stamp as "a DIFFERENT fingerprint"
+ * -- a false alarm entirely of my own making: an earlier check had printed the
+ * repo value with a [:40] slice and I copied the truncation into the constant.
+ * Published and repo are identical. Compare whole hashes, or do not compare. */
+const EXPECT_FINGERPRINT =
+  '682970681ce906812e89066841e50f0611c447b4de8e7a0e82532c4a966ba599';
 
 const log = (...a) => console.log(...a);
 const die = (m) => { console.error('\nSTOP: ' + m); process.exit(1); };
@@ -139,19 +146,33 @@ async function get(url) {
   log('entity set: ' + set);
   log('');
 
-  const cols = ['cr2bf_dactractdatasetid', 'cr2bf_datasetkey', 'cr2bf_version',
-                'cr2bf_geoidvintage', 'cr2bf_isactive', 'cr2bf_datafile', 'createdon'];
-  const rows = (await get(set + '?$select=' + cols.join(',') + '&$orderby=createdon asc')).value || [];
+  /* NO $select, deliberately.
+   *
+   * The first run of this probe spent a device code and then died on
+   * HTTP 400: "Could not find a property named 'cr2bf_version'". The column is
+   * cr2bf_versionlabel. I guessed a name instead of reading app.js's own list --
+   * the same mistake class as guessing a privilege name instead of reading it
+   * from metadata, which this project has already paid for once.
+   *
+   * Asking for everything removes the guess entirely: whatever the table has
+   * comes back, and the field names are discovered from the response rather
+   * than asserted by me. It over-fetches a table with a handful of rows, which
+   * is the right trade for a read-only probe that costs a device code to run.
+   */
+  const rows = (await get(set + '?$orderby=createdon asc')).value || [];
+  if (rows.length) {
+    const known = Object.keys(rows[0]).filter(k => k.indexOf('@') < 0).sort();
+    log('columns actually present (' + known.length + '): ' + known.join(', '));
+    log('');
+  }
   log('rows in ' + set + ': ' + rows.length);
   log('');
-  log('%-14s %-8s %-8s %-7s %s'.replace(/%-?(\d+)s/g, (m, n) => ' '.repeat(0)) ||
-      '');
   const pad = (s, n) => String(s === null || s === undefined ? '-' : s).padEnd(n);
-  log(pad('datasetKey', 20) + pad('version', 9) + pad('vintage', 9) +
+  log(pad('datasetKey', 20) + pad('version', 20) + pad('vintage', 9) +
       pad('active', 8) + pad('file?', 7) + 'created');
   log('-'.repeat(78));
   rows.forEach(r => {
-    log(pad(r.cr2bf_datasetkey, 20) + pad(r.cr2bf_version, 9) +
+    log(pad(r.cr2bf_datasetkey, 20) + pad(r.cr2bf_versionlabel, 20) +
         pad(r.cr2bf_geoidvintage, 9) + pad(r.cr2bf_isactive, 8) +
         pad(r.cr2bf_datafile != null ? 'yes' : 'NO', 7) +
         String(r.createdon || '').slice(0, 10));

@@ -162,13 +162,40 @@ committed file **byte for byte**, and the committed file carries
 the same stamp the territory overlay reports. Whatever fixed it was not recorded
 against the finding, but the finding is closed.
 
-Still open: **what is PUBLISHED**. Nobody has checked whether the active 2020
-geometry row in Dataverse carries the stamp. A read-only probe exists
-(`probe_f7_published_2020.js`) whose read-only rule is enforced at runtime by a
-fetch wrapper — GET to the org, POST only to the token endpoint, everything else
-throws before reaching the wire — and which is demonstrated to block both PATCH
-and POST-to-org. It needs one device code.
+### F7 — RESOLVED for the published half too
 
+Read from Dataverse on 2026-09-04, read-only, GET only. Nine rows in
+`cr2bf_dactractdatasets`, five of them `tract_geometry`, two active — one per
+vintage, which is the documented design ("several vintages are published at once").
+
+Both active geometry datasets are **stamped**, and both are **byte-identical to a
+clean build from the handoff package**:
+
+| active row | bytes | sha256 | vs clean build |
+|---|---|---|---|
+| `tract_geometry` vintage 2010 | 1,587,328 | `6e9f09f7414f59ed…` | identical |
+| `tract_geometry` vintage 2020 | 1,285,052 | `d288460f7907a79e…` | identical |
+
+Both carry
+`sourceFingerprint 682970681ce906812e89066841e50f0611c447b4de8e7a0e82532c4a966ba599`,
+which is exactly the repository value. **The August concern that the published
+2020 geometry was unstamped and unverified is closed on both counts.**
+
+That is also the strongest end-to-end result this ticket produced: the handoff
+package, run by its own guides in a clean room, reproduces byte for byte what is
+actually published and drawing on the map.
+
+One false alarm, mine: the probe's first report said the published fingerprint
+DIFFERED from the repository's. It did not. My expected constant held the first
+40 characters of the hash, because an earlier check had printed the repo value
+through a `[:40]` slice and I copied the truncation into the probe. The lesson is
+the dull one -- compare whole hashes or do not compare -- and it is now recorded
+in the probe itself.
+
+Incidentally confirmed by the same read, and useful for CLCPA-220: the active
+`service_territories` row stores its GEOID vintage as **null**. The data model
+already treats a territory overlay as vintage-less, so the upload form asking
+for one is a form-level defect and nothing deeper.
 ### The +129 bytes: August's explanation was right, my first check was not
 
 `nyserda_dac_v1_0.json` differs from the committed copy by 129 bytes, which
