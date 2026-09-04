@@ -14,7 +14,7 @@ What it claimed, and what is true now:
 
 | that record said | actually |
 |---|---|
-| 6,769,464 bytes | **5,781,905** |
+| 6,769,464 bytes | **5,782,222** |
 | 15 client-data files | **14** |
 | `map_payload.json` ships | it does not, and must not |
 | `app.js` ships | it does not |
@@ -24,8 +24,8 @@ What it claimed, and what is true now:
 
 | | |
 |---|---|
-| zip | **5,781,905 bytes** (5.8 MB) |
-| **sha256** | **`188a4d428c8f07aeebf2345ead9ae233c2ebf4d6af4da7da52b4e2e77c6b61f2`** |
+| zip | **5,782,222 bytes** (5.8 MB) |
+| **sha256** | **`997ab8b94dd465d24a2f6d479ab3ee14569d8c22c62cdd09e5d0dce36ba4a374`** |
 | entries / files | 35 / 31 |
 | scripts | 7 (five run, two imported) |
 | guides | 3 |
@@ -57,8 +57,8 @@ the host filesystem. Nothing is lost: per-file provenance is the sha256 list in
 Proven three ways:
 
 ```
-two consecutive runs                     188a4d428c8f07ae...  identical
-a third run from a simulated fresh clone 188a4d428c8f07ae...  identical
+two consecutive runs                     997ab8b94dd465d2...  identical
+a third run from a simulated fresh clone 997ab8b94dd465d2...  identical
   (all 82 source files re-stamped with today's mtimes)
 ```
 
@@ -133,6 +133,87 @@ Two calibrations worth recording, because the obvious choices were wrong:
 - **A machine with no Python.** `requirements.txt` covers third-party packages
   only.
 
+## The pipeline, run end to end from the package alone
+
+All three guides run in their documented order inside a freshly unpacked
+package, using only the venv built from its own `requirements.txt`. Every
+command exited 0.
+
+| output | bytes | sha256 | vs repo |
+|---|---|---|---|
+| `tract_geometry_pure-2010.json` | 1,587,328 | `6e9f09f7414f59ed…` | identical |
+| `tract_geometry_pure-2020.json` | 1,285,052 | `d288460f7907a79e…` | identical |
+| `coned_operational_v1_0-2010.json` | 176,215 | `b9e7a4d6e971b2b3…` | identical |
+| `service_territories.geojson` | 239,162 | `a45ae7f05d4aac95…` | identical |
+| `nyserda_dac_v1_0.json` | 1,181,466 | `6df6a4d8378390c6…` | +129 B, expected |
+
+The 2010 geometry reproduces **August's clean-room hash exactly**, across a
+month and a substantial amount of churn in the builders. The territory overlay
+differs from August (`5ec5d04a57dcf8af` then, `a45ae7f05d4aac95` now) because it
+was rebuilt by the simplification work since; it matches the committed copy,
+which is the property that matters.
+
+### F7 — RESOLVED for the repository half
+
+August recorded `tract_geometry_pure-2020.json` as stale: 87 bytes short and
+missing `sourceFingerprint`. It is neither now. A clean build reproduces the
+committed file **byte for byte**, and the committed file carries
+`sourceFingerprint 682970681ce906812e89066841e50f0611c447b4` under `dataset` —
+the same stamp the territory overlay reports. Whatever fixed it was not recorded
+against the finding, but the finding is closed.
+
+Still open: **what is PUBLISHED**. Nobody has checked whether the active 2020
+geometry row in Dataverse carries the stamp. A read-only probe exists
+(`probe_f7_published_2020.js`) whose read-only rule is enforced at runtime by a
+fetch wrapper — GET to the org, POST only to the token endpoint, everything else
+throws before reaching the wire — and which is demonstrated to block both PATCH
+and POST-to-org. It needs one device code.
+
+### The +129 bytes: August's explanation was right, my first check was not
+
+`nyserda_dac_v1_0.json` differs from the committed copy by 129 bytes, which
+August attributed to a longer source label. A first pass here compared
+top-level scalars, found no `sourceLabel` there, and wrongly reported the
+explanation as not holding. `sourceLabel` is nested under `dataset`. A full
+leaf-by-leaf walk finds **exactly one** difference in the whole file:
+
+```
+clean-room (228 chars): NYSERDA / NYS Climate Justice Working Group, Final
+  Disadvantaged Communities criteria. Converted from the raw release file
+  NYS_DAC.geojson (dated 2023-03-27) by Data/convert_nyserda_raw.py, scoped to
+  the six Con Edison counties.
+repo (99 chars): NYSERDA / NYS Climate Justice Working Group, Final
+  Disadvantaged Communities criteria, 2023 release
+```
+
+228 − 99 = 129. Tract count, every field and all other metadata are equal.
+
+Worth noting where that label ends up: it contains **`Data/convert_nyserda_raw.py`**,
+the stale path from the open finding above. That string is stored in the dataset
+and shown as its source, so the stale path is not confined to console output —
+it would be published into Dataverse and displayed.
+
+### The app's own upload validation accepts all five outputs
+
+The four validators the dashboard gates uploads on were lifted from `app.js`
+(9 functions and 9 constants, resolved transitively) and run against the
+clean-room outputs:
+
+```
+ACCEPTED  nyserda_dac_v1_0.json              [dsValidateDoc]
+ACCEPTED  tract_geometry_pure-2010.json      [dsValidateGeometryDoc]
+ACCEPTED  tract_geometry_pure-2020.json      [dsValidateGeometryDoc]
+ACCEPTED  coned_operational_v1_0-2010.json   [dsValidateConedDoc]
+ACCEPTED  service_territories.geojson        [dsValidateTerritoryDoc]
+```
+
+One warning, from the app and not from the harness: the territory overlay
+reports that *"this record declares GEOID vintage 2010, which means nothing for
+a territory overlay: it carries no GEOIDs and pairs with no dataset"*. Guide 2
+says "Upload the territory overlay" without saying which vintage to choose, and
+the upload form requires one, so every operator picks arbitrarily and every
+choice produces this warning. Small, and docs-side.
+
 ## Open findings, not fixed here
 
 - **Stale `python Data/<script>.py` inside the shipped scripts' own docstrings and
@@ -148,11 +229,15 @@ Two calibrations worth recording, because the obvious choices were wrong:
   an earlier version of the verifier's import probe was stopped from doing real
   work only by argparse rejecting its argv. The two scripts that *are* imported
   both have the guard, and the verifier now asserts that.
-- **Windows `MAX_PATH`.** The longest path inside the package is 116 characters
+- **Windows `MAX_PATH` — ADDRESSED.** The longest path inside the package is 116
+  characters
   (`Data/2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv`),
-  so an unpack root beyond roughly 144 characters fails with `WinError 3`. This
-  bit the verification run itself. An operator unpacking to a deep folder would
-  see it as an unexplained "cannot find the path specified".
+  so an unpack root beyond roughly 144 characters fails with `WinError 3`, which
+  names no file and reads like a corrupt download. This bit the verification run
+  itself when an output directory name grew by two characters. `README.txt` now
+  carries a "WHERE TO UNPACK IT" section with the symptom and the limit, and the
+  verifier reports the longest internal path and its headroom on every run, so a
+  newly added long filename is caught here rather than by an operator.
 
 ## The `map_payload.json` divergence: verified, and NOT moot
 

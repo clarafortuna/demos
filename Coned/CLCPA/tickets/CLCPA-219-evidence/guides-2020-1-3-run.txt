@@ -1,0 +1,47 @@
+##### GUIDE 2, vintage 2020 (F7) #####
+
+==========================================================================
+DATASET READY
+  file    : Data/out/tract_geometry_pure-2020.json
+  bytes   : 1285052 (1.29 MB)
+  sha256  : d288460f7907a79e2bc4f9c6f578cf66ac0aee840fbdeffb38670021c24b875e
+  built from
+    tracts    : Data/ny_tracts.geojson
+    crosswalk : Data/2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv
+    universe  : Data/tract_universe.json
+
+  Upload it from the Map Layers admin card, with the field block the
+  builder printed above. Nothing here touches Dataverse.
+==========================================================================
+
+##### GUIDE 1 #####
+raw features    : 1736 statewide -> 1059 in the six counties
+tracts written  : 2333  (1059 DAC + 1274 Non-DAC roster)
+fields          : 56
+discarded       : OBJECTID, Shape__Area, Shape__Length
+carried by raw, not by the dataset:
+                  HH_Low_Cnt, NYC_Region, REDC, Trib_Desig, Urb_Rural
+------------------------------------------------------------------
+version         : 1.0   vintage: 2010
+sourceLabel     : 228 chars (max 254)
+KeyChecksum     : 711efa5bca09019e5e72e225bca8c3535fbd0da8a8a49913f373c7884bc406c8
+bytes           : 1181466 (1.18 MB)
+------------------------------------------------------------------
+written         : C:\Users\emely\AppData\Local\Temp\dacpkg\sim\coned-dac-dashboard-data-tools\Data\out\nyserda_dac_v1_0.json
+==================================================================
+
+##### GUIDE 3 #####
+
+  DELIBERATELY DROPPED
+    footer row   elec  'Applied filters: / SVC_TYPE_CD is E / Year is 2025 / CIS_DIVIS…
+    footer row   gas   'Applied filters: / SVC_TYPE_CD is G / Year is 2025 / CIS_DIVIS…
+    outside the 2010 universe: 4 (elec 36079010800, elec 36079010900, elec 36079011000, elec 36079011200)
+
+  fingerprint: cc8591640a231a1193e0fe52c004c42b9f0753cff933481f4a2a2cb8272f8fa3
+               (over Electric.xlsx + Gas.xlsx, NOT the shapefiles)
+  output     : Data\out\coned_operational_v1_0-2010.json (176215 bytes)
+
+  Upload it from the Map Layers admin card. Nothing here touches Dataverse.
+==========================================================================
+
+[exited with code 0]

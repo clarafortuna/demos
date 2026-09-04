@@ -1,0 +1,93 @@
+reprojection transforms:
+  CECONY_Electric  unavailable until proj_trans is called
+  CECONY_Gas       unavailable until proj_trans is called
+  ORU_Territory    unavailable until proj_trans is called
+
+layers:
+  CECONY_Electric  layer=electric features=89  bbox lon[-74.2563, -73.6140] lat[40.4956, 41.3426]
+                   vertices 55,874 -> 5,018  (9.0% kept)
+  CECONY_Gas       layer=gas      features=4  bbox lon[-74.0266, -73.6552] lat[40.6829, 41.3505]
+                   vertices 94,082 -> 5,067  (5.4% kept)
+  ORU_Territory    layer=oru      features=2  bbox lon[-74.9047, -73.8893] lat[40.9165, 41.6971]
+                   vertices 2,217 -> 534  (24.1% kept)
+
+total features: 95
+simplification: tolerance 40 ft (12.19 m), coordinates at 5 dp, version 1.1-simp40ft-5dp
+total vertices: 152,173 -> 10,619  (7.0% kept, 141,554 dropped)
+max deviation : 39.9995 ft (12.19 m) -- worst dropped vertex, measured inside
+                the recursion, so it covers every ring of every layer
+output: C:\Users\emely\AppData\Local\Temp\dacpkg\sim\coned-dac-dashboard-data-tools\Data\service_territories.geojson (239162 bytes, 0.24 MB)
+recomputing spatial properties for 2333 tracts in NAD83 / New York Long Island (ftUS) ...
+   500/2333
+   1000/2333
+   1500/2333
+   2000/2333
+==================================================================
+PURE 2010 GEOMETRY DATASET BUILT
+==================================================================
+file            : C:\Users\emely\AppData\Local\Temp\dacpkg\sim\coned-dac-dashboard-data-tools\Data\out\tract_geometry_pure-2010.json
+bytes           : 1587328 (1.59 MB)
+tracts          : 2333
+properties      : 8
+neighborhood    : 2333 named, 0 unnamed
+names resolved  : 2010-table=129, 2020-table=1987, City_Town=217
+spatial props   : recomputed in NAD83 / New York Long Island (ftUS)
+------------------------------------------------------------------
+Paste these into the Dataverse record:
+  cr2bf_DatasetName    : Census tract geometry, 2010
+  cr2bf_DatasetKey     : tract_geometry
+  cr2bf_VersionLabel   : pure-2010
+  cr2bf_GeoidVintage   : 2010
+  cr2bf_TractCount     : 2333
+  cr2bf_FieldCount     : 8
+  cr2bf_KeyChecksum    : 711efa5bca09019e5e72e225bca8c3535fbd0da8a8a49913f373c7884bc406c8
+  cr2bf_ManifestVersion: 1
+  cr2bf_IsActive       : Yes  (published; uploading retires the previous 2010 set)
+==================================================================
+==========================================================================
+update_map_data.py  --vintage 2010
+==========================================================================
+--------------------------------------------------------------------------
+PREFLIGHT  vintage 2010
+--------------------------------------------------------------------------
+  Census tract GeoJSON       PRESENT        Data/ny_tracts_2010.geojson
+  Census archive             not needed     the GeoJSON is already here
+  NTA crosswalk              PRESENT        Data/2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv
+  tract_universe.json        PRESENT        the tract universe and City_Town; generated once by build_tract_universe.py
+  CECONY_Electric.shp        PRESENT        electric_networks is measured against it
+  CECONY_Electric.dbf        PRESENT        its NETWORK attribute
+  CECONY_Electric.prj        PRESENT        its CRS
+  CECONY_Gas.shp             PRESENT        gas_areas is measured against it
+  CECONY_Gas.dbf             PRESENT        its BORONAME attribute
+  CECONY_Gas.prj             PRESENT        its CRS
+  dataset output             WILL WRITE     Data/out/tract_geometry_pure-2010.json
+  territory overlay          WILL BUILD     Data/service_territories.geojson
+--------------------------------------------------------------------------
+
+CHECK  Data/ny_tracts_2010.geojson
+    checks passed: GEO_ID present, six counties (6), lon/lat in range, 2390 features
+
+TERRITORIES  (subprocess; this step needs the network, see the header)
+  reason: missing
+  python Data/_make_territories.py
+
+  overlay stamped 682970681ce90681, matching the shapefiles.
+
+BUILD  (subprocess: the builder stays offline)
+  python Data/build_pure_geometry_dataset.py --vintage 2010
+
+==========================================================================
+DATASET READY
+  file    : Data/out/tract_geometry_pure-2010.json
+  bytes   : 1587328 (1.59 MB)
+  sha256  : 6e9f09f7414f59ed4381b59d0d66bb6baa24f5c162182934b4f9c7d756413f49
+  built from
+    tracts    : Data/ny_tracts_2010.geojson
+    crosswalk : Data/2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv
+    universe  : Data/tract_universe.json
+
+  Upload it from the Map Layers admin card, with the field block the
+  builder printed above. Nothing here touches Dataverse.
+==========================================================================
+
+[exited with code 0]

@@ -230,6 +230,22 @@ def main():
         else:
             fail("out-empty", "Data/out/ ships %d file(s): %s" % (len(leftovers), leftovers))
 
+        # Unpack depth. Windows refuses paths over 260 characters by default, and
+        # the failure names no file: "[WinError 3] The system cannot find the path
+        # specified", partway through, reading like a corrupt download. It caught
+        # our own verification run when an output directory name grew by two
+        # characters. Reported every run so a newly added long filename is seen
+        # here rather than by an operator.
+        longest = max(names, key=len)
+        headroom = 260 - len(longest)
+        print("  ok    depth      longest internal path is %d chars (%s)"
+              % (len(longest), os.path.basename(longest)[:46]))
+        print("  --    depth      so the unpack folder must stay under ~%d chars"
+              % headroom)
+        if len(longest) > 180:
+            fail("depth", "longest internal path is %d chars, which leaves almost no "
+                          "room for an unpack folder" % len(longest))
+
         leaked = [n for n in MUST_NOT_SHIP
                   if any(s.endswith("/" + n) or s == n for s in names)]
         if leaked:

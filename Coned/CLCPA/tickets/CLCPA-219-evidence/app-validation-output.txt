@@ -1,0 +1,18 @@
+==========================================================================
+APP'S OWN UPLOAD VALIDATION, run over the clean-room outputs
+==========================================================================
+source: C:/Users/emely/AppData/Local/Temp/dacpkg/sim/coned-dac-dashboard-data-tools
+validators lifted from app.js: 9 function(s), 9 constant(s)
+COULD NOT RESOLVE: BEFORE, DAC, CSV, FILTERS, WGS84, ALL, FEATURE
+(reported, not ignored -- see the per-file result)
+
+  ACCEPTED  nyserda_dac_v1_0.json   [dsValidateDoc]
+  ACCEPTED  tract_geometry_pure-2010.json   [dsValidateGeometryDoc]
+  ACCEPTED  tract_geometry_pure-2020.json   [dsValidateGeometryDoc]
+  ACCEPTED  coned_operational_v1_0-2010.json   [dsValidateConedDoc]
+  ACCEPTED  service_territories.geojson   [dsValidateTerritoryDoc]
+     warn:  this record declares GEOID vintage 2010, which means nothing for a territory overlay: it carries no GEOIDs and pairs with no dataset.
+
+==========================================================================
+  accepted by the app: 5   refused/errored: 0
+==========================================================================

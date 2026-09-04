@@ -208,6 +208,20 @@ Con Edison DAC dashboard - data tools
 
 Everything needed to rebuild the four kinds of data file the dashboard uses.
 
+WHERE TO UNPACK IT (Windows)
+----------------------------
+Unpack somewhere SHALLOW. `C:\coned-tools\` is ideal; your Desktop is fine.
+
+The longest path inside this package is 116 characters, and Windows refuses
+paths over 260 by default. Unpacking into a deep folder therefore fails partway
+through with:
+
+    [WinError 3] The system cannot find the path specified
+
+which names no file and reads like a corrupt download. It is not -- it is the
+path length. Keep the folder you unpack into under about 140 characters and it
+cannot happen. This caught our own verification run, so it is not hypothetical.
+
 START HERE
 ----------
 Open the guides in a browser, in order:
