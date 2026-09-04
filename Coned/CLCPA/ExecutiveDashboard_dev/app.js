@@ -3181,9 +3181,13 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const cells = row.map((c, i) => {
         // CLCPA-140: alignment follows the COLUMN (numericCol mask), never the cell —
         // so "—", blank and embedded-string cells in a numeric column align right too.
-        const numCls = numericCol[i] ? ' class="num"' : (c === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
-        if (c == null || c === '') return `<td${numCls}></td>`;
-        return `<td${numCls}>${formatCell(c, i, row[0])}</td>`;
+        // CLCPA-216: a split cell renders the text it published, byte for byte.
+        // Unwrapped BEFORE formatCell, so formatting behaves exactly as it did when
+        // the cell was that string.
+        const cv = cellText(c);
+        const numCls = numericCol[i] ? ' class="num"' : (cv === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
+        if (cv == null || cv === '') return `<td${numCls}></td>`;
+        return `<td${numCls}>${formatCell(cv, i, row[0])}</td>`;
       }).join('');
       return `<tr${cls}>${cells}</tr>`;
     }).join('');
@@ -13677,7 +13681,63 @@ function wireHTooltips() {
   }
 
   /** Format a number for display in a numeric input field (no formatting). */
+  /**
+   * CLCPA-216: read a cell that may carry the SPLIT shape.
+   *
+   * C2 stored a count and a percentage packed into one string -- "37,988 (33%)" --
+   * in three incompatible shapes across 2023-2025, and 2023's rows carried only the
+   * percentage because their absolute counts never existed in the source. That is
+   * one cell holding two facts, unusable by anything except the eye.
+   *
+   * The migrated shape is:
+   *
+   *     { count: 37988, pct: 0.33, text: "37,988 (33%)" }
+   *     { count: null,  pct: 0.31, text: "31%" }          <- 2023, count absent
+   *
+   * count and pct are the numeric fields. `text` is the string ConEd PUBLISHED,
+   * kept verbatim, and it is why report immobility is provable rather than a
+   * promise: the renderer emits it unchanged, so nothing depends on a formatter of
+   * mine reproducing ConEd's thousands separators and rounding. The standing
+   * direction is that the report shows exactly what ConEd published; storing that
+   * string is the faithful record of it.
+   *
+   * BOTH SHAPES ARE READ, deliberately and permanently. A payload rollback restores
+   * the packed strings, and the app must still work on them -- a data-shape change
+   * whose rollback needs a matching code rollback is not a rollback. Everything
+   * below therefore falls through to the raw value when the cell is not migrated.
+   *
+   * An object cell is NON-NUMERIC to the engine, exactly as the packed string was,
+   * which is what keeps every downstream behaviour identical. It is also why
+   * C2/2024's Total row keeps its current classification: going to bare numbers
+   * would have made its parts fail to sum (32,919 + 8,929 against 104,025, because
+   * the "All Others" row 2025 has does not exist in 2024) and declassified it.
+   */
+  function isSplitCell(v) {
+    return v !== null && typeof v === 'object' && !Array.isArray(v) &&
+      Object.prototype.hasOwnProperty.call(v, 'pct') &&
+      Object.prototype.hasOwnProperty.call(v, 'text');
+  }
+
+  /** CLCPA-216: what a cell DISPLAYS. The published text, or the value itself. */
+  function cellText(v) {
+    return isSplitCell(v) ? v.text : v;
+  }
+
+  /** CLCPA-216: the count a cell carries, or null when the source had none. */
+  function cellCount(v) {
+    if (!isSplitCell(v)) return (typeof v === 'number' && isFinite(v)) ? v : null;
+    return (typeof v.count === 'number' && isFinite(v.count)) ? v.count : null;
+  }
+
+  /** CLCPA-216: the percentage a cell carries, as a fraction, or null. */
+  function cellPct(v) {
+    if (!isSplitCell(v)) return null;
+    return (typeof v.pct === 'number' && isFinite(v.pct)) ? v.pct : null;
+  }
+
   function rawNum(v) {
+    // CLCPA-216: a split cell shows the text it published, as it did before.
+    if (isSplitCell(v)) return v.text == null ? '' : String(v.text);
     if (v == null || v === '') return '';
     if (typeof v === 'number') return String(v);
     return String(v);
