@@ -354,11 +354,44 @@ def main():
     zip_path = os.path.join(a.out, PKG_NAME + ".zip")
     if os.path.exists(zip_path):
         os.remove(zip_path)
+
+    # DETERMINISTIC ARCHIVE (CLCPA-219). Two runs of this script must produce a
+    # byte-identical zip, or "the package is reproducible" is a claim nobody can
+    # check -- and the sha256 in the verification record means nothing.
+    #
+    # z.write() stamps each entry with the file's mtime, which breaks that twice
+    # over:
+    #
+    #   1. FOUR files are written fresh by this script -- MANIFEST.txt,
+    #      README.txt, requirements.txt and Data/out/.keep -- so their mtime is
+    #      "now". Two runs a minute apart differed by exactly 16 bytes: four
+    #      entries times two header copies times the two-byte DOS time field
+    #      (the date matched, being the same day). Content was identical, every
+    #      CRC equal.
+    #
+    #   2. Worse and invisible on one machine: the other 31 entries carry the
+    #      WORKING COPY's mtimes, which in this checkout span June to August. A
+    #      fresh git clone stamps checkout time on all of them, so the same
+    #      commit packaged elsewhere produces a completely different zip.
+    #
+    # Pinning every entry to the zip epoch fixes both. The mtimes carry no
+    # information anyone uses -- provenance is the sha256 per file in
+    # MANIFEST.txt and the commit this was built from -- so nothing is lost.
+    # external_attr is set explicitly for the same reason: taken from the host
+    # filesystem it would make the archive OS-dependent as well.
+    ZIP_EPOCH = (1980, 1, 1, 0, 0, 0)   # the earliest a DOS timestamp can express
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
-        for root, _dirs, files in os.walk(stage):
+        for root, dirs, files in os.walk(stage):
+            dirs.sort()          # os.walk order is not guaranteed; make it so
             for f in sorted(files):
                 full = os.path.join(root, f)
-                z.write(full, os.path.join(PKG_NAME, os.path.relpath(full, stage)))
+                arc = (PKG_NAME + "/" +
+                       os.path.relpath(full, stage).replace(os.sep, "/"))
+                zi = zipfile.ZipInfo(arc, date_time=ZIP_EPOCH)
+                zi.compress_type = zipfile.ZIP_DEFLATED
+                zi.external_attr = 0o644 << 16     # rw-r--r--, host-independent
+                with open(full, "rb") as fh:
+                    z.writestr(zi, fh.read())
 
     print("=" * 66)
     print("HANDOFF PACKAGE")

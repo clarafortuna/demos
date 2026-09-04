@@ -80,7 +80,7 @@
 <section>
   <h2>Start here: one command, not several</h2>
 
-  <pre><code>python Data/update_map_data.py --vintage 2010</code></pre>
+  <pre><code>python update_map_data.py --vintage 2010</code></pre>
 
   <p>This is the entry point. It checks what is on disk, downloads what is missing,
   converts it, rebuilds the service territory overlay when that is needed, and then
@@ -126,8 +126,12 @@
         stale or truncated download.</td></tr>
     <tr><td class="mono nw">--no-fetch</td><td><span class="tag tag-opt">rare</span></td>
         <td>Builds from what is on disk and opens no network connection.</td></tr>
-    <tr><td class="mono nw">--artifact</td><td><span class="tag tag-opt">optional</span></td>
-        <td>Also writes the 2010 change document. Applies to the 2010 build only.</td></tr>
+    <tr><td class="mono nw">--artifact</td><td><span class="tag tag-opt">not in this package</span></td>
+        <td>Also writes the 2010 change document. Applies to the 2010 build only.
+        <strong>Not available here:</strong> the change document compares the build
+        against <span class="mono">map_payload.json</span>, which is deliberately not
+        part of the handoff package. The script refuses the flag and tells you to drop
+        it; the normal build needs nothing extra.</td></tr>
     <tr><td class="mono nw">--census-url URL</td><td><span class="tag tag-opt">rare</span></td>
         <td>Overrides where the Census boundary file is fetched from.</td></tr>
     <tr><td class="mono nw">--crosswalk-id ID</td><td><span class="tag tag-opt">rare</span></td>
@@ -197,12 +201,12 @@ PREFLIGHT  vintage 2010
 
 TERRITORIES  (subprocess; this step needs the network, see the header)
   reason: forced
-  python Data/_make_territories.py
+  python _make_territories.py
 
   overlay stamped 682970681ce90681, matching the shapefiles.
 
 BUILD  (subprocess: the builder stays offline)
-  python Data/build_pure_geometry_dataset.py --vintage 2010
+  python build_pure_geometry_dataset.py --vintage 2010
 
 ==========================================================================</code></pre>
 
@@ -342,7 +346,7 @@ BUILD  (subprocess: the builder stays offline)
     </li>
     <li>
       <strong>Look before you build.</strong>
-      <pre style="margin:8px 0 0"><code>python Data/update_map_data.py --vintage 2010 --dry-run</code></pre>
+      <pre style="margin:8px 0 0"><code>python update_map_data.py --vintage 2010 --dry-run</code></pre>
       The territory overlay row should read <code>WILL REBUILD</code>, because the
       stamp no longer matches the new shapefiles. If it says <code>PRESENT</code>,
       the new files did not land where you think they did.
@@ -350,8 +354,8 @@ BUILD  (subprocess: the builder stays offline)
     <li>
       <strong>Build both vintages.</strong> The shapefiles are shared by both, so
       both are now out of date.
-      <pre style="margin:8px 0 0"><code>python Data/update_map_data.py --vintage 2010 --refresh-territories --force
-python Data/update_map_data.py --vintage 2020 --force</code></pre>
+      <pre style="margin:8px 0 0"><code>python update_map_data.py --vintage 2010 --refresh-territories --force
+python update_map_data.py --vintage 2020 --force</code></pre>
       Only the first needs <code>--refresh-territories</code> &mdash; the overlay is
       not per-vintage, so rebuilding it once is enough.
     </li>
