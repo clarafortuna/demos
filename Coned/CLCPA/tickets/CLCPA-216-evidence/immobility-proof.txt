@@ -1,0 +1,28 @@
+=== rendered HTML, PRE vs POST migration ===
+  table-years rendered and compared : 149
+  table-years whose HTML DIFFERS    : 0
+
+=== C2 specifically: per-row verdict ===
+  C2/2023  BYTE-IDENTICAL   (518 chars before, 518 after)
+     row 0  (header)      byte-identical
+     row 1  DAC           byte-identical
+     row 2  Low-Income    byte-identical
+     row 3  Total         byte-identical
+  C2/2024  BYTE-IDENTICAL   (714 chars before, 714 after)
+     row 0  (header)      byte-identical
+     row 1  DAC           byte-identical
+     row 2  Low-Income    byte-identical
+     row 3  Total         byte-identical
+  C2/2025  BYTE-IDENTICAL   (877 chars before, 877 after)
+     row 0  (header)      byte-identical
+     row 1  DAC           byte-identical
+     row 2  Low-Income    byte-identical
+     row 3  All Others    byte-identical
+     row 4  Total         byte-identical
+
+=== the split-cell readers, on real migrated cells ===
+  C2/2025 r0c3  {"count":37988,"pct":0.33,"text":"37,988 (33%)   isSplit=true  text="37,988 (33%)"
+  C2/2025 r1c3  {"count":9492,"pct":0.08,"text":"9,492 (8%)"}    isSplit=true  text="9,492 (8%)"
+  C2/2025 r2c3  {"count":69101,"pct":0.59,"text":"69,101 (59%)   isSplit=true  text="69,101 (59%)"
+  C2/2025 r3c3  116581                                           isSplit=false  text=116581
+  C2/2023 r0c1  {"count":null,"pct":0.31,"text":"31%"}           isSplit=true  text="31%"
