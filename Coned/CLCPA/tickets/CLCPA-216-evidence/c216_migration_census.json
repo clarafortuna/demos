@@ -1,0 +1,170 @@
+[
+  {
+    "line": 6,
+    "before": "\"32,919 (32%)\",",
+    "form": "packed",
+    "count": 32919,
+    "pct": 0.32,
+    "text": "32,919 (32%)"
+  },
+  {
+    "line": 8,
+    "before": "\"404.87 (41%)\",",
+    "form": "packed",
+    "count": 404.87,
+    "pct": 0.41,
+    "text": "404.87 (41%)"
+  },
+  {
+    "line": 10,
+    "before": "\"303.07 (40%)\"",
+    "form": "packed",
+    "count": 303.07,
+    "pct": 0.4,
+    "text": "303.07 (40%)"
+  },
+  {
+    "line": 16,
+    "before": "\"8,929 (9%)\",",
+    "form": "packed",
+    "count": 8929,
+    "pct": 0.09,
+    "text": "8,929 (9%)"
+  },
+  {
+    "line": 18,
+    "before": "\"5.26 (1%)\",",
+    "form": "packed",
+    "count": 5.26,
+    "pct": 0.01,
+    "text": "5.26 (1%)"
+  },
+  {
+    "line": 20,
+    "before": "\"3.33 (0%)\"",
+    "form": "packed",
+    "count": 3.33,
+    "pct": 0,
+    "text": "3.33 (0%)"
+  },
+  {
+    "line": 36,
+    "before": "\"31%\",",
+    "form": "percent-only",
+    "count": null,
+    "pct": 0.31,
+    "text": "31%"
+  },
+  {
+    "line": 37,
+    "before": "\"32%\",",
+    "form": "percent-only",
+    "count": null,
+    "pct": 0.32,
+    "text": "32%"
+  },
+  {
+    "line": 38,
+    "before": "\"34%\"",
+    "form": "percent-only",
+    "count": null,
+    "pct": 0.34,
+    "text": "34%"
+  },
+  {
+    "line": 42,
+    "before": "\"9%\",",
+    "form": "percent-only",
+    "count": null,
+    "pct": 0.09,
+    "text": "9%"
+  },
+  {
+    "line": 43,
+    "before": "\"1%\",",
+    "form": "percent-only",
+    "count": null,
+    "pct": 0.01,
+    "text": "1%"
+  },
+  {
+    "line": 44,
+    "before": "\"1%\"",
+    "form": "percent-only",
+    "count": null,
+    "pct": 0.01,
+    "text": "1%"
+  },
+  {
+    "line": 58,
+    "before": "\"37,988 (33%)\",",
+    "form": "packed",
+    "count": 37988,
+    "pct": 0.33,
+    "text": "37,988 (33%)"
+  },
+  {
+    "line": 60,
+    "before": "\"389.65 (41%)\",",
+    "form": "packed",
+    "count": 389.65,
+    "pct": 0.41,
+    "text": "389.65 (41%)"
+  },
+  {
+    "line": 62,
+    "before": "\"299.57 (41%)\"",
+    "form": "packed",
+    "count": 299.57,
+    "pct": 0.41,
+    "text": "299.57 (41%)"
+  },
+  {
+    "line": 68,
+    "before": "\"9,492 (8%)\",",
+    "form": "packed",
+    "count": 9492,
+    "pct": 0.08,
+    "text": "9,492 (8%)"
+  },
+  {
+    "line": 70,
+    "before": "\"6.84 (1%)\",",
+    "form": "packed",
+    "count": 6.84,
+    "pct": 0.01,
+    "text": "6.84 (1%)"
+  },
+  {
+    "line": 72,
+    "before": "\"2.82 (0%)\"",
+    "form": "packed",
+    "count": 2.82,
+    "pct": 0,
+    "text": "2.82 (0%)"
+  },
+  {
+    "line": 78,
+    "before": "\"69,101 (59%)\",",
+    "form": "packed",
+    "count": 69101,
+    "pct": 0.59,
+    "text": "69,101 (59%)"
+  },
+  {
+    "line": 80,
+    "before": "\"558.57 (58%)\",",
+    "form": "packed",
+    "count": 558.57,
+    "pct": 0.58,
+    "text": "558.57 (58%)"
+  },
+  {
+    "line": 82,
+    "before": "\"434.34 (58%)\"",
+    "form": "packed",
+    "count": 434.34,
+    "pct": 0.58,
+    "text": "434.34 (58%)"
+  }
+]

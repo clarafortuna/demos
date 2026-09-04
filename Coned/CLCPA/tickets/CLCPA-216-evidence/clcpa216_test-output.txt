@@ -1,0 +1,4 @@
+CLCPA-216 acceptance suite
+  baseline ref : be0a4d9
+  assertions   : 183   pass 183   controls red 6   FAIL 0
+  ALL PASS

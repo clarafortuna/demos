@@ -1,0 +1,201 @@
+################ C2: every row, every year, every cell ################
+
+=== C2/2023   4 columns, 3 rows
+    schema: ["Customer Group","Participants","Committed Load Relief (MW)","Average Event Reductions (MW)"]
+    null header columns: none
+    r0  "DAC"
+         c1 [Participants                        ] {"count":null,"pct":0.31,"text":"31%"}object                
+         c2 [Committed Load Relief (MW)          ] {"count":null,"pct":0.32,"text":"32%"}object                
+         c3 [Average Event Reductions (MW)       ] {"count":null,"pct":0.34,"text":"34%"}object                
+    r1  "Low-Income"
+         c1 [Participants                        ] {"count":null,"pct":0.09,"text":"9%"}object                
+         c2 [Committed Load Relief (MW)          ] {"count":null,"pct":0.01,"text":"1%"}object                
+         c3 [Average Event Reductions (MW)       ] {"count":null,"pct":0.01,"text":"1%"}object                
+    r2  "Total"
+         c1 [Participants                        ] 93187             number                
+         c2 [Committed Load Relief (MW)          ] 991.6             number                
+         c3 [Average Event Reductions (MW)       ] 766.6             number                
+
+=== C2/2024   8 columns, 3 rows
+    schema: ["Customer Group",null,null,"Participants",null,"Committed Load Relief (MW)",null,"Average Event Reductions (MW)"]
+    null header columns: [1,2,4,6]  <- the colspan artifact
+    r0  "DAC"
+         c3 [Participants                        ] {"count":32919,"pct":0.32,"text":"32,919 (32%)"}object                
+         c5 [Committed Load Relief (MW)          ] {"count":404.87,"pct":0.41,"text":"404.87 (41%)"}object                
+         c7 [Average Event Reductions (MW)       ] {"count":303.07,"pct":0.4,"text":"303.07 (40%)"}object                
+    r1  "Low-Income"
+         c3 [Participants                        ] {"count":8929,"pct":0.09,"text":"8,929 (9%)"}object                
+         c5 [Committed Load Relief (MW)          ] {"count":5.26,"pct":0.01,"text":"5.26 (1%)"}object                
+         c7 [Average Event Reductions (MW)       ] {"count":3.33,"pct":0,"text":"3.33 (0%)"}object                
+    r2  "Total"
+         c3 [Participants                        ] 104025            number                
+         c5 [Committed Load Relief (MW)          ] 998.11            number                
+         c7 [Average Event Reductions (MW)       ] 766.94            number                
+
+=== C2/2025   8 columns, 4 rows
+    schema: ["Customer Group",null,null,"Participants",null,"Committed Load Relief (MW)",null,"Average Event Reductions (MW)"]
+    null header columns: [1,2,4,6]  <- the colspan artifact
+    r0  "DAC"
+         c3 [Participants                        ] {"count":37988,"pct":0.33,"text":"37,988 (33%)"}object                
+         c5 [Committed Load Relief (MW)          ] {"count":389.65,"pct":0.41,"text":"389.65 (41%)"}object                
+         c7 [Average Event Reductions (MW)       ] {"count":299.57,"pct":0.41,"text":"299.57 (41%)"}object                
+    r1  "Low-Income"
+         c3 [Participants                        ] {"count":9492,"pct":0.08,"text":"9,492 (8%)"}object                
+         c5 [Committed Load Relief (MW)          ] {"count":6.84,"pct":0.01,"text":"6.84 (1%)"}object                
+         c7 [Average Event Reductions (MW)       ] {"count":2.82,"pct":0,"text":"2.82 (0%)"}object                
+    r2  "All Others"
+         c3 [Participants                        ] {"count":69101,"pct":0.59,"text":"69,101 (59%)"}object                
+         c5 [Committed Load Relief (MW)          ] {"count":558.57,"pct":0.58,"text":"558.57 (58%)"}object                
+         c7 [Average Event Reductions (MW)       ] {"count":434.34,"pct":0.58,"text":"434.34 (58%)"}object                
+    r3  "Total"
+         c3 [Participants                        ] 116581            number                
+         c5 [Committed Load Relief (MW)          ] 955.06            number                
+         c7 [Average Event Reductions (MW)       ] 736.73            number                
+
+################ can 2023 counts be RECOVERED? ################
+  the Total row is numeric: ["Total",93187,991.6,766.6]
+  r0 "DAC"
+  r1 "Low-Income"
+
+  do the 2023 percentages account for the whole? (2025 has an All Others row; 2023 does not)
+     c1  DAC null + Low-Income null = 0.0000   remainder to 1.0: 1.0000
+     c2  DAC null + Low-Income null = 0.0000   remainder to 1.0: 1.0000
+     c3  DAC null + Low-Income null = 0.0000   remainder to 1.0: 1.0000
+
+################ 2024/2025: do the packed pcts agree with count/total? ################
+
+################ payload-wide: is C2 the ONLY table with packed cells? ################
+  PACKED "count (pct)" cells: 0
+
+  PERCENT-ONLY string cells: 116
+     A10/2024 r1c3 "38%"
+     A10/2024 r1c6 "51%"
+     A10/2024 r2c3 "39%"
+     A10/2024 r2c6 "48%"
+     A10/2024 r3c3 "68%"
+     A10/2024 r3c6 "66%"
+     A10/2024 r4c3 "0%"
+     A10/2024 r4c6 "50%"
+     A10/2024 r5c3 "36%"
+     A10/2024 r5c6 "50%"
+     A10/2025 r1c3 "51%"
+     A10/2025 r1c6 "57%"
+     A10/2025 r2c3 "48%"
+     A10/2025 r2c6 "37%"
+     A10/2025 r3c3 "66%"
+     A10/2025 r3c6 "71%"
+     A10/2025 r4c3 "50%"
+     A10/2025 r4c6 "0%"
+     A10/2025 r5c3 "50%"
+     A10/2025 r5c6 "57%"
+     A9/2024 r1c5 "45%"
+     A9/2024 r1c6 "58%"
+     A9/2024 r2c5 "8%"
+     A9/2024 r2c6 "50%"
+     A9/2024 r3c5 "-11%"
+     A9/2024 r3c6 "-6%"
+     A9/2024 r4c5 "62%"
+     A9/2024 r4c6 "68%"
+     A9/2024 r5c5 "22%"
+     A9/2024 r5c6 "59%"
+     A9/2025 r1c5 "-26%"
+     A9/2025 r1c6 "-27%"
+     A9/2025 r2c5 "-7%"
+     A9/2025 r2c6 "-15%"
+     A9/2025 r3c5 "-3%"
+     A9/2025 r3c6 "-17%"
+     A9/2025 r4c5 "-24%"
+     A9/2025 r4c6 "-13%"
+     A9/2025 r5c5 "-5%"
+     A9/2025 r5c6 "2%"
+     F7/2024 r3c1 "34%"
+     F7/2024 r3c2 "66%"
+     F7/2024 r3c3 "100%"
+     F7/2025 r3c1 "32%"
+     F7/2025 r3c2 "68%"
+     F7/2025 r3c3 "100%"
+     J1/2023 r0c2 "39%"
+     J1/2023 r0c4 "61%"
+     J1/2023 r1c2 "45%"
+     J1/2023 r1c4 "55%"
+     J1/2024 r0c2 "40%"
+     J1/2024 r0c4 "60%"
+     J1/2025 r0c2 "40%"
+     J1/2025 r0c4 "60%"
+     J1/2025 r1c2 "26%"
+     J1/2025 r1c4 "74%"
+     J3/2023 r0c2 "60%"
+     J3/2023 r0c4 "57%"
+     J3/2023 r1c2 "40%"
+     J3/2023 r1c4 "43%"
+     J3/2024 r0c2 "64%"
+     J3/2024 r0c4 "63%"
+     J3/2024 r1c2 "36%"
+     J3/2024 r1c4 "37%"
+     J3/2025 r0c2 "66%"
+     J3/2025 r0c4 "65%"
+     J3/2025 r1c2 "34%"
+     J3/2025 r1c4 "35%"
+     J3/2025 r2c2 "100%"
+     J3/2025 r2c4 "100%"
+     J4/2023 r0c2 "63%"
+     J4/2023 r0c4 "66%"
+     J4/2023 r1c2 "37%"
+     J4/2023 r1c4 "34%"
+     J4/2024 r0c2 "65%"
+     J4/2024 r0c4 "66%"
+     J4/2024 r1c2 "35%"
+     J4/2024 r1c4 "34%"
+     J4/2025 r0c2 "68%"
+     J4/2025 r0c4 "69%"
+     J4/2025 r1c2 "32%"
+     J4/2025 r1c4 "31%"
+     J4/2025 r2c2 "100%"
+     J4/2025 r2c4 "100%"
+     J6/2023 r0c2 "61%"
+     J6/2023 r0c4 "56%"
+     J6/2023 r1c2 "39%"
+     J6/2023 r1c4 "44%"
+     J6/2024 r0c2 "60%"
+     J6/2024 r0c4 "59%"
+     J6/2024 r1c2 "40%"
+     J6/2024 r1c4 "41%"
+     J6/2025 r0c2 "63%"
+     J6/2025 r0c4 "64%"
+     J6/2025 r1c2 "37%"
+     J6/2025 r1c4 "36%"
+     J6/2025 r2c2 "100%"
+     J6/2025 r2c4 "100%"
+     J7/2023 r0c4 "66%"
+     J7/2023 r1c4 "34%"
+     J7/2024 r0c4 "66%"
+     J7/2024 r1c4 "34%"
+     J7/2025 r0c4 "66%"
+     J7/2025 r1c4 "34%"
+     J7/2025 r2c4 "100%"
+     J8/2023 r0c3 "66%"
+     J8/2023 r1c3 "34%"
+     J8/2024 r0c3 "62%"
+     J8/2024 r1c3 "38%"
+     J8/2025 r0c3 "62%"
+     J8/2025 r1c3 "38%"
+     J8/2025 r2c3 "100%"
+     J8/2025 r3c1 "67%"
+     J8/2025 r3c2 "59%"
+     J8/2025 r4c1 "33%"
+     J8/2025 r4c2 "41%"
+
+################ null-header (colspan) columns payload-wide ################
+  C1/2024   null headers at [1,2,4]  of 6
+  C1/2025   null headers at [1,2,4]  of 6
+  C2/2024   null headers at [1,2,4,6]  of 8
+  C2/2025   null headers at [1,2,4,6]  of 8
+  C3/2024   null headers at [1,2,4,6]  of 8
+  C3/2025   null headers at [1,2,4,6]  of 8
+  C4/2024   null headers at [1,2,4,6]  of 8
+  C4/2025   null headers at [1,2,4,6]  of 8
+  C5/2024   null headers at [1,2,4,6]  of 8
+  C5/2025   null headers at [1,2,4,6]  of 8
+  F6/2023   null headers at [3,5]  of 7
+  F6/2024   null headers at [3,5]  of 7
+  F6/2025   null headers at [3,5]  of 7
