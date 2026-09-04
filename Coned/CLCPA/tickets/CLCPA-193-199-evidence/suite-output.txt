@@ -1,0 +1,160 @@
+
+=== PART 1 -- BASELINE (git show HEAD): boot MUST download the files ===
+  ok   HEAD: listMapLayers called once  [got 1 want 1]
+  ok   HEAD: boot downloads BOTH layers (the waste being removed)  [got 2 want 2]
+  ok   HEAD: which files boot fetched  [got ["dv-hvi","dv-trees"] want ["dv-hvi","dv-trees"]]
+  ok   HEAD: two layers registered
+  ok   HEAD: both registered WITH geometry in memory
+  ok   HEAD: the INACTIVE layer is downloaded at boot as well
+
+=== PART 2 -- WORKTREE: boot downloads nothing ===
+  ok   listMapLayers still called exactly once  [got 1 want 1]
+  ok   HEADLINE: boot downloads ZERO GeoJSON files  [got 0 want 0]
+  ok   both layers still registered  [got 2 want 2]
+  ok   both registered WITHOUT geometry
+  ok   both marked geoPending
+  ok   no scale before the file arrives
+
+=== PART 2b -- the metadata the row needs is all present ===
+  ok   name from the record  [got "Heat Vulnerability Index" want "Heat Vulnerability Index"]
+  ok   value field from the record  [got "hvi_score" want "hvi_score"]
+  ok   stored feature count (drives the page meta line)  [got 2327 want 2327]
+  ok   geometry type split from the record  [got ["Polygon"] want ["Polygon"]]
+  ok   geometryType kept verbatim for mlRowMeta fallback  [got "Polygon" want "Polygon"]
+  ok   layer key  [got "heat-vulnerability-index" want "heat-vulnerability-index"]
+  ok   dvId retained so the file can be fetched later  [got "dv-hvi" want "dv-hvi"]
+  ok   source label  [got "NYC DOHMH" want "NYC DOHMH"]
+  ok   origin  [got "saved" want "saved"]
+  ok   ramp built from the record, so the swatch renders with no file
+  ok   previewOnce false: a saved layer never self-activates  [got false want false]
+  ok   the ACTIVE layer stays active  [got true want true]
+  ok   the INACTIVE layer stays inactive  [got false want false]
+  ok   no loadError on a pending layer
+
+=== PART 2c -- active vs inactive: neither is downloaded, both are listed ===
+  ok   the ACTIVE layer is NOT downloaded at boot either (it draws only when ticked)
+  ok   one active layer listed
+  ok   one inactive layer listed
+
+=== PART 3 -- mlEnsureLayerGeo: the deferred load ===
+  ok   still nothing downloaded after hydration  [got 0 want 0]
+  ok   ensure downloads exactly the layer asked for  [got ["dv-hvi"] want ["dv-hvi"]]
+  ok   ensure resolves to the geometry
+  ok   the entry now holds the geometry
+  ok   geoPending cleared  [got false want false]
+  ok   geoLoading cleared  [got false want false]
+  ok   scale computed from the file
+  ok   featureCount recomputed from the file, not the record  [got 2 want 2]
+  ok   the OTHER layer was not touched
+
+=== PART 3b -- idempotence and single-flight ===
+  ok   a second ensure on a loaded layer downloads nothing  [got 1 want 1]
+  ok   THREE concurrent ensures download the file ONCE  [got 1 want 1]
+  ok   all three concurrent callers get the same geometry
+
+=== PART 3c -- a superseded entry never reaches Dataverse ===
+  ok   the superseded saved layer is still registered for the page list
+  ok   superseded: no geometry
+  ok   superseded: NOT geoPending, so nothing will fetch it
+  ok   ensure on a superseded entry resolves to null
+  ok   ensure on a superseded entry made no request  [got 0 want 0]
+
+=== PART 4 -- the failure path ===
+  ok   ensure with no dvId resolves to null
+
+=== PART 5 -- the four consumer sites (source-level) ===
+  ok   initUploadedLayers builds a row for a pending layer
+  ok   HEAD did NOT (control: the old gate excluded every pending layer)
+  ok   the legend box is left empty until the file arrives
+  ok   refreshAllUploadedLayers reaches pending AND refused layers
+  ok   the old refreshAll gate is gone
+  ok   the "superseded" chip excludes pending layers
+  ok   HEAD control: the old chip condition had no geoPending term
+  ok   refreshUploadedLayer starts the load when a pending layer is switched on
+  ok   the row loading/error state helper exists
+  ok   mlSetTerrRowState: one definition and four call sites
+
+=== PART 6 -- CLCPA-193 micro-fix: byte length without the array ===
+  ok   the helper exists
+  ok   exactly two TextEncoder uses remain in code  [got 2 want 2]
+  ok   uploadFileColumn keeps the real encoder (it needs the bytes for chunking)
+  ok   saveMapLayer converted
+  ok   saveTractDataset converted
+  ok   the hydration site converted
+  ok   HEAD control: five TextEncoder uses before the fix  [got 5 want 5]
+
+=== PART 7 -- CLCPA-199: the pointer hover path ===
+  ok   the function exists
+  ok   and is called at mount
+  ok   HEAD control: it did not exist
+  ok   ADDITIVE: the mousemove binding is untouched
+  ok   ADDITIVE: the mouseout binding is untouched
+  ok   the working mouseover handler is untouched (ruled in scope to KEEP)
+  ok   no per-event layer scan inside the hover handler
+  ok   bindOverlayTooltip byte-identical (out of scope)
+  ok   the map-level mouseout is untouched
+
+=== PART 8 -- CLCPA-199 behaviour: the three branches ===
+  ok   a pointermove listener is installed
+  ok   a pointerleave listener is installed
+  ok   a pointercancel listener is installed
+  ok   over a tract: the tooltip is repositioned  [got 1 want 1]
+  ok   the native event is wrapped as { originalEvent } for positionTooltipAt
+  ok   over a tract: the tooltip is NOT hidden  [got "1" want "1"]
+  ok   over a tract: no style reset  [got 0 want 0]
+  ok   over an overlay path: no repositioning  [got 0 want 0]
+  ok   over an overlay path: the overlay's own tooltip is left alone  [got "1" want "1"]
+  ok   over an overlay path: no style reset  [got 0 want 0]
+  ok   over no feature: no repositioning  [got 0 want 0]
+  ok   over no feature: the tooltip IS hidden (the dead mouseout, restored)  [got "0" want "0"]
+  ok   over no feature: the hovered tract style is reset  [got 1 want 1]
+  ok   pointerleave hides the tooltip  [got "0" want "0"]
+  ok   a target without closest() is ignored rather than throwing
+  ok   an event with no target is ignored rather than throwing
+
+=== PART 9 -- no PointerEvent: nothing is wired, nothing is broken ===
+  ok   no listeners installed without PointerEvent  [got 0 want 0]
+  ok   and it says so, rather than failing silently
+
+=== PART 11 -- the toggle path end to end: tick -> download -> draw ===
+  ok   ticking a pending layer starts exactly one load  [got ["ml1"] want ["ml1"]]
+  ok   the row shows a loading state while the file is in flight
+  ok   nothing is drawn on the pass that starts the load  [got 0 want 0]
+  ok   the legend stays hidden while loading  [got true want true]
+  ok   the checkbox is left ticked while loading
+  ok   the loading state clears
+  ok   and it is not an error
+  ok   the layer is drawn once the file arrives  [got 1 want 1]
+  ok   it is drawn from the geometry that arrived
+  ok   the legend is revealed  [got false want false]
+  ok   the legend is built AFTER the load, so it has its computed breaks
+  ok   the Map Layers page is refreshed
+  ok   a later refresh does not load it again  [got 1 want 1]
+  ok   unticking removes the layer from the map
+  ok   and hides the legend  [got true want true]
+
+=== PART 12 -- the toggle path when the load FAILS ===
+  ok   a failed load draws nothing  [got 0 want 0]
+  ok   the checkbox is UNTICKED, so the map matches the panel  [got false want false]
+  ok   the row is marked failed
+  ok   and carries the reason as its title  [got "file GET 404" want "file GET 404"]
+  ok   geoPending is cleared, so it will not retry in a loop  [got false want false]
+  ok   re-ticking a refused layer unticks itself again  [got false want false]
+  ok   and still draws nothing  [got 0 want 0]
+
+=== PART 10 -- payload and table code untouched (the standing freeze) ===
+  ok   rowsForDisplay( byte-identical
+  ok   applyDerivedCols( byte-identical
+  ok   applyDerivedRows( byte-identical
+  ok   recomputeTotals( byte-identical
+  ok   renderTable( byte-identical
+  ok   formatIngestValue( byte-identical
+  ok   totalRowFlags( byte-identical
+  ok   stripDerivedForPersist( byte-identical
+  ok   derivedRowKeepsStored( byte-identical
+  ok   storedDecimals( byte-identical
+  ok   withinSourceRounding( byte-identical
+
+================================================================
+  CLCPA-193 + CLCPA-199 suite: 124 passed, 0 failed
+================================================================

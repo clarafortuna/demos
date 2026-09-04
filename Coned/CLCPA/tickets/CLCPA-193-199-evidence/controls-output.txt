@@ -1,0 +1,38 @@
+Running 16 mutation controls. Each MUST turn the suite red.
+
+  RED M1  boot downloads again (revert the whole point)
+      caught by: "HEADLINE: boot downloads ZERO GeoJSON files"  (+6 more)
+  RED M2  entries not marked pending
+      caught by: "both marked geoPending"  (+7 more)
+  RED M3  refreshAll drops pending layers (a tick could never load)
+      caught by: "ticking a pending layer starts exactly one load"  (+13 more)
+  RED M4  refreshAll drops REFUSED layers (the defect PART 12 caught)
+      caught by: "re-ticking a refused layer unticks itself again"  (+1 more)
+  RED M5  no row for a pending layer (the layer becomes unreachable)
+      caught by: "initUploadedLayers builds a row for a pending layer"
+  RED M6  the "superseded" chip is not excluded for pending layers
+      caught by: "the "superseded" chip excludes pending layers"
+  RED M7  single-flight removed (concurrent ticks double-download)
+      caught by: "THREE concurrent ensures download the file ONCE"  (+1 more)
+  RED M8  a superseded entry is allowed to fetch
+      caught by: "ensure on a superseded entry made no request"  (+1 more)
+  RED M9  the legend is built before the file arrives (empty breaks)
+      caught by: "the legend box is left empty until the file arrives"
+  RED M10 a failed load leaves the checkbox ticked
+      caught by: "the checkbox is UNTICKED, so the map matches the panel"
+  RED M11 the byte-length helper allocates again
+      caught by: "exactly two TextEncoder uses remain in code"  (+1 more)
+  RED M12 CLCPA-199: the tooltip stops hiding when the pointer leaves a tract
+      caught by: "over no feature: the tooltip IS hidden (the dead mouseout, restored)"  (+1 more)
+  RED M13 CLCPA-199: the overlay hand-off is removed (steals overlay tooltips)
+      caught by: "over an overlay path: the overlay's own tooltip is left alone"  (+2 more)
+  RED M14 CLCPA-199: no tracking inside a tract (the reported symptom)
+      caught by: "over a tract: the tooltip is repositioned"  (+1 more)
+  RED M15 CLCPA-199: the mouse bindings are removed (not additive any more)
+      caught by: "ADDITIVE: the mousemove binding is untouched"
+  RED M16 CLCPA-199: pointerleave not wired (tooltip strands off-map)
+      caught by: "a pointerleave listener is installed"  (+1 more)
+
+================================================================
+  mutation controls: 16 of 16 turned the suite red on the expected assertion
+================================================================

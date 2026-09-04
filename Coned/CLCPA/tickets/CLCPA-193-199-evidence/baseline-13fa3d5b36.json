@@ -1,0 +1,4 @@
+baseline captured by Emely on build 13fa3d5b36, snippet v2, 5 clean runs
+(installWasClean true on all five), 2 saved layers: HVI active, Trees per Km2 inactive.
+
+{"runs":5,"clock":"ms since IFRAME navigation start","firstTract":{"median":3777.7,"min":3515.5,"max":4113.5,"variance":598},"fcp":{"median":48,"min":44,"max":68,"variance":24},"blockingBeforeTract":{"median":0,"max":0},"layerRequestCounts":[8,8,8,8,8],"layerBytes":[5971932,5971932,5971932,5971932,5971932],"longTaskSupported":true,"labels":["before","before","before","before","before"]}

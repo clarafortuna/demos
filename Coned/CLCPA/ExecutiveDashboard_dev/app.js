@@ -30,6 +30,35 @@
  */
 var APP_BUILD = 'dev';   /* BUILD_ID */
 
+/* UTF-8 byte length, without building the array.
+ *
+ * CLCPA-193. Three callers ask only whether a string is over a byte limit and
+ * then throw the bytes away, so `new TextEncoder().encode(text).length` made a
+ * whole Uint8Array copy of a multi-megabyte GeoJSON to answer a comparison --
+ * and did it BEFORE the size gate, which is the one place that exists to avoid
+ * touching a file that big.
+ *
+ * Counts what TextEncoder counts, including the awkward case: an unpaired
+ * surrogate is encoded as U+FFFD, which is three bytes, not two and not zero.
+ * uploadFileColumn still uses the real encoder, because it needs the bytes
+ * themselves for chunking.
+ */
+function utf8ByteLength(str) {
+  const s = String(str);
+  let n = 0;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x80) { n += 1; continue; }
+    if (c < 0x800) { n += 2; continue; }
+    if (c >= 0xD800 && c <= 0xDBFF) {
+      const lo = s.charCodeAt(i + 1);
+      if (lo >= 0xDC00 && lo <= 0xDFFF) { n += 4; i++; continue; }
+    }
+    n += 3;   // BMP, or a lone surrogate the encoder replaces with U+FFFD
+  }
+  return n;
+}
+
 /* ============================================================================
  * MAP DIAGNOSTIC (opt-in, off by default, zero cost when off)
  * ============================================================================
@@ -970,7 +999,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
          * state exists where metadata pretends to have a file.
          */
         async saveMapLayer(layer, geojsonText, onProgress) {
-          const bytes = new TextEncoder().encode(geojsonText).length;
+          const bytes = utf8ByteLength(geojsonText);
           if (fileMaxBytes && bytes > fileMaxBytes) {
             throw new Error('This layer is ' + Math.round(bytes / 1048576) +
               ' MB, over the ' + Math.round(fileMaxBytes / 1048576) +
@@ -1103,7 +1132,7 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
          * SEPARATE step, because it has to pass validation first.
          */
         async saveTractDataset(rec, text, onProgress) {
-          const bytes = new TextEncoder().encode(text).length;
+          const bytes = utf8ByteLength(text);
           if (fileMaxBytes && bytes > fileMaxBytes) {
             throw new Error('This dataset is ' + Math.round(bytes / 1048576) +
               ' MB, over the ' + Math.round(fileMaxBytes / 1048576) +
@@ -6729,34 +6758,44 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
   let _mlHydrated = false;
 
   /**
-   * Turn a saved record + its downloaded GeoJSON into a registry entry.
-   * Recomputes the scale from the file rather than storing it: the scale is
-   * derived data, and recomputing keeps one code path with session uploads.
+   * In-flight GeoJSON fetches, keyed by registry id.
+   *
+   * Same shape as _territoryFetchPromise in ensureTerritoryGeo, and for the same
+   * reason: two things can ask for one layer's file at nearly the same moment (a
+   * checkbox and a re-render), and without this they would both download it.
    */
-  function mlHydrateOne(rec, text) {
-    const parsed = mlValidateGeoJSON(text, new TextEncoder().encode(text).length);
-    if (!parsed.ok) {
-      throw new Error('stored GeoJSON no longer validates: ' + parsed.errors.join(' '));
-    }
-    const field = rec.valueField;
-    // The stored count, before validating: mlComputeScale needs it, or a saved
-    // seven-class layer would be recomputed as five and then relabelled by
-    // mlScaleFor into something that never matches its own breaks.
-    const fieldRes = mlValidateValueField(parsed.geo, field, mlClassCount(rec.ramp));
-    if (!fieldRes.ok) {
-      throw new Error('stored value field "' + field + '" no longer validates: ' +
-        fieldRes.errors.join(' '));
-    }
-    return mlRegisterLayer({
+  const _mlGeoFetch = {};
+
+  /**
+   * Register a saved layer from its METADATA alone (CLCPA-193).
+   *
+   * WHY THIS EXISTS. Boot used to download every saved layer's GeoJSON before
+   * the dashboard was done drawing -- 5.8 MB across two layers on the reference
+   * tenant -- and then use it to build a checkbox that starts UNCHECKED. Nothing
+   * was drawn with those bytes. initUploadedLayers has always created the row
+   * switched off (previewOnce is false for every hydrated layer), so the file was
+   * fetched to render a label, a swatch and a hidden legend box.
+   *
+   * Everything the row needs is already in the record: name, value field, ramp
+   * config, feature count, geometry type. The one thing that is NOT is the
+   * computed scale, because quantile breaks can only come from the values -- so
+   * the legend box stays empty until the layer is switched on, which is also the
+   * first moment it is visible.
+   *
+   * `active` is unchanged by this and still means what it meant: whether the
+   * layer gets a row at all. It has never meant 'drawn at boot'.
+   */
+  function mlRegisterSavedMeta(rec) {
+    const entry = mlRegisterLayer({
       name: rec.name,
-      geo: parsed.geo,
-      valueField: field,
-      featureCount: parsed.featureCount,
-      geomTypes: parsed.geomTypes,
-      scale: fieldRes.scale,
+      geo: null,
+      valueField: rec.valueField,
+      featureCount: rec.featureCount,
+      geomTypes: (rec.geometryType || '').split('+').filter(Boolean),
+      scale: null,
       // The ramp config carries the manual breaks and the zero setting, and it
-      // has to be taken from the record rather than rebuilt: fieldRes.scale
-      // above is RECOMPUTED from the downloaded file, so a layer saved with
+      // has to be taken from the record rather than rebuilt: the scale computed
+      // on load is RECOMPUTED from the downloaded file, so a layer saved with
       // manual breaks would otherwise render as quantiles for every reader
       // except the person who uploaded it, with nothing to indicate it.
       // The gate widened from exactly five colours to the allowed range. A
@@ -6782,15 +6821,95 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       sourceLabel: rec.sourceLabel,
       savedBy: rec.savedBy,
       savedOn: rec.savedOn,
-      // Slice 3: hydrated whether active or not; the draw path is what filters.
       active: rec.active,
     });
+    // Set after registration because mlRegisterLayer copies a fixed field list.
+    // This is what separates 'not loaded yet' from the two other reasons a saved
+    // entry can have no geometry -- superseded by a session upload, or refused --
+    // which look identical without it and are reported differently on the page.
+    entry.geoPending = true;
+    entry.geoLoading = false;
+    // The stored geometry type, kept verbatim for the page's meta line: geomTypes
+    // above is the split form, and mlRowMeta falls back to this when it is empty.
+    entry.geometryType = rec.geometryType || '';
+    return entry;
   }
 
   /**
-   * Load saved layers and add them to the registry. Non-blocking and non-fatal:
-   * any failure logs and leaves the app session-only. Slice 3 loads inactive
-   * layers too, so they can be switched back on from the page.
+   * Validate a downloaded file and fill in the geometry-derived fields on an
+   * entry that was registered from metadata. Throws if the stored file no longer
+   * validates, which is the same outcome hydration had before: the layer is
+   * refused rather than half-drawn.
+   */
+  function mlApplyLayerGeo(entry, text) {
+    const parsed = mlValidateGeoJSON(text, utf8ByteLength(text));
+    if (!parsed.ok) {
+      throw new Error('stored GeoJSON no longer validates: ' + parsed.errors.join(' '));
+    }
+    // The stored count, before validating: mlComputeScale needs it, or a saved
+    // seven-class layer would be recomputed as five and then relabelled by
+    // mlScaleFor into something that never matches its own breaks. It comes from
+    // the entry's ramp, which mlRegisterSavedMeta built from the record.
+    const fieldRes = mlValidateValueField(parsed.geo, entry.valueField,
+      mlClassCount(entry.ramp));
+    if (!fieldRes.ok) {
+      throw new Error('stored value field "' + entry.valueField +
+        '" no longer validates: ' + fieldRes.errors.join(' '));
+    }
+    entry.geo = parsed.geo;
+    entry.featureCount = parsed.featureCount;
+    entry.geomTypes = parsed.geomTypes;
+    entry.scale = fieldRes.scale;
+    return entry;
+  }
+
+  /**
+   * Fetch, validate and install one saved layer's GeoJSON, once.
+   *
+   * Resolves to the geometry, or to null when it could not be loaded -- callers
+   * decide what to do about that, and every one of them has to handle null,
+   * because a file that was there at boot can be gone by the time it is asked
+   * for. A failure is recorded on the entry as loadError and NOT retried: that
+   * matches what boot did with a failed download, and a retry loop behind a
+   * checkbox would hammer Dataverse on every re-render.
+   */
+  function mlEnsureLayerGeo(entry) {
+    if (!entry) return Promise.resolve(null);
+    if (entry.geo) return Promise.resolve(entry.geo);
+    if (_mlGeoFetch[entry.id]) return _mlGeoFetch[entry.id];
+    // Not pending means there is nothing to fetch and never was: a superseded
+    // entry, or one already refused. Neither should reach Dataverse.
+    if (!entry.geoPending || !entry.dvId) return Promise.resolve(null);
+    entry.geoLoading = true;
+    _mlGeoFetch[entry.id] = Storage.getMapLayerFile(entry.dvId)
+      .then(function (text) {
+        mlApplyLayerGeo(entry, text);
+        entry.geoPending = false;
+        entry.geoLoading = false;
+        delete _mlGeoFetch[entry.id];
+        console.info('[Map Layers] loaded "' + entry.layerKey + '" on demand (' +
+          (entry.featureCount || 0) + ' features).');
+        return entry.geo;
+      })
+      .catch(function (err) {
+        const msg = (err && err.message) ? err.message : String(err);
+        entry.geoLoading = false;
+        entry.geoPending = false;
+        entry.loadError = msg;
+        delete _mlGeoFetch[entry.id];
+        console.warn('[Map Layers] Could not load saved layer "' + entry.layerKey +
+          '": ' + msg);
+        return null;
+      });
+    return _mlGeoFetch[entry.id];
+  }
+
+  /**
+   * List saved layers and register them. Non-blocking and non-fatal: any failure
+   * logs and leaves the app session-only.
+   *
+   * CLCPA-193: this no longer downloads anything. It makes exactly one Dataverse
+   * request -- the metadata list -- and the GeoJSON follows on first use.
    */
   async function mlHydrateSavedLayers() {
     if (_mlHydrated || !Storage.isDataverse()) return;
@@ -6804,31 +6923,18 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
     }
     if (!records.length) return;
 
-    let added = 0, failed = 0;
+    let listed = 0, superseded = 0;
     for (let i = 0; i < records.length; i++) {
       const rec = records[i];
-      let text;
-      try {
-        text = await Storage.getMapLayerFile(rec.dvId);
-      } catch (e) {
-        // Slice 3: list it with a "couldn't load" badge instead of vanishing.
-        // Registered without geometry, so the draw path skips it.
-        const msg = (e && e.message ? e.message : String(e));
-        console.warn('[Map Layers] Could not load saved layer "' + rec.layerKey + '": ' + msg);
-        mlRegisterLayer(Object.assign({}, rec, {
-          geo: null, scale: null, previewOnce: false, origin: 'saved',
-          geomTypes: (rec.geometryType || '').split('+').filter(Boolean),
-          loadError: msg,
-        }));
-        failed++;
-        continue;
-      }
-      // Key collision, checked HERE and not before the download: the only window
-      // in which one can happen is a session upload landing while this file was
-      // in flight, so the check has to sit immediately before we touch the
-      // registry. Keep both rows in their own groups, but let the session copy
-      // own the map — it is the file the user just looked at. The saved copy is
-      // registered without geometry, so the draw path skips it.
+      // Key collision with a layer uploaded in this session. Before CLCPA-193
+      // this check sat immediately before the registry write and after the
+      // download, because a session upload could land while the file was in
+      // flight. There is no file in flight now, so the window it guarded is
+      // gone -- but the collision itself is not, since listMapLayers() is still
+      // awaited above. Keep both rows in their own groups and let the session
+      // copy own the map: it is the file the user just looked at. The saved copy
+      // is registered without geometry AND without geoPending, so nothing will
+      // ever fetch it and the draw path skips it.
       if (_mlLayers.some(e => e.origin === 'session' && e.layerKey === rec.layerKey)) {
         console.info('[Map Layers] Saved layer "' + rec.layerKey +
           '" matches a layer uploaded in this session; the session copy stays on the map.');
@@ -6839,21 +6945,20 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
           layerKey: rec.layerKey, dvId: rec.dvId, sourceLabel: rec.sourceLabel,
           savedBy: rec.savedBy, savedOn: rec.savedOn, active: rec.active,
         });
+        superseded++;
         continue;
       }
-      try {
-        mlHydrateOne(rec, text);
-        added++;
-      } catch (e) {
-        console.warn('[Map Layers] Skipped saved layer "' + rec.layerKey + '": ' +
-          (e && e.message ? e.message : e));
-      }
+      mlRegisterSavedMeta(rec);
+      listed++;
     }
-    console.info('[Map Layers] hydrated ' + added + ' of ' + records.length + ' saved layer(s)' +
-      (failed ? ', ' + failed + ' could not load' : '') + '.');
+    console.info('[Map Layers] listed ' + listed + ' saved layer(s) from metadata' +
+      (superseded ? ', ' + superseded + ' superseded by a session upload' : '') +
+      '; GeoJSON loads when a layer is switched on.');
 
     // Draw them on a map that is already built, without rebuilding it (a
-    // rebuild would clear the user's tract selection).
+    // rebuild would clear the user's tract selection). Nothing is drawn by this
+    // now -- the rows arrive switched off, as they always did -- but the rows
+    // themselves still have to appear.
     if (typeof window._dacMapSyncUploadedLayers === 'function') {
       try { window._dacMapSyncUploadedLayers(); } catch (e) {
         console.warn('[Map Layers] Could not add saved layers to the live map.', e);
@@ -8054,6 +8159,90 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         '(CLCPA-198: mouse-compat events stop dispatching after a filter).');
     }
     wireTractPointerSelect();
+    /**
+     * CLCPA-199: tooltip TRACKING and HIDING on pointer events.
+     *
+     * THE PROBLEM, measured on the hosted mount and recorded in the onEach
+     * comment above: after a map filter is applied, mouse-compatibility events
+     * stop being dispatched to the tract paths.
+     *
+     *     mouseover 270   mousemove 0   mouseout 0
+     *     pointerdown 4   pointerup 4   pointermove 400
+     *
+     * mouseover survives, so the tooltip still appears with the right content at
+     * the point the pointer entered the tract. The two that die are exactly the
+     * two this wires up:
+     *
+     *   mousemove -> the tooltip never follows the cursor inside a tract.
+     *   mouseout  -> the tooltip never hides and the highlight never resets when
+     *                the pointer leaves the tracts. That one is a visible defect,
+     *                not just a missing nicety: map.on('mouseout') is a
+     *                mouse-compatibility event too, so it is dead on the same
+     *                mount and there was nothing left to clear the tooltip.
+     *
+     * WHY THE CONTAINER AND NOT THE PANE. CLCPA-198 listens on overlayPane,
+     * which is right for its purpose: it only ever cares about events whose
+     * target IS a tract path. Leaflet leaves the panes pointer-events:none and
+     * turns them on for interactive paths, so a pointer over water, over a gap,
+     * or on its way out of the map is never dispatched to the pane at all --
+     * which is precisely when the tooltip needs hiding. The map container sees
+     * all of it.
+     *
+     * WHY NO LAYER LOOKUP. It would be natural to resolve the path back to its
+     * Leaflet layer the way geoidAt does, but that costs a 2,333-entry scan per
+     * event and pointermove fires in the hundreds per second. Nothing here needs
+     * the layer: positioning needs only coordinates, and the layer to un-highlight
+     * is already held in _hoveredLayer by the mouseover handler, which still runs.
+     * The per-event cost is one closest() call.
+     */
+    function wireTractPointerHover() {
+      if (!TRACT_POINTER_SELECT) {
+        console.info('[DAC map] PointerEvent unavailable; the tract tooltip stays ' +
+          'on the mouse handlers.');
+        return;
+      }
+      const host = map.getContainer();
+      if (!host) return;
+
+      // Exactly what layer.on('mouseout') does, minus the `this` binding: the
+      // layer to reset comes from _hoveredLayer instead.
+      const clear = function () {
+        if (_hoveredLayer) {
+          geoLayer.resetStyle(_hoveredLayer);
+          _hoveredLayer = null;
+        }
+        if (tooltip) tooltip.style.opacity = '0';
+      };
+
+      host.addEventListener('pointermove', function (e) {
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest('path.map-tract')) {
+          // Inside a tract: follow the cursor. Content is NOT rebuilt here --
+          // mouseover owns that, and rebuilding it on every move would be a
+          // string concatenation per pointer event for no visible difference.
+          // positionTooltipAt takes a Leaflet-shaped event, so the native one
+          // is wrapped rather than the function being changed.
+          positionTooltipAt({ originalEvent: e });
+          return;
+        }
+        // Over some other path: an interactive saved layer, which owns the
+        // tooltip through bindOverlayTooltip. Clearing here would hide the
+        // tooltip that layer's own mouseover just populated, so leave it be.
+        if (e.target.closest('path')) return;
+        // Over the map but not over any feature. This is the dead mouseout.
+        clear();
+      }, true);
+
+      // Leaving the map entirely. pointerleave does not bubble, so this is on
+      // the container itself; pointercancel covers a gesture being taken away
+      // mid-move, which would otherwise strand a visible tooltip.
+      host.addEventListener('pointerleave', clear, true);
+      host.addEventListener('pointercancel', clear, true);
+
+      console.info('[DAC map] tract tooltip tracking wired to pointer events ' +
+        '(CLCPA-199: mouse move/out stop dispatching after a filter).');
+    }
+    wireTractPointerHover();
 
     // ============================================================
     // EAP enrollment heatmap (opt-in; OFF by default)
@@ -9051,6 +9240,24 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         escMap(v == null ? 'no value' : mlFmtNum(v)) + '</span></div>';
     }
 
+    /**
+     * Loading / error feedback on one Layers-panel row (CLCPA-193).
+     *
+     * A saved layer's GeoJSON is now fetched when the checkbox is ticked, and
+     * that can take seconds on a multi-megabyte file. Without this the user
+     * ticks a box and nothing happens, which is indistinguishable from broken.
+     * Purely presentational: it never touches the checkbox or the map.
+     */
+    function mlSetTerrRowState(entry, kind, why) {
+      const label = document.querySelector('#dac-map-terr .ml-terr-opt[data-ml-row="' +
+        entry.id + '"]');
+      if (!label) return;
+      label.classList.toggle('ml-terr-loading', kind === 'loading');
+      label.classList.toggle('ml-terr-failed', kind === 'error');
+      if (kind === 'error' && why) label.title = why;
+      else label.title = entry.valueField;
+    }
+
     /** Single add/remove entry point for one uploaded layer (+ its legend). */
     function refreshUploadedLayer(entry) {
       const box = document.getElementById('ml-legendbox-' + entry.id);
@@ -9058,6 +9265,43 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         if (_mlLeaflet[entry.id] && map.hasLayer(_mlLeaflet[entry.id])) {
           map.removeLayer(_mlLeaflet[entry.id]);
         }
+        if (box) box.hidden = true;
+        return;
+      }
+      // Switched on, but the file has not been fetched yet (CLCPA-193). Start
+      // the download and come back: nothing is drawn on this pass. The label
+      // shows a loading state, because a multi-megabyte fetch behind a checkbox
+      // with no feedback reads as a broken toggle.
+      if (!entry.geo) {
+        if (!entry.geoPending) {
+          // No geometry and nothing to fetch: superseded, or already refused.
+          // Untick it rather than leaving a checkbox on with nothing drawn.
+          mlSetTerrRowState(entry, 'error', entry.loadError || 'This layer has no geometry to draw.');
+          const cbNo = document.querySelector('#dac-map-terr input[data-ml-layer="' + entry.id + '"]');
+          if (cbNo) cbNo.checked = false;
+          if (box) box.hidden = true;
+          return;
+        }
+        mlSetTerrRowState(entry, 'loading', '');
+        mlEnsureLayerGeo(entry).then(function (geo) {
+          if (!geo) {
+            // Failed. Untick, explain on the row, and leave the page list to
+            // show the same reason via its own badge.
+            mlSetTerrRowState(entry, 'error', entry.loadError || 'Could not load this layer.');
+            const cbErr = document.querySelector('#dac-map-terr input[data-ml-layer="' + entry.id + '"]');
+            if (cbErr) cbErr.checked = false;
+            if (state.route && state.route.name === 'maplayers') rerenderMlList();
+            return;
+          }
+          mlSetTerrRowState(entry, 'ready', '');
+          // The legend can only be built now: its breaks come from the values.
+          const lb = document.getElementById('ml-legendbox-' + entry.id);
+          if (lb) lb.innerHTML = mlLegendHtml(entry);
+          // Re-evaluate EVERY layer, not just this one: an arriving layer
+          // changes how many are on, which is what decides interactivity.
+          refreshAllUploadedLayers();
+          if (state.route && state.route.name === 'maplayers') rerenderMlList();
+        });
         if (box) box.hidden = true;
         return;
       }
@@ -9090,7 +9334,20 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
      */
     function refreshAllUploadedLayers() {
       _mlLayers.forEach(function (e) {
-        if (e.geo && e.active !== false) refreshUploadedLayer(e);
+        // CLCPA-193: geoPending entries are included, and they have to be. This
+        // is the path a checkbox change takes, so excluding them would mean a
+        // layer whose file is not loaded yet could never start loading.
+        //
+        // loadError entries are included for the same reason, and it is not
+        // hypothetical: a layer that gets a row while pending and THEN fails its
+        // download has geo null and geoPending false, so the first two terms
+        // both miss it. Its row is already on the panel and can be ticked, and
+        // without this the tick would be skipped here -- leaving a checkbox
+        // switched on with nothing drawn and no way to find out why.
+        // refreshUploadedLayer's no-geometry branch is what unticks it.
+        if ((e.geo || e.geoPending || e.loadError) && e.active !== false) {
+          refreshUploadedLayer(e);
+        }
       });
     }
 
@@ -9120,10 +9377,15 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
       const panels = document.getElementById('dac-map-panels');
       if (!panel || !panels) return;
       _mlLayers.forEach(function (entry) {
-        // Nothing to draw: a saved layer whose key collided with a session
-        // upload is registered for the page list only, without geometry
-        // (CLCPA-171 Slice 2), as is one whose file failed to download (Slice 3).
-        if (!entry.geo) return;
+        // Nothing to draw AND nothing to load: a saved layer whose key collided
+        // with a session upload is registered for the page list only, without
+        // geometry (CLCPA-171 Slice 2), as is one whose file was refused.
+        //
+        // CLCPA-193: geoPending is the third case and it DOES get a row. The
+        // layer is real, its file simply has not been fetched yet, and the row
+        // is how the user asks for it. Everything the row shows -- name, value
+        // field, swatch -- comes from the record, so it looks no different.
+        if (!entry.geo && !entry.geoPending) return;
         // Slice 3: inactive saved layers stay listed on the Map Layers page but
         // never reach the map, for anyone.
         if (entry.active === false) return;
@@ -9144,7 +9406,11 @@ var APP_BUILD = 'dev';   /* BUILD_ID */
         box.className = 'ml-legendbox';
         box.id = 'ml-legendbox-' + entry.id;
         box.hidden = true;
-        box.innerHTML = mlLegendHtml(entry);
+        // Empty until the file arrives. The legend's class breaks are computed
+        // FROM the values, so a quantile layer has no breaks to show before its
+        // GeoJSON is loaded. The box is hidden at this point either way, and
+        // refreshUploadedLayer fills it in the moment the layer is switched on.
+        box.innerHTML = entry.geo ? mlLegendHtml(entry) : '';
         panels.appendChild(box);
 
         // One-shot preview: the upload's Confirm navigated here to show the
@@ -15155,7 +15421,11 @@ function wireHTooltips() {
               ? '<span class="ml-chip ml-chip-err" title="' + escapeHtml(entry.loadError) +
                 '">couldn\'t load</span>'
               : '') +
-            (!entry.geo && !entry.loadError
+            // CLCPA-193: geoPending excluded. A layer that simply has not been
+            // loaded yet is the normal state of every saved layer at boot now,
+            // and calling that 'superseded by a session upload' would put a
+            // warning chip on every row on the page.
+            (!entry.geo && !entry.loadError && !entry.geoPending
               ? '<span class="ml-chip ml-chip-warn">superseded by a session upload</span>'
               : '') +
             (entry.active === false
