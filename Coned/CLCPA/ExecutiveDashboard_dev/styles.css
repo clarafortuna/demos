@@ -8150,6 +8150,26 @@ a.nav-item { text-decoration: none; }
   background: linear-gradient(90deg, #ffffb2 0%, #fecc5c 25%, #fd8d3c 50%, #f03b20 75%, #bd0026 100%);
 }
 
+/* ---- Saved-layer row states (CLCPA-193) --------------------------------
+   A saved layer's GeoJSON is fetched when its box is ticked, not at boot, so
+   the row has to say that a multi-megabyte download is under way. Without it
+   the tick looks like it did nothing. Both states are additive: the row keeps
+   its swatch, its name and its layout, so nothing reflows. */
+.ml-terr-loading { cursor: progress; }
+.ml-terr-loading .ml-terr-name { opacity: 0.6; font-style: italic; }
+.ml-terr-loading .ml-terr-sw {
+  opacity: 0.45;
+  animation: ml-terr-pulse 1.1s ease-in-out infinite;
+}
+@keyframes ml-terr-pulse { 0%, 100% { opacity: 0.30; } 50% { opacity: 0.75; } }
+/* Respect a reduced-motion preference: the pulse is decoration, the dimming
+   is the actual signal, so only the animation is dropped. */
+@media (prefers-reduced-motion: reduce) {
+  .ml-terr-loading .ml-terr-sw { animation: none; }
+}
+.ml-terr-failed .ml-terr-name { opacity: 0.55; text-decoration: line-through; }
+.ml-terr-failed .ml-terr-sw { opacity: 0.30; filter: grayscale(0.85); }
+
 .ml-legendbox {
   width: var(--dac-map-panel-w);
   margin-top: 6px; padding: 7px 9px;
