@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>BEFORE — one page, seven stacked sections</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8793,3 +8794,252 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--bright-snow);padding:24px">
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; BEFORE — one page, seven stacked sections &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Map Layers</h1>
+          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+        </div>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
+                aria-haspopup="dialog">File requirements</button>
+      </div>
+
+      
+      <div class="ml-note">
+        <span class="ml-note-dot" aria-hidden="true"></span>
+        <div><strong>Uploads start in this browser tab.</strong> Choose Save layer to keep one in Dataverse, where it loads for everyone who opens the dashboard. Anything left unsaved disappears when you close the tab.</div>
+      </div>
+
+      <div id="ml-upload-mount">
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Add a layer</h3>
+            <p class="ml-card-sub">Polygon or MultiPolygon features, coloured by one numeric property.</p>
+          </div>
+          
+        </div>
+        <div class="ml-card-body">
+          
+          
+          
+        <p class="ml-intro">Choose a GeoJSON file of polygons in WGS84 (EPSG:4326). It is checked in
+        your browser before anything is drawn; no file leaves this page.</p>
+        <div class="ml-picker">
+          <label class="btn btn-secondary ml-browse">
+            Choose GeoJSON file
+            <input type="file" id="ml-file" accept=".geojson,.json" hidden />
+          </label>
+          <span class="ml-picker-hint">.geojson or .json · up to 50.0 MB</span>
+        </div>
+        </div>
+      </div></div>
+
+      <div id="ml-list-mount">
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Saved layers</h3>
+            <p class="ml-card-sub">Stored in Dataverse and visible to everyone who opens the dashboard. Switch one off to take it off everyone's map without deleting it.</p>
+          </div>
+          <div class="ml-card-actions"><span class="ml-chip">2 layers</span><button type="button" class="btn btn-secondary ml-help-btn">Help</button></div>
+        </div>
+        <div class="ml-card-body"><ul class="ml-list">
+        <li class="ml-row" data-ml-entry="ml1">
+          <span class="ml-row-sw" aria-hidden="true"></span>
+          <div class="ml-row-main">
+            <div class="ml-row-name">Heat Vulnerability Index </div>
+            <div class="ml-row-meta">2,327 features · Polygon · <span class="ml-mono">hvi_score</span> · A Person · 2026-08-01</div>
+            <div class="ml-row-src">NYC DOHMH</div>
+          </div>
+          <div class="ml-row-actions"><label class="ml-toggle">
+                 <input type="checkbox" data-ml-active="ml1" checked />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+                 <span class="ml-toggle-label">Active</span>
+               </label></div>
+        </li>
+        <li class="ml-row ml-row-inactive" data-ml-entry="ml2">
+          <span class="ml-row-sw" aria-hidden="true"></span>
+          <div class="ml-row-main">
+            <div class="ml-row-name">Trees per Km2 <span class="ml-chip ml-chip-off">inactive</span></div>
+            <div class="ml-row-meta">2,327 features · Polygon · <span class="ml-mono">trees_km2</span> · A Person · 2026-08-02</div>
+            <div class="ml-row-src">NYC Parks</div>
+          </div>
+          <div class="ml-row-actions"><label class="ml-toggle">
+                 <input type="checkbox" data-ml-active="ml2" />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+                 <span class="ml-toggle-label">Inactive</span>
+               </label></div>
+        </li></ul></div>
+      </div>
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>This session (unsaved)</h3>
+            <p class="ml-card-sub">Save a layer to keep it for everyone; unsaved layers disappear when you close this tab.</p>
+          </div>
+          
+        </div>
+        <div class="ml-card-body"><p class="ml-empty">No layers uploaded in this session.</p></div>
+      </div>
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Tract datasets</h3>
+            <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what
+            the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
+          </div>
+          <div class="ml-card-actions"><span class="ml-chip">live: built-in indicators</span><button type="button" class="btn btn-secondary ml-help-btn">Help</button></div>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list">
+        <li class="ml-row" data-ds-row="d1">
+          <div class="ml-row-main">
+            <div class="ml-row-name">NYSERDA DAC
+              <span class="ml-mono">v1.0</span> <span class="ml-chip ml-chip-ok">active</span></div>
+            <div class="ml-row-meta">
+              2,333 tracts ·
+              56 fields ·
+              vintage 2010 · A Person · 2026-08-05
+            </div>
+            
+            
+            
+          </div>
+          <div class="ml-row-actions"><label class="ml-toggle">
+                 <input type="checkbox" data-ds-active="d1" checked />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+                 <span class="ml-toggle-label">Active</span>
+               </label></div>
+        </li></ul>
+        </div>
+      </div>
+      <div class="ml-card ds-geom">
+        <div class="ml-card-head">
+          <div>
+            <h3>Tract shapes</h3>
+            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active
+            dataset, so there is nothing to switch here. Uploading a new set of shapes makes it
+            available to any dataset version that declares the same vintage.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-geom-list">
+            <li class="ml-row">
+              <div class="ml-row-main">
+                <div class="ml-row-name">Tract geometry
+                  <span class="ml-mono">pure-2010</span>
+                  <span class="ml-chip ml-chip-ok">in use</span></div>
+                <div class="ml-row-meta">
+                  2,333 tracts ·
+                  8 properties ·
+                  vintage 2010
+                </div>
+                
+              </div>
+            </li>
+            <li class="ml-row ml-row-inactive">
+              <div class="ml-row-main">
+                <div class="ml-row-name">Tract geometry
+                  <span class="ml-mono">pure-2020</span>
+                  <span class="ml-chip">available</span></div>
+                <div class="ml-row-meta">
+                  2,333 tracts ·
+                  8 properties ·
+                  vintage 2020
+                </div>
+                
+              </div>
+            </li></ul>
+        </div>
+      </div>
+      <div class="ml-card ds-coned">
+        <div class="ml-card-head">
+          <div>
+            <h3>Electric &amp; gas figures</h3>
+            <p class="ml-card-sub">Account counts, EAP counts and adjustments per tract, converted
+            from the Con Edison extracts. The version matching the active dataset's vintage is the
+            one in use. Tracts corrected by hand in the map data table keep their corrections:
+            these figures sit underneath them.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-coned-list">
+            <li class="ml-row">
+              <div class="ml-row-main">
+                <div class="ml-row-name">Electric &amp; gas
+                  <span class="ml-mono">1.0-2010</span>
+                  <span class="ml-chip ml-chip-ok">in use</span>
+                  </div>
+                <div class="ml-row-meta">
+                  2,329 tracts ·
+                  8 fields ·
+                  vintage 2010 · A Person · 2026-08-14
+                </div>
+                
+              </div>
+            </li></ul>
+        </div>
+      </div>
+      <div class="ml-card ds-terr">
+        <div class="ml-card-head">
+          <div>
+            <h3>Territory overlays</h3>
+            <p class="ml-card-sub">The Con Edison electric, gas and ORU boundaries, drawn over the
+            tracts. Switch them on from the Layers control on the map; they download the first time
+            one is used. Uploading a new overlay replaces the published one.</p>
+          </div>
+          <div class="ml-card-actions"><span class="ml-chip ml-chip-ok">loaded</span></div>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-terr-list">
+            <li class="ml-row">
+              <div class="ml-row-main">
+                <div class="ml-row-name">Service territories
+                  <span class="ml-mono">v1.1-simp40ft-5dp</span>
+                  <span class="ml-chip ml-chip-ok">published</span>
+                  </div>
+                <div class="ml-row-meta">
+                  6 features ·
+                  6 layers · A Person · 2026-08-24
+                </div>
+                
+                
+              </div>
+            </li></ul>
+        </div>
+      </div>
+      <div class="ml-card ds-upload-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Upload data file</h3>
+            <p class="ml-card-sub">Upload a NYSERDA dataset version, a set of tract shapes, a
+            service territory overlay, or the electric and gas figures. The file itself says which
+            one it is, and it is checked before anything is stored. Dataset versions appear under
+            Tract datasets, where you choose which one is live. Shape sets appear under Tract
+            shapes and are matched to a dataset by vintage, as do the electric and gas figures. A
+            territory overlay appears under Territory overlays and replaces the published one.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <div class="ds-upload"><div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose file
+             <input type="file" id="ds-file" accept=".json" hidden /></label>
+           <span class="ml-picker-hint">.json file</span>
+         </div></div>
+        </div>
+      </div></div>
+
+      
+      
+
+      <p class="ml-build" id="ml-build">Build render-harness</p>
+    </div></body>

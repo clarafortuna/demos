@@ -14648,13 +14648,73 @@ function wireHTooltips() {
   // re-adding on each page render so handlers can't accumulate.
   let _mlEscHandler = null;
 
+  /* CLCPA-220: the Map Layers page is five flat tabs, one visible at a time.
+   *
+   * WHY TABS AND NOT HEADED CARDS. The page had grown to SEVEN stacked sections
+   * -- saved layers, session layers, the indicator card, tract shapes, electric
+   * and gas, territory overlays, and one shared upload block -- of which three
+   * had a real heading. An operator arriving to upload one file had to deduce
+   * which section was theirs by reading all of them.
+   *
+   * One tab per pipeline producer, which is also one tab per operator guide.
+   * There is no "dashboard datasets" umbrella because these four families feed
+   * the MAP, not the wider dashboard, and grouping them under a word the
+   * operator never sees elsewhere would invent a category to explain.
+   */
+  const ML_TABS = [
+    { id: 'layers', label: 'Map layers' },
+    { id: 'indicators', label: 'DAC indicators' },
+    { id: 'shapes', label: 'Tract shapes' },
+    { id: 'coned', label: 'Electric and gas figures' },
+    { id: 'territory', label: 'Territory overlays' },
+  ];
+
+  /* What each family tab is FOR, in the operator's words rather than the
+   * schema's. Used by the upload block's title and its accepted-types line, so
+   * the two cannot drift apart. `kind` is the value dsDocKind() reports for a
+   * file of that family, which is how a file lands in the right tab. */
+  const ML_FAMILY = {
+    indicators: { kind: 'indicators', noun: 'DAC indicators', accept: '.json',
+                  produces: 'convert_nyserda_raw.py' },
+    shapes: { kind: 'geometry', noun: 'tract shapes', accept: '.json',
+              produces: 'update_map_data.py' },
+    coned: { kind: 'coned', noun: 'electric and gas figures', accept: '.json',
+             produces: 'build_coned_dataset.py' },
+    territory: { kind: 'territories', noun: 'territory overlays', accept: '.json,.geojson',
+                 produces: 'update_map_data.py --refresh-territories' },
+  };
+
+  /** The tab currently shown, defaulting to the layers tab. */
+  function mlTab() {
+    const d = initMapLayersState();
+    return ML_TABS.some(t => t.id === d.tab) ? d.tab : 'layers';
+  }
+
+  /** Which tab a validated file belongs in, or null if we cannot tell. */
+  function mlTabForKind(kind) {
+    for (const id in ML_FAMILY) if (ML_FAMILY[id].kind === kind) return id;
+    return null;
+  }
+  function mlTabLabel(id) {
+    const t = ML_TABS.filter(x => x.id === id)[0];
+    return t ? t.label : id;
+  }
+
   function initMapLayersState() {
-    if (!state.mapLayers) state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
+    if (!state.mapLayers) {
+      state.mapLayers = { stage: 'idle', errors: [], warnings: [], tab: 'layers' };
+    }
+    if (!state.mapLayers.tab) state.mapLayers.tab = 'layers';
     return state.mapLayers;
   }
 
   function mlResetDraft() {
-    state.mapLayers = { stage: 'idle', errors: [], warnings: [] };
+    // CLCPA-220: the open tab SURVIVES a draft reset. It is a view, not part of
+    // the draft, and dropping it would throw the operator back to the first tab
+    // every time a file was cancelled or refused -- in the middle of the task
+    // that put them on that tab.
+    const tab = state.mapLayers && state.mapLayers.tab;
+    state.mapLayers = { stage: 'idle', errors: [], warnings: [], tab: tab || 'layers' };
   }
 
   function renderMapLayersPage() {
@@ -14681,7 +14741,9 @@ function wireHTooltips() {
 
       ${renderMlNote()}
 
-      <div id="ml-upload-mount">${mlCanUpload() ? renderMlUploadCard() : ''}</div>
+      ${renderMlTabs()}
+
+      <div id="ml-upload-mount">${renderMlUploadMount()}</div>
 
       <div id="ml-list-mount">${renderMlSessionList()}</div>
 
@@ -14722,9 +14784,17 @@ function wireHTooltips() {
       ? '<strong>You have read-only access to map layers.</strong> Saved layers below load onto the ' +
         'DAC map as usual. Adding or changing them needs create and write access to DAC Map Layer, ' +
         'which an administrator grants.'
-      : '<strong>Uploads start in this browser tab.</strong> Choose Save layer to keep one in ' +
-        'Dataverse, where it loads for everyone who opens the dashboard. Anything left unsaved ' +
-        'disappears when you close the tab.';
+      // CLCPA-220: the "uploads start in this browser tab" banner is GONE from
+      // the top of the page. It greeted every visitor with a caveat about a
+      // state most of them never enter, above four tabs it does not apply to at
+      // all -- the dataset families are never session-only. Its warning is not
+      // lost: it sits as muted text inside the This session card, which is the
+      // only place the state it describes exists -- see the `note` in
+      // renderMlSessionGroup, which already carried most of it and now carries
+      // all of it. The read-only and no-Dataverse variants above STAY, because
+      // they explain why controls are missing and have nowhere else to live.
+      : '';
+    if (!body) return '';
     return `
       <div class="ml-note">
         <span class="ml-note-dot" aria-hidden="true"></span>
@@ -15428,8 +15498,11 @@ function wireHTooltips() {
             (!entry.geo && !entry.loadError && !entry.geoPending
               ? '<span class="ml-chip ml-chip-warn">superseded by a session upload</span>'
               : '') +
+            // CLCPA-220 (G1): 'inactive' reads as 'not on the map'. The flag
+            // controls whether the layer gets a ROW in the map's Layers panel;
+            // drawing it is a separate tick there. Say what it actually does.
             (entry.active === false
-              ? '<span class="ml-chip ml-chip-off">inactive</span>'
+              ? '<span class="ml-chip ml-chip-off">not listed</span>'
               : '');
           const busy = entry.toggleBusy === true;
           const toggle = canToggle
@@ -15437,9 +15510,13 @@ function wireHTooltips() {
                  <input type="checkbox" data-ml-active="${escapeHtml(entry.id)}"${
                    entry.active !== false ? ' checked' : ''}${busy ? ' disabled' : ''} />
                  <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-                 <span class="ml-toggle-label">${busy ? 'Saving…' : (entry.active !== false ? 'Active' : 'Inactive')}</span>
+                 <span class="ml-toggle-label ml-state-pill ${
+                   entry.active !== false ? 'ml-state-on' : 'ml-state-off'}">${
+                   busy ? 'Saving…' : (entry.active !== false ? 'Listed on the map' : 'Not listed')}</span>
                </label>`
-            : `<span class="ml-chip">${entry.active !== false ? 'Active' : 'Inactive'}</span>`;
+            : `<span class="ml-state-pill ${
+                 entry.active !== false ? 'ml-state-on' : 'ml-state-off'}">${
+                 entry.active !== false ? 'Listed on the map' : 'Not listed'}</span>`;
           const src = entry.sourceLabel
             ? `<div class="ml-row-src">${escapeHtml(entry.sourceLabel)}</div>` : '';
           return `
@@ -15456,9 +15533,20 @@ function wireHTooltips() {
       : '<p class="ml-empty">No saved layers yet.' +
         (Storage.canCreateLayers() ? ' Upload one below, then choose Save layer.' : '') + '</p>';
 
+    // CLCPA-220 (G1): the old wording was true one way round and misleading the
+    // other. Switching a layer OFF does take it off everyone's map. Switching it
+    // ON does not put it there -- it puts a row in the map's Layers panel,
+    // UNCHECKED, and someone still has to tick it. An operator who set a layer
+    // "Active", went to look, and found nothing changed had nothing on screen to
+    // explain why. Both directions are now stated.
     const sub = canToggle
-      ? 'Stored in Dataverse and visible to everyone who opens the dashboard. Switch one off to take it off everyone\'s map without deleting it.'
-      : 'Stored in Dataverse and visible to everyone who opens the dashboard. You have read-only access, so these cannot be changed here.';
+      ? 'Stored in Dataverse and visible to everyone who opens the dashboard. ' +
+        '<strong>Listed on the map</strong> puts the layer in the map\'s Layers panel, ' +
+        'switched off, where anyone can tick it to draw it. <strong>Not listed</strong> ' +
+        'takes it out of that panel for everyone, without deleting it.'
+      : 'Stored in Dataverse and visible to everyone who opens the dashboard. A listed layer ' +
+        'appears in the map\'s Layers panel, switched off, for anyone to tick. You have ' +
+        'read-only access, so these cannot be changed here.';
 
     return `
       <div class="ml-card">
@@ -15657,7 +15745,12 @@ function wireHTooltips() {
     const note = !Storage.isDataverse()
       ? '<p class="ml-card-sub">Saving needs Dataverse, which this preview cannot reach, so layers stay in this tab only.</p>'
       : canSave
-      ? '<p class="ml-card-sub">Save a layer to keep it for everyone; unsaved layers disappear when you close this tab.</p>'
+      // CLCPA-220: this line now carries what the page-top banner used to say.
+      // The banner is gone; the warning belongs here, beside the layers it is
+      // actually about, rather than above four tabs it never applied to.
+      ? '<p class="ml-card-sub">Uploads start in this browser tab. Save a layer to keep it in ' +
+        'Dataverse for everyone who opens the dashboard; anything left unsaved disappears when ' +
+        'you close this tab.</p>'
       : '<p class="ml-card-sub">You have read-only access to saved layers, so uploads here stay in this tab only.</p>';
 
     return `
@@ -15736,12 +15829,65 @@ function wireHTooltips() {
     return 'Working…';
   }
 
+  /**
+   * The five pills. One row, wrapping to a second if the width demands it.
+   *
+   * The dataset families only exist on Dataverse, so on localStorage there is
+   * one tab and a pill row would be a control with nothing to choose: it is
+   * omitted entirely rather than shown disabled.
+   */
+  function renderMlTabs() {
+    if (!Storage.isDataverse()) return '';
+    const cur = mlTab();
+    return `
+      <div class="ml-tabs-row" role="tablist" aria-label="Map Layers sections">
+        ${ML_TABS.map(t => `
+          <button type="button" role="tab" class="ml-tab${t.id === cur ? ' active' : ''}"
+            data-ml-tab="${escapeHtml(t.id)}"
+            aria-selected="${t.id === cur ? 'true' : 'false'}">${escapeHtml(t.label)}</button>`).join('')}
+      </div>`;
+  }
+
+  /**
+   * The upload mount, which is tab-aware.
+   *
+   * Kept as its own mount rather than folded into the list because
+   * rerenderMlUpload() targets it from a dozen call sites in the layer-upload
+   * flow, and collapsing the two mounts would have meant touching all of them
+   * for no gain.
+   */
+  /**
+   * The upload mount holds the LAYER upload card only.
+   *
+   * The dataset upload block deliberately does NOT live here, even though it is
+   * an upload and sits in the same place visually. Every one of its controls --
+   * #ds-file, #ds-upload, #ds-cancel, the dismiss buttons -- is delegated from
+   * the LIST mount, and rerenderMlList() is what redraws it after each step of
+   * the flow. Moving it up here would have orphaned all of that and required
+   * re-binding a second delegated handler for no gain. So the family tabs leave
+   * this mount empty and renderMlSessionList puts the upload block first.
+   */
+  function renderMlUploadMount() {
+    return mlTab() === 'layers' && mlCanUpload() ? renderMlUploadCard() : '';
+  }
+
+  /**
+   * The body of the open tab. Family tabs share one anatomy, top to bottom:
+   * the upload block, then that family's stored versions.
+   */
   function renderMlSessionList() {
-    // Slice 3: a read-only Dataverse user cannot upload, so the session group
-    // would be permanently empty. Show saved layers only.
-    return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '') +
-      renderDsCard() + renderGeomCard() + renderConedCard() + renderTerritoryCard() +
-      renderDsUploadBlock();
+    const tab = mlTab();
+    if (tab === 'layers') {
+      // Slice 3: a read-only Dataverse user cannot upload, so the session group
+      // would be permanently empty. Show saved layers only.
+      return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '');
+    }
+    const card = tab === 'indicators' ? renderDsCard()
+      : tab === 'shapes' ? renderGeomCard()
+      : tab === 'coned' ? renderConedCard()
+      : tab === 'territory' ? renderTerritoryCard()
+      : '';
+    return renderDsUploadBlock(tab) + card;
   }
 
   // ============================================================
@@ -16093,7 +16239,9 @@ function wireHTooltips() {
                  <input type="checkbox" data-ds-active="${escapeHtml(r.dvId)}"${
                    r.active ? ' checked' : ''}${busy ? ' disabled' : ''} />
                  <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-                 <span class="ml-toggle-label">${busy ? 'Saving…' : (r.active ? 'Active' : 'Inactive')}</span>
+                 <span class="ml-toggle-label ml-state-pill ${
+                   r.active ? 'ml-state-on' : 'ml-state-off'}">${
+                   busy ? 'Saving…' : (r.active ? 'Active' : 'Inactive')}</span>
                </label>`
             : `<span class="ml-chip">${r.active ? 'Active' : 'Inactive'}</span>`;
           return `
@@ -16206,13 +16354,34 @@ function wireHTooltips() {
    * dismiss buttons all run through handlers delegated on that mount, and
    * rendering this outside it would make every one of them silently dead.
    */
-  function renderDsUploadBlock() {
+  /**
+   * The dataset upload block, now rendered INSIDE a family tab (CLCPA-220).
+   *
+   * One block still serves all four families, because the file declares its own
+   * kind and always did -- nothing here asks the operator to classify it. What
+   * the tab adds is a title that names the family they are standing in, the
+   * accepted extensions beside the picker, and a clear message when a validated
+   * file belongs to a DIFFERENT tab. Before this, a tract-shapes file dropped
+   * while reading about indicators simply validated and offered to upload, and
+   * the only clue was the small preview line.
+   */
+  function renderDsUploadBlock(tabId) {
     if (!Storage.isDataverse()) return '';
     if (!Storage.canCreateDatasets()) return '';
+    const fam = ML_FAMILY[tabId];
+    if (!fam) return '';
     const d = state.mapLayers || {};
     const isGeom = d.dsSummary && d.dsSummary.kind === 'geometry';
     const isTerr = d.dsSummary && d.dsSummary.kind === 'territories';
     const isConed = d.dsSummary && d.dsSummary.kind === 'coned';
+
+    // A validated file whose family is not this tab's. Not an error -- the file
+    // is fine and the operator is one click from the right place -- so it is
+    // said plainly and the upload button is withheld rather than the file
+    // rejected.
+    const wrongTab = (d.dsStage === 'ready' && d.dsSummary &&
+      mlTabForKind(d.dsSummary.kind) && mlTabForKind(d.dsSummary.kind) !== tabId)
+      ? mlTabForKind(d.dsSummary.kind) : null;
     // Both notices are dismissible (UX item a): a refusal used to sit on the
     // card until another file was picked, with no way to just close it.
     const warnBlock = (d.dsWarnings || []).length
@@ -16224,7 +16393,19 @@ function wireHTooltips() {
          </div>`
       : '';
 
-    const up = d.dsStage === 'ready'
+    const up = wrongTab
+      ? `<div class="ml-msgs ml-msgs-warn ml-wrongtab" role="status">
+           <div class="ml-msgs-head">This file belongs in ${escapeHtml(mlTabLabel(wrongTab))}</div>
+           <p>It validated cleanly &mdash; it is just not ${escapeHtml(fam.noun)}. The file
+           declares its own type, so nothing here needs changing: open
+           <strong>${escapeHtml(mlTabLabel(wrongTab))}</strong> and it is ready to upload there.</p>
+           <div class="ml-actions">
+             <button class="btn btn-secondary" id="ds-cancel" type="button">Cancel</button>
+             <button class="btn btn-primary" type="button"
+               data-ml-tab-go="${escapeHtml(wrongTab)}">Go to ${escapeHtml(mlTabLabel(wrongTab))}</button>
+           </div>
+         </div>`
+      : d.dsStage === 'ready'
       ? `<div class="ml-preview">
            <div class="ml-preview-head">
              <span class="ml-preview-title">Validated</span>
@@ -16277,27 +16458,39 @@ function wireHTooltips() {
          </div>
          ${warnBlock}
          <div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose dataset file
-             <input type="file" id="ds-file" accept=".json" hidden /></label>
+           <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
+             <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
+           <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))}</span>
          </div>`
       : d.dsStage === 'saving'
       ? `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' }))}</span>`
       : `<div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose file
-             <input type="file" id="ds-file" accept=".json" hidden /></label>
-           <span class="ml-picker-hint">.json file</span>
+           <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
+             <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
+           <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))} &middot;
+             produced by <span class="ml-mono">${escapeHtml(fam.produces)}</span></span>
          </div>`;
     return `
       <div class="ml-card ds-upload-card">
         <div class="ml-card-head">
           <div>
-            <h3>Upload data file</h3>
-            <p class="ml-card-sub">Upload a NYSERDA dataset version, a set of tract shapes, a
-            service territory overlay, or the electric and gas figures. The file itself says which
-            one it is, and it is checked before anything is stored. Dataset versions appear under
-            Tract datasets, where you choose which one is live. Shape sets appear under Tract
-            shapes and are matched to a dataset by vintage, as do the electric and gas figures. A
-            territory overlay appears under Territory overlays and replaces the published one.</p>
+            <h3>Upload ${escapeHtml(fam.noun)}</h3>
+            <p class="ml-card-sub">${
+              tabId === 'indicators'
+                ? 'A NYSERDA release version. It is checked before anything is stored, and it ' +
+                  'is stored WITHOUT switching to it &mdash; you activate it from the list below ' +
+                  'when you are ready.'
+                : tabId === 'shapes'
+                ? 'The tract boundaries the map draws. Checked before anything is stored, then ' +
+                  'matched to a dataset by GEOID vintage &mdash; several vintages are published ' +
+                  'at once by design.'
+                : tabId === 'coned'
+                ? 'Per-tract account counts and energy-affordability enrolment. These apply ' +
+                  'UNDER the map data table, so any tract corrected by hand keeps its corrected ' +
+                  'value.'
+                : 'The electric and gas service territory boundaries drawn over the tracts. ' +
+                  'These carry no GEOIDs and pair with no dataset, so no vintage applies.'
+            }</p>
           </div>
           ${dsHelpButton('upload')}
         </div>
@@ -16310,8 +16503,44 @@ function wireHTooltips() {
   function rerenderMlUpload() {
     const mount = document.getElementById('ml-upload-mount');
     if (!mount) return;
-    mount.innerHTML = renderMlUploadCard();
-    wireMlUploadCard();
+    mount.innerHTML = renderMlUploadMount();
+    // The layer-upload card is the only one with its own wiring; the dataset
+    // upload block is driven by delegation from the list mount, so re-wiring it
+    // here would double-bind its handlers.
+    if (mlTab() === 'layers') wireMlUploadCard();
+  }
+
+  /**
+   * Switch tabs. Re-renders BOTH mounts, because the upload block above and the
+   * list below are two halves of the same tab and showing one tab's upload over
+   * another tab's list is the exact confusion this redesign removes.
+   */
+  function mlSetTab(id, keepDraft) {
+    const d = initMapLayersState();
+    if (!ML_TABS.some(t => t.id === id) || d.tab === id) return;
+    d.tab = id;
+    // A draft belongs to the tab it was started on. Carrying a validated file
+    // across a tab switch would offer "Upload version" on a tab whose family the
+    // file does not belong to.
+    //
+    // keepDraft is the ONE case where it must survive: the operator dropped a
+    // good file on the wrong tab and clicked the button offering to take them to
+    // the right one. Clearing it there would discard the very file the button
+    // exists to deliver, and make the offer worse than useless.
+    if (d.dsStage !== 'saving' && !keepDraft) {
+      d.dsStage = null; d.dsText = null; d.dsSummary = null;
+      d.dsErrors = []; d.dsWarnings = [];
+    }
+    const row = document.querySelector('.ml-tabs-row');
+    if (row) {
+      row.querySelectorAll('.ml-tab').forEach(function (b) {
+        const on = b.dataset.mlTab === id;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+    }
+    rerenderMlUpload();
+    rerenderMlList();
   }
 
   function rerenderMlList() {
@@ -16323,10 +16552,39 @@ function wireHTooltips() {
 
   /** Wire the Map Layers page (the cards, the requirements drawer, the docs drawer). */
   function wireMapLayersPage() {
-    wireMlUploadCard();
+    wireMlTabs();
+    // Only the layers tab mounts the layer-upload card; on a family tab the
+    // upload block is delegated from the list mount instead.
+    if (mlTab() === 'layers') wireMlUploadCard();
     wireMlList();
     wireMlRequirementsDrawer();
     wireDsHelpDrawer();
+  }
+
+  /**
+   * Tab clicks, bound once on the row itself rather than per button, so the
+   * pills can be re-rendered without accumulating handlers. Arrow keys move
+   * between tabs because a tablist that only answers the mouse is not one.
+   */
+  function wireMlTabs() {
+    const row = document.querySelector('.ml-tabs-row');
+    if (!row || row.dataset.wired === '1') return;
+    row.dataset.wired = '1';
+    row.addEventListener('click', function (e) {
+      const b = e.target.closest('.ml-tab');
+      if (b && b.dataset.mlTab) mlSetTab(b.dataset.mlTab);
+    });
+    row.addEventListener('keydown', function (e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+      const ids = ML_TABS.map(t => t.id);
+      const i = ids.indexOf(mlTab());
+      if (i < 0) return;
+      const next = ids[(i + (e.key === 'ArrowRight' ? 1 : ids.length - 1)) % ids.length];
+      mlSetTab(next);
+      const btn = row.querySelector('.ml-tab[data-ml-tab="' + next + '"]');
+      if (btn) btn.focus();
+      e.preventDefault();
+    });
   }
 
   /**
@@ -17026,6 +17284,11 @@ function wireHTooltips() {
         rerenderMlList();
         return;
       }
+      // CLCPA-220: the offer to carry a good file to the tab it belongs in.
+      // keepDraft, or this would deliver the operator to the right tab with
+      // nothing staged.
+      const go = e.target.closest('[data-ml-tab-go]');
+      if (go) { mlSetTab(go.dataset.mlTabGo, true); return; }
       if (e.target.closest('#ds-upload')) { dsUploadStaged(); return; }
       if (e.target.closest('#ds-cancel')) {
         const d = initMapLayersState();

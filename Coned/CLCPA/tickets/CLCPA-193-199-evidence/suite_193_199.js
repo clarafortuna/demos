@@ -16,7 +16,14 @@ const NEW = fs.readFileSync(process.env.DAC_APP_OVERRIDE || (REPO + '/' + REL), 
 // git blobs are stored LF; the working tree is CRLF. Normalise the baseline to
 // CRLF so the indentation anchors and the source-level controls compare like
 // with like -- the same LF/CRLF trap that made a deploy-backup hash disagree.
-const OLD = execSync('git show HEAD:"' + REL + '"', { cwd: REPO, maxBuffer: 1 << 28 })
+// PINNED, not HEAD. This said `git show HEAD` and was right for exactly one
+// day: the moment CLCPA-193/199 merged, HEAD became the POST-change code and
+// all eight baseline controls silently compared the change against itself.
+// That is the failure my own ledger rule names -- an acceptance baseline must
+// PREDATE the change -- committed into the suite that enforces it. 2676c20 is
+// the commit before 54540ce, which is where the 193/199 work landed.
+const BASE = process.env.DAC_BASE_COMMIT || '2676c20';
+const OLD = execSync('git show ' + BASE + ':"' + REL + '"', { cwd: REPO, maxBuffer: 1 << 28 })
   .toString('utf8').replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
 
 let pass = 0, fail = 0;
@@ -128,7 +135,7 @@ function runBootHarness(src, tag) {
 (async function main() {
 
   /* ---------------- PART 1: the baseline control ------------------------ */
-  section('PART 1 -- BASELINE (git show HEAD): boot MUST download the files');
+  section('PART 1 -- BASELINE (git show ' + BASE + ', pinned): boot MUST download the files');
   const b = runBootHarness(OLD, 'HEAD');
   await b.api.hydrate();
   eq(b.listCalls.length, 1, 'HEAD: listMapLayers called once');
