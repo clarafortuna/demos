@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER: Data Sources, territory entry</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8963,3 +8964,62 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER: Data Sources, territory entry &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Data Sources</h1>
+          <p class="page-sub">What each kind of data on the DAC map is, where it comes
+          from, what a file has to satisfy, and how it is updated.</p>
+        </div>
+        <div class="ds-dict-actions">
+          <button type="button" class="btn btn-secondary" data-ds-dict-back="1">
+            Back to Territory Overlays</button>
+          <button type="button" class="ds-dict-x" data-ds-dict-back="1"
+            aria-label="Close Data Sources and return to Territory Overlays">&times;</button>
+        </div>
+      </div>
+      <div class="ds-dict">
+        <nav class="ds-dict-nav" aria-label="Data source entries">
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="layers"
+        >Map Layers</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="indicators"
+        >DAC Indicators</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="shapes"
+        >Tract Shapes</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="coned"
+        >Electric and Gas Figures</button>
+      <button type="button" class="ds-dict-navitem active"
+        data-ds-dict-go="territory" aria-current="true"
+        >Territory Overlays</button></nav>
+        <article class="ds-dict-entry" id="ds-dict-entry">
+          <h2>Territory Overlays</h2>
+          <section>
+            <h3>What this data is</h3>
+            <p>The Con Edison electric and gas service territory boundaries and the ORU territory, drawn over the tracts. Switch them on from the Layers control on the map. They carry no GEOIDs and pair with no dataset, so no vintage applies; uploading a new overlay replaces the published one.</p>
+            <p class="ds-dict-src"><strong>Authoritative source.</strong> CECONY_Electric.shp, CECONY_Gas.shp and ORU_Territory.shp, reprojected to WGS84.</p>
+          </section>
+          <section>
+            <h3>Where the data comes from</h3>
+            <dl class="ds-dict-origin"><dt>Published by</dt><dd>Con Edison internal GIS, CECONY and ORU. Not public.</dd><dt>Delivered by</dt><dd><span class="ds-dict-gap">[Con Edison contact: TO BE FILLED]</span></dd><dt>Update cadence</dt><dd><span class="ds-dict-gap">[Update cadence: TO BE FILLED]</span></dd></dl>
+          </section>
+          <section>
+            <h3>File requirements</h3>
+            <ul><li>A .json or .geojson overlay file with schema 1.</li><li>The manifest kind must be the territory kind.</li><li>No GEOIDs and no vintage. A record that declares a vintage is accepted but warns, because a vintage means nothing for an overlay.</li><li>The record layer count must equal the number of layers in the file.</li></ul>
+          </section>
+          <section>
+            <h3>How to update</h3>
+            <p><strong>How the file is made.</strong> _make_territories.py, which needs network access</p>
+            <p>Uploading publishes the overlay and retires the one published now. The map draws it the next time a territory layer is switched on.</p>
+            <p><strong>Full procedure.</strong> the territory guide in the operator package, which is the procedure of record. This page is the summary.</p>
+          </section>
+        </article>
+      </div></div></body>

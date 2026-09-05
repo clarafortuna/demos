@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER: Data Sources, indicators entry</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8963,3 +8964,62 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER: Data Sources, indicators entry &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Data Sources</h1>
+          <p class="page-sub">What each kind of data on the DAC map is, where it comes
+          from, what a file has to satisfy, and how it is updated.</p>
+        </div>
+        <div class="ds-dict-actions">
+          <button type="button" class="btn btn-secondary" data-ds-dict-back="1">
+            Back to DAC Indicators</button>
+          <button type="button" class="ds-dict-x" data-ds-dict-back="1"
+            aria-label="Close Data Sources and return to DAC Indicators">&times;</button>
+        </div>
+      </div>
+      <div class="ds-dict">
+        <nav class="ds-dict-nav" aria-label="Data source entries">
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="layers"
+        >Map Layers</button>
+      <button type="button" class="ds-dict-navitem active"
+        data-ds-dict-go="indicators" aria-current="true"
+        >DAC Indicators</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="shapes"
+        >Tract Shapes</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="coned"
+        >Electric and Gas Figures</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="territory"
+        >Territory Overlays</button></nav>
+        <article class="ds-dict-entry" id="ds-dict-entry">
+          <h2>DAC Indicators</h2>
+          <section>
+            <h3>What this data is</h3>
+            <p>NYSERDA per tract Disadvantaged Communities data, kept as versions. The active version drives the Color by list, the tract tooltips, the tract detail panel and the CSV export.</p>
+            <p class="ds-dict-src"><strong>Authoritative source.</strong> NYSERDA and the NYS Climate Justice Working Group, Final Disadvantaged Communities criteria.</p>
+          </section>
+          <section>
+            <h3>Where the data comes from</h3>
+            <dl class="ds-dict-origin"><dt>Published by</dt><dd>NY Department of State Geographic Information Gateway</dd><dt>Obtained from</dt><dd><a href="https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc" target="_blank" rel="noopener">https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc</a></dd><dt>Update cadence</dt><dd><span class="ds-dict-gap">[Update cadence: TO BE FILLED]</span></dd></dl>
+          </section>
+          <section>
+            <h3>File requirements</h3>
+            <ul><li>A .json dataset file with schema 1.</li><li>The manifest kind must be the indicator kind; another family is refused by name.</li><li>The record field count must equal the field count in the file.</li><li>Coverage floor: the file must match at least 98 percent of the tracts the map draws, measured against the active geometry for its declared GEOID vintage.</li><li>A declared GEOID vintage, which is how the tract shapes are paired to it.</li></ul>
+          </section>
+          <section>
+            <h3>How to update</h3>
+            <p><strong>How the file is made.</strong> convert_nyserda_raw.py</p>
+            <p>Uploading stores a version WITHOUT switching to it. Activate it from the list when you are ready; activating runs the checks again before the map changes.</p>
+            <p><strong>Full procedure.</strong> the DAC indicators guide in the operator package, which is the procedure of record. This page is the summary.</p>
+          </section>
+        </article>
+      </div></div></body>

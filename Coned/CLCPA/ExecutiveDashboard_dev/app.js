@@ -5251,6 +5251,11 @@ function utf8ByteLength(str) {
   let _dsHydrated = false;
   // Every dataset version seen, for the admin card. Populated by hydration.
   let _dsRecords = [];
+  // CLCPA-221 G7: true once the dataset records have actually ARRIVED.
+  // _dsHydrated cannot answer this: it is set at the start of hydration so a
+  // second call returns early, which means it is already true during exactly
+  // the window the loading skeleton exists to cover.
+  let _dsRecordsLoaded = false;
   // { doc, fieldIds, absent } while an indicator dataset is live, so getMapGeo can
   // apply its 56 fields when it composes the base from Dataverse (slice 5c).
   // Cleared by dsNoIndicators.
@@ -6608,6 +6613,7 @@ function utf8ByteLength(str) {
       return;
     }
     _dsRecords = recs;
+    _dsRecordsLoaded = true;
     if (state.route && state.route.name === 'maplayers') rerenderMlList();
     // Only the indicator family can be "live". Geometry and territory rows are
     // PUBLISHED, not active -- several geometry vintages are published at once by
@@ -14713,6 +14719,143 @@ function wireHTooltips() {
                  produces: 'update_map_data.py --refresh-territories' },
   };
 
+  /* ============================================================
+   * CLCPA-221: the Data Sources dictionary
+   * ------------------------------------------------------------
+   * Five entries, each answering the same four questions, so an operator who
+   * has read one knows the shape of the rest.
+   *
+   * EVERY FACT HERE IS EXTRACTED, NOT WRITTEN. The origins come from
+   * OPERATOR_SCRIPT_FACTS.md and data-sources.html; the requirements come from
+   * the validators in this file. Where the repository does not record an
+   * origin, the entry carries a VISIBLE bracketed placeholder rather than a
+   * plausible sentence: a placeholder is a to-do the page itself carries,
+   * while a quietly omitted line reads as completeness.
+   *
+   * `what` is the approved long text from CLCPA-220 round 3, used as approved.
+   * Drift from it is a defect, and the harness pins each one.
+   * ============================================================ */
+  const DS_DICT = [
+    {
+      id: 'layers', title: 'Map Layers',
+      what: 'GeoJSON overlays you upload to draw over the map as toggleable layers, ' +
+        'colored by one numeric property. Saved layers are stored in Dataverse and ' +
+        'visible to everyone who opens the dashboard.',
+      source: 'Any source you choose; overlays are yours. Record the origin in the ' +
+        'source label when saving, so everyone who sees the layer knows where it came from.',
+      origin: [],
+      reqs: [
+        'A .geojson or .json file holding a FeatureCollection with at least one feature.',
+        'Polygon or MultiPolygon features only. Point and line layers are refused.',
+        'Coordinates in WGS84 (EPSG:4326). A file with no crs member is accepted too, ' +
+          'which is the GeoJSON default and what QGIS exports.',
+        'At least one property numeric on every feature: that is the field the colors come from.',
+        'Up to 50 MB. Over 5 MB the upload warns before continuing.',
+        'Checked in the browser before anything is drawn or stored.',
+      ],
+      update: 'Upload from the Map Layers tab. Save it to keep it for everyone, or ' +
+        'leave it unsaved and it disappears when the session ends.',
+      guide: null,
+    },
+    {
+      id: 'indicators', title: 'DAC Indicators',
+      what: 'NYSERDA per tract Disadvantaged Communities data, kept as versions. The ' +
+        'active version drives the Color by list, the tract tooltips, the tract detail ' +
+        'panel and the CSV export.',
+      source: 'NYSERDA and the NYS Climate Justice Working Group, Final Disadvantaged ' +
+        'Communities criteria.',
+      origin: [
+        ['Published by', 'NY Department of State Geographic Information Gateway'],
+        ['Obtained from', 'https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc'],
+        ['Update cadence', '[Update cadence: TO BE FILLED]'],
+      ],
+      reqs: [
+        'A .json dataset file with schema 1.',
+        'The manifest kind must be the indicator kind; another family is refused by name.',
+        'The record field count must equal the field count in the file.',
+        'Coverage floor: the file must match at least 98 percent of the tracts the map ' +
+          'draws, measured against the active geometry for its declared GEOID vintage.',
+        'A declared GEOID vintage, which is how the tract shapes are paired to it.',
+      ],
+      update: 'Uploading stores a version WITHOUT switching to it. Activate it from the ' +
+        'list when you are ready; activating runs the checks again before the map changes.',
+      guide: 'the DAC indicators guide in the operator package',
+      script: 'convert_nyserda_raw.py',
+    },
+    {
+      id: 'shapes', title: 'Tract Shapes',
+      what: 'The census tract boundaries the map draws. Each set carries a GEOID vintage; ' +
+        'the map draws the set whose vintage matches the active DAC Indicators version, ' +
+        'so there is nothing to switch here.',
+      source: 'U.S. Census Bureau cartographic boundary files, six Con Edison counties. ' +
+        'Neighborhood names come from the newest crosswalk holding each tract.',
+      origin: [
+        ['Published by', 'U.S. Census Bureau'],
+        ['Obtained from', 'https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.2020.html'],
+        ['Neighborhood crosswalks', 'NYC Open Data, 8ius-dhrr (2010) and hm78-6dwm (2020)'],
+        ['Update cadence', '[Update cadence: TO BE FILLED]'],
+      ],
+      reqs: [
+        'A .json dataset file with schema 1.',
+        'The manifest kind must be the geometry kind.',
+        'Exactly 8 properties per tract. A file with a different count is refused.',
+        'A declared GEOID vintage. Several vintages are published at once by design.',
+        'The record field count must equal the field count in the file.',
+      ],
+      update: 'Uploading makes the set available. There is no activation step: use ' +
+        'follows the active DAC Indicators vintage.',
+      guide: 'the tract shapes guide in the operator package',
+      script: 'build_pure_geometry_dataset.py (update_map_data.py runs the full chain)',
+    },
+    {
+      id: 'coned', title: 'Electric and Gas Figures',
+      what: 'Per tract account counts, EAP enrolment and adjustments. The version whose ' +
+        'vintage matches the active DAC Indicators version is the one in use. Tracts ' +
+        'corrected by hand in the map data table keep their corrections; these figures ' +
+        'sit underneath them.',
+      source: 'Con Edison per tract extracts, Electric.xlsx and Gas.xlsx, sheet Export.',
+      origin: [
+        ['Published by', 'Con Edison, internal. Not public.'],
+        ['Delivered by', '[Con Edison contact: TO BE FILLED]'],
+        ['Update cadence', '[Update cadence: TO BE FILLED]'],
+      ],
+      reqs: [
+        'A .json dataset file with schema 1.',
+        'The manifest kind must be the ConEd figures kind.',
+        'The record field count must equal the field count in the file.',
+        'A declared GEOID vintage, which decides which tract shapes it applies to.',
+      ],
+      update: 'Uploading stores these figures and publishes them for their vintage. ' +
+        'Nothing on the map changes for tracts that have been edited by hand.',
+      guide: 'the electric and gas guide in the operator package',
+      script: 'build_coned_dataset.py',
+    },
+    {
+      id: 'territory', title: 'Territory Overlays',
+      what: 'The Con Edison electric and gas service territory boundaries and the ORU ' +
+        'territory, drawn over the tracts. Switch them on from the Layers control on the ' +
+        'map. They carry no GEOIDs and pair with no dataset, so no vintage applies; ' +
+        'uploading a new overlay replaces the published one.',
+      source: 'CECONY_Electric.shp, CECONY_Gas.shp and ORU_Territory.shp, reprojected ' +
+        'to WGS84.',
+      origin: [
+        ['Published by', 'Con Edison internal GIS, CECONY and ORU. Not public.'],
+        ['Delivered by', '[Con Edison contact: TO BE FILLED]'],
+        ['Update cadence', '[Update cadence: TO BE FILLED]'],
+      ],
+      reqs: [
+        'A .json or .geojson overlay file with schema 1.',
+        'The manifest kind must be the territory kind.',
+        'No GEOIDs and no vintage. A record that declares a vintage is accepted but warns, ' +
+          'because a vintage means nothing for an overlay.',
+        'The record layer count must equal the number of layers in the file.',
+      ],
+      update: 'Uploading publishes the overlay and retires the one published now. The map ' +
+        'draws it the next time a territory layer is switched on.',
+      guide: 'the territory guide in the operator package',
+      script: '_make_territories.py, which needs network access',
+    },
+  ];
   /** The tab currently shown, defaulting to the layers tab. */
   function mlTab() {
     const d = initMapLayersState();
@@ -14746,8 +14889,138 @@ function wireHTooltips() {
     state.mapLayers = { stage: 'idle', errors: [], warnings: [], tab: tab || 'layers' };
   }
 
+  /**
+   * The dictionary, as a FULL PAGE VIEW that takes the place of the Map Data
+   * content. Not a modal.
+   *
+   * WHY A VIEW AND NOT A MODAL, and why a side nav and not anchors. This is a
+   * reference surface: an operator comes to it to find out what a family IS,
+   * and the first thing that has to be answerable is "what families are
+   * there". Five items visible at once answers that before a word is read. In
+   * one long anchored scroll the set is invisible and "which entry am I in"
+   * goes ambiguous the moment the heading leaves the viewport, which also
+   * makes Back ambiguous.
+   *
+   * Back and the X both return to THE EXACT TAB the operator left, which is
+   * held in `returnTab` rather than recomputed, so a dictionary opened from
+   * Territory Overlays cannot deposit them on Map Layers.
+   */
+  /**
+   * Open the dictionary. THE ONE CLICK RULE: opened while a family tab is
+   * active, it lands on THAT family's entry. Opened from Map Layers it lands on
+   * Map Layers. The operator never arrives somewhere they have to navigate out
+   * of to reach the thing they were already looking at.
+   *
+   * The tab is captured, not recomputed on the way back, so Back returns to
+   * where they actually were even if something else changes state meanwhile.
+   */
+  function dsDictOpen(entryId) {
+    const d = initMapLayersState();
+    d.dictReturnTab = mlTab();
+    d.dictEntry = DS_DICT.some(e => e.id === entryId) ? entryId : mlTab();
+    if (!DS_DICT.some(e => e.id === d.dictEntry)) d.dictEntry = 'layers';
+    d.dict = true;
+    rerenderMapLayersPage();
+  }
+
+  /** Close it, returning to the exact tab the operator left. */
+  function dsDictClose() {
+    const d = initMapLayersState();
+    d.dict = false;
+    if (d.dictReturnTab) d.tab = d.dictReturnTab;
+    rerenderMapLayersPage();
+  }
+
+  /** Move between entries without leaving the view. */
+  function dsDictGo(entryId) {
+    const d = initMapLayersState();
+    if (!DS_DICT.some(e => e.id === entryId) || d.dictEntry === entryId) return;
+    d.dictEntry = entryId;
+    rerenderMapLayersPage();
+  }
+
+  /**
+   * Redraw the whole page. The dictionary swaps the page CONTENT, so the two
+   * mount-level rerenders are not enough on their own: the header, the tabs and
+   * the mounts all appear or disappear together.
+   */
+  function rerenderMapLayersPage() {
+    const view = document.getElementById('view-container');
+    if (!view) return;
+    view.innerHTML = renderMapLayersPage();
+    wireMapLayersPage();
+  }
+  function renderDsDictView() {
+    const d = initMapLayersState();
+    const cur = DS_DICT.some(e => e.id === d.dictEntry) ? d.dictEntry : 'layers';
+    const entry = DS_DICT.filter(e => e.id === cur)[0];
+    const back = mlTabLabel(d.dictReturnTab || 'layers');
+    const nav = DS_DICT.map(e => `
+      <button type="button" class="ds-dict-navitem${e.id === cur ? ' active' : ''}"
+        data-ds-dict-go="${escapeHtml(e.id)}"${e.id === cur ? ' aria-current="true"' : ''}
+        >${escapeHtml(e.title)}</button>`).join('');
+    const originRows = (entry.origin || []).length
+      ? '<dl class="ds-dict-origin">' + entry.origin.map(([k, v]) =>
+          '<dt>' + escapeHtml(k) + '</dt><dd>' +
+          (/^https?:/.test(v)
+            ? '<a href="' + escapeHtml(v) + '" target="_blank" rel="noopener">' +
+              escapeHtml(v) + '</a>'
+            : (/TO BE FILLED/.test(v)
+              ? '<span class="ds-dict-gap">' + escapeHtml(v) + '</span>'
+              : escapeHtml(v))) + '</dd>').join('') + '</dl>'
+      : '';
+    const howMade = entry.script
+      ? '<p><strong>How the file is made.</strong> ' + escapeHtml(entry.script) + '</p>'
+      : '';
+    const guideLine = entry.guide
+      ? '<p><strong>Full procedure.</strong> ' + escapeHtml(entry.guide) +
+        ', which is the procedure of record. This page is the summary.</p>'
+      : '';
+    return `
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Data Sources</h1>
+          <p class="page-sub">What each kind of data on the DAC map is, where it comes
+          from, what a file has to satisfy, and how it is updated.</p>
+        </div>
+        <div class="ds-dict-actions">
+          <button type="button" class="btn btn-secondary" data-ds-dict-back="1">
+            Back to ${escapeHtml(back)}</button>
+          <button type="button" class="ds-dict-x" data-ds-dict-back="1"
+            aria-label="Close Data Sources and return to ${escapeHtml(back)}">&times;</button>
+        </div>
+      </div>
+      <div class="ds-dict">
+        <nav class="ds-dict-nav" aria-label="Data source entries">${nav}</nav>
+        <article class="ds-dict-entry" id="ds-dict-entry">
+          <h2>${escapeHtml(entry.title)}</h2>
+          <section>
+            <h3>What this data is</h3>
+            <p>${escapeHtml(entry.what)}</p>
+            <p class="ds-dict-src"><strong>Authoritative source.</strong> ${escapeHtml(entry.source)}</p>
+          </section>
+          <section>
+            <h3>Where the data comes from</h3>
+            ${originRows || '<p>' + escapeHtml(entry.source) + '</p>'}
+          </section>
+          <section>
+            <h3>File requirements</h3>
+            <ul>${entry.reqs.map(r => '<li>' + escapeHtml(r) + '</li>').join('')}</ul>
+          </section>
+          <section>
+            <h3>How to update</h3>
+            ${howMade}
+            <p>${escapeHtml(entry.update)}</p>
+            ${guideLine}
+          </section>
+        </article>
+      </div>`;
+  }
   function renderMapLayersPage() {
     const mlp = initMapLayersState();
+    // CLCPA-221: the dictionary REPLACES this content rather than floating over
+    // it, so there is one thing on screen and Back means what it says.
+    if (mlp.dict) return renderDsDictView();
     // Entering the page starts clean: a refusal notice describes a file the
     // admin picked earlier, and it should not greet them on the way back in
     // (UX item a). A staged, still-pending upload keeps its notices.
@@ -14765,8 +15038,8 @@ function wireHTooltips() {
             : 'The GeoJSON overlays saved for this dashboard, and which of them are on the DAC map.'}</p>
         </div>
         ${mlCanUpload()
-          ? `<button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                aria-haspopup="dialog">File Requirements</button>`
+          ? `<button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button">
+                Data Sources</button>`
           : ''}
       </div>
 
@@ -14778,7 +15051,11 @@ function wireHTooltips() {
 
       <div id="ml-list-mount">${renderMlSessionList()}</div>
 
-      ${mlCanUpload() ? renderMlRequirementsDrawer() : ''}
+      <!-- CLCPA-221: the File Requirements drawer is RETIRED. Everything it said
+           about file type, geometry, coordinates and the colour field is now the
+           Map Layers entry's requirements list in the Data Sources view, where it
+           sits beside the same facts for the other four families instead of being
+           the only one that had them. Nothing is orphaned. -->
       ${renderDsHelpDrawer()}
 
       <p class="ml-build" id="ml-build">Build ${escapeHtml(APP_BUILD)}</p>
@@ -14896,59 +15173,17 @@ function wireHTooltips() {
    * change) therefore can't disturb an open panel, which is why this needs none
    * of the open-state bookkeeping the old inline collapsible carried.
    */
-  function renderMlRequirementsDrawer() {
-    return `
-      <div class="ml-overlay" id="ml-req-overlay" hidden>
-        <aside class="ml-drawer" role="dialog" aria-modal="true" aria-labelledby="ml-req-title">
-          <div class="ml-drawer-head">
-            <span class="ml-drawer-kicker"><span class="ml-drawer-dot"></span> Before you upload</span>
-            <button class="ml-drawer-close" id="ml-req-close" aria-label="Close">&times;</button>
-            <h3 id="ml-req-title">File requirements</h3>
-          </div>
-          <div class="ml-drawer-body">
-            <dl class="ml-help-list">
-              <dt>File type</dt>
-              <dd>A <span class="ml-mono">.geojson</span> or <span class="ml-mono">.json</span> file
-              holding a <span class="ml-mono">FeatureCollection</span> with at least one feature,
-              the standard GeoJSON export from QGIS or ArcGIS.</dd>
-
-              <dt>Geometry</dt>
-              <dd><span class="ml-mono">Polygon</span> or <span class="ml-mono">MultiPolygon</span> only.
-              Point and line layers aren't supported yet.</dd>
-
-              <dt>Coordinates</dt>
-              <dd>WGS84 (<span class="ml-mono">EPSG:4326</span>), as longitude/latitude degrees. Around
-              New York City longitude is near <span class="ml-mono">-74</span> and latitude near
-              <span class="ml-mono">40.7</span>. If your numbers look like
-              <span class="ml-mono">987000</span> and <span class="ml-mono">210000</span> the file is in
-              NY State Plane feet and has to be reprojected first. In QGIS: right-click the layer,
-              <em>Export</em>, <em>Save Features As</em>, and set CRS to
-              <span class="ml-mono">EPSG:4326</span>.</dd>
-
-              <dt>The colour field</dt>
-              <dd>At least one property has to be numeric on <strong>every</strong> feature: that's the
-              field that colours the map, and you choose it after upload. A field with text values, or
-              missing on even one feature, can't be used. Extra text fields are fine to keep as
-              information.</dd>
-
-              <dt>Size</dt>
-              <dd>Up to ${mlFmtBytes(ML_MAX_BYTES)}. Above ${mlFmtBytes(ML_WARN_BYTES)} it still works,
-              but drawing and panning start to feel slow.</dd>
-
-              <dt>If something's wrong</dt>
-              <dd>Uploads are all-or-nothing: a file is either added whole or rejected whole, never
-              partly drawn. Rejection messages name the exact features and fields at fault so you can
-              fix them.</dd>
-            </dl>
-            <div class="ml-help-foot">
-              <button class="btn btn-secondary" id="ml-example-dl" type="button">Download example file</button>
-              <span class="ml-help-foot-note">Five small polygons over New York City with a numeric
-              <span class="ml-mono">risk_score</span>, a valid file to compare yours against.</span>
-            </div>
-          </div>
-        </aside>
-      </div>`;
-  }
+  /* renderMlRequirementsDrawer: REMOVED (CLCPA-221).
+   *
+   * The File Requirements drawer is gone and its content is not lost: every
+   * fact it carried (file type, Polygon and MultiPolygon only, WGS84 with the
+   * QGIS reprojection note, the numeric colour field) is now the Map Layers
+   * entry in the Data Sources view, where it sits beside the same four
+   * questions answered for the other four families.
+   *
+   * It was the only surface that had those facts, which is exactly the
+   * asymmetry the dictionary removes. Deleted rather than left unreachable,
+   * because unreachable markup reads as live code to the next person. */
 
   /**
    * Serve the inline example as a download. Mirrors the map CSV export's
@@ -15865,6 +16100,96 @@ function wireHTooltips() {
    * The body of the open tab. Family tabs share one anatomy, top to bottom:
    * the upload block, then that family's stored versions.
    */
+  /**
+   * "This session" for a family tab (CLCPA-220 F2, built here).
+   *
+   * The semantics DIFFER by family and the box says which, rather than
+   * borrowing the overlay wording and implying a state the family cannot have.
+   * On upload: isActive is true for geometry, ConEd figures and territories,
+   * and false for indicators. So:
+   *
+   *   every family   a file staged and validated but NOT yet uploaded
+   *   indicators     PLUS versions uploaded this session and not yet active
+   *   the other 3    no such state exists: they publish on upload, and the box
+   *                  says so instead of leaving an empty shelf unexplained
+   */
+  function renderDsSessionBox(tabId) {
+    if (!Storage.isDataverse() || !Storage.canCreateDatasets()) return '';
+    const fam = ML_FAMILY[tabId];
+    if (!fam) return '';
+    const d = state.mapLayers || {};
+    const staged = d.dsStage === 'ready' && d.dsSummary &&
+      mlTabForKind(d.dsSummary.kind) === tabId;
+    const savingNow = d.dsStage === 'saving';
+    const isInd = tabId === 'indicators';
+    // Uploaded in THIS session and still inactive. Only indicators can be in
+    // this state; for the others the upload published it.
+    const pending = isInd
+      ? dsRecords().filter(r => dsRecIsIndicators(r) && r.active === false &&
+          d.dsUploadedThisSession && d.dsUploadedThisSession.indexOf(r.dvId) >= 0)
+      : [];
+    const rows = [];
+    if (staged) {
+      rows.push('<li class="ml-row"><div class="ml-row-main">' +
+        '<div class="ml-row-name">' + escapeHtml(d.dsSummary.key || fam.noun) +
+        ' <span class="ml-mono">' + escapeHtml(d.dsSummary.version || '') + '</span>' +
+        ' <span class="ml-state-pill ml-state-off">Staged, not uploaded</span></div>' +
+        '<div class="ml-row-meta">Validated and waiting. Choose Upload Version above, ' +
+        'or Cancel to discard it.</div></div></li>');
+    }
+    if (savingNow) {
+      rows.push('<li class="ml-row"><div class="ml-row-main">' +
+        '<div class="ml-row-name">Uploading' +
+        ' <span class="ml-state-pill ml-state-off">In progress</span></div>' +
+        '<div class="ml-row-meta">' +
+        escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' })) +
+        '</div></div></li>');
+    }
+    pending.forEach(function (r) {
+      rows.push('<li class="ml-row"><div class="ml-row-main">' +
+        '<div class="ml-row-name">' + escapeHtml(r.name || r.datasetKey) +
+        ' <span class="ml-mono">' + escapeHtml(r.version) + '</span>' +
+        ' <span class="ml-state-pill ml-state-off">Uploaded, not active</span></div>' +
+        '<div class="ml-row-meta">Stored in Dataverse. Switch it on in the list above ' +
+        'when you are ready; the checks run again before the map changes.</div>' +
+        '</div></li>');
+    });
+    const empty = isInd
+      ? 'Nothing waiting. A file you choose appears here before it is uploaded, and a ' +
+        'version uploaded in this session stays here until you switch it on.'
+      : 'Nothing waiting. A file you choose appears here before it is uploaded. ' +
+        escapeHtml(fam.noun) + ' publish on upload, so there is no separate step after that.';
+    return '<div class="ml-card ds-session-card">' +
+      '<div class="ml-card-head"><div><h3>This Session (Unsaved)</h3>' +
+      '<p class="ml-card-sub">' + (isInd
+        ? 'Work in progress on this tab: a file staged but not yet uploaded, and any ' +
+          'version uploaded in this session that is not active yet.'
+        : 'Work in progress on this tab: a file staged but not yet uploaded.') +
+      '</p></div></div>' +
+      '<div class="ml-card-body">' +
+      (rows.length ? '<ul class="ml-list">' + rows.join('') + '</ul>'
+                   : '<p class="ml-empty">' + empty + '</p>') +
+      '</div></div>';
+  }
+
+  /**
+   * A loading skeleton for a family list (CLCPA-220 G7).
+   *
+   * The dataset records arrive from Dataverse after the first render, so until
+   * they land a family tab showed an empty card, which reads as "nothing has
+   * ever been uploaded" rather than "still loading". Those two want opposite
+   * reactions from an operator.
+   */
+  function renderDsSkeleton(rows) {
+    let out = '<ul class="ml-list ds-skeleton" aria-hidden="true">';
+    for (let i = 0; i < (rows || 2); i++) {
+      out += '<li class="ml-row"><div class="ml-row-main">' +
+        '<div class="ds-skel-line ds-skel-name"></div>' +
+        '<div class="ds-skel-line ds-skel-meta"></div></div></li>';
+    }
+    return out + '</ul>' +
+      '<p class="ml-empty ds-skel-note">Loading published versions...</p>';
+  }
   function renderMlSessionList() {
     const tab = mlTab();
     if (tab === 'layers') {
@@ -15872,12 +16197,25 @@ function wireHTooltips() {
       // would be permanently empty. Show saved layers only.
       return renderMlSavedGroup() + (mlCanUpload() ? renderMlSessionGroup() : '');
     }
+    // G7: until the records arrive, a family tab showed an empty card, which
+    // reads as "nothing was ever uploaded" rather than "still loading". Those
+    // two want opposite reactions, so the skeleton stands in until they land.
+    if (Storage.isDataverse() && !_dsRecordsLoaded) {
+      return renderDsUploadBlock(tab) +
+        '<div class="ml-card"><div class="ml-card-head"><div>' +
+        '<h3>' + escapeHtml(mlTabLabel(tab)) + '</h3></div></div>' +
+        '<div class="ml-card-body">' + renderDsSkeleton(2) + '</div></div>' +
+        renderDsSessionBox(tab);
+    }
     const card = tab === 'indicators' ? renderDsCard()
       : tab === 'shapes' ? renderGeomCard()
       : tab === 'coned' ? renderConedCard()
       : tab === 'territory' ? renderTerritoryCard()
       : '';
-    return renderDsUploadBlock(tab) + card;
+    // F2: the session box sits BELOW the published list, the same order Tab 1
+    // uses (Add, then Saved, then This session), so the two halves of the page
+    // read the same way round.
+    return renderDsUploadBlock(tab) + card + renderDsSessionBox(tab);
   }
 
   // ============================================================
@@ -16406,7 +16744,10 @@ function wireHTooltips() {
     if (!body) return '';
     return '<div class="dac-td-note ds-about-note" id="ds-about-' +
       escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">Data Source</div>' +
-      '<p>' + escapeHtml(body) + '</p></div>';
+      '<p>' + escapeHtml(body) + '</p>' +
+      '<p class="ds-about-more"><button type="button" class="ds-dict-link" ' +
+      'data-ds-dict-full="' + escapeHtml(tabId) + '">Full entry in Data Sources</button></p>' +
+      '</div>';
   }
 
   /**
@@ -16697,12 +17038,16 @@ function wireHTooltips() {
 
   /** Wire the Map Layers page (the cards, the requirements drawer, the docs drawer). */
   function wireMapLayersPage() {
+    wireDsDict();
+    // Inside the dictionary there are no tabs, no upload card and no list, so
+    // none of the rest applies and binding it would look for mounts that are
+    // not there.
+    if (initMapLayersState().dict) return;
     wireMlTabs();
     // Only the layers tab mounts the layer-upload card; on a family tab the
     // upload block is delegated from the list mount instead.
     if (mlTab() === 'layers') wireMlUploadCard();
     wireMlList();
-    wireMlRequirementsDrawer();
     wireDsHelpDrawer();
   }
 
@@ -16711,6 +17056,30 @@ function wireHTooltips() {
    * pills can be re-rendered without accumulating handlers. Arrow keys move
    * between tabs because a tablist that only answers the mouse is not one.
    */
+  /**
+   * One delegated listener on the view container, bound once. The dictionary
+   * replaces the page on every move, so per-button binding would re-bind on
+   * each render and accumulate.
+   */
+  function wireDsDict() {
+    const view = document.getElementById('view-container');
+    if (!view || view.dataset.dictWired === '1') return;
+    view.dataset.dictWired = '1';
+    view.addEventListener('click', function (e) {
+      const open = e.target.closest('#ml-req-open');
+      if (open) { dsDictOpen(mlTab()); return; }
+      const full = e.target.closest('[data-ds-dict-full]');
+      if (full) { dsDictOpen(full.dataset.dsDictFull); return; }
+      const go = e.target.closest('[data-ds-dict-go]');
+      if (go) { dsDictGo(go.dataset.dsDictGo); return; }
+      const back = e.target.closest('[data-ds-dict-back]');
+      if (back) { dsDictClose(); return; }
+    });
+    // Esc closes, matching every other overlay surface in the app.
+    view.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && initMapLayersState().dict) dsDictClose();
+    });
+  }
   function wireMlTabs() {
     const row = document.querySelector('.ml-tabs-row');
     if (!row || row.dataset.wired === '1') return;
@@ -16739,42 +17108,10 @@ function wireHTooltips() {
    * Esc handler that is removed before being re-added so handlers can't
    * accumulate across page renders.
    */
-  function wireMlRequirementsDrawer() {
-    const overlay = document.getElementById('ml-req-overlay');
-    const close = document.getElementById('ml-req-close');
-    if (!overlay) return;
-
-    const isOpen = () => overlay.classList.contains('open');
-    const openDrawer = () => {
-      overlay.hidden = false;
-      requestAnimationFrame(() => overlay.classList.add('open'));
-      if (close) close.focus();
-    };
-    const closeDrawer = () => {
-      overlay.classList.remove('open');
-      setTimeout(() => { if (!overlay.classList.contains('open')) overlay.hidden = true; }, 260);
-      const btn = document.getElementById('ml-req-open');
-      if (btn) btn.focus();
-    };
-    // The opener lives in the page header, a sibling of this overlay, so both
-    // are created together by renderMapLayersPage and neither is affected by a
-    // card re-render. That means it can be bound directly here.
-    const openBtn = document.getElementById('ml-req-open');
-    if (openBtn) openBtn.addEventListener('click', openDrawer);
-
-    if (close) close.addEventListener('click', closeDrawer);
-    overlay.addEventListener('click', e => { if (e.target === overlay) closeDrawer(); });
-
-    const dl = document.getElementById('ml-example-dl');
-    if (dl) dl.addEventListener('click', mlDownloadExample);
-
-    if (_mlEscHandler) document.removeEventListener('keydown', _mlEscHandler);
-    _mlEscHandler = function (e) {
-      if (e.key !== 'Escape') return;
-      if (isOpen()) closeDrawer();
-    };
-    document.addEventListener('keydown', _mlEscHandler);
-  }
+  /* wireMlRequirementsDrawer: REMOVED (CLCPA-221) with the drawer it opened.
+   * Its first line was `if (!overlay) return;`, so it had already become a
+   * no-op the moment the drawer stopped rendering. A function that silently
+   * does nothing is worse than one that is gone. */
 
   function wireMlUploadCard() {
     const fileInput = document.getElementById('ml-file');
@@ -17252,10 +17589,17 @@ function wireHTooltips() {
         // one-published-per-KEY, because they have no vintage to be scoped by.
         retireBy: isTerritories ? 'key' : 'vintage',
       }, d.dsText, function (st) { d.dsProgress = st; rerenderMlList(); });
+      // F2: remember what this session uploaded, so the indicators box can
+      // show a version that is stored but not yet switched on. Only that
+      // family has the state; the others publish on upload.
+      if (saved && saved.dvId) {
+        d.dsUploadedThisSession = (d.dsUploadedThisSession || []).concat([saved.dvId]);
+      }
       d.dsStage = null; d.dsText = null; d.dsSummary = null;
       d.dsErrors = []; d.dsWarnings = [];
       // Re-list so the new version appears.
       _dsRecords = await Storage.listTractDatasets();
+      _dsRecordsLoaded = true;
       const retired = (saved && saved.retired) || [];
       // A new geometry for the vintage currently in use replaces what the map is
       // drawing, so re-resolve the pair rather than waiting for a reload.
