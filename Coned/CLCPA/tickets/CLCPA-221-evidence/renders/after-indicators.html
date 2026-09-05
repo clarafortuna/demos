@@ -8160,16 +8160,6 @@ a.nav-item { text-decoration: none; }
 .ds-dict-x:hover { color: var(--dusk); }
 .ds-dict-x:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
 
-/* The link out of the inline Data Source panel. A button, because it changes
-   the view rather than navigating anywhere. */
-.ds-about-more { margin: 8px 0 0; }
-.ds-dict-link {
-  background: none; border: none; padding: 0; cursor: pointer;
-  font-family: var(--font); font-size: 10.5px; font-weight: 700;
-  color: var(--dusk); text-decoration: underline;
-}
-.ds-dict-link:hover { color: var(--ink-2); }
-
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
    Five pills, one section visible at a time. The page had grown to seven
    stacked cards, three of which had a heading; the tabs ARE the headings the
@@ -9004,9 +8994,9 @@ CLCPA-220 render harness &middot; AFTER, tab: indicators &middot; stub data, rea
            <label class="btn btn-secondary ml-browse">Choose DAC Indicators file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json</span>
-           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="indicators" aria-expanded="false" aria-label="Data Source" title="Data Source" aria-controls="ds-about-indicators"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg></button>
+           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="indicators" aria-expanded="false" aria-label="About" title="About" aria-controls="ds-about-indicators"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg></button>
          </div></div>
-          <div class="dac-td-note ds-about-note" id="ds-about-indicators" hidden><div class="dac-td-note-title">Data Source</div><p>NYSERDA per tract DAC data, kept as versions. The upload file is built by convert_nyserda_raw.py. Full procedure: the DAC indicators guide in the operator package.</p><p class="ds-about-more"><button type="button" class="ds-dict-link" data-ds-dict-full="indicators">Full entry in Data Sources</button></p></div>
+          <div class="dac-td-note ds-about-note" id="ds-about-indicators" hidden><div class="dac-td-note-title">Data Source</div><p>NYSERDA per tract DAC data, kept as versions. The upload file is built by convert_nyserda_raw.py. Full procedure: the DAC indicators guide in the operator package.</p></div>
         </div>
       </div>
       <div class="ml-card ds-ind">
