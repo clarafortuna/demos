@@ -8095,25 +8095,26 @@ a.nav-item { text-decoration: none; }
   white-space: nowrap;      /* single-line labels, per the design */
   padding: 10px 16px;
   border-radius: 6px;
-  border: 1px solid var(--line-strong);
-  /* Round 3 FIX. The previous attempt set this to --white-smoke, which is the
-     exact colour of `body` (line 40). The fill applied perfectly and was
-     invisible by construction: the tabs were painted the same colour as the
-     thing they sit on, so only the border tone appeared to change.
+  /* Round 5: the tone and the border are COPIED FROM .table-card (line 484),
+     the report source card, the small white card the report page draws for
+     each source table ("J.2 Gas Usage" and its siblings).
 
-     The replacement is MEASURED, not picked by eye, against the #F2F2F2 body:
+         .table-card { background: var(--white); border: 1px solid var(--line); }
 
-         --dusk-tint    #E5EBF5   1.07:1   too close, and blue
-         --dodger-tint  #E3F2FE   1.02:1   closer still
-         --pale-sky     #BDDBF5   1.28:1   distinct, but reads as blue
-         this value     #D8DDE2   1.22:1   neutral, and the strongest gray
+     Those cards sit on this same body and read correctly, which is the proof
+     the pairing works. Only tone and border are copied: the radius stays 6px
+     because the tabs are the BUTTON family, not cards, and the text stays
+     --text-2.
 
-     A literal hex rather than a token because the palette has no neutral
-     between --white-smoke (which IS the body) and --pale-sky (which is blue).
-     Promote it to a token if a second control ever needs it. Text on this fill
-     is 6.39:1, well clear of 4.5:1, and border and text still share --text-2. */
-  background: #D8DDE2;
-  border-color: var(--text-2);
+     History, because it is the whole reason this took three attempts. Round 2
+     left the tabs `transparent`, which computes to the body showing through,
+     so they were the body colour and vanished. Round 3 set --white-smoke,
+     which IS the body token, and vanished identically while passing an
+     assertion that a background was declared. Round 4 used a measured neutral
+     #D8DDE2, visible at 1.22:1 but the wrong look. Copying a rule that already
+     works on this background beats picking a value that merely measures well. */
+  background: var(--white);
+  border: 1px solid var(--line);
   color: var(--text-2);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -8857,11 +8858,11 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
 
       <div class="page-header ml-page-header">
         <div>
-          <h1>Map data</h1>
+          <h1>Map Data</h1>
           <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
         </div>
         <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                aria-haspopup="dialog">File requirements</button>
+                aria-haspopup="dialog">File Requirements</button>
       </div>
 
       
@@ -8871,19 +8872,19 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
         
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="layers"
-            aria-selected="false">Map layers</button>
+            aria-selected="false">Map Layers</button>
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="indicators"
-            aria-selected="false">DAC indicators</button>
+            aria-selected="false">DAC Indicators</button>
           <button type="button" role="tab" class="ml-tab active"
             data-ml-tab="shapes"
-            aria-selected="true">Tract shapes</button>
+            aria-selected="true">Tract Shapes</button>
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="coned"
-            aria-selected="false">Electric and gas figures</button>
+            aria-selected="false">Electric and Gas Figures</button>
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="territory"
-            aria-selected="false">Territory overlays</button>
+            aria-selected="false">Territory Overlays</button>
       </div>
 
       <div id="ml-upload-mount"></div>
@@ -8892,25 +8893,25 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
       <div class="ml-card ds-upload-card">
         <div class="ml-card-head">
           <div>
-            <h3>Upload tract shapes</h3>
+            <h3>Upload Tract Shapes</h3>
             <p class="ml-card-sub">The tract boundaries the map draws. Checked before anything is stored, then matched to a dataset by GEOID vintage. Several vintages are published at once by design.</p>
           </div>
           <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
         </div>
         <div class="ml-card-body">
           <div class="ds-upload"><div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose tract shapes file
+           <label class="btn btn-secondary ml-browse">Choose Tract Shapes file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json</span>
-           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="shapes" aria-expanded="false" aria-controls="ds-about-shapes"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg><span>About this data</span></button>
+           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="shapes" aria-expanded="false" aria-controls="ds-about-shapes"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg><span>About This Data</span></button>
          </div></div>
-          <div class="dac-td-note ds-about-note" id="ds-about-shapes" hidden><div class="dac-td-note-title">About this data</div><p>The census tract boundaries the map draws, matched to the active DAC indicators version by vintage. The upload file is built by build_pure_geometry_dataset.py (update_map_data.py runs the full chain). Full procedure: the tract shapes guide in the operator package.</p></div>
+          <div class="dac-td-note ds-about-note" id="ds-about-shapes" hidden><div class="dac-td-note-title">About This Data</div><p>The census tract boundaries the map draws, matched to the active DAC indicators version by vintage. The upload file is built by build_pure_geometry_dataset.py (update_map_data.py runs the full chain). Full procedure: the tract shapes guide in the operator package.</p></div>
         </div>
       </div>
       <div class="ml-card ds-geom">
         <div class="ml-card-head">
           <div>
-            <h3>Tract shapes</h3>
+            <h3>Tract Shapes</h3>
             <p class="ml-card-sub">The map draws the shapes whose vintage matches the active DAC indicators version, so there is nothing to switch here. Uploading a new set makes it available to any version that declares the same vintage.</p>
           </div>
           <button type="button" class="btn btn-secondary ml-help-btn">Help</button>

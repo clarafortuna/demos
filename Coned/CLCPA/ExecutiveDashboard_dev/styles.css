@@ -8094,25 +8094,26 @@ a.nav-item { text-decoration: none; }
   white-space: nowrap;      /* single-line labels, per the design */
   padding: 10px 16px;
   border-radius: 6px;
-  border: 1px solid var(--line-strong);
-  /* Round 3 FIX. The previous attempt set this to --white-smoke, which is the
-     exact colour of `body` (line 40). The fill applied perfectly and was
-     invisible by construction: the tabs were painted the same colour as the
-     thing they sit on, so only the border tone appeared to change.
+  /* Round 5: the tone and the border are COPIED FROM .table-card (line 484),
+     the report source card, the small white card the report page draws for
+     each source table ("J.2 Gas Usage" and its siblings).
 
-     The replacement is MEASURED, not picked by eye, against the #F2F2F2 body:
+         .table-card { background: var(--white); border: 1px solid var(--line); }
 
-         --dusk-tint    #E5EBF5   1.07:1   too close, and blue
-         --dodger-tint  #E3F2FE   1.02:1   closer still
-         --pale-sky     #BDDBF5   1.28:1   distinct, but reads as blue
-         this value     #D8DDE2   1.22:1   neutral, and the strongest gray
+     Those cards sit on this same body and read correctly, which is the proof
+     the pairing works. Only tone and border are copied: the radius stays 6px
+     because the tabs are the BUTTON family, not cards, and the text stays
+     --text-2.
 
-     A literal hex rather than a token because the palette has no neutral
-     between --white-smoke (which IS the body) and --pale-sky (which is blue).
-     Promote it to a token if a second control ever needs it. Text on this fill
-     is 6.39:1, well clear of 4.5:1, and border and text still share --text-2. */
-  background: #D8DDE2;
-  border-color: var(--text-2);
+     History, because it is the whole reason this took three attempts. Round 2
+     left the tabs `transparent`, which computes to the body showing through,
+     so they were the body colour and vanished. Round 3 set --white-smoke,
+     which IS the body token, and vanished identically while passing an
+     assertion that a background was declared. Round 4 used a measured neutral
+     #D8DDE2, visible at 1.22:1 but the wrong look. Copying a rule that already
+     works on this background beats picking a value that merely measures well. */
+  background: var(--white);
+  border: 1px solid var(--line);
   color: var(--text-2);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
