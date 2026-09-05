@@ -1541,7 +1541,7 @@ function utf8ByteLength(str) {
   function emptyYearPane(year, opts) {
     opts = opts || {};
     const msg = opts.message || `No data has been entered for ${year} yet.`;
-    const hint = opts.hint || `Use the Data Ingestion page to add values for this year.`;
+    const hint = opts.hint || `Use the Report data page to add values for this year.`;
     return `
       <div class="empty-year-pane">
         <div class="empty-year-icon">∅</div>
@@ -3980,13 +3980,13 @@ function utf8ByteLength(str) {
                 '. The map cannot draw.');
             } else if (geomPublished.length && !indActive.length) {
               _mapGeoUnavailable = 'No dataset version is active, so there is no vintage to ' +
-                'draw the tract shapes for. Activate a dataset version from Map Layers.';
+                'draw the tract shapes for. Activate a dataset version from Map data.';
               console.warn('[Tract geometry] ' + geomPublished.length + ' geometry version(s) are ' +
                 'published but no indicator dataset is active, so no vintage resolves and the ' +
                 'map cannot draw. Activate a dataset version.');
             } else {
               _mapGeoUnavailable = 'No tract geometry is published, so the map has no shapes to ' +
-                'draw. Publish a tract geometry dataset from Map Layers.';
+                'draw. Publish a tract geometry dataset from Map data.';
               console.warn('[Tract geometry] no geometry dataset is published, so the map cannot ' +
                 'draw. The payload fallback was removed in slice 5d; publish a geometry ' +
                 'dataset to restore the map.');
@@ -6201,8 +6201,8 @@ function utf8ByteLength(str) {
       // NOT an error condition -- a data state an operator fixes in one upload.
       // Worded as the instruction rather than the symptom.
       console.warn('[Service territories] no territory overlay is published, so there ' +
-        'are no boundaries to draw. Upload one from Map Layers.');
-      throw new Error('No territory overlay is published. Upload one from Map Layers ' +
+        'are no boundaries to draw. Upload one from Map data.');
+      throw new Error('No territory overlay is published. Upload one from Map data ' +
         'and switch this layer on again.');
     }
 
@@ -9985,7 +9985,7 @@ function utf8ByteLength(str) {
         <div class="chart-card" style="min-height:320px">
           ${emptyYearPane(year, {
             message: `No data has been entered for ${year} yet.`,
-            hint: 'Switch to a populated year using the selector above, or use Data Ingestion to add values for this year.'
+            hint: 'Switch to a populated year using the selector above, or use Report data to add values for this year.'
           })}
         </div>
 
@@ -13654,8 +13654,8 @@ function wireHTooltips() {
       const sec = state.payload.sections[r.sectionId];
       el.textContent = `${r.sectionId}. ${sec.full_name}`;
     }
-    else if (r.name === 'ingest') el.textContent = 'Data Ingestion';
-    else if (r.name === 'maplayers') el.textContent = 'Map Layers';
+    else if (r.name === 'ingest') el.textContent = 'Report data';
+    else if (r.name === 'maplayers') el.textContent = 'Map data';
     else if (r.name === 'editmapfiles') el.textContent = 'Edit map files';
     else el.textContent = 'Not found';
   }
@@ -13774,7 +13774,7 @@ function wireHTooltips() {
       ? renderSectionCharts(letter)
       : `<div class="chart-card" style="min-height:280px">${emptyYearPane(yr, {
           message: `No data has been entered for ${sec.full_name} in ${yr}.`,
-          hint: 'Source tables for this section are shown below if any exist. Use Data Ingestion to add values.'
+          hint: 'Source tables for this section are shown below if any exist. Use Report data to add values.'
         })}</div>`;
 
     return `
@@ -14728,7 +14728,7 @@ function wireHTooltips() {
     return `
       <div class="page-header ml-page-header">
         <div>
-          <h1>Map Layers</h1>
+          <h1>Map data</h1>
           <p class="page-sub">${mlCanUpload()
             ? 'Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.'
             : 'The GeoJSON overlays saved for this dashboard, and which of them are on the DAC map.'}</p>
@@ -15576,46 +15576,22 @@ function wireHTooltips() {
    */
   function renderConedCard() {
     if (!Storage.isDataverse()) return '';
-    const recs = dsRecords().filter(r => dsRecIsConed(r) && r.active);
+    const recs = dsRecords().filter(dsRecIsConed);
     if (!recs.length) return '';
     const live = dsConed();
-
-    return `
-      <div class="ml-card ds-coned">
-        <div class="ml-card-head">
-          <div>
-            <h3>Electric &amp; gas figures</h3>
-            <p class="ml-card-sub">Account counts, EAP counts and adjustments per tract, converted
-            from the Con Edison extracts. The version matching the active dataset's vintage is the
-            one in use. Tracts corrected by hand in the map data table keep their corrections:
-            these figures sit underneath them.</p>
-          </div>
-          ${dsHelpButton('coned')}
-        </div>
-        <div class="ml-card-body">
-          <ul class="ml-list ds-coned-list">${recs.map(r => {
-            const inUse = live && live.rec.dvId === r.dvId;
-            const who = [r.savedBy, mlFmtSavedOn(r.savedOn)].filter(Boolean).join(' · ');
-            return `
-            <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
-              <div class="ml-row-main">
-                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-                  <span class="ml-mono">${escapeHtml(r.version)}</span>
-                  ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
-                          : '<span class="ml-chip">available</span>'}
-                  ${r.loadError ? '<span class="ml-chip ml-chip-err" title="' +
-                      escapeHtml(r.loadError) + '">refused</span>' : ''}</div>
-                <div class="ml-row-meta">
-                  ${(r.tractCount || 0).toLocaleString()} tracts ·
-                  ${r.fieldCount || 0} fields ·
-                  vintage ${escapeHtml(r.geoidVintage || '?')}${who ? ' · ' + escapeHtml(who) : ''}
-                </div>
-                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
-              </div>
-            </li>`;
-          }).join('')}</ul>
-        </div>
-      </div>`;
+    return dsFamilyCard({
+      cls: 'ds-coned',
+      title: 'Electric and gas figures',
+      sub: 'Account counts, EAP counts and adjustments per tract, converted from the Con ' +
+           'Edison extracts. The version whose vintage matches the active dataset is the one ' +
+           'in use. Tracts corrected by hand in the map data table keep their corrections: these ' +
+           'figures sit underneath them.',
+      help: dsHelpButton('coned') + dsInfoButton('coned'),
+      recs: recs,
+      inUseId: live && live.rec ? live.rec.dvId : null,
+      emptyText: 'No electric and gas figures published yet.',
+      rowOpts: { mode: 'none', activeWord: 'Available' },
+    });
   }
 
   /**
@@ -15638,52 +15614,27 @@ function wireHTooltips() {
    */
   function renderTerritoryCard() {
     if (!Storage.isDataverse()) return '';
-    const terrRecs = dsRecords().filter(dsRecIsTerritories);
-    if (!terrRecs.length) return '';
+    const recs = dsRecords().filter(dsRecIsTerritories);
+    if (!recs.length) return '';
     const live = dsTerritoryRec();
     const drawing = _territorySource === 'dataverse' && live;
-
-    return `
-      <div class="ml-card ds-terr">
-        <div class="ml-card-head">
-          <div>
-            <h3>Territory overlays</h3>
-            <p class="ml-card-sub">The Con Edison electric, gas and ORU boundaries, drawn over the
-            tracts. Switch them on from the Layers control on the map; they download the first time
-            one is used. Uploading a new overlay replaces the published one.</p>
-          </div>
-          <div class="ml-card-actions">${
-            drawing ? '<span class="ml-chip ml-chip-ok">loaded</span>'
-                    : '<span class="ml-chip">not loaded yet</span>'
-          }</div>
-        </div>
-        <div class="ml-card-body">
-          <ul class="ml-list ds-terr-list">${terrRecs.map(r => {
-            const isLive = live && live.dvId === r.dvId;
-            const who = [r.savedBy, mlFmtSavedOn(r.savedOn)].filter(Boolean).join(' · ');
-            return `
-            <li class="ml-row${isLive ? '' : ' ml-row-inactive'}">
-              <div class="ml-row-main">
-                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-                  <span class="ml-mono">v${escapeHtml(r.version)}</span>
-                  ${isLive ? '<span class="ml-chip ml-chip-ok">published</span>'
-                           : '<span class="ml-chip ml-chip-off">retired</span>'}
-                  ${r.loadError ? '<span class="ml-chip ml-chip-err" title="' +
-                      escapeHtml(r.loadError) + '">refused</span>' : ''}</div>
-                <div class="ml-row-meta">
-                  ${(r.tractCount || 0).toLocaleString()} features ·
-                  ${r.fieldCount || 0} layers${who ? ' · ' + escapeHtml(who) : ''}
-                </div>
-                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
-                ${r.loadError ? `<div class="ml-row-error" role="alert">
-                     <strong>Not drawn; the map kept the outlines it had</strong>
-                     <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
-                   </div>` : ''}
-              </div>
-            </li>`;
-          }).join('')}</ul>
-        </div>
-      </div>`;
+    return dsFamilyCard({
+      cls: 'ds-terr',
+      title: 'Territory overlays',
+      sub: 'The Con Edison electric, gas and ORU boundaries, drawn over the tracts. Switch ' +
+           'them on from the Layers control on the map; they download the first time one is ' +
+           'used. Uploading a new overlay replaces the published one.',
+      help: '<div class="ml-card-actions">' + (drawing
+             ? '<span class="ml-chip ml-chip-ok">loaded</span>'
+             : '<span class="ml-chip">not loaded yet</span>') + '</div>' +
+            dsInfoButton('territory'),
+      recs: recs,
+      inUseId: live ? live.dvId : null,
+      emptyText: 'No territory overlay published yet.',
+      // A territory overlay counts LAYERS, not tracts, and carries no vintage.
+      rowOpts: { mode: 'none', activeWord: 'Published', countWord: 'layers',
+                 fieldWord: 'layers' },
+    });
   }
 
   /** Session group: uploaded here and not yet saved. Remove, and Save when possible. */
@@ -15840,7 +15791,7 @@ function wireHTooltips() {
     if (!Storage.isDataverse()) return '';
     const cur = mlTab();
     return `
-      <div class="ml-tabs-row" role="tablist" aria-label="Map Layers sections">
+      <div class="ml-tabs-row" role="tablist" aria-label="Map data sections">
         ${ML_TABS.map(t => `
           <button type="button" role="tab" class="ml-tab${t.id === cur ? ' active' : ''}"
             data-ml-tab="${escapeHtml(t.id)}"
@@ -16206,80 +16157,32 @@ function wireHTooltips() {
 
   function renderDsCard() {
     if (!Storage.isDataverse()) return '';
-    const canToggle = Storage.canWriteDatasets();
-    const recs = dsRecords();
     const st = dsState();
-
+    // Only indicator versions are chosen. Geometry, ConEd figures and
+    // territories each publish on upload, which is why only this family gets a
+    // toggle and the other three get 'none'.
+    const recs = dsRecords().filter(dsRecIsIndicators);
     const cov = st.coverage
-      ? `<div class="ml-row-src">Covers ${st.coverage.matched.toLocaleString()} of
-         ${st.coverage.drawn.toLocaleString()} drawn tracts · GEOID vintage
-         ${escapeHtml(st.coverage.declaredVintage)}${
-           st.coverage.absentDac ? ' · ' + st.coverage.absentDac + ' DAC tract(s) unmatched' : ''}</div>`
+      ? '<div class="ml-row-src">Covers ' + st.coverage.matched.toLocaleString() + ' of ' +
+        st.coverage.drawn.toLocaleString() + ' drawn tracts, GEOID vintage ' +
+        escapeHtml(st.coverage.declaredVintage) +
+        (st.coverage.absentDac ? ', ' + st.coverage.absentDac + ' DAC tract(s) unmatched' : '') +
+        '</div>'
       : '';
-
-    // Only indicator versions are listed as activatable. Geometry and territories
-    // each have their own card -- renderGeomCard, renderTerrCard -- because
-    // neither is toggled: one is selected by vintage, the other is simply the
-    // published overlay.
-    const indRecs = recs.filter(dsRecIsIndicators);
-
-    const rows = indRecs.length
-      ? '<ul class="ml-list">' + indRecs.map(r => {
-          const badges =
-            (r.active ? '<span class="ml-chip ml-chip-ok">active</span>'
-                      : '<span class="ml-chip ml-chip-off">inactive</span>') +
-            (r.loadError
-              ? '<span class="ml-chip ml-chip-err" title="' + escapeHtml(r.loadError) +
-                '">refused</span>'
-              : '');
-          const who = [r.savedBy, mlFmtSavedOn(r.savedOn)].filter(Boolean).join(' · ');
-          const busy = r.busy === true;
-          const toggle = canToggle
-            ? `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
-                 <input type="checkbox" data-ds-active="${escapeHtml(r.dvId)}"${
-                   r.active ? ' checked' : ''}${busy ? ' disabled' : ''} />
-                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-                 <span class="ml-toggle-label ml-state-pill ${
-                   r.active ? 'ml-state-on' : 'ml-state-off'}">${
-                   busy ? 'Saving…' : (r.active ? 'Active' : 'Inactive')}</span>
-               </label>`
-            : `<span class="ml-chip">${r.active ? 'Active' : 'Inactive'}</span>`;
-          return `
-        <li class="ml-row${r.active ? '' : ' ml-row-inactive'}" data-ds-row="${escapeHtml(r.dvId)}">
-          <div class="ml-row-main">
-            <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-              <span class="ml-mono">v${escapeHtml(r.version)}</span> ${badges}</div>
-            <div class="ml-row-meta">
-              ${(r.tractCount || 0).toLocaleString()} tracts ·
-              ${r.fieldCount || 0} fields ·
-              vintage ${escapeHtml(r.geoidVintage || '?')}${who ? ' · ' + escapeHtml(who) : ''}
-            </div>
-            ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
-            ${r.active && st.source === 'dataset' && st.rec && st.rec.dvId === r.dvId ? cov : ''}
-            ${r.loadError ? `<div class="ml-row-error" role="alert">
-                 <strong>Not used; the map kept its previous indicators</strong>
-                 <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
-               </div>` : ''}
-          </div>
-          <div class="ml-row-actions">${toggle}</div>
-        </li>`;
-        }).join('') + '</ul>'
-      : '<p class="ml-empty">No dataset versions uploaded yet. The map is using the indicators it ships with.</p>';
-
-    return `
-      <div class="ml-card">
-        <div class="ml-card-head">
-          <div>
-            <h3>Tract datasets</h3>
-            <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what
-            the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
-          </div>
-          <div class="ml-card-actions">${dsSourceChip()}${dsHelpButton('datasets')}</div>
-        </div>
-        <div class="ml-card-body">
-          ${rows}
-        </div>
-      </div>`;
+    const activeId = (st.source === 'dataset' && st.rec) ? st.rec.dvId : null;
+    return dsFamilyCard({
+      cls: 'ds-ind',
+      title: 'DAC indicators',
+      sub: 'NYSERDA per-tract data, kept as versions. The active version is what the Color by ' +
+           'list, the tract tooltips, the tract detail panel and the CSV export all read.',
+      help: '<div class="ml-card-actions">' + dsSourceChip() + dsHelpButton('datasets') +
+            '</div>' + dsInfoButton('indicators'),
+      recs: recs,
+      inUseId: null,
+      emptyText: 'No dataset versions uploaded yet. The map is using the indicators it ships with.',
+      rowOpts: { mode: 'toggle' },
+      extraFor: function (r) { return r.dvId === activeId ? cov : ''; },
+    });
   }
 
   /**
@@ -16296,49 +16199,174 @@ function wireHTooltips() {
    * Presentational only. It derives everything from the same module accessors
    * renderDsCard uses, so no state is threaded and no resolver is involved.
    */
-  function renderGeomCard() {
-    if (!Storage.isDataverse()) return '';
-    // Published sets only. A retired set stays in Dataverse untouched -- it is
-    // the rollback, and re-uploading it is how you go back -- but listing it
-    // here only invited the question of what to do about it, when the answer is
-    // nothing.
-    const geoRecs = dsRecords().filter(r => dsRecIsGeometry(r) && r.active);
-    if (!geoRecs.length) return '';
-    const liveGeom = dsGeometry();
+  /* ============================================================
+   * The family card, shared by all four dataset tabs (CLCPA-220 PR 2)
+   * ------------------------------------------------------------
+   * Every family tab teaches the SAME anatomy, so learning one teaches the
+   * rest: the upload block, then this card. Before, each family had its own
+   * hand-written list with its own columns in its own order, and an operator
+   * who had learned Tract shapes had to learn Electric and gas from scratch.
+   *
+   * RETIRED VERSIONS ARE LISTED NOW, which reverses a deliberate earlier
+   * decision. renderGeomCard used to say: "A retired set stays in Dataverse
+   * untouched, it is the rollback, and re-uploading it is how you go back, but
+   * listing it here only invited the question of what to do about it, when the
+   * answer is nothing." The answer is no longer nothing. Rollback is in this
+   * ticket's acceptance criterion, dsSetActive already re-validates and
+   * re-pairs any row it is given, and "re-uploading it is how you go back" is
+   * only true for someone who still has the file. The row is the rollback.
+   * ============================================================ */
 
+  /** Short form of the stored key checksum, or empty when there is none. */
+  function dsFingerprintShort(r) {
+    const fp = String((r && r.keyChecksum) || '');
+    return fp ? fp.slice(0, 12) : '';
+  }
+
+  /**
+   * One version row. `mode` decides the trailing control:
+   *   'toggle'    the Active switch (indicator versions, which are chosen)
+   *   'reactivate' a Reactivate button (a retired version of any family)
+   *   'none'      no control (a published set with nothing to decide)
+   */
+  function dsVersionRow(r, opts) {
+    const o = opts || {};
+    const inUse = o.inUse === true;
+    const retired = r.active === false;
+    const canWrite = Storage.canWriteDatasets();
+    const statePill = inUse
+      ? '<span class="ml-state-pill ml-state-on">In use</span>'
+      : retired
+      ? '<span class="ml-state-pill ml-state-off">Retired</span>'
+      : r.active
+      ? '<span class="ml-state-pill ml-state-on">' + (o.activeWord || 'Active') + '</span>'
+      : '<span class="ml-state-pill ml-state-off">Inactive</span>';
+    const busy = r.busy === true;
+    let control = '';
+    if (o.mode === 'toggle' && canWrite) {
+      control = `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
+           <input type="checkbox" data-ds-active="${escapeHtml(r.dvId)}"${
+             r.active ? ' checked' : ''}${busy ? ' disabled' : ''} />
+           <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+           <span class="ml-toggle-label ml-state-pill ${r.active ? 'ml-state-on' : 'ml-state-off'}">${
+             busy ? 'Saving…' : (r.active ? 'Active' : 'Inactive')}</span>
+         </label>`;
+    } else if (o.mode === 'reactivate' && canWrite) {
+      // The rollback, in one click. dsSetActive re-downloads, re-validates and
+      // re-pairs the geometry before anything changes, so this is not a blind
+      // flag flip: a retired version that no longer validates is refused here
+      // exactly as it would be on upload.
+      control = `<button class="btn btn-secondary ds-reactivate" type="button"
+           data-ds-reactivate="${escapeHtml(r.dvId)}"${busy ? ' disabled' : ''}>${
+             busy ? 'Working…' : 'Reactivate'}</button>`;
+    }
+    const bits = [];
+    if (o.countWord !== null) {
+      bits.push((r.tractCount || 0).toLocaleString() + ' ' + (o.countWord || 'tracts'));
+    }
+    if (r.fieldCount) bits.push(r.fieldCount + ' ' + (o.fieldWord || 'fields'));
+    // A territory overlay carries no vintage, and saying "vintage ?" invents a
+    // gap where there is none. See dsValidateTerritoryDoc: it has no GEOIDs and
+    // pairs with no dataset.
+    if (r.geoidVintage) bits.push('vintage ' + escapeHtml(String(r.geoidVintage)));
+    const fp = dsFingerprintShort(r);
+    if (fp) bits.push('fingerprint <span class="ml-mono">' + escapeHtml(fp) + '</span>');
+    if (r.savedOn) bits.push('uploaded ' + escapeHtml(mlFmtSavedOn(r.savedOn)));
     return `
-      <div class="ml-card ds-geom">
+      <li class="ml-row${retired ? ' ml-row-inactive ds-row-retired' : ''}"
+        data-ds-row="${escapeHtml(r.dvId)}">
+        <div class="ml-row-main">
+          <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
+            <span class="ml-mono">${escapeHtml(r.version)}</span> ${statePill}${
+              r.loadError ? '<span class="ml-chip ml-chip-err" title="' +
+                escapeHtml(r.loadError) + '">refused</span>' : ''}</div>
+          <div class="ml-row-meta">${bits.join(' · ')}</div>
+          ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
+          ${o.extra || ''}
+          ${r.loadError ? `<div class="ml-row-error" role="alert">
+               <strong>Not used; the map kept its previous data</strong>
+               <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
+             </div>` : ''}
+        </div>
+        <div class="ml-row-actions">${control}</div>
+      </li>`;
+  }
+
+  /**
+   * The (i) button (CLCPA-220 PR 2, finding 3). It replaces the "produced by
+   * <script>" text that used to sit in the upload description, where it made a
+   * three line paragraph out of a one line fact.
+   *
+   * It is also the anchor CLCPA-221 will hang each family's dictionary entry
+   * on, which is why it takes the tab id rather than a string: when the
+   * dictionary lands, this button opens that family's entry and nothing else
+   * about the card has to move.
+   */
+  function dsInfoButton(tabId) {
+    const fam = ML_FAMILY[tabId];
+    if (!fam) return '';
+    return `<button type="button" class="btn-icon ds-info-btn" data-ds-info="${escapeHtml(tabId)}"
+      title="Produced by ${escapeHtml(fam.produces)}"
+      aria-label="About ${escapeHtml(fam.noun)}">i</button>`;
+  }
+
+  /** The shared shell every family card uses. */
+  function dsFamilyCard(o) {
+    const live = o.recs.filter(r => r.active !== false);
+    const retired = o.recs.filter(r => r.active === false);
+    // extraFor lets one family add a block under a specific row without every
+    // other family growing a field it has no use for. Today only the indicator
+    // card uses it, for the coverage line under the version actually in use.
+    const extra = (r) => (typeof o.extraFor === 'function' ? (o.extraFor(r) || '') : '');
+    const rows = live.map(r => dsVersionRow(r, Object.assign({}, o.rowOpts, {
+      inUse: o.inUseId ? r.dvId === o.inUseId : false,
+      extra: extra(r),
+    }))).join('');
+    const retiredRows = retired.map(r => dsVersionRow(r, Object.assign({}, o.rowOpts, {
+      mode: 'reactivate', inUse: false, extra: '',
+    }))).join('');
+    return `
+      <div class="ml-card ${escapeHtml(o.cls || '')}">
         <div class="ml-card-head">
           <div>
-            <h3>Tract shapes</h3>
-            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active
-            dataset, so there is nothing to switch here. Uploading a new set of shapes makes it
-            available to any dataset version that declares the same vintage.</p>
+            <h3>${escapeHtml(o.title)}</h3>
+            <p class="ml-card-sub">${o.sub}</p>
           </div>
-          ${dsHelpButton('shapes')}
+          ${o.help || ''}
         </div>
         <div class="ml-card-body">
-          <ul class="ml-list ds-geom-list">${geoRecs.map(r => {
-            const inUse = liveGeom && liveGeom.rec.dvId === r.dvId;
-            return `
-            <li class="ml-row${inUse ? '' : ' ml-row-inactive'}">
-              <div class="ml-row-main">
-                <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-                  <span class="ml-mono">${escapeHtml(r.version)}</span>
-                  ${inUse ? '<span class="ml-chip ml-chip-ok">in use</span>'
-                          : (r.active ? '<span class="ml-chip">available</span>'
-                                      : '<span class="ml-chip ml-chip-off">retired</span>')}</div>
-                <div class="ml-row-meta">
-                  ${(r.tractCount || 0).toLocaleString()} tracts ·
-                  ${r.fieldCount || 0} properties ·
-                  vintage ${escapeHtml(r.geoidVintage || '?')}
-                </div>
-                ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
-              </div>
-            </li>`;
-          }).join('')}</ul>
+          ${live.length ? '<ul class="ml-list">' + rows + '</ul>'
+                        : '<p class="ml-empty">' + escapeHtml(o.emptyText ||
+                            'Nothing published yet.') + '</p>'}
+          ${retired.length ? `
+            <div class="ds-retired">
+              <div class="ds-retired-head">Earlier versions (${retired.length})</div>
+              <p class="ds-retired-sub">Retired when a newer version was published. Reactivate
+              puts one back: the file is downloaded and checked again first, so a version that no
+              longer validates is refused rather than published.</p>
+              <ul class="ml-list">${retiredRows}</ul>
+            </div>` : ''}
         </div>
       </div>`;
+  }
+
+  function renderGeomCard() {
+    if (!Storage.isDataverse()) return '';
+    const recs = dsRecords().filter(dsRecIsGeometry);
+    if (!recs.length) return '';
+    const liveGeom = dsGeometry();
+    return dsFamilyCard({
+      cls: 'ds-geom',
+      title: 'Tract shapes',
+      sub: 'The map draws the shapes whose vintage matches the active dataset, so there is ' +
+           'nothing to switch here. Uploading a new set makes it available to any dataset ' +
+           'version that declares the same vintage.',
+      help: dsHelpButton('shapes') + dsInfoButton('shapes'),
+      recs: recs,
+      inUseId: liveGeom && liveGeom.rec ? liveGeom.rec.dvId : null,
+      emptyText: 'No tract shapes published yet.',
+      rowOpts: { mode: 'none', activeWord: 'Available', fieldWord: 'properties' },
+    });
   }
 
   /**
@@ -16396,7 +16424,7 @@ function wireHTooltips() {
     const up = wrongTab
       ? `<div class="ml-msgs ml-msgs-warn ml-wrongtab" role="status">
            <div class="ml-msgs-head">This file belongs in ${escapeHtml(mlTabLabel(wrongTab))}</div>
-           <p>It validated cleanly &mdash; it is just not ${escapeHtml(fam.noun)}. The file
+           <p>It validated cleanly. It is simply not ${escapeHtml(fam.noun)}. The file
            declares its own type, so nothing here needs changing: open
            <strong>${escapeHtml(mlTabLabel(wrongTab))}</strong> and it is ready to upload there.</p>
            <div class="ml-actions">
@@ -16467,8 +16495,7 @@ function wireHTooltips() {
       : `<div class="ml-picker">
            <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
              <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
-           <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))} &middot;
-             produced by <span class="ml-mono">${escapeHtml(fam.produces)}</span></span>
+           <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))}</span>
          </div>`;
     return `
       <div class="ml-card ds-upload-card">
@@ -16478,11 +16505,11 @@ function wireHTooltips() {
             <p class="ml-card-sub">${
               tabId === 'indicators'
                 ? 'A NYSERDA release version. It is checked before anything is stored, and it ' +
-                  'is stored WITHOUT switching to it &mdash; you activate it from the list below ' +
+                  'is stored WITHOUT switching to it. You activate it from the list below ' +
                   'when you are ready.'
                 : tabId === 'shapes'
                 ? 'The tract boundaries the map draws. Checked before anything is stored, then ' +
-                  'matched to a dataset by GEOID vintage &mdash; several vintages are published ' +
+                  'matched to a dataset by GEOID vintage. Several vintages are published ' +
                   'at once by design.'
                 : tabId === 'coned'
                 ? 'Per-tract account counts and energy-affordability enrolment. These apply ' +
@@ -17159,6 +17186,45 @@ function wireHTooltips() {
    * coverage guard are re-checked against the map as drawn right now, so a
    * dataset can never go live on a mismatch just because it uploaded cleanly.
    */
+  /**
+   * Confirm an activation, naming what it does and what it displaces.
+   *
+   * The wording is deliberately specific. "Are you sure?" tells an operator
+   * nothing they did not already know; what they cannot see from the row is
+   * WHICH version this retires, and that is the part that is hard to undo in a
+   * hurry. The retire scope differs by family, and this states the one that
+   * applies: geometry and ConEd figures retire per vintage, territories retire
+   * per key because they have no vintage to be scoped by.
+   *
+   * Returns true to proceed. Never throws: if the record cannot be found the
+   * activation is refused rather than guessed at.
+   */
+  function dsConfirmActivate(dvId) {
+    const recs = dsRecords();
+    const rec = recs.filter(r => r.dvId === dvId)[0];
+    if (!rec) return false;
+    const isTerr = dsRecIsTerritories(rec);
+    const sameFamily = recs.filter(r =>
+      r.datasetKey === rec.datasetKey && r.dvId !== rec.dvId && r.active !== false &&
+      (isTerr || String(r.geoidVintage || '') === String(rec.geoidVintage || '')));
+    const name = (rec.name || rec.datasetKey) + ' ' + rec.version;
+    const lines = ['Publish ' + name + '?'];
+    if (rec.geoidVintage) lines.push('GEOID vintage ' + rec.geoidVintage + '.');
+    lines.push('');
+    lines.push('The file is downloaded and checked again before anything changes.');
+    if (sameFamily.length) {
+      lines.push('');
+      lines.push('This retires ' + sameFamily.length + ' published version' +
+        (sameFamily.length === 1 ? '' : 's') + ':');
+      sameFamily.forEach(r => lines.push('  ' + (r.name || r.datasetKey) + ' ' + r.version));
+      lines.push('');
+      lines.push('A retired version stays in Dataverse and can be reactivated from this page.');
+    }
+    lines.push('');
+    lines.push('This changes what everyone sees on the map.');
+    return confirm(lines.join('\n'));
+  }
+
   async function dsSetActive(dvId, makeActive) {
     const rec = _dsRecords.filter(r => r.dvId === dvId)[0];
     if (!rec || rec.busy) return;
@@ -17303,9 +17369,27 @@ function wireHTooltips() {
     mount.addEventListener('change', function (e) {
       const cb = e.target.closest('input[data-ml-active]');
       if (cb) { mlSetLayerActive(cb.dataset.mlActive, cb.checked); return; }
-      // Tract dataset activation.
+      // Tract dataset activation. CLCPA-220 (G2): confirm first. This changes
+      // what every viewer's map draws and it used to be one unguarded click,
+      // while merely discarding local edits in the editor confirms seven
+      // different ways. Only ACTIVATION asks: switching a version off retires
+      // it without promoting anything, and is undone by switching it back.
       const ds = e.target.closest('input[data-ds-active]');
-      if (ds) { dsSetActive(ds.dataset.dsActive, ds.checked); return; }
+      if (ds) {
+        if (ds.checked && !dsConfirmActivate(ds.dataset.dsActive)) {
+          ds.checked = false;      // the click already flipped it; put it back
+          return;
+        }
+        dsSetActive(ds.dataset.dsActive, ds.checked);
+        return;
+      }
+      // CLCPA-220 (G3): the rollback. Same confirm, same code path.
+      const ra = e.target.closest('[data-ds-reactivate]');
+      if (ra) {
+        if (!dsConfirmActivate(ra.dataset.dsReactivate)) return;
+        dsSetActive(ra.dataset.dsReactivate, true);
+        return;
+      }
       // The dataset file picker lives inside this mount, so it is delegated too.
       const df = e.target.closest('#ds-file');
       if (df && df.files && df.files[0]) {
@@ -17500,7 +17584,7 @@ function wireHTooltips() {
     return `
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <h1>Data Ingestion</h1>
+          <h1>Report data</h1>
           <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p>
         </div>
       </div>
