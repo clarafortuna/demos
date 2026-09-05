@@ -8056,17 +8056,23 @@ a.nav-item { text-decoration: none; }
 /* ---- The upload box footer (CLCPA-220 correction 5) ----
    The (i) button sits INSIDE the upload box, bottom right. The retired-version
    block that used to live here is gone with the split list it belonged to. */
-.ds-upload-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+/* The (i) button sits INLINE with the Choose-file button, on the right of that
+   same row, rather than in a footer of its own. margin-left:auto pushes it there
+   without needing a wrapper, so the row keeps one flex context. */
+.ml-picker .ds-info-btn { margin-left: auto; }
 
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
    Five pills, one section visible at a time. The page had grown to seven
    stacked cards, three of which had a heading; the tabs ARE the headings the
    others were missing, which is why no separate card-header work was needed.
 
-   Fully rounded rather than the 6px of .src-tab: that component is a fixed
-   10-column grid of two-line A1..J9 cells and this is five wide named pills,
-   so it borrows the visual language (border, --dusk active fill, the same
-   transition) without borrowing the geometry. */
+   They take the app's standard button geometry, the .src-tab and File
+   requirements language: rectangular, 6px radius, --dusk active fill with light
+   text, outlined when inactive. An earlier version made them fully rounded
+   pills; Emely ruled the tabs should match the button family the dashboard
+   already uses rather than introduce a second shape. Only the LAYOUT differs
+   from .src-tab, which is a fixed 10-column grid of two-line A1..J9 cells,
+   where this is five wide single-line labels that wrap. */
 .ml-tabs-row {
   display: flex;
   flex-wrap: wrap;          /* second row when the width demands it */
@@ -8079,8 +8085,8 @@ a.nav-item { text-decoration: none; }
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;      /* single-line labels, per the design */
-  padding: 9px 16px;
-  border-radius: 999px;
+  padding: 10px 16px;
+  border-radius: 6px;
   border: 1px solid var(--line-strong);
   background: transparent;
   color: var(--text-2);
@@ -8872,65 +8878,54 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json</span>
          </div></div>
+          <div class="ds-upload-foot"><button type="button" class="ds-info-btn" data-ds-info="shapes"
+      title="Produced by update_map_data.py"
+      aria-label="About tract shapes">i</button></div>
         </div>
       </div>
       <div class="ml-card ds-geom">
         <div class="ml-card-head">
           <div>
             <h3>Tract shapes</h3>
-            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active dataset, so there is nothing to switch here. Uploading a new set makes it available to any dataset version that declares the same vintage.</p>
+            <p class="ml-card-sub">The map draws the shapes whose vintage matches the active DAC indicators version, so there is nothing to switch here. Uploading a new set makes it available to any version that declares the same vintage.</p>
           </div>
-          <button type="button" class="btn btn-secondary ml-help-btn">Help</button><button type="button" class="btn-icon ds-info-btn" data-ds-info="shapes"
-      title="Produced by update_map_data.py"
-      aria-label="About tract shapes">i</button>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
         </div>
         <div class="ml-card-body">
           <ul class="ml-list">
-      <li class="ml-row"
-        data-ds-row="d2">
+      <li class="ml-row" data-ds-row="d3">
         <div class="ml-row-main">
           <div class="ml-row-name">Tract geometry
-            <span class="ml-mono">pure-2010</span> <span class="ml-state-pill ml-state-on">In use</span></div>
-          <div class="ml-row-meta">2,333 tracts · 8 properties · vintage 2010 · uploaded 2026-08-13</div>
+            <span class="ml-mono">pure-2020</span></div>
+          <div class="ml-row-meta">2,333 tracts · 8 properties · vintage 2020 · uploaded 2026-08-24 · no active version declares vintage 2020</div>
           
           
           
         </div>
-        <div class="ml-row-actions"></div>
+        <div class="ml-row-actions"><span class="ml-state-pill ml-state-on">Available</span></div>
       </li>
-      <li class="ml-row"
-        data-ds-row="d3">
+      <li class="ml-row" data-ds-row="d2">
         <div class="ml-row-main">
           <div class="ml-row-name">Tract geometry
-            <span class="ml-mono">pure-2020</span> <span class="ml-state-pill ml-state-on">Available</span></div>
-          <div class="ml-row-meta">2,333 tracts · 8 properties · vintage 2020 · uploaded 2026-08-24</div>
+            <span class="ml-mono">pure-2010</span></div>
+          <div class="ml-row-meta">2,333 tracts · 8 properties · vintage 2010 · uploaded 2026-08-13 · matches the active DAC indicators version</div>
           
           
           
         </div>
-        <div class="ml-row-actions"></div>
-      </li></ul>
-          
-            <div class="ds-retired">
-              <div class="ds-retired-head">Earlier versions (1)</div>
-              <p class="ds-retired-sub">Retired when a newer version was published. Reactivate
-              puts one back: the file is downloaded and checked again first, so a version that no
-              longer validates is refused rather than published.</p>
-              <ul class="ml-list">
-      <li class="ml-row ml-row-inactive ds-row-retired"
-        data-ds-row="d6">
+        <div class="ml-row-actions"><span class="ml-state-pill ml-state-on">In use</span></div>
+      </li>
+      <li class="ml-row ml-row-inactive" data-ds-row="d6">
         <div class="ml-row-main">
           <div class="ml-row-name">Tract geometry
-            <span class="ml-mono">pure-2010</span> <span class="ml-state-pill ml-state-off">Retired</span></div>
-          <div class="ml-row-meta">2,333 tracts · 8 properties · vintage 2010 · fingerprint <span class="ml-mono">aa11bb22cc33</span> · uploaded 2026-08-07</div>
+            <span class="ml-mono">pure-2010</span></div>
+          <div class="ml-row-meta">2,333 tracts · 8 properties · vintage 2010 · uploaded 2026-08-07 · matches the active DAC indicators version</div>
           
           
           
         </div>
-        <div class="ml-row-actions"><button class="btn btn-secondary ds-reactivate" type="button"
-           data-ds-reactivate="d6">Reactivate</button></div>
+        <div class="ml-row-actions"><span class="ml-state-pill ml-state-off">Inactive</span></div>
       </li></ul>
-            </div>
         </div>
       </div></div>
 

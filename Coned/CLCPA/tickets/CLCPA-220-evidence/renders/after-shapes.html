@@ -8056,17 +8056,23 @@ a.nav-item { text-decoration: none; }
 /* ---- The upload box footer (CLCPA-220 correction 5) ----
    The (i) button sits INSIDE the upload box, bottom right. The retired-version
    block that used to live here is gone with the split list it belonged to. */
-.ds-upload-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
+/* The (i) button sits INLINE with the Choose-file button, on the right of that
+   same row, rather than in a footer of its own. margin-left:auto pushes it there
+   without needing a wrapper, so the row keeps one flex context. */
+.ml-picker .ds-info-btn { margin-left: auto; }
 
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
    Five pills, one section visible at a time. The page had grown to seven
    stacked cards, three of which had a heading; the tabs ARE the headings the
    others were missing, which is why no separate card-header work was needed.
 
-   Fully rounded rather than the 6px of .src-tab: that component is a fixed
-   10-column grid of two-line A1..J9 cells and this is five wide named pills,
-   so it borrows the visual language (border, --dusk active fill, the same
-   transition) without borrowing the geometry. */
+   They take the app's standard button geometry, the .src-tab and File
+   requirements language: rectangular, 6px radius, --dusk active fill with light
+   text, outlined when inactive. An earlier version made them fully rounded
+   pills; Emely ruled the tabs should match the button family the dashboard
+   already uses rather than introduce a second shape. Only the LAYOUT differs
+   from .src-tab, which is a fixed 10-column grid of two-line A1..J9 cells,
+   where this is five wide single-line labels that wrap. */
 .ml-tabs-row {
   display: flex;
   flex-wrap: wrap;          /* second row when the width demands it */
@@ -8079,8 +8085,8 @@ a.nav-item { text-decoration: none; }
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;      /* single-line labels, per the design */
-  padding: 9px 16px;
-  border-radius: 999px;
+  padding: 10px 16px;
+  border-radius: 6px;
   border: 1px solid var(--line-strong);
   background: transparent;
   color: var(--text-2);
@@ -8871,10 +8877,10 @@ CLCPA-220 render harness &middot; AFTER, tab: shapes &middot; stub data, real ma
            <label class="btn btn-secondary ml-browse">Choose tract shapes file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json</span>
-         </div></div>
-          <div class="ds-upload-foot"><button type="button" class="ds-info-btn" data-ds-info="shapes"
+           <button type="button" class="ds-info-btn" data-ds-info="shapes"
       title="Produced by update_map_data.py"
-      aria-label="About tract shapes">i</button></div>
+      aria-label="About tract shapes">i</button>
+         </div></div>
         </div>
       </div>
       <div class="ml-card ds-geom">
