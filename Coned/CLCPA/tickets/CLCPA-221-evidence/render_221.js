@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || '4eae1be';   // post 221 round 1, as deployed
+const PREV = process.env.DAC_PREV_COMMIT || '7dc9d28';   // post 221 round 2, as deployed
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -912,14 +912,12 @@ lines.push('=== CLCPA-221 round 2: the Data Sources dictionary ===');
   ok(after.api.st().mapLayers.tab === 'coned',
      'and returns there: ' + after.api.st().mapLayers.tab);
 
-  // ---- PREV CONTROLS: both changes are real -------------------------------
-  ok(PREV_SRC.indexOf('ds-dict-navitem') >= 0,
-     'PREV control: the deployed build DID have the separate side nav');
-  ok(PREV_SRC.indexOf('Back to $' + '{escapeHtml(back)}') >= 0,
-     'PREV control: and it DID have the Back button');
-  const prevCss = toCRLF(execSync('git show ' + PREV + ':"' + CSS_REL + '"',
-    { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 }));
-  ok(/\.ds-dict-navitem \{/.test(prevCss), 'PREV control: the side nav had its own CSS rules');
+  // ---- the state itself, which is what protects the code from here --------
+  // Round 2's PREV controls (the deployed build HAD a side nav, HAD a Back
+  // button) are retired: round 2 shipped and was hosted-verified, PREV has
+  // moved past it, and they could now only compare round 2 against itself.
+  // What remains is every assertion above, each mutation-proven. Round 2's
+  // evidence is frozen in commit 77881c2.
   const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
   ok(!/\.ds-dict-navitem \{/.test(css), 'those rules are now DELETED, not left orphaned');
   ok(!/\.ds-dict-nav \{/.test(css), 'and so is the side nav container rule');
@@ -977,13 +975,11 @@ lines.push('=== 221 round 2: one row, one WIRING ===');
   ok(/const i = ids\.indexOf\(current\(\)\);/.test(fn),
      'arrow keys step from the CALLER\'s current value, not always the tab');
 
-  // PREV control: none of this was true in the deployed build
-  const prevWire = PREV_SRC.slice(PREV_SRC.indexOf('function wireMapLayersPage'),
-                                  PREV_SRC.indexOf('function wireMlTabs'));
-  ok(/if \(initMapLayersState\(\)\.dict\) return;/.test(prevWire),
-     'PREV control: the deployed build returned early and wired nothing there');
-  ok(!/function wireMlTabs\(opts\)/.test(PREV_SRC),
-     'PREV control: and wireMlTabs took no options');
+  // The round 2 PREV controls here are retired for the same reason: they
+  // proved the wiring change was real against round 1, which PREV no longer
+  // is. The source checks above stand on their own and M7/M8 prove them.
+  ok(!/if \(initMapLayersState\(\)\.dict\) return;/.test(wire),
+     'the bare early return is gone from the CURRENT build, which is the claim');
 }
 
 lines.push('');
@@ -1061,12 +1057,59 @@ lines.push('=== 221: the drawer is retired, nothing orphaned ===');
 }
 
 lines.push('');
-lines.push('=== 221: the inline panel links to the full entry ===');
+lines.push('=== 221 round 3: the inline panel is TEXT ONLY ===');
 ['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
-  ok(new RegExp('data-ds-dict-full="' + t + '"').test(afterByTab[t]),
-     t + ': the Data Source panel links to its own dictionary entry');
+  ok(!/data-ds-dict-full=/.test(afterByTab[t]),
+     t + ': the Data Source panel has no link out');
+  ok(!/Full entry in Data Sources/.test(afterByTab[t]), t + ': and none of its text');
+  ok(!/ds-dict-link|ds-about-more/.test(afterByTab[t]), t + ': nor the markup that dressed it');
 });
-ok(/Full entry in Data Sources/.test(afterByTab.shapes), 'and the link says where it goes');
+// PREV control: it really was there, so the absence above is a REMOVAL and not
+// an assertion that was always going to pass.
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  ok(new RegExp('data-ds-dict-full="' + t + '"').test(prevByTab[t]),
+     'PREV control: ' + t + ' DID link out before');
+});
+ok(/Full entry in Data Sources/.test(prevByTab.shapes), 'PREV control: with that wording');
+{
+  // the removal is complete: no orphaned handler, no orphaned rules
+  const src = fs.readFileSync(path.join(REPO, REL), 'utf8');
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  ok(src.indexOf('data-ds-dict-full') < 0, 'no handler is left waiting for markup that cannot appear');
+  ok(src.indexOf('dsDictFull') < 0, 'and no dataset read of it');
+  ok(!/\.ds-dict-link/.test(css), '.ds-dict-link is deleted, not left orphaned');
+  ok(!/\.ds-about-more/.test(css), 'and .ds-about-more with it');
+  ok(PREV_SRC.indexOf('data-ds-dict-full') >= 0, 'PREV control: the handler existed');
+}
+
+lines.push('');
+lines.push('=== 221 round 3: and NOTHING ELSE in the panel changed ===');
+{
+  // The panel keeps the three things it carried: the family description, the
+  // producer script and the guide pointer. They live in DS_ABOUT's text, so
+  // they are pinned by phrase, not by the removed link.
+  const keep = {
+    indicators: ['NYSERDA per tract DAC data', 'convert_nyserda_raw.py',
+                 'the DAC indicators guide in the operator package'],
+    shapes: ['census tract boundaries the map draws', 'build_pure_geometry_dataset.py',
+             'the tract shapes guide in the operator package'],
+    coned: ['Per tract account counts and EAP figures', 'build_coned_dataset.py',
+            'the electric and gas guide in the operator package'],
+    territory: ['electric, gas and ORU territory boundaries', '_make_territories.py',
+                'the territory guide in the operator package'],
+  };
+  Object.keys(keep).forEach(t => {
+    keep[t].forEach(frag => ok(afterByTab[t].indexOf(frag) >= 0,
+      t + ': panel still says "' + frag.slice(0, 40) + '"'));
+  });
+  // and the (i) itself is untouched
+  ['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+    ok(/aria-label="Data Source" title="Data Source"/.test(afterByTab[t]),
+       t + ': the (i) keeps its Data Source label and title');
+    ok(/<div class="dac-td-note-title">Data Source<\/div>/.test(afterByTab[t]),
+       t + ': and the panel keeps its title');
+  });
+}
 
 lines.push('');
 lines.push('=== 221 / F2: the session box, with per-family semantics ===');

@@ -16757,14 +16757,16 @@ function wireHTooltips() {
   }
 
   /** The note it expands, collapsed by default, same box as .dac-td-note. */
+  // CLCPA-221 round 3: TEXT ONLY. The Full entry link is removed. The body
+  // already names the producer script and the guide, which is what the link
+  // pointed at, and Data Sources is reached from the header button, which is
+  // now the one route to it.
   function dsAboutPanel(tabId) {
     const body = DS_ABOUT[tabId];
     if (!body) return '';
     return '<div class="dac-td-note ds-about-note" id="ds-about-' +
       escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">Data Source</div>' +
       '<p>' + escapeHtml(body) + '</p>' +
-      '<p class="ds-about-more"><button type="button" class="ds-dict-link" ' +
-      'data-ds-dict-full="' + escapeHtml(tabId) + '">Full entry in Data Sources</button></p>' +
       '</div>';
   }
 
@@ -17093,8 +17095,6 @@ function wireHTooltips() {
     view.addEventListener('click', function (e) {
       const open = e.target.closest('#ml-req-open');
       if (open) { dsDictOpen(mlTab()); return; }
-      const full = e.target.closest('[data-ds-dict-full]');
-      if (full) { dsDictOpen(full.dataset.dsDictFull); return; }
       const go = e.target.closest('[data-ds-dict-go]');
       if (go) { dsDictGo(go.dataset.dsDictGo); return; }
       const back = e.target.closest('[data-ds-dict-back]');
