@@ -8160,9 +8160,26 @@ a.nav-item { text-decoration: none; }
 .ds-dict-x:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
 
 /* ---- CLCPA-223: the not-available view ---------------------------------
-   .table-card carries the tone and the border but no padding (it normally
+
+   Centred in the space below the page header, NOT by changing .content.
+
+   .content is the scroll container for every view, so giving IT flex
+   centring would re-lay-out the whole app. A calc() against the topbar and
+   the page header would drift the moment either changes height, and the
+   header's height is not a token.
+
+   So the wrapper owns its own vertical space: 60vh is a design value that
+   depends on nothing else, and .content still scrolls if the viewport is
+   short. The card's TEXT stays left-aligned; only the box is centred. */
+.gate-wrap {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* .table-card carries the tone and the border but no padding (it normally
    wraps a table, which brings its own). This is prose, so it needs its own. */
-.gate-card { padding: 22px 24px 24px; max-width: 640px; }
+.gate-card { padding: 22px 24px 24px; max-width: 640px; width: 100%; }
 .gate-card h2 { font-size: 15px; margin: 0 0 10px; color: var(--ink); }
 .gate-card p { font-size: 12.5px; line-height: 1.6; color: var(--text-2); margin: 0 0 10px; }
 .gate-card p:last-child { margin-bottom: 0; }

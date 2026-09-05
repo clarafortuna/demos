@@ -23,6 +23,9 @@ const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const HTML_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html';
 const BASE = process.env.DAC_BASE_COMMIT || 'b7e7b37';   // pre-223, as deployed
+// Round 2 adds a PREV. BASE proves the ticket's whole story; PREV proves what
+// THIS round changed. Neither is HEAD.
+const PREV = process.env.DAC_PREV_COMMIT || '52654de';   // 223 round 1, as deployed
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const toCRLF = (t) => t.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
@@ -31,6 +34,13 @@ const HTML = fs.readFileSync(path.join(REPO, HTML_REL), 'utf8');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
 const BASE_HTML = toCRLF(execSync('git show ' + BASE + ':"' + HTML_REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
+const PREV_SRC = toCRLF(execSync('git show ' + PREV + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
+const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
+const PREV_CSS = toCRLF(execSync('git show ' + PREV + ':"' + CSS_REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
+const BASE_CSS = toCRLF(execSync('git show ' + BASE + ':"' + CSS_REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
 
 let pass = 0, fail = 0;
@@ -257,6 +267,62 @@ lines.push('=== CLCPA-223 ruling 3: Edit map files is DELETED ===');
      'STOP CHECK: its only control said so itself');
   ok(/<button class="btn" type="button" disabled>Upload<\/button>/.test(cutRegion),
      'STOP CHECK: and that button was disabled');
+}
+
+lines.push('');
+lines.push('=== round 2: the card is CENTRED, without touching .content ===');
+{
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  const h = views['Report Data'];
+  ok(/<div class="gate-wrap"><div class="table-card gate-card">/.test(h),
+     'the card is wrapped by .gate-wrap');
+  // /<div /  misses the bare <div> in the page header, so the counts differed
+  // by one and this failed on correct markup. Match either form.
+  ok((h.match(/<\/div>/g) || []).length === (h.match(/<div[ >]/g) || []).length,
+     'and the wrapper is closed: divs balance');
+  const wrap = css.slice(css.indexOf('.gate-wrap {'), css.indexOf('.gate-card {'));
+  ok(/display: flex;/.test(wrap) && /justify-content: center;/.test(wrap),
+     'centred horizontally by the wrapper');
+  ok(/align-items: center;/.test(wrap) && /min-height: 60vh;/.test(wrap),
+     'and vertically inside its own 60vh of space');
+
+  // THE POINT: .content is the scroll container for EVERY view. Centring by
+  // changing it would re-lay-out the whole app, so it must be untouched.
+  const contentNow = css.slice(css.indexOf('.content {'), css.indexOf('}', css.indexOf('.content {')) + 1);
+  const contentPrev = PREV_CSS.slice(PREV_CSS.indexOf('.content {'),
+    PREV_CSS.indexOf('}', PREV_CSS.indexOf('.content {')) + 1);
+  ok(contentNow.length > 0 && contentNow === contentPrev,
+     '.content is byte-identical to the deployed build: no shared rule was changed');
+  ok(!/display: *flex/.test(contentNow), 'and it is still not a flex container');
+  ok(BASE_CSS.indexOf('.gate-wrap') < 0 && PREV_CSS.indexOf('.gate-wrap') < 0,
+     'PREV/BASE control: .gate-wrap is new, so the centring is this round');
+
+  // ruling: the card CONTENT is unchanged. Only the box moved.
+  ok(!/text-align/.test(css.slice(css.indexOf('.gate-wrap {'), css.indexOf('.gate-card a'))),
+     'no text-align anywhere in the gate rules: the prose stays left-aligned');
+  const prevView = PREV_SRC.slice(PREV_SRC.indexOf('function renderNotOperable'),
+                                  PREV_SRC.indexOf('function renderCurrentView'));
+  ['Not available for your account', 'ask your Dataverse',
+   'Back to Executive Summary'].forEach(frag => {
+    ok(h.indexOf(frag) >= 0 && prevView.indexOf(frag) >= 0,
+       'card content unchanged from the deployed build: "' + frag.slice(0, 32) + '"');
+  });
+}
+
+lines.push('');
+lines.push('=== round 2: applyOperatorGate is on window.Dash ===');
+{
+  const dash = SRC.slice(SRC.indexOf('const Dash = {'), SRC.indexOf('window.Dash = Dash;'));
+  ok(/^\s*applyOperatorGate,$/m.test(dash),
+     'it is exported, so a hosted console runs the REAL gate');
+  ok(!/^\s*applyOperatorGate,$/m.test(
+       PREV_SRC.slice(PREV_SRC.indexOf('const Dash = {'), PREV_SRC.indexOf('window.Dash = Dash;'))),
+     'PREV control: the deployed build did not expose it');
+  // it can only HIDE: it reads Storage and sets .hidden, nothing else
+  const fn = grab(SRC, 'applyOperatorGate');
+  ok(!!fn && /group\.hidden = !ok;/.test(fn), 'its whole action is setting .hidden');
+  ok(!/dvCreate|dvUpdate|dvDelete|fetch\(|innerHTML/.test(fn),
+     'it writes no data and renders nothing, so exposing it adds no reach');
 }
 
 lines.push('');
