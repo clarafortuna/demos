@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || 'c263f00';   // post visual round 2
+const PREV = process.env.DAC_PREV_COMMIT || '07c1e43';   // post round 3
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -254,7 +254,7 @@ function makeRenderer(src, label) {
 fs.mkdirSync(OUT, { recursive: true });
 const shell = (title, inner) => `<!doctype html><meta charset="utf-8">
 <title>${title}</title><style>${CSS}</style>
-<body style="background:var(--bright-snow);padding:24px">
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
 <div style="max-width:1080px;margin:0 auto">
 <p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
 CLCPA-220 render harness &middot; ${title} &middot; stub data, real markup and real CSS</p>
@@ -319,13 +319,13 @@ ok(!/class="ml-tabs-row"/.test(beforeHtml), 'BEFORE control: no tab row existed'
 
 lines.push('');
 lines.push('=== one tab at a time ===');
-ok(/Saved layers/.test(afterByTab.layers), 'layers tab shows Saved layers');
-ok(!/Upload tract shapes/.test(afterByTab.layers), 'layers tab does NOT show a family upload');
-ok(/Upload tract shapes/.test(afterByTab.shapes), 'shapes tab shows its own upload block');
-ok(!/Saved layers/.test(afterByTab.shapes), 'shapes tab does NOT show Saved layers');
-ok(/Upload DAC indicators/.test(afterByTab.indicators), 'indicators tab titled for its family');
-ok(/Upload electric and gas figures/.test(afterByTab.coned), 'coned tab titled for its family');
-ok(/Upload territory overlays/.test(afterByTab.territory), 'territory tab titled for its family');
+ok(/Saved Layers/.test(afterByTab.layers), 'layers tab shows Saved layers');
+ok(!/Upload Tract Shapes/.test(afterByTab.layers), 'layers tab does NOT show a family upload');
+ok(/Upload Tract Shapes/.test(afterByTab.shapes), 'shapes tab shows its own upload block');
+ok(!/Saved Layers/.test(afterByTab.shapes), 'shapes tab does NOT show Saved layers');
+ok(/Upload DAC Indicators/.test(afterByTab.indicators), 'indicators tab titled for its family');
+ok(/Upload Electric and Gas Figures/.test(afterByTab.coned), 'coned tab titled for its family');
+ok(/Upload Territory Overlays/.test(afterByTab.territory), 'territory tab titled for its family');
 const beforeCards = (beforeHtml.match(/class="ml-card/g) || []).length;
 const afterCards = (afterByTab.layers.match(/class="ml-card/g) || []).length;
 ok(beforeCards > afterCards,
@@ -340,7 +340,7 @@ ok(/Not listed/.test(A), 'AFTER says "Not listed"');
   // Round 2 removed the saved-layer pills entirely, so this asserts their
   // ABSENCE where they used to be, and their continued use on the family
   // tabs, where a pill is the whole control for Tract shapes.
-  const saved = A.slice(A.indexOf('Saved layers'), A.indexOf('This session'));
+  const saved = A.slice(A.indexOf('Saved Layers'), A.indexOf('This Session'));
   ok(!/ml-state-pill/.test(saved), 'saved-layer rows carry NO state pill');
   // ROWS only. The card-header hint still says "Listed on the map" and "Not
   // listed", and it stays by ruling: the explanation belongs there once, not
@@ -352,7 +352,7 @@ ok(/Not listed/.test(A), 'AFTER says "Not listed"');
      'every saved layer still has its switch');
   // (round-2 PREV control retired: PREV now points past round 2.)
 }
-ok(!/>Active</.test(A.slice(A.indexOf('Saved layers'), A.indexOf('This session'))),
+ok(!/>Active</.test(A.slice(A.indexOf('Saved Layers'), A.indexOf('This Session'))),
    'the saved-layers block no longer says "Active"');
 ok(/>Active</.test(beforeHtml), 'BEFORE control: it used to say "Active"');
 ok(/Layers panel, switched off/.test(A),
@@ -367,7 +367,7 @@ ok(A.slice(0, noteEnd).indexOf('Uploads start in this browser tab') < 0,
    'AFTER: the banner is gone from above the tabs');
 ok(/Uploads start in this browser tab/.test(A),
    'AFTER: its warning survives, inside the This session card');
-ok(A.indexOf('Uploads start in this browser tab') > A.indexOf('This session'),
+ok(A.indexOf('Uploads start in this browser tab') > A.indexOf('This Session'),
    'and it sits after the This session heading, not before it');
 
 lines.push('');
@@ -400,7 +400,7 @@ lines.push('=== a good file dropped on the WRONG family tab ===');
   st.mapLayers.dsSummary = { kind: 'geometry', key: 'tract_geometry', version: 'pure-2010',
     vintage: '2010', tracts: 2333, fields: 8, pairsWith: [] };
   const wrong = after.api.page();
-  ok(/This file belongs in Tract shapes/.test(wrong),
+  ok(/This file belongs in Tract Shapes/.test(wrong),
      'it says which tab the file belongs in, by name');
   ok(/It validated cleanly/.test(wrong),
      'and says the file is fine, so it does not read as a rejection');
@@ -568,7 +568,7 @@ lines.push('=== round 3: About this data ===');
   const h = afterByTab[t];
   ok(/class="dac-td-help-btn ds-about-btn"/.test(h),
      t + ': the opener reuses .dac-td-help-btn, so it IS the How-to-read control');
-  ok(h.indexOf('<span>About this data</span>') >= 0, t + ': labelled, not a bare icon');
+  ok(h.indexOf('<span>About This Data</span>') >= 0, t + ': labelled, not a bare icon');
   ok(/dac-td-help-icon/.test(h), t + ': carries the same inline (i) glyph');
   ok(/aria-expanded="false"/.test(h) && /aria-controls="ds-about-/.test(h),
      t + ': collapsed by default and wired for assistive tech');
@@ -606,8 +606,11 @@ lines.push('=== round 3: unselected tabs read as buttons on the page ===');
 {
   const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
   const rule = css.slice(css.indexOf('.ml-tab {'), css.indexOf('.ml-tab:hover'));
-  ok(rule.indexOf('background: var(--white-smoke)') >= 0,
-     'unselected tabs have a light gray FILL');
+  // Superseded by the round 4 check further down, which compares the tab fill
+  // to the BODY value rather than asserting that a declaration exists. The
+  // declaration WAS present and was identical to the body, which is exactly how
+  // this passed while the screen was unchanged.
+  ok(rule.indexOf('background:') >= 0, 'unselected tabs declare a fill');
   ok(rule.indexOf('background: transparent') < 0,
      'and are no longer transparent on a white page');
   ok(rule.indexOf('border-color: var(--text-2)') >= 0 &&
@@ -637,8 +640,7 @@ ok(/Everything the DAC map draws, managed in one place/.test(afterByTab.layers),
    'the subtitle covers all five tabs');
 ok(!/coloured by a field you choose/.test(afterByTab.layers),
    'and no longer describes Tab 1 only');
-ok(/coloured by a field you choose/.test(prevByTab.layers),
-   'PREV control: the previous build did');
+// (round-3 PREV control retired: PREV now points past round 3.)
 
 lines.push('');
 lines.push('=== round 3: the facts-file gap ===');
@@ -666,6 +668,104 @@ lines.push('=== round 3: no long dashes in anything added this ticket ===');
   ok(dashy.length === 0,
      'nothing added across the whole ticket carries an em dash, en dash or entity' +
      (dashy.length ? ' [' + dashy[0].slice(0, 70) + ']' : ''));
+}
+
+
+lines.push('');
+lines.push('=== round 4 FAIL 1: the tab fill must differ from the BODY ===');
+{
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  const rule = css.slice(css.indexOf('.ml-tab {'), css.indexOf('.ml-tab:hover'));
+  const m = rule.match(/background:\s*([^;]+);/);
+  ok(!!m, 'the tab rule declares a background');
+  const tabBg = m ? m[1].trim() : '';
+  // The body rule, read rather than assumed.
+  // Anchored to a LINE START: indexOf('body {') finds an earlier substring
+  // (a selector list ending in 'body {') before the top-level rule.
+  const bodyAt = css.search(/\nbody \{/);
+  const bodyRule = bodyAt < 0 ? '' : css.slice(bodyAt, css.indexOf('}', bodyAt));
+  const bm = bodyRule.match(/background:\s*([^;]+);/);
+  ok(!!bm, 'the body rule declares a background');
+  const bodyBg = bm ? bm[1].trim() : '';
+  ok(tabBg !== bodyBg,
+     'the tab fill is NOT the body colour (was ' + bodyBg + ' for both, which is why ' +
+     'the declaration passed and the screen did not change)');
+  ok(tabBg === '#D8DDE2', 'and it is the measured neutral, ' + tabBg);
+  ok(bodyBg === 'var(--white-smoke)', 'body is still var(--white-smoke), so the comparison is live');
+}
+
+lines.push('');
+lines.push('=== round 4 FAIL 2: the About handler must be a CLICK handler ===');
+{
+  const src = fs.readFileSync(path.join(REPO, REL), 'utf8');
+  const L = src.split(/\r?\n/);
+  let at = -1;
+  for (let i = 0; i < L.length; i++) {
+    if (L[i].indexOf("closest('[data-ds-about]')") >= 0) { at = i; break; }
+  }
+  ok(at >= 0, 'the About handler exists');
+  let ev = null;
+  for (let j = at; j >= 0 && ev === null; j--) {
+    const m = L[j].match(/addEventListener\('(\w+)'/);
+    if (m) ev = m[1];
+  }
+  ok(ev === 'click',
+     'it sits inside a CLICK listener' +
+     (ev === 'click' ? '' : ', but found "' + ev + '" (a <button> never fires change)'));
+  // and the same guard for the other button handlers in that mount
+  ['#ds-upload', '#ds-cancel', 'data-ml-tab-go'].forEach(sel => {
+    let k = -1;
+    for (let i = 0; i < L.length; i++) if (L[i].indexOf(sel) >= 0 && L[i].indexOf('closest') >= 0) { k = i; break; }
+    if (k < 0) return;
+    let e2 = null;
+    for (let j = k; j >= 0 && e2 === null; j--) {
+      const m = L[j].match(/addEventListener\('(\w+)'/);
+      if (m) e2 = m[1];
+    }
+    ok(e2 === 'click', sel + ' is also in a click listener');
+  });
+}
+
+lines.push('');
+lines.push('=== round 4: title case on labels, titles, tabs, buttons, headers ===');
+{
+  const want = ['Map Layers', 'DAC Indicators', 'Tract Shapes',
+                'Electric and Gas Figures', 'Territory Overlays'];
+  want.forEach(w => ok(afterByTab.layers.indexOf('>' + w + '</button>') >= 0,
+    'tab is title case: ' + w));
+  ok(/<h1>Map Data<\/h1>/.test(afterByTab.layers), 'page title is "Map Data"');
+  ok(/<h3>Add a Layer<\/h3>/.test(afterByTab.layers), 'header: Add a Layer, with "a" lowercase');
+  ok(/<h3>Saved Layers<\/h3>/.test(afterByTab.layers), 'header: Saved Layers');
+  ok(/<h3>This Session \(Unsaved\)<\/h3>/.test(afterByTab.layers), 'header: This Session (Unsaved)');
+  ok(/<h3>Upload DAC Indicators<\/h3>/.test(afterByTab.indicators), 'header: Upload DAC Indicators');
+  ok(/<h3>Upload Tract Shapes<\/h3>/.test(afterByTab.shapes), 'header: Upload Tract Shapes');
+  ok(/<h3>Upload Electric and Gas Figures<\/h3>/.test(afterByTab.coned),
+     'header: Upload Electric and Gas Figures, with "and" lowercase');
+  ok(/<h3>Upload Territory Overlays<\/h3>/.test(afterByTab.territory), 'header: Upload Territory Overlays');
+  ok(afterByTab.indicators.indexOf('<span>About This Data</span>') >= 0, 'button: About This Data');
+  // the connectors stay lowercase, which is the half a naive capitaliser breaks
+  ok(afterByTab.layers.indexOf('Add A Layer') < 0, 'connector "a" was NOT capitalised');
+  ok(afterByTab.coned.indexOf('Electric And Gas') < 0, 'connector "and" was NOT capitalised');
+  // body copy stays sentence case
+  ok(/Everything the DAC map draws, managed in one place/.test(afterByTab.layers),
+     'body copy is untouched by the sweep');
+  const html = fs.readFileSync(path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html'), 'utf8');
+  ok(/> Report Data/.test(html), 'sidebar: Report Data');
+  ok(/> Map Data/.test(html), 'sidebar: Map Data');
+  ok(!/> Report data|> Map data/.test(html), 'and no lowercase sidebar entry remains');
+}
+
+lines.push('');
+lines.push('=== round 4: the render shell paints the REAL body colour ===');
+{
+  const self = fs.readFileSync(__filename, 'utf8');
+  ok(self.indexOf('background:var(--white-smoke)') >= 0,
+     'the shell uses --white-smoke, the actual body colour');
+  // Count the SHELL usage only. The explanatory comment beside it also names
+  // --bright-snow, so a bare substring search could never pass: the check would
+  // have been failing on the text that explains itself.
+  ok((self.match(/<body style="background:var\(--bright-snow\)/g) || []).length === 0,
+     'and the shell no longer paints --bright-snow, which hid the fill from the eye too');
 }
 
 fs.writeFileSync(path.join(OUT, 'prev-pr1-shapes.html'),

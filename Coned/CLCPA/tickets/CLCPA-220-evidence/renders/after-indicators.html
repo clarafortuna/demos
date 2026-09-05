@@ -8096,12 +8096,23 @@ a.nav-item { text-decoration: none; }
   padding: 10px 16px;
   border-radius: 6px;
   border: 1px solid var(--line-strong);
-  /* Round 3: the unselected tabs were WHITE on a white page, so they dissolved
-     into the background and the border alone was not enough to make them read
-     as controls. They now sit on a light gray fill, with border and text
-     sharing --text-2, the way File requirements reads: a button ON the page
-     rather than a shape cut out of it. */
-  background: var(--white-smoke);
+  /* Round 3 FIX. The previous attempt set this to --white-smoke, which is the
+     exact colour of `body` (line 40). The fill applied perfectly and was
+     invisible by construction: the tabs were painted the same colour as the
+     thing they sit on, so only the border tone appeared to change.
+
+     The replacement is MEASURED, not picked by eye, against the #F2F2F2 body:
+
+         --dusk-tint    #E5EBF5   1.07:1   too close, and blue
+         --dodger-tint  #E3F2FE   1.02:1   closer still
+         --pale-sky     #BDDBF5   1.28:1   distinct, but reads as blue
+         this value     #D8DDE2   1.22:1   neutral, and the strongest gray
+
+     A literal hex rather than a token because the palette has no neutral
+     between --white-smoke (which IS the body) and --pale-sky (which is blue).
+     Promote it to a token if a second control ever needs it. Text on this fill
+     is 6.39:1, well clear of 4.5:1, and border and text still share --text-2. */
+  background: #D8DDE2;
   border-color: var(--text-2);
   color: var(--text-2);
   cursor: pointer;
@@ -8839,18 +8850,18 @@ a.nav-item { text-decoration: none; }
  * ================================================================== */
 [hidden] { display: none !important; }
 </style>
-<body style="background:var(--bright-snow);padding:24px">
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
 <div style="max-width:1080px;margin:0 auto">
 <p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
 CLCPA-220 render harness &middot; AFTER, tab: indicators &middot; stub data, real markup and real CSS</p>
 
       <div class="page-header ml-page-header">
         <div>
-          <h1>Map data</h1>
+          <h1>Map Data</h1>
           <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
         </div>
         <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                aria-haspopup="dialog">File requirements</button>
+                aria-haspopup="dialog">File Requirements</button>
       </div>
 
       
@@ -8860,19 +8871,19 @@ CLCPA-220 render harness &middot; AFTER, tab: indicators &middot; stub data, rea
         
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="layers"
-            aria-selected="false">Map layers</button>
+            aria-selected="false">Map Layers</button>
           <button type="button" role="tab" class="ml-tab active"
             data-ml-tab="indicators"
-            aria-selected="true">DAC indicators</button>
+            aria-selected="true">DAC Indicators</button>
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="shapes"
-            aria-selected="false">Tract shapes</button>
+            aria-selected="false">Tract Shapes</button>
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="coned"
-            aria-selected="false">Electric and gas figures</button>
+            aria-selected="false">Electric and Gas Figures</button>
           <button type="button" role="tab" class="ml-tab"
             data-ml-tab="territory"
-            aria-selected="false">Territory overlays</button>
+            aria-selected="false">Territory Overlays</button>
       </div>
 
       <div id="ml-upload-mount"></div>
@@ -8881,25 +8892,25 @@ CLCPA-220 render harness &middot; AFTER, tab: indicators &middot; stub data, rea
       <div class="ml-card ds-upload-card">
         <div class="ml-card-head">
           <div>
-            <h3>Upload DAC indicators</h3>
+            <h3>Upload DAC Indicators</h3>
             <p class="ml-card-sub">A NYSERDA release version. It is checked before anything is stored, and it is stored WITHOUT switching to it. You activate it from the list below when you are ready.</p>
           </div>
           <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
         </div>
         <div class="ml-card-body">
           <div class="ds-upload"><div class="ml-picker">
-           <label class="btn btn-secondary ml-browse">Choose DAC indicators file
+           <label class="btn btn-secondary ml-browse">Choose DAC Indicators file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json</span>
-           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="indicators" aria-expanded="false" aria-controls="ds-about-indicators"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg><span>About this data</span></button>
+           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="indicators" aria-expanded="false" aria-controls="ds-about-indicators"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg><span>About This Data</span></button>
          </div></div>
-          <div class="dac-td-note ds-about-note" id="ds-about-indicators" hidden><div class="dac-td-note-title">About this data</div><p>NYSERDA per tract DAC data, kept as versions. The upload file is built by convert_nyserda_raw.py. Full procedure: the DAC indicators guide in the operator package.</p></div>
+          <div class="dac-td-note ds-about-note" id="ds-about-indicators" hidden><div class="dac-td-note-title">About This Data</div><p>NYSERDA per tract DAC data, kept as versions. The upload file is built by convert_nyserda_raw.py. Full procedure: the DAC indicators guide in the operator package.</p></div>
         </div>
       </div>
       <div class="ml-card ds-ind">
         <div class="ml-card-head">
           <div>
-            <h3>DAC indicators</h3>
+            <h3>DAC Indicators</h3>
             <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
           </div>
           <div class="ml-card-actions"><span class="ml-chip">dataset</span><button type="button" class="btn btn-secondary ml-help-btn">Help</button></div>

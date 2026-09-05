@@ -175,7 +175,7 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   the bare inert (i) is gone
 
 === round 3: unselected tabs read as buttons on the page ===
-  ok   unselected tabs have a light gray FILL
+  ok   unselected tabs declare a fill
   ok   and are no longer transparent on a white page
   ok   border and text share --text-2
   ok   the selected tab is still the only solid dark one
@@ -193,7 +193,6 @@ CLCPA-220 PR 1 -- renders and assertions
 === round 3: the page subtitle ===
   ok   the subtitle covers all five tabs
   ok   and no longer describes Tab 1 only
-  ok   PREV control: the previous build did
 
 === round 3: the facts-file gap ===
   ok   facts file names convert_nyserda_raw.py
@@ -208,6 +207,46 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   the diff against BASE is non-empty, so this check has something to read
   ok   nothing added across the whole ticket carries an em dash, en dash or entity
 
+=== round 4 FAIL 1: the tab fill must differ from the BODY ===
+  ok   the tab rule declares a background
+  ok   the body rule declares a background
+  ok   the tab fill is NOT the body colour (was var(--white-smoke) for both, which is why the declaration passed and the screen did not change)
+  ok   and it is the measured neutral, #D8DDE2
+  ok   body is still var(--white-smoke), so the comparison is live
+
+=== round 4 FAIL 2: the About handler must be a CLICK handler ===
+  ok   the About handler exists
+  ok   it sits inside a CLICK listener
+  ok   #ds-upload is also in a click listener
+  ok   #ds-cancel is also in a click listener
+  ok   data-ml-tab-go is also in a click listener
+
+=== round 4: title case on labels, titles, tabs, buttons, headers ===
+  ok   tab is title case: Map Layers
+  ok   tab is title case: DAC Indicators
+  ok   tab is title case: Tract Shapes
+  ok   tab is title case: Electric and Gas Figures
+  ok   tab is title case: Territory Overlays
+  ok   page title is "Map Data"
+  ok   header: Add a Layer, with "a" lowercase
+  ok   header: Saved Layers
+  ok   header: This Session (Unsaved)
+  ok   header: Upload DAC Indicators
+  ok   header: Upload Tract Shapes
+  ok   header: Upload Electric and Gas Figures, with "and" lowercase
+  ok   header: Upload Territory Overlays
+  ok   button: About This Data
+  ok   connector "a" was NOT capitalised
+  ok   connector "and" was NOT capitalised
+  ok   body copy is untouched by the sweep
+  ok   sidebar: Report Data
+  ok   sidebar: Map Data
+  ok   and no lowercase sidebar entry remains
+
+=== round 4: the render shell paints the REAL body colour ===
+  ok   the shell uses --white-smoke, the actual body colour
+  ok   and the shell no longer paints --bright-snow, which hid the fill from the eye too
+
 renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
    after-coned.html
    after-indicators.html
@@ -219,5 +258,5 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    prev-pr1-shapes.html
 
 ======================================================================
-  164 passed, 0 failed
+  195 passed, 0 failed
 ======================================================================
