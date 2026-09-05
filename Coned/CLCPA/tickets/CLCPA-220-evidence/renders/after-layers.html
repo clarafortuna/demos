@@ -8059,6 +8059,14 @@ a.nav-item { text-decoration: none; }
 /* The (i) button sits INLINE with the Choose-file button, on the right of that
    same row, rather than in a footer of its own. margin-left:auto pushes it there
    without needing a wrapper, so the row keeps one flex context. */
+/* ---- About this data (CLCPA-220 round 3) ----
+   The button reuses .dac-td-help-btn wholesale, so only its placement is new.
+   Scoped additions only: anything here that is not prefixed would reach the
+   tract detail panel, which uses the same classes and is not this ticket. */
+.ml-picker .ds-about-btn { margin-left: auto; }
+.ds-about-note { margin-top: 12px; }
+.ds-about-note p { margin: 0; }
+
 .ml-picker .ds-info-btn { margin-left: auto; }
 
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
@@ -8088,7 +8096,13 @@ a.nav-item { text-decoration: none; }
   padding: 10px 16px;
   border-radius: 6px;
   border: 1px solid var(--line-strong);
-  background: transparent;
+  /* Round 3: the unselected tabs were WHITE on a white page, so they dissolved
+     into the background and the border alone was not enough to make them read
+     as controls. They now sit on a light gray fill, with border and text
+     sharing --text-2, the way File requirements reads: a button ON the page
+     rather than a shape cut out of it. */
+  background: var(--white-smoke);
+  border-color: var(--text-2);
   color: var(--text-2);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -8833,7 +8847,7 @@ CLCPA-220 render harness &middot; AFTER, tab: layers &middot; stub data, real ma
       <div class="page-header ml-page-header">
         <div>
           <h1>Map data</h1>
-          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+          <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
         </div>
         <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
                 aria-haspopup="dialog">File requirements</button>

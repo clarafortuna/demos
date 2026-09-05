@@ -14754,7 +14754,9 @@ function wireHTooltips() {
         <div>
           <h1>Map data</h1>
           <p class="page-sub">${mlCanUpload()
-            ? 'Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.'
+            // CLCPA-220 round 3: the old line described TAB 1 and nothing else,
+            // under a title that now covers five.
+            ? 'Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.'
             : 'The GeoJSON overlays saved for this dashboard, and which of them are on the DAC map.'}</p>
         </div>
         ${mlCanUpload()
@@ -16271,13 +16273,21 @@ function wireHTooltips() {
       : (o.inactiveWord || 'Inactive');
     const on = inUse || r.active === true;
     let right;
-    if (o.mode === 'toggle' && canWrite) {
+    // CLCPA-220 round 3: the switch alone carries the state, on EVERY family
+    // that has one. Round 2 did this for Saved layers; the label pills here
+    // were the same variable-width problem, putting each row's toggle at a
+    // different x, and the same duplication, since the switch already says on
+    // or off. Tract shapes is the one exception and keeps its pills: it has no
+    // toggle, so the pill is its only state display.
+    //
+    // A read-only user gets the same switch, disabled, rather than a pill
+    // standing in for it. One vocabulary, and the column stays aligned.
+    if (o.mode === 'toggle') {
       right = `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
            <input type="checkbox" data-ds-active="${escapeHtml(r.dvId)}"${
-             r.active ? ' checked' : ''}${busy ? ' disabled' : ''} />
+             r.active ? ' checked' : ''}${busy || !canWrite ? ' disabled' : ''} />
            <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-           <span class="ml-toggle-label ml-state-pill ${on ? 'ml-state-on' : 'ml-state-off'}">${
-             busy ? 'Saving…' : escapeHtml(label)}</span>
+           ${busy ? '<span class="ml-toggle-label">Saving…</span>' : ''}
          </label>`;
     } else {
       right = `<span class="ml-state-pill ${on ? 'ml-state-on' : 'ml-state-off'}">${
@@ -16323,12 +16333,66 @@ function wireHTooltips() {
    * anchor is already in the right spot when the entry arrives, rather than the
    * button moving under an operator who has just learned where it is.
    */
-  function dsInfoButton(tabId) {
-    const fam = ML_FAMILY[tabId];
-    if (!fam) return '';
-    return `<button type="button" class="ds-info-btn" data-ds-info="${escapeHtml(tabId)}"
-      title="Produced by ${escapeHtml(fam.produces)}"
-      aria-label="About ${escapeHtml(fam.noun)}">i</button>`;
+  /* ============================================================
+   * About this data (CLCPA-220 round 3)
+   * ------------------------------------------------------------
+   * Replaces the bare inert (i). It is the SAME control as "How to read" on
+   * the tract detail panel, not a lookalike: the same outlined shape, the same
+   * inline (i) glyph beside a text label, and the same behaviour, an inline
+   * collapsible note rather than a slide-over. An operator who has met one has
+   * met the other.
+   *
+   * Deliberately NOT gated by SHOW_HELP_BUTTONS. That flag hides the "How to
+   * update" openers, which is why these cards currently carry no help control
+   * at all; this button is the one they do get.
+   *
+   * SCOPE, ruled: the basics only. What the family is, which script builds the
+   * file, where the full procedure lives. The long per family entries are
+   * banked for CLCPA-221, where File requirements becomes the dictionary. A
+   * panel that tried to be the dictionary would be a worse dictionary and a
+   * worse tooltip.
+   * ============================================================ */
+  const DS_ABOUT = {
+    indicators:
+      'NYSERDA per tract DAC data, kept as versions. The upload file is built by ' +
+      'convert_nyserda_raw.py. Full procedure: the DAC indicators guide in the ' +
+      'operator package.',
+    shapes:
+      'The census tract boundaries the map draws, matched to the active DAC ' +
+      'indicators version by vintage. The upload file is built by ' +
+      'build_pure_geometry_dataset.py (update_map_data.py runs the full chain). ' +
+      'Full procedure: the tract shapes guide in the operator package.',
+    coned:
+      'Per tract account counts and EAP figures from the Con Edison extracts. The ' +
+      'upload file is built by build_coned_dataset.py. Full procedure: the ' +
+      'electric and gas guide in the operator package.',
+    territory:
+      'The Con Edison electric, gas and ORU territory boundaries drawn over the ' +
+      'tracts. The overlay is built by _make_territories.py (needs network ' +
+      'access). Full procedure: the territory guide in the operator package.',
+  };
+
+  /** The opener. Markup mirrors .dac-td-help-btn so the two are one control. */
+  function dsAboutButton(tabId) {
+    if (!DS_ABOUT[tabId]) return '';
+    return '<button type="button" class="dac-td-help-btn ds-about-btn" ' +
+      'data-ds-about="' + escapeHtml(tabId) + '" aria-expanded="false" ' +
+      'aria-controls="ds-about-' + escapeHtml(tabId) + '">' +
+      '<svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" ' +
+      'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" ' +
+      'stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/>' +
+      '<line x1="12" y1="11" x2="12" y2="16"/>' +
+      '<circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg>' +
+      '<span>About this data</span></button>';
+  }
+
+  /** The note it expands, collapsed by default, same box as .dac-td-note. */
+  function dsAboutPanel(tabId) {
+    const body = DS_ABOUT[tabId];
+    if (!body) return '';
+    return '<div class="dac-td-note ds-about-note" id="ds-about-' +
+      escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">About this data</div>' +
+      '<p>' + escapeHtml(body) + '</p></div>';
   }
 
   /**
@@ -16526,7 +16590,7 @@ function wireHTooltips() {
            <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
              <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
            <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))}</span>
-           ${dsInfoButton(tabId)}
+           ${dsAboutButton(tabId)}
          </div>`
       : d.dsStage === 'saving'
       ? `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' }))}</span>`
@@ -16534,7 +16598,7 @@ function wireHTooltips() {
            <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
              <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
            <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))}</span>
-           ${dsInfoButton(tabId)}
+           ${dsAboutButton(tabId)}
          </div>`;
     return `
       <div class="ml-card ds-upload-card">
@@ -16562,6 +16626,7 @@ function wireHTooltips() {
         </div>
         <div class="ml-card-body">
           <div class="ds-upload">${up}</div>
+          ${dsAboutPanel(tabId)}
         </div>
       </div>`;
   }
@@ -17420,6 +17485,21 @@ function wireHTooltips() {
           return;
         }
         dsSetActive(ds.dataset.dsActive, ds.checked);
+        return;
+      }
+      // CLCPA-220 round 3: About this data. Toggled in place rather than
+      // re-rendered, so opening it cannot disturb a staged upload sitting in
+      // the same card. hidden is the single source of truth and aria-expanded
+      // follows it, so the two can never disagree.
+      const ab = e.target.closest('[data-ds-about]');
+      if (ab) {
+        const panel = document.getElementById('ds-about-' + ab.dataset.dsAbout);
+        if (panel) {
+          const open = panel.hidden;
+          panel.hidden = !open;
+          ab.setAttribute('aria-expanded', open ? 'true' : 'false');
+          ab.classList.toggle('active', open);
+        }
         return;
       }
       // The separate Reactivate button is GONE. Switching a version ON is the

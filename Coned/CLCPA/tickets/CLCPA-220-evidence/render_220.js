@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || 'ea7fbcd';   // post-corrections round 1
+const PREV = process.env.DAC_PREV_COMMIT || 'c263f00';   // post visual round 2
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -350,8 +350,7 @@ ok(/Not listed/.test(A), 'AFTER says "Not listed"');
   ok(!/Listed on the map|Not listed/.test(savedRows), 'and no per-row state text');
   ok((saved.match(/ml-toggle-track/g) || []).length === 2,
      'every saved layer still has its switch');
-  ok(/ml-state-pill/.test(prevByTab.layers),
-     'PREV control: the previous build put a pill on every saved-layer row');
+  // (round-2 PREV control retired: PREV now points past round 2.)
 }
 ok(!/>Active</.test(A.slice(A.indexOf('Saved layers'), A.indexOf('This session'))),
    'the saved-layers block no longer says "Active"');
@@ -482,15 +481,14 @@ lines.push('=== correction 5: the (i) button moved into the upload box ===');
 ['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
   const h = afterByTab[t];
   ok(!/ds-upload-foot/.test(h), t + ': the footer is gone');
-  ok(/ml-picker[\s\S]{0,700}?data-ds-info=/.test(h),
-     t + ': the (i) button is INLINE in the Choose-file row');
+  ok(/ml-picker[\s\S]{0,900}?data-ds-about=/.test(h),
+     t + ': the About button is INLINE in the Choose-file row');
 });
 // A positional test cannot tell the two layouts apart: the upload block renders
 // before the card in BOTH, so the (i) is "after ds-upload" either way. What
 // changed this round is structural: the footer is gone and the button sits in
 // the Choose-file row itself.
-ok(/ds-upload-foot/.test(prevByTab.shapes),
-   'PREV control: the previous build put it in a footer of its own');
+// (round-2 PREV control retired: PREV now points past round 2.)
 {
   const css2 = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
   ok(/\.ml-picker \.ds-info-btn/.test(css2),
@@ -519,8 +517,7 @@ lines.push('=== correction 6: the territory chip ===');
   const head = headOf(afterByTab.territory);
   ok(head.length > 0, 'the territory card is found by its own class');
   ok(!/ml-chip/.test(head), 'the territory card head carries NO state chip');
-  ok(/ml-chip/.test(headOf(prevByTab.territory)),
-     'PREV control: the previous build had one');
+  // (round-2 PREV control retired: PREV now points past round 2.)
 }
 {
   const appSrc = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -532,7 +529,7 @@ lines.push('=== correction 6: the territory chip ===');
     .filter(function (l) { return !/^\s*(\/\/|\*|\/\*)/.test(l); });
   ok(!codeLines.some(function (l) { return /not loaded yet/.test(l); }),
      'and no UI string says "not loaded yet" any more');
-  ok(/loads when first used/.test(PREV_SRC), 'PREV control: the previous build carried the chip');
+  // (round-2 PREV control retired: PREV now points past round 2.)
 }
 
 lines.push('');
@@ -562,6 +559,113 @@ lines.push('=== correction 2b: the retire SCOPE, asserted both ways ===');
      'PREV control: the old filter had no vintage clause, so it would have retired 2010');
   const prevSrc = PREV_SRC;
 // (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
+}
+
+
+lines.push('');
+lines.push('=== round 3: About this data ===');
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  const h = afterByTab[t];
+  ok(/class="dac-td-help-btn ds-about-btn"/.test(h),
+     t + ': the opener reuses .dac-td-help-btn, so it IS the How-to-read control');
+  ok(h.indexOf('<span>About this data</span>') >= 0, t + ': labelled, not a bare icon');
+  ok(/dac-td-help-icon/.test(h), t + ': carries the same inline (i) glyph');
+  ok(/aria-expanded="false"/.test(h) && /aria-controls="ds-about-/.test(h),
+     t + ': collapsed by default and wired for assistive tech');
+  ok(new RegExp('id="ds-about-' + t + '"[^>]*hidden').test(h),
+     t + ': the panel is present and hidden');
+  ok(/ds-about-note/.test(h) && /dac-td-note/.test(h),
+     t + ': the panel is the same box as the How-to-read note');
+});
+{
+  // The four texts, verbatim against the ruling, and each one naming its builder.
+  const want = {
+    indicators: ['NYSERDA per tract DAC data', 'convert_nyserda_raw.py',
+                 'the DAC indicators guide in the operator package'],
+    shapes: ['census tract boundaries the map draws', 'build_pure_geometry_dataset.py',
+             'update_map_data.py runs the full chain',
+             'the tract shapes guide in the operator package'],
+    coned: ['account counts and EAP figures', 'build_coned_dataset.py',
+            'the electric and gas guide in the operator package'],
+    territory: ['electric, gas and ORU territory boundaries', '_make_territories.py',
+                'needs network access', 'the territory guide in the operator package'],
+  };
+  Object.keys(want).forEach(t => {
+    want[t].forEach(frag => {
+      ok(afterByTab[t].indexOf(frag) >= 0, t + ': panel says "' + frag.slice(0, 42) + '"');
+    });
+  });
+  // and the LONG entries are banked, not shipped: CLCPA-221 owns that surface
+  ok(!/Final Disadvantaged Communities criteria/.test(afterByTab.indicators),
+     'the long dictionary entry is NOT in the panel; it is banked for CLCPA-221');
+}
+ok(!/ds-info-btn/.test(afterByTab.shapes), 'the bare inert (i) is gone');
+
+lines.push('');
+lines.push('=== round 3: unselected tabs read as buttons on the page ===');
+{
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  const rule = css.slice(css.indexOf('.ml-tab {'), css.indexOf('.ml-tab:hover'));
+  ok(rule.indexOf('background: var(--white-smoke)') >= 0,
+     'unselected tabs have a light gray FILL');
+  ok(rule.indexOf('background: transparent') < 0,
+     'and are no longer transparent on a white page');
+  ok(rule.indexOf('border-color: var(--text-2)') >= 0 &&
+     rule.indexOf('color: var(--text-2)') >= 0,
+     'border and text share --text-2');
+  const active = css.slice(css.indexOf('.ml-tab.active'), css.indexOf('.ml-tab.active') + 220);
+  ok(active.indexOf('background: var(--dusk)') >= 0,
+     'the selected tab is still the only solid dark one');
+}
+
+lines.push('');
+lines.push('=== round 3: pill removal completed ===');
+['indicators', 'coned', 'territory'].forEach(t => {
+  const rows = afterByTab[t].slice(afterByTab[t].indexOf('<ul class="ml-list">'));
+  ok(!/ml-state-pill/.test(rows), t + ': NO state pill on any row');
+  ok(/ml-toggle-track/.test(rows), t + ': the switch alone carries the state');
+});
+{
+  const rows = afterByTab.shapes.slice(afterByTab.shapes.indexOf('<ul class="ml-list">'));
+  ok(/ml-state-pill/.test(rows), 'Tract shapes KEEPS its pills, being the one family with no toggle');
+  ok(!/ml-toggle-track/.test(rows), 'and still has no toggle');
+}
+
+lines.push('');
+lines.push('=== round 3: the page subtitle ===');
+ok(/Everything the DAC map draws, managed in one place/.test(afterByTab.layers),
+   'the subtitle covers all five tabs');
+ok(!/coloured by a field you choose/.test(afterByTab.layers),
+   'and no longer describes Tab 1 only');
+ok(/coloured by a field you choose/.test(prevByTab.layers),
+   'PREV control: the previous build did');
+
+lines.push('');
+lines.push('=== round 3: the facts-file gap ===');
+{
+  const facts = fs.readFileSync(path.join(REPO, 'Coned/CLCPA/OPERATOR_SCRIPT_FACTS.md'), 'utf8');
+  ['convert_nyserda_raw.py', 'build_pure_geometry_dataset.py', 'build_coned_dataset.py',
+   '_make_territories.py', 'update_map_data.py', 'build_tract_dataset.py'].forEach(n => {
+    ok(facts.indexOf(n) >= 0, 'facts file names ' + n);
+  });
+  ok(/did not come from this file, because this file did/.test(facts),
+     'and it records that build_coned_dataset was sourced elsewhere, not invented');
+}
+
+lines.push('');
+lines.push('=== round 3: no long dashes in anything added this ticket ===');
+{
+  const diff = execSync('git diff ' + BASE + ' -- "' + REL + '" "' + CSS_REL + '"',
+    { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8');
+  const added = diff.split(/\r?\n/)
+    .filter(function (l) { return l.startsWith('+') && !l.startsWith('+++'); });
+  ok(added.length > 0, 'the diff against BASE is non-empty, so this check has something to read');
+  const dashy = added.filter(function (l) {
+    return /[\u2013\u2014]/.test(l) || l.indexOf('&mdash;') >= 0 || l.indexOf('&ndash;') >= 0;
+  });
+  ok(dashy.length === 0,
+     'nothing added across the whole ticket carries an em dash, en dash or entity' +
+     (dashy.length ? ' [' + dashy[0].slice(0, 70) + ']' : ''));
 }
 
 fs.writeFileSync(path.join(OUT, 'prev-pr1-shapes.html'),
