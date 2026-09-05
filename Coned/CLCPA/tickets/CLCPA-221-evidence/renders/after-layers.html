@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER, tab: layers</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8963,3 +8964,120 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER, tab: layers &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Map Data</h1>
+          <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
+        </div>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button">
+                Data Sources</button>
+      </div>
+
+      
+
+      
+      <div class="ml-tabs-row" role="tablist" aria-label="Map data sections">
+        
+          <button type="button" role="tab" class="ml-tab active"
+            data-ml-tab="layers"
+            aria-selected="true">Map Layers</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="indicators"
+            aria-selected="false">DAC Indicators</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="shapes"
+            aria-selected="false">Tract Shapes</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="coned"
+            aria-selected="false">Electric and Gas Figures</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="territory"
+            aria-selected="false">Territory Overlays</button>
+      </div>
+
+      <div id="ml-upload-mount">
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Add a Layer</h3>
+            <p class="ml-card-sub">Polygon or MultiPolygon features, coloured by one numeric property.</p>
+          </div>
+          
+        </div>
+        <div class="ml-card-body">
+          
+          
+          
+        <p class="ml-intro">Choose a GeoJSON file of polygons in WGS84 (EPSG:4326). It is checked in
+        your browser before anything is drawn; no file leaves this page.</p>
+        <div class="ml-picker">
+          <label class="btn btn-secondary ml-browse">
+            Choose GeoJSON file
+            <input type="file" id="ml-file" accept=".geojson,.json" hidden />
+          </label>
+          <span class="ml-picker-hint">.geojson or .json · up to 50.0 MB</span>
+        </div>
+        </div>
+      </div></div>
+
+      <div id="ml-list-mount">
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Saved Layers</h3>
+            <p class="ml-card-sub">Stored in Dataverse and visible to everyone who opens the dashboard. <strong>Listed on the map</strong> puts the layer in the map's Layers panel, switched off, where anyone can tick it to draw it. <strong>Not listed</strong> takes it out of that panel for everyone, without deleting it.</p>
+          </div>
+          <div class="ml-card-actions"><span class="ml-chip">2 layers</span><button type="button" class="btn btn-secondary ml-help-btn">Help</button></div>
+        </div>
+        <div class="ml-card-body"><ul class="ml-list">
+        <li class="ml-row" data-ml-entry="ml1">
+          <span class="ml-row-sw" aria-hidden="true"></span>
+          <div class="ml-row-main">
+            <div class="ml-row-name">Heat Vulnerability Index </div>
+            <div class="ml-row-meta">2,327 features · Polygon · <span class="ml-mono">hvi_score</span> · A Person · 2026-08-01</div>
+            <div class="ml-row-src">NYC DOHMH</div>
+          </div>
+          <div class="ml-row-actions"><label class="ml-toggle">
+                 <input type="checkbox" data-ml-active="ml1" checked />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+               </label></div>
+        </li>
+        <li class="ml-row ml-row-inactive" data-ml-entry="ml2">
+          <span class="ml-row-sw" aria-hidden="true"></span>
+          <div class="ml-row-main">
+            <div class="ml-row-name">Trees per Km2 <span class="ml-chip ml-chip-off">not listed</span></div>
+            <div class="ml-row-meta">2,327 features · Polygon · <span class="ml-mono">trees_km2</span> · A Person · 2026-08-02</div>
+            <div class="ml-row-src">NYC Parks</div>
+          </div>
+          <div class="ml-row-actions"><label class="ml-toggle">
+                 <input type="checkbox" data-ml-active="ml2" />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+               </label></div>
+        </li></ul></div>
+      </div>
+      <div class="ml-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>This Session (Unsaved)</h3>
+            <p class="ml-card-sub">Uploads start in this browser tab. Save a layer to keep it in Dataverse for everyone who opens the dashboard; anything left unsaved disappears when you close this tab.</p>
+          </div>
+          
+        </div>
+        <div class="ml-card-body"><p class="ml-empty">No layers uploaded in this session.</p></div>
+      </div></div>
+
+      <!-- CLCPA-221: the File Requirements drawer is RETIRED. Everything it said
+           about file type, geometry, coordinates and the colour field is now the
+           Map Layers entry's requirements list in the Data Sources view, where it
+           sits beside the same facts for the other four families instead of being
+           the only one that had them. Nothing is orphaned. -->
+      
+
+      <p class="ml-build" id="ml-build">Build render-harness</p>
+    </div></body>

@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER: Data Sources, layers entry</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8963,3 +8964,62 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER: Data Sources, layers entry &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Data Sources</h1>
+          <p class="page-sub">What each kind of data on the DAC map is, where it comes
+          from, what a file has to satisfy, and how it is updated.</p>
+        </div>
+        <div class="ds-dict-actions">
+          <button type="button" class="btn btn-secondary" data-ds-dict-back="1">
+            Back to Map Layers</button>
+          <button type="button" class="ds-dict-x" data-ds-dict-back="1"
+            aria-label="Close Data Sources and return to Map Layers">&times;</button>
+        </div>
+      </div>
+      <div class="ds-dict">
+        <nav class="ds-dict-nav" aria-label="Data source entries">
+      <button type="button" class="ds-dict-navitem active"
+        data-ds-dict-go="layers" aria-current="true"
+        >Map Layers</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="indicators"
+        >DAC Indicators</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="shapes"
+        >Tract Shapes</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="coned"
+        >Electric and Gas Figures</button>
+      <button type="button" class="ds-dict-navitem"
+        data-ds-dict-go="territory"
+        >Territory Overlays</button></nav>
+        <article class="ds-dict-entry" id="ds-dict-entry">
+          <h2>Map Layers</h2>
+          <section>
+            <h3>What this data is</h3>
+            <p>GeoJSON overlays you upload to draw over the map as toggleable layers, colored by one numeric property. Saved layers are stored in Dataverse and visible to everyone who opens the dashboard.</p>
+            <p class="ds-dict-src"><strong>Authoritative source.</strong> Any source you choose; overlays are yours. Record the origin in the source label when saving, so everyone who sees the layer knows where it came from.</p>
+          </section>
+          <section>
+            <h3>Where the data comes from</h3>
+            <p>Any source you choose; overlays are yours. Record the origin in the source label when saving, so everyone who sees the layer knows where it came from.</p>
+          </section>
+          <section>
+            <h3>File requirements</h3>
+            <ul><li>A .geojson or .json file holding a FeatureCollection with at least one feature.</li><li>Polygon or MultiPolygon features only. Point and line layers are refused.</li><li>Coordinates in WGS84 (EPSG:4326). A file with no crs member is accepted too, which is the GeoJSON default and what QGIS exports.</li><li>At least one property numeric on every feature: that is the field the colors come from.</li><li>Up to 50 MB. Over 5 MB the upload warns before continuing.</li><li>Checked in the browser before anything is drawn or stored.</li></ul>
+          </section>
+          <section>
+            <h3>How to update</h3>
+            
+            <p>Upload from the Map Layers tab. Save it to keep it for everyone, or leave it unsaved and it disappears when the session ends.</p>
+            
+          </section>
+        </article>
+      </div></div></body>

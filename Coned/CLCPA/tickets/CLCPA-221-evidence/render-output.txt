@@ -1,0 +1,399 @@
+======================================================================
+CLCPA-220 PR 1 -- renders and assertions
+======================================================================
+
+=== the tab shell ===
+  ok   a pill row is rendered
+  ok   exactly five tabs
+  ok   tab present: layers
+  ok   tab present: indicators
+  ok   tab present: shapes
+  ok   tab present: coned
+  ok   tab present: territory
+  ok   exactly one tab is active
+  ok   the active tab is marked for assistive tech
+  ok   the tabs use the app standard 6px radius
+  ok   and are no longer fully rounded pills
+  ok   the active tab keeps the solid dark fill
+  ok   BEFORE control: no tab row existed
+
+=== one tab at a time ===
+  ok   layers tab shows Saved layers
+  ok   layers tab does NOT show a family upload
+  ok   shapes tab shows its own upload block
+  ok   shapes tab does NOT show Saved layers
+  ok   indicators tab titled for its family
+  ok   coned tab titled for its family
+  ok   territory tab titled for its family
+  ok   BEFORE stacked more cards on one screen than AFTER shows in a tab (35 vs 13)
+
+=== G1: the relabel ===
+  ok   AFTER says "Listed on the map"
+  ok   AFTER says "Not listed"
+  ok   saved-layer rows carry NO state pill
+  ok   and no per-row state text
+  ok   every saved layer still has its switch
+  ok   the saved-layers block no longer says "Active"
+  ok   BEFORE control: it used to say "Active"
+  ok   the hint explains that listing does not draw
+
+=== the banner ===
+  ok   BEFORE control: the banner was at the top of the page
+  ok   AFTER: the banner is gone from above the tabs
+  ok   AFTER: its warning survives, inside the This session card
+  ok   and it sits after the This session heading, not before it
+
+=== G6: accepted types stated ===
+  ok   shapes tab states its accepted types
+  ok   territory accepts .geojson too, and says so
+  ok   (before had a hint only on the generic block)
+
+=== G4: territory never asks for a vintage ===
+  ok   the territory upload block asks for no vintage (and says why)
+  ok   there is no vintage input anywhere on the territory tab
+  ok   BEFORE control: there never was one -- G4 needed no build
+
+=== a good file dropped on the WRONG family tab ===
+  ok   it says which tab the file belongs in, by name
+  ok   and says the file is fine, so it does not read as a rejection
+  ok   it offers a one-click way to get there
+  ok   and withholds Upload, so the file cannot be filed under the wrong family
+  ok   on its own tab the same file offers Upload
+  ok   and shows no wrong-tab message
+
+=== correction 1: ONE row anatomy, no pill beside the name ===
+  ok   indicators: rows render
+  ok   indicators: NO state pill beside the name
+  ok   indicators: the control and pill are on the right
+  ok   shapes: rows render
+  ok   shapes: NO state pill beside the name
+  ok   shapes: the control and pill are on the right
+  ok   coned: rows render
+  ok   coned: NO state pill beside the name
+  ok   coned: the control and pill are on the right
+  ok   territory: rows render
+  ok   territory: NO state pill beside the name
+  ok   territory: the control and pill are on the right
+
+=== correction 2: one flat list, no Reactivate ===
+  ok   indicators: no "Earlier versions" section
+  ok   indicators: no separate Reactivate control
+  ok   indicators: exactly one list
+  ok   shapes: no "Earlier versions" section
+  ok   shapes: no separate Reactivate control
+  ok   shapes: exactly one list
+  ok   coned: no "Earlier versions" section
+  ok   coned: no separate Reactivate control
+  ok   coned: exactly one list
+  ok   territory: no "Earlier versions" section
+  ok   territory: no separate Reactivate control
+  ok   territory: exactly one list
+  ok   active versions sort above retired ones without needing a heading
+
+=== correction 2: switching ON is the reactivate ===
+  ok   indicators: EVERY version carries a toggle, retired ones included
+  ok   electric and gas: toggles too, which is new
+  ok   territory: toggles too
+
+=== correction 3: tract shapes are informational ===
+  ok   shapes: NO toggle anywhere
+  ok   shapes: a state pill instead
+  ok   and the row says WHY the in-use one is in use
+  ok   and why the other one is not
+
+=== correction 4: the fingerprint is gone from the rows ===
+  ok   indicators: no fingerprint in the list
+  ok   shapes: no fingerprint in the list
+  ok   coned: no fingerprint in the list
+  ok   territory: no fingerprint in the list
+
+=== correction 5: the (i) button moved into the upload box ===
+  ok   indicators: the footer is gone
+  ok   indicators: the About button is INLINE in the Choose-file row
+  ok   shapes: the footer is gone
+  ok   shapes: the About button is INLINE in the Choose-file row
+  ok   coned: the footer is gone
+  ok   coned: the About button is INLINE in the Choose-file row
+  ok   territory: the footer is gone
+  ok   territory: the About button is INLINE in the Choose-file row
+  ok   and it is pushed right within that row rather than wrapped in a div
+  ok   the footer rule is gone from the CSS too
+
+=== correction 6: the territory chip ===
+  ok   the territory card is found by its own class
+  ok   the territory card head carries NO state chip
+  ok   the not-yet branch says "loads when first used"
+  ok   and no UI string says "not loaded yet" any more
+
+=== correction 2b: the retire SCOPE, asserted both ways ===
+  ok   the activation path computes a retire scope at all
+  ok   electric and gas 2020: the retire is SCOPED to 2020, so 2010 stays active
+  ok   indicators: still scoped, so single-per-key-and-vintage is unchanged
+  ok   territories: NO vintage clause, because a null vintage matches nothing
+  ok   PREV control: the old filter had no vintage clause, so it would have retired 2010
+
+=== round 3: About this data ===
+  ok   indicators: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   indicators: no visible text label
+  ok   indicators: the icon-only button still has an accessible name
+  ok   indicators: and the tooltip says the SAME words, not something else
+  ok   indicators: the (i) glyph is still there
+  ok   indicators: carries the same inline (i) glyph
+  ok   indicators: collapsed by default and wired for assistive tech
+  ok   indicators: the panel is present and hidden
+  ok   indicators: the panel is the same box as the How-to-read note
+  ok   shapes: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   shapes: no visible text label
+  ok   shapes: the icon-only button still has an accessible name
+  ok   shapes: and the tooltip says the SAME words, not something else
+  ok   shapes: the (i) glyph is still there
+  ok   shapes: carries the same inline (i) glyph
+  ok   shapes: collapsed by default and wired for assistive tech
+  ok   shapes: the panel is present and hidden
+  ok   shapes: the panel is the same box as the How-to-read note
+  ok   coned: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   coned: no visible text label
+  ok   coned: the icon-only button still has an accessible name
+  ok   coned: and the tooltip says the SAME words, not something else
+  ok   coned: the (i) glyph is still there
+  ok   coned: carries the same inline (i) glyph
+  ok   coned: collapsed by default and wired for assistive tech
+  ok   coned: the panel is present and hidden
+  ok   coned: the panel is the same box as the How-to-read note
+  ok   territory: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   territory: no visible text label
+  ok   territory: the icon-only button still has an accessible name
+  ok   territory: and the tooltip says the SAME words, not something else
+  ok   territory: the (i) glyph is still there
+  ok   territory: carries the same inline (i) glyph
+  ok   territory: collapsed by default and wired for assistive tech
+  ok   territory: the panel is present and hidden
+  ok   territory: the panel is the same box as the How-to-read note
+  ok   indicators: panel says "NYSERDA per tract DAC data"
+  ok   indicators: panel says "convert_nyserda_raw.py"
+  ok   indicators: panel says "the DAC indicators guide in the operator p"
+  ok   shapes: panel says "census tract boundaries the map draws"
+  ok   shapes: panel says "build_pure_geometry_dataset.py"
+  ok   shapes: panel says "update_map_data.py runs the full chain"
+  ok   shapes: panel says "the tract shapes guide in the operator pac"
+  ok   coned: panel says "account counts and EAP figures"
+  ok   coned: panel says "build_coned_dataset.py"
+  ok   coned: panel says "the electric and gas guide in the operator"
+  ok   territory: panel says "electric, gas and ORU territory boundaries"
+  ok   territory: panel says "_make_territories.py"
+  ok   territory: panel says "needs network access"
+  ok   territory: panel says "the territory guide in the operator packag"
+  ok   the long dictionary entry is NOT in the panel; it is banked for CLCPA-221
+  ok   the bare INERT (i) class is gone
+  ok   the panel is titled Data Source
+  ok   and nothing still says About This Data
+
+=== round 3: unselected tabs read as buttons on the page ===
+  ok   unselected tabs declare a fill
+  ok   and are no longer transparent on a white page
+  ok   the tab text is --text-2
+  ok   the selected tab is still the only solid dark one
+
+=== round 3: pill removal completed ===
+  ok   indicators: NO state pill on any row
+  ok   indicators: the switch alone carries the state
+  ok   coned: NO state pill on any row
+  ok   coned: the switch alone carries the state
+  ok   territory: NO state pill on any row
+  ok   territory: the switch alone carries the state
+  ok   Tract shapes KEEPS its pills, being the one family with no toggle
+  ok   and still has no toggle
+
+=== round 3: the page subtitle ===
+  ok   the subtitle covers all five tabs
+  ok   and no longer describes Tab 1 only
+
+=== round 3: the facts-file gap ===
+  ok   facts file names convert_nyserda_raw.py
+  ok   facts file names build_pure_geometry_dataset.py
+  ok   facts file names build_coned_dataset.py
+  ok   facts file names _make_territories.py
+  ok   facts file names update_map_data.py
+  ok   facts file names build_tract_dataset.py
+  ok   and it records that build_coned_dataset was sourced elsewhere, not invented
+
+=== round 3: no long dashes in anything added this ticket ===
+  ok   the diff against BASE is non-empty, so this check has something to read
+  ok   nothing added across the whole ticket carries an em dash, en dash or entity
+
+=== round 4 FAIL 1: the tab fill must differ from the BODY ===
+  ok   the tab rule declares a background
+  ok   the body rule declares a background
+  ok   the tab fill is NOT the body colour (was var(--white-smoke) for both, which is why the declaration passed and the screen did not change)
+  ok   .table-card exists to copy from
+  ok   and it declares both a background and a border
+  ok   the tab fill MATCHES .table-card: var(--white) vs var(--white)
+  ok   and so does the border, colour and width: 1px solid var(--line) vs 1px solid var(--line)
+  ok   the radius stays 6px: the tabs are the button family, not cards
+  ok   and the card is 8px, so the two are genuinely different on that axis
+  ok   the text is unchanged at --text-2
+  ok   body is still var(--white-smoke), so the comparison is live
+
+=== round 4 FAIL 2: the About handler must be a CLICK handler ===
+  ok   the About handler exists
+  ok   it sits inside a CLICK listener
+  ok   #ds-upload is also in a click listener
+  ok   #ds-cancel is also in a click listener
+  ok   data-ml-tab-go is also in a click listener
+
+=== round 4: title case on labels, titles, tabs, buttons, headers ===
+  ok   tab is title case: Map Layers
+  ok   tab is title case: DAC Indicators
+  ok   tab is title case: Tract Shapes
+  ok   tab is title case: Electric and Gas Figures
+  ok   tab is title case: Territory Overlays
+  ok   page title is "Map Data"
+  ok   header: Add a Layer, with "a" lowercase
+  ok   header: Saved Layers
+  ok   header: This Session (Unsaved)
+  ok   header: Upload DAC Indicators
+  ok   header: Upload Tract Shapes
+  ok   header: Upload Electric and Gas Figures, with "and" lowercase
+  ok   header: Upload Territory Overlays
+  ok   panel title is title case: Data Source
+  ok   connector "a" was NOT capitalised
+  ok   connector "and" was NOT capitalised
+  ok   body copy is untouched by the sweep
+  ok   sidebar: Report Data
+  ok   sidebar: Map Data
+  ok   and no lowercase sidebar entry remains
+
+=== round 4: the render shell paints the REAL body colour ===
+  ok   the shell uses --white-smoke, the actual body colour
+  ok   and the shell no longer paints --bright-snow, which hid the fill from the eye too
+
+=== CLCPA-221: the Data Sources dictionary ===
+  ok   the view has its own page title
+  ok   it REPLACES the page: no tab row underneath it
+  ok   and no list mount, so it is not a modal over the page
+  ok   the side nav offers all five entries: 5
+  ok   nav has layers
+  ok   nav has indicators
+  ok   nav has shapes
+  ok   nav has coned
+  ok   nav has territory
+  ok   exactly one nav item is current
+  ok   and it is marked for assistive tech
+  ok   opened from the Tract Shapes tab, it LANDS on Tract Shapes
+  ok   and that entry is the one marked current
+  ok   Back names the exact tab the operator left
+  ok   and there is an X
+  ok   both controls return, and both use the same path
+  ok   one click from coned lands on coned
+  ok   and Back names THAT tab, not the first one
+
+=== 221: the four questions, in every entry ===
+  ok   layers: answers "What this data is"
+  ok   layers: answers "Where the data comes from"
+  ok   layers: answers "File requirements"
+  ok   layers: answers "How to update"
+  ok   indicators: answers "What this data is"
+  ok   indicators: answers "Where the data comes from"
+  ok   indicators: answers "File requirements"
+  ok   indicators: answers "How to update"
+  ok   shapes: answers "What this data is"
+  ok   shapes: answers "Where the data comes from"
+  ok   shapes: answers "File requirements"
+  ok   shapes: answers "How to update"
+  ok   coned: answers "What this data is"
+  ok   coned: answers "Where the data comes from"
+  ok   coned: answers "File requirements"
+  ok   coned: answers "How to update"
+  ok   territory: answers "What this data is"
+  ok   territory: answers "Where the data comes from"
+  ok   territory: answers "File requirements"
+  ok   territory: answers "How to update"
+
+=== 221: the approved texts, verbatim ===
+  ok   layers: "GeoJSON overlays you upload to draw over the m"
+  ok   layers: "Polygon or MultiPolygon features only"
+  ok   layers: "Up to 50 MB"
+  ok   layers: "no crs member is accepted too"
+  ok   indicators: "NYSERDA per tract Disadvantaged Communities da"
+  ok   indicators: "at least 98 percent of the tracts the map draw"
+  ok   indicators: "opdgig.dos.ny.gov"
+  ok   indicators: "convert_nyserda_raw.py"
+  ok   shapes: "census tract boundaries the map draws"
+  ok   shapes: "Exactly 8 properties per tract"
+  ok   shapes: "census.gov"
+  ok   shapes: "8ius-dhrr"
+  ok   shapes: "build_pure_geometry_dataset.py"
+  ok   coned: "Per tract account counts, EAP enrolment and ad"
+  ok   coned: "keep their corrections"
+  ok   coned: "build_coned_dataset.py"
+  ok   territory: "ORU"
+  ok   territory: "No GEOIDs and no vintage"
+  ok   territory: "_make_territories.py"
+  ok   territory: "needs network access"
+
+=== 221: the gaps are VISIBLE, not omitted ===
+  ok   the contact gap is on the page
+  ok   the cadence gap is on the page
+  ok   and both are styled as gaps, not as content
+
+=== 221: the drawer is retired, nothing orphaned ===
+  ok   the drawer renderer is GONE
+  ok   and its wiring with it
+  ok   no orphaned overlay markup remains
+  ok   PREV control: the previous build had it
+  ok   absorbed from the drawer: "Polygon or MultiPolygon"
+  ok   absorbed from the drawer: "EPSG:4326"
+  ok   absorbed from the drawer: "numeric on every feature"
+  ok   the header button is renamed Data Sources
+  ok   PREV control: it said File Requirements
+
+=== 221: the inline panel links to the full entry ===
+  ok   indicators: the Data Source panel links to its own dictionary entry
+  ok   shapes: the Data Source panel links to its own dictionary entry
+  ok   coned: the Data Source panel links to its own dictionary entry
+  ok   territory: the Data Source panel links to its own dictionary entry
+  ok   and the link says where it goes
+
+=== 221 / F2: the session box, with per-family semantics ===
+  ok   indicators: has a This Session card
+  ok   indicators: titled like Tab 1
+  ok   shapes: has a This Session card
+  ok   shapes: titled like Tab 1
+  ok   coned: has a This Session card
+  ok   coned: titled like Tab 1
+  ok   territory: has a This Session card
+  ok   territory: titled like Tab 1
+  ok   indicators: names the uploaded-not-active state, which only it can have
+  ok   shapes: says it publishes on upload rather than faking a waiting state
+  ok   shapes: and does NOT claim a state it cannot have
+  ok   coned: says it publishes on upload rather than faking a waiting state
+  ok   coned: and does NOT claim a state it cannot have
+  ok   territory: says it publishes on upload rather than faking a waiting state
+  ok   territory: and does NOT claim a state it cannot have
+  ok   PREV control: no session box before
+
+=== 221 / G7: the loading skeleton ===
+  ok   there is a records-ARRIVED flag
+  ok   and it is set when they arrive
+  ok   _dsHydrated is set BEFORE the records land, which is why a second flag exists
+  ok   the skeleton is styled
+  ok   and it drops the animation under reduced motion, keeping the message
+
+renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
+   after-coned.html
+   after-dict-coned.html
+   after-dict-indicators.html
+   after-dict-layers.html
+   after-dict-shapes.html
+   after-dict-territory.html
+   after-indicators.html
+   after-layers.html
+   after-shapes.html
+   after-territory.html
+   after-wrong-tab.html
+   before-map-layers.html
+   prev-pr1-shapes.html
+
+======================================================================
+  311 passed, 0 failed
+======================================================================

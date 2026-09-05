@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER, tab: indicators</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8963,3 +8964,113 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--white-smoke);padding:24px"><!-- the REAL body colour. This shell painted --bright-snow (#F9F9F9) while the app body is --white-smoke (#F2F2F2), so every render judged the page against the wrong background and the invisible tab fill could not be seen even by eye. -->
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER, tab: indicators &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Map Data</h1>
+          <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
+        </div>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button">
+                Data Sources</button>
+      </div>
+
+      
+
+      
+      <div class="ml-tabs-row" role="tablist" aria-label="Map data sections">
+        
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="layers"
+            aria-selected="false">Map Layers</button>
+          <button type="button" role="tab" class="ml-tab active"
+            data-ml-tab="indicators"
+            aria-selected="true">DAC Indicators</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="shapes"
+            aria-selected="false">Tract Shapes</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="coned"
+            aria-selected="false">Electric and Gas Figures</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="territory"
+            aria-selected="false">Territory Overlays</button>
+      </div>
+
+      <div id="ml-upload-mount"></div>
+
+      <div id="ml-list-mount">
+      <div class="ml-card ds-upload-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Upload DAC Indicators</h3>
+            <p class="ml-card-sub">A NYSERDA release version. It is checked before anything is stored, and it is stored WITHOUT switching to it. You activate it from the list below when you are ready.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <div class="ds-upload"><div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose DAC Indicators file
+             <input type="file" id="ds-file" accept=".json" hidden /></label>
+           <span class="ml-picker-hint">.json</span>
+           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="indicators" aria-expanded="false" aria-label="Data Source" title="Data Source" aria-controls="ds-about-indicators"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg></button>
+         </div></div>
+          <div class="dac-td-note ds-about-note" id="ds-about-indicators" hidden><div class="dac-td-note-title">Data Source</div><p>NYSERDA per tract DAC data, kept as versions. The upload file is built by convert_nyserda_raw.py. Full procedure: the DAC indicators guide in the operator package.</p><p class="ds-about-more"><button type="button" class="ds-dict-link" data-ds-dict-full="indicators">Full entry in Data Sources</button></p></div>
+        </div>
+      </div>
+      <div class="ml-card ds-ind">
+        <div class="ml-card-head">
+          <div>
+            <h3>DAC Indicators</h3>
+            <p class="ml-card-sub">NYSERDA per-tract data, kept as versions. The active version is what the Color by list, the tract tooltips, the tract detail panel and the CSV export all read.</p>
+          </div>
+          <div class="ml-card-actions"><span class="ml-chip">dataset</span><button type="button" class="btn btn-secondary ml-help-btn">Help</button></div>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list">
+      <li class="ml-row" data-ds-row="d1">
+        <div class="ml-row-main">
+          <div class="ml-row-name">NYSERDA DAC
+            <span class="ml-mono">1.0</span></div>
+          <div class="ml-row-meta">2,333 tracts · 56 fields · vintage 2010 · uploaded 2026-08-05</div>
+          
+          
+          
+        </div>
+        <div class="ml-row-actions"><label class="ml-toggle">
+           <input type="checkbox" data-ds-active="d1" checked />
+           <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+           
+         </label></div>
+      </li>
+      <li class="ml-row ml-row-inactive" data-ds-row="d8">
+        <div class="ml-row-main">
+          <div class="ml-row-name">NYSERDA DAC
+            <span class="ml-mono">0.9</span></div>
+          <div class="ml-row-meta">2,333 tracts · 56 fields · vintage 2010 · uploaded 2026-07-30</div>
+          
+          
+          
+        </div>
+        <div class="ml-row-actions"><label class="ml-toggle">
+           <input type="checkbox" data-ds-active="d8" />
+           <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+           
+         </label></div>
+      </li></ul>
+        </div>
+      </div><div class="ml-card ds-session-card"><div class="ml-card-head"><div><h3>This Session (Unsaved)</h3><p class="ml-card-sub">Work in progress on this tab: a file staged but not yet uploaded, and any version uploaded in this session that is not active yet.</p></div></div><div class="ml-card-body"><p class="ml-empty">Nothing waiting. A file you choose appears here before it is uploaded, and a version uploaded in this session stays here until you switch it on.</p></div></div></div>
+
+      <!-- CLCPA-221: the File Requirements drawer is RETIRED. Everything it said
+           about file type, geometry, coordinates and the colour field is now the
+           Map Layers entry's requirements list in the Data Sources view, where it
+           sits beside the same facts for the other four families instead of being
+           the only one that had them. Nothing is orphaned. -->
+      
+
+      <p class="ml-build" id="ml-build">Build render-harness</p>
+    </div></body>
