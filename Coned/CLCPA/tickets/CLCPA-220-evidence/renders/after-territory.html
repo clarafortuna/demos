@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER — tab: territory</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8793,3 +8794,94 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--bright-snow);padding:24px">
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER — tab: territory &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Map Layers</h1>
+          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+        </div>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
+                aria-haspopup="dialog">File requirements</button>
+      </div>
+
+      
+
+      
+      <div class="ml-tabs-row" role="tablist" aria-label="Map Layers sections">
+        
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="layers"
+            aria-selected="false">Map layers</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="indicators"
+            aria-selected="false">DAC indicators</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="shapes"
+            aria-selected="false">Tract shapes</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="coned"
+            aria-selected="false">Electric and gas figures</button>
+          <button type="button" role="tab" class="ml-tab active"
+            data-ml-tab="territory"
+            aria-selected="true">Territory overlays</button>
+      </div>
+
+      <div id="ml-upload-mount"></div>
+
+      <div id="ml-list-mount">
+      <div class="ml-card ds-upload-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Upload territory overlays</h3>
+            <p class="ml-card-sub">The electric and gas service territory boundaries drawn over the tracts. These carry no GEOIDs and pair with no dataset, so no vintage applies.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <div class="ds-upload"><div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose territory overlays file
+             <input type="file" id="ds-file" accept=".json,.geojson" hidden /></label>
+           <span class="ml-picker-hint">.json or .geojson &middot;
+             produced by <span class="ml-mono">update_map_data.py --refresh-territories</span></span>
+         </div></div>
+        </div>
+      </div>
+      <div class="ml-card ds-terr">
+        <div class="ml-card-head">
+          <div>
+            <h3>Territory overlays</h3>
+            <p class="ml-card-sub">The Con Edison electric, gas and ORU boundaries, drawn over the
+            tracts. Switch them on from the Layers control on the map; they download the first time
+            one is used. Uploading a new overlay replaces the published one.</p>
+          </div>
+          <div class="ml-card-actions"><span class="ml-chip ml-chip-ok">loaded</span></div>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-terr-list">
+            <li class="ml-row">
+              <div class="ml-row-main">
+                <div class="ml-row-name">Service territories
+                  <span class="ml-mono">v1.1-simp40ft-5dp</span>
+                  <span class="ml-chip ml-chip-ok">published</span>
+                  </div>
+                <div class="ml-row-meta">
+                  6 features ·
+                  6 layers · A Person · 2026-08-24
+                </div>
+                
+                
+              </div>
+            </li></ul>
+        </div>
+      </div></div>
+
+      
+      
+
+      <p class="ml-build" id="ml-build">Build render-harness</p>
+    </div></body>

@@ -1,0 +1,70 @@
+======================================================================
+CLCPA-220 PR 1 -- renders and assertions
+======================================================================
+
+=== the tab shell ===
+  ok   a pill row is rendered
+  ok   exactly five tabs
+  ok   tab present: layers
+  ok   tab present: indicators
+  ok   tab present: shapes
+  ok   tab present: coned
+  ok   tab present: territory
+  ok   exactly one tab is active
+  ok   the active tab is marked for assistive tech
+  ok   BEFORE control: no tab row existed
+
+=== one tab at a time ===
+  ok   layers tab shows Saved layers
+  ok   layers tab does NOT show a family upload
+  ok   shapes tab shows its own upload block
+  ok   shapes tab does NOT show Saved layers
+  ok   indicators tab titled for its family
+  ok   coned tab titled for its family
+  ok   territory tab titled for its family
+  ok   BEFORE stacked more cards on one screen than AFTER shows in a tab (35 vs 13)
+
+=== G1: the relabel ===
+  ok   AFTER says "Listed on the map"
+  ok   AFTER says "Not listed"
+  ok   both state pills are styled
+  ok   the saved-layers block no longer says "Active"
+  ok   BEFORE control: it used to say "Active"
+  ok   the hint explains that listing does not draw
+
+=== the banner ===
+  ok   BEFORE control: the banner was at the top of the page
+  ok   AFTER: the banner is gone from above the tabs
+  ok   AFTER: its warning survives, inside the This session card
+  ok   and it sits after the This session heading, not before it
+
+=== G6: accepted types stated ===
+  ok   shapes tab states its accepted types
+  ok   territory accepts .geojson too, and says so
+  ok   (before had a hint only on the generic block)
+
+=== G4: territory never asks for a vintage ===
+  ok   the territory upload block asks for no vintage (and says why)
+  ok   there is no vintage input anywhere on the territory tab
+  ok   BEFORE control: there never was one -- G4 needed no build
+
+=== a good file dropped on the WRONG family tab ===
+  ok   it says which tab the file belongs in, by name
+  ok   and says the file is fine, so it does not read as a rejection
+  ok   it offers a one-click way to get there
+  ok   and withholds Upload, so the file cannot be filed under the wrong family
+  ok   on its own tab the same file offers Upload
+  ok   and shows no wrong-tab message
+
+renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
+   after-coned.html
+   after-indicators.html
+   after-layers.html
+   after-shapes.html
+   after-territory.html
+   after-wrong-tab.html
+   before-map-layers.html
+
+======================================================================
+  40 passed, 0 failed
+======================================================================

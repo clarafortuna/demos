@@ -1,4 +1,5 @@
-:root {
+<!doctype html><meta charset="utf-8">
+<title>AFTER — tab: coned</title><style>:root {
   --ink: #031824;
   --ink-2: #0A2436;
   --ink-3: #1E3346;
@@ -8793,3 +8794,95 @@ a.nav-item { text-decoration: none; }
  * in the browser harness is what catches it if that ever changes.
  * ================================================================== */
 [hidden] { display: none !important; }
+</style>
+<body style="background:var(--bright-snow);padding:24px">
+<div style="max-width:1080px;margin:0 auto">
+<p style="font:600 12px/1.4 system-ui;color:#6B7B8C;margin:0 0 14px">
+CLCPA-220 render harness &middot; AFTER — tab: coned &middot; stub data, real markup and real CSS</p>
+
+      <div class="page-header ml-page-header">
+        <div>
+          <h1>Map Layers</h1>
+          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+        </div>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
+                aria-haspopup="dialog">File requirements</button>
+      </div>
+
+      
+
+      
+      <div class="ml-tabs-row" role="tablist" aria-label="Map Layers sections">
+        
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="layers"
+            aria-selected="false">Map layers</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="indicators"
+            aria-selected="false">DAC indicators</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="shapes"
+            aria-selected="false">Tract shapes</button>
+          <button type="button" role="tab" class="ml-tab active"
+            data-ml-tab="coned"
+            aria-selected="true">Electric and gas figures</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ml-tab="territory"
+            aria-selected="false">Territory overlays</button>
+      </div>
+
+      <div id="ml-upload-mount"></div>
+
+      <div id="ml-list-mount">
+      <div class="ml-card ds-upload-card">
+        <div class="ml-card-head">
+          <div>
+            <h3>Upload electric and gas figures</h3>
+            <p class="ml-card-sub">Per-tract account counts and energy-affordability enrolment. These apply UNDER the map data table, so any tract corrected by hand keeps its corrected value.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <div class="ds-upload"><div class="ml-picker">
+           <label class="btn btn-secondary ml-browse">Choose electric and gas figures file
+             <input type="file" id="ds-file" accept=".json" hidden /></label>
+           <span class="ml-picker-hint">.json &middot;
+             produced by <span class="ml-mono">build_coned_dataset.py</span></span>
+         </div></div>
+        </div>
+      </div>
+      <div class="ml-card ds-coned">
+        <div class="ml-card-head">
+          <div>
+            <h3>Electric &amp; gas figures</h3>
+            <p class="ml-card-sub">Account counts, EAP counts and adjustments per tract, converted
+            from the Con Edison extracts. The version matching the active dataset's vintage is the
+            one in use. Tracts corrected by hand in the map data table keep their corrections:
+            these figures sit underneath them.</p>
+          </div>
+          <button type="button" class="btn btn-secondary ml-help-btn">Help</button>
+        </div>
+        <div class="ml-card-body">
+          <ul class="ml-list ds-coned-list">
+            <li class="ml-row">
+              <div class="ml-row-main">
+                <div class="ml-row-name">Electric &amp; gas
+                  <span class="ml-mono">1.0-2010</span>
+                  <span class="ml-chip ml-chip-ok">in use</span>
+                  </div>
+                <div class="ml-row-meta">
+                  2,329 tracts ·
+                  8 fields ·
+                  vintage 2010 · A Person · 2026-08-14
+                </div>
+                
+              </div>
+            </li></ul>
+        </div>
+      </div></div>
+
+      
+      
+
+      <p class="ml-build" id="ml-build">Build render-harness</p>
+    </div></body>
