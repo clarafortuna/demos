@@ -14955,10 +14955,11 @@ function wireHTooltips() {
     const cur = DS_DICT.some(e => e.id === d.dictEntry) ? d.dictEntry : 'layers';
     const entry = DS_DICT.filter(e => e.id === cur)[0];
     const back = mlTabLabel(d.dictReturnTab || 'layers');
-    const nav = DS_DICT.map(e => `
-      <button type="button" class="ds-dict-navitem${e.id === cur ? ' active' : ''}"
-        data-ds-dict-go="${escapeHtml(e.id)}"${e.id === cur ? ' aria-current="true"' : ''}
-        >${escapeHtml(e.title)}</button>`).join('');
+    // The SAME row the Map Data page draws, from the same function. The side
+    // nav it replaces was a second selector for the same five things.
+    const nav = renderMlTabs({
+      current: cur, attr: 'data-ds-dict-go', label: 'Data source entries',
+    });
     const originRows = (entry.origin || []).length
       ? '<dl class="ds-dict-origin">' + entry.origin.map(([k, v]) =>
           '<dt>' + escapeHtml(k) + '</dt><dd>' +
@@ -14984,14 +14985,16 @@ function wireHTooltips() {
           from, what a file has to satisfy, and how it is updated.</p>
         </div>
         <div class="ds-dict-actions">
-          <button type="button" class="btn btn-secondary" data-ds-dict-back="1">
-            Back to ${escapeHtml(back)}</button>
+          <!-- CLCPA-221 round 2: the Back button is gone and the X carries the
+               whole return. Its accessible name still NAMES the tab it returns
+               to, so the destination is not lost with the visible label. -->
           <button type="button" class="ds-dict-x" data-ds-dict-back="1"
+            title="Close and return to ${escapeHtml(back)}"
             aria-label="Close Data Sources and return to ${escapeHtml(back)}">&times;</button>
         </div>
       </div>
+      ${nav}
       <div class="ds-dict">
-        <nav class="ds-dict-nav" aria-label="Data source entries">${nav}</nav>
         <article class="ds-dict-entry" id="ds-dict-entry">
           <h2>${escapeHtml(entry.title)}</h2>
           <section>
@@ -16055,20 +16058,35 @@ function wireHTooltips() {
   }
 
   /**
-   * The five pills. One row, wrapping to a second if the width demands it.
+   * THE row of five. One row, wrapping to a second if the width demands it.
    *
    * The dataset families only exist on Dataverse, so on localStorage there is
-   * one tab and a pill row would be a control with nothing to choose: it is
+   * one tab and a row would be a control with nothing to choose: it is
    * omitted entirely rather than shown disabled.
+   *
+   * CLCPA-221 round 2: the dictionary had its own side nav, which meant the
+   * page had two different family selectors with two different anatomies. It
+   * now uses THIS row, so "same rule, same anatomy, same states" is not a
+   * promise maintained by hand: there is one rule and both callers render it.
+   * Only the data attribute differs, because clicking one switches a tab and
+   * clicking the other switches an entry.
+   *
+   * The labels come from ML_TABS for both, so a rename cannot leave the
+   * dictionary saying something the tab row does not.
    */
-  function renderMlTabs() {
+  function renderMlTabs(opts) {
     if (!Storage.isDataverse()) return '';
-    const cur = mlTab();
+    const o = opts || {};
+    // A value here, because the row is rendered once. The wiring's own
+    // `current` is a function, because it is read again on every keypress.
+    const cur = o.current || mlTab();
+    const attr = o.attr || 'data-ml-tab';
+    const label = o.label || 'Map data sections';
     return `
-      <div class="ml-tabs-row" role="tablist" aria-label="Map data sections">
+      <div class="ml-tabs-row" role="tablist" aria-label="${escapeHtml(label)}">
         ${ML_TABS.map(t => `
           <button type="button" role="tab" class="ml-tab${t.id === cur ? ' active' : ''}"
-            data-ml-tab="${escapeHtml(t.id)}"
+            ${attr}="${escapeHtml(t.id)}"
             aria-selected="${t.id === cur ? 'true' : 'false'}">${escapeHtml(t.label)}</button>`).join('')}
       </div>`;
   }
@@ -17039,10 +17057,17 @@ function wireHTooltips() {
   /** Wire the Map Layers page (the cards, the requirements drawer, the docs drawer). */
   function wireMapLayersPage() {
     wireDsDict();
-    // Inside the dictionary there are no tabs, no upload card and no list, so
-    // none of the rest applies and binding it would look for mounts that are
-    // not there.
-    if (initMapLayersState().dict) return;
+    if (initMapLayersState().dict) {
+      // The dictionary has the SAME row, navigating entries instead of tabs, so
+      // it takes the same keyboard behaviour from the same wiring. Clicks are
+      // already delegated by wireDsDict, hence keysOnly.
+      wireMlTabs({
+        attr: 'data-ds-dict-go', key: 'dsDictGo', keysOnly: true,
+        current: () => initMapLayersState().dictEntry, go: dsDictGo,
+      });
+      // The rest of the page is not mounted here: no upload card, no list.
+      return;
+    }
     wireMlTabs();
     // Only the layers tab mounts the layer-upload card; on a family tab the
     // upload block is delegated from the list mount instead.
@@ -17080,22 +17105,42 @@ function wireHTooltips() {
       if (e.key === 'Escape' && initMapLayersState().dict) dsDictClose();
     });
   }
-  function wireMlTabs() {
+  /**
+   * Wire THE row. renderMlTabs() draws it in two places, so it is wired in one
+   * place too: a role="tablist" that answered arrow keys on the Map Data page
+   * and ignored them in the dictionary would be the same row in look only.
+   *
+   * Defaults are the Map Data page's. The dictionary passes its own action.
+   * keysOnly is for the dictionary alone, where wireDsDict's delegated listener
+   * on #view-container already owns the clicks; binding them here as well would
+   * fire the same navigation twice.
+   */
+  function wireMlTabs(opts) {
+    const o = opts || {};
+    const attr = o.attr || 'data-ml-tab';
+    const key = o.key || 'mlTab';
+    const current = o.current || mlTab;
+    const go = o.go || mlSetTab;
     const row = document.querySelector('.ml-tabs-row');
     if (!row || row.dataset.wired === '1') return;
     row.dataset.wired = '1';
-    row.addEventListener('click', function (e) {
-      const b = e.target.closest('.ml-tab');
-      if (b && b.dataset.mlTab) mlSetTab(b.dataset.mlTab);
-    });
+    if (!o.keysOnly) {
+      row.addEventListener('click', function (e) {
+        const b = e.target.closest('.ml-tab');
+        if (b && b.dataset[key]) go(b.dataset[key]);
+      });
+    }
     row.addEventListener('keydown', function (e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
       const ids = ML_TABS.map(t => t.id);
-      const i = ids.indexOf(mlTab());
+      const i = ids.indexOf(current());
       if (i < 0) return;
       const next = ids[(i + (e.key === 'ArrowRight' ? 1 : ids.length - 1)) % ids.length];
-      mlSetTab(next);
-      const btn = row.querySelector('.ml-tab[data-ml-tab="' + next + '"]');
+      go(next);
+      // Re-queried, not held: the dictionary redraws the whole view, so the
+      // button captured before go() would be a detached node and the focus
+      // would be lost. On the tab row this resolves to the same element.
+      const btn = document.querySelector('.ml-tabs-row .ml-tab[' + attr + '="' + next + '"]');
       if (btn) btn.focus();
       e.preventDefault();
     });

@@ -8099,34 +8099,21 @@ a.nav-item { text-decoration: none; }
 .ds-session-card .ml-row-meta { color: var(--text-3); }
 
 /* ---- Data Sources dictionary (CLCPA-221) -------------------------------
-   A full page VIEW, not a modal, so it uses the page's own header and needs
-   only the two-column body. The side nav is persistent: five entries visible
-   at once is the answer to "what families are there", which is the first
-   question this surface exists to answer. */
+   A full page VIEW, not a modal, so it uses the page's own header.
+
+   Round 2: the family navigation IS the Map Data tab row. It is not a copy
+   of it: renderMlTabs() draws both, so .ml-tabs-row and .ml-tab (which take
+   their resting fill and border from .table-card, line 484) are the only
+   rules involved, and there is nothing here for them to drift from. The
+   dedicated side nav and its .ds-dict-navitem rules are gone with it.
+
+   The row sits above this grid, under the page title, so the body is now a
+   single column and .ml-tabs-row carries its own wrapping and bottom
+   margin. */
 .ds-dict {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-}
-@media (max-width: 720px) {
-  /* The nav stacks above the entry rather than being hidden: on a narrow
-     screen the set of five is still the orientation. */
-  .ds-dict { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .ds-dict-nav { flex-direction: row; flex-wrap: wrap; }
-}
-.ds-dict-nav { display: flex; flex-direction: column; gap: 4px; }
-.ds-dict-navitem {
-  font-family: var(--font); font-size: 12.5px; font-weight: 600;
-  text-align: left; padding: 9px 12px; border-radius: 6px;
-  border: 1px solid transparent; background: transparent; color: var(--text-2);
-  cursor: pointer; white-space: nowrap;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.ds-dict-navitem:hover { background: var(--white); border-color: var(--line); }
-.ds-dict-navitem:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
-.ds-dict-navitem.active {
-  background: var(--dusk); border-color: var(--dusk); color: var(--white);
 }
 .ds-dict-entry {
   background: var(--white); border: 1px solid var(--line); border-radius: 8px;
@@ -8975,8 +8962,8 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
           <h1>Map Data</h1>
           <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
         </div>
-        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                aria-haspopup="dialog">File Requirements</button>
+        <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button">
+                Data Sources</button>
       </div>
 
       
@@ -9019,7 +9006,7 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
            <span class="ml-picker-hint">.json</span>
            <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="shapes" aria-expanded="false" aria-label="Data Source" title="Data Source" aria-controls="ds-about-shapes"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg></button>
          </div></div>
-          <div class="dac-td-note ds-about-note" id="ds-about-shapes" hidden><div class="dac-td-note-title">Data Source</div><p>The census tract boundaries the map draws, matched to the active DAC indicators version by vintage. The upload file is built by build_pure_geometry_dataset.py (update_map_data.py runs the full chain). Full procedure: the tract shapes guide in the operator package.</p></div>
+          <div class="dac-td-note ds-about-note" id="ds-about-shapes" hidden><div class="dac-td-note-title">Data Source</div><p>The census tract boundaries the map draws, matched to the active DAC indicators version by vintage. The upload file is built by build_pure_geometry_dataset.py (update_map_data.py runs the full chain). Full procedure: the tract shapes guide in the operator package.</p><p class="ds-about-more"><button type="button" class="ds-dict-link" data-ds-dict-full="shapes">Full entry in Data Sources</button></p></div>
         </div>
       </div>
       <div class="ml-card ds-geom">
@@ -9066,9 +9053,13 @@ CLCPA-220 render harness &middot; PR 1: Tract shapes (no retired versions, no fi
         <div class="ml-row-actions"><span class="ml-state-pill ml-state-off">Inactive</span></div>
       </li></ul>
         </div>
-      </div></div>
+      </div><div class="ml-card ds-session-card"><div class="ml-card-head"><div><h3>This Session (Unsaved)</h3><p class="ml-card-sub">Work in progress on this tab: a file staged but not yet uploaded.</p></div></div><div class="ml-card-body"><p class="ml-empty">Nothing waiting. A file you choose appears here before it is uploaded. Tract Shapes publish on upload, so there is no separate step after that.</p></div></div></div>
 
-      
+      <!-- CLCPA-221: the File Requirements drawer is RETIRED. Everything it said
+           about file type, geometry, coordinates and the colour field is now the
+           Map Layers entry's requirements list in the Data Sources view, where it
+           sits beside the same facts for the other four families instead of being
+           the only one that had them. Nothing is orphaned. -->
       
 
       <p class="ml-build" id="ml-build">Build render-harness</p>

@@ -8099,34 +8099,21 @@ a.nav-item { text-decoration: none; }
 .ds-session-card .ml-row-meta { color: var(--text-3); }
 
 /* ---- Data Sources dictionary (CLCPA-221) -------------------------------
-   A full page VIEW, not a modal, so it uses the page's own header and needs
-   only the two-column body. The side nav is persistent: five entries visible
-   at once is the answer to "what families are there", which is the first
-   question this surface exists to answer. */
+   A full page VIEW, not a modal, so it uses the page's own header.
+
+   Round 2: the family navigation IS the Map Data tab row. It is not a copy
+   of it: renderMlTabs() draws both, so .ml-tabs-row and .ml-tab (which take
+   their resting fill and border from .table-card, line 484) are the only
+   rules involved, and there is nothing here for them to drift from. The
+   dedicated side nav and its .ds-dict-navitem rules are gone with it.
+
+   The row sits above this grid, under the page title, so the body is now a
+   single column and .ml-tabs-row carries its own wrapping and bottom
+   margin. */
 .ds-dict {
   display: grid;
-  grid-template-columns: 210px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-}
-@media (max-width: 720px) {
-  /* The nav stacks above the entry rather than being hidden: on a narrow
-     screen the set of five is still the orientation. */
-  .ds-dict { grid-template-columns: minmax(0, 1fr); gap: 14px; }
-  .ds-dict-nav { flex-direction: row; flex-wrap: wrap; }
-}
-.ds-dict-nav { display: flex; flex-direction: column; gap: 4px; }
-.ds-dict-navitem {
-  font-family: var(--font); font-size: 12.5px; font-weight: 600;
-  text-align: left; padding: 9px 12px; border-radius: 6px;
-  border: 1px solid transparent; background: transparent; color: var(--text-2);
-  cursor: pointer; white-space: nowrap;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-.ds-dict-navitem:hover { background: var(--white); border-color: var(--line); }
-.ds-dict-navitem:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
-.ds-dict-navitem.active {
-  background: var(--dusk); border-color: var(--dusk); color: var(--white);
 }
 .ds-dict-entry {
   background: var(--white); border: 1px solid var(--line); border-radius: 8px;
@@ -8977,29 +8964,34 @@ CLCPA-220 render harness &middot; AFTER: Data Sources, shapes entry &middot; stu
           from, what a file has to satisfy, and how it is updated.</p>
         </div>
         <div class="ds-dict-actions">
-          <button type="button" class="btn btn-secondary" data-ds-dict-back="1">
-            Back to Tract Shapes</button>
+          <!-- CLCPA-221 round 2: the Back button is gone and the X carries the
+               whole return. Its accessible name still NAMES the tab it returns
+               to, so the destination is not lost with the visible label. -->
           <button type="button" class="ds-dict-x" data-ds-dict-back="1"
+            title="Close and return to Tract Shapes"
             aria-label="Close Data Sources and return to Tract Shapes">&times;</button>
         </div>
       </div>
+      
+      <div class="ml-tabs-row" role="tablist" aria-label="Data source entries">
+        
+          <button type="button" role="tab" class="ml-tab"
+            data-ds-dict-go="layers"
+            aria-selected="false">Map Layers</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ds-dict-go="indicators"
+            aria-selected="false">DAC Indicators</button>
+          <button type="button" role="tab" class="ml-tab active"
+            data-ds-dict-go="shapes"
+            aria-selected="true">Tract Shapes</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ds-dict-go="coned"
+            aria-selected="false">Electric and Gas Figures</button>
+          <button type="button" role="tab" class="ml-tab"
+            data-ds-dict-go="territory"
+            aria-selected="false">Territory Overlays</button>
+      </div>
       <div class="ds-dict">
-        <nav class="ds-dict-nav" aria-label="Data source entries">
-      <button type="button" class="ds-dict-navitem"
-        data-ds-dict-go="layers"
-        >Map Layers</button>
-      <button type="button" class="ds-dict-navitem"
-        data-ds-dict-go="indicators"
-        >DAC Indicators</button>
-      <button type="button" class="ds-dict-navitem active"
-        data-ds-dict-go="shapes" aria-current="true"
-        >Tract Shapes</button>
-      <button type="button" class="ds-dict-navitem"
-        data-ds-dict-go="coned"
-        >Electric and Gas Figures</button>
-      <button type="button" class="ds-dict-navitem"
-        data-ds-dict-go="territory"
-        >Territory Overlays</button></nav>
         <article class="ds-dict-entry" id="ds-dict-entry">
           <h2>Tract Shapes</h2>
           <section>
