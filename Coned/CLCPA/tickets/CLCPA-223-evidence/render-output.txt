@@ -1,0 +1,112 @@
+======================================================================
+CLCPA-223 -- the operator gate, and the Edit map files deletion
+======================================================================
+
+=== the sidebar gate, EXECUTED ===
+  ok   an operator keeps the Data Ingestion group
+  ok   a viewer loses it: hidden, label and both entries with it
+  ok   and the log says plainly that the gate is convenience, not enforcement
+  ok   Map Data alone keeps the section (union, not intersection)
+  ok   Report Data alone keeps it too
+  ok   a missing container is a no-op, not a crash
+
+=== the not-available view, EXECUTED ===
+  ok   Report Data: the page names itself
+  ok   Report Data: and says it is not available
+  ok   Report Data: and points at the role, which is the actionable part
+  ok   Report Data: with a way back
+  ok   Report Data: it does NOT name tables to an unauthorised viewer
+  ok   Report Data: nor the privilege
+  ok   Map Data: the page names itself
+  ok   Map Data: and says it is not available
+  ok   Map Data: and points at the role, which is the actionable part
+  ok   Map Data: with a way back
+  ok   Map Data: it does NOT name tables to an unauthorised viewer
+  ok   Map Data: nor the privilege
+  ok   the two pages render distinctly
+
+=== the route gate covers the PAGE, not the menu (source) ===
+  ok   renderCurrentView was found to read
+  ok   the ingest guard is BEFORE the first render branch
+  ok   and so is the maplayers guard
+  ok   both guards render the not-available view
+  ok   and both RETURN, so no page renderer runs underneath
+  ok   the page gates use the per-page predicates, not the section union
+
+=== Write is the floor, probed per page (source) ===
+  ok   the Report Data table is named by LOGICAL name, which the probe needs
+  ok   and it is probed by the EXISTING resolveTablePrivileges, not a new probe
+  ok   there is still exactly ONE privilege probe in the app
+  ok   inside the Promise.all array: ENT_MAPLAYER
+  ok   inside the Promise.all array: ENT_TRACTDATASET
+  ok   inside the Promise.all array: ENT_TABLEDATA
+  ok   all THREE probes are in that one array: parallel, not a third round trip
+  ok   and none was left to run sequentially after it
+  ok   Report Data gates on WRITE, not Create
+  ok   Map Data is the union of its two tables, both on Write
+  ok   and the SECTION is the union of the two pages
+  ok   the starting value denies
+  ok   and the new flag starts there too
+  ok   a probe FAILURE is logged as a probe failure
+  ok   and a genuine lack is logged as a lack
+  ok   but neither predicate branches on `detected`: both states deny identically
+
+=== localStorage has no roles, so nothing is gated there ===
+  ok   the localStorage backend reports operable
+  ok   for both pages
+  ok   even though canWriteLayers() is false there, which is why a separate predicate exists
+
+=== the gate runs BEFORE the first render ===
+  ok   boot has all three steps
+  ok   privileges are resolved (Storage.init awaits the probe) before the gate
+  ok   and the gate runs before the first render, so nothing flashes
+
+=== CLCPA-223 ruling 3: Edit map files is DELETED ===
+  ok   app.js holds no "emf"
+  ok   the html holds no "emf"
+  ok   app.js holds no "editmapfiles"
+  ok   the html holds no "editmapfiles"
+  ok   app.js holds no "edit-map-files"
+  FAIL the html holds no "edit-map-files"
+  ok   app.js holds no "renderEditMapFiles"
+  ok   the html holds no "renderEditMapFiles"
+  ok   app.js holds no "wireEditMapFiles"
+  ok   the html holds no "wireEditMapFiles"
+  ok   app.js holds no "_emfEscHandler"
+  ok   the html holds no "_emfEscHandler"
+  ok   and its section banner is gone, not orphaned
+  ok   the emf-only <style> block is gone from the html
+  ok   the comment claiming it was HIDDEN rather than deleted is corrected
+  ok   and the surviving reference says so
+  ok   BASE control: the page renderer existed
+  ok   BASE control: and its wiring
+  ok   BASE control: the route resolved, so a URL reached it
+  ok   BASE control: the hidden nav entry existed
+  ok   BASE control: the emf style block existed
+  ok   the deleted region was found in BASE to re-examine
+  ok   STOP CHECK: it made no data call, so no capability was deleted
+  ok   STOP CHECK: its only control said so itself
+  ok   STOP CHECK: and that button was disabled
+
+=== the not-available card is actually styled ===
+  ok   .gate-card exists, so the class in the markup is not dead
+  ok   and it sets the padding .table-card does not
+  ok   BASE fact: .table-card really has no padding of its own
+  ok   its prose and heading are sized, not left to browser defaults
+
+=== the sidebar, before and after (html) ===
+  ok   the group has a container to hide
+  ok   the LABEL is inside it
+  ok   and both entries, so hiding it removes the whole group
+  FAIL exactly two entries remain in the group: 3
+  ok   BASE control: there was no container before, which is why the html changed
+
+renders written to c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\tickets\CLCPA-223-evidence\renders:
+   sidebar-operator.html
+   sidebar-viewer.html
+   not-available-report-data.html
+   not-available-map-data.html
+
+======================================================================
+  79 passed, 2 failed
+======================================================================

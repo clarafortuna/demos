@@ -8159,6 +8159,15 @@ a.nav-item { text-decoration: none; }
 .ds-dict-x:hover { color: var(--dusk); }
 .ds-dict-x:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
 
+/* ---- CLCPA-223: the not-available view ---------------------------------
+   .table-card carries the tone and the border but no padding (it normally
+   wraps a table, which brings its own). This is prose, so it needs its own. */
+.gate-card { padding: 22px 24px 24px; max-width: 640px; }
+.gate-card h2 { font-size: 15px; margin: 0 0 10px; color: var(--ink); }
+.gate-card p { font-size: 12.5px; line-height: 1.6; color: var(--text-2); margin: 0 0 10px; }
+.gate-card p:last-child { margin-bottom: 0; }
+.gate-card a { color: var(--dusk); font-weight: 600; }
+
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
    Five pills, one section visible at a time. The page had grown to seven
    stacked cards, three of which had a heading; the tabs ARE the headings the

@@ -271,6 +271,10 @@ function utf8ByteLength(str) {
     const SET_HISTORY   = 'cr2bf_dacingesttestchangehistories';
     const SET_YEARS     = 'cr2bf_dacingesttestreportingyears';
     const ID_TABLEDATA  = 'cr2bf_dacingesttesttabledata1id';
+    // CLCPA-223: the LOGICAL name (singular) as well as the set, because
+    // resolveTablePrivileges() reads privilege names from EntityDefinitions,
+    // which is keyed by logical name. This is the table Report Data writes,
+    // so it is the honest proxy for "may operate Report Data".
     const ID_HISTORY    = 'cr2bf_dacingesttestchangehistoryid';
     const ID_YEARS      = 'cr2bf_dacingesttestreportingyearid';
 
@@ -280,6 +284,7 @@ function utf8ByteLength(str) {
     // app (cr2bf_dacmaplayers / cr2bf_dacmapchangehistories) and used as the
     // defaults below, but init() still resolves them from EntityDefinitions so
     // a pluralization change in a future environment can't break the app.
+    const ENT_TABLEDATA = 'cr2bf_dacingesttesttabledata1';
     const ENT_MAPLAYER   = 'cr2bf_dacmaplayer';
     const ENT_MAPHISTORY = 'cr2bf_dacmapchangehistory';
     const SET_MAPLAYER_DEFAULT   = 'cr2bf_dacmaplayers';
@@ -479,6 +484,12 @@ function utf8ByteLength(str) {
         setMapLayerActive() { return Promise.reject(new Error('Saved layers need Dataverse.')); },
         canCreateDatasets() { return false; },
         canWriteDatasets() { return false; },
+        // CLCPA-223: the OPERATOR gate is a Dataverse-role question, and
+        // localStorage has no roles. Report Data and Map Data both work on this
+        // backend, so hiding the section here would remove working pages from
+        // the only environment that has no security model to enforce. True.
+        canOperateReportData() { return true; },
+        canOperateMapData() { return true; },
         async listTractDatasets() { return []; },
         getTractDatasetFile() { return Promise.reject(new Error('Tract datasets need Dataverse.')); },
         saveTractDataset() { return Promise.reject(new Error('Tract datasets need Dataverse.')); },
@@ -685,6 +696,7 @@ function utf8ByteLength(str) {
       const NO_PRIVS = { canCreate: false, canWrite: false, detected: false };
       let mapPrivs = NO_PRIVS;
       let dsPrivs = NO_PRIVS;
+      let ingestPrivs = NO_PRIVS;
 
       /**
        * One audit row per save / activate / deactivate. Background: never blocks,
@@ -927,11 +939,27 @@ function utf8ByteLength(str) {
         // ---- CLCPA-171 Slice 3: capability flags ------------------------
         async initPrivileges(userId) {
           // Probed per table: a user may administer layers but not datasets.
-          const [ml, ds] = await Promise.all([
+          // CLCPA-223 adds the third table. In the same Promise.all, so the
+          // added cost is three parallel requests, not a third round trip.
+          const [ml, ds, ing] = await Promise.all([
             resolveTablePrivileges(ENT_MAPLAYER, userId),
             resolveTablePrivileges(ENT_TRACTDATASET, userId),
+            resolveTablePrivileges(ENT_TABLEDATA, userId),
           ]);
-          mapPrivs = ml; dsPrivs = ds;
+          mapPrivs = ml; dsPrivs = ds; ingestPrivs = ing;
+          // Probe-failed and lacks-privilege are gated IDENTICALLY (both deny)
+          // but logged DIFFERENTLY, because only one of them is a support call.
+          [['map layers', ml], ['tract datasets', ds], ['report data', ing]]
+            .forEach(function (pair) {
+              if (!pair[1].detected) {
+                console.warn('[Storage] CLCPA-223: privileges for ' + pair[0] +
+                  ' could not be DETERMINED; treating as not-operable. This is a' +
+                  ' probe failure, not a proven lack of privilege.');
+              } else if (!pair[1].canWrite) {
+                console.info('[Storage] CLCPA-223: user lacks Write on ' + pair[0] +
+                  '; that surface is not operable for them.');
+              }
+            });
         },
         // Saving needs Create (the record) AND Write (the file + IsActive
         // PATCHes). Toggling active needs Write alone.
@@ -939,6 +967,25 @@ function utf8ByteLength(str) {
         canWriteLayers() { return mapPrivs.canWrite; },
         canCreateDatasets() { return dsPrivs.canCreate && dsPrivs.canWrite; },
         canWriteDatasets() { return dsPrivs.canWrite; },
+
+        /**
+         * CLCPA-223: may this user OPERATE each ingestion page?
+         *
+         * Write, not Create, is the floor. Write is the necessary condition for
+         * every mutation the app performs, including activate/deactivate, which
+         * is a PATCH and needs no Create at all. A user with Write but no Create
+         * is still an operator: they can switch versions on and off. Gating on
+         * Create would hide a page they can genuinely use.
+         *
+         * Map Data is a UNION of its two tables: it has five tabs, four of them
+         * backed by cr2bf_dactractdataset and one by cr2bf_dacmaplayer, so Write
+         * on either makes the page worth opening.
+         *
+         * Both fail closed: NO_PRIVS is the starting value and a probe error
+         * leaves it in place.
+         */
+        canOperateReportData() { return ingestPrivs.canWrite; },
+        canOperateMapData() { return mapPrivs.canWrite || dsPrivs.canWrite; },
 
         /**
          * Active saved layers, metadata only (no file bodies).
@@ -1403,6 +1450,18 @@ function utf8ByteLength(str) {
       canWriteLayers() { return active.canWriteLayers(); },
       canCreateDatasets() { return active.canCreateDatasets(); },
       canWriteDatasets() { return active.canWriteDatasets(); },
+
+      // ---- CLCPA-223: the operator gate --------------------------------
+      // UI convenience ONLY. Dataverse is the enforcement; this decides what to
+      // draw. A user who defeats it gains nothing: every write still goes
+      // through the same Web API that refuses it.
+      canOperateReportData() { return active.canOperateReportData(); },
+      canOperateMapData() { return active.canOperateMapData(); },
+      // The SECTION shows if ANY of its pages is operable. Union, not
+      // intersection: intersection would hide a page the user can use.
+      canOperateIngestion() {
+        return active.canOperateReportData() || active.canOperateMapData();
+      },
       listTractDatasets() { return active.listTractDatasets(); },
       getTractDatasetFile(dvId) { return active.getTractDatasetFile(dvId); },
       saveTractDataset(rec, text, onProgress) { return active.saveTractDataset(rec, text, onProgress); },
@@ -13621,6 +13680,27 @@ function wireHTooltips() {
     document.getElementById('sidebar-sub').textContent = `Reporting Year ${state.year}`;
   }
 
+  /**
+   * CLCPA-223: hide the DATA INGESTION group from a non-operator.
+   *
+   * CONVENIENCE, NOT SECURITY. Dataverse is the enforcement; this decides what
+   * to draw. Anyone who unhides this in devtools gains nothing: every write
+   * still goes through the Web API that refuses it.
+   *
+   * Runs after Storage.init(), which awaits the privilege probe, and before the
+   * first onRouteChange(), so the section never appears and then vanishes.
+   */
+  function applyOperatorGate() {
+    const group = document.getElementById('nav-ingestion');
+    if (!group) return;
+    const ok = Storage.canOperateIngestion();
+    group.hidden = !ok;
+    if (!ok) {
+      console.info('[CLCPA-223] Data Ingestion hidden: this user cannot operate ' +
+        'Report Data or Map Data. The UI gate is convenience; Dataverse enforces.');
+    }
+  }
+
   function updateActiveNav() {
     const hash = location.hash || '#/';
     const route = hash.slice(1);
@@ -13662,7 +13742,6 @@ function wireHTooltips() {
     if (path === '/' || path === '') return { name: 'executive' };
     if (path === '/ingest') return { name: 'ingest' };
     if (path === '/maplayers') return { name: 'maplayers' };
-    if (path === '/edit-map-files') return { name: 'editmapfiles' };
     const m = path.match(/^\/section\/([A-J])$/);
     if (m) return { name: 'section', sectionId: m[1] };
     return { name: 'notfound', path };
@@ -13686,7 +13765,6 @@ function wireHTooltips() {
     }
     else if (r.name === 'ingest') el.textContent = 'Report Data';
     else if (r.name === 'maplayers') el.textContent = 'Map Data';
-    else if (r.name === 'editmapfiles') el.textContent = 'Edit map files';
     else el.textContent = 'Not found';
   }
 
@@ -13697,9 +13775,46 @@ function wireHTooltips() {
   //   - Data Ingestion: placeholder for Phase 6
   // ============================================================
 
+  /**
+   * CLCPA-223: the view a non-operator gets on an ingestion route.
+   *
+   * It exists because the gate covers the PAGE, not the menu entry: a URL, a
+   * bookmark, a restored tab or a stale hash all reach renderCurrentView()
+   * without ever touching the sidebar.
+   *
+   * It does not say which privilege is missing. Naming the table and the
+   * privilege to an unauthorised viewer is a detail they cannot act on; the
+   * diagnosis for a MISCONFIGURED operator lives in the handoff document their
+   * admin holds, which is where ruling 1 put it.
+   */
+  function renderNotOperable(pageName) {
+    return '<div class="page-header"><div><h1>' + escapeHtml(pageName) + '</h1>' +
+      '<p class="page-sub">This page is part of Data Ingestion.</p></div></div>' +
+      '<div class="table-card gate-card">' +
+      '<h2>Not available for your account</h2>' +
+      '<p>Data Ingestion is limited to accounts set up to maintain the ' +
+      'dashboard\u2019s data. Your account can view the dashboard but not ' +
+      'change the data behind it.</p>' +
+      '<p>If you are expected to maintain this data, ask your Dataverse ' +
+      'administrator to check your security role.</p>' +
+      '<p><a href="#/">Back to Executive Summary</a></p>' +
+      '</div>';
+  }
+
   function renderCurrentView() {
     const view = document.getElementById('view-container');
     const r = state.route;
+    // CLCPA-223: the gate covers the PAGE. Checked here rather than in the
+    // sidebar so a direct route lands on the same view. Fails closed: the
+    // predicates are false whenever the probe could not prove otherwise.
+    if (r.name === 'ingest' && !Storage.canOperateReportData()) {
+      view.innerHTML = renderNotOperable('Report Data');
+      return;
+    }
+    if (r.name === 'maplayers' && !Storage.canOperateMapData()) {
+      view.innerHTML = renderNotOperable('Map Data');
+      return;
+    }
     if (r.name === 'executive') {
       view.innerHTML = renderExecutiveSummary();
       wireExecutiveInteractions();
@@ -13726,10 +13841,6 @@ function wireHTooltips() {
     else if (r.name === 'maplayers') {
       view.innerHTML = renderMapLayersPage();
       wireMapLayersPage();
-    }
-    else if (r.name === 'editmapfiles') {
-      view.innerHTML = renderEditMapFiles();
-      wireEditMapFiles();
     }
     else view.innerHTML = renderNotFound(r.path);
   }
@@ -14429,238 +14540,6 @@ function wireHTooltips() {
   }
 
   // ---------- renderers ----------
-
-  // ============================================================
-  // EDIT MAP FILES (CLCPA): source list + "update to a newer version" drawer
-  // ============================================================
-  let _emfEscHandler = null;
-  let _emfDocClickHandler = null;
-
-  function renderEditMapFiles() {
-    const chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
-    return `
-      <div class="page-header emf-header">
-        <h1>Edit map files</h1>
-        <button class="btn" id="emf-edit-files-btn" type="button">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-          Edit files
-        </button>
-      </div>
-      <div class="emf-wrap">
-        <p class="emf-intro">The datasets behind the DAC map: where each one comes from, what it brings, and how to update it when a newer version is published. Click a source to see its update steps.</p>
-
-        <div class="emf-lead">
-          <p><strong>Two rules whenever you update any source.</strong> Keep the join key intact: every tabular source matches the map on the 11-digit <span class="emf-mono">GEOID</span>, so a new file must carry the same GEOID (and the same column names the build expects). And re-run the build step that reads it, so the change reaches the dashboard as a dataset you upload here. As of slices 6 and 7 every source ends in a Dataverse dataset rather than in <span class="emf-mono">map_payload.json</span>, which the map no longer reads.</p>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Census tract geometry">
-          <div class="emf-src-head"><h3>1 &nbsp; Census tract geometry</h3><span class="emf-chip emf-chip-ref">rarely changes</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>2020 boundaries (2010 fallback)</dd>
-            <dt>From</dt><dd>U.S. Census Bureau (TIGER/Line tract boundaries), saved as GeoJSON</dd>
-            <dt>Files</dt><dd><span class="emf-mono">ny_tracts.geojson</span> (2020, primary) and <span class="emf-mono">ny_tracts_2010.geojson</span> (2010, fallback)</dd>
-            <dt>Brings</dt><dd>the polygon shape of every area on the map, and the GEOID that all other sources join on</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>Tract boundaries change only rarely (each decennial census, or an occasional vintage correction).</li>
-            <li>When a newer vintage is published, export the New York tracts for the six counties as GeoJSON, keeping the <code>GEOID</code> property.</li>
-            <li>Replace <strong>ny_tracts.geojson</strong> (same filename, same <code>GEOID</code> field). Only touch the 2010 fallback if you need older-vintage coverage.<button type="button" class="emf-info" data-emf-info aria-expanded="false" aria-label="Why the 2010 fallback is used">i</button><span class="emf-info-note" hidden>The 2010 file is a fallback only: it supplies a boundary for tracts missing from the 2020 file. The exact tracts that fall back are available as a separate export.</span></li>
-            <li>Re-run the base build. A new vintage can add or drop tracts, so re-check the feature count afterward.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYSERDA DAC dataset">
-          <div class="emf-src-head"><h3>2 &nbsp; NYSERDA DAC dataset</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>Final Disadvantaged Communities (DAC) 2023 (criteria finalized 2023-03-27)</dd>
-            <dt>From</dt><dd>NYSERDA / New York State Climate Justice Working Group (the CLCPA Disadvantaged Communities data)</dd>
-            <dt>File</dt><dd><span class="emf-mono">NYS_DAC.geojson</span></dd>
-            <dt>Brings</dt><dd>the DAC / Non-DAC designation, the headline fields (population, households, combined score, ranks, burden, vulnerability, affordability), and the 48 granular indicator percentiles and scores</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>NYSERDA revisits the designations periodically. When a new release is published, download it as GeoJSON keyed by <code>GEOID</code>.</li>
-            <li>Replace <strong>NYS_DAC.geojson</strong>.</li>
-            <li>Re-run the base build and the indicator step so both the headline fields and the 48 indicators refresh.</li>
-            <li>If NYSERDA renames any columns, the field lists in the build need a matching update.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Con Edison customer extracts">
-          <div class="emf-src-head"><h3>3 &nbsp; Con Edison customer extracts</h3><span class="emf-chip emf-chip-edit">editable each cycle</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>to confirm</dd>
-            <dt>From</dt><dd>Con Edison internal account and billing systems</dd>
-            <dt>Files</dt><dd><span class="emf-mono">Electric.xlsx</span> and <span class="emf-mono">Gas.xlsx</span> (the <code>Export</code> sheet)</dd>
-            <dt>Brings</dt><dd>per area: total accounts, accounts in the Energy Affordability Program, bill adjustments, and the DAC class</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>This is the routine update, done each reporting cycle, and the source you own.</li>
-            <li>Export fresh per-area figures with <code>GEOID</code> in the first column and the same headers: <code>DAC Indicator</code>, <code>Total Accts</code>, <code>Total EAP Accts</code>, <code>Total Adjustment</code>.</li>
-            <li>Send the refreshed files to the maintainer. There is no upload for spreadsheets: a script converts them into an <span class="emf-mono">Electric &amp; gas figures</span> dataset, which is then uploaded here like any other data file. Slices 7a to 7c replaced the old route, which rebuilt and redeployed <span class="emf-mono">map_payload.json</span>.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="NYC neighborhood crosswalk">
-          <div class="emf-src-head"><h3>4 &nbsp; NYC neighborhood crosswalk</h3><span class="emf-chip emf-chip-ref">updated when republished</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>2020 NTAs, file dated 2026-06-01</dd>
-            <dt>From</dt><dd>NYC Department of City Planning (the Census-tracts-to-NTAs equivalency table)</dd>
-            <dt>File</dt><dd><span class="emf-mono">2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_*.csv</span></dd>
-            <dt>Brings</dt><dd>the neighborhood (NTA) name for each New York City area</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>When City Planning publishes a new equivalency (revised NTA names or boundaries), download the new CSV.</li>
-            <li>It must keep the <code>GEOID</code> and <code>NTAName</code> columns (UTF-8).</li>
-            <li>Replace the file and re-run the neighborhood step. If the filename changes, update the reference to it in the build.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-src" tabindex="0" role="button" aria-haspopup="dialog" data-title="Service-territory shapefiles">
-          <div class="emf-src-head"><h3>5 &nbsp; Service-territory shapefiles</h3><span class="emf-chip emf-chip-ref">updated when boundaries change</span></div>
-          <dl class="emf-row">
-            <dt>Using</dt><dd>to confirm</dd>
-            <dt>From</dt><dd>Con Edison (CECONY electric and gas) and Orange &amp; Rockland (ORU)</dd>
-            <dt>Files</dt><dd><span class="emf-mono">Data/Extra_info/CECONY_Electric.shp</span>, <span class="emf-mono">CECONY_Gas.shp</span>, <span class="emf-mono">ORU_Territory.shp</span> (each with its <code>.prj</code> and <code>.dbf</code>)</dd>
-            <dt>Brings</dt><dd>the utility service-area boundaries (the drawable overlay) and the per-area network and gas-area tags</dd>
-          </dl>
-          <span class="emf-hint">How to update ${chev}</span>
-          <div class="emf-steps" hidden><ol>
-            <li>When the utility boundaries change, get the new shapefile set from the utility.</li>
-            <li>Replace the files, keeping each <code>.shp</code> together with its <code>.dbf</code> and <code>.prj</code>, and keeping the name fields (<code>NETWORK</code>, <code>BORONAME</code>, <code>STATE</code>).</li>
-            <li>Re-run the network step (per-area tags) and rebuild the overlay file.</li>
-            <li>Mind the projection: the Con Edison files are in <code>EPSG:2263</code>, the ORU file is in NAD27.</li>
-          </ol></div>
-        </div>
-
-        <div class="emf-popover" id="emf-popover" hidden role="dialog" aria-modal="false" aria-labelledby="emf-pop-title">
-          <div class="emf-pop-head">
-            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Updating to a newer version</span>
-            <button class="emf-pop-close" id="emf-pop-close" aria-label="Close">&times;</button>
-            <h3 id="emf-pop-title"></h3>
-            <span class="emf-chip" id="emf-pop-chip"></span>
-          </div>
-          <div class="emf-pop-body" id="emf-pop-body"></div>
-        </div>
-      </div>
-
-      <div class="emf-overlay" id="emf-upload-overlay" hidden>
-        <aside class="emf-drawer" role="dialog" aria-modal="true" aria-labelledby="emf-upload-title">
-          <div class="emf-drawer-head">
-            <span class="emf-drawer-kicker"><span class="emf-dot"></span> Source versions</span>
-            <button class="emf-drawer-close" id="emf-upload-close" aria-label="Close">&times;</button>
-            <h3 id="emf-upload-title">Upload new source versions</h3>
-          </div>
-          <div class="emf-drawer-body">
-            <p class="emf-up-intro">Drop a newer source file here or browse for one. It will be matched to the source it belongs to by filename, then validated before anything changes.</p>
-            <div class="emf-dropzone">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <div class="emf-dz-title">Drag and drop a file here</div>
-              <div class="emf-dz-sub">or</div>
-              <label class="btn btn-secondary">Browse files<input type="file" hidden></label>
-            </div>
-            <p class="emf-up-maps">Maps to: <strong>auto-detected from the filename</strong> (for example <span class="emf-mono">ny_tracts.geojson</span> to Census tract geometry, or <span class="emf-mono">NYS_DAC.geojson</span> to the NYSERDA dataset).</p>
-            <div class="emf-up-actions"><button class="btn" type="button" disabled>Upload</button></div>
-            <p class="emf-up-note">Not yet connected. This panel is a visual mockup: no file is uploaded, and nothing is sent to the data store or the build.</p>
-          </div>
-        </aside>
-      </div>
-    `;
-  }
-
-  function wireEditMapFiles() {
-    const wrap = document.querySelector('.emf-wrap');
-    const cards = Array.prototype.slice.call(document.querySelectorAll('.emf-src'));
-    const pop = document.getElementById('emf-popover');
-    const popClose = document.getElementById('emf-pop-close');
-    const popTitle = document.getElementById('emf-pop-title');
-    const popChip = document.getElementById('emf-pop-chip');
-    const popBody = document.getElementById('emf-pop-body');
-
-    // ---- CHANGE 1: update panel as a card beside the selected source ----
-    function positionPopover(card) {
-      const GAP = 16;
-      pop.classList.remove('emf-pop-below');
-      pop.style.width = '';                       // CSS width (380) while measuring
-      const wrapRect = wrap.getBoundingClientRect();
-      const popW = pop.offsetWidth || 380;
-      const roomRight = (wrapRect.right + GAP + popW) <= (window.innerWidth - 12);
-      if (roomRight) {                            // beside: top-aligned, in the empty space to the right
-        pop.style.left = (wrap.clientWidth + GAP) + 'px';
-        pop.style.top = card.offsetTop + 'px';
-      } else {                                    // fallback: directly below the selected card
-        pop.classList.add('emf-pop-below');
-        pop.style.left = card.offsetLeft + 'px';
-        pop.style.top = (card.offsetTop + card.offsetHeight + GAP) + 'px';
-        pop.style.width = card.offsetWidth + 'px';
-      }
-    }
-    function openPopover(card) {
-      popTitle.textContent = card.getAttribute('data-title');
-      const chip = card.querySelector('.emf-chip');
-      popChip.textContent = chip ? chip.textContent : '';
-      popChip.className = 'emf-chip ' + (chip && chip.classList.contains('emf-chip-edit') ? 'emf-chip-edit' : 'emf-chip-ref');
-      const steps = card.querySelector('.emf-steps');
-      popBody.innerHTML = steps ? steps.innerHTML : '';
-      cards.forEach(s => s.classList.remove('selected'));
-      card.classList.add('selected');            // only one open at a time
-      pop.hidden = false;
-      positionPopover(card);
-      const info = popBody.querySelector('[data-emf-info]');   // Census step-3 info toggle
-      if (info) {
-        const note = info.parentElement.querySelector('.emf-info-note');
-        info.addEventListener('click', () => {
-          const isHidden = note.hasAttribute('hidden');
-          if (isHidden) { note.removeAttribute('hidden'); info.setAttribute('aria-expanded', 'true'); }
-          else { note.setAttribute('hidden', ''); info.setAttribute('aria-expanded', 'false'); }
-          positionPopover(card);
-        });
-      }
-      popClose.focus();
-    }
-    function closePopover() {
-      if (pop) pop.hidden = true;
-      cards.forEach(s => s.classList.remove('selected'));
-    }
-
-    cards.forEach(card => {
-      card.addEventListener('click', () => openPopover(card));
-      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPopover(card); } });
-    });
-    if (popClose) popClose.addEventListener('click', closePopover);
-
-    // ---- CHANGE 2: "Edit files" upload mockup (right-side panel, visual only) ----
-    const upBtn = document.getElementById('emf-edit-files-btn');
-    const upOverlay = document.getElementById('emf-upload-overlay');
-    const upClose = document.getElementById('emf-upload-close');
-    function openUpload() { if (!upOverlay) return; upOverlay.hidden = false; requestAnimationFrame(() => upOverlay.classList.add('open')); if (upClose) upClose.focus(); }
-    function closeUpload() { if (!upOverlay) return; upOverlay.classList.remove('open'); setTimeout(() => { if (!upOverlay.classList.contains('open')) upOverlay.hidden = true; }, 260); }
-    if (upBtn) upBtn.addEventListener('click', openUpload);
-    if (upClose) upClose.addEventListener('click', closeUpload);
-    if (upOverlay) upOverlay.addEventListener('click', e => { if (e.target === upOverlay) closeUpload(); });
-
-    // click-outside closes the popover (capture phase; card clicks reposition it instead)
-    if (_emfDocClickHandler) document.removeEventListener('click', _emfDocClickHandler, true);
-    _emfDocClickHandler = function (e) {
-      if (!pop || pop.hidden) return;
-      if (pop.contains(e.target)) return;
-      if (e.target.closest && e.target.closest('.emf-src')) return;
-      closePopover();
-    };
-    document.addEventListener('click', _emfDocClickHandler, true);
-
-    // Esc closes whichever is open. Single document handler, replaced each wire-up.
-    if (_emfEscHandler) document.removeEventListener('keydown', _emfEscHandler);
-    _emfEscHandler = function (e) {
-      if (e.key !== 'Escape') return;
-      if (pop && !pop.hidden) closePopover();
-      if (upOverlay && upOverlay.classList.contains('open')) closeUpload();
-    };
-    document.addEventListener('keydown', _emfEscHandler);
-  }
 
   // ============================================================
   // MAP LAYERS PAGE (CLCPA-171 Slice 1)
@@ -16248,9 +16127,14 @@ function wireHTooltips() {
   // Surface flags
   // ------------------------------------------------------------
   // Things built, kept, and deliberately not shown for now. Same policy as the
-  // Edit map files page and the built-in HVI layer: hide the way in, keep the
-  // code, make restoring it a one-word change rather than an archaeology
-  // exercise. Flipping any of these to true is the whole restoration.
+  // built-in HVI layer: hide the way in, keep the code, make restoring it a
+  // one-word change rather than an archaeology exercise. Flipping any of these
+  // to true is the whole restoration.
+  //
+  // CLCPA-223: the Edit map files page was the other example of this policy.
+  // It is no longer an example, because it was DELETED rather than hidden:
+  // its five source cards were superseded by the Data Sources dictionary and
+  // its only control was a disabled upload mockup.
   //
   // Both were shown once and pulled back after review: the page had grown more
   // explaining than doing, and a delivery is the wrong moment to be teaching a
@@ -16285,8 +16169,8 @@ function wireHTooltips() {
   // In-context documentation
   // ------------------------------------------------------------
   // Each card explains its own data, in a drawer opened from its header. This
-  // replaces the standalone Edit map files page, which put every source on one
-  // screen far away from the controls they describe.
+  // replaced the standalone Edit map files page (deleted in CLCPA-223), which
+  // put every source on one screen far away from the controls they describe.
   //
   // One overlay, content swapped by topic. The openers live INSIDE cards, which
   // re-render on every list refresh, so they cannot be bound directly the way
@@ -18980,6 +18864,8 @@ function wireHTooltips() {
 
     // Build static UI from payload
     buildSidebar();
+    // CLCPA-223: before the first render, so nothing flashes.
+    applyOperatorGate();
     buildYearSelector();
     wireExportButton();
 
