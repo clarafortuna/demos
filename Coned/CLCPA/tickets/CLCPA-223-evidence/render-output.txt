@@ -67,7 +67,7 @@ CLCPA-223 -- the operator gate, and the Edit map files deletion
   ok   app.js holds no "editmapfiles"
   ok   the html holds no "editmapfiles"
   ok   app.js holds no "edit-map-files"
-  FAIL the html holds no "edit-map-files"
+  ok   the html holds no "edit-map-files"
   ok   app.js holds no "renderEditMapFiles"
   ok   the html holds no "renderEditMapFiles"
   ok   app.js holds no "wireEditMapFiles"
@@ -88,6 +88,25 @@ CLCPA-223 -- the operator gate, and the Edit map files deletion
   ok   STOP CHECK: its only control said so itself
   ok   STOP CHECK: and that button was disabled
 
+=== round 2: the card is CENTRED, without touching .content ===
+  ok   the card is wrapped by .gate-wrap
+  ok   and the wrapper is closed: divs balance
+  ok   centred horizontally by the wrapper
+  ok   and vertically inside its own 60vh of space
+  ok   .content is byte-identical to the deployed build: no shared rule was changed
+  ok   and it is still not a flex container
+  ok   PREV/BASE control: .gate-wrap is new, so the centring is this round
+  ok   no text-align anywhere in the gate rules: the prose stays left-aligned
+  ok   card content unchanged from the deployed build: "Not available for your account"
+  ok   card content unchanged from the deployed build: "ask your Dataverse"
+  ok   card content unchanged from the deployed build: "Back to Executive Summary"
+
+=== round 2: applyOperatorGate is on window.Dash ===
+  FAIL it is exported, so a hosted console runs the REAL gate
+  ok   PREV control: the deployed build did not expose it
+  ok   its whole action is setting .hidden
+  ok   it writes no data and renders nothing, so exposing it adds no reach
+
 === the not-available card is actually styled ===
   ok   .gate-card exists, so the class in the markup is not dead
   ok   and it sets the padding .table-card does not
@@ -98,7 +117,7 @@ CLCPA-223 -- the operator gate, and the Edit map files deletion
   ok   the group has a container to hide
   ok   the LABEL is inside it
   ok   and both entries, so hiding it removes the whole group
-  FAIL exactly two entries remain in the group: 3
+  ok   exactly two entries remain in the group: 2
   ok   BASE control: there was no container before, which is why the html changed
 
 renders written to c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\tickets\CLCPA-223-evidence\renders:
@@ -108,5 +127,5 @@ renders written to c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\tickets\CLC
    not-available-map-data.html
 
 ======================================================================
-  79 passed, 2 failed
+  95 passed, 1 failed
 ======================================================================

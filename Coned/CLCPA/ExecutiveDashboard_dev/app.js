@@ -13620,6 +13620,12 @@ function wireHTooltips() {
     // Persistence (Phase 6)
     Storage,
 
+    // CLCPA-223: exposed so a hosted console check can run the REAL sidebar
+    // gate rather than reproducing its one line by hand. It can only HIDE the
+    // section (it reads Storage and sets .hidden), so exposing it adds no way
+    // to reach anything, and the enforcement was never here in any case.
+    applyOperatorGate,
+
     // Constants
     SHORT_TITLES,
   };
@@ -13790,6 +13796,7 @@ function wireHTooltips() {
   function renderNotOperable(pageName) {
     return '<div class="page-header"><div><h1>' + escapeHtml(pageName) + '</h1>' +
       '<p class="page-sub">This page is part of Data Ingestion.</p></div></div>' +
+      '<div class="gate-wrap">' +
       '<div class="table-card gate-card">' +
       '<h2>Not available for your account</h2>' +
       '<p>Data Ingestion is limited to accounts set up to maintain the ' +
@@ -13798,6 +13805,7 @@ function wireHTooltips() {
       '<p>If you are expected to maintain this data, ask your Dataverse ' +
       'administrator to check your security role.</p>' +
       '<p><a href="#/">Back to Executive Summary</a></p>' +
+      '</div>' +
       '</div>';
   }
 
