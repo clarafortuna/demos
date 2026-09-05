@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || '07c1e43';   // post round 3
+const PREV = process.env.DAC_PREV_COMMIT || '8ab9d48';   // post round 4
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -613,9 +613,11 @@ lines.push('=== round 3: unselected tabs read as buttons on the page ===');
   ok(rule.indexOf('background:') >= 0, 'unselected tabs declare a fill');
   ok(rule.indexOf('background: transparent') < 0,
      'and are no longer transparent on a white page');
-  ok(rule.indexOf('border-color: var(--text-2)') >= 0 &&
-     rule.indexOf('color: var(--text-2)') >= 0,
-     'border and text share --text-2');
+  // SUPERSEDED by round 5. Border and text sharing --text-2 was round 3's
+  // answer to "make them read darker"; round 5 copies the border from
+  // .table-card instead, so the two deliberately no longer match. The text half
+  // still holds and is asserted in the round 5 block below.
+  ok(rule.indexOf('color: var(--text-2)') >= 0, 'the tab text is --text-2');
   const active = css.slice(css.indexOf('.ml-tab.active'), css.indexOf('.ml-tab.active') + 220);
   ok(active.indexOf('background: var(--dusk)') >= 0,
      'the selected tab is still the only solid dark one');
@@ -690,7 +692,27 @@ lines.push('=== round 4 FAIL 1: the tab fill must differ from the BODY ===');
   ok(tabBg !== bodyBg,
      'the tab fill is NOT the body colour (was ' + bodyBg + ' for both, which is why ' +
      'the declaration passed and the screen did not change)');
-  ok(tabBg === '#D8DDE2', 'and it is the measured neutral, ' + tabBg);
+  // Round 5: the tone and border are COPIED FROM .table-card, the report
+  // source card. Asserting the VALUES MATCH means a later edit to either rule
+  // cannot drift them apart without turning this red.
+  const cardAt = css.search(/\n\.table-card \{/);
+  ok(cardAt >= 0, '.table-card exists to copy from');
+  const cardRule = cardAt < 0 ? '' : css.slice(cardAt, css.indexOf('}', cardAt));
+  const cardBg = (cardRule.match(/background:\s*([^;]+);/) || [])[1];
+  const cardBorder = (cardRule.match(/border:\s*([^;]+);/) || [])[1];
+  ok(!!cardBg && !!cardBorder, 'and it declares both a background and a border');
+  ok(tabBg === (cardBg || '').trim(),
+     'the tab fill MATCHES .table-card: ' + tabBg + ' vs ' + (cardBg || '').trim());
+  const tabBorder = (rule.match(/border:\s*([^;]+);/) || [])[1];
+  ok((tabBorder || '').trim() === (cardBorder || '').trim(),
+     'and so does the border, colour and width: ' + (tabBorder || '').trim() +
+     ' vs ' + (cardBorder || '').trim());
+  // what round 5 deliberately did NOT copy
+  ok(rule.indexOf('border-radius: 6px') >= 0,
+     'the radius stays 6px: the tabs are the button family, not cards');
+  ok(cardRule.indexOf('border-radius: 8px') >= 0,
+     'and the card is 8px, so the two are genuinely different on that axis');
+  ok(rule.indexOf('color: var(--text-2)') >= 0, 'the text is unchanged at --text-2');
   ok(bodyBg === 'var(--white-smoke)', 'body is still var(--white-smoke), so the comparison is live');
 }
 

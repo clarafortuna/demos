@@ -177,7 +177,7 @@ CLCPA-220 PR 1 -- renders and assertions
 === round 3: unselected tabs read as buttons on the page ===
   ok   unselected tabs declare a fill
   ok   and are no longer transparent on a white page
-  ok   border and text share --text-2
+  ok   the tab text is --text-2
   ok   the selected tab is still the only solid dark one
 
 === round 3: pill removal completed ===
@@ -211,7 +211,13 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   the tab rule declares a background
   ok   the body rule declares a background
   ok   the tab fill is NOT the body colour (was var(--white-smoke) for both, which is why the declaration passed and the screen did not change)
-  ok   and it is the measured neutral, #D8DDE2
+  ok   .table-card exists to copy from
+  ok   and it declares both a background and a border
+  ok   the tab fill MATCHES .table-card: var(--white) vs var(--white)
+  ok   and so does the border, colour and width: 1px solid var(--line) vs 1px solid var(--line)
+  ok   the radius stays 6px: the tabs are the button family, not cards
+  ok   and the card is 8px, so the two are genuinely different on that axis
+  ok   the text is unchanged at --text-2
   ok   body is still var(--white-smoke), so the comparison is live
 
 === round 4 FAIL 2: the About handler must be a CLICK handler ===
@@ -258,5 +264,5 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    prev-pr1-shapes.html
 
 ======================================================================
-  195 passed, 0 failed
+  201 passed, 0 failed
 ======================================================================
