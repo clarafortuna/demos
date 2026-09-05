@@ -1,0 +1,68 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-221 round 2 (one nav: the dictionary uses the tab row; Back removed)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = bdec9c6
+              source folder clean, so the pushed bytes are exactly bdec9c6.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      c7e6c93537
+                 styles.css  2a1d908951
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build c7e6c93537" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BEML6X497
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=958618B  local=960886B
+WILL PUSH  styles.css   deployed=264048B  local=263375B
+WILL PUSH  ExecutiveDashboard.html   deployed=11861B  local=11861B
+
+BACKUP  live bytes archived to deploy-backups/2026-09-05-clcpa-221-round2-one-nav/
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (960886B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (263375B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (11861B)
+POST PublishXml for 3 resource(s)
+published.
+
+READ-BACK app.js  960886B  sha256 09b3e85b506c0a0c...  VERIFIED byte-identical
+READ-BACK styles.css  263375B  sha256 2a1d90895107bbbe...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  11861B  sha256 3a97a53dc04de725...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): c7e6c93537
+styles.css id    : 2a1d908951
+source           : ExecutiveDashboard_dev/ at main @ bdec9c6
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build c7e6c93537
+If it prints anything else, the browser is holding an older app.js.
+
+Then expect at boot, with 2 saved layers:
+   [Map Layers] listed 2 saved layer(s) from metadata; GeoJSON loads when a layer is switched on.
+   [DAC map] tract tooltip tracking wired to pointer events (CLCPA-199: ...)
+
+=== log written by deploy_221_r2.js ===
