@@ -87,3 +87,22 @@ Ruled by Emely on 2026-09-05: asserted for now, screen-verified when a read-only
 pass naturally happens. Recorded rather than implied, because "the markup is
 asserted" and "a read-only user has seen it" are different claims and this
 ticket supports only the first.
+
+---
+
+# Round 3: three more asserted-only paths
+
+Same treatment again, same file, so the whole ticket's unverified surface reads
+in one place instead of being scattered across commit messages.
+
+| path | asserted | never seen by a person |
+|---|---|---|
+| the About panel TOGGLE | the button, the panel, `hidden`, `aria-expanded` and `aria-controls` are all asserted in the rendered markup | the click has never been performed. The render harness produces HTML; it does not run the delegated click handler, so open and close are proven by construction only |
+| the tab FILL against the real page | the CSS declares `--white-smoke` fill with border and text at `--text-2` | whether that actually reads as a button ON the page is the exact judgement the CSS cannot make. It is why round 3 exists: round 2's border-only change looked right in the file and dissolved on screen |
+| the read-only disabled switch on the three toggle families | the markup renders a disabled switch when `canWrite` is false | the fixture grants every privilege, so the branch is never taken. Round 2 recorded this for Saved layers; round 3 extended the same code path to DAC indicators, electric and gas, and territory overlays, and extended the same gap with it |
+
+The middle one is worth stating plainly rather than filing as routine. Round 2
+changed the tab border and it was verified green in assertions, then failed on
+screen because white on white does not become visible by being outlined. A
+passing CSS assertion says the declaration is present. It says nothing about
+whether the result is legible, and no assertion I can write will.
