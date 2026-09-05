@@ -17,13 +17,29 @@ const { execSync } = require('child_process');
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
-const BASE = process.env.DAC_BASE_COMMIT || 'HEAD';   // pre-220: 220 is uncommitted
+/* TWO pinned baselines, and neither is HEAD.
+ *
+ * This said `HEAD` with a comment claiming that was pre-220 "because 220 is
+ * uncommitted". True when written, false the moment PR 1 merged, at which point
+ * three BEFORE controls started comparing PR 2 against PR 1 and reporting no
+ * difference. That is the second time in two days the same rot has appeared in
+ * a harness of mine, so both baselines are now commits.
+ *
+ *   BASE  pre-220 entirely. The controls for the ticket's whole story.
+ *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
+ */
+const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
+const PREV = process.env.DAC_PREV_COMMIT || '4ba13c7';
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
 const BEFORE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8')
   .replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+const toCRLF = (t) => t.replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
+const PREV_SRC = toCRLF(execSync('git show ' + PREV + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
+
 const CSS = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
 
 let pass = 0, fail = 0;
@@ -115,6 +131,8 @@ function makeRenderer(src, label) {
     dsRecIsGeometry: (r) => r.datasetKey === 'tract_geometry',
     dsRecIsConed: (r) => r.datasetKey === 'coned_operational',
     dsRecIsTerritories: (r) => r.datasetKey === 'service_territories',
+    dsSourceChip: () => '<span class="ml-chip">dataset</span>',
+    confirm: () => true,
   };
 
   // Fixture: two saved layers (one listed, one not) and the four dataset
@@ -147,6 +165,21 @@ function makeRenderer(src, label) {
     { dvId: 'd5', datasetKey: 'service_territories', name: 'Service territories',
       version: '1.1-simp40ft-5dp', geoidVintage: null, active: true, tractCount: 6,
       fieldCount: 6, savedBy: 'A Person', savedOn: '2026-08-24T00:00:00Z', loadError: null },
+    // RETIRED rows, which is what PR 2's rollback affordance is for. These are
+    // real: the live tenant read on 2026-09-04 showed three retired
+    // tract_geometry rows and one retired service_territories row.
+    { dvId: 'd6', datasetKey: 'tract_geometry', name: 'Tract geometry', version: 'pure-2010',
+      geoidVintage: '2010', active: false, tractCount: 2333, fieldCount: 8,
+      keyChecksum: 'aa11bb22cc33dd44', savedBy: 'A Person', savedOn: '2026-08-07T00:00:00Z',
+      loadError: null },
+    { dvId: 'd7', datasetKey: 'service_territories', name: 'Service territories',
+      version: '1.0', geoidVintage: null, active: false, tractCount: 6, fieldCount: 6,
+      keyChecksum: 'ee55ff66aa77bb88', savedBy: 'A Person', savedOn: '2026-08-13T00:00:00Z',
+      loadError: null },
+    { dvId: 'd8', datasetKey: 'nyserda_dac', name: 'NYSERDA DAC', version: '0.9',
+      geoidVintage: '2010', active: false, tractCount: 2333, fieldCount: 56,
+      keyChecksum: '99cc88dd77ee66ff', savedBy: 'A Person', savedOn: '2026-07-30T00:00:00Z',
+      loadError: null },
   ];
   Object.assign(scope, {
     _mlLayers: LAYERS,
@@ -228,6 +261,7 @@ CLCPA-220 render harness &middot; ${title} &middot; stub data, real markup and r
 ${inner}</div></body>`;
 
 const before = makeRenderer(BEFORE_SRC, 'before');
+const prev = makeRenderer(PREV_SRC, 'prev');
 const after = makeRenderer(AFTER_SRC, 'after');
 
 console.log('='.repeat(70));
@@ -244,7 +278,7 @@ if (before.error || after.error) {
 let beforeHtml = '', afterByTab = {};
 try { beforeHtml = before.api.page(); }
 catch (e) { console.log('BEFORE render threw: ' + e.message); process.exit(2); }
-fs.writeFileSync(path.join(OUT, 'before-map-layers.html'), shell('BEFORE — one page, seven stacked sections', beforeHtml));
+fs.writeFileSync(path.join(OUT, 'before-map-layers.html'), shell('BEFORE: one page, seven stacked sections', beforeHtml));
 
 const TABS = ['layers', 'indicators', 'shapes', 'coned', 'territory'];
 for (const t of TABS) {
@@ -254,7 +288,7 @@ for (const t of TABS) {
   catch (e) { console.log('AFTER render threw on ' + t + ': ' + e.message); process.exit(2); }
   afterByTab[t] = html;
   fs.writeFileSync(path.join(OUT, 'after-' + t + '.html'),
-    shell('AFTER — tab: ' + t, html));
+    shell('AFTER, tab: ' + t, html));
 }
 
 /* ---------- assertions --------------------------------------------------- */
@@ -352,9 +386,88 @@ lines.push('=== a good file dropped on the WRONG family tab ===');
   ok(/id="ds-upload"/.test(right), 'on its own tab the same file offers Upload');
   ok(!/This file belongs in/.test(right), 'and shows no wrong-tab message');
   fs.writeFileSync(path.join(OUT, 'after-wrong-tab.html'),
-    shell('AFTER — a tract-shapes file staged on the DAC indicators tab', wrong));
+    shell('AFTER: a tract-shapes file staged on the DAC indicators tab', wrong));
   st.mapLayers.dsStage = null; st.mapLayers.dsSummary = null;
 }
+
+/* ================= PR 2 ================= */
+const prevByTab = {};
+for (const t of TABS) { prev.api.setTab(t); prevByTab[t] = prev.api.page(); }
+
+lines.push('');
+lines.push('=== PR2 piece 4: every family teaches the same anatomy ===');
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  const h = afterByTab[t];
+  ok(/ml-row-meta/.test(h), t + ': rows carry a meta line');
+  ok(/uploaded 2026-/.test(h), t + ': the uploaded date is shown');
+});
+ok(/fingerprint/.test(afterByTab.shapes), 'shapes: the fingerprint short form is shown');
+ok(!/fingerprint/.test(prevByTab.shapes), 'PREV control: PR 1 showed no fingerprint');
+// Reject a vintage on a ROW, not the prose that explains why there is none.
+// The first version of this banned the WORD anywhere on the tab and so failed on
+// the upload block's own "so no vintage applies", which is the copy doing the
+// explaining.
+ok(!/vintage 20\d\d/.test(afterByTab.territory),
+   'no territory row states a vintage, because an overlay has none');
+ok(/no vintage applies/.test(afterByTab.territory),
+   'and the upload block says so, rather than leaving a silent gap');
+
+lines.push('');
+lines.push('=== PR2 piece 5 (G3): rollback is reachable from the UI ===');
+ok(/Earlier versions \(1\)/.test(afterByTab.shapes), 'shapes lists its retired version');
+ok(/data-ds-reactivate="d6"/.test(afterByTab.shapes), 'with a Reactivate control');
+ok(/Earlier versions/.test(afterByTab.territory), 'territory lists its retired version');
+ok(/Earlier versions/.test(afterByTab.indicators), 'indicators lists its retired version');
+ok(!/Earlier versions/.test(prevByTab.shapes),
+   'PREV control: PR 1 listed no retired versions at all');
+ok(!/data-ds-reactivate/.test(prevByTab.shapes),
+   'PREV control: and offered no way back');
+ok(/downloaded and checked again/.test(afterByTab.shapes),
+   'and it says the file is re-validated, so Reactivate is not a blind flag flip');
+ok(/ml-state-pill ml-state-off">Retired/.test(afterByTab.shapes),
+   'retired rows are labelled Retired, not Inactive');
+
+lines.push('');
+lines.push('=== PR2 finding 3: the (i) button ===');
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  ok(new RegExp('data-ds-info="' + t + '"').test(afterByTab[t]), t + ': has an (i) button');
+});
+ok(!/produced by/.test(afterByTab.shapes),
+   'the "produced by" sentence has left the upload description');
+ok(/produced by/.test(prevByTab.shapes),
+   'PREV control: PR 1 carried it inline in the description');
+ok(/title="Produced by update_map_data.py"/.test(afterByTab.shapes),
+   'the fact survives on the (i) button, which CLCPA-221 will hang its entry on');
+
+lines.push('');
+lines.push('=== PR2 CLCPA-222: the rename, labels only ===');
+ok(/<h1>Map data<\/h1>/.test(afterByTab.layers), 'the page title is "Map data"');
+ok(/<h1>Map Layers<\/h1>/.test(prevByTab.layers), 'PREV control: it was "Map Layers"');
+ok(!/Map Layers/.test(afterByTab.layers.replace(/\[Map Layers\]/g, '')),
+   'no user-visible "Map Layers" remains on the page');
+{
+  const html = fs.readFileSync(path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html'), 'utf8');
+  ok(/sidebar-section">Data Ingestion</.test(html), 'the sidebar header is "Data Ingestion"');
+  ok(/> Report data/.test(html), 'the first entry is "Report data"');
+  ok(/> Map data/.test(html), 'the second entry is "Map data"');
+  ok(/href="#\/ingest"/.test(html) && /href="#\/maplayers"/.test(html),
+     'and the ROUTES are untouched, so existing bookmarks still work');
+}
+
+lines.push('');
+lines.push('=== PR2 finding 1: the rule violation is gone ===');
+{
+  const appSrc = fs.readFileSync(path.join(REPO, REL), 'utf8');
+  ok(!/&mdash;|&ndash;/.test(appSrc), 'no long-dash entities anywhere in app.js');
+  ok(/&mdash;/.test(PREV_SRC), 'PREV control: PR 1 shipped three of them');
+  const added = execSync('git diff ' + BASE + ' -- "' + REL + '"', { cwd: REPO, maxBuffer: 1 << 28 })
+    .toString('utf8').split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++'));
+  ok(!added.some(l => /[–—]/.test(l)),
+     'and nothing I added across the whole ticket carries an em or en dash');
+}
+
+fs.writeFileSync(path.join(OUT, 'prev-pr1-shapes.html'),
+  shell('PR 1: Tract shapes (no retired versions, no fingerprint)', prevByTab.shapes));
 
 console.log(lines.join('\n'));
 console.log('');

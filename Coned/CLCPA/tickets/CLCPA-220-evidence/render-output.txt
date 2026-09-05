@@ -56,6 +56,53 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   on its own tab the same file offers Upload
   ok   and shows no wrong-tab message
 
+=== PR2 piece 4: every family teaches the same anatomy ===
+  ok   indicators: rows carry a meta line
+  ok   indicators: the uploaded date is shown
+  ok   shapes: rows carry a meta line
+  ok   shapes: the uploaded date is shown
+  ok   coned: rows carry a meta line
+  ok   coned: the uploaded date is shown
+  ok   territory: rows carry a meta line
+  ok   territory: the uploaded date is shown
+  ok   shapes: the fingerprint short form is shown
+  ok   PREV control: PR 1 showed no fingerprint
+  ok   no territory row states a vintage, because an overlay has none
+  ok   and the upload block says so, rather than leaving a silent gap
+
+=== PR2 piece 5 (G3): rollback is reachable from the UI ===
+  ok   shapes lists its retired version
+  ok   with a Reactivate control
+  ok   territory lists its retired version
+  ok   indicators lists its retired version
+  ok   PREV control: PR 1 listed no retired versions at all
+  ok   PREV control: and offered no way back
+  ok   and it says the file is re-validated, so Reactivate is not a blind flag flip
+  ok   retired rows are labelled Retired, not Inactive
+
+=== PR2 finding 3: the (i) button ===
+  ok   indicators: has an (i) button
+  ok   shapes: has an (i) button
+  ok   coned: has an (i) button
+  ok   territory: has an (i) button
+  ok   the "produced by" sentence has left the upload description
+  ok   PREV control: PR 1 carried it inline in the description
+  ok   the fact survives on the (i) button, which CLCPA-221 will hang its entry on
+
+=== PR2 CLCPA-222: the rename, labels only ===
+  ok   the page title is "Map data"
+  ok   PREV control: it was "Map Layers"
+  ok   no user-visible "Map Layers" remains on the page
+  ok   the sidebar header is "Data Ingestion"
+  ok   the first entry is "Report data"
+  ok   the second entry is "Map data"
+  ok   and the ROUTES are untouched, so existing bookmarks still work
+
+=== PR2 finding 1: the rule violation is gone ===
+  ok   no long-dash entities anywhere in app.js
+  ok   PREV control: PR 1 shipped three of them
+  ok   and nothing I added across the whole ticket carries an em or en dash
+
 renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
    after-coned.html
    after-indicators.html
@@ -64,7 +111,8 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    after-territory.html
    after-wrong-tab.html
    before-map-layers.html
+   prev-pr1-shapes.html
 
 ======================================================================
-  40 passed, 0 failed
+  77 passed, 0 failed
 ======================================================================

@@ -8033,6 +8033,44 @@ a.nav-item { text-decoration: none; }
   padding: 1px 5px; font-size: 11.5px; color: var(--text);
 }
 
+/* ---- The (i) button (CLCPA-220 PR 2, finding 3) ----
+   It replaces the 'produced by <script>' sentence that used to sit inside the
+   upload description, where a one line fact made a three line paragraph. It is
+   also the anchor CLCPA-221 hangs each family's dictionary entry on, so it is
+   placed and sized now rather than moved later. */
+.ds-info-btn {
+  width: 22px; height: 22px; flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  color: var(--text-3);
+  font-family: var(--font); font-size: 12px; font-weight: 700;
+  font-style: italic; line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+.ds-info-btn:hover { border-color: var(--dusk); color: var(--dusk); background: var(--dusk-tint); }
+.ds-info-btn:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
+
+/* ---- Retired versions and the rollback control (CLCPA-220 PR 2, G3) ----
+   Separated from the published list rather than mixed into it: a retired
+   version is not a candidate the operator is choosing between, it is history
+   they can return to. Muted so the published rows stay the subject. */
+.ds-retired {
+  margin-top: 14px; padding-top: 12px;
+  border-top: 1px dashed var(--line-strong);
+}
+.ds-retired-head {
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
+  text-transform: uppercase; color: var(--text-3); margin-bottom: 4px;
+}
+.ds-retired-sub {
+  font-size: 11.5px; line-height: 1.5; color: var(--text-3);
+  margin: 0 0 10px;
+}
+.ds-row-retired .ml-row-name { opacity: 0.7; }
+.ds-reactivate { font-size: 11.5px; padding: 5px 12px; }
+
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
    Five pills, one section visible at a time. The page had grown to seven
    stacked cards, three of which had a heading; the tabs ARE the headings the
