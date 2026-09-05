@@ -56,52 +56,82 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   on its own tab the same file offers Upload
   ok   and shows no wrong-tab message
 
-=== PR2 piece 4: every family teaches the same anatomy ===
-  ok   indicators: rows carry a meta line
-  ok   indicators: the uploaded date is shown
-  ok   shapes: rows carry a meta line
-  ok   shapes: the uploaded date is shown
-  ok   coned: rows carry a meta line
-  ok   coned: the uploaded date is shown
-  ok   territory: rows carry a meta line
-  ok   territory: the uploaded date is shown
-  ok   shapes: the fingerprint short form is shown
-  ok   PREV control: PR 1 showed no fingerprint
-  ok   no territory row states a vintage, because an overlay has none
-  ok   and the upload block says so, rather than leaving a silent gap
+=== correction 1: ONE row anatomy, no pill beside the name ===
+  ok   indicators: rows render
+  ok   indicators: NO state pill beside the name
+  ok   indicators: the control and pill are on the right
+  ok   shapes: rows render
+  ok   shapes: NO state pill beside the name
+  ok   shapes: the control and pill are on the right
+  ok   coned: rows render
+  ok   coned: NO state pill beside the name
+  ok   coned: the control and pill are on the right
+  ok   territory: rows render
+  ok   territory: NO state pill beside the name
+  ok   territory: the control and pill are on the right
+  ok   PREV control: PR 2 DID put a pill beside the name
 
-=== PR2 piece 5 (G3): rollback is reachable from the UI ===
-  ok   shapes lists its retired version
-  ok   with a Reactivate control
-  ok   territory lists its retired version
-  ok   indicators lists its retired version
-  ok   PREV control: PR 1 listed no retired versions at all
-  ok   PREV control: and offered no way back
-  ok   and it says the file is re-validated, so Reactivate is not a blind flag flip
-  ok   retired rows are labelled Retired, not Inactive
+=== correction 2: one flat list, no Reactivate ===
+  ok   indicators: no "Earlier versions" section
+  ok   indicators: no separate Reactivate control
+  ok   indicators: exactly one list
+  ok   shapes: no "Earlier versions" section
+  ok   shapes: no separate Reactivate control
+  ok   shapes: exactly one list
+  ok   coned: no "Earlier versions" section
+  ok   coned: no separate Reactivate control
+  ok   coned: exactly one list
+  ok   territory: no "Earlier versions" section
+  ok   territory: no separate Reactivate control
+  ok   territory: exactly one list
+  ok   PREV control: PR 2 split the list
+  ok   PREV control: PR 2 had a Reactivate button
+  ok   active versions sort above retired ones without needing a heading
 
-=== PR2 finding 3: the (i) button ===
-  ok   indicators: has an (i) button
-  ok   shapes: has an (i) button
-  ok   coned: has an (i) button
-  ok   territory: has an (i) button
-  ok   the "produced by" sentence has left the upload description
-  ok   PREV control: PR 1 carried it inline in the description
-  ok   the fact survives on the (i) button, which CLCPA-221 will hang its entry on
+=== correction 2: switching ON is the reactivate ===
+  ok   indicators: EVERY version carries a toggle, retired ones included
+  ok   electric and gas: toggles too, which is new
+  ok   territory: toggles too
+  ok   PREV control: PR 2 gave electric and gas no toggle at all
 
-=== PR2 CLCPA-222: the rename, labels only ===
-  ok   the page title is "Map data"
-  ok   PREV control: it was "Map Layers"
-  ok   no user-visible "Map Layers" remains on the page
-  ok   the sidebar header is "Data Ingestion"
-  ok   the first entry is "Report data"
-  ok   the second entry is "Map data"
-  ok   and the ROUTES are untouched, so existing bookmarks still work
+=== correction 3: tract shapes are informational ===
+  ok   shapes: NO toggle anywhere
+  ok   shapes: a state pill instead
+  ok   and the row says WHY the in-use one is in use
+  ok   and why the other one is not
 
-=== PR2 finding 1: the rule violation is gone ===
-  ok   no long-dash entities anywhere in app.js
-  ok   PREV control: PR 1 shipped three of them
-  ok   and nothing I added across the whole ticket carries an em or en dash
+=== correction 4: the fingerprint is gone from the rows ===
+  ok   indicators: no fingerprint in the list
+  ok   shapes: no fingerprint in the list
+  ok   coned: no fingerprint in the list
+  ok   territory: no fingerprint in the list
+  ok   PREV control: PR 2 printed it
+
+=== correction 5: the (i) button moved into the upload box ===
+  ok   indicators: the upload box has a footer
+  ok   indicators: the (i) button is INSIDE the upload box, not in the card head
+  ok   shapes: the upload box has a footer
+  ok   shapes: the (i) button is INSIDE the upload box, not in the card head
+  ok   coned: the upload box has a footer
+  ok   coned: the (i) button is INSIDE the upload box, not in the card head
+  ok   territory: the upload box has a footer
+  ok   territory: the (i) button is INSIDE the upload box, not in the card head
+  ok   PREV control: PR 2 had no upload-box footer at all
+  ok   the (i) button is the direct child of that footer
+
+=== correction 6: the territory chip ===
+  ok   loaded state still renders as "loaded"
+  ok   the not-yet branch says "loads when first used"
+  ok   and no UI string says "not loaded yet" any more
+  ok   PREV control: PR 2 said "not loaded yet"
+
+=== correction 2b: the retire SCOPE, asserted both ways ===
+  ok   the activation path computes a retire scope at all
+  ok   electric and gas 2020: the retire is SCOPED to 2020, so 2010 stays active
+  ok   indicators: still scoped, so single-per-key-and-vintage is unchanged
+  ok   territories: NO vintage clause, because a null vintage matches nothing
+  ok   PREV control: the old filter had no vintage clause, so it would have retired 2010
+  ok   PREV control: PR 2 shipped without the scope fix
 
 renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
    after-coned.html
@@ -114,5 +144,5 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    prev-pr1-shapes.html
 
 ======================================================================
-  77 passed, 0 failed
+  101 passed, 0 failed
 ======================================================================

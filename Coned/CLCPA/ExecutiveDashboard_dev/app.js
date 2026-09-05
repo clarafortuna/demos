@@ -1236,11 +1236,35 @@ function utf8ByteLength(str) {
          * here rather than by a Dataverse rule: deactivate every other version of
          * the same family first, so two releases can never both be live.
          */
+        /* CLCPA-220 correction 2b: the retire SCOPE, which this path had wrong.
+         *
+         * saveTractDataset has always scoped its retire by datasetKey AND
+         * geoidVintage, except for territories, which have no vintage and are
+         * scoped by key alone. This path scoped by datasetKey ONLY, always.
+         *
+         * That was invisible while DAC indicators were the only family with a
+         * toggle, because indicators really are one-active-per-key. The moment
+         * electric and gas figures gained one, activating a 2020 version would
+         * have silently deactivated the 2010 version and taken the operational
+         * figures off the 2010 map, with a success toast and nothing on screen
+         * to say what had been lost.
+         *
+         * Both vintages of geometry and of ConEd figures are published at once
+         * BY DESIGN, which is the whole reason saveTractDataset carries
+         * retireBy. The two paths now agree.
+         */
         async setTractDatasetActive(dvId, rec, makeActive) {
           if (makeActive) {
+            // Scoped by key alone exactly when there is no vintage to scope by.
+            // That is the general statement of the rule rather than a list of
+            // family names: a record with no vintage cannot be filtered on one,
+            // and `cr2bf_geoidvintage eq ''` does not match a row stored NULL.
+            const byKeyOnly = !String(rec.geoidVintage || '');
             const siblings = await getAll(setTractDataset,
               '$select=' + ID_TRACTDATASET + ",cr2bf_versionlabel&$filter=cr2bf_isactive eq true and cr2bf_datasetkey eq '" +
-              String(rec.datasetKey).replace(/'/g, "''") + "'");
+              String(rec.datasetKey).replace(/'/g, "''") + "'" +
+              (byKeyOnly ? '' : " and cr2bf_geoidvintage eq '" +
+                String(rec.geoidVintage || '').replace(/'/g, "''") + "'"));
             for (let i = 0; i < siblings.length; i++) {
               const sid = siblings[i][ID_TRACTDATASET];
               if (String(sid).toLowerCase() === String(dvId).toLowerCase()) continue;
@@ -15584,13 +15608,13 @@ function wireHTooltips() {
       title: 'Electric and gas figures',
       sub: 'Account counts, EAP counts and adjustments per tract, converted from the Con ' +
            'Edison extracts. The version whose vintage matches the active dataset is the one ' +
-           'in use. Tracts corrected by hand in the map data table keep their corrections: these ' +
-           'figures sit underneath them.',
-      help: dsHelpButton('coned') + dsInfoButton('coned'),
+           'in use. Tracts corrected by hand in the map data table keep their corrections: ' +
+           'these figures sit underneath them.',
+      help: dsHelpButton('coned'),
       recs: recs,
       inUseId: live && live.rec ? live.rec.dvId : null,
-      emptyText: 'No electric and gas figures published yet.',
-      rowOpts: { mode: 'none', activeWord: 'Available' },
+      emptyText: 'No electric and gas figures uploaded yet.',
+      rowOpts: { mode: 'toggle', inUseWord: 'In use' },
     });
   }
 
@@ -15622,17 +15646,21 @@ function wireHTooltips() {
       cls: 'ds-terr',
       title: 'Territory overlays',
       sub: 'The Con Edison electric, gas and ORU boundaries, drawn over the tracts. Switch ' +
-           'them on from the Layers control on the map; they download the first time one is ' +
-           'used. Uploading a new overlay replaces the published one.',
+           'them on from the Layers control on the map. Uploading a new overlay replaces ' +
+           'the published one.',
+      // Finding 6: 'not loaded yet' was technically true and read as a fault.
+      // The overlay is published and fine; it simply has not been downloaded
+      // yet, because CLCPA-193 made that happen on first use. Say the behaviour
+      // rather than a status, so the operator meets the on-demand model BEFORE
+      // feeling the first-toggle delay rather than after.
       help: '<div class="ml-card-actions">' + (drawing
              ? '<span class="ml-chip ml-chip-ok">loaded</span>'
-             : '<span class="ml-chip">not loaded yet</span>') + '</div>' +
-            dsInfoButton('territory'),
+             : '<span class="ml-chip">loads when first used</span>') + '</div>',
       recs: recs,
       inUseId: live ? live.dvId : null,
-      emptyText: 'No territory overlay published yet.',
-      // A territory overlay counts LAYERS, not tracts, and carries no vintage.
-      rowOpts: { mode: 'none', activeWord: 'Published', countWord: 'layers',
+      emptyText: 'No territory overlay uploaded yet.',
+      // An overlay counts LAYERS, not tracts, and carries no vintage.
+      rowOpts: { mode: 'toggle', inUseWord: 'Published', countWord: 'layers',
                  fieldWord: 'layers' },
     });
   }
@@ -16176,7 +16204,7 @@ function wireHTooltips() {
       sub: 'NYSERDA per-tract data, kept as versions. The active version is what the Color by ' +
            'list, the tract tooltips, the tract detail panel and the CSV export all read.',
       help: '<div class="ml-card-actions">' + dsSourceChip() + dsHelpButton('datasets') +
-            '</div>' + dsInfoButton('indicators'),
+            '</div>',
       recs: recs,
       inUseId: null,
       emptyText: 'No dataset versions uploaded yet. The map is using the indicators it ships with.',
@@ -16217,68 +16245,58 @@ function wireHTooltips() {
    * only true for someone who still has the file. The row is the rollback.
    * ============================================================ */
 
-  /** Short form of the stored key checksum, or empty when there is none. */
-  function dsFingerprintShort(r) {
-    const fp = String((r && r.keyChecksum) || '');
-    return fp ? fp.slice(0, 12) : '';
-  }
-
   /**
-   * One version row. `mode` decides the trailing control:
-   *   'toggle'    the Active switch (indicator versions, which are chosen)
-   *   'reactivate' a Reactivate button (a retired version of any family)
-   *   'none'      no control (a published set with nothing to decide)
+   * One version row, and the SAME anatomy for every family.
+   *
+   * Left: name, version chip, the details line. Right: the control and the
+   * state pill. Nothing else. The first version of this put a state pill beside
+   * the NAME as well as on the toggle, so a row carried the same fact twice in
+   * two places and the eye had nowhere settled to look for it.
+   *
+   * `mode` decides the right-hand side:
+   *   'toggle'  the switch, for families where a version is CHOSEN
+   *   'pill'    the state alone, for families where nothing is switchable
    */
   function dsVersionRow(r, opts) {
     const o = opts || {};
     const inUse = o.inUse === true;
-    const retired = r.active === false;
     const canWrite = Storage.canWriteDatasets();
-    const statePill = inUse
-      ? '<span class="ml-state-pill ml-state-on">In use</span>'
-      : retired
-      ? '<span class="ml-state-pill ml-state-off">Retired</span>'
-      : r.active
-      ? '<span class="ml-state-pill ml-state-on">' + (o.activeWord || 'Active') + '</span>'
-      : '<span class="ml-state-pill ml-state-off">Inactive</span>';
     const busy = r.busy === true;
-    let control = '';
+    const label = inUse ? (o.inUseWord || 'In use')
+      : r.active ? (o.activeWord || 'Active')
+      : (o.inactiveWord || 'Inactive');
+    const on = inUse || r.active === true;
+    let right;
     if (o.mode === 'toggle' && canWrite) {
-      control = `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
+      right = `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
            <input type="checkbox" data-ds-active="${escapeHtml(r.dvId)}"${
              r.active ? ' checked' : ''}${busy ? ' disabled' : ''} />
            <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-           <span class="ml-toggle-label ml-state-pill ${r.active ? 'ml-state-on' : 'ml-state-off'}">${
-             busy ? 'Saving…' : (r.active ? 'Active' : 'Inactive')}</span>
+           <span class="ml-toggle-label ml-state-pill ${on ? 'ml-state-on' : 'ml-state-off'}">${
+             busy ? 'Saving…' : escapeHtml(label)}</span>
          </label>`;
-    } else if (o.mode === 'reactivate' && canWrite) {
-      // The rollback, in one click. dsSetActive re-downloads, re-validates and
-      // re-pairs the geometry before anything changes, so this is not a blind
-      // flag flip: a retired version that no longer validates is refused here
-      // exactly as it would be on upload.
-      control = `<button class="btn btn-secondary ds-reactivate" type="button"
-           data-ds-reactivate="${escapeHtml(r.dvId)}"${busy ? ' disabled' : ''}>${
-             busy ? 'Working…' : 'Reactivate'}</button>`;
+    } else {
+      right = `<span class="ml-state-pill ${on ? 'ml-state-on' : 'ml-state-off'}">${
+        escapeHtml(label)}</span>`;
     }
     const bits = [];
     if (o.countWord !== null) {
       bits.push((r.tractCount || 0).toLocaleString() + ' ' + (o.countWord || 'tracts'));
     }
     if (r.fieldCount) bits.push(r.fieldCount + ' ' + (o.fieldWord || 'fields'));
-    // A territory overlay carries no vintage, and saying "vintage ?" invents a
-    // gap where there is none. See dsValidateTerritoryDoc: it has no GEOIDs and
-    // pairs with no dataset.
+    // A territory overlay carries no vintage, and printing 'vintage ?' invents a
+    // gap where there is none.
     if (r.geoidVintage) bits.push('vintage ' + escapeHtml(String(r.geoidVintage)));
-    const fp = dsFingerprintShort(r);
-    if (fp) bits.push('fingerprint <span class="ml-mono">' + escapeHtml(fp) + '</span>');
     if (r.savedOn) bits.push('uploaded ' + escapeHtml(mlFmtSavedOn(r.savedOn)));
+    // The key checksum is gone from this line on purpose. It belongs to the
+    // technical record, not to the list an operator reads to decide something.
+    if (o.why) bits.push(o.why);
     return `
-      <li class="ml-row${retired ? ' ml-row-inactive ds-row-retired' : ''}"
-        data-ds-row="${escapeHtml(r.dvId)}">
+      <li class="ml-row${on ? '' : ' ml-row-inactive'}" data-ds-row="${escapeHtml(r.dvId)}">
         <div class="ml-row-main">
           <div class="ml-row-name">${escapeHtml(r.name || r.datasetKey)}
-            <span class="ml-mono">${escapeHtml(r.version)}</span> ${statePill}${
-              r.loadError ? '<span class="ml-chip ml-chip-err" title="' +
+            <span class="ml-mono">${escapeHtml(r.version)}</span>${
+              r.loadError ? ' <span class="ml-chip ml-chip-err" title="' +
                 escapeHtml(r.loadError) + '">refused</span>' : ''}</div>
           <div class="ml-row-meta">${bits.join(' · ')}</div>
           ${r.sourceLabel ? `<div class="ml-row-src">${escapeHtml(r.sourceLabel)}</div>` : ''}
@@ -16288,42 +16306,52 @@ function wireHTooltips() {
                <div class="ml-row-error-detail">${escapeHtml(r.loadError)}</div>
              </div>` : ''}
         </div>
-        <div class="ml-row-actions">${control}</div>
+        <div class="ml-row-actions">${right}</div>
       </li>`;
   }
 
   /**
-   * The (i) button (CLCPA-220 PR 2, finding 3). It replaces the "produced by
-   * <script>" text that used to sit in the upload description, where it made a
-   * three line paragraph out of a one line fact.
+   * The (i) button. It lives INSIDE the upload box, bottom right, where it
+   * replaces the 'produced by <script>' chip that used to sit in the
+   * description and turn a one line fact into a three line paragraph.
    *
-   * It is also the anchor CLCPA-221 will hang each family's dictionary entry
-   * on, which is why it takes the tab id rather than a string: when the
-   * dictionary lands, this button opens that family's entry and nothing else
-   * about the card has to move.
+   * Inert until CLCPA-221 gives it the dictionary. It is placed now so the
+   * anchor is already in the right spot when the entry arrives, rather than the
+   * button moving under an operator who has just learned where it is.
    */
   function dsInfoButton(tabId) {
     const fam = ML_FAMILY[tabId];
     if (!fam) return '';
-    return `<button type="button" class="btn-icon ds-info-btn" data-ds-info="${escapeHtml(tabId)}"
+    return `<button type="button" class="ds-info-btn" data-ds-info="${escapeHtml(tabId)}"
       title="Produced by ${escapeHtml(fam.produces)}"
       aria-label="About ${escapeHtml(fam.noun)}">i</button>`;
   }
 
-  /** The shared shell every family card uses. */
+  /**
+   * The shared family card. ONE FLAT LIST of every version stored in Dataverse.
+   *
+   * There is no 'Earlier versions' section any more. Splitting the list made a
+   * retired version look like a different KIND of thing needing a different
+   * control, when it is the same row in a different state: switching one on IS
+   * the rollback, and it goes through the same confirm and the same
+   * validate-before-publish path as any other activation.
+   *
+   * Active first, then newest first, so the version in force is at the top and
+   * history reads downwards without needing a heading to say so.
+   */
   function dsFamilyCard(o) {
-    const live = o.recs.filter(r => r.active !== false);
-    const retired = o.recs.filter(r => r.active === false);
-    // extraFor lets one family add a block under a specific row without every
-    // other family growing a field it has no use for. Today only the indicator
-    // card uses it, for the coverage line under the version actually in use.
+    const recs = o.recs.slice().sort(function (a, b) {
+      const aOn = (o.inUseId && a.dvId === o.inUseId) || a.active === true;
+      const bOn = (o.inUseId && b.dvId === o.inUseId) || b.active === true;
+      if (aOn !== bOn) return aOn ? -1 : 1;
+      return String(b.savedOn || '').localeCompare(String(a.savedOn || ''));
+    });
     const extra = (r) => (typeof o.extraFor === 'function' ? (o.extraFor(r) || '') : '');
-    const rows = live.map(r => dsVersionRow(r, Object.assign({}, o.rowOpts, {
+    const why = (r) => (typeof o.whyFor === 'function' ? (o.whyFor(r) || '') : '');
+    const rows = recs.map(r => dsVersionRow(r, Object.assign({}, o.rowOpts, {
       inUse: o.inUseId ? r.dvId === o.inUseId : false,
       extra: extra(r),
-    }))).join('');
-    const retiredRows = retired.map(r => dsVersionRow(r, Object.assign({}, o.rowOpts, {
-      mode: 'reactivate', inUse: false, extra: '',
+      why: why(r),
     }))).join('');
     return `
       <div class="ml-card ${escapeHtml(o.cls || '')}">
@@ -16335,17 +16363,9 @@ function wireHTooltips() {
           ${o.help || ''}
         </div>
         <div class="ml-card-body">
-          ${live.length ? '<ul class="ml-list">' + rows + '</ul>'
+          ${recs.length ? '<ul class="ml-list">' + rows + '</ul>'
                         : '<p class="ml-empty">' + escapeHtml(o.emptyText ||
-                            'Nothing published yet.') + '</p>'}
-          ${retired.length ? `
-            <div class="ds-retired">
-              <div class="ds-retired-head">Earlier versions (${retired.length})</div>
-              <p class="ds-retired-sub">Retired when a newer version was published. Reactivate
-              puts one back: the file is downloaded and checked again first, so a version that no
-              longer validates is refused rather than published.</p>
-              <ul class="ml-list">${retiredRows}</ul>
-            </div>` : ''}
+                            'Nothing uploaded yet.') + '</p>'}
         </div>
       </div>`;
   }
@@ -16355,17 +16375,30 @@ function wireHTooltips() {
     const recs = dsRecords().filter(dsRecIsGeometry);
     if (!recs.length) return '';
     const liveGeom = dsGeometry();
+    const st = dsState();
+    const activeVintage = st && st.rec ? String(st.rec.geoidVintage || '') : '';
     return dsFamilyCard({
       cls: 'ds-geom',
       title: 'Tract shapes',
-      sub: 'The map draws the shapes whose vintage matches the active dataset, so there is ' +
-           'nothing to switch here. Uploading a new set makes it available to any dataset ' +
-           'version that declares the same vintage.',
-      help: dsHelpButton('shapes') + dsInfoButton('shapes'),
+      sub: 'The map draws the shapes whose vintage matches the active DAC indicators ' +
+           'version, so there is nothing to switch here. Uploading a new set makes it ' +
+           'available to any version that declares the same vintage.',
+      help: dsHelpButton('shapes'),
       recs: recs,
       inUseId: liveGeom && liveGeom.rec ? liveGeom.rec.dvId : null,
-      emptyText: 'No tract shapes published yet.',
-      rowOpts: { mode: 'none', activeWord: 'Available', fieldWord: 'properties' },
+      emptyText: 'No tract shapes uploaded yet.',
+      // Informational, not switchable: geometry is PAIRED by vintage, never
+      // chosen. So the row says which one is in use and why, rather than
+      // offering a control that would have nothing to decide.
+      rowOpts: { mode: 'pill', inUseWord: 'In use', activeWord: 'Available',
+                 fieldWord: 'properties' },
+      whyFor: function (r) {
+        const v = String(r.geoidVintage || '');
+        if (!activeVintage) return 'no active DAC indicators version to pair with';
+        return v === activeVintage
+          ? 'matches the active DAC indicators version'
+          : 'no active version declares vintage ' + escapeHtml(v);
+      },
     });
   }
 
@@ -16523,6 +16556,7 @@ function wireHTooltips() {
         </div>
         <div class="ml-card-body">
           <div class="ds-upload">${up}</div>
+          <div class="ds-upload-foot">${dsInfoButton(tabId)}</div>
         </div>
       </div>`;
   }
@@ -17383,13 +17417,10 @@ function wireHTooltips() {
         dsSetActive(ds.dataset.dsActive, ds.checked);
         return;
       }
-      // CLCPA-220 (G3): the rollback. Same confirm, same code path.
-      const ra = e.target.closest('[data-ds-reactivate]');
-      if (ra) {
-        if (!dsConfirmActivate(ra.dataset.dsReactivate)) return;
-        dsSetActive(ra.dataset.dsReactivate, true);
-        return;
-      }
+      // The separate Reactivate button is GONE. Switching a version ON is the
+      // reactivate, through the toggle above: same confirm, same
+      // validate-before-publish path, one control instead of two that did the
+      // same thing depending on which half of a split list a row sat in.
       // The dataset file picker lives inside this mount, so it is delegated too.
       const df = e.target.closest('#ds-file');
       if (df && df.files && df.files[0]) {

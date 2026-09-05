@@ -8053,24 +8053,10 @@ a.nav-item { text-decoration: none; }
 .ds-info-btn:hover { border-color: var(--dusk); color: var(--dusk); background: var(--dusk-tint); }
 .ds-info-btn:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
 
-/* ---- Retired versions and the rollback control (CLCPA-220 PR 2, G3) ----
-   Separated from the published list rather than mixed into it: a retired
-   version is not a candidate the operator is choosing between, it is history
-   they can return to. Muted so the published rows stay the subject. */
-.ds-retired {
-  margin-top: 14px; padding-top: 12px;
-  border-top: 1px dashed var(--line-strong);
-}
-.ds-retired-head {
-  font-size: 11.5px; font-weight: 700; letter-spacing: 0.02em;
-  text-transform: uppercase; color: var(--text-3); margin-bottom: 4px;
-}
-.ds-retired-sub {
-  font-size: 11.5px; line-height: 1.5; color: var(--text-3);
-  margin: 0 0 10px;
-}
-.ds-row-retired .ml-row-name { opacity: 0.7; }
-.ds-reactivate { font-size: 11.5px; padding: 5px 12px; }
+/* ---- The upload box footer (CLCPA-220 correction 5) ----
+   The (i) button sits INSIDE the upload box, bottom right. The retired-version
+   block that used to live here is gone with the split list it belonged to. */
+.ds-upload-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
 
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
    Five pills, one section visible at a time. The page had grown to seven
@@ -8886,53 +8872,51 @@ CLCPA-220 render harness &middot; AFTER, tab: territory &middot; stub data, real
              <input type="file" id="ds-file" accept=".json,.geojson" hidden /></label>
            <span class="ml-picker-hint">.json or .geojson</span>
          </div></div>
+          <div class="ds-upload-foot"><button type="button" class="ds-info-btn" data-ds-info="territory"
+      title="Produced by update_map_data.py --refresh-territories"
+      aria-label="About territory overlays">i</button></div>
         </div>
       </div>
       <div class="ml-card ds-terr">
         <div class="ml-card-head">
           <div>
             <h3>Territory overlays</h3>
-            <p class="ml-card-sub">The Con Edison electric, gas and ORU boundaries, drawn over the tracts. Switch them on from the Layers control on the map; they download the first time one is used. Uploading a new overlay replaces the published one.</p>
+            <p class="ml-card-sub">The Con Edison electric, gas and ORU boundaries, drawn over the tracts. Switch them on from the Layers control on the map. Uploading a new overlay replaces the published one.</p>
           </div>
-          <div class="ml-card-actions"><span class="ml-chip ml-chip-ok">loaded</span></div><button type="button" class="btn-icon ds-info-btn" data-ds-info="territory"
-      title="Produced by update_map_data.py --refresh-territories"
-      aria-label="About territory overlays">i</button>
+          <div class="ml-card-actions"><span class="ml-chip ml-chip-ok">loaded</span></div>
         </div>
         <div class="ml-card-body">
           <ul class="ml-list">
-      <li class="ml-row"
-        data-ds-row="d5">
+      <li class="ml-row" data-ds-row="d5">
         <div class="ml-row-main">
           <div class="ml-row-name">Service territories
-            <span class="ml-mono">1.1-simp40ft-5dp</span> <span class="ml-state-pill ml-state-on">In use</span></div>
+            <span class="ml-mono">1.1-simp40ft-5dp</span></div>
           <div class="ml-row-meta">6 layers · 6 layers · uploaded 2026-08-24</div>
           
           
           
         </div>
-        <div class="ml-row-actions"></div>
-      </li></ul>
-          
-            <div class="ds-retired">
-              <div class="ds-retired-head">Earlier versions (1)</div>
-              <p class="ds-retired-sub">Retired when a newer version was published. Reactivate
-              puts one back: the file is downloaded and checked again first, so a version that no
-              longer validates is refused rather than published.</p>
-              <ul class="ml-list">
-      <li class="ml-row ml-row-inactive ds-row-retired"
-        data-ds-row="d7">
+        <div class="ml-row-actions"><label class="ml-toggle">
+           <input type="checkbox" data-ds-active="d5" checked />
+           <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+           <span class="ml-toggle-label ml-state-pill ml-state-on">Published</span>
+         </label></div>
+      </li>
+      <li class="ml-row ml-row-inactive" data-ds-row="d7">
         <div class="ml-row-main">
           <div class="ml-row-name">Service territories
-            <span class="ml-mono">1.0</span> <span class="ml-state-pill ml-state-off">Retired</span></div>
-          <div class="ml-row-meta">6 layers · 6 layers · fingerprint <span class="ml-mono">ee55ff66aa77</span> · uploaded 2026-08-13</div>
+            <span class="ml-mono">1.0</span></div>
+          <div class="ml-row-meta">6 layers · 6 layers · uploaded 2026-08-13</div>
           
           
           
         </div>
-        <div class="ml-row-actions"><button class="btn btn-secondary ds-reactivate" type="button"
-           data-ds-reactivate="d7">Reactivate</button></div>
+        <div class="ml-row-actions"><label class="ml-toggle">
+           <input type="checkbox" data-ds-active="d7" />
+           <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
+           <span class="ml-toggle-label ml-state-pill ml-state-off">Inactive</span>
+         </label></div>
       </li></ul>
-            </div>
         </div>
       </div></div>
 
