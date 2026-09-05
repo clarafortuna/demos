@@ -51,3 +51,39 @@ Con Edison repopulation.
 
 Recorded here rather than left implied, because "asserted" and "verified against
 the live table" are different claims and this ticket only supports the first.
+
+---
+
+# The read-only disabled switch: asserted, never rendered read-only
+
+Same treatment, same reason, recorded here so the two limits sit together.
+
+Visual round 2 removed the per-row state pills from Saved layers. A read-only
+user previously got a pill INSTEAD of a toggle, which is now the one thing that
+would reintroduce the ragged column the change existed to fix. So a read-only
+user gets the same switch, disabled, with a title explaining why.
+
+One vocabulary for everyone, not two.
+
+## What IS verified
+
+The markup is asserted: every saved-layer row renders a switch, no row renders a
+state pill, and the card-header hint survives.
+
+## What is NOT verified
+
+**The read-only path has never been rendered with a read-only user.** The render
+harness fixture grants every privilege:
+
+    canCreateLayers: () => true,
+    canWriteLayers: () => true,
+    canCreateDatasets: () => true,
+    canWriteDatasets: () => true,
+
+so `canToggle` is always true and the disabled branch is never taken. The
+assertions cover the shape of the row, not the read-only variant of it.
+
+Ruled by Emely on 2026-09-05: asserted for now, screen-verified when a read-only
+pass naturally happens. Recorded rather than implied, because "the markup is
+asserted" and "a read-only user has seen it" are different claims and this
+ticket supports only the first.
