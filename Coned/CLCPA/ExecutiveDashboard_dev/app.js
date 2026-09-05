@@ -15529,18 +15529,24 @@ function wireHTooltips() {
               ? '<span class="ml-chip ml-chip-off">not listed</span>'
               : '');
           const busy = entry.toggleBusy === true;
-          const toggle = canToggle
-            ? `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}">
+          // CLCPA-220 round 2: NO per-row state pill. The switch itself carries
+          // the state, and the labels were variable width -- "Listed on the map"
+          // against "Not listed" -- so every row put its toggle at a different
+          // x and the column read as ragged. The card header still explains what
+          // listing does and does not do; that hint is where the explanation
+          // belongs, once, rather than restated on every row.
+          //
+          // A read-only user gets the same switch, disabled, rather than a pill
+          // standing in for it: same geometry, same column, and the state is
+          // still visible without a second way of showing it.
+          const toggle = `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}"${
+              canToggle ? '' : ' title="You have read-only access to saved layers."'}>
                  <input type="checkbox" data-ml-active="${escapeHtml(entry.id)}"${
-                   entry.active !== false ? ' checked' : ''}${busy ? ' disabled' : ''} />
-                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-                 <span class="ml-toggle-label ml-state-pill ${
-                   entry.active !== false ? 'ml-state-on' : 'ml-state-off'}">${
-                   busy ? 'Saving…' : (entry.active !== false ? 'Listed on the map' : 'Not listed')}</span>
-               </label>`
-            : `<span class="ml-state-pill ${
-                 entry.active !== false ? 'ml-state-on' : 'ml-state-off'}">${
-                 entry.active !== false ? 'Listed on the map' : 'Not listed'}</span>`;
+                   entry.active !== false ? ' checked' : ''}${
+                   busy || !canToggle ? ' disabled' : ''} />
+                 <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>${
+                   busy ? '<span class="ml-toggle-label">Saving…</span>' : ''}
+               </label>`;
           const src = entry.sourceLabel
             ? `<div class="ml-row-src">${escapeHtml(entry.sourceLabel)}</div>` : '';
           return `
@@ -15641,21 +15647,19 @@ function wireHTooltips() {
     const recs = dsRecords().filter(dsRecIsTerritories);
     if (!recs.length) return '';
     const live = dsTerritoryRec();
-    const drawing = _territorySource === 'dataverse' && live;
     return dsFamilyCard({
       cls: 'ds-terr',
       title: 'Territory overlays',
       sub: 'The Con Edison electric, gas and ORU boundaries, drawn over the tracts. Switch ' +
            'them on from the Layers control on the map. Uploading a new overlay replaces ' +
            'the published one.',
-      // Finding 6: 'not loaded yet' was technically true and read as a fault.
-      // The overlay is published and fine; it simply has not been downloaded
-      // yet, because CLCPA-193 made that happen on first use. Say the behaviour
-      // rather than a status, so the operator meets the on-demand model BEFORE
-      // feeling the first-toggle delay rather than after.
-      help: '<div class="ml-card-actions">' + (drawing
-             ? '<span class="ml-chip ml-chip-ok">loaded</span>'
-             : '<span class="ml-chip">loads when first used</span>') + '</div>',
+      // CLCPA-220 round 2: NO state chip here at all. It went from
+      // 'not loaded yet' (read as a fault) to 'loads when first used' (accurate
+      // but still answering a question nobody had asked at that point). The
+      // moment the download actually matters is the first toggle ON THE MAP,
+      // and CLCPA-193 already shows a loading state exactly there. A chip on
+      // this card was narrating a wait the operator was not yet having.
+      help: '',
       recs: recs,
       inUseId: live ? live.dvId : null,
       emptyText: 'No territory overlay uploaded yet.',
@@ -16522,6 +16526,7 @@ function wireHTooltips() {
            <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
              <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
            <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))}</span>
+           ${dsInfoButton(tabId)}
          </div>`
       : d.dsStage === 'saving'
       ? `<span class="ml-save-progress">${escapeHtml(mlSaveStatusText(d.dsProgress || { phase: 'creating' }))}</span>`
@@ -16529,6 +16534,7 @@ function wireHTooltips() {
            <label class="btn btn-secondary ml-browse">Choose ${escapeHtml(fam.noun)} file
              <input type="file" id="ds-file" accept="${escapeHtml(fam.accept)}" hidden /></label>
            <span class="ml-picker-hint">${escapeHtml(fam.accept.split(',').join(' or '))}</span>
+           ${dsInfoButton(tabId)}
          </div>`;
     return `
       <div class="ml-card ds-upload-card">
@@ -16556,7 +16562,6 @@ function wireHTooltips() {
         </div>
         <div class="ml-card-body">
           <div class="ds-upload">${up}</div>
-          <div class="ds-upload-foot">${dsInfoButton(tabId)}</div>
         </div>
       </div>`;
   }

@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || 'ca70a06';   // post-PR-2
+const PREV = process.env.DAC_PREV_COMMIT || 'ea7fbcd';   // post-corrections round 1
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -291,6 +291,11 @@ for (const t of TABS) {
     shell('AFTER, tab: ' + t, html));
 }
 
+// Rendered up front so BOTH sections can use them: an assertion in the PR 1
+// section referenced prevByTab before it existed and died on a TDZ.
+const prevByTab = {};
+for (const t of TABS) { prev.api.setTab(t); prevByTab[t] = prev.api.page(); }
+
 /* ---------- assertions --------------------------------------------------- */
 lines.push('');
 lines.push('=== the tab shell ===');
@@ -300,6 +305,16 @@ ok((A.match(/class="ml-tab[ "]/g) || []).length === 5, 'exactly five tabs');
 TABS.forEach(t => ok(A.indexOf('data-ml-tab="' + t + '"') >= 0, 'tab present: ' + t));
 ok((A.match(/class="ml-tab active"/g) || []).length === 1, 'exactly one tab is active');
 ok(/aria-selected="true"/.test(A), 'the active tab is marked for assistive tech');
+{
+  // Round 2: the tabs join the app's button family instead of being pills.
+  // Asserted on the CSS, because the shape lives there and not in the markup.
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  const rule = css.slice(css.indexOf('.ml-tab {'), css.indexOf('.ml-tab:hover'));
+  ok(/border-radius:\s*6px/.test(rule), 'the tabs use the app standard 6px radius');
+  ok(!/border-radius:\s*999px/.test(rule), 'and are no longer fully rounded pills');
+  ok(/var\(--dusk\)/.test(css.slice(css.indexOf('.ml-tab.active'), css.indexOf('.ml-tab.active') + 200)),
+     'the active tab keeps the solid dark fill');
+}
 ok(!/class="ml-tabs-row"/.test(beforeHtml), 'BEFORE control: no tab row existed');
 
 lines.push('');
@@ -321,7 +336,23 @@ lines.push('');
 lines.push('=== G1: the relabel ===');
 ok(/Listed on the map/.test(A), 'AFTER says "Listed on the map"');
 ok(/Not listed/.test(A), 'AFTER says "Not listed"');
-ok(/ml-state-on/.test(A) && /ml-state-off/.test(A), 'both state pills are styled');
+{
+  // Round 2 removed the saved-layer pills entirely, so this asserts their
+  // ABSENCE where they used to be, and their continued use on the family
+  // tabs, where a pill is the whole control for Tract shapes.
+  const saved = A.slice(A.indexOf('Saved layers'), A.indexOf('This session'));
+  ok(!/ml-state-pill/.test(saved), 'saved-layer rows carry NO state pill');
+  // ROWS only. The card-header hint still says "Listed on the map" and "Not
+  // listed", and it stays by ruling: the explanation belongs there once, not
+  // restated on every row. A ban across the whole card would have deleted the
+  // very sentence the pills were removed in favour of.
+  const savedRows = saved.slice(saved.indexOf('<ul class="ml-list">'));
+  ok(!/Listed on the map|Not listed/.test(savedRows), 'and no per-row state text');
+  ok((saved.match(/ml-toggle-track/g) || []).length === 2,
+     'every saved layer still has its switch');
+  ok(/ml-state-pill/.test(prevByTab.layers),
+     'PREV control: the previous build put a pill on every saved-layer row');
+}
 ok(!/>Active</.test(A.slice(A.indexOf('Saved layers'), A.indexOf('This session'))),
    'the saved-layers block no longer says "Active"');
 ok(/>Active</.test(beforeHtml), 'BEFORE control: it used to say "Active"');
@@ -391,8 +422,6 @@ lines.push('=== a good file dropped on the WRONG family tab ===');
 }
 
 /* ================= PR 2 ================= */
-const prevByTab = {};
-for (const t of TABS) { prev.api.setTab(t); prevByTab[t] = prev.api.page(); }
 
 lines.push('');
 lines.push('=== correction 1: ONE row anatomy, no pill beside the name ===');
@@ -406,8 +435,7 @@ lines.push('=== correction 1: ONE row anatomy, no pill beside the name ===');
 });
 {
   const pn = prevByTab.shapes.match(/<div class="ml-row-name">[\s\S]*?<\/div>/g) || [];
-  ok(pn.some(n => /ml-state-pill/.test(n)),
-     'PREV control: PR 2 DID put a pill beside the name');
+// (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
 }
 
 lines.push('');
@@ -418,8 +446,8 @@ lines.push('=== correction 2: one flat list, no Reactivate ===');
   ok((afterByTab[t].match(/<ul class="ml-list">/g) || []).length === 1,
      t + ': exactly one list');
 });
-ok(/Earlier versions/.test(prevByTab.shapes), 'PREV control: PR 2 split the list');
-ok(/data-ds-reactivate/.test(prevByTab.shapes), 'PREV control: PR 2 had a Reactivate button');
+// (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
+// (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
 ok(afterByTab.indicators.indexOf('d1') < afterByTab.indicators.indexOf('d8'),
    'active versions sort above retired ones without needing a heading');
 
@@ -431,8 +459,7 @@ ok((afterByTab.coned.match(/data-ds-active=/g) || []).length === 1,
    'electric and gas: toggles too, which is new');
 ok((afterByTab.territory.match(/data-ds-active=/g) || []).length === 2,
    'territory: toggles too');
-ok(!/data-ds-active=/.test(prevByTab.coned),
-   'PREV control: PR 2 gave electric and gas no toggle at all');
+// (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
 
 lines.push('');
 lines.push('=== correction 3: tract shapes are informational ===');
@@ -448,24 +475,28 @@ lines.push('=== correction 4: the fingerprint is gone from the rows ===');
 ['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
   ok(!/fingerprint/.test(afterByTab[t]), t + ': no fingerprint in the list');
 });
-ok(/fingerprint/.test(prevByTab.shapes), 'PREV control: PR 2 printed it');
+// (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
 
 lines.push('');
 lines.push('=== correction 5: the (i) button moved into the upload box ===');
 ['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
   const h = afterByTab[t];
-  ok(/ds-upload-foot/.test(h), t + ': the upload box has a footer');
-  ok(h.indexOf('data-ds-info=') > h.indexOf('ds-upload'),
-     t + ': the (i) button is INSIDE the upload box, not in the card head');
+  ok(!/ds-upload-foot/.test(h), t + ': the footer is gone');
+  ok(/ml-picker[\s\S]{0,700}?data-ds-info=/.test(h),
+     t + ': the (i) button is INLINE in the Choose-file row');
 });
 // A positional test cannot tell the two layouts apart: the upload block renders
-// before the card in BOTH, so the (i) is "after ds-upload" either way. The
-// structural fact is the one that changed: there is now a footer inside the
-// upload box, and that is where the button lives.
-ok(!/ds-upload-foot/.test(prevByTab.shapes),
-   'PREV control: PR 2 had no upload-box footer at all');
-ok(/ds-upload-foot"><button[^>]*data-ds-info=/.test(afterByTab.shapes),
-   'the (i) button is the direct child of that footer');
+// before the card in BOTH, so the (i) is "after ds-upload" either way. What
+// changed this round is structural: the footer is gone and the button sits in
+// the Choose-file row itself.
+ok(/ds-upload-foot/.test(prevByTab.shapes),
+   'PREV control: the previous build put it in a footer of its own');
+{
+  const css2 = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  ok(/\.ml-picker \.ds-info-btn/.test(css2),
+     'and it is pushed right within that row rather than wrapped in a div');
+  ok(!/ds-upload-foot/.test(css2), 'the footer rule is gone from the CSS too');
+}
 
 lines.push('');
 lines.push('=== correction 6: the territory chip ===');
@@ -473,7 +504,24 @@ lines.push('=== correction 6: the territory chip ===');
 // "loaded" and the not-yet branch never runs. Assert the COPY at its source
 // instead of pretending a render exercised it: a passing test that never
 // reached the branch would be worse than no test.
-ok(/loaded/.test(afterByTab.territory), 'loaded state still renders as "loaded"');
+// Round 2 supersedes option A: no state chip on this card at all. The moment
+// the download matters is the first toggle ON THE MAP, where CLCPA-193
+// already shows a loading state.
+{
+  // Anchor on the CARD, not the words "Territory overlays": those appear first
+  // in the TAB BUTTON, so slicing from them measured the upload card's head
+  // instead. The AFTER half of this check was passing for that reason rather
+  // than because the chip was gone.
+  const headOf = (html) => {
+    const i = html.indexOf('class="ml-card ds-terr"');
+    return i < 0 ? '' : html.slice(i, html.indexOf('ml-card-body', i));
+  };
+  const head = headOf(afterByTab.territory);
+  ok(head.length > 0, 'the territory card is found by its own class');
+  ok(!/ml-chip/.test(head), 'the territory card head carries NO state chip');
+  ok(/ml-chip/.test(headOf(prevByTab.territory)),
+     'PREV control: the previous build had one');
+}
 {
   const appSrc = fs.readFileSync(path.join(REPO, REL), 'utf8');
   ok(/loads when first used/.test(appSrc), 'the not-yet branch says "loads when first used"');
@@ -484,7 +532,7 @@ ok(/loaded/.test(afterByTab.territory), 'loaded state still renders as "loaded"'
     .filter(function (l) { return !/^\s*(\/\/|\*|\/\*)/.test(l); });
   ok(!codeLines.some(function (l) { return /not loaded yet/.test(l); }),
      'and no UI string says "not loaded yet" any more');
-  ok(/not loaded yet/.test(PREV_SRC), 'PREV control: PR 2 said "not loaded yet"');
+  ok(/loads when first used/.test(PREV_SRC), 'PREV control: the previous build carried the chip');
 }
 
 lines.push('');
@@ -513,8 +561,7 @@ lines.push('=== correction 2b: the retire SCOPE, asserted both ways ===');
   ok(!/cr2bf_geoidvintage/.test(oldForm({ datasetKey: 'coned_operational', geoidVintage: '2020' })),
      'PREV control: the old filter had no vintage clause, so it would have retired 2010');
   const prevSrc = PREV_SRC;
-  ok(!/const byKeyOnly = !String\(rec\.geoidVintage/.test(prevSrc),
-     'PREV control: PR 2 shipped without the scope fix');
+// (round-1 PREV control retired: PREV now points past round 1. See the note at the top of patch_round2b for why the suite keeps two baselines, not N.)
 }
 
 fs.writeFileSync(path.join(OUT, 'prev-pr1-shapes.html'),

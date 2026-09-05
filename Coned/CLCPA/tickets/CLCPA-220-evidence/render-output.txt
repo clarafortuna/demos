@@ -12,6 +12,9 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   tab present: territory
   ok   exactly one tab is active
   ok   the active tab is marked for assistive tech
+  ok   the tabs use the app standard 6px radius
+  ok   and are no longer fully rounded pills
+  ok   the active tab keeps the solid dark fill
   ok   BEFORE control: no tab row existed
 
 === one tab at a time ===
@@ -27,7 +30,10 @@ CLCPA-220 PR 1 -- renders and assertions
 === G1: the relabel ===
   ok   AFTER says "Listed on the map"
   ok   AFTER says "Not listed"
-  ok   both state pills are styled
+  ok   saved-layer rows carry NO state pill
+  ok   and no per-row state text
+  ok   every saved layer still has its switch
+  ok   PREV control: the previous build put a pill on every saved-layer row
   ok   the saved-layers block no longer says "Active"
   ok   BEFORE control: it used to say "Active"
   ok   the hint explains that listing does not draw
@@ -69,7 +75,6 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   territory: rows render
   ok   territory: NO state pill beside the name
   ok   territory: the control and pill are on the right
-  ok   PREV control: PR 2 DID put a pill beside the name
 
 === correction 2: one flat list, no Reactivate ===
   ok   indicators: no "Earlier versions" section
@@ -84,15 +89,12 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   territory: no "Earlier versions" section
   ok   territory: no separate Reactivate control
   ok   territory: exactly one list
-  ok   PREV control: PR 2 split the list
-  ok   PREV control: PR 2 had a Reactivate button
   ok   active versions sort above retired ones without needing a heading
 
 === correction 2: switching ON is the reactivate ===
   ok   indicators: EVERY version carries a toggle, retired ones included
   ok   electric and gas: toggles too, which is new
   ok   territory: toggles too
-  ok   PREV control: PR 2 gave electric and gas no toggle at all
 
 === correction 3: tract shapes are informational ===
   ok   shapes: NO toggle anywhere
@@ -105,25 +107,27 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   shapes: no fingerprint in the list
   ok   coned: no fingerprint in the list
   ok   territory: no fingerprint in the list
-  ok   PREV control: PR 2 printed it
 
 === correction 5: the (i) button moved into the upload box ===
-  ok   indicators: the upload box has a footer
-  ok   indicators: the (i) button is INSIDE the upload box, not in the card head
-  ok   shapes: the upload box has a footer
-  ok   shapes: the (i) button is INSIDE the upload box, not in the card head
-  ok   coned: the upload box has a footer
-  ok   coned: the (i) button is INSIDE the upload box, not in the card head
-  ok   territory: the upload box has a footer
-  ok   territory: the (i) button is INSIDE the upload box, not in the card head
-  ok   PREV control: PR 2 had no upload-box footer at all
-  ok   the (i) button is the direct child of that footer
+  ok   indicators: the footer is gone
+  ok   indicators: the (i) button is INLINE in the Choose-file row
+  ok   shapes: the footer is gone
+  ok   shapes: the (i) button is INLINE in the Choose-file row
+  ok   coned: the footer is gone
+  ok   coned: the (i) button is INLINE in the Choose-file row
+  ok   territory: the footer is gone
+  ok   territory: the (i) button is INLINE in the Choose-file row
+  ok   PREV control: the previous build put it in a footer of its own
+  ok   and it is pushed right within that row rather than wrapped in a div
+  ok   the footer rule is gone from the CSS too
 
 === correction 6: the territory chip ===
-  ok   loaded state still renders as "loaded"
+  ok   the territory card is found by its own class
+  ok   the territory card head carries NO state chip
+  ok   PREV control: the previous build had one
   ok   the not-yet branch says "loads when first used"
   ok   and no UI string says "not loaded yet" any more
-  ok   PREV control: PR 2 said "not loaded yet"
+  ok   PREV control: the previous build carried the chip
 
 === correction 2b: the retire SCOPE, asserted both ways ===
   ok   the activation path computes a retire scope at all
@@ -131,7 +135,6 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   indicators: still scoped, so single-per-key-and-vintage is unchanged
   ok   territories: NO vintage clause, because a null vintage matches nothing
   ok   PREV control: the old filter had no vintage clause, so it would have retired 2010
-  ok   PREV control: PR 2 shipped without the scope fix
 
 renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
    after-coned.html
@@ -144,5 +147,5 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    prev-pr1-shapes.html
 
 ======================================================================
-  101 passed, 0 failed
+  104 passed, 0 failed
 ======================================================================
