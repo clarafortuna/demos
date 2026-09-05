@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || '30b13a1';   // post round 6
+const PREV = process.env.DAC_PREV_COMMIT || '4eae1be';   // post 221 round 1, as deployed
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -198,6 +198,7 @@ function makeRenderer(src, label) {
   });
 
   const WANT = ['renderMapLayersPage', 'renderDsDictView', 'renderDsSessionBox',
+                'dsDictClose', 'dsDictGo', 'renderMlTabs',
                 'renderDsSkeleton', 'renderMlNote', 'renderMlSessionList',
                 'renderMlSavedGroup', 'renderMlSessionGroup', 'renderDsCard',
                 'renderGeomCard', 'renderConedCard', 'renderTerritoryCard',
@@ -238,11 +239,18 @@ function makeRenderer(src, label) {
   const body = '"use strict";\nconst state = { mapLayers: null, route: { name: "maplayers" } };\n' +
     [...decls.values()].sort((a, b) => a.at - b.at).map(d => d.text).join('\n') +
     '\n' + [...bodies.values()].join('\n') +
+    // dsDictGo and dsDictClose ask the page to redraw, which is a DOM call
+    // this harness has no DOM for. COUNTED rather than stubbed away, so a
+    // close that silently failed to request a redraw is still visible here.
+    '\nlet _redraws = 0;\nfunction rerenderMapLayersPage() { _redraws++; }\n' +
     '\nreturn { page: renderMapLayersPage, st: () => state, ' +
     'setTab: (t) => { initMapLayersState().tab = t; }, ' +
     'dict: (entry, from) => { const d = initMapLayersState(); d.dict = true; ' +
     'd.dictEntry = entry; d.dictReturnTab = from; }, ' +
-    'undict: () => { initMapLayersState().dict = false; } };';
+    'undict: () => { initMapLayersState().dict = false; }, ' +
+    'close: () => { dsDictClose(); }, ' +
+    'go: (id) => { dsDictGo(id); }, ' +
+    'redraws: () => _redraws };';
   let api;
   try { api = new Function(...keys, body)(...keys.map(k => scope[k])); }
   catch (e) {
@@ -810,48 +818,172 @@ lines.push('=== round 4: the render shell paints the REAL body colour ===');
 
 
 lines.push('');
-lines.push('=== CLCPA-221: the Data Sources dictionary ===');
+lines.push('=== CLCPA-221 round 2: the Data Sources dictionary ===');
 {
-  const st = after.api.st();
   after.api.setTab('shapes');
   after.api.dict('shapes', 'shapes');
   const dict = after.api.page();
 
   ok(/<h1>Data Sources<\/h1>/.test(dict), 'the view has its own page title');
-  ok(!/ml-tabs-row/.test(dict), 'it REPLACES the page: no tab row underneath it');
-  ok(!/id="ml-list-mount"/.test(dict), 'and no list mount, so it is not a modal over the page');
+  ok(!/id="ml-list-mount"/.test(dict), 'no list mount, so it is not a modal over the page');
 
-  // the side nav, all five, argued for over anchors
-  const navs = dict.match(/data-ds-dict-go="[a-z]+"/g) || [];
-  ok(navs.length === 5, 'the side nav offers all five entries: ' + navs.length);
+  // ---- ONE NAV, NOT TWO ----------------------------------------------------
+  // Round 1 had a side nav of its own. The rule now is a single selector, and
+  // it is the tab row.
+  const rows = dict.match(/ml-tabs-row/g) || [];
+  ok(rows.length === 1, 'exactly ONE navigation row in the view, not two: ' + rows.length);
+  ok(!/data-ml-tab=/.test(dict),
+     'and the page tab row is NOT also present: nothing here switches a tab');
+  ok(!/ds-dict-nav/.test(dict), 'the dedicated side nav is gone from the markup');
+  ok(/aria-label="Data source entries"/.test(dict),
+     'the one row is labelled for what it navigates here');
+
+  // ---- SAME RULE, SAME ANATOMY, SAME STATES --------------------------------
+  // Not "looks the same": renderMlTabs() draws both, so the two rows are
+  // compared character for character with only the action attribute normalised.
+  const rowOf = (h) => {
+    const m = h.match(/<div class="ml-tabs-row"[\s\S]*?<\/div>/);
+    return m ? m[0] : '';
+  };
+  const dictRow = rowOf(dict);
+  const pageRow = rowOf(afterByTab.shapes);
+  ok(dictRow.length > 0 && pageRow.length > 0, 'both rows were found to compare');
+  const norm = (h) => h.replace(/data-ds-dict-go=/g, 'data-ml-tab=')
+                       .replace(/aria-label="[^"]*"/, 'aria-label="X"');
+  ok(norm(dictRow) === norm(pageRow),
+     'the dictionary row IS the Map Data tab row, identical but for the action attribute');
+  const mlTabButtons = dictRow.match(/<button[^>]*class="ml-tab[ "]/g) || [];
+  ok(mlTabButtons.length === 5,
+     'all five BUTTONS carry .ml-tab, so they take .ml-tab styling: ' +
+     mlTabButtons.length);
+  ok((dictRow.match(/role="tab"/g) || []).length === 5, 'five buttons, same roles');
+  ok((dictRow.match(/class="ml-tab active"/g) || []).length === 1,
+     'exactly one is selected, by the same active class the page row uses');
+  ok((dictRow.match(/aria-selected="true"/g) || []).length === 1,
+     'and the selected state is exposed the same way');
+
   ['layers', 'indicators', 'shapes', 'coned', 'territory'].forEach(id => {
-    ok(dict.indexOf('data-ds-dict-go="' + id + '"') >= 0, 'nav has ' + id);
+    ok(dictRow.indexOf('data-ds-dict-go="' + id + '"') >= 0, 'row has ' + id);
   });
-  ok((dict.match(/ds-dict-navitem active/g) || []).length === 1, 'exactly one nav item is current');
-  ok(/aria-current="true"/.test(dict), 'and it is marked for assistive tech');
+  ['Map Layers', 'DAC Indicators', 'Tract Shapes', 'Electric and Gas Figures',
+   'Territory Overlays'].forEach(lab => {
+    ok(dictRow.indexOf('>' + lab + '</button>') >= 0,
+       'and labels it exactly as the tab row does: "' + lab + '"');
+  });
 
-  // THE ONE CLICK RULE
+  // ---- THE ONE CLICK RULE, unchanged --------------------------------------
   ok(dict.indexOf('<h2>Tract Shapes</h2>') >= 0,
      'opened from the Tract Shapes tab, it LANDS on Tract Shapes');
-  ok(/data-ds-dict-go="shapes"[^>]*aria-current/.test(dict),
-     'and that entry is the one marked current');
+  ok(/data-ds-dict-go="shapes"[^>]*aria-selected="true"/.test(dictRow.replace(/\n/g, ' ')),
+     'and that entry is the one marked selected');
 
-  // both return controls, naming the tab actually left
-  ok(/data-ds-dict-back="1"[^>]*>\s*Back to Tract Shapes/.test(dict.replace(/\n/g, ' ')),
-     'Back names the exact tab the operator left');
-  ok(/ds-dict-x/.test(dict), 'and there is an X');
-  ok((dict.match(/data-ds-dict-back="1"/g) || []).length === 2,
-     'both controls return, and both use the same path');
+  // ---- THE BACK BUTTON IS GONE --------------------------------------------
+  ok(!/Back to /.test(dict.replace(/\n/g, ' ')), 'no "Back to" control anywhere in the view');
+  ok(!/btn-secondary/.test(dict), 'the button it was is gone, not merely relabelled');
+  const backs = dict.match(/data-ds-dict-back="1"/g) || [];
+  ok(backs.length === 1, 'exactly ONE return control remains: ' + backs.length);
+  ok(/class="ds-dict-x" data-ds-dict-back="1"/.test(dict), 'and it is the X');
+  ok(/aria-label="Close Data Sources and return to Tract Shapes"/.test(dict),
+     'the X NAMES the departing tab in its accessible name, so the destination survives');
 
-  // a DIFFERENT origin tab is remembered, not recomputed
+  // ---- THE X RESTORES THE DEPARTING TAB, NOT A DEFAULT --------------------
+  // Exercised through the real dsDictClose(), and after browsing to a DIFFERENT
+  // entry, which is where a naive implementation returns to the wrong place.
+  after.api.go('coned');
+  const browsed = after.api.page();
+  ok(browsed.indexOf('<h2>Electric and Gas Figures</h2>') >= 0,
+     'browsing inside the dictionary moves the entry');
+  ok(/aria-label="Close Data Sources and return to Tract Shapes"/.test(browsed),
+     'and the X still returns to the tab the operator LEFT, not the entry being read');
+  after.api.close();
+  const st1 = after.api.st();
+  ok(st1.mapLayers.dict === false, 'the X closes the dictionary');
+  ok(st1.mapLayers.tab === 'shapes',
+     'and lands on the DEPARTING tab, shapes, not the default and not coned: ' +
+     st1.mapLayers.tab);
+
+  // a different origin tab is remembered, not recomputed
   after.api.setTab('coned');
-  after.api.dict('coned', 'coned');
+  after.api.dict('layers', 'coned');
   const d2 = after.api.page();
-  ok(d2.indexOf('<h2>Electric and Gas Figures</h2>') >= 0, 'one click from coned lands on coned');
-  ok(/Back to Electric and Gas Figures/.test(d2.replace(/\n/g, ' ')),
-     'and Back names THAT tab, not the first one');
+  ok(/aria-label="Close Data Sources and return to Electric and Gas Figures"/.test(d2),
+     'opened from a different tab, the X names THAT tab');
+  after.api.close();
+  ok(after.api.st().mapLayers.tab === 'coned',
+     'and returns there: ' + after.api.st().mapLayers.tab);
+
+  // ---- PREV CONTROLS: both changes are real -------------------------------
+  ok(PREV_SRC.indexOf('ds-dict-navitem') >= 0,
+     'PREV control: the deployed build DID have the separate side nav');
+  ok(PREV_SRC.indexOf('Back to $' + '{escapeHtml(back)}') >= 0,
+     'PREV control: and it DID have the Back button');
+  const prevCss = toCRLF(execSync('git show ' + PREV + ':"' + CSS_REL + '"',
+    { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 }));
+  ok(/\.ds-dict-navitem \{/.test(prevCss), 'PREV control: the side nav had its own CSS rules');
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  ok(!/\.ds-dict-navitem \{/.test(css), 'those rules are now DELETED, not left orphaned');
+  ok(!/\.ds-dict-nav \{/.test(css), 'and so is the side nav container rule');
+  ok(/grid-template-columns: minmax\(0, 1fr\);/.test(
+       css.slice(css.indexOf('.ds-dict {'), css.indexOf('.ds-dict-entry {'))),
+     'the two-column body is a single column now, since there is no side nav to hold');
+  // .ml-tab is the rule that dresses this nav, and this round does not touch it
+  const mlTabRule = css.slice(css.indexOf('.ml-tab {'), css.indexOf('.ml-tab.active'));
+  ok(mlTabRule.length > 0 && /background: var\(--white\);/.test(mlTabRule) &&
+     /border: 1px solid var\(--line\);/.test(mlTabRule),
+     '.ml-tab still carries the round 5 resting fill and card border it took from .table-card');
+  const activeRule = css.slice(css.indexOf('.ml-tab.active {'),
+                              css.indexOf('.ml-tab.active:hover'));
+  ok(activeRule.length > 0 && /background: var\(--dusk\);/.test(activeRule) &&
+     /color: var\(--white\);/.test(activeRule),
+     'and the solid selected state is unchanged');
 
   after.api.undict();
+}
+
+lines.push('');
+lines.push('=== 221 round 2: one row, one WIRING ===');
+{
+  // No DOM here, so these read the source. Stated plainly rather than dressed
+  // up as behavioural checks: what is proven is that the dictionary branch
+  // wires the row, with the dictionary's action, and how focus is recovered.
+  const src = fs.readFileSync(path.join(REPO, REL), 'utf8');
+  const wire = src.slice(src.indexOf('function wireMapLayersPage'),
+                         src.indexOf('function wireMlTabs'));
+  ok(/if \(initMapLayersState\(\)\.dict\) \{/.test(wire),
+     'the dictionary branch is a block now, not a bare early return');
+  ok(/wireMlTabs\(\{/.test(wire), 'and it WIRES the row rather than skipping it');
+  ok(/attr: 'data-ds-dict-go'/.test(wire), 'with the dictionary action, not the tab action');
+  ok(/keysOnly: true/.test(wire),
+     'keys only, because wireDsDict already delegates the clicks');
+  ok(/go: dsDictGo/.test(wire), 'and arrow keys move the ENTRY');
+  // The checks above are source TEXT: they prove the call is written, not that
+  // it is reached. This one pins the order, so a return placed in front of it
+  // (which is exactly what the old code did) is caught.
+  ok(wire.indexOf('wireMlTabs({') < wire.indexOf('return'),
+     'and the wiring call comes BEFORE any return, so it is actually reached');
+
+  const fn = src.slice(src.indexOf('  function wireMlTabs(opts) {'),
+                       src.indexOf('  function wireMlUploadCard'));
+  ok(fn.length > 0, 'wireMlTabs was found to read');
+  ok((src.match(/function wireMlTabs/g) || []).length === 1,
+     'ONE wiring function for the row, matching the one render function');
+  ok(/const attr = o\.attr \|\| 'data-ml-tab';/.test(fn),
+     'its defaults are the Map Data page, so that caller is unchanged');
+  ok(/document\.querySelector\('\.ml-tabs-row \.ml-tab\[' \+ attr/.test(fn),
+     'focus is RE-QUERIED after navigating, since the dictionary redraws the view');
+  ok(!/row\.querySelector\('\.ml-tab\[data-ml-tab/.test(fn),
+     'and no longer taken from the row captured before the redraw');
+  ok(/if \(!o\.keysOnly\) \{/.test(fn), 'the click bind is skippable for the delegated case');
+  ok(/const i = ids\.indexOf\(current\(\)\);/.test(fn),
+     'arrow keys step from the CALLER\'s current value, not always the tab');
+
+  // PREV control: none of this was true in the deployed build
+  const prevWire = PREV_SRC.slice(PREV_SRC.indexOf('function wireMapLayersPage'),
+                                  PREV_SRC.indexOf('function wireMlTabs'));
+  ok(/if \(initMapLayersState\(\)\.dict\) return;/.test(prevWire),
+     'PREV control: the deployed build returned early and wired nothing there');
+  ok(!/function wireMlTabs\(opts\)/.test(PREV_SRC),
+     'PREV control: and wireMlTabs took no options');
 }
 
 lines.push('');
@@ -914,8 +1046,9 @@ lines.push('=== 221: the drawer is retired, nothing orphaned ===');
   ok(src.indexOf('function renderMlRequirementsDrawer') < 0, 'the drawer renderer is GONE');
   ok(src.indexOf('function wireMlRequirementsDrawer') < 0, 'and its wiring with it');
   ok(src.indexOf('ml-req-overlay') < 0, 'no orphaned overlay markup remains');
-  ok(PREV_SRC.indexOf('function renderMlRequirementsDrawer') >= 0,
-     'PREV control: the previous build had it');
+  // BASE, not PREV: PREV is now 221 round 1, which had already retired it.
+  ok(BEFORE_SRC.indexOf('function renderMlRequirementsDrawer') >= 0,
+     'BASE control: the pre-ticket build had it');
   // and its content survived, in the Map Layers entry
   after.api.dict('layers', 'layers');
   const h = after.api.page();
@@ -950,7 +1083,8 @@ ok(/version uploaded in this session stays here until you switch it on/.test(aft
   ok(!/uploaded in this session stays here/.test(afterByTab[t]),
      t + ': and does NOT claim a state it cannot have');
 });
-ok(!/ds-session-card/.test(prevByTab.shapes), 'PREV control: no session box before');
+// BASE, not PREV, for the same reason: round 1 shipped the session box.
+ok(BEFORE_SRC.indexOf('ds-session-card') < 0, 'BASE control: no session box pre-ticket');
 
 lines.push('');
 lines.push('=== 221 / G7: the loading skeleton ===');
