@@ -8095,12 +8095,23 @@ a.nav-item { text-decoration: none; }
   padding: 10px 16px;
   border-radius: 6px;
   border: 1px solid var(--line-strong);
-  /* Round 3: the unselected tabs were WHITE on a white page, so they dissolved
-     into the background and the border alone was not enough to make them read
-     as controls. They now sit on a light gray fill, with border and text
-     sharing --text-2, the way File requirements reads: a button ON the page
-     rather than a shape cut out of it. */
-  background: var(--white-smoke);
+  /* Round 3 FIX. The previous attempt set this to --white-smoke, which is the
+     exact colour of `body` (line 40). The fill applied perfectly and was
+     invisible by construction: the tabs were painted the same colour as the
+     thing they sit on, so only the border tone appeared to change.
+
+     The replacement is MEASURED, not picked by eye, against the #F2F2F2 body:
+
+         --dusk-tint    #E5EBF5   1.07:1   too close, and blue
+         --dodger-tint  #E3F2FE   1.02:1   closer still
+         --pale-sky     #BDDBF5   1.28:1   distinct, but reads as blue
+         this value     #D8DDE2   1.22:1   neutral, and the strongest gray
+
+     A literal hex rather than a token because the palette has no neutral
+     between --white-smoke (which IS the body) and --pale-sky (which is blue).
+     Promote it to a token if a second control ever needs it. Text on this fill
+     is 6.39:1, well clear of 4.5:1, and border and text still share --text-2. */
+  background: #D8DDE2;
   border-color: var(--text-2);
   color: var(--text-2);
   cursor: pointer;

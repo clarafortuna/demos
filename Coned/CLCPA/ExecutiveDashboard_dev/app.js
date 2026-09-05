@@ -1565,7 +1565,7 @@ function utf8ByteLength(str) {
   function emptyYearPane(year, opts) {
     opts = opts || {};
     const msg = opts.message || `No data has been entered for ${year} yet.`;
-    const hint = opts.hint || `Use the Report data page to add values for this year.`;
+    const hint = opts.hint || `Use the Report Data page to add values for this year.`;
     return `
       <div class="empty-year-pane">
         <div class="empty-year-icon">∅</div>
@@ -4004,13 +4004,13 @@ function utf8ByteLength(str) {
                 '. The map cannot draw.');
             } else if (geomPublished.length && !indActive.length) {
               _mapGeoUnavailable = 'No dataset version is active, so there is no vintage to ' +
-                'draw the tract shapes for. Activate a dataset version from Map data.';
+                'draw the tract shapes for. Activate a dataset version from Map Data.';
               console.warn('[Tract geometry] ' + geomPublished.length + ' geometry version(s) are ' +
                 'published but no indicator dataset is active, so no vintage resolves and the ' +
                 'map cannot draw. Activate a dataset version.');
             } else {
               _mapGeoUnavailable = 'No tract geometry is published, so the map has no shapes to ' +
-                'draw. Publish a tract geometry dataset from Map data.';
+                'draw. Publish a tract geometry dataset from Map Data.';
               console.warn('[Tract geometry] no geometry dataset is published, so the map cannot ' +
                 'draw. The payload fallback was removed in slice 5d; publish a geometry ' +
                 'dataset to restore the map.');
@@ -6225,8 +6225,8 @@ function utf8ByteLength(str) {
       // NOT an error condition -- a data state an operator fixes in one upload.
       // Worded as the instruction rather than the symptom.
       console.warn('[Service territories] no territory overlay is published, so there ' +
-        'are no boundaries to draw. Upload one from Map data.');
-      throw new Error('No territory overlay is published. Upload one from Map data ' +
+        'are no boundaries to draw. Upload one from Map Data.');
+      throw new Error('No territory overlay is published. Upload one from Map Data ' +
         'and switch this layer on again.');
     }
 
@@ -10009,7 +10009,7 @@ function utf8ByteLength(str) {
         <div class="chart-card" style="min-height:320px">
           ${emptyYearPane(year, {
             message: `No data has been entered for ${year} yet.`,
-            hint: 'Switch to a populated year using the selector above, or use Report data to add values for this year.'
+            hint: 'Switch to a populated year using the selector above, or use Report Data to add values for this year.'
           })}
         </div>
 
@@ -13678,8 +13678,8 @@ function wireHTooltips() {
       const sec = state.payload.sections[r.sectionId];
       el.textContent = `${r.sectionId}. ${sec.full_name}`;
     }
-    else if (r.name === 'ingest') el.textContent = 'Report data';
-    else if (r.name === 'maplayers') el.textContent = 'Map data';
+    else if (r.name === 'ingest') el.textContent = 'Report Data';
+    else if (r.name === 'maplayers') el.textContent = 'Map Data';
     else if (r.name === 'editmapfiles') el.textContent = 'Edit map files';
     else el.textContent = 'Not found';
   }
@@ -13798,7 +13798,7 @@ function wireHTooltips() {
       ? renderSectionCharts(letter)
       : `<div class="chart-card" style="min-height:280px">${emptyYearPane(yr, {
           message: `No data has been entered for ${sec.full_name} in ${yr}.`,
-          hint: 'Source tables for this section are shown below if any exist. Use Report data to add values.'
+          hint: 'Source tables for this section are shown below if any exist. Use Report Data to add values.'
         })}</div>`;
 
     return `
@@ -14686,11 +14686,11 @@ function wireHTooltips() {
    * operator never sees elsewhere would invent a category to explain.
    */
   const ML_TABS = [
-    { id: 'layers', label: 'Map layers' },
-    { id: 'indicators', label: 'DAC indicators' },
-    { id: 'shapes', label: 'Tract shapes' },
-    { id: 'coned', label: 'Electric and gas figures' },
-    { id: 'territory', label: 'Territory overlays' },
+    { id: 'layers', label: 'Map Layers' },
+    { id: 'indicators', label: 'DAC Indicators' },
+    { id: 'shapes', label: 'Tract Shapes' },
+    { id: 'coned', label: 'Electric and Gas Figures' },
+    { id: 'territory', label: 'Territory Overlays' },
   ];
 
   /* What each family tab is FOR, in the operator's words rather than the
@@ -14698,13 +14698,13 @@ function wireHTooltips() {
    * the two cannot drift apart. `kind` is the value dsDocKind() reports for a
    * file of that family, which is how a file lands in the right tab. */
   const ML_FAMILY = {
-    indicators: { kind: 'indicators', noun: 'DAC indicators', accept: '.json',
+    indicators: { kind: 'indicators', noun: 'DAC Indicators', accept: '.json',
                   produces: 'convert_nyserda_raw.py' },
-    shapes: { kind: 'geometry', noun: 'tract shapes', accept: '.json',
+    shapes: { kind: 'geometry', noun: 'Tract Shapes', accept: '.json',
               produces: 'update_map_data.py' },
-    coned: { kind: 'coned', noun: 'electric and gas figures', accept: '.json',
+    coned: { kind: 'coned', noun: 'Electric and Gas Figures', accept: '.json',
              produces: 'build_coned_dataset.py' },
-    territory: { kind: 'territories', noun: 'territory overlays', accept: '.json,.geojson',
+    territory: { kind: 'territories', noun: 'Territory Overlays', accept: '.json,.geojson',
                  produces: 'update_map_data.py --refresh-territories' },
   };
 
@@ -14752,7 +14752,7 @@ function wireHTooltips() {
     return `
       <div class="page-header ml-page-header">
         <div>
-          <h1>Map data</h1>
+          <h1>Map Data</h1>
           <p class="page-sub">${mlCanUpload()
             // CLCPA-220 round 3: the old line described TAB 1 and nothing else,
             // under a title that now covers five.
@@ -14761,7 +14761,7 @@ function wireHTooltips() {
         </div>
         ${mlCanUpload()
           ? `<button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
-                aria-haspopup="dialog">File requirements</button>`
+                aria-haspopup="dialog">File Requirements</button>`
           : ''}
       </div>
 
@@ -14866,7 +14866,7 @@ function wireHTooltips() {
       <div class="ml-card">
         <div class="ml-card-head">
           <div>
-            <h3>Add a layer</h3>
+            <h3>Add a Layer</h3>
             <p class="ml-card-sub">Polygon or MultiPolygon features, coloured by one numeric property.</p>
           </div>
           ${d.stage === 'fields'
@@ -15584,7 +15584,7 @@ function wireHTooltips() {
       <div class="ml-card">
         <div class="ml-card-head">
           <div>
-            <h3>Saved layers</h3>
+            <h3>Saved Layers</h3>
             <p class="ml-card-sub">${sub}</p>
           </div>
           <div class="ml-card-actions">${
@@ -15613,7 +15613,7 @@ function wireHTooltips() {
     const live = dsConed();
     return dsFamilyCard({
       cls: 'ds-coned',
-      title: 'Electric and gas figures',
+      title: 'Electric and Gas Figures',
       sub: 'Account counts, EAP counts and adjustments per tract, converted from the Con ' +
            'Edison extracts. The version whose vintage matches the active dataset is the one ' +
            'in use. Tracts corrected by hand in the map data table keep their corrections: ' +
@@ -15651,7 +15651,7 @@ function wireHTooltips() {
     const live = dsTerritoryRec();
     return dsFamilyCard({
       cls: 'ds-terr',
-      title: 'Territory overlays',
+      title: 'Territory Overlays',
       sub: 'The Con Edison electric, gas and ORU boundaries, drawn over the tracts. Switch ' +
            'them on from the Layers control on the map. Uploading a new overlay replaces ' +
            'the published one.',
@@ -15693,7 +15693,7 @@ function wireHTooltips() {
             <button class="btn btn-secondary ml-remove" type="button" data-ml-remove="${escapeHtml(entry.id)}">Remove</button>` +
             (showSave
               ? `<button class="btn btn-primary ml-save-btn" type="button" data-ml-save="${escapeHtml(entry.id)}"${
-                  canSave ? '' : ' disabled'}>Save layer</button>`
+                  canSave ? '' : ' disabled'}>Save Layer</button>`
               : '');
           }
 
@@ -15742,7 +15742,7 @@ function wireHTooltips() {
       <div class="ml-card">
         <div class="ml-card-head">
           <div>
-            <h3>This session (unsaved)</h3>
+            <h3>This Session (Unsaved)</h3>
             ${note}
           </div>
           ${session.length ? `<span class="ml-chip">${session.length} layer${session.length === 1 ? '' : 's'}</span>` : ''}
@@ -16206,7 +16206,7 @@ function wireHTooltips() {
     const activeId = (st.source === 'dataset' && st.rec) ? st.rec.dvId : null;
     return dsFamilyCard({
       cls: 'ds-ind',
-      title: 'DAC indicators',
+      title: 'DAC Indicators',
       sub: 'NYSERDA per-tract data, kept as versions. The active version is what the Color by ' +
            'list, the tract tooltips, the tract detail panel and the CSV export all read.',
       help: '<div class="ml-card-actions">' + dsSourceChip() + dsHelpButton('datasets') +
@@ -16383,7 +16383,7 @@ function wireHTooltips() {
       'stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/>' +
       '<line x1="12" y1="11" x2="12" y2="16"/>' +
       '<circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg>' +
-      '<span>About this data</span></button>';
+      '<span>About This Data</span></button>';
   }
 
   /** The note it expands, collapsed by default, same box as .dac-td-note. */
@@ -16391,7 +16391,7 @@ function wireHTooltips() {
     const body = DS_ABOUT[tabId];
     if (!body) return '';
     return '<div class="dac-td-note ds-about-note" id="ds-about-' +
-      escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">About this data</div>' +
+      escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">About This Data</div>' +
       '<p>' + escapeHtml(body) + '</p></div>';
   }
 
@@ -16447,7 +16447,7 @@ function wireHTooltips() {
     const activeVintage = st && st.rec ? String(st.rec.geoidVintage || '') : '';
     return dsFamilyCard({
       cls: 'ds-geom',
-      title: 'Tract shapes',
+      title: 'Tract Shapes',
       sub: 'The map draws the shapes whose vintage matches the active DAC indicators ' +
            'version, so there is nothing to switch here. Uploading a new set makes it ' +
            'available to any version that declares the same vintage.',
@@ -16575,7 +16575,7 @@ function wireHTooltips() {
                 the other versions of the same dataset, and the checks run again before the map changes.`}</p>
            <div class="ml-actions">
              <button class="btn btn-secondary" id="ds-cancel" type="button">Cancel</button>
-             <button class="btn btn-primary" id="ds-upload" type="button">Upload version</button>
+             <button class="btn btn-primary" id="ds-upload" type="button">Upload Version</button>
            </div>
          </div>`
       : (d.dsErrors || []).length
@@ -17459,6 +17459,30 @@ function wireHTooltips() {
       // nothing staged.
       const go = e.target.closest('[data-ml-tab-go]');
       if (go) { mlSetTab(go.dataset.mlTabGo, true); return; }
+      // CLCPA-220 round 3 fix: About this data.
+      //
+      // This lived in the CHANGE listener, three lines from here, because I
+      // anchored the insert on a nearby comment without checking which
+      // listener the comment was in. A <button> never fires `change`, so the
+      // handler was dead code and the panel never opened: proven by
+      // construction in the render harness, which asserts markup and cannot
+      // dispatch an event. It is a CLICK handler and it belongs here, with the
+      // other buttons in this mount.
+      //
+      // Toggled in place rather than re-rendered, so opening it cannot disturb
+      // a staged upload in the same card. `hidden` is the single source of
+      // truth and aria-expanded follows it, so the two cannot disagree.
+      const ab = e.target.closest('[data-ds-about]');
+      if (ab) {
+        const panel = document.getElementById('ds-about-' + ab.dataset.dsAbout);
+        if (panel) {
+          const open = panel.hidden;
+          panel.hidden = !open;
+          ab.setAttribute('aria-expanded', open ? 'true' : 'false');
+          ab.classList.toggle('active', open);
+        }
+        return;
+      }
       if (e.target.closest('#ds-upload')) { dsUploadStaged(); return; }
       if (e.target.closest('#ds-cancel')) {
         const d = initMapLayersState();
@@ -17485,21 +17509,6 @@ function wireHTooltips() {
           return;
         }
         dsSetActive(ds.dataset.dsActive, ds.checked);
-        return;
-      }
-      // CLCPA-220 round 3: About this data. Toggled in place rather than
-      // re-rendered, so opening it cannot disturb a staged upload sitting in
-      // the same card. hidden is the single source of truth and aria-expanded
-      // follows it, so the two can never disagree.
-      const ab = e.target.closest('[data-ds-about]');
-      if (ab) {
-        const panel = document.getElementById('ds-about-' + ab.dataset.dsAbout);
-        if (panel) {
-          const open = panel.hidden;
-          panel.hidden = !open;
-          ab.setAttribute('aria-expanded', open ? 'true' : 'false');
-          ab.classList.toggle('active', open);
-        }
         return;
       }
       // The separate Reactivate button is GONE. Switching a version ON is the
@@ -17700,7 +17709,7 @@ function wireHTooltips() {
     return `
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
         <div>
-          <h1>Report data</h1>
+          <h1>Report Data</h1>
           <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p>
         </div>
       </div>
