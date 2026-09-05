@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || '8ab9d48';   // post round 4
+const PREV = process.env.DAC_PREV_COMMIT || 'b865c39';   // post round 5
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -568,7 +568,14 @@ lines.push('=== round 3: About this data ===');
   const h = afterByTab[t];
   ok(/class="dac-td-help-btn ds-about-btn"/.test(h),
      t + ': the opener reuses .dac-td-help-btn, so it IS the How-to-read control');
-  ok(h.indexOf('<span>About This Data</span>') >= 0, t + ': labelled, not a bare icon');
+  // Round 6 inverts this: the visible label is gone. The thing that must NOT
+  // be lost with it is the accessible name, so that is what is asserted now.
+  ok(h.indexOf('<span>About This Data</span>') < 0, t + ': no visible text label');
+  ok(/data-ds-about="[a-z]+" aria-expanded="false" aria-label="Data Source"/.test(h),
+     t + ': the icon-only button still has an accessible name');
+  ok(/title="Data Source"/.test(h),
+     t + ': and the tooltip says the SAME words, not something else');
+  ok(/dac-td-help-icon/.test(h), t + ': the (i) glyph is still there');
   ok(/dac-td-help-icon/.test(h), t + ': carries the same inline (i) glyph');
   ok(/aria-expanded="false"/.test(h) && /aria-controls="ds-about-/.test(h),
      t + ': collapsed by default and wired for assistive tech');
@@ -599,7 +606,13 @@ lines.push('=== round 3: About this data ===');
   ok(!/Final Disadvantaged Communities criteria/.test(afterByTab.indicators),
      'the long dictionary entry is NOT in the panel; it is banked for CLCPA-221');
 }
-ok(!/ds-info-btn/.test(afterByTab.shapes), 'the bare inert (i) is gone');
+ok(!/ds-info-btn/.test(afterByTab.shapes), 'the bare INERT (i) class is gone');
+ok(/dac-td-note-title">Data Source</.test(afterByTab.shapes),
+   'the panel is titled Data Source');
+ok(!/About This Data/.test(afterByTab.shapes),
+   'and nothing still says About This Data');
+ok(/About This Data/.test(prevByTab.shapes),
+   'PREV control: the previous build did, in both the button and the title');
 
 lines.push('');
 lines.push('=== round 3: unselected tabs read as buttons on the page ===');
@@ -764,7 +777,8 @@ lines.push('=== round 4: title case on labels, titles, tabs, buttons, headers ==
   ok(/<h3>Upload Electric and Gas Figures<\/h3>/.test(afterByTab.coned),
      'header: Upload Electric and Gas Figures, with "and" lowercase');
   ok(/<h3>Upload Territory Overlays<\/h3>/.test(afterByTab.territory), 'header: Upload Territory Overlays');
-  ok(afterByTab.indicators.indexOf('<span>About This Data</span>') >= 0, 'button: About This Data');
+  ok(afterByTab.indicators.indexOf('>Data Source</div>') >= 0,
+     'panel title is title case: Data Source');
   // the connectors stay lowercase, which is the half a naive capitaliser breaks
   ok(afterByTab.layers.indexOf('Add A Layer') < 0, 'connector "a" was NOT capitalised');
   ok(afterByTab.coned.indexOf('Electric And Gas') < 0, 'connector "and" was NOT capitalised');
