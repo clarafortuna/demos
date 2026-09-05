@@ -33,7 +33,6 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   saved-layer rows carry NO state pill
   ok   and no per-row state text
   ok   every saved layer still has its switch
-  ok   PREV control: the previous build put a pill on every saved-layer row
   ok   the saved-layers block no longer says "Active"
   ok   BEFORE control: it used to say "Active"
   ok   the hint explains that listing does not draw
@@ -110,24 +109,21 @@ CLCPA-220 PR 1 -- renders and assertions
 
 === correction 5: the (i) button moved into the upload box ===
   ok   indicators: the footer is gone
-  ok   indicators: the (i) button is INLINE in the Choose-file row
+  ok   indicators: the About button is INLINE in the Choose-file row
   ok   shapes: the footer is gone
-  ok   shapes: the (i) button is INLINE in the Choose-file row
+  ok   shapes: the About button is INLINE in the Choose-file row
   ok   coned: the footer is gone
-  ok   coned: the (i) button is INLINE in the Choose-file row
+  ok   coned: the About button is INLINE in the Choose-file row
   ok   territory: the footer is gone
-  ok   territory: the (i) button is INLINE in the Choose-file row
-  ok   PREV control: the previous build put it in a footer of its own
+  ok   territory: the About button is INLINE in the Choose-file row
   ok   and it is pushed right within that row rather than wrapped in a div
   ok   the footer rule is gone from the CSS too
 
 === correction 6: the territory chip ===
   ok   the territory card is found by its own class
   ok   the territory card head carries NO state chip
-  ok   PREV control: the previous build had one
   ok   the not-yet branch says "loads when first used"
   ok   and no UI string says "not loaded yet" any more
-  ok   PREV control: the previous build carried the chip
 
 === correction 2b: the retire SCOPE, asserted both ways ===
   ok   the activation path computes a retire scope at all
@@ -135,6 +131,82 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   indicators: still scoped, so single-per-key-and-vintage is unchanged
   ok   territories: NO vintage clause, because a null vintage matches nothing
   ok   PREV control: the old filter had no vintage clause, so it would have retired 2010
+
+=== round 3: About this data ===
+  ok   indicators: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   indicators: labelled, not a bare icon
+  ok   indicators: carries the same inline (i) glyph
+  ok   indicators: collapsed by default and wired for assistive tech
+  ok   indicators: the panel is present and hidden
+  ok   indicators: the panel is the same box as the How-to-read note
+  ok   shapes: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   shapes: labelled, not a bare icon
+  ok   shapes: carries the same inline (i) glyph
+  ok   shapes: collapsed by default and wired for assistive tech
+  ok   shapes: the panel is present and hidden
+  ok   shapes: the panel is the same box as the How-to-read note
+  ok   coned: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   coned: labelled, not a bare icon
+  ok   coned: carries the same inline (i) glyph
+  ok   coned: collapsed by default and wired for assistive tech
+  ok   coned: the panel is present and hidden
+  ok   coned: the panel is the same box as the How-to-read note
+  ok   territory: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
+  ok   territory: labelled, not a bare icon
+  ok   territory: carries the same inline (i) glyph
+  ok   territory: collapsed by default and wired for assistive tech
+  ok   territory: the panel is present and hidden
+  ok   territory: the panel is the same box as the How-to-read note
+  ok   indicators: panel says "NYSERDA per tract DAC data"
+  ok   indicators: panel says "convert_nyserda_raw.py"
+  ok   indicators: panel says "the DAC indicators guide in the operator p"
+  ok   shapes: panel says "census tract boundaries the map draws"
+  ok   shapes: panel says "build_pure_geometry_dataset.py"
+  ok   shapes: panel says "update_map_data.py runs the full chain"
+  ok   shapes: panel says "the tract shapes guide in the operator pac"
+  ok   coned: panel says "account counts and EAP figures"
+  ok   coned: panel says "build_coned_dataset.py"
+  ok   coned: panel says "the electric and gas guide in the operator"
+  ok   territory: panel says "electric, gas and ORU territory boundaries"
+  ok   territory: panel says "_make_territories.py"
+  ok   territory: panel says "needs network access"
+  ok   territory: panel says "the territory guide in the operator packag"
+  ok   the long dictionary entry is NOT in the panel; it is banked for CLCPA-221
+  ok   the bare inert (i) is gone
+
+=== round 3: unselected tabs read as buttons on the page ===
+  ok   unselected tabs have a light gray FILL
+  ok   and are no longer transparent on a white page
+  ok   border and text share --text-2
+  ok   the selected tab is still the only solid dark one
+
+=== round 3: pill removal completed ===
+  ok   indicators: NO state pill on any row
+  ok   indicators: the switch alone carries the state
+  ok   coned: NO state pill on any row
+  ok   coned: the switch alone carries the state
+  ok   territory: NO state pill on any row
+  ok   territory: the switch alone carries the state
+  ok   Tract shapes KEEPS its pills, being the one family with no toggle
+  ok   and still has no toggle
+
+=== round 3: the page subtitle ===
+  ok   the subtitle covers all five tabs
+  ok   and no longer describes Tab 1 only
+  ok   PREV control: the previous build did
+
+=== round 3: the facts-file gap ===
+  ok   facts file names convert_nyserda_raw.py
+  ok   facts file names build_pure_geometry_dataset.py
+  ok   facts file names build_coned_dataset.py
+  ok   facts file names _make_territories.py
+  ok   facts file names update_map_data.py
+  ok   facts file names build_tract_dataset.py
+  ok   and it records that build_coned_dataset was sourced elsewhere, not invented
+
+=== round 3: no long dashes in anything added this ticket ===
+  ok   the diff against BASE is non-empty, so this check has something to read
+  ok   nothing added across the whole ticket carries an em dash, en dash or entity
 
 renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Desktop-Projects-demos/ccf81e1c-82e8-49ca-a5dd-4685e5c0d133/scratchpad/renders:
    after-coned.html
@@ -147,5 +219,5 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    prev-pr1-shapes.html
 
 ======================================================================
-  104 passed, 0 failed
+  164 passed, 0 failed
 ======================================================================

@@ -22,6 +22,34 @@ refuse it on the field-count check.
 
 ---
 
+## 0b. The six scripts, and what each produces
+
+Added 2026-09-05 (CLCPA-220 round 3). This file named five scripts and not
+`build_coned_dataset.py`, which meant the electric and gas figures had no
+documented producer here at all. The dashboard's "About this data" panel names
+a builder for every family, so the gap was visible from the UI before it was
+visible in the docs.
+
+| script | produces | documented |
+|---|---|---|
+| `convert_nyserda_raw.py` | the DAC indicators dataset | section 1 below |
+| `build_pure_geometry_dataset.py` | the tract shapes dataset | section 2 below |
+| `build_coned_dataset.py` | the electric and gas figures dataset | not yet, see note |
+| `_make_territories.py` | `service_territories.geojson`, the overlay | gotcha 2 below; needs network access |
+| `update_map_data.py` | nothing itself: the orchestrator that runs the geometry chain | not yet |
+| `build_tract_dataset.py` | nothing itself: imported for the manifest builder and the indicator catalogue | not yet |
+
+Only the first two have full sections. The other four are named here so that no
+family is left without a producer, which is the gap this row closes; writing
+their sections is separate work and is not claimed by this entry.
+
+**On `build_coned_dataset.py` specifically.** It is one of the seven scripts in
+the handoff package, it is the command guide 3 gives the operator, and it was
+run end to end from a clean unpacking of that package during CLCPA-219 phase 3,
+producing `coned_operational_v1_0-2010.json` at 176,215 bytes. That is the
+evidence for naming it; it did not come from this file, because this file did
+not have it.
+
 ## 1. `convert_nyserda_raw.py` — NYSERDA release to indicator dataset
 
 Run from `ExecutiveDashboard_dev/`, the folder that contains `Data/`.

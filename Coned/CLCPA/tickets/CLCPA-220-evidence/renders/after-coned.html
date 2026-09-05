@@ -8059,6 +8059,14 @@ a.nav-item { text-decoration: none; }
 /* The (i) button sits INLINE with the Choose-file button, on the right of that
    same row, rather than in a footer of its own. margin-left:auto pushes it there
    without needing a wrapper, so the row keeps one flex context. */
+/* ---- About this data (CLCPA-220 round 3) ----
+   The button reuses .dac-td-help-btn wholesale, so only its placement is new.
+   Scoped additions only: anything here that is not prefixed would reach the
+   tract detail panel, which uses the same classes and is not this ticket. */
+.ml-picker .ds-about-btn { margin-left: auto; }
+.ds-about-note { margin-top: 12px; }
+.ds-about-note p { margin: 0; }
+
 .ml-picker .ds-info-btn { margin-left: auto; }
 
 /* ---- Map Layers tabs (CLCPA-220) --------------------------------------
@@ -8088,7 +8096,13 @@ a.nav-item { text-decoration: none; }
   padding: 10px 16px;
   border-radius: 6px;
   border: 1px solid var(--line-strong);
-  background: transparent;
+  /* Round 3: the unselected tabs were WHITE on a white page, so they dissolved
+     into the background and the border alone was not enough to make them read
+     as controls. They now sit on a light gray fill, with border and text
+     sharing --text-2, the way File requirements reads: a button ON the page
+     rather than a shape cut out of it. */
+  background: var(--white-smoke);
+  border-color: var(--text-2);
   color: var(--text-2);
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -8833,7 +8847,7 @@ CLCPA-220 render harness &middot; AFTER, tab: coned &middot; stub data, real mar
       <div class="page-header ml-page-header">
         <div>
           <h1>Map data</h1>
-          <p class="page-sub">Upload a GeoJSON overlay and add it to the DAC map as a toggleable layer, coloured by a field you choose.</p>
+          <p class="page-sub">Everything the DAC map draws, managed in one place: your overlay layers and the four published data families.</p>
         </div>
         <button class="btn btn-primary ml-req-btn" id="ml-req-open" type="button"
                 aria-haspopup="dialog">File requirements</button>
@@ -8877,10 +8891,9 @@ CLCPA-220 render harness &middot; AFTER, tab: coned &middot; stub data, real mar
            <label class="btn btn-secondary ml-browse">Choose electric and gas figures file
              <input type="file" id="ds-file" accept=".json" hidden /></label>
            <span class="ml-picker-hint">.json</span>
-           <button type="button" class="ds-info-btn" data-ds-info="coned"
-      title="Produced by build_coned_dataset.py"
-      aria-label="About electric and gas figures">i</button>
+           <button type="button" class="dac-td-help-btn ds-about-btn" data-ds-about="coned" aria-expanded="false" aria-controls="ds-about-coned"><svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="11" x2="12" y2="16"/><circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg><span>About this data</span></button>
          </div></div>
+          <div class="dac-td-note ds-about-note" id="ds-about-coned" hidden><div class="dac-td-note-title">About this data</div><p>Per tract account counts and EAP figures from the Con Edison extracts. The upload file is built by build_coned_dataset.py. Full procedure: the electric and gas guide in the operator package.</p></div>
         </div>
       </div>
       <div class="ml-card ds-coned">
@@ -8905,7 +8918,7 @@ CLCPA-220 render harness &middot; AFTER, tab: coned &middot; stub data, real mar
         <div class="ml-row-actions"><label class="ml-toggle">
            <input type="checkbox" data-ds-active="d4" checked />
            <span class="ml-toggle-track" aria-hidden="true"><span class="ml-toggle-knob"></span></span>
-           <span class="ml-toggle-label ml-state-pill ml-state-on">In use</span>
+           
          </label></div>
       </li></ul>
         </div>
