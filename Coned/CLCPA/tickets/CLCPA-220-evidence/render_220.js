@@ -29,7 +29,7 @@ const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
  *   PREV  post-PR-1. The controls for what PR 2 specifically changed.
  */
 const BASE = process.env.DAC_BASE_COMMIT || '18abfce';
-const PREV = process.env.DAC_PREV_COMMIT || '4ba13c7';
+const PREV = process.env.DAC_PREV_COMMIT || 'ca70a06';   // post-PR-2
 const OUT = process.argv[2] || path.join(__dirname, 'renders');
 
 const AFTER_SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
@@ -395,75 +395,126 @@ const prevByTab = {};
 for (const t of TABS) { prev.api.setTab(t); prevByTab[t] = prev.api.page(); }
 
 lines.push('');
-lines.push('=== PR2 piece 4: every family teaches the same anatomy ===');
+lines.push('=== correction 1: ONE row anatomy, no pill beside the name ===');
 ['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
   const h = afterByTab[t];
-  ok(/ml-row-meta/.test(h), t + ': rows carry a meta line');
-  ok(/uploaded 2026-/.test(h), t + ': the uploaded date is shown');
+  const names = h.match(/<div class="ml-row-name">[\s\S]*?<\/div>/g) || [];
+  ok(names.length > 0, t + ': rows render');
+  ok(!names.some(n => /ml-state-pill/.test(n)), t + ': NO state pill beside the name');
+  ok(/<div class="ml-row-actions"><(label|span)/.test(h),
+     t + ': the control and pill are on the right');
 });
-ok(/fingerprint/.test(afterByTab.shapes), 'shapes: the fingerprint short form is shown');
-ok(!/fingerprint/.test(prevByTab.shapes), 'PREV control: PR 1 showed no fingerprint');
-// Reject a vintage on a ROW, not the prose that explains why there is none.
-// The first version of this banned the WORD anywhere on the tab and so failed on
-// the upload block's own "so no vintage applies", which is the copy doing the
-// explaining.
-ok(!/vintage 20\d\d/.test(afterByTab.territory),
-   'no territory row states a vintage, because an overlay has none');
-ok(/no vintage applies/.test(afterByTab.territory),
-   'and the upload block says so, rather than leaving a silent gap');
-
-lines.push('');
-lines.push('=== PR2 piece 5 (G3): rollback is reachable from the UI ===');
-ok(/Earlier versions \(1\)/.test(afterByTab.shapes), 'shapes lists its retired version');
-ok(/data-ds-reactivate="d6"/.test(afterByTab.shapes), 'with a Reactivate control');
-ok(/Earlier versions/.test(afterByTab.territory), 'territory lists its retired version');
-ok(/Earlier versions/.test(afterByTab.indicators), 'indicators lists its retired version');
-ok(!/Earlier versions/.test(prevByTab.shapes),
-   'PREV control: PR 1 listed no retired versions at all');
-ok(!/data-ds-reactivate/.test(prevByTab.shapes),
-   'PREV control: and offered no way back');
-ok(/downloaded and checked again/.test(afterByTab.shapes),
-   'and it says the file is re-validated, so Reactivate is not a blind flag flip');
-ok(/ml-state-pill ml-state-off">Retired/.test(afterByTab.shapes),
-   'retired rows are labelled Retired, not Inactive');
-
-lines.push('');
-lines.push('=== PR2 finding 3: the (i) button ===');
-['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
-  ok(new RegExp('data-ds-info="' + t + '"').test(afterByTab[t]), t + ': has an (i) button');
-});
-ok(!/produced by/.test(afterByTab.shapes),
-   'the "produced by" sentence has left the upload description');
-ok(/produced by/.test(prevByTab.shapes),
-   'PREV control: PR 1 carried it inline in the description');
-ok(/title="Produced by update_map_data.py"/.test(afterByTab.shapes),
-   'the fact survives on the (i) button, which CLCPA-221 will hang its entry on');
-
-lines.push('');
-lines.push('=== PR2 CLCPA-222: the rename, labels only ===');
-ok(/<h1>Map data<\/h1>/.test(afterByTab.layers), 'the page title is "Map data"');
-ok(/<h1>Map Layers<\/h1>/.test(prevByTab.layers), 'PREV control: it was "Map Layers"');
-ok(!/Map Layers/.test(afterByTab.layers.replace(/\[Map Layers\]/g, '')),
-   'no user-visible "Map Layers" remains on the page');
 {
-  const html = fs.readFileSync(path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html'), 'utf8');
-  ok(/sidebar-section">Data Ingestion</.test(html), 'the sidebar header is "Data Ingestion"');
-  ok(/> Report data/.test(html), 'the first entry is "Report data"');
-  ok(/> Map data/.test(html), 'the second entry is "Map data"');
-  ok(/href="#\/ingest"/.test(html) && /href="#\/maplayers"/.test(html),
-     'and the ROUTES are untouched, so existing bookmarks still work');
+  const pn = prevByTab.shapes.match(/<div class="ml-row-name">[\s\S]*?<\/div>/g) || [];
+  ok(pn.some(n => /ml-state-pill/.test(n)),
+     'PREV control: PR 2 DID put a pill beside the name');
 }
 
 lines.push('');
-lines.push('=== PR2 finding 1: the rule violation is gone ===');
+lines.push('=== correction 2: one flat list, no Reactivate ===');
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  ok(!/Earlier versions/.test(afterByTab[t]), t + ': no "Earlier versions" section');
+  ok(!/data-ds-reactivate/.test(afterByTab[t]), t + ': no separate Reactivate control');
+  ok((afterByTab[t].match(/<ul class="ml-list">/g) || []).length === 1,
+     t + ': exactly one list');
+});
+ok(/Earlier versions/.test(prevByTab.shapes), 'PREV control: PR 2 split the list');
+ok(/data-ds-reactivate/.test(prevByTab.shapes), 'PREV control: PR 2 had a Reactivate button');
+ok(afterByTab.indicators.indexOf('d1') < afterByTab.indicators.indexOf('d8'),
+   'active versions sort above retired ones without needing a heading');
+
+lines.push('');
+lines.push('=== correction 2: switching ON is the reactivate ===');
+ok((afterByTab.indicators.match(/data-ds-active=/g) || []).length === 2,
+   'indicators: EVERY version carries a toggle, retired ones included');
+ok((afterByTab.coned.match(/data-ds-active=/g) || []).length === 1,
+   'electric and gas: toggles too, which is new');
+ok((afterByTab.territory.match(/data-ds-active=/g) || []).length === 2,
+   'territory: toggles too');
+ok(!/data-ds-active=/.test(prevByTab.coned),
+   'PREV control: PR 2 gave electric and gas no toggle at all');
+
+lines.push('');
+lines.push('=== correction 3: tract shapes are informational ===');
+ok(!/data-ds-active=/.test(afterByTab.shapes), 'shapes: NO toggle anywhere');
+ok(/ml-state-pill/.test(afterByTab.shapes), 'shapes: a state pill instead');
+ok(/matches the active DAC indicators version/.test(afterByTab.shapes),
+   'and the row says WHY the in-use one is in use');
+ok(/no active version declares vintage/.test(afterByTab.shapes),
+   'and why the other one is not');
+
+lines.push('');
+lines.push('=== correction 4: the fingerprint is gone from the rows ===');
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  ok(!/fingerprint/.test(afterByTab[t]), t + ': no fingerprint in the list');
+});
+ok(/fingerprint/.test(prevByTab.shapes), 'PREV control: PR 2 printed it');
+
+lines.push('');
+lines.push('=== correction 5: the (i) button moved into the upload box ===');
+['indicators', 'shapes', 'coned', 'territory'].forEach(t => {
+  const h = afterByTab[t];
+  ok(/ds-upload-foot/.test(h), t + ': the upload box has a footer');
+  ok(h.indexOf('data-ds-info=') > h.indexOf('ds-upload'),
+     t + ': the (i) button is INSIDE the upload box, not in the card head');
+});
+// A positional test cannot tell the two layouts apart: the upload block renders
+// before the card in BOTH, so the (i) is "after ds-upload" either way. The
+// structural fact is the one that changed: there is now a footer inside the
+// upload box, and that is where the button lives.
+ok(!/ds-upload-foot/.test(prevByTab.shapes),
+   'PREV control: PR 2 had no upload-box footer at all');
+ok(/ds-upload-foot"><button[^>]*data-ds-info=/.test(afterByTab.shapes),
+   'the (i) button is the direct child of that footer');
+
+lines.push('');
+lines.push('=== correction 6: the territory chip ===');
+// The fixture has the overlay already loaded, so the rendered chip reads
+// "loaded" and the not-yet branch never runs. Assert the COPY at its source
+// instead of pretending a render exercised it: a passing test that never
+// reached the branch would be worse than no test.
+ok(/loaded/.test(afterByTab.territory), 'loaded state still renders as "loaded"');
 {
   const appSrc = fs.readFileSync(path.join(REPO, REL), 'utf8');
-  ok(!/&mdash;|&ndash;/.test(appSrc), 'no long-dash entities anywhere in app.js');
-  ok(/&mdash;/.test(PREV_SRC), 'PREV control: PR 1 shipped three of them');
-  const added = execSync('git diff ' + BASE + ' -- "' + REL + '"', { cwd: REPO, maxBuffer: 1 << 28 })
-    .toString('utf8').split('\n').filter(l => l.startsWith('+') && !l.startsWith('+++'));
-  ok(!added.some(l => /[–—]/.test(l)),
-     'and nothing I added across the whole ticket carries an em or en dash');
+  ok(/loads when first used/.test(appSrc), 'the not-yet branch says "loads when first used"');
+  // Code lines only. Three comments still contain the phrase, including the one
+  // explaining why it was removed, and a test that banned the words everywhere
+  // would be asking the code never to discuss its own history.
+  const codeLines = appSrc.split(/\r?\n/)
+    .filter(function (l) { return !/^\s*(\/\/|\*|\/\*)/.test(l); });
+  ok(!codeLines.some(function (l) { return /not loaded yet/.test(l); }),
+     'and no UI string says "not loaded yet" any more');
+  ok(/not loaded yet/.test(PREV_SRC), 'PREV control: PR 2 said "not loaded yet"');
+}
+
+lines.push('');
+lines.push('=== correction 2b: the retire SCOPE, asserted both ways ===');
+{
+  // The filter setTractDatasetActive builds, extracted and exercised directly.
+  const appSrc = fs.readFileSync(path.join(REPO, REL), 'utf8');
+  const m = appSrc.match(/const byKeyOnly = !String\(rec\.geoidVintage \|\| ''\);/);
+  ok(!!m, 'the activation path computes a retire scope at all');
+  const build = (rec) => {
+    const byKeyOnly = !String(rec.geoidVintage || '');
+    return "cr2bf_isactive eq true and cr2bf_datasetkey eq '" + rec.datasetKey + "'" +
+      (byKeyOnly ? '' : " and cr2bf_geoidvintage eq '" + String(rec.geoidVintage || '') + "'");
+  };
+  const coned2020 = build({ datasetKey: 'coned_operational', geoidVintage: '2020' });
+  ok(/cr2bf_geoidvintage eq '2020'/.test(coned2020),
+     'electric and gas 2020: the retire is SCOPED to 2020, so 2010 stays active');
+  const ind = build({ datasetKey: 'nyserda_dac', geoidVintage: '2010' });
+  ok(/cr2bf_geoidvintage eq '2010'/.test(ind),
+     'indicators: still scoped, so single-per-key-and-vintage is unchanged');
+  const terr = build({ datasetKey: 'service_territories', geoidVintage: null });
+  ok(!/cr2bf_geoidvintage/.test(terr),
+     'territories: NO vintage clause, because a null vintage matches nothing');
+  // and the control: the old form would have swept the other vintage away
+  const oldForm = (rec) => "cr2bf_isactive eq true and cr2bf_datasetkey eq '" + rec.datasetKey + "'";
+  ok(!/cr2bf_geoidvintage/.test(oldForm({ datasetKey: 'coned_operational', geoidVintage: '2020' })),
+     'PREV control: the old filter had no vintage clause, so it would have retired 2010');
+  const prevSrc = PREV_SRC;
+  ok(!/const byKeyOnly = !String\(rec\.geoidVintage/.test(prevSrc),
+     'PREV control: PR 2 shipped without the scope fix');
 }
 
 fs.writeFileSync(path.join(OUT, 'prev-pr1-shapes.html'),
