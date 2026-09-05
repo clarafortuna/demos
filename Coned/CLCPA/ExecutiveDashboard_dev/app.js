@@ -14699,6 +14699,11 @@ function wireHTooltips() {
    * file of that family, which is how a file lands in the right tab. */
   const ML_FAMILY = {
     indicators: { kind: 'indicators', noun: 'DAC Indicators', accept: '.json',
+                  // `produces` is currently UNREAD: its last consumer was the
+                  // picker hint, removed in round 3, and the panel texts name
+                  // their builders in prose instead. Kept because CLCPA-221's
+                  // dictionary will want the producer as data rather than
+                  // parsed back out of a sentence.
                   produces: 'convert_nyserda_raw.py' },
     shapes: { kind: 'geometry', noun: 'Tract Shapes', accept: '.json',
               produces: 'update_map_data.py' },
@@ -16372,18 +16377,27 @@ function wireHTooltips() {
       'access). Full procedure: the territory guide in the operator package.',
   };
 
-  /** The opener. Markup mirrors .dac-td-help-btn so the two are one control. */
+  /**
+   * The opener. Same shell as .dac-td-help-btn, and from round 6 the icon
+   * ALONE: no visible text label.
+   *
+   * A control with no visible label has no accessible name unless one is given,
+   * so aria-label carries it. `title` says the same words rather than something
+   * else: a tooltip that disagrees with the accessible name gives sighted and
+   * screen reader users two different answers to the same question.
+   */
   function dsAboutButton(tabId) {
     if (!DS_ABOUT[tabId]) return '';
     return '<button type="button" class="dac-td-help-btn ds-about-btn" ' +
       'data-ds-about="' + escapeHtml(tabId) + '" aria-expanded="false" ' +
+      'aria-label="Data Source" title="Data Source" ' +
       'aria-controls="ds-about-' + escapeHtml(tabId) + '">' +
       '<svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" ' +
       'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" ' +
       'stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/>' +
       '<line x1="12" y1="11" x2="12" y2="16"/>' +
       '<circle cx="12" cy="7.6" r="0.5" fill="currentColor"/></svg>' +
-      '<span>About This Data</span></button>';
+      '</button>';
   }
 
   /** The note it expands, collapsed by default, same box as .dac-td-note. */
@@ -16391,7 +16405,7 @@ function wireHTooltips() {
     const body = DS_ABOUT[tabId];
     if (!body) return '';
     return '<div class="dac-td-note ds-about-note" id="ds-about-' +
-      escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">About This Data</div>' +
+      escapeHtml(tabId) + '" hidden><div class="dac-td-note-title">Data Source</div>' +
       '<p>' + escapeHtml(body) + '</p></div>';
   }
 

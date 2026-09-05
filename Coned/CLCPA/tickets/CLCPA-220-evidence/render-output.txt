@@ -134,25 +134,37 @@ CLCPA-220 PR 1 -- renders and assertions
 
 === round 3: About this data ===
   ok   indicators: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
-  ok   indicators: labelled, not a bare icon
+  ok   indicators: no visible text label
+  ok   indicators: the icon-only button still has an accessible name
+  ok   indicators: and the tooltip says the SAME words, not something else
+  ok   indicators: the (i) glyph is still there
   ok   indicators: carries the same inline (i) glyph
   ok   indicators: collapsed by default and wired for assistive tech
   ok   indicators: the panel is present and hidden
   ok   indicators: the panel is the same box as the How-to-read note
   ok   shapes: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
-  ok   shapes: labelled, not a bare icon
+  ok   shapes: no visible text label
+  ok   shapes: the icon-only button still has an accessible name
+  ok   shapes: and the tooltip says the SAME words, not something else
+  ok   shapes: the (i) glyph is still there
   ok   shapes: carries the same inline (i) glyph
   ok   shapes: collapsed by default and wired for assistive tech
   ok   shapes: the panel is present and hidden
   ok   shapes: the panel is the same box as the How-to-read note
   ok   coned: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
-  ok   coned: labelled, not a bare icon
+  ok   coned: no visible text label
+  ok   coned: the icon-only button still has an accessible name
+  ok   coned: and the tooltip says the SAME words, not something else
+  ok   coned: the (i) glyph is still there
   ok   coned: carries the same inline (i) glyph
   ok   coned: collapsed by default and wired for assistive tech
   ok   coned: the panel is present and hidden
   ok   coned: the panel is the same box as the How-to-read note
   ok   territory: the opener reuses .dac-td-help-btn, so it IS the How-to-read control
-  ok   territory: labelled, not a bare icon
+  ok   territory: no visible text label
+  ok   territory: the icon-only button still has an accessible name
+  ok   territory: and the tooltip says the SAME words, not something else
+  ok   territory: the (i) glyph is still there
   ok   territory: carries the same inline (i) glyph
   ok   territory: collapsed by default and wired for assistive tech
   ok   territory: the panel is present and hidden
@@ -172,7 +184,10 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   territory: panel says "needs network access"
   ok   territory: panel says "the territory guide in the operator packag"
   ok   the long dictionary entry is NOT in the panel; it is banked for CLCPA-221
-  ok   the bare inert (i) is gone
+  ok   the bare INERT (i) class is gone
+  ok   the panel is titled Data Source
+  ok   and nothing still says About This Data
+  ok   PREV control: the previous build did, in both the button and the title
 
 === round 3: unselected tabs read as buttons on the page ===
   ok   unselected tabs declare a fill
@@ -241,7 +256,7 @@ CLCPA-220 PR 1 -- renders and assertions
   ok   header: Upload Tract Shapes
   ok   header: Upload Electric and Gas Figures, with "and" lowercase
   ok   header: Upload Territory Overlays
-  ok   button: About This Data
+  ok   panel title is title case: Data Source
   ok   connector "a" was NOT capitalised
   ok   connector "and" was NOT capitalised
   ok   body copy is untouched by the sweep
@@ -264,5 +279,5 @@ renders written to C:/Users/emely/AppData/Local/Temp/claude/c--Users-emely-Deskt
    prev-pr1-shapes.html
 
 ======================================================================
-  201 passed, 0 failed
+  216 passed, 0 failed
 ======================================================================
