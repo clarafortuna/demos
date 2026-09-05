@@ -1,0 +1,39 @@
+<!doctype html><meta charset="utf-8"><title>Sidebar: VIEWER (Data Ingestion hidden entirely)</title><link rel="stylesheet" href="../../../ExecutiveDashboard_dev/styles.css"><body style="background:#F2F2F2;padding:24px;"><div style="font:600 12px system-ui;color:#666;margin-bottom:12px;">Sidebar: VIEWER (Data Ingestion hidden entirely)</div><aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">
+        <img src="logo/ConEd_Logo_completo.svg" alt="Con Edison">
+      </div>
+      <div class="sidebar-brand-mark">DAC Annual Report</div>
+      <div class="sidebar-brand-sub" id="sidebar-sub">Reporting Year —</div>
+    </div>
+
+    <div class="sidebar-section">Overview</div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="#/" data-route="/">
+        <span class="nav-letter">⌂</span> Executive Summary
+      </a>
+    </nav>
+
+    <div class="sidebar-section">Reporting Areas</div>
+    <nav class="sidebar-nav" id="sidebar-sections"><a class="nav-item" href="#"><span class="nav-letter">A</span> Reporting area A</a><a class="nav-item" href="#"><span class="nav-letter">B</span> Reporting area B</a><a class="nav-item" href="#"><span class="nav-letter">C</span> Reporting area C</a></nav>
+
+    <!-- CLCPA-223: the whole group, label included, is hidden for a user who
+         cannot operate either page. Hidden via the id below by applyOperatorGate(),
+         after Storage.init() has resolved privileges and before the first render. -->
+    <div id="nav-ingestion" hidden>
+      <div class="sidebar-section">Data Ingestion</div>
+      <nav class="sidebar-nav">
+        <a class="nav-item" href="#/ingest" data-route="/ingest">
+          <span class="nav-letter">↓</span> Report Data
+        </a>
+        <a class="nav-item" href="#/maplayers" data-route="/maplayers">
+          <span class="nav-letter">◈</span> Map Data
+        </a>
+        <a class="nav-item" href="#/edit-map-files" data-route="/edit-map-files" hidden>
+          <span class="nav-letter">E</span> Edit map files
+        </a>
+      </nav>
+    </div>
+
+    <div class="sidebar-foot" id="sidebar-foot"></div>
+  </aside></body>
