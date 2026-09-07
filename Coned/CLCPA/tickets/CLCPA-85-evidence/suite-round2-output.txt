@@ -48,6 +48,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   the tabs are wired by their own attribute
   ok   clicking the active tab is a no-op
   ok   and the dirty guard is kept
+  ok   and it is no longer the browser-native one (CLCPA-230)
   ok   a tab click redraws the PAGE, so the active tab moves with it
   ok   and not just the editor, which would leave the old tab looking selected
 
@@ -247,5 +248,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  218 passed, 0 failed
+  219 passed, 0 failed
 ======================================================================

@@ -198,7 +198,18 @@ lines.push('=== the picker row: table dropdown out, tab row in ===');
   const wire = grab(SRC, 'wireIngestPage');
   ok(/\.src-tab\[data-ingest-table\]/.test(wire), 'the tabs are wired by their own attribute');
   ok(/if \(id === state\.ingest\.tableId\) return;/.test(wire), 'clicking the active tab is a no-op');
-  ok(/confirm\('Discard unsaved changes\?'\)/.test(wire), 'and the dirty guard is kept');
+  /* CLCPA-230 replaced window.confirm with the app's own modal, so this pin
+   * moved with the mechanism instead of outliving it. The property is
+   * unchanged: the tab path still refuses to discard unsaved work silently.
+   * The BEHAVIOUR of that guard is proven in suite_230.js, which drives the
+   * real modal; this line only says the tab path is guarded at all. */
+  ok(/confirmDiscardChanges\(/.test(wire), 'and the dirty guard is kept');
+  /* CODE only. My own CLCPA-230 comment in that handler explains what the old
+   * code did -- "could revert after confirm() returned false" -- and prose
+   * about a call is not a call. */
+  const wireCode = wire.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/\/\/[^\r\n]*/g, ' ');
+  ok(!/[^.$\w]confirm\(/.test(wireCode),
+     'and it is no longer the browser-native one (CLCPA-230)');
   /* Bounded to the tab handler itself. Slicing from the selector to the end of
    * wireIngestPage matched the SECTION handler's rerenderIngestAll further
    * down, so the check passed with the tab handler mutated to an editor-only
