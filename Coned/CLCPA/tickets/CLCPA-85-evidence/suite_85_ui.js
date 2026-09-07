@@ -212,55 +212,86 @@ lines.push('=== the picker row: table dropdown out, tab row in ===');
 }
 
 lines.push('');
-lines.push('=== the Add or Edit Data dialog ===');
+lines.push('=== round 3: the dialog is SINGLE PURPOSE ===');
 {
-  const dlg = grab(SRC, 'openAddEditDialog');
-  ok(!!dlg, 'the dialog exists');
-  ok(/id="ingest-adddata" type="button">Add or Edit Data</.test(SRC),
-     'the page header carries the one button, in title case');
-  ok(/addEdit\.addEventListener\('click', openAddEditDialog\)/.test(grab(SRC, 'wireIngestPage')),
-     'and it opens the dialog');
+  const dlg = grab(SRC, 'openAddYearDialog');
+  ok(!!dlg, 'the Add New Year dialog exists');
+  ok(/id="ingest-addyear" type="button">Add New Year</.test(SRC),
+     'the page header button says Add New Year, in title case');
+  ok(/addYear\.addEventListener\('click', openAddYearDialog\)/.test(grab(SRC, 'wireIngestPage')),
+     'and it opens that dialog');
 
-  // the shell is REUSED, not redesigned
+  /* INVERTED from round 2. These pinned the choice state and the Edit path
+   * present; they now pin them ABSENT, per the round 3 cut. */
+  ok(SRC.indexOf('openAddEditDialog') < 0, 'the two-path dialog is gone by name');
+  ok(SRC.indexOf('bodyChoice') < 0, 'the choice state is gone');
+  ok(SRC.indexOf('bodyEdit') < 0, 'and the Edit panel with it');
+  ok(SRC.indexOf('data-go=') < 0, 'no choice buttons remain in the markup');
+  ok(SRC.indexOf('Edit Existing Data') < 0, 'nor its label');
+  ok(SRC.indexOf('Open For Editing') < 0, 'nor its confirm button');
+  ok(SRC.indexOf('ingest-adddata') < 0, 'nor the old button id');
+  ok(SRC.indexOf('Add or Edit Data') < 0,
+     'and no comment still names the old dialog, which would mislead the next reader');
+  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  ok(!/\.ingest-choice/.test(css), 'the choice-state CSS is deleted, not left orphaned');
+
+  /* the RECORDED CONSEQUENCE: the engine still supports an existing year, only
+   * the door is gone. Asserted so re-exposing it stays a small change. */
+  /* Corrected: my first two attempts here asserted the absence of the WORD
+   * "year", which the dialog uses legitimately ("Existing years: ...") and the
+   * engine uses in an error message. What actually matters is that the only
+   * year the dialog can produce is a NEW one, and that the engine takes no
+   * year at all. */
+  ok(!/<select id="dlg-year"/.test(dlg) && !/allYears\(\)\.map/.test(dlg),
+     'the dialog has no year PICKER, so the only year it yields is the new one');
+  const engine = grab(SRC, 'buildIngestImport');
+  // grab() keeps the leading indentation, so ^ cannot match "function" directly.
+  ok(/^\s*function buildIngestImport\(fileRows, schema, draft, tableId\)/.test(engine),
+     'and buildIngestImport takes no year parameter, so the mechanism is year-agnostic');
+  ok(!/state\.ingest\.year|i\.year/.test(engine),
+     'nor reads one from state, which is why re-exposing an existing year stays small');
+
+  // the shell is still the existing one
   ['ingest-modal-overlay', 'ingest-modal-head', 'ingest-modal-body',
    'ingest-modal-foot', 'ingest-modal-close'].forEach(c => {
     ok(dlg.indexOf(c) >= 0 && BASE_SRC.indexOf(c) >= 0,
-       'reuses the existing shell class ' + c);
+       'still reuses the existing shell class ' + c);
   });
 
-  // three states, one dialog
-  ok(/let mode = 'choice';/.test(dlg), 'it opens on the choice');
-  ['bodyChoice', 'bodyEdit', 'bodyAdd'].forEach(f =>
-    ok(dlg.indexOf('function ' + f + '(') >= 0, 'it has a ' + f + ' state'));
-  ok(/data-go="edit"/.test(dlg) && /data-go="add"/.test(dlg), 'with both paths offered');
-  ok(/Edit Existing Data/.test(dlg) && /Add a New Year/.test(dlg), 'named in title case');
+  /* TWO STAGES, and the order is load-bearing: the import controls act on
+   * state.ingest, so offering them before the year exists would land a file in
+   * whatever year the page was showing. */
+  ok(/let stage = 'year';/.test(dlg), 'it opens on the year stage');
+  ok(/function bodyYear\(\)/.test(dlg) && /function bodyFill\(\)/.test(dlg),
+     'and has exactly the two stages');
+  const yearBody = dlg.slice(dlg.indexOf('function bodyYear()'), dlg.indexOf('function bodyFill()'));
+  ok(!/renderIngestImportBar/.test(yearBody),
+     'the import controls are NOT offered before the year exists');
+  const fillBody = dlg.slice(dlg.indexOf('function bodyFill()'), dlg.indexOf('function foot()'));
+  ok(/renderIngestImportBar\(/.test(fillBody), 'and ARE offered once it does');
+  ok(/stage = 'fill';/.test(dlg), 'the stage advances only after the year is added');
+  const addBlock = dlg.slice(dlg.indexOf("act('addyear'"));
+  ok(addBlock.indexOf('addedYear = res.year;') < addBlock.indexOf("stage = 'fill';"),
+     'and only on success, after addReportingYear returns ok');
+  ok(/if \(!res\.ok\) \{[\s\S]{0,120}return; \}/.test(addBlock),
+     'a rejected year keeps the dialog on the year stage with its error');
 
-  // EDIT path funnels through loadIngestDraft, as the pickers do
-  ok(/function applySelection\(\)/.test(dlg), 'the Edit path applies its selection in one place');
-  ok(/state\.ingest\.sectionId = sel\.sectionId;[\s\S]{0,200}loadIngestDraft\(\);/.test(dlg),
-     'and funnels through loadIngestDraft, exactly as the picker handlers do');
-  ok(/act\('open', \(\) => \{[\s\S]{0,200}applySelection\(\);[\s\S]{0,80}close\(\);/.test(dlg),
-     'Open For Editing applies, then closes, landing the operator in inline editing');
-  // cancelling must change nothing
-  ok(/let sel = \{/.test(dlg) && /sectionId: state\.ingest\.sectionId/.test(dlg),
-     'the dialog keeps its OWN selection until confirmed, so Cancel changes nothing');
+  // Section AND Table in the fill stage, per the ruling
+  ok(/id="dlg-section"/.test(fillBody), 'the fill stage offers Section');
+  ok(/id="dlg-table"/.test(fillBody), 'and Table');
+  ok(/addedYear \+ ' has been added/.test(fillBody), 'and says the year was added');
 
-  // ADD path uses the shared mechanics and states the global truth
-  ok(/addReportingYear\(/.test(dlg), 'the Add path calls the shared add-year mechanics');
-  ok(/A new year appears in the year selector everywhere/.test(dlg),
-     'and states that a year is GLOBAL');
-  ok(/Every table[\s\S]{0,60}starts empty/.test(dlg),
-     'and that every table starts empty, which is the per-table truth');
-
-  // the import controls live here
-  ok(/renderIngestImportBar\(\)/.test(dlg), 'the Edit path carries the import controls');
-  ok(/renderIngestImportBar\('The template for a brand new year/.test(dlg),
-     'and the Add path carries them with the new-year template note');
-  ok(/wireIngestImport\(\{/.test(dlg), 'wired from inside the dialog');
-  ok(/beforeRead: \(\) => \{ if \(mode === 'edit'\) applySelection\(\); \}/.test(dlg),
-     'the target is applied BEFORE the file is read, so it lands where chosen');
+  // the page's state changes in ONE place, funnelled as the pickers are
+  ok(/function applySelection\(\)/.test(dlg), 'the selection is applied in one place');
+  ok(/state\.ingest\.tableId = sel\.tableId;[\s\S]{0,60}loadIngestDraft\(\);/.test(dlg),
+     'through loadIngestDraft, exactly as the picker handlers do');
+  ok(/beforeRead: applySelection/.test(dlg),
+     'applied BEFORE the file is read, so the import lands on the chosen table');
   ok(/afterImport: \(\) => \{ close\(\); rerenderIngestAll\(\); \}/.test(dlg),
-     'and the dialog closes after, good import or bad');
+     'ruling 4 still holds: the dialog closes after an import, good or bad');
+  // a year added but not filled still has to reach the page
+  ok(/if \(addedYear\) rerenderIngestAll\(\);/.test(dlg),
+     'closing after adding a year redraws the page, so the year is not lost');
 
   // closes three ways
   ok(/e\.key === 'Escape'/.test(dlg), 'Escape closes it');
@@ -268,6 +299,7 @@ lines.push('=== the Add or Edit Data dialog ===');
   ok(/removeEventListener\('keydown', onEsc\)/.test(dlg),
      'and the Escape handler is removed on close, so handlers cannot accumulate');
 }
+
 
 lines.push('');
 lines.push('=== the old add-year modal is GONE, its mechanics kept ===');
@@ -299,8 +331,10 @@ lines.push('=== ruling 4: the receipt is on the PAGE, the controls are not ===')
   const bar = grab(SRC, 'renderIngestImportBar');
   ok(/id="ingest-file"/.test(bar) && /id="ingest-template"/.test(bar),
      'both controls are in the bar, which only the dialog renders');
-  ok((SRC.match(/renderIngestImportBar\(/g) || []).length === 3,
-     'the bar has one definition and two dialog callers');
+  /* Round 3 leaves ONE caller: the fill stage. Round 2 had two, because the
+   * Edit path carried the bar as well. */
+  ok((SRC.match(/renderIngestImportBar\(/g) || []).length === 2,
+     'the bar has one definition and one caller, the fill stage');
   ok(!/wireIngestImport\(\);/.test(grab(SRC, 'wireIngestPage')),
      'the page no longer wires the controls it does not render');
 }
@@ -349,14 +383,14 @@ lines.push('=== ruling 2: Reporting Year hidden on Report Data ONLY ===');
 }
 
 lines.push('');
-lines.push('=== the dialog, EXECUTED against a DOM stub ===');
-/* The three body states are closures over the dialog's own mode and selection,
- * which is why they are not module-level functions. So instead of reading their
- * source, the REAL openAddEditDialog is driven: a minimal document stub captures
- * the modal it builds, and the buttons it wires are clicked. What follows is the
- * shipped dialog's own output, not a mockup of it. */
+lines.push('=== round 3: the dialog, EXECUTED against a DOM stub ===');
+/* The stage bodies are closures over the dialog's own stage and selection, so
+ * rather than read their source the REAL openAddYearDialog is driven: a minimal
+ * document stub captures the modal it builds, and the real buttons are clicked.
+ * What follows is the shipped dialog's own output. */
 const dialogStates = {};
 {
+  let stubCache = {};
   const el = (tag) => {
     const node = {
       tagName: tag, className: '', children: [], _on: {},
@@ -369,42 +403,24 @@ const dialogStates = {};
       appendChild: (c) => { node.children.push(c); return c; },
       removeChild: () => {},
       focus: () => {},
-      // Query the innerHTML string, which is what the dialog actually builds.
-      querySelector: (selr) => findIn(node.innerHTML, selr, node),
-      querySelectorAll: (selr) => findAllIn(node.innerHTML, selr, node),
+      querySelector: (selr) => findIn(node.innerHTML, selr),
+      querySelectorAll: (selr) => { const o = findIn(node.innerHTML, selr); return o ? [o] : []; },
       getAttribute: () => null,
     };
     return node;
   };
-  /* Tag stubs: the dialog only needs to attach handlers and read .value, so a
-   * match returns a stub carrying the attribute that identified it. */
-  /* MEMOISED by identity. Without this, querySelectorAll returned fresh stubs
-   * on every call, so the dialog registered its handlers on throwaway objects
-   * and the test's later lookup found nodes with no listeners. The cache is
-   * cleared whenever the dialog redraws, which is what really happens. */
-  let stubCache = {};
+  /* Memoised by identity: without this the dialog registered handlers on
+   * throwaway stubs and a later lookup found nodes with no listeners. */
   const stubFor = (attrs) => {
     const key = JSON.stringify(attrs);
     if (stubCache[key]) return stubCache[key];
     const n = el('button');
-    n._attrs = attrs;
     n.getAttribute = (k) => (attrs[k] === undefined ? null : attrs[k]);
+    if (attrs.id === 'dlg-newyear') n.value = '2026';
     stubCache[key] = n;
     return n;
   };
-  function findAllIn(html, selr, owner) {
-    const out = [];
-    const dataGo = /^\[data-go\]$/.test(selr);
-    if (dataGo) {
-      (html.match(/data-go="(\w+)"/g) || []).forEach(m => {
-        out.push(stubFor({ 'data-go': m.match(/"(\w+)"/)[1] }));
-      });
-      return out;
-    }
-    const one = findIn(html, selr, owner);
-    return one ? [one] : [];
-  }
-  function findIn(html, selr, owner) {
+  function findIn(html, selr) {
     let m;
     if ((m = selr.match(/^\[data-act="(\w+)"\]$/))) {
       return html.indexOf('data-act="' + m[1] + '"') >= 0 ? stubFor({ 'data-act': m[1] }) : null;
@@ -424,8 +440,7 @@ const dialogStates = {};
     body: body,
     createElement: (t) => { created = el(t); return created; },
     addEventListener: () => {}, removeEventListener: () => {},
-    getElementById: () => null,
-    querySelector: () => null, querySelectorAll: () => [],
+    getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
   };
 
   const deps = {
@@ -434,130 +449,143 @@ const dialogStates = {};
       .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'),
     SHORT_TITLES: ST,
     allYears: () => (PAYLOAD.meta.years || []).slice(),
-    compareTableIds: (a, b) => parseInt(a.slice(1), 10) - parseInt(b.slice(1), 10),
-    getTableBody: (t, y) => ((t && t.data) || {})[y] || [],
+    compareTableIds: (x, y) => parseInt(x.slice(1), 10) - parseInt(y.slice(1), 10),
     renderIngestImportBar: new Function(grab(SRC, 'renderIngestImportBar') +
       '\nreturn renderIngestImportBar;')(),
     loadIngestDraft: () => { deps._loaded = (deps._loaded || 0) + 1; },
     rerenderIngestAll: () => { deps._redrawn = (deps._redrawn || 0) + 1; },
-    addReportingYear: (raw) => { deps._added = raw; return { ok: true, year: String(raw) }; },
+    addReportingYear: (raw) => {
+      deps._addArg = raw;
+      if (deps._failNext) { deps._failNext = false; return { ok: false, error: 'nope' }; }
+      return { ok: true, year: String(raw) };
+    },
     confirm: () => true,
     state: { payload: PAYLOAD, ingest: { sectionId: 'A', tableId: 'A1', year: '2025', dirty: false } },
     wireIngestImport: (h) => { deps._hooks = h; },
   };
   const keys = Object.keys(deps).filter(k => k[0] !== '_');
   const open = new Function(...keys,
-    grab(SRC, 'openAddEditDialog') + '\nreturn openAddEditDialog;')(...keys.map(k => deps[k]));
+    grab(SRC, 'openAddYearDialog') + '\nreturn openAddYearDialog;')(...keys.map(k => deps[k]));
 
+  // ---- stage one: the year -----------------------------------------------
   open();
   ok(!!created, 'the dialog created a node and appended it to the body');
   ok(created.className === 'ingest-modal-overlay',
      'using the existing overlay class: ' + created.className);
-  dialogStates.choice = created.innerHTML;
-  ok(/<h3 id="dlg-title">Add or Edit Data<\/h3>/.test(dialogStates.choice),
-     'it opens titled Add or Edit Data');
-  ok((dialogStates.choice.match(/ingest-choice-btn/g) || []).length === 2,
-     'offering exactly two paths');
-  ok(/<strong>Edit Existing Data<\/strong>/.test(dialogStates.choice) &&
-     /<strong>Add a New Year<\/strong>/.test(dialogStates.choice), 'named in title case');
-  ok(!/ingest-import-bar/.test(dialogStates.choice),
-     'and the import controls are NOT on the choice screen');
-
-  // click through to Edit
-  const goBtns = created.querySelectorAll('[data-go]');
-  ok(goBtns.length === 2, 'both choice buttons are wired');
-  const goEdit = goBtns.filter(b => b.getAttribute('data-go') === 'edit')[0];
-  goEdit._on.click[0]();
-  dialogStates.edit = created.innerHTML;
-  ok(/<h3 id="dlg-title">Edit Existing Data<\/h3>/.test(dialogStates.edit),
-     'choosing Edit redraws the dialog into the Edit panel');
-  ['dlg-section', 'dlg-table', 'dlg-year'].forEach(id =>
-    ok(dialogStates.edit.indexOf('id="' + id + '"') >= 0, 'Edit has its ' + id + ' select'));
-  ok(/ingest-import-bar/.test(dialogStates.edit), 'and the import controls');
-  ok(/id="ingest-template"/.test(dialogStates.edit), 'including the template download');
-  /* Derived from the payload, not hardcoded: I first wrote 25, which is A1's
-   * 2023 count, while the dialog opens on 2025 where it is 23. A hint that
-   * counts rows must be checked against the count it is describing. */
-  const a1_2025 = PAYLOAD.tables['A1'].data['2025'].length;
-  ok(dialogStates.edit.indexOf('A1 for 2025 has ' + a1_2025 + ' rows') >= 0,
-     'with a hint counting the real rows of the real target: ' + a1_2025);
-  ok(/Opening it changes nothing until you save/.test(dialogStates.edit),
-     'and saying that opening it changes nothing');
-  ok(/Open For Editing/.test(dialogStates.edit), 'and the confirm button');
-
-  // the import hooks were handed over
-  ok(deps._hooks && typeof deps._hooks.beforeRead === 'function' &&
-     typeof deps._hooks.afterImport === 'function',
-     'the dialog wires the import with both hooks');
-
-  // Open For Editing applies the selection through loadIngestDraft and redraws
-  const before = deps._loaded || 0;
-  created.querySelector('[data-act="open"]')._on.click[0]();
-  ok((deps._loaded || 0) === before + 1, 'Open For Editing calls loadIngestDraft exactly once');
-  ok((deps._redrawn || 0) === 1, 'and redraws the page once');
-  ok(deps.state.ingest.tableId === 'A1' && deps.state.ingest.year === '2025',
-     'landing on the chosen target');
-
-  // and the Add panel, from a fresh dialog
-  open();
-  const goAdd = created.querySelectorAll('[data-go]')
-    .filter(b => b.getAttribute('data-go') === 'add')[0];
-  goAdd._on.click[0]();
-  dialogStates.add = created.innerHTML;
-  ok(/<h3 id="dlg-title">Add a New Year<\/h3>/.test(dialogStates.add), 'the Add panel opens');
-  ok(/id="dlg-newyear"/.test(dialogStates.add), 'with a year input');
-  ok(/value="2026"/.test(dialogStates.add), 'suggesting the next year: 2026');
-  ok(/Existing years: 2025, 2024, 2023/.test(dialogStates.add), 'and listing the existing ones');
-  ok(/A new year appears in the year selector everywhere/.test(dialogStates.add),
+  dialogStates.year = created.innerHTML;
+  ok(/<h3 id="dlg-title">Add New Year<\/h3>/.test(dialogStates.year),
+     'it opens DIRECTLY on Add New Year, with no choice screen');
+  ok(!/ingest-choice/.test(dialogStates.year), 'and no choice buttons');
+  ok(!/Edit Existing Data/.test(dialogStates.year), 'and no Edit path');
+  ok(/id="dlg-newyear"/.test(dialogStates.year), 'with the year input');
+  ok(/value="2026"/.test(dialogStates.year), 'suggesting the next year: 2026');
+  ok(/Existing years: 2025, 2024, 2023/.test(dialogStates.year), 'and listing the existing ones');
+  ok(/A new year appears in the year selector everywhere/.test(dialogStates.year),
      'stating that a year is GLOBAL');
-  ok(/Every table starts empty/.test(dialogStates.add), 'and that every table starts empty');
-  ok(/labels from the most recent year that has them, with the values left blank/
-     .test(dialogStates.add), 'and what a new year\u2019s template contains');
-  ok(/Add Year<\/button>/.test(dialogStates.add), 'with the Add Year action');
+  ok(/Every table starts empty/.test(dialogStates.year), 'and that every table starts empty');
+  ok(!/ingest-import-bar/.test(dialogStates.year),
+     'and NOT offering the import before the year exists, which would target the wrong year');
+  ok(!/id="dlg-section"/.test(dialogStates.year) && !/id="dlg-table"/.test(dialogStates.year),
+     'nor the section and table pickers yet');
+
+  // a REJECTED year keeps the dialog where it is
+  deps._failNext = true;
+  created.querySelector('[data-act="addyear"]')._on.click[0]();
+  ok(/<h3 id="dlg-title">Add New Year<\/h3>/.test(created.innerHTML),
+     'a rejected year leaves the dialog on the year stage');
+  ok(!/ingest-import-bar/.test(created.innerHTML), 'with the import still not offered');
+
+  // ---- stage two: fill ----------------------------------------------------
+  created.querySelector('[data-act="addyear"]')._on.click[0]();
+  ok(deps._addArg === '2026', 'Add Year passes the entered year to addReportingYear');
+  dialogStates.fill = created.innerHTML;
+  ok(/<h3 id="dlg-title">Fill 2026<\/h3>/.test(dialogStates.fill),
+     'success advances to the fill stage, titled for the new year');
+  ok(/2026 has been added/.test(dialogStates.fill), 'saying the year was added');
+  ok(/id="dlg-section"/.test(dialogStates.fill), 'the fill stage offers Section');
+  ok(/id="dlg-table"/.test(dialogStates.fill), 'and Table');
+  ok(/ingest-import-bar/.test(dialogStates.fill), 'and the import controls');
+  ok(/id="ingest-template"/.test(dialogStates.fill), 'including the template download');
+  ok(/The template for 2026 carries the row labels/.test(dialogStates.fill),
+     'with the new-year template note, naming the year');
+  ok(/Done<\/button>/.test(dialogStates.fill), 'and a Done action');
+
+  /* CANCEL IS FREE, checked behaviourally.
+   *
+   * A source check for `let sel = { ... }` passed under a mutation that aliased
+   * sel to state.ingest and left the old literal in place unused. So the real
+   * test: change the dialog's Section and assert the PAGE has not moved. */
+  const pageSectionBefore = deps.state.ingest.sectionId;
+  const pageTableBefore = deps.state.ingest.tableId;
+  const secSel = created.querySelector('#dlg-section');
+  ok(!!secSel, 'the fill stage has a section select to change');
+  secSel._on.change[0]({ target: { value: 'B' } });
+  ok(deps.state.ingest.sectionId === pageSectionBefore &&
+     deps.state.ingest.tableId === pageTableBefore,
+     'changing the dialog Section does NOT move the page: cancel is free');
+  ok(/B\. /.test(created.innerHTML), 'though the dialog itself did follow the change');
+  // put it back so the later assertions describe the same target
+  created.querySelector('#dlg-section')._on.change[0]({ target: { value: 'A' } });
+
+  // the import hooks are handed over, and beforeRead applies the selection
+  ok(deps._hooks && typeof deps._hooks.beforeRead === 'function' &&
+     typeof deps._hooks.afterImport === 'function', 'the import is wired with both hooks');
+  const loadedBefore = deps._loaded || 0;
+  deps._hooks.beforeRead();
+  ok((deps._loaded || 0) === loadedBefore + 1,
+     'beforeRead applies the selection through loadIngestDraft');
+  ok(deps.state.ingest.tableId === 'A1', 'landing on the table the dialog shows');
+
+  // closing after adding a year redraws the page, so the year is not lost
+  const redrawnBefore = deps._redrawn || 0;
+  created.querySelector('[data-act="done"]')._on.click[0]();
+  ok((deps._redrawn || 0) === redrawnBefore + 1,
+     'Done redraws the page, because a year was added even if nothing was filled');
 }
 
-/* ---------- renders, now from the REAL renderer ------------------------- */
+
+/* ---------- renders, from the shipped code ------------------------------- */
 fs.mkdirSync(OUT, { recursive: true });
 const shell = (title, note, body) => '<!doctype html><meta charset="utf-8"><title>' +
   title + '</title><link rel="stylesheet" href="../../../ExecutiveDashboard_dev/styles.css">' +
   '<style>body{margin:0;background:var(--white-smoke)}.w{padding:18px 24px 40px}' +
   '.n{font:12px/1.5 system-ui;color:#2A5A34;background:#E8F5E9;border:1px solid #A5D6A7;' +
   'border-radius:6px;padding:8px 12px;margin:0 0 16px}</style><body><div class="w">' +
-  '<div class="n"><strong>From the shipped renderer.</strong> ' + note + '</div>' + body +
+  '<div class="n"><strong>From the shipped code.</strong> ' + note + '</div>' + body +
   '</div></body>';
 
-const secOpts = (cur) => Object.entries(PAYLOAD.sections).map(([l, s]) =>
-  '<option' + (l === cur ? ' selected' : '') + '>' + l + '. ' + s.full_name + '</option>').join('');
+const secOpts = (cur) => Object.entries(PAYLOAD.sections).map(([l, sc]) =>
+  '<option' + (l === cur ? ' selected' : '') + '>' + l + '. ' + sc.full_name +
+  '</option>').join('');
 const yrOpts = (cur) => (PAYLOAD.meta.years || []).map(y =>
   '<option' + (y === cur ? ' selected' : '') + '>' + y + '</option>').join('');
 
-const pickerFor = (sec, active) => `
-  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
-    <div><h1>Report Data</h1>
-    <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p></div>
-    <button class="btn btn-primary" type="button">Add or Edit Data</button>
-  </div>
-  <div class="ingest-picker">
-    <div class="ingest-picker-field"><label>Section</label>
-      <select class="ingest-select">${secOpts(sec)}</select></div>
-    <div class="ingest-picker-field"><label>Year</label>
-      <div class="ingest-year-row"><select class="ingest-select">${yrOpts('2025')}</select></div></div>
-  </div>
-  <div class="ingest-srctables">
-    <div class="ingest-srctables-label">Source Tables</div>
-    ${renderRow(tablesIn(sec), active, { attr: 'data-ingest-table' })}
-  </div>`;
+const pickerFor = (sec, active) =>
+  '<div class="page-header" style="display:flex;justify-content:space-between;' +
+  'align-items:flex-start"><div><h1>Report Data</h1>' +
+  '<p class="page-sub">Enter or update values for any table, by year. Edits are ' +
+  'saved to your browser and applied to the dashboard.</p></div>' +
+  '<button class="btn btn-primary" type="button">Add New Year</button></div>' +
+  '<div class="ingest-picker">' +
+  '<div class="ingest-picker-field"><label>Section</label>' +
+  '<select class="ingest-select">' + secOpts(sec) + '</select></div>' +
+  '<div class="ingest-picker-field"><label>Year</label>' +
+  '<div class="ingest-year-row"><select class="ingest-select">' + yrOpts('2025') +
+  '</select></div></div></div>' +
+  '<div class="ingest-srctables">' +
+  '<div class="ingest-srctables-label">Source Tables</div>' +
+  renderRow(tablesIn(sec), active, { attr: 'data-ingest-table' }) + '</div>';
 
 fs.writeFileSync(path.join(OUT, '1-picker-source-tables.html'),
   shell('Picker row with Source Tables tabs',
     'The row comes from renderSrcTabRow, the same call the shipped page makes. ' +
-    'Section A, ten tables.', pickerFor('A', 'A1')));
+    'Section A, ten tables. The header button now says Add New Year.',
+    pickerFor('A', 'A1')));
 
 fs.writeFileSync(path.join(OUT, '1b-picker-few-tables.html'),
   shell('Picker row: sections with few tables',
     'Ruling 1: the EXACT rule is reused, so few tables render exactly as the report ' +
-    'pages render them, at repeat(10, 1fr). B has two tables, I has one. This is ' +
-    'identity, not a variant.',
+    'pages render them, at repeat(10, 1fr). B has two tables, I has one.',
     '<h3 style="font:600 13px system-ui">B, two tables</h3>' + pickerFor('B', 'B1') +
     '<hr style="margin:28px 0">' +
     '<h3 style="font:600 13px system-ui">I, one table</h3>' + pickerFor('I', 'I1') +
@@ -566,18 +594,24 @@ fs.writeFileSync(path.join(OUT, '1b-picker-few-tables.html'),
     renderRow(tablesIn('B'), 'B1')));
 
 /* The dialog renders are the SAME strings the assertions above checked, so a
- * render and its assertion cannot disagree. */
+ * render and its assertion cannot disagree. Round 3 has TWO stages, not three
+ * states: the choice and Edit renders are DELETED rather than left behind
+ * showing a flow that no longer exists. */
 const dlgShell = (t, html) => shell(t,
-  'This is the innerHTML the shipped openAddEditDialog built, captured from the ' +
+  'This is the innerHTML the shipped openAddYearDialog built, captured from the ' +
   'driven dialog above.',
-  '<div class="ingest-modal-overlay" style="position:static;background:transparent;padding:0">' +
-  html.replace('class="ingest-modal"', 'class="ingest-modal" style="margin:0"') + '</div>');
-fs.writeFileSync(path.join(OUT, '2-dialog-choice.html'),
-  dlgShell('Dialog: the opening choice', dialogStates.choice));
-fs.writeFileSync(path.join(OUT, '3-dialog-edit-path.html'),
-  dlgShell('Dialog: Edit Existing Data', dialogStates.edit));
-fs.writeFileSync(path.join(OUT, '4-dialog-add-path.html'),
-  dlgShell('Dialog: Add a New Year', dialogStates.add));
+  '<div class="ingest-modal-overlay" style="position:static;background:transparent;' +
+  'padding:0">' +
+  html.replace('class="ingest-modal"', 'class="ingest-modal" style="margin:0"') +
+  '</div>');
+fs.writeFileSync(path.join(OUT, '2-dialog-add-year.html'),
+  dlgShell('Dialog stage 1: Add New Year', dialogStates.year));
+fs.writeFileSync(path.join(OUT, '3-dialog-fill-year.html'),
+  dlgShell('Dialog stage 2: Fill the new year', dialogStates.fill));
+['2-dialog-choice.html', '3-dialog-edit-path.html', '4-dialog-add-path.html'].forEach(f => {
+  const old = path.join(OUT, f);
+  if (fs.existsSync(old)) fs.unlinkSync(old);
+});
 
 /* The top bar, built from the SHIPPED html with syncTopbarYear's own rule
  * applied, rather than from a hand-written copy of the header. */
@@ -598,16 +632,19 @@ fs.writeFileSync(path.join(OUT, '4-dialog-add-path.html'),
       'it, at every route. The second applies syncTopbarYear’s rule for the ' +
       'Report Data route.',
       '<h3 style="font:600 13px system-ui">Every page except Report Data</h3>' +
-      head.replace('<header class="topbar">', '<header class="topbar" style="position:static">') +
+      head.replace('<header class="topbar">',
+                   '<header class="topbar" style="position:static">') +
       '<h3 style="font:600 13px system-ui;margin-top:24px">Report Data</h3>' +
-      hidden.replace('<header class="topbar">', '<header class="topbar" style="position:static">')));
+      hidden.replace('<header class="topbar">',
+                     '<header class="topbar" style="position:static">')));
 }
 
 lines.push('');
 lines.push('renders regenerated from the shipped code:');
-['1-picker-source-tables.html', '1b-picker-few-tables.html', '2-dialog-choice.html',
- '3-dialog-edit-path.html', '4-dialog-add-path.html', '5-topbar.html']
+['1-picker-source-tables.html', '1b-picker-few-tables.html',
+ '2-dialog-add-year.html', '3-dialog-fill-year.html', '5-topbar.html']
   .forEach(f => lines.push('   ' + f));
+
 
 lines.push('');
 lines.push('======================================================================');
