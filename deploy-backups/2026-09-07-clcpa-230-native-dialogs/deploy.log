@@ -1,0 +1,99 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-230 (the native dialogs become the app s own modal)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 8da5935
+              source folder clean, so the pushed bytes are exactly 8da5935.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b both tickets suites pass against these exact bytes: engine=125, ui=219, xlsx=265, 230=173
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      12ecdc59f9
+                 styles.css  a118b50c05
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build 12ecdc59f9" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  AM3H3N8Z5
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+NOTE  deploy-backups/2026-09-07-clcpa-230-native-dialogs/ exists but holds no snapshot,
+      only deploy.log from an aborted run. Reusing it.
+WILL PUSH  app.js   deployed=1011412B  local=1024512B
+unchanged  styles.css   deployed=267898B  local=267898B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "24fe1905ba", derives to 24fe1905ba
+            previous deploy recorded 24fe1905ba -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-07-clcpa-230-native-dialogs/
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1024512B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)
+published.
+
+READ-BACK app.js  1024512B  sha256 8fa3240a91723c86...  VERIFIED byte-identical
+READ-BACK styles.css  267898B  sha256 a118b50c055bf705...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 3cf4dc233498049d...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 12ecdc59f9
+styles.css id    : a118b50c05
+source           : ExecutiveDashboard_dev/ at main @ 8da5935
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 12ecdc59f9
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, CLCPA-230. NO browser-native dialog should appear
+anywhere: no dialog titled after the site, no "OK" button, and none of
+them movable outside the page. All ten now use the app s own modal.
+
+ON REPORT DATA, each one CANCELLED first, then confirmed:
+  1. edit a cell, then switch SECTION: Discard unsaved changes? with
+     Keep Editing / Discard Changes. On Keep Editing the dropdown must
+     still show the section you were on, NOT the one you picked.
+  2. the same on the YEAR dropdown, and on a SOURCE TABLE tab.
+  3. Reset: the same question and the same two labels.
+  4. Remove Year on a user-added year: the button says Remove <year>.
+     Cancel must leave the year in the selector.
+  5. delete a row: the button says Delete Row. Cancel keeps the row.
+  6. try to delete the LAST row: a toast, not a dialog.
+  7. ESCAPE and the X and a click on the dark backdrop must all behave
+     as CANCEL, on every one of them.
+
+THE YEAR BOX, Add New Year (this is the defect this ticket fixes):
+  8. try to type 2099e, +2026, -1, 20.26 -- the letters, signs and the
+     dot must NOT appear at all. Paste 2e3: nothing should land.
+  9. clear the box entirely and press Add Year: it must say Please
+     enter a valid year. It must NEVER add a different year silently,
+     which is what it did before.
+ 10. clear the box and press Download Template: Please enter a year.
+
+ON DATA SOURCES (site 1, its own commit):
+ 11. switch a tract dataset ON: the modal names what it publishes,
+     Publish <name> <version>, lists what it retires, and warns that it
+     changes what everyone sees. CANCEL must leave the toggle OFF and
+     publish nothing. This is the highest-consequence one.
+
+=== log written by deploy_230.js ===
