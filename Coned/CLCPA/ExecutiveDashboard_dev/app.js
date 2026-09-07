@@ -14490,6 +14490,25 @@ function wireHTooltips() {
           }, where));
           return;
         }
+        /* CLCPA-85 round 4: the template's own marker is never a value.
+         *
+         * Found by the workbook round trip. totalRowFlags is VALUE-dependent, so
+         * on a brand new year (labels only, no numbers yet) a Total row is not
+         * recognised as computed, and the marker the template wrote into its
+         * cells would have imported as the literal string "(calculated)".
+         *
+         * Skipping the marker here fixes it for good and in one place, rather
+         * than making the writer guess which cells the importer will happen to
+         * classify as computed. It also protects the plain CSV path: a file
+         * saved with the markers left in is now ignored rather than imported
+         * as text. */
+        if (String(raw).trim() === '(calculated)') {
+          res.notTouched.computed.push(Object.assign({
+            why: 'the template marks this cell as calculated, so it is left to ' +
+              'the dashboard',
+          }, where));
+          return;
+        }
         if (raw == null || String(raw).trim() === '') {
           // A blank in the file LEAVES the draft alone. It is not an instruction
           // to erase a value the operator already has.
@@ -14546,21 +14565,264 @@ function wireHTooltips() {
     return { year: years[0], rows: table.data[years[0]], borrowed: true };
   }
 
-  /** One CSV field, quoted only when it has to be. */
-  function csvField(v) {
-    const s = (v == null) ? '' : String(v);
-    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  /* ==========================================================================
+   * CLCPA-85 round 4: a ZIP writer, so the template can be a real .xlsx.
+   *
+   * STORED entries only, no compression. That is the whole reason this is
+   * dependency-free: there is no deflate to implement and no CompressionStream
+   * to plumb, and the harness can read the archive back without an inflate
+   * either. An .xlsx is a few kB of XML, so the size cost of not compressing
+   * is irrelevant.
+   *
+   * Timestamps are PINNED to the DOS epoch rather than taken from the clock, so
+   * the same inputs always produce the same bytes. That is what lets the
+   * harness assert the archive's own CRCs and offsets instead of just its
+   * shape.
+   * ========================================================================== */
+
+  const CRC_TABLE = (function () {
+    const t = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[i] = c >>> 0;
+    }
+    return t;
+  })();
+
+  function crc32(bytes) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) {
+      c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    }
+    return (c ^ 0xFFFFFFFF) >>> 0;
   }
 
   /**
-   * Build the template CSV for a table and year.
+   * Build a ZIP from [{ name, bytes }], all entries STORED.
    *
-   * Editable cells carry the CURRENT value, so the operator edits rather than
-   * retypes. Computed cells carry the literal text (calculated), so the file
-   * itself teaches which cells are not input, and a template-derived file has
-   * nothing in those positions to argue about.
+   * Names are ASCII by construction (the OOXML part paths), so the UTF-8 name
+   * flag is not needed and is left clear.
    */
-  function buildIngestTemplate(tableId, year) {
+  function zipStored(entries) {
+    const enc = new TextEncoder();
+    // DOS epoch, 1980-01-01 00:00:00, so the output is byte-stable.
+    const DOS_TIME = 0, DOS_DATE = 0x0021;
+    const parts = [];
+    const central = [];
+    let offset = 0;
+
+    const u16 = (v) => [v & 0xFF, (v >>> 8) & 0xFF];
+    const u32 = (v) => [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF];
+
+    entries.forEach(e => {
+      const nameBytes = enc.encode(e.name);
+      const crc = crc32(e.bytes);
+      const size = e.bytes.length;
+      const local = [].concat(
+        u32(0x04034b50), u16(20), u16(0), u16(0),
+        u16(DOS_TIME), u16(DOS_DATE),
+        u32(crc), u32(size), u32(size),
+        u16(nameBytes.length), u16(0));
+      parts.push(new Uint8Array(local), nameBytes, e.bytes);
+      central.push({ name: nameBytes, crc: crc, size: size, offset: offset });
+      offset += local.length + nameBytes.length + size;
+    });
+
+    const cdStart = offset;
+    central.forEach(c => {
+      const hdr = [].concat(
+        u32(0x02014b50), u16(20), u16(20), u16(0), u16(0),
+        u16(DOS_TIME), u16(DOS_DATE),
+        u32(c.crc), u32(c.size), u32(c.size),
+        u16(c.name.length), u16(0), u16(0),
+        u16(0), u16(0), u32(0), u32(c.offset));
+      parts.push(new Uint8Array(hdr), c.name);
+      offset += hdr.length + c.name.length;
+    });
+
+    const eocd = [].concat(
+      u32(0x06054b50), u16(0), u16(0),
+      u16(central.length), u16(central.length),
+      u32(offset - cdStart), u32(cdStart), u16(0));
+    parts.push(new Uint8Array(eocd));
+
+    let total = 0;
+    parts.forEach(p => { total += p.length; });
+    const out = new Uint8Array(total);
+    let at = 0;
+    parts.forEach(p => { out.set(p, at); at += p.length; });
+    return out;
+  }
+
+  /**
+   * Hand the browser a binary file. Mirrors downloadTextFile, which the map
+   * export and the example layer already share, rather than open-coding a
+   * third Blob path.
+   */
+  function downloadBinaryFile(filename, bytes, mime) {
+    const blob = new Blob([bytes], { type: mime || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+  /* ==========================================================================
+   * CLCPA-85 round 4: the template as a real .xlsx workbook.
+   *
+   * Generated in the browser from the LIVE schema, exactly as the CSV template
+   * was: a frozen file would drift the moment a schema changed, and under the
+   * payload freeze the payload is the only truth about shape.
+   *
+   * STRINGS ARE INLINE (t="inlineStr"), which skips sharedStrings.xml
+   * altogether. One fewer part to build and one fewer to get wrong.
+   *
+   * PROTECTION IS GUIDANCE AGAINST ACCIDENTS, NOT SECURITY. There is no
+   * password, and sheet protection is removable in a few clicks even with one.
+   * It stops a stray paste into a header row. The real guard against bad data
+   * is the importer, which rejects what it cannot represent and reports what
+   * it did not touch.
+   * ========================================================================== */
+
+  /** XML text escape. Attribute and element content both. */
+  function xmlEsc(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+
+  /**
+   * A sheet name Excel will accept.
+   *
+   * MEASURED, and this guard is NOT currently load-bearing: the longest
+   * code-plus-short-name in the payload is 25 characters (G.9 Westchester
+   * Abandoned) against Excel's limit of 31, and none of the 52 short titles
+   * contains a forbidden character. It exists so a future short_title cannot
+   * quietly produce a workbook Excel refuses to open.
+   */
+  function xlsxSheetName(raw) {
+    let s = String(raw == null ? '' : raw).replace(/[:\\\/?*\[\]]/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+    if (s.length > 31) s = s.slice(0, 31).trim();
+    return s || 'Sheet';
+  }
+
+  /** Column letter for a 1-based index: 1 -> A, 27 -> AA. */
+  function xlsxCol(n) {
+    let s = '';
+    while (n > 0) {
+      const r = (n - 1) % 26;
+      s = String.fromCharCode(65 + r) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  /* The four cell formats, and the ONLY place locking is expressed.
+   *
+   *   0  default, locked
+   *   1  header row: bold, locked
+   *   2  INPUT cells: unlocked. The only editable cells in the workbook.
+   *   3  labels and (calculated) cells: locked
+   *
+   * applyProtection="1" is required or Excel ignores the protection element
+   * on the format. */
+  const XLSX_STYLE_DEFAULT = 0;
+  const XLSX_STYLE_HEADER = 1;
+  const XLSX_STYLE_INPUT = 2;
+  const XLSX_STYLE_LOCKED = 3;
+
+  function xlsxStylesXml() {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<fonts count="2">' +
+      '<font><sz val="11"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><name val="Calibri"/></font>' +
+      '</fonts>' +
+      '<fills count="1"><fill><patternFill patternType="none"/></fill></fills>' +
+      '<borders count="1"><border/></borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="4">' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyProtection="1">' +
+      '<protection locked="1"/></xf>' +
+      '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1" applyProtection="1">' +
+      '<protection locked="1"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyProtection="1">' +
+      '<protection locked="0"/></xf>' +
+      '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyProtection="1">' +
+      '<protection locked="1"/></xf>' +
+      '</cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+      '</styleSheet>';
+  }
+
+  /** One cell. text null means an EMPTY cell that still carries its style. */
+  function xlsxCell(ref, styleIdx, text) {
+    if (text == null || text === '') {
+      return '<c r="' + ref + '" s="' + styleIdx + '"/>';
+    }
+    return '<c r="' + ref + '" s="' + styleIdx + '" t="inlineStr"><is><t xml:space="preserve">' +
+      xmlEsc(text) + '</t></is></c>';
+  }
+
+  /** A worksheet from rows of { style, text }. Protected, no password. */
+  function xlsxSheetXml(rows, colWidths) {
+    const body = rows.map((cells, r) => {
+      const rn = r + 1;
+      return '<row r="' + rn + '">' + cells.map((c, i) =>
+        xlsxCell(xlsxCol(i + 1) + rn, c.style, c.text)).join('') + '</row>';
+    }).join('');
+    const cols = (colWidths || []).length
+      ? '<cols>' + colWidths.map((w, i) =>
+          '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w +
+          '" customWidth="1"/>').join('') + '</cols>'
+      : '';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      cols +
+      '<sheetData>' + body + '</sheetData>' +
+      // No password: guidance against accidents, not security.
+      '<sheetProtection sheet="1" objects="1" scenarios="1"/>' +
+      '</worksheet>';
+  }
+
+  /**
+   * The Instructions sheet text, approved verbatim. The only variable parts are
+   * the table's code-and-name and the year.
+   */
+  function xlsxInstructionLines(sheetLabel, year) {
+    return [
+      'How to fill and import this template',
+      '1. Go to the second sheet of this workbook, named ' + sheetLabel + '. It ' +
+        'holds the table for reporting year ' + year + '.',
+      '2. Type values ONLY in the empty cells. Headers, program names and ' +
+        'calculated cells are locked on purpose; calculated cells are computed ' +
+        'by the dashboard after import.',
+      '3. When done, create a CSV from that sheet: with the table sheet ACTIVE ' +
+        '(selected), use File, Save As, and choose CSV UTF-8 (Comma delimited). ' +
+        'Excel saves only the active sheet, so the instructions are never part ' +
+        'of the file.',
+      '4. In the dashboard, open Report Data, Add New Year, choose this section ' +
+        'and table, Import From File, and pick the CSV you saved. The values ' +
+        'land as a draft for your review; nothing is stored until you press Save.',
+      'Do not rename the table sheet or edit the header row; the import matches ' +
+        'columns by header and rows by program name.',
+    ];
+  }
+
+  /**
+   * Build the .xlsx template for a table and year.
+   *
+   * Sheet 2's shape is the same decision the CSV template makes, from the same
+   * function: ingestTemplateSource picks the labels, ingestComputed decides
+   * which cells are calculated. So the two templates cannot disagree about
+   * either, and the workbook's CSV equivalent round-trips through the shipped
+   * importer.
+   */
+  function buildIngestWorkbook(tableId, year) {
     const p = state.payload;
     const table = p && p.tables && p.tables[tableId];
     if (!table) return null;
@@ -14568,35 +14830,71 @@ function wireHTooltips() {
     if (!schema.length) return null;
     const src = ingestTemplateSource(table, year);
     const computed = ingestComputed(src.rows, tableId, schema);
+    const code = tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
+    const label = code + ' ' + (table.short_title || SHORT_TITLES[tableId] || '');
+    const sheetName = xlsxSheetName(label);
 
-    const lines = [];
-    lines.push('# ' + tableId + ' \u00b7 reporting year ' + year +
-      ' \u00b7 template generated ' + new Date().toISOString().slice(0, 10));
-    lines.push('# Save this file as CSV before importing. Excel .xlsx is not read.');
-    lines.push('# Cells marked (calculated) are worked out by the dashboard: leave them.');
-    if (src.borrowed) {
-      lines.push('# ' + year + ' has no rows yet, so the row labels below come from ' +
-        src.year + '. Change them if the rows differ this year.');
-    } else if (!src.rows.length) {
-      lines.push('# This table has no rows in any year, so add your own row labels ' +
-        'in the first column.');
-    }
-    lines.push(schema.map(csvField).join(','));
+    // ---- sheet 1: instructions, every cell locked ------------------------
+    const instr = xlsxInstructionLines(sheetName, year)
+      .map(line => [{ style: XLSX_STYLE_LOCKED, text: line }]);
+    const sheet1 = xlsxSheetXml(instr, [110]);
+
+    // ---- sheet 2: the table ----------------------------------------------
+    const rows = [schema.map(h => ({ style: XLSX_STYLE_HEADER, text: h }))];
     src.rows.forEach((row, idx) => {
-      const out = schema.map((h, c) => {
-        if (c === 0) return csvField(row[0]);
-        if (computed.any(idx, c)) return '(calculated)';
-        // Blank rather than 0 when the borrowed year had a value: a new year's
-        // numbers are not last year's, and a pre-filled figure invites a save
-        // of stale data. Own-year templates keep the value to edit.
-        if (src.borrowed) return '';
-        return csvField(rawNum(row[c]));
-      });
-      return lines.push(out.join(','));
+      rows.push(schema.map((h, c) => {
+        if (c === 0) return { style: XLSX_STYLE_LOCKED, text: row[0] };
+        if (computed.any(idx, c)) return { style: XLSX_STYLE_LOCKED, text: '(calculated)' };
+        // EMPTY and UNLOCKED: the only cells the operator can type in.
+        return { style: XLSX_STYLE_INPUT, text: null };
+      }));
     });
-    return lines.join('\r\n') + '\r\n';
-  }
+    const widths = schema.map((h, i) => (i === 0 ? 44 : Math.max(14, String(h).length + 2)));
+    const sheet2 = xlsxSheetXml(rows, widths);
 
+    const enc = new TextEncoder();
+    const parts = [
+      { name: '[Content_Types].xml', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        '</Types>' },
+      { name: '_rels/.rels', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+        '</Relationships>' },
+      { name: 'xl/workbook.xml', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+        '<sheets>' +
+        '<sheet name="Instructions" sheetId="1" r:id="rId1"/>' +
+        '<sheet name="' + xmlEsc(sheetName) + '" sheetId="2" r:id="rId2"/>' +
+        '</sheets></workbook>' },
+      { name: 'xl/_rels/workbook.xml.rels', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>' +
+        '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+        '</Relationships>' },
+      { name: 'xl/styles.xml', text: xlsxStylesXml() },
+      { name: 'xl/worksheets/sheet1.xml', text: sheet1 },
+      { name: 'xl/worksheets/sheet2.xml', text: sheet2 },
+    ];
+    return {
+      bytes: zipStored(parts.map(x => ({ name: x.name, bytes: enc.encode(x.text) }))),
+      sheetName: sheetName,
+      borrowedFrom: src.borrowed ? src.year : null,
+      rowCount: src.rows.length,
+    };
+  }
   /**
    * Hand the browser a file.
    *
@@ -14605,15 +14903,19 @@ function wireHTooltips() {
    * map closure, the other hardcodes its own content), so the third copy became
    * the shared one and mlDownloadExample now calls it.
    *
-   * bom matters and is not cosmetic. Excel reads a UTF-8 CSV without a BOM as
-   * the local codepage, so a row label containing a long dash (A1 has several)
-   * comes back mangled. A mangled LABEL then fails to match on re-import and the row is
-   * ADDED instead of updated, so the round trip quietly duplicates rows. The
-   * map export already prepends one; the template needs it for the same reason.
+   * CLCPA-85 round 4: the bom parameter is REMOVED, having lost its only
+   * caller. It existed because the CSV template had to survive Excel opening
+   * it: without a BOM Excel read the file as the local codepage and mangled the
+   * long dashes in the row labels, and a mangled label then failed to match on
+   * re-import, silently duplicating the row.
+   *
+   * The template is an .xlsx workbook now, which Excel reads natively, so
+   * nothing writes a CSV for Excel any more. The CSV traffic runs the other
+   * way: Excel writes it and parseCsvRows reads it, and that direction strips a
+   * BOM already, which the engine suite asserts in its parser section.
    */
-  function downloadTextFile(filename, text, mime, bom) {
-    const body = bom ? '\uFEFF' + text : text;
-    const blob = new Blob([body], { type: (mime || 'text/csv') + ';charset=utf-8' });
+  function downloadTextFile(filename, text, mime) {
+    const blob = new Blob([text], { type: (mime || 'text/csv') + ';charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = filename;
@@ -19143,9 +19445,10 @@ function wireHTooltips() {
         '<div class="ingest-modal-field"><label for="dlg-table">Table</label>' +
         '<select id="dlg-table" class="ingest-select">' +
         tblOptsFor(sel.sectionId, sel.tableId) + '</select></div>' +
-        renderIngestImportBar('Choosing a file here stages it. It is imported ' +
-          'when you press Add Year, and the template carries the row labels from ' +
-          'the most recent year that has them, with the values left blank.') +
+        renderIngestImportBar('Download Template gives you an Excel workbook: ' +
+          'fill the table sheet, then Save As CSV UTF-8 from that sheet and ' +
+          'import the CSV here. Choosing a file stages it; it is imported when ' +
+          'you press Add Year.') +
         stagedBlock() +
         '</div>' +
         '<div class="ingest-modal-foot">' +
@@ -19191,10 +19494,15 @@ function wireHTooltips() {
       const tmpl = modal.querySelector('#ingest-template');
       if (tmpl) tmpl.addEventListener('click', () => {
         const y = typedYear();
-        const csv = buildIngestTemplate(sel.tableId, y);
-        if (!csv) { showToast('No template: this table has no columns.', 'error'); return; }
-        // bom: Excel would otherwise mangle the long dashes in the row labels.
-        downloadTextFile(sel.tableId + '-' + y + '-template.csv', csv, 'text/csv', true);
+        /* Round 4: a real .xlsx workbook, not a CSV. The IMPORT path is still
+         * CSV only, which is why the instructions sheet spends a step on Save
+         * As CSV UTF-8. buildIngestWorkbook shares ingestTemplateSource and
+         * ingestComputed with the CSV template, so the two cannot disagree
+         * about borrowed labels or which cells are calculated. */
+        const wb = buildIngestWorkbook(sel.tableId, y);
+        if (!wb) { showToast('No template: this table has no columns.', 'error'); return; }
+        downloadBinaryFile(sel.tableId + '-' + y + '-template.xlsx', wb.bytes,
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       });
 
       wireIngestStaging(target, (st) => { staged = st; draw(); });

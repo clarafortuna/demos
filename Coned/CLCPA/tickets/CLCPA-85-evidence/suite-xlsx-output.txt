@@ -1,0 +1,177 @@
+======================================================================
+CLCPA-85 round 4 -- the .xlsx template
+======================================================================
+
+=== the archive itself ===
+  ok   a workbook is produced: 6345 bytes
+  ok   seven parts: 7
+  ok   part present: [Content_Types].xml
+  ok   part present: _rels/.rels
+  ok   part present: xl/workbook.xml
+  ok   part present: xl/_rels/workbook.xml.rels
+  ok   part present: xl/styles.xml
+  ok   part present: xl/worksheets/sheet1.xml
+  ok   part present: xl/worksheets/sheet2.xml
+  ok   [Content_Types].xml: STORED, not compressed
+  ok   [Content_Types].xml: CRC32 in the directory matches the bytes
+  ok   [Content_Types].xml: both sizes match the bytes (815)
+  ok   [Content_Types].xml: local method matches the directory
+  ok   [Content_Types].xml: local CRC matches
+  ok   [Content_Types].xml: local sizes match
+  ok   [Content_Types].xml: and the LOCAL header also says STORED
+  ok   _rels/.rels: STORED, not compressed
+  ok   _rels/.rels: CRC32 in the directory matches the bytes
+  ok   _rels/.rels: both sizes match the bytes (295)
+  ok   _rels/.rels: local method matches the directory
+  ok   _rels/.rels: local CRC matches
+  ok   _rels/.rels: local sizes match
+  ok   _rels/.rels: and the LOCAL header also says STORED
+  ok   xl/workbook.xml: STORED, not compressed
+  ok   xl/workbook.xml: CRC32 in the directory matches the bytes
+  ok   xl/workbook.xml: both sizes match the bytes (344)
+  ok   xl/workbook.xml: local method matches the directory
+  ok   xl/workbook.xml: local CRC matches
+  ok   xl/workbook.xml: local sizes match
+  ok   xl/workbook.xml: and the LOCAL header also says STORED
+  ok   xl/_rels/workbook.xml.rels: STORED, not compressed
+  ok   xl/_rels/workbook.xml.rels: CRC32 in the directory matches the bytes
+  ok   xl/_rels/workbook.xml.rels: both sizes match the bytes (564)
+  ok   xl/_rels/workbook.xml.rels: local method matches the directory
+  ok   xl/_rels/workbook.xml.rels: local CRC matches
+  ok   xl/_rels/workbook.xml.rels: local sizes match
+  ok   xl/_rels/workbook.xml.rels: and the LOCAL header also says STORED
+  ok   xl/styles.xml: STORED, not compressed
+  ok   xl/styles.xml: CRC32 in the directory matches the bytes
+  ok   xl/styles.xml: both sizes match the bytes (1039)
+  ok   xl/styles.xml: local method matches the directory
+  ok   xl/styles.xml: local CRC matches
+  ok   xl/styles.xml: local sizes match
+  ok   xl/styles.xml: and the LOCAL header also says STORED
+  ok   xl/worksheets/sheet1.xml: STORED, not compressed
+  ok   xl/worksheets/sheet1.xml: CRC32 in the directory matches the bytes
+  ok   xl/worksheets/sheet1.xml: both sizes match the bytes (1679)
+  ok   xl/worksheets/sheet1.xml: local method matches the directory
+  ok   xl/worksheets/sheet1.xml: local CRC matches
+  ok   xl/worksheets/sheet1.xml: local sizes match
+  ok   xl/worksheets/sheet1.xml: and the LOCAL header also says STORED
+  ok   xl/worksheets/sheet2.xml: STORED, not compressed
+  ok   xl/worksheets/sheet2.xml: CRC32 in the directory matches the bytes
+  ok   xl/worksheets/sheet2.xml: both sizes match the bytes (791)
+  ok   xl/worksheets/sheet2.xml: local method matches the directory
+  ok   xl/worksheets/sheet2.xml: local CRC matches
+  ok   xl/worksheets/sheet2.xml: local sizes match
+  ok   xl/worksheets/sheet2.xml: and the LOCAL header also says STORED
+  ok   the EOCD is single-disk: 0/0
+  ok   its two entry counts agree: 7/7
+  ok   and match the parts actually present: 7
+  ok   the central directory size matches its span: 454
+  ok   the directory ends exactly where the EOCD begins
+  ok   and there is no trailing comment
+  ok   [Content_Types].xml: starts with an XML declaration and a root element
+  ok   [Content_Types].xml: tags balance (1 open, 1 close, 6 self-closing)
+  ok   _rels/.rels: starts with an XML declaration and a root element
+  ok   _rels/.rels: tags balance (1 open, 1 close, 1 self-closing)
+  ok   xl/workbook.xml: starts with an XML declaration and a root element
+  ok   xl/workbook.xml: tags balance (2 open, 2 close, 2 self-closing)
+  ok   xl/_rels/workbook.xml.rels: starts with an XML declaration and a root element
+  ok   xl/_rels/workbook.xml.rels: tags balance (1 open, 1 close, 3 self-closing)
+  ok   xl/styles.xml: starts with an XML declaration and a root element
+  ok   xl/styles.xml: tags balance (14 open, 14 close, 13 self-closing)
+  ok   xl/worksheets/sheet1.xml: starts with an XML declaration and a root element
+  ok   xl/worksheets/sheet1.xml: tags balance (27 open, 27 close, 2 self-closing)
+  ok   xl/worksheets/sheet2.xml: starts with an XML declaration and a root element
+  ok   xl/worksheets/sheet2.xml: tags balance (16 open, 16 close, 5 self-closing)
+  ok   workbook rels target worksheets/sheet1.xml
+  ok   and xl/worksheets/sheet1.xml is really in the archive
+  ok   workbook rels target worksheets/sheet2.xml
+  ok   and xl/worksheets/sheet2.xml is really in the archive
+  ok   workbook rels target styles.xml
+  ok   and xl/styles.xml is really in the archive
+  ok   the root rel targets the workbook
+  ok   content type declared for /xl/workbook.xml
+  ok   content type declared for /xl/worksheets/sheet1.xml
+  ok   content type declared for /xl/worksheets/sheet2.xml
+  ok   content type declared for /xl/styles.xml
+
+=== the two sheets, in order, named as ruled ===
+  ok   exactly two sheets: 2
+  ok   sheet 1 is Instructions
+  ok   sheet 2 is named for the table: A.1 Incentive $
+  ok   and the builder reports that name back
+  ok   within Excel s 31-char limit: 15
+  ok   and free of the characters Excel forbids
+  ok   with sheet ids and rel ids in order
+  ok   the guard replaces forbidden characters: A.1 With Bad Chars x
+  ok   and truncates to 31
+  ok   but no real table needs it: longest is 25 chars (G.9 Westchester Abandoned)
+  ok   and no short_title contains a forbidden character
+
+=== the Instructions sheet, verbatim and fully locked ===
+  ok   six lines, one per approved line: 6
+  ok   line 1 is verbatim
+  ok   line 2 is verbatim
+  ok   line 3 is verbatim
+  ok   line 4 is verbatim
+  ok   line 5 is verbatim
+  ok   line 6 is verbatim
+  ok   and the bracketed parts are substituted with the real table and year
+  ok   one cell per line: 6
+  ok   EVERY instructions cell uses the locked style
+  ok   and the sheet is protected
+
+=== PROTECTION: present on both sheets, and no password ===
+  ok   sheet1: protected, structure and objects included
+  ok   sheet1: NO password, of any kind
+  ok   sheet2: protected, structure and objects included
+  ok   sheet2: NO password, of any kind
+  ok   protection is guidance against accidents, not security (stated, not tested)
+
+=== PER-CELL LOCKING, resolved through styles.xml ===
+  ok   four cell formats: 4
+  ok   every format sets applyProtection, or Excel ignores the lock
+  ok   style 0 (default) is locked
+  ok   style 1 (header) is locked
+  ok   style 2 (input) is UNLOCKED
+  ok   style 3 (label and calculated) is locked
+  ok   and style 1 is the bold one
+  ok   font 1 really carries <b/>
+  FAIL every cell is written: 4 of 96
+  FAIL EVERY cell has the right lock and content: wrong at A2 missing, B2 missing, C2 missing, D2 missing, A3 missing, B3 missing
+  ok   all 4 header cells: locked, bold, correct text
+  FAIL all 0 label cells: locked, correct label
+  FAIL 0 calculated cells: locked and marked (calculated)
+  FAIL 0 value cells: UNLOCKED and EMPTY
+  FAIL and those four groups account for every cell, with none left over
+  ok   A1 has 1 derived column and 1 total row
+  FAIL so the input count is exactly (rows minus totals) x (value columns): 0
+  FAIL the labels are BORROWED for the new year, from null
+  FAIL and the builder reports the row count back
+
+=== THE ROUND TRIP, through the shipped importer ===
+  ok   the reconstructed CSV starts with the schema header row
+  FAIL it parses to header plus every label row: 1
+  FAIL the SHIPPED importer plans it with no hard rejections: The file needs a header row and at least one data row.
+  FAIL creating a row per label, as a new year needs: 0
+  FAIL the (calculated) cells land in NOT TOUCHED, which is why they are marked: 0
+  ok   and nothing is populated, because every value cell is deliberately empty
+  ok   no column is unmatched: the header row is the live schema
+  FAIL the empty value cells are counted as blanks left alone: 0
+  ok   with values typed into the unlocked cells it still plans cleanly
+  FAIL and those values import: 0 cells
+  ok   the calculated cells stay untouched either way
+
+=== BASE controls: none of this existed ===
+  ok   BASE control: no function zipStored
+  ok   BASE control: no function crc32
+  ok   BASE control: no function buildIngestWorkbook
+  ok   BASE control: no function xlsxStylesXml
+  ok   BASE control: no function downloadBinaryFile
+  ok   BASE control: no sheetProtection
+  ok   and the CSV template it replaced is deleted
+  ok   and the writer pulls in no dependency of any kind
+  ok   and never CALLS a compression stream: STORED entries need none
+  ok   though it says in prose why it does not, which is what the loose check hit
+
+======================================================================
+  141 passed, 15 failed
+======================================================================

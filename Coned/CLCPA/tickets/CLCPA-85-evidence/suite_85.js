@@ -73,7 +73,7 @@ function grabDecl(src, name) {
  * assumed). They are extracted because totalRowFlags and rawNum call them, so
  * leaving them out makes the shared functions throw rather than run. */
 const WANT_FN = ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'buildIngestImport',
-                 'parseNumericInput', 'totalRowFlags', 'rawNum', 'csvField',
+                 'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',
                  'formatIngestValue', 'compareTableIds', 'isStrictTotalRowLabel',
                  'isSplitCell', 'cellText', 'cellCount', 'cellPct'];
@@ -90,17 +90,18 @@ if (missing.length) {
   process.exit(1);
 }
 
-/* buildIngestTemplate reads state.payload, so the shell supplies a state. */
-const TPL = grab(SRC, 'buildIngestTemplate');
-if (!TPL) { console.error('EXTRACTION FAILED: buildIngestTemplate'); process.exit(1); }
+/* CLCPA-85 round 4: the CSV template is GONE. The template is now an .xlsx
+ * workbook, built by buildIngestWorkbook and covered by suite_85_xlsx.js.
+ * This suite is the ENGINE suite and keeps the import path, which is
+ * unchanged and still CSV only. */
 
 let api;
 try {
   const body = '"use strict";\n' +
     'const state = { payload: PAYLOAD, ingest: {} };\n' +
     'const console = { warn: () => {}, info: () => {}, error: () => {} };\n' +
-    DC + '\n' + parts.join('\n') + '\n' + TPL + '\n' +
-    'return { parseCsvRows, buildIngestImport, parseNumericInput, buildIngestTemplate,' +
+    DC + '\n' + parts.join('\n') + '\n' +
+    'return { parseCsvRows, buildIngestImport, parseNumericInput,' +
     ' ingestComputed, normIngestKey, ingestTemplateSource, getTableSchema, getTableBody,' +
     ' totalRowFlags, state };';
   api = new Function('PAYLOAD', body)(PAYLOAD);
@@ -297,6 +298,24 @@ lines.push('=== ruling C: computed cells are NOT TOUCHED, not rejected ===');
      'and the derived cell still holds what it held, not the file value');
   ok(!r.rejections.length, 'nothing was rejected for it');
 
+  /* ROUND 4: the template's own marker is never a value.
+   *
+   * Found by the .xlsx round trip, not by inspection. totalRowFlags is
+   * VALUE-dependent, so on a brand new year (labels only, no numbers) a Total
+   * row is not classified as computed, and the "(calculated)" the template
+   * wrote into its cells would have imported as that literal string. */
+  const mk = plan('a1-2023-marker.csv');
+  ok(mk.ok, 'a file containing the (calculated) marker still imports');
+  const mkRow = mk.candidate.filter(x => api.normIngestKey(x[0]) === 'ameep - electric & gas')[0];
+  const mkOrig = A1_DRAFT().filter(x => api.normIngestKey(x[0]) === 'ameep - electric & gas')[0];
+  ok(mkRow && mkOrig && mkRow[1] === mkOrig[1],
+     'the marked cell keeps its draft value: ' + (mkRow && mkRow[1]));
+  ok(mkRow && mkRow[1] !== '(calculated)',
+     'and is NOT the literal string, which is the defect this fixes');
+  ok(mkRow && mkRow[2] === 31700000, 'while the real value beside it imports');
+  ok(mk.notTouched.computed.some(x => /template marks this cell as calculated/.test(x.why)),
+     'and it is reported as not touched, with the marker named as the reason');
+
   /* The Total row is protected BEHAVIOURALLY, not just reported. A1's row 24 is
    * "Total" and the fixture supplies values for it. */
   const tot = r.candidate.filter(x => api.normIngestKey(x[0]) === 'total')[0];
@@ -401,52 +420,33 @@ lines.push('=== the PRIMARY FLOW: a freshly added year has zero rows ===');
 }
 
 lines.push('');
-lines.push('=== ruling D: the template, from the LIVE schema ===');
+lines.push('=== ruling D: the template moved to .xlsx (round 4) ===');
 {
-  api.state.ingest = { tableId: 'A1', year: '2023' };
-  const t = api.buildIngestTemplate('A1', '2023');
-  ok(!!t, 'a template is produced');
-  const rows = api.parseCsvRows(t);
-  const head = rows.filter(r => !/^#/.test(r[0]))[0];
-  ok(JSON.stringify(head) === JSON.stringify(A1_SCHEMA),
-     'its header row IS the live schema, in order');
-  ok(/Save this file as CSV before importing/.test(t),
-     'it says plainly to save as CSV (ruling A)');
-  ok(/\(calculated\)/.test(t), 'computed cells are marked (calculated)');
-  const dIdx = A1_SCHEMA.indexOf('% in DACs');
-  const body = rows.filter(r => !/^#/.test(r[0])).slice(1);
-  ok(body.length === api.getTableBody(A1, '2023').length,
-     'one row per label: ' + body.length);
-  ok(body.every(r => r[dIdx] === '(calculated)'),
-     'and EVERY cell of the derived column is marked, not just the first');
-  ok(body[0][1] !== '' && body[0][1] !== '(calculated)',
-     'editable cells carry the current value, so the operator edits rather than retypes');
-
-  // a template ROUND-TRIPS: feeding it back imports cleanly with no rejections
-  const back = api.buildIngestImport(api.parseCsvRows(t), A1_SCHEMA, A1_DRAFT(), 'A1');
-  ok(back.ok, 'the template imports back with no rejections');
-  ok(back.addedRows.length === 0, 'and adds no rows, because its labels are the table\u2019s');
-  ok(back.notTouched.computed.length > 0,
-     'its (calculated) cells land in not-touched, which is why the marker exists');
-
-  // the NEW-YEAR template: labels borrowed, values BLANK
-  const t26 = api.buildIngestTemplate('A1', '2026');
-  ok(!!t26, 'a template for an unseeded year is produced');
-  ok(/2026 has no rows yet, so the row labels below come from 2025/.test(t26),
-     'it says whose labels it borrowed, and from which year');
-  const r26 = api.parseCsvRows(t26).filter(r => !/^#/.test(r[0]));
-  ok(r26.length - 1 === api.getTableBody(A1, '2025').length,
-     'with one row per label of the reference year: ' + (r26.length - 1));
-  ok(r26.slice(1).every(r => r[1] === '' || r[1] === '(calculated)'),
-     'and the VALUES are blank: last year\u2019s numbers are not this year\u2019s');
+  /* The CSV template and its assertions are DELETED, not weakened: the
+   * deliverable is an .xlsx workbook now, and suite_85_xlsx.js proves the
+   * same properties on it (borrowed labels, blank values, (calculated)
+   * markers, and a round trip through this suite's own importer).
+   *
+   * What is asserted HERE is only that the dead CSV generator really is gone
+   * and took nothing live with it. */
+  ok(SRC.indexOf('function buildIngestTemplate') < 0,
+     'the CSV template generator is deleted');
+  ok(SRC.indexOf('function csvField') < 0,
+     'and csvField with it, having had no other caller');
+  ok(BASE_SRC.indexOf('function buildIngestTemplate') < 0,
+     'BASE control: neither existed before this ticket');
+  ok(SRC.indexOf('function buildIngestWorkbook') >= 0,
+     'and the workbook builder is what replaced it');
+  ok(SRC.indexOf('function ingestTemplateSource') >= 0,
+     'ingestTemplateSource SURVIVES: the workbook borrows labels the same way');
 }
 
 lines.push('');
 lines.push('=== ruling 1 control: the import cannot reach Dataverse ===');
 {
   const engine = [grab(SRC, 'buildIngestImport'), grab(SRC, 'applyIngestImport'),
-                  grab(SRC, 'parseCsvRows'), grab(SRC, 'wireIngestImport'),
-                  grab(SRC, 'buildIngestTemplate')].join('\n');
+                  grab(SRC, 'parseCsvRows'), grab(SRC, 'wireIngestStaging'),
+                  grab(SRC, 'buildIngestWorkbook')].join('\n');
   ok(!/Storage\./.test(engine), 'no Storage call anywhere in the import path');
   ok(!/dvCreate|dvUpdate|dvDelete|saveTable/.test(engine), 'no write of any kind');
   ok(!/fetch\(/.test(engine), 'and no fetch');
@@ -502,26 +502,39 @@ lines.push('=== the surfaces exist and say the right things ===');
    * new helper in the current file. BASE had TWO open-coded Blob downloads. */
   ok((BASE_SRC.match(/new Blob\(/g) || []).length === 2,
      'BASE fact: two open-coded Blob downloads existed, not zero');
-  ok((SRC.match(/new Blob\(/g) || []).length === 2,
-     'still two, but now one SHARED helper plus the one inside the map closure ' +
-     'it cannot reach: a duplicate was removed, not added');
+  /* Counted again in round 4, which added downloadBinaryFile for the .xlsx.
+   * Two SHARED helpers (text and binary) plus the one inside the map closure
+   * they cannot reach. The duplicate mlDownloadExample used to be is still
+   * gone, which is the property that matters. */
+  ok((SRC.match(/new Blob\(/g) || []).length === 3,
+     'three Blob sites: two shared helpers plus the map closure s own');
+  ok(/function downloadTextFile\(/.test(SRC) && /function downloadBinaryFile\(/.test(SRC),
+     'and the two shared ones are the text and binary helpers');
   ok(/function mlDownloadExample\(\) \{\r?\n\s*downloadTextFile\(/.test(SRC),
      'mlDownloadExample calls the shared helper rather than repeating it');
-  ok(!/csvCell/.test(grab(SRC, 'buildIngestTemplate') || ''),
-     'csvField is separate from the map closure’s csvCell, which is unreachable from here');
+  ok(!/csvCell/.test(grab(SRC, 'buildIngestWorkbook') || ''),
+     'the workbook builder does not reach the map closure’s csvCell either');
 
-  /* THE BOM, and it is not cosmetic. Excel reads a BOM-less UTF-8 CSV as the
-   * local codepage, so "Clean Heat – C&I ASHP" comes back mangled; a mangled
-   * LABEL then fails to match on re-import and the row is ADDED rather than
-   * updated, silently duplicating it. The map export already prepends one. */
-  ok(/function downloadTextFile\(filename, text, mime, bom\)/.test(SRC),
-     'the download helper can prepend a BOM');
-  ok(/const body = bom \? '\\uFEFF' \+ text : text;/.test(SRC), 'and does so when asked');
-  ok(/-template\.csv', csv, 'text\/csv', true\)/.test(SRC),
-     'the TEMPLATE asks for it, because Excel is what opens it');
-  // the labels that make it matter really are in the data
+  /* THE BOM, and why these assertions INVERTED in round 4.
+   *
+   * The write-side BOM existed because the CSV template had to survive Excel
+   * OPENING it: without one Excel read the local codepage and mangled the long
+   * dashes in the row labels, and a mangled label then failed to match on
+   * re-import, silently duplicating the row.
+   *
+   * The template is an .xlsx now, which Excel reads natively, so nothing writes
+   * a CSV for Excel and the parameter lost its only caller. The concern does
+   * not disappear, it CHANGES DIRECTION: Excel writes the CSV and the parser
+   * reads it, so what matters is the READ side stripping a BOM. That is
+   * asserted in the parser section above and re-stated here. */
+  ok(!/function downloadTextFile\(filename, text, mime, bom\)/.test(SRC),
+     'the write-side bom parameter is gone, having lost its only caller');
+  ok(!/\\uFEFF' \+ text/.test(SRC), 'and nothing prepends one on write');
+  ok(api.parseCsvRows('\uFEFFa,b\r\n1,2')[0][0] === 'a',
+     'the READ side strips a BOM, which is the direction that matters now');
+  // the labels that made it matter really are in the data, and still are
   ok(api.getTableBody(A1, '2023').some(r => /–/.test(String(r[0]))),
-     'A1 really does have en dashes in its row labels: ' +
+     'A1 really does have long dashes in its row labels: ' +
      JSON.stringify((api.getTableBody(A1, '2023').filter(r => /–/.test(String(r[0])))[0] || [])[0]));
   ok(/window\.print\(\)/.test(BASE_SRC), 'BASE fact: the Export BUTTON is still window.print()');
 
@@ -530,9 +543,9 @@ lines.push('=== the surfaces exist and say the right things ===');
    * operator, so it breaks the rule exactly as a literal one would, and mine
    * was escaped: checked in both forms. */
   const mine = [grab(SRC, 'renderIngestImport'), grab(SRC, 'renderIngestImportResult'),
-                grab(SRC, 'buildIngestTemplate'), grab(SRC, 'buildIngestImport'),
-                grab(SRC, 'parseCsvRows'), grab(SRC, 'downloadTextFile'),
-                grab(SRC, 'wireIngestImport'), grab(SRC, 'ingestTemplateSource')].join('\n');
+                grab(SRC, 'buildIngestWorkbook'), grab(SRC, 'buildIngestImport'),
+                grab(SRC, 'parseCsvRows'), grab(SRC, 'downloadBinaryFile'),
+                grab(SRC, 'wireIngestStaging'), grab(SRC, 'xlsxInstructionLines')].join('\n');
   ok(!/[—–]/.test(mine), 'no LITERAL long dash in any CLCPA-85 function');
   ok(!/\\u201[34]/.test(mine), 'and no ESCAPED one either, which renders the same');
 }

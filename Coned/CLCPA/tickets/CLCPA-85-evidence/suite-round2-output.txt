@@ -91,8 +91,10 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   .btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85
   ok   so the underline on hover is the SIBLING rule s own, not one invented here
   ok   the template reads the typed year
-  ok   generates for the selected table
-  ok   and names the file with that year, still with the BOM
+  ok   generates the WORKBOOK for the selected table and the typed year
+  ok   and names it .xlsx with that year
+  ok   with the workbook MIME type
+  ok   the CSV template generator is gone
   ok   all three steps are present
   ok   validation comes FIRST, so an invalid year moves nothing
   ok   and the year is ADDED BEFORE the staged file is applied, always
@@ -137,11 +139,11 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   exactly ONE place adds a year, so the two paths cannot diverge
 
 === ruling 4: the receipt is on the PAGE, the controls are not ===
-  FAIL the page renders the receipt and nothing else
+  ok   the page renders the receipt and nothing else
   ok   the control bar is NOT on the page
   ok   and the receipt has its mount, above the editor
   ok   both controls are in the bar, which only the dialog renders
-  FAIL the bar has one definition and one caller, the fill stage
+  ok   the bar has one definition and one caller, the fill stage
   ok   the page no longer wires the controls it does not render
 
 === ruling 5: Export PDF is gone from every page ===
@@ -179,7 +181,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   the footer offers Cancel and Add Year
   ok   and one primary action, not two
   ok   the template button is wired from the start
-  ok   and downloads for the selected table and the TYPED year, with the BOM: download:A1-2026-template.csv:bom=true
+  ok   and downloads the WORKBOOK for the selected table and the TYPED year: download:A1-2026-template.xlsx:3B:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
   ok   the page stays on its own table while the dialog shows another
   ok   choosing a file runs the dry run
   ok   and does NOT apply it
@@ -232,5 +234,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  201 passed, 2 failed
+  205 passed, 0 failed
 ======================================================================

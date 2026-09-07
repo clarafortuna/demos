@@ -301,9 +301,14 @@ lines.push('=== round 3: ONE STEP, every control live ===');
 
   /* the template is live from the start and uses the TYPED year */
   ok(/const y = typedYear\(\);/.test(dlg), 'the template reads the typed year');
-  ok(/buildIngestTemplate\(sel\.tableId, y\)/.test(dlg), 'generates for the selected table');
-  ok(/downloadTextFile\(sel\.tableId \+ '-' \+ y \+ '-template\.csv', csv, 'text\/csv', true\)/
-     .test(dlg), 'and names the file with that year, still with the BOM');
+  /* Round 4: the template is an .xlsx WORKBOOK. The import path stays CSV,
+   * which is why the workbook's instructions sheet spends a step on Save As. */
+  ok(/buildIngestWorkbook\(sel\.tableId, y\)/.test(dlg),
+     'generates the WORKBOOK for the selected table and the typed year');
+  ok(/downloadBinaryFile\(sel\.tableId \+ '-' \+ y \+ '-template\.xlsx'/.test(dlg),
+     'and names it .xlsx with that year');
+  ok(/spreadsheetml\.sheet/.test(dlg), 'with the workbook MIME type');
+  ok(SRC.indexOf('buildIngestTemplate') < 0, 'the CSV template generator is gone');
 
   /* ORDER INSIDE THE ONE CLICK: validate, then add, then apply. */
   const clickBlock = dlg.slice(dlg.indexOf("act('addyear'"));
@@ -554,7 +559,10 @@ const dialogStates = {};
     ingestStagedSummary: realEngine.ingestStagedSummary,
     renderIngestImportBar: new Function(grab(SRC, 'renderIngestImportBar') +
       '\nreturn renderIngestImportBar;')(),
-    buildIngestTemplate: () => { calls.push('buildIngestTemplate'); return 'CSV'; },
+    buildIngestWorkbook: () => { calls.push('buildIngestWorkbook');
+      return { bytes: new Uint8Array([1, 2, 3]), sheetName: 'A.1 Incentive $' }; },
+    downloadBinaryFile: (name, bytes, mime) => {
+      calls.push('download:' + name + ':' + bytes.length + 'B:' + mime); },
     downloadTextFile: (name, csv, mime, bom) => {
       calls.push('download:' + name + ':bom=' + !!bom);
     },
@@ -625,9 +633,9 @@ const dialogStates = {};
 
   // ---- 2. TEMPLATE: live from the start, uses the typed year --------------
   created.querySelector('#ingest-template')._on.click[0]();
-  ok(calls.indexOf('buildIngestTemplate') >= 0, 'the template button is wired from the start');
-  ok(calls.some(c => c === 'download:A1-2026-template.csv:bom=true'),
-     'and downloads for the selected table and the TYPED year, with the BOM: ' +
+  ok(calls.indexOf('buildIngestWorkbook') >= 0, 'the template button is wired from the start');
+  ok(calls.some(c => /^download:A1-2026-template\.xlsx:3B:.*spreadsheetml\.sheet$/.test(c)),
+     'and downloads the WORKBOOK for the selected table and the TYPED year: ' +
      calls.filter(c => c.indexOf('download:') === 0).join(','));
 
   // ---- 3. STAGING: a file is described, not applied -----------------------
