@@ -175,7 +175,7 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   the action is NAMED on the button, with what is being activated
   ok   the vintage line survives the move
   ok   so does the re-check line
-  FAIL and the warning that matters most
+  ok   and the warning that matters most
   ok   the retire count is computed and shown, in the same vocabulary: This retires 1 active version:
   ok   naming the version it retires
   ok   and NOT the 2010 one, which a different vintage does not retire
@@ -215,7 +215,7 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   Remove Year reads correctly once assembled, with the year exempt
   ok   site 1 builds its title as Activate <name> <version>?
   ok   whose only word of OUR copy is Activate, already capitalised
-  FAIL and the everyone-sees warning is kept, carrying the consequence
+  ok   and the everyone-sees warning is kept, carrying the consequence
   ok   with no trace of the old verb left in the function
   ok   body copy unchanged: "This table has changes that have not been sa"
   ok   body copy unchanged: "This will also delete any saved data for "
@@ -233,5 +233,5 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   and Remove <year> keeps the year on the button, unchanged by this round
 
 ======================================================================
-  208 passed, 2 failed
+  210 passed, 0 failed
 ======================================================================
