@@ -329,6 +329,10 @@ guard('accessible names', () => {
 lines.push('');
 lines.push('=== DRIVEN: hover, FOCUS, escape, and one shared node ===');
 
+/* One viewport for every driven test, so the numbers in the assertions below
+ * mean something specific rather than depending on a default. */
+const VIEW = { width: 1200, ch: 5.8, pad: 22, maxw: 240, word: 76 };
+
 function makeDom() {
   const rec = { doc: {}, appended: 0 };
   const mk = (over) => {
@@ -342,7 +346,6 @@ function makeDom() {
       closest: (sel) => (sel === '[data-tip]' && n._attrs['data-tip'] != null ? n : null),
       appendChild: () => {},
       set textContent(v) { n._text = v; }, get textContent() { return n._text; },
-      offsetWidth: 200,
       _classes: [],
       classList: {
         add: (c) => { if (n._classes.indexOf(c) < 0) n._classes.push(c); },
@@ -350,6 +353,34 @@ function makeDom() {
         contains: (c) => n._classes.indexOf(c) >= 0,
       },
     }, over || {});
+    /* SHRINK-TO-FIT, modelled. An absolutely positioned box with only `left`
+     * set takes min(max-content, available), floored by its longest
+     * unbreakable word -- and `available` is the room between `left` and the
+     * right edge. That last clause is the whole round 3 defect: measuring the
+     * box while it sits somewhere narrow measures a squeezed box.
+     *
+     * VIEW.width is the viewport, CHAR the per-character width at 11px, PAD
+     * the rule's 8px+8px horizontal padding plus borders, MAXW the shared
+     * max-width, and WORD the widest single word in the ten labels
+     * ("neighborhood", 12 chars). */
+    Object.defineProperty(n, 'offsetWidth', {
+      get() {
+        const natural = Math.min(VIEW.maxw,
+          Math.round(String(n._text || '').length * VIEW.ch) + VIEW.pad);
+        const leftPx = parseFloat(n.style.left || '0') || 0;
+        const available = VIEW.width - leftPx;
+        return Math.min(natural, Math.max(VIEW.word, available));
+      },
+      configurable: true,
+    });
+    /* the width the box WOULD take with all the room in the world */
+    Object.defineProperty(n, '_natural', {
+      get() {
+        return Math.min(VIEW.maxw,
+          Math.round(String(n._text || '').length * VIEW.ch) + VIEW.pad);
+      },
+      configurable: true,
+    });
     return n;
   };
   let created = null;
@@ -360,7 +391,8 @@ function makeDom() {
     addEventListener: (k, fn) => { (rec.doc[k] = rec.doc[k] || []).push(fn); },
     removeEventListener: () => {},
   };
-  return { mk, rec, documentStub, tip: () => created };
+  return { mk, rec, documentStub, tip: () => created,
+           tipNode: () => created };
 }
 function tipApi(dom) {
   const body = grab('wireControlTips') + '\n' + grab('ensureTooltip') +
@@ -699,6 +731,221 @@ guard('round 2: WHICH sites were inflated, measured', () => {
      'including the one reported, the (i)');
   ok(under.some(x => x[0] === 'Delete row') && under.some(x => x[0] === 'Required to save'),
      'and three that were not reported, which the fix covers too');
+});
+
+/* ==================================================================== */
+lines.push('');
+lines.push('=== ROUND 3: the width the box is LAID OUT at, both directions ===');
+
+/* THE RULE, content-based rather than a list of sites: the box is laid out at
+ * its NATURAL width capped by the shared max-width, and the position is then
+ * chosen so that width fits. Short labels hug, long ones wrap at the cap in
+ * full-width lines, and nothing is ever laid out in less room than it
+ * measured. No per-site branch, so a new tooltip needs no entry anywhere. */
+
+/* Anchors, in viewport coordinates. The X is the one that broke: it sits at
+ * the top RIGHT of the Data Sources header, and the room between its left
+ * edge and the right of the screen is far less than its label needs. */
+const ANCHORS = {
+  farRight: { left: 1150, right: 1176, top: 20, bottom: 44 },
+  midRight: { left: 900, right: 940, top: 20, bottom: 44 },
+  left: { left: 40, right: 70, top: 300, bottom: 324 },
+};
+function showAt(dom, api, text, anchor, opts) {
+  const o = opts || {};
+  const el = dom.mk({ _attrs: Object.assign({ 'data-tip': text }, o.attrs || {}),
+                      _rect: anchor });
+  /* A PRIOR tooltip leaves `left` behind, and that is what round 3 is about:
+   * the old code measured the box at whatever position the last one used.
+   *
+   * The node is created lazily on the first show, so it has to be brought
+   * into existence before a stale position can be put on it. */
+  if (o.staleLeft != null) {
+    api.ensureTooltip().style.left = o.staleLeft + 'px';
+  }
+  dom.rec.doc.mouseover[0]({ target: el });
+  const tip = dom.tipNode();
+  return { el: el, tip: tip, left: parseFloat(tip.style.left) || 0,
+           width: tip.offsetWidth, natural: tip._natural };
+}
+
+guard('round 3: the stub models shrink-to-fit before it is trusted', () => {
+  const dom = makeDom();
+  const api = tipApi(dom);
+  api.wireControlTips();
+  /* force the node into existence, then reason about it directly */
+  const tip = api.ensureTooltip();
+  tip.textContent = 'Close Data Sources and return to DAC Indicators';
+  tip.style.left = '0px';
+  ok(tip.offsetWidth === VIEW.maxw,
+     'with the whole viewport available a long label takes the max-width cap: ' +
+     tip.offsetWidth);
+  tip.style.left = '1150px';
+  ok(tip.offsetWidth < 100,
+     'and squeezed against the right edge it COLLAPSES, which is the defect ' +
+     'being modelled: ' + tip.offsetWidth + 'px');
+  tip.textContent = 'Data Source';
+  tip.style.left = '0px';
+  ok(tip.offsetWidth < VIEW.maxw && tip.offsetWidth === tip._natural,
+     'a short label takes its natural width, well under the cap: ' + tip.offsetWidth);
+});
+
+guard('round 3: THE DEFECT -- a long label at the right edge', () => {
+  const dom = makeDom();
+  const api = tipApi(dom);
+  api.wireControlTips();
+  const TEXT = 'Close Data Sources and return to DAC Indicators';
+  /* staleLeft is what a previous tooltip left behind. Under the old code the
+   * box was MEASURED there, came back collapsed, and the collapsed width then
+   * fed the clamp -- so it was placed too far right for its text and stayed
+   * collapsed on every later hover. */
+  const s = showAt(dom, api, TEXT, ANCHORS.farRight, { staleLeft: 1100 });
+  ok(s.width === s.natural,
+     'the X tooltip is laid out at its full width despite a stale position: ' +
+     s.width + 'px of ' + s.natural + 'px');
+  ok(s.width === VIEW.maxw,
+     'which for this label is the shared max-width, so it wraps in full-width ' +
+     'lines rather than one-word columns: ' + s.width);
+  ok(VIEW.width - s.left >= s.width,
+     'and it is placed where that width FITS: ' + (VIEW.width - s.left) +
+     'px of room for ' + s.width + 'px');
+  ok(s.left < ANCHORS.farRight.left,
+     'nudged back from the anchor to make that room: left ' + s.left +
+     ' vs anchor ' + ANCHORS.farRight.left);
+
+  /* SELF-REINFORCEMENT was the nastiest part: once collapsed it stayed
+   * collapsed. Hovering repeatedly must give the same answer every time. */
+  const widths = [];
+  for (let i = 0; i < 4; i++) {
+    widths.push(showAt(dom, api, TEXT, ANCHORS.farRight).width);
+  }
+  ok(widths.every(w => w === VIEW.maxw),
+     'four hovers in a row all give the full width, so nothing degrades: ' +
+     widths.join(', '));
+});
+
+guard('round 3: the DYNAMIC part of that label, across tab names', () => {
+  /* "return to {tab}" varies, so the fix has to hold for every tab name
+   * rather than for the one in the screenshot. */
+  const dom = makeDom();
+  const api = tipApi(dom);
+  api.wireControlTips();
+  const TABS = ['DAC Indicators', 'Map Layers', 'Tract Geometry', 'Territories',
+                'ConEd Figures', 'Report Data'];
+  const bad = [];
+  TABS.forEach(t => {
+    const s = showAt(dom, api, 'Close Data Sources and return to ' + t,
+                     ANCHORS.farRight, { staleLeft: 1100 });
+    if (s.width !== s.natural) bad.push(t + ' (' + s.width + '/' + s.natural + ')');
+    if (VIEW.width - s.left < s.width) bad.push(t + ' does not fit');
+  });
+  ok(bad.length === 0,
+     'every tab name lays out at its natural width and fits' +
+     (bad.length ? ': ' + bad.join(', ') : ' (' + TABS.length + ' checked)'));
+});
+
+guard('round 3: BOTH DIRECTIONS -- four short hug, six long at proper width', () => {
+  const dom = makeDom();
+  const api = tipApi(dom);
+  api.wireControlTips();
+  /* The ten ruled sites, with the anchor each one plausibly sits at. The
+   * point is not the exact anchor but that the RULE holds at any of them. */
+  const SITES = [
+    ['Data Source', ANCHORS.midRight, 'under'],
+    ['Delete row', ANCHORS.farRight, 'under'],
+    ['Required to save', ANCHORS.left, 'under'],
+    ['Select all in Brooklyn', ANCHORS.left, 'under'],
+    /* ~196px: wider than round 2's 160px minimum, narrower than round 3's
+     * 240px cap. It takes its natural width on one line, which is the rule
+     * working, not an exception to it. */
+    ['Remove 2026 from the Dashboard', ANCHORS.midRight, 'under'],
+    ['Reset borough and neighborhood filters', ANCHORS.left, 'cap'],
+    ['The top class ends at the data maximum', ANCHORS.left, 'cap'],
+    ['Close Data Sources and return to DAC Indicators', ANCHORS.farRight, 'cap'],
+    ['You have read-only access to saved layers.', ANCHORS.midRight, 'cap'],
+    ['Export the tracts in the current scope as CSV', ANCHORS.farRight, 'cap'],
+  ];
+  let hugged = 0, wrapped = 0; const bad = [];
+  SITES.forEach(([text, anchor, kind]) => {
+    const s = showAt(dom, api, text, anchor, { staleLeft: 1100 });
+    /* NEVER laid out in less room than it measured -- the one-word-wide rule */
+    if (s.width !== s.natural) { bad.push(text.slice(0, 24) + ' squeezed'); return; }
+    if (VIEW.width - s.left < s.width) { bad.push(text.slice(0, 24) + ' overflows'); return; }
+    if (kind === 'under') {
+      if (s.width < VIEW.maxw) hugged++;
+      else bad.push(text.slice(0, 24) + ' should hug but hit the cap');
+    } else {
+      if (s.width === VIEW.maxw) wrapped++;
+      else bad.push(text.slice(0, 24) + ' should reach the cap, got ' + s.width);
+    }
+  });
+  ok(bad.length === 0, 'every one of the ten obeys the rule' +
+     (bad.length ? ': ' + bad.join('; ') : ''));
+  /* TWO DIFFERENT BOUNDARIES, and mixing them is what made this assertion
+   * wrong the first time. Round 2's is the 160px minimum that used to inflate
+   * anything narrower: four labels were under it. Round 3's is the 240px cap:
+   * FIVE are under that, because "Remove {yr} from the Dashboard" at ~196px
+   * falls between the two. Both counts are right about their own boundary. */
+  ok(hugged === 5, 'FIVE labels are under the 240px cap and take their own width: ' +
+     hugged);
+  ok(wrapped === 5, 'and FIVE reach the cap and wrap in full-width lines: ' + wrapped);
+  const r2short = SITES.filter(([t]) => Math.round(t.length * VIEW.ch) + VIEW.pad < 160);
+  ok(r2short.length === 4,
+     'while round 2 s 160px boundary still has FOUR under it, as reported then: ' +
+     r2short.length);
+  /* no per-site branch anywhere: the rule is content-based */
+  const w = grab('wireControlTips');
+  ok(!/data-ds-dict-back|ingest-row-delete|dac-map-clearall|ml-req/.test(w),
+     'and the helper names NO site: the rule is content-based, not a list');
+});
+
+guard('round 3: measured before placing, and shown only when placed', () => {
+  const w = grab('wireControlTips');
+  /* the ORDER is the fix, so it is asserted as an order */
+  const iReset = w.indexOf("tip.style.left = '0px'");
+  const iMeasure = w.indexOf('tip.offsetWidth');
+  const iPlace = w.indexOf("tip.style.left = Math.max");
+  const iTop = w.indexOf('tip.style.top = (r.bottom');
+  const iShow = w.indexOf("tip.style.opacity = '1'");
+  ok(iReset > 0 && iMeasure > iReset,
+     'the box is moved to an unsqueezed position BEFORE it is measured');
+  ok(iPlace > iMeasure, 'and placed only after it is measured');
+  /* BOTH coordinates, not just left. Checking only the left let a mutation
+   * move the reveal above the top assignment, which would show the tip at its
+   * final left and the PREVIOUS tooltip's top. */
+  ok(iTop > 0 && iShow > iPlace && iShow > iTop,
+     'and made visible only after BOTH coordinates are final, so neither the ' +
+     'measuring position nor a stale top is ever painted');
+  /* document coordinates on both sides of the clamp */
+  ok(/const maxLeft = sx \+ vw - w - 8;/.test(w),
+     'the clamp is computed in document coordinates, like the left it compares');
+  ok(/Math\.max\(sx \+ 8, left\)/.test(w),
+     'and the floor is document-relative too');
+});
+
+guard('round 3: the chart tips and the ordering case are untouched', () => {
+  const dom = makeDom();
+  const api = tipApi(dom);
+  api.wireControlTips();
+  /* a control, then a chart: the chart box keeps the shared minimum */
+  showAt(dom, api, 'Data Source', ANCHORS.midRight, { attrs: { 'aria-label': 'Data Source' } });
+  ok(dom.tipNode()._classes.indexOf('exec-tooltip-hug') >= 0, 'the control hug is on');
+  const chart = api.ensureTooltip();
+  ok(chart._classes.indexOf('exec-tooltip-hug') < 0,
+     'and the chart path cleared it, as round 2 established');
+  ok(winning('min-width', ['exec-tooltip']) === '160px',
+     'so a chart tip still resolves the 160px minimum');
+  /* ROUND 3 IS A POSITIONING FIX and changes no CSS. Counting the two rules
+   * this ticket owns is a weak form of that claim -- it cannot see a THIRD
+   * rule added under a new name. The real guard is the byte comparison in the
+   * first section, which excises exactly those two and requires every other
+   * byte to match; a new rule fails there. Kept here as a cheap sanity check
+   * with its limit stated, not as the guarantee. */
+  const owned = (CSS.match(/\.dac-map-tooltip \{/g) || []).length +
+    (CSS.match(/\.exec-tooltip\.exec-tooltip-hug \{/g) || []).length;
+  ok(owned === 2,
+     'this ticket still owns exactly two CSS rules (the byte comparison ' +
+     'above is what would catch a third): ' + owned);
 });
 lines.push('');
 lines.push('======================================================================');

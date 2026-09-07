@@ -148,19 +148,19 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   and wireControlTips is called from boot, once
 
 === ROUND 2: a control tooltip HUGS its text ===
-  FAIL a plain .exec-tooltip still resolves min-width 160px: null
-  FAIL and padding 8px 10px, which is the rule s own
-  FAIL an unrelated extra class changes nothing
-  FAIL it resolves a different family too: .dac-map-tooltip font-size
+  ok   a plain .exec-tooltip still resolves min-width 160px: 160px
+  ok   and padding 8px 10px, which is the rule s own
+  ok   an unrelated extra class changes nothing
+  ok   it resolves a different family too: .dac-map-tooltip font-size
   ok   the two-class rule wins even though the one-class rule comes LAST: 0
   ok   and an element without the modifier class still gets the one-class value
   ok   between equal specificity the LATER rule wins: 20px
-  FAIL the winning min-width for a control tip is ZERO: null
+  ok   the winning min-width for a control tip is ZERO: 0
   ok   and there is no min-height anywhere in its cascade
   ok   nor a fixed width
-  FAIL the padding is still the shared rule s 8px 10px, same as every other site
+  ok   the padding is still the shared rule s 8px 10px, same as every other site
   ok   and no line-height is overridden: it inherits body s 1.5, like the others
-  FAIL max-width still applies, so a long label wraps rather than running off: null
+  ok   max-width still applies, so a long label wraps rather than running off: 240px
   ok   the shared rule is found
   ok   and is BYTE-IDENTICAL to the deployed baseline: nothing that shares it moved
   ok   it still carries the 160px minimum the chart readouts want
@@ -188,6 +188,31 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   including the one reported, the (i)
   ok   and three that were not reported, which the fix covers too
 
+=== ROUND 3: the width the box is LAID OUT at, both directions ===
+  ok   with the whole viewport available a long label takes the max-width cap: 240
+  ok   and squeezed against the right edge it COLLAPSES, which is the defect being modelled: 76px
+  ok   a short label takes its natural width, well under the cap: 86
+  ok   the X tooltip is laid out at its full width despite a stale position: 240px of 240px
+  ok   which for this label is the shared max-width, so it wraps in full-width lines rather than one-word columns: 240
+  ok   and it is placed where that width FITS: 248px of room for 240px
+  ok   nudged back from the anchor to make that room: left 952 vs anchor 1150
+  ok   four hovers in a row all give the full width, so nothing degrades: 240, 240, 240, 240
+  ok   every tab name lays out at its natural width and fits (6 checked)
+  ok   every one of the ten obeys the rule
+  ok   FIVE labels are under the 240px cap and take their own width: 5
+  ok   and FIVE reach the cap and wrap in full-width lines: 5
+  ok   while round 2 s 160px boundary still has FOUR under it, as reported then: 4
+  ok   and the helper names NO site: the rule is content-based, not a list
+  ok   the box is moved to an unsqueezed position BEFORE it is measured
+  ok   and placed only after it is measured
+  ok   and made visible only after BOTH coordinates are final, so neither the measuring position nor a stale top is ever painted
+  ok   the clamp is computed in document coordinates, like the left it compares
+  ok   and the floor is document-relative too
+  ok   the control hug is on
+  ok   and the chart path cleared it, as round 2 established
+  ok   so a chart tip still resolves the 160px minimum
+  ok   this ticket still owns exactly two CSS rules (the byte comparison above is what would catch a third): 2
+
 ======================================================================
-  165 passed, 7 failed
+  195 passed, 0 failed
 ======================================================================

@@ -10212,15 +10212,41 @@ function utf8ByteLength(str) {
       /* Anchored to the control, not the cursor: a control's explanation
        * should sit still, and it has to be reachable from the keyboard where
        * there is no cursor to follow. Below and left-aligned, nudged back on
-       * screen if it would overflow the right edge. */
+       * screen if it would overflow the right edge.
+       *
+       * THE RULE, and it is CONTENT-BASED rather than a list of sites: the box
+       * is laid out at its NATURAL width, capped by the shared max-width, and
+       * the position is then chosen so that width always fits. A short label
+       * therefore hugs, a long one wraps at the cap in full-width lines, and
+       * nothing is ever laid out in less room than it measured.
+       *
+       * MEASURE FIRST, AT A POSITION THAT CANNOT SQUEEZE IT. An absolutely
+       * positioned box with only `left` set is shrink-to-fit: its width is
+       * limited by the space from `left` to the right edge. Measuring while it
+       * still sat at the PREVIOUS tooltip's left measured a box that was
+       * already squeezed, and that width then fed the clamp below, placed the
+       * box too far right for its text, and the collapse reinforced itself --
+       * a long label in one-word-wide columns.
+       *
+       * min-width: 160px used to floor both the measurement and the render, so
+       * zeroing it on the control path did not create this: it exposed it. */
       const r = el.getBoundingClientRect();
+      const sx = window.pageXOffset || 0;
+      const sy = window.pageYOffset || 0;
+      const vw = window.innerWidth || 0;
+      tip.style.left = '0px';
+      const w = tip.offsetWidth || 0;   // natural width, capped by max-width
+      /* DOCUMENT coordinates on both sides of the comparison. The tip is
+       * positioned against the document, while innerWidth is a viewport
+       * measure, and mixing the two skews the clamp on a scrolled page. */
+      const maxLeft = sx + vw - w - 8;
+      let left = r.left + sx;
+      if (left > maxLeft) left = maxLeft;
+      tip.style.left = Math.max(sx + 8, left) + 'px';
+      tip.style.top = (r.bottom + sy + 6) + 'px';
+      /* Shown only once it is in its final place, so the measuring position at
+       * left 0 is never painted. */
       tip.style.opacity = '1';
-      const w = tip.offsetWidth || 0;
-      const maxLeft = (window.innerWidth || 0) - w - 8;
-      let left = r.left + (window.pageXOffset || 0);
-      if (maxLeft > 0 && left > maxLeft) left = maxLeft;
-      tip.style.left = Math.max(8, left) + 'px';
-      tip.style.top = (r.bottom + (window.pageYOffset || 0) + 6) + 'px';
     };
     const target = (e) => {
       const t = e.target;
