@@ -8178,28 +8178,6 @@ a.nav-item { text-decoration: none; }
   margin: 0 0 6px;
 }
 
-/* The dialog's opening choice. Two targets, each stating its consequence. */
-.ingest-choice { display: grid; gap: 10px; }
-.ingest-choice-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font);
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px 16px;
-  transition: border-color 0.15s ease;
-}
-.ingest-choice-btn:hover { border-color: var(--dusk); }
-.ingest-choice-btn:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
-.ingest-choice-btn strong {
-  display: block; font-size: 13px; color: var(--ink); margin-bottom: 3px;
-}
-.ingest-choice-btn span {
-  display: block; font-size: 12px; color: var(--text-2); line-height: 1.5;
-}
 
 /* The divider between choosing a target and acting on it. */
 .ingest-modal-rule { border: none; border-top: 1px solid var(--line); margin: 16px 0; }

@@ -51,33 +51,42 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   a tab click redraws the PAGE, so the active tab moves with it
   ok   and not just the editor, which would leave the old tab looking selected
 
-=== the Add or Edit Data dialog ===
-  ok   the dialog exists
-  ok   the page header carries the one button, in title case
-  ok   and it opens the dialog
-  ok   reuses the existing shell class ingest-modal-overlay
-  ok   reuses the existing shell class ingest-modal-head
-  ok   reuses the existing shell class ingest-modal-body
-  ok   reuses the existing shell class ingest-modal-foot
-  ok   reuses the existing shell class ingest-modal-close
-  ok   it opens on the choice
-  ok   it has a bodyChoice state
-  ok   it has a bodyEdit state
-  ok   it has a bodyAdd state
-  ok   with both paths offered
-  ok   named in title case
-  ok   the Edit path applies its selection in one place
-  ok   and funnels through loadIngestDraft, exactly as the picker handlers do
-  ok   Open For Editing applies, then closes, landing the operator in inline editing
-  ok   the dialog keeps its OWN selection until confirmed, so Cancel changes nothing
-  ok   the Add path calls the shared add-year mechanics
-  ok   and states that a year is GLOBAL
-  ok   and that every table starts empty, which is the per-table truth
-  ok   the Edit path carries the import controls
-  ok   and the Add path carries them with the new-year template note
-  ok   wired from inside the dialog
-  ok   the target is applied BEFORE the file is read, so it lands where chosen
-  ok   and the dialog closes after, good import or bad
+=== round 3: the dialog is SINGLE PURPOSE ===
+  ok   the Add New Year dialog exists
+  ok   the page header button says Add New Year, in title case
+  ok   and it opens that dialog
+  ok   the two-path dialog is gone by name
+  ok   the choice state is gone
+  ok   and the Edit panel with it
+  ok   no choice buttons remain in the markup
+  ok   nor its label
+  ok   nor its confirm button
+  ok   nor the old button id
+  ok   and no comment still names the old dialog, which would mislead the next reader
+  ok   the choice-state CSS is deleted, not left orphaned
+  ok   the dialog has no year PICKER, so the only year it yields is the new one
+  ok   and buildIngestImport takes no year parameter, so the mechanism is year-agnostic
+  ok   nor reads one from state, which is why re-exposing an existing year stays small
+  ok   still reuses the existing shell class ingest-modal-overlay
+  ok   still reuses the existing shell class ingest-modal-head
+  ok   still reuses the existing shell class ingest-modal-body
+  ok   still reuses the existing shell class ingest-modal-foot
+  ok   still reuses the existing shell class ingest-modal-close
+  ok   it opens on the year stage
+  ok   and has exactly the two stages
+  ok   the import controls are NOT offered before the year exists
+  ok   and ARE offered once it does
+  ok   the stage advances only after the year is added
+  ok   and only on success, after addReportingYear returns ok
+  ok   a rejected year keeps the dialog on the year stage with its error
+  ok   the fill stage offers Section
+  ok   and Table
+  ok   and says the year was added
+  ok   the selection is applied in one place
+  ok   through loadIngestDraft, exactly as the picker handlers do
+  ok   applied BEFORE the file is read, so the import lands on the chosen table
+  ok   ruling 4 still holds: the dialog closes after an import, good or bad
+  ok   closing after adding a year redraws the page, so the year is not lost
   ok   Escape closes it
   ok   so does a backdrop click
   ok   and the Escape handler is removed on close, so handlers cannot accumulate
@@ -95,11 +104,11 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   exactly ONE place adds a year, so the two paths cannot diverge
 
 === ruling 4: the receipt is on the PAGE, the controls are not ===
-  ok   the page renders the receipt and nothing else
+  FAIL the page renders the receipt and nothing else
   ok   the control bar is NOT on the page
   ok   and the receipt has its mount, above the editor
   ok   both controls are in the bar, which only the dialog renders
-  ok   the bar has one definition and two dialog callers
+  FAIL the bar has one definition and one caller, the fill stage
   ok   the page no longer wires the controls it does not render
 
 === ruling 5: Export PDF is gone from every page ===
@@ -125,44 +134,45 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   buildYearSelector still finds it, untouched
   ok   because state.year has many readers: 44
 
-=== the dialog, EXECUTED against a DOM stub ===
+=== round 3: the dialog, EXECUTED against a DOM stub ===
   ok   the dialog created a node and appended it to the body
   ok   using the existing overlay class: ingest-modal-overlay
-  ok   it opens titled Add or Edit Data
-  ok   offering exactly two paths
-  ok   named in title case
-  ok   and the import controls are NOT on the choice screen
-  ok   both choice buttons are wired
-  ok   choosing Edit redraws the dialog into the Edit panel
-  ok   Edit has its dlg-section select
-  ok   Edit has its dlg-table select
-  ok   Edit has its dlg-year select
-  ok   and the import controls
-  ok   including the template download
-  ok   with a hint counting the real rows of the real target: 23
-  ok   and saying that opening it changes nothing
-  ok   and the confirm button
-  ok   the dialog wires the import with both hooks
-  ok   Open For Editing calls loadIngestDraft exactly once
-  ok   and redraws the page once
-  ok   landing on the chosen target
-  ok   the Add panel opens
-  ok   with a year input
+  ok   it opens DIRECTLY on Add New Year, with no choice screen
+  ok   and no choice buttons
+  ok   and no Edit path
+  ok   with the year input
   ok   suggesting the next year: 2026
   ok   and listing the existing ones
   ok   stating that a year is GLOBAL
   ok   and that every table starts empty
-  ok   and what a new year’s template contains
-  ok   with the Add Year action
+  ok   and NOT offering the import before the year exists, which would target the wrong year
+  ok   nor the section and table pickers yet
+  ok   a rejected year leaves the dialog on the year stage
+  ok   with the import still not offered
+  ok   Add Year passes the entered year to addReportingYear
+  ok   success advances to the fill stage, titled for the new year
+  ok   saying the year was added
+  ok   the fill stage offers Section
+  ok   and Table
+  ok   and the import controls
+  ok   including the template download
+  ok   with the new-year template note, naming the year
+  ok   and a Done action
+  ok   the fill stage has a section select to change
+  ok   changing the dialog Section does NOT move the page: cancel is free
+  ok   though the dialog itself did follow the change
+  ok   the import is wired with both hooks
+  ok   beforeRead applies the selection through loadIngestDraft
+  ok   landing on the table the dialog shows
+  ok   Done redraws the page, because a year was added even if nothing was filled
 
 renders regenerated from the shipped code:
    1-picker-source-tables.html
    1b-picker-few-tables.html
-   2-dialog-choice.html
-   3-dialog-edit-path.html
-   4-dialog-add-path.html
+   2-dialog-add-year.html
+   3-dialog-fill-year.html
    5-topbar.html
 
 ======================================================================
-  135 passed, 0 failed
+  144 passed, 2 failed
 ======================================================================
