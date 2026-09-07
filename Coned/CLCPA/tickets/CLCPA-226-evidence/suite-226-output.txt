@@ -20,7 +20,7 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   no longer relying on cascade for z-index
   ok   no longer relying on cascade for font-family
   ok   no longer relying on cascade for pointer-events
-  ok   EVERY other byte of styles.css is unchanged
+  ok   EVERY other byte of styles.css is unchanged, once this ticket s two rules are excised
 
 === the ten conversions, and the six natives that STAY ===
   ok   ten sites in the ruled scope
@@ -147,6 +147,47 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   BASE control: the helper existed with only 3, while 5 sites copied it: 3
   ok   and wireControlTips is called from boot, once
 
+=== ROUND 2: a control tooltip HUGS its text ===
+  FAIL a plain .exec-tooltip still resolves min-width 160px: null
+  FAIL and padding 8px 10px, which is the rule s own
+  FAIL an unrelated extra class changes nothing
+  FAIL it resolves a different family too: .dac-map-tooltip font-size
+  ok   the two-class rule wins even though the one-class rule comes LAST: 0
+  ok   and an element without the modifier class still gets the one-class value
+  ok   between equal specificity the LATER rule wins: 20px
+  FAIL the winning min-width for a control tip is ZERO: null
+  ok   and there is no min-height anywhere in its cascade
+  ok   nor a fixed width
+  FAIL the padding is still the shared rule s 8px 10px, same as every other site
+  ok   and no line-height is overridden: it inherits body s 1.5, like the others
+  FAIL max-width still applies, so a long label wraps rather than running off: null
+  ok   the shared rule is found
+  ok   and is BYTE-IDENTICAL to the deployed baseline: nothing that shares it moved
+  ok   it still carries the 160px minimum the chart readouts want
+  ok   the modifier rule exists
+  ok   SCOPED to both classes, so it cannot apply on its own: .exec-tooltip.exec-tooltip-hug { min-width: 0; }
+  ok   and it changes NOTHING but the minimum: .exec-tooltip.exec-tooltip-hug { min-width: 0; }
+  ok   a control hover adds the modifier
+  ok   the chart path gets the same shared node
+  ok   and ensureTooltip CLEARED the modifier, so the chart box keeps its minimum
+  ok   hovering the control again re-adds it
+  ok   the reset lives in ensureTooltip, which every caller passes through
+  ok   and only the control path adds it
+  ok   exactly ONE place in the app adds it: 1
+  ok   estimate holds for "Delete row"
+  ok   estimate holds for "Data Source"
+  ok   estimate holds for "Required to save"
+  ok   estimate holds for "Select all in Brooklyn"
+  ok   estimate holds for "Remove 2026 from the Dashb"
+  ok   estimate holds for "Reset borough and neighbor"
+  ok   estimate holds for "The top class ends at the "
+  ok   estimate holds for "Close Data Sources and ret"
+  ok   estimate holds for "You have read-only access "
+  ok   estimate holds for "Export the tracts in the c"
+  ok   FOUR of the ten fell under the 160px minimum, not one: "Delete row", "Data Source", "Required to save", "Select all in Brooklyn"
+  ok   including the one reported, the (i)
+  ok   and three that were not reported, which the fix covers too
+
 ======================================================================
-  133 passed, 0 failed
+  165 passed, 7 failed
 ======================================================================

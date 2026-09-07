@@ -14,8 +14,8 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   and takes a CALLBACK, because a modal has no boolean to return in time
 
 === NO new CSS, and no new button variant ===
-  ok   styles.css is identical to BASE apart from the one rule CLCPA-226 consolidated: CLCPA-230 itself adds no CSS
-  ok   and the whole difference is that one rule and its comment: 773 chars
+  ok   apart from the two tooltip rules CLCPA-226 owns, styles.css is identical to BASE: CLCPA-230 itself adds no CSS
+  ok   and neither side has a .btn-danger, which is what CLCPA-230 was asked not to invent
   ok   there is no .btn-danger, and none was invented for the destructive actions
   ok   openConfirmModal is present
   ok   it emits classes to check: ingest-modal ingest-modal-head ingest-modal-close ingest-modal-body ingest-modal-foot btn btn-secondary btn-primary

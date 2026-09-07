@@ -166,19 +166,28 @@ guard("NO new CSS, and no new button variant", () => {
    *
    * Written this way because the earlier form conflated "this ticket adds no
    * CSS" with "no ticket ever will", and only the first was ever true. */
-  const cutTip = (css) => {
-    let out = css, i;
-    while ((i = out.indexOf('.dac-map-tooltip {')) >= 0) {
-      out = out.slice(0, i) + out.slice(out.indexOf('}', i) + 1);
-    }
-    return out.replace(/\/\* CLCPA-226:[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
-  };
-  ok(cutTip(CSS) === cutTip(BASE_CSS),
-     'styles.css is identical to BASE apart from the one rule CLCPA-226 ' +
-     'consolidated: CLCPA-230 itself adds no CSS');
-  ok(Math.abs(CSS.length - BASE_CSS.length) < 1200,
-     'and the whole difference is that one rule and its comment: ' +
-     Math.abs(CSS.length - BASE_CSS.length) + ' chars');
+  /* ALL comments off BOTH sides, then the two rules a later ticket is
+   * accountable for, by name. Comments are not CSS behaviour, so they cannot
+   * be a difference that matters, and stripping them symmetrically is safe.
+   *
+   * I first tried to generalise this by removing each attributed comment PLUS
+   * the declaration following it. That is wrong: the comment marking where the
+   * duplicate .dac-map-tooltip block was DELETED introduces no rule, so it
+   * swallowed the innocent one after it and the comparison reported a
+   * difference created by its own excision. Naming the rules means this line
+   * must be edited deliberately when CSS changes again, which is better than a
+   * line that auto-excuses anything with a comment above it. */
+  const cutLater = (css) => css
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\.dac-map-tooltip \{[^}]*\}/g, '')
+    .replace(/\.exec-tooltip\.exec-tooltip-hug \{[^}]*\}/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ok(cutLater(CSS) === cutLater(BASE_CSS),
+     'apart from the two tooltip rules CLCPA-226 owns, styles.css is identical ' +
+     'to BASE: CLCPA-230 itself adds no CSS');
+  ok(CSS.indexOf('.btn-danger') < 0 && BASE_CSS.indexOf('.btn-danger') < 0,
+     'and neither side has a .btn-danger, which is what CLCPA-230 was asked ' +
+     'not to invent');
   ok(CSS.indexOf('.btn-danger') < 0,
      'there is no .btn-danger, and none was invented for the destructive actions');
   const modal = grab('openConfirmModal');

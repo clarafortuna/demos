@@ -124,11 +124,16 @@ guard('the css diff', () => {
     while ((i = out.indexOf('.dac-map-tooltip {')) >= 0) {
       out = out.slice(0, i) + out.slice(out.indexOf('}', i) + 1);
     }
+    /* ROUND 2 added one rule, so the ticket's CSS diff is now two things: the
+     * consolidation and the hug modifier. Both are excised; anything else
+     * still fails. */
+    out = out.replace(/\.exec-tooltip\.exec-tooltip-hug \{[^}]*\}/g, '');
     /* the comments this ticket added alongside them */
-    return out.replace(/\/\* CLCPA-226:[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
+    return out.replace(/\/\* CLCPA-226[\s\S]*?\*\//g, '').replace(/\s+/g, ' ').trim();
   };
   const a = cut(BASE_CSS), b = cut(CSS);
-  ok(a === b, 'EVERY other byte of styles.css is unchanged' +
+  ok(a === b, 'EVERY other byte of styles.css is unchanged, once this ticket s ' +
+     'two rules are excised' +
      (a === b ? '' : ': remainders differ by ' + Math.abs(a.length - b.length) + ' chars'));
 });
 
@@ -338,6 +343,12 @@ function makeDom() {
       appendChild: () => {},
       set textContent(v) { n._text = v; }, get textContent() { return n._text; },
       offsetWidth: 200,
+      _classes: [],
+      classList: {
+        add: (c) => { if (n._classes.indexOf(c) < 0) n._classes.push(c); },
+        remove: (c) => { const i = n._classes.indexOf(c); if (i >= 0) n._classes.splice(i, 1); },
+        contains: (c) => n._classes.indexOf(c) >= 0,
+      },
     }, over || {});
     return n;
   };
@@ -511,6 +522,184 @@ guard('consolidation', () => {
      'and wireControlTips is called from boot, once');
 });
 
+
+/* ==================================================================== */
+lines.push('');
+lines.push('=== ROUND 2: a control tooltip HUGS its text ===');
+
+/* THE DEFECT: .exec-tooltip carries min-width: 160px, for the CHART tooltips
+ * that share the class -- a multi-row readout looks ragged narrow. Being a
+ * MINIMUM it is invisible on long strings and pads short ones.
+ *
+ * Node has no layout engine, so "the rendered box hugs its text" cannot be
+ * measured here. What CAN be computed exactly is the property the box is laid
+ * out from: the WINNING min-width for a given set of classes, resolved through
+ * the real cascade in styles.css. That is what these assertions do. */
+
+/* A small cascade resolver: which declaration of `prop` wins for an element
+ * carrying `classes`. Selectors are class chains only, which is all this
+ * question involves. Specificity first, then source order. */
+function winning(prop, classes, sheet) {
+  const rules = [];
+  /* COMMENTS STRIPPED FIRST. [^{}]+ captures everything since the previous
+   * closing brace, so a comment above a rule lands inside the selector and the
+   * rule is silently skipped -- which made every answer null until the
+   * self-test below said so. */
+  const flat = (sheet == null ? CSS : sheet).replace(/\/\*[\s\S]*?\*\//g, '');
+  const re = /([^{}]+)\{([^}]*)\}/g;
+  let m, order = 0;
+  while ((m = re.exec(flat)) !== null) {
+    const sels = m[1].split(',').map(s => s.trim());
+    const body = m[2];
+    const dm = new RegExp('(?:^|;)\\s*' + prop + '\\s*:\\s*([^;]+)').exec(body);
+    if (!dm) { order++; continue; }
+    sels.forEach(sel => {
+      if (!/^(\.[A-Za-z0-9_-]+)+$/.test(sel)) return;      // class chains only
+      const need = sel.split('.').filter(Boolean);
+      if (!need.every(c => classes.indexOf(c) >= 0)) return;  // does not match
+      rules.push({ spec: need.length, order: order, value: dm[1].trim() });
+    });
+    order++;
+  }
+  if (!rules.length) return null;
+  rules.sort((x, y) => (x.spec - y.spec) || (x.order - y.order));
+  return rules[rules.length - 1].value;
+}
+
+guard('round 2: the cascade resolver checks itself first', () => {
+  /* Trusted only after it answers questions whose answers are not in doubt. */
+  ok(winning('min-width', ['exec-tooltip']) === '160px',
+     'a plain .exec-tooltip still resolves min-width 160px: ' +
+     winning('min-width', ['exec-tooltip']));
+  ok(winning('padding', ['exec-tooltip']) === '8px 10px',
+     'and padding 8px 10px, which is the rule s own');
+  ok(winning('min-width', ['exec-tooltip', 'not-a-real-class']) === '160px',
+     'an unrelated extra class changes nothing');
+  ok(winning('font-size', ['dac-map-tooltip']) === '11px',
+     'it resolves a different family too: .dac-map-tooltip font-size');
+
+  /* SPECIFICITY, proven on a sheet where it DISAGREES with source order.
+   * In the real stylesheet the two-class modifier also happens to come later,
+   * so source order alone gives the right answer and the specificity sort was
+   * carried along unexercised -- a code path that cannot be shown to matter.
+   * Here the one-class rule is LAST, so only specificity can decide. */
+  const conflict = '.a.b { min-width: 0; }\n.a { min-width: 160px; }';
+  ok(winning('min-width', ['a', 'b'], conflict) === '0',
+     'the two-class rule wins even though the one-class rule comes LAST: ' +
+     winning('min-width', ['a', 'b'], conflict));
+  ok(winning('min-width', ['a'], conflict) === '160px',
+     'and an element without the modifier class still gets the one-class value');
+  /* and source order still decides between EQUAL specificity */
+  const tie = '.a { min-width: 10px; }\n.a { min-width: 20px; }';
+  ok(winning('min-width', ['a'], tie) === '20px',
+     'between equal specificity the LATER rule wins: ' + winning('min-width', ['a'], tie));
+});
+
+guard('round 2: the CONTROL tip carries no inflating minimum', () => {
+  const CONTROL = ['exec-tooltip', 'exec-tooltip-hug'];
+  /* THE ASSERTION EMELY ASKED FOR: no minimum pads the box beyond its content
+   * plus the rule's own padding. */
+  const mw = winning('min-width', CONTROL);
+  ok(mw === '0' || mw === '0px',
+     'the winning min-width for a control tip is ZERO: ' + mw);
+  ok(winning('min-height', CONTROL) === null,
+     'and there is no min-height anywhere in its cascade');
+  ok(winning('width', CONTROL) === null,
+     'nor a fixed width');
+  /* the rule's OWN padding is untouched, which is what "plus the rule's own
+   * padding" means -- the box is not being made tighter than its siblings */
+  ok(winning('padding', CONTROL) === '8px 10px',
+     'the padding is still the shared rule s 8px 10px, same as every other site');
+  ok(winning('line-height', CONTROL) === null,
+     'and no line-height is overridden: it inherits body s 1.5, like the others');
+  /* max-width is deliberately NOT reset: a long label must still wrap */
+  ok(winning('max-width', CONTROL) === '240px',
+     'max-width still applies, so a long label wraps rather than running off: ' +
+     winning('max-width', CONTROL));
+});
+
+guard('round 2: the CHART tips are provably unchanged', () => {
+  /* The shared rule is byte-identical to before round 2, so the eight chart
+   * callers and the six control tips whose text already exceeded 160px cannot
+   * have moved. Compared block to block rather than argued. */
+  const blk = (css) => {
+    const i = css.indexOf('.exec-tooltip {');
+    return i < 0 ? null : css.slice(i, css.indexOf('}', i) + 1);
+  };
+  ok(blk(CSS) !== null, 'the shared rule is found');
+  ok(blk(CSS) === blk(BASE_CSS),
+     'and is BYTE-IDENTICAL to the deployed baseline: nothing that shares it moved');
+  ok(/min-width: 160px/.test(blk(CSS)),
+     'it still carries the 160px minimum the chart readouts want');
+  /* and the modifier cannot reach a tip that does not carry it */
+  const hug = (CSS.match(/\.exec-tooltip\.exec-tooltip-hug \{[^}]*\}/) || [''])[0];
+  ok(hug.length > 0, 'the modifier rule exists');
+  ok(/^\.exec-tooltip\.exec-tooltip-hug /.test(hug),
+     'SCOPED to both classes, so it cannot apply on its own: ' + hug);
+  ok(hug.indexOf('max-width') < 0 && hug.indexOf('padding') < 0,
+     'and it changes NOTHING but the minimum: ' + hug);
+});
+
+guard('round 2: driven -- who gets the modifier and who does not', () => {
+  const dom = makeDom();
+  const api = tipApi(dom);
+  api.wireControlTips();
+  const el = dom.mk({ _attrs: { 'data-tip': 'Data Source', 'aria-label': 'Data Source' } });
+  dom.rec.doc.mouseover[0]({ target: el });
+  ok(dom.tip()._classes.indexOf('exec-tooltip-hug') >= 0,
+     'a control hover adds the modifier');
+  /* THE ORDERING TRAP: a chart tooltip opened after a control one must not
+   * inherit the modifier. ensureTooltip clears it, so every caller resets. */
+  const same = api.ensureTooltip();
+  ok(same === dom.tip(), 'the chart path gets the same shared node');
+  ok(same._classes.indexOf('exec-tooltip-hug') < 0,
+     'and ensureTooltip CLEARED the modifier, so the chart box keeps its minimum');
+  /* and back again */
+  dom.rec.doc.mouseover[0]({ target: el });
+  ok(dom.tip()._classes.indexOf('exec-tooltip-hug') >= 0,
+     'hovering the control again re-adds it');
+  /* the reset is in ensureTooltip, not hide: hide does not run before a chart
+   * tooltip opens, which is why one point of truth is the whole design */
+  const ens = grab('ensureTooltip');
+  ok(/classList\.remove\('exec-tooltip-hug'\)/.test(ens),
+     'the reset lives in ensureTooltip, which every caller passes through');
+  const w = grab('wireControlTips');
+  ok(/classList\.add\('exec-tooltip-hug'\)/.test(w),
+     'and only the control path adds it');
+  /* no chart caller adds it anywhere */
+  const adds = (codeOnly(SRC).match(/classList\.add\('exec-tooltip-hug'\)/g) || []).length;
+  ok(adds === 1, 'exactly ONE place in the app adds it: ' + adds);
+});
+
+guard('round 2: WHICH sites were inflated, measured', () => {
+  /* Reported as one site, the (i). It was FOUR: the minimum bites every string
+   * narrower than 160px, and the (i) is simply the one that was hovered.
+   * Widths are approximate (11px font, ~5.8px per character) and are here to
+   * record which side of the 160px line each label falls on, not to measure
+   * the box -- that is Emely's pass. */
+  const TIPS = [
+    ['Delete row', 58], ['Data Source', 64], ['Required to save', 93],
+    ['Select all in Brooklyn', 128],
+    ['Remove 2026 from the Dashboard', 174],
+    ['Reset borough and neighborhood filters', 220],
+    ['The top class ends at the data maximum', 220],
+    ['Close Data Sources and return to Map Data', 238],
+    ['You have read-only access to saved layers.', 244],
+    ['Export the tracts in the current scope as CSV', 261],
+  ];
+  const est = (s) => Math.round(s.length * 5.8);
+  TIPS.forEach(([t, want]) => {
+    ok(Math.abs(est(t) - want) <= 1, 'estimate holds for ' + JSON.stringify(t.slice(0, 26)));
+  });
+  const under = TIPS.filter(([t]) => est(t) < 160);
+  ok(under.length === 4,
+     'FOUR of the ten fell under the 160px minimum, not one: ' +
+     under.map(x => JSON.stringify(x[0])).join(', '));
+  ok(under.some(x => x[0] === 'Data Source'),
+     'including the one reported, the (i)');
+  ok(under.some(x => x[0] === 'Delete row') && under.some(x => x[0] === 'Required to save'),
+     'and three that were not reported, which the fix covers too');
+});
 lines.push('');
 lines.push('======================================================================');
 lines.push('  ' + pass + ' passed, ' + fail + ' failed');

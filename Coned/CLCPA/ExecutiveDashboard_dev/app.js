@@ -10193,6 +10193,10 @@ function utf8ByteLength(str) {
       const text = el.getAttribute('data-tip');
       if (!text) return;
       const tip = ensureTooltip();
+      /* HUG: a control label is one short string, not a data readout, so the
+       * shared min-width is turned off for it. Added AFTER ensureTooltip,
+       * which clears it. */
+      if (tip.classList) tip.classList.add('exec-tooltip-hug');
       tip.textContent = text;          // TEXT, not innerHTML: these are labels
       /* NAME or DESCRIPTION, whichever is correct for this control:
        *   it has an aria-label -> those words are already its NAME, and
@@ -10253,6 +10257,12 @@ function utf8ByteLength(str) {
       tip.setAttribute('role', 'tooltip');
       document.body.appendChild(tip);
     }
+    /* CLCPA-226 round 2: clear the control modifier on EVERY call, so the
+     * eight chart callers get the default box whatever was hovered before
+     * them. Resetting here rather than in hide() gives one point of truth:
+     * every caller passes through this function, and hide() does not run
+     * before a chart tooltip opens. */
+    if (tip.classList) tip.classList.remove('exec-tooltip-hug');
     return tip;
   }
 
