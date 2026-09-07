@@ -91,8 +91,10 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   .btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85
   ok   so the underline on hover is the SIBLING rule s own, not one invented here
   ok   the template reads the typed year
-  ok   generates the WORKBOOK for the selected table and the typed year
-  ok   and names it .xlsx with that year
+  ok   generates the WORKBOOK for the selected table and typed year, with the logo
+  ok   awaiting the async logo raster first, which is the one await in the dialog
+  ok   and names it -example.xlsx, since it is an example not a form
+  ok   and the hint names the read-only example and the Save As step
   ok   with the workbook MIME type
   ok   the CSV template generator is gone
   ok   all three steps are present
@@ -139,11 +141,11 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   exactly ONE place adds a year, so the two paths cannot diverge
 
 === ruling 4: the receipt is on the PAGE, the controls are not ===
-  ok   the page renders the receipt and nothing else
+  FAIL the page renders the receipt and nothing else
   ok   the control bar is NOT on the page
   ok   and the receipt has its mount, above the editor
   ok   both controls are in the bar, which only the dialog renders
-  ok   the bar has one definition and one caller, the fill stage
+  FAIL the bar has one definition and one caller, the fill stage
   ok   the page no longer wires the controls it does not render
 
 === ruling 5: Export PDF is gone from every page ===
@@ -180,8 +182,9 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   with no staged file yet
   ok   the footer offers Cancel and Add Year
   ok   and one primary action, not two
-  ok   the template button is wired from the start
-  ok   and downloads the WORKBOOK for the selected table and the TYPED year: download:A1-2026-template.xlsx:3B:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+  ok   the template button rasterises the logo first
+  ok   then builds the workbook WITH it
+  ok   in that order, since the builder takes the bytes as an argument
   ok   the page stays on its own table while the dialog shows another
   ok   choosing a file runs the dry run
   ok   and does NOT apply it
@@ -234,5 +237,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  205 passed, 0 failed
+  206 passed, 2 failed
 ======================================================================

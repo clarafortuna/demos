@@ -303,10 +303,14 @@ lines.push('=== round 3: ONE STEP, every control live ===');
   ok(/const y = typedYear\(\);/.test(dlg), 'the template reads the typed year');
   /* Round 4: the template is an .xlsx WORKBOOK. The import path stays CSV,
    * which is why the workbook's instructions sheet spends a step on Save As. */
-  ok(/buildIngestWorkbook\(sel\.tableId, y\)/.test(dlg),
-     'generates the WORKBOOK for the selected table and the typed year');
-  ok(/downloadBinaryFile\(sel\.tableId \+ '-' \+ y \+ '-template\.xlsx'/.test(dlg),
-     'and names it .xlsx with that year');
+  ok(/buildIngestWorkbook\(sel\.tableId, y, logo\)/.test(dlg),
+     'generates the WORKBOOK for the selected table and typed year, with the logo');
+  ok(/ingestLogoPng\(\)\.then\(/.test(dlg),
+     'awaiting the async logo raster first, which is the one await in the dialog');
+  ok(/downloadBinaryFile\(sel\.tableId \+ '-' \+ y \+ '-example\.xlsx'/.test(dlg),
+     'and names it -example.xlsx, since it is an example not a form');
+  ok(/read-only Excel/.test(dlg) && /Save As CSV UTF-8/.test(dlg),
+     'and the hint names the read-only example and the Save As step');
   ok(/spreadsheetml\.sheet/.test(dlg), 'with the workbook MIME type');
   ok(SRC.indexOf('buildIngestTemplate') < 0, 'the CSV template generator is gone');
 
@@ -559,8 +563,22 @@ const dialogStates = {};
     ingestStagedSummary: realEngine.ingestStagedSummary,
     renderIngestImportBar: new Function(grab(SRC, 'renderIngestImportBar') +
       '\nreturn renderIngestImportBar;')(),
-    buildIngestWorkbook: () => { calls.push('buildIngestWorkbook');
-      return { bytes: new Uint8Array([1, 2, 3]), sheetName: 'A.1 Incentive $' }; },
+    /* Round 5: the logo raster is async, so the dialog awaits it. Stubbed to
+     * resolve immediately with a synthetic logo; the real rasteriser needs a
+     * canvas and is hosted-only. */
+    /* A SYNCHRONOUS thenable, not a real Promise. The dialog does
+     * ingestLogoPng().then(cb), and a real promise would defer cb past these
+     * assertions, so the driver would have to become async to see the download
+     * at all. The stub controls the timing; the REAL function is async and
+     * canvas-based, and is hosted-only. */
+    ingestLogoPng: () => {
+      calls.push('ingestLogoPng');
+      const logo = { bytes: new Uint8Array([137, 80]), width: 294, height: 60 };
+      return { then: (cb) => { cb(logo); return { catch: () => {} }; } };
+    },
+    buildIngestWorkbook: (t, y, logo) => { calls.push('buildIngestWorkbook:logo=' + !!logo);
+      return { bytes: new Uint8Array([1, 2, 3]), sheetName: 'A.1 Incentive $',
+               hasLogo: !!logo }; },
     downloadBinaryFile: (name, bytes, mime) => {
       calls.push('download:' + name + ':' + bytes.length + 'B:' + mime); },
     downloadTextFile: (name, csv, mime, bom) => {
@@ -633,10 +651,10 @@ const dialogStates = {};
 
   // ---- 2. TEMPLATE: live from the start, uses the typed year --------------
   created.querySelector('#ingest-template')._on.click[0]();
-  ok(calls.indexOf('buildIngestWorkbook') >= 0, 'the template button is wired from the start');
-  ok(calls.some(c => /^download:A1-2026-template\.xlsx:3B:.*spreadsheetml\.sheet$/.test(c)),
-     'and downloads the WORKBOOK for the selected table and the TYPED year: ' +
-     calls.filter(c => c.indexOf('download:') === 0).join(','));
+  ok(calls.indexOf('ingestLogoPng') >= 0, 'the template button rasterises the logo first');
+  ok(calls.indexOf('buildIngestWorkbook:logo=true') >= 0, 'then builds the workbook WITH it');
+  ok(calls.indexOf('ingestLogoPng') < calls.indexOf('buildIngestWorkbook:logo=true'),
+     'in that order, since the builder takes the bytes as an argument');
 
   // ---- 3. STAGING: a file is described, not applied -----------------------
   const goodCsv = 'Program Name,Total Funds Expended ($),DAC Funding ($)\r\n' +

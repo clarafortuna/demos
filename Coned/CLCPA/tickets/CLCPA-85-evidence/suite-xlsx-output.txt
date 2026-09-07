@@ -1,10 +1,10 @@
 ======================================================================
-CLCPA-85 round 4 -- the .xlsx template
+CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
 ======================================================================
 
 === the archive itself ===
-  ok   a workbook is produced: 6345 bytes
-  ok   seven parts: 7
+  ok   a workbook is produced: 18195 bytes
+  ok   eleven parts with the logo: 11
   ok   part present: [Content_Types].xml
   ok   part present: _rels/.rels
   ok   part present: xl/workbook.xml
@@ -12,86 +12,157 @@ CLCPA-85 round 4 -- the .xlsx template
   ok   part present: xl/styles.xml
   ok   part present: xl/worksheets/sheet1.xml
   ok   part present: xl/worksheets/sheet2.xml
-  ok   [Content_Types].xml: STORED, not compressed
-  ok   [Content_Types].xml: CRC32 in the directory matches the bytes
-  ok   [Content_Types].xml: both sizes match the bytes (815)
-  ok   [Content_Types].xml: local method matches the directory
-  ok   [Content_Types].xml: local CRC matches
-  ok   [Content_Types].xml: local sizes match
-  ok   [Content_Types].xml: and the LOCAL header also says STORED
-  ok   _rels/.rels: STORED, not compressed
-  ok   _rels/.rels: CRC32 in the directory matches the bytes
-  ok   _rels/.rels: both sizes match the bytes (295)
-  ok   _rels/.rels: local method matches the directory
-  ok   _rels/.rels: local CRC matches
-  ok   _rels/.rels: local sizes match
-  ok   _rels/.rels: and the LOCAL header also says STORED
-  ok   xl/workbook.xml: STORED, not compressed
-  ok   xl/workbook.xml: CRC32 in the directory matches the bytes
-  ok   xl/workbook.xml: both sizes match the bytes (344)
-  ok   xl/workbook.xml: local method matches the directory
-  ok   xl/workbook.xml: local CRC matches
-  ok   xl/workbook.xml: local sizes match
-  ok   xl/workbook.xml: and the LOCAL header also says STORED
-  ok   xl/_rels/workbook.xml.rels: STORED, not compressed
-  ok   xl/_rels/workbook.xml.rels: CRC32 in the directory matches the bytes
-  ok   xl/_rels/workbook.xml.rels: both sizes match the bytes (564)
-  ok   xl/_rels/workbook.xml.rels: local method matches the directory
-  ok   xl/_rels/workbook.xml.rels: local CRC matches
-  ok   xl/_rels/workbook.xml.rels: local sizes match
-  ok   xl/_rels/workbook.xml.rels: and the LOCAL header also says STORED
-  ok   xl/styles.xml: STORED, not compressed
-  ok   xl/styles.xml: CRC32 in the directory matches the bytes
-  ok   xl/styles.xml: both sizes match the bytes (1039)
-  ok   xl/styles.xml: local method matches the directory
-  ok   xl/styles.xml: local CRC matches
-  ok   xl/styles.xml: local sizes match
-  ok   xl/styles.xml: and the LOCAL header also says STORED
-  ok   xl/worksheets/sheet1.xml: STORED, not compressed
-  ok   xl/worksheets/sheet1.xml: CRC32 in the directory matches the bytes
-  ok   xl/worksheets/sheet1.xml: both sizes match the bytes (1679)
-  ok   xl/worksheets/sheet1.xml: local method matches the directory
-  ok   xl/worksheets/sheet1.xml: local CRC matches
-  ok   xl/worksheets/sheet1.xml: local sizes match
-  ok   xl/worksheets/sheet1.xml: and the LOCAL header also says STORED
-  ok   xl/worksheets/sheet2.xml: STORED, not compressed
-  ok   xl/worksheets/sheet2.xml: CRC32 in the directory matches the bytes
-  ok   xl/worksheets/sheet2.xml: both sizes match the bytes (791)
-  ok   xl/worksheets/sheet2.xml: local method matches the directory
-  ok   xl/worksheets/sheet2.xml: local CRC matches
-  ok   xl/worksheets/sheet2.xml: local sizes match
-  ok   xl/worksheets/sheet2.xml: and the LOCAL header also says STORED
-  ok   the EOCD is single-disk: 0/0
-  ok   its two entry counts agree: 7/7
-  ok   and match the parts actually present: 7
-  ok   the central directory size matches its span: 454
-  ok   the directory ends exactly where the EOCD begins
-  ok   and there is no trailing comment
-  ok   [Content_Types].xml: starts with an XML declaration and a root element
-  ok   [Content_Types].xml: tags balance (1 open, 1 close, 6 self-closing)
-  ok   _rels/.rels: starts with an XML declaration and a root element
-  ok   _rels/.rels: tags balance (1 open, 1 close, 1 self-closing)
-  ok   xl/workbook.xml: starts with an XML declaration and a root element
-  ok   xl/workbook.xml: tags balance (2 open, 2 close, 2 self-closing)
-  ok   xl/_rels/workbook.xml.rels: starts with an XML declaration and a root element
-  ok   xl/_rels/workbook.xml.rels: tags balance (1 open, 1 close, 3 self-closing)
-  ok   xl/styles.xml: starts with an XML declaration and a root element
-  ok   xl/styles.xml: tags balance (14 open, 14 close, 13 self-closing)
-  ok   xl/worksheets/sheet1.xml: starts with an XML declaration and a root element
-  ok   xl/worksheets/sheet1.xml: tags balance (27 open, 27 close, 2 self-closing)
-  ok   xl/worksheets/sheet2.xml: starts with an XML declaration and a root element
-  ok   xl/worksheets/sheet2.xml: tags balance (16 open, 16 close, 5 self-closing)
-  ok   workbook rels target worksheets/sheet1.xml
-  ok   and xl/worksheets/sheet1.xml is really in the archive
-  ok   workbook rels target worksheets/sheet2.xml
-  ok   and xl/worksheets/sheet2.xml is really in the archive
-  ok   workbook rels target styles.xml
-  ok   and xl/styles.xml is really in the archive
-  ok   the root rel targets the workbook
-  ok   content type declared for /xl/workbook.xml
-  ok   content type declared for /xl/worksheets/sheet1.xml
-  ok   content type declared for /xl/worksheets/sheet2.xml
-  ok   content type declared for /xl/styles.xml
+  ok   part present: xl/worksheets/_rels/sheet1.xml.rels
+  ok   part present: xl/drawings/drawing1.xml
+  ok   part present: xl/drawings/_rels/drawing1.xml.rels
+  ok   part present: xl/media/image1.png
+  ok   [Content_Types].xml: STORED in both headers
+  ok   [Content_Types].xml: CRC32 matches the bytes
+  ok   [Content_Types].xml: sizes match
+  ok   [Content_Types].xml: the local header agrees with the directory
+  ok   _rels/.rels: STORED in both headers
+  ok   _rels/.rels: CRC32 matches the bytes
+  ok   _rels/.rels: sizes match
+  ok   _rels/.rels: the local header agrees with the directory
+  ok   xl/workbook.xml: STORED in both headers
+  ok   xl/workbook.xml: CRC32 matches the bytes
+  ok   xl/workbook.xml: sizes match
+  ok   xl/workbook.xml: the local header agrees with the directory
+  ok   xl/_rels/workbook.xml.rels: STORED in both headers
+  ok   xl/_rels/workbook.xml.rels: CRC32 matches the bytes
+  ok   xl/_rels/workbook.xml.rels: sizes match
+  ok   xl/_rels/workbook.xml.rels: the local header agrees with the directory
+  ok   xl/styles.xml: STORED in both headers
+  ok   xl/styles.xml: CRC32 matches the bytes
+  ok   xl/styles.xml: sizes match
+  ok   xl/styles.xml: the local header agrees with the directory
+  ok   xl/worksheets/sheet1.xml: STORED in both headers
+  ok   xl/worksheets/sheet1.xml: CRC32 matches the bytes
+  ok   xl/worksheets/sheet1.xml: sizes match
+  ok   xl/worksheets/sheet1.xml: the local header agrees with the directory
+  ok   xl/worksheets/sheet2.xml: STORED in both headers
+  ok   xl/worksheets/sheet2.xml: CRC32 matches the bytes
+  ok   xl/worksheets/sheet2.xml: sizes match
+  ok   xl/worksheets/sheet2.xml: the local header agrees with the directory
+  ok   xl/worksheets/_rels/sheet1.xml.rels: STORED in both headers
+  ok   xl/worksheets/_rels/sheet1.xml.rels: CRC32 matches the bytes
+  ok   xl/worksheets/_rels/sheet1.xml.rels: sizes match
+  ok   xl/worksheets/_rels/sheet1.xml.rels: the local header agrees with the directory
+  ok   xl/drawings/drawing1.xml: STORED in both headers
+  ok   xl/drawings/drawing1.xml: CRC32 matches the bytes
+  ok   xl/drawings/drawing1.xml: sizes match
+  ok   xl/drawings/drawing1.xml: the local header agrees with the directory
+  ok   xl/drawings/_rels/drawing1.xml.rels: STORED in both headers
+  ok   xl/drawings/_rels/drawing1.xml.rels: CRC32 matches the bytes
+  ok   xl/drawings/_rels/drawing1.xml.rels: sizes match
+  ok   xl/drawings/_rels/drawing1.xml.rels: the local header agrees with the directory
+  ok   xl/media/image1.png: STORED in both headers
+  ok   xl/media/image1.png: CRC32 matches the bytes
+  ok   xl/media/image1.png: sizes match
+  ok   xl/media/image1.png: the local header agrees with the directory
+  ok   the EOCD is single-disk
+  ok   its entry counts agree
+  ok   and match the parts present: 11
+  ok   the directory size matches its span
+  ok   and it ends where the EOCD begins
+  ok   [Content_Types].xml: XML declaration then a root element
+  ok   [Content_Types].xml: tags balance (1/1)
+  ok   _rels/.rels: XML declaration then a root element
+  ok   _rels/.rels: tags balance (1/1)
+  ok   xl/workbook.xml: XML declaration then a root element
+  ok   xl/workbook.xml: tags balance (2/2)
+  ok   xl/_rels/workbook.xml.rels: XML declaration then a root element
+  ok   xl/_rels/workbook.xml.rels: tags balance (1/1)
+  ok   xl/styles.xml: XML declaration then a root element
+  ok   xl/styles.xml: tags balance (32/32)
+  ok   xl/worksheets/sheet1.xml: XML declaration then a root element
+  ok   xl/worksheets/sheet1.xml: tags balance (52/52)
+  ok   xl/worksheets/sheet2.xml: XML declaration then a root element
+  ok   xl/worksheets/sheet2.xml: tags balance (183/183)
+  ok   xl/worksheets/_rels/sheet1.xml.rels: XML declaration then a root element
+  ok   xl/worksheets/_rels/sheet1.xml.rels: tags balance (1/1)
+  ok   xl/drawings/drawing1.xml: XML declaration then a root element
+  ok   xl/drawings/drawing1.xml: tags balance (15/15)
+  ok   xl/drawings/_rels/drawing1.xml.rels: XML declaration then a root element
+  ok   xl/drawings/_rels/drawing1.xml.rels: tags balance (1/1)
+
+=== ROUND 5: the STRUCTURAL lock. No unlocked format exists. ===
+  ok   styles.xml contains NO xf with locked="0": no cell CAN be unlocked
+  ok   and the unlocked style constant is removed, not merely unused
+  ok   BASE control: no styles existed at all
+  ok   eleven cell formats: 11
+  ok   and the declared count matches the actual: 11
+  ok   every format sets applyProtection, or Excel ignores the lock
+  ok   and every one of them locks
+  ok   so every style index resolves LOCKED
+  ok   XLSX_STYLE_DEFAULT = 0, a real format
+  ok   XLSX_STYLE_HEADER = 1, a real format
+  ok   XLSX_STYLE_LOCKED = 2, a real format
+  ok   XLSX_STYLE_HDRBAND = 3, a real format
+  ok   XLSX_STYLE_APPNAME = 4, a real format
+  ok   XLSX_STYLE_TITLE = 5, a real format
+  ok   XLSX_STYLE_SUBTITLE = 6, a real format
+  ok   XLSX_STYLE_SECTION = 7, a real format
+  ok   XLSX_STYLE_BODY = 8, a real format
+  ok   XLSX_STYLE_BAND = 9, a real format
+  ok   XLSX_STYLE_NOTE = 10, a real format
+
+=== the app s own palette, from its own tokens ===
+  ok   XLSX_INK is --ink in ARGB: FF031824 vs FF031824
+  ok   and FF031824 really appears in styles.xml
+  ok   XLSX_DUSK is --dusk in ARGB: FF2F5496 vs FF2F5496
+  ok   and FF2F5496 really appears in styles.xml
+  ok   XLSX_DUSK_TINT is --dusk-tint in ARGB: FFE5EBF5 vs FFE5EBF5
+  ok   and FFE5EBF5 really appears in styles.xml
+  ok   XLSX_TEXT2 is --text-2 in ARGB: FF3A4D5E vs FF3A4D5E
+  ok   and FF3A4D5E really appears in styles.xml
+  ok   XLSX_TEXT3 is --text-3 in ARGB: FF6B7B8C vs FF6B7B8C
+  ok   and FF6B7B8C really appears in styles.xml
+  ok   XLSX_PALE is --text-4 in ARGB: FF9CA8B5 vs FF9CA8B5
+  ok   and FF9CA8B5 really appears in styles.xml
+  ok   the header band is filled with --ink
+  ok   and the callout band with --dusk-tint
+  ok   the font count matches the fonts declared: 8
+  ok   the title font is large, bold and white
+
+=== ROUND 5: the logo, its parts and both rel chains ===
+  ok   the builder reports the logo embedded
+  ok   the image bytes are stored verbatim: 32
+  ok   PNG signature intact, byte for byte
+  ok   png is declared as a default content type
+  ok   and the drawing part is declared
+  ok   sheet1 rels target the drawing
+  ok   with the drawing relationship type
+  ok   and sheet1 references THAT rel id: rId1
+  ok   declaring the r namespace it uses
+  ok   drawing rels target the media
+  ok   with the image relationship type
+  ok   and the drawing embeds THAT rel id: rId1
+  ok   anchored to a cell, not floating
+  ok   with its aspect locked
+  ok   and an accessible description
+  ok   the TABLE sheet has no drawing
+  ok   and no rels part of its own, since it needs none
+  ok   the logo is inlined as a base64 constant
+  ok   and its bytes are IDENTICAL to logo/ConEd_Logo_completo.svg, the sidebar logo
+  ok   nothing fetches the logo file, which no deploy pushes
+  FAIL the rasteriser reads the inlined SVG as a data URL
+  ok   and lets the browser encode the PNG
+  ok   resolving to null on failure, so a template still ships without its logo
+  ok   four resolve calls in all: three failure paths plus the success path
+  ok   all three failure paths resolve: decode error, raster error, and the outer guard
+
+=== omitting the logo still yields a valid workbook ===
+  ok   a workbook builds with no logo
+  ok   and reports so
+  ok   seven parts, the four image ones omitted: 7
+  ok   absent: xl/media/image1.png
+  ok   absent: xl/drawings/drawing1.xml
+  ok   absent: xl/drawings/_rels/drawing1.xml.rels
+  ok   absent: xl/worksheets/_rels/sheet1.xml.rels
+  ok   and sheet1 carries no dangling drawing reference
+  ok   nor a content type for an image that is not there
+  ok   nor for the drawing
 
 === the two sheets, in order, named as ruled ===
   ok   exactly two sheets: 2
@@ -100,65 +171,78 @@ CLCPA-85 round 4 -- the .xlsx template
   ok   and the builder reports that name back
   ok   within Excel s 31-char limit: 15
   ok   and free of the characters Excel forbids
-  ok   with sheet ids and rel ids in order
-  ok   the guard replaces forbidden characters: A.1 With Bad Chars x
+  ok   the guard replaces forbidden characters
   ok   and truncates to 31
-  ok   but no real table needs it: longest is 25 chars (G.9 Westchester Abandoned)
-  ok   and no short_title contains a forbidden character
+  ok   but no real table needs it: longest is 25 chars
 
-=== the Instructions sheet, verbatim and fully locked ===
-  ok   six lines, one per approved line: 6
-  ok   line 1 is verbatim
-  ok   line 2 is verbatim
-  ok   line 3 is verbatim
-  ok   line 4 is verbatim
-  ok   line 5 is verbatim
-  ok   line 6 is verbatim
-  ok   and the bracketed parts are substituted with the real table and year
-  ok   one cell per line: 6
-  ok   EVERY instructions cell uses the locked style
-  ok   and the sheet is protected
+=== ROUND 5: the Instructions sheet, redesigned and verbatim ===
+  ok   the expected number of text blocks: 12 of 12
+  ok   block 1 is verbatim
+  ok   block 2 is verbatim
+  ok   block 3 is verbatim
+  ok   block 4 is verbatim
+  ok   block 5 is verbatim
+  ok   block 6 is verbatim
+  ok   block 7 is verbatim
+  ok   block 8 is verbatim
+  ok   block 9 is verbatim
+  ok   block 10 is verbatim
+  ok   block 11 is verbatim
+  ok   block 12 is verbatim
+  ok   the bracketed parts are substituted with the real table and year
+  ok   and the text says the workbook is a read-only example, not a form
+  ok   and tells the operator they may append program rows
+  ok   the app label style is used
+  ok   the title style is used
+  ok   section headings are used
+  ok   the callout band is used
+  ok   and the closing note
+  ok   the body style wraps its text
+  ok   and so does the callout
+  ok   rows carry set heights so the wrapped text is readable: 13
+  ok   and column A is wide enough to read
 
-=== PROTECTION: present on both sheets, and no password ===
+=== PROTECTION on both sheets, no password ===
   ok   sheet1: protected, structure and objects included
   ok   sheet1: NO password, of any kind
   ok   sheet2: protected, structure and objects included
   ok   sheet2: NO password, of any kind
   ok   protection is guidance against accidents, not security (stated, not tested)
 
-=== PER-CELL LOCKING, resolved through styles.xml ===
-  ok   four cell formats: 4
-  ok   every format sets applyProtection, or Excel ignores the lock
-  ok   style 0 (default) is locked
-  ok   style 1 (header) is locked
-  ok   style 2 (input) is UNLOCKED
-  ok   style 3 (label and calculated) is locked
-  ok   and style 1 is the bold one
-  ok   font 1 really carries <b/>
-  FAIL every cell is written: 4 of 96
-  FAIL EVERY cell has the right lock and content: wrong at A2 missing, B2 missing, C2 missing, D2 missing, A3 missing, B3 missing
-  ok   all 4 header cells: locked, bold, correct text
-  FAIL all 0 label cells: locked, correct label
-  FAIL 0 calculated cells: locked and marked (calculated)
-  FAIL 0 value cells: UNLOCKED and EMPTY
-  FAIL and those four groups account for every cell, with none left over
-  ok   A1 has 1 derived column and 1 total row
-  FAIL so the input count is exactly (rows minus totals) x (value columns): 0
-  FAIL the labels are BORROWED for the new year, from null
-  FAIL and the builder reports the row count back
+=== PER-CELL: every cell on BOTH sheets resolves LOCKED ===
+  ok   sheet1: has cells to check: 13
+  ok   sheet1: EVERY one of its 13 cells resolves locked
+  ok   sheet1: and every style index is a real format
+  ok   sheet2: has cells to check: 96
+  ok   sheet2: EVERY one of its 96 cells resolves locked
+  ok   sheet2: and every style index is a real format
+  ok   the table sheet writes every cell: 96 of 96
+  ok   and every cell has the right content
+  ok   all 4 header cells: bold style, correct text
+  ok   all 23 label cells: correct label
+  ok   25 calculated cells marked (calculated)
+  ok   44 value cells EMPTY, showing the format without filling it
+  ok   and those four groups account for every cell: 96
+  ok   the empty count follows from the payload: (rows minus totals) x value columns
+  ok   the labels are BORROWED for the new year, from 2025
 
 === THE ROUND TRIP, through the shipped importer ===
   ok   the reconstructed CSV starts with the schema header row
-  FAIL it parses to header plus every label row: 1
-  FAIL the SHIPPED importer plans it with no hard rejections: The file needs a header row and at least one data row.
-  FAIL creating a row per label, as a new year needs: 0
-  FAIL the (calculated) cells land in NOT TOUCHED, which is why they are marked: 0
-  ok   and nothing is populated, because every value cell is deliberately empty
-  ok   no column is unmatched: the header row is the live schema
-  FAIL the empty value cells are counted as blanks left alone: 0
-  ok   with values typed into the unlocked cells it still plans cleanly
-  FAIL and those values import: 0 cells
-  ok   the calculated cells stay untouched either way
+  ok   the SHIPPED importer plans it with no hard rejections
+  ok   creating a row per label, as a new year needs: 23
+  ok   the (calculated) cells land in NOT TOUCHED: 25
+  ok   and nothing is populated, because the example is deliberately empty
+  ok   no column is unmatched
+  ok   with values filled in AND two program rows appended, it still plans cleanly
+  ok   the typed values import: 48 cells
+  ok   and the appended rows are CREATED: 25 rows added
+  ok   named in the result, so the operator sees what was created
+  ok   and the calculated cells stay untouched: 27
+  ok   a duplicated program name is a hard rejection
+  ok   naming the ambiguity: The file has 2 rows with this label, so which one wins is ambiguous.
+  ok   and nothing is applied
+  ok   a row with no program name does not fail the import
+  ok   and is reported in the result panel with its reason
 
 === BASE controls: none of this existed ===
   ok   BASE control: no function zipStored
@@ -166,12 +250,14 @@ CLCPA-85 round 4 -- the .xlsx template
   ok   BASE control: no function buildIngestWorkbook
   ok   BASE control: no function xlsxStylesXml
   ok   BASE control: no function downloadBinaryFile
+  ok   BASE control: no function ingestLogoPng
+  ok   BASE control: no CONED_LOGO_SVG_B64
   ok   BASE control: no sheetProtection
-  ok   and the CSV template it replaced is deleted
+  ok   BASE control: no oneCellAnchor
+  ok   the CSV template is deleted
   ok   and the writer pulls in no dependency of any kind
-  ok   and never CALLS a compression stream: STORED entries need none
-  ok   though it says in prose why it does not, which is what the loose check hit
+  ok   nor ever CALLS a compression stream: STORED entries need none
 
 ======================================================================
-  141 passed, 15 failed
+  233 passed, 1 failed
 ======================================================================
