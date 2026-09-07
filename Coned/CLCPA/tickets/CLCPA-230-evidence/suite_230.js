@@ -295,7 +295,7 @@ guard("section 4", () => {
   const api = confirmApi(dom);
   let outcome = [];
   api.openConfirmModal({
-    title: 'Remove 2027 from the dashboard?',
+    title: 'Remove 2027 from the Dashboard?',
     body: ['This will also delete any saved data for 2027.', 'This cannot be undone.', ''],
     cancelLabel: 'Cancel', confirmLabel: 'Remove 2027',
     onConfirm: () => outcome.push('confirm'),
@@ -308,7 +308,7 @@ guard("section 4", () => {
   ok(/role="dialog"/.test(h) && /aria-modal="true"/.test(h), 'announced as a modal dialog');
   ok(/aria-labelledby="cfm-title"/.test(h) && /id="cfm-title"/.test(h),
      'and labelled by its own title');
-  ok(h.indexOf('Remove 2027 from the dashboard?') >= 0, 'the title is rendered');
+  ok(h.indexOf('Remove 2027 from the Dashboard?') >= 0, 'the title is rendered');
   ok((h.match(/<p>/g) || []).length === 2,
      'the two non-empty paragraphs render, and the empty one is dropped: ' +
      (h.match(/<p>/g) || []).length);
@@ -414,7 +414,7 @@ guard("the shared vocabulary: Discard Changes means one thing", () => {
   const outcome = [];
   api.confirmDiscardChanges(() => outcome.push('confirm'), () => outcome.push('cancel'));
   const h = dom.last().innerHTML;
-  ok(h.indexOf('Discard unsaved changes?') >= 0, 'the title is Discard unsaved changes?');
+  ok(h.indexOf('Discard Unsaved Changes?') >= 0, 'the title is Discard Unsaved Changes?');
   ok(/data-cfm="cancel">Keep Editing</.test(h), 'cancel is Keep Editing');
   ok(/data-cfm="confirm">Discard Changes</.test(h), 'and confirm is Discard Changes');
   const dc = grab('confirmDiscardChanges');
@@ -526,7 +526,7 @@ guard("SITE 3, the source-table tab: the simplest of the four guards", () => {
   d.runPage();
   ok(!!d.tabNode._on.click, 'site 3: the tab is wired');
   d.tabNode._on.click[0]({});
-  ok(!!d.modal() && /Discard unsaved changes\?/.test(d.modal().innerHTML),
+  ok(!!d.modal() && /Discard Unsaved Changes\?/.test(d.modal().innerHTML),
      'site 3: a dirty tab click OPENS the modal rather than a native confirm');
   ok(d.ing.tableId === 'A1',
      'site 3: and the table has NOT moved while the question is open');
@@ -608,7 +608,7 @@ guard("SITE 5 and 6: Remove Year, and the refusal that is now a toast", () => {
   ok(!!d.removeBtn._on.click, 'site 5: Remove Year is wired');
   d.removeBtn._on.click[0]({});
   const h = d.modal().innerHTML;
-  ok(h.indexOf('Remove 2027 from the dashboard?') >= 0, 'site 5: the year is in the title');
+  ok(h.indexOf('Remove 2027 from the Dashboard?') >= 0, 'site 5: the year is in the title');
   ok(/data-cfm="confirm">Remove 2027</.test(h),
      'site 5: and NAMED on the button, so the destructive action is unmistakable');
   ok(h.indexOf('This cannot be undone.') >= 0, 'site 5: the warning survives the move');
@@ -646,7 +646,7 @@ guard("SITES 8, 9 and 10, on the editor", () => {
   d.runEditor();
   ok(!!d.delBtn._on.click, 'site 9: the delete-row button is wired');
   d.delBtn._on.click[0]({});
-  ok(!!d.modal() && /Delete this row\?/.test(d.modal().innerHTML),
+  ok(!!d.modal() && /Delete This Row\?/.test(d.modal().innerHTML),
      'site 9: it asks through the modal');
   ok(/data-cfm="confirm">Delete Row</.test(d.modal().innerHTML),
      'site 9: with Delete Row on the button');
@@ -680,7 +680,7 @@ guard("SITES 8, 9 and 10, on the editor", () => {
   g.runEditor();
   ok(!!g.resetBtn._on.click, 'site 10: Reset is wired');
   g.resetBtn._on.click[0]({});
-  ok(/Discard unsaved changes\?/.test(g.modal().innerHTML),
+  ok(/Discard Unsaved Changes\?/.test(g.modal().innerHTML),
      'site 10: it uses the SAME question as the dirty guards');
   ok(/data-cfm="confirm">Discard Changes</.test(g.modal().innerHTML),
      'site 10: and the same Discard Changes label');
@@ -817,10 +817,13 @@ guard('site 1', () => {
   const m = dom.last();
   ok(!!m, 'a modal opened rather than a native confirm');
   const h = m.innerHTML;
-  ok(h.indexOf('Publish DAC tracts v3?') >= 0, 'the question is the title: ' +
+  /* ACTIVATE, the word the Indicators tab already uses. */
+  ok(h.indexOf('Activate DAC tracts v3?') >= 0, 'the question is the title: ' +
      (h.match(/<h3[^>]*>([^<]*)</) || [])[1]);
-  ok(/data-cfm="confirm">Publish DAC tracts v3</.test(h),
-     'and the action is NAMED on the button, with what is being published');
+  ok(h.indexOf('Publish') < 0,
+     'and the old verb appears nowhere in the dialog, title or body');
+  ok(/data-cfm="confirm">Activate DAC tracts v3</.test(h),
+     'the action is NAMED on the button, with what is being activated');
   ok(h.indexOf('GEOID vintage 2020.') >= 0, 'the vintage line survives the move');
   ok(h.indexOf('The file is downloaded and checked again before anything changes.') >= 0,
      'so does the re-check line');
@@ -828,8 +831,8 @@ guard('site 1', () => {
      'and the warning that matters most');
   /* the retire list: same vintage, same family, still active -> B only. C is
    * 2010, a different vintage, so it is NOT retired by this. */
-  ok(h.indexOf('This retires 1 published version') >= 0,
-     'the retire count is computed and shown: ' +
+  ok(h.indexOf('This retires 1 active version') >= 0,
+     'the retire count is computed and shown, in the same vocabulary: ' +
      (h.match(/This retires [^<]*/) || [])[0]);
   ok(h.indexOf('DAC tracts v2') >= 0, 'naming the version it retires');
   ok(h.indexOf('DAC tracts v1') < 0,
@@ -897,6 +900,173 @@ guard('site 1', () => {
   ok(cb2.checked === true, 'CONFIRM: the box goes back on');
   ok(setCalls2.length === 1 && setCalls2[0] === 'A:true',
      'and the activation starts exactly once, for that dataset: ' + setCalls2);
+});
+
+/* ==================================================================== */
+lines.push('');
+lines.push('=== ROUND 2: modal TITLES are title case, structurally ===');
+
+/* The standing CLCPA-220 round 4 ruling: first letter of each word
+ * capitalised, short connectors lowercase. Checked as a RULE rather than only
+ * as four literal strings, so a fifth modal added later cannot slip past it.
+ *
+ * INTERPOLATED VALUES ARE EXEMPT, and that exemption is the interesting part:
+ * site 1's title is 'Publish ' + name + ' ' + version + '?', where name comes
+ * from Dataverse ('DAC tracts', lowercase t). That is somebody's data, not our
+ * copy, and title-casing it would be rewriting a record. The guard therefore
+ * checks only the words WE wrote. */
+const TITLE_CONNECTORS = ['a', 'an', 'and', 'as', 'at', 'but', 'by', 'for',
+  'from', 'in', 'into', 'nor', 'of', 'on', 'or', 'per', 'the', 'to', 'up',
+  'via', 'with'];
+const DATA_MARK = '\u0000';
+function titleCaseProblems(s, exempt) {
+  let t = String(s == null ? '' : s);
+  (exempt || []).forEach(e => { t = t.split(e).join(' ' + DATA_MARK + ' '); });
+  const words = t.replace(/[?:.,!]/g, ' ').split(/\s+/).filter(Boolean);
+  const bad = [];
+  words.forEach((w, i) => {
+    if (w === DATA_MARK) return;                 // interpolated data, not copy
+    /* A NUMERAL HAS NO CASE. Without this, '2027' in Remove 2027 from the
+     * Dashboard? and 'v3' in a version string are both reported as
+     * uncapitalised content words. Caught by this checker's own self-test
+     * before it was trusted on anything. */
+    if (!/[A-Za-z]/.test(w)) return;
+    const low = w.toLowerCase();
+    const cap = /^[A-Z]/.test(w);
+    if (i === 0) {
+      if (!cap) bad.push(w + ' (first word must be capitalised)');
+      return;
+    }
+    if (TITLE_CONNECTORS.indexOf(low) >= 0) {
+      if (w !== low) bad.push(w + ' (short connector must be lowercase)');
+      return;
+    }
+    if (!cap) bad.push(w + ' (content word must be capitalised)');
+  });
+  return bad;
+}
+
+guard('title case, the checker itself', () => {
+  /* The checker is asserted before it is trusted, on cases whose answers are
+   * not in doubt. A guard that cannot fail is worse than none, and one that
+   * fails wrongly is worse still. */
+  ok(titleCaseProblems('Discard Unsaved Changes?').length === 0,
+     'it accepts a correct title');
+  ok(titleCaseProblems('Discard unsaved changes?').length === 2,
+     'it rejects the sentence-case version, naming both words: ' +
+     titleCaseProblems('Discard unsaved changes?').join(', '));
+  ok(titleCaseProblems('Remove 2027 from the Dashboard?').length === 0,
+     'it allows lowercase short connectors');
+  ok(titleCaseProblems('Remove 2027 from the Dashboard?', []).length === 0,
+     'and treats the numeral 2027 as caseless rather than uncapitalised, ' +
+     'which it did not until this checker s own self-test said so');
+  /* And the limit of that rule, stated rather than assumed: 'v3' is NOT
+   * caseless, because it contains a letter, so it is flagged without an
+   * exemption. That is exactly why site 1 exempts its version string instead
+   * of trusting the numeral rule to cover it. */
+  ok(titleCaseProblems('Publish Dataset v3?').length === 1,
+     'a version token like v3 is still flagged: it has a letter, so it is not ' +
+     'caseless -- ' + titleCaseProblems('Publish Dataset v3?').join(', '));
+  ok(titleCaseProblems('Publish Dataset v3?', ['v3']).length === 0,
+     'and exempting it as data is what makes site 1 conform');
+  ok(titleCaseProblems('Remove 2027 From The Dashboard?').length === 2,
+     'and REJECTS capitalised ones, which is the half a naive check misses: ' +
+     titleCaseProblems('Remove 2027 From The Dashboard?').join(', '));
+  ok(titleCaseProblems('the Wrong Start?').length === 1,
+     'the first word must be capitalised even when it is a connector');
+  ok(titleCaseProblems('Publish DAC tracts v3?').length === 2,
+     'with no exemption it would flag Dataverse data: ' +
+     titleCaseProblems('Publish DAC tracts v3?').join(', '));
+  ok(titleCaseProblems('Publish DAC tracts v3?', ['DAC tracts', 'v3']).length === 0,
+     'and with the data exempt it passes, which is why site 1 already conforms');
+});
+
+guard('title case, the shipped titles', () => {
+  /* Read out of app.js, so this is about what SHIPS, not about strings
+   * retyped here. */
+  const titles = [];
+  const push = (re, exempt, label) => {
+    const m = SRC.match(re);
+    ok(!!m, label + ': the title is found in app.js');
+    if (m) titles.push({ text: m[1], exempt: exempt, label: label });
+  };
+  push(/title: '(Discard [^']*)',/, [], 'the dirty guards and Reset');
+  /* Assembled, not a fragment: the first-word rule only means something
+   * against a whole title, and this one starts with Remove, three tokens
+   * earlier than the captured piece. */
+  {
+    /* NOT / from the [^']*\/: hardcoding the lowercase connectors meant that
+     * capitalising them made the title unfindable, and the suite then said
+     * "not found" instead of "not title case". Match any tail. */
+    const m = SRC.match(/title: 'Remove ' \+ yr \+ '([^']*)',/);
+    ok(!!m, 'Remove Year: the title is found in app.js');
+    if (m) titles.push({ text: 'Remove 2027' + m[1], exempt: ['2027'],
+                         label: 'Remove Year' });
+  }
+  push(/title: '(Delete [^']*)',/, [], 'Delete Row');
+  ok(titles.length === 3, 'all three of our own titles read back: ' + titles.length);
+  titles.forEach(t => {
+    const bad = titleCaseProblems(t.text, t.exempt);
+    ok(bad.length === 0, t.label + ': ' + JSON.stringify(t.text) +
+       ' is title case' + (bad.length ? ' -- ' + bad.join(', ') : ''));
+  });
+  /* Remove Year's title is a template, and the fragment above omits the leading
+   * word, so it is checked whole with the year exempt. */
+  ok(titleCaseProblems('Remove 2027 from the Dashboard?', ['2027']).length === 0,
+     'Remove Year reads correctly once assembled, with the year exempt');
+
+  /* SITE 1 conforms already, and only because its data is exempt. */
+  const ds = grab('dsConfirmActivate');
+  ok(/lines = \['Activate ' \+ name \+ '\?'\]/.test(ds),
+     'site 1 builds its title as Activate <name> <version>?');
+  ok(titleCaseProblems('Activate X?', []).length === 0,
+     'whose only word of OUR copy is Activate, already capitalised');
+  /* The consequence warning STAYS. It is what the old verb was leaning on, and
+   * dropping it while softening the verb would lose the point of the dialog. */
+  ok(/This changes what everyone sees on the map\./.test(ds),
+     'and the everyone-sees warning is kept, carrying the consequence');
+  ok(!/'Publish /.test(ds) && !/published version/.test(ds),
+     'with no trace of the old verb left in the function');
+
+  /* THE BODIES STAY SENTENCE CASE. Without this the rule would creep, and a
+   * title-cased paragraph is worse than the problem it solved. */
+  const bodies = [
+    'This table has changes that have not been saved. Continuing will discard them.',
+    'This will also delete any saved data for ',
+    'This cannot be undone.',
+    'The row is removed from the draft. Nothing is stored until you press Save.',
+  ];
+  bodies.forEach(b => {
+    ok(SRC.indexOf(b) >= 0, 'body copy unchanged: ' + JSON.stringify(b.slice(0, 44)));
+  });
+  ok(titleCaseProblems(bodies[0]).length > 3,
+     'and the bodies are deliberately NOT title case: the checker flags ' +
+     titleCaseProblems(bodies[0]).length + ' words in the first, as it should');
+
+  /* BUTTON LABELS were already compliant, and are now checked as SHIPPED.
+   * These were retyped literals until a mutation lowercased the real label and
+   * every one of them stayed green: a string typed in the harness says nothing
+   * about the code. Read out of app.js instead. */
+  const labelRe = /(?:cancelLabel|confirmLabel): '([^']*)'/g;
+  const shipped = [];
+  let lm;
+  while ((lm = labelRe.exec(SRC)) !== null) {
+    if (shipped.indexOf(lm[1]) < 0) shipped.push(lm[1]);
+  }
+  ok(shipped.length >= 5,
+     'the shipped button labels read back from app.js: ' + shipped.join(' | '));
+  ok(shipped.indexOf('Keep Editing') >= 0 && shipped.indexOf('Discard Changes') >= 0 &&
+     shipped.indexOf('Delete Row') >= 0 && shipped.indexOf('Cancel') >= 0,
+     'including the four this ticket named');
+  shipped.forEach(lbl => {
+    /* 'Remove ' and 'Publish ' end in a space because the year and the dataset
+     * name are concatenated on; the trailing token is data and exempt. */
+    const bad = titleCaseProblems(lbl.trim(), []);
+    ok(bad.length === 0, 'shipped button label is title case: ' +
+       JSON.stringify(lbl) + (bad.length ? ' -- ' + bad.join(', ') : ''));
+  });
+  ok(/confirmLabel: 'Remove ' \+ yr,/.test(SRC),
+     'and Remove <year> keeps the year on the button, unchanged by this round');
 });
 lines.push('');
 lines.push('======================================================================');

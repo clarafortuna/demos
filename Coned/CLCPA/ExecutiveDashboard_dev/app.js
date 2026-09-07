@@ -18542,13 +18542,21 @@ function wireHTooltips() {
       r.datasetKey === rec.datasetKey && r.dvId !== rec.dvId && r.active !== false &&
       (isTerr || String(r.geoidVintage || '') === String(rec.geoidVintage || '')));
     const name = (rec.name || rec.datasetKey) + ' ' + rec.version;
-    const lines = ['Publish ' + name + '?'];
+    /* ACTIVATE, not Publish: the word the DAC Indicators tab already uses on
+     * screen, so the control and the confirmation say the same thing. Title
+     * case is satisfied by the verb alone -- `name` is the dataset's own name
+     * and version from Dataverse, and title-casing somebody's record would be
+     * rewriting it. */
+    const lines = ['Activate ' + name + '?'];
     if (rec.geoidVintage) lines.push('GEOID vintage ' + rec.geoidVintage + '.');
     lines.push('');
     lines.push('The file is downloaded and checked again before anything changes.');
     if (sameFamily.length) {
       lines.push('');
-      lines.push('This retires ' + sameFamily.length + ' published version' +
+      /* ACTIVE, not published, for the same reason: this is the list of
+       * versions that are currently active, and the Active pill is what the
+       * operator sees against each of them. */
+      lines.push('This retires ' + sameFamily.length + ' active version' +
         (sameFamily.length === 1 ? '' : 's') + ':');
       sameFamily.forEach(r => lines.push('  ' + (r.name || r.datasetKey) + ' ' + r.version));
       lines.push('');
@@ -18567,7 +18575,7 @@ function wireHTooltips() {
       title: lines[0],
       body: lines.slice(1).map(t => String(t).trim()),
       cancelLabel: 'Cancel',
-      confirmLabel: 'Publish ' + name,
+      confirmLabel: 'Activate ' + name,
       onConfirm: onConfirm,
     });
     return true;
@@ -19518,7 +19526,7 @@ function wireHTooltips() {
          * The whole of the old handler's body moved into onConfirm. It could
          * not stay where it was: window.confirm blocked and this does not. */
         openConfirmModal({
-          title: 'Remove ' + yr + ' from the dashboard?',
+          title: 'Remove ' + yr + ' from the Dashboard?',
           body: ['This will also delete any saved data for ' + yr + '.',
                  'This cannot be undone.'],
           cancelLabel: 'Cancel',
@@ -19689,7 +19697,10 @@ function wireHTooltips() {
    */
   function confirmDiscardChanges(onConfirm, onCancel) {
     return openConfirmModal({
-      title: 'Discard unsaved changes?',
+      /* TITLE CASE per the standing CLCPA-220 round 4 ruling. The BODY stays
+       * sentence case: the ruling is about titles, and a sentence-cased
+       * paragraph is what a paragraph should be. */
+      title: 'Discard Unsaved Changes?',
       body: ['This table has changes that have not been saved. Continuing will discard them.'],
       cancelLabel: 'Keep Editing',
       confirmLabel: 'Discard Changes',
@@ -20015,7 +20026,7 @@ function wireHTooltips() {
           return;
         }
         openConfirmModal({
-          title: 'Delete this row?',
+          title: 'Delete This Row?',
           body: ['The row is removed from the draft. Nothing is stored until you press Save.'],
           cancelLabel: 'Cancel',
           confirmLabel: 'Delete Row',
