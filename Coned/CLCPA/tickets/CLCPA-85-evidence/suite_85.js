@@ -463,7 +463,15 @@ lines.push('=== ruling 1 control: the import cannot reach Dataverse ===');
 lines.push('');
 lines.push('=== the surfaces exist and say the right things ===');
 {
-  const panel = grab(SRC, 'renderIngestImport');
+  /* Round 2 moved the CONTROLS into the dialog and left the RECEIPT on the
+   * page, so these now check renderIngestImportBar.
+   *
+   * RENDERED, not read as source. The bar builds its sentence across two string
+   * literals, so /then you press/ never matched the source even though the
+   * output says exactly that: the check was testing the concatenation rather
+   * than the words the operator sees. */
+  const panel = new Function(
+    grab(SRC, 'renderIngestImportBar') + '\nreturn renderIngestImportBar();')();
   const result = grab(SRC, 'renderIngestImportResult');
   ok(/accept=\\"\.csv,text\/csv\\"/.test(panel) || /accept="\.csv,text\/csv"/.test(panel),
      'the file input accepts CSV only');

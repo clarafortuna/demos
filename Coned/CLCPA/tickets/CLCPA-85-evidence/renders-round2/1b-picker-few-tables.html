@@ -1,0 +1,46 @@
+<!doctype html><meta charset="utf-8"><title>Picker row: sections with few tables</title><link rel="stylesheet" href="../../../ExecutiveDashboard_dev/styles.css"><style>body{margin:0;background:var(--white-smoke)}.w{padding:18px 24px 40px}.n{font:12px/1.5 system-ui;color:#2A5A34;background:#E8F5E9;border:1px solid #A5D6A7;border-radius:6px;padding:8px 12px;margin:0 0 16px}</style><body><div class="w"><div class="n"><strong>From the shipped renderer.</strong> Ruling 1: the EXACT rule is reused, so few tables render exactly as the report pages render them, at repeat(10, 1fr). B has two tables, I has one. This is identity, not a variant.</div><h3 style="font:600 13px system-ui">B, two tables</h3>
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Report Data</h1>
+    <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p></div>
+    <button class="btn btn-primary" type="button">Add or Edit Data</button>
+  </div>
+  <div class="ingest-picker">
+    <div class="ingest-picker-field"><label>Section</label>
+      <select class="ingest-select"><option>A. Clean Energy Spending</option><option selected>B. EV Make-Ready Program</option><option>C. Demand Response</option><option>D. Distributed Energy Resources</option><option>E. Strategic Capital Investments</option><option>F. Customer Outages</option><option>G. Main Replacement Program</option><option>H. Leak Repairs</option><option>I. Clean Energy Jobs</option><option>J. Customer Operations</option></select></div>
+    <div class="ingest-picker-field"><label>Year</label>
+      <div class="ingest-year-row"><select class="ingest-select"><option selected>2025</option><option>2024</option><option>2023</option></select></div></div>
+  </div>
+  <div class="ingest-srctables">
+    <div class="ingest-srctables-label">Source Tables</div>
+    <div class="src-tabs-row"><button class="src-tab active" data-ingest-table="B1" type="button">
+        <span class="src-tab-num">B.1</span>
+        <span class="src-tab-title">Funding Spent</span>
+      </button><button class="src-tab" data-ingest-table="B2" type="button">
+        <span class="src-tab-num">B.2</span>
+        <span class="src-tab-title">Plugs Completed</span>
+      </button></div>
+  </div><hr style="margin:28px 0"><h3 style="font:600 13px system-ui">I, one table</h3>
+  <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div><h1>Report Data</h1>
+    <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p></div>
+    <button class="btn btn-primary" type="button">Add or Edit Data</button>
+  </div>
+  <div class="ingest-picker">
+    <div class="ingest-picker-field"><label>Section</label>
+      <select class="ingest-select"><option>A. Clean Energy Spending</option><option>B. EV Make-Ready Program</option><option>C. Demand Response</option><option>D. Distributed Energy Resources</option><option>E. Strategic Capital Investments</option><option>F. Customer Outages</option><option>G. Main Replacement Program</option><option>H. Leak Repairs</option><option selected>I. Clean Energy Jobs</option><option>J. Customer Operations</option></select></div>
+    <div class="ingest-picker-field"><label>Year</label>
+      <div class="ingest-year-row"><select class="ingest-select"><option selected>2025</option><option>2024</option><option>2023</option></select></div></div>
+  </div>
+  <div class="ingest-srctables">
+    <div class="ingest-srctables-label">Source Tables</div>
+    <div class="src-tabs-row"><button class="src-tab active" data-ingest-table="I1" type="button">
+        <span class="src-tab-num">I.1</span>
+        <span class="src-tab-title">Year Totals</span>
+      </button></div>
+  </div><hr style="margin:28px 0"><h3 style="font:600 13px system-ui">The same section on a REPORT page, for comparison</h3><div class="src-tabs-row"><button class="src-tab active" data-table-id="B1" type="button">
+        <span class="src-tab-num">B.1</span>
+        <span class="src-tab-title">Funding Spent</span>
+      </button><button class="src-tab" data-table-id="B2" type="button">
+        <span class="src-tab-num">B.2</span>
+        <span class="src-tab-title">Plugs Completed</span>
+      </button></div></div></body>

@@ -3325,21 +3325,49 @@ function utf8ByteLength(str) {
    * perTableView: { [tableId]: 'current' | 'both' }
    * activeTabId: which tab is currently selected
    */
+  /**
+   * THE source-tables tab row. One function, two callers: the report section
+   * pages and the Report Data editor.
+   *
+   * CLCPA-85 round 2 requires the two rows to look IDENTICAL, not similar, and
+   * a copy of this markup would be a promise maintained by hand. Following the
+   * CLCPA-221 round 2 precedent, it is PARAMETERISED instead: one rule draws
+   * both, so there is nothing to drift. Only the action attribute differs,
+   * because a click on the report page changes which table is displayed and a
+   * click on Report Data changes which table is edited.
+   *
+   * Everything visual stays here: .src-tabs-row, .src-tab, and the two-line
+   * .src-tab-num / .src-tab-title anatomy. Report Data adds a divider label
+   * OUTSIDE this row, which is why the row itself remains identical.
+   *
+   * The short name is t.short_title first, the SHORT_TITLES map second. All 52
+   * tables carry a payload short_title and all 52 map entries are identical to
+   * it, so the two cannot disagree today; SHORT_TITLES is a duplicate awaiting
+   * its own retirement ticket.
+   */
+  function renderSrcTabRow(tables, activeId, opts) {
+    if (!tables || !tables.length) return '';
+    const attr = (opts && opts.attr) || 'data-table-id';
+    const tabsHtml = tables.map(t => {
+      const tabNum = t.id.replace(/^([A-Z])(\d+)$/, '$1.$2');
+      const shortTitle = t.short_title || SHORT_TITLES[t.id] || '';
+      const isActive = t.id === activeId;
+      return `<button class="src-tab${isActive ? ' active' : ''}" ${attr}="${t.id}" type="button">
+        <span class="src-tab-num">${tabNum}</span>
+        ${shortTitle ? `<span class="src-tab-title">${escapeHtml(shortTitle)}</span>` : ''}
+      </button>`;
+    }).join('');
+    return `<div class="src-tabs-row">${tabsHtml}</div>`;
+  }
+
   function renderSourceTables(tables, year, perTableView, activeTabId) {
     if (!tables || tables.length === 0) return '';
 
     const activeId = activeTabId || tables[0].id;
 
     // -- Tab bar -------------------------------------------------
-    const tabsHtml = tables.map(t => {
-      const tabNum = t.id.replace(/^([A-Z])(\d+)$/, '$1.$2');
-      const shortTitle = t.short_title || SHORT_TITLES[t.id] || '';
-      const isActive = t.id === activeId;
-      return `<button class="src-tab${isActive ? ' active' : ''}" data-table-id="${t.id}" type="button">
-        <span class="src-tab-num">${tabNum}</span>
-        ${shortTitle ? `<span class="src-tab-title">${escapeHtml(shortTitle)}</span>` : ''}
-      </button>`;
-    }).join('');
+    // CLCPA-85 round 2: drawn by renderSrcTabRow, which Report Data also
+    // calls. See that function for why it is shared rather than copied.
 
     // -- Active table card ---------------------------------------
     const t = tables.find(x => x.id === activeId) || tables[0];
@@ -3429,7 +3457,7 @@ function utf8ByteLength(str) {
       </div>`;
 
     return `
-      <div class="src-tabs-row">${tabsHtml}</div>
+      ${renderSrcTabRow(tables, activeId)}
       <div class="table-card">
         <div class="table-card-header">
           <h3>${escapeHtml(cleanTitle)}</h3>
@@ -13735,9 +13763,13 @@ function wireHTooltips() {
     });
   }
 
-  function wireExportButton() {
-    document.getElementById('btn-export').addEventListener('click', () => window.print());
-  }
+  /* CLCPA-85 round 2: Export PDF is REMOVED from every page. The button, its
+   * wiring and its boot call are gone.
+   *
+   * The @media print block in styles.css STAYS. It hides the sidebar, restyles
+   * the top bar, sets page breaks and @page margins, and the browser's own
+   * print still uses all of it. Deleting it would quietly degrade printing for
+   * anyone who prints without the button, which is now everyone. */
 
   // ============================================================
   // ROUTER
@@ -13753,11 +13785,33 @@ function wireHTooltips() {
     return { name: 'notfound', path };
   }
 
+  /**
+   * CLCPA-85 round 2: hide the top bar's Reporting Year on Report Data only.
+   *
+   * Ruling 2, and the reason it is per route rather than global: the top bar is
+   * ONE header shared by every page, and 42 sites read state.year through it.
+   * The Executive Summary and Section views have no other year control, so a
+   * global removal would strand them with no way to change year. On Report Data
+   * the year lives in the picker row and the dialog, so the top bar copy is
+   * redundant there and only there.
+   *
+   * Hidden rather than removed: the SELECT stays in the DOM, so
+   * buildYearSelector() and the 42 readers keep working untouched.
+   */
+  function syncTopbarYear() {
+    const onIngest = state.route && state.route.name === 'ingest';
+    const label = document.querySelector('.topbar-actions .year-label');
+    const sel = document.getElementById('year-select');
+    if (label) label.hidden = !!onIngest;
+    if (sel) sel.hidden = !!onIngest;
+  }
+
   function onRouteChange() {
     state.route = parseRoute(location.hash);
     state.activeTableId = null;  // reset active tab when moving between sections
     updateActiveNav();
     updateCrumb();
+    syncTopbarYear();
     renderCurrentView();
   }
 
@@ -18401,6 +18455,7 @@ function wireHTooltips() {
           <h1>Report Data</h1>
           <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p>
         </div>
+        <button class="btn btn-primary" id="ingest-adddata" type="button">Add or Edit Data</button>
       </div>
 
       ${renderIngestPicker()}
@@ -18428,11 +18483,6 @@ function wireHTooltips() {
       `<option value="${letter}"${letter === i.sectionId ? ' selected' : ''}>${letter}. ${escapeHtml(sec.full_name)}</option>`
     ).join('');
 
-    const tableOpts = tablesForSec.map(t => {
-      const num = t.id.replace(/^([A-Z])(\d+)$/, '$1.$2');
-      const short = SHORT_TITLES[t.id] || t.short_title || '';
-      return `<option value="${t.id}"${t.id === i.tableId ? ' selected' : ''}>${num} · ${escapeHtml(short)}</option>`;
-    }).join('');
 
     const yearOpts = years.map(y => {
       const isAdded = addedYears.includes(y);
@@ -18446,6 +18496,12 @@ function wireHTooltips() {
     // years — never seed years or years that hold data.
     const removeYearBtn = `<button id="ingest-remove-year" class="ingest-year-remove" type="button" hidden>× Remove</button>`;
 
+    /* CLCPA-85 round 2: the TABLE dropdown is replaced by the shared source
+     * tables row, and + Add year leaves this row for the Add or Edit Data
+     * dialog in the page header. Section and Year stay as dropdowns.
+     *
+     * The divider label sits OUTSIDE .src-tabs-row, so the row itself stays
+     * character-identical to the one the report pages draw. */
     return `
       <div class="ingest-picker">
         <div class="ingest-picker-field">
@@ -18453,17 +18509,16 @@ function wireHTooltips() {
           <select id="ingest-section" class="ingest-select">${secOpts}</select>
         </div>
         <div class="ingest-picker-field">
-          <label>Table</label>
-          <select id="ingest-table" class="ingest-select">${tableOpts}</select>
-        </div>
-        <div class="ingest-picker-field">
           <label>Year</label>
           <div class="ingest-year-row">
             <select id="ingest-year" class="ingest-select">${yearOpts}</select>
-            <button id="ingest-add-year" class="ingest-year-add" type="button" title="Add a new reporting year">+ Add year</button>
           </div>
           ${removeYearBtn}
         </div>
+      </div>
+      <div class="ingest-srctables">
+        <div class="ingest-srctables-label">Source Tables</div>
+        ${renderSrcTabRow(tablesForSec, i.tableId, { attr: 'data-ingest-table' })}
       </div>`;
   }
 
@@ -18474,21 +18529,36 @@ function wireHTooltips() {
    * year the picker above has selected, which is what the label beside the
    * buttons says out loud.
    */
+  /**
+   * The import CONTROLS. Round 2 moves these off the page and into the Add or
+   * Edit Data dialog, which is the one home of the add and import workflow.
+   *
+   * noteExtra lets the Add path say what a brand new year's template contains,
+   * without a second copy of the bar.
+   */
+  function renderIngestImportBar(noteExtra) {
+    return '<div class="ingest-import">' +
+      '<div class="ingest-import-bar">' +
+      '<label class="btn btn-secondary ingest-import-btn">Import From File' +
+      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden /></label>' +
+      '<button type="button" class="btn btn-link" id="ingest-template">' +
+      'Download Template</button>' +
+      '<span class="ingest-import-note">CSV only. Save Excel files as CSV ' +
+      'first. Values land in the draft on the page for you to review, then you ' +
+      'press Save.' + (noteExtra ? ' ' + noteExtra : '') + '</span>' +
+      '</div></div>';
+  }
+
+  /**
+   * The RECEIPT, on the page. Ruling 4: the dialog closes after an import, a
+   * rejected one included, and the report renders beside the draft it
+   * describes. A dialog holding the report would sit on top of the very thing
+   * it asks the operator to inspect.
+   */
   function renderIngestImport() {
     const i = state.ingest;
     const r = i && i.importResult;
-    return '<div class="ingest-import">' +
-      '<div class="ingest-import-bar">' +
-      '<label class="btn btn-secondary ingest-import-btn">Import from file' +
-      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden /></label>' +
-      '<button type="button" class="btn btn-link" id="ingest-template">' +
-      'Download template</button>' +
-      '<span class="ingest-import-note">CSV only. Save Excel files as CSV ' +
-      'first. Values land in the draft below for you to review, then you press ' +
-      'Save.</span>' +
-      '</div>' +
-      (r ? renderIngestImportResult(r) : '') +
-      '</div>';
+    return r ? renderIngestImportResult(r) : '';
   }
 
   /** Populated, not touched, rejected: per ruling 2, nothing is silent. */
@@ -18827,11 +18897,14 @@ function wireHTooltips() {
 
   /** Wire all clicks and input events for the ingest page. */
   function wireIngestPage() {
-    wireIngestImport();
+    /* Round 2: the import controls are NOT on the page any more, so nothing is
+     * wired for them here. They are wired by the dialog that renders them. */
+    const addEdit = document.getElementById('ingest-adddata');
+    if (addEdit) addEdit.addEventListener('click', openAddEditDialog);
 
     // Picker dropdowns
     const selSection = document.getElementById('ingest-section');
-    const selTable = document.getElementById('ingest-table');
+    // CLCPA-85 round 2: the table dropdown is gone; the source tables row
     const selYear = document.getElementById('ingest-year');
 
     if (selSection) {
@@ -18851,18 +18924,24 @@ function wireHTooltips() {
       });
     }
 
-    if (selTable) {
-      selTable.addEventListener('change', e => {
-        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) {
-          e.target.value = state.ingest.tableId;
-          return;
-        }
-        state.ingest.tableId = e.target.value;
+    /* The source tables row replaces it. Same three steps as the dropdown had,
+     * plus a full page rerender rather than an editor one, because the ACTIVE
+     * TAB is part of the picker: re-rendering only the editor would leave the
+     * old tab looking selected.
+     *
+     * Bound per button rather than delegated, matching the dropdowns above:
+     * wireIngestPage() runs after every rerenderIngestAll(), so the fresh
+     * buttons are always wired. */
+    document.querySelectorAll('.src-tab[data-ingest-table]').forEach(tab => {
+      tab.addEventListener('click', () => {
+        const id = tab.getAttribute('data-ingest-table');
+        if (id === state.ingest.tableId) return;
+        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) return;
+        state.ingest.tableId = id;
         loadIngestDraft();
-        rerenderIngestEditor();
-        rerenderIngestHistory();
+        rerenderIngestAll();
       });
-    }
+    });
 
     if (selYear) {
       selYear.addEventListener('change', e => {
@@ -18881,16 +18960,6 @@ function wireHTooltips() {
     wireIngestEditor();
     wireIngestHistory();
 
-    // Add year button
-    const addYearBtn = document.getElementById('ingest-add-year');
-    if (addYearBtn) {
-      addYearBtn.addEventListener('click', () => {
-        if (state.ingest.dirty && !confirm('You have unsaved changes. Discard them to add a new year?')) {
-          return;
-        }
-        openAddYearModal();
-      });
-    }
 
     // Remove year button (only present when current year is user-added)
     const removeYearBtn = document.getElementById('ingest-remove-year');
@@ -18934,72 +19003,222 @@ function wireHTooltips() {
   }
 
   /** Open the "Add new year" modal. */
-  function openAddYearModal() {
-    const existingYears = allYears();
-    const maxYear = Math.max(...existingYears.map(y => parseInt(y, 10)));
-    const suggestedYear = String(maxYear + 1);
+  /**
+   * Validate and add a reporting year. Extracted from the old add-year modal so
+   * the Add or Edit Data dialog uses the SAME mechanics rather than a second
+   * copy of the validation.
+   *
+   * A year is GLOBAL: one Storage.addYear row and one entry in
+   * payload.meta.years. It creates NO table data, so every table opens with
+   * zero rows for it until something is saved.
+   */
+  function addReportingYear(raw) {
+    const existing = allYears();
+    const yr = parseInt(String(raw == null ? '' : raw).trim(), 10);
+    if (isNaN(yr)) return { ok: false, error: 'Please enter a valid year.' };
+    if (yr < 2000 || yr > 2100) return { ok: false, error: 'Year must be between 2000 and 2100.' };
+    const yrStr = String(yr);
+    if (existing.indexOf(yrStr) >= 0) return { ok: false, error: yrStr + ' already exists.' };
+
+    Storage.addYear(yrStr);
+    state.payload.meta.years.push(yrStr);
+    state.payload.meta.years.sort((x, y) => parseInt(y) - parseInt(x));
+    state.ingest.year = yrStr;
+    loadIngestDraft();
+    buildYearSelector();
+    return { ok: true, year: yrStr };
+  }
+
+  /**
+   * CLCPA-85 round 2: the ONE home of the add and import workflow.
+   *
+   * Replaces the old add-year modal, which lost its only caller when + Add year
+   * left the picker row. Its VALIDATION did not go with it: addReportingYear()
+   * holds that, and the Add panel below calls it, so there is one set of
+   * mechanics rather than two.
+   *
+   * The shell is the existing .ingest-modal-overlay / .ingest-modal pattern,
+   * unchanged: same head, body, foot, same close on X, Cancel and backdrop.
+   *
+   * Three states in one dialog, so neither path bounces the operator between
+   * two of them: 'choice', 'edit', 'add'.
+   */
+  function openAddEditDialog() {
+    const p = state.payload;
+    let mode = 'choice';
+    // The Edit panel's own selection, separate from the page's until confirmed:
+    // opening the dialog and cancelling must change nothing.
+    let sel = {
+      sectionId: state.ingest.sectionId,
+      tableId: state.ingest.tableId,
+      year: state.ingest.year,
+    };
 
     const modal = document.createElement('div');
     modal.className = 'ingest-modal-overlay';
-    modal.innerHTML = `
-      <div class="ingest-modal" role="dialog" aria-labelledby="add-year-modal-title">
-        <div class="ingest-modal-head">
-          <h3 id="add-year-modal-title">Add a new reporting year</h3>
-          <button class="ingest-modal-close" type="button" aria-label="Close">×</button>
-        </div>
-        <div class="ingest-modal-body">
-          <p>The new year will appear in the year selector everywhere. The dashboard will show "no data" until values are entered.</p>
-          <div class="ingest-modal-field">
-            <label for="add-year-input">Year</label>
-            <input id="add-year-input" type="number" min="2000" max="2100" step="1" value="${suggestedYear}" />
-          </div>
-          <div class="ingest-modal-hint">Existing years: ${existingYears.join(', ')}</div>
-          <div class="ingest-modal-error" id="add-year-error" style="display:none"></div>
-        </div>
-        <div class="ingest-modal-foot">
-          <button class="btn btn-secondary" id="add-year-cancel" type="button">Cancel</button>
-          <button class="btn btn-primary" id="add-year-confirm" type="button">Add year</button>
-        </div>
-      </div>`;
     document.body.appendChild(modal);
+    const close = () => {
+      document.removeEventListener('keydown', onEsc);
+      modal.remove();
+    };
+    const onEsc = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onEsc);
 
-    const close = () => modal.remove();
-    modal.querySelector('.ingest-modal-close').addEventListener('click', close);
-    modal.querySelector('#add-year-cancel').addEventListener('click', close);
-    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+    const tablesIn = (secId) => Object.values(p.tables)
+      .filter(t => t.section === secId)
+      .sort((x, y) => compareTableIds(x.id, y.id));
 
-    const input = modal.querySelector('#add-year-input');
-    const err = modal.querySelector('#add-year-error');
-    const showError = (msg) => { err.textContent = msg; err.style.display = 'block'; };
-    const clearError = () => { err.style.display = 'none'; };
-    input.addEventListener('input', clearError);
+    function bodyChoice() {
+      return '<div class="ingest-choice">' +
+        '<button class="ingest-choice-btn" type="button" data-go="edit">' +
+        '<strong>Edit Existing Data</strong>' +
+        '<span>Pick a section, table and year that already exist, and go straight ' +
+        'to editing them on the page.</span></button>' +
+        '<button class="ingest-choice-btn" type="button" data-go="add">' +
+        '<strong>Add a New Year</strong>' +
+        '<span>Create a reporting year that does not exist yet, then fill its ' +
+        'tables from a file or by typing.</span></button>' +
+        '</div>';
+    }
 
-    modal.querySelector('#add-year-confirm').addEventListener('click', () => {
-      const raw = input.value.trim();
-      const yr = parseInt(raw, 10);
-      if (isNaN(yr)) { showError('Please enter a valid year.'); return; }
-      if (yr < 2000 || yr > 2100) { showError('Year must be between 2000 and 2100.'); return; }
-      const yrStr = String(yr);
-      if (existingYears.includes(yrStr)) { showError(yrStr + ' already exists.'); return; }
+    function bodyEdit() {
+      const secOpts = Object.entries(p.sections).map(([l2, s]) =>
+        '<option value="' + l2 + '"' + (l2 === sel.sectionId ? ' selected' : '') + '>' +
+        l2 + '. ' + escapeHtml(s.full_name) + '</option>').join('');
+      const tabs = tablesIn(sel.sectionId);
+      const tblOpts = tabs.map(t =>
+        '<option value="' + t.id + '"' + (t.id === sel.tableId ? ' selected' : '') + '>' +
+        t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
+        escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
+      const yrOpts = allYears().map(y =>
+        '<option value="' + y + '"' + (y === sel.year ? ' selected' : '') + '>' + y +
+        '</option>').join('');
+      const tbl = p.tables[sel.tableId];
+      const rows = tbl ? getTableBody(tbl, sel.year).length : 0;
+      const hint = rows
+        ? sel.tableId + ' for ' + sel.year + ' has ' + rows + ' row' + (rows === 1 ? '' : 's') +
+          '. Opening it changes nothing until you save.'
+        : sel.tableId + ' has no rows for ' + sel.year + ' yet. Import a file or type ' +
+          'the values in.';
+      return '<div class="ingest-modal-field"><label for="dlg-section">Section</label>' +
+        '<select id="dlg-section" class="ingest-select">' + secOpts + '</select></div>' +
+        '<div class="ingest-modal-field"><label for="dlg-table">Table</label>' +
+        '<select id="dlg-table" class="ingest-select">' + tblOpts + '</select></div>' +
+        '<div class="ingest-modal-field"><label for="dlg-year">Year</label>' +
+        '<select id="dlg-year" class="ingest-select">' + yrOpts + '</select></div>' +
+        '<div class="ingest-modal-hint">' + escapeHtml(hint) + '</div>' +
+        '<hr class="ingest-modal-rule">' +
+        renderIngestImportBar();
+    }
 
-      // Persist
-      Storage.addYear(yrStr);
+    function bodyAdd() {
+      const years = allYears();
+      const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
+      const tabs = tablesIn(sel.sectionId);
+      const tblOpts = tabs.map(t =>
+        '<option value="' + t.id + '"' + (t.id === sel.tableId ? ' selected' : '') + '>' +
+        t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
+        escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
+      return '<p>A new year appears in the year selector everywhere. Every table ' +
+        'starts empty, and the dashboard shows no data for it until values are ' +
+        'entered and saved.</p>' +
+        '<div class="ingest-modal-field"><label for="dlg-newyear">Year</label>' +
+        '<input id="dlg-newyear" type="number" min="2000" max="2100" step="1" value="' +
+        suggested + '" /></div>' +
+        '<div class="ingest-modal-hint">Existing years: ' + years.join(', ') + '</div>' +
+        '<div class="ingest-modal-error" id="dlg-error" style="display:none"></div>' +
+        '<hr class="ingest-modal-rule">' +
+        '<div class="ingest-modal-field"><label for="dlg-table">Then fill this table first</label>' +
+        '<select id="dlg-table" class="ingest-select">' + tblOpts + '</select></div>' +
+        renderIngestImportBar('The template for a brand new year carries the row ' +
+          'labels from the most recent year that has them, with the values left blank.');
+    }
 
-      // Merge into in-memory meta.years and re-sort newest first
-      state.payload.meta.years.push(yrStr);
-      state.payload.meta.years.sort((a, b) => parseInt(b) - parseInt(a));
+    function foot() {
+      if (mode === 'choice') {
+        return '<button class="btn btn-secondary" type="button" data-act="cancel">Cancel</button>';
+      }
+      if (mode === 'edit') {
+        return '<button class="btn btn-secondary" type="button" data-act="back">Back</button>' +
+          '<button class="btn btn-primary" type="button" data-act="open">Open For Editing</button>';
+      }
+      return '<button class="btn btn-secondary" type="button" data-act="back">Back</button>' +
+        '<button class="btn btn-primary" type="button" data-act="addyear">Add Year</button>';
+    }
 
-      // Switch the ingest year picker to the new year
-      state.ingest.year = yrStr;
+    const titles = { choice: 'Add or Edit Data', edit: 'Edit Existing Data', add: 'Add a New Year' };
+
+    function draw() {
+      const body = mode === 'choice' ? bodyChoice() : mode === 'edit' ? bodyEdit() : bodyAdd();
+      modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
+        'aria-labelledby="dlg-title">' +
+        '<div class="ingest-modal-head"><h3 id="dlg-title">' + titles[mode] + '</h3>' +
+        '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
+        '<div class="ingest-modal-body">' + body + '</div>' +
+        '<div class="ingest-modal-foot">' + foot() + '</div></div>';
+      wire();
+    }
+
+    /* Applying the Edit selection is the ONE place the page's state changes, and
+     * it funnels through loadIngestDraft() exactly as the picker handlers do. */
+    function applySelection() {
+      state.ingest.sectionId = sel.sectionId;
+      state.ingest.tableId = sel.tableId;
+      state.ingest.year = sel.year;
       loadIngestDraft();
+    }
 
-      // Refresh the year selector in the header AND the ingest page
-      buildYearSelector();
-      close();
-      rerenderIngestAll();
-    });
+    function wire() {
+      modal.querySelector('.ingest-modal-close').addEventListener('click', close);
+      modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
 
-    setTimeout(() => input.focus(), 50);
+      modal.querySelectorAll('[data-go]').forEach(b => {
+        b.addEventListener('click', () => { mode = b.getAttribute('data-go'); draw(); });
+      });
+      const act = (name, fn) => {
+        const b = modal.querySelector('[data-act="' + name + '"]');
+        if (b) b.addEventListener('click', fn);
+      };
+      act('cancel', close);
+      act('back', () => { mode = 'choice'; draw(); });
+      act('open', () => {
+        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) return;
+        applySelection();
+        close();
+        rerenderIngestAll();
+      });
+      act('addyear', () => {
+        if (state.ingest.dirty && !confirm('You have unsaved changes. Discard them to add a new year?')) return;
+        const err = modal.querySelector('#dlg-error');
+        const res = addReportingYear((modal.querySelector('#dlg-newyear') || {}).value);
+        if (!res.ok) { err.textContent = res.error; err.style.display = 'block'; return; }
+        close();
+        rerenderIngestAll();
+      });
+
+      // Edit-panel selects. Changing section repicks the table, as the page does.
+      const s = modal.querySelector('#dlg-section');
+      if (s) s.addEventListener('change', (e) => {
+        sel.sectionId = e.target.value;
+        const ts = tablesIn(sel.sectionId);
+        sel.tableId = ts.length ? ts[0].id : null;
+        draw();
+      });
+      const t = modal.querySelector('#dlg-table');
+      if (t) t.addEventListener('change', (e) => { sel.tableId = e.target.value; draw(); });
+      const y = modal.querySelector('#dlg-year');
+      if (y) y.addEventListener('change', (e) => { sel.year = e.target.value; draw(); });
+
+      /* The import controls live here, but they act on the PAGE's target, so the
+       * selection is applied first. Then the dialog closes and the receipt
+       * renders beside the draft (ruling 4), a rejected import included. */
+      wireIngestImport({
+        beforeRead: () => { if (mode === 'edit') applySelection(); },
+        afterImport: () => { close(); rerenderIngestAll(); },
+      });
+    }
+
+    draw();
   }
 
   /** Wire the editor's cell inputs, add-row, delete-row, save, reset. */
@@ -19185,19 +19404,35 @@ function wireHTooltips() {
    * CLCPA-85 wiring. The file is read as text and planned; the plan is applied
    * only when it reports ok, so a rejected file leaves the draft untouched.
    */
-  function wireIngestImport() {
+  /**
+   * Round 2: the controls live in the dialog, so this takes two hooks.
+   *
+   *   beforeRead  applies the dialog's target before the file is read, so the
+   *               import lands where the operator chose rather than where the
+   *               page happened to be.
+   *   afterImport closes the dialog and redraws the page, for a REJECTED import
+   *               as well as a good one: the receipt reads beside the draft.
+   *
+   * Both default to nothing, so a page-mounted bar would still work.
+   */
+  function wireIngestImport(hooks) {
+    const h = hooks || {};
+    const before = h.beforeRead || function () {};
+    const after = h.afterImport || function () { rerenderIngestImport(); };
     const file = document.getElementById('ingest-file');
     if (file) {
       file.addEventListener('change', e => {
         const f = e.target.files && e.target.files[0];
         e.target.value = '';   // so re-picking the same file fires again
         if (!f) return;
+        if (state.ingest.dirty &&
+            !confirm('This will change the unsaved draft on the page. Continue?')) return;
+        before();
         const i = state.ingest;
-        if (i.dirty && !confirm('This will change the unsaved draft below. Continue?')) return;
         const reader = new FileReader();
         reader.onerror = () => {
           i.importResult = { ok: false, rejections: [{ why: 'The file could not be read.' }] };
-          rerenderIngestImport();
+          after();
         };
         reader.onload = () => {
           let res;
@@ -19209,12 +19444,10 @@ function wireHTooltips() {
               ((err && err.message) || String(err)) }] };
           }
           i.importResult = res;
-          if (res.ok) {
-            applyIngestImport(res);
-            rerenderIngestEditor();
-            refreshIngestStatus();
-          }
-          rerenderIngestImport();
+          if (res.ok) applyIngestImport(res);
+          // after() redraws the whole page, which covers the editor and the
+          // status bar, so the two targeted rerenders are no longer needed.
+          after();
         };
         reader.readAsText(f);
       });
@@ -19402,7 +19635,6 @@ function wireHTooltips() {
     // CLCPA-223: before the first render, so nothing flashes.
     applyOperatorGate();
     buildYearSelector();
-    wireExportButton();
 
     // Wire router and trigger initial render (which also wires tables)
     window.addEventListener('hashchange', onRouteChange);

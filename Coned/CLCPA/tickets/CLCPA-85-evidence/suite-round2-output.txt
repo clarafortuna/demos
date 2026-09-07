@@ -1,0 +1,168 @@
+======================================================================
+CLCPA-85 round 2 -- source tables row, the dialog, the removals
+======================================================================
+
+=== RULING 1: the two rows are IDENTICAL, at every table count ===
+  ok   the tab markup exists in exactly ONE place in the source
+  ok   exactly one definition of the shared renderer
+  ok   and exactly two callers: the report pages and Report Data
+  ok   compared every section at every active tab: 52 rows
+  ok   CHARACTER FOR CHARACTER identical with only the action attribute normalised: 52/52
+  ok   identical at 1 table (section I)
+  ok   identical at 2 tables (section B)
+  ok   identical at 4 tables (section D)
+  ok   identical at 5 tables (section C)
+  ok   identical at 9 tables (section J)
+  ok   identical at 10 tables (section G)
+  ok   the raw strings do differ, so the comparison is not vacuous
+  ok   each row carries its own action attribute on all ten buttons
+
+=== the report pages’ row did not change ===
+  ok   section A: byte-identical to the pre-85 build
+  ok   section B: byte-identical to the pre-85 build
+  ok   section C: byte-identical to the pre-85 build
+  ok   section D: byte-identical to the pre-85 build
+  ok   section E: byte-identical to the pre-85 build
+  ok   section F: byte-identical to the pre-85 build
+  ok   section G: byte-identical to the pre-85 build
+  ok   section H: byte-identical to the pre-85 build
+  ok   section I: byte-identical to the pre-85 build
+  ok   section J: byte-identical to the pre-85 build
+  ok   BASE control: the row was built inline before, which is what moved
+  ok   and the same literal is now inside the shared renderer
+  ok   .src-tabs-row and .src-tab are byte-identical in CSS too, so nothing was restyled
+  ok   the row is still repeat(10, 1fr), so few tables render exactly as the report pages render them
+
+=== the picker row: table dropdown out, tab row in ===
+  ok   the table dropdown is gone from the picker
+  ok   and so are the options it built
+  ok   the shared row is drawn with the Report Data action attribute
+  ok   the divider label is present
+  ok   and it sits OUTSIDE the row, above it
+  ok   + Add year has left the picker row
+  ok   the Remove year button stays, being a year action
+  ok   BASE control: the dropdown existed
+  ok   BASE control: so did + Add year
+  ok   the picker is two columns now
+  ok   BASE control: it was three, which is why it had to change
+  ok   the tabs are wired by their own attribute
+  ok   clicking the active tab is a no-op
+  ok   and the dirty guard is kept
+  ok   a tab click redraws the PAGE, so the active tab moves with it
+  ok   and not just the editor, which would leave the old tab looking selected
+
+=== the Add or Edit Data dialog ===
+  ok   the dialog exists
+  ok   the page header carries the one button, in title case
+  ok   and it opens the dialog
+  ok   reuses the existing shell class ingest-modal-overlay
+  ok   reuses the existing shell class ingest-modal-head
+  ok   reuses the existing shell class ingest-modal-body
+  ok   reuses the existing shell class ingest-modal-foot
+  ok   reuses the existing shell class ingest-modal-close
+  ok   it opens on the choice
+  ok   it has a bodyChoice state
+  ok   it has a bodyEdit state
+  ok   it has a bodyAdd state
+  ok   with both paths offered
+  ok   named in title case
+  ok   the Edit path applies its selection in one place
+  ok   and funnels through loadIngestDraft, exactly as the picker handlers do
+  ok   Open For Editing applies, then closes, landing the operator in inline editing
+  ok   the dialog keeps its OWN selection until confirmed, so Cancel changes nothing
+  ok   the Add path calls the shared add-year mechanics
+  ok   and states that a year is GLOBAL
+  ok   and that every table starts empty, which is the per-table truth
+  ok   the Edit path carries the import controls
+  ok   and the Add path carries them with the new-year template note
+  ok   wired from inside the dialog
+  ok   the target is applied BEFORE the file is read, so it lands where chosen
+  ok   and the dialog closes after, good import or bad
+  ok   Escape closes it
+  ok   so does a backdrop click
+  ok   and the Escape handler is removed on close, so handlers cannot accumulate
+
+=== the old add-year modal is GONE, its mechanics kept ===
+  ok   the dead modal is deleted
+  ok   with its markup
+  ok   BASE control: it existed
+  ok   its validation survives as addReportingYear
+  ok   same message as before: "Please enter a valid year."
+  ok   same message as before: "Year must be between 2000 and 2100."
+  ok   same message as before: "already exists."
+  ok   same persistence call
+  ok   and it still refreshes the header year selector
+  ok   exactly ONE place adds a year, so the two paths cannot diverge
+
+=== ruling 4: the receipt is on the PAGE, the controls are not ===
+  ok   the page renders the receipt and nothing else
+  ok   the control bar is NOT on the page
+  ok   and the receipt has its mount, above the editor
+  ok   both controls are in the bar, which only the dialog renders
+  ok   the bar has one definition and two dialog callers
+  ok   the page no longer wires the controls it does not render
+
+=== ruling 5: Export PDF is gone from every page ===
+  ok   the button markup is gone
+  ok   and its label
+  ok   the wiring function is gone
+  ok   and its boot call
+  ok   nothing calls window.print any more
+  ok   BASE control: button and wiring both existed
+  ok   the @media print block is KEPT
+  ok   still hiding the sidebar
+  ok   still setting page margins
+  ok   and byte-identical to before, so printing is unchanged
+
+=== ruling 2: Reporting Year hidden on Report Data ONLY ===
+  ok   there is a per-route sync
+  ok   keyed on the Report Data route
+  ok   hiding BOTH the label and the select
+  ok   and it runs on every route change
+  ok   the select stays in the DOM
+  ok   and so does its label
+  ok   nothing is removed from the DOM
+  ok   buildYearSelector still finds it, untouched
+  ok   because state.year has many readers: 44
+
+=== the dialog, EXECUTED against a DOM stub ===
+  ok   the dialog created a node and appended it to the body
+  ok   using the existing overlay class: ingest-modal-overlay
+  ok   it opens titled Add or Edit Data
+  ok   offering exactly two paths
+  ok   named in title case
+  ok   and the import controls are NOT on the choice screen
+  ok   both choice buttons are wired
+  ok   choosing Edit redraws the dialog into the Edit panel
+  ok   Edit has its dlg-section select
+  ok   Edit has its dlg-table select
+  ok   Edit has its dlg-year select
+  ok   and the import controls
+  ok   including the template download
+  ok   with a hint counting the real rows of the real target: 23
+  ok   and saying that opening it changes nothing
+  ok   and the confirm button
+  ok   the dialog wires the import with both hooks
+  ok   Open For Editing calls loadIngestDraft exactly once
+  ok   and redraws the page once
+  ok   landing on the chosen target
+  ok   the Add panel opens
+  ok   with a year input
+  ok   suggesting the next year: 2026
+  ok   and listing the existing ones
+  ok   stating that a year is GLOBAL
+  ok   and that every table starts empty
+  ok   and what a new year’s template contains
+  ok   with the Add Year action
+
+renders regenerated from the shipped code:
+   1-picker-source-tables.html
+   1b-picker-few-tables.html
+   2-dialog-choice.html
+   3-dialog-edit-path.html
+   4-dialog-add-path.html
+   5-topbar.html
+
+======================================================================
+  135 passed, 0 failed
+======================================================================

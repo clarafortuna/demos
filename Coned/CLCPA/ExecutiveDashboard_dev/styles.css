@@ -5341,7 +5341,9 @@ a.nav-item { text-decoration: none; }
 /* ---------- Picker bar ---------- */
 .ingest-picker {
   display: grid;
-  grid-template-columns: 2fr 2fr 1fr;
+  /* CLCPA-85 round 2: TWO fields now, not three. The table dropdown became the
+     source tables row below this bar, so the third column would sit empty. */
+  grid-template-columns: 2fr 1fr;
   gap: 12px;
   margin-bottom: 16px;
   padding: 14px 16px;
@@ -8158,6 +8160,49 @@ a.nav-item { text-decoration: none; }
 }
 .ds-dict-x:hover { color: var(--dusk); }
 .ds-dict-x:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
+
+/* ---- CLCPA-85 round 2: the source tables row and the dialog -------------
+
+   The ROW itself is .src-tabs-row / .src-tab, untouched, shared with the
+   report section pages through renderSrcTabRow(). Ruling 1 requires the two
+   to render identically, so nothing here overrides the row: these rules are
+   the WRAPPER and the divider label, which sit outside it. */
+.ingest-srctables { margin: 0 0 16px; }
+.ingest-srctables-label {
+  font-family: var(--font);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin: 0 0 6px;
+}
+
+/* The dialog's opening choice. Two targets, each stating its consequence. */
+.ingest-choice { display: grid; gap: 10px; }
+.ingest-choice-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  transition: border-color 0.15s ease;
+}
+.ingest-choice-btn:hover { border-color: var(--dusk); }
+.ingest-choice-btn:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
+.ingest-choice-btn strong {
+  display: block; font-size: 13px; color: var(--ink); margin-bottom: 3px;
+}
+.ingest-choice-btn span {
+  display: block; font-size: 12px; color: var(--text-2); line-height: 1.5;
+}
+
+/* The divider between choosing a target and acting on it. */
+.ingest-modal-rule { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
 
 /* ---- CLCPA-85: the Report Data import ---------------------------------
    Sits between the picker and the editor: the operator selects the target,
