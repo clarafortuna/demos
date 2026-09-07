@@ -84,6 +84,12 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   and says plainly that a bad file does not block the year
   ok   the summary has a box in the dialog
   ok   styled, with a distinct look when the file cannot be imported
+  ok   the resting background is transparent: transparent
+  ok   there is a scoped hover rule for the control
+  ok   and its hover background EQUALS its resting background: transparent
+  ok   scoped by id, so no other control is affected
+  ok   .btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85
+  ok   so the underline on hover is the SIBLING rule s own, not one invented here
   ok   the template reads the typed year
   ok   generates for the selected table
   ok   and names the file with that year, still with the BOM
@@ -226,5 +232,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  195 passed, 2 failed
+  201 passed, 2 failed
 ======================================================================

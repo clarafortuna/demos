@@ -8179,6 +8179,20 @@ a.nav-item { text-decoration: none; }
 }
 
 
+/* Download Template keeps its resting background on hover.
+
+   Where the dark fill came from: .btn:hover (line 112) sets
+   background: var(--ink-2) at specificity 0-2-0, which OUTRANKS
+   .btn-link { background: transparent } at 0-1-0. .btn-link:hover (line 5456)
+   sets only text-decoration, so it never contested the background and the
+   button inverted to dark.
+
+   Scoped to this control by id rather than fixing .btn-link:hover, per the R2
+   lesson: .btn-link is shared, and restyling a shared rule to fix one control
+   is what that lesson forbids. The UNDERLINE is not invented here: it is
+   .btn-link:hover s own hover, which already applies and is left alone. */
+#ingest-template:hover { background: transparent; }
+
 /* The staged file, in the Add New Year dialog.
 
    Revision 2 has no gating: every control is live and choosing a file STAGES

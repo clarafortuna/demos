@@ -268,6 +268,37 @@ lines.push('=== round 3: ONE STEP, every control live ===');
   ok(/\.ingest-staged \{/.test(css0) && /\.ingest-staged\.is-bad/.test(css0),
      'styled, with a distinct look when the file cannot be imported');
 
+  /* DOWNLOAD TEMPLATE keeps its resting background on hover.
+   *
+   * The dark fill came from .btn:hover (background: var(--ink-2), specificity
+   * 0-2-0) outranking .btn-link { background: transparent } (0-1-0);
+   * .btn-link:hover sets only text-decoration so it never contested it.
+   *
+   * Fixed SCOPED to this control by id, not by touching .btn-link:hover, which
+   * is shared: that is the R2 lesson. So the shared rules must be byte-identical
+   * to the pre-85 build, and that is asserted too. */
+  const restBg = (css0.match(/\.btn-link \{[^}]*background: ([^;]+);/) || [])[1];
+  ok(restBg === 'transparent', 'the resting background is transparent: ' + restBg);
+  const hoverRule = (css0.match(/#ingest-template:hover \{[^}]*\}/) || [])[0];
+  ok(!!hoverRule, 'there is a scoped hover rule for the control');
+  // Gated, not dereferenced: without the fix hoverRule is undefined and the
+  // suite CRASHED instead of naming the failure.
+  const hoverBg = hoverRule ? (hoverRule.match(/background: ([^;]+);/) || [])[1] : undefined;
+  ok(hoverBg === restBg,
+     'and its hover background EQUALS its resting background: ' + hoverBg);
+  ok(!!hoverRule && /#ingest-template:hover/.test(hoverRule),
+     'scoped by id, so no other control is affected');
+  // the shared rules are untouched
+  const shared = (c) => [
+    (c.match(/^\.btn:hover \{[^}]*\}/m) || [])[0],
+    (c.match(/^\.btn-link \{[^}]*\}/m) || [])[0],
+    (c.match(/^\.btn-link:hover \{[^}]*\}/m) || [])[0],
+  ].join('|');
+  ok(shared(css0) === shared(BASE_CSS),
+     '.btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85');
+  ok(/\.btn-link:hover \{ text-decoration: underline; \}/.test(css0),
+     'so the underline on hover is the SIBLING rule s own, not one invented here');
+
   /* the template is live from the start and uses the TYPED year */
   ok(/const y = typedYear\(\);/.test(dlg), 'the template reads the typed year');
   ok(/buildIngestTemplate\(sel\.tableId, y\)/.test(dlg), 'generates for the selected table');
