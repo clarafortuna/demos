@@ -1,0 +1,93 @@
+======================================================================
+CLCPA-235 -- an import may never end in silence
+======================================================================
+
+=== THE REPRO, verbatim, driven end to end ===
+  ok   standing on A1 / 2099 with an empty draft
+  ok   the dialog stages it and reports: 23 rows, 3 matching columns, 46 values ready to import.
+  ok   the dry run plans 23 rows, as the operator was told: 23
+  ok   the apply plans cleanly against the new year
+  ok   and lands 23 rows in the draft
+  ok   AFTER THE REDRAW the draft still holds its 23 rows -- this is the assertion the ticket exists for
+  ok   and the result survives the redraw
+  ok   and the panel RENDERS from it, rather than being erased first
+  ok   naming what was created: the panel mentions the 23 rows
+
+=== THE SHARED INVARIANT: draft OR panel, on every consuming path ===
+  ok   new year, clean file: the operator is left with a DRAFT and a PANEL
+  ok   new year, clean file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+  ok   existing year, clean file: the operator is left with a DRAFT and a PANEL
+  ok   existing year, clean file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+  ok   new year, MIS-ENCODED file: the operator is left with a PANEL
+  ok   new year, MIS-ENCODED file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+  ok   existing year, MIS-ENCODED file: the operator is left with a PANEL
+  ok   existing year, MIS-ENCODED file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+  ok   new year, unreadable file: the operator is left with a PANEL
+  ok   new year, unreadable file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+
+=== THE MATRIX, all four cells ===
+  ok   (a) CSV (Comma delimited), new year: REJECTED WHOLE, so no rows are created
+  ok   (a) CSV (Comma delimited), new year: nothing added, nothing applied
+  ok   (a) CSV (Comma delimited), new year: and the reason names the encoding
+  ok   (b) CSV UTF-8, new year: accepted
+  ok   (b) CSV UTF-8, new year: 46 values planned, 23 rows created
+  ok   (c) CSV (Comma delimited), existing year: REJECTED WHOLE, so no rows are created
+  ok   (c) CSV (Comma delimited), existing year: nothing added, nothing applied
+  ok   (c) CSV (Comma delimited), existing year: and the reason names the encoding
+  ok   (d) CSV UTF-8, existing year: accepted
+  ok   (d) CSV UTF-8, existing year: 44 values planned, 0 rows created
+  ok   the mis-encoded fixture carries exactly the 8 mangled labels measured in the audit: 8
+  ok   and it now creates ZERO duplicate rows, where it created 8: 0
+
+=== the mojibake reject: whole, named, and BEFORE Add Year ===
+  ok   a mis-encoded file is a HARD rejection
+  ok   nothing is applied
+  ok   the shared gate fails a rejected import, for every rejection
+  ok   and the mojibake reject returns early too: the second barrier
+  ok   the gate sits BEFORE the candidate is assigned, which is what makes it a barrier rather than a report
+  ok   and the message names BOTH options, so the fix is actionable: This file was saved in the wrong encoding: 8 cells contain characters that did not survive the s
+  ok   including where to find it, since the quick-save panel hides it
+  ok   the count is reported: 8
+  ok   the fixture has a mangled row to name: index 2
+  ok   and the reject names it, 1-based as the operator counts: row 3
+  ok   quoting the mangled text itself, so it is findable in the file
+  ok   the STAGING dry run refuses it as well, being the same funnel
+  ok   so the dialog cannot report it as ready: This file cannot be imported: This file was saved in the wrong encoding: 8 cells contain
+  ok   a mangled HEADER is rejected too, not only a mangled label
+  ok   and counted: 1 cell
+  ok   named as row 1, the header row: row 1
+  ok   and a correctly encoded file still imports
+
+=== the unreadable-file path, read from the dialog itself ===
+  ok   the dialog is found
+  ok   an unreadable file sets a NOT-OK importResult rather than nothing
+  ok   with a reason the panel can show
+  ok   and a readable file sets the plan, ok or not, so a rejection shows too
+  ok   BOTH branches assign a result: 2
+
+=== the guard itself: initialise, do not reload ===
+  ok   loadIngestDraft records the selection it loaded for: "A\u0000A1\u00002025"
+  ok   a redraw with nothing moved keeps the draft, edits and all
+  ok   and keeps the result panel
+  ok   but changing the YEAR does reload: the picker still works
+  ok   and clears the result, which describes a table-year the operator has left
+  ok   the key moved with it
+  ok   changing the TABLE reloads too
+  ok   a first render with no draft yet loads one: 23 rows
+  ok   a key that claims loaded with NO draft behind it still loads: 23 rows
+
+=== BASE controls: the values really were lost ===
+  ok   BASE control: there was no selection key
+  ok   BASE initIngestState is found
+  ok   BASE control: it called loadIngestDraft UNCONDITIONALLY
+  ok   BASE control: with nothing to tell it whether the selection had moved
+  ok   and now it loads only when the key differs
+  ok   or when there is no draft at all
+  ok   the key is set inside loadIngestDraft, so EVERY caller updates it
+  ok   BASE control: the key did not exist anywhere
+  ok   BASE control: nothing detected a mis-decoded file
+  ok   the picker handlers still call it themselves: 7 call sites
+
+======================================================================
+  72 passed, 0 failed
+======================================================================
