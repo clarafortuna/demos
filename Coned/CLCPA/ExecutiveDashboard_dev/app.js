@@ -14462,6 +14462,44 @@ function wireHTooltips() {
       return res;
     }
 
+    /* CLCPA-235: REJECT A MIS-DECODED FILE WHOLE, before it can create rows.
+     *
+     * Excel's "CSV (Comma delimited)" writes Windows-1252 with no BOM, so its
+     * en dash is the single byte 0x96. The browser reads a file as UTF-8, where
+     * 0x96 is not valid, and hands back U+FFFD -- eight of them in the A1
+     * template. The labels then no longer match: against an existing year the
+     * import CREATED 8 duplicate program rows differing from the real ones only
+     * by that character, and reported success. Measured, all five affected
+     * tables: 110 label-rows carry an en dash.
+     *
+     * Decoding the file correctly is its own ticket. What is cheap HERE is
+     * noticing: one scan of the rows already parsed, on the one funnel every
+     * import path shares, so the staging dry-run refuses it too and the
+     * operator never reaches Add Year with it. Silent duplicates do not survive
+     * the day.
+     *
+     * U+FFFD cannot appear in a correctly decoded file: it is what a decoder
+     * emits when the bytes were not what it expected. */
+    const mojibake = [];
+    fileRows.forEach((row, r) => {
+      (row || []).forEach((cell, c) => {
+        if (typeof cell === 'string' && cell.indexOf('\uFFFD') >= 0) {
+          mojibake.push({ row: r, col: c, text: cell });
+        }
+      });
+    });
+    if (mojibake.length) {
+      const first = mojibake[0];
+      reject('This file was saved in the wrong encoding: ' + mojibake.length +
+        ' cell' + (mojibake.length === 1 ? '' : 's') + ' contain characters that ' +
+        'did not survive the save, so the names would not match and duplicate ' +
+        'rows would be created. In Excel use File, Save As, and choose ' +
+        '“CSV UTF-8 (Comma delimited)” rather than “CSV (Comma delimited)”.',
+        { row: first.row + 1, label: first.text });
+      res.mojibakeCells = mojibake.length;
+      return res;
+    }
+
     // ---- headers ----------------------------------------------------------
     const header = fileRows[0].map(normIngestKey);
     const schemaNorm = schema.map(normIngestKey);
@@ -15530,7 +15568,37 @@ function wireHTooltips() {
     }
     if (!state.ingest.year) state.ingest.year = mostRecentYear() || p.meta.current_year;  // CLCPA-156
 
-    loadIngestDraft();
+    /* CLCPA-235: THE SILENT IMPORT LOSS. This called loadIngestDraft()
+     * UNCONDITIONALLY, and renderIngestPage() calls this function first thing on
+     * EVERY render -- so every redraw reloaded the draft from storage and, by
+     * loadIngestDraft's own last line, set importResult to null.
+     *
+     * The Add New Year dialog ends with rerenderIngestAll(), which is the redraw
+     * meant to SHOW the import. So: the file was staged, buildIngestImport
+     * planned 23 rows and 46 values, applyIngestImport wrote them into the
+     * draft, importResult held the plan -- and then the redraw threw both away.
+     * A new year has nothing in storage, so the reload produced zero rows. The
+     * operator saw an empty table and no panel, which is the one outcome
+     * CLCPA-85 forbids: an import lands as a reviewable draft or fails whole
+     * with the panel naming cell and reason. Silence is never an outcome.
+     *
+     * It was not specific to success: a hard rejection sets importResult too, so
+     * it was erased identically. Nor to this dialog: added=false skips the
+     * rerender entirely, so nothing showed then either.
+     *
+     * THIS FUNCTION INITIALISES. Reloading belongs to the handlers that MOVE the
+     * selection, and all of them already call loadIngestDraft themselves -- the
+     * section dropdown, the source-table tab, the year dropdown, remove-year and
+     * add-year. The call here was redundant for those paths and destructive for
+     * this one.
+     *
+     * SIDE BENEFIT, stated because it is a behaviour change and not an accident:
+     * an unrelated redraw no longer discards work in progress. Leaving Report
+     * Data and coming back keeps the draft, where before it was silently
+     * reloaded from storage. */
+    if (!state.ingest.draft || state.ingest.loadedKey !== ingestSelectionKey()) {
+      loadIngestDraft();
+    }
   }
 
   /** Load the draft for the current selection (from override or baseline). */
@@ -15568,6 +15636,24 @@ function wireHTooltips() {
     // three picker handlers already call this, so it cannot be forgotten in one
     // of them and leave a panel describing a table the operator has left.
     i.importResult = null;
+
+    /* CLCPA-235: RECORD WHAT THIS LOAD WAS FOR, so a redraw can tell whether
+     * anything moved. Set HERE rather than at the call sites because every
+     * caller must update it -- the three picker handlers, remove-year and
+     * add-year all call this function directly, and a key updated at only some
+     * of them is worse than no key at all. */
+    i.loadedKey = ingestSelectionKey();
+  }
+
+  /**
+   * CLCPA-235: the selection a draft belongs to, as one comparable string.
+   *
+   * A draft is only meaningful for one section, table and year together, which
+   * is the same reasoning that makes loadIngestDraft clear importResult.
+   */
+  function ingestSelectionKey() {
+    const i = state.ingest || {};
+    return String(i.sectionId) + '\u0000' + String(i.tableId) + '\u0000' + String(i.year);
   }
 
   /** Mark the draft as dirty (or clean) by diffing against the render reference. */
