@@ -2419,6 +2419,22 @@ a.nav-item { text-decoration: none; }
   min-width: 160px;
   max-width: 240px;
 }
+/* CLCPA-226 round 2: a CONTROL tooltip hugs its text.
+
+   The min-width above exists for the CHART tooltips that share this class: a
+   multi-row data readout looks ragged when it is narrow. It is a MINIMUM, so
+   it is invisible on a long string and pads a short one -- "Data Source" is
+   about 64px of text sitting in a 160px box.
+
+   The charts still want it, so the rule above is untouched and this modifier
+   turns it off for control labels only. max-width is deliberately NOT reset:
+   a long label should still wrap rather than run off the screen.
+
+   Everything else about the box -- the 8px vertical padding and the 1.5
+   line-height inherited from body -- is unchanged and identical to the
+   converted sites that already render correctly. The box looked tall because
+   it was too WIDE for its text, not because it had extra padding. */
+.exec-tooltip.exec-tooltip-hug { min-width: 0; }
 .exec-tooltip .tt-name {
   font-weight: 700;
   font-size: 11.5px;
