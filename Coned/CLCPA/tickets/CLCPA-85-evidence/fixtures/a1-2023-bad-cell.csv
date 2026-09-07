@@ -1,0 +1,2 @@
+Program Name,DAC Funding ($)
+"AMEEP - Electric & Gas",=SUM(B2:B9)
