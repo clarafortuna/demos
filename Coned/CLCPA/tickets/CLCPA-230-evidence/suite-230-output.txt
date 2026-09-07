@@ -1,0 +1,198 @@
+======================================================================
+CLCPA-230 -- the native dialogs become the app s own modal
+======================================================================
+
+=== the inventory: what the audit found, and what is left ===
+  ok   BASE control: the audit found TEN native dialogs, and BASE has 10
+  ok   BASE control: 8 confirm, 2 alert, 0 prompt -- exactly the audit inventory
+  ok   ZERO native dialogs remain, all ten replaced: 0
+  ok   including site 1, the last one and the highest-consequence one
+  ok   BOTH alerts are gone: a notification is not a confirmation
+  ok   and still no prompt anywhere
+  ok   dsConfirmActivate calls no native confirm
+  ok   it asks through the app s own modal instead
+  ok   and takes a CALLBACK, because a modal has no boolean to return in time
+
+=== NO new CSS, and no new button variant ===
+  ok   styles.css is byte-identical to BASE (both CRLF): this ticket adds no CSS
+  ok   and the same length, 267155 chars, which is what makes that meaningful
+  ok   there is no .btn-danger, and none was invented for the destructive actions
+  ok   openConfirmModal is present
+  ok   it emits classes to check: ingest-modal ingest-modal-head ingest-modal-close ingest-modal-body ingest-modal-foot btn btn-secondary btn-primary
+  ok   every class it emits is already styled
+  ok   openSaveModal, the shell it reuses, is present
+  ok   shared with openSaveModal, not reinvented: ingest-modal-overlay
+  ok   shared with openSaveModal, not reinvented: ingest-modal
+  ok   shared with openSaveModal, not reinvented: ingest-modal-head
+  ok   shared with openSaveModal, not reinvented: ingest-modal-body
+  ok   shared with openSaveModal, not reinvented: ingest-modal-foot
+  ok   shared with openSaveModal, not reinvented: ingest-modal-close
+
+=== FINDING A: the call site resolves IN SCOPE ===
+  ok   the Storage IIFE close is located: offset 84097
+  ok   showToast is declared INSIDE that IIFE, which is why it is not global
+  ok   and NO bare showToast( call survives outside it: 0
+  ok   BASE control: exactly ONE such call existed, which is the defect: 1
+  ok   the template site now goes through Storage.toast, the exposed door
+  ok   LATENT not live: no table in the frozen payload could reach that branch
+
+=== the DOM stub, and openConfirmModal driven for real ===
+  ok   the modal element is created and appended
+  ok   with the shared overlay class
+  ok   announced as a modal dialog
+  ok   and labelled by its own title
+  ok   the title is rendered
+  ok   the two non-empty paragraphs render, and the empty one is dropped: 2
+  ok   cancel is the SECONDARY button, labelled Cancel
+  ok   and the destructive action is NAMED on the primary button
+  ok   the word OK appears nowhere
+  ok   and no danger variant is used
+  ok   focus lands on CANCEL, so a stray Enter cannot delete anything: ["cancel"]
+  ok   and nothing has run yet: opening decides nothing
+
+=== every way OUT of the modal, and which one it counts as ===
+  ok   the Cancel button: the node exists
+  ok   the Cancel button counts as CANCEL: ["cancel"]
+  ok   the Cancel button: the modal is removed exactly once
+  ok   the Cancel button: and the document keydown listener is removed, so they cannot pile up
+  ok   the primary button: the node exists
+  ok   the primary button counts as CONFIRM: ["confirm"]
+  ok   the primary button: the modal is removed exactly once
+  ok   the primary button: and the document keydown listener is removed, so they cannot pile up
+  ok   the X: the node exists
+  ok   the X counts as CANCEL: ["cancel"]
+  ok   the X: the modal is removed exactly once
+  ok   the X: and the document keydown listener is removed, so they cannot pile up
+  ok   a document keydown listener is registered for Escape
+  ok   an unrelated key does nothing
+  ok   ESCAPE cancels, matching window.confirm rather than losing the behaviour
+  ok   a click INSIDE the dialog does not dismiss it
+  ok   a click on the BACKDROP cancels
+  ok   THREE clicks on the primary button run the continuation ONCE: 1
+  ok   and remove it once
+  ok   and Escape after confirming does not then also cancel
+  ok   cancelling with no onCancel given is a no-op, not a crash
+
+=== the shared vocabulary: Discard Changes means one thing ===
+  ok   the title is Discard unsaved changes?
+  ok   cancel is Keep Editing
+  ok   and confirm is Discard Changes
+  ok   FIVE callers share it: four dirty guards and Reset
+  ok   and the label is defined ONCE in code, not retyped at any call site
+  ok   it does appear in prose too, which is why that check reads code only
+
+=== THE SITES, driven for real: cancel runs NOTHING ===
+  ok   site 3: the tab is wired
+  ok   site 3: a dirty tab click OPENS the modal rather than a native confirm
+  ok   site 3: and the table has NOT moved while the question is open
+  ok   site 3 CANCEL: the table is still A1
+  ok   site 3 CANCEL: nothing was loaded or rerendered -- the continuation never ran
+  ok   site 3 CONFIRM: the table moves to A5
+  ok   site 3 CONFIRM: the continuation ran EXACTLY once
+  ok   site 3 CONFIRM: and the PAGE rerenders, so the active tab moves with it
+  ok   site 3 CLEAN: with nothing unsaved there is no question at all
+  ok   site 2: the Section dropdown is wired
+  ok   site 2: a dirty change opens the modal
+  ok   site 2 REVERT ON OPEN: the select shows A again while the modal is up, not the B the page is not on
+  ok   site 2: and the page state is untouched
+  ok   site 2 CANCEL: both the select and the state stay on A
+  ok   site 2 CANCEL: no continuation ran
+  ok   site 2 CONFIRM: the chosen section B is RE-APPLIED, not the reverted A
+  ok   site 2 CONFIRM: rerenderIngestAll rebuilds the picker, so the select follows
+  ok   site 4: the Year dropdown is wired
+  ok   site 4 REVERT ON OPEN: the year select shows 2025 while the modal is up
+  ok   site 4 CONFIRM: the state moves to 2023
+  ok   site 4 CONFIRM: and the select is set back to 2023 ITSELF, because this path rerenders only the editor and would otherwise leave 2025 showing
+  ok   site 4 CANCEL: select and state both remain on 2025
+  ok   site 5: Remove Year is wired
+  ok   site 5: the year is in the title
+  ok   site 5: and NAMED on the button, so the destructive action is unmistakable
+  ok   site 5: the warning survives the move
+  ok   site 5 CANCEL: Storage.removeYear was NEVER called -- the year survives
+  ok   site 5 CANCEL: and meta.years is untouched
+  ok   site 5 CONFIRM: removeYear called exactly once
+  ok   site 5 CONFIRM: and the whole continuation ran, down to the year selector
+  ok   site 6: the refusal raises exactly one toast
+  ok   site 6: with the same words the alert had: toast:2027 has data (or is a seed year) and cannot be removed.
+  ok   site 6: and the continuation STOPS there -- nothing else was touched
+  ok   site 9: the delete-row button is wired
+  ok   site 9: it asks through the modal
+  ok   site 9: with Delete Row on the button
+  ok   site 9: and the row is still there while it asks
+  ok   site 9 CANCEL: the row SURVIVES
+  ok   site 9 CANCEL: nothing recomputed
+  ok   site 9 CONFIRM: the row is removed
+  ok   site 9 CONFIRM: and the RIGHT row went
+  ok   site 9 CONFIRM: totals recomputed once
+  ok   site 8: no modal opens -- there is nothing to decide
+  ok   site 8: a toast says so instead: toast:Cannot delete the last row.
+  ok   site 8: and the row is still there
+  ok   site 10: Reset is wired
+  ok   site 10: it uses the SAME question as the dirty guards
+  ok   site 10: and the same Discard Changes label
+  ok   site 10 CANCEL: the edit is KEPT
+  ok   site 10 CONFIRM: the draft is back to the baseline
+  ok   and it is a COPY, not the baseline itself: clone2D, so editing cannot corrupt what reset restores to
+
+=== FINDING B: the rejected-inputs table, the acceptance ===
+  ok   openAddYearDialog is present
+  ok   the entry filter is wired inside the dialog
+  ok   a beforeinput handler is bound
+  ok   and a keydown handler as the second line
+  ok   REJECTED as typed text (e in a typed year): 2099e
+  ok   REJECTED as a PASTE (e in a typed year): 2099e
+  ok   REJECTED as typed text (a leading plus): +2026
+  ok   REJECTED as a PASTE (a leading plus): +2026
+  ok   REJECTED as typed text (a negative): -1
+  ok   REJECTED as a PASTE (a negative): -1
+  ok   REJECTED as typed text (a decimal point): 20.26
+  ok   REJECTED as a PASTE (a decimal point): 20.26
+  ok   REJECTED as typed text (exponent notation): 2e3
+  ok   REJECTED as a PASTE (exponent notation): 2e3
+  ok   the keydown guard also rejects the bare key: "e"
+  ok   the keydown guard also rejects the bare key: "E"
+  ok   the keydown guard also rejects the bare key: "+"
+  ok   the keydown guard also rejects the bare key: "-"
+  ok   the keydown guard also rejects the bare key: "."
+  ok   digits are ACCEPTED, single and multiple
+  ok   and a deletion passes through, so backspace works
+  ok   the keydown guard leaves Backspace, the arrows and digits alone
+  ok   an EMPTY year is a named error, not a silent substitution: Please enter a valid year.
+  ok   and the error does not name the suggestion either: nothing points at 2026
+  ok   typedYear() no longer references the suggestion in any branch
+  ok   drawYear() does, which is the suggestion demoted to an initial value
+  ok   and the INPUT is drawn from drawYear, so the box still opens pre-filled
+  ok   while VALIDATION reads typedYear, which is what the operator left there
+  ok   and never drawYear: validating the suggestion is the defect itself
+  ok   the template refuses an empty year rather than naming a file for a year nobody chose
+  ok   and says so on the dialog s own error line
+
+=== SITE 1, dsConfirmActivate, driven for real ===
+  ok   it reports that it asked
+  ok   a modal opened rather than a native confirm
+  ok   the question is the title: Publish DAC tracts v3?
+  ok   and the action is NAMED on the button, with what is being published
+  ok   the vintage line survives the move
+  ok   so does the re-check line
+  ok   and the warning that matters most
+  ok   the retire count is computed and shown: This retires 1 published version:
+  ok   naming the version it retires
+  ok   and NOT the 2010 one, which a different vintage does not retire
+  ok   and nothing has been published yet
+  ok   site 1 CANCEL: the continuation never runs, so nothing publishes
+  ok   site 1 CONFIRM: the continuation runs exactly once
+  ok   an unknown dataset id is refused: false
+  ok   no dialog opens for it
+  ok   and nothing publishes
+  ok   the caller clears the box
+  ok   and does so BEFORE it asks, which is what revert-on-open means
+  ok   the box is re-checked and the activation started, both inside onConfirm
+  ok   DRIVEN: the box is unchecked while the question is open, not left showing a dataset as published
+  ok   and dsSetActive has not been called
+  ok   CANCEL: the box stays off and nothing is published
+  ok   CONFIRM: the box goes back on
+  ok   and the activation starts exactly once, for that dataset: A:true
+
+======================================================================
+  173 passed, 0 failed
+======================================================================

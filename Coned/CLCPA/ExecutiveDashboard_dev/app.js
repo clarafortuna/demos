@@ -18524,10 +18524,16 @@ function wireHTooltips() {
    * applies: geometry and ConEd figures retire per vintage, territories retire
    * per key because they have no vintage to be scoped by.
    *
-   * Returns true to proceed. Never throws: if the record cannot be found the
-   * activation is refused rather than guessed at.
+   * CLCPA-230: this asked through window.confirm, the last native dialog in
+   * the app. It now asks through the app's own modal like the other nine, so
+   * it takes an onConfirm CALLBACK instead of returning a boolean -- a modal
+   * does not block, so there is nothing to return in time to be useful.
+   *
+   * Never throws: if the record cannot be found the activation is refused
+   * rather than guessed at, which now means the callback is simply never
+   * called and no dialog opens.
    */
-  function dsConfirmActivate(dvId) {
+  function dsConfirmActivate(dvId, onConfirm) {
     const recs = dsRecords();
     const rec = recs.filter(r => r.dvId === dvId)[0];
     if (!rec) return false;
@@ -18550,7 +18556,21 @@ function wireHTooltips() {
     }
     lines.push('');
     lines.push('This changes what everyone sees on the map.');
-    return confirm(lines.join('\n'));
+    /* lines[0] is the question, so it becomes the title; the rest is the body.
+     * The empty strings that spaced a \n-joined confirm() are dropped by
+     * openConfirmModal, and the retired-version list becomes one paragraph per
+     * version rather than indented text in a single blob.
+     *
+     * The action is NAMED on the button, as everywhere else in this ticket:
+     * Publish, with what is being published. */
+    openConfirmModal({
+      title: lines[0],
+      body: lines.slice(1).map(t => String(t).trim()),
+      cancelLabel: 'Cancel',
+      confirmLabel: 'Publish ' + name,
+      onConfirm: onConfirm,
+    });
+    return true;
   }
 
   async function dsSetActive(dvId, makeActive) {
@@ -18728,8 +18748,19 @@ function wireHTooltips() {
       // it without promoting anything, and is undone by switching it back.
       const ds = e.target.closest('input[data-ds-active]');
       if (ds) {
-        if (ds.checked && !dsConfirmActivate(ds.dataset.dsActive)) {
-          ds.checked = false;      // the click already flipped it; put it back
+        if (ds.checked) {
+          /* REVERT ON OPEN, the same subtlety as the two Report Data
+           * dropdowns, and this site already knew about it: the old comment
+           * here said "the click already flipped it; put it back". With a
+           * blocking confirm that could happen afterwards. It cannot now, so
+           * the box goes back immediately and is re-checked only on confirm.
+           * Leaving it checked would show a dataset as published for as long
+           * as the dialog was open. */
+          ds.checked = false;
+          dsConfirmActivate(ds.dataset.dsActive, () => {
+            ds.checked = true;
+            dsSetActive(ds.dataset.dsActive, true);
+          });
           return;
         }
         dsSetActive(ds.dataset.dsActive, ds.checked);
@@ -19391,12 +19422,11 @@ function wireHTooltips() {
     const selYear = document.getElementById('ingest-year');
 
     if (selSection) {
-      selSection.addEventListener('change', e => {
-        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) {
-          e.target.value = state.ingest.sectionId;
-          return;
-        }
-        state.ingest.sectionId = e.target.value;
+      /* CLCPA-230: the body moved into a named continuation so the guard can
+       * call it later. window.confirm blocked, so the old code could simply
+       * fall through; a modal cannot. */
+      const applySection = (chosen) => {
+        state.ingest.sectionId = chosen;
         // Pick first table in new section
         const tablesForSec = Object.values(state.payload.tables)
           .filter(t => t.section === state.ingest.sectionId)
@@ -19404,6 +19434,21 @@ function wireHTooltips() {
         state.ingest.tableId = tablesForSec.length ? tablesForSec[0].id : null;
         loadIngestDraft();
         rerenderIngestAll();
+      };
+      selSection.addEventListener('change', e => {
+        const chosen = e.target.value;
+        if (state.ingest.dirty) {
+          /* REVERT ON OPEN. The select has ALREADY moved to the new value by
+           * the time this fires, and the modal does not block, so leaving it
+           * there would show a section the page is not on for as long as the
+           * dialog is up. The old code could revert after confirm() returned
+           * false; this one cannot wait. Confirming re-applies via
+           * applySection, whose rerenderIngestAll rebuilds the picker. */
+          e.target.value = state.ingest.sectionId;
+          confirmDiscardChanges(() => applySection(chosen));
+          return;
+        }
+        applySection(chosen);
       });
     }
 
@@ -19419,24 +19464,42 @@ function wireHTooltips() {
       tab.addEventListener('click', () => {
         const id = tab.getAttribute('data-ingest-table');
         if (id === state.ingest.tableId) return;
-        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) return;
-        state.ingest.tableId = id;
-        loadIngestDraft();
-        rerenderIngestAll();
+        /* CLCPA-230: no revert needed here, unlike the two dropdowns. A tab is
+         * not an input: nothing has changed its own state, and the active tab
+         * is drawn from state.ingest.tableId, which has not moved yet. */
+        const applyTab = () => {
+          state.ingest.tableId = id;
+          loadIngestDraft();
+          rerenderIngestAll();
+        };
+        if (state.ingest.dirty) { confirmDiscardChanges(applyTab); return; }
+        applyTab();
       });
     });
 
     if (selYear) {
-      selYear.addEventListener('change', e => {
-        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) {
-          e.target.value = state.ingest.year;
-          return;
-        }
-        state.ingest.year = e.target.value;
+      const applyYear = (chosen) => {
+        state.ingest.year = chosen;
         loadIngestDraft();
         rerenderIngestEditor();
         rerenderIngestHistory();
         syncRemoveYearButton();   // CLCPA-160: update the picker-bar button in place on year change
+      };
+      selYear.addEventListener('change', e => {
+        const chosen = e.target.value;
+        if (state.ingest.dirty) {
+          /* REVERT ON OPEN, as with the Section dropdown. Note this one does
+           * NOT rerender the whole picker on confirm, so applyYear must set
+           * the select's value back itself -- rerenderIngestEditor does not
+           * rebuild the year dropdown. */
+          e.target.value = state.ingest.year;
+          confirmDiscardChanges(() => {
+            e.target.value = chosen;
+            applyYear(chosen);
+          });
+          return;
+        }
+        applyYear(chosen);
       });
     }
 
@@ -19449,36 +19512,51 @@ function wireHTooltips() {
     if (removeYearBtn) {
       removeYearBtn.addEventListener('click', () => {
         const yr = state.ingest.year;
-        const msg = `Remove ${yr} from the dashboard?\n\nThis will also delete any saved data for ${yr}. This cannot be undone.`;
-        if (!confirm(msg)) return;
+        /* CLCPA-230, SITE 5. The year is named ON THE BUTTON, so the
+         * destructive action is unmistakable without reading the body.
+         *
+         * The whole of the old handler's body moved into onConfirm. It could
+         * not stay where it was: window.confirm blocked and this does not. */
+        openConfirmModal({
+          title: 'Remove ' + yr + ' from the dashboard?',
+          body: ['This will also delete any saved data for ' + yr + '.',
+                 'This cannot be undone.'],
+          cancelLabel: 'Cancel',
+          confirmLabel: 'Remove ' + yr,
+          onConfirm: () => {
+            // Remove from storage. CLCPA-155: the guard returns false for seed/has-data
+            // years — if refused, bail without touching the in-memory year list or tables.
+            if (Storage.removeYear(yr) === false) {
+              /* SITE 6 was an alert(). A notification is not a confirmation:
+               * there is nothing to decide, so it becomes a toast rather than
+               * a modal with one button. Storage.toast, not showToast, for the
+               * scope reason recorded at the template site. */
+              Storage.toast(yr + ' has data (or is a seed year) and cannot be removed.', 'error');
+              return;
+            }
 
-        // Remove from storage. CLCPA-155: the guard returns false for seed/has-data
-        // years — if refused, bail without touching the in-memory year list or tables.
-        if (Storage.removeYear(yr) === false) {
-          alert(`${yr} has data (or is a seed year) and cannot be removed.`);
-          return;
-        }
+            // Remove from in-memory meta.years
+            const idx = state.payload.meta.years.indexOf(yr);
+            if (idx >= 0) state.payload.meta.years.splice(idx, 1);
 
-        // Remove from in-memory meta.years
-        const idx = state.payload.meta.years.indexOf(yr);
-        if (idx >= 0) state.payload.meta.years.splice(idx, 1);
+            // Drop any in-memory table.data for that year
+            Object.values(state.payload.tables).forEach(t => {
+              if (t.data && t.data[yr]) delete t.data[yr];
+            });
 
-        // Drop any in-memory table.data for that year
-        Object.values(state.payload.tables).forEach(t => {
-          if (t.data && t.data[yr]) delete t.data[yr];
+            // If the user is currently viewing the removed year in the dashboard,
+            // bump them back to the current_year
+            if (state.year === yr) state.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
+
+            // Reset ingest state to the current year
+            state.ingest.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
+            loadIngestDraft();
+
+            // Refresh the year selector in the header and the ingest page
+            buildYearSelector();
+            rerenderIngestAll();
+          },
         });
-
-        // If the user is currently viewing the removed year in the dashboard,
-        // bump them back to the current_year
-        if (state.year === yr) state.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
-
-        // Reset ingest state to the current year
-        state.ingest.year = mostRecentYear() || state.payload.meta.current_year;  // CLCPA-156: fall back to the next highest
-        loadIngestDraft();
-
-        // Refresh the year selector in the header and the ingest page
-        buildYearSelector();
-        rerenderIngestAll();
       });
     }
 
@@ -19525,6 +19603,99 @@ function wireHTooltips() {
     loadIngestDraft();
     buildYearSelector();
     return { ok: true, year: yrStr };
+  }
+
+  /**
+   * CLCPA-230: the replacement for window.confirm, built from the SAME shell
+   * openSaveModal uses -- .ingest-modal-overlay > .ingest-modal > head/body/
+   * foot -- so it needs no new CSS and no new button variant. There is no
+   * .btn-danger in styles.css and none is added: the destructive action is
+   * named on the primary button instead, which is what makes "OK" unnecessary.
+   *
+   * THE RISK SURFACE is not the markup, it is that window.confirm BLOCKS and a
+   * modal does not. Every call site had to invert from
+   *     if (!confirm(msg)) return;  ...continue...
+   * to a continuation passed in here. A site that forgets to move its work
+   * into onConfirm would run it immediately, which is the failure this ticket
+   * could most plausibly introduce, so every site is asserted from both
+   * sides: cancel runs NOTHING, confirm runs the continuation exactly once.
+   *
+   * ESCAPE closes as a cancel, because window.confirm responds to Escape and
+   * losing that would be a behaviour regression rather than a redesign. The
+   * listener is removed on close, copying openAddYearDialog's onEsc pattern
+   * rather than inventing another.
+   *
+   * body is an array of paragraphs. It is TEXT, escaped here, never markup:
+   * these strings carry table ids and years, and one of them carries a list of
+   * dataset versions read from Dataverse.
+   */
+  function openConfirmModal(opts) {
+    const o = opts || {};
+    const paras = (o.body || []).filter(t => t != null && String(t) !== '');
+    const modal = document.createElement('div');
+    modal.className = 'ingest-modal-overlay';
+    document.body.appendChild(modal);
+
+    /* Guarantees ONE outcome. Without this, Escape during the confirm handler,
+     * or a double click on the primary button, would run the continuation
+     * twice -- and one of these continuations deletes a reporting year. */
+    let settled = false;
+    const finish = (fn) => {
+      if (settled) return;
+      settled = true;
+      document.removeEventListener('keydown', onEsc);
+      modal.remove();
+      if (typeof fn === 'function') fn();
+    };
+    const onEsc = (e) => { if (e.key === 'Escape') finish(o.onCancel); };
+    document.addEventListener('keydown', onEsc);
+
+    modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
+      'aria-labelledby="cfm-title">' +
+      '<div class="ingest-modal-head"><h3 id="cfm-title">' + escapeHtml(o.title || '') + '</h3>' +
+      '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
+      '<div class="ingest-modal-body">' +
+      paras.map(t => '<p>' + escapeHtml(String(t)) + '</p>').join('') +
+      '</div>' +
+      '<div class="ingest-modal-foot">' +
+      '<button class="btn btn-secondary" type="button" data-cfm="cancel">' +
+      escapeHtml(o.cancelLabel || 'Cancel') + '</button>' +
+      '<button class="btn btn-primary" type="button" data-cfm="confirm">' +
+      escapeHtml(o.confirmLabel || 'Continue') + '</button>' +
+      '</div></div>';
+
+    modal.querySelector('.ingest-modal-close')
+      .addEventListener('click', () => finish(o.onCancel));
+    modal.querySelector('[data-cfm="cancel"]')
+      .addEventListener('click', () => finish(o.onCancel));
+    modal.querySelector('[data-cfm="confirm"]')
+      .addEventListener('click', () => finish(o.onConfirm));
+    modal.addEventListener('click', (e) => { if (e.target === modal) finish(o.onCancel); });
+
+    /* Focus the CANCEL button, not the destructive one: a stray Enter or Space
+     * on an unfocused dialog must not delete anything. */
+    const c = modal.querySelector('[data-cfm="cancel"]');
+    if (c && c.focus) { try { c.focus(); } catch (e) {} }
+    return modal;
+  }
+
+  /**
+   * The unsaved-changes guard, which four call sites share. One wording and one
+   * pair of labels, so the same words always mean the same thing.
+   *
+   * onCancel matters as much as onConfirm here: two of the four callers are
+   * dropdowns that have ALREADY moved to the new value by the time the change
+   * event fires, so they revert on open and re-apply on confirm.
+   */
+  function confirmDiscardChanges(onConfirm, onCancel) {
+    return openConfirmModal({
+      title: 'Discard unsaved changes?',
+      body: ['This table has changes that have not been saved. Continuing will discard them.'],
+      cancelLabel: 'Keep Editing',
+      confirmLabel: 'Discard Changes',
+      onConfirm: onConfirm,
+      onCancel: onCancel,
+    });
   }
 
   /**
@@ -19577,11 +19748,31 @@ function wireHTooltips() {
     const years = allYears();
     const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
 
-    /** What the operator typed, or the suggestion before they touch it. */
-    const typedYear = () => {
+    /* CLCPA-230, FINDING B. The old typedYear() fell back to `suggested`
+     * whenever the field read empty -- and an <input type="number"> reads
+     * EMPTY whenever its text is not a valid number. So typing 2099e made the
+     * field read '', typedYear() returned the suggestion, and Add Year could
+     * add 2026 while the box still visibly said 2099e. A year the operator
+     * never typed, written without a word about it.
+     *
+     * Split in two, because the fallback was doing two unrelated jobs:
+     *   fieldYear()  what the box holds. null ONLY before the first draw,
+     *                when there is no box yet.
+     *   typedYear()  for VALIDATION. Exactly what the operator left there,
+     *                never the suggestion. Empty becomes a named error via
+     *                validateReportingYear, which is left untouched.
+     *   drawYear()   for DRAWING. Preserves the box across redraws; the
+     *                suggestion is the INITIAL value and nothing more.
+     *
+     * Entry filtering (in wire()) should stop a non-numeric value existing at
+     * all. This end is the backstop: even if the filter is bypassed, the
+     * outcome is a named error rather than a different year. */
+    const fieldYear = () => {
       const el = modal.querySelector('#dlg-newyear');
-      return el && el.value !== undefined && el.value !== '' ? el.value : suggested;
+      return el ? String(el.value == null ? '' : el.value) : null;
     };
+    const typedYear = () => { const v = fieldYear(); return v == null ? '' : v; };
+    const drawYear = () => { const v = fieldYear(); return v == null ? suggested : v; };
     /* The staging and template target. The schema resolves even for a year that
      * does not exist: getTableSchema falls back to any year the table has. */
     const target = () => ({
@@ -19616,7 +19807,7 @@ function wireHTooltips() {
         'entered and saved.</p>' +
         '<div class="ingest-modal-field"><label for="dlg-newyear">Year</label>' +
         '<input id="dlg-newyear" type="number" min="2000" max="2100" step="1" value="' +
-        escapeHtml(typedYear()) + '" /></div>' +
+        escapeHtml(drawYear()) + '" /></div>' +
         '<div class="ingest-modal-hint">Existing years: ' + years.join(', ') + '</div>' +
         '<div class="ingest-modal-error" id="dlg-error" style="display:none"></div>' +
         '<div class="ingest-modal-field"><label for="dlg-section">Section</label>' +
@@ -19655,6 +19846,30 @@ function wireHTooltips() {
       };
       act('cancel', close);
 
+      /* CLCPA-230, FINDING B, the entry end. Rejected AT ENTRY so a
+       * non-numeric year cannot exist in the field in the first place.
+       *
+       * beforeinput is the single place that covers typing, paste, drop and
+       * autofill: every one of them is an insertion with data. Deletions carry
+       * null data and must pass through, or backspace stops working.
+       *
+       * Re-bound on every draw() because draw() replaces innerHTML. */
+      const yin = modal.querySelector('#dlg-newyear');
+      if (yin) {
+        yin.addEventListener('beforeinput', (e) => {
+          const t = e.data != null ? e.data
+            : (e.dataTransfer ? e.dataTransfer.getData('text') : null);
+          if (t == null || t === '') return;   // a deletion, not an insertion
+          if (!/^[0-9]+$/.test(String(t))) e.preventDefault();
+        });
+        /* A second line for the characters an <input type="number"> treats as
+         * structural rather than textual -- exponent, sign and decimal point.
+         * Some browsers accept these without a cancellable beforeinput. */
+        yin.addEventListener('keydown', (e) => {
+          if (e.key && /^[eE+\-.]$/.test(e.key)) e.preventDefault();
+        });
+      }
+
       const s = modal.querySelector('#dlg-section');
       if (s) s.addEventListener('change', (e) => {
         sel.sectionId = e.target.value;
@@ -19672,7 +19887,17 @@ function wireHTooltips() {
 
       const tmpl = modal.querySelector('#ingest-template');
       if (tmpl) tmpl.addEventListener('click', () => {
+        /* CLCPA-230: no guessed year on the filename or in the instructions
+         * either. The box starts pre-filled, so it is empty only if the
+         * operator cleared it, and a template named for a year nobody chose
+         * is worse than being told to choose one. Same error surface as Add
+         * Year, so there is one place to look. */
         const y = typedYear();
+        if (!y) {
+          const e0 = modal.querySelector('#dlg-error');
+          if (e0) { e0.textContent = 'Please enter a year.'; e0.style.display = 'block'; }
+          return;
+        }
         /* The workbook is a read-only EXAMPLE of the format. The IMPORT path is
          * still CSV only, which is why the instructions sheet spends a step on
          * Save As.
@@ -19680,7 +19905,16 @@ function wireHTooltips() {
          * Round 6: synchronous again. The logo was the only async step, and it
          * is gone. */
         const wb = buildIngestWorkbook(sel.tableId, y);
-        if (!wb) { showToast('No example workbook: this table has no columns.', 'error'); return; }
+        /* Storage.toast, NOT showToast: showToast is declared inside the
+         * Storage IIFE (app.js:350) which closes at 1477, so the bare name is
+         * OUT OF SCOPE here and threw a ReferenceError instead of showing a
+         * toast. Storage.toast is the exposed door, and it exists for exactly
+         * this reason (see the comment beside it).
+         *
+         * Latent rather than live: this fires only when the builder returns
+         * falsy, which needs a table with no columns, and all 52 tables in the
+         * frozen payload build. Self-caught in the CLCPA-230 audit. */
+        if (!wb) { Storage.toast('No example workbook: this table has no columns.', 'error'); return; }
         downloadBinaryFile(sel.tableId + '-' + y + '-example.xlsx', wb.bytes,
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       });
@@ -19695,34 +19929,38 @@ function wireHTooltips() {
           if (err) { err.textContent = v.error; err.style.display = 'block'; }
           return;
         }
-        if (state.ingest.dirty &&
-            !confirm('You have unsaved changes. Discard them to add a new year?')) return;
-
-        /* 2. Point the page at the chosen table, then ADD THE YEAR, which loads
-         *    that table's draft for the new year. Add before apply, always. */
-        state.ingest.sectionId = sel.sectionId;
-        state.ingest.tableId = sel.tableId;
-        const res = addReportingYear(v.year);
-        if (!res.ok) {
-          if (err) { err.textContent = res.error; err.style.display = 'block'; }
-          return;
-        }
-        added = true;
-
-        /* 3. Only now apply a staged file, into the year that now exists. A
-         *    hard rejection does not undo the year: it is reported on the page. */
-        if (staged) {
-          const i = state.ingest;
-          if (!staged.rows) {
-            i.importResult = { ok: false, rejections: [{ why: staged.error ||
-              'The file could not be read.' }] };
-          } else {
-            const plan = buildIngestImport(staged.rows, i.schema, i.draft, i.tableId);
-            i.importResult = plan;
-            if (plan.ok) applyIngestImport(plan);
+        /* CLCPA-230, SITE 7. Steps 2 and 3 are named so the guard can defer
+         * them. The ORDER inside proceed() is unchanged and still the point of
+         * this handler: the year is added before a staged file is applied. */
+        const proceed = () => {
+          /* 2. Point the page at the chosen table, then ADD THE YEAR, which loads
+           *    that table's draft for the new year. Add before apply, always. */
+          state.ingest.sectionId = sel.sectionId;
+          state.ingest.tableId = sel.tableId;
+          const res = addReportingYear(v.year);
+          if (!res.ok) {
+            if (err) { err.textContent = res.error; err.style.display = 'block'; }
+            return;
           }
-        }
-        close();
+          added = true;
+
+          /* 3. Only now apply a staged file, into the year that now exists. A
+           *    hard rejection does not undo the year: it is reported on the page. */
+          if (staged) {
+            const i = state.ingest;
+            if (!staged.rows) {
+              i.importResult = { ok: false, rejections: [{ why: staged.error ||
+                'The file could not be read.' }] };
+            } else {
+              const plan = buildIngestImport(staged.rows, i.schema, i.draft, i.tableId);
+              i.importResult = plan;
+              if (plan.ok) applyIngestImport(plan);
+            }
+          }
+          close();
+        };
+        if (state.ingest.dirty) { confirmDiscardChanges(proceed); return; }
+        proceed();
       });
     }
 
@@ -19772,16 +20010,24 @@ function wireHTooltips() {
         const r = parseInt(btn.dataset.row, 10);
         if (isNaN(r)) return;
         if (state.ingest.draft.length <= 1) {
-          alert('Cannot delete the last row.');
+          // SITE 8: a notification, so a toast rather than a modal.
+          Storage.toast('Cannot delete the last row.', 'error');
           return;
         }
-        if (!confirm('Delete this row?')) return;
-        state.ingest.draft.splice(r, 1);
-        // The baseline is passed anyway: the alignment check inside will see the
-        // length change and lapse the protection, rather than this site deciding.
-        recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
-                        state.ingest.baseline);
-        rerenderIngestEditor();
+        openConfirmModal({
+          title: 'Delete this row?',
+          body: ['The row is removed from the draft. Nothing is stored until you press Save.'],
+          cancelLabel: 'Cancel',
+          confirmLabel: 'Delete Row',
+          onConfirm: () => {
+            state.ingest.draft.splice(r, 1);
+            // The baseline is passed anyway: the alignment check inside will see the
+            // length change and lapse the protection, rather than this site deciding.
+            recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
+                            state.ingest.baseline);
+            rerenderIngestEditor();
+          },
+        });
       });
     });
 
@@ -19802,9 +20048,12 @@ function wireHTooltips() {
     const resetBtn = document.getElementById('ingest-reset');
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        if (!confirm('Discard all unsaved changes and reset to the last saved version?')) return;
-        state.ingest.draft = clone2D(state.ingest.baseline);
-        rerenderIngestEditor();
+        /* The SAME vocabulary as the four dirty guards: Discard Changes means
+         * one thing everywhere on this page. */
+        confirmDiscardChanges(() => {
+          state.ingest.draft = clone2D(state.ingest.baseline);
+          rerenderIngestEditor();
+        });
       });
     }
 
