@@ -1,0 +1,97 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-226 round 2 (the control tooltip hugs its text)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = f0b3a18
+              source folder clean, so the pushed bytes are exactly f0b3a18.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b all three tickets suites pass against these exact bytes: engine=125, ui=219, xlsx=265, 230=210, 226=172
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      5cc7ca54aa
+                 styles.css  7a4fdb1244
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build 5cc7ca54aa" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FATNA8ZJ7
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1030377B  local=1031038B
+WILL PUSH  styles.css   deployed=268671B  local=269588B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "0eaf276305", derives to 0eaf276305
+            previous deploy recorded 0eaf276305 -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-07-clcpa-226-round2-tip-hug/
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1031038B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (269588B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)
+published.
+
+READ-BACK app.js  1031038B  sha256 e593b11ed4d5b080...  VERIFIED byte-identical
+READ-BACK styles.css  269588B  sha256 7a4fdb124415b137...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 e1e56f37835bacd1...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 5cc7ca54aa
+styles.css id    : 7a4fdb1244
+source           : ExecutiveDashboard_dev/ at main @ f0b3a18
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 5cc7ca54aa
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, CLCPA-226 round 2. ONE property, on FOUR tooltips.
+
+The box must HUG its text: about one line of label plus even padding on
+all four sides, the same padding the wide ones already have. Before this
+round each of these sat in a box roughly 160px wide whatever its length.
+
+  1. the (i) on the Map Data family tabs    Data Source        (~64px)
+  2. the x on an editor row                 Delete row         (~58px)
+  3. the * beside Source and publication    Required to save   (~93px)
+  4. a borough row in the map dropdown      Select all in <b>  (~128px)
+
+     Reported as the (i) only; it was these four, because the minimum
+     bites every label narrower than 160px.
+
+WHAT MUST NOT HAVE CHANGED, and this is the half worth checking:
+  5. the SIX long labels still look exactly as they did -- Clear all,
+     Export, the Data Sources X, Remove <year>, the read-only switch,
+     the fixed top class. Their text already exceeded the minimum, so
+     nothing about them moved.
+  6. THE CHART TOOLTIPS keep their comfortable width: hover a dot on the
+     Equity Quadrant, a slice on the H pie, and a bar on an exec chart.
+     They SHARE the class, and the minimum is there for them -- a
+     multi-row readout looks ragged narrow. The shared rule was not
+     touched, and the modifier is cleared for every chart caller.
+  7. hover a control, then a chart dot, WITHOUT leaving the page in
+     between. The chart box must be the wide one. That ordering is the
+     one way a shared tooltip could leak the narrow setting, and it is
+     the case the fix is built around.
+  8. the DAC map tract tooltip is unchanged from your last pass.
+
+=== log written by deploy_226r2.js ===
