@@ -8178,28 +8178,27 @@ a.nav-item { text-decoration: none; }
   margin: 0 0 6px;
 }
 
-/* The dialog's opening choice. Two targets, each stating its consequence. */
-.ingest-choice { display: grid; gap: 10px; }
-.ingest-choice-btn {
-  display: block;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: var(--font);
-  background: var(--white);
+
+/* The staged file, in the Add New Year dialog.
+
+   Revision 2 has no gating: every control is live and choosing a file STAGES
+   it rather than applying it. This is what the operator reads to know what
+   Add Year is about to bring in. .is-bad is the case where the file cannot be
+   imported at all, which does NOT block the year being added. */
+.ingest-staged {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: var(--white-smoke);
   border: 1px solid var(--line);
-  border-radius: 8px;
-  padding: 14px 16px;
-  transition: border-color 0.15s ease;
+  border-left-width: 3px;
+  border-left-color: var(--dusk);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
 }
-.ingest-choice-btn:hover { border-color: var(--dusk); }
-.ingest-choice-btn:focus-visible { outline: 2px solid var(--dodger); outline-offset: 2px; }
-.ingest-choice-btn strong {
-  display: block; font-size: 13px; color: var(--ink); margin-bottom: 3px;
-}
-.ingest-choice-btn span {
-  display: block; font-size: 12px; color: var(--text-2); line-height: 1.5;
-}
+.ingest-staged.is-bad { border-left-color: var(--red); }
+.ingest-staged strong { color: var(--ink); display: block; }
 
 /* The divider between choosing a target and acting on it. */
 .ingest-modal-rule { border: none; border-top: 1px solid var(--line); margin: 16px 0; }

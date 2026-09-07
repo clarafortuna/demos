@@ -18455,7 +18455,7 @@ function wireHTooltips() {
           <h1>Report Data</h1>
           <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p>
         </div>
-        <button class="btn btn-primary" id="ingest-adddata" type="button">Add or Edit Data</button>
+        <button class="btn btn-primary" id="ingest-addyear" type="button">Add New Year</button>
       </div>
 
       ${renderIngestPicker()}
@@ -18497,8 +18497,8 @@ function wireHTooltips() {
     const removeYearBtn = `<button id="ingest-remove-year" class="ingest-year-remove" type="button" hidden>× Remove</button>`;
 
     /* CLCPA-85 round 2: the TABLE dropdown is replaced by the shared source
-     * tables row, and + Add year leaves this row for the Add or Edit Data
-     * dialog in the page header. Section and Year stay as dropdowns.
+     * tables row, and + Add year leaves this row for the Add New Year dialog
+     * in the page header. Section and Year stay as dropdowns.
      *
      * The divider label sits OUTSIDE .src-tabs-row, so the row itself stays
      * character-identical to the one the report pages draw. */
@@ -18536,12 +18536,14 @@ function wireHTooltips() {
    * noteExtra lets the Add path say what a brand new year's template contains,
    * without a second copy of the bar.
    */
-  function renderIngestImportBar(noteExtra) {
+  function renderIngestImportBar(noteExtra, disabled) {
+    const dis = disabled ? ' disabled' : '';
     return '<div class="ingest-import">' +
       '<div class="ingest-import-bar">' +
       '<label class="btn btn-secondary ingest-import-btn">Import From File' +
-      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden /></label>' +
-      '<button type="button" class="btn btn-link" id="ingest-template">' +
+      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden' + dis +
+      ' /></label>' +
+      '<button type="button" class="btn btn-link" id="ingest-template"' + dis + '>' +
       'Download Template</button>' +
       '<span class="ingest-import-note">CSV only. Save Excel files as CSV ' +
       'first. Values land in the draft on the page for you to review, then you ' +
@@ -18899,8 +18901,8 @@ function wireHTooltips() {
   function wireIngestPage() {
     /* Round 2: the import controls are NOT on the page any more, so nothing is
      * wired for them here. They are wired by the dialog that renders them. */
-    const addEdit = document.getElementById('ingest-adddata');
-    if (addEdit) addEdit.addEventListener('click', openAddEditDialog);
+    const addYear = document.getElementById('ingest-addyear');
+    if (addYear) addYear.addEventListener('click', openAddYearDialog);
 
     // Picker dropdowns
     const selSection = document.getElementById('ingest-section');
@@ -19005,20 +19007,35 @@ function wireHTooltips() {
   /** Open the "Add new year" modal. */
   /**
    * Validate and add a reporting year. Extracted from the old add-year modal so
-   * the Add or Edit Data dialog uses the SAME mechanics rather than a second
+   * the Add New Year dialog uses the SAME mechanics rather than a second
    * copy of the validation.
    *
    * A year is GLOBAL: one Storage.addYear row and one entry in
    * payload.meta.years. It creates NO table data, so every table opens with
    * zero rows for it until something is saved.
    */
-  function addReportingYear(raw) {
+  /**
+   * Validate a year WITHOUT committing it.
+   *
+   * Split out because the one-step dialog must be able to reject a year while
+   * leaving everything else alone: ruled that an invalid year adds nothing,
+   * imports nothing and moves nothing. Validating inside the commit made that
+   * impossible to honour, because the caller had to touch state first.
+   */
+  function validateReportingYear(raw) {
     const existing = allYears();
     const yr = parseInt(String(raw == null ? '' : raw).trim(), 10);
     if (isNaN(yr)) return { ok: false, error: 'Please enter a valid year.' };
     if (yr < 2000 || yr > 2100) return { ok: false, error: 'Year must be between 2000 and 2100.' };
     const yrStr = String(yr);
     if (existing.indexOf(yrStr) >= 0) return { ok: false, error: yrStr + ' already exists.' };
+    return { ok: true, year: yrStr };
+  }
+
+  function addReportingYear(raw) {
+    const v = validateReportingYear(raw);
+    if (!v.ok) return v;
+    const yrStr = v.year;
 
     Storage.addYear(yrStr);
     state.payload.meta.years.push(yrStr);
@@ -19030,36 +19047,44 @@ function wireHTooltips() {
   }
 
   /**
-   * CLCPA-85 round 2: the ONE home of the add and import workflow.
+   * CLCPA-85 round 3 revision 2: ONE STEP. Every control live from the moment
+   * it opens, and one primary action.
    *
-   * Replaces the old add-year modal, which lost its only caller when + Add year
-   * left the picker row. Its VALIDATION did not go with it: addReportingYear()
-   * holds that, and the Add panel below calls it, so there is one set of
-   * mechanics rather than two.
+   * There is no gating, nothing disabled and no enable in place. Choosing a
+   * file STAGES it: the file is read and dry-run so the operator sees what it
+   * holds, but the draft is not touched, because the year it belongs to does
+   * not exist yet.
    *
-   * The shell is the existing .ingest-modal-overlay / .ingest-modal pattern,
-   * unchanged: same head, body, foot, same close on X, Cancel and backdrop.
+   * THE SEQUENCING SAFETY is now internal to the one click, which is where it
+   * belongs: the year is added BEFORE the staged file is applied, so the apply
+   * always lands on the year just created. buildIngestImport still takes no
+   * year and reads none from state, so nothing about the engine depends on
+   * this ordering being remembered elsewhere.
    *
-   * Three states in one dialog, so neither path bounces the operator between
-   * two of them: 'choice', 'edit', 'add'.
+   * FAILURE SEMANTICS, as ruled:
+   *   invalid year   nothing happens. No add, no import, no selection moved.
+   *   staged file    a hard rejection does NOT block the year. Adding a year is
+   *                  a valid independent action, so it happens, the dialog
+   *                  closes, and the page panel says what was rejected.
    */
-  function openAddEditDialog() {
+  function openAddYearDialog() {
     const p = state.payload;
-    let mode = 'choice';
-    // The Edit panel's own selection, separate from the page's until confirmed:
-    // opening the dialog and cancelling must change nothing.
+    let staged = null;
+    /* The dialog's own selection, copied to the page only by Add Year. Opening
+     * and cancelling changes nothing. */
     let sel = {
       sectionId: state.ingest.sectionId,
       tableId: state.ingest.tableId,
-      year: state.ingest.year,
     };
 
     const modal = document.createElement('div');
     modal.className = 'ingest-modal-overlay';
     document.body.appendChild(modal);
+    let added = false;
     const close = () => {
       document.removeEventListener('keydown', onEsc);
       modal.remove();
+      if (added) rerenderIngestAll();
     };
     const onEsc = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onEsc);
@@ -19068,153 +19093,148 @@ function wireHTooltips() {
       .filter(t => t.section === secId)
       .sort((x, y) => compareTableIds(x.id, y.id));
 
-    function bodyChoice() {
-      return '<div class="ingest-choice">' +
-        '<button class="ingest-choice-btn" type="button" data-go="edit">' +
-        '<strong>Edit Existing Data</strong>' +
-        '<span>Pick a section, table and year that already exist, and go straight ' +
-        'to editing them on the page.</span></button>' +
-        '<button class="ingest-choice-btn" type="button" data-go="add">' +
-        '<strong>Add a New Year</strong>' +
-        '<span>Create a reporting year that does not exist yet, then fill its ' +
-        'tables from a file or by typing.</span></button>' +
-        '</div>';
+    const years = allYears();
+    const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
+
+    /** What the operator typed, or the suggestion before they touch it. */
+    const typedYear = () => {
+      const el = modal.querySelector('#dlg-newyear');
+      return el && el.value !== undefined && el.value !== '' ? el.value : suggested;
+    };
+    /* The staging and template target. The schema resolves even for a year that
+     * does not exist: getTableSchema falls back to any year the table has. */
+    const target = () => ({
+      tableId: sel.tableId,
+      schema: getTableSchema(p.tables[sel.tableId], typedYear()),
+    });
+
+    const secOpts = Object.entries(p.sections).map(([l2, s]) =>
+      '<option value="' + l2 + '"' + (l2 === sel.sectionId ? ' selected' : '') + '>' +
+      l2 + '. ' + escapeHtml(s.full_name) + '</option>').join('');
+    const tblOptsFor = (secId, cur) => tablesIn(secId).map(t =>
+      '<option value="' + t.id + '"' + (t.id === cur ? ' selected' : '') + '>' +
+      t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
+      escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
+
+    function stagedBlock() {
+      if (!staged) return '';
+      const bad = !!(staged.error || (staged.dry && !staged.dry.ok));
+      return '<div class="ingest-staged' + (bad ? ' is-bad' : '') + '" id="dlg-stagedbox">' +
+        '<strong>' + escapeHtml(staged.name) + '</strong> ' +
+        '<span>' + escapeHtml(ingestStagedSummary(staged)) + '</span></div>';
     }
 
-    function bodyEdit() {
-      const secOpts = Object.entries(p.sections).map(([l2, s]) =>
-        '<option value="' + l2 + '"' + (l2 === sel.sectionId ? ' selected' : '') + '>' +
-        l2 + '. ' + escapeHtml(s.full_name) + '</option>').join('');
-      const tabs = tablesIn(sel.sectionId);
-      const tblOpts = tabs.map(t =>
-        '<option value="' + t.id + '"' + (t.id === sel.tableId ? ' selected' : '') + '>' +
-        t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
-        escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
-      const yrOpts = allYears().map(y =>
-        '<option value="' + y + '"' + (y === sel.year ? ' selected' : '') + '>' + y +
-        '</option>').join('');
-      const tbl = p.tables[sel.tableId];
-      const rows = tbl ? getTableBody(tbl, sel.year).length : 0;
-      const hint = rows
-        ? sel.tableId + ' for ' + sel.year + ' has ' + rows + ' row' + (rows === 1 ? '' : 's') +
-          '. Opening it changes nothing until you save.'
-        : sel.tableId + ' has no rows for ' + sel.year + ' yet. Import a file or type ' +
-          'the values in.';
-      return '<div class="ingest-modal-field"><label for="dlg-section">Section</label>' +
-        '<select id="dlg-section" class="ingest-select">' + secOpts + '</select></div>' +
-        '<div class="ingest-modal-field"><label for="dlg-table">Table</label>' +
-        '<select id="dlg-table" class="ingest-select">' + tblOpts + '</select></div>' +
-        '<div class="ingest-modal-field"><label for="dlg-year">Year</label>' +
-        '<select id="dlg-year" class="ingest-select">' + yrOpts + '</select></div>' +
-        '<div class="ingest-modal-hint">' + escapeHtml(hint) + '</div>' +
-        '<hr class="ingest-modal-rule">' +
-        renderIngestImportBar();
-    }
-
-    function bodyAdd() {
-      const years = allYears();
-      const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
-      const tabs = tablesIn(sel.sectionId);
-      const tblOpts = tabs.map(t =>
-        '<option value="' + t.id + '"' + (t.id === sel.tableId ? ' selected' : '') + '>' +
-        t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
-        escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
-      return '<p>A new year appears in the year selector everywhere. Every table ' +
+    function draw() {
+      modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
+        'aria-labelledby="dlg-title">' +
+        '<div class="ingest-modal-head"><h3 id="dlg-title">Add New Year</h3>' +
+        '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
+        '<div class="ingest-modal-body">' +
+        '<p>A new year appears in the year selector everywhere. Every table ' +
         'starts empty, and the dashboard shows no data for it until values are ' +
         'entered and saved.</p>' +
         '<div class="ingest-modal-field"><label for="dlg-newyear">Year</label>' +
         '<input id="dlg-newyear" type="number" min="2000" max="2100" step="1" value="' +
-        suggested + '" /></div>' +
+        escapeHtml(typedYear()) + '" /></div>' +
         '<div class="ingest-modal-hint">Existing years: ' + years.join(', ') + '</div>' +
         '<div class="ingest-modal-error" id="dlg-error" style="display:none"></div>' +
-        '<hr class="ingest-modal-rule">' +
-        '<div class="ingest-modal-field"><label for="dlg-table">Then fill this table first</label>' +
-        '<select id="dlg-table" class="ingest-select">' + tblOpts + '</select></div>' +
-        renderIngestImportBar('The template for a brand new year carries the row ' +
-          'labels from the most recent year that has them, with the values left blank.');
-    }
-
-    function foot() {
-      if (mode === 'choice') {
-        return '<button class="btn btn-secondary" type="button" data-act="cancel">Cancel</button>';
-      }
-      if (mode === 'edit') {
-        return '<button class="btn btn-secondary" type="button" data-act="back">Back</button>' +
-          '<button class="btn btn-primary" type="button" data-act="open">Open For Editing</button>';
-      }
-      return '<button class="btn btn-secondary" type="button" data-act="back">Back</button>' +
-        '<button class="btn btn-primary" type="button" data-act="addyear">Add Year</button>';
-    }
-
-    const titles = { choice: 'Add or Edit Data', edit: 'Edit Existing Data', add: 'Add a New Year' };
-
-    function draw() {
-      const body = mode === 'choice' ? bodyChoice() : mode === 'edit' ? bodyEdit() : bodyAdd();
-      modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
-        'aria-labelledby="dlg-title">' +
-        '<div class="ingest-modal-head"><h3 id="dlg-title">' + titles[mode] + '</h3>' +
-        '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
-        '<div class="ingest-modal-body">' + body + '</div>' +
-        '<div class="ingest-modal-foot">' + foot() + '</div></div>';
+        '<div class="ingest-modal-field"><label for="dlg-section">Section</label>' +
+        '<select id="dlg-section" class="ingest-select">' + secOpts + '</select></div>' +
+        '<div class="ingest-modal-field"><label for="dlg-table">Table</label>' +
+        '<select id="dlg-table" class="ingest-select">' +
+        tblOptsFor(sel.sectionId, sel.tableId) + '</select></div>' +
+        renderIngestImportBar('Choosing a file here stages it. It is imported ' +
+          'when you press Add Year, and the template carries the row labels from ' +
+          'the most recent year that has them, with the values left blank.') +
+        stagedBlock() +
+        '</div>' +
+        '<div class="ingest-modal-foot">' +
+        '<button class="btn btn-secondary" type="button" data-act="cancel">Cancel</button>' +
+        '<button class="btn btn-primary" type="button" data-act="addyear">Add Year</button>' +
+        '</div></div>';
       wire();
     }
 
-    /* Applying the Edit selection is the ONE place the page's state changes, and
-     * it funnels through loadIngestDraft() exactly as the picker handlers do. */
-    function applySelection() {
-      state.ingest.sectionId = sel.sectionId;
-      state.ingest.tableId = sel.tableId;
-      state.ingest.year = sel.year;
-      loadIngestDraft();
+    /* Re-dry-run a held file against a new target. The rows are already read,
+     * so changing table re-describes the same file rather than dropping it. */
+    function restage() {
+      if (!staged || !staged.rows) return;
+      const t = target();
+      try { staged.dry = buildIngestImport(staged.rows, t.schema, [], t.tableId); }
+      catch (err) { staged.dry = null; staged.error = 'The file could not be read.'; }
     }
 
     function wire() {
       modal.querySelector('.ingest-modal-close').addEventListener('click', close);
       modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
-
-      modal.querySelectorAll('[data-go]').forEach(b => {
-        b.addEventListener('click', () => { mode = b.getAttribute('data-go'); draw(); });
-      });
       const act = (name, fn) => {
         const b = modal.querySelector('[data-act="' + name + '"]');
         if (b) b.addEventListener('click', fn);
       };
       act('cancel', close);
-      act('back', () => { mode = 'choice'; draw(); });
-      act('open', () => {
-        if (state.ingest.dirty && !confirm('Discard unsaved changes?')) return;
-        applySelection();
-        close();
-        rerenderIngestAll();
-      });
-      act('addyear', () => {
-        if (state.ingest.dirty && !confirm('You have unsaved changes. Discard them to add a new year?')) return;
-        const err = modal.querySelector('#dlg-error');
-        const res = addReportingYear((modal.querySelector('#dlg-newyear') || {}).value);
-        if (!res.ok) { err.textContent = res.error; err.style.display = 'block'; return; }
-        close();
-        rerenderIngestAll();
-      });
 
-      // Edit-panel selects. Changing section repicks the table, as the page does.
       const s = modal.querySelector('#dlg-section');
       if (s) s.addEventListener('change', (e) => {
         sel.sectionId = e.target.value;
         const ts = tablesIn(sel.sectionId);
         sel.tableId = ts.length ? ts[0].id : null;
+        restage();
         draw();
       });
       const t = modal.querySelector('#dlg-table');
-      if (t) t.addEventListener('change', (e) => { sel.tableId = e.target.value; draw(); });
-      const y = modal.querySelector('#dlg-year');
-      if (y) y.addEventListener('change', (e) => { sel.year = e.target.value; draw(); });
+      if (t) t.addEventListener('change', (e) => {
+        sel.tableId = e.target.value;
+        restage();
+        draw();
+      });
 
-      /* The import controls live here, but they act on the PAGE's target, so the
-       * selection is applied first. Then the dialog closes and the receipt
-       * renders beside the draft (ruling 4), a rejected import included. */
-      wireIngestImport({
-        beforeRead: () => { if (mode === 'edit') applySelection(); },
-        afterImport: () => { close(); rerenderIngestAll(); },
+      const tmpl = modal.querySelector('#ingest-template');
+      if (tmpl) tmpl.addEventListener('click', () => {
+        const y = typedYear();
+        const csv = buildIngestTemplate(sel.tableId, y);
+        if (!csv) { showToast('No template: this table has no columns.', 'error'); return; }
+        // bom: Excel would otherwise mangle the long dashes in the row labels.
+        downloadTextFile(sel.tableId + '-' + y + '-template.csv', csv, 'text/csv', true);
+      });
+
+      wireIngestStaging(target, (st) => { staged = st; draw(); });
+
+      act('addyear', () => {
+        /* 1. Validate FIRST. An invalid year moves nothing at all. */
+        const v = validateReportingYear(typedYear());
+        const err = modal.querySelector('#dlg-error');
+        if (!v.ok) {
+          if (err) { err.textContent = v.error; err.style.display = 'block'; }
+          return;
+        }
+        if (state.ingest.dirty &&
+            !confirm('You have unsaved changes. Discard them to add a new year?')) return;
+
+        /* 2. Point the page at the chosen table, then ADD THE YEAR, which loads
+         *    that table's draft for the new year. Add before apply, always. */
+        state.ingest.sectionId = sel.sectionId;
+        state.ingest.tableId = sel.tableId;
+        const res = addReportingYear(v.year);
+        if (!res.ok) {
+          if (err) { err.textContent = res.error; err.style.display = 'block'; }
+          return;
+        }
+        added = true;
+
+        /* 3. Only now apply a staged file, into the year that now exists. A
+         *    hard rejection does not undo the year: it is reported on the page. */
+        if (staged) {
+          const i = state.ingest;
+          if (!staged.rows) {
+            i.importResult = { ok: false, rejections: [{ why: staged.error ||
+              'The file could not be read.' }] };
+          } else {
+            const plan = buildIngestImport(staged.rows, i.schema, i.draft, i.tableId);
+            i.importResult = plan;
+            if (plan.ok) applyIngestImport(plan);
+          }
+        }
+        close();
       });
     }
 
@@ -19401,76 +19421,75 @@ function wireHTooltips() {
   // ---------- partial re-renderers ----------
 
   /**
-   * CLCPA-85 wiring. The file is read as text and planned; the plan is applied
-   * only when it reports ok, so a rejected file leaves the draft untouched.
-   */
-  /**
-   * Round 2: the controls live in the dialog, so this takes two hooks.
+   * CLCPA-85 round 3 revision 2: STAGE a file, do not apply it.
    *
-   *   beforeRead  applies the dialog's target before the file is read, so the
-   *               import lands where the operator chose rather than where the
-   *               page happened to be.
-   *   afterImport closes the dialog and redraws the page, for a REJECTED import
-   *               as well as a good one: the receipt reads beside the draft.
+   * The one-step dialog has every control live and one action. Choosing a file
+   * therefore cannot touch the draft: the target year does not exist yet. So
+   * this reads the file, plans a DRY RUN against an empty draft to get a shape
+   * summary the operator can see, and hands both back. Nothing is applied.
    *
-   * Both default to nothing, so a page-mounted bar would still work.
+   * The dry run is buildIngestImport itself, not a second shape checker: one
+   * engine means the summary cannot disagree with what the apply will do.
+   *
+   * This replaces wireIngestImport and its beforeRead/afterImport hooks, which
+   * existed only to make an immediate apply land on the right target. With one
+   * step there is nothing to sequence from outside, so they are deleted rather
+   * than left as a second way in.
    */
-  function wireIngestImport(hooks) {
-    const h = hooks || {};
-    const before = h.beforeRead || function () {};
-    const after = h.afterImport || function () { rerenderIngestImport(); };
+  function wireIngestStaging(getTarget, onStaged) {
     const file = document.getElementById('ingest-file');
-    if (file) {
-      file.addEventListener('change', e => {
-        const f = e.target.files && e.target.files[0];
-        e.target.value = '';   // so re-picking the same file fires again
-        if (!f) return;
-        if (state.ingest.dirty &&
-            !confirm('This will change the unsaved draft on the page. Continue?')) return;
-        before();
-        const i = state.ingest;
-        const reader = new FileReader();
-        reader.onerror = () => {
-          i.importResult = { ok: false, rejections: [{ why: 'The file could not be read.' }] };
-          after();
-        };
-        reader.onload = () => {
-          let res;
-          try {
-            const rows = parseCsvRows(String(reader.result));
-            res = buildIngestImport(rows, i.schema, i.draft, i.tableId);
-          } catch (err) {
-            res = { ok: false, rejections: [{ why: 'The file could not be read as CSV: ' +
-              ((err && err.message) || String(err)) }] };
-          }
-          i.importResult = res;
-          if (res.ok) applyIngestImport(res);
-          // after() redraws the whole page, which covers the editor and the
-          // status bar, so the two targeted rerenders are no longer needed.
-          after();
-        };
-        reader.readAsText(f);
-      });
-    }
-
-    const tmpl = document.getElementById('ingest-template');
-    if (tmpl) {
-      tmpl.addEventListener('click', () => {
-        const i = state.ingest;
-        const csv = buildIngestTemplate(i.tableId, i.year);
-        if (!csv) { showToast('No template: this table has no columns.', 'error'); return; }
-        // bom: Excel would otherwise mangle the en dashes in the row labels.
-        downloadTextFile(i.tableId + '-' + i.year + '-template.csv', csv, 'text/csv', true);
-      });
-    }
+    if (!file) return;
+    file.addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = '';   // so re-picking the same file fires again
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onerror = () => onStaged({ name: f.name, rows: null,
+        error: 'The file could not be read.' });
+      reader.onload = () => {
+        let rows, dry;
+        try {
+          rows = parseCsvRows(String(reader.result));
+        } catch (err) {
+          onStaged({ name: f.name, rows: null, error: 'The file could not be read as ' +
+            'CSV: ' + ((err && err.message) || String(err)) });
+          return;
+        }
+        const t = getTarget();
+        // Dry run against an EMPTY draft, which is what a brand new year has.
+        try {
+          dry = buildIngestImport(rows, t.schema, [], t.tableId);
+        } catch (err) {
+          onStaged({ name: f.name, rows: null, error: 'The file could not be read: ' +
+            ((err && err.message) || String(err)) });
+          return;
+        }
+        onStaged({ name: f.name, rows: rows, dry: dry });
+      };
+      reader.readAsText(f);
+    });
   }
 
-  function rerenderIngestImport() {
-    const mount = document.getElementById('ingest-import-mount');
-    if (!mount) return;
-    mount.innerHTML = renderIngestImport();
-    wireIngestImport();
+  /** One line describing a staged file, for the dialog. */
+  function ingestStagedSummary(st) {
+    if (!st) return '';
+    if (st.error) return st.error;
+    const d = st.dry;
+    if (!d) return 'Ready.';
+    if (!d.ok) {
+      const first = (d.rejections || [])[0];
+      return 'This file cannot be imported: ' + ((first && first.why) || 'unknown reason') +
+        ' Add Year will still add the year, and the page will say what was ' +
+        'rejected.';
+    }
+    const cells = d.populated.length;
+    const rows = d.addedRows.length;
+    const cols = d.matchedColumns.length;
+    return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' matching column' +
+      (cols === 1 ? '' : 's') + ', ' + cells + ' value' + (cells === 1 ? '' : 's') +
+      ' ready to import.';
   }
+
   function rerenderIngestAll() {
     const view = document.getElementById('view-container');
     if (!view) return;
