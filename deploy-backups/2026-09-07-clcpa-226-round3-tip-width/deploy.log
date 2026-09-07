@@ -1,0 +1,90 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-226 round 3 (measure the tip unsqueezed, then place it)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 33f7a11
+              source folder clean, so the pushed bytes are exactly 33f7a11.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b all three tickets suites pass against these exact bytes: engine=125, ui=219, xlsx=265, 230=210, 226=195
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      b44e294b02
+                 styles.css  7a4fdb1244
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build b44e294b02" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BTJFV2PNK
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1031038B  local=1032601B
+unchanged  styles.css   deployed=269588B  local=269588B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "5cc7ca54aa", derives to 5cc7ca54aa
+            previous deploy recorded 5cc7ca54aa -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-07-clcpa-226-round3-tip-width/
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1032601B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)
+published.
+
+READ-BACK app.js  1032601B  sha256 389e08d2f31f1d22...  VERIFIED byte-identical
+READ-BACK styles.css  269588B  sha256 7a4fdb124415b137...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 7fc5b9e61f986616...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): b44e294b02
+styles.css id    : 7a4fdb1244
+source           : ExecutiveDashboard_dev/ at main @ 33f7a11
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build b44e294b02
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, CLCPA-226 round 3. app.js only: no CSS changed, so
+nothing about the BOX changed -- only where it is measured and placed.
+
+THE ONE THAT BROKE:
+  1. Data Sources, the close X at the TOP RIGHT. Its tooltip
+        Close Data Sources and return to <tab>
+     must read as full-width lines, not one-word columns. Hover it
+     SEVERAL TIMES: the old defect reinforced itself, so a single look
+     was not enough to see it. It must look the same every time.
+  2. reach it from more than one tab, so <tab> varies in length.
+
+THE FOUR SHORT ONES still hug, unchanged from your last pass:
+  3. the (i), an editor row x, the * beside Source and publication,
+     and a borough row in the map dropdown.
+
+THE OTHER RIGHT-EDGE CONTROLS, which the same fix covers structurally:
+  4. Export and Clear all on the DAC map, and Remove <year> in the
+     picker bar. Hover each after hovering something else first --
+     a PRIOR tooltip is what set up the old collapse.
+
+AND THE ORDERING CASE, still:
+  5. hover a control, then a chart dot on the Equity Quadrant, without
+     leaving the page. The chart box keeps its comfortable width.
+
+=== log written by deploy_226r3.js ===
