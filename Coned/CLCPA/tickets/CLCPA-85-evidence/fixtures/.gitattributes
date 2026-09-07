@@ -1,0 +1,7 @@
+# CLCPA-85 fixtures are byte-exact inputs, not source.
+#
+# a1-2023-lf-bom.csv exists to prove the parser handles LF-only files and a
+# UTF-8 BOM. Git normalisation would rewrite it to CRLF on checkout, so that
+# assertion would pass on a fresh clone for the wrong reason: the file it
+# tested would no longer exist. -text stops git touching the bytes.
+*.csv -text

@@ -14175,6 +14175,399 @@ function wireHTooltips() {
    * columns get thousands separators; negatives render as -$212,177. Non-numeric
    * values (text columns, string residuals) are returned unchanged.
    */
+  /* ==========================================================================
+   * CLCPA-85: spreadsheet import for the Report Data editor.
+   *
+   * RULING 1, and it is satisfied by CONSTRUCTION rather than by imitation:
+   * every value this engine produces goes through parseNumericInput(), the
+   * same and only function the editor's input and blur handlers use. The
+   * import writes into state.ingest.draft and stops. Nothing here touches
+   * Storage; Dataverse is reached only when the operator presses the existing
+   * Save, with its existing validation and audit trail.
+   *
+   * CSV only for v1 (ruling A). An .xlsx cell showing 31% is usually the
+   * NUMBER 0.31 carrying a display format, while the payload stores the STRING
+   * "31%" in 122 cells across 10 tables. A parser that returned 0.31 would be
+   * wrong by 100x, silently and plausibly. CSV carries the text the operator
+   * sees, so the trap does not exist. Save Excel files as CSV first.
+   * ========================================================================== */
+
+  /**
+   * CSV text to rows of raw strings.
+   *
+   * Handles what a real Excel export actually emits: a UTF-8 BOM, CRLF or LF or
+   * bare CR, quoted fields containing commas and newlines, and "" as an escaped
+   * quote. Deliberately NOT a general CSV library: it returns strings and makes
+   * no decision about what they mean. Classification happens later.
+   */
+  function parseCsvRows(text) {
+    const s = String(text == null ? '' : text).replace(/^\uFEFF/, '');
+    const rows = [];
+    let row = [], field = '', inQ = false, i = 0;
+    while (i < s.length) {
+      const ch = s[i];
+      if (inQ) {
+        if (ch === '"') {
+          if (s[i + 1] === '"') { field += '"'; i += 2; continue; }
+          inQ = false; i++; continue;
+        }
+        field += ch; i++; continue;
+      }
+      if (ch === '"') { inQ = true; i++; continue; }
+      if (ch === ',') { row.push(field); field = ''; i++; continue; }
+      if (ch === '\r' || ch === '\n') {
+        // Consume CRLF as ONE terminator, not two empty rows.
+        if (ch === '\r' && s[i + 1] === '\n') i++;
+        row.push(field); rows.push(row); row = []; field = ''; i++; continue;
+      }
+      field += ch; i++;
+    }
+    // A trailing newline leaves nothing to flush; anything else is a final row.
+    if (field !== '' || row.length) { row.push(field); rows.push(row); }
+    // Drop rows that are entirely empty: Excel loves a trailing blank line.
+    return rows.filter(r => r.some(c => String(c).trim() !== ''));
+  }
+
+  /** Normalise a header or a row label for matching: case, space and BOM blind. */
+  function normIngestKey(v) {
+    return String(v == null ? '' : v)
+      .replace(/\uFEFF/g, '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  /**
+   * Which cells are NOT operator input.
+   *
+   * Reuses totalRowFlags() and DERIVED_COLS, the same two the editor uses to
+   * decide which cells render as read-only calc spans. Reimplementing the rule
+   * here would let the import and the editor disagree about what is typeable.
+   */
+  function ingestComputed(rows, tableId, schema) {
+    const totals = totalRowFlags(rows, tableId, schema) || [];
+    const derived = {};
+    ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => { derived[d.column] = true; });
+    return {
+      totalRow: (r) => !!totals[r],
+      derivedCol: (c) => !!derived[c],
+      any: (r, c) => !!totals[r] || !!derived[c],
+    };
+  }
+
+  /**
+   * Plan an import. PURE: reads the current draft, returns a result, and
+   * changes nothing. applyIngestImport() does the assignment, and only when
+   * this reports ok.
+   *
+   * Row matching is by LABEL, not by position, so a file with its rows in a
+   * different order still lands correctly.
+   *
+   * A label the draft does not have becomes a NEW ROW, shaped exactly as the
+   * editor's "+ Add row" shapes one (schema.map(() => null), label in col 0).
+   * This is what makes the new-year flow work at all: + Add year seeds NO rows,
+   * so for a freshly added year every file row is new. Added rows are reported
+   * separately, so the operator sees what was created before pressing Save.
+   */
+  function buildIngestImport(fileRows, schema, draft, tableId) {
+    const res = {
+      ok: false, rejections: [], candidate: null,
+      populated: [], addedRows: [], blankSkipped: [],
+      notTouched: { computed: [], unmatchedColumns: [], unmatchedRows: [] },
+      matchedColumns: [], fileRowCount: 0,
+    };
+    const reject = (why, where) => res.rejections.push(Object.assign({ why: why }, where || {}));
+
+    if (!Array.isArray(schema) || !schema.length) {
+      reject('This table has no column schema, so there is nothing to import into.', {});
+      return res;
+    }
+    /* Leading # lines are comments, and the TEMPLATE writes them.
+     *
+     * Caught by the round-trip assertion: without this, row 0 of a
+     * template-derived file is the '# Save as CSV' note rather than the header,
+     * so the importer rejected the very file the template hands the operator.
+     * Only LEADING comments are skipped: a # inside the data is data. */
+    let fr = fileRows;
+    let skipped = 0;
+    while (fr.length && /^\s*#/.test(String(fr[0][0] == null ? '' : fr[0][0]))) {
+      fr = fr.slice(1); skipped++;
+    }
+    res.commentLinesSkipped = skipped;
+    fileRows = fr;
+
+    if (!Array.isArray(fileRows) || fileRows.length < 2) {
+      reject('The file needs a header row and at least one data row.', {});
+      return res;
+    }
+
+    // ---- headers ----------------------------------------------------------
+    const header = fileRows[0].map(normIngestKey);
+    const schemaNorm = schema.map(normIngestKey);
+    const dupHeader = {};
+    header.forEach((h, idx) => {
+      if (!h) return;
+      if (dupHeader[h] !== undefined) {
+        reject('The file has two columns with the same heading, so which one wins ' +
+          'is ambiguous.', { column: fileRows[0][idx] });
+      }
+      dupHeader[h] = idx;
+    });
+    /* The label column is found by its HEADING, not assumed to be first.
+     *
+     * A fixture with the columns reversed caught this: reading the label from
+     * file column 0 read "888" as a program name. Excel users reorder columns,
+     * so the file's column ORDER carries no meaning here at all.
+     *
+     * Without it there is nothing to match rows on, so its absence is a hard
+     * rejection that names the heading the file needs. */
+    const labelCol = header.indexOf(normIngestKey(schema[0]));
+    if (labelCol < 0) {
+      reject('The file has no \u201c' + schema[0] + '\u201d column, which is the one ' +
+        'that says which row each value belongs to. Download the template for this ' +
+        'table and year to see the headings it expects.', {});
+      return res;
+    }
+    res.labelColumn = schema[0];
+
+    // file column index -> schema column index
+    const colMap = {};
+    header.forEach((h, idx) => {
+      if (idx === labelCol || !h) return;
+      const sIdx = schemaNorm.indexOf(h);
+      if (sIdx > 0) { colMap[idx] = sIdx; res.matchedColumns.push(schema[sIdx]); }
+      else res.notTouched.unmatchedColumns.push(fileRows[0][idx]);
+    });
+    if (!Object.keys(colMap).length) {
+      reject('None of the file\u2019s column headings match this table. Download the ' +
+        'template for this table and year to see the headings it expects.', {});
+      return res;
+    }
+
+    // ---- rows -------------------------------------------------------------
+    const body = fileRows.slice(1);
+    res.fileRowCount = body.length;
+    const dupLabel = {};
+    body.forEach(r => {
+      const k = normIngestKey(r[labelCol]);
+      if (!k) return;
+      dupLabel[k] = (dupLabel[k] || 0) + 1;
+    });
+    Object.keys(dupLabel).forEach(k => {
+      if (dupLabel[k] > 1) {
+        const shown = (body.filter(r => normIngestKey(r[labelCol]) === k)[0] || [])[labelCol];
+        reject('The file has ' + dupLabel[k] + ' rows with this label, so which one ' +
+          'wins is ambiguous.', { label: shown });
+      }
+    });
+
+    // ---- cell types v1 cannot represent -----------------------------------
+    // Each is a real thing spreadsheet exports do, and each fails the WHOLE
+    // import rather than half-applying it.
+    body.forEach(r => {
+      Object.keys(colMap).forEach(fIdx => {
+        const raw = r[fIdx];
+        if (raw == null) return;
+        const str = String(raw);
+        const where = { label: r[labelCol], column: fileRows[0][fIdx], value: str };
+        if (/[\r\n]/.test(str)) {
+          reject('This cell contains more than one line. The editor holds a single ' +
+            'value per cell, so it cannot represent this.', where);
+        } else if (/^\s*=/.test(str)) {
+          reject('This cell holds a formula rather than a value. Save the file as CSV ' +
+            'with values, not formulas.', where);
+        }
+      });
+    });
+
+    if (res.rejections.length) return res;   // whole import fails, draft untouched
+
+    // ---- build the candidate ----------------------------------------------
+    const candidate = (draft || []).map(row => (row || []).slice());
+    const labelIndex = {};
+    candidate.forEach((row, idx) => {
+      const k = normIngestKey(row[0]);
+      if (k && labelIndex[k] === undefined) labelIndex[k] = idx;
+    });
+
+    const targets = [];   // { rowIdx, fileRow, added }
+    body.forEach(r => {
+      const k = normIngestKey(r[labelCol]);
+      if (!k) { res.notTouched.unmatchedRows.push({ label: r[labelCol], why: 'the row has no label' }); return; }
+      if (labelIndex[k] !== undefined) {
+        targets.push({ rowIdx: labelIndex[k], fileRow: r, added: false });
+        return;
+      }
+      // Shaped exactly as the editor's + Add row shapes a new row.
+      const fresh = schema.map(() => null);
+      fresh[0] = String(r[labelCol]).trim();
+      candidate.push(fresh);
+      const idx = candidate.length - 1;
+      labelIndex[k] = idx;
+      targets.push({ rowIdx: idx, fileRow: r, added: true });
+      res.addedRows.push(fresh[0]);
+    });
+
+    // Classify on the CANDIDATE, so rows the file adds are classified too.
+    const computed = ingestComputed(candidate, tableId, schema);
+
+    // Rows the table has that the file never mentioned.
+    const mentioned = {};
+    targets.forEach(t => { mentioned[t.rowIdx] = true; });
+    candidate.forEach((row, idx) => {
+      if (mentioned[idx]) return;
+      const lbl = row[0];
+      if (lbl == null || String(lbl).trim() === '') return;
+      res.notTouched.unmatchedRows.push({
+        label: lbl,
+        why: computed.totalRow(idx) ? 'calculated from the values above'
+                                    : 'the file did not mention this row',
+      });
+    });
+
+    // ---- write the values -------------------------------------------------
+    targets.forEach(t => {
+      Object.keys(colMap).forEach(fIdx => {
+        const cIdx = colMap[fIdx];
+        const raw = t.fileRow[fIdx];
+        const where = { label: candidate[t.rowIdx][0], column: schema[cIdx] };
+        if (computed.any(t.rowIdx, cIdx)) {
+          res.notTouched.computed.push(Object.assign({
+            why: computed.derivedCol(cIdx)
+              ? 'this column is calculated from the other columns'
+              : 'this row is a calculated total',
+          }, where));
+          return;
+        }
+        if (raw == null || String(raw).trim() === '') {
+          // A blank in the file LEAVES the draft alone. It is not an instruction
+          // to erase a value the operator already has.
+          res.blankSkipped.push(where);
+          return;
+        }
+        // THE POINT: the same function the editor's own handlers call.
+        candidate[t.rowIdx][cIdx] = parseNumericInput(raw);
+        res.populated.push(Object.assign({ value: candidate[t.rowIdx][cIdx] }, where));
+      });
+    });
+
+    res.candidate = candidate;
+    res.ok = true;
+    return res;
+  }
+
+  /**
+   * Assign a planned import into the draft. Runs the same three steps the
+   * editor runs after any edit, and nothing more.
+   */
+  function applyIngestImport(res) {
+    if (!res || !res.ok || !res.candidate) return false;
+    const i = state.ingest;
+    i.draft = res.candidate;
+    recomputeTotals(i.draft, i.schema, i.tableId, i.baseline);
+    recomputeDirty();
+    return true;
+  }
+  /**
+   * CLCPA-85 / ruling D: the template, generated from the LIVE schema.
+   *
+   * A checked-in template would drift the moment a schema changed, and under
+   * the payload freeze the payload is the only truth about shape. So this is
+   * generated for the table and year the operator has selected.
+   *
+   * WHERE THE LABELS COME FROM, and this is the whole subtlety:
+   * "+ Add year" seeds NOTHING. applyAddedYears() appends the year to
+   * meta.years and creates no table data, so getTableBody() returns [] and a
+   * freshly added year opens as a table with ZERO rows. A template built from
+   * the selected year would therefore be headers and nothing else for exactly
+   * the case the import exists to serve.
+   *
+   * So labels come from the selected year when it has rows, and otherwise from
+   * the most recent year that does. The template says which it used.
+   */
+  function ingestTemplateSource(table, year) {
+    const own = getTableBody(table, year);
+    if (own && own.length) return { year: year, rows: own, borrowed: false };
+    const years = Object.keys((table && table.data) || {})
+      .filter(y => (table.data[y] || []).length)
+      .sort((x, y2) => parseInt(y2, 10) - parseInt(x, 10));
+    if (!years.length) return { year: null, rows: [], borrowed: false };
+    return { year: years[0], rows: table.data[years[0]], borrowed: true };
+  }
+
+  /** One CSV field, quoted only when it has to be. */
+  function csvField(v) {
+    const s = (v == null) ? '' : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  /**
+   * Build the template CSV for a table and year.
+   *
+   * Editable cells carry the CURRENT value, so the operator edits rather than
+   * retypes. Computed cells carry the literal text (calculated), so the file
+   * itself teaches which cells are not input, and a template-derived file has
+   * nothing in those positions to argue about.
+   */
+  function buildIngestTemplate(tableId, year) {
+    const p = state.payload;
+    const table = p && p.tables && p.tables[tableId];
+    if (!table) return null;
+    const schema = getTableSchema(table, year);
+    if (!schema.length) return null;
+    const src = ingestTemplateSource(table, year);
+    const computed = ingestComputed(src.rows, tableId, schema);
+
+    const lines = [];
+    lines.push('# ' + tableId + ' \u00b7 reporting year ' + year +
+      ' \u00b7 template generated ' + new Date().toISOString().slice(0, 10));
+    lines.push('# Save this file as CSV before importing. Excel .xlsx is not read.');
+    lines.push('# Cells marked (calculated) are worked out by the dashboard: leave them.');
+    if (src.borrowed) {
+      lines.push('# ' + year + ' has no rows yet, so the row labels below come from ' +
+        src.year + '. Change them if the rows differ this year.');
+    } else if (!src.rows.length) {
+      lines.push('# This table has no rows in any year, so add your own row labels ' +
+        'in the first column.');
+    }
+    lines.push(schema.map(csvField).join(','));
+    src.rows.forEach((row, idx) => {
+      const out = schema.map((h, c) => {
+        if (c === 0) return csvField(row[0]);
+        if (computed.any(idx, c)) return '(calculated)';
+        // Blank rather than 0 when the borrowed year had a value: a new year's
+        // numbers are not last year's, and a pre-filled figure invites a save
+        // of stale data. Own-year templates keep the value to edit.
+        if (src.borrowed) return '';
+        return csvField(rawNum(row[c]));
+      });
+      return lines.push(out.join(','));
+    });
+    return lines.join('\r\n') + '\r\n';
+  }
+
+  /**
+   * Hand the browser a file.
+   *
+   * This GENERALISES a pattern the app already open-coded twice: the map's CSV
+   * export and mlDownloadExample(). Neither was reusable (one is buried in the
+   * map closure, the other hardcodes its own content), so the third copy became
+   * the shared one and mlDownloadExample now calls it.
+   *
+   * bom matters and is not cosmetic. Excel reads a UTF-8 CSV without a BOM as
+   * the local codepage, so a row label containing a long dash (A1 has several)
+   * comes back mangled. A mangled LABEL then fails to match on re-import and the row is
+   * ADDED instead of updated, so the round trip quietly duplicates rows. The
+   * map export already prepends one; the template needs it for the same reason.
+   */
+  function downloadTextFile(filename, text, mime, bom) {
+    const body = bom ? '\uFEFF' + text : text;
+    const blob = new Blob([body], { type: (mime || 'text/csv') + ';charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
   function formatIngestValue(v, isCurrency) {
     if (v == null || v === '') return '';
     if (typeof v !== 'number' || !isFinite(v)) return String(v);
@@ -14526,6 +14919,10 @@ function wireHTooltips() {
     i.dirtyRef = clone2D(i.baseline);
     recomputeTotals(i.dirtyRef, i.schema, i.tableId, i.baseline);
     i.dirty = false;
+    // CLCPA-85: a result describes ONE table-year. Cleared here because all
+    // three picker handlers already call this, so it cannot be forgotten in one
+    // of them and leave a panel describing a table the operator has left.
+    i.importResult = null;
   }
 
   /** Mark the draft as dirty (or clean) by diffing against the render reference. */
@@ -15076,17 +15473,14 @@ function wireHTooltips() {
    * because unreachable markup reads as live code to the next person. */
 
   /**
-   * Serve the inline example as a download. Mirrors the map CSV export's
-   * Blob + object-URL approach, so no runtime asset file is added.
+   * Serve the inline example as a download. CLCPA-85: this used to open-code
+   * the Blob and object URL; it now calls downloadTextFile(), which is the same
+   * code with the leak-avoiding revoke in one place instead of two. No BOM: it
+   * is JSON for a machine, not a CSV for Excel.
    */
   function mlDownloadExample() {
-    const text = JSON.stringify(ML_EXAMPLE_GEOJSON, null, 2);
-    const blob = new Blob([text], { type: 'application/geo+json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'example_layer.geojson';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 0);
+    downloadTextFile('example_layer.geojson',
+      JSON.stringify(ML_EXAMPLE_GEOJSON, null, 2), 'application/geo+json');
   }
 
   /** Step 2: pick the value field, see the per-field check, then confirm. */
@@ -18011,6 +18405,8 @@ function wireHTooltips() {
 
       ${renderIngestPicker()}
 
+      <div id="ingest-import-mount">${renderIngestImport()}</div>
+
       <div id="ingest-editor-mount">${renderIngestEditor()}</div>
 
       <div id="ingest-history-mount">${renderIngestHistory()}</div>
@@ -18071,6 +18467,78 @@ function wireHTooltips() {
       </div>`;
   }
 
+  /**
+   * CLCPA-85: the import row under the picker, and the result panel.
+   *
+   * The file never names its target (ruling B): it lands in whatever table and
+   * year the picker above has selected, which is what the label beside the
+   * buttons says out loud.
+   */
+  function renderIngestImport() {
+    const i = state.ingest;
+    const r = i && i.importResult;
+    return '<div class="ingest-import">' +
+      '<div class="ingest-import-bar">' +
+      '<label class="btn btn-secondary ingest-import-btn">Import from file' +
+      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden /></label>' +
+      '<button type="button" class="btn btn-link" id="ingest-template">' +
+      'Download template</button>' +
+      '<span class="ingest-import-note">CSV only. Save Excel files as CSV ' +
+      'first. Values land in the draft below for you to review, then you press ' +
+      'Save.</span>' +
+      '</div>' +
+      (r ? renderIngestImportResult(r) : '') +
+      '</div>';
+  }
+
+  /** Populated, not touched, rejected: per ruling 2, nothing is silent. */
+  function renderIngestImportResult(r) {
+    const li = (s) => '<li>' + escapeHtml(s) + '</li>';
+    const cell = (x) => (x.label ? '\u201c' + x.label + '\u201d' : '(no label)') +
+      (x.column ? ', column \u201c' + x.column + '\u201d' : '');
+
+    if (!r.ok) {
+      return '<div class="ingest-import-result ingest-import-bad">' +
+        '<h4>Nothing was imported</h4>' +
+        '<p>The draft below is untouched. Fix the file and import again.</p>' +
+        '<ul>' + r.rejections.map(x => li(
+          (x.label || x.column ? cell(x) + ': ' : '') + x.why)).join('') +
+        '</ul></div>';
+    }
+
+    const nt = r.notTouched;
+    const blocks = [];
+    blocks.push('<h4>Imported into the draft: ' + r.populated.length + ' cell' +
+      (r.populated.length === 1 ? '' : 's') + '</h4>' +
+      '<p>Review the values below, then press Save. Nothing has been saved yet.</p>');
+    if (r.addedRows.length) {
+      blocks.push('<p><strong>Rows added: ' + r.addedRows.length + '.</strong> ' +
+        'These labels were not in the table, so they were created:</p><ul>' +
+        r.addedRows.map(li).join('') + '</ul>');
+    }
+    const notes = [];
+    if (nt.computed.length) {
+      notes.push('<li>' + nt.computed.length + ' calculated cell' +
+        (nt.computed.length === 1 ? '' : 's') + ' in the file were not imported, ' +
+        'because the dashboard works them out: ' +
+        escapeHtml(nt.computed.slice(0, 4).map(cell).join('; ')) +
+        (nt.computed.length > 4 ? ' and ' + (nt.computed.length - 4) + ' more' : '') +
+        '</li>');
+    }
+    nt.unmatchedColumns.forEach(c => notes.push(li(
+      'Column \u201c' + c + '\u201d is not a column of this table, so it was ignored.')));
+    nt.unmatchedRows.forEach(x => notes.push(li(
+      'Row \u201c' + (x.label == null ? '' : x.label) + '\u201d was not changed: ' + x.why + '.')));
+    if (r.blankSkipped.length) {
+      notes.push('<li>' + r.blankSkipped.length + ' cell' +
+        (r.blankSkipped.length === 1 ? ' was' : 's were') + ' blank in the file and ' +
+        'were left as they are. A blank does not erase a value.</li>');
+    }
+    if (notes.length) {
+      blocks.push('<h4>Not touched</h4><ul>' + notes.join('') + '</ul>');
+    }
+    return '<div class="ingest-import-result">' + blocks.join('') + '</div>';
+  }
   /** The editor (status bar + grid + add-row button). */
   function renderIngestEditor() {
     const p = state.payload;
@@ -18359,6 +18827,8 @@ function wireHTooltips() {
 
   /** Wire all clicks and input events for the ingest page. */
   function wireIngestPage() {
+    wireIngestImport();
+
     // Picker dropdowns
     const selSection = document.getElementById('ingest-section');
     const selTable = document.getElementById('ingest-table');
@@ -18711,6 +19181,63 @@ function wireHTooltips() {
 
   // ---------- partial re-renderers ----------
 
+  /**
+   * CLCPA-85 wiring. The file is read as text and planned; the plan is applied
+   * only when it reports ok, so a rejected file leaves the draft untouched.
+   */
+  function wireIngestImport() {
+    const file = document.getElementById('ingest-file');
+    if (file) {
+      file.addEventListener('change', e => {
+        const f = e.target.files && e.target.files[0];
+        e.target.value = '';   // so re-picking the same file fires again
+        if (!f) return;
+        const i = state.ingest;
+        if (i.dirty && !confirm('This will change the unsaved draft below. Continue?')) return;
+        const reader = new FileReader();
+        reader.onerror = () => {
+          i.importResult = { ok: false, rejections: [{ why: 'The file could not be read.' }] };
+          rerenderIngestImport();
+        };
+        reader.onload = () => {
+          let res;
+          try {
+            const rows = parseCsvRows(String(reader.result));
+            res = buildIngestImport(rows, i.schema, i.draft, i.tableId);
+          } catch (err) {
+            res = { ok: false, rejections: [{ why: 'The file could not be read as CSV: ' +
+              ((err && err.message) || String(err)) }] };
+          }
+          i.importResult = res;
+          if (res.ok) {
+            applyIngestImport(res);
+            rerenderIngestEditor();
+            refreshIngestStatus();
+          }
+          rerenderIngestImport();
+        };
+        reader.readAsText(f);
+      });
+    }
+
+    const tmpl = document.getElementById('ingest-template');
+    if (tmpl) {
+      tmpl.addEventListener('click', () => {
+        const i = state.ingest;
+        const csv = buildIngestTemplate(i.tableId, i.year);
+        if (!csv) { showToast('No template: this table has no columns.', 'error'); return; }
+        // bom: Excel would otherwise mangle the en dashes in the row labels.
+        downloadTextFile(i.tableId + '-' + i.year + '-template.csv', csv, 'text/csv', true);
+      });
+    }
+  }
+
+  function rerenderIngestImport() {
+    const mount = document.getElementById('ingest-import-mount');
+    if (!mount) return;
+    mount.innerHTML = renderIngestImport();
+    wireIngestImport();
+  }
   function rerenderIngestAll() {
     const view = document.getElementById('view-container');
     if (!view) return;

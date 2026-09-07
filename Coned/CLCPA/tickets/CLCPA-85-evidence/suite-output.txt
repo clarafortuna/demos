@@ -1,0 +1,151 @@
+======================================================================
+CLCPA-85 -- Report Data import from CSV
+======================================================================
+
+=== the CSV parser, against what real exports emit ===
+  ok   CRLF is ONE terminator, not two rows
+  ok   LF alone works
+  ok   bare CR works
+  ok   a UTF-8 BOM is stripped
+  ok   a quoted field keeps its comma
+  ok   doubled quotes unescape to one
+  ok   trailing blank lines are dropped
+  ok   a quoted newline stays INSIDE the field
+  ok   the LF+BOM fixture parses to a clean header
+  ok   the reordered fixture drops its two trailing blank lines
+
+=== ruling 1: EQUIVALENCE with the typing path ===
+  ok   the equivalence check had 13 cells to compare
+  ok   EVERY imported cell === what the typing path would store: 13/13
+  ok   commas stripped, as when typed
+  ok   dollar signs stripped, as when typed
+  ok   empty becomes null, as when typed
+  ok   a percent stays the STRING "31%"
+  ok   a number is a number, not a string
+
+=== mapping: headers and labels, order-blind ===
+  ok   the complete fixture imports
+  ok   three rows x two editable columns = 6 cells: 6
+  ok   and it adds no rows: every label already existed
+  ok   a file with its COLUMNS reversed still lands
+  ok   and lands in the right column: 888
+  ok   the partial fixture imports
+  ok   two cells, one column: 2
+  ok   and the rows it did not mention are LISTED: 23
+  ok   rows matched by LABEL, not position, though the file reversed them
+  ok   a column the file omitted is untouched in the draft
+  ok   a file with a blank cell imports
+  ok   the BLANK cell left the draft value alone: 33895737
+  ok   and specifically did not erase it to null
+  ok   while the filled cell beside it did import
+  ok   and the blank is counted: 1
+
+=== percent strings and text round-trip ===
+  ok   the C2 percent fixture imports
+  ok   a percent cell is stored as the STRING "44%": 44%
+  ok   and its type is string, not 0.44
+  ok   the F5 text fixture imports
+  ok   a text column keeps its text
+  ok   and "1,234" became the number 1234
+  ok   and "$2500" became 2500
+
+=== ruling C: computed cells are NOT TOUCHED, not rejected ===
+  ok   a file containing calculated cells still IMPORTS (not a hard rejection)
+  ok   the calculated cells are reported: 4
+  ok   each with a reason naming why
+  ok   the derived column is among them, by name
+  ok   and the derived cell still holds what it held, not the file value
+  ok   nothing was rejected for it
+  ok   the Total ROW kept its values, though the file supplied new ones
+  ok   and it is named in not-touched
+  ok   the engine classifies computed cells BEFORE it writes any value
+  ok   A1 row 24 IS a total row on the unmodified draft
+  ok   and rewriting the body de-classifies it, which is why order matters
+
+=== hard rejections: the WHOLE import fails, draft untouched ===
+  ok   a formula: the import FAILS
+  ok   a formula: and no candidate draft is produced at all
+  ok   a formula: with a reason saying why
+  ok   a formula: and NAMING the cell or row
+  ok   a multi-line cell: the import FAILS
+  ok   a multi-line cell: and no candidate draft is produced at all
+  ok   a multi-line cell: with a reason saying why
+  ok   a multi-line cell: and NAMING the cell or row
+  ok   duplicate labels: the import FAILS
+  ok   duplicate labels: and no candidate draft is produced at all
+  ok   duplicate labels: with a reason saying why
+  ok   duplicate labels: and NAMING the cell or row
+  ok   a file matching no column is rejected and points at the template
+  ok   a header with no data rows is rejected
+
+=== unmatched columns are reported, not guessed ===
+  ok   an unknown column does not fail the import
+  ok   it is listed by its own heading
+  ok   and the column that DID match still imported
+
+=== the PRIMARY FLOW: a freshly added year has zero rows ===
+  ok   applyAddedYears only writes meta.years
+  ok   and never writes table.data, so a new year has no rows
+  ok   getTableBody for an unseeded year returns zero rows
+  ok   but the SCHEMA falls back, so the columns are known: 4
+  ok   importing into an empty year works
+  ok   both file rows became NEW rows: 2
+  ok   and the draft now has two rows
+  ok   with four cells populated: 4
+  ok   the label came from the file
+  ok   and the values with it
+  ok   the editor shapes a new row as schema.map(() => null) with label in col 0
+  ok   and the imported row is that same shape
+
+=== ruling D: the template, from the LIVE schema ===
+  ok   a template is produced
+  ok   its header row IS the live schema, in order
+  ok   it says plainly to save as CSV (ruling A)
+  ok   computed cells are marked (calculated)
+  ok   one row per label: 25
+  ok   and EVERY cell of the derived column is marked, not just the first
+  ok   editable cells carry the current value, so the operator edits rather than retypes
+  ok   the template imports back with no rejections
+  ok   and adds no rows, because its labels are the table’s
+  ok   its (calculated) cells land in not-touched, which is why the marker exists
+  ok   a template for an unseeded year is produced
+  ok   it says whose labels it borrowed, and from which year
+  ok   with one row per label of the reference year: 23
+  ok   and the VALUES are blank: last year’s numbers are not this year’s
+
+=== ruling 1 control: the import cannot reach Dataverse ===
+  FAIL no Storage call anywhere in the import path
+  FAIL no write of any kind
+  ok   and no fetch
+  ok   apply assigns the DRAFT
+  ok   then runs the same two steps the editor runs after any edit
+  ok   the Save path is byte-identical to the pre-85 build
+
+=== the surfaces exist and say the right things ===
+  ok   the file input accepts CSV only
+  ok   the bar says to save Excel as CSV (ruling A)
+  ok   and that the operator presses Save
+  ok   the rejected case says nothing was imported and the draft is untouched
+  ok   there is a not-touched section
+  ok   and added rows are called out
+  ok   the rejected case is styled distinctly, and that rule exists
+  ok   a stale result is cleared on selection change
+  ok   and cleared in loadIngestDraft, which every picker handler calls
+  ok   BASE control: no import panel before
+  ok   BASE control: no CSV parser before
+  ok   BASE control: no shared download helper before
+  ok   BASE fact: two open-coded Blob downloads existed, not zero
+  ok   still two, but now one SHARED helper plus the one inside the map closure it cannot reach: a duplicate was removed, not added
+  ok   mlDownloadExample calls the shared helper rather than repeating it
+  ok   csvField is separate from the map closure’s csvCell, which is unreachable from here
+  ok   the download helper can prepend a BOM
+  ok   and does so when asked
+  ok   the TEMPLATE asks for it, because Excel is what opens it
+  ok   A1 really does have en dashes in its row labels: "Clean Heat – C&I ASHP"
+  ok   BASE fact: the Export BUTTON is still window.print()
+  ok   no LITERAL long dash in any CLCPA-85 function
+  ok   and no ESCAPED one either, which renders the same
+
+======================================================================
+  120 passed, 2 failed
+======================================================================
