@@ -1,0 +1,100 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-235 (an import may never end in silence)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = c58da34
+              source folder clean, so the pushed bytes are exactly c58da34.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b every ticket s suite passes against these exact bytes: engine=125, ui=219, xlsx=265, 230=210, 226=195, 235=72
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      afdfb61827
+                 styles.css  7a4fdb1244
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build afdfb61827" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FR4JRNJJK
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1032601B  local=1037282B
+unchanged  styles.css   deployed=269588B  local=269588B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "b44e294b02", derives to b44e294b02
+            previous deploy recorded b44e294b02 -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-07-clcpa-235-silent-import-loss/
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1037282B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)
+published.
+
+READ-BACK app.js  1037282B  sha256 67d537a5be092bd4...  VERIFIED byte-identical
+READ-BACK styles.css  269588B  sha256 7a4fdb124415b137...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 4bc61d89ddc1243d...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): afdfb61827
+styles.css id    : 7a4fdb1244
+source           : ExecutiveDashboard_dev/ at main @ c58da34
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build afdfb61827
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, CLCPA-235. THE EXACT REPRO, step for step:
+
+  1. stand on year 2099 (add it if it is gone), table A1.
+  2. open Add New Year. The year field pre-fills 2100.
+  3. Import From File, and choose A1-2099-example.csv -- the SAME file
+     as before. The dialog should stage it and report something like
+        23 rows, 3 matching columns, 44 values ready to import.
+  4. press Add Year.
+
+  WHAT MUST HAPPEN NOW, and it is the whole ticket: the page lands on
+  A1 / 2100 with THE 23 ROWS FILLED IN, and the result panel is on the
+  page naming what was created. Nothing silent, nothing empty.
+  Then press Reset, or navigate away without saving, to leave it clean.
+
+  5. NOTHING IS STORED until Save. Confirm the page shows the draft as
+     unsaved, and that reloading the browser without saving loses it.
+
+THE ENCODING HALF, if you still have the ANSI file (the one saved as
+"CSV (Comma delimited)" rather than CSV UTF-8):
+  6. stage it. It must now be REFUSED, at staging, before Add Year --
+     with a message naming how many cells are wrong, the first row, and
+     both Excel options. Previously it imported and silently created 8
+     duplicate program rows with a mangled dash in their names.
+  7. if any such duplicates are already saved from earlier testing, they
+     are still there: this stops new ones, it does not clean old ones.
+
+WHAT MUST NOT HAVE CHANGED:
+  8. the picker still works: switching Section, Table or Year reloads
+     that table-year and clears any result panel.
+  9. a table you were editing keeps its edits if you leave Report Data
+     and come back. That is new, and deliberate: an unrelated redraw no
+     longer throws away work in progress.
+ 10. Save still writes, and is still the only thing that writes.
+
+=== log written by deploy_235.js ===
