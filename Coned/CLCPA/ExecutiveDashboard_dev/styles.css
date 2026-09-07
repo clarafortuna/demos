@@ -6203,19 +6203,30 @@ a.nav-item { text-decoration: none; }
 }
 
 /* Hover tooltip — floats inside .dac-map-container */
+/* CLCPA-226: ONE declaration. This class was declared twice, here and ~1000
+   lines below, and the second block did not re-set position, z-index,
+   font-family or pointer-events -- so what actually rendered was a CASCADE
+   MERGE of the two, and the shadow that won was rgba(0,0,0,0.08): pure black,
+   not the ink token every other tooltip in the app uses.
+
+   Consolidated per ruling: the ink-token shadow, and the values that were
+   winning stated explicitly rather than inherited from an overridden block.
+   The rendered shadow therefore CHANGES, from black to the token, which is
+   the point rather than a side effect. */
 .dac-map-tooltip {
   position: absolute;
   z-index: 1000;
   background: var(--white);
   border: 1px solid var(--line);
   border-radius: 6px;
-  padding: 8px 10px;
+  padding: 10px 12px;          /* was winning from the second block */
   font-family: var(--font);
   font-size: 11px;
+  color: var(--text-2);        /* was only in the second block */
   pointer-events: none;
   box-shadow: 0 4px 14px rgba(3,24,36,.12);
-  min-width: 190px;
-  max-width: 230px;
+  min-width: 200px;            /* was winning from the second block */
+  max-width: 260px;            /* was winning from the second block */
 }
 .dac-tt-geoid {
   font-family: var(--font-mono);
@@ -7289,17 +7300,9 @@ a.nav-item { text-decoration: none; }
 }
 .dac-tt-section:first-of-type { border-top: none; padding-top: 0; }
 
-.dac-map-tooltip {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 10px 12px;
-  min-width: 200px;
-  max-width: 260px;
-  font-size: 11px;
-  color: var(--text-2);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-}
+/* CLCPA-226: the second .dac-map-tooltip declaration is GONE. Its winning
+   values moved up into the single declaration above; its off-token black
+   shadow did not. */
 .dac-tt-geoid {
   font-size: 13px;
   font-weight: 700;
