@@ -1,0 +1,87 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-85 rounds 1 to 6 (Report Data ingestion from spreadsheet files)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 1d78cc1
+              source folder clean, so the pushed bytes are exactly 1d78cc1.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b the ticket suites pass against these exact bytes: engine=125, ui=218, xlsx=265
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      24fe1905ba
+                 styles.css  a118b50c05
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build 24fe1905ba" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FYHKG8RCZ
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=950533B  local=1011412B
+WILL PUSH  styles.css   deployed=264212B  local=267898B
+WILL PUSH  ExecutiveDashboard.html   deployed=4462B  local=4080B
+PROVENANCE  archived app.js: stamped "af6177db2f", derives to af6177db2f
+            previous deploy recorded af6177db2f -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-07-clcpa-85-report-data-ingestion/
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1011412B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (267898B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)
+published.
+
+READ-BACK app.js  1011412B  sha256 77ef826d230efda5...  VERIFIED byte-identical
+READ-BACK styles.css  267898B  sha256 a118b50c055bf705...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 74b78b93d0e36750...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 24fe1905ba
+styles.css id    : a118b50c05
+source           : ExecutiveDashboard_dev/ at main @ 1d78cc1
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 24fe1905ba
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, CLCPA-85 rounds 1 to 6, on Report Data:
+  1. the source-tables tab row is there, and Export PDF is GONE.
+  2. Add New Year opens ONE dialog: year, Section, Table, Import From
+     File and Download Template, nothing disabled.
+  3. Download Template downloads <table>-<year>-example.xlsx, and the
+     control keeps its resting background on hover (no dark inversion).
+  4. THE WORKBOOK, in real Excel, which is the round 6 pass:
+     - it opens with NO repair prompt;
+     - Instructions: no gridlines, row 1 "Con Edison DAC Annual Report"
+       RIGHT ALIGNED, no logo anywhere, one blank row before
+       "How to prepare your file";
+     - the table sheet: header row and Total row in the dashboard s own
+       colours, and column widths wide enough to read without dragging;
+     - nothing is typeable: every cell is locked.
+  5. Import From File stages a CSV and DESCRIBES it; nothing is stored
+     until the existing Save is pressed. That is ruling 1, and it is the
+     one to be most sure of.
+  6. the CLCPA-223 operator gate still applies: a user without Write
+     sees the centred not-available card instead of the page.
+
+=== log written by deploy_85.js ===
