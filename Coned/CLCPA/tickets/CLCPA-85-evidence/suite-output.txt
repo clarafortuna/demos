@@ -114,8 +114,8 @@ CLCPA-85 -- Report Data import from CSV
   ok   and the VALUES are blank: last year’s numbers are not this year’s
 
 === ruling 1 control: the import cannot reach Dataverse ===
-  FAIL no Storage call anywhere in the import path
-  FAIL no write of any kind
+  ok   no Storage call anywhere in the import path
+  ok   no write of any kind
   ok   and no fetch
   ok   apply assigns the DRAFT
   ok   then runs the same two steps the editor runs after any edit
@@ -147,5 +147,5 @@ CLCPA-85 -- Report Data import from CSV
   ok   and no ESCAPED one either, which renders the same
 
 ======================================================================
-  120 passed, 2 failed
+  122 passed, 0 failed
 ======================================================================
