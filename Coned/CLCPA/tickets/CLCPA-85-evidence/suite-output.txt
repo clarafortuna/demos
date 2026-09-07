@@ -109,6 +109,14 @@ CLCPA-85 -- Report Data import from CSV
   ok   and the workbook builder is what replaced it
   ok   ingestTemplateSource SURVIVES: the workbook borrows labels the same way
 
+=== leading # comment lines are still skipped (round 6 gap) ===
+  ok   the parser hands over all four rows, comments included
+  ok   the import plans cleanly despite the two comment lines
+  ok   and the DATA row imports: 2 cells
+  ok   under its real label, not a comment line: ["AMEEP - Electric & Gas"]
+  ok   no comment line is reported as an unmatched row
+  ok   and no column is unmatched, which is what a comment read as the header does
+
 === ruling 1 control: the import cannot reach Dataverse ===
   ok   no Storage call anywhere in the import path
   ok   no write of any kind
@@ -144,5 +152,5 @@ CLCPA-85 -- Report Data import from CSV
   ok   and no ESCAPED one either, which renders the same
 
 ======================================================================
-  119 passed, 0 failed
+  125 passed, 0 failed
 ======================================================================

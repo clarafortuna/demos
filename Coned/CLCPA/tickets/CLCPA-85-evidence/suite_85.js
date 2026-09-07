@@ -442,6 +442,38 @@ lines.push('=== ruling D: the template moved to .xlsx (round 4) ===');
 }
 
 lines.push('');
+lines.push('=== leading # comment lines are still skipped (round 6 gap) ===');
+{
+  /* FOUND by re-running the ROUND 1 mutation set against round 6 code: the
+   * mutation that stops the importer skipping leading # lines left every suite
+   * green. The skip used to be covered incidentally, because round 1's CSV
+   * template emitted comment lines and every template round trip went through
+   * them. Round 4 replaced that template with the workbook, which emits none,
+   * and the shipped skip lost its only coverage.
+   *
+   * It is guarded here rather than deleted: an operator can still hand-write a
+   * CSV with a comment line, and tolerating that is a real behaviour. */
+  const withComments = '# A.1 Incentive $, reporting year 2026\r\n' +
+    '# do not edit the header row\r\n' +
+    A1_SCHEMA.join(',') + '\r\n' +
+    '"AMEEP - Electric & Gas",111,222,\r\n';
+  const rows = api.parseCsvRows(withComments);
+  ok(rows.length === 4, 'the parser hands over all four rows, comments included');
+  const res = api.buildIngestImport(rows, A1_SCHEMA, [], 'A1');
+  ok(res.ok, 'the import plans cleanly despite the two comment lines' +
+     (res.ok ? '' : ': ' + (res.rejections[0] || {}).why));
+  ok(res.populated.length === 2,
+     'and the DATA row imports: ' + res.populated.length + ' cells');
+  ok(res.addedRows.length === 1 && res.addedRows[0] === 'AMEEP - Electric & Gas',
+     'under its real label, not a comment line: ' + JSON.stringify(res.addedRows));
+  ok(!res.notTouched.unmatchedRows.some(x => /^#/.test(String(x.label || ''))),
+     'no comment line is reported as an unmatched row');
+  /* the failure mode the skip prevents: row 0 read as the header */
+  ok(res.notTouched.unmatchedColumns.length === 0,
+     'and no column is unmatched, which is what a comment read as the header does');
+}
+
+lines.push('');
 lines.push('=== ruling 1 control: the import cannot reach Dataverse ===');
 {
   const engine = [grab(SRC, 'buildIngestImport'), grab(SRC, 'applyIngestImport'),

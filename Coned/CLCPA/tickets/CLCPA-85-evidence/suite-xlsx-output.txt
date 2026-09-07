@@ -1,10 +1,10 @@
 ======================================================================
-CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
+CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
 ======================================================================
 
 === the archive itself ===
-  ok   a workbook is produced: 18195 bytes
-  ok   eleven parts with the logo: 11
+  ok   a workbook is produced: 17270 bytes
+  ok   SEVEN parts, no logo: 7
   ok   part present: [Content_Types].xml
   ok   part present: _rels/.rels
   ok   part present: xl/workbook.xml
@@ -12,10 +12,19 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   part present: xl/styles.xml
   ok   part present: xl/worksheets/sheet1.xml
   ok   part present: xl/worksheets/sheet2.xml
-  ok   part present: xl/worksheets/_rels/sheet1.xml.rels
-  ok   part present: xl/drawings/drawing1.xml
-  ok   part present: xl/drawings/_rels/drawing1.xml.rels
-  ok   part present: xl/media/image1.png
+  ok   part ABSENT, as round 6 requires: xl/media/image1.png
+  ok   part ABSENT, as round 6 requires: xl/drawings/drawing1.xml
+  ok   part ABSENT, as round 6 requires: xl/drawings/_rels/drawing1.xml.rels
+  ok   part ABSENT, as round 6 requires: xl/worksheets/_rels/sheet1.xml.rels
+  ok   part ABSENT, as round 6 requires: xl/worksheets/_rels/sheet2.xml.rels
+  ok   and nothing else rode along: the archive holds exactly those seven
+  ok   sheet1: no <drawing> element, dangling or otherwise
+  ok   sheet1: and no relationship reference of any kind
+  ok   sheet1: nor any other part reference that would need a rels file
+  ok   sheet2: no <drawing> element, dangling or otherwise
+  ok   sheet2: and no relationship reference of any kind
+  ok   sheet2: nor any other part reference that would need a rels file
+  ok   sheet 1 still declares the r: namespace, harmlessly and unchanged
   ok   [Content_Types].xml: STORED in both headers
   ok   [Content_Types].xml: CRC32 matches the bytes
   ok   [Content_Types].xml: sizes match
@@ -44,25 +53,9 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   xl/worksheets/sheet2.xml: CRC32 matches the bytes
   ok   xl/worksheets/sheet2.xml: sizes match
   ok   xl/worksheets/sheet2.xml: the local header agrees with the directory
-  ok   xl/worksheets/_rels/sheet1.xml.rels: STORED in both headers
-  ok   xl/worksheets/_rels/sheet1.xml.rels: CRC32 matches the bytes
-  ok   xl/worksheets/_rels/sheet1.xml.rels: sizes match
-  ok   xl/worksheets/_rels/sheet1.xml.rels: the local header agrees with the directory
-  ok   xl/drawings/drawing1.xml: STORED in both headers
-  ok   xl/drawings/drawing1.xml: CRC32 matches the bytes
-  ok   xl/drawings/drawing1.xml: sizes match
-  ok   xl/drawings/drawing1.xml: the local header agrees with the directory
-  ok   xl/drawings/_rels/drawing1.xml.rels: STORED in both headers
-  ok   xl/drawings/_rels/drawing1.xml.rels: CRC32 matches the bytes
-  ok   xl/drawings/_rels/drawing1.xml.rels: sizes match
-  ok   xl/drawings/_rels/drawing1.xml.rels: the local header agrees with the directory
-  ok   xl/media/image1.png: STORED in both headers
-  ok   xl/media/image1.png: CRC32 matches the bytes
-  ok   xl/media/image1.png: sizes match
-  ok   xl/media/image1.png: the local header agrees with the directory
   ok   the EOCD is single-disk
   ok   its entry counts agree
-  ok   and match the parts present: 11
+  ok   and match the parts present: 7
   ok   the directory size matches its span
   ok   and it ends where the EOCD begins
   ok   [Content_Types].xml: XML declaration then a root element
@@ -74,24 +67,18 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   xl/_rels/workbook.xml.rels: XML declaration then a root element
   ok   xl/_rels/workbook.xml.rels: tags balance (1/1)
   ok   xl/styles.xml: XML declaration then a root element
-  ok   xl/styles.xml: tags balance (32/32)
+  ok   xl/styles.xml: tags balance (41/41)
   ok   xl/worksheets/sheet1.xml: XML declaration then a root element
-  ok   xl/worksheets/sheet1.xml: tags balance (52/52)
+  ok   xl/worksheets/sheet1.xml: tags balance (54/54)
   ok   xl/worksheets/sheet2.xml: XML declaration then a root element
   ok   xl/worksheets/sheet2.xml: tags balance (183/183)
-  ok   xl/worksheets/_rels/sheet1.xml.rels: XML declaration then a root element
-  ok   xl/worksheets/_rels/sheet1.xml.rels: tags balance (1/1)
-  ok   xl/drawings/drawing1.xml: XML declaration then a root element
-  ok   xl/drawings/drawing1.xml: tags balance (15/15)
-  ok   xl/drawings/_rels/drawing1.xml.rels: XML declaration then a root element
-  ok   xl/drawings/_rels/drawing1.xml.rels: tags balance (1/1)
 
 === ROUND 5: the STRUCTURAL lock. No unlocked format exists. ===
   ok   styles.xml contains NO xf with locked="0": no cell CAN be unlocked
   ok   and the unlocked style constant is removed, not merely unused
   ok   BASE control: no styles existed at all
-  ok   eleven cell formats: 11
-  ok   and the declared count matches the actual: 11
+  ok   FOURTEEN cell formats after round 6: 14
+  ok   and the declared count matches the actual: 14
   ok   every format sets applyProtection, or Excel ignores the lock
   ok   and every one of them locks
   ok   so every style index resolves LOCKED
@@ -106,6 +93,9 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   XLSX_STYLE_BODY = 8, a real format
   ok   XLSX_STYLE_BAND = 9, a real format
   ok   XLSX_STYLE_NOTE = 10, a real format
+  ok   XLSX_STYLE_LABEL = 11, a real format
+  ok   XLSX_STYLE_TOTAL = 12, a real format
+  ok   XLSX_STYLE_TOTAL_LABEL = 13, a real format
 
 === the app s own palette, from its own tokens ===
   ok   XLSX_INK is --ink in ARGB: FF031824 vs FF031824
@@ -122,47 +112,94 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   and FF9CA8B5 really appears in styles.xml
   ok   the header band is filled with --ink
   ok   and the callout band with --dusk-tint
-  ok   the font count matches the fonts declared: 8
+  ok   the font count matches the fonts declared: 10
   ok   the title font is large, bold and white
 
-=== ROUND 5: the logo, its parts and both rel chains ===
-  ok   the builder reports the logo embedded
-  ok   the image bytes are stored verbatim: 32
-  ok   PNG signature intact, byte for byte
-  ok   png is declared as a default content type
-  ok   and the drawing part is declared
-  ok   sheet1 rels target the drawing
-  ok   with the drawing relationship type
-  ok   and sheet1 references THAT rel id: rId1
-  ok   declaring the r namespace it uses
-  ok   drawing rels target the media
-  ok   with the image relationship type
-  ok   and the drawing embeds THAT rel id: rId1
-  ok   anchored to a cell, not floating
-  ok   with its aspect locked
-  ok   and an accessible description
-  ok   the TABLE sheet has no drawing
-  ok   and no rels part of its own, since it needs none
-  ok   the logo is inlined as a base64 constant
-  ok   and its bytes are IDENTICAL to logo/ConEd_Logo_completo.svg, the sidebar logo
-  ok   nothing fetches the logo file, which no deploy pushes
-  FAIL the rasteriser reads the inlined SVG as a data URL
-  ok   and lets the browser encode the PNG
-  ok   resolving to null on failure, so a template still ships without its logo
-  ok   four resolve calls in all: three failure paths plus the success path
-  ok   all three failure paths resolve: decode error, raster error, and the outer guard
+=== ROUND 6: the logo is GONE, source and workbook both ===
+  ok   removed from app.js entirely: CONED_LOGO_SVG_B64
+  ok   removed from app.js entirely: CONED_LOGO_W
+  ok   removed from app.js entirely: CONED_LOGO_H
+  ok   removed from app.js entirely: function ingestLogoPng
+  ok   removed from app.js entirely: function xlsxDrawingXml
+  ok   removed from app.js entirely: oneCellAnchor
+  ok   removed from app.js entirely: xdr:
+  ok   removed from app.js entirely: image1.png
+  ok   removed from app.js entirely: drawing1.xml
+  ok   removed from app.js entirely: toDataURL
+  ok   removed from app.js entirely: Extension="png"
+  ok   and no hasLogo flag survives on the result
+  ok   nor the EMU-per-pixel constant the anchor needed
+  ok   buildIngestWorkbook takes no logo argument any more
+  ok   and contains nothing asynchronous
+  ok   it RETURNS a workbook rather than a promise
+  ok   the template button handler is found in the dialog wiring
+  ok   the template button no longer rasterises anything first
+  ok   it calls the builder directly, with the table and the typed year
+  ok   the sidebar logo asset is left in place, not deleted with the code
+  ok   and nothing fetches it, which was true before and stays true
 
-=== omitting the logo still yields a valid workbook ===
-  ok   a workbook builds with no logo
-  ok   and reports so
-  ok   seven parts, the four image ones omitted: 7
-  ok   absent: xl/media/image1.png
-  ok   absent: xl/drawings/drawing1.xml
-  ok   absent: xl/drawings/_rels/drawing1.xml.rels
-  ok   absent: xl/worksheets/_rels/sheet1.xml.rels
-  ok   and sheet1 carries no dangling drawing reference
-  ok   nor a content type for an image that is not there
-  ok   nor for the drawing
+=== ROUND 6: the Instructions sheet reads as a document ===
+  ok   sheet 1 hides its gridlines
+  ok   and sheetViews comes FIRST, before cols and sheetData, as the schema demands
+  ok   the TABLE sheet keeps its gridlines: it is a grid, and reads as one
+  ok   the app-name style is right aligned
+  ok   and it is the ONLY right-aligned format, so nothing else moved
+  ok   row 1 carries that style
+  ok   and reads Con Edison DAC Annual Report
+  ok   the middot separator is gone from it, per the round 6 text
+  ok   the second section heading is on the sheet
+  ok   the row immediately before it is BLANK
+  ok   a real cell in the body style, not a missing row, so the height applies
+  ok   two rows on the sheet carry no text: 2
+  ok   exactly ONE of them is a body-style separator: one blank row, not padding
+  ok   and the other is the header band, untouched by round 6
+  ok   the first section heading is on the sheet too
+  ok   and the separator sits AFTER the first heading and BEFORE the second: 4 < 7 < 8
+
+=== ROUND 6: the table sheet wears the dashboard s own colours ===
+  ok   the source rule .data-table thead th is found in styles.css
+  ok   and it is what the format claims to copy: white-smoke, text-3, bold
+  ok   the header format is BOLD, as the rule is
+  ok   in --text-3 (FF6B7B8C), read from the token
+  ok   on a --white-smoke ground (FFF2F2F2)
+  ok   and it WRAPS, so the longest header cannot bleed over its neighbour
+  ok   the rule uppercases; the workbook deliberately does NOT alter the strings
+  ok   the source rule .data-table tbody tr.is-total td is found
+  ok   and carries all four properties the formats copy
+  ok   XLSX_STYLE_TOTAL: bold, per font-weight 700
+  ok   XLSX_STYLE_TOTAL: in --text
+  ok   XLSX_STYLE_TOTAL: on --white-smoke
+  ok   XLSX_STYLE_TOTAL: with a top border, the nearest xlsx form of border-top 2px
+  ok   XLSX_STYLE_TOTAL: in --ink
+  ok   XLSX_STYLE_TOTAL: and applyBorder, or Excel drops it
+  ok   XLSX_STYLE_TOTAL: wraps=false, matching its column
+  ok   XLSX_STYLE_TOTAL_LABEL: bold, per font-weight 700
+  ok   XLSX_STYLE_TOTAL_LABEL: in --text
+  ok   XLSX_STYLE_TOTAL_LABEL: on --white-smoke
+  ok   XLSX_STYLE_TOTAL_LABEL: with a top border, the nearest xlsx form of border-top 2px
+  ok   XLSX_STYLE_TOTAL_LABEL: in --ink
+  ok   XLSX_STYLE_TOTAL_LABEL: and applyBorder, or Excel drops it
+  ok   XLSX_STYLE_TOTAL_LABEL: wraps=true, matching its column
+  ok   noted: --text and --ink are the same hex (FF031824)
+  ok   A1 has a Total row to style: 1
+  ok   every Total row is styled WHOLE, label and values alike: 1
+  ok   and NO data row wears it
+  ok   ordinary label cells use the wrapped label format
+
+=== ROUND 6: real column widths, from MEASURED labels ===
+  ok   MEASURED: the longest label in the payload is 136 chars, in I1
+  ok   and A1 s longest is 60, which is why one number would not do
+  ok   a width for every column, not just the first: 4
+  ok   each declared customWidth, or Excel ignores it
+  ok   and they cover columns 1..n in order
+  ok   A1 label column is 62, its own longest label plus 2
+  ok   value columns sit inside the 16 to 28 clamp
+  ok   the widest of them is sized for its header (24 chars)
+  ok   I1 s 136-char label CLAMPS to 64 rather than producing an unusable column
+  ok   and the clamp is SAFE because both label formats wrap: nothing bleeds
+  ok   no row heights are set on the table sheet, so Excel auto-fits the wrapped rows
+  ok   all 52 tables produce a workbook
+  ok   and every column on every one of them respects the clamps
 
 === the two sheets, in order, named as ruled ===
   ok   exactly two sheets: 2
@@ -199,7 +236,7 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   and the closing note
   ok   the body style wraps its text
   ok   and so does the callout
-  ok   rows carry set heights so the wrapped text is readable: 13
+  ok   rows carry set heights so the wrapped text is readable: 14
   ok   and column A is wide enough to read
 
 === PROTECTION on both sheets, no password ===
@@ -210,8 +247,8 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   protection is guidance against accidents, not security (stated, not tested)
 
 === PER-CELL: every cell on BOTH sheets resolves LOCKED ===
-  ok   sheet1: has cells to check: 13
-  ok   sheet1: EVERY one of its 13 cells resolves locked
+  ok   sheet1: has cells to check: 14
+  ok   sheet1: EVERY one of its 14 cells resolves locked
   ok   sheet1: and every style index is a real format
   ok   sheet2: has cells to check: 96
   ok   sheet2: EVERY one of its 96 cells resolves locked
@@ -250,14 +287,12 @@ CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook
   ok   BASE control: no function buildIngestWorkbook
   ok   BASE control: no function xlsxStylesXml
   ok   BASE control: no function downloadBinaryFile
-  ok   BASE control: no function ingestLogoPng
-  ok   BASE control: no CONED_LOGO_SVG_B64
   ok   BASE control: no sheetProtection
-  ok   BASE control: no oneCellAnchor
+  ok   BASE control: no showGridLines
   ok   the CSV template is deleted
   ok   and the writer pulls in no dependency of any kind
   ok   nor ever CALLS a compression stream: STORED entries need none
 
 ======================================================================
-  233 passed, 1 failed
+  265 passed, 0 failed
 ======================================================================

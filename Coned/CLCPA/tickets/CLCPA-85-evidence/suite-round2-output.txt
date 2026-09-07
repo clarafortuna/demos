@@ -91,8 +91,9 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   .btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85
   ok   so the underline on hover is the SIBLING rule s own, not one invented here
   ok   the template reads the typed year
-  ok   generates the WORKBOOK for the selected table and typed year, with the logo
-  ok   awaiting the async logo raster first, which is the one await in the dialog
+  ok   generates the WORKBOOK for the selected table and typed year
+  ok   with NO logo raster to await: round 6 removed it
+  ok   and the handler is synchronous throughout
   ok   and names it -example.xlsx, since it is an example not a form
   ok   and the hint names the read-only example and the Save As step
   ok   with the workbook MIME type
@@ -182,9 +183,14 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   with no staged file yet
   ok   the footer offers Cancel and Add Year
   ok   and one primary action, not two
-  ok   the template button rasterises the logo first
-  ok   then builds the workbook WITH it
-  ok   in that order, since the builder takes the bytes as an argument
+  ok   the template button rasterises NOTHING: the logo step is gone
+  ok   it builds the workbook for the selected table straight away
+  ok   and no logo reaches the builder at all
+  ok   called with exactly TWO arguments, counted at the call itself
+  ok   and with the TYPED year 2026, not the page year 2025
+  ok   the page year never reaches the builder
+  ok   and the file is NAMED for the typed year, with the workbook MIME type
+  ok   and the bytes it returns are handed straight to the download
   ok   the page stays on its own table while the dialog shows another
   ok   choosing a file runs the dry run
   ok   and does NOT apply it
@@ -204,6 +210,10 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   the dialog closed
   ok   and the page redrew after it
   ok   changing the dialog Section does NOT move the page: cancel is free
+  ok   the template button builds one workbook: 1
+  ok   for the table the DIALOG is on, not the page s A1: buildIngestWorkbook:B1:1999:args=2
+  ok   which is a section B table: B1
+  ok   and downloading a template still moves nothing on the page
   ok   an invalid year adds nothing
   ok   imports nothing
   ok   and does not close the dialog
@@ -237,5 +247,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  208 passed, 0 failed
+  218 passed, 0 failed
 ======================================================================

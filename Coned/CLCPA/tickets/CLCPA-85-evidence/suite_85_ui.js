@@ -303,10 +303,13 @@ lines.push('=== round 3: ONE STEP, every control live ===');
   ok(/const y = typedYear\(\);/.test(dlg), 'the template reads the typed year');
   /* Round 4: the template is an .xlsx WORKBOOK. The import path stays CSV,
    * which is why the workbook's instructions sheet spends a step on Save As. */
-  ok(/buildIngestWorkbook\(sel\.tableId, y, logo\)/.test(dlg),
-     'generates the WORKBOOK for the selected table and typed year, with the logo');
-  ok(/ingestLogoPng\(\)\.then\(/.test(dlg),
-     'awaiting the async logo raster first, which is the one await in the dialog');
+  /* ROUND 6, INVERTED: the logo is gone, so the call takes two arguments and
+   * the dialog awaits nothing. Round 5 asserted the opposite of both. */
+  ok(/buildIngestWorkbook\(sel\.tableId, y\)/.test(dlg),
+     'generates the WORKBOOK for the selected table and typed year');
+  ok(!/ingestLogoPng/.test(dlg), 'with NO logo raster to await: round 6 removed it');
+  ok(!/\.then\(/.test(dlg) && !/await /.test(dlg),
+     'and the handler is synchronous throughout');
   ok(/downloadBinaryFile\(sel\.tableId \+ '-' \+ y \+ '-example\.xlsx'/.test(dlg),
      'and names it -example.xlsx, since it is an example not a form');
   ok(/read-only Excel/.test(dlg) && /Save As CSV UTF-8/.test(dlg),
@@ -563,24 +566,23 @@ const dialogStates = {};
     ingestStagedSummary: realEngine.ingestStagedSummary,
     renderIngestImportBar: new Function(grab(SRC, 'renderIngestImportBar') +
       '\nreturn renderIngestImportBar;')(),
-    /* Round 5: the logo raster is async, so the dialog awaits it. Stubbed to
-     * resolve immediately with a synthetic logo; the real rasteriser needs a
-     * canvas and is hosted-only. */
-    /* A SYNCHRONOUS thenable, not a real Promise. The dialog does
-     * ingestLogoPng().then(cb), and a real promise would defer cb past these
-     * assertions, so the driver would have to become async to see the download
-     * at all. The stub controls the timing; the REAL function is async and
-     * canvas-based, and is hosted-only. */
-    ingestLogoPng: () => {
-      calls.push('ingestLogoPng');
-      const logo = { bytes: new Uint8Array([137, 80]), width: 294, height: 60 };
-      return { then: (cb) => { cb(logo); return { catch: () => {} }; } };
+    /* ROUND 6: the synchronous-thenable stub for ingestLogoPng is GONE with the
+     * function it stood in for. Round 5 needed it because a real promise would
+     * have deferred the download past these assertions; nothing defers now, so
+     * this driver stays synchronous for a simpler reason than a stub. */
+    /* A function declaration, not an arrow, so arguments.length is THIS call's
+     * and a third argument creeping back in would be visible. */
+    buildIngestWorkbook: function (t, y) {
+      calls.push('buildIngestWorkbook:' + t + ':' + y + ':args=' + arguments.length);
+      return { bytes: new Uint8Array([1, 2, 3]), sheetName: 'A.1 Incentive $' };
     },
-    buildIngestWorkbook: (t, y, logo) => { calls.push('buildIngestWorkbook:logo=' + !!logo);
-      return { bytes: new Uint8Array([1, 2, 3]), sheetName: 'A.1 Incentive $',
-               hasLogo: !!logo }; },
+    /* Reports what it GOT rather than dereferencing it. With bytes.length in
+     * here, the mutation that makes the dialog await again crashed this driver
+     * instead of failing it, and a crash is not a named failure. */
     downloadBinaryFile: (name, bytes, mime) => {
-      calls.push('download:' + name + ':' + bytes.length + 'B:' + mime); },
+      calls.push('download:' + name + ':' +
+        (bytes && bytes.length != null ? bytes.length + 'B' : 'NO BYTES') +
+        ':' + mime); },
     downloadTextFile: (name, csv, mime, bom) => {
       calls.push('download:' + name + ':bom=' + !!bom);
     },
@@ -651,10 +653,27 @@ const dialogStates = {};
 
   // ---- 2. TEMPLATE: live from the start, uses the typed year --------------
   created.querySelector('#ingest-template')._on.click[0]();
-  ok(calls.indexOf('ingestLogoPng') >= 0, 'the template button rasterises the logo first');
-  ok(calls.indexOf('buildIngestWorkbook:logo=true') >= 0, 'then builds the workbook WITH it');
-  ok(calls.indexOf('ingestLogoPng') < calls.indexOf('buildIngestWorkbook:logo=true'),
-     'in that order, since the builder takes the bytes as an argument');
+  /* ROUND 6, INVERTED: nothing is rasterised, and the builder is called
+   * DIRECTLY with the table and the typed year. */
+  ok(!calls.some(c => /ingestLogoPng/.test(c)),
+     'the template button rasterises NOTHING: the logo step is gone');
+  ok(calls.some(c => c.indexOf('buildIngestWorkbook:A1:') === 0),
+     'it builds the workbook for the selected table straight away');
+  ok(!calls.some(c => /logo/i.test(c)), 'and no logo reaches the builder at all');
+  ok(calls.some(c => /^buildIngestWorkbook:A1:\d{4}:args=2$/.test(c)),
+     'called with exactly TWO arguments, counted at the call itself');
+  /* The EXACT year, not any four digits. The page is on 2025 and 2026 is
+   * typed, so a builder fed state.ingest.year instead of the typed value used
+   * to leave this driver green: only a source-text read caught it. */
+  ok(calls.some(c => c === 'buildIngestWorkbook:A1:2026:args=2'),
+     'and with the TYPED year 2026, not the page year 2025');
+  ok(!calls.some(c => /^buildIngestWorkbook:A1:2025:/.test(c)),
+     'the page year never reaches the builder');
+  ok(calls.some(c => c === 'download:A1-2026-example.xlsx:3B:' +
+     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+     'and the file is NAMED for the typed year, with the workbook MIME type');
+  ok(calls.some(c => /^download:A1-\d{4}-example\.xlsx:3B:/.test(c)),
+     'and the bytes it returns are handed straight to the download');
 
   // ---- 3. STAGING: a file is described, not applied -----------------------
   const goodCsv = 'Program Name,Total Funds Expended ($),DAC Funding ($)\r\n' +
@@ -716,6 +735,22 @@ const dialogStates = {};
   created.querySelector('#dlg-section')._on.change[0]({ target: { value: 'B' } });
   ok(deps.state.ingest.sectionId === 'A' && deps.state.ingest.tableId === 'A1',
      'changing the dialog Section does NOT move the page: cancel is free');
+  /* THE TEMPLATE, while the dialog and the page disagree about the table. At
+   * step 2 they agreed, so a builder fed state.ingest.tableId was invisible
+   * there; here it is not. The year is invalid at this point in the driver,
+   * which does not matter: the template does not validate, by design. */
+  {
+    const before = calls.length;
+    created.querySelector('#ingest-template')._on.click[0]();
+    const built = calls.slice(before).filter(c => c.indexOf('buildIngestWorkbook:') === 0);
+    ok(built.length === 1, 'the template button builds one workbook: ' + built.length);
+    ok(built[0] && built[0].indexOf('buildIngestWorkbook:A1:') !== 0,
+       'for the table the DIALOG is on, not the page s A1: ' + built[0]);
+    const chosen = (built[0] || '').split(':')[1];
+    ok(/^B/.test(chosen), 'which is a section B table: ' + chosen);
+    ok(deps.state.ingest.tableId === 'A1',
+       'and downloading a template still moves nothing on the page');
+  }
   created.querySelector('[data-act="addyear"]')._on.click[0]();
   ok(calls.indexOf('addReportingYear') < 0, 'an invalid year adds nothing');
   ok(calls.indexOf('buildIngestImport') < 0, 'imports nothing');

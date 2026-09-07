@@ -1,4 +1,4 @@
-/* CLCPA-85 rounds 4 and 5: the .xlsx example workbook.
+/* CLCPA-85 rounds 4 to 6: the .xlsx example workbook.
  *
  * Built by the shipped buildIngestWorkbook, then UNZIPPED and inspected. No
  * inflate is needed, because the writer stores rather than compresses, which is
@@ -11,25 +11,28 @@
  *      contains no xf with locked="0". Checked at the styles level AND per cell
  *      on BOTH sheets.
  *
- *   2. THE IMAGE PLUMBING. The logo part present, and reachable through both
- *      relationship chains, and declared in content types, and referenced from
- *      sheet 1 only. Plus: omitting the logo still yields a valid workbook.
+ *   2. ROUND 6, THE LOGO IS GONE. What round 5 proved as the omit-logo case is
+ *      now the ONLY case, so the assertions are INVERTED: seven parts, no image
+ *      or drawing part, no rel chain, no png content type, no dangling drawing
+ *      reference, and no rasteriser, drawing writer or inlined base64 constant
+ *      left in the source. The builder is synchronous again, asserted.
  *
  *   3. THE ROUND TRIP. The CSV that Excel's "Save As" of the table sheet would
  *      produce is reconstructed from that sheet's own cells and fed to the
  *      SHIPPED buildIngestImport, including the operator's own path of APPENDING
  *      new program rows.
  *
- * The logo bytes come in as an argument, so this suite passes a synthetic PNG.
- * The RASTERISER is async, canvas-based and browser-only, and is therefore
- * hosted-only, along with the rest of the list below.
+ * Round 6 also brings the table sheet's LOOK under assertion: the header and
+ * total rows are taken from the dashboard's own CSS rules, checked against
+ * styles.css itself rather than against hex strings retyped here, and the column
+ * widths are checked against labels MEASURED in the payload.
  *
  * HOSTED-ONLY, recorded CLCPA-220 style and NOT provable here:
- *   - Excel rendering the logo.
  *   - Excel honouring the full lock: nothing typeable anywhere.
  *   - The Save As CSV UTF-8 flow writing only the ACTIVE sheet, encoding intact.
  *   - Excel opening the workbook without a repair prompt.
- *   - ingestLogoPng() itself, which needs a canvas.
+ *   - Round 6, Emely's pass: gridlines actually hidden, the right alignment, the
+ *     colours and the column widths AS RENDERED by real Excel.
  */
 const fs = require('fs');
 const path = require('path');
@@ -45,8 +48,6 @@ const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8');
 const PAYLOAD = JSON.parse(fs.readFileSync(
   path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/payload.json'), 'utf8'));
-const LOGO_SVG = fs.readFileSync(
-  path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_completo.svg'));
 
 let pass = 0, fail = 0;
 const lines = [];
@@ -74,7 +75,7 @@ function grabDecl(name) {
 
 const NAMES = ['crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
   'xlsxStylesXml', 'xlsxCell', 'xlsxSheetXml', 'xlsxInstructionBlocks',
-  'xlsxDrawingXml', 'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed',
+  'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed',
   'totalRowFlags', 'isStrictTotalRowLabel', 'isSplitCell', 'cellText', 'cellCount',
   'cellPct', 'getTableSchema', 'getTableBody', 'rawNum', 'parseCsvRows',
   'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
@@ -83,10 +84,11 @@ const missing = NAMES.filter(n => !grab(n));
 if (missing.length) { console.error('EXTRACTION FAILED: ' + missing.join(', ')); process.exit(1); }
 const STYLE_CONSTS = ['XLSX_STYLE_DEFAULT', 'XLSX_STYLE_HEADER', 'XLSX_STYLE_LOCKED',
   'XLSX_STYLE_HDRBAND', 'XLSX_STYLE_APPNAME', 'XLSX_STYLE_TITLE', 'XLSX_STYLE_SUBTITLE',
-  'XLSX_STYLE_SECTION', 'XLSX_STYLE_BODY', 'XLSX_STYLE_BAND', 'XLSX_STYLE_NOTE'];
+  'XLSX_STYLE_SECTION', 'XLSX_STYLE_BODY', 'XLSX_STYLE_BAND', 'XLSX_STYLE_NOTE',
+  'XLSX_STYLE_LABEL', 'XLSX_STYLE_TOTAL', 'XLSX_STYLE_TOTAL_LABEL'];
 const consts = STYLE_CONSTS.concat(['XLSX_INK', 'XLSX_DUSK', 'XLSX_DUSK_TINT',
   'XLSX_TEXT2', 'XLSX_TEXT3', 'XLSX_WHITE', 'XLSX_PALE',
-  'CONED_LOGO_W', 'CONED_LOGO_H']).map(n => {
+  'XLSX_SMOKE', 'XLSX_TEXT']).map(n => {
   const m = SRC.match(new RegExp('  const ' + n + ' = [^;]+;'));
   if (!m) { console.error('EXTRACTION FAILED: ' + n); process.exit(1); }
   return m[0].trim();
@@ -152,36 +154,58 @@ function unzipStored(bytes) {
   return { parts: out, order: order, count: eocd.entriesTotal, eocd: eocd, cdEnd: p };
 }
 
-/* A synthetic PNG: a real signature plus filler. Enough to prove the plumbing,
- * and deliberately not a real image, since the rasteriser is hosted-only. */
-const FAKE_PNG = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10].concat(
-  Array.from({ length: 24 }, (_, i) => (i * 7) & 0xFF)));
-const LOGO = { bytes: FAKE_PNG, width: 294, height: 60 };
-
 const TABLE = 'A1', YEAR = '2026';
-const wb = api.buildIngestWorkbook(TABLE, YEAR, LOGO);
-const wbNoLogo = api.buildIngestWorkbook(TABLE, YEAR, null);
+/* Round 6: ONE argument list, because there is no logo to pass or omit. */
+const wb = api.buildIngestWorkbook(TABLE, YEAR);
 
 lines.push('======================================================================');
-lines.push('CLCPA-85 rounds 4 and 5 -- the .xlsx example workbook');
+lines.push('CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook');
 lines.push('======================================================================');
 
 lines.push('');
 lines.push('=== the archive itself ===');
 let z = null;
 {
+  /* The message must not dereference what the assertion is testing for. It
+   * used to read wb.bytes.length, and under the mutation that makes the
+   * builder async again it CRASHED the suite instead of failing it. */
   ok(!!wb && wb.bytes && wb.bytes.length > 0, 'a workbook is produced: ' +
-     (wb ? wb.bytes.length + ' bytes' : 'none'));
+     (wb && wb.bytes && wb.bytes.length != null ? wb.bytes.length + ' bytes'
+      : 'NO BYTES: ' + Object.prototype.toString.call(wb)));
   try { z = unzipStored(wb.bytes); } catch (e) { ok(false, 'it reads back: ' + e.message); }
   if (z) {
-    ok(z.count === 11, 'eleven parts with the logo: ' + z.count);
+    /* ROUND 6, INVERTED: seven parts is now the only case. Round 5 proved this
+     * exact shape as the omit-logo branch; the branch is gone and the shape is
+     * what the builder always produces. */
+    ok(z.count === 7, 'SEVEN parts, no logo: ' + z.count);
     ['[Content_Types].xml', '_rels/.rels', 'xl/workbook.xml',
      'xl/_rels/workbook.xml.rels', 'xl/styles.xml',
-     'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml',
-     'xl/worksheets/_rels/sheet1.xml.rels', 'xl/drawings/drawing1.xml',
-     'xl/drawings/_rels/drawing1.xml.rels', 'xl/media/image1.png'].forEach(n => {
+     'xl/worksheets/sheet1.xml', 'xl/worksheets/sheet2.xml'].forEach(n => {
       ok(!!z.parts[n], 'part present: ' + n);
     });
+    ['xl/media/image1.png', 'xl/drawings/drawing1.xml',
+     'xl/drawings/_rels/drawing1.xml.rels',
+     'xl/worksheets/_rels/sheet1.xml.rels',
+     'xl/worksheets/_rels/sheet2.xml.rels'].forEach(n => {
+      ok(!z.parts[n], 'part ABSENT, as round 6 requires: ' + n);
+    });
+    ok(z.count === 7 && Object.keys(z.parts).length === 7,
+       'and nothing else rode along: the archive holds exactly those seven');
+    /* ADDED because a mutation got past this suite: re-emitting a dangling
+     * <drawing r:id="rId1"/> on sheet 1 left every assertion green, because
+     * absent PARTS and absent REFERENCES are two different claims. A dangling
+     * reference is exactly what makes Excel offer to repair the file. */
+    ['sheet1', 'sheet2'].forEach(s => {
+      const t = z.parts['xl/worksheets/' + s + '.xml'].text;
+      ok(!/<drawing/.test(t), s + ': no <drawing> element, dangling or otherwise');
+      ok(!/r:id=/.test(t), s + ': and no relationship reference of any kind');
+      ok(!/legacyDrawing|picture|oleObject/.test(t),
+         s + ': nor any other part reference that would need a rels file');
+    });
+    /* And the converse: sheet 1 declares the r: namespace but must not USE it,
+     * which is the state a half-finished removal would leave behind. */
+    ok(/xmlns:r=/.test(z.parts['xl/worksheets/sheet1.xml'].text),
+       'sheet 1 still declares the r: namespace, harmlessly and unchanged');
     Object.keys(z.parts).forEach(n => {
       const e = z.parts[n];
       ok(e.method === 0 && e.localMethod === 0, n + ': STORED in both headers');
@@ -220,7 +244,7 @@ if (z) {
   ok(BASE_SRC.indexOf('locked="0"') < 0, 'BASE control: no styles existed at all');
   const xfs = (styles.match(/<cellXfs count="(\d+)">([\s\S]*?)<\/cellXfs>/) || []);
   const xfList = (xfs[2] || '').match(/<xf [\s\S]*?<\/xf>/g) || [];
-  ok(xfList.length === 11, 'eleven cell formats: ' + xfList.length);
+  ok(xfList.length === 14, 'FOURTEEN cell formats after round 6: ' + xfList.length);
   ok(parseInt(xfs[1], 10) === xfList.length,
      'and the declared count matches the actual: ' + xfs[1]);
   ok(xfList.every(x => /applyProtection="1"/.test(x)),
@@ -267,102 +291,289 @@ if (z) {
 }
 
 lines.push('');
-lines.push('=== ROUND 5: the logo, its parts and both rel chains ===');
-if (z) {
-  ok(wb.hasLogo === true, 'the builder reports the logo embedded');
-  const media = z.parts['xl/media/image1.png'];
-  ok(media.actualLen === FAKE_PNG.length,
-     'the image bytes are stored verbatim: ' + media.actualLen);
-  ok(Array.from(media.bytes.slice(0, 8)).join(',') === '137,80,78,71,13,10,26,10',
-     'PNG signature intact, byte for byte');
-  // content types
-  const ct = z.parts['[Content_Types].xml'].text;
-  ok(/<Default Extension="png" ContentType="image\/png"\/>/.test(ct),
-     'png is declared as a default content type');
-  ok(/PartName="\/xl\/drawings\/drawing1\.xml"/.test(ct),
-     'and the drawing part is declared');
-  // chain one: sheet1 -> drawing
-  const s1rels = z.parts['xl/worksheets/_rels/sheet1.xml.rels'].text;
-  ok(/Target="\.\.\/drawings\/drawing1\.xml"/.test(s1rels),
-     'sheet1 rels target the drawing');
-  ok(/relationships\/drawing"/.test(s1rels), 'with the drawing relationship type');
-  const s1 = z.parts['xl/worksheets/sheet1.xml'].text;
-  const relId = (s1rels.match(/Id="(rId\d+)"/) || [])[1];
-  ok(new RegExp('<drawing r:id="' + relId + '"\\/>').test(s1),
-     'and sheet1 references THAT rel id: ' + relId);
-  ok(/xmlns:r="http:\/\/schemas\.openxmlformats\.org\/officeDocument\/2006\/relationships"/
-     .test(s1), 'declaring the r namespace it uses');
-  // chain two: drawing -> media
-  const drels = z.parts['xl/drawings/_rels/drawing1.xml.rels'].text;
-  ok(/Target="\.\.\/media\/image1\.png"/.test(drels), 'drawing rels target the media');
-  ok(/relationships\/image"/.test(drels), 'with the image relationship type');
-  const draw = z.parts['xl/drawings/drawing1.xml'].text;
-  const embedId = (drels.match(/Id="(rId\d+)"/) || [])[1];
-  ok(new RegExp('r:embed="' + embedId + '"').test(draw),
-     'and the drawing embeds THAT rel id: ' + embedId);
-  ok(/<xdr:oneCellAnchor>/.test(draw), 'anchored to a cell, not floating');
-  ok(/noChangeAspect="1"/.test(draw), 'with its aspect locked');
-  ok(/descr="Con Edison"/.test(draw), 'and an accessible description');
-  // the drawing is on sheet 1 ONLY
-  const s2 = z.parts['xl/worksheets/sheet2.xml'].text;
-  ok(!/<drawing /.test(s2), 'the TABLE sheet has no drawing');
-  ok(!z.parts['xl/worksheets/_rels/sheet2.xml.rels'],
-     'and no rels part of its own, since it needs none');
+lines.push('=== ROUND 6: the logo is GONE, source and workbook both ===');
+{
+  /* INVERTED from round 5, which asserted each of these present. Every one of
+   * them fails if the removal is partly undone. */
+  ['CONED_LOGO_SVG_B64', 'CONED_LOGO_W', 'CONED_LOGO_H', 'function ingestLogoPng',
+   'function xlsxDrawingXml', 'oneCellAnchor', 'xdr:', 'image1.png', 'drawing1.xml',
+   'toDataURL', "Extension=\"png\""].forEach(s => {
+    ok(SRC.indexOf(s) < 0, 'removed from app.js entirely: ' + s);
+  });
+  ok(!/hasLogo/.test(SRC), 'and no hasLogo flag survives on the result');
+  ok(!/const EMU = /.test(SRC), 'nor the EMU-per-pixel constant the anchor needed');
 
-  /* The SOURCE of the logo: the app's own sidebar asset, inlined rather than
-   * fetched, because no deploy pushes the file. */
-  const b64m = SRC.match(/const CONED_LOGO_SVG_B64 = \[([\s\S]*?)\]\.join\(''\);/);
-  ok(!!b64m, 'the logo is inlined as a base64 constant');
-  const inlined = Buffer.from(new Function('return [' + b64m[1] + '].join("")')(), 'base64');
-  ok(inlined.length === LOGO_SVG.length && inlined.equals(LOGO_SVG),
-     'and its bytes are IDENTICAL to logo/ConEd_Logo_completo.svg, the sidebar logo');
+  /* The builder is SYNCHRONOUS again: the raster was the only await. */
+  const bld = grab('buildIngestWorkbook');
+  ok(/function buildIngestWorkbook\(tableId, year\) \{/.test(bld),
+     'buildIngestWorkbook takes no logo argument any more');
+  ok(!/await |\.then\(|async /.test(bld), 'and contains nothing asynchronous');
+  ok(typeof wb === 'object' && wb !== null && typeof wb.then !== 'function',
+     'it RETURNS a workbook rather than a promise');
+
+  /* The dialog stopped awaiting too, which is what makes the above visible to
+   * the operator rather than merely true of the builder. */
+  const dlgAt = SRC.indexOf("querySelector('#ingest-template')");
+  const dlg = dlgAt > 0 ? SRC.slice(dlgAt, dlgAt + 1400) : '';
+  ok(dlgAt > 0, 'the template button handler is found in the dialog wiring');
+  ok(dlg.length > 0 && !/ingestLogoPng/.test(dlg),
+     'the template button no longer rasterises anything first');
+  ok(/buildIngestWorkbook\(sel\.tableId, y\)/.test(dlg),
+     'it calls the builder directly, with the table and the typed year');
+
+  /* The SVG file itself is untouched: the sidebar still uses it. Round 5 read
+   * it to prove the inlined copy matched; round 6 proves the app still ships it
+   * while the workbook no longer reaches for it. */
+  ok(fs.existsSync(path.join(REPO,
+     'Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_completo.svg')),
+     'the sidebar logo asset is left in place, not deleted with the code');
   ok(SRC.indexOf("fetch('logo/") < 0 && SRC.indexOf('fetch("logo/') < 0,
-     'nothing fetches the logo file, which no deploy pushes');
-  const raster = grab('ingestLogoPng');
-  ok(!!raster && /data:image\/svg\+xml;base64/.test(raster),
-     'the rasteriser reads the inlined SVG as a data URL');
-  ok(/toDataURL\('image\/png'\)/.test(raster), 'and lets the browser encode the PNG');
-  /* The property is "never throws", not "mentions resolve(null)": the first
-   * version of this check passed under a mutation that added a throw, because
-   * resolve(null) still appeared on the other failure paths. */
-  ok(/resolve\(null\)/.test(raster),
-     'resolving to null on failure, so a template still ships without its logo');
-  /* "Never throws" is asserted by COUNTING the resolve calls, not by looking
-   * for the word throw.
-   *
-   * I had a !/throw/ check on this line and REMOVED it: under the mutation
-   * that turns one resolve(null) into throw e, the grabbed text demonstrably
-   * contains "throw" when checked outside this suite, yet that assertion kept
-   * passing inside it. I could not make it fail, so it is not evidence, and
-   * an assertion that cannot be made to fail is worse than none. The counts
-   * below DO fail on that mutation, which is what makes them the guard. */
-  ok(raster.split('resolve(').length - 1 === 4,
-     'four resolve calls in all: three failure paths plus the success path');
-  ok((raster.match(/resolve\(null\)/g) || []).length === 3,
-     'all three failure paths resolve: decode error, raster error, and the outer guard');
+     'and nothing fetches it, which was true before and stays true');
 }
 
 lines.push('');
-lines.push('=== omitting the logo still yields a valid workbook ===');
-{
-  ok(!!wbNoLogo, 'a workbook builds with no logo');
-  ok(wbNoLogo.hasLogo === false, 'and reports so');
-  let z2 = null;
-  try { z2 = unzipStored(wbNoLogo.bytes); } catch (e) { ok(false, 'it reads back: ' + e.message); }
-  if (z2) {
-    ok(z2.count === 7, 'seven parts, the four image ones omitted: ' + z2.count);
-    ['xl/media/image1.png', 'xl/drawings/drawing1.xml',
-     'xl/drawings/_rels/drawing1.xml.rels',
-     'xl/worksheets/_rels/sheet1.xml.rels'].forEach(n => {
-      ok(!z2.parts[n], 'absent: ' + n);
+lines.push('=== ROUND 6: the Instructions sheet reads as a document ===');
+if (z) {
+  const s1 = z.parts['xl/worksheets/sheet1.xml'].text;
+  /* 1. GRIDLINES OFF, at the sheet VIEW level, and on sheet 1 only. */
+  ok(/<sheetViews><sheetView showGridLines="0" workbookViewId="0"\/><\/sheetViews>/.test(s1),
+     'sheet 1 hides its gridlines');
+  const viewAt = s1.indexOf('<sheetViews>');
+  ok(viewAt > 0 && viewAt < s1.indexOf('<cols>') && viewAt < s1.indexOf('<sheetData>'),
+     'and sheetViews comes FIRST, before cols and sheetData, as the schema demands');
+  ok(!/showGridLines/.test(z.parts['xl/worksheets/sheet2.xml'].text),
+     'the TABLE sheet keeps its gridlines: it is a grid, and reads as one');
+
+  /* 3. ROW 1 is the app name, RIGHT ALIGNED, in place of the logo. */
+  const styles = z.parts['xl/styles.xml'].text;
+  const xfAll = ((styles.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/) || [])[1] || '')
+    .match(/<xf [\s\S]*?<\/xf>/g) || [];
+  const appXf = xfAll[api.styleConsts.XLSX_STYLE_APPNAME] || '';
+  ok(/horizontal="right"/.test(appXf), 'the app-name style is right aligned');
+  ok(xfAll.filter(x => /horizontal="right"/.test(x)).length === 1,
+     'and it is the ONLY right-aligned format, so nothing else moved');
+  const row1 = (s1.match(/<row r="1"[\s\S]*?<\/row>/) || [''])[0];
+  ok(new RegExp('s="' + api.styleConsts.XLSX_STYLE_APPNAME + '"').test(row1),
+     'row 1 carries that style');
+  ok(/Con Edison DAC Annual Report/.test(row1), 'and reads Con Edison DAC Annual Report');
+  ok(!/Con Edison \u00b7/.test(s1) && !/\u00b7 DAC Annual Report/.test(row1),
+     'the middot separator is gone from it, per the round 6 text');
+
+  /* 4. ONE BLANK ROW before the second section heading. */
+  const rowsOf = (xml) => (xml.match(/<row r="\d+"[\s\S]*?<\/row>/g) || []);
+  const rows = rowsOf(s1);
+  const textOf = (r) => (r.match(/<t[^>]*>([\s\S]*?)<\/t>/) || [])[1];
+  const howAt = rows.findIndex(r => textOf(r) === 'How to prepare your file');
+  ok(howAt > 0, 'the second section heading is on the sheet');
+  const before = rows[howAt - 1];
+  ok(textOf(before) === undefined, 'the row immediately before it is BLANK');
+  ok(new RegExp('s="' + api.styleConsts.XLSX_STYLE_BODY + '"').test(before),
+     'a real cell in the body style, not a missing row, so the height applies');
+  /* MEASURED, and the reason this counts BODY rows rather than all blank ones:
+   * sheet 1 has two cells with no text, and the other is the header band's own
+   * spacer row (style 3), which round 5 put there and round 6 leaves alone. */
+  const blanks = rows.filter(r => textOf(r) === undefined);
+  ok(blanks.length === 2, 'two rows on the sheet carry no text: ' + blanks.length);
+  const bodyBlanks = blanks.filter(r =>
+    new RegExp('s="' + api.styleConsts.XLSX_STYLE_BODY + '"').test(r));
+  ok(bodyBlanks.length === 1,
+     'exactly ONE of them is a body-style separator: one blank row, not padding');
+  const bandBlanks = blanks.filter(r =>
+    new RegExp('s="' + api.styleConsts.XLSX_STYLE_HDRBAND + '"').test(r));
+  ok(bandBlanks.length === 1, 'and the other is the header band, untouched by round 6');
+  const aboutAt = rows.findIndex(r => textOf(r) === 'About this workbook');
+  ok(aboutAt >= 0, 'the first section heading is on the sheet too');
+  /* Against the separator's OWN index. Phrased as aboutAt < howAt - 1 this
+   * could not be made to fail: moving the blank row above the first heading
+   * left it true, and only the check above went red. */
+  const sepAt = rows.indexOf(bodyBlanks[0]);
+  ok(sepAt > aboutAt && sepAt < howAt,
+     'and the separator sits AFTER the first heading and BEFORE the second: ' +
+     aboutAt + ' < ' + sepAt + ' < ' + howAt);
+}
+
+lines.push('');
+lines.push('=== ROUND 6: the table sheet wears the dashboard s own colours ===');
+if (z) {
+  const styles = z.parts['xl/styles.xml'].text;
+  const xfAll = ((styles.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/) || [])[1] || '')
+    .match(/<xf [\s\S]*?<\/xf>/g) || [];
+  const fonts = ((styles.match(/<fonts[^>]*>([\s\S]*?)<\/fonts>/) || [])[1] || '')
+    .match(/<font>[\s\S]*?<\/font>/g) || [];
+  const fills = ((styles.match(/<fills[^>]*>([\s\S]*?)<\/fills>/) || [])[1] || '')
+    .match(/<fill>[\s\S]*?<\/fill>/g) || [];
+  const borders = ((styles.match(/<borders[^>]*>([\s\S]*?)<\/borders>/) || [])[1] || '')
+    .match(/<border\/>|<border>[\s\S]*?<\/border>/g) || [];
+  const idOf = (xf, attr) => parseInt((xf.match(new RegExp(attr + '="(\\d+)"')) || [])[1], 10);
+  /* The CSS is read, not retyped: a token or rule change fails this rather than
+   * drifting silently. Both rules are quoted in app.js beside the formats. */
+  const tokenHex = (name) => {
+    const m = CSS.match(new RegExp('--' + name + ': (#[0-9A-Fa-f]{6});'));
+    return m ? 'FF' + m[1].slice(1).toUpperCase() : null;
+  };
+  const ruleOf = (sel) => {
+    const i = CSS.indexOf(sel + ' {');
+    return i < 0 ? '' : CSS.slice(i, CSS.indexOf('}', i) + 1);
+  };
+
+  // ---- the HEADER row, from .data-table thead th (styles.css line 555) ----
+  const thRule = ruleOf('.data-table thead th');
+  ok(thRule.length > 0, 'the source rule .data-table thead th is found in styles.css');
+  ok(/background: var\(--white-smoke\)/.test(thRule) &&
+     /color: var\(--text-3\)/.test(thRule) && /font-weight: 700/.test(thRule),
+     'and it is what the format claims to copy: white-smoke, text-3, bold');
+  const hXf = xfAll[api.styleConsts.XLSX_STYLE_HEADER];
+  const hFont = fonts[idOf(hXf, 'fontId')] || '';
+  const hFill = fills[idOf(hXf, 'fillId')] || '';
+  ok(/<b\/>/.test(hFont), 'the header format is BOLD, as the rule is');
+  ok(hFont.indexOf(tokenHex('text-3')) >= 0,
+     'in --text-3 (' + tokenHex('text-3') + '), read from the token');
+  ok(hFill.indexOf(tokenHex('white-smoke')) >= 0,
+     'on a --white-smoke ground (' + tokenHex('white-smoke') + ')');
+  ok(/wrapText="1"/.test(hXf),
+     'and it WRAPS, so the longest header cannot bleed over its neighbour');
+  /* Stated rather than tested, and stated because it is a deliberate
+   * divergence: the rule also sets text-transform: uppercase, which xlsx cannot
+   * do at render time. Honouring it would mean uppercasing the header STRINGS,
+   * and those strings are the example of what the import matches on. */
+  ok(/text-transform: uppercase/.test(thRule) &&
+     !/toUpperCase/.test(grab('buildIngestWorkbook')),
+     'the rule uppercases; the workbook deliberately does NOT alter the strings');
+
+  // ---- the TOTAL row, from .data-table tbody tr.is-total td (line 565) ----
+  const totRule = ruleOf('.data-table tbody tr.is-total td');
+  ok(totRule.length > 0, 'the source rule .data-table tbody tr.is-total td is found');
+  ok(/font-weight: 700/.test(totRule) && /background: var\(--white-smoke\)/.test(totRule) &&
+     /border-top: 2px solid var\(--ink\)/.test(totRule) && /color: var\(--text\)/.test(totRule),
+     'and carries all four properties the formats copy');
+  [['XLSX_STYLE_TOTAL', false], ['XLSX_STYLE_TOTAL_LABEL', true]].forEach(([k, wraps]) => {
+    const xf = xfAll[api.styleConsts[k]];
+    const font = fonts[idOf(xf, 'fontId')] || '';
+    const fill = fills[idOf(xf, 'fillId')] || '';
+    const bid = idOf(xf, 'borderId');
+    ok(/<b\/>/.test(font), k + ': bold, per font-weight 700');
+    ok(font.indexOf(tokenHex('text')) >= 0, k + ': in --text');
+    ok(fill.indexOf(tokenHex('white-smoke')) >= 0, k + ': on --white-smoke');
+    ok(bid === 1 && /<top style="medium">/.test(borders[bid] || ''),
+       k + ': with a top border, the nearest xlsx form of border-top 2px');
+    ok((borders[bid] || '').indexOf(tokenHex('ink')) >= 0, k + ': in --ink');
+    ok(/applyBorder="1"/.test(xf), k + ': and applyBorder, or Excel drops it');
+    ok(/wrapText="1"/.test(xf) === wraps,
+       k + ': wraps=' + wraps + ', matching its column');
+  });
+  /* HONEST about the palette: --text and --ink are the SAME hex in this theme,
+   * so the total row's font colour alone cannot distinguish them. The
+   * distinction that IS proven is structural: the border uses the ink token and
+   * the font the text token, as the two CSS declarations do. */
+  ok(tokenHex('text') === tokenHex('ink'),
+     'noted: --text and --ink are the same hex (' + tokenHex('text') + ')');
+
+  // ---- and the styles actually reach the cells ----
+  const s2 = z.parts['xl/worksheets/sheet2.xml'].text;
+  const table = PAYLOAD.tables[TABLE];
+  const schema = api.getTableSchema(table, YEAR);
+  const src = api.ingestTemplateSource(table, YEAR);
+  const computed = api.ingestComputed(src.rows, TABLE, schema);
+  const totalIdx = src.rows.map((r, i) => i).filter(i => computed.totalRow(i));
+  ok(totalIdx.length > 0, TABLE + ' has a Total row to style: ' + totalIdx.length);
+  const rowXml = {};
+  (s2.match(/<row r="\d+"[\s\S]*?<\/row>/g) || []).forEach(r => {
+    rowXml[parseInt(r.match(/r="(\d+)"/)[1], 10)] = r;
+  });
+  let styledWhole = 0;
+  totalIdx.forEach(i => {
+    const r = rowXml[i + 2] || '';
+    const used = (r.match(/s="(\d+)"/g) || []).map(m => parseInt(m.slice(3), 10));
+    const wantLbl = api.styleConsts.XLSX_STYLE_TOTAL_LABEL;
+    const wantRest = api.styleConsts.XLSX_STYLE_TOTAL;
+    if (used.length === schema.length && used[0] === wantLbl &&
+        used.slice(1).every(s => s === wantRest)) styledWhole++;
+  });
+  ok(styledWhole === totalIdx.length,
+     'every Total row is styled WHOLE, label and values alike: ' + styledWhole);
+  /* And the converse, which is the assertion that would catch styling leaking
+   * onto data rows: no ordinary row wears either total format. */
+  const leaked = src.rows.map((r, i) => i)
+    .filter(i => !computed.totalRow(i))
+    .filter(i => {
+      const r = rowXml[i + 2] || '';
+      return new RegExp('s="' + api.styleConsts.XLSX_STYLE_TOTAL + '"').test(r) ||
+             new RegExp('s="' + api.styleConsts.XLSX_STYLE_TOTAL_LABEL + '"').test(r);
     });
-    ok(!/<drawing /.test(z2.parts['xl/worksheets/sheet1.xml'].text),
-       'and sheet1 carries no dangling drawing reference');
-    ok(!/Extension="png"/.test(z2.parts['[Content_Types].xml'].text),
-       'nor a content type for an image that is not there');
-    ok(!/drawing1\.xml/.test(z2.parts['[Content_Types].xml'].text),
-       'nor for the drawing');
-  }
+  ok(leaked.length === 0,
+     'and NO data row wears it' + (leaked.length ? ': rows ' + leaked.slice(0, 5) : ''));
+  ok(new RegExp('<c r="A2" s="' + api.styleConsts.XLSX_STYLE_LABEL + '"').test(s2),
+     'ordinary label cells use the wrapped label format');
+}
+
+lines.push('');
+lines.push('=== ROUND 6: real column widths, from MEASURED labels ===');
+if (z) {
+  /* Excel does not autofit at generation time, so the widths are written. They
+   * are MEASURED per table rather than set to one global number: the payload's
+   * longest label is 136 characters and A1's longest is 60, and a 136-wide
+   * column would be unusable on every other sheet. */
+  const widthsOf = (xml) => (xml.match(/<col [^>]*>/g) || []).map(c => ({
+    min: parseInt(c.match(/min="(\d+)"/)[1], 10),
+    w: parseInt(c.match(/width="(\d+)"/)[1], 10),
+    custom: /customWidth="1"/.test(c),
+  }));
+  const longestIn = (id) => {
+    const t = PAYLOAD.tables[id];
+    const s = api.ingestTemplateSource(t, YEAR);
+    return s.rows.reduce((m, r) => Math.max(m, String(r[0] == null ? '' : r[0]).length), 0);
+  };
+  /* the measurement itself, stated as a number in the evidence */
+  const allLabels = Object.keys(PAYLOAD.tables).map(id => ({ id: id, n: longestIn(id) }))
+    .sort((x, y) => y.n - x.n);
+  ok(allLabels[0].n === 136 && allLabels[0].id === 'I1',
+     'MEASURED: the longest label in the payload is ' + allLabels[0].n +
+     ' chars, in ' + allLabels[0].id);
+  ok(longestIn('A1') === 60, 'and A1 s longest is 60, which is why one number would not do');
+
+  const cols = widthsOf(z.parts['xl/worksheets/sheet2.xml'].text);
+  const schema = api.getTableSchema(PAYLOAD.tables[TABLE], YEAR);
+  ok(cols.length === schema.length,
+     'a width for every column, not just the first: ' + cols.length);
+  ok(cols.every(c => c.custom), 'each declared customWidth, or Excel ignores it');
+  ok(cols.every((c, i) => c.min === i + 1), 'and they cover columns 1..n in order');
+  ok(cols[0].w === Math.min(64, Math.max(30, longestIn(TABLE) + 2)),
+     TABLE + ' label column is ' + cols[0].w + ', its own longest label plus 2');
+  ok(cols.slice(1).every(c => c.w >= 16 && c.w <= 28),
+     'value columns sit inside the 16 to 28 clamp');
+  const hdrLen = Math.max.apply(null, schema.slice(1).map(h => String(h).length));
+  ok(cols.slice(1).some(c => c.w === Math.min(28, Math.max(16, hdrLen + 2))),
+     'the widest of them is sized for its header (' + hdrLen + ' chars)');
+
+  /* the clamp, and the reason it is SAFE: the label column wraps */
+  const wide = api.buildIngestWorkbook('I1', YEAR);
+  const wideCols = widthsOf(unzipStored(wide.bytes).parts['xl/worksheets/sheet2.xml'].text);
+  ok(longestIn('I1') > 64 && wideCols[0].w === 64,
+     'I1 s 136-char label CLAMPS to 64 rather than producing an unusable column');
+  const styles = unzipStored(wide.bytes).parts['xl/styles.xml'].text;
+  const xfAll = ((styles.match(/<cellXfs[^>]*>([\s\S]*?)<\/cellXfs>/) || [])[1] || '')
+    .match(/<xf [\s\S]*?<\/xf>/g) || [];
+  ok(/wrapText="1"/.test(xfAll[api.styleConsts.XLSX_STYLE_LABEL]) &&
+     /wrapText="1"/.test(xfAll[api.styleConsts.XLSX_STYLE_TOTAL_LABEL]),
+     'and the clamp is SAFE because both label formats wrap: nothing bleeds');
+  const s2wide = unzipStored(wide.bytes).parts['xl/worksheets/sheet2.xml'].text;
+  ok(!/customHeight="1"/.test(s2wide),
+     'no row heights are set on the table sheet, so Excel auto-fits the wrapped rows');
+
+  /* every table builds, and none of them produces a column outside the clamps */
+  const ids = Object.keys(PAYLOAD.tables);
+  let built = 0; const bad = [];
+  ids.forEach(id => {
+    const w = api.buildIngestWorkbook(id, YEAR);
+    if (!w) return;
+    built++;
+    const c = widthsOf(unzipStored(w.bytes).parts['xl/worksheets/sheet2.xml'].text);
+    if (!(c[0].w >= 30 && c[0].w <= 64)) bad.push(id + ' label ' + c[0].w);
+    if (!c.slice(1).every(x => x.w >= 16 && x.w <= 28)) bad.push(id + ' value');
+  });
+  ok(built === ids.length, 'all ' + built + ' tables produce a workbook');
+  ok(bad.length === 0, 'and every column on every one of them respects the clamps' +
+     (bad.length ? ': ' + bad.slice(0, 5).join(', ') : ''));
 }
 
 lines.push('');
@@ -396,7 +607,7 @@ if (z) {
       .replace(/&amp;/g, '&').replace(/&apos;/g, "'").replace(/&quot;/g, '"')
       .replace(/&lt;/g, '<').replace(/&gt;/g, '>'));
   const APPROVED = [
-    'Con Edison \u00b7 DAC Annual Report',
+    'Con Edison DAC Annual Report',
     'Import Format Example',
     'A.1 Incentive $ \u00b7 reporting year 2026',
     'About this workbook',
@@ -604,14 +815,17 @@ if (z && sheet2Cells) {
 lines.push('');
 lines.push('=== BASE controls: none of this existed ===');
 {
+  /* Only things that exist NOW are worth a BASE control. The logo names moved
+   * to the round 6 removal section, where they are asserted absent from the
+   * SHIPPED source: absent from BASE too would be vacuous on both sides. */
   ['function zipStored', 'function crc32', 'function buildIngestWorkbook',
-   'function xlsxStylesXml', 'function downloadBinaryFile', 'function ingestLogoPng',
-   'CONED_LOGO_SVG_B64', 'sheetProtection', 'oneCellAnchor'].forEach(s => {
+   'function xlsxStylesXml', 'function downloadBinaryFile',
+   'sheetProtection', 'showGridLines'].forEach(s => {
     ok(BASE_SRC.indexOf(s) < 0, 'BASE control: no ' + s);
   });
   ok(SRC.indexOf('function buildIngestTemplate') < 0, 'the CSV template is deleted');
   const writer = grab('buildIngestWorkbook') + grab('zipStored') + grab('crc32') +
-    grab('xlsxDrawingXml') + grab('ingestLogoPng');
+    grab('xlsxStylesXml') + grab('xlsxSheetXml');
   ok(!/require\(|import\s+\w+\s+from|unpkg|cdnjs|jsdelivr|SheetJS|xlsx\.min/.test(writer),
      'and the writer pulls in no dependency of any kind');
   ok(!/new (?:De)?CompressionStream|(?:De)?CompressionStream\(/.test(SRC),

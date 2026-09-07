@@ -14687,190 +14687,6 @@ function wireHTooltips() {
    * it did not touch.
    * ========================================================================== */
 
-  /* ==========================================================================
-   * CLCPA-85 round 5: the Con Edison logo, for the template's Instructions
-   * sheet.
-   *
-   * These are the exact bytes of logo/ConEd_Logo_completo.svg, the SIDEBAR
-   * logo, base64 encoded. INLINED rather than fetched, and that is deliberate:
-   * no deploy pushes the logo file (every deploy sends app.js, styles.css and
-   * ExecutiveDashboard.html and nothing else), so a fetch would depend on a web
-   * resource nobody maintains and would fail silently on hosted. Inlining makes
-   * it unambiguously the app's own asset and works everywhere.
-   *
-   * Cost: about 10.8 kB of base64 in a file near 1 MB.
-   * ========================================================================== */
-  const CONED_LOGO_SVG_B64 = [
-    'PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+DQo8IS0tIENyZWF0ZWQgd2l0' +
-    'aCBJbmtzY2FwZSAoaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvKSAtLT4NCg0KPHN2Zw0KICAgeG1sbnM6ZGM9Imh0dHA6Ly9w' +
-    'dXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIg0KICAgeG1sbnM6Y2M9Imh0dHA6Ly9jcmVhdGl2ZWNvbW1vbnMub3JnL25zIyIN' +
-    'CiAgIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyINCiAgIHhtbG5zOnN2' +
-    'Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQogICB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciDQog' +
-    'ICB4bWxuczpzb2RpcG9kaT0iaHR0cDovL3NvZGlwb2RpLnNvdXJjZWZvcmdlLm5ldC9EVEQvc29kaXBvZGktMC5kdGQiDQog' +
-    'ICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSINCiAgIHdpZHRo' +
-    'PSIxNDYuNzg5OTkiDQogICBoZWlnaHQ9IjI5Ljg3OTk5OSINCiAgIGlkPSJzdmcyIg0KICAgdmVyc2lvbj0iMS4xIg0KICAg' +
-    'aW5rc2NhcGU6dmVyc2lvbj0iMC40NyByMjI1ODMiDQogICBzb2RpcG9kaTpkb2NuYW1lPSJOZXcgZG9jdW1lbnQgMSI+DQog' +
-    'IDxkZWZzDQogICAgIGlkPSJkZWZzNCI+DQogICAgPGlua3NjYXBlOnBlcnNwZWN0aXZlDQogICAgICAgc29kaXBvZGk6dHlw' +
-    'ZT0iaW5rc2NhcGU6cGVyc3AzZCINCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogNTI2LjE4MTA5IDogMSINCiAgICAgICBp' +
-    'bmtzY2FwZTp2cF95PSIwIDogMTAwMCA6IDAiDQogICAgICAgaW5rc2NhcGU6dnBfej0iNzQ0LjA5NDQ4IDogNTI2LjE4MTA5' +
-    'IDogMSINCiAgICAgICBpbmtzY2FwZTpwZXJzcDNkLW9yaWdpbj0iMzcyLjA0NzI0IDogMzUwLjc4NzM5IDogMSINCiAgICAg' +
-    'ICBpZD0icGVyc3BlY3RpdmUxMCIgLz4NCiAgICA8Y2xpcFBhdGgNCiAgICAgICBpZD0iY2xpcFBhdGgyOTA2Ig0KICAgICAg' +
-    'IGNsaXBQYXRoVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4NCiAgICAgIDxwYXRoDQogICAgICAgICBpZD0icGF0aDI5MDgiDQog' +
-    'ICAgICAgICBkPSJNIDAsMCA1NDAsMCA1NDAsNjQ4IDAsNjQ4IDAsMCB6IiAvPg0KICAgIDwvY2xpcFBhdGg+DQogICAgPGNs' +
-    'aXBQYXRoDQogICAgICAgaWQ9ImNsaXBQYXRoMjg1MiINCiAgICAgICBjbGlwUGF0aFVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+' +
-    'DQogICAgICA8cGF0aA0KICAgICAgICAgaWQ9InBhdGgyODU0Ig0KICAgICAgICAgZD0ibSAzNTEuMzI4LDMxLjUxNiAxNjIs' +
-    'MCAwLDU2LjU1NSAtMTYyLDAgMCwtNTYuNTU1IHoiIC8+DQogICAgPC9jbGlwUGF0aD4NCiAgICA8bGluZWFyR3JhZGllbnQN' +
-    'CiAgICAgICBpZD0ibGluZWFyR3JhZGllbnQyODQwIg0KICAgICAgIHNwcmVhZE1ldGhvZD0icGFkIg0KICAgICAgIGdyYWRp' +
-    'ZW50VHJhbnNmb3JtPSJtYXRyaXgoMCwzMjMuOTc3ODEsMzIzLjk3NzgxLDAsMC4zMjc2MzY3LDMyNC4wMjIxOSkiDQogICAg' +
-    'ICAgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiDQogICAgICAgeTI9IjAiDQogICAgICAgeDI9IjEiDQogICAgICAg' +
-    'eTE9IjAiDQogICAgICAgeDE9IjAiPg0KICAgICAgPHN0b3ANCiAgICAgICAgIGlkPSJzdG9wMjg0MiINCiAgICAgICAgIG9m' +
-    'ZnNldD0iMCINCiAgICAgICAgIHN0eWxlPSJzdG9wLW9wYWNpdHk6MTtzdG9wLWNvbG9yOiNmZmZmZmYiIC8+DQogICAgICA8' +
-    'c3RvcA0KICAgICAgICAgaWQ9InN0b3AyODQ0Ig0KICAgICAgICAgb2Zmc2V0PSIxIg0KICAgICAgICAgc3R5bGU9InN0b3At' +
-    'b3BhY2l0eToxO3N0b3AtY29sb3I6IzAwOTJjZiIgLz4NCiAgICA8L2xpbmVhckdyYWRpZW50Pg0KICAgIDxpbmtzY2FwZTpw' +
-    'ZXJzcGVjdGl2ZQ0KICAgICAgIGlkPSJwZXJzcGVjdGl2ZTI4MjQiDQogICAgICAgaW5rc2NhcGU6cGVyc3AzZC1vcmlnaW49' +
-    'IjAuNSA6IDAuMzMzMzMzMzMgOiAxIg0KICAgICAgIGlua3NjYXBlOnZwX3o9IjEgOiAwLjUgOiAxIg0KICAgICAgIGlua3Nj' +
-    'YXBlOnZwX3k9IjAgOiAxMDAwIDogMCINCiAgICAgICBpbmtzY2FwZTp2cF94PSIwIDogMC41IDogMSINCiAgICAgICBzb2Rp' +
-    'cG9kaTp0eXBlPSJpbmtzY2FwZTpwZXJzcDNkIiAvPg0KICA8L2RlZnM+DQogIDxzb2RpcG9kaTpuYW1lZHZpZXcNCiAgICAg' +
-    'aWQ9ImJhc2UiDQogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiINCiAgICAgYm9yZGVyY29sb3I9IiM2NjY2NjYiDQogICAgIGJv' +
-    'cmRlcm9wYWNpdHk9IjEuMCINCiAgICAgaW5rc2NhcGU6cGFnZW9wYWNpdHk9IjAuMCINCiAgICAgaW5rc2NhcGU6cGFnZXNo' +
-    'YWRvdz0iMiINCiAgICAgaW5rc2NhcGU6em9vbT0iNS45NTc1MzQ4Ig0KICAgICBpbmtzY2FwZTpjeD0iMTExLjczNzA0Ig0K' +
-    'ICAgICBpbmtzY2FwZTpjeT0iMTEuNDkwNjg4Ig0KICAgICBpbmtzY2FwZTpkb2N1bWVudC11bml0cz0icHgiDQogICAgIGlu' +
-    'a3NjYXBlOmN1cnJlbnQtbGF5ZXI9ImxheWVyMSINCiAgICAgc2hvd2dyaWQ9ImZhbHNlIg0KICAgICBpbmtzY2FwZTp3aW5k' +
-    'b3ctd2lkdGg9IjE2ODAiDQogICAgIGlua3NjYXBlOndpbmRvdy1oZWlnaHQ9IjEwMDAiDQogICAgIGlua3NjYXBlOndpbmRv' +
-    'dy14PSItOCINCiAgICAgaW5rc2NhcGU6d2luZG93LXk9Ii04Ig0KICAgICBpbmtzY2FwZTp3aW5kb3ctbWF4aW1pemVkPSIx' +
-    'IiAvPg0KICA8bWV0YWRhdGENCiAgICAgaWQ9Im1ldGFkYXRhNyI+DQogICAgPHJkZjpSREY+DQogICAgICA8Y2M6V29yaw0K' +
-    'ICAgICAgICAgcmRmOmFib3V0PSIiPg0KICAgICAgICA8ZGM6Zm9ybWF0PmltYWdlL3N2Zyt4bWw8L2RjOmZvcm1hdD4NCiAg' +
-    'ICAgICAgPGRjOnR5cGUNCiAgICAgICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3Rp' +
-    'bGxJbWFnZSIgLz4NCiAgICAgICAgPGRjOnRpdGxlPjwvZGM6dGl0bGU+DQogICAgICA8L2NjOldvcms+DQogICAgPC9yZGY6' +
-    'UkRGPg0KICA8L21ldGFkYXRhPg0KICA8Zw0KICAgICBpbmtzY2FwZTpsYWJlbD0iTGF5ZXIgMSINCiAgICAgaW5rc2NhcGU6' +
-    'Z3JvdXBtb2RlPSJsYXllciINCiAgICAgaWQ9ImxheWVyMSINCiAgICAgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTAzNy4yNDUs' +
-    'LTYzMy44ODY3OSkiPg0KICAgIDxwYXRoDQogICAgICAgaWQ9InBhdGgyODU4Ig0KICAgICAgIHN0eWxlPSJmaWxsOiNmZmZm' +
-    'ZmY7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnplcm87c3Ryb2tlOm5vbmUiDQogICAgICAgZD0ibSAtOTg2LjA1OTYz' +
-    'LDY1Mi42NTg2NCBjIC0wLjExMTI1LDEuMjE4NzUgLTEuMDYzNzUsNC42MSAtNS4zODYyNSw0LjYxIC00LjQzMjUsMCAtNS40' +
-    'NSwtMy4zOTEyNSAtNS40NSwtNS44NzI1IDAsLTMuODEzNzUgMS42NjEyNSwtNi41NCA1LjY1LC02LjU0IDEuODYyNSwwIDQu' +
-    'OTIxMjUsMC44NDEyNSA1LjIwODc1LDQuNTIxMjUgbCAtMy4xNDc1LDAgYyAtMC4xMzM3NSwtMC43NzYyNSAtMC42MiwtMS45' +
-    'OTM3NSAtMi4wNjEyNSwtMS45MDYyNSAtMS45NSwwIC0yLjQ2MTI1LDEuOTUgLTIuNDYxMjUsMy40MTI1IDAsMS4yODYyNSAw' +
-    'LjA0NSwzLjgzNSAyLjM5NSwzLjgzNSAxLjU3NSwwIDIuMTA1LC0xLjUwNjI1IDIuMTA1LC0yLjA2IGwgMy4xNDc1LDAgeiIg' +
-    'Lz4NCiAgICA8cGF0aA0KICAgICAgIGlkPSJwYXRoMjg2MiINCiAgICAgICBzdHlsZT0iZmlsbDojZmZmZmZmO2ZpbGwtb3Bh' +
-    'Y2l0eToxO2ZpbGwtcnVsZTpub256ZXJvO3N0cm9rZTpub25lIg0KICAgICAgIGQ9Im0gLTk3Ni4zNzI4OCw2NTEuMDYxNzcg' +
-    'YyAwLDEuNTA3NSAtMC40NDM3NSwzLjU5MjUgLTIuODM4NzUsMy41OTI1IC0yLjM5MTI1LDAgLTIuODM2MjUsLTIuMDg1IC0y' +
-    'LjgzNjI1LC0zLjU5MjUgMCwtMS41MDc1IDAuNDQ1LC0zLjU5IDIuODM2MjUsLTMuNTkgMi4zOTUsMCAyLjgzODc1LDIuMDgy' +
-    'NSAyLjgzODc1LDMuNTkgbSAzLjE5LDAgYyAwLC00LjI1NSAtMi44NTg3NSwtNi4yMDYyNSAtNi4wMjg3NSwtNi4yMDYyNSAt' +
-    'My4xNjg3NSwwIC02LjAyNzUsMS45NTEyNSAtNi4wMjc1LDYuMjA2MjUgMCw0LjI1NjI1IDIuODU4NzUsNi4yMDc1IDYuMDI3' +
-    'NSw2LjIwNzUgMy4xNywwIDYuMDI4NzUsLTEuOTUxMjUgNi4wMjg3NSwtNi4yMDc1IiAvPg0KICAgIDxwYXRoDQogICAgICAg' +
-    'aWQ9InBhdGgyODY2Ig0KICAgICAgIHN0eWxlPSJmaWxsOiNmZmZmZmY7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnpl' +
-    'cm87c3Ryb2tlOm5vbmUiDQogICAgICAgZD0ibSAtOTYxLjAxNDI1LDY1Ni45NTgwMiAtMy4xMDEyNSwwIDAsLTcuMTU4NzUg' +
-    'YyAwLC0wLjg2NSAtMC4wNDYyLC0yLjMyNzUgLTIuMDE3NSwtMi4zMjc1IC0xLjM3NjI1LDAgLTIuNDM4NzUsMC45MyAtMi40' +
-    'Mzg3NSwyLjcyNSBsIDAsNi43NjEyNSAtMy4xMDI1LDAgMCwtMTEuNzkyNSAyLjk3LDAgMCwxLjczIDAuMDQzOCwwIGMgMC40' +
-    'MjEyNSwtMC43MSAxLjMwODc1LC0yLjA0IDMuNTQ3NSwtMi4wNCAyLjMwMzc1LDAgNC4wOTg3NSwxLjM1Mzc1IDQuMDk4NzUs' +
-    'My45NDYyNSBsIDAsOC4xNTYyNSB6IiAvPg0KICAgIDxwYXRoDQogICAgICAgaWQ9InBhdGgyODcwIg0KICAgICAgIHN0eWxl' +
-    'PSJmaWxsOiNmZmZmZmY7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnplcm87c3Ryb2tlOm5vbmUiDQogICAgICAgZD0i' +
-    'bSAtOTQ2Ljg0ODYzLDY0My44NTgxNCAtOC40NDc1LDAgMCwzLjM0NjI1IDcuNzU3NSwwIDAsMi44MTYyNSAtNy43NTc1LDAg' +
-    'MCw0LjEyMTI1IDguODIyNSwwIDAsMi44MTYyNSAtMTIuMDc4NzUsMCAwLC0xNS45MTUgMTEuNzAzNzUsMCAwLDIuODE1IHoi' +
-    'IC8+DQogICAgPHBhdGgNCiAgICAgICBpZD0icGF0aDI4NzQiDQogICAgICAgc3R5bGU9ImZpbGw6I2ZmZmZmZjtmaWxsLW9w' +
-    'YWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZSINCiAgICAgICBkPSJtIC05NDIuMTc0MjUsNjUxLjE1MTM5' +
-    'IGMgMCwtMS44NjI1IDAuNjY1LC0zLjYxMzc1IDIuNjM3NSwtMy42MTM3NSAyLjEyODc1LDAgMi42NiwxLjkwNjI1IDIuNjYs' +
-    'My43OTEyNSAwLDEuNzUgLTAuNzc1LDMuMzkgLTIuNzQ4NzUsMy4zOSAtMS45OTM3NSwwIC0yLjU0ODc1LC0yLjE3MTI1IC0y' +
-    'LjU0ODc1LC0zLjU2NzUgbSA4LjI2NzUsLTEwLjEwODc1IC0zLjEwMTI1LDAgMCw1LjY1MjUgLTAuMDQ1LDAgYyAtMC40ODYy' +
-    'NSwtMC43NTM3NSAtMS40MTg3NSwtMS44Mzg3NSAtMy40MTM3NSwtMS44Mzg3NSAtMi41OTI1LDAgLTQuODk3NSwxLjk5NSAt' +
-    'NC44OTc1LDYuMDczNzUgMCwzLjIzNSAxLjQ2MTI1LDYuMzM4NzUgNC45NjM3NSw2LjMzODc1IDEuMjg2MjUsMCAyLjY1ODc1' +
-    'LC0wLjQ2NzUgMy40MTM3NSwtMS43OTYyNSBsIDAuMDQ1LDAgMCwxLjQ4NSAzLjAzNSwwIDAsLTE1LjkxNSB6IiAvPg0KICAg' +
-    'IDxwYXRoDQogICAgICAgZD0ibSAtOTI4LjYxLDY0MC44ODkwMiAtMy4xMDEyNSwwIDAsMi44ODEyNSAzLjEwMTI1LDAgMCwt' +
-    'Mi44ODEyNSB6IG0gLTMuMTAxMjUsMTYuMDY4NzUgMy4xMDEyNSwwIDAsLTExLjc5MjUgLTMuMTAxMjUsMCAwLDExLjc5MjUg' +
-    'eiINCiAgICAgICBzdHlsZT0iZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO2ZpbGwtcnVsZTpub256ZXJvO3N0cm9rZTpu' +
-    'b25lIg0KICAgICAgIGlkPSJwYXRoMjg3NiIgLz4NCiAgICA8cGF0aA0KICAgICAgIGlkPSJwYXRoMjg4MCINCiAgICAgICBz' +
-    'dHlsZT0iZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO2ZpbGwtcnVsZTpub256ZXJvO3N0cm9rZTpub25lIg0KICAgICAg' +
-    'IGQ9Im0gLTkxOS42MzQ2Myw2NDguNzU2NzcgYyAtMC4xMywtMC43NTI1IC0wLjM5NzUsLTEuNTUyNSAtMi4wODEyNSwtMS41' +
-    'NTI1IC0xLjY4NSwwIC0xLjkwNSwwLjY0Mzc1IC0xLjkwNSwxLjE1NSAwLDEuODYxMjUgNy4zNzg3NSwwLjUwODc1IDcuMzc4' +
-    'NzUsNC44NTI1IDAsMy40MzUgLTMuMzI1LDQuMDU3NSAtNS4xNjEyNSw0LjA1NzUgLTIuNjgzNzUsMCAtNS41ODYyNSwtMC45' +
-    'MzEyNSAtNS42NzYyNSwtNC4wNzg3NSBsIDMuMTkyNSwwIGMgMCwwLjk5NzUgMC42MiwxLjcyODc1IDIuNTcxMjUsMS43Mjg3' +
-    'NSAxLjU5NSwwIDEuOTcxMjUsLTAuNzc3NSAxLjk3MTI1LC0xLjIyIDAsLTEuOTcxMjUgLTcuMzEzNzUsLTAuNDg3NSAtNy4z' +
-    'MTM3NSwtNC44OTc1IDAsLTEuNzI4NzUgMS4wODYyNSwtMy45NDYyNSA0Ljc2NjI1LC0zLjk0NjI1IDIuMzA1LDAgNS4wNTEy' +
-    'NSwwLjU3NjI1IDUuMjk2MjUsMy45MDEyNSBsIC0zLjAzODc1LDAgeiIgLz4NCiAgICA8cGF0aA0KICAgICAgIGlkPSJwYXRo' +
-    'Mjg4NCINCiAgICAgICBzdHlsZT0iZmlsbDojZmZmZmZmO2ZpbGwtb3BhY2l0eToxO2ZpbGwtcnVsZTpub256ZXJvO3N0cm9r' +
-    'ZTpub25lIg0KICAgICAgIGQ9Im0gLTkwNi40NjU4OCw2NTEuMDYxNzcgYyAwLDEuNTA3NSAtMC40NDI1LDMuNTkyNSAtMi44' +
-    'Mzc1LDMuNTkyNSAtMi4zOTM3NSwwIC0yLjgzNjI1LC0yLjA4NSAtMi44MzYyNSwtMy41OTI1IDAsLTEuNTA3NSAwLjQ0MjUs' +
-    'LTMuNTkgMi44MzYyNSwtMy41OSAyLjM5NSwwIDIuODM3NSwyLjA4MjUgMi44Mzc1LDMuNTkgbSAzLjE5MTI1LDAgYyAwLC00' +
-    'LjI1NSAtMi44NTg3NSwtNi4yMDYyNSAtNi4wMjg3NSwtNi4yMDYyNSAtMy4xNjg3NSwwIC02LjAyNzUsMS45NTEyNSAtNi4w' +
-    'Mjc1LDYuMjA2MjUgMCw0LjI1NjI1IDIuODU4NzUsNi4yMDc1IDYuMDI3NSw2LjIwNzUgMy4xNywwIDYuMDI4NzUsLTEuOTUx' +
-    'MjUgNi4wMjg3NSwtNi4yMDc1IiAvPg0KICAgIDxwYXRoDQogICAgICAgaWQ9InBhdGgyODg4Ig0KICAgICAgIHN0eWxlPSJm' +
-    'aWxsOiNmZmZmZmY7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnplcm87c3Ryb2tlOm5vbmUiDQogICAgICAgZD0ibSAt' +
-    'ODkxLjEwNzEzLDY1Ni45NTgwMiAtMy4xMDI1LDAgMCwtNy4xNTg3NSBjIDAsLTAuODY1IC0wLjA0NSwtMi4zMjc1IC0yLjAx' +
-    'NzUsLTIuMzI3NSAtMS4zNzM3NSwwIC0yLjQzNzUsMC45MyAtMi40Mzc1LDIuNzI1IGwgMCw2Ljc2MTI1IC0zLjEwMjUsMCAw' +
-    'LC0xMS43OTI1IDIuOTcsMCAwLDEuNzMgMC4wNDUsMCBjIDAuNDE4NzUsLTAuNzEgMS4zMDYyNSwtMi4wNCAzLjU0NjI1LC0y' +
-    'LjA0IDIuMzAzNzUsMCA0LjA5ODc1LDEuMzUzNzUgNC4wOTg3NSwzLjk0NjI1IGwgMCw4LjE1NjI1IHoiIC8+DQogICAgPHBh' +
-    'dGgNCiAgICAgICBpZD0icGF0aDI4OTIiDQogICAgICAgc3R5bGU9ImZpbGw6I2ZmZmZmZjtmaWxsLW9wYWNpdHk6MTtmaWxs' +
-    'LXJ1bGU6bm9uemVybztzdHJva2U6bm9uZSINCiAgICAgICBkPSJtIC0xMDAyLjY1MzQsNjU5LjMyNzUyIC0xOS4zMDYyLDAg' +
-    'YyAtNS43MDM4LDAgLTEwLjM0MjYsLTQuNjQgLTEwLjM0MjYsLTEwLjM0MjUgMCwtNS43MDM3NSA0LjYzODgsLTEwLjM0MjUg' +
-    'MTAuMzQyNiwtMTAuMzQyNSBsIDE5LjMwNjIsMCAwLC0zLjU5NzUgLTE5LjMwNjIsMCBjIC03LjY4ODgsMCAtMTMuOTQyNiw2' +
-    'LjI1MjUgLTEzLjk0MjYsMTMuOTQgMCw3LjY4NzUgNi4yNTM4LDEzLjk0MjUgMTMuOTQyNiwxMy45NDI1IGwgMTkuMzA2Miww' +
-    'IDAsLTMuNiB6IiAvPg0KICAgIDxwYXRoDQogICAgICAgaWQ9InBhdGgyODk2Ig0KICAgICAgIHN0eWxlPSJmaWxsOiNmZmZm' +
-    'ZmY7ZmlsbC1vcGFjaXR5OjE7ZmlsbC1ydWxlOm5vbnplcm87c3Ryb2tlOm5vbmUiDQogICAgICAgZD0ibSAtMTAyOS42NzM5' +
-    'LDY0OS4wMTQyNyBjIDAsNC40MTg3NSAzLjU5NSw4LjAxNSA4LjAxMzcsOC4wMTUgbCAxOC45OCwwIDAsLTMuNTk4NzUgLTE4' +
-    'Ljk4LDAgYyAtMi40MzM3LDAgLTQuNDE0OSwtMS45OCAtNC40MTQ5LC00LjQxNjI1IDAsLTIuNDM1IDEuOTgxMiwtNC40MTYy' +
-    'NSA0LjQxNDksLTQuNDE2MjUgbCAxOC45OCwwIDAsLTMuNTk4NzUgLTE4Ljk4LDAgYyAtNC40MTg3LDAgLTguMDEzNywzLjU5' +
-    'NjI1IC04LjAxMzcsOC4wMTUiIC8+DQogICAgPHBhdGgNCiAgICAgICBpZD0icGF0aDI5MDAiDQogICAgICAgc3R5bGU9ImZp' +
-    'bGw6I2ZmZmZmZjtmaWxsLW9wYWNpdHk6MTtmaWxsLXJ1bGU6bm9uemVybztzdHJva2U6bm9uZSINCiAgICAgICBkPSJtIC0x' +
-    'MDAyLjY1MzQsNjQ3LjIwMjI3IC0xOS4xMjYzLDAgYyAtMC45OTI0LDAgLTEuNzk4NywwLjgwNSAtMS43OTg3LDEuNzk3NSAw' +
-    'LDAuOTk1IDAuODA2MywxLjgwMTI1IDEuNzk4NywxLjgwMTI1IGwgMTkuMTI2MywwIDAsLTMuNTk4NzUgeiIgLz4NCiAgPC9n' +
-    'Pg0KPC9zdmc+DQo='
-  ].join('');
-
-  /* The logo's own aspect, from the SVG: 146.79 by 29.88. Kept as a constant so
-   * the raster and the drawing anchor cannot disagree about the shape. */
-  const CONED_LOGO_W = 146.79;
-  const CONED_LOGO_H = 29.88;
-
-  /**
-   * Rasterise the inlined logo to PNG bytes.
-   *
-   * ASYNC and BROWSER ONLY, which is why it is a function of its own rather
-   * than part of buildIngestWorkbook: image decode cannot be synchronous, and
-   * there is no canvas in the harness. Keeping it separate leaves the workbook
-   * builder synchronous and fully testable, and confines the part that can only
-   * be verified on hosted to these few lines.
-   *
-   * A data-URL SVG does not taint the canvas, so toDataURL is allowed. Drawn at
-   * 2x so the logo stays crisp at the size the sheet shows it.
-   *
-   * Resolves to null rather than throwing: a template without its logo is worth
-   * more to the operator than no template at all.
-   */
-  function ingestLogoPng() {
-    return new Promise((resolve) => {
-      try {
-        const scale = 2;
-        const w = Math.round(CONED_LOGO_W * scale);
-        const h = Math.round(CONED_LOGO_H * scale);
-        const img = new Image();
-        img.onload = function () {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = w; canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, w, h);
-            const url = canvas.toDataURL('image/png');
-            const b64png = url.slice(url.indexOf(',') + 1);
-            const bin = atob(b64png);
-            const bytes = new Uint8Array(bin.length);
-            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-            resolve({ bytes: bytes, width: w, height: h });
-          } catch (e) {
-            console.warn('[CLCPA-85] logo raster failed; template ships without it.', e);
-            resolve(null);
-          }
-        };
-        img.onerror = function () {
-          console.warn('[CLCPA-85] logo could not be decoded; template ships without it.');
-          resolve(null);
-        };
-        img.src = 'data:image/svg+xml;base64,' + CONED_LOGO_SVG_B64;
-      } catch (e) {
-        console.warn('[CLCPA-85] logo unavailable; template ships without it.', e);
-        resolve(null);
-      }
-    });
-  }
   /** XML text escape. Attribute and element content both. */
   function xmlEsc(v) {
     return String(v == null ? '' : v)
@@ -14913,16 +14729,19 @@ function wireHTooltips() {
    * resolve unlocked. That is a stronger claim than "none currently does".
    *
    *   0  default, locked
-   *   1  table header row: bold, locked
-   *   2  table body: labels, (calculated) and the empty example cells, locked
-   *   3  instructions: the header block's ink ground, white bold
-   *   4  instructions: the app label, small and pale on ink
+   *   1  table HEADER row: the dashboard's own table header look
+   *   2  table body: (calculated) and the empty example cells
+   *   3  instructions: the header block's ink ground
+   *   4  instructions: the app name, RIGHT ALIGNED (round 6)
    *   5  instructions: the title, large white on ink
    *   6  instructions: the subtitle, muted white on ink
    *   7  instructions: a section heading, dusk
    *   8  instructions: body text, wrapped
-   *   9  instructions: the callout band, dusk tint with a left edge
+   *   9  instructions: the callout band, dusk tint
    *  10  instructions: the closing note, small and pale
+   *  11  table body LABEL column: wrapped, so a long label cannot bleed
+   *  12  table TOTAL row: the dashboard's own total-row look
+   *  13  table TOTAL row label: the same, wrapped
    *
    * applyProtection="1" is required or Excel ignores the protection element
    * on the format. Every one of these sets locked="1". */
@@ -14937,6 +14756,9 @@ function wireHTooltips() {
   const XLSX_STYLE_BODY = 8;
   const XLSX_STYLE_BAND = 9;
   const XLSX_STYLE_NOTE = 10;
+  const XLSX_STYLE_LABEL = 11;
+  const XLSX_STYLE_TOTAL = 12;
+  const XLSX_STYLE_TOTAL_LABEL = 13;
 
   /* The palette, taken from the app's own tokens in styles.css and converted to
    * the ARGB form xlsx wants. Named so a reader can check them against :root
@@ -14948,18 +14770,22 @@ function wireHTooltips() {
   const XLSX_TEXT3 = 'FF6B7B8C';      // --text-3
   const XLSX_WHITE = 'FFFFFFFF';      // --white
   const XLSX_PALE = 'FF9CA8B5';       // --text-4, for the app label on ink
+  const XLSX_SMOKE = 'FFF2F2F2';      // --white-smoke
+  const XLSX_TEXT = 'FF031824';       // --text
 
   function xlsxStylesXml() {
-    const xf = (fontId, fillId, extra) =>
-      '<xf numFmtId="0" fontId="' + fontId + '" fillId="' + fillId + '" borderId="0" ' +
-      'xfId="0" applyFont="1" applyFill="1" applyAlignment="1" applyProtection="1">' +
+    const xf = (fontId, fillId, extra, borderId) =>
+      '<xf numFmtId="0" fontId="' + fontId + '" fillId="' + fillId + '" borderId="' +
+      (borderId || 0) + '" ' +
+      'xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1" ' +
+      'applyProtection="1">' +
       (extra || '<alignment vertical="top"/>') +
       // EVERY format locks. There is no unlocked format in this workbook.
       '<protection locked="1"/></xf>';
     const wrapTop = '<alignment vertical="top" wrapText="1"/>';
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
-      '<fonts count="8">' +
+      '<fonts count="10">' +
       '<font><sz val="11"/><color rgb="' + XLSX_TEXT2 + '"/><name val="Calibri"/></font>' +
       '<font><b/><sz val="11"/><color rgb="' + XLSX_INK + '"/><name val="Calibri"/></font>' +
       '<font><b/><sz val="9"/><color rgb="' + XLSX_PALE + '"/><name val="Calibri"/></font>' +
@@ -14968,29 +14794,56 @@ function wireHTooltips() {
       '<font><b/><sz val="12"/><color rgb="' + XLSX_DUSK + '"/><name val="Calibri"/></font>' +
       '<font><sz val="11"/><color rgb="' + XLSX_INK + '"/><name val="Calibri"/></font>' +
       '<font><sz val="9"/><color rgb="' + XLSX_TEXT3 + '"/><name val="Calibri"/></font>' +
+      // 8: the dash table header: bold, --text-3. 9: the total row: bold, --text.
+      '<font><b/><sz val="10"/><color rgb="' + XLSX_TEXT3 + '"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><color rgb="' + XLSX_TEXT + '"/><name val="Calibri"/></font>' +
       '</fonts>' +
-      '<fills count="4">' +
+      '<fills count="5">' +
       '<fill><patternFill patternType="none"/></fill>' +
       '<fill><patternFill patternType="gray125"/></fill>' +
       '<fill><patternFill patternType="solid"><fgColor rgb="' + XLSX_INK +
       '"/><bgColor indexed="64"/></patternFill></fill>' +
       '<fill><patternFill patternType="solid"><fgColor rgb="' + XLSX_DUSK_TINT +
       '"/><bgColor indexed="64"/></patternFill></fill>' +
+      // 4: --white-smoke, the dash's own table header and total row ground.
+      '<fill><patternFill patternType="solid"><fgColor rgb="' + XLSX_SMOKE +
+      '"/><bgColor indexed="64"/></patternFill></fill>' +
       '</fills>' +
-      '<borders count="1"><border/></borders>' +
+      /* Border 1 is the TOTAL row's top edge: the dashboard draws
+       * border-top: 2px solid var(--ink) on .data-table tbody tr.is-total td,
+       * and `medium` in ink is that rule's nearest xlsx equivalent. */
+      '<borders count="2">' +
+      '<border/>' +
+      '<border><top style="medium"><color rgb="' + XLSX_INK + '"/></top></border>' +
+      '</borders>' +
       '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
-      '<cellXfs count="11">' +
+      '<cellXfs count="14">' +
       xf(0, 0) +                       // 0  default
-      xf(1, 0) +                       // 1  table header, bold ink
+      /* 1: COPIED FROM .data-table thead th (styles.css line 555):
+       *    background var(--white-smoke), color var(--text-3), font-weight 700.
+       *    Its text-transform: uppercase is NOT applied, deliberately: xlsx
+       *    cannot transform text at render time, so honouring it would mean
+       *    uppercasing the header STRINGS, and those strings are the example of
+       *    what the import expects. Wrapped, so a 48-character header cannot
+       *    bleed over its neighbour. */
+      xf(8, 4, wrapTop) +              // 1  table header, dashboard look
       xf(0, 0) +                       // 2  table body
       xf(3, 2) +                       // 3  header band ground
-      xf(2, 2) +                       // 4  app label on ink
+      // 4: round 6, the app name, RIGHT ALIGNED
+      xf(2, 2, '<alignment horizontal="right" vertical="top"/>') +
       xf(3, 2) +                       // 5  title on ink
       xf(4, 2) +                       // 6  subtitle on ink
       xf(5, 0) +                       // 7  section heading, dusk
       xf(6, 0, wrapTop) +              // 8  body text, wrapped
       xf(6, 3, wrapTop) +              // 9  callout band, dusk tint
       xf(7, 0, wrapTop) +              // 10 closing note
+      xf(0, 0, wrapTop) +              // 11 label column, wrapped
+      /* 12 and 13: COPIED FROM .data-table tbody tr.is-total td
+       *    (styles.css line 565): font-weight 700, background
+       *    var(--white-smoke), color var(--text), border-top 2px solid
+       *    var(--ink). */
+      xf(9, 4, null, 1) +              // 12 total row
+      xf(9, 4, wrapTop, 1) +           // 13 total row label, wrapped
       '</cellXfs>' +
       '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
       '</styleSheet>';
@@ -15009,8 +14862,11 @@ function wireHTooltips() {
    * A worksheet from rows of { style, text }. Protected, no password.
    *
    * opts.heights sets a row height where the text needs room to wrap, so the
-   * operator reads the instructions without dragging anything. opts.drawing
-   * adds the drawing reference, which is how the logo reaches sheet 1.
+   * operator reads the instructions without dragging anything.
+   *
+   * opts.hideGridlines turns the grid off at the sheet VIEW level, which is
+   * what makes the Instructions sheet read as a document. sheetViews must come
+   * FIRST in a worksheet, before cols and sheetData, or Excel rejects the file.
    */
   function xlsxSheetXml(rows, colWidths, opts) {
     const o = opts || {};
@@ -15031,12 +14887,13 @@ function wireHTooltips() {
     return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
       '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
       'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      (o.hideGridlines
+        ? '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>'
+        : '') +
       cols +
       '<sheetData>' + body + '</sheetData>' +
       // No password: guidance against accidents, not security.
       '<sheetProtection sheet="1" objects="1" scenarios="1"/>' +
-      // The drawing reference must follow sheetProtection, per the schema order.
-      (o.drawing ? '<drawing r:id="' + o.drawing + '"/>' : '') +
       '</worksheet>';
   }
 
@@ -15052,7 +14909,8 @@ function wireHTooltips() {
    */
   function xlsxInstructionBlocks(sheetLabel, year) {
     return [
-      { style: XLSX_STYLE_APPNAME, text: 'Con Edison \u00b7 DAC Annual Report', ht: 18 },
+      // Round 6: the app name replaces the logo, right aligned by style 4.
+      { style: XLSX_STYLE_APPNAME, text: 'Con Edison DAC Annual Report', ht: 18 },
       { style: XLSX_STYLE_TITLE, text: 'Import Format Example', ht: 30 },
       { style: XLSX_STYLE_SUBTITLE, text: sheetLabel + ' \u00b7 reporting year ' + year, ht: 20 },
       { style: XLSX_STYLE_HDRBAND, text: null, ht: 8 },
@@ -15064,6 +14922,8 @@ function wireHTooltips() {
       { style: XLSX_STYLE_BAND, ht: 32, text:
         'Nothing here is editable. Prepare your own CSV from the second sheet, ' +
         'as step 2 describes.' },
+      // Round 6: one blank row, so the two sections read as two sections.
+      { style: XLSX_STYLE_BODY, text: null, ht: 10 },
       { style: XLSX_STYLE_SECTION, text: 'How to prepare your file', ht: 26 },
       { style: XLSX_STYLE_BODY, ht: 46, text:
         '1. Go to the second sheet, named ' + sheetLabel + '. It shows the exact ' +
@@ -15089,46 +14949,20 @@ function wireHTooltips() {
   }
 
   /**
-   * The drawing that puts the logo on the Instructions sheet.
-   *
-   * oneCellAnchor from the top-left, sized in EMU (914400 per inch). Anchored
-   * rather than floated so it sits over the header band and moves with it.
-   */
-  function xlsxDrawingXml(pxW, pxH) {
-    const EMU = 9525;   // per pixel at 96 dpi
-    // Shown at half the raster size, since the raster is drawn at 2x.
-    const w = Math.round((pxW / 2) * EMU);
-    const h = Math.round((pxH / 2) * EMU);
-    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-      '<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" ' +
-      'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">' +
-      '<xdr:oneCellAnchor>' +
-      '<xdr:from><xdr:col>0</xdr:col><xdr:colOff>' + (14 * EMU) + '</xdr:colOff>' +
-      '<xdr:row>0</xdr:row><xdr:rowOff>' + (6 * EMU) + '</xdr:rowOff></xdr:from>' +
-      '<xdr:ext cx="' + w + '" cy="' + h + '"/>' +
-      '<xdr:pic>' +
-      '<xdr:nvPicPr><xdr:cNvPr id="2" name="Con Edison" descr="Con Edison"/>' +
-      '<xdr:cNvPicPr><a:picLocks noChangeAspect="1"/></xdr:cNvPicPr></xdr:nvPicPr>' +
-      '<xdr:blipFill><a:blip xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" ' +
-      'r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></xdr:blipFill>' +
-      '<xdr:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="' + w + '" cy="' + h + '"/></a:xfrm>' +
-      '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></xdr:spPr>' +
-      '</xdr:pic><xdr:clientData/></xdr:oneCellAnchor></xdr:wsDr>';
-  }
-
-  /**
    * Build the .xlsx example workbook for a table and year.
    *
-   * SYNCHRONOUS on purpose. The logo's PNG bytes come in as an argument from
-   * ingestLogoPng(), which is async and browser-only, so everything that CAN be
-   * proven off-browser stays provable. Passing no logo omits the image parts
-   * entirely and produces a valid workbook without one.
+   * ROUND 6: the logo is GONE, and with it the async step. Emely reviewed the
+   * workbook in real Excel and ruled it out, so the drawing, the media part,
+   * both relationship chains, the png content type, the inlined base64 SVG and
+   * the canvas rasteriser are all removed. The seven-part workbook that round 5
+   * proved as the omit-logo case is now the ONLY case, which is why this
+   * function is synchronous again with nothing to await.
    *
    * Sheet 2 shares ingestTemplateSource and ingestComputed with nothing else
    * now, but they remain separate functions because the importer's own
    * classification uses ingestComputed too, and the two must agree.
    */
-  function buildIngestWorkbook(tableId, year, logo) {
+  function buildIngestWorkbook(tableId, year) {
     const p = state.payload;
     const table = p && p.tables && p.tables[tableId];
     if (!table) return null;
@@ -15147,37 +14981,64 @@ function wireHTooltips() {
     const sheet1 = xlsxSheetXml(
       blocks.map(b => [{ style: b.style, text: b.text }]),
       [96],
-      { heights: heights1, drawing: logo ? 'rId1' : null });
+      // Round 6: gridlines OFF, so the sheet reads as a document not a grid.
+      { heights: heights1, hideGridlines: true });
 
     // ---- sheet 2: the example table, every cell locked -------------------
     const rows = [schema.map(h => ({ style: XLSX_STYLE_HEADER, text: h }))];
     src.rows.forEach((row, idx) => {
+      // Round 6: a Total row carries the dashboard's total-row look, whole row.
+      const isTotal = computed.totalRow(idx);
       rows.push(schema.map((h, c) => {
-        if (c === 0) return { style: XLSX_STYLE_LOCKED, text: row[0] };
-        if (computed.any(idx, c)) return { style: XLSX_STYLE_LOCKED, text: '(calculated)' };
-        /* EMPTY, and LOCKED like everything else. Round 5: the workbook shows
-         * the format, it is not filled in. The operator types into their own
-         * CSV, saved from this sheet. */
-        return { style: XLSX_STYLE_LOCKED, text: null };
+        if (c === 0) {
+          return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
+                   text: row[0] };
+        }
+        const style = isTotal ? XLSX_STYLE_TOTAL : XLSX_STYLE_LOCKED;
+        if (computed.any(idx, c)) return { style: style, text: '(calculated)' };
+        /* EMPTY, and LOCKED like everything else: the workbook shows the
+         * format, it is not filled in. The operator types into their own CSV,
+         * saved from this sheet. */
+        return { style: style, text: null };
       }));
     });
-    const widths = schema.map((h, i) => (i === 0 ? 44 : Math.max(14, String(h).length + 2)));
+
+    /* ROUND 6: real column widths, because Excel does not autofit at
+     * generation time and a label with an empty neighbour bleeds across it.
+     *
+     * MEASURED, per table rather than one global number: the payload's longest
+     * label is 136 characters (I1, a full sentence), while A1's longest is 60
+     * and A5's is 71. A single 136-wide column would be unusable on every other
+     * sheet, so the width follows THIS table's own longest label, clamped to
+     * 30..64.
+     *
+     * The clamp is safe because the label column also WRAPS (style 11 and 13):
+     * wrapped text cannot overflow its cell, so nothing bleeds even when a
+     * label is longer than the column. Row heights are deliberately NOT set on
+     * this sheet, which lets Excel auto-fit the wrapped rows when it opens the
+     * file. That is the one autofit that does happen without being asked.
+     *
+     * Value columns are sized for their header (the longest in the payload is
+     * 48 characters) and for currency figures like 262,524,921, clamped to
+     * 16..28, and the header row wraps too. */
+    const longestLabel = src.rows.reduce((m, r) =>
+      Math.max(m, String(r[0] == null ? '' : r[0]).length), 0);
+    const widths = schema.map((h, i) => (i === 0
+      ? Math.min(64, Math.max(30, longestLabel + 2))
+      : Math.min(28, Math.max(16, String(h).length + 2))));
     const sheet2 = xlsxSheetXml(rows, widths);
 
     const enc = new TextEncoder();
-    const hasLogo = !!(logo && logo.bytes && logo.bytes.length);
     const parts = [
       { name: '[Content_Types].xml', text:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
         '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
         '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
         '<Default Extension="xml" ContentType="application/xml"/>' +
-        (hasLogo ? '<Default Extension="png" ContentType="image/png"/>' : '') +
         '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
         '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
         '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
         '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
-        (hasLogo ? '<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>' : '') +
         '</Types>' },
       { name: '_rels/.rels', text:
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
@@ -15204,34 +15065,12 @@ function wireHTooltips() {
       { name: 'xl/worksheets/sheet2.xml', text: sheet2 },
     ];
 
-    /* The image, and the two relationship chains that reach it:
-     *   sheet1  -> drawing1.xml   (xl/worksheets/_rels/sheet1.xml.rels)
-     *   drawing -> media/image1.png (xl/drawings/_rels/drawing1.xml.rels)
-     * Omitted entirely when there is no logo, so the workbook stays valid. */
-    if (hasLogo) {
-      parts.push(
-        { name: 'xl/worksheets/_rels/sheet1.xml.rels', text:
-          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-          '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-          '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/>' +
-          '</Relationships>' },
-        { name: 'xl/drawings/drawing1.xml',
-          text: xlsxDrawingXml(logo.width, logo.height) },
-        { name: 'xl/drawings/_rels/drawing1.xml.rels', text:
-          '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-          '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
-          '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>' +
-          '</Relationships>' });
-    }
-
     const entries = parts.map(x => ({ name: x.name, bytes: enc.encode(x.text) }));
-    if (hasLogo) entries.push({ name: 'xl/media/image1.png', bytes: logo.bytes });
     return {
       bytes: zipStored(entries),
       sheetName: sheetName,
       borrowedFrom: src.borrowed ? src.year : null,
       rowCount: src.rows.length,
-      hasLogo: hasLogo,
     };
   }
 
@@ -19834,19 +19673,16 @@ function wireHTooltips() {
       const tmpl = modal.querySelector('#ingest-template');
       if (tmpl) tmpl.addEventListener('click', () => {
         const y = typedYear();
-        /* Round 5: the workbook is a read-only EXAMPLE of the format. The
-         * IMPORT path is still CSV only, which is why the instructions sheet
-         * spends a step on Save As.
+        /* The workbook is a read-only EXAMPLE of the format. The IMPORT path is
+         * still CSV only, which is why the instructions sheet spends a step on
+         * Save As.
          *
-         * The logo raster is ASYNC, so this is the one await in the dialog. It
-         * resolves to null rather than rejecting, and the builder then omits the
-         * image parts: a template without its logo beats no template. */
-        ingestLogoPng().then((logo) => {
-          const wb = buildIngestWorkbook(sel.tableId, y, logo);
-          if (!wb) { showToast('No example workbook: this table has no columns.', 'error'); return; }
-          downloadBinaryFile(sel.tableId + '-' + y + '-example.xlsx', wb.bytes,
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        });
+         * Round 6: synchronous again. The logo was the only async step, and it
+         * is gone. */
+        const wb = buildIngestWorkbook(sel.tableId, y);
+        if (!wb) { showToast('No example workbook: this table has no columns.', 'error'); return; }
+        downloadBinaryFile(sel.tableId + '-' + y + '-example.xlsx', wb.bytes,
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       });
 
       wireIngestStaging(target, (st) => { staged = st; draw(); });
