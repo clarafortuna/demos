@@ -130,22 +130,28 @@ guard("the inventory: what the audit found, and what is left", () => {
      'BASE control: 8 confirm, 2 alert, 0 prompt -- exactly the audit inventory');
 
   const hits = nativeCalls(CODE);
-  /* Site 1 lands LAST, as its own commit, so it is expected here until then.
-   * This assertion is written to be true BEFORE and AFTER that commit rather
-   * than needing an edit: nine of the ten are gone either way. */
-  ok(hits.length <= 1,
-     'at most ONE native dialog remains (site 1, its own commit): ' + hits.length);
+  /* ZERO. This read `<= 1` while site 1 was still outstanding, which was true
+   * before and after its commit and therefore stopped being a guard the
+   * moment site 1 landed: a mutation restoring the native confirm left the
+   * count at 1 and the assertion still passed. Caught by that very mutation.
+   *
+   * The claim of this ticket is that NO native dialog remains, so the number
+   * is zero and nothing else. */
+  ok(hits.length === 0,
+     'ZERO native dialogs remain, all ten replaced: ' + hits.length);
+  ok(BASE_CODE.indexOf('confirm(lines.join') >= 0 &&
+     CODE.indexOf('confirm(lines.join') < 0,
+     'including site 1, the last one and the highest-consequence one');
   ok(hits.filter(h => h === 'alert').length === 0,
      'BOTH alerts are gone: a notification is not a confirmation');
   ok(hits.filter(h => h === 'prompt').length === 0, 'and still no prompt anywhere');
   const dsFn = grab('dsConfirmActivate');
-  if (hits.length === 1) {
-    ok(!!dsFn && /confirm\(lines\.join/.test(dsFn),
-       'the one that remains is site 1, dsConfirmActivate, as ruled');
-  } else {
-    ok(!!dsFn && !/[^.$\w]confirm\(/.test(codeOnly(dsFn)),
-       'site 1 has landed too: dsConfirmActivate calls no native confirm');
-  }
+  ok(!!dsFn && !/[^.$\w]confirm\(/.test(codeOnly(dsFn)),
+     'dsConfirmActivate calls no native confirm');
+  ok(!!dsFn && /openConfirmModal\(/.test(dsFn),
+     'it asks through the app s own modal instead');
+  ok(!!dsFn && /function dsConfirmActivate\(dvId, onConfirm\)/.test(dsFn),
+     'and takes a CALLBACK, because a modal has no boolean to return in time');
 });
 
 /* ==================================================================== */
@@ -778,6 +784,119 @@ guard("FINDING B: the rejected-inputs table, the acceptance", () => {
      'year nobody chose');
   ok(/Please enter a year\./.test(dlg),
      'and says so on the dialog s own error line');
+});
+
+/* ==================================================================== */
+lines.push('');
+lines.push('=== SITE 1, dsConfirmActivate, driven for real ===');
+guard('site 1', () => {
+  /* The last native dialog, and the highest-consequence one: it changes what
+   * every viewer's map draws. Driven the same way as the other nine. */
+  const dom = makeDom();
+  const api = confirmApi(dom);
+  const RECS = [
+    { dvId: 'A', datasetKey: 'dac_tracts', version: 'v3', name: 'DAC tracts',
+      geoidVintage: '2020', active: false },
+    { dvId: 'B', datasetKey: 'dac_tracts', version: 'v2', name: 'DAC tracts',
+      geoidVintage: '2020', active: true },
+    { dvId: 'C', datasetKey: 'dac_tracts', version: 'v1', name: 'DAC tracts',
+      geoidVintage: '2010', active: true },
+  ];
+  const deps = {
+    dsRecords: () => RECS,
+    dsRecIsTerritories: () => false,
+    openConfirmModal: api.openConfirmModal,
+  };
+  const keys = Object.keys(deps);
+  const fn = new Function(...keys,
+    grab('dsConfirmActivate') + '\nreturn dsConfirmActivate;')(...keys.map(k => deps[k]));
+
+  let ran = 0;
+  const opened = fn('A', () => { ran++; });
+  ok(opened === true, 'it reports that it asked');
+  const m = dom.last();
+  ok(!!m, 'a modal opened rather than a native confirm');
+  const h = m.innerHTML;
+  ok(h.indexOf('Publish DAC tracts v3?') >= 0, 'the question is the title: ' +
+     (h.match(/<h3[^>]*>([^<]*)</) || [])[1]);
+  ok(/data-cfm="confirm">Publish DAC tracts v3</.test(h),
+     'and the action is NAMED on the button, with what is being published');
+  ok(h.indexOf('GEOID vintage 2020.') >= 0, 'the vintage line survives the move');
+  ok(h.indexOf('The file is downloaded and checked again before anything changes.') >= 0,
+     'so does the re-check line');
+  ok(h.indexOf('This changes what everyone sees on the map.') >= 0,
+     'and the warning that matters most');
+  /* the retire list: same vintage, same family, still active -> B only. C is
+   * 2010, a different vintage, so it is NOT retired by this. */
+  ok(h.indexOf('This retires 1 published version') >= 0,
+     'the retire count is computed and shown: ' +
+     (h.match(/This retires [^<]*/) || [])[0]);
+  ok(h.indexOf('DAC tracts v2') >= 0, 'naming the version it retires');
+  ok(h.indexOf('DAC tracts v1') < 0,
+     'and NOT the 2010 one, which a different vintage does not retire');
+  ok(ran === 0, 'and nothing has been published yet');
+  m.querySelector('[data-cfm="cancel"]')._on.click[0]({});
+  ok(ran === 0, 'site 1 CANCEL: the continuation never runs, so nothing publishes');
+
+  const dom2 = makeDom();
+  const api2 = confirmApi(dom2);
+  const fn2 = new Function(...keys, grab('dsConfirmActivate') +
+    '\nreturn dsConfirmActivate;')(() => RECS, () => false, api2.openConfirmModal);
+  let ran2 = 0;
+  fn2('A', () => { ran2++; });
+  dom2.last().querySelector('[data-cfm="confirm"]')._on.click[0]({});
+  ok(ran2 === 1, 'site 1 CONFIRM: the continuation runs exactly once');
+
+  /* a record that does not exist is REFUSED, not guessed at */
+  const dom3 = makeDom();
+  const api3 = confirmApi(dom3);
+  const fn3 = new Function(...keys, grab('dsConfirmActivate') +
+    '\nreturn dsConfirmActivate;')(() => RECS, () => false, api3.openConfirmModal);
+  let ran3 = 0;
+  const res3 = fn3('NOPE', () => { ran3++; });
+  ok(res3 === false, 'an unknown dataset id is refused: ' + res3);
+  ok(!dom3.last(), 'no dialog opens for it');
+  ok(ran3 === 0, 'and nothing publishes');
+
+  /* THE CALLER: the checkbox reverts on open, re-checks on confirm. */
+  const handler = SRC.slice(SRC.indexOf("const ds = e.target.closest('input[data-ds-active]');"));
+  const end = handler.indexOf('\r\n      }') + 9;
+  const src = handler.slice(0, end);
+  ok(/ds\.checked = false;/.test(src), 'the caller clears the box');
+  const before = src.indexOf('ds.checked = false;');
+  const asks = src.indexOf('dsConfirmActivate(');
+  ok(before >= 0 && asks >= 0 && before < asks,
+     'and does so BEFORE it asks, which is what revert-on-open means');
+  ok(/ds\.checked = true;[\s\S]{0,120}dsSetActive/.test(src),
+     'the box is re-checked and the activation started, both inside onConfirm');
+  const cb = { checked: true, dataset: { dsActive: 'A' } };
+  const dom4 = makeDom();
+  const api4 = confirmApi(dom4);
+  const setCalls = [];
+  const run = new Function('ds', 'dsConfirmActivate', 'dsSetActive',
+    src.replace(/^\s*const ds = [^;]*;/, '') + '\nreturn true;');
+  const ask = new Function(...keys, grab('dsConfirmActivate') +
+    '\nreturn dsConfirmActivate;')(() => RECS, () => false, api4.openConfirmModal);
+  run(cb, ask, (id, on) => setCalls.push(id + ':' + on));
+  ok(cb.checked === false,
+     'DRIVEN: the box is unchecked while the question is open, not left showing ' +
+     'a dataset as published');
+  ok(setCalls.length === 0, 'and dsSetActive has not been called');
+  dom4.last().querySelector('[data-cfm="cancel"]')._on.click[0]({});
+  ok(cb.checked === false && setCalls.length === 0,
+     'CANCEL: the box stays off and nothing is published');
+
+  const cb2 = { checked: true, dataset: { dsActive: 'A' } };
+  const dom5 = makeDom();
+  const api5 = confirmApi(dom5);
+  const setCalls2 = [];
+  const ask2 = new Function(...keys, grab('dsConfirmActivate') +
+    '\nreturn dsConfirmActivate;')(() => RECS, () => false, api5.openConfirmModal);
+  run(cb2, ask2, (id, on) => setCalls2.push(id + ':' + on));
+  dom5.last().querySelector('[data-cfm="confirm"]')._on.click[0]({});
+  ok(cb2.checked === true, 'CONFIRM: the box goes back on');
+  ok(setCalls2.length === 1 && setCalls2[0] === 'A:true',
+     'and the activation starts exactly once, for that dataset: ' + setCalls2);
 });
 lines.push('');
 lines.push('======================================================================');

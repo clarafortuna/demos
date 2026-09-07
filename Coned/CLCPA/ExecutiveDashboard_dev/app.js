@@ -18524,10 +18524,16 @@ function wireHTooltips() {
    * applies: geometry and ConEd figures retire per vintage, territories retire
    * per key because they have no vintage to be scoped by.
    *
-   * Returns true to proceed. Never throws: if the record cannot be found the
-   * activation is refused rather than guessed at.
+   * CLCPA-230: this asked through window.confirm, the last native dialog in
+   * the app. It now asks through the app's own modal like the other nine, so
+   * it takes an onConfirm CALLBACK instead of returning a boolean -- a modal
+   * does not block, so there is nothing to return in time to be useful.
+   *
+   * Never throws: if the record cannot be found the activation is refused
+   * rather than guessed at, which now means the callback is simply never
+   * called and no dialog opens.
    */
-  function dsConfirmActivate(dvId) {
+  function dsConfirmActivate(dvId, onConfirm) {
     const recs = dsRecords();
     const rec = recs.filter(r => r.dvId === dvId)[0];
     if (!rec) return false;
@@ -18550,7 +18556,21 @@ function wireHTooltips() {
     }
     lines.push('');
     lines.push('This changes what everyone sees on the map.');
-    return confirm(lines.join('\n'));
+    /* lines[0] is the question, so it becomes the title; the rest is the body.
+     * The empty strings that spaced a \n-joined confirm() are dropped by
+     * openConfirmModal, and the retired-version list becomes one paragraph per
+     * version rather than indented text in a single blob.
+     *
+     * The action is NAMED on the button, as everywhere else in this ticket:
+     * Publish, with what is being published. */
+    openConfirmModal({
+      title: lines[0],
+      body: lines.slice(1).map(t => String(t).trim()),
+      cancelLabel: 'Cancel',
+      confirmLabel: 'Publish ' + name,
+      onConfirm: onConfirm,
+    });
+    return true;
   }
 
   async function dsSetActive(dvId, makeActive) {
@@ -18728,8 +18748,19 @@ function wireHTooltips() {
       // it without promoting anything, and is undone by switching it back.
       const ds = e.target.closest('input[data-ds-active]');
       if (ds) {
-        if (ds.checked && !dsConfirmActivate(ds.dataset.dsActive)) {
-          ds.checked = false;      // the click already flipped it; put it back
+        if (ds.checked) {
+          /* REVERT ON OPEN, the same subtlety as the two Report Data
+           * dropdowns, and this site already knew about it: the old comment
+           * here said "the click already flipped it; put it back". With a
+           * blocking confirm that could happen afterwards. It cannot now, so
+           * the box goes back immediately and is re-checked only on confirm.
+           * Leaving it checked would show a dataset as published for as long
+           * as the dialog was open. */
+          ds.checked = false;
+          dsConfirmActivate(ds.dataset.dsActive, () => {
+            ds.checked = true;
+            dsSetActive(ds.dataset.dsActive, true);
+          });
           return;
         }
         dsSetActive(ds.dataset.dsActive, ds.checked);
