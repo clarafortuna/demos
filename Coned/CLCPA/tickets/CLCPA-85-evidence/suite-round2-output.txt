@@ -141,11 +141,11 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   exactly ONE place adds a year, so the two paths cannot diverge
 
 === ruling 4: the receipt is on the PAGE, the controls are not ===
-  FAIL the page renders the receipt and nothing else
+  ok   the page renders the receipt and nothing else
   ok   the control bar is NOT on the page
   ok   and the receipt has its mount, above the editor
   ok   both controls are in the bar, which only the dialog renders
-  FAIL the bar has one definition and one caller, the fill stage
+  ok   the bar has one definition and one caller, the fill stage
   ok   the page no longer wires the controls it does not render
 
 === ruling 5: Export PDF is gone from every page ===
@@ -237,5 +237,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  206 passed, 2 failed
+  208 passed, 0 failed
 ======================================================================
