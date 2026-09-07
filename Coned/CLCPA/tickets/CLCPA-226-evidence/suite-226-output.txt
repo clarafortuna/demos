@@ -1,0 +1,152 @@
+======================================================================
+CLCPA-226 -- the native tooltips become the app s own styled one
+======================================================================
+
+=== the CSS diff is EXACTLY the .dac-map-tooltip consolidation ===
+  ok   BASE control: the class was declared TWICE: 2
+  ok   BASE control: and the winning shadow was pure black, not the ink token
+  ok   now declared ONCE: 1
+  ok   carrying the INK TOKEN shadow, per the ruling
+  ok   the consolidated tooltip does not carry the black shadow
+  ok   all four live tooltip families now share the ink-token shadow: .exec-tooltip
+  ok   all four live tooltip families now share the ink-token shadow: .h-pie-tt
+  ok   all four live tooltip families now share the ink-token shadow: .dac-map-tooltip
+  ok   all four live tooltip families now share the ink-token shadow: .dac-kpi-tt
+  ok   stated explicitly: padding: 10px 12px (the winning padding)
+  ok   stated explicitly: min-width: 200px (the winning min-width)
+  ok   stated explicitly: max-width: 260px (the winning max-width)
+  ok   stated explicitly: color: var(--text-2) (the colour that only the second block had)
+  ok   no longer relying on cascade for position
+  ok   no longer relying on cascade for z-index
+  ok   no longer relying on cascade for font-family
+  ok   no longer relying on cascade for pointer-events
+  ok   EVERY other byte of styles.css is unchanged
+
+=== the ten conversions, and the six natives that STAY ===
+  ok   ten sites in the ruled scope
+  ok   the (i) on the Map Data family tabs: carries data-tip
+  ok   the (i) on the Map Data family tabs: the native title is REMOVED
+  ok   the (i) on the Map Data family tabs: BASE control -- it WAS a native title
+  ok   the close X: carries data-tip
+  ok   the close X: the native title is REMOVED
+  ok   the close X: BASE control -- it WAS a native title
+  ok   the borough group checkbox: carries data-tip
+  ok   the borough group checkbox: the native title is REMOVED
+  ok   the borough group checkbox: BASE control -- it WAS a native title
+  ok   the delete-row x: carries data-tip
+  ok   the delete-row x: the native title is REMOVED
+  ok   the delete-row x: BASE control -- it WAS a native title
+  ok   Clear all: carries data-tip
+  ok   Clear all: the native title is REMOVED
+  ok   Clear all: BASE control -- it WAS a native title
+  ok   Export: carries data-tip
+  ok   Export: the native title is REMOVED
+  ok   Export: BASE control -- it WAS a native title
+  ok   the Remove Year button: carries data-tip
+  ok   the Remove Year button: the native title is REMOVED
+  ok   the Remove Year button: BASE control -- it WAS a native title
+  ok   the fixed top-class note: carries data-tip
+  ok   the fixed top-class note: the native title is REMOVED
+  ok   the fixed top-class note: BASE control -- it WAS a native title
+  ok   the read-only layer toggle: carries data-tip
+  ok   the read-only layer toggle: the native title is REMOVED
+  ok   the read-only layer toggle: BASE control -- it WAS a native title
+  ok   the required asterisk: carries data-tip
+  ok   the required asterisk: the native title is REMOVED
+  ok   the required asterisk: BASE control -- it WAS a native title
+  ok   the bar label: STAYS native (clipped text -- the browser tooltip is right)
+  ok   the DAC table label: STAYS native (clipped text -- the browser tooltip is right)
+  ok   the relative timestamp: STAYS native (clipped text -- the browser tooltip is right)
+  ok   the class-break bar readout stays native too
+  ok   both error chips keep their native title: 2
+  ok   the territory valueField tooltips stay, as ruled: 2
+  ok   and the territory load-error title with them
+  ok   SIX static native titles remain -- 4 category B plus 2 error chips: 6
+  ok   BASE control: there were 15, so 9 static were converted: 15
+  ok   THREE dynamic titles remain, all ruled deliberate: 3
+  ok   BASE control: there were 4, so 1 dynamic was converted: 4
+
+=== THE ONE-STRING RULE, checked as a rule over every site ===
+  ok   literal tags carrying data-tip: 9
+  ok   same words as name and as tooltip: "Select all in ' + escMap(boro) + '"
+  ok   same words as name and as tooltip: "Close Data Sources and return to ${escapeHtml(back)}"
+  ok   same words as name and as tooltip: "Data Source"
+  ok   same words as name and as tooltip: "Delete row"
+  ok   at least two sites carry both, so the rule has subjects: 4
+  ok   the group checkbox builds tip and label from the SAME expression
+  ok   the (i) carries the same two words as both
+  ok   the (i) panel is headed with the same words again
+  ok   the Remove Year tooltip says "from the Dashboard"
+  ok   and its modal title says the same, capital D and all
+  ok   BASE control: it said "dashboard" lowercase while the modal said Dashboard
+  ok   BASE control: the close X title and aria-label were DIFFERENT strings
+  ok   the shorter one is gone
+  ok   both attributes on the button now carry the longer string
+  ok   and the button carries no title at all
+
+=== accessible names SURVIVE, in both directions ===
+  ok   the (i), whose only content is an svg: has an aria-label, so the words ARE its name
+  ok   the close X: has an aria-label, so the words ARE its name
+  ok   the group checkbox, whose check span is aria-hidden: has an aria-label, so the words ARE its name
+  ok   the delete-row x: has an aria-label, so the words ARE its name
+  ok   Clear all: keeps its VISIBLE name, which an aria-label would have replaced
+  ok   Export: keeps its VISIBLE name, which an aria-label would have replaced
+  ok   the Remove Year button: keeps its VISIBLE name, which an aria-label would have replaced
+  ok   Clear all: its tag is found
+  ok   Clear all: carries data-tip
+  ok   Clear all: and NO aria-label, so its visible name is still its name
+  ok   Export: its tag is found
+  ok   Export: carries data-tip
+  ok   Export: and NO aria-label, so its visible name is still its name
+  ok   the Remove Year wiring is found
+  ok   it sets data-tip
+  ok   and never an aria-label: its visible text is × Remove <year>
+  ok   wireControlTips is present
+  ok   the helper attaches aria-describedby ONLY where there is no aria-label
+  ok   and removes it again, so no control is described by another one s tooltip
+  ok   the shared tip has the id describedby points at, and role=tooltip
+  ok   BASE control: it had neither
+
+=== DRIVEN: hover, FOCUS, escape, and one shared node ===
+  ok   one document listener for mouseover
+  ok   one document listener for mouseout
+  ok   one document listener for focusin
+  ok   one document listener for focusout
+  ok   one document listener for keydown
+  ok   calling it again binds NOTHING further: it is idempotent
+  ok   the shared tip is created on first hover
+  ok   showing the words: Data Source
+  ok   and made visible
+  ok   with the id and role aria-describedby needs
+  ok   NO describedby: it already has an aria-label, so the words are its name
+  ok   one node appended
+  ok   mouseout hides it
+  ok   a second hover reuses the node: still 1
+  ok   the tip shows the words
+  ok   and the control is DESCRIBED by it, its visible name untouched
+  ok   no aria-label was invented, which would have replaced the visible name
+  ok   and the description is detached again on hide
+  ok   moving to another control does not leave two pointing at one tip
+  ok   FOCUS shows the tooltip -- which a native title never did
+  ok   with the same words as the hover
+  ok   and blur hides it
+  ok   bound as focusin/focusout
+  ok   and NOT as focus/blur, which do not bubble to the document
+  ok   shown
+  ok   ESCAPE dismisses it, like every other transient surface
+  ok   and an unrelated key does not
+  ok   hovering a plain element hides the tip
+  ok   an empty data-tip shows nothing
+  ok   set through textContent, so a label can never become markup
+  ok   and the helper never touches innerHTML
+
+=== the ensureTooltip consolidation ===
+  ok   the lazy-singleton block exists ONCE, inside ensureTooltip: 1
+  ok   BASE control: it was copy-pasted SIX times: 6
+  ok   NINE callers now: the 3 that already used it, the 5 that duplicated its body, and wireControlTips itself -- 9
+  ok   BASE control: the helper existed with only 3, while 5 sites copied it: 3
+  ok   and wireControlTips is called from boot, once
+
+======================================================================
+  133 passed, 0 failed
+======================================================================

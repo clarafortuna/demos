@@ -7540,8 +7540,8 @@ function utf8ByteLength(str) {
             </div>
             <div class="dac-map-actions">
               <span class="dac-map-ctl-divider" aria-hidden="true"></span>
-              <button type="button" class="dac-map-clearall" id="dac-map-clearall" title="Reset borough and neighborhood filters">Clear all</button>
-              <button type="button" class="dac-map-export" id="dac-map-export" title="Export the tracts in the current scope as CSV">Export</button>
+              <button type="button" class="dac-map-clearall" id="dac-map-clearall" data-tip="Reset borough and neighborhood filters">Clear all</button>
+              <button type="button" class="dac-map-export" id="dac-map-export" data-tip="Export the tracts in the current scope as CSV">Export</button>
             </div>
           </div>
         </div>
@@ -8926,7 +8926,7 @@ function utf8ByteLength(str) {
               '<span class="dac-map-dd-grouplabel">' + escMap(boro) + '</span>' +
               '<span class="dac-map-dd-groupcount">(' + names.length + ')</span>' +
             '</button>' +
-            '<button type="button" class="dac-map-dd-groupcheck" data-group-boro="' + escMap(boro) + '" role="option" aria-checked="false" title="Select all in ' + escMap(boro) + '">' +
+            '<button type="button" class="dac-map-dd-groupcheck" data-group-boro="' + escMap(boro) + '" role="option" aria-checked="false" data-tip="Select all in ' + escMap(boro) + '" aria-label="Select all in ' + escMap(boro) + '">' +
               '<span class="dac-map-dd-check" aria-hidden="true"></span>' +
             '</button>' +
           '</div>' +
@@ -10146,12 +10146,111 @@ function utf8ByteLength(str) {
     });
   }
 
-  /** Ensure a single tooltip element exists in <body>. */
+  /**
+   * CLCPA-226: the hover AND FOCUS tooltip for CONTROLS, replacing the
+   * browser-native `title` on ten of them.
+   *
+   * REUSES .exec-tooltip (styles.css:2405), which is the dashboard's own
+   * styled-tooltip rule: .h-pie-tt is byte-identical to it and .dac-map-tooltip
+   * and .dac-kpi-tt differ only in padding and width. No new class is added,
+   * and no new CSS: the only CSS change in this ticket is consolidating the
+   * duplicated .dac-map-tooltip declaration.
+   *
+   * DELEGATED, on purpose. Half these controls are inside panels that
+   * re-render constantly (rerenderIngestAll, rerenderMlList, the map panels),
+   * and per-node binding would need rewiring after every one of them -- the
+   * class of bug where a control silently loses its tooltip. One set of
+   * listeners on the document survives every re-render because it never looks
+   * at the nodes until an event arrives.
+   *
+   * FOCUS is the functional gain. A native `title` never appears on keyboard
+   * focus, so these explanations were unreachable without a mouse. focusin and
+   * focusout are used rather than focus/blur because those do not bubble.
+   *
+   * THE WORDS: data-tip carries the visible text and aria-label carries the
+   * accessible name, and they are the SAME string at every site. A tooltip
+   * that disagrees with the accessible name gives sighted and screen reader
+   * users two different answers to the same question -- the reasoning already
+   * written at dsAboutButton, now applied as a rule.
+   */
+  function wireControlTips() {
+    if (wireControlTips._wired) return;   // delegated: once per document
+    wireControlTips._wired = true;
+
+    /* Whatever currently points at the shared tip, so the pointer can be
+     * removed again. A stale aria-describedby would have a screen reader
+     * describe a control with another control's tooltip. */
+    let described = null;
+    const hide = () => {
+      const tip = document.querySelector('.exec-tooltip');
+      if (tip) tip.style.opacity = '0';
+      if (described) {
+        described.removeAttribute('aria-describedby');
+        described = null;
+      }
+    };
+    const show = (el) => {
+      const text = el.getAttribute('data-tip');
+      if (!text) return;
+      const tip = ensureTooltip();
+      tip.textContent = text;          // TEXT, not innerHTML: these are labels
+      /* NAME or DESCRIPTION, whichever is correct for this control:
+       *   it has an aria-label -> those words are already its NAME, and
+       *     data-tip repeats them, so there is nothing further to say;
+       *   it has none -> it has a visible label of its own, which must stay
+       *     its name, so the tooltip is attached as a DESCRIPTION while shown.
+       * Setting aria-label on the second kind would overwrite the visible
+       * name, which is the failure the one-string rule exists to prevent. */
+      if (!el.getAttribute('aria-label')) {
+        el.setAttribute('aria-describedby', 'dac-tip');
+        described = el;
+      }
+      /* Anchored to the control, not the cursor: a control's explanation
+       * should sit still, and it has to be reachable from the keyboard where
+       * there is no cursor to follow. Below and left-aligned, nudged back on
+       * screen if it would overflow the right edge. */
+      const r = el.getBoundingClientRect();
+      tip.style.opacity = '1';
+      const w = tip.offsetWidth || 0;
+      const maxLeft = (window.innerWidth || 0) - w - 8;
+      let left = r.left + (window.pageXOffset || 0);
+      if (maxLeft > 0 && left > maxLeft) left = maxLeft;
+      tip.style.left = Math.max(8, left) + 'px';
+      tip.style.top = (r.bottom + (window.pageYOffset || 0) + 6) + 'px';
+    };
+    const target = (e) => {
+      const t = e.target;
+      return t && t.closest ? t.closest('[data-tip]') : null;
+    };
+    document.addEventListener('mouseover', (e) => {
+      const el = target(e);
+      if (el) show(el); else hide();
+    });
+    document.addEventListener('mouseout', (e) => { if (target(e)) hide(); });
+    document.addEventListener('focusin', (e) => {
+      const el = target(e);
+      if (el) show(el);
+    });
+    document.addEventListener('focusout', (e) => { if (target(e)) hide(); });
+    /* Escape dismisses it, matching every other transient surface in the app. */
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') hide(); });
+  }
+
+  /**
+   * Ensure a single tooltip element exists in <body>.
+   *
+   * CLCPA-226 gave it an id and role="tooltip": aria-describedby needs
+   * something to point AT, and the role is what tells a screen reader the
+   * text it lands on is a tooltip. Harmless to the eight chart callers, which
+   * only ever set its innerHTML and position -- and accurate for them too.
+   */
   function ensureTooltip() {
     let tip = document.querySelector('.exec-tooltip');
     if (!tip) {
       tip = document.createElement('div');
       tip.className = 'exec-tooltip';
+      tip.id = 'dac-tip';
+      tip.setAttribute('role', 'tooltip');
       document.body.appendChild(tip);
     }
     return tip;
@@ -11987,12 +12086,7 @@ function renderSectionG() {
     return `<div class="chart-row g-row-1-1-2">${card1}${card2}${card3}</div>`;
   }
   function wireFSectionTooltips() {
-    let tip = document.querySelector('.exec-tooltip');
-    if (!tip) {
-      tip = document.createElement('div');
-      tip.className = 'exec-tooltip';
-      document.body.appendChild(tip);
-    }
+    const tip = ensureTooltip();
     const yr = state.year;
     const prevYr = prevYearOf(yr) || '';
     const renderVal = (v) => (v === 'missing' || v == null || v === '')
@@ -12022,12 +12116,7 @@ function renderSectionG() {
     });
   }
   function wireGSectionTooltips() {
-    let tip = document.querySelector('.exec-tooltip');
-    if (!tip) {
-      tip = document.createElement('div');
-      tip.className = 'exec-tooltip';
-      document.body.appendChild(tip);
-    }
+    const tip = ensureTooltip();
 
     const yr = state.year;
     const prevYr = prevYearOf(yr) || '';
@@ -12475,12 +12564,7 @@ function renderSectionI() {
   }
 
   function wireISectionTooltips() {
-    let tip = document.querySelector('.exec-tooltip');
-    if (!tip) {
-      tip = document.createElement('div');
-      tip.className = 'exec-tooltip';
-      document.body.appendChild(tip);
-    }
+    const tip = ensureTooltip();
 
     const p = state.payload;
     const yr = state.year;
@@ -13011,12 +13095,7 @@ function wireRankToggle() {
 
 function wireQuadrantTooltip() {
     // Use the SAME tooltip element as the rest of the dashboard for visual consistency.
-    let tip = document.querySelector('.exec-tooltip');
-    if (!tip) {
-      tip = document.createElement('div');
-      tip.className = 'exec-tooltip';
-      document.body.appendChild(tip);
-    }
+    const tip = ensureTooltip();
     const circles = document.querySelectorAll('.scatter-svg circle[data-name]');
     circles.forEach(c => {
       c.addEventListener('mouseenter', () => {
@@ -13096,12 +13175,7 @@ function wireQuadrantTooltip() {
   }
 
 function wireBTooltips() {
-    let tip = document.querySelector('.exec-tooltip');
-    if (!tip) {
-      tip = document.createElement('div');
-      tip.className = 'exec-tooltip';
-      document.body.appendChild(tip);
-    }
+    const tip = ensureTooltip();
 
     const bindMove = (el) => {
       el.addEventListener('mousemove', e => {
@@ -15807,8 +15881,13 @@ function wireHTooltips() {
           <!-- CLCPA-221 round 2: the Back button is gone and the X carries the
                whole return. Its accessible name still NAMES the tab it returns
                to, so the destination is not lost with the visible label. -->
+          <!-- CLCPA-226: the title said "Close and return to X" while the
+               aria-label said "Close Data Sources and return to X" -- two
+               different answers to the same question, which is exactly what
+               the one-string rule forbids. The aria-label wins: it names what
+               is being closed, and the X alone does not. -->
           <button type="button" class="ds-dict-x" data-ds-dict-back="1"
-            title="Close and return to ${escapeHtml(back)}"
+            data-tip="Close Data Sources and return to ${escapeHtml(back)}"
             aria-label="Close Data Sources and return to ${escapeHtml(back)}">&times;</button>
         </div>
       </div>
@@ -16290,7 +16369,7 @@ function wireHTooltips() {
     for (let i = 0; i < nCls; i++) {
       const last = i === nCls - 1;
       const upper = last
-        ? '<span class="ml-break-fixed" title="The top class ends at the data maximum">' +
+        ? '<span class="ml-break-fixed" data-tip="The top class ends at the data maximum">' +
             escapeHtml(mlFmtNum(s.max)) + '</span>'
         : '<input type="text" inputmode="decimal" class="ml-break-input" ' +
             'id="ml-break-' + i + '" data-ml-break="' + i + '" ' +
@@ -16601,7 +16680,7 @@ function wireHTooltips() {
           // standing in for it: same geometry, same column, and the state is
           // still visible without a second way of showing it.
           const toggle = `<label class="ml-toggle${busy ? ' ml-toggle-busy' : ''}"${
-              canToggle ? '' : ' title="You have read-only access to saved layers."'}>
+              canToggle ? '' : ' data-tip="You have read-only access to saved layers."'}>
                  <input type="checkbox" data-ml-active="${escapeHtml(entry.id)}"${
                    entry.active !== false ? ' checked' : ''}${
                    busy || !canToggle ? ' disabled' : ''} />
@@ -16762,7 +16841,7 @@ function wireHTooltips() {
           const srcField = canSave && !inFlight
             ? `<div class="ml-row-src-field">
                  <label for="ml-src-${escapeHtml(entry.id)}">Source and publication${
-                   ' <span class="ml-req" title="Required to save">*</span>'}</label>
+                   ' <span class="ml-req" data-tip="Required to save">*</span>'}</label>
                  <input type="text" class="ml-text ml-src-input" id="ml-src-${escapeHtml(entry.id)}"
                         data-ml-src="${escapeHtml(entry.id)}" maxlength="300"
                         placeholder="NYC DOHMH Heat Vulnerability Index, 2022 release"
@@ -17567,7 +17646,7 @@ function wireHTooltips() {
     if (!DS_ABOUT[tabId]) return '';
     return '<button type="button" class="dac-td-help-btn ds-about-btn" ' +
       'data-ds-about="' + escapeHtml(tabId) + '" aria-expanded="false" ' +
-      'aria-label="Data Source" title="Data Source" ' +
+      'aria-label="Data Source" data-tip="Data Source" ' +
       'aria-controls="ds-about-' + escapeHtml(tabId) + '">' +
       '<svg class="dac-td-help-icon" viewBox="0 0 24 24" fill="none" ' +
       'stroke="currentColor" stroke-width="2.2" stroke-linecap="round" ' +
@@ -19230,7 +19309,7 @@ function wireHTooltips() {
       return `<tr${isTotal ? ' class="ingest-row-total"' : ''} data-row="${rowIdx}">
         ${cells}
         <td class="ingest-td-actions">
-          <button class="ingest-row-delete" type="button" data-row="${rowIdx}" title="Delete row">×</button>
+          <button class="ingest-row-delete" type="button" data-row="${rowIdx}" data-tip="Delete row" aria-label="Delete row">×</button>
         </td>
       </tr>`;
     }).join('');
@@ -19413,7 +19492,11 @@ function wireHTooltips() {
     btn.hidden = !show;
     if (show) {
       btn.textContent = '× Remove ' + yr;
-      btn.title = 'Remove ' + yr + ' from the dashboard';
+      /* CLCPA-226 finding 3: this said "from the dashboard" while the modal
+       * CLCPA-230 round 2 shipped says "Remove {yr} from the Dashboard?".
+       * One control, two casings. The words match now, and the suite's
+       * one-string rule is what keeps them matched. */
+      btn.setAttribute('data-tip', 'Remove ' + yr + ' from the Dashboard');
     }
   }
 
@@ -20373,6 +20456,11 @@ function wireHTooltips() {
 
   async function boot() {
     logBuildId();
+    /* CLCPA-226: DELEGATED, so it is wired once here and never again -- not
+     * per render. Before the payload loads, because it binds to the document
+     * rather than to any control, and a control that appears later is covered
+     * the moment it exists. */
+    wireControlTips();
     try {
       state.payload = await loadPayload();
     } catch (err) {
