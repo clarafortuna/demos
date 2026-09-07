@@ -14490,6 +14490,25 @@ function wireHTooltips() {
           }, where));
           return;
         }
+        /* CLCPA-85 round 4: the template's own marker is never a value.
+         *
+         * Found by the workbook round trip. totalRowFlags is VALUE-dependent, so
+         * on a brand new year (labels only, no numbers yet) a Total row is not
+         * recognised as computed, and the marker the template wrote into its
+         * cells would have imported as the literal string "(calculated)".
+         *
+         * Skipping the marker here fixes it for good and in one place, rather
+         * than making the writer guess which cells the importer will happen to
+         * classify as computed. It also protects the plain CSV path: a file
+         * saved with the markers left in is now ignored rather than imported
+         * as text. */
+        if (String(raw).trim() === '(calculated)') {
+          res.notTouched.computed.push(Object.assign({
+            why: 'the template marks this cell as calculated, so it is left to ' +
+              'the dashboard',
+          }, where));
+          return;
+        }
         if (raw == null || String(raw).trim() === '') {
           // A blank in the file LEAVES the draft alone. It is not an instruction
           // to erase a value the operator already has.
@@ -14546,21 +14565,404 @@ function wireHTooltips() {
     return { year: years[0], rows: table.data[years[0]], borrowed: true };
   }
 
-  /** One CSV field, quoted only when it has to be. */
-  function csvField(v) {
-    const s = (v == null) ? '' : String(v);
-    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  /* ==========================================================================
+   * CLCPA-85 round 4: a ZIP writer, so the template can be a real .xlsx.
+   *
+   * STORED entries only, no compression. That is the whole reason this is
+   * dependency-free: there is no deflate to implement and no CompressionStream
+   * to plumb, and the harness can read the archive back without an inflate
+   * either. An .xlsx is a few kB of XML, so the size cost of not compressing
+   * is irrelevant.
+   *
+   * Timestamps are PINNED to the DOS epoch rather than taken from the clock, so
+   * the same inputs always produce the same bytes. That is what lets the
+   * harness assert the archive's own CRCs and offsets instead of just its
+   * shape.
+   * ========================================================================== */
+
+  const CRC_TABLE = (function () {
+    const t = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      t[i] = c >>> 0;
+    }
+    return t;
+  })();
+
+  function crc32(bytes) {
+    let c = 0xFFFFFFFF;
+    for (let i = 0; i < bytes.length; i++) {
+      c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+    }
+    return (c ^ 0xFFFFFFFF) >>> 0;
   }
 
   /**
-   * Build the template CSV for a table and year.
+   * Build a ZIP from [{ name, bytes }], all entries STORED.
    *
-   * Editable cells carry the CURRENT value, so the operator edits rather than
-   * retypes. Computed cells carry the literal text (calculated), so the file
-   * itself teaches which cells are not input, and a template-derived file has
-   * nothing in those positions to argue about.
+   * Names are ASCII by construction (the OOXML part paths), so the UTF-8 name
+   * flag is not needed and is left clear.
    */
-  function buildIngestTemplate(tableId, year) {
+  function zipStored(entries) {
+    const enc = new TextEncoder();
+    // DOS epoch, 1980-01-01 00:00:00, so the output is byte-stable.
+    const DOS_TIME = 0, DOS_DATE = 0x0021;
+    const parts = [];
+    const central = [];
+    let offset = 0;
+
+    const u16 = (v) => [v & 0xFF, (v >>> 8) & 0xFF];
+    const u32 = (v) => [v & 0xFF, (v >>> 8) & 0xFF, (v >>> 16) & 0xFF, (v >>> 24) & 0xFF];
+
+    entries.forEach(e => {
+      const nameBytes = enc.encode(e.name);
+      const crc = crc32(e.bytes);
+      const size = e.bytes.length;
+      const local = [].concat(
+        u32(0x04034b50), u16(20), u16(0), u16(0),
+        u16(DOS_TIME), u16(DOS_DATE),
+        u32(crc), u32(size), u32(size),
+        u16(nameBytes.length), u16(0));
+      parts.push(new Uint8Array(local), nameBytes, e.bytes);
+      central.push({ name: nameBytes, crc: crc, size: size, offset: offset });
+      offset += local.length + nameBytes.length + size;
+    });
+
+    const cdStart = offset;
+    central.forEach(c => {
+      const hdr = [].concat(
+        u32(0x02014b50), u16(20), u16(20), u16(0), u16(0),
+        u16(DOS_TIME), u16(DOS_DATE),
+        u32(c.crc), u32(c.size), u32(c.size),
+        u16(c.name.length), u16(0), u16(0),
+        u16(0), u16(0), u32(0), u32(c.offset));
+      parts.push(new Uint8Array(hdr), c.name);
+      offset += hdr.length + c.name.length;
+    });
+
+    const eocd = [].concat(
+      u32(0x06054b50), u16(0), u16(0),
+      u16(central.length), u16(central.length),
+      u32(offset - cdStart), u32(cdStart), u16(0));
+    parts.push(new Uint8Array(eocd));
+
+    let total = 0;
+    parts.forEach(p => { total += p.length; });
+    const out = new Uint8Array(total);
+    let at = 0;
+    parts.forEach(p => { out.set(p, at); at += p.length; });
+    return out;
+  }
+
+  /**
+   * Hand the browser a binary file. Mirrors downloadTextFile, which the map
+   * export and the example layer already share, rather than open-coding a
+   * third Blob path.
+   */
+  function downloadBinaryFile(filename, bytes, mime) {
+    const blob = new Blob([bytes], { type: mime || 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+  /* ==========================================================================
+   * CLCPA-85 round 4: the template as a real .xlsx workbook.
+   *
+   * Generated in the browser from the LIVE schema, exactly as the CSV template
+   * was: a frozen file would drift the moment a schema changed, and under the
+   * payload freeze the payload is the only truth about shape.
+   *
+   * STRINGS ARE INLINE (t="inlineStr"), which skips sharedStrings.xml
+   * altogether. One fewer part to build and one fewer to get wrong.
+   *
+   * PROTECTION IS GUIDANCE AGAINST ACCIDENTS, NOT SECURITY. There is no
+   * password, and sheet protection is removable in a few clicks even with one.
+   * It stops a stray paste into a header row. The real guard against bad data
+   * is the importer, which rejects what it cannot represent and reports what
+   * it did not touch.
+   * ========================================================================== */
+
+  /** XML text escape. Attribute and element content both. */
+  function xmlEsc(v) {
+    return String(v == null ? '' : v)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+  }
+
+  /**
+   * A sheet name Excel will accept.
+   *
+   * MEASURED, and this guard is NOT currently load-bearing: the longest
+   * code-plus-short-name in the payload is 25 characters (G.9 Westchester
+   * Abandoned) against Excel's limit of 31, and none of the 52 short titles
+   * contains a forbidden character. It exists so a future short_title cannot
+   * quietly produce a workbook Excel refuses to open.
+   */
+  function xlsxSheetName(raw) {
+    let s = String(raw == null ? '' : raw).replace(/[:\\\/?*\[\]]/g, ' ')
+      .replace(/\s+/g, ' ').trim();
+    if (s.length > 31) s = s.slice(0, 31).trim();
+    return s || 'Sheet';
+  }
+
+  /** Column letter for a 1-based index: 1 -> A, 27 -> AA. */
+  function xlsxCol(n) {
+    let s = '';
+    while (n > 0) {
+      const r = (n - 1) % 26;
+      s = String.fromCharCode(65 + r) + s;
+      n = Math.floor((n - 1) / 26);
+    }
+    return s;
+  }
+
+  /* The cell formats, and the ONLY place locking is expressed.
+   *
+   * CLCPA-85 round 5: the workbook is FULLY READ-ONLY, so there is no unlocked
+   * format at all. XLSX_STYLE_INPUT is removed rather than left unused, which
+   * makes the guarantee structural: no xf carries locked="0", so no cell CAN
+   * resolve unlocked. That is a stronger claim than "none currently does".
+   *
+   *   0  default, locked
+   *   1  table HEADER row: the dashboard's own table header look
+   *   2  table body: (calculated) and the empty example cells
+   *   3  instructions: the header block's ink ground
+   *   4  instructions: the app name, RIGHT ALIGNED (round 6)
+   *   5  instructions: the title, large white on ink
+   *   6  instructions: the subtitle, muted white on ink
+   *   7  instructions: a section heading, dusk
+   *   8  instructions: body text, wrapped
+   *   9  instructions: the callout band, dusk tint
+   *  10  instructions: the closing note, small and pale
+   *  11  table body LABEL column: wrapped, so a long label cannot bleed
+   *  12  table TOTAL row: the dashboard's own total-row look
+   *  13  table TOTAL row label: the same, wrapped
+   *
+   * applyProtection="1" is required or Excel ignores the protection element
+   * on the format. Every one of these sets locked="1". */
+  const XLSX_STYLE_DEFAULT = 0;
+  const XLSX_STYLE_HEADER = 1;
+  const XLSX_STYLE_LOCKED = 2;
+  const XLSX_STYLE_HDRBAND = 3;
+  const XLSX_STYLE_APPNAME = 4;
+  const XLSX_STYLE_TITLE = 5;
+  const XLSX_STYLE_SUBTITLE = 6;
+  const XLSX_STYLE_SECTION = 7;
+  const XLSX_STYLE_BODY = 8;
+  const XLSX_STYLE_BAND = 9;
+  const XLSX_STYLE_NOTE = 10;
+  const XLSX_STYLE_LABEL = 11;
+  const XLSX_STYLE_TOTAL = 12;
+  const XLSX_STYLE_TOTAL_LABEL = 13;
+
+  /* The palette, taken from the app's own tokens in styles.css and converted to
+   * the ARGB form xlsx wants. Named so a reader can check them against :root
+   * rather than trusting six hex strings. */
+  const XLSX_INK = 'FF031824';        // --ink
+  const XLSX_DUSK = 'FF2F5496';       // --dusk
+  const XLSX_DUSK_TINT = 'FFE5EBF5';  // --dusk-tint
+  const XLSX_TEXT2 = 'FF3A4D5E';      // --text-2
+  const XLSX_TEXT3 = 'FF6B7B8C';      // --text-3
+  const XLSX_WHITE = 'FFFFFFFF';      // --white
+  const XLSX_PALE = 'FF9CA8B5';       // --text-4, for the app label on ink
+  const XLSX_SMOKE = 'FFF2F2F2';      // --white-smoke
+  const XLSX_TEXT = 'FF031824';       // --text
+
+  function xlsxStylesXml() {
+    const xf = (fontId, fillId, extra, borderId) =>
+      '<xf numFmtId="0" fontId="' + fontId + '" fillId="' + fillId + '" borderId="' +
+      (borderId || 0) + '" ' +
+      'xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1" ' +
+      'applyProtection="1">' +
+      (extra || '<alignment vertical="top"/>') +
+      // EVERY format locks. There is no unlocked format in this workbook.
+      '<protection locked="1"/></xf>';
+    const wrapTop = '<alignment vertical="top" wrapText="1"/>';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<fonts count="10">' +
+      '<font><sz val="11"/><color rgb="' + XLSX_TEXT2 + '"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><color rgb="' + XLSX_INK + '"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="9"/><color rgb="' + XLSX_PALE + '"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="18"/><color rgb="' + XLSX_WHITE + '"/><name val="Calibri"/></font>' +
+      '<font><sz val="11"/><color rgb="FFC9D2DB"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="12"/><color rgb="' + XLSX_DUSK + '"/><name val="Calibri"/></font>' +
+      '<font><sz val="11"/><color rgb="' + XLSX_INK + '"/><name val="Calibri"/></font>' +
+      '<font><sz val="9"/><color rgb="' + XLSX_TEXT3 + '"/><name val="Calibri"/></font>' +
+      // 8: the dash table header: bold, --text-3. 9: the total row: bold, --text.
+      '<font><b/><sz val="10"/><color rgb="' + XLSX_TEXT3 + '"/><name val="Calibri"/></font>' +
+      '<font><b/><sz val="11"/><color rgb="' + XLSX_TEXT + '"/><name val="Calibri"/></font>' +
+      '</fonts>' +
+      '<fills count="5">' +
+      '<fill><patternFill patternType="none"/></fill>' +
+      '<fill><patternFill patternType="gray125"/></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="' + XLSX_INK +
+      '"/><bgColor indexed="64"/></patternFill></fill>' +
+      '<fill><patternFill patternType="solid"><fgColor rgb="' + XLSX_DUSK_TINT +
+      '"/><bgColor indexed="64"/></patternFill></fill>' +
+      // 4: --white-smoke, the dash's own table header and total row ground.
+      '<fill><patternFill patternType="solid"><fgColor rgb="' + XLSX_SMOKE +
+      '"/><bgColor indexed="64"/></patternFill></fill>' +
+      '</fills>' +
+      /* Border 1 is the TOTAL row's top edge: the dashboard draws
+       * border-top: 2px solid var(--ink) on .data-table tbody tr.is-total td,
+       * and `medium` in ink is that rule's nearest xlsx equivalent. */
+      '<borders count="2">' +
+      '<border/>' +
+      '<border><top style="medium"><color rgb="' + XLSX_INK + '"/></top></border>' +
+      '</borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="14">' +
+      xf(0, 0) +                       // 0  default
+      /* 1: COPIED FROM .data-table thead th (styles.css line 555):
+       *    background var(--white-smoke), color var(--text-3), font-weight 700.
+       *    Its text-transform: uppercase is NOT applied, deliberately: xlsx
+       *    cannot transform text at render time, so honouring it would mean
+       *    uppercasing the header STRINGS, and those strings are the example of
+       *    what the import expects. Wrapped, so a 48-character header cannot
+       *    bleed over its neighbour. */
+      xf(8, 4, wrapTop) +              // 1  table header, dashboard look
+      xf(0, 0) +                       // 2  table body
+      xf(3, 2) +                       // 3  header band ground
+      // 4: round 6, the app name, RIGHT ALIGNED
+      xf(2, 2, '<alignment horizontal="right" vertical="top"/>') +
+      xf(3, 2) +                       // 5  title on ink
+      xf(4, 2) +                       // 6  subtitle on ink
+      xf(5, 0) +                       // 7  section heading, dusk
+      xf(6, 0, wrapTop) +              // 8  body text, wrapped
+      xf(6, 3, wrapTop) +              // 9  callout band, dusk tint
+      xf(7, 0, wrapTop) +              // 10 closing note
+      xf(0, 0, wrapTop) +              // 11 label column, wrapped
+      /* 12 and 13: COPIED FROM .data-table tbody tr.is-total td
+       *    (styles.css line 565): font-weight 700, background
+       *    var(--white-smoke), color var(--text), border-top 2px solid
+       *    var(--ink). */
+      xf(9, 4, null, 1) +              // 12 total row
+      xf(9, 4, wrapTop, 1) +           // 13 total row label, wrapped
+      '</cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>' +
+      '</styleSheet>';
+  }
+
+  /** One cell. text null means an EMPTY cell that still carries its style. */
+  function xlsxCell(ref, styleIdx, text) {
+    if (text == null || text === '') {
+      return '<c r="' + ref + '" s="' + styleIdx + '"/>';
+    }
+    return '<c r="' + ref + '" s="' + styleIdx + '" t="inlineStr"><is><t xml:space="preserve">' +
+      xmlEsc(text) + '</t></is></c>';
+  }
+
+  /**
+   * A worksheet from rows of { style, text }. Protected, no password.
+   *
+   * opts.heights sets a row height where the text needs room to wrap, so the
+   * operator reads the instructions without dragging anything.
+   *
+   * opts.hideGridlines turns the grid off at the sheet VIEW level, which is
+   * what makes the Instructions sheet read as a document. sheetViews must come
+   * FIRST in a worksheet, before cols and sheetData, or Excel rejects the file.
+   */
+  function xlsxSheetXml(rows, colWidths, opts) {
+    const o = opts || {};
+    const heights = o.heights || {};
+    const body = rows.map((cells, r) => {
+      const rn = r + 1;
+      const h = heights[rn];
+      const attrs = ' r="' + rn + '"' +
+        (h ? ' ht="' + h + '" customHeight="1"' : '');
+      return '<row' + attrs + '>' + cells.map((c, i) =>
+        xlsxCell(xlsxCol(i + 1) + rn, c.style, c.text)).join('') + '</row>';
+    }).join('');
+    const cols = (colWidths || []).length
+      ? '<cols>' + colWidths.map((w, i) =>
+          '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w +
+          '" customWidth="1"/>').join('') + '</cols>'
+      : '';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+      'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+      (o.hideGridlines
+        ? '<sheetViews><sheetView showGridLines="0" workbookViewId="0"/></sheetViews>'
+        : '') +
+      cols +
+      '<sheetData>' + body + '</sheetData>' +
+      // No password: guidance against accidents, not security.
+      '<sheetProtection sheet="1" objects="1" scenarios="1"/>' +
+      '</worksheet>';
+  }
+
+  /**
+   * The Instructions sheet content, approved verbatim.
+   *
+   * Round 5: the workbook is a read-only EXAMPLE, not a form, and the text says
+   * so. Returned as blocks with a style, because the sheet is now laid out
+   * rather than a list of lines: a header band, section headings, wrapped body
+   * paragraphs, a callout, and a closing note.
+   *
+   * The only variable parts are the table's code-and-name and the year.
+   */
+  function xlsxInstructionBlocks(sheetLabel, year) {
+    return [
+      // Round 6: the app name replaces the logo, right aligned by style 4.
+      { style: XLSX_STYLE_APPNAME, text: 'Con Edison DAC Annual Report', ht: 18 },
+      { style: XLSX_STYLE_TITLE, text: 'Import Format Example', ht: 30 },
+      { style: XLSX_STYLE_SUBTITLE, text: sheetLabel + ' \u00b7 reporting year ' + year, ht: 20 },
+      { style: XLSX_STYLE_HDRBAND, text: null, ht: 8 },
+      { style: XLSX_STYLE_SECTION, text: 'About this workbook', ht: 24 },
+      { style: XLSX_STYLE_BODY, ht: 46, text:
+        'This workbook is a read-only example of the import format for ' +
+        sheetLabel + ', reporting year ' + year + '. Every cell is locked on ' +
+        'purpose: it is a reference, not a form.' },
+      { style: XLSX_STYLE_BAND, ht: 32, text:
+        'Nothing here is editable. Prepare your own CSV from the second sheet, ' +
+        'as step 2 describes.' },
+      // Round 6: one blank row, so the two sections read as two sections.
+      { style: XLSX_STYLE_BODY, text: null, ht: 10 },
+      { style: XLSX_STYLE_SECTION, text: 'How to prepare your file', ht: 26 },
+      { style: XLSX_STYLE_BODY, ht: 46, text:
+        '1. Go to the second sheet, named ' + sheetLabel + '. It shows the exact ' +
+        'layout the import expects: the header row, one row per program name, ' +
+        'and (calculated) marking the cells the dashboard computes after import.' },
+      { style: XLSX_STYLE_BODY, ht: 46, text:
+        '2. Create your own file from it: with that sheet ACTIVE (selected), use ' +
+        'File, Save As, and choose CSV UTF-8 (Comma delimited). Excel saves only ' +
+        'the active sheet, so these instructions are never part of your file.' },
+      { style: XLSX_STYLE_BODY, ht: 60, text:
+        '3. Open the CSV you saved and fill in the values. Type values only in ' +
+        'the positions the example shows empty; leave (calculated) positions ' +
+        'empty; do not change the header row or the program names. You MAY add ' +
+        'new program rows at the bottom: the import will create them.' },
+      { style: XLSX_STYLE_BODY, ht: 46, text:
+        '4. In the dashboard, open Report Data, Add New Year, choose this ' +
+        'section and table, Import From File, and pick your CSV. The values land ' +
+        'as a draft for your review; nothing is stored until you press Save.' },
+      { style: XLSX_STYLE_NOTE, ht: 30, text:
+        'Generated by the DAC Annual Report dashboard from the live table ' +
+        'definition. Re-download it whenever the table changes.' },
+    ];
+  }
+
+  /**
+   * Build the .xlsx example workbook for a table and year.
+   *
+   * ROUND 6: the logo is GONE, and with it the async step. Emely reviewed the
+   * workbook in real Excel and ruled it out, so the drawing, the media part,
+   * both relationship chains, the png content type, the inlined base64 SVG and
+   * the canvas rasteriser are all removed. The seven-part workbook that round 5
+   * proved as the omit-logo case is now the ONLY case, which is why this
+   * function is synchronous again with nothing to await.
+   *
+   * Sheet 2 shares ingestTemplateSource and ingestComputed with nothing else
+   * now, but they remain separate functions because the importer's own
+   * classification uses ingestComputed too, and the two must agree.
+   */
+  function buildIngestWorkbook(tableId, year) {
     const p = state.payload;
     const table = p && p.tables && p.tables[tableId];
     if (!table) return null;
@@ -14568,33 +14970,108 @@ function wireHTooltips() {
     if (!schema.length) return null;
     const src = ingestTemplateSource(table, year);
     const computed = ingestComputed(src.rows, tableId, schema);
+    const code = tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
+    const label = code + ' ' + (table.short_title || SHORT_TITLES[tableId] || '');
+    const sheetName = xlsxSheetName(label);
 
-    const lines = [];
-    lines.push('# ' + tableId + ' \u00b7 reporting year ' + year +
-      ' \u00b7 template generated ' + new Date().toISOString().slice(0, 10));
-    lines.push('# Save this file as CSV before importing. Excel .xlsx is not read.');
-    lines.push('# Cells marked (calculated) are worked out by the dashboard: leave them.');
-    if (src.borrowed) {
-      lines.push('# ' + year + ' has no rows yet, so the row labels below come from ' +
-        src.year + '. Change them if the rows differ this year.');
-    } else if (!src.rows.length) {
-      lines.push('# This table has no rows in any year, so add your own row labels ' +
-        'in the first column.');
-    }
-    lines.push(schema.map(csvField).join(','));
+    // ---- sheet 1: the instructions, every cell locked --------------------
+    const blocks = xlsxInstructionBlocks(sheetName, year);
+    const heights1 = {};
+    blocks.forEach((b, i) => { if (b.ht) heights1[i + 1] = b.ht; });
+    const sheet1 = xlsxSheetXml(
+      blocks.map(b => [{ style: b.style, text: b.text }]),
+      [96],
+      // Round 6: gridlines OFF, so the sheet reads as a document not a grid.
+      { heights: heights1, hideGridlines: true });
+
+    // ---- sheet 2: the example table, every cell locked -------------------
+    const rows = [schema.map(h => ({ style: XLSX_STYLE_HEADER, text: h }))];
     src.rows.forEach((row, idx) => {
-      const out = schema.map((h, c) => {
-        if (c === 0) return csvField(row[0]);
-        if (computed.any(idx, c)) return '(calculated)';
-        // Blank rather than 0 when the borrowed year had a value: a new year's
-        // numbers are not last year's, and a pre-filled figure invites a save
-        // of stale data. Own-year templates keep the value to edit.
-        if (src.borrowed) return '';
-        return csvField(rawNum(row[c]));
-      });
-      return lines.push(out.join(','));
+      // Round 6: a Total row carries the dashboard's total-row look, whole row.
+      const isTotal = computed.totalRow(idx);
+      rows.push(schema.map((h, c) => {
+        if (c === 0) {
+          return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
+                   text: row[0] };
+        }
+        const style = isTotal ? XLSX_STYLE_TOTAL : XLSX_STYLE_LOCKED;
+        if (computed.any(idx, c)) return { style: style, text: '(calculated)' };
+        /* EMPTY, and LOCKED like everything else: the workbook shows the
+         * format, it is not filled in. The operator types into their own CSV,
+         * saved from this sheet. */
+        return { style: style, text: null };
+      }));
     });
-    return lines.join('\r\n') + '\r\n';
+
+    /* ROUND 6: real column widths, because Excel does not autofit at
+     * generation time and a label with an empty neighbour bleeds across it.
+     *
+     * MEASURED, per table rather than one global number: the payload's longest
+     * label is 136 characters (I1, a full sentence), while A1's longest is 60
+     * and A5's is 71. A single 136-wide column would be unusable on every other
+     * sheet, so the width follows THIS table's own longest label, clamped to
+     * 30..64.
+     *
+     * The clamp is safe because the label column also WRAPS (style 11 and 13):
+     * wrapped text cannot overflow its cell, so nothing bleeds even when a
+     * label is longer than the column. Row heights are deliberately NOT set on
+     * this sheet, which lets Excel auto-fit the wrapped rows when it opens the
+     * file. That is the one autofit that does happen without being asked.
+     *
+     * Value columns are sized for their header (the longest in the payload is
+     * 48 characters) and for currency figures like 262,524,921, clamped to
+     * 16..28, and the header row wraps too. */
+    const longestLabel = src.rows.reduce((m, r) =>
+      Math.max(m, String(r[0] == null ? '' : r[0]).length), 0);
+    const widths = schema.map((h, i) => (i === 0
+      ? Math.min(64, Math.max(30, longestLabel + 2))
+      : Math.min(28, Math.max(16, String(h).length + 2))));
+    const sheet2 = xlsxSheetXml(rows, widths);
+
+    const enc = new TextEncoder();
+    const parts = [
+      { name: '[Content_Types].xml', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+        '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+        '<Default Extension="xml" ContentType="application/xml"/>' +
+        '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' +
+        '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+        '</Types>' },
+      { name: '_rels/.rels', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>' +
+        '</Relationships>' },
+      { name: 'xl/workbook.xml', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" ' +
+        'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">' +
+        '<sheets>' +
+        '<sheet name="Instructions" sheetId="1" r:id="rId1"/>' +
+        '<sheet name="' + xmlEsc(sheetName) + '" sheetId="2" r:id="rId2"/>' +
+        '</sheets></workbook>' },
+      { name: 'xl/_rels/workbook.xml.rels', text:
+        '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+        '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+        '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>' +
+        '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>' +
+        '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' +
+        '</Relationships>' },
+      { name: 'xl/styles.xml', text: xlsxStylesXml() },
+      { name: 'xl/worksheets/sheet1.xml', text: sheet1 },
+      { name: 'xl/worksheets/sheet2.xml', text: sheet2 },
+    ];
+
+    const entries = parts.map(x => ({ name: x.name, bytes: enc.encode(x.text) }));
+    return {
+      bytes: zipStored(entries),
+      sheetName: sheetName,
+      borrowedFrom: src.borrowed ? src.year : null,
+      rowCount: src.rows.length,
+    };
   }
 
   /**
@@ -14605,15 +15082,19 @@ function wireHTooltips() {
    * map closure, the other hardcodes its own content), so the third copy became
    * the shared one and mlDownloadExample now calls it.
    *
-   * bom matters and is not cosmetic. Excel reads a UTF-8 CSV without a BOM as
-   * the local codepage, so a row label containing a long dash (A1 has several)
-   * comes back mangled. A mangled LABEL then fails to match on re-import and the row is
-   * ADDED instead of updated, so the round trip quietly duplicates rows. The
-   * map export already prepends one; the template needs it for the same reason.
+   * CLCPA-85 round 4: the bom parameter is REMOVED, having lost its only
+   * caller. It existed because the CSV template had to survive Excel opening
+   * it: without a BOM Excel read the file as the local codepage and mangled the
+   * long dashes in the row labels, and a mangled label then failed to match on
+   * re-import, silently duplicating the row.
+   *
+   * The template is an .xlsx workbook now, which Excel reads natively, so
+   * nothing writes a CSV for Excel any more. The CSV traffic runs the other
+   * way: Excel writes it and parseCsvRows reads it, and that direction strips a
+   * BOM already, which the engine suite asserts in its parser section.
    */
-  function downloadTextFile(filename, text, mime, bom) {
-    const body = bom ? '\uFEFF' + text : text;
-    const blob = new Blob([body], { type: (mime || 'text/csv') + ';charset=utf-8' });
+  function downloadTextFile(filename, text, mime) {
+    const blob = new Blob([text], { type: (mime || 'text/csv') + ';charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = filename;
@@ -18536,12 +19017,14 @@ function wireHTooltips() {
    * noteExtra lets the Add path say what a brand new year's template contains,
    * without a second copy of the bar.
    */
-  function renderIngestImportBar(noteExtra) {
+  function renderIngestImportBar(noteExtra, disabled) {
+    const dis = disabled ? ' disabled' : '';
     return '<div class="ingest-import">' +
       '<div class="ingest-import-bar">' +
       '<label class="btn btn-secondary ingest-import-btn">Import From File' +
-      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden /></label>' +
-      '<button type="button" class="btn btn-link" id="ingest-template">' +
+      '<input type="file" id="ingest-file" accept=".csv,text/csv" hidden' + dis +
+      ' /></label>' +
+      '<button type="button" class="btn btn-link" id="ingest-template"' + dis + '>' +
       'Download Template</button>' +
       '<span class="ingest-import-note">CSV only. Save Excel files as CSV ' +
       'first. Values land in the draft on the page for you to review, then you ' +
@@ -19012,13 +19495,28 @@ function wireHTooltips() {
    * payload.meta.years. It creates NO table data, so every table opens with
    * zero rows for it until something is saved.
    */
-  function addReportingYear(raw) {
+  /**
+   * Validate a year WITHOUT committing it.
+   *
+   * Split out because the one-step dialog must be able to reject a year while
+   * leaving everything else alone: ruled that an invalid year adds nothing,
+   * imports nothing and moves nothing. Validating inside the commit made that
+   * impossible to honour, because the caller had to touch state first.
+   */
+  function validateReportingYear(raw) {
     const existing = allYears();
     const yr = parseInt(String(raw == null ? '' : raw).trim(), 10);
     if (isNaN(yr)) return { ok: false, error: 'Please enter a valid year.' };
     if (yr < 2000 || yr > 2100) return { ok: false, error: 'Year must be between 2000 and 2100.' };
     const yrStr = String(yr);
     if (existing.indexOf(yrStr) >= 0) return { ok: false, error: yrStr + ' already exists.' };
+    return { ok: true, year: yrStr };
+  }
+
+  function addReportingYear(raw) {
+    const v = validateReportingYear(raw);
+    if (!v.ok) return v;
+    const yrStr = v.year;
 
     Storage.addYear(yrStr);
     state.payload.meta.years.push(yrStr);
@@ -19030,43 +19528,31 @@ function wireHTooltips() {
   }
 
   /**
-   * CLCPA-85 round 2: the ONE home of the add and import workflow.
+   * CLCPA-85 round 3 revision 2: ONE STEP. Every control live from the moment
+   * it opens, and one primary action.
    *
-   * Replaces the old add-year modal, which lost its only caller when + Add year
-   * left the picker row. Its VALIDATION did not go with it: addReportingYear()
-   * holds that, and the Add panel below calls it, so there is one set of
-   * mechanics rather than two.
+   * There is no gating, nothing disabled and no enable in place. Choosing a
+   * file STAGES it: the file is read and dry-run so the operator sees what it
+   * holds, but the draft is not touched, because the year it belongs to does
+   * not exist yet.
    *
-   * The shell is the existing .ingest-modal-overlay / .ingest-modal pattern,
-   * unchanged: same head, body, foot, same close on X, Cancel and backdrop.
+   * THE SEQUENCING SAFETY is now internal to the one click, which is where it
+   * belongs: the year is added BEFORE the staged file is applied, so the apply
+   * always lands on the year just created. buildIngestImport still takes no
+   * year and reads none from state, so nothing about the engine depends on
+   * this ordering being remembered elsewhere.
    *
-   * Three states in one dialog, so neither path bounces the operator between
-   * two of them: 'choice', 'edit', 'add'.
-   */
-  /**
-   * CLCPA-85 round 3: the ADD A NEW YEAR dialog. Single purpose.
-   *
-   * Round 2 opened this on a choice between editing existing data and adding a
-   * year. The Edit path is GONE: the page already owns editing, through the
-   * section and year pickers and the source tables row, and a dialog offering a
-   * second door to it duplicated something the page does better.
-   *
-   * RECORDED CONSEQUENCE: importing a file into an EXISTING year no longer has
-   * a door on screen. buildIngestImport does not care which year it targets, so
-   * the mechanism is untouched and still asserted; only the way in is gone.
-   *
-   * TWO STAGES, and the order is not cosmetic. The import controls act on
-   * state.ingest, so offering them before the year exists would land a file in
-   * whatever year the page happened to be showing, silently and wrongly. So
-   * stage 'year' adds the year and stage 'fill' appears only afterwards, with
-   * the new year already selected.
+   * FAILURE SEMANTICS, as ruled:
+   *   invalid year   nothing happens. No add, no import, no selection moved.
+   *   staged file    a hard rejection does NOT block the year. Adding a year is
+   *                  a valid independent action, so it happens, the dialog
+   *                  closes, and the page panel says what was rejected.
    */
   function openAddYearDialog() {
     const p = state.payload;
-    let stage = 'year';
-    let addedYear = null;
-    /* The dialog's own selection, applied to the page only when a file is
-     * actually imported. Opening and cancelling changes nothing. */
+    let staged = null;
+    /* The dialog's own selection, copied to the page only by Add Year. Opening
+     * and cancelling changes nothing. */
     let sel = {
       sectionId: state.ingest.sectionId,
       tableId: state.ingest.tableId,
@@ -19075,11 +19561,11 @@ function wireHTooltips() {
     const modal = document.createElement('div');
     modal.className = 'ingest-modal-overlay';
     document.body.appendChild(modal);
+    let added = false;
     const close = () => {
       document.removeEventListener('keydown', onEsc);
       modal.remove();
-      // A year added but not filled is still a real change to the page.
-      if (addedYear) rerenderIngestAll();
+      if (added) rerenderIngestAll();
     };
     const onEsc = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onEsc);
@@ -19088,65 +19574,76 @@ function wireHTooltips() {
       .filter(t => t.section === secId)
       .sort((x, y) => compareTableIds(x.id, y.id));
 
-    function bodyYear() {
-      const years = allYears();
-      const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
-      return '<p>A new year appears in the year selector everywhere. Every table ' +
+    const years = allYears();
+    const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
+
+    /** What the operator typed, or the suggestion before they touch it. */
+    const typedYear = () => {
+      const el = modal.querySelector('#dlg-newyear');
+      return el && el.value !== undefined && el.value !== '' ? el.value : suggested;
+    };
+    /* The staging and template target. The schema resolves even for a year that
+     * does not exist: getTableSchema falls back to any year the table has. */
+    const target = () => ({
+      tableId: sel.tableId,
+      schema: getTableSchema(p.tables[sel.tableId], typedYear()),
+    });
+
+    const secOpts = Object.entries(p.sections).map(([l2, s]) =>
+      '<option value="' + l2 + '"' + (l2 === sel.sectionId ? ' selected' : '') + '>' +
+      l2 + '. ' + escapeHtml(s.full_name) + '</option>').join('');
+    const tblOptsFor = (secId, cur) => tablesIn(secId).map(t =>
+      '<option value="' + t.id + '"' + (t.id === cur ? ' selected' : '') + '>' +
+      t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
+      escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
+
+    function stagedBlock() {
+      if (!staged) return '';
+      const bad = !!(staged.error || (staged.dry && !staged.dry.ok));
+      return '<div class="ingest-staged' + (bad ? ' is-bad' : '') + '" id="dlg-stagedbox">' +
+        '<strong>' + escapeHtml(staged.name) + '</strong> ' +
+        '<span>' + escapeHtml(ingestStagedSummary(staged)) + '</span></div>';
+    }
+
+    function draw() {
+      modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
+        'aria-labelledby="dlg-title">' +
+        '<div class="ingest-modal-head"><h3 id="dlg-title">Add New Year</h3>' +
+        '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
+        '<div class="ingest-modal-body">' +
+        '<p>A new year appears in the year selector everywhere. Every table ' +
         'starts empty, and the dashboard shows no data for it until values are ' +
         'entered and saved.</p>' +
         '<div class="ingest-modal-field"><label for="dlg-newyear">Year</label>' +
         '<input id="dlg-newyear" type="number" min="2000" max="2100" step="1" value="' +
-        suggested + '" /></div>' +
+        escapeHtml(typedYear()) + '" /></div>' +
         '<div class="ingest-modal-hint">Existing years: ' + years.join(', ') + '</div>' +
-        '<div class="ingest-modal-error" id="dlg-error" style="display:none"></div>';
-    }
-
-    function bodyFill() {
-      const secOpts = Object.entries(p.sections).map(([l2, s]) =>
-        '<option value="' + l2 + '"' + (l2 === sel.sectionId ? ' selected' : '') + '>' +
-        l2 + '. ' + escapeHtml(s.full_name) + '</option>').join('');
-      const tblOpts = tablesIn(sel.sectionId).map(t =>
-        '<option value="' + t.id + '"' + (t.id === sel.tableId ? ' selected' : '') + '>' +
-        t.id.replace(/^([A-Z])(\d+)$/, '$1.$2') + ' \u00b7 ' +
-        escapeHtml(t.short_title || SHORT_TITLES[t.id] || '') + '</option>').join('');
-      return '<p><strong>' + addedYear + ' has been added.</strong> Now pick a table ' +
-        'and bring its values in, or close this and type them on the page.</p>' +
+        '<div class="ingest-modal-error" id="dlg-error" style="display:none"></div>' +
         '<div class="ingest-modal-field"><label for="dlg-section">Section</label>' +
         '<select id="dlg-section" class="ingest-select">' + secOpts + '</select></div>' +
         '<div class="ingest-modal-field"><label for="dlg-table">Table</label>' +
-        '<select id="dlg-table" class="ingest-select">' + tblOpts + '</select></div>' +
-        '<hr class="ingest-modal-rule">' +
-        renderIngestImportBar('The template for ' + addedYear + ' carries the row ' +
-          'labels from the most recent year that has them, with the values left blank.');
-    }
-
-    function foot() {
-      if (stage === 'year') {
-        return '<button class="btn btn-secondary" type="button" data-act="cancel">Cancel</button>' +
-          '<button class="btn btn-primary" type="button" data-act="addyear">Add Year</button>';
-      }
-      return '<button class="btn btn-primary" type="button" data-act="done">Done</button>';
-    }
-
-    function draw() {
-      const title = stage === 'year' ? 'Add New Year' : 'Fill ' + addedYear;
-      modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
-        'aria-labelledby="dlg-title">' +
-        '<div class="ingest-modal-head"><h3 id="dlg-title">' + title + '</h3>' +
-        '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
-        '<div class="ingest-modal-body">' +
-        (stage === 'year' ? bodyYear() : bodyFill()) + '</div>' +
-        '<div class="ingest-modal-foot">' + foot() + '</div></div>';
+        '<select id="dlg-table" class="ingest-select">' +
+        tblOptsFor(sel.sectionId, sel.tableId) + '</select></div>' +
+        renderIngestImportBar('Download Template gives you a read-only Excel ' +
+          'example of the format. Save As CSV UTF-8 from its table sheet, fill ' +
+          'the values in that CSV, then import it here. Choosing a file stages ' +
+          'it; it is imported when you press Add Year.') +
+        stagedBlock() +
+        '</div>' +
+        '<div class="ingest-modal-foot">' +
+        '<button class="btn btn-secondary" type="button" data-act="cancel">Cancel</button>' +
+        '<button class="btn btn-primary" type="button" data-act="addyear">Add Year</button>' +
+        '</div></div>';
       wire();
     }
 
-    /* The ONE place the page's table selection changes, and it funnels through
-     * loadIngestDraft exactly as the picker handlers do. Called before a file is
-     * read, so the import lands on the table the dialog is showing. */
-    function applySelection() {
-      state.ingest.sectionId = sel.sectionId;
-      state.ingest.tableId = sel.tableId;
-      loadIngestDraft();
+    /* Re-dry-run a held file against a new target. The rows are already read,
+     * so changing table re-describes the same file rather than dropping it. */
+    function restage() {
+      if (!staged || !staged.rows) return;
+      const t = target();
+      try { staged.dry = buildIngestImport(staged.rows, t.schema, [], t.tableId); }
+      catch (err) { staged.dry = null; staged.error = 'The file could not be read.'; }
     }
 
     function wire() {
@@ -19157,33 +19654,75 @@ function wireHTooltips() {
         if (b) b.addEventListener('click', fn);
       };
       act('cancel', close);
-      act('done', close);
-      act('addyear', () => {
-        if (state.ingest.dirty &&
-            !confirm('You have unsaved changes. Discard them to add a new year?')) return;
-        const err = modal.querySelector('#dlg-error');
-        const res = addReportingYear((modal.querySelector('#dlg-newyear') || {}).value);
-        if (!res.ok) { err.textContent = res.error; err.style.display = 'block'; return; }
-        addedYear = res.year;
-        stage = 'fill';
-        draw();
-      });
 
       const s = modal.querySelector('#dlg-section');
       if (s) s.addEventListener('change', (e) => {
         sel.sectionId = e.target.value;
         const ts = tablesIn(sel.sectionId);
         sel.tableId = ts.length ? ts[0].id : null;
+        restage();
         draw();
       });
       const t = modal.querySelector('#dlg-table');
-      if (t) t.addEventListener('change', (e) => { sel.tableId = e.target.value; draw(); });
+      if (t) t.addEventListener('change', (e) => {
+        sel.tableId = e.target.value;
+        restage();
+        draw();
+      });
 
-      /* Ruling 4 still holds: the dialog closes after an import, a rejected one
-       * included, and the receipt renders beside the draft it describes. */
-      wireIngestImport({
-        beforeRead: applySelection,
-        afterImport: () => { close(); rerenderIngestAll(); },
+      const tmpl = modal.querySelector('#ingest-template');
+      if (tmpl) tmpl.addEventListener('click', () => {
+        const y = typedYear();
+        /* The workbook is a read-only EXAMPLE of the format. The IMPORT path is
+         * still CSV only, which is why the instructions sheet spends a step on
+         * Save As.
+         *
+         * Round 6: synchronous again. The logo was the only async step, and it
+         * is gone. */
+        const wb = buildIngestWorkbook(sel.tableId, y);
+        if (!wb) { showToast('No example workbook: this table has no columns.', 'error'); return; }
+        downloadBinaryFile(sel.tableId + '-' + y + '-example.xlsx', wb.bytes,
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      });
+
+      wireIngestStaging(target, (st) => { staged = st; draw(); });
+
+      act('addyear', () => {
+        /* 1. Validate FIRST. An invalid year moves nothing at all. */
+        const v = validateReportingYear(typedYear());
+        const err = modal.querySelector('#dlg-error');
+        if (!v.ok) {
+          if (err) { err.textContent = v.error; err.style.display = 'block'; }
+          return;
+        }
+        if (state.ingest.dirty &&
+            !confirm('You have unsaved changes. Discard them to add a new year?')) return;
+
+        /* 2. Point the page at the chosen table, then ADD THE YEAR, which loads
+         *    that table's draft for the new year. Add before apply, always. */
+        state.ingest.sectionId = sel.sectionId;
+        state.ingest.tableId = sel.tableId;
+        const res = addReportingYear(v.year);
+        if (!res.ok) {
+          if (err) { err.textContent = res.error; err.style.display = 'block'; }
+          return;
+        }
+        added = true;
+
+        /* 3. Only now apply a staged file, into the year that now exists. A
+         *    hard rejection does not undo the year: it is reported on the page. */
+        if (staged) {
+          const i = state.ingest;
+          if (!staged.rows) {
+            i.importResult = { ok: false, rejections: [{ why: staged.error ||
+              'The file could not be read.' }] };
+          } else {
+            const plan = buildIngestImport(staged.rows, i.schema, i.draft, i.tableId);
+            i.importResult = plan;
+            if (plan.ok) applyIngestImport(plan);
+          }
+        }
+        close();
       });
     }
 
@@ -19370,76 +19909,75 @@ function wireHTooltips() {
   // ---------- partial re-renderers ----------
 
   /**
-   * CLCPA-85 wiring. The file is read as text and planned; the plan is applied
-   * only when it reports ok, so a rejected file leaves the draft untouched.
-   */
-  /**
-   * Round 2: the controls live in the dialog, so this takes two hooks.
+   * CLCPA-85 round 3 revision 2: STAGE a file, do not apply it.
    *
-   *   beforeRead  applies the dialog's target before the file is read, so the
-   *               import lands where the operator chose rather than where the
-   *               page happened to be.
-   *   afterImport closes the dialog and redraws the page, for a REJECTED import
-   *               as well as a good one: the receipt reads beside the draft.
+   * The one-step dialog has every control live and one action. Choosing a file
+   * therefore cannot touch the draft: the target year does not exist yet. So
+   * this reads the file, plans a DRY RUN against an empty draft to get a shape
+   * summary the operator can see, and hands both back. Nothing is applied.
    *
-   * Both default to nothing, so a page-mounted bar would still work.
+   * The dry run is buildIngestImport itself, not a second shape checker: one
+   * engine means the summary cannot disagree with what the apply will do.
+   *
+   * This replaces wireIngestImport and its beforeRead/afterImport hooks, which
+   * existed only to make an immediate apply land on the right target. With one
+   * step there is nothing to sequence from outside, so they are deleted rather
+   * than left as a second way in.
    */
-  function wireIngestImport(hooks) {
-    const h = hooks || {};
-    const before = h.beforeRead || function () {};
-    const after = h.afterImport || function () { rerenderIngestImport(); };
+  function wireIngestStaging(getTarget, onStaged) {
     const file = document.getElementById('ingest-file');
-    if (file) {
-      file.addEventListener('change', e => {
-        const f = e.target.files && e.target.files[0];
-        e.target.value = '';   // so re-picking the same file fires again
-        if (!f) return;
-        if (state.ingest.dirty &&
-            !confirm('This will change the unsaved draft on the page. Continue?')) return;
-        before();
-        const i = state.ingest;
-        const reader = new FileReader();
-        reader.onerror = () => {
-          i.importResult = { ok: false, rejections: [{ why: 'The file could not be read.' }] };
-          after();
-        };
-        reader.onload = () => {
-          let res;
-          try {
-            const rows = parseCsvRows(String(reader.result));
-            res = buildIngestImport(rows, i.schema, i.draft, i.tableId);
-          } catch (err) {
-            res = { ok: false, rejections: [{ why: 'The file could not be read as CSV: ' +
-              ((err && err.message) || String(err)) }] };
-          }
-          i.importResult = res;
-          if (res.ok) applyIngestImport(res);
-          // after() redraws the whole page, which covers the editor and the
-          // status bar, so the two targeted rerenders are no longer needed.
-          after();
-        };
-        reader.readAsText(f);
-      });
-    }
-
-    const tmpl = document.getElementById('ingest-template');
-    if (tmpl) {
-      tmpl.addEventListener('click', () => {
-        const i = state.ingest;
-        const csv = buildIngestTemplate(i.tableId, i.year);
-        if (!csv) { showToast('No template: this table has no columns.', 'error'); return; }
-        // bom: Excel would otherwise mangle the en dashes in the row labels.
-        downloadTextFile(i.tableId + '-' + i.year + '-template.csv', csv, 'text/csv', true);
-      });
-    }
+    if (!file) return;
+    file.addEventListener('change', (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = '';   // so re-picking the same file fires again
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onerror = () => onStaged({ name: f.name, rows: null,
+        error: 'The file could not be read.' });
+      reader.onload = () => {
+        let rows, dry;
+        try {
+          rows = parseCsvRows(String(reader.result));
+        } catch (err) {
+          onStaged({ name: f.name, rows: null, error: 'The file could not be read as ' +
+            'CSV: ' + ((err && err.message) || String(err)) });
+          return;
+        }
+        const t = getTarget();
+        // Dry run against an EMPTY draft, which is what a brand new year has.
+        try {
+          dry = buildIngestImport(rows, t.schema, [], t.tableId);
+        } catch (err) {
+          onStaged({ name: f.name, rows: null, error: 'The file could not be read: ' +
+            ((err && err.message) || String(err)) });
+          return;
+        }
+        onStaged({ name: f.name, rows: rows, dry: dry });
+      };
+      reader.readAsText(f);
+    });
   }
 
-  function rerenderIngestImport() {
-    const mount = document.getElementById('ingest-import-mount');
-    if (!mount) return;
-    mount.innerHTML = renderIngestImport();
-    wireIngestImport();
+  /** One line describing a staged file, for the dialog. */
+  function ingestStagedSummary(st) {
+    if (!st) return '';
+    if (st.error) return st.error;
+    const d = st.dry;
+    if (!d) return 'Ready.';
+    if (!d.ok) {
+      const first = (d.rejections || [])[0];
+      return 'This file cannot be imported: ' + ((first && first.why) || 'unknown reason') +
+        ' Add Year will still add the year, and the page will say what was ' +
+        'rejected.';
+    }
+    const cells = d.populated.length;
+    const rows = d.addedRows.length;
+    const cols = d.matchedColumns.length;
+    return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' matching column' +
+      (cols === 1 ? '' : 's') + ', ' + cells + ' value' + (cells === 1 ? '' : 's') +
+      ' ready to import.';
   }
+
   function rerenderIngestAll() {
     const view = document.getElementById('view-container');
     if (!view) return;

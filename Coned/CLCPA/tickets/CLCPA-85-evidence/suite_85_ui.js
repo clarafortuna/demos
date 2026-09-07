@@ -212,7 +212,7 @@ lines.push('=== the picker row: table dropdown out, tab row in ===');
 }
 
 lines.push('');
-lines.push('=== round 3: the dialog is SINGLE PURPOSE ===');
+lines.push('=== round 3: ONE STEP, every control live ===');
 {
   const dlg = grab(SRC, 'openAddYearDialog');
   ok(!!dlg, 'the Add New Year dialog exists');
@@ -221,35 +221,152 @@ lines.push('=== round 3: the dialog is SINGLE PURPOSE ===');
   ok(/addYear\.addEventListener\('click', openAddYearDialog\)/.test(grab(SRC, 'wireIngestPage')),
      'and it opens that dialog');
 
-  /* INVERTED from round 2. These pinned the choice state and the Edit path
-   * present; they now pin them ABSENT, per the round 3 cut. */
+  /* INVERTED across the rounds. Round 2 pinned a choice state and an Edit path
+   * present; revision 1 pinned a gated fill half. Both are gone. */
   ok(SRC.indexOf('openAddEditDialog') < 0, 'the two-path dialog is gone by name');
-  ok(SRC.indexOf('bodyChoice') < 0, 'the choice state is gone');
-  ok(SRC.indexOf('bodyEdit') < 0, 'and the Edit panel with it');
-  ok(SRC.indexOf('data-go=') < 0, 'no choice buttons remain in the markup');
-  ok(SRC.indexOf('Edit Existing Data') < 0, 'nor its label');
-  ok(SRC.indexOf('Open For Editing') < 0, 'nor its confirm button');
-  ok(SRC.indexOf('ingest-adddata') < 0, 'nor the old button id');
-  ok(SRC.indexOf('Add or Edit Data') < 0,
-     'and no comment still names the old dialog, which would mislead the next reader');
-  const css = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
-  ok(!/\.ingest-choice/.test(css), 'the choice-state CSS is deleted, not left orphaned');
+  ok(SRC.indexOf('bodyChoice') < 0 && SRC.indexOf('bodyEdit') < 0,
+     'the choice state and Edit panel are gone');
+  ok(SRC.indexOf('data-go=') < 0, 'no choice buttons remain');
+  ok(SRC.indexOf('Edit Existing Data') < 0 && SRC.indexOf('Open For Editing') < 0,
+     'nor their labels');
+  ok(SRC.indexOf('Add or Edit Data') < 0, 'and no comment still names the old dialog');
+  ok(SRC.indexOf('enableFill') < 0, 'the two-phase enable is gone');
+  ok(!/let stage\b/.test(SRC), 'and any stage variable with it');
+  ok(!/is-disabled/.test(SRC), 'nothing in the dialog is disabled any more');
+  const css0 = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+  ok(!/\.ingest-choice/.test(css0), 'the choice CSS is deleted');
+  ok(!/\.ingest-fill/.test(css0), 'and the gated-half CSS with it, not left orphaned');
 
-  /* the RECORDED CONSEQUENCE: the engine still supports an existing year, only
-   * the door is gone. Asserted so re-exposing it stays a small change. */
-  /* Corrected: my first two attempts here asserted the absence of the WORD
-   * "year", which the dialog uses legitimately ("Existing years: ...") and the
-   * engine uses in an error message. What actually matters is that the only
-   * year the dialog can produce is a NEW one, and that the engine takes no
-   * year at all. */
-  ok(!/<select id="dlg-year"/.test(dlg) && !/allYears\(\)\.map/.test(dlg),
-     'the dialog has no year PICKER, so the only year it yields is the new one');
+  /* EVERY CONTROL LIVE: no disabled attribute anywhere in what draw() writes. */
+  const drawFn = dlg.slice(dlg.indexOf('function draw()'), dlg.indexOf('function restage()'));
+  ok(drawFn.length > 0, 'draw() was found to read');
+  ok(!/ disabled/.test(drawFn), 'draw() writes no disabled attribute at all');
+  ok(/renderIngestImportBar\(/.test(drawFn), 'the import bar is rendered');
+  ok(!/renderIngestImportBar\([^)]*true\)/.test(drawFn), 'and NOT rendered inert');
+  ['dlg-newyear', 'dlg-section', 'dlg-table'].forEach(id =>
+    ok(drawFn.indexOf('id="' + id + '"') >= 0, 'draw() renders ' + id));
+  ok(/Existing years: /.test(drawFn), 'with the existing-years hint');
+
+  /* STAGING: choosing a file does not touch the draft. */
+  const stage = grab(SRC, 'wireIngestStaging');
+  ok(!!stage, 'there is a staging wiring');
+  ok(!/applyIngestImport|state\.ingest\.draft|i\.draft/.test(stage),
+     'which never touches the draft: staging is a read, not a write');
+  ok(/buildIngestImport\(rows, t\.schema, \[\], t\.tableId\)/.test(stage),
+     'the dry run plans against an EMPTY draft, which is what a new year has');
+  ok(/onStaged\(\{ name: f\.name, rows: rows, dry: dry \}\)/.test(stage),
+     'and hands back the file name, its rows and the dry run');
+  ok((SRC.match(/function buildIngestImport/g) || []).length === 1,
+     'ONE engine does both the dry run and the apply, so they cannot disagree');
+  ok(/function ingestStagedSummary/.test(SRC), 'there is a one-line summary');
+  const summ = grab(SRC, 'ingestStagedSummary');
+  ok(/ready to import/.test(summ), 'which says what is ready');
+  ok(/cannot be imported/.test(summ), 'or why it cannot be');
+  ok(/Add Year will still add the year/.test(summ),
+     'and says plainly that a bad file does not block the year');
+  ok(/id="dlg-stagedbox"/.test(dlg), 'the summary has a box in the dialog');
+  ok(/\.ingest-staged \{/.test(css0) && /\.ingest-staged\.is-bad/.test(css0),
+     'styled, with a distinct look when the file cannot be imported');
+
+  /* DOWNLOAD TEMPLATE keeps its resting background on hover.
+   *
+   * The dark fill came from .btn:hover (background: var(--ink-2), specificity
+   * 0-2-0) outranking .btn-link { background: transparent } (0-1-0);
+   * .btn-link:hover sets only text-decoration so it never contested it.
+   *
+   * Fixed SCOPED to this control by id, not by touching .btn-link:hover, which
+   * is shared: that is the R2 lesson. So the shared rules must be byte-identical
+   * to the pre-85 build, and that is asserted too. */
+  const restBg = (css0.match(/\.btn-link \{[^}]*background: ([^;]+);/) || [])[1];
+  ok(restBg === 'transparent', 'the resting background is transparent: ' + restBg);
+  const hoverRule = (css0.match(/#ingest-template:hover \{[^}]*\}/) || [])[0];
+  ok(!!hoverRule, 'there is a scoped hover rule for the control');
+  // Gated, not dereferenced: without the fix hoverRule is undefined and the
+  // suite CRASHED instead of naming the failure.
+  const hoverBg = hoverRule ? (hoverRule.match(/background: ([^;]+);/) || [])[1] : undefined;
+  ok(hoverBg === restBg,
+     'and its hover background EQUALS its resting background: ' + hoverBg);
+  ok(!!hoverRule && /#ingest-template:hover/.test(hoverRule),
+     'scoped by id, so no other control is affected');
+  // the shared rules are untouched
+  const shared = (c) => [
+    (c.match(/^\.btn:hover \{[^}]*\}/m) || [])[0],
+    (c.match(/^\.btn-link \{[^}]*\}/m) || [])[0],
+    (c.match(/^\.btn-link:hover \{[^}]*\}/m) || [])[0],
+  ].join('|');
+  ok(shared(css0) === shared(BASE_CSS),
+     '.btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85');
+  ok(/\.btn-link:hover \{ text-decoration: underline; \}/.test(css0),
+     'so the underline on hover is the SIBLING rule s own, not one invented here');
+
+  /* the template is live from the start and uses the TYPED year */
+  ok(/const y = typedYear\(\);/.test(dlg), 'the template reads the typed year');
+  /* Round 4: the template is an .xlsx WORKBOOK. The import path stays CSV,
+   * which is why the workbook's instructions sheet spends a step on Save As. */
+  /* ROUND 6, INVERTED: the logo is gone, so the call takes two arguments and
+   * the dialog awaits nothing. Round 5 asserted the opposite of both. */
+  ok(/buildIngestWorkbook\(sel\.tableId, y\)/.test(dlg),
+     'generates the WORKBOOK for the selected table and typed year');
+  ok(!/ingestLogoPng/.test(dlg), 'with NO logo raster to await: round 6 removed it');
+  ok(!/\.then\(/.test(dlg) && !/await /.test(dlg),
+     'and the handler is synchronous throughout');
+  ok(/downloadBinaryFile\(sel\.tableId \+ '-' \+ y \+ '-example\.xlsx'/.test(dlg),
+     'and names it -example.xlsx, since it is an example not a form');
+  ok(/read-only Excel/.test(dlg) && /Save As CSV UTF-8/.test(dlg),
+     'and the hint names the read-only example and the Save As step');
+  ok(/spreadsheetml\.sheet/.test(dlg), 'with the workbook MIME type');
+  ok(SRC.indexOf('buildIngestTemplate') < 0, 'the CSV template generator is gone');
+
+  /* ORDER INSIDE THE ONE CLICK: validate, then add, then apply. */
+  const clickBlock = dlg.slice(dlg.indexOf("act('addyear'"));
+  const iVal = clickBlock.indexOf('validateReportingYear(');
+  const iAdd = clickBlock.indexOf('addReportingYear(v.year)');
+  const iApply = clickBlock.indexOf('buildIngestImport(staged.rows');
+  ok(iVal >= 0 && iAdd >= 0 && iApply >= 0, 'all three steps are present');
+  ok(iVal < iAdd, 'validation comes FIRST, so an invalid year moves nothing');
+  ok(iAdd < iApply,
+     'and the year is ADDED BEFORE the staged file is applied, always');
+  ok(/if \(!v\.ok\) \{[\s\S]{0,200}return;/.test(clickBlock),
+     'an invalid year returns before anything is touched');
+  const beforeAdd = clickBlock.slice(0, iAdd);
+  ok(!/applyIngestImport|buildIngestImport/.test(beforeAdd),
+     'nothing is imported before the add, even on the happy path');
+
+  /* validation is SPLIT from the commit, which is what makes the above possible */
+  ok(/function validateReportingYear\(raw\)/.test(SRC), 'validation is its own function');
+  const val = grab(SRC, 'validateReportingYear');
+  ok(!/Storage\.addYear|state\.payload|loadIngestDraft/.test(val),
+     'and is side-effect free');
+  const add = grab(SRC, 'addReportingYear');
+  ok(/const v = validateReportingYear\(raw\);/.test(add),
+     'and the commit uses it, so there is one set of rules');
+  ok((SRC.match(/Storage\.addYear\(/g) || []).length === 1,
+     'exactly ONE place adds a year');
+
+  /* a hard rejection does not block the year */
+  ok(/added = true;/.test(clickBlock), 'the year is marked added');
+  ok(clickBlock.indexOf('added = true;') < iApply,
+     'BEFORE the apply, so a rejected file cannot undo it');
+  ok(/if \(plan\.ok\) applyIngestImport\(plan\);/.test(clickBlock),
+     'only a clean plan is applied');
+  ok(/i\.importResult = plan;/.test(clickBlock),
+     'but the result is recorded either way, so the page can say why');
+  ok(/if \(added\) rerenderIngestAll\(\);/.test(dlg),
+     'and closing redraws the page, so the year and the receipt both appear');
+
+  /* the recorded consequence: the engine is year-agnostic */
+  ok(!/<select id="dlg-year"/.test(dlg), 'the dialog has no year PICKER');
   const engine = grab(SRC, 'buildIngestImport');
-  // grab() keeps the leading indentation, so ^ cannot match "function" directly.
   ok(/^\s*function buildIngestImport\(fileRows, schema, draft, tableId\)/.test(engine),
-     'and buildIngestImport takes no year parameter, so the mechanism is year-agnostic');
-  ok(!/state\.ingest\.year|i\.year/.test(engine),
-     'nor reads one from state, which is why re-exposing an existing year stays small');
+     'buildIngestImport takes no year parameter');
+  ok(!/state\.ingest\.year|i\.year/.test(engine), 'nor reads one from state');
+
+  /* the hooked wiring built for immediate-apply is gone */
+  ok(SRC.indexOf('function wireIngestImport') < 0,
+     'wireIngestImport is deleted: one step needs nothing sequenced from outside');
+  ok(SRC.indexOf('function rerenderIngestImport') < 0, 'and its rerender helper with it');
+  ok(BASE_SRC.indexOf('function wireIngestImport') < 0,
+     'BASE control: it never existed before this ticket either');
 
   // the shell is still the existing one
   ['ingest-modal-overlay', 'ingest-modal-head', 'ingest-modal-body',
@@ -257,49 +374,14 @@ lines.push('=== round 3: the dialog is SINGLE PURPOSE ===');
     ok(dlg.indexOf(c) >= 0 && BASE_SRC.indexOf(c) >= 0,
        'still reuses the existing shell class ' + c);
   });
-
-  /* TWO STAGES, and the order is load-bearing: the import controls act on
-   * state.ingest, so offering them before the year exists would land a file in
-   * whatever year the page was showing. */
-  ok(/let stage = 'year';/.test(dlg), 'it opens on the year stage');
-  ok(/function bodyYear\(\)/.test(dlg) && /function bodyFill\(\)/.test(dlg),
-     'and has exactly the two stages');
-  const yearBody = dlg.slice(dlg.indexOf('function bodyYear()'), dlg.indexOf('function bodyFill()'));
-  ok(!/renderIngestImportBar/.test(yearBody),
-     'the import controls are NOT offered before the year exists');
-  const fillBody = dlg.slice(dlg.indexOf('function bodyFill()'), dlg.indexOf('function foot()'));
-  ok(/renderIngestImportBar\(/.test(fillBody), 'and ARE offered once it does');
-  ok(/stage = 'fill';/.test(dlg), 'the stage advances only after the year is added');
-  const addBlock = dlg.slice(dlg.indexOf("act('addyear'"));
-  ok(addBlock.indexOf('addedYear = res.year;') < addBlock.indexOf("stage = 'fill';"),
-     'and only on success, after addReportingYear returns ok');
-  ok(/if \(!res\.ok\) \{[\s\S]{0,120}return; \}/.test(addBlock),
-     'a rejected year keeps the dialog on the year stage with its error');
-
-  // Section AND Table in the fill stage, per the ruling
-  ok(/id="dlg-section"/.test(fillBody), 'the fill stage offers Section');
-  ok(/id="dlg-table"/.test(fillBody), 'and Table');
-  ok(/addedYear \+ ' has been added/.test(fillBody), 'and says the year was added');
-
-  // the page's state changes in ONE place, funnelled as the pickers are
-  ok(/function applySelection\(\)/.test(dlg), 'the selection is applied in one place');
-  ok(/state\.ingest\.tableId = sel\.tableId;[\s\S]{0,60}loadIngestDraft\(\);/.test(dlg),
-     'through loadIngestDraft, exactly as the picker handlers do');
-  ok(/beforeRead: applySelection/.test(dlg),
-     'applied BEFORE the file is read, so the import lands on the chosen table');
-  ok(/afterImport: \(\) => \{ close\(\); rerenderIngestAll\(\); \}/.test(dlg),
-     'ruling 4 still holds: the dialog closes after an import, good or bad');
-  // a year added but not filled still has to reach the page
-  ok(/if \(addedYear\) rerenderIngestAll\(\);/.test(dlg),
-     'closing after adding a year redraws the page, so the year is not lost');
-
-  // closes three ways
+  ok(/data-act="cancel"/.test(drawFn) && /data-act="addyear"/.test(drawFn),
+     'the footer offers Cancel and the ONE primary action');
+  ok((drawFn.match(/data-act="/g) || []).length === 2, 'and nothing else');
   ok(/e\.key === 'Escape'/.test(dlg), 'Escape closes it');
   ok(/if \(e\.target === modal\) close\(\)/.test(dlg), 'so does a backdrop click');
   ok(/removeEventListener\('keydown', onEsc\)/.test(dlg),
-     'and the Escape handler is removed on close, so handlers cannot accumulate');
+     'and the Escape handler is removed on close');
 }
-
 
 lines.push('');
 lines.push('=== the old add-year modal is GONE, its mechanics kept ===');
@@ -309,10 +391,14 @@ lines.push('=== the old add-year modal is GONE, its mechanics kept ===');
      'with its markup');
   ok(BASE_SRC.indexOf('function openAddYearModal') >= 0, 'BASE control: it existed');
   const add = grab(SRC, 'addReportingYear');
-  ok(!!add, 'its validation survives as addReportingYear');
+  ok(!!add, 'its mechanics survive as addReportingYear');
+  /* The MESSAGES moved again in revision 2, into validateReportingYear, when
+   * validation was split from the commit. Repointed rather than deleted: that
+   * the wording is unchanged from the deleted modal still matters. */
+  const val0 = grab(SRC, 'validateReportingYear');
   ['Please enter a valid year.', 'Year must be between 2000 and 2100.', 'already exists.']
-    .forEach(m => ok(add.indexOf(m) >= 0 && BASE_SRC.indexOf(m) >= 0,
-      'same message as before: "' + m + '"'));
+    .forEach(m => ok(val0.indexOf(m) >= 0 && BASE_SRC.indexOf(m) >= 0,
+      'same message as the deleted modal: "' + m + '"'));
   ok(/Storage\.addYear\(yrStr\);/.test(add), 'same persistence call');
   ok(/buildYearSelector\(\);/.test(add), 'and it still refreshes the header year selector');
   ok((SRC.match(/Storage\.addYear\(/g) || []).length === 1,
@@ -383,65 +469,86 @@ lines.push('=== ruling 2: Reporting Year hidden on Report Data ONLY ===');
 }
 
 lines.push('');
-lines.push('=== round 3: the dialog, EXECUTED against a DOM stub ===');
-/* The stage bodies are closures over the dialog's own stage and selection, so
- * rather than read their source the REAL openAddYearDialog is driven: a minimal
- * document stub captures the modal it builds, and the real buttons are clicked.
- * What follows is the shipped dialog's own output. */
+lines.push('=== round 3: the ONE STEP, EXECUTED against a DOM stub ===');
+/* The real openAddYearDialog is driven. Every control is live, so there is no
+ * disabled state to model: what has to be proven instead is ORDER and EFFECT.
+ * The stub records the order of the calls the dialog makes, so "add before
+ * apply" is checked against what actually ran rather than against source text.
+ *
+ * Scenarios, as ruled: open; template download wiring; staging a file with its
+ * summary; Add Year with a staged file; Add Year with none; an invalid year;
+ * and a staged file that hard-rejects.
+ */
 const dialogStates = {};
 {
-  let stubCache = {};
+  let calls = [];
   const el = (tag) => {
-    const node = {
-      tagName: tag, className: '', children: [], _on: {},
-      set innerHTML(v) { this._html = v; stubCache = {}; },
-      get innerHTML() { return this._html === undefined ? '' : this._html; },
-      hidden: false, value: '', textContent: '', style: {},
-      addEventListener: (k, fn) => { (node._on[k] = node._on[k] || []).push(fn); },
+    const n = {
+      tagName: tag, _cls: '', _attrs: {}, _on: {}, _html: '',
+      hidden: false, value: '', style: {},
+      set innerHTML(v) { this._html = v; nodes = {}; },
+      get innerHTML() { return this._html; },
+      set className(v) { this._cls = v; }, get className() { return this._cls; },
+      set textContent(v) { this._text = v; },
+      get textContent() { return this._text === undefined ? '' : this._text; },
+      addEventListener: (k, fn) => { (n._on[k] = n._on[k] || []).push(fn); },
       removeEventListener: () => {},
-      remove: () => {},
-      appendChild: (c) => { node.children.push(c); return c; },
-      removeChild: () => {},
-      focus: () => {},
-      querySelector: (selr) => findIn(node.innerHTML, selr),
-      querySelectorAll: (selr) => { const o = findIn(node.innerHTML, selr); return o ? [o] : []; },
-      getAttribute: () => null,
+      remove: () => { calls.push('modal.remove'); },
+      appendChild: () => {}, removeChild: () => {}, focus: () => {},
+      getAttribute: (k) => (n._attrs[k] === undefined ? null : n._attrs[k]),
+      setAttribute: (k, v) => { n._attrs[k] = v; },
+      removeAttribute: (k) => { delete n._attrs[k]; },
+      querySelector: (s) => nodeFor(s, n),
+      querySelectorAll: (s) => { const o = nodeFor(s, n); return o ? [o] : []; },
     };
-    return node;
-  };
-  /* Memoised by identity: without this the dialog registered handlers on
-   * throwaway stubs and a later lookup found nodes with no listeners. */
-  const stubFor = (attrs) => {
-    const key = JSON.stringify(attrs);
-    if (stubCache[key]) return stubCache[key];
-    const n = el('button');
-    n.getAttribute = (k) => (attrs[k] === undefined ? null : attrs[k]);
-    if (attrs.id === 'dlg-newyear') n.value = '2026';
-    stubCache[key] = n;
     return n;
   };
-  function findIn(html, selr) {
-    let m;
-    if ((m = selr.match(/^\[data-act="(\w+)"\]$/))) {
-      return html.indexOf('data-act="' + m[1] + '"') >= 0 ? stubFor({ 'data-act': m[1] }) : null;
+  let nodes = {};
+  function nodeFor(selr, owner) {
+    const html = owner.innerHTML || '';
+    let key = null, present = false, m;
+    if ((m = selr.match(/^\[data-act="([\w-]+)"\]$/))) {
+      key = 'act:' + m[1]; present = html.indexOf('data-act="' + m[1] + '"') >= 0;
+    } else if ((m = selr.match(/^#([\w-]+)$/))) {
+      key = 'id:' + m[1]; present = html.indexOf('id="' + m[1] + '"') >= 0;
+    } else if ((m = selr.match(/^\.([\w-]+)$/))) {
+      key = 'cls:' + m[1]; present = html.indexOf('class="' + m[1] + '"') >= 0;
     }
-    if ((m = selr.match(/^#([\w-]+)$/))) {
-      return html.indexOf('id="' + m[1] + '"') >= 0 ? stubFor({ id: m[1] }) : null;
+    if (!key) return null;
+    if (nodes[key]) return nodes[key];
+    if (!present) return null;
+    const n = el('el');
+    const idm = key.match(/^id:(.+)$/);
+    if (idm) {
+      n._attrs.id = idm[1];
+      if (idm[1] === 'dlg-newyear') n.value = deps._typed;
     }
-    if ((m = selr.match(/^\.([\w-]+)$/))) {
-      return html.indexOf('class="' + m[1] + '"') >= 0 ? stubFor({ cls: m[1] }) : null;
-    }
-    return null;
+    const am = key.match(/^act:(.+)$/);
+    if (am) n._attrs['data-act'] = am[1];
+    nodes[key] = n;
+    return n;
   }
 
-  const body = el('body');
   let created = null;
   const documentStub = {
-    body: body,
+    body: { appendChild: () => {} },
     createElement: (t) => { created = el(t); return created; },
     addEventListener: () => {}, removeEventListener: () => {},
-    getElementById: () => null, querySelector: () => null, querySelectorAll: () => [],
+    getElementById: (id) => (id === 'ingest-file' ? fileInput : null),
+    querySelector: () => null, querySelectorAll: () => [],
   };
+  let fileInput = null;
+
+  const realEngine = new Function('PAYLOAD',
+    ESC + grabDecl(SRC, 'DERIVED_COLS') + '\n' +
+    ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'totalRowFlags',
+     'isStrictTotalRowLabel', 'isSplitCell', 'cellText', 'cellCount', 'cellPct',
+     'rawNum', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
+     'getTableSchema', 'getTableBody', 'csvField', 'ingestTemplateSource',
+     'compareTableIds', 'ingestStagedSummary']
+      .map(n => grab(SRC, n)).join('\n') +
+    '\nreturn { parseCsvRows, buildIngestImport, getTableSchema, getTableBody,' +
+    ' ingestStagedSummary, compareTableIds };')(PAYLOAD);
 
   const deps = {
     document: documentStub,
@@ -449,100 +556,259 @@ const dialogStates = {};
       .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'),
     SHORT_TITLES: ST,
     allYears: () => (PAYLOAD.meta.years || []).slice(),
-    compareTableIds: (x, y) => parseInt(x.slice(1), 10) - parseInt(y.slice(1), 10),
+    compareTableIds: realEngine.compareTableIds,
+    getTableSchema: realEngine.getTableSchema,
+    parseCsvRows: realEngine.parseCsvRows,
+    buildIngestImport: (rows, schema, draft, tableId) => {
+      calls.push('buildIngestImport');
+      return realEngine.buildIngestImport(rows, schema, draft, tableId);
+    },
+    ingestStagedSummary: realEngine.ingestStagedSummary,
     renderIngestImportBar: new Function(grab(SRC, 'renderIngestImportBar') +
       '\nreturn renderIngestImportBar;')(),
-    loadIngestDraft: () => { deps._loaded = (deps._loaded || 0) + 1; },
-    rerenderIngestAll: () => { deps._redrawn = (deps._redrawn || 0) + 1; },
-    addReportingYear: (raw) => {
-      deps._addArg = raw;
-      if (deps._failNext) { deps._failNext = false; return { ok: false, error: 'nope' }; }
-      return { ok: true, year: String(raw) };
+    /* ROUND 6: the synchronous-thenable stub for ingestLogoPng is GONE with the
+     * function it stood in for. Round 5 needed it because a real promise would
+     * have deferred the download past these assertions; nothing defers now, so
+     * this driver stays synchronous for a simpler reason than a stub. */
+    /* A function declaration, not an arrow, so arguments.length is THIS call's
+     * and a third argument creeping back in would be visible. */
+    buildIngestWorkbook: function (t, y) {
+      calls.push('buildIngestWorkbook:' + t + ':' + y + ':args=' + arguments.length);
+      return { bytes: new Uint8Array([1, 2, 3]), sheetName: 'A.1 Incentive $' };
     },
+    /* Reports what it GOT rather than dereferencing it. With bytes.length in
+     * here, the mutation that makes the dialog await again crashed this driver
+     * instead of failing it, and a crash is not a named failure. */
+    downloadBinaryFile: (name, bytes, mime) => {
+      calls.push('download:' + name + ':' +
+        (bytes && bytes.length != null ? bytes.length + 'B' : 'NO BYTES') +
+        ':' + mime); },
+    downloadTextFile: (name, csv, mime, bom) => {
+      calls.push('download:' + name + ':bom=' + !!bom);
+    },
+    validateReportingYear: new Function('allYears',
+      grab(SRC, 'validateReportingYear') + '\nreturn validateReportingYear;')(
+      () => (PAYLOAD.meta.years || []).slice()),
+    addReportingYear: (raw) => {
+      calls.push('addReportingYear');
+      const v = deps.validateReportingYear(raw);
+      if (!v.ok) return v;
+      deps.state.ingest.year = v.year;
+      deps.state.ingest.schema = realEngine.getTableSchema(
+        PAYLOAD.tables[deps.state.ingest.tableId], v.year);
+      deps.state.ingest.draft = [];   // a new year has no rows
+      return { ok: true, year: v.year };
+    },
+    applyIngestImport: (res) => {
+      calls.push('applyIngestImport');
+      deps.state.ingest.draft = res.candidate;
+      return true;
+    },
+    loadIngestDraft: () => { calls.push('loadIngestDraft'); },
+    rerenderIngestAll: () => { calls.push('rerenderIngestAll'); },
+    wireIngestStaging: new Function('document', 'parseCsvRows', 'buildIngestImport', 'FileReader',
+      grab(SRC, 'wireIngestStaging') + '\nreturn wireIngestStaging;')(
+      documentStub, realEngine.parseCsvRows,
+      (rows, schema, draft, tableId) => {
+        calls.push('dryRun');
+        return realEngine.buildIngestImport(rows, schema, draft, tableId);
+      },
+      function FR() {
+        const r = this;
+        r.readAsText = (f) => { r.result = f._text; r.onload && r.onload(); };
+        return r;
+      }),
+    showToast: () => {},
     confirm: () => true,
-    state: { payload: PAYLOAD, ingest: { sectionId: 'A', tableId: 'A1', year: '2025', dirty: false } },
-    wireIngestImport: (h) => { deps._hooks = h; },
+    state: { payload: PAYLOAD, ingest: { sectionId: 'A', tableId: 'A1', year: '2025',
+      dirty: false, schema: null, draft: [] } },
+    _typed: '2026',
   };
   const keys = Object.keys(deps).filter(k => k[0] !== '_');
-  const open = new Function(...keys,
-    grab(SRC, 'openAddYearDialog') + '\nreturn openAddYearDialog;')(...keys.map(k => deps[k]));
+  const openDlg = () => new Function(...keys,
+    grab(SRC, 'openAddYearDialog') + '\nreturn openAddYearDialog;')(...keys.map(k => deps[k]))();
 
-  // ---- stage one: the year -----------------------------------------------
-  open();
-  ok(!!created, 'the dialog created a node and appended it to the body');
-  ok(created.className === 'ingest-modal-overlay',
-     'using the existing overlay class: ' + created.className);
-  dialogStates.year = created.innerHTML;
-  ok(/<h3 id="dlg-title">Add New Year<\/h3>/.test(dialogStates.year),
-     'it opens DIRECTLY on Add New Year, with no choice screen');
-  ok(!/ingest-choice/.test(dialogStates.year), 'and no choice buttons');
-  ok(!/Edit Existing Data/.test(dialogStates.year), 'and no Edit path');
-  ok(/id="dlg-newyear"/.test(dialogStates.year), 'with the year input');
-  ok(/value="2026"/.test(dialogStates.year), 'suggesting the next year: 2026');
-  ok(/Existing years: 2025, 2024, 2023/.test(dialogStates.year), 'and listing the existing ones');
-  ok(/A new year appears in the year selector everywhere/.test(dialogStates.year),
-     'stating that a year is GLOBAL');
-  ok(/Every table starts empty/.test(dialogStates.year), 'and that every table starts empty');
-  ok(!/ingest-import-bar/.test(dialogStates.year),
-     'and NOT offering the import before the year exists, which would target the wrong year');
-  ok(!/id="dlg-section"/.test(dialogStates.year) && !/id="dlg-table"/.test(dialogStates.year),
-     'nor the section and table pickers yet');
+  // the file input the staging wiring binds to
+  const newFileInput = () => { fileInput = el('input'); return fileInput; };
+  const dropFile = (name, text) => {
+    fileInput._on.change[0]({ target: { files: [{ name: name, _text: text }], value: '' } });
+  };
 
-  // a REJECTED year keeps the dialog where it is
-  deps._failNext = true;
+  // ---- 1. OPEN: one step, everything live --------------------------------
+  newFileInput(); calls = [];
+  openDlg();
+  dialogStates.open = created.innerHTML;
+  const H = dialogStates.open;
+  ok(/<h3 id="dlg-title">Add New Year<\/h3>/.test(H), 'one dialog, titled Add New Year');
+  ok(/id="dlg-newyear"/.test(H) && /value="2026"/.test(H), 'the year input, suggesting 2026');
+  ok(/Existing years: 2025, 2024, 2023/.test(H), 'with the existing-years hint');
+  ok(/id="dlg-section"/.test(H) && /id="dlg-table"/.test(H), 'Section and Table, present');
+  ok(/id="ingest-file"/.test(H) && /id="ingest-template"/.test(H), 'and both import controls');
+  ok(!/ disabled/.test(H), 'NOTHING is disabled: every control is live');
+  ok(!/is-disabled/.test(H), 'and nothing is greyed');
+  ok(!/id="dlg-stagedbox"/.test(H), 'with no staged file yet');
+  ok(/data-act="cancel"/.test(H) && /data-act="addyear"/.test(H),
+     'the footer offers Cancel and Add Year');
+  ok((H.match(/data-act="/g) || []).length === 2, 'and one primary action, not two');
+
+  // ---- 2. TEMPLATE: live from the start, uses the typed year --------------
+  created.querySelector('#ingest-template')._on.click[0]();
+  /* ROUND 6, INVERTED: nothing is rasterised, and the builder is called
+   * DIRECTLY with the table and the typed year. */
+  ok(!calls.some(c => /ingestLogoPng/.test(c)),
+     'the template button rasterises NOTHING: the logo step is gone');
+  ok(calls.some(c => c.indexOf('buildIngestWorkbook:A1:') === 0),
+     'it builds the workbook for the selected table straight away');
+  ok(!calls.some(c => /logo/i.test(c)), 'and no logo reaches the builder at all');
+  ok(calls.some(c => /^buildIngestWorkbook:A1:\d{4}:args=2$/.test(c)),
+     'called with exactly TWO arguments, counted at the call itself');
+  /* The EXACT year, not any four digits. The page is on 2025 and 2026 is
+   * typed, so a builder fed state.ingest.year instead of the typed value used
+   * to leave this driver green: only a source-text read caught it. */
+  ok(calls.some(c => c === 'buildIngestWorkbook:A1:2026:args=2'),
+     'and with the TYPED year 2026, not the page year 2025');
+  ok(!calls.some(c => /^buildIngestWorkbook:A1:2025:/.test(c)),
+     'the page year never reaches the builder');
+  ok(calls.some(c => c === 'download:A1-2026-example.xlsx:3B:' +
+     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+     'and the file is NAMED for the typed year, with the workbook MIME type');
+  ok(calls.some(c => /^download:A1-\d{4}-example\.xlsx:3B:/.test(c)),
+     'and the bytes it returns are handed straight to the download');
+
+  // ---- 3. STAGING: a file is described, not applied -----------------------
+  const goodCsv = 'Program Name,Total Funds Expended ($),DAC Funding ($)\r\n' +
+    '"AMEEP - Electric & Gas",40000000,36000000\r\n' +
+    '"Clean Heat – C&I ASHP",7000000,3100000\r\n';
+  /* Point the DIALOG at a different table than the page, so "the page is
+   * pointed at the chosen table" is observable. With both on A1 the assignment
+   * is a no-op and removing it changes nothing measurable, which is how that
+   * mutation slipped through the first time. */
+  deps.state.ingest.tableId = 'A5';
+  created.querySelector('#dlg-table')._on.change[0]({ target: { value: 'A1' } });
+  ok(deps.state.ingest.tableId === 'A5',
+     'the page stays on its own table while the dialog shows another');
+  calls = [];
+  const draftBefore = deps.state.ingest.draft;
+  dropFile('a1-2026.csv', goodCsv);
+  ok(calls.indexOf('dryRun') >= 0, 'choosing a file runs the dry run');
+  ok(calls.indexOf('applyIngestImport') < 0, 'and does NOT apply it');
+  ok(deps.state.ingest.draft === draftBefore, 'the draft is untouched by staging');
+  ok(calls.indexOf('addReportingYear') < 0, 'and no year was added');
+  dialogStates.staged = created.innerHTML;
+  ok(/id="dlg-stagedbox"/.test(dialogStates.staged), 'the staged box appears');
+  ok(/a1-2026\.csv/.test(dialogStates.staged), 'naming the file');
+  ok(/2 rows, 2 matching columns, 4 values ready to import/.test(dialogStates.staged),
+     'with a one-line summary of what it holds');
+  ok(!/is-bad/.test(dialogStates.staged), 'and not flagged bad');
+
+  // ---- 4. ADD YEAR with a staged file: add BEFORE apply -------------------
+  calls = [];
   created.querySelector('[data-act="addyear"]')._on.click[0]();
-  ok(/<h3 id="dlg-title">Add New Year<\/h3>/.test(created.innerHTML),
-     'a rejected year leaves the dialog on the year stage');
-  ok(!/ingest-import-bar/.test(created.innerHTML), 'with the import still not offered');
+  const iAdd = calls.indexOf('addReportingYear');
+  const iApply = calls.indexOf('applyIngestImport');
+  ok(iAdd >= 0, 'Add Year added the year');
+  ok(iApply >= 0, 'and applied the staged file');
+  ok(iAdd < iApply, 'IN THAT ORDER: the add precedes the apply');
+  ok(deps.state.ingest.year === '2026', 'the page is on the new year');
+  ok(deps.state.ingest.tableId === 'A1',
+     'and moved to the table the DIALOG chose, not the one it was on: ' +
+     deps.state.ingest.tableId);
+  ok(deps.state.ingest.draft && deps.state.ingest.draft.length === 2,
+     'the draft holds the imported rows: ' +
+     (deps.state.ingest.draft || []).length);
+  ok(deps.state.ingest.importResult && deps.state.ingest.importResult.ok,
+     'the result is recorded for the page panel');
+  ok(calls.indexOf('modal.remove') >= 0, 'the dialog closed');
+  ok(calls.indexOf('rerenderIngestAll') > calls.indexOf('modal.remove'),
+     'and the page redrew after it');
 
-  // ---- stage two: fill ----------------------------------------------------
-  created.querySelector('[data-act="addyear"]')._on.click[0]();
-  ok(deps._addArg === '2026', 'Add Year passes the entered year to addReportingYear');
-  dialogStates.fill = created.innerHTML;
-  ok(/<h3 id="dlg-title">Fill 2026<\/h3>/.test(dialogStates.fill),
-     'success advances to the fill stage, titled for the new year');
-  ok(/2026 has been added/.test(dialogStates.fill), 'saying the year was added');
-  ok(/id="dlg-section"/.test(dialogStates.fill), 'the fill stage offers Section');
-  ok(/id="dlg-table"/.test(dialogStates.fill), 'and Table');
-  ok(/ingest-import-bar/.test(dialogStates.fill), 'and the import controls');
-  ok(/id="ingest-template"/.test(dialogStates.fill), 'including the template download');
-  ok(/The template for 2026 carries the row labels/.test(dialogStates.fill),
-     'with the new-year template note, naming the year');
-  ok(/Done<\/button>/.test(dialogStates.fill), 'and a Done action');
-
-  /* CANCEL IS FREE, checked behaviourally.
-   *
-   * A source check for `let sel = { ... }` passed under a mutation that aliased
-   * sel to state.ingest and left the old literal in place unused. So the real
-   * test: change the dialog's Section and assert the PAGE has not moved. */
-  const pageSectionBefore = deps.state.ingest.sectionId;
-  const pageTableBefore = deps.state.ingest.tableId;
-  const secSel = created.querySelector('#dlg-section');
-  ok(!!secSel, 'the fill stage has a section select to change');
-  secSel._on.change[0]({ target: { value: 'B' } });
-  ok(deps.state.ingest.sectionId === pageSectionBefore &&
-     deps.state.ingest.tableId === pageTableBefore,
+  // ---- 5. INVALID YEAR: nothing happens ----------------------------------
+  deps.state.ingest = { sectionId: 'A', tableId: 'A1', year: '2025', dirty: false,
+    schema: null, draft: [] };
+  deps._typed = '1999';
+  newFileInput(); calls = [];
+  openDlg();
+  /* Change the dialog's Section to something the page is NOT on, so "nothing
+   * moved" is observable. With both on A the assignment is a no-op and a
+   * mutation that hoists it above validation changes nothing measurable, which
+   * is exactly how it slipped through the first time. */
+  created.querySelector('#dlg-section')._on.change[0]({ target: { value: 'B' } });
+  ok(deps.state.ingest.sectionId === 'A' && deps.state.ingest.tableId === 'A1',
      'changing the dialog Section does NOT move the page: cancel is free');
-  ok(/B\. /.test(created.innerHTML), 'though the dialog itself did follow the change');
-  // put it back so the later assertions describe the same target
-  created.querySelector('#dlg-section')._on.change[0]({ target: { value: 'A' } });
+  /* THE TEMPLATE, while the dialog and the page disagree about the table. At
+   * step 2 they agreed, so a builder fed state.ingest.tableId was invisible
+   * there; here it is not. The year is invalid at this point in the driver,
+   * which does not matter: the template does not validate, by design. */
+  {
+    const before = calls.length;
+    created.querySelector('#ingest-template')._on.click[0]();
+    const built = calls.slice(before).filter(c => c.indexOf('buildIngestWorkbook:') === 0);
+    ok(built.length === 1, 'the template button builds one workbook: ' + built.length);
+    ok(built[0] && built[0].indexOf('buildIngestWorkbook:A1:') !== 0,
+       'for the table the DIALOG is on, not the page s A1: ' + built[0]);
+    const chosen = (built[0] || '').split(':')[1];
+    ok(/^B/.test(chosen), 'which is a section B table: ' + chosen);
+    ok(deps.state.ingest.tableId === 'A1',
+       'and downloading a template still moves nothing on the page');
+  }
+  created.querySelector('[data-act="addyear"]')._on.click[0]();
+  ok(calls.indexOf('addReportingYear') < 0, 'an invalid year adds nothing');
+  ok(calls.indexOf('buildIngestImport') < 0, 'imports nothing');
+  ok(calls.indexOf('modal.remove') < 0, 'and does not close the dialog');
+  ok(deps.state.ingest.year === '2025', 'the page year is untouched');
+  ok(deps.state.ingest.sectionId === 'A' && deps.state.ingest.tableId === 'A1',
+     'and so are its section and table: an invalid year moves NOTHING');
+  const errN = created.querySelector('#dlg-error');
+  ok(errN && /between 2000 and 2100/.test(errN.textContent),
+     'with the error shown on the field: ' + (errN && errN.textContent));
 
-  // the import hooks are handed over, and beforeRead applies the selection
-  ok(deps._hooks && typeof deps._hooks.beforeRead === 'function' &&
-     typeof deps._hooks.afterImport === 'function', 'the import is wired with both hooks');
-  const loadedBefore = deps._loaded || 0;
-  deps._hooks.beforeRead();
-  ok((deps._loaded || 0) === loadedBefore + 1,
-     'beforeRead applies the selection through loadIngestDraft');
-  ok(deps.state.ingest.tableId === 'A1', 'landing on the table the dialog shows');
+  // an EXISTING year is rejected the same way
+  deps._typed = '2024';
+  newFileInput(); calls = [];
+  openDlg();
+  created.querySelector('[data-act="addyear"]')._on.click[0]();
+  ok(calls.indexOf('addReportingYear') < 0, 'an existing year adds nothing either');
+  ok(/2024 already exists/.test(created.querySelector('#dlg-error').textContent),
+     'and says so');
 
-  // closing after adding a year redraws the page, so the year is not lost
-  const redrawnBefore = deps._redrawn || 0;
-  created.querySelector('[data-act="done"]')._on.click[0]();
-  ok((deps._redrawn || 0) === redrawnBefore + 1,
-     'Done redraws the page, because a year was added even if nothing was filled');
+  // ---- 6. ADD YEAR with NO staged file -----------------------------------
+  deps.state.ingest = { sectionId: 'A', tableId: 'A1', year: '2025', dirty: false,
+    schema: null, draft: [] };
+  deps._typed = '2027';
+  newFileInput(); calls = [];
+  openDlg();
+  created.querySelector('[data-act="addyear"]')._on.click[0]();
+  ok(calls.indexOf('addReportingYear') >= 0, 'the year is added');
+  ok(calls.indexOf('buildIngestImport') < 0, 'nothing is imported');
+  ok(!deps.state.ingest.importResult, 'and no result panel is set');
+  ok(calls.indexOf('modal.remove') >= 0, 'the dialog closes');
+  ok(calls.indexOf('rerenderIngestAll') >= 0, 'and the page redraws with the new year');
+
+  // ---- 7. STAGED FILE THAT HARD-REJECTS: year still added ----------------
+  deps.state.ingest = { sectionId: 'A', tableId: 'A1', year: '2025', dirty: false,
+    schema: null, draft: [] };
+  deps._typed = '2028';
+  newFileInput(); calls = [];
+  openDlg();
+  dropFile('bad.csv', 'Program Name,DAC Funding ($)\r\n"AMEEP - Electric & Gas",=SUM(B2:B9)\r\n');
+  dialogStates.stagedBad = created.innerHTML;
+  ok(/is-bad/.test(dialogStates.stagedBad), 'a hard-rejecting file is flagged bad at staging');
+  ok(/cannot be imported/.test(dialogStates.stagedBad), 'saying it cannot be imported');
+  ok(/formula/.test(dialogStates.stagedBad), 'and why');
+  ok(/Add Year will still add the year/.test(dialogStates.stagedBad),
+     'and that the year will still be added');
+  calls = [];
+  created.querySelector('[data-act="addyear"]')._on.click[0]();
+  ok(calls.indexOf('addReportingYear') >= 0, 'Add Year STILL adds the year');
+  ok(deps.state.ingest.year === '2028', 'and the page moves to it');
+  ok(calls.indexOf('applyIngestImport') < 0, 'nothing is applied');
+  ok(deps.state.ingest.importResult && !deps.state.ingest.importResult.ok,
+     'the failure is recorded for the page panel');
+  ok((deps.state.ingest.importResult.rejections || []).length > 0,
+     'with its reasons: ' + (deps.state.ingest.importResult.rejections || [])
+       .map(r => r.why).join(' ').slice(0, 60));
+  ok(calls.indexOf('modal.remove') >= 0, 'and the dialog closes');
 }
-
 
 /* ---------- renders, from the shipped code ------------------------------- */
 fs.mkdirSync(OUT, { recursive: true });
@@ -604,11 +870,17 @@ const dlgShell = (t, html) => shell(t,
   'padding:0">' +
   html.replace('class="ingest-modal"', 'class="ingest-modal" style="margin:0"') +
   '</div>');
-fs.writeFileSync(path.join(OUT, '2-dialog-add-year.html'),
-  dlgShell('Dialog stage 1: Add New Year', dialogStates.year));
-fs.writeFileSync(path.join(OUT, '3-dialog-fill-year.html'),
-  dlgShell('Dialog stage 2: Fill the new year', dialogStates.fill));
-['2-dialog-choice.html', '3-dialog-edit-path.html', '4-dialog-add-path.html'].forEach(f => {
+fs.writeFileSync(path.join(OUT, '2-dialog-one-step.html'),
+  dlgShell('The one step, as it opens: every control live', dialogStates.open));
+fs.writeFileSync(path.join(OUT, '3-dialog-file-staged.html'),
+  dlgShell('The same dialog with a file staged, ready for Add Year',
+    dialogStates.staged));
+fs.writeFileSync(path.join(OUT, '4-dialog-file-rejected.html'),
+  dlgShell('A staged file that cannot be imported: the year is still added',
+    dialogStates.stagedBad));
+['2-dialog-choice.html', '3-dialog-edit-path.html', '4-dialog-add-path.html',
+ '2-dialog-add-year.html', '3-dialog-fill-year.html',
+ '2-dialog-before-add.html', '3-dialog-after-add.html'].forEach(f => {
   const old = path.join(OUT, f);
   if (fs.existsSync(old)) fs.unlinkSync(old);
 });
@@ -642,7 +914,8 @@ fs.writeFileSync(path.join(OUT, '3-dialog-fill-year.html'),
 lines.push('');
 lines.push('renders regenerated from the shipped code:');
 ['1-picker-source-tables.html', '1b-picker-few-tables.html',
- '2-dialog-add-year.html', '3-dialog-fill-year.html', '5-topbar.html']
+ '2-dialog-one-step.html', '3-dialog-file-staged.html',
+ '4-dialog-file-rejected.html', '5-topbar.html']
   .forEach(f => lines.push('   ' + f));
 
 

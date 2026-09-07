@@ -8179,6 +8179,41 @@ a.nav-item { text-decoration: none; }
 }
 
 
+/* Download Template keeps its resting background on hover.
+
+   Where the dark fill came from: .btn:hover (line 112) sets
+   background: var(--ink-2) at specificity 0-2-0, which OUTRANKS
+   .btn-link { background: transparent } at 0-1-0. .btn-link:hover (line 5456)
+   sets only text-decoration, so it never contested the background and the
+   button inverted to dark.
+
+   Scoped to this control by id rather than fixing .btn-link:hover, per the R2
+   lesson: .btn-link is shared, and restyling a shared rule to fix one control
+   is what that lesson forbids. The UNDERLINE is not invented here: it is
+   .btn-link:hover s own hover, which already applies and is left alone. */
+#ingest-template:hover { background: transparent; }
+
+/* The staged file, in the Add New Year dialog.
+
+   Revision 2 has no gating: every control is live and choosing a file STAGES
+   it rather than applying it. This is what the operator reads to know what
+   Add Year is about to bring in. .is-bad is the case where the file cannot be
+   imported at all, which does NOT block the year being added. */
+.ingest-staged {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  background: var(--white-smoke);
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-left-color: var(--dusk);
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+.ingest-staged.is-bad { border-left-color: var(--red); }
+.ingest-staged strong { color: var(--ink); display: block; }
+
 /* The divider between choosing a target and acting on it. */
 .ingest-modal-rule { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
 

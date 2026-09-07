@@ -51,64 +51,102 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   a tab click redraws the PAGE, so the active tab moves with it
   ok   and not just the editor, which would leave the old tab looking selected
 
-=== round 3: the dialog is SINGLE PURPOSE ===
+=== round 3: ONE STEP, every control live ===
   ok   the Add New Year dialog exists
   ok   the page header button says Add New Year, in title case
   ok   and it opens that dialog
   ok   the two-path dialog is gone by name
-  ok   the choice state is gone
-  ok   and the Edit panel with it
-  ok   no choice buttons remain in the markup
-  ok   nor its label
-  ok   nor its confirm button
-  ok   nor the old button id
-  ok   and no comment still names the old dialog, which would mislead the next reader
-  ok   the choice-state CSS is deleted, not left orphaned
-  ok   the dialog has no year PICKER, so the only year it yields is the new one
-  ok   and buildIngestImport takes no year parameter, so the mechanism is year-agnostic
-  ok   nor reads one from state, which is why re-exposing an existing year stays small
+  ok   the choice state and Edit panel are gone
+  ok   no choice buttons remain
+  ok   nor their labels
+  ok   and no comment still names the old dialog
+  ok   the two-phase enable is gone
+  ok   and any stage variable with it
+  ok   nothing in the dialog is disabled any more
+  ok   the choice CSS is deleted
+  ok   and the gated-half CSS with it, not left orphaned
+  ok   draw() was found to read
+  ok   draw() writes no disabled attribute at all
+  ok   the import bar is rendered
+  ok   and NOT rendered inert
+  ok   draw() renders dlg-newyear
+  ok   draw() renders dlg-section
+  ok   draw() renders dlg-table
+  ok   with the existing-years hint
+  ok   there is a staging wiring
+  ok   which never touches the draft: staging is a read, not a write
+  ok   the dry run plans against an EMPTY draft, which is what a new year has
+  ok   and hands back the file name, its rows and the dry run
+  ok   ONE engine does both the dry run and the apply, so they cannot disagree
+  ok   there is a one-line summary
+  ok   which says what is ready
+  ok   or why it cannot be
+  ok   and says plainly that a bad file does not block the year
+  ok   the summary has a box in the dialog
+  ok   styled, with a distinct look when the file cannot be imported
+  ok   the resting background is transparent: transparent
+  ok   there is a scoped hover rule for the control
+  ok   and its hover background EQUALS its resting background: transparent
+  ok   scoped by id, so no other control is affected
+  ok   .btn:hover, .btn-link and .btn-link:hover are byte-identical to pre-85
+  ok   so the underline on hover is the SIBLING rule s own, not one invented here
+  ok   the template reads the typed year
+  ok   generates the WORKBOOK for the selected table and typed year
+  ok   with NO logo raster to await: round 6 removed it
+  ok   and the handler is synchronous throughout
+  ok   and names it -example.xlsx, since it is an example not a form
+  ok   and the hint names the read-only example and the Save As step
+  ok   with the workbook MIME type
+  ok   the CSV template generator is gone
+  ok   all three steps are present
+  ok   validation comes FIRST, so an invalid year moves nothing
+  ok   and the year is ADDED BEFORE the staged file is applied, always
+  ok   an invalid year returns before anything is touched
+  ok   nothing is imported before the add, even on the happy path
+  ok   validation is its own function
+  ok   and is side-effect free
+  ok   and the commit uses it, so there is one set of rules
+  ok   exactly ONE place adds a year
+  ok   the year is marked added
+  ok   BEFORE the apply, so a rejected file cannot undo it
+  ok   only a clean plan is applied
+  ok   but the result is recorded either way, so the page can say why
+  ok   and closing redraws the page, so the year and the receipt both appear
+  ok   the dialog has no year PICKER
+  ok   buildIngestImport takes no year parameter
+  ok   nor reads one from state
+  ok   wireIngestImport is deleted: one step needs nothing sequenced from outside
+  ok   and its rerender helper with it
+  ok   BASE control: it never existed before this ticket either
   ok   still reuses the existing shell class ingest-modal-overlay
   ok   still reuses the existing shell class ingest-modal-head
   ok   still reuses the existing shell class ingest-modal-body
   ok   still reuses the existing shell class ingest-modal-foot
   ok   still reuses the existing shell class ingest-modal-close
-  ok   it opens on the year stage
-  ok   and has exactly the two stages
-  ok   the import controls are NOT offered before the year exists
-  ok   and ARE offered once it does
-  ok   the stage advances only after the year is added
-  ok   and only on success, after addReportingYear returns ok
-  ok   a rejected year keeps the dialog on the year stage with its error
-  ok   the fill stage offers Section
-  ok   and Table
-  ok   and says the year was added
-  ok   the selection is applied in one place
-  ok   through loadIngestDraft, exactly as the picker handlers do
-  ok   applied BEFORE the file is read, so the import lands on the chosen table
-  ok   ruling 4 still holds: the dialog closes after an import, good or bad
-  ok   closing after adding a year redraws the page, so the year is not lost
+  ok   the footer offers Cancel and the ONE primary action
+  ok   and nothing else
   ok   Escape closes it
   ok   so does a backdrop click
-  ok   and the Escape handler is removed on close, so handlers cannot accumulate
+  ok   and the Escape handler is removed on close
 
 === the old add-year modal is GONE, its mechanics kept ===
   ok   the dead modal is deleted
   ok   with its markup
   ok   BASE control: it existed
-  ok   its validation survives as addReportingYear
-  ok   same message as before: "Please enter a valid year."
-  ok   same message as before: "Year must be between 2000 and 2100."
-  ok   same message as before: "already exists."
+  ok   its mechanics survive as addReportingYear
+  ok   same message as the deleted modal: "Please enter a valid year."
+  ok   same message as the deleted modal: "Year must be between 2000 and 2100."
+  ok   same message as the deleted modal: "already exists."
   ok   same persistence call
   ok   and it still refreshes the header year selector
   ok   exactly ONE place adds a year, so the two paths cannot diverge
 
 === ruling 4: the receipt is on the PAGE, the controls are not ===
-  FAIL the page renders the receipt and nothing else
+  ok   the page renders the receipt and nothing else
   ok   the control bar is NOT on the page
   ok   and the receipt has its mount, above the editor
   ok   both controls are in the bar, which only the dialog renders
-  FAIL the bar has one definition and one caller, the fill stage
+  ok   the bar has one definition and one caller, the fill stage
   ok   the page no longer wires the controls it does not render
 
 === ruling 5: Export PDF is gone from every page ===
@@ -134,45 +172,80 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   buildYearSelector still finds it, untouched
   ok   because state.year has many readers: 44
 
-=== round 3: the dialog, EXECUTED against a DOM stub ===
-  ok   the dialog created a node and appended it to the body
-  ok   using the existing overlay class: ingest-modal-overlay
-  ok   it opens DIRECTLY on Add New Year, with no choice screen
-  ok   and no choice buttons
-  ok   and no Edit path
-  ok   with the year input
-  ok   suggesting the next year: 2026
-  ok   and listing the existing ones
-  ok   stating that a year is GLOBAL
-  ok   and that every table starts empty
-  ok   and NOT offering the import before the year exists, which would target the wrong year
-  ok   nor the section and table pickers yet
-  ok   a rejected year leaves the dialog on the year stage
-  ok   with the import still not offered
-  ok   Add Year passes the entered year to addReportingYear
-  ok   success advances to the fill stage, titled for the new year
-  ok   saying the year was added
-  ok   the fill stage offers Section
-  ok   and Table
-  ok   and the import controls
-  ok   including the template download
-  ok   with the new-year template note, naming the year
-  ok   and a Done action
-  ok   the fill stage has a section select to change
+=== round 3: the ONE STEP, EXECUTED against a DOM stub ===
+  ok   one dialog, titled Add New Year
+  ok   the year input, suggesting 2026
+  ok   with the existing-years hint
+  ok   Section and Table, present
+  ok   and both import controls
+  ok   NOTHING is disabled: every control is live
+  ok   and nothing is greyed
+  ok   with no staged file yet
+  ok   the footer offers Cancel and Add Year
+  ok   and one primary action, not two
+  ok   the template button rasterises NOTHING: the logo step is gone
+  ok   it builds the workbook for the selected table straight away
+  ok   and no logo reaches the builder at all
+  ok   called with exactly TWO arguments, counted at the call itself
+  ok   and with the TYPED year 2026, not the page year 2025
+  ok   the page year never reaches the builder
+  ok   and the file is NAMED for the typed year, with the workbook MIME type
+  ok   and the bytes it returns are handed straight to the download
+  ok   the page stays on its own table while the dialog shows another
+  ok   choosing a file runs the dry run
+  ok   and does NOT apply it
+  ok   the draft is untouched by staging
+  ok   and no year was added
+  ok   the staged box appears
+  ok   naming the file
+  ok   with a one-line summary of what it holds
+  ok   and not flagged bad
+  ok   Add Year added the year
+  ok   and applied the staged file
+  ok   IN THAT ORDER: the add precedes the apply
+  ok   the page is on the new year
+  ok   and moved to the table the DIALOG chose, not the one it was on: A1
+  ok   the draft holds the imported rows: 2
+  ok   the result is recorded for the page panel
+  ok   the dialog closed
+  ok   and the page redrew after it
   ok   changing the dialog Section does NOT move the page: cancel is free
-  ok   though the dialog itself did follow the change
-  ok   the import is wired with both hooks
-  ok   beforeRead applies the selection through loadIngestDraft
-  ok   landing on the table the dialog shows
-  ok   Done redraws the page, because a year was added even if nothing was filled
+  ok   the template button builds one workbook: 1
+  ok   for the table the DIALOG is on, not the page s A1: buildIngestWorkbook:B1:1999:args=2
+  ok   which is a section B table: B1
+  ok   and downloading a template still moves nothing on the page
+  ok   an invalid year adds nothing
+  ok   imports nothing
+  ok   and does not close the dialog
+  ok   the page year is untouched
+  ok   and so are its section and table: an invalid year moves NOTHING
+  ok   with the error shown on the field: Year must be between 2000 and 2100.
+  ok   an existing year adds nothing either
+  ok   and says so
+  ok   the year is added
+  ok   nothing is imported
+  ok   and no result panel is set
+  ok   the dialog closes
+  ok   and the page redraws with the new year
+  ok   a hard-rejecting file is flagged bad at staging
+  ok   saying it cannot be imported
+  ok   and why
+  ok   and that the year will still be added
+  ok   Add Year STILL adds the year
+  ok   and the page moves to it
+  ok   nothing is applied
+  ok   the failure is recorded for the page panel
+  ok   with its reasons: This cell holds a formula rather than a value. Save the file
+  ok   and the dialog closes
 
 renders regenerated from the shipped code:
    1-picker-source-tables.html
    1b-picker-few-tables.html
-   2-dialog-add-year.html
-   3-dialog-fill-year.html
+   2-dialog-one-step.html
+   3-dialog-file-staged.html
+   4-dialog-file-rejected.html
    5-topbar.html
 
 ======================================================================
-  144 passed, 2 failed
+  218 passed, 0 failed
 ======================================================================
