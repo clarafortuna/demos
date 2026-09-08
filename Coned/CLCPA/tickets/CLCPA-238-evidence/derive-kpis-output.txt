@@ -1,0 +1,48 @@
+======================================================================
+CLCPA-238 step 5: are the 18 KPIs derivable from table data?
+  offline: payload.json only. The stored value is the oracle.
+======================================================================
+
+=== THE 12 REPORTED KPIs: total and dac ===
+  ok   clean_energy_spend       3/3 years
+  ok   energy_savings           3/3 years
+  ok   ev_funding               3/3 years
+  ok   ev_plugs                 3/3 years
+  ok   dr_participation         3/3 years
+  ok   der_mw                   3/3 years
+  ok   strategic_capital        3/3 years
+  ok   customer_outages         3/3 years
+  ok   main_replacement         3/3 years
+  ok   leak_repairs             3/3 years
+  ok   clean_energy_jobs        3/3 years
+  ok   residential_customers    3/3 years
+  reported KPI-years derived exactly: 36 of 36
+
+=== dac_pct: already derived in the shipped app, asserted consistent ===
+  ok   dac/total is a sane share for all 33 KPI-years with both inputs
+
+=== THE 6 ANALYTICAL KPIs, prose translated into rules ===
+  ok   equity_index             3/3 years
+        source_calc: (A1 DAC% + B1 DAC% + E1 DAC%) / 3
+  ok   cost_per_mmbtu           3/3 years
+        source_calc: Section A: total incentive $ ÷ total MMBtu saved
+  ok   ev_equity_ratio          2/2 years (1 excepted)
+        source_calc: B2 plugs DAC% ÷ J9 customers DAC%
+  ok   outage_burden_ratio      2/2 years (1 excepted)
+        source_calc: F7 customers interrupted DAC% ÷ J9 customers DAC%
+  ok   leak_velocity_ratio      2/2 years (1 excepted)
+        source_calc: H1 leak repairs DAC% ÷ J9 customers DAC%
+  ok   eap_per_customer         3/3 years
+        source_calc: (J8 DAC electric + gas $) ÷ (J7 DAC electric + gas + dual enrollees)
+
+  THE ROUNDING EXCEPTION, quantified rather than asserted away:
+    ev_equity_ratio       2025  derived 0.808717  payload 0.802771  +0.741%
+    outage_burden_ratio   2025  derived 0.723348  payload 0.718030  +0.741%
+    leak_velocity_ratio   2025  derived 0.782481  payload 0.776728  +0.741%
+  ok   exactly 3 excepted KPI-years, all 2025, all the same cause: 3
+  ok   and each differs by under 1.5%, so no figure moves materially
+  analytical KPI-years derived exactly: 15 of 18
+
+======================================================================
+  21 passed, 0 failed
+======================================================================
