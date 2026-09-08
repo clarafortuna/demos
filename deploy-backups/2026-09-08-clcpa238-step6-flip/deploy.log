@@ -1,0 +1,110 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-238 STEP 6 -- Dataverse becomes the source
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 8430661
+              source folder clean, so the pushed bytes are exactly 8430661.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b every ticket s suite passes against these exact bytes: engine=130, ui=221, xlsx=265, 230=210, 226=195, 235=74, 234=101, badge=115, derive_charts=46, derive_kpis=21, gen_seed=20, composer=119, diag_shadow_baseline=15
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      9ae232e19a
+                 styles.css  7a4fdb1244
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build 9ae232e19a" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  ANPPC6QMA
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1083641B  local=1085728B
+unchanged  styles.css   deployed=269588B  local=269588B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "6814161d39", derives to 6814161d39
+            previous deploy recorded 6814161d39 -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-08-clcpa238-step6-flip/
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1085728B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)
+published.
+
+READ-BACK app.js  1085728B  sha256 ee96929dc588d285...  VERIFIED byte-identical
+READ-BACK styles.css  269588B  sha256 7a4fdb124415b137...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 8f7eaf502b97d2f0...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 9ae232e19a
+styles.css id    : 7a4fdb1244
+source           : ExecutiveDashboard_dev/ at main @ 8430661
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 9ae232e19a
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, STEP 6. THE REPORT NOW RUNS ON DATAVERSE.
+
+Console open BEFORE loading, hard-refresh, confirm build 9ae232e19a.
+
+1. THE SOURCE LINE. You should see, in this order:
+     [Storage] backend = Dataverse (https://org9076e69b...)
+     [CLCPA-238] source = DATAVERSE (composed from
+         cr2bf_dacingesttesttabledata1 + 3 definition tables)
+     [CLCPA-238] payload.json remains deployed as the revert parachute
+   If the source line says anything else, or is ABSENT, the flip did
+   not take and you are still reading the file. STOP and tell me.
+
+2. NO SHADOW LINE. With Dataverse as the source the shadow SKIPS,
+   because comparing a thing against itself proves nothing. Its
+   ABSENCE is correct. A shadow line here would mean the skip broke.
+
+3. THE REPORT PAGES on 2025, 2024 and 2023. Every section, every
+   table, every chart, every KPI card. These figures now come from
+   Dataverse, so this is the first time a viewer sees composed data.
+
+4. THE THREE RULED VISIBLE CHANGES, and NOTHING else moved:
+     a. the three 2025 analytical ratios read ~0.7% higher --
+        ev_equity_ratio, outage_burden_ratio, leak_velocity_ratio;
+     b. recomputed dac_pct decimals on the charts that read a stripped
+        table (A1_programs most visibly): a chart percentage now agrees
+        with the table beside it instead of showing a 2dp copy;
+     c. equity_index moves for the same reason, both A1 and E1.
+   Your walkthrough line covers all three. ANY OTHER visible change is
+   a finding: a blank cell, a dash where a number was, a missing chart
+   series, a KPI card reading zero. Those are not the ruled class.
+
+5. 2099 still in the year selector, and selecting it still shows A1
+   with data and the other tables empty, exactly as before.
+
+6. REPORT DATA still works end to end: open a table-year, type, the
+   badge goes to Unsaved Changes, Save Changes, the badge goes clean,
+   and Change History gains an entry. That writes to Dataverse, which
+   is now also the source -- so a save should be visible on reload.
+
+THE REVERT, if anything in 4 turns out not to be the ruled class:
+  one word, DAC_SOURCE back to payload, no deploy, seconds. Say the
+  word and I do it. payload.json is still deployed and still fetched
+  on every boot, which is what makes that true.
+
+=== log written by deploy_flip.js ===
