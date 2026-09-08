@@ -174,8 +174,16 @@ guard('the repro', () => {
      'and the result survives the redraw');
   ok(panel.length > 0 && /\d/.test(panel),
      'and the panel RENDERS from it, rather than being erased first');
-  ok(panel.indexOf('23') >= 0,
-     'naming what was created: the panel mentions the 23 rows');
+  /* CLCPA-234 addendum: the success panel no longer enumerates the rows it
+   * created -- the filled table is below it. What it must still do, and what
+   * this ticket is about, is EXIST and say how much landed. My own pin from
+   * an hour ago named the row count; it moves to the cell count. */
+  ok(/Imported into the draft: \d+ cells?/.test(panel),
+     'saying how much landed: ' + (panel.match(/Imported into the draft: [^<]*/) || [])[0]);
+  ok(/Nothing has been saved yet/.test(panel),
+     'and that nothing is stored until Save, which is ruling 1 restated');
+  ok(!/Rows added/.test(panel) && !/Not touched/.test(panel),
+     'and NOT the old enumeration, which the addendum removed');
 });
 
 /* ==================================================================== */

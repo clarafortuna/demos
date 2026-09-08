@@ -160,9 +160,9 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   an EMPTY year is a named error, not a silent substitution: Please enter a valid year.
   ok   and the error does not name the suggestion either: nothing points at 2026
   ok   typedYear() no longer references the suggestion in any branch
-  ok   drawYear() does, which is the suggestion demoted to an initial value
+  ok   drawYear() falls back to the page year, which is the initial value now
   ok   and the INPUT is drawn from drawYear, so the box still opens pre-filled
-  ok   while VALIDATION reads typedYear, which is what the operator left there
+  ok   while VALIDATION reads what the operator typed, via one local
   ok   and never drawYear: validating the suggestion is the defect itself
   ok   the template refuses an empty year rather than naming a file for a year nobody chose
   ok   and says so on the dialog s own error line

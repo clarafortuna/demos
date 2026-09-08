@@ -227,8 +227,10 @@ lines.push('=== round 3: ONE STEP, every control live ===');
 {
   const dlg = grab(SRC, 'openAddYearDialog');
   ok(!!dlg, 'the Add New Year dialog exists');
-  ok(/id="ingest-addyear" type="button">Add New Year</.test(SRC),
-     'the page header button says Add New Year, in title case');
+  /* CLCPA-234 renamed it Add Data, with the dialog it opens. The property
+   * this protected -- one button, named, in title case -- is unchanged. */
+  ok(/id="ingest-addyear" type="button">Add Data</.test(SRC),
+     'the page header button says Add Data, in title case');
   ok(/addYear\.addEventListener\('click', openAddYearDialog\)/.test(grab(SRC, 'wireIngestPage')),
      'and it opens that dialog');
 
@@ -251,7 +253,14 @@ lines.push('=== round 3: ONE STEP, every control live ===');
   /* EVERY CONTROL LIVE: no disabled attribute anywhere in what draw() writes. */
   const drawFn = dlg.slice(dlg.indexOf('function draw()'), dlg.indexOf('function restage()'));
   ok(drawFn.length > 0, 'draw() was found to read');
-  ok(!/ disabled/.test(drawFn), 'draw() writes no disabled attribute at all');
+  /* CODE ONLY. This grepped the raw slice, and a CLCPA-234 comment inside
+   * draw() explains that "CLCPA-85 ruled nothing is disabled" -- so the
+   * assertion read its own justification as markup. Not a superseded pin: a
+   * weakness in the assertion, exposed by a comment that happened to quote
+   * the word it looks for. */
+  const drawCode = drawFn.replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/\/\/[^\r\n]*/g, ' ');
+  ok(!/ disabled/.test(drawCode), 'draw() writes no disabled attribute at all');
   ok(/renderIngestImportBar\(/.test(drawFn), 'the import bar is rendered');
   ok(!/renderIngestImportBar\([^)]*true\)/.test(drawFn), 'and NOT rendered inert');
   ['dlg-newyear', 'dlg-section', 'dlg-table'].forEach(id =>
@@ -355,14 +364,17 @@ lines.push('=== round 3: ONE STEP, every control live ===');
      'exactly ONE place adds a year');
 
   /* a hard rejection does not block the year */
-  ok(/added = true;/.test(clickBlock), 'the year is marked added');
-  ok(clickBlock.indexOf('added = true;') < iApply,
-     'BEFORE the apply, so a rejected file cannot undo it');
+  /* CLCPA-234 renamed the flag needsRedraw: the existing-year case redraws
+   * while adding nothing, so `added` would have been a lie there. The
+   * ORDERING this protected is the point and is unchanged. */
+  ok(/needsRedraw = true;/.test(clickBlock), 'the redraw is marked');
+  ok(clickBlock.indexOf('needsRedraw = true;') < iApply,
+     'BEFORE the apply, so a rejected file cannot undo the year');
   ok(/if \(plan\.ok\) applyIngestImport\(plan\);/.test(clickBlock),
      'only a clean plan is applied');
   ok(/i\.importResult = plan;/.test(clickBlock),
      'but the result is recorded either way, so the page can say why');
-  ok(/if \(added\) rerenderIngestAll\(\);/.test(dlg),
+  ok(/if \(needsRedraw\) rerenderIngestAll\(\);/.test(dlg),
      'and closing redraws the page, so the year and the receipt both appear');
 
   /* the recorded consequence: the engine is year-agnostic */
@@ -650,8 +662,14 @@ const dialogStates = {};
   openDlg();
   dialogStates.open = created.innerHTML;
   const H = dialogStates.open;
-  ok(/<h3 id="dlg-title">Add New Year<\/h3>/.test(H), 'one dialog, titled Add New Year');
-  ok(/id="dlg-newyear"/.test(H) && /value="2026"/.test(H), 'the year input, suggesting 2026');
+  ok(/<h3 id="dlg-title">Add Data<\/h3>/.test(H), 'one dialog, titled Add Data');
+  /* CLCPA-234: the field defaults to the year the PAGE is on, not the next
+   * unused one. This driver stands on 2025, and 2026 was the old
+   * suggestion -- so the value moving from 2026 to 2025 IS the change. */
+  ok(/id="dlg-newyear"/.test(H), 'the year input is there');
+  ok(/value="2025"/.test(H),
+     'defaulting to the page year, 2025, rather than the next unused one');
+  ok(!/value="2026"/.test(H), 'the next-unused suggestion is gone');
   ok(/Existing years: 2025, 2024, 2023/.test(H), 'with the existing-years hint');
   ok(/id="dlg-section"/.test(H) && /id="dlg-table"/.test(H), 'Section and Table, present');
   ok(/id="ingest-file"/.test(H) && /id="ingest-template"/.test(H), 'and both import controls');
@@ -773,14 +791,19 @@ const dialogStates = {};
   ok(errN && /between 2000 and 2100/.test(errN.textContent),
      'with the error shown on the field: ' + (errN && errN.textContent));
 
-  // an EXISTING year is rejected the same way
+  /* AN EXISTING YEAR IS NOT AN ERROR ANY MORE. CLCPA-234 made it the second
+   * thing this dialog does: it LOADS that table-year into the editor. What
+   * CLCPA-85 was protecting -- that an existing year creates nothing -- is
+   * unchanged and still asserted; the error message it also asserted
+   * described a refusal that is now a feature. CLCPA-234's own suite drives
+   * the loading half. */
   deps._typed = '2024';
   newFileInput(); calls = [];
   openDlg();
   created.querySelector('[data-act="addyear"]')._on.click[0]();
   ok(calls.indexOf('addReportingYear') < 0, 'an existing year adds nothing either');
-  ok(/2024 already exists/.test(created.querySelector('#dlg-error').textContent),
-     'and says so');
+  ok(!/already exists/.test(created.querySelector('#dlg-error').textContent || ''),
+     'and no longer errors about it: loading an existing year is the point');
 
   // ---- 6. ADD YEAR with NO staged file -----------------------------------
   deps.state.ingest = { sectionId: 'A', tableId: 'A1', year: '2025', dirty: false,
@@ -856,7 +879,7 @@ const pickerFor = (sec, active) =>
 fs.writeFileSync(path.join(OUT, '1-picker-source-tables.html'),
   shell('Picker row with Source Tables tabs',
     'The row comes from renderSrcTabRow, the same call the shipped page makes. ' +
-    'Section A, ten tables. The header button now says Add New Year.',
+    'Section A, ten tables. The header button now says Add Data.',
     pickerFor('A', 'A1')));
 
 fs.writeFileSync(path.join(OUT, '1b-picker-few-tables.html'),

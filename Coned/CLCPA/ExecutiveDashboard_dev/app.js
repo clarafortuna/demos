@@ -19176,7 +19176,11 @@ function wireHTooltips() {
           <h1>Report Data</h1>
           <p class="page-sub">Enter or update values for any table, by year. Edits are saved to your browser and applied to the dashboard.</p>
         </div>
-        <button class="btn btn-primary" id="ingest-addyear" type="button">Add New Year</button>
+        <button class="btn btn-primary" id="ingest-addyear" type="button">Add Data</button>
+          <!-- CLCPA-234: the BUTTON is renamed with the dialog it opens. A
+               button reading "Add New Year" onto a dialog titled "Add Data"
+               would give the same control two names, which is what the
+               CLCPA-226 one-string rule forbids. -->
       </div>
 
       ${renderIngestPicker()}
@@ -19299,38 +19303,26 @@ function wireHTooltips() {
         '</ul></div>';
     }
 
-    const nt = r.notTouched;
-    const blocks = [];
-    blocks.push('<h4>Imported into the draft: ' + r.populated.length + ' cell' +
+    /* CLCPA-234 addendum: THE SUCCESS PANEL IS TWO LINES.
+     *
+     * It used to enumerate the rows it created and everything it had not
+     * touched, under its own heading. On a SUCCESS none of that needs saying
+     * on the panel: the filled table is on screen immediately below it, so the
+     * operator reads the values themselves rather than a description of them.
+     *
+     * A REJECTION is the opposite case and is untouched above: nothing is on
+     * screen to read, so the panel names the cell, the reason and the counts.
+     * Naming why is the CLCPA-85 law and it applies exactly where there is
+     * nothing else to look at.
+     *
+     * The result object still CARRIES addedRows, notTouched and blankSkipped.
+     * Only the rendering drops them, so nothing that reads the plan changes
+     * and a details view can be added without touching the engine. */
+    return '<div class="ingest-import-result">' +
+      '<h4>Imported into the draft: ' + r.populated.length + ' cell' +
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
-      '<p>Review the values below, then press Save. Nothing has been saved yet.</p>');
-    if (r.addedRows.length) {
-      blocks.push('<p><strong>Rows added: ' + r.addedRows.length + '.</strong> ' +
-        'These labels were not in the table, so they were created:</p><ul>' +
-        r.addedRows.map(li).join('') + '</ul>');
-    }
-    const notes = [];
-    if (nt.computed.length) {
-      notes.push('<li>' + nt.computed.length + ' calculated cell' +
-        (nt.computed.length === 1 ? '' : 's') + ' in the file were not imported, ' +
-        'because the dashboard works them out: ' +
-        escapeHtml(nt.computed.slice(0, 4).map(cell).join('; ')) +
-        (nt.computed.length > 4 ? ' and ' + (nt.computed.length - 4) + ' more' : '') +
-        '</li>');
-    }
-    nt.unmatchedColumns.forEach(c => notes.push(li(
-      'Column \u201c' + c + '\u201d is not a column of this table, so it was ignored.')));
-    nt.unmatchedRows.forEach(x => notes.push(li(
-      'Row \u201c' + (x.label == null ? '' : x.label) + '\u201d was not changed: ' + x.why + '.')));
-    if (r.blankSkipped.length) {
-      notes.push('<li>' + r.blankSkipped.length + ' cell' +
-        (r.blankSkipped.length === 1 ? ' was' : 's were') + ' blank in the file and ' +
-        'were left as they are. A blank does not erase a value.</li>');
-    }
-    if (notes.length) {
-      blocks.push('<h4>Not touched</h4><ul>' + notes.join('') + '</ul>');
-    }
-    return '<div class="ingest-import-result">' + blocks.join('') + '</div>';
+      '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
+      '</div>';
   }
   /** The editor (status bar + grid + add-row button). */
   function renderIngestEditor() {
@@ -19915,6 +19907,24 @@ function wireHTooltips() {
   }
 
   /**
+   * CLCPA-234: ADD DATA. One dialog for both things an operator comes here to
+   * do, told apart by the year they type and nothing else.
+   *
+   *   an EXISTING year  loads that table-year into the editor as a draft. No
+   *                     year is created: addReportingYear is not on the path.
+   *                     The button reads Load Data.
+   *   a NEW year        is created and added to the year selector everywhere,
+   *                     exactly as before. The button reads Add Year.
+   *
+   * The consequence line under the field says which of the two it is, in the
+   * same words, and follows the box as it is typed. That is what makes it
+   * impossible to create a year the operator did not intend: the dialog says
+   * so before the button is pressed, and the button agrees with it.
+   *
+   * The next-unused-year suggestion is GONE. It opened the dialog proposing to
+   * create something every time, which is backwards for a control most often
+   * used to load a file into a year that already exists.
+   *
    * CLCPA-85 round 3 revision 2: ONE STEP. Every control live from the moment
    * it opens, and one primary action.
    *
@@ -19948,11 +19958,15 @@ function wireHTooltips() {
     const modal = document.createElement('div');
     modal.className = 'ingest-modal-overlay';
     document.body.appendChild(modal);
-    let added = false;
+    /* CLCPA-234: NOT `added` any more. It gates the redraw on close, and the
+     * existing-year case redraws while adding nothing at all -- a flag named
+     * `added` set true when nothing was added is the kind of thing that reads
+     * as permission to create later. */
+    let needsRedraw = false;
     const close = () => {
       document.removeEventListener('keydown', onEsc);
       modal.remove();
-      if (added) rerenderIngestAll();
+      if (needsRedraw) rerenderIngestAll();
     };
     const onEsc = (e) => { if (e.key === 'Escape') close(); };
     document.addEventListener('keydown', onEsc);
@@ -19962,7 +19976,15 @@ function wireHTooltips() {
       .sort((x, y) => compareTableIds(x.id, y.id));
 
     const years = allYears();
-    const suggested = String(Math.max.apply(null, years.map(y => parseInt(y, 10))) + 1);
+    /* CLCPA-234: THE NEXT-UNUSED-YEAR SUGGESTION IS GONE. It defaulted to
+     * max + 1, which meant the dialog opened proposing to CREATE something
+     * every time -- and creating a year is the one thing here that changes what
+     * every viewer sees. The default is now the year the page is already on,
+     * so the dialog opens proposing to work on what the operator was looking
+     * at, and creating a year becomes a thing they type on purpose. */
+    const pageYear = String((state.ingest && state.ingest.year) ||
+      mostRecentYear() || p.meta.current_year);
+    const yearExists = (y) => years.indexOf(String(y)) >= 0;
 
     /* CLCPA-230, FINDING B. The old typedYear() fell back to `suggested`
      * whenever the field read empty -- and an <input type="number"> reads
@@ -19988,7 +20010,39 @@ function wireHTooltips() {
       return el ? String(el.value == null ? '' : el.value) : null;
     };
     const typedYear = () => { const v = fieldYear(); return v == null ? '' : v; };
-    const drawYear = () => { const v = fieldYear(); return v == null ? suggested : v; };
+    const drawYear = () => { const v = fieldYear(); return v == null ? pageYear : v; };
+
+    /* CLCPA-234: WHICH CASE ARE WE IN. For DISPLAY -- the consequence line and
+     * the button label -- it follows drawYear(), which is the value the FIELD
+     * shows: pageYear before the first draw, the typed value after it.
+     *
+     * It asked typedYear() first, and that was wrong in the one case that
+     * matters most. Before the first draw there is no input element, so
+     * typedYear() is '' and yearExists('') is false -- so the dialog opened on
+     * an existing year while saying "2025 is new. It will be created" over an
+     * Add Year button. The consequence line got the consequence backwards, in
+     * the line whose whole job is to state it. Found by reading the render the
+     * suite regenerated, not by the suite.
+     *
+     * VALIDATION still reads typedYear() with no fallback, which is CLCPA-226
+     * finding B and stays exactly as it was: the two consumers want different
+     * things, which is why they are different functions. */
+    const isExisting = () => yearExists(drawYear());
+
+    /* THE WORDS, defined ONCE each. They are needed in two places -- the first
+     * draw and the input handler that keeps them current as the year is typed
+     * -- and I first wrote them out twice. Two copies of one sentence can
+     * disagree with each other before either disagrees with the button, which
+     * is exactly the failure the line exists to prevent. */
+    const consequenceText = () => {
+      const y = typedYear() || pageYear;
+      return isExisting()
+        ? y + ' already exists. Values will load into the editor as a draft. ' +
+          'Nothing is created.'
+        : y + ' is new. It will be created and added to the year selector ' +
+          'everywhere.';
+    };
+    const primaryLabel = () => (isExisting() ? 'Load Data' : 'Add Year');
     /* The staging and template target. The schema resolves even for a year that
      * does not exist: getTableSchema falls back to any year the table has. */
     const target = () => ({
@@ -20015,7 +20069,7 @@ function wireHTooltips() {
     function draw() {
       modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
         'aria-labelledby="dlg-title">' +
-        '<div class="ingest-modal-head"><h3 id="dlg-title">Add New Year</h3>' +
+        '<div class="ingest-modal-head"><h3 id="dlg-title">Add Data</h3>' +
         '<button class="ingest-modal-close" type="button" aria-label="Close">&times;</button></div>' +
         '<div class="ingest-modal-body">' +
         '<p>A new year appears in the year selector everywhere. Every table ' +
@@ -20025,6 +20079,13 @@ function wireHTooltips() {
         '<input id="dlg-newyear" type="number" min="2000" max="2100" step="1" value="' +
         escapeHtml(drawYear()) + '" /></div>' +
         '<div class="ingest-modal-hint">Existing years: ' + years.join(', ') + '</div>' +
+        /* CLCPA-234: THE CONSEQUENCE, on screen before the button is pressed.
+         * This is what makes "impossible to create a year the operator did not
+         * intend" true rather than asserted: the dialog says which of the two
+         * things it is about to do, in the same words the button uses. */
+        '<div class="ingest-modal-hint" id="dlg-consequence">' +
+        escapeHtml(consequenceText()) +
+        '</div>' +
         '<div class="ingest-modal-error" id="dlg-error" style="display:none"></div>' +
         '<div class="ingest-modal-field"><label for="dlg-section">Section</label>' +
         '<select id="dlg-section" class="ingest-select">' + secOpts + '</select></div>' +
@@ -20039,7 +20100,14 @@ function wireHTooltips() {
         '</div>' +
         '<div class="ingest-modal-foot">' +
         '<button class="btn btn-secondary" type="button" data-act="cancel">Cancel</button>' +
-        '<button class="btn btn-primary" type="button" data-act="addyear">Add Year</button>' +
+                /* CLCPA-234: the label says which of the two things the button does.
+         * "Load Data" for the existing case rather than "Import Data" because
+         * the button is ALWAYS live -- CLCPA-85 ruled nothing is disabled -- so
+         * it has to be honest with no file staged, where "Import" would be a
+         * lie. Load covers both: load the table-year, and load the file if
+         * there is one. */
+        '<button class="btn btn-primary" type="button" data-act="addyear">' +
+        escapeHtml(primaryLabel()) + '</button>' +
         '</div></div>';
       wire();
     }
@@ -20083,6 +20151,18 @@ function wireHTooltips() {
          * Some browsers accept these without a cancellable beforeinput. */
         yin.addEventListener('keydown', (e) => {
           if (e.key && /^[eE+\-.]$/.test(e.key)) e.preventDefault();
+        });
+        /* CLCPA-234: the consequence line and the button label follow the box
+         * as it is typed, so they can never describe a different year than the
+         * one about to be acted on. Updated in place rather than by redrawing
+         * the dialog, which would take the focus out of the field mid-typing. */
+        yin.addEventListener('input', () => {
+          const cons = modal.querySelector('#dlg-consequence');
+          const btn = modal.querySelector('[data-act="addyear"]');
+          /* The SAME two functions the first draw used, so the line and the
+           * label cannot drift from what the button will actually do. */
+          if (cons) cons.textContent = consequenceText();
+          if (btn) btn.textContent = primaryLabel();
         });
       }
 
@@ -20138,27 +20218,52 @@ function wireHTooltips() {
       wireIngestStaging(target, (st) => { staged = st; draw(); });
 
       act('addyear', () => {
-        /* 1. Validate FIRST. An invalid year moves nothing at all. */
-        const v = validateReportingYear(typedYear());
         const err = modal.querySelector('#dlg-error');
-        if (!v.ok) {
-          if (err) { err.textContent = v.error; err.style.display = 'block'; }
-          return;
+        const typed = typedYear();
+        /* CLCPA-234: WHICH CASE, from the typed value and nothing else -- the
+         * same predicate the label and the consequence line use, so the three
+         * cannot disagree about what is about to happen. */
+        const existing = yearExists(typed);
+
+        /* 1. Validate FIRST. An invalid year moves nothing at all.
+         *
+         * validateReportingYear REJECTS a year that already exists, which is
+         * correct for creation and wrong for loading, so it is asked only in
+         * the case it is about. An existing year came out of allYears() and is
+         * valid by construction; there is nothing left to check. */
+        let v = null;
+        if (!existing) {
+          v = validateReportingYear(typed);
+          if (!v.ok) {
+            if (err) { err.textContent = v.error; err.style.display = 'block'; }
+            return;
+          }
         }
         /* CLCPA-230, SITE 7. Steps 2 and 3 are named so the guard can defer
          * them. The ORDER inside proceed() is unchanged and still the point of
          * this handler: the year is added before a staged file is applied. */
         const proceed = () => {
-          /* 2. Point the page at the chosen table, then ADD THE YEAR, which loads
-           *    that table's draft for the new year. Add before apply, always. */
+          /* 2. Point the page at the chosen table, then get the draft for the
+           *    year -- by CREATING it, or by LOADING it. Either way the draft
+           *    and schema are in place before a staged file is applied, which
+           *    is the ordering that has always mattered here. */
           state.ingest.sectionId = sel.sectionId;
           state.ingest.tableId = sel.tableId;
-          const res = addReportingYear(v.year);
-          if (!res.ok) {
-            if (err) { err.textContent = res.error; err.style.display = 'block'; }
-            return;
+          if (existing) {
+            /* NOTHING IS CREATED. addReportingYear is not called, not called
+             * with a guard, not called and rolled back -- it is not on this
+             * path at all, which is what makes an unintended year impossible
+             * rather than merely unlikely. */
+            state.ingest.year = typed;
+            loadIngestDraft();
+          } else {
+            const res = addReportingYear(v.year);
+            if (!res.ok) {
+              if (err) { err.textContent = res.error; err.style.display = 'block'; }
+              return;
+            }
           }
-          added = true;
+          needsRedraw = true;
 
           /* 3. Only now apply a staged file, into the year that now exists. A
            *    hard rejection does not undo the year: it is reported on the page. */

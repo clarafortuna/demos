@@ -130,8 +130,13 @@ CLCPA-85 -- Report Data import from CSV
   ok   the bar says to save Excel as CSV (ruling A)
   ok   and that the operator presses Save
   ok   the rejected case says nothing was imported and the draft is untouched
-  ok   there is a not-touched section
-  ok   and added rows are called out
+  ok   the success half of the renderer is found
+  ok   the success panel has NO not-touched section: the table is right below it
+  ok   and no added-rows enumeration
+  ok   it is the cell count and the save reminder, and nothing else
+  ok   a rejection still lists every rejection
+  ok   naming the cell and column for each
+  ok   and heads the panel with the fact that nothing was imported
   ok   the rejected case is styled distinctly, and that rule exists
   ok   a stale result is cleared on selection change
   ok   and cleared in loadIngestDraft, which every picker handler calls
@@ -152,5 +157,5 @@ CLCPA-85 -- Report Data import from CSV
   ok   and no ESCAPED one either, which renders the same
 
 ======================================================================
-  125 passed, 0 failed
+  130 passed, 0 failed
 ======================================================================

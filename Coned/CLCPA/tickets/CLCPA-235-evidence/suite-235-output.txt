@@ -11,7 +11,9 @@ CLCPA-235 -- an import may never end in silence
   ok   AFTER THE REDRAW the draft still holds its 23 rows -- this is the assertion the ticket exists for
   ok   and the result survives the redraw
   ok   and the panel RENDERS from it, rather than being erased first
-  ok   naming what was created: the panel mentions the 23 rows
+  ok   saying how much landed: Imported into the draft: 46 cells
+  ok   and that nothing is stored until Save, which is ruling 1 restated
+  ok   and NOT the old enumeration, which the addendum removed
 
 === THE SHARED INVARIANT: draft OR panel, on every consuming path ===
   ok   new year, clean file: the operator is left with a DRAFT and a PANEL
@@ -86,8 +88,8 @@ CLCPA-235 -- an import may never end in silence
   ok   the key is set inside loadIngestDraft, so EVERY caller updates it
   ok   BASE control: the key did not exist anywhere
   ok   BASE control: nothing detected a mis-decoded file
-  ok   the picker handlers still call it themselves: 7 call sites
+  ok   the picker handlers still call it themselves: 8 call sites
 
 ======================================================================
-  72 passed, 0 failed
+  74 passed, 0 failed
 ======================================================================

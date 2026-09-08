@@ -795,12 +795,18 @@ guard("FINDING B: the rejected-inputs table, the acceptance", () => {
   ok(ty.indexOf('suggested') < 0,
      'typedYear() no longer references the suggestion in any branch');
   const dy = dlg.slice(dlg.indexOf('const drawYear ='));
-  ok(dy.slice(0, 120).indexOf('suggested') >= 0,
-     'drawYear() does, which is the suggestion demoted to an initial value');
+  /* CLCPA-234 replaced the next-unused suggestion with the year the PAGE is
+   * on. The property CLCPA-226 finding B established is unchanged: drawYear
+   * has a fallback for the first draw and typedYear has none. */
+  ok(dy.slice(0, 120).indexOf('pageYear') >= 0,
+     'drawYear() falls back to the page year, which is the initial value now');
   ok(/escapeHtml\(drawYear\(\)\)/.test(dlg),
      'and the INPUT is drawn from drawYear, so the box still opens pre-filled');
-  ok(/validateReportingYear\(typedYear\(\)\)/.test(dlg),
-     'while VALIDATION reads typedYear, which is what the operator left there');
+  /* CLCPA-234 reads it into a local first, because the handler needs the
+   * value twice. Still what the operator typed, never a fallback. */
+  ok(/const typed = typedYear\(\);/.test(dlg) &&
+     /validateReportingYear\(typed\)/.test(dlg),
+     'while VALIDATION reads what the operator typed, via one local');
   ok(!/validateReportingYear\(drawYear\(\)\)/.test(dlg),
      'and never drawYear: validating the suggestion is the defect itself');
 
