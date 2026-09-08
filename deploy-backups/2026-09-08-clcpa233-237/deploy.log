@@ -1,0 +1,112 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-233 A+B (the stored sub-header) + CLCPA-237 E+D (the empty year)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 0274281
+              source folder clean, so the pushed bytes are exactly 0274281.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b every ticket s suite passes against these exact bytes: engine=130, ui=221, xlsx=265, 230=210, 226=195, 235=74, 234=101, badge=115, derive_charts=46, derive_kpis=21, gen_seed=20, composer=119, diag_shadow_baseline=15, 233=76, 237=28
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      4613f5bdc6
+                 styles.css  a6af4fcc76
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build 4613f5bdc6" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  A6HSL7UF6
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1085728B  local=1091329B
+WILL PUSH  styles.css   deployed=269588B  local=270797B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "9ae232e19a", derives to 9ae232e19a
+            previous deploy recorded 9ae232e19a -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-08-clcpa233-237/
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1091329B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (270797B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)
+published.
+
+READ-BACK app.js  1091329B  sha256 19000acd6754bae1...  VERIFIED byte-identical
+READ-BACK styles.css  270797B  sha256 a6af4fcc7688fe9d...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 23855c38b3f7f41d...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 4613f5bdc6
+styles.css id    : a6af4fcc76
+source           : ExecutiveDashboard_dev/ at main @ 0274281
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 4613f5bdc6
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY. THIS IS THE BUILD THE WALKTHROUGH RUNS ON.
+
+Hard-refresh and confirm build 4613f5bdc6. TWO resources moved this
+time, app.js and styles.css, so a stale stylesheet would show as an
+unstyled sub-header row -- worth one look.
+
+CLCPA-233, the one that could surface uninvited tomorrow:
+  1. Report Data, open A.9. Its FIRST row reads Total / DAC / Total /
+     DAC / Total / DAC on a shaded band with a heavier border. It has
+     NO text boxes and NO x button. That row is the table second
+     header line and it used to be deletable.
+  2. the rows BELOW it are unchanged: type in one, the badge goes to
+     Unsaved Changes, and each has its x.
+  3. A.9 % Change columns, the last two, show their published values
+     (-26%, -27% and so on) with NO text box. Read-only, not blank,
+     and not recomputed: computing them needs a new rule type and that
+     is post-Sept-10.
+  4. A.10 the same shaded header row, and its % DAC columns still
+     compute per row as before.
+  5. F.6 Mixed Areas the same: its Non-Excludable / Excludable row is
+     header, not data.
+  6. D.1 Compensation Types MUST BE UNCHANGED -- first row editable,
+     with its x. D1 carries header_levels 0 and is NOT in this family.
+     If D.1 first row went read-only, STOP: the predicate is wrong.
+  7. any OTHER table, say A.1: first row still editable with its x.
+
+CLCPA-237, on year 2099:
+  8. select 2099 and open the Executive Summary. It shows the NO DATA
+     banner, and the DAC Tracts map below it at FULL WIDTH -- not a
+     third of the width with empty space beside it.
+  9. before this deploy 2099 drew a FULL exec summary off one table,
+     because a KPI entry existed with every value null. The banner
+     coming back is the fix.
+ 10. and 2025 is untouched: header cards, dumbbell, strip and map all
+     three across, exactly as they were in your post-flip pass.
+
+AND THE MIGRATION MUST STILL HOLD, since this build carries it:
+ 11. the console still prints [CLCPA-238] source = DATAVERSE, and no
+     shadow line. Report pages render on 2025/2024/2023.
+
+THE REVERT PATHS, both still one step:
+  the migration -- DAC_SOURCE back to payload, seconds.
+  this deploy -- restore the snapshot in deploy-backups/2026-09-08-
+  clcpa233-237/, which holds build 9ae232e19a whole.
+
+=== log written by deploy_233.js ===
