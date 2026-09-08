@@ -12,14 +12,33 @@ const APP = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboar
 
 const M = [
   /* ---- the flag: the shipped default ---------------------------------- */
-  { name: "THE FLAG FLIPS: Dataverse becomes the default source",
-    from: "  var DAC_SOURCE = 'payload';",
-    to:   "  var DAC_SOURCE = 'dataverse';",
-    expect: "DAC_SOURCE defaults to 'payload'" },
+  { name: "THE FLIP IS REVERTED: back onto payload.json",
+    from: "  var DAC_SOURCE = 'dataverse';",
+    to:   "  var DAC_SOURCE = 'payload';",
+    /* The revert is a LEGITIMATE operation -- it is the parachute. So this
+     * proves the suite NOTICES it, not that it is forbidden. A revert that
+     * happened silently would be the dangerous thing. */
+    expect: "DAC_SOURCE is 'dataverse'" },
+  { name: 'THE PARACHUTE IS CUT: loadPayload stops running before the flag',
+    from: "      state.payload = await loadPayload();",
+    to:   "      state.payload = null; void loadPayload;",
+    /* If the file is not loaded on every boot, reverting the flag would need a
+     * deploy -- exactly the property ruled to hold through Sept 10.
+     *
+     * Caught by the ORDERING assertion, not by the fetch one: removing the CALL
+     * leaves loadPayload's body intact, so `fetch('payload.json')` is still
+     * present in the source. My first expectation named the weaker of the two,
+     * and the distinction is the point -- the function existing is not the same
+     * as the function running. */
+    expect: 'loadPayload() still runs BEFORE the flag is consulted' },
+  { name: 'seedYears stops subtracting the added years, freezing 2099 as a seed',
+    from: "            .map(String).filter(y => addedYears.indexOf(y) < 0);",
+    to:   "            .map(String);",
+    expect: 'seedYears subtracts the added-year table' },
   { name: 'shadow mode is switched off',
     from: '  var DAC_SHADOW = true;',
     to:   '  var DAC_SHADOW = false;',
-    expect: 'DAC_SHADOW defaults to true' },
+    expect: 'DAC_SHADOW is still true' },
   { name: 'a failed compose blanks the payload instead of keeping it',
     from: "        if (fromDv) {\n          state.payload = fromDv;",
     to:   "        {\n          state.payload = fromDv;",

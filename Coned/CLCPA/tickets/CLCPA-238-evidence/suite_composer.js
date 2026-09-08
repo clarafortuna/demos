@@ -510,12 +510,45 @@ guard('the analytical divergences', () => {
 
 /* ==================================================================== */
 say('');
-say('=== 3. THE FLAG: payload.json is still the default ===');
+say('=== 3. THE FLAG: DATAVERSE IS THE SOURCE, payload.json is the parachute ===');
 
-guard('the defaults', () => {
-  ok(/var DAC_SOURCE = 'payload';/.test(CODE),
-     "DAC_SOURCE defaults to 'payload'");
-  ok(/var DAC_SHADOW = true;/.test(CODE), 'DAC_SHADOW defaults to true');
+guard('the flip, and the parachute it leaves packed', () => {
+  /* FLIPPED. This asserted 'payload' for two rounds and now asserts the
+   * opposite -- deliberately, because the flip IS the change under test, and an
+   * assertion that survived it unchanged would have been asserting nothing. */
+  ok(/var DAC_SOURCE = 'dataverse';/.test(CODE),
+     "DAC_SOURCE is 'dataverse': the report runs on Dataverse");
+  ok(!/var DAC_SOURCE = 'payload';/.test(CODE), 'and no longer on the file');
+
+  /* THE PARACHUTE, asserted as a MECHANISM rather than promised in prose.
+   * loadPayload() must still run FIRST and unconditionally, so the composed
+   * payload only ever REPLACES an already-loaded file. That is exactly what
+   * makes the revert one token with no deploy and no data move. */
+  const boot0 = CODE.slice(CODE.indexOf('state.payload = await loadPayload()'));
+  const iFlag = boot0.indexOf("if (DAC_SOURCE === 'dataverse')");
+  ok(iFlag > 0,
+     'loadPayload() still runs BEFORE the flag is consulted, so payload.json is ' +
+     'loaded on every boot and reverting needs no deploy');
+  ok(/if \(fromDv\) \{/.test(CODE),
+     'and the composed payload replaces it only when composing SUCCEEDED');
+  ok(/staying on payload\.json/.test(SRC),
+     'a throw leaves payload.json in place: the parachute opens itself');
+  ok(/fetch\('payload\.json'\)/.test(CODE),
+     'payload.json is still fetched every boot, so it must stay deployed');
+
+  ok(/var DAC_SHADOW = true;/.test(CODE), 'DAC_SHADOW is still true');
+  /* with Dataverse as the source the shadow SKIPS -- comparing a thing against
+   * itself proves nothing -- so the console prints a source line and NO shadow
+   * line. That absence is by design and is what Emely verifies by. */
+  ok(/if \(DAC_SHADOW && DAC_SOURCE !== 'dataverse'\)/.test(CODE),
+     'so the shadow SKIPS and prints nothing: the absence is by design');
+
+  /* SEED YEARS: the added-year table is subtracted, or 2099 becomes a
+   * permanent seed year and CLCPA-229 could never remove it. */
+  ok(/addedYears\.indexOf\(y\) < 0/.test(CODE),
+     'seedYears subtracts the added-year table, preserving what "seed" meant');
+  ok(/Storage\.getAddedYears/.test(CODE),
+     'read from cr2bf_dacingesttestreportingyear, the record of what was added');
   /* the source switch only fires on the flag, and only after Storage.init */
   const boot = CODE.slice(CODE.indexOf('state.payload = await loadPayload()'));
   const iInit = boot.indexOf('await Storage.init()');

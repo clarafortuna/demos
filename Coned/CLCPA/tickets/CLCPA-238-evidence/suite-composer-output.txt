@@ -99,9 +99,17 @@ CLCPA-238 step 5: the composer behind the flag
   ok   the J9 share is DERIVED, not read from the rounded column: const dacJ9Share = (T, y) => dacShare(DAC_KPI_REPORTED.residential_customers(T, y));
   ok   and does not reach for the published percentage, which would hide the finding
 
-=== 3. THE FLAG: payload.json is still the default ===
-  ok   DAC_SOURCE defaults to 'payload'
-  ok   DAC_SHADOW defaults to true
+=== 3. THE FLAG: DATAVERSE IS THE SOURCE, payload.json is the parachute ===
+  ok   DAC_SOURCE is 'dataverse': the report runs on Dataverse
+  ok   and no longer on the file
+  ok   loadPayload() still runs BEFORE the flag is consulted, so payload.json is loaded on every boot and reverting needs no deploy
+  ok   and the composed payload replaces it only when composing SUCCEEDED
+  ok   a throw leaves payload.json in place: the parachute opens itself
+  ok   payload.json is still fetched every boot, so it must stay deployed
+  ok   DAC_SHADOW is still true
+  ok   so the shadow SKIPS and prints nothing: the absence is by design
+  ok   seedYears subtracts the added-year table, preserving what "seed" meant
+  ok   read from cr2bf_dacingesttestreportingyear, the record of what was added
   ok   the source switch runs AFTER Storage.init(), which composing requires
   ok   and BEFORE applyAddedYears, so overrides land on whichever payload won
   ok   a compose failure keeps payload.json: the parachute Emely ruled on
@@ -167,5 +175,5 @@ CLCPA-238 step 5: the composer behind the flag
     against a rounded stored copy, every one under 1.5%.
 
 ======================================================================
-  111 passed, 0 failed
+  119 passed, 0 failed
 ======================================================================

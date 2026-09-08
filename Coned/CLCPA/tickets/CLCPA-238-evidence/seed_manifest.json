@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-08T16:32:12.243Z",
+  "generatedAt": "2026-09-08T16:58:23.237Z",
   "source": "Coned/CLCPA/ExecutiveDashboard_dev/payload.json",
   "note": "CLCPA-238 step 4 seed. Generated offline and hashed so that the rows written to Dataverse are provably the rows reviewed here.",
   "files": [

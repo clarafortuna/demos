@@ -1,12 +1,16 @@
 ======================================================================
 CLCPA-238 step 5 -- mutation controls
 ======================================================================
-  red  THE FLAG FLIPS: Dataverse becomes the default source
-       1 red, incl: DAC_SOURCE defaults to 'payload'
+  red  THE FLIP IS REVERTED: back onto payload.json
+       2 red, incl: DAC_SOURCE is 'dataverse': the report runs on Dataverse
+  red  THE PARACHUTE IS CUT: loadPayload stops running before the flag
+       3 red, incl: loadPayload() still runs BEFORE the flag is consulted, so payload.json is loaded on every boot and re
+  red  seedYears stops subtracting the added years, freezing 2099 as a seed
+       1 red, incl: seedYears subtracts the added-year table, preserving what "seed" meant
   red  shadow mode is switched off
-       1 red, incl: DAC_SHADOW defaults to true
+       1 red, incl: DAC_SHADOW is still true
   red  a failed compose blanks the payload instead of keeping it
-       1 red, incl: and a null composition does not replace the payload
+       2 red, incl: and a null composition does not replace the payload
   red  the source switch moves BEFORE Storage.init, where composing cannot work
        1 red, incl: the source switch runs AFTER Storage.init(), which composing requires
   red  SHADOW MODE STARTS RENDERING: it assigns state.payload
@@ -16,7 +20,7 @@ CLCPA-238 step 5 -- mutation controls
   red  shadow mode is awaited, delaying the page on a slow org
        1 red, incl: and never awaited, so it cannot delay a pixel
   red  shadow mode runs even when Dataverse is already the source
-       1 red, incl: skipped when Dataverse is already the source: comparing a thing to itself proves nothing
+       2 red, incl: skipped when Dataverse is already the source: comparing a thing to itself proves nothing
   red  the three boot reads go back to being sequential
        2 red, incl: the three reads are destructured from one Promise.all
   red  the four report-source reads become sequential
@@ -76,5 +80,5 @@ CLCPA-238 step 5 -- mutation controls
   red  the compare stops distinguishing 0 from -0
        1 red, incl: zero and NEGATIVE zero are told apart
 
-  37 caught, 0 not caught, of 37
+  39 caught, 0 not caught, of 39
   clean re-run against restored source: PASSES

@@ -13841,7 +13841,17 @@ function wireHTooltips() {
   /* THE FLAG. payload.json stays the default and the shipped behaviour: this
    * round adds a second source and a comparison, and changes nothing a viewer
    * sees. The flip is a later step and Emely's call. */
-  var DAC_SOURCE = 'payload';          /* 'payload' | 'dataverse' */
+  /* CLCPA-238 STEP 6: THE FLIP. Dataverse is the source.
+   *
+   * payload.json REMAINS DEPLOYED as the instant-revert parachute through
+   * Sept 10, per Emely's ruling. Reverting is this one word back to 'payload'
+   * -- no deploy, no data move, seconds -- because loadPayload() still runs
+   * first and the composed payload only replaces its result when this says
+   * 'dataverse'. Deleting the file is a separate post-walkthrough step.
+   *
+   * A compose that returns null or throws also falls back to payload.json on
+   * its own, so the parachute opens without anyone pulling it. */
+  var DAC_SOURCE = 'dataverse';        /* 'payload' | 'dataverse' */
   var DAC_SHADOW = true;               /* load both and compare */
 
   /* ---- canonical comparison ---------------------------------------------
@@ -21447,8 +21457,30 @@ function wireHTooltips() {
         const fromDv = await composePayloadFromDataverse();
         if (fromDv) {
           state.payload = fromDv;
-          state.seedYears = ((fromDv.meta && fromDv.meta.years) || []).map(String);
-          console.info('[CLCPA-238] source = DATAVERSE');
+          /* SEED YEARS MINUS THE ADDED-YEAR TABLE, and the subtraction matters.
+           *
+           * seedYears means "years the published report came with", and it is
+           * half of what protects a year from removal (isYearProtected: a seed
+           * year OR a year holding data). payload.meta.years carried exactly
+           * the published years, but the COMPOSED years are derived from the
+           * rows, so they include years an operator added -- 2099 among them.
+           *
+           * Taken straight, the flip would make 2099 a permanent seed year and
+           * CLCPA-229 could never remove it, even after its data was deleted.
+           * cr2bf_dacingesttestreportingyear is the record of what was added,
+           * so subtracting it restores the original meaning precisely.
+           *
+           * Note what this does NOT fix: 2099 is protected TODAY regardless,
+           * because yearHasData('2099') is true while A1:2099 exists. That is
+           * pre-existing and reported to Emely, not introduced here. */
+          const addedYears = ((Storage.getAddedYears && Storage.getAddedYears()) || [])
+            .map(String);
+          state.seedYears = ((fromDv.meta && fromDv.meta.years) || [])
+            .map(String).filter(y => addedYears.indexOf(y) < 0);
+          console.info('[CLCPA-238] source = DATAVERSE' +
+            ' (composed from cr2bf_dacingesttesttabledata1 + 3 definition tables)');
+          console.info('[CLCPA-238] payload.json remains deployed as the revert' +
+            ' parachute; set DAC_SOURCE back to \'payload\' to use it.');
         } else {
           console.warn('[CLCPA-238] source = payload.json (Dataverse returned no source)');
         }
