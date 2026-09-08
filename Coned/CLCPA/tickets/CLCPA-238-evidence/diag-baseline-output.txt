@@ -1,0 +1,120 @@
+======================================================================
+CLCPA-238 shadow alarm, part 2: the mechanism, offline
+  app.js read at 546dadf, the commit this diagnosis describes.
+  The defects below are FIXED in later commits; this file records what
+  was wrong, and pinning it is what keeps that record true.
+======================================================================
+
+=== 1. THE ORG, RECONSTRUCTED from the seed plus the pre-seed backup ===
+  ok   the pre-seed backup holds both rows that existed
+  ok   the seed holds an A1:2025 row
+  ok   the reconstruction has 155 rows, matching what the org reported: 155
+    (the live diagnosis proved the org differs from the seed in exactly
+     these two ways, and in nothing else, across all four tables)
+
+=== 2. THE RECONSTRUCTION REPRODUCES THE LIVE VERDICT ===
+  reconstructed org vs RAW payload.json: 1 of 5
+      differ meta     .current_year: "2099" vs "2025"
+      MATCH  sections 
+      differ tables   .A1.data.2025[0][3]: null vs 0.88
+      differ kpis     .analytical[0].values.2025.value: 0.4551813715427375 vs 0.4561946897703652
+      differ charts   .A1_programs.values.2025[0].dac_pct: null vs 0.58
+  ok   the reconstruction reproduces the live 1 of 5 exactly: 1
+  ok   and sections is the one part that matches, as live
+  ok   meta differs first on current_year, as live
+
+=== 3. THE FAIR COMPARISON: what the app actually RENDERS today ===
+    payload.json AFTER applyAddedYears and applyOverrides, which is what
+    a viewer sees. The composed payload already contains the overrides,
+    because the table it is built from WAS the override store.
+  reconstructed org vs RENDERED payload: 2 of 5
+      differ meta     .current_year: "2099" vs "2025"
+      MATCH  sections 
+      MATCH  tables   
+      differ kpis     .analytical[0].values.2025.value: 0.4551813715427375 vs 0.4561946897703652
+      differ charts   .A1_programs.values.2025[0].dac_pct: null vs 0.58
+  ok   TABLES NOW MATCH: the A1:2025 divergence was the shadow comparing a composed payload that HAS the override against a raw one that does not
+  ok   CHARTS STILL DIFFER -- I predicted they would match once tables did, and they do not: .A1_programs.values.2025[0].dac_pct: null vs 0.58
+  ok   sections still match
+  ok   meta still differs: defect 1
+
+    DEFECT 2, and it is the one I did not see coming.
+
+    applyOverrides replaces tables[].data and NOTHING ELSE. It does not
+    touch charts, and it does not need to: A1's "% in DACs" is a DERIVED
+    column, and the app recomputes derived columns at RENDER through the
+    CLCPA-88 shared rule. So today the table DISPLAYS a computed 0.58
+    even though the store holds null, and the payload's stored chart
+    values hold 0.58 to match.
+
+    The composer derives charts and KPI shares straight from the STORED
+    table data, without recomputing the derived columns first. So every
+    stripped derived cell propagates into the composed charts as null,
+    where the app shows a number. A1 is in PERSIST_STRIP_TABLES along
+    with 25 other tables, so this is not one chart: it is every chart
+    and every KPI share that reads a derived column of a stripped table.
+
+    THE FIX IS STRUCTURAL AND ALREADY EXISTS. The app has one shared
+    derive engine, and the composer must run it over the composed table
+    data before deriving anything from it -- exactly as the render path
+    does. Not a new rule; the existing one, applied one step earlier.
+
+    so of the four live divergences: TWO were the comparison baseline
+    (tables, and the kpis coordinate that followed from it) and TWO are
+    genuine composer defects. 2 of 5 on the fair comparison,
+    against 1 of 5 on the unfair one.
+
+=== 4. THE REAL DEFECT: current_year derives to a test year ===
+  ok   the composer derives current_year = 2099
+  ok   the payload publishes current_year = 2025
+
+    MECHANISM. composePayloadFromRows sets current_year = years[0], the
+    newest year carrying data. The org contains A1:2099, a row created
+    during CLCPA-235 testing for a year the report does not cover, so
+    the newest year with data is 2099 and the composer calls it current.
+
+    WHY MY OFFLINE PROOF MISSED IT. gen_seed.js recomposed from the SEED
+    FILES, which contain no 2099 row -- the payload has no such year, so
+    the seed could not have one. The fixture was therefore structurally
+    incapable of exposing this, and my "the fixture is what Dataverse
+    holds" claim was true for 153 of 155 rows and false for the two that
+    mattered.
+
+    THE PRINCIPLE IT BREAKS. I derived current_year on the argument that
+    storing it would be a second source of truth for a fact the rows
+    already state. The 2099 row disproves that: the rows state which
+    years HAVE DATA, which is not the same fact as which year the report
+    COVERS. The first is data; the second is an editorial decision that
+    cannot be derived from data at all. So current_year belongs in the
+    meta row beside baseline_options, and deriving it was wrong on
+    principle rather than merely unlucky.
+
+    years[] is a different question and is NOT obviously wrong: the app
+    already merges added years into meta.years through applyAddedYears,
+    so a selector showing 2099 is what ships today. Left for Emely.
+  ok   the derived year list leads with 2099: 2099, 2025, 2024, 2023
+
+    CONSEQUENCE IF FLIPPED AS IT STANDS: the dashboard would open on
+    2099 -- a test year with one table of data -- instead of 2025. Every
+    KPI card and every chart would read from a year that has A1 and
+    nothing else. That is not a subtle drift; it is the whole report
+    landing on an empty year, and it is exactly what the shadow was
+    built to catch before a flip rather than after.
+
+=== 5. WHAT THE kpis DIVERGENCE IS, on the fair comparison ===
+    first coordinate: .analytical[0].values.2025.value: 0.4551813715427375 vs 0.4561946897703652
+  ok   kpis still differs, as expected: the rounded stored copies
+  ok   equity_index is present
+    equity_index 2025 composed = 0.4551813715427375
+    payload published        = 0.4561946897703652
+
+    That one is the A1 published-percentage fallback the composer's own
+    comment predicted: A1 is in PERSIST_STRIP_TABLES, its "% in DACs"
+    Total cell is null in the org after the CLCPA-142 cleanup, so the
+    precise share is used instead of the rounded published one. I wrote
+    that down in the code and then left it out of the verdict I told
+    Emely to expect, which is why the count I gave was wrong twice over.
+
+======================================================================
+  15 passed, 0 failed
+======================================================================

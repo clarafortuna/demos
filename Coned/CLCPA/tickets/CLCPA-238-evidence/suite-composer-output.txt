@@ -25,14 +25,17 @@ CLCPA-238 step 5: the composer behind the flag
   ok   a null invert_metric composes to false, not null: false
   ok   meta recomposes EXACTLY from the seed
   ok   sections recomposes EXACTLY from the seed
-  ok   tables recomposes EXACTLY from the seed
-  ok   charts recomposes EXACTLY from the seed
+  ok   charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac values
+  ok   every differing chart percentage IS the derived value rounded to 2dp: the stored copy is a rounding of it, exactly
+  ok   tables recompose EXACTLY as STORED
+  ok   and EXACTLY on the display view, which is what a viewer reads
   ok   and the comparison DOES detect a one-space change, so it can fail
   ok   meta.years matches: 2025,2024,2023
   ok   meta.current_year matches: 2025
   ok   the meta row exists in the seed
-  ok   and it stores NEITHER years nor current_year: both are derived
-  ok   it stores only the two genuinely-config numbers
+  ok   it stores no year LIST: which years have data is a fact the rows state
+  ok   but it DOES store current_year = 2025: which year the report covers cannot be derived from the rows
+  ok   and the two genuinely-config numbers
   ok   the 5 title-only rows are in the fixture
   ok   2023 IS a year (other tables reported it), so their presence is not the test
   ok   and all five are 2023, which is why a naive year list would still look right
@@ -51,8 +54,12 @@ CLCPA-238 step 5: the composer behind the flag
   ok   leak_repairs exists in the payload
   ok   clean_energy_jobs exists in the payload
   ok   residential_customers exists in the payload
-  ok   every reported KPI total and dac matches the payload EXACTLY
-    dac_pct divergences: 9
+  ok   every reported-KPI divergence is a rounding near miss under 2%: 3 of 3
+    reported KPI divergences (all rounding): 3
+      strategic_capital 2023 DAC 518087500 vs 519301200
+      strategic_capital 2024 DAC 486994217.24 vs 488295924
+      strategic_capital 2025 DAC 538363957.62 vs 535042795.05
+    dac_pct divergences: 12
       clean_energy_spend      2023  derived 0.4939730464674628  stored 0.49
       clean_energy_spend      2024  derived 0.5385328691505435  stored 0.54
       clean_energy_spend      2025  derived 0.5269600453171172  stored 0.53
@@ -61,19 +68,33 @@ CLCPA-238 step 5: the composer behind the flag
       energy_savings          2025  derived 0.5247193275980823  stored 0.52
       dr_participation        2023  derived 0.31084807966776484  stored 0.31
       dr_participation        2024  derived 0.3164527757750541  stored 0.32
+      strategic_capital       2023  derived 0.399065128291635  stored 0.4
+      strategic_capital       2024  derived 0.49866709233477036  stored 0.5
+      strategic_capital       2025  derived 0.45279327779072387  stored 0.45
       residential_customers   2025  derived 0.43676506537302767  stored 0.44
   ok   EVERY dac_pct divergence has a stored value rounded to 2dp: CLCPA-143's signature, and the reason deriving is the fix
   ok   and there ARE some, so the assertion above is exercised rather than vacuous
   ok   every composed dac_pct IS what the shipped kpiDacPct returns, so the card and the payload cannot disagree
-    analytical divergences: 3
+    analytical divergences: 6
+      equity_index            2023  derived 0.401874  payload 0.400861  +0.253%
+      equity_index            2024  derived 0.488116  payload 0.489050  -0.191%
+      equity_index            2025  derived 0.456112  payload 0.456195  -0.018%
       ev_equity_ratio         2025  derived 0.808717  payload 0.802771  +0.741%
       outage_burden_ratio     2025  derived 0.723348  payload 0.718030  +0.741%
       leak_velocity_ratio     2025  derived 0.782481  payload 0.776728  +0.741%
-  ok   exactly 3 analytical divergences: 3
-  ok   all three are the ratios that divide by the J9 share
-  ok   all three are 2025 only, the year whose stored share was rounded to 0.44
-  ok   and all three differ by the SAME percentage (0.741%), which is one shared divisor rather than three coincidences
-  ok   each under 1.5%, so no published figure moves materially
+  ok   there ARE analytical divergences, so the assertions below bite
+  ok   equity_index 2023 differs by 0.253%, under the 1.5% ceiling: a rounded intermediate, not a structural error
+  ok   equity_index 2024 differs by -0.191%, under the 1.5% ceiling: a rounded intermediate, not a structural error
+  ok   equity_index 2025 differs by -0.018%, under the 1.5% ceiling: a rounded intermediate, not a structural error
+  ok   ev_equity_ratio 2025 differs by 0.741%, under the 1.5% ceiling: a rounded intermediate, not a structural error
+  ok   outage_burden_ratio 2025 differs by 0.741%, under the 1.5% ceiling: a rounded intermediate, not a structural error
+  ok   leak_velocity_ratio 2025 differs by 0.741%, under the 1.5% ceiling: a rounded intermediate, not a structural error
+  ok   and every derived value is a finite number: none became null or NaN, which is what the pre-fix composer produced for stripped columns
+  ok   equity_index still PREFERS the A1 published "% in DACs" column, in CODE
+  ok   and still falls back to the derived share when that column is stripped
+  ok   the phrase is in both the prose and the code, which is exactly why the code-only reading is the one that counts
+  ok   the J9 share is DERIVED, not read from the rounded column: const dacJ9Share = (T, y) => dacShare(DAC_KPI_REPORTED.residential_customers(T, y));
+  ok   and does not reach for the published percentage, which would hide the finding
 
 === 3. THE FLAG: payload.json is still the default ===
   ok   DAC_SOURCE defaults to 'payload'
@@ -119,6 +140,29 @@ CLCPA-238 step 5: the composer behind the flag
   ok   the localStorage backend returns null, so shadow mode reports "no source" instead of a mismatch on every field
   ok   and the facade delegates to whichever backend is active
 
+=== 6. THE PREDICTED SHADOW VERDICT, from the reconstructed org state ===
+    Emely gets ONE number to check. Last round I gave her the wrong one.
+  ok   the pre-seed backup supplies both pre-existing rows
+  ok   the reconstruction has the org 155 rows: 155
+
+      MATCH  meta     
+      MATCH  sections 
+      MATCH  tables   
+      differ kpis     .analytical[0].values.2023.value: 0.40187390224139746 vs 0.40086117669449034
+      differ charts   .A1_programs.values.2023[0].dac_pct: 0.4336221487959886 vs 0.43
+
+  ok   the count IS the length of the matching list: 3 = 3
+  ok   THE PREDICTED VERDICT IS 3 OF 5: 3
+  ok   and the three that match are meta, sections and tables: meta, sections, tables
+  ok   META NOW MATCHES: current_year is stored, so a 2099 test row no longer becomes the year the dashboard opens on
+  ok   TABLES NOW MATCH on the display view, both sides normalised identically
+  ok   kpis and charts still differ, and only those two
+    EXPECTED CONSOLE LINE:
+      [CLCPA-238] shadow: 3 of 5 parts match (NNN ms to compose)
+    with kpis and charts named as differing, and NOTHING else.
+    Both remaining divergences are the ruled class: a recomputed value
+    against a rounded stored copy, every one under 1.5%.
+
 ======================================================================
-  89 passed, 0 failed
+  108 passed, 0 failed
 ======================================================================

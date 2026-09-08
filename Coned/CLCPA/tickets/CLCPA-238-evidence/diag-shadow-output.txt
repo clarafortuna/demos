@@ -1,0 +1,31 @@
+SELF-CHECK  read-only: no PATCH/DELETE/PUT, 2 POSTs to the login host only.
+
+======================================================================
+CLCPA-238 SHADOW ALARM -- read-only diagnosis
+  live console reported: 1 of 5 parts match (229 ms to compose)
+  predicted from fixtures: 3 of 5 (kpis differing by rounded copies)
+======================================================================
+the SHIPPED composer and the SHIPPED dacFirstDiff are extracted from
+app.js, so mechanism (c) would show identically on both inputs.
+
+======================================================================
+BASELINE: the same composer over the FIXTURE files
+======================================================================
+  fixtures: 4 of 5 parts match
+      MATCH  meta     
+      MATCH  sections 
+      MATCH  tables   
+      differ kpis     .analytical[2].values.2025.value: 0.808716856274106 vs 0.802771069542794
+      MATCH  charts   
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BYB3TP4MD
+#################################################
+
+Waiting for authorization...
+
+STOP: the device code expired.
+Nothing was written; this script cannot write.
+
+ABORTED

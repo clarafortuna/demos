@@ -24,49 +24,49 @@ CLCPA-238 step 5 -- mutation controls
   red  the localStorage backend returns an empty shape instead of null
        1 red, incl: the localStorage backend returns null, so shadow mode reports "no source" instead of a mismatch on ev
   red  years are stored on the meta row instead of derived
-       3 red, incl: meta.years matches: 2023,2024,2025
+       5 red, incl: meta.years matches: 2023,2024,2025
   noop the title-only rows create a year that was never reported
        green as expected: this mutation changes nothing on this data
   red  presentation hints are dropped, losing header_levels on 4 tables
-       1 red, incl: tables recomposes EXACTLY from the seed: .A10.header_levels: undefined vs 2
+       5 red, incl: tables recompose EXACTLY as STORED: .A10.header_levels: undefined vs 2
   red  mapping is dropped from every table
-       1 red, incl: tables recomposes EXACTLY from the seed: .A1.mapping: undefined vs {"comparable":"Yes at total level;
+       5 red, incl: tables recompose EXACTLY as STORED: .A1.mapping: undefined vs {"comparable":"Yes at total level; by-p
   red  the schema column is ignored, so every table loses schema_by_year
-       6 red, incl: tables recomposes EXACTLY from the seed: .A1.schema_by_year.2023: undefined vs ["Program Name","Total
+       12 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  section invert_metric is passed through untruthed, so 0 stays 0
        1 red, incl: a null invert_metric composes to false, not null: null
   red  A1_programs keeps the total rows instead of dropping them
-       1 red, incl: charts recomposes EXACTLY from the seed: .A1_programs.values.2023[0].dac: 129680235 vs 34121994
+       38 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  A1_programs takes the top 10 instead of the top 12
-       1 red, incl: charts recomposes EXACTLY from the seed: .A1_programs.values.2023: length 10 vs 12
+       1 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  F8's total becomes a column read instead of dac + nondac
-       1 red, incl: charts recomposes EXACTLY from the seed: .F8_boroughs.values.2023[0].total: 423720 vs 488364
+       1 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  H1's DAC column loses its anchor, matching Non-DAC Repairs first
-       1 red, incl: charts recomposes EXACTLY from the seed: .H1_boroughs.values.2023[0].dac: 1062 vs 494
+       1 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  G_replacement reads the abandonment tables
-       1 red, incl: charts recomposes EXACTLY from the seed: .G_replacement.values.2024[0].dac: 2553 vs 72504
+       1 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  B2 stops omitting Micromobility, inventing a key for 2023 and 2024
-       1 red, incl: charts recomposes EXACTLY from the seed: .B2_plugs.values.2023.DAC.Micromobility: "DAC" vs undefined
+       1 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  columns are read by INDEX instead of by name, which 2023 breaks
-       1 red, incl: charts recomposes EXACTLY from the seed: .C3_programs.values.2023[0].committed: undefined vs 136.39
+       1 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  dr_participation reads its DAC figure from C2 instead of C3
-       3 red, incl: every reported KPI total and dac matches the payload EXACTLY: dr_participation 2023 DAC 93187 vs 2896
+       6 red, incl: UNEXPLAINED reported-KPI divergence, not a rounding near miss: dr_participation 2023 DAC 93187 vs 289
   red  strategic_capital's dac stops being a product and reads a cell
-       1 red, incl: every reported KPI total and dac matches the payload EXACTLY: strategic_capital 2023 DAC 1298253000 v
+       4 red, incl: UNEXPLAINED reported-KPI divergence, not a rounding near miss: strategic_capital 2023 DAC 1298253000 
   red  main_replacement always sums the boroughs, ignoring G1
-       3 red, incl: every reported KPI total and dac matches the payload EXACTLY: main_replacement 2025 TOTAL 416717 vs 4
+       5 red, incl: UNEXPLAINED reported-KPI divergence, not a rounding near miss: main_replacement 2025 TOTAL 416717 vs 
   red  residential_customers reads a total column that does not exist
-       6 red, incl: every reported KPI total and dac matches the payload EXACTLY: residential_customers 2023 TOTAL null v
+       7 red, incl: UNEXPLAINED reported-KPI divergence, not a rounding near miss: residential_customers 2023 TOTAL null 
   red  clean_energy_jobs invents a zero where there is no DAC figure
-       5 red, incl: every reported KPI total and dac matches the payload EXACTLY: clean_energy_jobs 2023 DAC 0 vs null | 
+       8 red, incl: UNEXPLAINED reported-KPI divergence, not a rounding near miss: clean_energy_jobs 2023 DAC 0 vs null
   red  dac_pct is stored from the row instead of derived by kpiDacPct
        26 red, incl: every composed dac_pct IS what the shipped kpiDacPct returns, so the card and the payload cannot disa
   red  equity_index loses its published-percentage preference
-       4 red, incl: exactly 3 analytical divergences: 6
+       2 red, incl: equity_index still PREFERS the A1 published "% in DACs" column, in CODE
   red  the J9 share reads the rounded column, hiding the finding
-       3 red, incl: exactly 3 analytical divergences: 6
+       2 red, incl: the J9 share is DERIVED, not read from the rounded column: const dacJ9Share = (T, y) => dacPct(dacCel
   red  eap_per_customer drops dual-service customers from the denominator
-       5 red, incl: exactly 3 analytical divergences: 6
+       3 red, incl: eap_per_customer 2023 differs by 56.637%, under the 1.5% ceiling: a rounded intermediate, not a struc
   noop the canonical compare becomes order-SENSITIVE
        green as expected: this mutation changes nothing on this data
   red  the compare stops distinguishing 0 from -0

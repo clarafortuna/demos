@@ -369,6 +369,6 @@
     "cr2bf_primarymetric": null,
     "cr2bf_narrative": null,
     "cr2bf_sourcecalc": null,
-    "cr2bf_spec": "{\"baseline_options\":[35,40],\"default_baseline\":35}"
+    "cr2bf_spec": "{\"current_year\":\"2025\",\"baseline_options\":[35,40],\"default_baseline\":35}"
   }
 ]

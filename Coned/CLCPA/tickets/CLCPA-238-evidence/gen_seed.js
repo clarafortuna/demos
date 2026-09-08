@@ -213,11 +213,18 @@ rmRows.push({
   cr2bf_label: P.meta.title == null ? null : P.meta.title,
   cr2bf_section: null, cr2bf_format: null, cr2bf_unit: null,
   cr2bf_primarymetric: null, cr2bf_narrative: null, cr2bf_sourcecalc: null,
-  /* years and current_year are DERIVABLE from the table-year rows, so only the
-   * genuinely-config parts are stored. Storing a copy of years would create a
-   * second source of truth for the same fact, which is the mistake CLCPA-238
-   * exists to undo. */
+  /* YEARS are derivable from the table-year rows and are NOT stored: a copy of
+   * them would be a second source of truth for the same fact, which is the
+   * mistake CLCPA-238 exists to undo.
+   *
+   * CURRENT_YEAR IS STORED, and the earlier version of this comment claimed
+   * both were derivable. That was the error the shadow caught: the rows state
+   * which years HAVE DATA, which is not the same fact as which year the report
+   * COVERS. A 2099 test row made the newest year with data 2099, and a derived
+   * current_year would have opened the dashboard on a year holding one table.
+   * The second fact is editorial and cannot be derived from data at all. */
   cr2bf_spec: JSON.stringify({
+    current_year: P.meta.current_year,
     baseline_options: P.meta.baseline_options,
     default_baseline: P.meta.default_baseline,
   }),
@@ -339,15 +346,24 @@ say('    the seed is proven sufficient BEFORE it is written, not after.');
   const sdiff = firstDiff(sections, P.sections);
   ok(sdiff === null, 'sections recompose EXACTLY' + (sdiff ? ': ' + sdiff : ''));
 
-  /* meta: years and current_year DERIVED from the table-year rows */
+  /* meta: years DERIVED from the rows, current_year STORED.
+   *
+   * current_year was derived here too, and the org disproved it within a day: a
+   * 2099 test row made the newest year with data 2099, so the dashboard would
+   * have opened on a year holding one table. Which years have data is a fact
+   * the rows state; which year the report covers is editorial. */
   const yrs = Array.from(new Set(tdRows.filter(r => r.cr2bf_rows !== null)
     .map(r => String(r.cr2bf_year)))).sort((a, b) => parseInt(b) - parseInt(a));
   const metaRow = rmRows.find(r => r.cr2bf_kind === 'meta');
   const cfg = JSON.parse(metaRow.cr2bf_spec);
   const meta = {
-    title: metaRow.cr2bf_label, years: yrs, current_year: yrs[0],
+    title: metaRow.cr2bf_label, years: yrs,
+    current_year: cfg.current_year != null ? String(cfg.current_year) : yrs[0],
     baseline_options: cfg.baseline_options, default_baseline: cfg.default_baseline,
   };
+  ok(cfg.current_year === P.meta.current_year,
+     'the meta row STORES current_year = ' + cfg.current_year +
+     ', rather than deriving it from the newest year with data');
   const mdiff = firstDiff(meta, P.meta);
   ok(mdiff === null, 'meta recomposes EXACTLY, with years DERIVED' +
     (mdiff ? ': ' + mdiff : ''));
