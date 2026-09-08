@@ -259,5 +259,18 @@
   },
   "patched": [
     "A1:2025"
+  ],
+  "addenda": [
+    {
+      "at": "2026-09-08T16:11:22.033Z",
+      "set": "cr2bf_dacreportmetrics",
+      "id": "32741daa-95ab-f111-aaab-7ced8d183701",
+      "field": "cr2bf_spec",
+      "added": "current_year",
+      "value": "2025",
+      "before": "{\"baseline_options\":[35,40],\"default_baseline\":35}",
+      "after": "{\"current_year\":\"2025\",\"baseline_options\":[35,40],\"default_baseline\":35}",
+      "note": "CLCPA-238 fix round item 1. current_year is stored rather than derived: the rows say which years have data, not which year the report covers. Reverting means PATCHing cr2bf_spec back to the `before` value in this entry."
+    }
   ]
 }

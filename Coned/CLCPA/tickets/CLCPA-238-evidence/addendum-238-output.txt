@@ -1,0 +1,43 @@
+SELF-CHECK  no DELETE, no PUT, no POST to any entity set: this addendum
+            creates nothing. ONE patch site, and its body is built from
+            PATCH_FIELDS = [cr2bf_spec] alone.
+
+======================================================================
+CLCPA-238 SEED ADDENDUM: current_year into the meta row
+======================================================================
+  seed_reportmetric.json  sha256 a32df2c1c28eb2ab  MATCHES the manifest
+  the reviewed seed stores current_year = "2025"
+
+  THE EXACT PAYLOAD, printed before anything is written:
+  PATCH cr2bf_dacreportmetrics(<id of cr2bf_metrickey eq 'meta'>)
+{
+  "cr2bf_spec": "{\"current_year\":\"2025\",\"baseline_options\":[35,40],\"default_baseline\":35}"
+}
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  ABF7NFDK4
+#################################################
+
+Waiting for authorization...
+Authorized.
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+
+  target row id 32741daa-95ab-f111-aaab-7ced8d183701  kind=meta
+  BEFORE cr2bf_spec = {"baseline_options":[35,40],"default_baseline":35}
+  the change is ADDITIVE: baseline_options and default_baseline unchanged,
+  current_year added as 2025
+
+  PATCH -> 204
+  AFTER  cr2bf_spec = {"current_year":"2025","baseline_options":[35,40],"default_baseline":35}
+  VERIFIED byte-identical to what was printed and sent.
+  current_year = "2025", read back from the org.
+  ledger updated: c:\Users\emely\Desktop\Projects\demos\deploy-backups\2026-09-08-clcpa238-pre-seed\seed_ledger.json
+  it records the BEFORE value, so the revert is one PATCH away.
+
+======================================================================
+=== ADDENDUM COMPLETE ===
+  requests: GET 3, PATCH 1. One row, one field.
+  the shadow should now read 3 of 5.
+======================================================================
