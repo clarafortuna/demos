@@ -27,7 +27,22 @@ const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const BASE = process.env.DAC_BASE_COMMIT || '0527e01';
 const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
-const CSS = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+/* styles.css PINNED TO THE LAST COMMIT THAT TOUCHED IT DURING THIS TICKET'S
+ * LIFETIME, not read from the working tree.
+ *
+ * This suite asserts a HISTORICAL claim Emely ruled explicitly: "the only CSS
+ * diff in this ticket is that consolidation", checked as "EVERY other byte of
+ * styles.css is unchanged". True when written, still true of the file it was
+ * written about, and it began failing the moment CLCPA-233 legitimately added a
+ * sub-header rule -- correctly, because the working tree is no longer this
+ * ticket.
+ *
+ * 1926366 is this ticket's own round 2, the last commit to change styles.css
+ * before CLCPA-233. Widening the expected diff to absorb another ticket's rule
+ * would turn a precise ruling into a vague one. */
+const CSS_AT = process.env.DAC_CSS_COMMIT || '1926366';
+const CSS = execSync('git show ' + CSS_AT + ':"' + CSS_REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
