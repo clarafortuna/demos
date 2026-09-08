@@ -1,0 +1,78 @@
+SELF-CHECK  read-only: no PATCH/DELETE/PUT, 2 POSTs to the login host only.
+
+======================================================================
+CLCPA-238 SHADOW ALARM -- read-only diagnosis
+  live console reported: 1 of 5 parts match (229 ms to compose)
+  predicted from fixtures: 3 of 5 (kpis differing by rounded copies)
+======================================================================
+the SHIPPED composer and the SHIPPED dacFirstDiff are extracted from
+app.js, so mechanism (c) would show identically on both inputs.
+
+======================================================================
+BASELINE: the same composer over the FIXTURE files
+======================================================================
+  fixtures: 4 of 5 parts match
+      MATCH  meta     
+      MATCH  sections 
+      MATCH  tables   
+      differ kpis     .analytical[2].values.2025.value: 0.808716856274106 vs 0.802771069542794
+      MATCH  charts   
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BKW2Q84RH
+#################################################
+
+Waiting for authorization...
+Authorized. Every org request below is a GET.
+
+======================================================================
+THE LIVE ROWS, read with getReportSource's exact queries
+======================================================================
+  tabledata  155 rows  (1 page)   seed had 154
+  tables      52 rows  (1 page)   seed had 52
+  sections    10 rows  (1 page)   seed had 10
+  metrics     31 rows  (1 page)   seed had 31
+
+======================================================================
+THE ORG VERDICT, same composer, same compare
+======================================================================
+  live org: 1 of 5 parts match
+      differ meta     .current_year: "2099" vs "2025"
+      MATCH  sections 
+      differ tables   .A1.data.2025[0][3]: null vs 0.88
+      differ kpis     .analytical[0].values.2025.value: 0.4551813715427375 vs 0.4561946897703652
+      differ charts   .A1_programs.values.2025[0].dac_pct: null vs 0.58
+
+  fixtures: 4 of 5      live org: 1 of 5
+  => THE DIFFERENCE IS IN THE ROWS, not the composer. Mechanism (a).
+     The same code and the same compare give different verdicts on
+     different inputs, so the code is not what changed.
+
+======================================================================
+MECHANISM (a): do the live rows differ from the seed, field by field?
+======================================================================
+  tabledata  rows only in the org: 1,  only in the seed: 0,  changed fields: 1
+      only in the org: A1:2099
+      A1:2025     cr2bf_rows       seed=[["Affordable Multifamily Energy Efficiency Program",39028...(1306)  live=[["Affordable Multifamily Energy Efficiency Program",39028...(1305)
+  tables     rows only in the org: 0,  only in the seed: 0,  changed fields: 0
+  sections   rows only in the org: 0,  only in the seed: 0,  changed fields: 0
+  metrics    rows only in the org: 0,  only in the seed: 0,  changed fields: 0
+
+======================================================================
+WHO WROTE, since the seed. The change history is the app's own trail.
+======================================================================
+  the seed was generated at 2026-09-08T15:26:16.130Z
+  history entries AFTER that: 0 of 21
+
+======================================================================
+MECHANISM (b): do live reads TYPE differently from the fixture files?
+======================================================================
+  tabledata  type mismatches on the first row: none   fields ABSENT (null in Dataverse): none
+  tables     type mismatches on the first row: none   fields ABSENT (null in Dataverse): none
+  sections   type mismatches on the first row: none   fields ABSENT (null in Dataverse): none
+  metrics    type mismatches on the first row: none   fields ABSENT (null in Dataverse): none
+
+======================================================================
+  requests: GET 5. Nothing was written.
+======================================================================
