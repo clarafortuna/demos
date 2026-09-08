@@ -193,6 +193,31 @@ guard('a null boolean from Dataverse composes to false', () => {
      JSON.stringify(out ? out.sections.Z.invert_metric : 'none'));
 });
 
+/* APPLY OVERRIDES EXACTLY AS THE SHIPPED applyOverrides DOES: unconditionally,
+ * for every cached row, INCLUDING rows whose blob is null.
+ *
+ * My first reference skipped null rows, and that guard is precisely what let the
+ * A7 shape error survive a whole fix round. Raw payload.json has no key for a
+ * title-only year, so comparing against the FILE said "correct" while the app
+ * was producing an explicit null: dvBackend.init caches JSON.parse(null), which
+ * is null, and applyOverrides writes t.data[year] = null for it.
+ *
+ * The composer must reproduce the RENDERED shape, so the reference has to BE the
+ * rendered shape. Getting the reference wrong is indistinguishable from getting
+ * the code wrong, right up until something outside the test disagrees -- which
+ * is what the console did. */
+function renderedFrom(payloadObj, tdRows) {
+  const out = JSON.parse(JSON.stringify(payloadObj));
+  tdRows.forEach(r => {
+    const t = out.tables[r.cr2bf_tableid]; if (!t) return;
+    t.data = t.data || {};
+    /* unconditional, null included -- the line my first version got wrong by
+     * adding a guard the shipped code does not have */
+    t.data[String(r.cr2bf_year)] = (r.cr2bf_rows == null) ? null : JSON.parse(r.cr2bf_rows);
+  });
+  return out;
+}
+
 /* THE DISPLAY VIEW, built with the SHIPPED rowsForDisplay -- the same
  * normalisation dacShadowCompare now applies to both sides. Comparing one
  * side's stored values against the other side's displayed values is what
@@ -282,11 +307,26 @@ guard('the parts that must be exact', () => {
    * `tables` -- that is the source of truth the editor loads -- so the stored
    * side matches the payload's stored side, and the displayed side matches the
    * payload's displayed side. Asserting both says more than either alone. */
-  const dStored = API.dacFirstDiff(composed.tables, P.tables);
-  ok(dStored === null, 'tables recompose EXACTLY as STORED' + (dStored ? ': ' + dStored : ''));
-  const dDisp = API.dacFirstDiff(displayView(composed), displayView(P));
+  /* against the RENDERED payload, built from the same fixture rows, because
+   * that is the shape the app produces and therefore the shape to reproduce */
+  const seedTd = JSON.parse(fs.readFileSync(path.join(EVID, 'seed_tabledata.json'), 'utf8'));
+  const renderedFixture = renderedFrom(P, seedTd);
+  const dStored = API.dacFirstDiff(composed.tables, renderedFixture.tables);
+  ok(dStored === null, 'tables recompose EXACTLY as STORED, against the RENDERED shape' +
+    (dStored ? ': ' + dStored : ''));
+  const dDisp = API.dacFirstDiff(displayView(composed), displayView(renderedFixture));
   ok(dDisp === null, 'and EXACTLY on the display view, which is what a viewer reads' +
     (dDisp ? ': ' + dDisp : ''));
+  /* the five orphan title-years are exactly why that reference is needed:
+   * ABSENT from the file, NULL in the rendered payload */
+  const orph = ['A7', 'G3', 'G5', 'G7', 'G9'];
+  ok(orph.every(id => !('2023' in (P.tables[id].data || {}))),
+     'raw payload.json has NO 2023 key for the five orphan tables');
+  ok(orph.every(id => renderedFixture.tables[id].data['2023'] === null),
+     'the RENDERED payload has an explicit null there');
+  ok(orph.every(id => composed.tables[id].data['2023'] === null),
+     'and the composer now produces the same explicit null: absent and ' +
+     'explicitly-null are different, and the app produces the second');
   /* and prove the comparison can fail, so "EXACT" means something */
   const broken = JSON.parse(JSON.stringify(composed.sections));
   broken.A.name = broken.A.name + ' ';
@@ -638,13 +678,9 @@ guard('the predicted verdict', () => {
 
   /* THE RENDERED PAYLOAD: payload.json after applyOverrides and
    * applyAddedYears, which is what a viewer reads today. */
-  const rend = JSON.parse(JSON.stringify(P));
-  td.forEach(r => {
-    if (r.cr2bf_rows == null) return;
-    const t = rend.tables[r.cr2bf_tableid]; if (!t) return;
-    t.data = t.data || {};
-    t.data[String(r.cr2bf_year)] = JSON.parse(r.cr2bf_rows);
-  });
+  /* through the shared helper, so this reference cannot drift from the one the
+   * fixture assertions use -- and so the null-row guard cannot creep back */
+  const rend = renderedFrom(P, td);
   rend.meta.years = Array.from(new Set(rend.meta.years.concat(['2099'])))
     .sort((x, y) => parseInt(y, 10) - parseInt(x, 10));
 

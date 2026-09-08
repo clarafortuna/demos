@@ -23,14 +23,18 @@ CLCPA-238 step 5 -- mutation controls
        1 red, incl: it reads its four tables together
   red  the localStorage backend returns an empty shape instead of null
        1 red, incl: the localStorage backend returns null, so shadow mode reports "no source" instead of a mismatch on ev
+  red  A TITLE-ONLY ROW COMPOSES TO undefined AGAIN, not an explicit null
+       6 red, incl: tables recompose EXACTLY as STORED, against the RENDERED shape: .A7.data.2023: undefined vs null
+  red  the null is written for EVERY row, not only the ones with no data
+       12 red, incl: tables recompose EXACTLY as STORED, against the RENDERED shape: .A1.data.2023: null vs [["AMEEP - Ele
   red  years are stored on the meta row instead of derived
        5 red, incl: meta.years matches: 2023,2024,2025
   noop the title-only rows create a year that was never reported
        green as expected: this mutation changes nothing on this data
   red  presentation hints are dropped, losing header_levels on 4 tables
-       5 red, incl: tables recompose EXACTLY as STORED: .A10.header_levels: undefined vs 2
+       5 red, incl: tables recompose EXACTLY as STORED, against the RENDERED shape: .A10.header_levels: undefined vs 2
   red  mapping is dropped from every table
-       5 red, incl: tables recompose EXACTLY as STORED: .A1.mapping: undefined vs {"comparable":"Yes at total level; by-p
+       5 red, incl: tables recompose EXACTLY as STORED, against the RENDERED shape: .A1.mapping: undefined vs {"comparabl
   red  the schema column is ignored, so every table loses schema_by_year
        12 red, incl: charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac 
   red  section invert_metric is passed through untruthed, so 0 stays 0
@@ -72,5 +76,5 @@ CLCPA-238 step 5 -- mutation controls
   red  the compare stops distinguishing 0 from -0
        1 red, incl: zero and NEGATIVE zero are told apart
 
-  35 caught, 0 not caught, of 35
+  37 caught, 0 not caught, of 37
   clean re-run against restored source: PASSES

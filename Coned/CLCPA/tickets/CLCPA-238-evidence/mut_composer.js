@@ -61,6 +61,20 @@ const M = [
     to:   "        async getReportSource() { return { tabledata: [], tables: [], sections: [], metrics: [] }; },",
     expect: 'the localStorage backend returns null' },
 
+  /* ---- the orphan title-year SHAPE, which survived a whole fix round -- */
+  { name: 'A TITLE-ONLY ROW COMPOSES TO undefined AGAIN, not an explicit null',
+    from: "        t.data[y] = null;",
+    to:   "        void y;",
+    /* This is the shape error the shadow caught twice. Raw payload.json has no
+     * key for a title-only year, so the offline proof said "correct" while the
+     * app produced an explicit null through applyOverrides. Now caught against
+     * the RENDERED reference. */
+    expect: 'tables recompose EXACTLY as STORED, against the RENDERED shape' },
+  { name: 'the null is written for EVERY row, not only the ones with no data',
+    from: "      if (x.cr2bf_rows != null) { try { t.data[y] = JSON.parse(x.cr2bf_rows); } catch (e) {} }",
+    to:   "      if (false) { try { t.data[y] = JSON.parse(x.cr2bf_rows); } catch (e) {} }",
+    expect: 'tables recompose EXACTLY as STORED, against the RENDERED shape' },
+
   /* ---- the composer: STRUCTURE ---------------------------------------- */
   { name: 'years are stored on the meta row instead of derived',
     from: "    years.sort((a, b) => parseInt(b, 10) - parseInt(a, 10));",

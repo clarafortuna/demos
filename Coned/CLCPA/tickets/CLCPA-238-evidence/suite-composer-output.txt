@@ -27,8 +27,11 @@ CLCPA-238 step 5: the composer behind the flag
   ok   sections recomposes EXACTLY from the seed
   ok   charts match the payload EXACTLY on every non-percentage field: names, order, counts, totals and dac values
   ok   every differing chart percentage IS the derived value rounded to 2dp: the stored copy is a rounding of it, exactly
-  ok   tables recompose EXACTLY as STORED
+  ok   tables recompose EXACTLY as STORED, against the RENDERED shape
   ok   and EXACTLY on the display view, which is what a viewer reads
+  ok   raw payload.json has NO 2023 key for the five orphan tables
+  ok   the RENDERED payload has an explicit null there
+  ok   and the composer now produces the same explicit null: absent and explicitly-null are different, and the app produces the second
   ok   and the comparison DOES detect a one-space change, so it can fail
   ok   meta.years matches: 2025,2024,2023
   ok   meta.current_year matches: 2025
@@ -164,5 +167,5 @@ CLCPA-238 step 5: the composer behind the flag
     against a rounded stored copy, every one under 1.5%.
 
 ======================================================================
-  108 passed, 0 failed
+  111 passed, 0 failed
 ======================================================================
