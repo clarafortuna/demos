@@ -1,0 +1,104 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: the badge round (clean after Save, and title case)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 97e2df0
+              source folder clean, so the pushed bytes are exactly 97e2df0.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b every ticket s suite passes against these exact bytes: engine=130, ui=221, xlsx=265, 230=210, 226=195, 235=74, 234=101, badge=114
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      a8198cf8ee
+                 styles.css  7a4fdb1244
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build a8198cf8ee" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FX65C3RKX
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1043701B  local=1045726B
+unchanged  styles.css   deployed=269588B  local=269588B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "fecd8c1540", derives to fecd8c1540
+            previous deploy recorded fecd8c1540 -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-08-badge-clean-and-title-case/
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1045726B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)
+published.
+
+READ-BACK app.js  1045726B  sha256 a64a6b985b3c6ba1...  VERIFIED byte-identical
+READ-BACK styles.css  269588B  sha256 7a4fdb124415b137...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 00b13623e0a7cd06...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): a8198cf8ee
+styles.css id    : 7a4fdb1244
+source           : ExecutiveDashboard_dev/ at main @ 97e2df0
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build a8198cf8ee
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, THE BADGE ROUND. Two things: the badge, and the words.
+
+THE BADGE AFTER A SAVE -- this is the whole point of the round:
+  1. open Report Data, pick any table-year, and type a change in one
+     cell. The badge must read  # Unsaved Changes  with Reset and Save
+     Changes both live.
+  2. press Save Changes and confirm. The moment the modal closes the
+     badge must flip to  o No Changes  and BOTH buttons must go grey.
+     Before today it stayed on Unsaved Changes with both live, on every
+     save of every table, so this is the one to look at hardest.
+  3. the saved value is still in the cell, and Change History has gained
+     an entry. The badge going clean must not have discarded anything.
+  4. type again: it goes back to Unsaved Changes. Press Reset and
+     confirm: clean again. Neither path leaves the badge disagreeing
+     with the buttons.
+  5. G1 2025 specifically, whose stored value is rounded: opening it
+     must still read No Changes with nothing typed. That is the
+     CLCPA-212 fix and this round must not have disturbed it.
+
+THE WORDS, title case:
+  6. the badge reads Unsaved Changes / No Changes, and the button reads
+     Save Changes -- capital C on all three.
+  7. + Add Row, and under the grid Change History with its save count.
+  8. a history entry opens with Show Details and closes with Hide
+     Details, both capitalised, and the link changes as you click.
+  9. with more than ten saves: Show All N Saves, then Show Recent 10
+     Only.
+ 10. the save modal labels read Your Name and Your Email.
+
+AND WHAT MUST NOT HAVE CHANGED:
+ 11. hovering the row x still says  Delete row  in sentence case: ruled
+     to stay, so a capital R there would be the defect.
+ 12. a history entry with no cell changes still summarises as  No
+     changes  in sentence case: that is prose, not the badge, and the
+     two now deliberately differ.
+ 13. an import still shows the two-line panel from CLCPA-234, unchanged:
+     Imported into the draft: N cells / Review the values below...
+
+=== log written by deploy_badge.js ===
