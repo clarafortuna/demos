@@ -54,7 +54,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
 
 === round 3: ONE STEP, every control live ===
   ok   the Add New Year dialog exists
-  ok   the page header button says Add New Year, in title case
+  ok   the page header button says Add Data, in title case
   ok   and it opens that dialog
   ok   the two-path dialog is gone by name
   ok   the choice state and Edit panel are gone
@@ -108,8 +108,8 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   and is side-effect free
   ok   and the commit uses it, so there is one set of rules
   ok   exactly ONE place adds a year
-  ok   the year is marked added
-  ok   BEFORE the apply, so a rejected file cannot undo it
+  ok   the redraw is marked
+  ok   BEFORE the apply, so a rejected file cannot undo the year
   ok   only a clean plan is applied
   ok   but the result is recorded either way, so the page can say why
   ok   and closing redraws the page, so the year and the receipt both appear
@@ -174,8 +174,10 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   because state.year has many readers: 44
 
 === round 3: the ONE STEP, EXECUTED against a DOM stub ===
-  ok   one dialog, titled Add New Year
-  ok   the year input, suggesting 2026
+  ok   one dialog, titled Add Data
+  ok   the year input is there
+  ok   defaulting to the page year, 2025, rather than the next unused one
+  ok   the next-unused suggestion is gone
   ok   with the existing-years hint
   ok   Section and Table, present
   ok   and both import controls
@@ -222,7 +224,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   and so are its section and table: an invalid year moves NOTHING
   ok   with the error shown on the field: Year must be between 2000 and 2100.
   ok   an existing year adds nothing either
-  ok   and says so
+  ok   and no longer errors about it: loading an existing year is the point
   ok   the year is added
   ok   nothing is imported
   ok   and no result panel is set
@@ -248,5 +250,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  219 passed, 0 failed
+  221 passed, 0 failed
 ======================================================================

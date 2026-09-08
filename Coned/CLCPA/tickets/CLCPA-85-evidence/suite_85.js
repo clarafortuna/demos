@@ -512,8 +512,31 @@ lines.push('=== the surfaces exist and say the right things ===');
      'and that the operator presses Save');
   ok(/Nothing was imported/.test(result) && /draft below is untouched/.test(result),
      'the rejected case says nothing was imported and the draft is untouched');
-  ok(/Not touched/.test(result), 'there is a not-touched section');
-  ok(/Rows added/.test(result), 'and added rows are called out');
+  /* CLCPA-234 addendum: THE SUCCESS PANEL IS TWO LINES. The not-touched
+   * section and the added-rows call-out are gone from it, deliberately: on a
+   * success the filled table is on screen immediately below, so the operator
+   * reads the values rather than a description of them.
+   *
+   * Asserted as an ABSENCE rather than by dropping the pin, so the detail
+   * cannot creep back onto the success panel unnoticed. */
+  const successHalf = result.slice(result.indexOf('CLCPA-234 addendum'));
+  ok(successHalf.length > 0, 'the success half of the renderer is found');
+  ok(!/Not touched/.test(successHalf),
+     'the success panel has NO not-touched section: the table is right below it');
+  ok(!/Rows added/.test(successHalf),
+     'and no added-rows enumeration');
+  ok(/Imported into the draft: /.test(successHalf) &&
+     /Nothing has been saved yet/.test(successHalf),
+     'it is the cell count and the save reminder, and nothing else');
+  /* AND THE HALF THE RULING PROTECTS: a rejection still names everything,
+   * because there is nothing on screen for the operator to read instead. */
+  const rejectHalf = result.slice(0, result.indexOf('CLCPA-234 addendum'));
+  ok(/r\.rejections\.map/.test(rejectHalf),
+     'a rejection still lists every rejection');
+  ok(/cell\(x\)/.test(rejectHalf),
+     'naming the cell and column for each');
+  ok(/Nothing was imported/.test(rejectHalf),
+     'and heads the panel with the fact that nothing was imported');
   ok(/ingest-import-bad/.test(result) && /\.ingest-import-bad/.test(CSS),
      'the rejected case is styled distinctly, and that rule exists');
   ok(/i\.importResult = null;/.test(SRC), 'a stale result is cleared on selection change');

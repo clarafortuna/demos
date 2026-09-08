@@ -1,0 +1,128 @@
+======================================================================
+CLCPA-234 -- Add Data: one dialog, two cases
+======================================================================
+
+=== the names, and the title-case rule ===
+  ok   the page button reads Add Data
+  ok   and so does the dialog it opens
+  ok   BASE control: both said Add New Year
+  ok   and the old name survives nowhere in the markup
+  ok   Add Data is title case
+  ok   Load Data is title case
+  ok   Add Year is title case
+
+=== the suggestion is GONE; the page year is the default ===
+  ok   BASE control: the next-unused-year suggestion existed
+  ok   it is gone from the code, not merely unused
+  ok   the dialog is found
+  ok   the default comes from the year the PAGE is on
+  ok   and that is what the field is drawn from
+  ok   with no max-plus-one arithmetic left anywhere in the dialog
+  ok   validation still reads what the operator typed
+  ok   and never the drawn value, which was CLCPA-226 finding B
+
+=== ONE PREDICATE decides the case, so nothing can disagree ===
+  ok   existence is asked of the year list, once
+  ok   and the case is derived from the value the FIELD shows
+  ok   the label and the consequence line both use it: 2 uses
+  ok   and the handler asks the same question of the same list
+  ok   with no second, hand-rolled test of whether a year exists
+
+=== the consequence line: on screen BEFORE the button ===
+  ok   the line exists
+  ok   the existing case says nothing is created
+  ok   and the new case says it will be created, and where it shows up
+  ok   the existing sentence appears ONCE in the code
+  ok   and so does the new one
+  ok   it does appear in prose too, which is why that counts code only
+  ok   and the Load Data label is written once: 1
+  ok   it updates as the year is typed
+  ok   updating BOTH the line and the button label together
+  ok   both from the SAME two functions the first draw uses, so they cannot drift apart
+  ok   and the first draw calls those same two
+  ok   BASE control: there was no such line
+
+=== DRIVEN: which case gets WHICH sentence ===
+  ok   consequenceText is found in the dialog
+  ok   an EXISTING year gets the exists sentence: 2025 already exists. Values will load into the editor as a
+  ok   ending in the promise that matters: nothing is created
+  ok   and never says it is new
+  ok   a NEW year gets the new sentence: 2100 is new. It will be created and added to the year sele
+  ok   saying it will be created
+  ok   and NEVER says nothing is created, which is the swap that must be impossible
+  ok   the existing case is labelled Load Data
+  ok   and the new case Add Year
+
+=== DRIVEN: it is impossible to create a year not intended ===
+  ok   addReportingYear was NOT called: ["loadIngestDraft"]
+  ok   and the handler completed without throwing
+  ok   nor with any other year
+  ok   the page is pointed at 2025
+  ok   and its draft is loaded: 23 rows
+  ok   the dialog closes and the page redraws
+  ok   the year list is the same length as before: 3
+  ok   addReportingYear IS called for a new year: ["addReportingYear:2099"]
+  ok   and the page lands on it
+  ok   the dialog closes and the page redraws
+  ok   nothing is created for an empty year
+  ok   the dialog stays open
+  ok   with a named error: Please enter a valid year.
+  ok   nor for a year out of range
+  ok   named too: Year must be between 2000 and 2100.
+
+=== THE SHARED INVARIANT on this ticket s new path ===
+  ok   existing year with a staged file: still creates nothing
+  ok   a result is set
+  ok   and it is a clean plan: 44 values, 0 rows added
+  ok   the draft holds rows: 23
+  ok   AFTER THE REDRAW the draft survives: 23 rows
+  ok   and the panel renders: the CLCPA-235 invariant holds on the new path too
+
+=== the flag that would have lied ===
+  ok   the redraw flag is named for what it does
+  ok   and close reads it
+  ok   no `added` remains in the dialog s code
+  ok   BASE control: it was called `added`, which the existing-year case would have set true while adding nothing
+
+=== THE ADDENDUM: a success panel of two lines, DRIVEN ===
+  ok   the fixture plans cleanly
+  ok   creating one row: ["A Brand New Program"]
+  ok   with one unmatched column: Not A Column
+  ok   and blanks skipped: 3
+  ok   line one is the cell count: Imported into the draft: 5 cells
+  ok   line two is the review-and-save reminder, verbatim
+  ok   the row it CREATED is not enumerated, though the plan knows about it
+  ok   not even by name
+  ok   there is no not-touched section
+  ok   the unmatched column is not listed
+  ok   nor the blanks
+  ok   one heading and one paragraph, nothing more: 1 + 1
+  ok   the result object still carries every category: only the RENDER dropped them
+  ok   the fixture is rejected
+  ok   the panel says nothing was imported
+  ok   and that the draft is untouched
+  ok   NAMING THE REASON, which is the CLCPA-85 law and is untouched here
+  ok   as a list, one entry per rejection: 1
+  ok   a rejection panel is LONG where a success panel is two lines: 292 chars
+
+=== THE FIRST DRAW, where the predicate was wrong ===
+  ok   the year accessors are found as one block
+  ok   on the first draw typedYear is empty, as it must be
+  ok   while drawYear is the page year: 2025
+  ok   and the case is EXISTING, read from the value the field will show
+  ok   so the line says it exists: 2025 already exists. Values will load into the edito
+  ok   and the button says Load Data: Load Data
+  ok   a page year that does not exist reads as NEW
+  ok   and the line says so: 2099 is new. It will be created and adde
+  ok   with Add Year on the button
+  ok   typing an existing year switches the case, whatever the page year was
+  ok   and the label with it
+  ok   and typing a new one switches back
+  ok   and the label again
+  ok   naming the year typed, not the page year
+  ok   DISPLAY reads drawYear, the value the field shows
+  ok   and typedYear still has NO fallback, for validation
+
+======================================================================
+  101 passed, 0 failed
+======================================================================
