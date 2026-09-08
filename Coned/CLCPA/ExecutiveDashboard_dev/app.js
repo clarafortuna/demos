@@ -14169,6 +14169,27 @@ function wireHTooltips() {
       const t = tables[x.cr2bf_tableid]; if (!t) return;
       const y = String(x.cr2bf_year);
       if (x.cr2bf_rows != null) { try { t.data[y] = JSON.parse(x.cr2bf_rows); } catch (e) {} }
+      else {
+        /* A TITLE-YEAR WITH NO DATA COMPOSES TO AN EXPLICIT NULL, because that
+         * is what the app already produces and the composer must reproduce the
+         * RENDERED shape, not a tidier one.
+         *
+         * The five orphan title-years -- A7:2023 and the four abandonment
+         * tables G3/G5/G7/G9:2023 -- carry a title and no data. Raw payload.json
+         * simply has no key for those years. But dvBackend.init caches
+         * JSON.parse(null), which is null, and applyOverrides then writes
+         * t.data[year] = null unconditionally, so the RENDERED payload gains an
+         * explicit null where the file had nothing at all.
+         *
+         * Skipping the key here left `undefined vs null`, which is what the
+         * shadow reported: not a value error but a SHAPE error, and one that
+         * survived the first fix round because my offline proof compared
+         * against raw payload.json, where the key is genuinely absent.
+         *
+         * Absent and explicitly-null are different, and the app produces the
+         * second. */
+        t.data[y] = null;
+      }
       if (x.cr2bf_schema != null) { try { t.schema_by_year[y] = JSON.parse(x.cr2bf_schema); } catch (e) {} }
       if (x.cr2bf_title != null) t.title_by_year[y] = x.cr2bf_title;
     });
@@ -14397,6 +14418,43 @@ function wireHTooltips() {
       parts.forEach(p => {
         if (verdict[p]) console.warn('    ' + p + '  ' + verdict[p]);
       });
+
+      /* A TARGETED PROBE, and it exists because inference ran out.
+       *
+       * On a pure Dataverse backend the step-5 shadow reported payload holding
+       * 0.88 at A1.data.2025[0][3], where an applied override would have put
+       * null. Every path I can read says applyOverrides writes the cached rows
+       * unconditionally, and reconstructing the shipped cache build plus
+       * applyOverrides offline yields null. Two candidates are eliminated: a
+       * localStorage fallback (the backend line says Dataverse) and an empty
+       * cache (the composer received rows from the same table).
+       *
+       * So rather than reason further, the shadow reports the three facts that
+       * separate the remaining possibilities: how many overrides the cache
+       * holds, what the cache holds for that cell, and what the payload holds
+       * for it. If the cache has the row and the payload disagrees, something
+       * between applyOverrides and here is putting the file's value back. If
+       * the cache is missing the row, the two reads of one table disagreed.
+       *
+       * Diagnostic only: it reads, prints, and changes nothing. */
+      if (verdict.tables) {
+        try {
+          const keys = (Storage.listOverrides && Storage.listOverrides()) || [];
+          console.warn('    probe: overrides in cache = ' + keys.length);
+          const ov = Storage.getOverride && Storage.getOverride('A1', '2025');
+          const cell = (ov && ov[0]) ? ov[0][3] : '(no A1:2025 override)';
+          const pay = (payload.tables && payload.tables.A1 && payload.tables.A1.data &&
+            payload.tables.A1.data['2025'] && payload.tables.A1.data['2025'][0])
+            ? payload.tables.A1.data['2025'][0][3] : '(absent)';
+          const comp = (composed.tables && composed.tables.A1 && composed.tables.A1.data &&
+            composed.tables.A1.data['2025'] && composed.tables.A1.data['2025'][0])
+            ? composed.tables.A1.data['2025'][0][3] : '(absent)';
+          console.warn('    probe: A1:2025[0][3]  cache=' + JSON.stringify(cell) +
+            '  payload=' + JSON.stringify(pay) + '  composed=' + JSON.stringify(comp));
+        } catch (e) {
+          console.warn('    probe failed (harmless): ' + (e && e.message ? e.message : e));
+        }
+      }
     }
     return { ok: true, same: same, of: parts.length, verdict: verdict, ms: ms };
   }
