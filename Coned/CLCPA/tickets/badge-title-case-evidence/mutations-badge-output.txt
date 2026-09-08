@@ -1,0 +1,52 @@
+======================================================================
+THE BADGE ROUND -- mutation controls
+======================================================================
+  red  THE SHIPPED BUG RESTORED: the save handler stops adopting the reference
+       3 red, incl: and adopts the badge reference through the one helper
+  red  the save handler sets dirty by hand as well, so the pair can drift again
+       1 red, incl: and does NOT set i.dirty by hand, which is what let the pair drift
+  red  the baseline is no longer moved to the saved draft
+       1 red, incl: it still adopts the saved draft as the new baseline
+  red  adoption stops recomputing, so the reference is the raw baseline
+       5 red, incl: the reference holds the COMPUTED value, not the stored one
+  red  adoption recomputes the BASELINE IN PLACE, corrupting the source
+       3 red, incl: on a COPY, so the baseline itself is never recomputed
+  red  adoption leaves the draft dirty
+       1 red, incl: adoption leaves the state clean by itself, before any recompute
+  red  recomputeDirty compares against the baseline again (CLCPA-212 returns)
+       4 red, incl: so a table whose stored value is rounded opens CLEAN -- the CLCPA-212 fix
+  red  loadIngestDraft stops adopting, so a fresh open has no reference
+       2 red, incl: loadIngestDraft adopts the reference when a table is opened
+  red  the badge reverts to sentence case
+       7 red, incl: the dirty badge reads "● Unsaved Changes"
+  red  the in-place refresh spells the words out again, so the two can drift
+       3 red, incl: the dirty/clean pair is written exactly once: 2
+  red  the full draw spells them out again
+       2 red, incl: the full draw calls it
+  red  the modified/clean class stops following the state
+       1 red, incl: the modified/clean class is centralised with it
+  red  the Save button reverts
+       4 red, incl: the save button reads "Save Changes"
+  red  the add-row link reverts
+       4 red, incl: the add-row link is title case
+  red  the history heading reverts
+       2 red, incl: the history heading, populated is title case
+  red  the toggle halves disagree: title case initially, sentence case after a click
+       4 red, incl: the toggle in js is title case
+  red  the form labels revert
+       4 red, incl: the name field label is title case
+  red  A NEW sentence-case label is added, one the list does not mention
+       2 red, incl: UNEXPLAINED sentence-case label: "Copy from previous year" (button, words: previous,year)
+  red  the CLCPA-226 tooltip is retitled, re-opening a closed ticket's evidence
+       2 red, incl: the delete-row tooltip still reads "Delete row", both attributes
+  red  the history SUMMARY prose is title-cased, breaking its own family
+       4 red, incl: its "No changes" is unchanged: it is prose, not the badge
+  red  the CLCPA-234 panel is edited, which this round may not do
+       4 red, incl: the import result panel is unchanged by this round
+  red  an UNRELATED function is changed, which the round claims none were
+       2 red, incl: and no function outside that list moved at all
+  red  a helper is renamed, so the new-function set no longer matches
+       2 red, incl: exactly the three intended helpers are new
+
+  23 caught, 0 not caught, of 23
+  clean re-run against restored source: PASSES
