@@ -1,0 +1,1142 @@
+SELF-CHECK  no DELETE/PATCH/PUT anywhere: this step only adds.
+            POST targets are built from EntityDefinitions paths only,
+            so no row can be created by this file. Schema only.
+
+======================================================================
+CLCPA-238 STEP 3 -- THE SCHEMA
+  org: https://org9076e69b.crm.dynamics.com
+  3 tables + 2 columns. No rows, no seed, no app code.
+======================================================================
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  AS33ZGYNX
+#################################################
+
+Waiting for authorization...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+
+======================================================================
+PHASE A  pre-flight, read-only
+======================================================================
+A1  existing table cr2bf_dacingesttesttabledata1
+      SchemaName        cr2bf_DACIngestTestTableData1
+      OwnershipType     UserOwned   <- the new tables will MATCH this
+      PrimaryNameAttr   cr2bf_key
+      IsManaged         false
+A2  its cr2bf_rows column: Memo, MaxLength 1048576
+      measured largest blob in payload.json: 3,257 chars
+      headroom 1045319 chars
+      neither cr2bf_schema nor cr2bf_title exists yet: clear to add.
+A3  none of the three new tables exists yet: clear to create.
+A4  unmanaged solutions in this org:
+      Active                           "Active Solution"  v1.0
+      Basic                            "Basic Solution"  v1.0
+      ClaraPM                          "Clara PM"  v1.0.0.0
+      CLCPA                            "CLCPA"  v1.0.21.37
+      CLCPADACDashboard                "CLCPA DAC Dashboard"  v1.0.0.4
+      Cr80881                          "Common Data Services Default Solution"  v1.0.0.0
+      Default                          "Default Solution"  v1.0
+      Phase7ExternalCollaboratorRole   "Phase 7 External Collaborator Role"  v1.0.0.1
+      SLEmployeeInteractions           "SL-EmployeeInteractions"  v1.0.0.2
+      SLEmployeeMonthlyScorecard       "SLEmployeeMonthlyScorecard"  v1.0.0.1
+      SustainabilityByDesign           "Sustainability by Design"  v1.0.0.6
+      SustainabilityByDesign_CF        "SustainabilityByDesign_CF"  v1.0.0.2
+      UnifiedCSRPortal                 "Unified CSR Portal"  v1.0.0.154
+A4  solution resolved: CLCPADACDashboard   (from the existing table's own solution component record)
+      every creation below carries MSCRM.SolutionUniqueName: CLCPADACDashboard
+
+======================================================================
+PHASE B  THE EXACT PAYLOADS. What follows is what gets posted.
+======================================================================
+
+OwnershipType for all three: UserOwned (read from cr2bf_dacingesttesttabledata1)
+Solution for all creations : CLCPADACDashboard
+Language code              : 1033
+
+--- TABLE 1 of 3: cr2bf_dacreporttable ---
+POST EntityDefinitions
+{
+  "@odata.type": "Microsoft.Dynamics.CRM.EntityMetadata",
+  "SchemaName": "cr2bf_DACReportTable",
+  "DisplayName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "DAC Report Table",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "DisplayCollectionName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "DAC Report Tables",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "Description": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "CLCPA-238. One row per report table: its section, number, short title and year-over-year comparability note. 52 rows.",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "OwnershipType": "UserOwned",
+  "IsActivity": false,
+  "HasActivities": false,
+  "HasNotes": false,
+  "Attributes": [
+    {
+      "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+      "AttributeType": "String",
+      "AttributeTypeName": {
+        "Value": "StringType"
+      },
+      "SchemaName": "cr2bf_TableKey",
+      "MaxLength": 10,
+      "FormatName": {
+        "Value": "Text"
+      },
+      "RequiredLevel": {
+        "Value": "ApplicationRequired"
+      },
+      "DisplayName": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "Table Key",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "Description": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "The report table id, for example A1. Measured max 3 chars.",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "IsPrimaryName": true
+    }
+  ]
+}
+
+then 4 columns, each POST EntityDefinitions(LogicalName='cr2bf_dacreporttable')/Attributes
+  cr2bf_Section  String(4)
+  cr2bf_Number  Integer(0..999)
+  cr2bf_ShortTitle  String(100)
+  cr2bf_Mapping  String(1000)
+
+  full column payloads:
+[
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Section",
+    "MaxLength": 4,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Section",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Section letter A to J. Measured max 1 char.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.IntegerAttributeMetadata",
+    "AttributeType": "Integer",
+    "AttributeTypeName": {
+      "Value": "IntegerType"
+    },
+    "SchemaName": "cr2bf_Number",
+    "MinValue": 0,
+    "MaxValue": 999,
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Number",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Table number within its section.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_ShortTitle",
+    "MaxLength": 100,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Short Title",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Short title for menus. Measured max 21 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Mapping",
+    "MaxLength": 1000,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Mapping",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "JSON: year-over-year comparability {status, comparable, notes}. Measured max 104 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  }
+]
+
+--- TABLE 2 of 3: cr2bf_dacreportsection ---
+POST EntityDefinitions
+{
+  "@odata.type": "Microsoft.Dynamics.CRM.EntityMetadata",
+  "SchemaName": "cr2bf_DACReportSection",
+  "DisplayName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "DAC Report Section",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "DisplayCollectionName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "DAC Report Sections",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "Description": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "CLCPA-238. One row per report section A to J: its names, blurb and metric direction. 10 rows.",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "OwnershipType": "UserOwned",
+  "IsActivity": false,
+  "HasActivities": false,
+  "HasNotes": false,
+  "Attributes": [
+    {
+      "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+      "AttributeType": "String",
+      "AttributeTypeName": {
+        "Value": "StringType"
+      },
+      "SchemaName": "cr2bf_SectionKey",
+      "MaxLength": 4,
+      "FormatName": {
+        "Value": "Text"
+      },
+      "RequiredLevel": {
+        "Value": "ApplicationRequired"
+      },
+      "DisplayName": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "Section Key",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "Description": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "Section letter A to J. Measured max 1 char.",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "IsPrimaryName": true
+    }
+  ]
+}
+
+then 5 columns, each POST EntityDefinitions(LogicalName='cr2bf_dacreportsection')/Attributes
+  cr2bf_Name  String(100)
+  cr2bf_ShortName  String(50)
+  cr2bf_FullName  String(150)
+  cr2bf_InvertMetric  Boolean
+  cr2bf_Blurb  String(1000)
+
+  full column payloads:
+[
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Name",
+    "MaxLength": 100,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Name",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Section name. Measured max 15 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_ShortName",
+    "MaxLength": 50,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Short Name",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Compact name. Measured max 12 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_FullName",
+    "MaxLength": 150,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Full Name",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Full name. Measured max 29 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.BooleanAttributeMetadata",
+    "AttributeType": "Boolean",
+    "AttributeTypeName": {
+      "Value": "BooleanType"
+    },
+    "SchemaName": "cr2bf_InvertMetric",
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Invert Metric",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "True when a lower value is better for this section.",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "OptionSet": {
+      "@odata.type": "Microsoft.Dynamics.CRM.BooleanOptionSetMetadata",
+      "TrueOption": {
+        "Value": 1,
+        "Label": {
+          "@odata.type": "Microsoft.Dynamics.CRM.Label",
+          "LocalizedLabels": [
+            {
+              "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+              "Label": "Yes",
+              "LanguageCode": 1033
+            }
+          ]
+        }
+      },
+      "FalseOption": {
+        "Value": 0,
+        "Label": {
+          "@odata.type": "Microsoft.Dynamics.CRM.Label",
+          "LocalizedLabels": [
+            {
+              "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+              "Label": "No",
+              "LanguageCode": 1033
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Blurb",
+    "MaxLength": 1000,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Blurb",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Section description. Measured max 163 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  }
+]
+
+--- TABLE 3 of 3: cr2bf_dacreportmetric ---
+POST EntityDefinitions
+{
+  "@odata.type": "Microsoft.Dynamics.CRM.EntityMetadata",
+  "SchemaName": "cr2bf_DACReportMetric",
+  "DisplayName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "DAC Report Metric",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "DisplayCollectionName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "DAC Report Metrics",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "Description": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "CLCPA-238. Definitions only, never values: 12 reported KPIs, 6 analytical KPIs, 12 charts and 1 meta row. Values are DERIVED from table data. 31 rows.",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "OwnershipType": "UserOwned",
+  "IsActivity": false,
+  "HasActivities": false,
+  "HasNotes": false,
+  "Attributes": [
+    {
+      "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+      "AttributeType": "String",
+      "AttributeTypeName": {
+        "Value": "StringType"
+      },
+      "SchemaName": "cr2bf_MetricKey",
+      "MaxLength": 50,
+      "FormatName": {
+        "Value": "Text"
+      },
+      "RequiredLevel": {
+        "Value": "ApplicationRequired"
+      },
+      "DisplayName": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "Metric Key",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "Description": {
+        "@odata.type": "Microsoft.Dynamics.CRM.Label",
+        "LocalizedLabels": [
+          {
+            "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+            "Label": "KPI id, chart key, or \"meta\". Measured max 21 chars.",
+            "LanguageCode": 1033
+          }
+        ]
+      },
+      "IsPrimaryName": true
+    }
+  ]
+}
+
+then 9 columns, each POST EntityDefinitions(LogicalName='cr2bf_dacreportmetric')/Attributes
+  cr2bf_Kind  String(20)
+  cr2bf_Label  String(100)
+  cr2bf_Section  String(4)
+  cr2bf_Format  String(30)
+  cr2bf_Unit  String(20)
+  cr2bf_PrimaryMetric  String(20)
+  cr2bf_Narrative  String(1000)
+  cr2bf_SourceCalc  String(500)
+  cr2bf_Spec  String(4000)
+
+  full column payloads:
+[
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Kind",
+    "MaxLength": 20,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Kind",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "One of kpi_reported, kpi_analytical, chart, meta. Measured max 15 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Label",
+    "MaxLength": 100,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Label",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Display label. Measured max 32 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Section",
+    "MaxLength": 4,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Section",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Section letter, where it has one.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Format",
+    "MaxLength": 30,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Format",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "currency, int, pct, ratio and so on. Measured max 16 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Unit",
+    "MaxLength": 20,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Unit",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Unit label. Measured max 12 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_PrimaryMetric",
+    "MaxLength": 20,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Primary Metric",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Measured max 5 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Narrative",
+    "MaxLength": 1000,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Narrative",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Card narrative. Measured max 272 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_SourceCalc",
+    "MaxLength": 500,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Source Calc",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Human-readable derivation note, prose not an executable rule. Measured max 68 chars.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  },
+  {
+    "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+    "AttributeType": "String",
+    "AttributeTypeName": {
+      "Value": "StringType"
+    },
+    "SchemaName": "cr2bf_Spec",
+    "MaxLength": 4000,
+    "FormatName": {
+      "Value": "Text"
+    },
+    "RequiredLevel": {
+      "Value": "None"
+    },
+    "DisplayName": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "Spec",
+          "LanguageCode": 1033
+        }
+      ]
+    },
+    "Description": {
+      "@odata.type": "Microsoft.Dynamics.CRM.Label",
+      "LocalizedLabels": [
+        {
+          "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+          "Label": "JSON for the meta row config and any future machine-readable spec.",
+          "LanguageCode": 1033
+        }
+      ]
+    }
+  }
+]
+
+--- THE TWO COLUMNS ON cr2bf_dacingesttesttabledata1 ---
+POST EntityDefinitions(LogicalName='cr2bf_dacingesttesttabledata1')/Attributes
+{
+  "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+  "AttributeType": "String",
+  "AttributeTypeName": {
+    "Value": "StringType"
+  },
+  "SchemaName": "cr2bf_Schema",
+  "MaxLength": 4000,
+  "FormatName": {
+    "Value": "Text"
+  },
+  "RequiredLevel": {
+    "Value": "None"
+  },
+  "DisplayName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "Schema",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "Description": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "JSON array of column headers for this table-year. Measured max 134 chars.",
+        "LanguageCode": 1033
+      }
+    ]
+  }
+}
+POST EntityDefinitions(LogicalName='cr2bf_dacingesttesttabledata1')/Attributes
+{
+  "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+  "AttributeType": "String",
+  "AttributeTypeName": {
+    "Value": "StringType"
+  },
+  "SchemaName": "cr2bf_Title",
+  "MaxLength": 500,
+  "FormatName": {
+    "Value": "Text"
+  },
+  "RequiredLevel": {
+    "Value": "None"
+  },
+  "DisplayName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "Title",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "Description": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "The table title for this year. Measured max 166 chars.",
+        "LanguageCode": 1033
+      }
+    ]
+  }
+}
+
+======================================================================
+PHASE C  create, each verified by re-reading EntityDefinitions
+======================================================================
+
+CREATE table cr2bf_dacreporttable
+  POST -> 204
+  verified: SchemaName cr2bf_DACReportTable, Ownership UserOwned, ObjectTypeCode 11046, PrimaryNameAttr cr2bf_tablekey
+  primary column resolves back by name: cr2bf_tablekey
+    ok cr2bf_section  String(4)
+    ok cr2bf_number  Integer
+    ok cr2bf_shorttitle  String(100)
+    ok cr2bf_mapping  String(1000)
+  all 4 columns verified by name and type.
+
+CREATE table cr2bf_dacreportsection
+  POST -> 204
+  verified: SchemaName cr2bf_DACReportSection, Ownership UserOwned, ObjectTypeCode 11047, PrimaryNameAttr cr2bf_sectionkey
+  primary column resolves back by name: cr2bf_sectionkey
+    ok cr2bf_name  String(100)
+    ok cr2bf_shortname  String(50)
+    ok cr2bf_fullname  String(150)
+    ok cr2bf_invertmetric  Boolean
+    ok cr2bf_blurb  String(1000)
+  all 5 columns verified by name and type.
+
+CREATE table cr2bf_dacreportmetric
+  POST -> 204
+  verified: SchemaName cr2bf_DACReportMetric, Ownership UserOwned, ObjectTypeCode 11048, PrimaryNameAttr cr2bf_metrickey
+  primary column resolves back by name: cr2bf_metrickey
+    ok cr2bf_kind  String(20)
+    ok cr2bf_label  String(100)
+    ok cr2bf_section  String(4)
+    ok cr2bf_format  String(30)
+    ok cr2bf_unit  String(20)
+    ok cr2bf_primarymetric  String(20)
+    ok cr2bf_narrative  String(1000)
+    ok cr2bf_sourcecalc  String(500)
+    ok cr2bf_spec  String(4000)
+  all 9 columns verified by name and type.
+
+CREATE the two columns on cr2bf_dacingesttesttabledata1
+  POST cr2bf_Schema -> 204
+  POST cr2bf_Title -> 204
+    ok cr2bf_schema  String(4000)
+    ok cr2bf_title  String(500)
+  both columns verified by name, type and length.
+
+======================================================================
+THE FACTS FOR THE RANDY NOTE -- privilege names READ from metadata
+======================================================================
+  cr2bf_dacreporttable: cannot read privileges (400)
+  cr2bf_dacreportsection: cannot read privileges (400)
+  cr2bf_dacreportmetric: cannot read privileges (400)
+
+======================================================================
+=== SCHEMA COMPLETE ===
+  tables created : cr2bf_dacreporttable, cr2bf_dacreportsection, cr2bf_dacreportmetric
+  columns created: 20
+      cr2bf_dacreporttable.cr2bf_section
+      cr2bf_dacreporttable.cr2bf_number
+      cr2bf_dacreporttable.cr2bf_shorttitle
+      cr2bf_dacreporttable.cr2bf_mapping
+      cr2bf_dacreportsection.cr2bf_name
+      cr2bf_dacreportsection.cr2bf_shortname
+      cr2bf_dacreportsection.cr2bf_fullname
+      cr2bf_dacreportsection.cr2bf_invertmetric
+      cr2bf_dacreportsection.cr2bf_blurb
+      cr2bf_dacreportmetric.cr2bf_kind
+      cr2bf_dacreportmetric.cr2bf_label
+      cr2bf_dacreportmetric.cr2bf_section
+      cr2bf_dacreportmetric.cr2bf_format
+      cr2bf_dacreportmetric.cr2bf_unit
+      cr2bf_dacreportmetric.cr2bf_primarymetric
+      cr2bf_dacreportmetric.cr2bf_narrative
+      cr2bf_dacreportmetric.cr2bf_sourcecalc
+      cr2bf_dacreportmetric.cr2bf_spec
+      cr2bf_dacingesttesttabledata1.cr2bf_schema
+      cr2bf_dacingesttesttabledata1.cr2bf_title
+  solution       : CLCPADACDashboard
+  ownership      : UserOwned
+  wall clock for phase C: 135 s   <- the uncalibrated line, measured
+  requests: GET 33, POST 23. No rows, no seed, no code.
+======================================================================

@@ -519,8 +519,23 @@ guard('nothing else in app.js moved', () => {
    * brings with it. A guard whose failures are all false is worse than no
    * guard, so it is replaced rather than loosened: which FUNCTIONS differ is
    * the claim I actually want, and it has no such noise. */
+  /* PINNED TO THIS ROUND'S OWN MERGE COMMIT, not to the working tree.
+   *
+   * This guard read app.js from disk, and it was right to fail the moment
+   * CLCPA-238 started adding functions: the working tree is no longer this
+   * round. But a closed round's blast radius is a HISTORICAL FACT -- "the badge
+   * round changed these six functions and added those three" -- and it does not
+   * become false because later work landed on top. Re-pointing it at the round's
+   * own merge keeps the claim true and checkable forever, where updating the
+   * expected lists to swallow CLCPA-238's diff would have made this suite
+   * quietly assert somebody else's change. */
+  const ROUND = process.env.DAC_ROUND_COMMIT || '97e2df0';
+  const ROUND_SRC = toCRLF(execSync('git show ' + ROUND + ':"' + REL + '"',
+    { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
+  ok(ROUND_SRC.length > 0, 'app.js at the badge round\'s merge ' + ROUND + ' is readable');
+
   const names = new Set();
-  [SRC, BASE_SRC].forEach(s => {
+  [ROUND_SRC, BASE_SRC].forEach(s => {
     const r = /\r\n  (?:async )?function (\w+)\(/g;
     let m; while ((m = r.exec(s))) names.add(m[1]);
   });
@@ -528,7 +543,7 @@ guard('nothing else in app.js moved', () => {
 
   const changed = [], appeared = [], vanished = [];
   names.forEach(n => {
-    const a = grab(n, BASE_SRC), b = grab(n, SRC);
+    const a = grab(n, BASE_SRC), b = grab(n, ROUND_SRC);
     if (a == null && b != null) { appeared.push(n); return; }
     if (a != null && b == null) { vanished.push(n); return; }
     if (a !== b) changed.push(n);

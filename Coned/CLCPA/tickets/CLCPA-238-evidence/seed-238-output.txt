@@ -1,0 +1,139 @@
+SELF-CHECK  no DELETE, no PUT. Exactly ONE patch call site, and the
+            patch body is built only from PATCH_FIELDS = cr2bf_schema, cr2bf_title,
+            so cr2bf_rows cannot be reached by it.
+
+======================================================================
+CLCPA-238 STEP 4 part 3: addendum column, membership gate, SEED WRITE
+  org: https://org9076e69b.crm.dynamics.com   solution: CLCPADACDashboard
+  backup already remote-verified: commit fedfd2d
+======================================================================
+
+THE REVIEWED SEED, hashes re-verified before anything is written:
+  seed_tabledata.json        154 rows  sha256 85345ee294ec46dd  MATCHES the manifest
+  seed_reporttable.json       52 rows  sha256 e6616dce1c11ea52  MATCHES the manifest
+  seed_reportsection.json     10 rows  sha256 00b2ae3fa7f26215  MATCHES the manifest
+  seed_reportmetric.json      31 rows  sha256 12b811f74cf2f71a  MATCHES the manifest
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  AKJLGJV6G
+#################################################
+
+Waiting for authorization...
+Authorized.
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+
+======================================================================
+GATE 0  rootcomponentbehavior on cr2bf_dacingesttesttabledata1's component record
+        0 proceeds. 1 or 2 stops the seed, adds explicit component
+        records for the two columns, verifies, and only then seeds.
+======================================================================
+  rootcomponentbehavior = 0  (Include Subcomponents)
+  ok   the parent entity includes its subcomponents, so cr2bf_schema and cr2bf_title ARE in CLCPADACDashboard -- the step-4 part-2 FAILs were the absence of their own records, not absence from the solution
+
+======================================================================
+THE ADDENDUM COLUMN -- printed before it is created
+======================================================================
+POST EntityDefinitions(LogicalName='cr2bf_dacreporttable')/Attributes
+with header MSCRM.SolutionUniqueName: CLCPADACDashboard
+{
+  "@odata.type": "Microsoft.Dynamics.CRM.StringAttributeMetadata",
+  "AttributeType": "String",
+  "AttributeTypeName": {
+    "Value": "StringType"
+  },
+  "SchemaName": "cr2bf_Presentation",
+  "MaxLength": 1000,
+  "FormatName": {
+    "Value": "Text"
+  },
+  "RequiredLevel": {
+    "Value": "None"
+  },
+  "DisplayName": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "Presentation",
+        "LanguageCode": 1033
+      }
+    ]
+  },
+  "Description": {
+    "@odata.type": "Microsoft.Dynamics.CRM.Label",
+    "LocalizedLabels": [
+      {
+        "@odata.type": "Microsoft.Dynamics.CRM.LocalizedLabel",
+        "Label": "CLCPA-238. JSON presentation hints: header_levels (A9, A10, D1, F6) and currency_cols (A9). Measured max 44 chars; 1000 for growth. Null on the 47 tables that carry neither.",
+        "LanguageCode": 1033
+      }
+    ]
+  }
+}
+  POST -> 204
+  ok   SchemaName re-reads as printed: cr2bf_Presentation
+  ok   MaxLength re-reads as printed: 1000
+  its own component record: NONE   (covered by the parent entity, per gate 0)
+
+======================================================================
+THE SEED WRITE
+======================================================================
+  existing tabledata1 keys: A1:2025, A1:2099
+
+  CREATE 52 rows in cr2bf_dacreporttables
+    52 created
+
+  CREATE 10 rows in cr2bf_dacreportsections
+    10 created
+
+  CREATE 31 rows in cr2bf_dacreportmetrics
+    31 created
+
+  cr2bf_dacingesttesttabledata1: 153 creates, 1 narrow patch(es)
+    153 created
+    PATCH A1:2025 fields: cr2bf_schema, cr2bf_title
+
+======================================================================
+VERIFY 1  row counts
+======================================================================
+  ok   cr2bf_dacreporttables holds 52 rows: 52
+  ok   cr2bf_dacreportsections holds 10 rows: 10
+  ok   cr2bf_dacreportmetrics holds 31 rows: 31
+  ok   cr2bf_dacingesttesttabledata1s holds 155 rows: 155
+
+======================================================================
+VERIFY 2  per-row content sha256 against the reviewed seed
+======================================================================
+  ok   cr2bf_dacreporttables: all 52 rows hash-match the reviewed seed (52)
+  ok   cr2bf_dacreportsections: all 10 rows hash-match the reviewed seed (10)
+  ok   cr2bf_dacreportmetrics: all 31 rows hash-match the reviewed seed (31)
+  ok   A1:2025 schema and title now match the seed (the narrow patch landed)
+  ok   tabledata1: all 153 seeded rows hash-match (153)
+  ok   the 5 orphan title-years are present in Dataverse: A7:2023, G3:2023, G5:2023, G7:2023, G9:2023
+  ok   each carries its title and NO data, which is what they are
+  ok   A1:2025 cr2bf_rows is BYTE-IDENTICAL to the pre-seed backup: the three typed zeros in "DAC Funding ($)" were not touched
+
+======================================================================
+VERIFY 3  full canonical recomposition from DATAVERSE vs payload.json
+======================================================================
+  ok   A1:2099 recomposed from the org, as an extra the payload never had
+  ok   A1:2025 differs from the payload in EXACTLY the documented cells: 3 in column 2 (the preserved typed zeros) and 21 in column 3 (derived, nulled by CLCPA-142), and nowhere else. Got 3/21/0
+  ok   every other table-year recomposes EXACTLY from Dataverse
+  ok   sections recompose EXACTLY from Dataverse
+  years derived from the org rows: 2099, 2025, 2024, 2023
+  ok   meta.years derives from the org rows, once 2099 is set aside: 2025,2024,2023
+
+======================================================================
+=== SEED COMPLETE ===
+  column created : cr2bf_dacreporttable.cr2bf_presentation
+  solution comps : none needed
+  rows created   : cr2bf_dacreporttables             52
+  rows created   : cr2bf_dacreportsections           10
+  rows created   : cr2bf_dacreportmetrics            31
+  rows created   : cr2bf_dacingesttesttabledata1s    153
+  rows patched   : A1:2025
+  checks: 20 passed, 0 failed, of 20
+  requests: GET 18, POST 247, PATCH 1
+  ledger: seed_238_ledger.json (every created row id, for rollback)
+======================================================================

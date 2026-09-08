@@ -29,7 +29,7 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   shared with openSaveModal, not reinvented: ingest-modal-close
 
 === FINDING A: the call site resolves IN SCOPE ===
-  ok   the Storage IIFE close is located: offset 84097
+  ok   the Storage IIFE close is located: offset 86579
   ok   showToast is declared INSIDE that IIFE, which is why it is not global
   ok   and NO bare showToast( call survives outside it: 0
   ok   BASE control: exactly ONE such call existed, which is the defect: 1

@@ -1,0 +1,124 @@
+======================================================================
+CLCPA-238 step 5: the composer behind the flag
+  BASE 7289e14 (main before this round)
+======================================================================
+
+=== 1. THE COMPOSER, driven from the real seed files ===
+  ok   every composer function is found in app.js
+  ok   every rule table is found in app.js
+  ok   the composer is callable
+  ok   seed_tabledata.json matches its manifest sha256, so the fixture is the seed that was written
+  ok   seed_reporttable.json matches its manifest sha256, so the fixture is the seed that was written
+  ok   seed_reportsection.json matches its manifest sha256, so the fixture is the seed that was written
+  ok   seed_reportmetric.json matches its manifest sha256, so the fixture is the seed that was written
+  ok   the composer returns a payload
+  ok   with loadPayload's exact top-level shape: charts,kpis,meta,sections,tables
+  ok   key ORDER is ignored
+  ok   array ORDER is significant
+  ok   a changed value is caught
+  ok   an extra key is caught
+  ok   1 and "1" differ
+  ok   zero and NEGATIVE zero are told apart
+  ok   NaN equals itself, so it can be compared at all
+  ok   an array is not an object with the same keys
+  ok   and a mismatch names its coordinate: .x.y: 1 vs 2
+  ok   a null invert_metric composes to false, not null: false
+  ok   meta recomposes EXACTLY from the seed
+  ok   sections recomposes EXACTLY from the seed
+  ok   tables recomposes EXACTLY from the seed
+  ok   charts recomposes EXACTLY from the seed
+  ok   and the comparison DOES detect a one-space change, so it can fail
+  ok   meta.years matches: 2025,2024,2023
+  ok   meta.current_year matches: 2025
+  ok   the meta row exists in the seed
+  ok   and it stores NEITHER years nor current_year: both are derived
+  ok   it stores only the two genuinely-config numbers
+  ok   the 5 title-only rows are in the fixture
+  ok   2023 IS a year (other tables reported it), so their presence is not the test
+  ok   and all five are 2023, which is why a naive year list would still look right
+
+=== 2. THE ONLY DIVERGENCES ARE ROUNDED STORED COPIES ===
+    asserted by CAUSE, not by count: every one must be explained.
+  ok   clean_energy_spend exists in the payload
+  ok   energy_savings exists in the payload
+  ok   ev_funding exists in the payload
+  ok   ev_plugs exists in the payload
+  ok   dr_participation exists in the payload
+  ok   der_mw exists in the payload
+  ok   strategic_capital exists in the payload
+  ok   customer_outages exists in the payload
+  ok   main_replacement exists in the payload
+  ok   leak_repairs exists in the payload
+  ok   clean_energy_jobs exists in the payload
+  ok   residential_customers exists in the payload
+  ok   every reported KPI total and dac matches the payload EXACTLY
+    dac_pct divergences: 9
+      clean_energy_spend      2023  derived 0.4939730464674628  stored 0.49
+      clean_energy_spend      2024  derived 0.5385328691505435  stored 0.54
+      clean_energy_spend      2025  derived 0.5269600453171172  stored 0.53
+      energy_savings          2023  derived 0.41293301391366216  stored 0.41
+      energy_savings          2024  derived 0.5702898429422142  stored 0.57
+      energy_savings          2025  derived 0.5247193275980823  stored 0.52
+      dr_participation        2023  derived 0.31084807966776484  stored 0.31
+      dr_participation        2024  derived 0.3164527757750541  stored 0.32
+      residential_customers   2025  derived 0.43676506537302767  stored 0.44
+  ok   EVERY dac_pct divergence has a stored value rounded to 2dp: CLCPA-143's signature, and the reason deriving is the fix
+  ok   and there ARE some, so the assertion above is exercised rather than vacuous
+  ok   every composed dac_pct IS what the shipped kpiDacPct returns, so the card and the payload cannot disagree
+    analytical divergences: 3
+      ev_equity_ratio         2025  derived 0.808717  payload 0.802771  +0.741%
+      outage_burden_ratio     2025  derived 0.723348  payload 0.718030  +0.741%
+      leak_velocity_ratio     2025  derived 0.782481  payload 0.776728  +0.741%
+  ok   exactly 3 analytical divergences: 3
+  ok   all three are the ratios that divide by the J9 share
+  ok   all three are 2025 only, the year whose stored share was rounded to 0.44
+  ok   and all three differ by the SAME percentage (0.741%), which is one shared divisor rather than three coincidences
+  ok   each under 1.5%, so no published figure moves materially
+
+=== 3. THE FLAG: payload.json is still the default ===
+  ok   DAC_SOURCE defaults to 'payload'
+  ok   DAC_SHADOW defaults to true
+  ok   the source switch runs AFTER Storage.init(), which composing requires
+  ok   and BEFORE applyAddedYears, so overrides land on whichever payload won
+  ok   a compose failure keeps payload.json: the parachute Emely ruled on
+  ok   and a null composition does not replace the payload
+  ok   BASE has no source flag
+  ok   BASE has no composer
+  ok   BASE has no shadow compare
+  ok   BASE has no report-source read
+
+=== 4. SHADOW MODE cannot touch the page ===
+  ok   dacShadowCompare is found
+  ok   the compose is inside a try
+  ok   and its failure is caught
+  ok   it NEVER assigns state.payload: it compares and reports, nothing else
+  ok   and it touches no DOM and raises no toast: the page cannot learn it ran
+  ok   it uses the canonical first-difference
+  ok   and reports through the console
+  ok   it is called after mlHydrateSavedLayers, which is after first render
+  ok   and never awaited, so it cannot delay a pixel
+  ok   skipped when Dataverse is already the source: comparing a thing to itself proves nothing
+  ok   and the call site has its own catch
+
+=== 5. THE THREE BOOT READS RUN TOGETHER ===
+  ok   the dvBackend init body is located
+  ok   the three reads are destructured from one Promise.all
+  ok   no sequential `await getAll` remains in init: 0
+  ok   at BASE there were 3 sequential awaits: 3
+  ok   and no Promise.all
+    measured in step zero: 373 ms sequential, 131 ms parallel,
+    median saving 242 ms, 65% of that segment.
+  ok   the dvBackend is located
+  ok   getReportSource is found as a dvBackend method
+  ok   and it is the DATAVERSE one, not the localStorage stub
+  ok   it reads its four tables together
+  ok     it reads cr2bf_dacreporttables
+  ok     it reads cr2bf_dacreportsections
+  ok     it reads cr2bf_dacreportmetrics
+  ok     and selects the two new columns on the table-data read
+  ok   the localStorage backend returns null, so shadow mode reports "no source" instead of a mismatch on every field
+  ok   and the facade delegates to whichever backend is active
+
+======================================================================
+  89 passed, 0 failed
+======================================================================

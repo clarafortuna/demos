@@ -1,0 +1,418 @@
+[
+  {
+    "cr2bf_tablekey": "A1",
+    "cr2bf_section": "A",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Incentive $",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes at total level; by-program requires manual name mapping.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A2",
+    "cr2bf_section": "A",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "Energy Savings",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes at total level; by-program requires manual name mapping.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A3",
+    "cr2bf_section": "A",
+    "cr2bf_number": 3,
+    "cr2bf_shorttitle": "Participants",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"Yes at total level. New Participant Type : Multisector\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A4",
+    "cr2bf_section": "A",
+    "cr2bf_number": 4,
+    "cr2bf_shorttitle": "DAC Participants",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"Yes at total level. New Participant Type : Multisector\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A5",
+    "cr2bf_section": "A",
+    "cr2bf_number": 5,
+    "cr2bf_shorttitle": "Commercial Install",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes; mind the table number.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A6",
+    "cr2bf_section": "A",
+    "cr2bf_number": 6,
+    "cr2bf_shorttitle": "Multifamily Install",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A7",
+    "cr2bf_section": "A",
+    "cr2bf_number": 7,
+    "cr2bf_shorttitle": "Multisector Install",
+    "cr2bf_mapping": "{\"status\":\"NEW\",\"comparable\":\"No 2023 baseline.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A8",
+    "cr2bf_section": "A",
+    "cr2bf_number": 8,
+    "cr2bf_shorttitle": "Residential Install",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes; mind the table number.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "A9",
+    "cr2bf_section": "A",
+    "cr2bf_number": 9,
+    "cr2bf_shorttitle": "Comparison Summary",
+    "cr2bf_mapping": "{\"status\":\"NEW\",\"comparable\":\"No 2023 baseline.\",\"notes\":\"\"}",
+    "cr2bf_presentation": "{\"header_levels\":2,\"currency_cols\":[1,2,3,4]}"
+  },
+  {
+    "cr2bf_tablekey": "A10",
+    "cr2bf_section": "A",
+    "cr2bf_number": 10,
+    "cr2bf_shorttitle": "Install Compare",
+    "cr2bf_mapping": "{\"status\":\"NEW\",\"comparable\":\"No 2023 baseline.\",\"notes\":\"\"}",
+    "cr2bf_presentation": "{\"header_levels\":2}"
+  },
+  {
+    "cr2bf_tablekey": "B1",
+    "cr2bf_section": "B",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Funding Spent",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "B2",
+    "cr2bf_section": "B",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "Plugs Completed",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "C1",
+    "cr2bf_section": "C",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "DR Programs",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"N/A (descriptive).\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "C2",
+    "cr2bf_section": "C",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "All Customers",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "C3",
+    "cr2bf_section": "C",
+    "cr2bf_number": 3,
+    "cr2bf_shorttitle": "DAC Customers",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "C4",
+    "cr2bf_section": "C",
+    "cr2bf_number": 4,
+    "cr2bf_shorttitle": "Low-Income",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "C5",
+    "cr2bf_section": "C",
+    "cr2bf_number": 5,
+    "cr2bf_shorttitle": "Total Program",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "D1",
+    "cr2bf_section": "D",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Compensation Types",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"N/A (descriptive).\",\"notes\":\"\"}",
+    "cr2bf_presentation": "{\"header_levels\":0}"
+  },
+  {
+    "cr2bf_tablekey": "D2",
+    "cr2bf_section": "D",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "DER Projects",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes against cumulative column.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "D3",
+    "cr2bf_section": "D",
+    "cr2bf_number": 3,
+    "cr2bf_shorttitle": "CDG & RC",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes against cumulative.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "D4",
+    "cr2bf_section": "D",
+    "cr2bf_number": 4,
+    "cr2bf_shorttitle": "Net Metering",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes against cumulative.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "E1",
+    "cr2bf_section": "E",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Capital Investments",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F1",
+    "cr2bf_section": "F",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Key Terms",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"N/A (descriptive).\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F2",
+    "cr2bf_section": "F",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "System Outages",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F3",
+    "cr2bf_section": "F",
+    "cr2bf_number": 3,
+    "cr2bf_shorttitle": "Interruption Rate",
+    "cr2bf_mapping": "{\"status\":\"SAME\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F4",
+    "cr2bf_section": "F",
+    "cr2bf_number": 4,
+    "cr2bf_shorttitle": "Non-Network",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F5",
+    "cr2bf_section": "F",
+    "cr2bf_number": 5,
+    "cr2bf_shorttitle": "Network",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F6",
+    "cr2bf_section": "F",
+    "cr2bf_number": 6,
+    "cr2bf_shorttitle": "Mixed Areas",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": "{\"header_levels\":2}"
+  },
+  {
+    "cr2bf_tablekey": "F7",
+    "cr2bf_section": "F",
+    "cr2bf_number": 7,
+    "cr2bf_shorttitle": "DAC Outages",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F8",
+    "cr2bf_section": "F",
+    "cr2bf_number": 8,
+    "cr2bf_shorttitle": "Customers by Type",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "F9",
+    "cr2bf_section": "F",
+    "cr2bf_number": 9,
+    "cr2bf_shorttitle": "Interrupted",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G1",
+    "cr2bf_section": "G",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Pipe Replaced",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"No.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G2",
+    "cr2bf_section": "G",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "Bronx Replaced",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G3",
+    "cr2bf_section": "G",
+    "cr2bf_number": 3,
+    "cr2bf_shorttitle": "Bronx Abandoned",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"Additional Data : % Abandoned\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G4",
+    "cr2bf_section": "G",
+    "cr2bf_number": 4,
+    "cr2bf_shorttitle": "Manhattan Replaced",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G5",
+    "cr2bf_section": "G",
+    "cr2bf_number": 5,
+    "cr2bf_shorttitle": "Manhattan Abandoned",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"Additional Data : % Abandoned\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G6",
+    "cr2bf_section": "G",
+    "cr2bf_number": 6,
+    "cr2bf_shorttitle": "Queens Replaced",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G7",
+    "cr2bf_section": "G",
+    "cr2bf_number": 7,
+    "cr2bf_shorttitle": "Queens Abandoned",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"Additional Data : % Abandoned\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G8",
+    "cr2bf_section": "G",
+    "cr2bf_number": 8,
+    "cr2bf_shorttitle": "Westchester Replaced",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G9",
+    "cr2bf_section": "G",
+    "cr2bf_number": 9,
+    "cr2bf_shorttitle": "Westchester Abandoned",
+    "cr2bf_mapping": "{\"status\":\"CHANGED\",\"comparable\":\"Additional Data : % Abandoned\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "G10",
+    "cr2bf_section": "G",
+    "cr2bf_number": 10,
+    "cr2bf_shorttitle": "Emissions",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "H1",
+    "cr2bf_section": "H",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Leaks Repaired",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "I1",
+    "cr2bf_section": "I",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Year Totals",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J1",
+    "cr2bf_section": "J",
+    "cr2bf_number": 1,
+    "cr2bf_shorttitle": "Electric Usage",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Averages yes; totals require adjustment.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J2",
+    "cr2bf_section": "J",
+    "cr2bf_number": 2,
+    "cr2bf_shorttitle": "Gas Usage",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Averages yes; totals require adjustment.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J3",
+    "cr2bf_section": "J",
+    "cr2bf_number": 3,
+    "cr2bf_shorttitle": "60-90 Days Overdue",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J4",
+    "cr2bf_section": "J",
+    "cr2bf_number": 4,
+    "cr2bf_shorttitle": "90+ Days Overdue",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J5",
+    "cr2bf_section": "J",
+    "cr2bf_number": 5,
+    "cr2bf_shorttitle": "Disconnects",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Qualitatively yes; quantitatively requires adjustment.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J6",
+    "cr2bf_section": "J",
+    "cr2bf_number": 6,
+    "cr2bf_shorttitle": "DPAs",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J7",
+    "cr2bf_section": "J",
+    "cr2bf_number": 7,
+    "cr2bf_shorttitle": "EAP Enrolled",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J8",
+    "cr2bf_section": "J",
+    "cr2bf_number": 8,
+    "cr2bf_shorttitle": "EAP Spending",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Qualitatively yes; quantitatively requires annualization.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  },
+  {
+    "cr2bf_tablekey": "J9",
+    "cr2bf_section": "J",
+    "cr2bf_number": 9,
+    "cr2bf_shorttitle": "Residential Total",
+    "cr2bf_mapping": "{\"status\":\"SAME\",\"comparable\":\"Yes.\",\"notes\":\"\"}",
+    "cr2bf_presentation": null
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "cr2bf_sectionkey": "A",
+    "cr2bf_name": "Clean Energy",
+    "cr2bf_shortname": "Clean Energy",
+    "cr2bf_fullname": "Clean Energy Spending",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Funds deployed across 30+ energy-efficiency and clean-heat programs, energy savings achieved, participants served, and where installations occurred. Tables A1–A10."
+  },
+  {
+    "cr2bf_sectionkey": "B",
+    "cr2bf_name": "EV Make-Ready",
+    "cr2bf_shortname": "EV Ready",
+    "cr2bf_fullname": "EV Make-Ready Program",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Capital incentives and the resulting Level-2 and DC fast-charging plug counts. Tables B1–B2."
+  },
+  {
+    "cr2bf_sectionkey": "C",
+    "cr2bf_name": "Demand Response",
+    "cr2bf_shortname": "Demand Resp",
+    "cr2bf_fullname": "Demand Response",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Five demand-response programs with participation, committed load, and delivered load by DAC and low-income segments. Tables C1–C5."
+  },
+  {
+    "cr2bf_sectionkey": "D",
+    "cr2bf_name": "DER",
+    "cr2bf_shortname": "DER",
+    "cr2bf_fullname": "Distributed Energy Resources",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Distributed Energy Resources interconnected to the grid: project counts, MW installed, DAC share. Tables D1–D4."
+  },
+  {
+    "cr2bf_sectionkey": "E",
+    "cr2bf_name": "Strategic Cap",
+    "cr2bf_shortname": "Strategic",
+    "cr2bf_fullname": "Strategic Capital Investments",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Electric capital investment by category and the share whose benefits affect DAC areas. Table E1."
+  },
+  {
+    "cr2bf_sectionkey": "F",
+    "cr2bf_name": "Outages",
+    "cr2bf_shortname": "Outages",
+    "cr2bf_fullname": "Customer Outages",
+    "cr2bf_invertmetric": true,
+    "cr2bf_blurb": "System reliability: outage counts, customer interruptions, network vs non-network, DAC vs non-DAC. Tables F1–F9."
+  },
+  {
+    "cr2bf_sectionkey": "G",
+    "cr2bf_name": "Main Replace",
+    "cr2bf_shortname": "Mains",
+    "cr2bf_fullname": "Main Replacement Program",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Leak-prone gas main retired, replaced, and abandoned by county, plus CH4 emissions reductions. Tables G1–G10."
+  },
+  {
+    "cr2bf_sectionkey": "H",
+    "cr2bf_name": "Leak Repairs",
+    "cr2bf_shortname": "Leaks",
+    "cr2bf_fullname": "Leak Repairs",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Gas leak repairs by borough/county, DAC vs non-DAC. Table H1."
+  },
+  {
+    "cr2bf_sectionkey": "I",
+    "cr2bf_name": "Jobs",
+    "cr2bf_shortname": "Jobs",
+    "cr2bf_fullname": "Clean Energy Jobs",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Clean Energy Academy enrollment, graduation, and job placements. Table I1."
+  },
+  {
+    "cr2bf_sectionkey": "J",
+    "cr2bf_name": "Customer Ops",
+    "cr2bf_shortname": "Cust Ops",
+    "cr2bf_fullname": "Customer Operations",
+    "cr2bf_invertmetric": false,
+    "cr2bf_blurb": "Customer-operations equity: usage, unpaid accounts, disconnections, EAP, total customers. Tables J1–J9. Several J tables cover only Apr–Dec 2023."
+  }
+]

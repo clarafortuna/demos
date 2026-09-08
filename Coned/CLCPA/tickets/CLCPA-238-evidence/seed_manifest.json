@@ -1,0 +1,35 @@
+{
+  "generatedAt": "2026-09-08T15:22:51.624Z",
+  "source": "Coned/CLCPA/ExecutiveDashboard_dev/payload.json",
+  "note": "CLCPA-238 step 4 seed. Generated offline and hashed so that the rows written to Dataverse are provably the rows reviewed here.",
+  "files": [
+    {
+      "file": "seed_tabledata.json",
+      "entitySet": "cr2bf_dacingesttesttabledata1s",
+      "rows": 154,
+      "bytes": 132866,
+      "sha256": "85345ee294ec46dd2df8862df4ba6412f6e6a673e3f6e4f88356bc6f979f1cdc"
+    },
+    {
+      "file": "seed_reporttable.json",
+      "entitySet": "cr2bf_dacreporttables",
+      "rows": 52,
+      "bytes": 13450,
+      "sha256": "e6616dce1c11ea52fda6f79a9a962eb4377a613ef686c4e1d0746eb45ba137dc"
+    },
+    {
+      "file": "seed_reportsection.json",
+      "entitySet": "cr2bf_dacreportsections",
+      "rows": 10,
+      "bytes": 3167,
+      "sha256": "00b2ae3fa7f26215e09b446e1d007f216d58f0b55d7710f9163a360cd370af57"
+    },
+    {
+      "file": "seed_reportmetric.json",
+      "entitySet": "cr2bf_dacreportmetrics",
+      "rows": 31,
+      "bytes": 13485,
+      "sha256": "12b811f74cf2f71a9684f17327fec385a32a5d625d04402acb2047d034c808ed"
+    }
+  ]
+}
