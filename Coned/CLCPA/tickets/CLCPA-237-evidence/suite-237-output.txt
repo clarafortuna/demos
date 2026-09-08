@@ -1,0 +1,42 @@
+======================================================================
+CLCPA-237 items E + D -- the phantom KPI entry and the empty-year grid
+  BASE 358da70 (main before this session)
+======================================================================
+
+=== 1. ITEM E: no phantom 2099 KPI entry ===
+  ok   NO reported KPI has a 2099 entry: 0 (was 1)
+  ok   at BASE exactly ONE did: clean_energy_jobs
+  ok   and it was clean_energy_jobs, the only rule that hard-codes dac: null
+  ok   with every value null: {"total":null,"dac":null,"dac_pct":null} -- a key that exists and says nothing
+  ok   at BASE the exec-summary KPI test was TRUE for 2099, so the empty state did not fire and 2099 drew a full page off one table
+  ok   and is now FALSE, so 2099 gets the "no data" banner it should have had
+  ok   2023 still has 12 reported KPIs, same as BASE
+  ok   2024 still has 12 reported KPIs, same as BASE
+  ok   2025 still has 12 reported KPIs, same as BASE
+  ok   the guard tests for a NUMBER, not for "a key is not undefined"
+  ok   and the undefined test is gone
+  ok   BASE control: the undefined test was there
+  ok   clean_energy_jobs still returns dac: null, which is correct -- no DAC breakdown for jobs exists, and the guard is what had to change
+
+=== 2. ITEM D: the empty-year grid anchor ===
+  ok   renderExecutiveSummary is found
+  ok   the EMPTY branch carries the solo modifier
+  ok   and exactly once in the whole function: 1 -- the populated branch keeps its three columns
+  ok   the map is still drawn in the empty branch (CLCPA-158: it is not gated on table data, because it draws geographic reference data)
+  ok   BASE had no solo modifier: the map sat in column 1 of 3
+  ok   the base grid is still three columns
+  ok   and the solo modifier is one column
+  ok   and it is declared exactly ONCE in styles.css: 1
+  ok   the modifier is declared AFTER the base rule, so it wins at equal specificity
+  ok   and after the 1300px media query, which is what makes it apply on wide screens
+  ok   the media query still collapses to one column below 1300px, where the defect never showed
+
+=== 3. WHAT THIS TICKET DELIBERATELY DID NOT DO ===
+  ok   anyData is still a single page-level boolean: item F is not smuggled in
+  ok   and renderExecutiveSummary is otherwise UNCHANGED from BASE: the only edit is the solo class
+  ok   section pages already name the section in their empty state
+  ok   and still show the source tables: per-section degradation already exists
+
+======================================================================
+  28 passed, 0 failed
+======================================================================

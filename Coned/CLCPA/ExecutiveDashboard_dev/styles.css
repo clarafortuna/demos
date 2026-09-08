@@ -2137,6 +2137,15 @@ a.nav-item { text-decoration: none; }
   .exec-shares-grid { grid-template-columns: 1fr; gap: 12px; }
 }
 
+/* CLCPA-237 item D: the EMPTY-YEAR branch of the executive summary puts ONE
+ * child in this grid -- the DAC map, which CLCPA-158 deliberately left
+ * un-gated because it draws geographic reference data with no reporting year in
+ * it. The template stayed at three columns, so the map sat in column 1 at a
+ * third of the width with two thirds of the row blank. Not a float: a grid
+ * child with no siblings in a fixed three-column template. Only visible above
+ * 1300px, because the media query below already collapses to one column. */
+.exec-shares-grid-solo { grid-template-columns: 1fr; }
+
 /* ===== Card shell — uses existing .chart-card-head from shared.css =====
    We wrap with .exec-card so we can scope tweaks without touching .chart-card */
 .exec-shares-grid .exec-card {
@@ -5550,6 +5559,20 @@ a.nav-item { text-decoration: none; }
   border-top: 1px solid var(--line);
 }
 .ingest-row-total .ingest-cell-label { color: var(--dusk); }
+
+/* CLCPA-233: the SECOND HEADER ROW of a two-level table (A9, A10, F6), which is
+ * stored as data[0] because that is the only place it can live in this shape.
+ * The editor used to render it as an ordinary row with a delete button. It now
+ * renders read-only, and it has to LOOK like a header rather than like a greyed
+ * calculated row, or an operator reads "Total / DAC" as computed figures. */
+.ingest-row-subheader td {
+  background: var(--white-smoke);
+  border-bottom: 2px solid var(--line);
+}
+.ingest-row-subheader .ingest-cell-calc {
+  color: var(--text-2);
+  font-weight: 600;
+}
 
 .ingest-td-actions { width: 32px; }
 .ingest-row-delete {

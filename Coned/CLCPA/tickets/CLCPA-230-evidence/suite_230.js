@@ -28,7 +28,28 @@ const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const BASE = process.env.DAC_BASE_COMMIT || '4875d48';   // pre-230, as deployed
 const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
-const CSS = fs.readFileSync(path.join(REPO, CSS_REL), 'utf8');
+/* styles.css PINNED TO THE LAST COMMIT THAT TOUCHED IT DURING THIS TICKET'S
+ * LIFETIME, not read from the working tree.
+ *
+ * This suite asserts a HISTORICAL blast radius: "CLCPA-230 itself adds no CSS,
+ * so apart from the two tooltip rules CLCPA-226 owns, styles.css is identical
+ * to BASE." That was true when it was written and it is still true of the file
+ * it was written about. It began failing when CLCPA-233 legitimately added a
+ * sub-header rule -- correctly, because the working tree is no longer this
+ * ticket.
+ *
+ * Re-pointing it at 1926366 (CLCPA-226 round 2, the last commit to change
+ * styles.css before CLCPA-233) keeps the claim true and checkable forever.
+ * Widening the expected diff to swallow CLCPA-233's rule would have made this
+ * suite quietly assert somebody else's change -- the same trap the badge
+ * round's blast-radius guard was pinned to avoid. */
+const CSS_AT = process.env.DAC_CSS_COMMIT || '1926366';
+/* the CRLF conversion is inlined rather than using toCRLF, which is declared
+ * further down this file and is not hoisted -- a const used before its
+ * declaration is a ReferenceError, and the suite reported nothing at all until
+ * I noticed the ordering. */
+const CSS = execSync('git show ' + CSS_AT + ':"' + CSS_REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 /* git show hands back the BLOB, which is LF; the working file on this machine
  * is CRLF. Comparing or offset-searching across that difference is how a
  * byte-identical file reads as changed and how an indexOf for '\r\n...' in LF

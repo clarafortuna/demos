@@ -1,0 +1,96 @@
+======================================================================
+CLCPA-233 items A + B -- the editor and the two-level header
+  BASE 358da70 (main before this session)
+======================================================================
+
+=== 1. THE FAMILY: which tables have a stored sub-header ===
+  ok   exactly four tables carry header_levels: {"A9":2,"A10":2,"D1":0,"F6":2}
+  ok   A9, A10 and F6 are the two-level family
+  ok   D1 carries header_levels = 0, which means something else
+  ok   and D1 data[0] is genuine data, not a header: Community Distributed Generation (CDG, o
+  ok   A9 keeps a text sub-header in data[0] for all 2 of its years
+  ok   A10 keeps a text sub-header in data[0] for all 2 of its years
+  ok   F6 keeps a text sub-header in data[0] for all 3 of its years
+
+=== 2. THE RENDER: a header row has no input and no delete ===
+  ok   A9 2025: every stored row is still rendered (6) -- the header row is not DROPPED, it is made read-only
+  ok     row 0 is marked as the sub-header
+  ok     row 0 contains NO input: nothing to type into
+  ok     and NO delete button: the row cannot be removed
+  ok     row 1 still has inputs: only the header changed
+  ok     and row 1 still has its delete button
+  ok   A10 2025: every stored row is still rendered (6) -- the header row is not DROPPED, it is made read-only
+  ok     row 0 is marked as the sub-header
+  ok     row 0 contains NO input: nothing to type into
+  ok     and NO delete button: the row cannot be removed
+  ok     row 1 still has inputs: only the header changed
+  ok     and row 1 still has its delete button
+  ok   F6 2025: every stored row is still rendered (25) -- the header row is not DROPPED, it is made read-only
+  ok     row 0 is marked as the sub-header
+  ok     row 0 contains NO input: nothing to type into
+  ok     and NO delete button: the row cannot be removed
+  ok     row 1 still has inputs: only the header changed
+  ok     and row 1 still has its delete button
+  ok   A10 row 0 still shows its "% DAC" header text verbatim
+  ok   and offers nothing to type
+  ok     header cell 1 ("Total") survives the render
+  ok     header cell 2 ("DAC") survives the render
+  ok     header cell 3 ("% DAC") survives the render
+  ok     header cell 4 ("Total") survives the render
+  ok     header cell 5 ("DAC") survives the render
+  ok     header cell 6 ("% DAC") survives the render
+  ok   A1 row 0 is NOT marked a sub-header
+  ok     and still has inputs
+  ok     and still has its delete button
+  ok   B1 row 0 is NOT marked a sub-header
+  ok     and still has inputs
+  ok     and still has its delete button
+  ok   D1 row 0 is NOT marked a sub-header
+  ok     and still has inputs
+  ok     and still has its delete button
+  ok   J9 row 0 is NOT marked a sub-header
+  ok     and still has inputs
+  ok     and still has its delete button
+
+=== 3. ITEM B: A9 "% Change" is read-only, and only A9 ===
+  ok   the name rule matches exactly A9 cols 5 and 6, both years: A9:2024:5,A9:2024:6,A9:2025:5,A9:2025:6
+  ok   a data row renders 7 cells plus the actions cell: 8
+  ok   the 2024 and 2025 figure columns are still editable
+  ok   but BOTH "% Change" columns offer no input
+  ok   they render as read-only cells
+  ok   showing the value the source published, not a recomputed one: -26%
+  ok   J1 renders its columns: 6
+  ok   J1 percentage columns 2 and 4 are STILL EDITABLE: the name rule matches "% Change" and not every column with a percent sign in it
+  ok   and J1 has no derive rule, which is why those columns are input
+  ok   A9 still has NO derive rule: read-only is not computed
+  ok   while A10 keeps its two, which is why its % DAC is computed
+
+=== 4. ZERO STORED CHANGE, and the import cannot reach the header ===
+  ok   the composer is found at HEAD and at BASE
+  ok   the composer DID change in this session (CLCPA-237 item E)
+  ok   and the change is the usable-value guard
+  ok   the composer touches header_levels only where it already did, to carry the presentation hint through
+  ok   and knows nothing about "% Change": item B is editor-only
+  ok   and openSaveModal is byte-identical: the save path is untouched
+  ok   PERSIST_STRIP_TABLES is unchanged, so no column starts being stripped
+  ok   buildIngestImport is found
+  ok   the import indexes a row ONLY when its label is non-empty
+  ok   and rejects a file row with no label, naming the reason
+  ok   a null or empty label normalises to the empty string, so the sub-header is unreachable by import: ""
+
+=== 5. BASE CONTROL: the defect really was there ===
+  ok   the BASE editor is found
+  ok   at BASE the editor never mentioned header_levels
+  ok   and had no sub-header row class
+  ok   while rendering a delete button -- for every row, including data[0]
+  ok   renderTable already sliced header rows off at BASE: the report was right and only the editor was wrong
+
+=== 6. THE CSS: a header row looks like a header ===
+  ok   .ingest-row-subheader td exists
+  ok   it sets a background, so the row reads as a header
+  ok   and a bottom border separating it from the data
+  ok   and its cells are weighted, so "Total / DAC" does not read as a computed row
+
+======================================================================
+  76 passed, 0 failed
+======================================================================

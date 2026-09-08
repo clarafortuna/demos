@@ -1,0 +1,51 @@
+======================================================================
+CLCPA-233 + CLCPA-237 -- mutation controls, separate ledgers
+======================================================================
+  red  CLCPA-233  THE HEADER ROW IS EDITABLE AGAIN: the header branch is skipped
+         7 red in its own suite, incl:   row 0 contains NO input: nothing to type into
+  red  CLCPA-233  the delete button comes back on the header row
+         3 red in its own suite, incl:   and NO delete button: the row cannot be removed
+  red  CLCPA-233  header_levels is ignored, so no table has a sub-header
+         13 red in its own suite, incl:   row 0 is marked as the sub-header
+  red  CLCPA-233  D1 IS DRAGGED IN: any header_levels key counts as a sub-header
+         3 red in its own suite, incl: D1 row 0 is NOT marked a sub-header
+  red  CLCPA-233  the header row is DROPPED instead of made read-only
+         11 red in its own suite, incl: A9 2025: every stored row is still rendered (5) -- the header row is not DROPPED, it is mad
+  red  CLCPA-233  the header branch runs AFTER the derived branch
+         3 red in its own suite, incl: A10 row 0 still shows its "% DAC" header text verbatim
+  red  CLCPA-233  A9 % Change is typeable again
+         2 red in its own suite, incl: but BOTH "% Change" columns offer no input
+  red  CLCPA-233  the name match loosens and catches more than % Change
+         1 red in its own suite, incl: J1 percentage columns 2 and 4 are STILL EDITABLE: the name rule matches "% Change" and not 
+  red  CLCPA-233  read-only becomes read-only AND blank, losing the published value
+         1 red in its own suite, incl: showing the value the source published, not a recomputed one: -26%
+  red  CLCPA-233  item C is smuggled in: A9 gains a derive rule
+         2 red in its own suite, incl: A9 still has NO derive rule: read-only is not computed
+  red  CLCPA-233  the import stops rejecting a label-less row, so it could reach the header
+         1 red in its own suite, incl: and rejects a file row with no label, naming the reason
+  red  CLCPA-233  the import indexes empty labels, making the sub-header a target
+         1 red in its own suite, incl: the import indexes a row ONLY when its label is non-empty
+  red  CLCPA-233  the sub-header loses its header styling and reads as a calc row
+         3 red in its own suite, incl: .ingest-row-subheader td exists
+  red  CLCPA-233  the sub-header cells lose their weight
+         1 red in its own suite, incl: and its cells are weighted, so "Total / DAC" does not read as a computed row
+  red  CLCPA-237  THE PHANTOM RETURNS: the guard goes back to the undefined test
+         4 red in its own suite, incl: NO reported KPI has a 2099 entry: 1 (was 1) -- clean_energy_jobs
+  red  CLCPA-237  the guard requires BOTH, silencing clean_energy_jobs everywhere
+         4 red in its own suite, incl: 2023 still has 11 reported KPIs, same as BASE
+  red  CLCPA-237  clean_energy_jobs stops returning dac: null
+         3 red in its own suite, incl: clean_energy_jobs still returns dac: null, which is correct -- no DAC breakdown for jobs ex
+  red  CLCPA-237  the empty branch loses the solo modifier
+         2 red in its own suite, incl: the EMPTY branch carries the solo modifier
+  red  CLCPA-237  the POPULATED branch gains it too, stacking the three cards
+         1 red in its own suite, incl: and exactly once in the whole function: 2 -- the populated branch keeps its three columns
+  red  CLCPA-237  the map is dropped from the empty branch, undoing CLCPA-158
+         1 red in its own suite, incl: and renderExecutiveSummary is otherwise UNCHANGED from BASE: the only edit is the solo clas
+  red  CLCPA-237  the solo rule moves BEFORE the media query, so it loses the cascade
+         1 red in its own suite, incl: and it is declared exactly ONCE in styles.css: 2
+  red  CLCPA-237  the solo rule sets three columns, doing nothing
+         1 red in its own suite, incl: and the solo modifier is one column
+
+  CLCPA-233: 14 caught, 0 not caught
+  CLCPA-237: 8 caught, 0 not caught
+  clean re-run of BOTH suites against restored source: PASSES

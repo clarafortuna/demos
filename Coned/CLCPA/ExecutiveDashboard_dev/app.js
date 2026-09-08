@@ -10143,7 +10143,7 @@ function utf8ByteLength(str) {
         </div>
 
         <div class="kpi-group">
-          <div class="exec-shares-grid" id="exec-shares-grid">
+          <div class="exec-shares-grid exec-shares-grid-solo" id="exec-shares-grid">
             ${renderDACMap(baseline, year, sections)}
           </div>
         </div>
@@ -14311,7 +14311,25 @@ function wireHTooltips() {
       const rule = DAC_KPI_REPORTED[k.id]; if (!rule) return;
       years.forEach(y => {
         const v = rule(derivedTables, y);
-        if (v && (v.total !== undefined || v.dac !== undefined)) {
+        /* CLCPA-237 item E: HAS A USABLE VALUE, not "a key is not undefined".
+         *
+         * This asked `v.total !== undefined || v.dac !== undefined`, and
+         * clean_energy_jobs hard-codes `dac: null` because no DAC breakdown for
+         * jobs exists. For 2099 its total is undefined -- I1 has no 2099 data --
+         * but `null !== undefined` is TRUE, so an entry was written with every
+         * value null.
+         *
+         * That phantom entry is not cosmetic. renderExecutiveSummary decides
+         * its empty state with `p.kpis.reported.some(k => k.values[year])`,
+         * which is truthy for a key that exists, so 2099 rendered the FULL
+         * executive summary -- dumbbell and strip included -- off a year with
+         * one table of data, instead of the "no data" banner. 2099 is in the
+         * year selector.
+         *
+         * The right question is whether a NUMBER came out. A KPI-year with
+         * neither figure is not a KPI-year. */
+        const usable = v && (typeof v.total === 'number' || typeof v.dac === 'number');
+        if (usable) {
           const e = { total: v.total === undefined ? null : v.total,
                       dac: v.dac === undefined ? null : v.dac };
           /* dac_pct through the SHIPPED kpiDacPct, so the card and the composed
@@ -20124,10 +20142,70 @@ function wireHTooltips() {
         (unreconciled.size === 1 ? ' cell' : ' cells') + '). The stored figures are ' +
         'shown as published and are not recalculated.</span>'
       : '';
+    /* CLCPA-233 item A: HOW MANY LEADING DATA ROWS ARE ACTUALLY HEADER.
+     *
+     * A9, A10 and F6 carry header_levels = 2, which means their schema_by_year
+     * is header row 1 and data[0] IS HEADER ROW 2 -- stored as a data row
+     * because that is the only place a second header row can live in this
+     * shape. renderTable has always known this: it does rows.slice(headerLevels)
+     * and the report draws a correct two-level header.
+     *
+     * The EDITOR never read header_levels at all, so it rendered data[0] as an
+     * ordinary row: editable inputs and a delete button. Deleting it removes the
+     * table's second header row from the source.
+     *
+     * D1 carries header_levels = 0 and is deliberately NOT in this family: its
+     * data[0] is genuine data. 0 means something else, and treating "has a
+     * header_levels key" as "has a sub-header" would have made D1's first
+     * Compensation Type read-only for no reason.
+     *
+     * RENDER ONLY. The sub-header stays exactly where it is in the store,
+     * because that is where the report reads it. Nothing about Dataverse
+     * changes. */
+    const headerRowCount = (() => {
+      const lv = table.header_levels;
+      if (typeof lv !== 'number' || lv < 2) return 0;
+      return Math.min(lv - 1, i.draft.length);
+    })();
+
+    /* CLCPA-233 item B: columns the editor must NOT offer for typing.
+     *
+     * A9's two "% Change" columns are year-over-year: (new - old) / old. I
+     * proved they reproduce every stored value exactly from their own row, so
+     * they SHOULD be computed -- but DERIVED_COLS is numerator-over-denominator
+     * and cannot express a subtraction, so computing them needs a new rule type.
+     * That is item C and it is post-Sept-10.
+     *
+     * Until then, editable is the wrong answer: an operator can type a number
+     * that no longer follows from the two columns beside it, and nothing
+     * recomputes it. Read-only is the honest subset -- it shows what the source
+     * published and refuses to pretend the value is the operator's to set.
+     *
+     * Resolved BY COLUMN NAME per year, not by index, for the reason step 2
+     * hammered home: positions drift. Measured: /% Change/ matches A9 columns 5
+     * and 6 in 2024 and 2025 and NOTHING else in any of the 52 tables, so a
+     * name rule and a hard-coded A9 list are the same set today -- and the name
+     * rule is the one that survives a column moving. */
+    const readOnlyByName = {};
+    (i.schema || []).forEach((h, idx) => {
+      if (h != null && /^\s*%\s*change\s*$/i.test(String(h))) readOnlyByName[idx] = true;
+    });
+
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
+      const isHeaderRow = rowIdx < headerRowCount;
       const isTotal = editorTotalFlags[rowIdx];
       const cells = i.schema.map((_, colIdx) => {
         const v = row[colIdx];
+        /* A HEADER ROW: every cell read-only, including the label column, and
+         * shown as text rather than as a number -- these cells hold words like
+         * "Total" and "% DAC", not figures. Checked FIRST so it wins over the
+         * derived-column and total-row branches below: A10's columns 3 and 6
+         * have a derive rule, and without this the sub-header's "% DAC" would
+         * be routed through fmtDerivedCell as though it were a percentage. */
+        if (isHeaderRow) {
+          const text = (v == null || v === '') ? '' : String(v);
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc ingest-cell-calc-text" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(text)}</span></td>`;
+        }
         if (colIdx === 0) {
           // Label column — always editable text input
           return `<td class="ingest-td-label">
@@ -20138,6 +20216,14 @@ function wireHTooltips() {
         if (dDesc) {
           // Derived cell — computed (read-only), formatted as % / ratio.
           return `<td class="ingest-td-calc"><span class="ingest-cell-calc" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
+        }
+        /* CLCPA-233 item B: read-only but NOT computed. Shown as the source
+         * published it, with no input to type into. Placed after the derived
+         * branch so a column that ever gains a real rule is computed rather
+         * than frozen. */
+        if (readOnlyByName[colIdx]) {
+          const text = (v == null || v === '') ? '—' : String(v);
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc ingest-cell-calc-text" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(text)}</span></td>`;
         }
         if (isTotal) {
           // Calculated cell — readonly, gray. Alignment follows the column.
@@ -20156,10 +20242,17 @@ function wireHTooltips() {
           <input type="text" inputmode="decimal" value="${escapeHtml(display)}" data-row="${rowIdx}" data-col="${colIdx}"${fmtAttr} class="ingest-cell ${inputAlign}" />
         </td>`;
       }).join('');
-      return `<tr${isTotal ? ' class="ingest-row-total"' : ''} data-row="${rowIdx}">
+      /* NO DELETE BUTTON ON A HEADER ROW, and the cell stays so the column
+       * count still lines up with the rows below it. Excluding it from row
+       * operations is not styling: the button is simply not rendered, so the
+       * delegated handler has nothing to bind and no path exists to remove the
+       * table's second header row from the source. */
+      const rowCls = isHeaderRow ? ' class="ingest-row-subheader"'
+        : (isTotal ? ' class="ingest-row-total"' : '');
+      return `<tr${rowCls} data-row="${rowIdx}">
         ${cells}
-        <td class="ingest-td-actions">
-          <button class="ingest-row-delete" type="button" data-row="${rowIdx}" data-tip="Delete row" aria-label="Delete row">×</button>
+        <td class="ingest-td-actions">${isHeaderRow ? ''
+          : `<button class="ingest-row-delete" type="button" data-row="${rowIdx}" data-tip="Delete row" aria-label="Delete row">×</button>`}
         </td>
       </tr>`;
     }).join('');
