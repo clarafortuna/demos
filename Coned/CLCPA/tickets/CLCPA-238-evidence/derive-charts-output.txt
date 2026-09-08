@@ -1,0 +1,75 @@
+======================================================================
+CLCPA-238 step 2 -- are the charts derivable from table data?
+  offline: payload.json only. No network, no org, no writes.
+  total rows dropped by the SHIPPED isStrictTotalRowLabel
+  compared by CANONICAL deep compare, not JSON.stringify
+======================================================================
+  ok   key ORDER is ignored, as ruled
+  ok   a changed value is caught
+  ok   array ORDER is significant
+  ok   an extra key is caught
+  ok   1 and "1" are different
+  ok   zero and negative zero are told apart
+  ok   NaN equals itself here, so it can be compared at all
+  ok   and a mismatch names its coordinate: .x.y: 1 vs 2
+  ok   isStrictTotalRowLabel extracted from app.js
+  ok   it calls "Total" a total row
+  ok   and a program name not a total row
+
+=== EVERY CHART-YEAR ===
+  ok   A1_programs 2023  DERIVED exactly
+  ok   A1_programs 2024  DERIVED exactly
+  ok   A1_programs 2025  DERIVED exactly
+  ok   E1_categories 2023  DERIVED exactly
+  ok   E1_categories 2024  DERIVED exactly
+  ok   E1_categories 2025  DERIVED exactly
+  ok   F8_boroughs 2023  DERIVED exactly
+  ok   F8_boroughs 2024  DERIVED exactly
+  ok   F8_boroughs 2025  DERIVED exactly
+  ok   H1_boroughs 2023  DERIVED exactly
+  ok   H1_boroughs 2024  DERIVED exactly
+  ok   H1_boroughs 2025  DERIVED exactly
+  ok   G_replacement 2023  DERIVED exactly
+  ok   G_replacement 2024  DERIVED exactly
+  ok   G_replacement 2025  DERIVED exactly
+  ok   G_abandonment 2024  DERIVED exactly
+  ok   G_abandonment 2025  DERIVED exactly
+  ok   C5_programs 2023  DERIVED exactly
+  ok   C5_programs 2024  DERIVED exactly
+  ok   C5_programs 2025  DERIVED exactly
+  ok   C3_programs 2023  DERIVED exactly
+  ok   C3_programs 2024  DERIVED exactly
+  ok   C3_programs 2025  DERIVED exactly
+  ok   B2_plugs 2023  DERIVED exactly
+  ok   B2_plugs 2024  DERIVED exactly
+  ok   B2_plugs 2025  DERIVED exactly
+  ok   D2 2023  DERIVED exactly
+  ok   D2 2024  DERIVED exactly
+  ok   D2 2025  DERIVED exactly
+  ok   J1_avg_usage 2023  DERIVED exactly
+  ok   J1_avg_usage 2024  DERIVED exactly
+  ok   J1_avg_usage 2025  DERIVED exactly
+  ok   J2_avg_gas 2023  DERIVED exactly
+  ok   J2_avg_gas 2024  DERIVED exactly
+  ok   J2_avg_gas 2025  DERIVED exactly
+
+  chart-years derived exactly : 35 of 35
+  still not reproduced        : 0
+
+=== BY CHART ===
+  ok   A1_programs     3/3 year(s)
+  ok   E1_categories   3/3 year(s)
+  ok   F8_boroughs     3/3 year(s)
+  ok   H1_boroughs     3/3 year(s)
+  ok   G_replacement   3/3 year(s)
+  ok   G_abandonment   2/2 year(s)
+  ok   C5_programs     3/3 year(s)
+  ok   C3_programs     3/3 year(s)
+  ok   B2_plugs        3/3 year(s)
+  ok   D2              3/3 year(s)
+  ok   J1_avg_usage    3/3 year(s)
+  ok   J2_avg_gas      3/3 year(s)
+
+======================================================================
+  46 passed, 0 failed
+======================================================================
