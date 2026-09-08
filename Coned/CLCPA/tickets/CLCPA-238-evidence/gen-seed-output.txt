@@ -1,0 +1,56 @@
+======================================================================
+CLCPA-238 STEP 4 part 1: GENERATE THE SEED. Offline, no org, no writes.
+======================================================================
+
+=== 1. COUNTS ===
+  ok   tabledata1 seed is 154 rows: 154
+  ok   reporttable seed is 52 rows: 52
+  ok   reportsection seed is 10 rows: 10
+  ok   reportmetric seed is 31 rows: 31
+  ok   metric kinds are 12/6/12/1: {"kpi_reported":12,"kpi_analytical":6,"chart":12,"meta":1}
+  ok   NO metric row carries values: definitions only, as ruled
+
+=== 2. THE 5 ORPHAN TITLE-YEARS ARE PRESENT ===
+  ok   rows carrying data: 149 (the value sets): 149
+  ok   rows with a title but NO data: 5: 5
+  ok   and they are exactly the audited five: A7:2023, G3:2023, G5:2023, G7:2023, G9:2023
+  ok   each carries the title that would otherwise have been lost
+  ok   and none invents a schema it never had
+
+=== 3. DIFF AGAINST THE PRESERVED 2026-09-02 ARTIFACT ===
+    CLCPA-219 rule: a divergence is a FINDING to report, never a file to fix.
+  ok   the artifact holds 149 records: 149
+  ok   all 149 artifact keys appear in the seed: 149
+    shared keys compared : 149
+    DIVERGENT            : 1
+      A1:2025   [2][2]: "0" vs null
+  ok   divergence counted and reported, not corrected: 1 key(s)
+  ok   A1:2025 diverges as expected: the artifact predates the CLCPA-142 nulling
+
+=== 4. RECOMPOSE THE SEED AND COMPARE CANONICALLY TO payload.json ===
+    the seed is proven sufficient BEFORE it is written, not after.
+  ok   tables recompose EXACTLY
+  ok   sections recompose EXACTLY
+  ok   meta recomposes EXACTLY, with years DERIVED
+  ok   all 18 KPI DEFINITIONS recompose exactly (18/18)
+
+    KPI VALUES: NOT SEEDED and NOT YET DERIVED.
+      dac_pct on the 12 reported KPIs is already derived in the shipped
+      app by kpiDacPct (CLCPA-143). total and dac are derivable -- that
+      ticket asserts each equals its source table's stored totals -- but
+      the KPI-to-table-and-column map does not exist, and the 6
+      analytical source_calc entries are English prose, not executable
+      rules. So a FULL recomposition of kpis.*.values cannot be claimed
+      here and is reported MISSING rather than estimated. It is the
+      remaining line item: 12 map entries plus 6 translated rules.
+    CHART VALUES: derived, and proven 35 of 35 in derive_charts.js.
+
+=== SEED FILES WRITTEN ===
+  seed_tabledata.json        154 rows   132866 B  sha256 85345ee294ec46dd
+  seed_reporttable.json       52 rows    13450 B  sha256 e6616dce1c11ea52
+  seed_reportsection.json     10 rows     3167 B  sha256 00b2ae3fa7f26215
+  seed_reportmetric.json      31 rows    13485 B  sha256 12b811f74cf2f71a
+
+======================================================================
+  19 passed, 0 failed
+======================================================================

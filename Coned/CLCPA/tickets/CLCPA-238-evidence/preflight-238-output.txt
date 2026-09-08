@@ -1,0 +1,105 @@
+SELF-CHECK  no PATCH/DELETE/PUT; the only 2 POSTs go to the login
+            host; no org request carries a method. Read-only.
+
+======================================================================
+CLCPA-238 STEP 4 part 2: pre-flight gates and the backup
+  org: https://org9076e69b.crm.dynamics.com
+======================================================================
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BNV7K3TWY
+#################################################
+
+Waiting for authorization...
+Authorized. Every org request below is a GET.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+
+======================================================================
+GATE 1  the prvRead privilege names, read via $select=Privileges
+======================================================================
+  cr2bf_dacreporttable   (EntitySetName cr2bf_dacreporttables)
+      prvAppendcr2bf_DACReportTable              basic=true local=true deep=true global=true
+      prvAppendTocr2bf_DACReportTable            basic=true local=true deep=true global=true
+      prvAssigncr2bf_DACReportTable              basic=true local=true deep=true global=true
+      prvCreatecr2bf_DACReportTable              basic=true local=true deep=true global=true
+      prvDeletecr2bf_DACReportTable              basic=true local=true deep=true global=true
+      prvReadcr2bf_DACReportTable                basic=true local=true deep=true global=true
+      prvSharecr2bf_DACReportTable               basic=true local=true deep=true global=true
+      prvWritecr2bf_DACReportTable               basic=true local=true deep=true global=true
+  ok   cr2bf_dacreporttable: exactly one prvRead name, read from metadata: prvReadcr2bf_DACReportTable
+  cr2bf_dacreportsection   (EntitySetName cr2bf_dacreportsections)
+      prvAppendcr2bf_DACReportSection            basic=true local=true deep=true global=true
+      prvAppendTocr2bf_DACReportSection          basic=true local=true deep=true global=true
+      prvAssigncr2bf_DACReportSection            basic=true local=true deep=true global=true
+      prvCreatecr2bf_DACReportSection            basic=true local=true deep=true global=true
+      prvDeletecr2bf_DACReportSection            basic=true local=true deep=true global=true
+      prvReadcr2bf_DACReportSection              basic=true local=true deep=true global=true
+      prvSharecr2bf_DACReportSection             basic=true local=true deep=true global=true
+      prvWritecr2bf_DACReportSection             basic=true local=true deep=true global=true
+  ok   cr2bf_dacreportsection: exactly one prvRead name, read from metadata: prvReadcr2bf_DACReportSection
+  cr2bf_dacreportmetric   (EntitySetName cr2bf_dacreportmetrics)
+      prvAppendcr2bf_DACReportMetric             basic=true local=true deep=true global=true
+      prvAppendTocr2bf_DACReportMetric           basic=true local=true deep=true global=true
+      prvAssigncr2bf_DACReportMetric             basic=true local=true deep=true global=true
+      prvCreatecr2bf_DACReportMetric             basic=true local=true deep=true global=true
+      prvDeletecr2bf_DACReportMetric             basic=true local=true deep=true global=true
+      prvReadcr2bf_DACReportMetric               basic=true local=true deep=true global=true
+      prvSharecr2bf_DACReportMetric              basic=true local=true deep=true global=true
+      prvWritecr2bf_DACReportMetric              basic=true local=true deep=true global=true
+  ok   cr2bf_dacreportmetric: exactly one prvRead name, read from metadata: prvReadcr2bf_DACReportMetric
+
+======================================================================
+GATE 2  cr2bf_number bounds, the step-3 verification gap
+======================================================================
+  cr2bf_number  MinValue 0  MaxValue 999
+  printed payload said   MinValue 0    MaxValue 999
+  ok   the bounds match what step 3 printed
+
+======================================================================
+GATE 3  solution membership. Default instead of CLCPADACDashboard is a
+        half-state to NAME, not to seed on top of.
+======================================================================
+  (cr2bf_presentation on cr2bf_dacreporttable is checked separately below)
+  cr2bf_dacreporttable                             solutions: CLCPADACDashboard, Default
+  ok   cr2bf_dacreporttable is in CLCPADACDashboard
+  cr2bf_dacreportsection                           solutions: Default, CLCPADACDashboard
+  ok   cr2bf_dacreportsection is in CLCPADACDashboard
+  cr2bf_dacreportmetric                            solutions: Default, CLCPADACDashboard
+  ok   cr2bf_dacreportmetric is in CLCPADACDashboard
+  cr2bf_dacingesttesttabledata1.cr2bf_schema       solutions: NONE
+  FAIL cr2bf_dacingesttesttabledata1.cr2bf_schema is in CLCPADACDashboard
+  cr2bf_dacingesttesttabledata1.cr2bf_title        solutions: NONE
+  FAIL cr2bf_dacingesttesttabledata1.cr2bf_title is in CLCPADACDashboard
+
+  THE NEW FINDING from part 1: cr2bf_presentation on cr2bf_dacreporttable
+    cr2bf_presentation exists: false   <- the seed needs it; schema addendum awaiting GO
+    custom columns present: cr2bf_dacreporttableid, cr2bf_mapping, cr2bf_number, cr2bf_section, cr2bf_shorttitle, cr2bf_tablekey
+
+======================================================================
+GATE 4  pre-seed row counts
+======================================================================
+  cr2bf_dacingesttesttabledata1s           2 rows  (expected 2)
+  ok   cr2bf_dacingesttesttabledata1 is at its expected pre-seed count
+  cr2bf_dacreporttables                    0 rows  (expected 0)
+  ok   cr2bf_dacreporttable is at its expected pre-seed count
+  cr2bf_dacreportsections                  0 rows  (expected 0)
+  ok   cr2bf_dacreportsection is at its expected pre-seed count
+  cr2bf_dacreportmetrics                   0 rows  (expected 0)
+  ok   cr2bf_dacreportmetric is at its expected pre-seed count
+
+======================================================================
+THE BACKUP -- the rollback artifact
+======================================================================
+  tabledata.json           2 rows      4702 B  sha256 0e7ad9e52409c5bd
+  reporttable.json         0 rows         2 B  sha256 4f53cda18c2baa0c
+  reportsection.json       0 rows         2 B  sha256 4f53cda18c2baa0c
+  reportmetric.json        0 rows         2 B  sha256 4f53cda18c2baa0c
+  privileges.json        the prvRead names as READ from metadata
+  manifest.json          counts and sha256 per file
+
+======================================================================
+  gates: 11 passed, 2 failed, of 13
+  requests: GET 19. Nothing was written.
+======================================================================

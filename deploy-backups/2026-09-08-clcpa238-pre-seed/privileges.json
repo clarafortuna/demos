@@ -1,0 +1,53 @@
+{
+  "cr2bf_dacreporttable": {
+    "entitySet": "cr2bf_dacreporttables",
+    "schema": "cr2bf_DACReportTable",
+    "privileges": [
+      "prvAppendTocr2bf_DACReportTable",
+      "prvAppendcr2bf_DACReportTable",
+      "prvAssigncr2bf_DACReportTable",
+      "prvCreatecr2bf_DACReportTable",
+      "prvDeletecr2bf_DACReportTable",
+      "prvReadcr2bf_DACReportTable",
+      "prvSharecr2bf_DACReportTable",
+      "prvWritecr2bf_DACReportTable"
+    ],
+    "read": [
+      "prvReadcr2bf_DACReportTable"
+    ]
+  },
+  "cr2bf_dacreportsection": {
+    "entitySet": "cr2bf_dacreportsections",
+    "schema": "cr2bf_DACReportSection",
+    "privileges": [
+      "prvAppendTocr2bf_DACReportSection",
+      "prvAppendcr2bf_DACReportSection",
+      "prvAssigncr2bf_DACReportSection",
+      "prvCreatecr2bf_DACReportSection",
+      "prvDeletecr2bf_DACReportSection",
+      "prvReadcr2bf_DACReportSection",
+      "prvSharecr2bf_DACReportSection",
+      "prvWritecr2bf_DACReportSection"
+    ],
+    "read": [
+      "prvReadcr2bf_DACReportSection"
+    ]
+  },
+  "cr2bf_dacreportmetric": {
+    "entitySet": "cr2bf_dacreportmetrics",
+    "schema": "cr2bf_DACReportMetric",
+    "privileges": [
+      "prvAppendTocr2bf_DACReportMetric",
+      "prvAppendcr2bf_DACReportMetric",
+      "prvAssigncr2bf_DACReportMetric",
+      "prvCreatecr2bf_DACReportMetric",
+      "prvDeletecr2bf_DACReportMetric",
+      "prvReadcr2bf_DACReportMetric",
+      "prvSharecr2bf_DACReportMetric",
+      "prvWritecr2bf_DACReportMetric"
+    ],
+    "read": [
+      "prvReadcr2bf_DACReportMetric"
+    ]
+  }
+}

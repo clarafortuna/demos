@@ -1,0 +1,46 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-09-08T14:40:04.041Z",
+  "capturedBy": "44d1f3d9-8f03-f111-8408-00224831be5d",
+  "solution": "CLCPADACDashboard",
+  "note": "CLCPA-238 step 4 PRE-SEED snapshot: every row of all four target tables as they were before the seed. Restore a row by re-creating it from its saved fields; delete a seeded row to undo the seed. Three of the four tables were empty, which is itself the fact that makes the seed reversible: undoing it means deleting what it added.",
+  "tables": [
+    {
+      "set": "cr2bf_dacingesttesttabledata1s",
+      "logical": "cr2bf_dacingesttesttabledata1",
+      "idField": "cr2bf_dacingesttesttabledata1id",
+      "records": 2,
+      "file": "tabledata.json",
+      "bytes": 4702,
+      "sha256": "0e7ad9e52409c5bd05effd500996ee06aaab4f5f5a404eb1f75ef2c3e28ee536"
+    },
+    {
+      "set": "cr2bf_dacreporttables",
+      "logical": "cr2bf_dacreporttable",
+      "idField": "cr2bf_dacreporttableid",
+      "records": 0,
+      "file": "reporttable.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "set": "cr2bf_dacreportsections",
+      "logical": "cr2bf_dacreportsection",
+      "idField": "cr2bf_dacreportsectionid",
+      "records": 0,
+      "file": "reportsection.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "set": "cr2bf_dacreportmetrics",
+      "logical": "cr2bf_dacreportmetric",
+      "idField": "cr2bf_dacreportmetricid",
+      "records": 0,
+      "file": "reportmetric.json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  ],
+  "privilegeFile": "privileges.json"
+}
