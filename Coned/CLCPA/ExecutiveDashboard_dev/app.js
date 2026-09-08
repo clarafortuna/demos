@@ -3340,7 +3340,10 @@ function utf8ByteLength(str) {
       return `<tr${cls}>${cells}</tr>`;
     }).join('');
 
-    return `<table class="data-table"${opts.tableId ? ` data-table-id="${opts.tableId}"` : ''}>${headerHtml}<tbody>${bodyRows}</tbody></table>`;
+    /* the two-level marker, so the stylesheet can centre a group header over
+     * the columns it spans without touching every single-level table */
+    const tblCls = headerLevels === 2 ? 'data-table data-table-2level' : 'data-table';
+    return `<table class="${tblCls}"${opts.tableId ? ` data-table-id="${opts.tableId}"` : ''}>${headerHtml}<tbody>${bodyRows}</tbody></table>`;
   }
 
   // ============================================================
@@ -3437,9 +3440,17 @@ function utf8ByteLength(str) {
     const dataPrev = prevYear ? resolveRows(prevYear) : null;
     const titleCurrent = (t.title_by_year || {})[year] || ('Table ' + t.id);
 
-    // Empty check on body rows only (no header to skip)
-    const bodyRowsCurrent = (t.data || {})[year] || [];
-    const bodyRowsPrev = prevYear ? ((t.data || {})[prevYear] || []) : [];
+    /* Empty check on BODY rows, skipping any stored header rows.
+     *
+     * A9, A10 and F6 keep their second header line in data[0], and its cells
+     * hold the words "Total" and "DAC". Counting those as data would report a
+     * baseline present for a year that holds nothing but its own header. Not a
+     * live case today -- every family year has body rows -- but the check is
+     * about whether DATA exists, and a header is not data. */
+    const storedHeaderRows = Math.max(0, headerLevels - 1);
+    const bodyRowsCurrent = ((t.data || {})[year] || []).slice(storedHeaderRows);
+    const bodyRowsPrev = prevYear
+      ? ((t.data || {})[prevYear] || []).slice(storedHeaderRows) : [];
     const hasPrevData = bodyRowsPrev.length > 0 && bodyRowsPrev.some(r => r && r.slice(1).some(v => v != null && v !== ''));
 
     // -- Body: either current-only or side-by-side
@@ -3462,7 +3473,27 @@ function utf8ByteLength(str) {
     const partialBadge = (mapping.notes && /partial year/i.test(mapping.notes))
       ? `<span class="badge partial">PARTIAL YEAR ${prevYear || ''}</span>`
       : '';
-    const isNew = !hasPrevData || (mapping.status || '') === 'NEW';
+    /* THE CHIP RENDERS ONLY WHEN THE PRIOR YEAR IS GENUINELY ABSENT.
+     *
+     * It was `!hasPrevData || (mapping.status || '') === 'NEW'`, and the second
+     * disjunct is what made it lie. A9 and A10 carry a STATIC
+     * mapping.status = "NEW" whose own comparable field says "No 2023
+     * baseline." -- they were new in 2024. That is a fixed fact about 2023.
+     *
+     * The chip text, though, interpolates prevYear DYNAMICALLY. So viewing 2025
+     * printed "NO 2024 BASELINE" while A9's 2024 panel sat there full of data:
+     * a fixed statement about one year, rendered as a claim about whichever
+     * year happened to be selected.
+     *
+     * NOT a migration artefact, and worth recording because it was the first
+     * suspicion: hasPrevData reads the migrated source correctly and returned
+     * true throughout. This chip was wrong on payload.json too, for the same
+     * reason, and CLCPA-238 only changed where the data came from.
+     *
+     * mapping.status keeps its job -- it still drives the comparability note
+     * through mapping.comparable, which is where a permanent statement about
+     * 2023 belongs. It just no longer gates a year-specific chip. */
+    const isNew = !hasPrevData;
     const noPrevBadge = (prevYear && isNew)
       ? `<span class="badge no-2023">NO ${prevYear} BASELINE</span>`
       : '';
@@ -10134,16 +10165,59 @@ function utf8ByteLength(str) {
      * no longer takes the map down with it.
      */
     if (!anyData) {
+      /* THE EMPTY YEAR KEEPS THE PAGE'S SHAPE.
+       *
+       * It used to render the banner and the map and nothing else, so every
+       * other visual VANISHED -- and the map, alone in a three-column grid, sat
+       * at a third of the width with two thirds of the row blank. A reader could
+       * not tell "this year has no data" from "this dashboard is broken".
+       *
+       * Now every visual that exists for a populated year still occupies its
+       * position, saying explicitly that it has nothing to show. The reference
+       * is 2025: header cards row, then the shares grid, then the map.
+       *
+       * THE MAP IS NOT A PLACEHOLDER. It draws census tracts from the tract
+       * datasets, which carry no reporting year -- verified in CLCPA-158, where
+       * renderDACMap was found to read none of its three arguments. So it
+       * renders for real, full width, below the year-dependent cards. Its
+       * year-dependent overlays and counts show their own empty state, which is
+       * the map's own behaviour and not this function's business. */
+      const emptyCard = (title, sub, cls) => `
+        <div class="exec-card${cls ? ' ' + cls : ''}">
+          <div class="chart-card-head">
+            <div>
+              <h3>${escapeHtml(title)}</h3>
+              <p class="chart-sub">${escapeHtml(sub)}</p>
+            </div>
+          </div>
+          ${emptyYearPane(year, {
+            message: `No ${year} data to chart yet.`,
+            hint: 'This panel fills in once values exist for the year.'
+          })}
+        </div>`;
+
       return header + `
-        <div class="chart-card" style="min-height:320px">
+        <div class="chart-card" style="min-height:220px">
           ${emptyYearPane(year, {
             message: `No data has been entered for ${year} yet.`,
             hint: 'Switch to a populated year using the selector above, or use Report Data to add values for this year.'
           })}
         </div>
 
+        <div class="exec-header-cards exec-header-cards-empty" id="exec-header-cards">
+          ${emptyCard('Reported KPIs', `Nothing reported for ${year}`)}
+        </div>
+
         <div class="kpi-group">
-          <div class="exec-shares-grid exec-shares-grid-solo" id="exec-shares-grid">
+          <div class="exec-shares-grid exec-shares-grid-pair" id="exec-shares-grid">
+            ${emptyCard('DAC Impact · Movement vs Prior Year',
+               `No ${year} figures to compare`)}
+            ${emptyCard('DAC Impact by Section', `No ${year} section shares`, 'sg-card')}
+          </div>
+        </div>
+
+        <div class="kpi-group">
+          <div class="exec-shares-grid exec-shares-grid-solo" id="exec-shares-map">
             ${renderDACMap(baseline, year, sections)}
           </div>
         </div>
@@ -20104,10 +20178,61 @@ function wireHTooltips() {
     const saveBtnAttrs = i.dirty ? '' : ' disabled';
     const resetBtnAttrs = i.dirty ? '' : ' disabled';
 
+    /* THE TABLE'S HEADER DEPTH, read once, here, before anything uses it.
+     *
+     * The first cut of this item wrote `storedHeaderRows` in the two places
+     * below -- a name that exists in renderSourceTables and NOWHERE in this
+     * function. Every render of the Report Data editor would have thrown
+     * ReferenceError on the first table it drew. No source-level pin could see
+     * it; suite_233, which evaluates this function for real, caught it on the
+     * regression sweep. That is the whole reason the sweep runs last.
+     *
+     * headerRowCount below clamps the same source to the draft length, because
+     * it counts BODY rows that are really headers. The thead must merge its
+     * group labels whether or not a body row exists, so the two uses read one
+     * source and clamp differently. */
+    const headerLevelsNum = (typeof table.header_levels === 'number')
+      ? table.header_levels : 1;
+    const isTwoLevel = headerLevelsNum >= 2;
+
     // Build header row
-    const headerCells = i.schema.map((col, idx) =>
-      `<th${idx === 0 ? ' class="ingest-th-label"' : ''}>${escapeHtml(col)}</th>`
-    ).join('');
+    /* THE GROUP HEADER ROW.
+     *
+     * For a single-level table this is unchanged: one <th> per column, exactly
+     * as before, so 48 of the 52 tables render byte-identically.
+     *
+     * For a two-level table the schema repeats its group label once per column
+     * -- ["", "2024","2024", "2025","2025", "% Change","% Change"] -- and the
+     * editor drew it literally, so "2024" appeared twice side by side. The
+     * VIEWER has always merged those into one colspan cell (renderTable's
+     * two-level branch), and the editor now does the same, so a group label
+     * sits centred over the pair it describes in both places.
+     *
+     * Consecutive IDENTICAL non-empty labels merge. That is the same rule
+     * renderTable calls the "legacy consecutive identical values pattern", and
+     * matching it rather than inventing a second rule is the point. */
+    const headerCells = (() => {
+      if (!isTwoLevel) {
+        return i.schema.map((col, idx) =>
+          `<th${idx === 0 ? ' class="ingest-th-label"' : ''}>${escapeHtml(col)}</th>`
+        ).join('');
+      }
+      const out = [];
+      let idx = 0;
+      while (idx < i.schema.length) {
+        const label = i.schema[idx];
+        let span = 1;
+        if (label != null && String(label) !== '') {
+          while (idx + span < i.schema.length &&
+                 String(i.schema[idx + span]) === String(label)) span++;
+        }
+        const cls = idx === 0 ? ' class="ingest-th-label"' : '';
+        const sp = span > 1 ? ` colspan="${span}"` : '';
+        out.push(`<th${cls}${sp}>${escapeHtml(label == null ? '' : label)}</th>`);
+        idx += span;
+      }
+      return out.join('');
+    })();
 
     // Build body rows
     // CLCPA-88: derived (%/ratio) columns are computed, so they render as read-only
@@ -20271,7 +20396,7 @@ function wireHTooltips() {
           </div>
         </div>
         <div class="ingest-grid-wrap">
-          <table class="ingest-grid">
+          <table class="ingest-grid${isTwoLevel ? ' ingest-grid-2level' : ''}">
             <thead>
               <tr>${headerCells}<th></th></tr>
             </thead>

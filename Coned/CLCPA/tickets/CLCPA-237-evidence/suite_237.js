@@ -235,6 +235,22 @@ guard('item F stays post-Sept-10', () => {
    * page Emely passed today, and is deliberately not in this ticket. */
   ok(/const anyData = \(/.test(ex),
      'anyData is still a single page-level boolean: item F is not smuggled in');
+  /* THIS ONE CLAIM IS PINNED TO THE COMMIT 237 LANDED AS, not to the working
+   * tree. It says "item E's only edit was the solo class", which was true at
+   * 40642e2 and is what this ticket is answerable for. The pre-walkthrough
+   * round then rewrote the whole empty branch on purpose -- three placeholders
+   * and a full-width map -- so read against the tree the claim now reports a
+   * change that is somebody else's, and is covered by suite_prewalk section 3
+   * (which asserts the POPULATED branch byte-identical, so 2025 is untouched).
+   *
+   * Widening the strip() to tolerate the new markup would have deleted the
+   * guard. Pinning keeps it exact and keeps it honest about which build it
+   * describes. Verified: 28 passed, 0 failed at 40642e2. */
+  const EREV = process.env.DAC_237_COMMIT || '40642e2';
+  const EX_SRC = process.env.DAC_APP_OVERRIDE ? SRC
+    : execSync('git show ' + EREV + ':"' + REL + '"',
+        { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+  const exPinned = codeOnly(grab('renderExecutiveSummary', EX_SRC));
   const baseEx = codeOnly(grab('renderExecutiveSummary', BASE_SRC));
   /* the modifier is stripped WITH its leading space. Removing only the class
    * name left "exec-shares-grid " against "exec-shares-grid" and the assertion
@@ -242,7 +258,7 @@ guard('item F stays post-Sept-10', () => {
    * code differing. Worth the extra character: a false red here would have sent
    * me looking for a change that was not there. */
   const strip = (s) => s.replace(/ exec-shares-grid-solo/g, '').replace(/\s+/g, ' ');
-  ok(strip(ex) === strip(baseEx),
+  ok(strip(exPinned) === strip(baseEx),
      'and renderExecutiveSummary is otherwise UNCHANGED from BASE: the only ' +
      'edit is the solo class');
   /* the section pages already degrade per section, which is the model item F

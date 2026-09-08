@@ -1,0 +1,70 @@
+======================================================================
+PRE-WALKTHROUGH FIXES -- mutation controls
+======================================================================
+  red  THE CHIP LIES AGAIN: the NEW-status disjunct comes back
+       4 red, incl: A9 on 2025 with 2024 present: NO CHIP -- the reported defect
+  red  the chip stops rendering even when the baseline IS absent
+       3 red, incl: A9 on 2024, where 2023 is genuinely absent: the chip RENDERS
+  red  the header-row skip is dropped from the baseline check
+       1 red, incl: and the check skips stored header rows, so a year holding only its own sub-header would not cou
+  red  the dashed input border comes back on the sub-header
+       2 red, incl: no border: the dashed box is gone
+  red  the mono figure face comes back on the header labels
+       1 red, incl: and not the mono figure face
+  red  the sub-labels stop centring
+       1 red, incl: sub-labels centre in their columns (editor)
+  red  the editor group headers stop centring
+       1 red, incl: group headers centre in the editor
+  red  the VIEWER group headers stop centring
+       1 red, incl: and in the read-only viewer
+  red  the centring loses its scope and hits every editor grid
+       2 red, incl: the centring is scoped to two-level tables, never to every grid
+  red  the editor stops merging group headers, so 2024 appears twice
+       7 red, incl: which merges to 4 header cells: 7
+  red  the merge runs on SINGLE-level tables too
+       1 red, incl: and single-level tables take the untouched path
+  red  THE DEFECT THE SWEEP CAUGHT: a name from another function
+       3 red, incl: the editor now merges group headers like the viewer always did THREW instead of failing: stored
+  red  the thead merge is coupled to the draft length again
+       2 red, incl: and a two-level table with an EMPTY draft still merges: the group header reads header_levels, n
+  red  the two-level marker is decided by the row count, not the level
+       3 red, incl: A1, single-level, renders and does NOT get the marker
+  red  the viewer loses its two-level marker
+       1 red, incl: and the viewer table carries the marker the stylesheet needs
+  red  BEHAVIOUR CREEP: the header row becomes editable again
+       1 red, incl: the header row still renders read-only
+  red  THE VISUALS VANISH AGAIN: the dumbbell placeholder is deleted
+       2 red, incl: the dumbbell position is held by a named placeholder
+  red  the strip placeholder is deleted
+       2 red, incl: and the strip position likewise
+  red  the header-card ROW is renamed out of existence
+       1 red, incl: and the empty branch renders that row too, rather than dropping it
+  red  the header-card placeholder inside it is deleted
+       2 red, incl: holding a named placeholder where the KPI cards sit
+  red  a FOURTH placeholder appears, so the count drifts
+       1 red, incl: three placeholders and the helper that makes them, no more and no fewer: 4 call sites
+  red  the placeholders stop saying they are empty
+       1 red, incl: each placeholder says so explicitly, through the shared empty pane
+  red  the map becomes a placeholder instead of drawing for real
+       2 red, incl: and the map renders FOR REAL, not as a placeholder
+  red  the two grids share an id again
+       1 red, incl: the two grids carry DIFFERENT ids: id="exec-shares-grid", id="exec-shares-grid"
+  red  the map row loses full width and goes back to a third
+       1 red, incl: and the map has a single-column row of its own: full width
+  red  the placeholder pair reverts to three columns
+       1 red, incl: the pair modifier is two columns
+  red  THE REGRESSION GUARD: the POPULATED branch is edited
+       1 red, incl: the POPULATED branch is byte-identical to BASE, so 2025 is untouched by item 3
+  red  anyData is widened, so a populated year becomes empty
+       1 red, incl: and the anyData test is unchanged, so no populated year becomes empty
+  red  EXCLUSION: D.1 is dragged into the header family
+       1 red, incl: D.1 stays outside the header family: header_levels 0 yields 0 header rows
+  red  EXCLUSION: the derive engine is touched
+       3 red, incl: applyDerivedCols is byte-identical to BASE
+  red  EXCLUSION: DAC_SOURCE is flipped back
+       1 red, incl: DAC_SOURCE is still 'dataverse'
+  red  EXCLUSION: a function outside the four is changed
+       2 red, incl: and no function outside those four moved at all
+
+  32 caught, 0 not caught, of 32
+  clean re-run against restored source: PASSES
