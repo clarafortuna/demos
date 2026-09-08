@@ -1,0 +1,116 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: pre-walkthrough fixes -- the false baseline chip, the header band,
+       the empty Executive Summary
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD (as read) = 560ae42
+              source folder clean, so the pushed bytes are exactly 560ae42.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  16 suites green, 1840 assertions.
+              the sweep rewrote 2 output file(s) with LF
+              endings; content identical, restoring them:
+                M Coned/CLCPA/tickets/CLCPA-233-evidence/suite-233-output.txt
+                M Coned/CLCPA/tickets/prewalkthrough-evidence/suite-prewalk-output.txt
+              tree clean on content: the bytes to push are 560ae42.
+PRE-FLIGHT 4  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      d7e9e7921d  == expected
+                 styles.css  fa0e369edf  == expected
+PRE-FLIGHT 5  stamps applied in memory (nothing on disk is modified);
+              the HTML references ?v=d7e9e7921d and ?v=fa0e369edf,
+              with no unstamped reference left.
+PRE-FLIGHT 6  deploy-backups/2026-09-08-prewalk-3fixes/ is absent: the snapshot
+              will be created, not overwritten.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BSGKP287R
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1091329B  local=1098001B
+WILL PUSH  styles.css   deployed=270797B  local=272934B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+
+PROVENANCE  the snapshot holds:
+              stamped as        4613f5bdc6
+              derived from bytes 4613f5bdc6
+              expected          4613f5bdc6  MATCH
+BACKUP  live bytes archived to deploy-backups/2026-09-08-prewalk-3fixes/
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1098001B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (272934B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s) in ONE call
+published.
+
+READ-BACK app.js                  1098001B  sha256 c06891292bb853645674de74f35e49e6ba9d57fb660d9ca7702a69ef6fae256c  VERIFIED byte-identical
+READ-BACK styles.css              272934B  sha256 fa0e369edfa151f81b9906b302d534fe7ee1ab1621ed84668e062763d0003632  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html 4080B  sha256 a0fe65482381d56f19a5c2ce81e088a9de942cb3a7dc64b7527aca4c00cd790f  VERIFIED byte-identical
+
+SERVER-SIDE ID CHECK
+  app.js on the server stamps itself: d7e9e7921d  == d7e9e7921d
+  the server HTML references app.js?v=d7e9e7921d
+  the server HTML references styles.css?v=fa0e369edf
+
+=== DEPLOY COMPLETE ===
+build id (app.js): d7e9e7921d
+styles.css id    : fa0e369edf
+source           : ExecutiveDashboard_dev/ at main @ 560ae42
+rollback         : deploy-backups/2026-09-08-prewalk-3fixes/ holds 4613f5bdc6 whole
+requests: GET 13, PATCH 3, POST 1
+
+server sha256, the three resources as published:
+  app.js                  c06891292bb853645674de74f35e49e6ba9d57fb660d9ca7702a69ef6fae256c
+  styles.css              fa0e369edfa151f81b9906b302d534fe7ee1ab1621ed84668e062763d0003632
+  ExecutiveDashboard.html a0fe65482381d56f19a5c2ce81e088a9de942cb3a7dc64b7527aca4c00cd790f
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build d7e9e7921d
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO LOOK AT, the three items:
+  1. A.9 and A.10 on 2025: NO "NO 2024 BASELINE" chip. Switch to 2024
+     and the chip comes back as "NO 2023 BASELINE" -- 2023 really is
+     absent for those two, so that one is correct. A.1 and F.6 never
+     show it. The comparability note still reads "No 2023 baseline."
+     on A.9, which is where that permanent fact belongs.
+  2. A.9 / A.10 / F.6 header band: plain centred labels, no dashed
+     boxes, no input chrome, and each group label ("2024", "2025",
+     "% Change") sits ONCE, centred over its pair -- in the Report
+     Data editor AND in the read-only viewer.
+     D.1 MUST BE UNCHANGED: first row editable, with its x. Any other
+     table, say A.1: first row still editable with its x.
+  3. A year with no data -- 2099 -- in the Executive Summary: the NO
+     DATA banner, then a Reported KPIs placeholder, then a pair of
+     placeholders where the dumbbell and the section strip sit, then
+     the DAC Tracts map FULL WIDTH below them. Every panel says it
+     has nothing to show; the map draws for real.
+  AND 2025 MUST BE PIXEL-FOR-PIXEL AS IT WAS: header cards, dumbbell,
+     strip and map three across. That is the regression guard.
+
+AND THE MIGRATION MUST STILL HOLD, since this build carries it:
+  the console still prints [CLCPA-238] source = DATAVERSE, no shadow line.
+
+THE REVERT PATHS, both still one step:
+  the migration -- DAC_SOURCE back to payload, seconds.
+  this deploy   -- restore deploy-backups/2026-09-08-prewalk-3fixes/,
+                   which holds build 4613f5bdc6 whole.
+
+=== log written by deploy_prewalk.js ===
