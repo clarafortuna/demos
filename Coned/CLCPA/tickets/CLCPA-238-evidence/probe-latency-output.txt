@@ -1,0 +1,45 @@
+SELF-CHECK  no PATCH/DELETE/PUT; 2 POSTs, both to the login host;
+            no org request carries a method. Read-only by construction.
+
+=== CLCPA-238 step zero: Dataverse round-trip cost ===
+org: https://org9076e69b.crm.dynamics.com   iterations: 5
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BWT48ZUV3
+#################################################
+
+Waiting for authorization...
+Authorized. Every request below is a GET.
+
+(one warm-up request made and discarded: it pays TLS setup the rest do not)
+
+======================================================================
+PER-REQUEST COST, median of 5
+======================================================================
+  WhoAmI                        117 ms  (min 105, max 201)
+  Table Data   (2 rows, 3233 B, 1 req) 127 ms  (min 122, max 201)
+  Change History (21 rows, 12674 B, 1 req) 127 ms  (min 125, max 132)
+  Reporting Year (1 rows, 318 B, 1 req) 122 ms  (min 121, max 136)
+  EntityDefinitions (1 resolve)  104 ms  (min 103, max 109)
+
+======================================================================
+THE PROMISE.ALL QUESTION
+======================================================================
+  the three reads SEQUENTIAL (as shipped) 373 ms  (min 365, max 386)
+  the same three in PARALLEL              131 ms  (min 124, max 469)
+  median saved by Promise.all             242 ms  (65% of that segment)
+
+  Rows today are tiny (2 table-data rows). CLCPA-238 raises Table Data to
+  154 rows, so the per-row cost matters: measured above at 3233 B for 2 row(s).
+  A 154-row read is ONE page (the 5,000 default) so it stays ONE round
+  trip -- the payload it carries grows, the trip count does not.
+
+LIMITS, restated so these numbers are not over-read:
+  Node with a bearer token on this machine, NOT the browser, NOT
+  same-origin cookie auth, NOT ConEd network. Browser parse and layout
+  are absent. The composition of the 1,271 ms boot figure remains
+  MISSING and needs instrumentation inside the running page.
+
+requests: GET 56, and nothing else. Nothing was written.
