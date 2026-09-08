@@ -421,6 +421,11 @@ function utf8ByteLength(str) {
         async init() { /* reads are live from localStorage; nothing to preload */ },
         // No Dataverse context -> the map has no data source at all (slice 5d).
         getMapTractOverlay() { return null; },
+        /* CLCPA-238: no Dataverse means no report source. NULL, not an empty
+         * shape: an empty shape would compose an empty payload and the shadow
+         * comparison would report a mismatch on every field, which reads as a
+         * defect rather than as "this backend has no such thing". */
+        async getReportSource() { return null; },
         applyOverrides(payload) {
           captureBaseline(payload);
           if (!payload || !payload.tables) return payload;
@@ -805,8 +810,19 @@ function utf8ByteLength(str) {
       return {
         async init(baseUrl) {
           API = baseUrl.replace(/\/+$/, '') + '/api/data/v9.2/';
-          // Table Data -> overrides cache
-          const td = await getAll(SET_TABLEDATA, '$select=' + ID_TABLEDATA + ',cr2bf_key,cr2bf_section,cr2bf_tableid,cr2bf_year,cr2bf_rows');
+          /* CLCPA-238: THE THREE BOOT READS RUN TOGETHER.
+           *
+           * They were three sequential awaits, and the cost was measured rather
+           * than guessed: 373 ms in series against 131 ms in parallel, a median
+           * saving of 242 ms, which is 65% of that segment. Nothing about them
+           * is ordered -- three independent caches from three independent tables
+           * -- so the serialisation was accidental rather than intended. That
+           * saving is what funds the extra reads the Dataverse source needs. */
+          const [td, hh, yy] = await Promise.all([
+            getAll(SET_TABLEDATA, '$select=' + ID_TABLEDATA + ',cr2bf_key,cr2bf_section,cr2bf_tableid,cr2bf_year,cr2bf_rows'),
+            getAll(SET_HISTORY, '$select=' + ID_HISTORY + ',cr2bf_tableid,cr2bf_year,cr2bf_user,cr2bf_email,cr2bf_savedat,cr2bf_changes&$orderby=cr2bf_savedat desc'),
+            getAll(SET_YEARS, '$select=' + ID_YEARS + ',cr2bf_reportingyear'),
+          ]);
           cOverrides = {};
           td.forEach(r => {
             let rows; try { rows = JSON.parse(r.cr2bf_rows); } catch (e) { rows = []; }
@@ -814,18 +830,36 @@ function utf8ByteLength(str) {
             cOverrides[key] = { id: r[ID_TABLEDATA], section: r.cr2bf_section, tableId: r.cr2bf_tableid, year: String(r.cr2bf_year), rows: rows };
           });
           // Change History -> history cache (newest first)
-          const hh = await getAll(SET_HISTORY, '$select=' + ID_HISTORY + ',cr2bf_tableid,cr2bf_year,cr2bf_user,cr2bf_email,cr2bf_savedat,cr2bf_changes&$orderby=cr2bf_savedat desc');
           cHistory = hh.map(r => {
             let changes; try { changes = JSON.parse(r.cr2bf_changes); } catch (e) { changes = []; }
             return { ts: r.cr2bf_savedat ? Date.parse(r.cr2bf_savedat) : 0, user: r.cr2bf_user || '', email: r.cr2bf_email || '', tableId: r.cr2bf_tableid, year: String(r.cr2bf_year), changes: changes, _id: r[ID_HISTORY] };
           });
           // Reporting Year -> years cache
-          const yy = await getAll(SET_YEARS, '$select=' + ID_YEARS + ',cr2bf_reportingyear');
           cYears = yy.map(r => ({ year: String(r.cr2bf_reportingyear), id: r[ID_YEARS] }));
           // CLCPA-171 Slice 2: resolve the map-layer surface. Deliberately last
           // and non-throwing — saved layers are an addition, so a problem here
           // must not stop the tabular backend from coming up.
           await initMapLayers();
+        },
+        /* CLCPA-238: the RAW report source, four tables, read together.
+         *
+         * Raw rather than composed: this returns rows, and composePayloadFrom
+         * Dataverse turns them into payload shape. Keeping the transform out of
+         * the storage layer means the composer can be driven from a fixture in
+         * a test without a network, which is what lets the shadow comparison be
+         * asserted rather than only observed.
+         *
+         * The four reads are parallel for the same measured reason as init's
+         * three: they are independent, and serialising them would spend a round
+         * trip each for nothing. */
+        async getReportSource() {
+          const [td, rt, rs, rm] = await Promise.all([
+            getAll(SET_TABLEDATA, '$select=cr2bf_key,cr2bf_section,cr2bf_tableid,cr2bf_year,cr2bf_rows,cr2bf_schema,cr2bf_title'),
+            getAll('cr2bf_dacreporttables', '$select=cr2bf_tablekey,cr2bf_section,cr2bf_number,cr2bf_shorttitle,cr2bf_mapping,cr2bf_presentation'),
+            getAll('cr2bf_dacreportsections', '$select=cr2bf_sectionkey,cr2bf_name,cr2bf_shortname,cr2bf_fullname,cr2bf_invertmetric,cr2bf_blurb'),
+            getAll('cr2bf_dacreportmetrics', '$select=cr2bf_metrickey,cr2bf_kind,cr2bf_label,cr2bf_section,cr2bf_format,cr2bf_unit,cr2bf_primarymetric,cr2bf_narrative,cr2bf_sourcecalc,cr2bf_spec'),
+          ]);
+          return { tabledata: td, tables: rt, sections: rs, metrics: rm };
         },
         applyOverrides(payload) {
           captureBaseline(payload);
@@ -1404,6 +1438,8 @@ function utf8ByteLength(str) {
         console.info('[Storage] identity = Local preview <local@preview> (no Dataverse context)');
       },
       applyOverrides(payload) { return active.applyOverrides(payload); },
+      /* CLCPA-238 */
+      getReportSource() { return active.getReportSource(); },
       getOverride(tableId, year) { return active.getOverride(tableId, year); },
       saveTable(tableId, year, newRows, ctx) {
         // CLCPA-88: never persist derived columns for stripped tables — the app
@@ -13774,6 +13810,509 @@ function wireHTooltips() {
   // PAYLOAD LOADING
   // ============================================================
 
+  /* ============================================================
+   * CLCPA-238 · THE DATAVERSE SOURCE
+   *
+   * composePayloadFromDataverse() returns exactly what loadPayload() returns:
+   * { meta, sections, tables, kpis, charts }. Nothing downstream knows which
+   * one it got, which is what makes the swap a one-function change -- there are
+   * about 102 read sites and every one of them goes through state.payload.
+   *
+   * WHAT IS STORED AND WHAT IS DERIVED, because the difference is the point of
+   * the ticket:
+   *   STORED  table values, schemas, titles, mapping, presentation hints;
+   *           section copy; KPI and chart DEFINITIONS; two config numbers.
+   *   DERIVED chart values (all 35 chart-years), KPI values (36 reported
+   *           total/dac pairs and 18 analytical values), meta.years and
+   *           meta.current_year.
+   *
+   * Deriving rather than storing is not tidiness. A stored copy of a computed
+   * figure is a second source of truth, and CLCPA-141 through CLCPA-143 were
+   * spent on exactly that class of defect: rounded copies drifting from the
+   * values they were copied from.
+   *
+   * Every rule below was proven offline against payload.json before it was
+   * written here, in tickets/CLCPA-238-evidence/derive_charts.js (35 of 35
+   * chart-years) and derive_kpis.js (36 of 36 reported KPI-years, 15 of 18
+   * analytical with 3 named exceptions). This is the same logic, and the suite
+   * drives THIS copy so the two cannot drift.
+   * ============================================================ */
+
+  /* THE FLAG. payload.json stays the default and the shipped behaviour: this
+   * round adds a second source and a comparison, and changes nothing a viewer
+   * sees. The flip is a later step and Emely's call. */
+  var DAC_SOURCE = 'payload';          /* 'payload' | 'dataverse' */
+  var DAC_SHADOW = true;               /* load both and compare */
+
+  /* ---- canonical comparison ---------------------------------------------
+   * NOT JSON.stringify equality. A composed object's key order differs from
+   * the file's, and stringify is order-sensitive -- H1_boroughs alone proves
+   * it, storing nondac before dac where F8 stores dac first. Nothing in this
+   * app consumes key order (Object.keys on payload.tables appears once, for
+   * .length; every listing sorts through compareTableIds), so an
+   * order-insensitive compare is the CORRECT test and not a weakened one. */
+  function dacCanon(v) {
+    if (v === null || typeof v !== 'object') {
+      if (typeof v === 'number') {
+        if (isNaN(v)) return 'NaN';
+        if (v === 0) return (1 / v === -Infinity) ? '-0' : '0';
+      }
+      return v;
+    }
+    if (Array.isArray(v)) return v.map(dacCanon);
+    const o = {};
+    Object.keys(v).sort().forEach(k => { o[k] = dacCanon(v[k]); });
+    return o;
+  }
+  function dacFirstDiff(a, b, p) {
+    p = p || '';
+    const sa = JSON.stringify(dacCanon(a)), sb = JSON.stringify(dacCanon(b));
+    if (sa === sb) return null;
+    const ca = dacCanon(a), cb = dacCanon(b);
+    if (ca === null || cb === null || typeof ca !== 'object' || typeof cb !== 'object') {
+      return p + ': ' + JSON.stringify(ca) + ' vs ' + JSON.stringify(cb);
+    }
+    if (Array.isArray(ca) !== Array.isArray(cb)) return p + ': array vs object';
+    if (Array.isArray(ca)) {
+      if (ca.length !== cb.length) return p + ': length ' + ca.length + ' vs ' + cb.length;
+      for (let i = 0; i < ca.length; i++) {
+        const d = dacFirstDiff(a[i], b[i], p + '[' + i + ']'); if (d) return d;
+      }
+      return null;
+    }
+    const keys = Object.keys(ca).concat(Object.keys(cb)).filter((k, i, s) => s.indexOf(k) === i);
+    for (let i = 0; i < keys.length; i++) {
+      const d = dacFirstDiff(a[keys[i]], b[keys[i]], p + '.' + keys[i]); if (d) return d;
+    }
+    return null;
+  }
+
+  /* ---- lookups over composed tables -------------------------------------
+   * Rows are found by LABEL and columns by NAME, never by index, and that is
+   * the single most important lesson of steps 2 and 5. Column POSITIONS drift
+   * (C3 and C5 have four columns in 2023 and eight from 2024, because merged
+   * cells arrived and brought null columns with them) and column NAMES drift
+   * too ("2023 Total Investment ($)" against "2025 Total Investment";
+   * "Percentage (%) Affecting DACs" against "Percentage Affecting DACs"). An
+   * index would read a neighbouring column and put a wrong number on a slide. */
+  function dacRow(T, id, y, labelRe) {
+    const t = T[id]; if (!t) return null;
+    const d = (t.data || {})[y]; if (!d) return null;
+    for (let i = 0; i < d.length; i++) if (labelRe.test(String(d[i][0]))) return d[i];
+    return null;
+  }
+  function dacCol(T, id, y, nameRe) {
+    const t = T[id]; if (!t) return -1;
+    const s = (t.schema_by_year || {})[y]; if (!s) return -1;
+    for (let i = 0; i < s.length; i++) if (s[i] != null && nameRe.test(String(s[i]))) return i;
+    return -1;
+  }
+  function dacCell(T, id, y, labelRe, nameRe) {
+    const r = dacRow(T, id, y, labelRe), c = dacCol(T, id, y, nameRe);
+    if (!r || c < 0) return undefined;
+    return r[c];
+  }
+  function dacPct(v) {
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string' && /%\s*$/.test(v)) return parseFloat(v) / 100;
+    return undefined;
+  }
+  function dacBody(T, id, y) {
+    const t = T[id]; if (!t) return null;
+    return (t.data || {})[y] || null;
+  }
+  const DAC_TOTAL_RE = /^(grand\s+)?total$/i;
+
+  /* ---- the 12 chart derive rules -----------------------------------------
+   * Proven 35 of 35 chart-years. Note what these are NOT: simple projections.
+   * F8's `total` is dac + nondac and is not a column at all; H1 orders Non-DAC
+   * before DAC, the opposite of F8; G_replacement and G_abandonment each
+   * aggregate FOUR borough tables with the name coming from the table rather
+   * than from any cell; B2 has no Micromobility column before 2025 and the
+   * chart correctly omits the key rather than carrying a zero. */
+  function dacPick(row, map) {
+    const o = {};
+    Object.keys(map).forEach(k => { if (map[k] >= 0) o[k] = row[map[k]]; });
+    return o;
+  }
+  function dacGBoroughs(T, y, pairs) {
+    const out = [];
+    for (let i = 0; i < pairs.length; i++) {
+      const name = pairs[i][0], id = pairs[i][1];
+      const d = dacBody(T, id, y); if (!d) return null;
+      const dac = d[0] ? d[0][1] : undefined, nondac = d[1] ? d[1][1] : undefined;
+      out.push({ name: name, dac: dac, nondac: nondac, total: dac + nondac });
+    }
+    return out;
+  }
+  function dacCPrograms(T, y, id) {
+    const d = dacBody(T, id, y); if (!d) return null;
+    const m = { participants: dacCol(T, id, y, /^Program Participants$/i),
+                committed: dacCol(T, id, y, /^Committed Load Relief/i),
+                delivered: dacCol(T, id, y, /^Delivered Load Relief/i) };
+    return d.filter(r => !isStrictTotalRowLabel(r[0]))
+      .map(r => Object.assign({ name: r[0] }, dacPick(r, m)));
+  }
+  function dacJAverage(T, y, id) {
+    const d = dacBody(T, id, y); if (!d) return null;
+    let row = null;
+    for (let i = 0; i < d.length; i++) if (/^average/i.test(String(d[i][0]))) { row = d[i]; break; }
+    if (!row) return null;
+    return { dac: row[1], nondac: row[3] };
+  }
+  const DAC_CHART_RULES = {
+    A1_programs: (T, y) => {
+      const d = dacBody(T, 'A1', y); if (!d) return null;
+      const m = { total: dacCol(T, 'A1', y, /^Total Funds Expended/i),
+                  dac: dacCol(T, 'A1', y, /^DAC Funding/i),
+                  dac_pct: dacCol(T, 'A1', y, /^% in DACs/i) };
+      return d.filter(r => !isStrictTotalRowLabel(r[0]))
+        .map(r => Object.assign({ name: r[0] }, dacPick(r, m)))
+        .sort((a, b) => b.total - a.total).slice(0, 12);
+    },
+    E1_categories: (T, y) => {
+      const d = dacBody(T, 'E1', y); if (!d) return null;
+      const m = { total: dacCol(T, 'E1', y, /Total Investment/i),
+                  dac_pct: dacCol(T, 'E1', y, /Percentage.*Affecting DACs/i) };
+      return d.filter(r => !isStrictTotalRowLabel(r[0]))
+        .map(r => Object.assign({ name: r[0] }, dacPick(r, m)));
+    },
+    F8_boroughs: (T, y) => {
+      const d = dacBody(T, 'F8', y); if (!d) return null;
+      const iD = dacCol(T, 'F8', y, /^DAC$/i), iN = dacCol(T, 'F8', y, /^Non-DAC$/i);
+      if (iD < 0 || iN < 0) return null;
+      return d.filter(r => !isStrictTotalRowLabel(r[0]))
+        .map(r => ({ name: r[0], dac: r[iD], nondac: r[iN], total: r[iD] + r[iN] }));
+    },
+    H1_boroughs: (T, y) => {
+      const d = dacBody(T, 'H1', y); if (!d) return null;
+      const m = { nondac: dacCol(T, 'H1', y, /^Non-DAC Repairs/i),
+                  dac: dacCol(T, 'H1', y, /^DAC Repairs/i),
+                  total: dacCol(T, 'H1', y, /^Grand Total/i) };
+      return d.filter(r => !isStrictTotalRowLabel(r[0]))
+        .map(r => Object.assign({ name: r[0] }, dacPick(r, m)));
+    },
+    G_replacement: (T, y) => dacGBoroughs(T, y,
+      [['Bronx', 'G2'], ['Manhattan', 'G4'], ['Queens', 'G6'], ['Westchester', 'G8']]),
+    G_abandonment: (T, y) => dacGBoroughs(T, y,
+      [['Bronx', 'G3'], ['Manhattan', 'G5'], ['Queens', 'G7'], ['Westchester', 'G9']]),
+    C5_programs: (T, y) => dacCPrograms(T, y, 'C5'),
+    C3_programs: (T, y) => dacCPrograms(T, y, 'C3'),
+    B2_plugs: (T, y) => {
+      const d = dacBody(T, 'B2', y); if (!d) return null;
+      const m = { L2: dacCol(T, 'B2', y, /^L2 Plugs$/i),
+                  DCFC: dacCol(T, 'B2', y, /^DCFC Plugs$/i),
+                  Micromobility: dacCol(T, 'B2', y, /^Micromobility Power Cabinets$/i),
+                  Total: dacCol(T, 'B2', y, /^Total Plugs$/i) };
+      const o = {};
+      d.forEach(r => { o[r[0]] = dacPick(r, m); });
+      return o;
+    },
+    D2: (T, y) => {
+      const d = dacBody(T, 'D2', y); if (!d) return null;
+      const at = (re) => { const r = dacRow(T, 'D2', y, re); return r ? r[1] : undefined; };
+      return { year: String(y),
+        projects_total: at(/^Total # of projects$/i),
+        projects_dac: at(/^Total # of projects in DACs$/i),
+        mw_total: at(/^Total MW installed \(All DERs\)$/i),
+        mw_dac: at(/^Total MW installed in DACs \(All DERs\)$/i) };
+    },
+    J1_avg_usage: (T, y) => dacJAverage(T, y, 'J1'),
+    J2_avg_gas: (T, y) => dacJAverage(T, y, 'J2'),
+  };
+
+  /* ---- the 18 KPI derive rules -------------------------------------------
+   * The map is not uniform, and a single positional convention would have been
+   * wrong for nine of the twelve reported KPIs. See derive_kpis.js for the
+   * cell-by-cell proof of each. */
+  const DAC_KPI_REPORTED = {
+    clean_energy_spend: (T, y) => ({
+      total: dacCell(T, 'A1', y, DAC_TOTAL_RE, /^Total Funds Expended/i),
+      dac: dacCell(T, 'A1', y, DAC_TOTAL_RE, /^DAC Funding/i) }),
+    energy_savings: (T, y) => ({
+      total: dacCell(T, 'A2', y, DAC_TOTAL_RE, /^Total Energy Savings/i),
+      dac: dacCell(T, 'A2', y, DAC_TOTAL_RE, /^DAC Energy Savings/i) }),
+    ev_funding: (T, y) => ({
+      total: dacCell(T, 'B1', y, DAC_TOTAL_RE, /Incentive Funding/i),
+      dac: dacCell(T, 'B1', y, /^DAC$/i, /Incentive Funding/i) }),
+    ev_plugs: (T, y) => ({
+      total: dacCell(T, 'B2', y, DAC_TOTAL_RE, /^Total Plugs$/i),
+      dac: dacCell(T, 'B2', y, /^DAC$/i, /^Total Plugs$/i) }),
+    /* two different TABLES: C2 for the whole, C3 for the DAC part */
+    dr_participation: (T, y) => ({
+      total: dacCell(T, 'C2', y, DAC_TOTAL_RE, /^Participants$/i),
+      dac: dacCell(T, 'C3', y, DAC_TOTAL_RE, /^Program Participants$/i) }),
+    der_mw: (T, y) => ({
+      total: dacCell(T, 'D2', y, /^Total MW installed \(All DERs\)$/i, /^(Up to|Cumulative through)/i),
+      dac: dacCell(T, 'D2', y, /^Total MW installed in DACs \(All DERs\)$/i, /^(Up to|Cumulative through)/i) }),
+    /* a PRODUCT: the stored dac appears nowhere as a cell */
+    strategic_capital: (T, y) => {
+      const t = dacCell(T, 'E1', y, /^Grand Total$/i, /Total Investment/i);
+      const p = dacPct(dacCell(T, 'E1', y, /^Grand Total$/i, /Percentage.*Affecting DACs/i));
+      return { total: t, dac: (typeof t === 'number' && typeof p === 'number') ? t * p : undefined };
+    },
+    customer_outages: (T, y) => ({
+      total: dacCell(T, 'F7', y, /^Grand Total$/i, /^Total Customers Interrupted/i),
+      dac: dacCell(T, 'F7', y, /^Grand Total$/i, /^DAC Customers Interrupted/i) }),
+    /* G1 is the systemwide table and is EMPTY in 2023, so the boroughs are the
+     * fallback -- and only the fallback: for 2025 they disagree with G1 by
+     * 9,000 feet, which is a data question for ConEd rather than ours to
+     * resolve by choosing quietly. */
+    main_replacement: (T, y) => {
+      const t = dacCell(T, 'G1', y, /^Systemwide Total$/i, /^Feet Replaced$/i);
+      const d = dacCell(T, 'G1', y, /within DAC/i, /^Feet Replaced$/i);
+      if (typeof t === 'number' && typeof d === 'number') return { total: t, dac: d };
+      const B = ['G2', 'G4', 'G6', 'G8'];
+      let st = 0, sd = 0, got = 0;
+      B.forEach(id => {
+        const a = dacCell(T, id, y, /within DAC/i, /^Feet Replaced$/i);
+        const b = dacCell(T, id, y, /not in a DAC/i, /^Feet Replaced$/i);
+        if (typeof a === 'number' && typeof b === 'number') { sd += a; st += a + b; got++; }
+      });
+      if (got !== B.length) return { total: undefined, dac: undefined };
+      return { total: st, dac: sd };
+    },
+    /* ANCHORED: /DAC Repairs/ matches "Non-DAC Repairs" first */
+    leak_repairs: (T, y) => ({
+      total: dacCell(T, 'H1', y, /^Grand Total$/i, /^Grand Total$/i),
+      dac: dacCell(T, 'H1', y, /^Grand Total$/i, /^DAC Repairs/i) }),
+    clean_energy_jobs: (T, y) => ({
+      total: dacCell(T, 'I1', y, /^Number of jobs placed as a result/i, /^Unique$/i),
+      dac: null }),
+    /* a SUM: J9 reports DAC and non-DAC but never the total */
+    residential_customers: (T, y) => {
+      const d = dacCell(T, 'J9', y, /Residential Customers$/i, /^Total in DAC/i);
+      const n = dacCell(T, 'J9', y, /Residential Customers$/i, /^Total in Non-DAC/i);
+      return { total: (typeof d === 'number' && typeof n === 'number') ? d + n : undefined, dac: d };
+    },
+  };
+  const dacShare = (o) => (o && typeof o.dac === 'number' && typeof o.total === 'number' &&
+    o.total > 0) ? o.dac / o.total : undefined;
+  /* Three of the six ratios divide by this, so it is written once.
+   *
+   * IT IS DERIVED, AND THAT IS FORCED. The payload's stored ratios divide by
+   * residential_customers.dac_pct -- nine of nine to the last digit -- and that
+   * stored share is rounded to 0.44 in 2025 where the division gives
+   * 0.43676506537302767. Retiring payload.json removes the rounded copy, and
+   * kpiDacPct already derives the share for display, so there is one input
+   * left. The three 2025 ratios therefore come out +0.741% above what the
+   * payload publishes. Named and quantified in derive_kpis.js, and reported
+   * rather than smoothed. */
+  const dacJ9Share = (T, y) => dacShare(DAC_KPI_REPORTED.residential_customers(T, y));
+  const DAC_KPI_ANALYTICAL = {
+    equity_index: (T, y) => {
+      /* A1's own "% in DACs" is the PUBLISHED share and is preferred; it is
+       * stripped on persist for A1, so the derived share is the fallback. */
+      let a = dacPct(dacCell(T, 'A1', y, DAC_TOTAL_RE, /^% in DACs/i));
+      if (typeof a !== 'number') a = dacShare(DAC_KPI_REPORTED.clean_energy_spend(T, y));
+      const b = dacShare(DAC_KPI_REPORTED.ev_funding(T, y));
+      const e = dacPct(dacCell(T, 'E1', y, /^Grand Total$/i, /Percentage.*Affecting DACs/i));
+      if (typeof a !== 'number' || typeof b !== 'number' || typeof e !== 'number') return undefined;
+      return (a + b + e) / 3;
+    },
+    cost_per_mmbtu: (T, y) => {
+      const s = DAC_KPI_REPORTED.clean_energy_spend(T, y).total;
+      const m = DAC_KPI_REPORTED.energy_savings(T, y).total;
+      return (typeof s === 'number' && typeof m === 'number' && m) ? s / m : undefined;
+    },
+    ev_equity_ratio: (T, y) => {
+      const p = dacShare(DAC_KPI_REPORTED.ev_plugs(T, y)), c = dacJ9Share(T, y);
+      return (typeof p === 'number' && typeof c === 'number' && c) ? p / c : undefined;
+    },
+    outage_burden_ratio: (T, y) => {
+      const o = dacShare(DAC_KPI_REPORTED.customer_outages(T, y)), c = dacJ9Share(T, y);
+      return (typeof o === 'number' && typeof c === 'number' && c) ? o / c : undefined;
+    },
+    leak_velocity_ratio: (T, y) => {
+      const l = dacShare(DAC_KPI_REPORTED.leak_repairs(T, y)), c = dacJ9Share(T, y);
+      return (typeof l === 'number' && typeof c === 'number' && c) ? l / c : undefined;
+    },
+    eap_per_customer: (T, y) => {
+      const e = dacCell(T, 'J8', y, /^Total in DAC$/i, /^Electric(\s*\(\$\))?$/i);
+      const g = dacCell(T, 'J8', y, /^Total in DAC$/i, /^Gas(\s*\(\$\))?$/i);
+      const ce = dacCell(T, 'J7', y, /^Total in DAC$/i, /^Electric-only$/i);
+      const cg = dacCell(T, 'J7', y, /^Total in DAC$/i, /^Gas-only$/i);
+      const cd = dacCell(T, 'J7', y, /^Total in DAC$/i, /^Dual Service$/i);
+      if ([e, g, ce, cg, cd].some(x => typeof x !== 'number')) return undefined;
+      const cust = ce + cg + cd;
+      return cust ? (e + g) / cust : undefined;
+    },
+  };
+
+  /* ---- THE COMPOSER ------------------------------------------------------ */
+  /**
+   * Turn raw Dataverse rows into loadPayload()'s exact shape.
+   *
+   * Takes the rows rather than fetching them, so a test can drive it from a
+   * fixture with no network. That is deliberate: the shadow comparison is the
+   * thing this round has to prove, and a composer that could only run against
+   * a live org could only be observed, never asserted.
+   */
+  function composePayloadFromRows(src) {
+    if (!src) return null;
+    const tables = {};
+    (src.tables || []).forEach(x => {
+      const t = { id: x.cr2bf_tablekey, section: x.cr2bf_section,
+        number: x.cr2bf_number, short_title: x.cr2bf_shorttitle,
+        data: {}, title_by_year: {}, schema_by_year: {} };
+      if (x.cr2bf_mapping != null) { try { t.mapping = JSON.parse(x.cr2bf_mapping); } catch (e) {} }
+      if (x.cr2bf_presentation != null) {
+        try {
+          const p = JSON.parse(x.cr2bf_presentation);
+          if (p.header_levels !== undefined) t.header_levels = p.header_levels;
+          if (p.currency_cols !== undefined) t.currency_cols = p.currency_cols;
+        } catch (e) {}
+      }
+      tables[x.cr2bf_tablekey] = t;
+    });
+    (src.tabledata || []).forEach(x => {
+      const t = tables[x.cr2bf_tableid]; if (!t) return;
+      const y = String(x.cr2bf_year);
+      if (x.cr2bf_rows != null) { try { t.data[y] = JSON.parse(x.cr2bf_rows); } catch (e) {} }
+      if (x.cr2bf_schema != null) { try { t.schema_by_year[y] = JSON.parse(x.cr2bf_schema); } catch (e) {} }
+      if (x.cr2bf_title != null) t.title_by_year[y] = x.cr2bf_title;
+    });
+
+    const sections = {};
+    (src.sections || []).forEach(x => {
+      sections[x.cr2bf_sectionkey] = { name: x.cr2bf_name,
+        short_name: x.cr2bf_shortname, full_name: x.cr2bf_fullname,
+        invert_metric: !!x.cr2bf_invertmetric, blurb: x.cr2bf_blurb };
+    });
+
+    /* YEARS ARE DERIVED from the rows that carry data, newest first. Storing
+     * them would be a second source of truth for a fact the rows already
+     * state. The 5 title-only rows are excluded: a year with a title and no
+     * data was never reported and must not appear in the year selector. */
+    const years = [];
+    (src.tabledata || []).forEach(x => {
+      if (x.cr2bf_rows == null) return;
+      const y = String(x.cr2bf_year);
+      if (years.indexOf(y) < 0) years.push(y);
+    });
+    years.sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+
+    const metrics = src.metrics || [];
+    const metaRow = metrics.filter(m => m.cr2bf_kind === 'meta')[0] || null;
+    let cfg = {};
+    if (metaRow && metaRow.cr2bf_spec) { try { cfg = JSON.parse(metaRow.cr2bf_spec); } catch (e) {} }
+    const meta = {
+      title: metaRow ? metaRow.cr2bf_label : null,
+      years: years, current_year: years[0],
+      baseline_options: cfg.baseline_options, default_baseline: cfg.default_baseline,
+    };
+
+    /* KPI definitions from rows, values DERIVED */
+    const kpiFrom = (kind) => metrics.filter(m => m.cr2bf_kind === kind).map(m => {
+      const o = { id: m.cr2bf_metrickey, label: m.cr2bf_label, format: m.cr2bf_format };
+      if (m.cr2bf_section != null) o.section = m.cr2bf_section;
+      if (m.cr2bf_unit != null) o.unit = m.cr2bf_unit;
+      if (m.cr2bf_primarymetric != null) o.primary_metric = m.cr2bf_primarymetric;
+      if (m.cr2bf_narrative != null) o.narrative = m.cr2bf_narrative;
+      if (m.cr2bf_sourcecalc != null) o.source_calc = m.cr2bf_sourcecalc;
+      if (m.cr2bf_spec) {
+        try {
+          const s = JSON.parse(m.cr2bf_spec);
+          if (s.composite !== null && s.composite !== undefined) o.composite = s.composite;
+          if (s.lower_is_better !== null && s.lower_is_better !== undefined) o.lower_is_better = s.lower_is_better;
+        } catch (e) {}
+      }
+      o.values = {};
+      return o;
+    });
+    const reported = kpiFrom('kpi_reported');
+    reported.forEach(k => {
+      const rule = DAC_KPI_REPORTED[k.id]; if (!rule) return;
+      years.forEach(y => {
+        const v = rule(tables, y);
+        if (v && (v.total !== undefined || v.dac !== undefined)) {
+          const e = { total: v.total === undefined ? null : v.total,
+                      dac: v.dac === undefined ? null : v.dac };
+          /* dac_pct through the SHIPPED kpiDacPct, so the card and the composed
+           * payload cannot disagree about the same number. */
+          e.dac_pct = kpiDacPct(e);
+          k.values[y] = e;
+        }
+      });
+    });
+    const analytical = kpiFrom('kpi_analytical');
+    analytical.forEach(k => {
+      const rule = DAC_KPI_ANALYTICAL[k.id]; if (!rule) return;
+      years.forEach(y => {
+        const v = rule(tables, y);
+        if (v !== undefined) k.values[y] = { value: v };
+      });
+    });
+
+    /* chart definitions from rows, values DERIVED */
+    const charts = {};
+    metrics.filter(m => m.cr2bf_kind === 'chart').forEach(m => {
+      const key = m.cr2bf_metrickey;
+      let spec = {};
+      if (m.cr2bf_spec) { try { spec = JSON.parse(m.cr2bf_spec); } catch (e) {} }
+      const rule = DAC_CHART_RULES[key];
+      const values = {};
+      (spec.years || years).forEach(y => {
+        if (!rule) return;
+        const v = rule(tables, y);
+        if (v !== null && v !== undefined) values[y] = v;
+      });
+      charts[key] = { values: values };
+    });
+
+    return { meta: meta, sections: sections, tables: tables,
+             kpis: { reported: reported, analytical: analytical }, charts: charts };
+  }
+
+  /** Read the four tables and compose. Returns null with no Dataverse. */
+  async function composePayloadFromDataverse() {
+    const src = await Storage.getReportSource();
+    if (!src) return null;
+    return composePayloadFromRows(src);
+  }
+
+  /**
+   * SHADOW MODE. Compose from Dataverse alongside the payload, compare
+   * canonically, log the verdict, and render the PAYLOAD either way.
+   *
+   * Non-throwing by construction: a shadow comparison that could break the boot
+   * would be worse than no comparison at all. Every failure path logs and
+   * returns.
+   */
+  async function dacShadowCompare(payload) {
+    const t0 = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    let composed = null;
+    try { composed = await composePayloadFromDataverse(); }
+    catch (e) {
+      console.warn('[CLCPA-238] shadow: compose FAILED, payload unaffected:', e && e.message ? e.message : e);
+      return { ok: false, reason: 'compose threw' };
+    }
+    if (!composed) {
+      console.info('[CLCPA-238] shadow: no Dataverse source (localStorage backend); nothing compared.');
+      return { ok: false, reason: 'no source' };
+    }
+    const ms = (((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - t0).toFixed(0);
+    const parts = ['meta', 'sections', 'tables', 'kpis', 'charts'];
+    const verdict = {};
+    let same = 0;
+    parts.forEach(p => {
+      const d = dacFirstDiff(composed[p], payload[p]);
+      verdict[p] = d;
+      if (d === null) same++;
+    });
+    if (same === parts.length) {
+      console.info('[CLCPA-238] shadow: Dataverse MATCHES payload.json on all ' +
+        parts.length + ' parts (' + ms + ' ms to compose).');
+    } else {
+      console.warn('[CLCPA-238] shadow: ' + same + ' of ' + parts.length +
+        ' parts match (' + ms + ' ms to compose). Differences, first coordinate each:');
+      parts.forEach(p => {
+        if (verdict[p]) console.warn('    ' + p + '  ' + verdict[p]);
+      });
+    }
+    return { ok: true, same: same, of: parts.length, verdict: verdict, ms: ms };
+  }
+
   async function loadPayload() {
     try {
       const res = await fetch('payload.json');
@@ -20746,6 +21285,33 @@ function wireHTooltips() {
     // into memory before any overrides/years are applied below.
     await Storage.init();
 
+    /* CLCPA-238: THE SOURCE SWITCH.
+     *
+     * payload.json is loaded first and remains the default, so the shipped
+     * behaviour is exactly what it was. Only when the flag says 'dataverse'
+     * does the composed payload replace it, and only AFTER Storage.init(),
+     * because composing needs the backend that init resolves.
+     *
+     * A composed payload that comes back null or throws leaves payload.json in
+     * place rather than failing the boot. That is the parachute Emely ruled on:
+     * while the file is still deployed, one flag is the whole difference
+     * between the two sources, with no deploy and no data move. */
+    if (DAC_SOURCE === 'dataverse') {
+      try {
+        const fromDv = await composePayloadFromDataverse();
+        if (fromDv) {
+          state.payload = fromDv;
+          state.seedYears = ((fromDv.meta && fromDv.meta.years) || []).map(String);
+          console.info('[CLCPA-238] source = DATAVERSE');
+        } else {
+          console.warn('[CLCPA-238] source = payload.json (Dataverse returned no source)');
+        }
+      } catch (e) {
+        console.error('[CLCPA-238] compose FAILED, staying on payload.json:',
+          e && e.message ? e.message : e);
+      }
+    }
+
     // Merge user-added years (e.g. 2026) into meta.years FIRST so that
     // any per-year overrides applied below can target them.
     Storage.applyAddedYears(state.payload);
@@ -20771,6 +21337,19 @@ function wireHTooltips() {
     // saved layers appear in the Layers panel when they arrive, and a Dataverse
     // problem degrades to session-only (logged) rather than breaking the page.
     mlHydrateSavedLayers();
+
+    /* CLCPA-238 SHADOW MODE, and deliberately here: AFTER the first render and
+     * without awaiting. The comparison is diagnostic, so it must not delay a
+     * single pixel, and its failure must not reach the page. It logs its
+     * verdict and, on a mismatch, the first differing coordinate per part.
+     *
+     * Skipped when the Dataverse source is already live, because comparing a
+     * thing against itself proves nothing. */
+    if (DAC_SHADOW && DAC_SOURCE !== 'dataverse') {
+      dacShadowCompare(state.payload).catch(e =>
+        console.warn('[CLCPA-238] shadow compare failed (page unaffected):',
+          e && e.message ? e.message : e));
+    }
 
     // Tract datasets: started here without awaiting, so the dashboard's first
     // paint is unaffected -- but slice 5c makes the MAP card wait on this gate

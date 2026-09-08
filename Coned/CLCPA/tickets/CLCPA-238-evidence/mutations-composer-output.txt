@@ -1,0 +1,76 @@
+======================================================================
+CLCPA-238 step 5 -- mutation controls
+======================================================================
+  red  THE FLAG FLIPS: Dataverse becomes the default source
+       1 red, incl: DAC_SOURCE defaults to 'payload'
+  red  shadow mode is switched off
+       1 red, incl: DAC_SHADOW defaults to true
+  red  a failed compose blanks the payload instead of keeping it
+       1 red, incl: and a null composition does not replace the payload
+  red  the source switch moves BEFORE Storage.init, where composing cannot work
+       1 red, incl: the source switch runs AFTER Storage.init(), which composing requires
+  red  SHADOW MODE STARTS RENDERING: it assigns state.payload
+       1 red, incl: it NEVER assigns state.payload: it compares and reports, nothing else
+  red  shadow mode raises a toast, so a viewer sees a diagnostic
+       1 red, incl: and it touches no DOM and raises no toast: the page cannot learn it ran
+  red  shadow mode is awaited, delaying the page on a slow org
+       1 red, incl: and never awaited, so it cannot delay a pixel
+  red  shadow mode runs even when Dataverse is already the source
+       1 red, incl: skipped when Dataverse is already the source: comparing a thing to itself proves nothing
+  red  the three boot reads go back to being sequential
+       2 red, incl: the three reads are destructured from one Promise.all
+  red  the four report-source reads become sequential
+       1 red, incl: it reads its four tables together
+  red  the localStorage backend returns an empty shape instead of null
+       1 red, incl: the localStorage backend returns null, so shadow mode reports "no source" instead of a mismatch on ev
+  red  years are stored on the meta row instead of derived
+       3 red, incl: meta.years matches: 2023,2024,2025
+  noop the title-only rows create a year that was never reported
+       green as expected: this mutation changes nothing on this data
+  red  presentation hints are dropped, losing header_levels on 4 tables
+       1 red, incl: tables recomposes EXACTLY from the seed: .A10.header_levels: undefined vs 2
+  red  mapping is dropped from every table
+       1 red, incl: tables recomposes EXACTLY from the seed: .A1.mapping: undefined vs {"comparable":"Yes at total level;
+  red  the schema column is ignored, so every table loses schema_by_year
+       6 red, incl: tables recomposes EXACTLY from the seed: .A1.schema_by_year.2023: undefined vs ["Program Name","Total
+  red  section invert_metric is passed through untruthed, so 0 stays 0
+       1 red, incl: a null invert_metric composes to false, not null: null
+  red  A1_programs keeps the total rows instead of dropping them
+       1 red, incl: charts recomposes EXACTLY from the seed: .A1_programs.values.2023[0].dac: 129680235 vs 34121994
+  red  A1_programs takes the top 10 instead of the top 12
+       1 red, incl: charts recomposes EXACTLY from the seed: .A1_programs.values.2023: length 10 vs 12
+  red  F8's total becomes a column read instead of dac + nondac
+       1 red, incl: charts recomposes EXACTLY from the seed: .F8_boroughs.values.2023[0].total: 423720 vs 488364
+  red  H1's DAC column loses its anchor, matching Non-DAC Repairs first
+       1 red, incl: charts recomposes EXACTLY from the seed: .H1_boroughs.values.2023[0].dac: 1062 vs 494
+  red  G_replacement reads the abandonment tables
+       1 red, incl: charts recomposes EXACTLY from the seed: .G_replacement.values.2024[0].dac: 2553 vs 72504
+  red  B2 stops omitting Micromobility, inventing a key for 2023 and 2024
+       1 red, incl: charts recomposes EXACTLY from the seed: .B2_plugs.values.2023.DAC.Micromobility: "DAC" vs undefined
+  red  columns are read by INDEX instead of by name, which 2023 breaks
+       1 red, incl: charts recomposes EXACTLY from the seed: .C3_programs.values.2023[0].committed: undefined vs 136.39
+  red  dr_participation reads its DAC figure from C2 instead of C3
+       3 red, incl: every reported KPI total and dac matches the payload EXACTLY: dr_participation 2023 DAC 93187 vs 2896
+  red  strategic_capital's dac stops being a product and reads a cell
+       1 red, incl: every reported KPI total and dac matches the payload EXACTLY: strategic_capital 2023 DAC 1298253000 v
+  red  main_replacement always sums the boroughs, ignoring G1
+       3 red, incl: every reported KPI total and dac matches the payload EXACTLY: main_replacement 2025 TOTAL 416717 vs 4
+  red  residential_customers reads a total column that does not exist
+       6 red, incl: every reported KPI total and dac matches the payload EXACTLY: residential_customers 2023 TOTAL null v
+  red  clean_energy_jobs invents a zero where there is no DAC figure
+       5 red, incl: every reported KPI total and dac matches the payload EXACTLY: clean_energy_jobs 2023 DAC 0 vs null | 
+  red  dac_pct is stored from the row instead of derived by kpiDacPct
+       26 red, incl: every composed dac_pct IS what the shipped kpiDacPct returns, so the card and the payload cannot disa
+  red  equity_index loses its published-percentage preference
+       4 red, incl: exactly 3 analytical divergences: 6
+  red  the J9 share reads the rounded column, hiding the finding
+       3 red, incl: exactly 3 analytical divergences: 6
+  red  eap_per_customer drops dual-service customers from the denominator
+       5 red, incl: exactly 3 analytical divergences: 6
+  noop the canonical compare becomes order-SENSITIVE
+       green as expected: this mutation changes nothing on this data
+  red  the compare stops distinguishing 0 from -0
+       1 red, incl: zero and NEGATIVE zero are told apart
+
+  35 caught, 0 not caught, of 35
+  clean re-run against restored source: PASSES

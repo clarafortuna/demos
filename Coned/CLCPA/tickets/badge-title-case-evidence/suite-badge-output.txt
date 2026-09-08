@@ -110,6 +110,7 @@ THE BADGE ROUND -- acceptance
   ok   and at BASE
   ok   the import result panel is unchanged by this round
   ok   including the reminder Emely approved verbatim
+  ok   app.js at the badge round's merge 97e2df0 is readable
   ok   top-level functions enumerated: 352
        new functions     : adoptIngestReference, ingestStatusClass, ingestStatusText
        changed functions : loadIngestDraft, openSaveModal, refreshIngestStatus, renderIngestEditor, renderIngestHistory, wireIngestHistory
@@ -131,5 +132,5 @@ THE BADGE ROUND -- acceptance
   ok   and no function outside that list moved at all
 
 ======================================================================
-  114 passed, 0 failed
+  115 passed, 0 failed
 ======================================================================
