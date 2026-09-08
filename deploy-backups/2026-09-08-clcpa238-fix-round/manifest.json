@@ -1,0 +1,42 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-09-08T16:13:36.277Z",
+  "note": "Pre-deploy snapshot of the live cr2bf_dactest web resources. Restore by PATCHing webresourceset({webResourceId}) with the base64 of the saved file, then PublishXml.",
+  "slice": "clcpa238-fix-round",
+  "sourceCommit": "70f4f80",
+  "resources": [
+    {
+      "file": "app.js",
+      "webResourceName": "cr2bf_dactest/app.js",
+      "webResourceId": "79151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 1075369,
+      "sha256": "e76836ffa54948f983ad3f5c1436669f23868ada3ccc12ac01ae0306dca4a0ea",
+      "savedAs": "app.js",
+      "willBeReplaced": true
+    },
+    {
+      "file": "styles.css",
+      "webResourceName": "cr2bf_dactest/styles.css",
+      "webResourceId": "7b151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 269588,
+      "sha256": "7a4fdb124415b13793e85dbaeaafee3ff271af5db6ae61b37ab6c099c761c90a",
+      "savedAs": "styles.css",
+      "willBeReplaced": false
+    },
+    {
+      "file": "ExecutiveDashboard.html",
+      "webResourceName": "cr2bf_dactest/ExecutiveDashboard.html",
+      "webResourceId": "77151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 4080,
+      "sha256": "9441bd3c08ada71a6356ad3c97689281c19423c17a4ae18b01e9448f8f51c0cd",
+      "savedAs": "ExecutiveDashboard.html",
+      "willBeReplaced": true
+    }
+  ],
+  "provenance": {
+    "stampedAs": "f03e0ef84a",
+    "derivedBuildId": "f03e0ef84a",
+    "expectedPrevBuildId": "f03e0ef84a",
+    "matches": true
+  }
+}

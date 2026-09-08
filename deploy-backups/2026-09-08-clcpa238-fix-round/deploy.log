@@ -1,0 +1,106 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-238 fix round (current_year stored, derive engine, shadow baseline)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD = 70f4f80
+              source folder clean, so the pushed bytes are exactly 70f4f80.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 2b every ticket s suite passes against these exact bytes: engine=130, ui=221, xlsx=265, 230=210, 226=195, 235=74, 234=101, badge=115, derive_charts=46, derive_kpis=21, gen_seed=20, composer=108, diag_shadow_baseline=15
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      d710e3bfda
+                 styles.css  7a4fdb1244
+              -> ExecutiveDashboard.html references them as ?v=<id>
+              -> app.js will print "[DAC dashboard] build d710e3bfda" at boot
+PRE-FLIGHT 4  stamps applied in memory (nothing on disk is modified).
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  B9M9LBUYQ
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1075369B  local=1080157B
+unchanged  styles.css   deployed=269588B  local=269588B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+PROVENANCE  archived app.js: stamped "f03e0ef84a", derives to f03e0ef84a
+            previous deploy recorded f03e0ef84a -> MATCH: this folder holds that build
+
+BACKUP  live bytes archived to deploy-backups/2026-09-08-clcpa238-fix-round/
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1080157B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)
+published.
+
+READ-BACK app.js  1080157B  sha256 72603e266d515704...  VERIFIED byte-identical
+READ-BACK styles.css  269588B  sha256 7a4fdb124415b137...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 0b0c57e8dd8daf8b...  VERIFIED byte-identical
+
+=== DEPLOY COMPLETE ===
+build id (app.js): d710e3bfda
+styles.css id    : 7a4fdb1244
+source           : ExecutiveDashboard_dev/ at main @ 70f4f80
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build d710e3bfda
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO VERIFY, CLCPA-238 FIX ROUND. ONE NUMBER, and it is 3.
+
+Open the browser console BEFORE loading, then hard-refresh.
+
+THE ONE LINE THAT MATTERS:
+      [CLCPA-238] shadow: 3 of 5 parts match (NNN ms to compose)
+
+  1. THE NUMBER IS 3. Not 1, which is what it read before this round,
+     and not 4, which is what I wrongly told you to expect last time.
+     The 3 is computed inside the suite from the verdict itself now, so
+     it is not a number I typed beside a list.
+  2. THE THREE THAT MATCH ARE meta, sections AND tables. The console
+     names only the differing ones, so you should see exactly two named:
+     kpis and charts. If it names tables, or meta, STOP and tell me.
+  3. THE FIRST COORDINATES should be a KPI value and a chart percentage,
+     both small differences. Anything structural -- a length, a missing
+     key, a name -- is a defect and not the ruled class.
+  4. NOTE THE ms FIGURE again. Last read was 229 ms. This round makes
+     the composer run the derive engine over 155 table-years, so it
+     should be slower. I have no browser measurement of how much, so
+     the number you read is the only one there is.
+
+AND THE LINE THAT SETTLES MY OUTSTANDING QUESTION:
+  5. paste the [Storage] line from the SAME load. It reads either
+        [Storage] backend = Dataverse
+     or [Storage] backend = localStorage (Dataverse fallback)
+     Last read, the payload still held 0.88 where an applied override
+     would have put null, and my reading of the code cannot explain
+     that. If the backend line says localStorage, that IS the answer:
+     no overrides were applied, and the composer got its rows from a
+     Dataverse read that succeeded while the cache load did not.
+
+THE PAGE ITSELF must still be indistinguishable from yesterday:
+  6. payload.json is STILL the source, the flag ships as payload, and
+     every table, chart and KPI card reads exactly as before. The year
+     selector still offers 2099, 2025, 2024, 2023.
+  7. no uncaught error, no toast. Shadow mode stays invisible.
+
+STEP 6 STAYS ON HOLD until this read matches the prediction exactly.
+
+=== log written by deploy_238fix.js ===
