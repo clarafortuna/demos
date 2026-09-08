@@ -3,11 +3,22 @@
 **For Randy, who directs the migration. This document supplies facts, not a plan.**
 
 Everything below was read from `org9076e69b.crm.dynamics.com` (Clara Fortuna Dev,
-solution `CLCPADACDashboardDev`, publisher prefix `cr2bf`) on **2026-08-14**, with the
+solution `CLCPADACDashboard`, publisher prefix `cr2bf`) on **2026-08-14**, with the
 dead-weight section re-verified on **2026-08-24**, by a
 read-only audit that performed no write of any kind. Row counts, byte sizes,
 privilege names and column facts are measured, not recalled. Where something could
 not be read, it says so rather than guessing.
+
+**Updated 2026-09-08 for CLCPA-238**, which retires `payload.json` and moves every
+report figure into Dataverse. Two corrections and three additions below.
+
+**Correction to the solution name.** Earlier revisions of this document named the
+solution `CLCPADACDashboardDev`. That string does not resolve as a solution
+`uniquename` in this org. The correct name is **`CLCPADACDashboard`** (friendly
+name "CLCPA DAC Dashboard"), resolved from the existing report-data table's own
+solution component record rather than by matching a name. A separate unmanaged
+`CLCPA` solution also exists in this org and is NOT the one these components
+belong to.
 
 Four sections: **inventory**, **dead weight**, **security roles**, **open
 questions**. The open questions are the only part that needs an answer from Con
@@ -17,7 +28,7 @@ Edison; the rest is description.
 
 ## 1. Solution inventory
 
-### 1a. Tables — seven, all unmanaged
+### 1a. Tables — ten, all unmanaged
 
 | Logical name | Display name | Rows | Purpose | Audit |
 |---|---|---|---|---|
@@ -26,8 +37,25 @@ Edison; the rest is description.
 | `cr2bf_dacmapchangehistory` | DAC Map Change History | **49** | Audit trail: one row per map upload, with per-field counts and the changed GEOID list. | off |
 | `cr2bf_dacmaplayer` | DAC Map Layer | **2** | Saved GeoJSON overlay layers with their colour ramps. | off |
 | `cr2bf_dacingesttestreportingyear` | DAC Ingest Test Reporting Year | **0** | Report editor: extra reporting years. | off |
-| `cr2bf_dacingesttesttabledata1` | DAC Ingest Test - Table Data | **149** | Report editor: per-table cell overrides. | off |
+| `cr2bf_dacingesttesttabledata1` | DAC Ingest Test - Table Data | **155** | Report data: one row per table-year. See the note below. | off |
 | `cr2bf_dacingesttestchangehistory` | DAC Ingest Test Change History | **16** | Report editor: audit trail. | off |
+| `cr2bf_dacreporttable` | DAC Report Table | **52** | CLCPA-238. One row per report table: section, number, short title, comparability note, presentation hints. | off |
+| `cr2bf_dacreportsection` | DAC Report Section | **10** | CLCPA-238. One row per section A to J: names, blurb, metric direction. | off |
+| `cr2bf_dacreportmetric` | DAC Report Metric | **31** | CLCPA-238. Definitions only, never values: 12 reported KPIs, 6 analytical, 12 charts, 1 meta row. | off |
+
+**`cr2bf_dacingesttesttabledata1` went from 149 rows to 155, and the number needs
+its history.** It held 149 bulk-seeded rows until 2026-09-02, when the authorized
+CLCPA-142 cleanup deleted 148 of them as redundant copies of `payload.json` values
+and nulled 23 derived cells in the one row carrying genuine operator edits. It then
+held 1 row, plus a second added during CLCPA-235 testing. On 2026-09-08 the
+CLCPA-238 seed wrote 153 rows and added two columns, `cr2bf_schema` and
+`cr2bf_title`, giving 155: 154 table-year keys from the payload plus one
+test row for year 2099 that the payload never contained.
+
+The table's role changed with that seed. It was a store of per-table OVERRIDES
+layered on top of `payload.json`; it is now the SOURCE of report figures. Its
+`cr2bf_rows` column is Memo with a 1,048,576-character limit against a largest
+measured value of 3,257, so there is no capacity concern.
 
 **`cr2bf_dactractdataset` holds four different things.** The record-level
 discriminator is `cr2bf_DatasetKey`, so what a row is can be known without
@@ -244,6 +272,41 @@ Four deliberate choices in that table:
   produce an operator who can create a record but not attach its file.
 
 `Assign` and `Share` are not needed by either role.
+
+### 3a-bis. CLCPA-238: the three new tables need viewer READ
+
+The three CLCPA-238 tables are **UserOwned**, matching
+`cr2bf_dacingesttesttabledata1`. Ownership type cannot be changed after a table is
+created, and it was matched deliberately so that whatever privilege configuration
+already lets a viewer read report data extends to these unchanged.
+
+**Grant these three, at Organization depth:**
+
+```
+prvReadcr2bf_DACReportTable
+prvReadcr2bf_DACReportSection
+prvReadcr2bf_DACReportMetric
+```
+
+Those strings were READ from `EntityDefinitions(...)?$select=Privileges`, not
+composed from the schema names. All four depths (Basic, Local, Deep, Global) are
+available on each.
+
+**Organization depth specifically, and the reason is the ownership model.** Rows in
+these tables are created by whichever operator saves them. A viewer granted only
+Basic or Local read sees rows they own, which is none of them. Without Organization
+depth the dashboard renders **blank** for non-operators once `payload.json` is
+retired, where today that file guarantees the report renders for everyone.
+
+Create, Write and Delete are **not** required for viewers. The operator role needs
+the same three reads at Organization depth to open the editor.
+
+**Open question, not yet measured.** Whether the operator role also needs Create
+and Write on these three tables is unresolved. Nothing in the application writes
+them today: the 246 seeded rows were written by an administrative script, not by
+the dashboard. If a later CLCPA-238 step gives the app a reason to write them, that
+will be reported and this section updated before handoff. It is recorded as
+unmeasured rather than answered by assumption.
 
 ### 3b. Role: **DAC Dashboard Viewer**
 
