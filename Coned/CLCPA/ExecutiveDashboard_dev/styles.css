@@ -2146,6 +2146,18 @@ a.nav-item { text-decoration: none; }
  * 1300px, because the media query below already collapses to one column. */
 .exec-shares-grid-solo { grid-template-columns: 1fr; }
 
+/* The empty year's two YEAR-DEPENDENT placeholders sit side by side, above the
+ * full-width map. Two columns rather than three, because a third empty cell is
+ * the very artefact this replaces. */
+.exec-shares-grid-pair { grid-template-columns: 1fr 1fr; }
+@media (max-width: 1300px) {
+  .exec-shares-grid-pair { grid-template-columns: 1fr; }
+}
+
+/* The header-card row on an empty year holds ONE placeholder where three real
+ * cards would be, so it spans the row instead of leaving two gaps. */
+.exec-header-cards-empty { grid-template-columns: 1fr; }
+
 /* ===== Card shell — uses existing .chart-card-head from shared.css =====
    We wrap with .exec-card so we can scope tweaks without touching .chart-card */
 .exec-shares-grid .exec-card {
@@ -5569,10 +5581,41 @@ a.nav-item { text-decoration: none; }
   background: var(--white-smoke);
   border-bottom: 2px solid var(--line);
 }
+/* PLAIN TEXT LABELS, NOT INPUT CHROME.
+ *
+ * .ingest-cell-calc carries a dashed border, a white-smoke fill, a radius and a
+ * mono face -- correct for a computed FIGURE, wrong for the word "Total". On the
+ * sub-header it read as a row of disabled input boxes, and the empty first cell
+ * showed as a dashed ghost box with nothing in it.
+ *
+ * The band itself already carries the shading, so these cells need no fill and
+ * no border at all. Behaviour is untouched: they were never inputs. */
 .ingest-row-subheader .ingest-cell-calc {
   color: var(--text-2);
   font-weight: 600;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  font-family: inherit;
+  text-align: center;
+  padding: 6px 4px;
 }
+/* the label column keeps its left edge; every group column centres */
+.ingest-row-subheader td:first-child .ingest-cell-calc { text-align: left; }
+
+/* THE GROUP HEADER, CENTRED OVER THE COLUMNS IT SPANS.
+ *
+ * Scoped to two-level tables in BOTH views, so the 48 single-level tables keep
+ * their existing header alignment exactly. The editor now emits the same
+ * colspan the viewer has always emitted, so "2024" sits over its Total/DAC pair
+ * in both places rather than appearing twice in the editor. */
+.ingest-grid-2level thead th { text-align: center; }
+.ingest-grid-2level thead th.ingest-th-label { text-align: left; }
+.data-table-2level thead th { text-align: center; }
+.data-table-2level thead th:first-child { text-align: left; }
+/* and the viewer's second header line centres under its group, matching the
+ * editor's sub-header row */
+.data-table-2level thead tr:nth-child(2) th { text-align: center; }
 
 .ingest-td-actions { width: 32px; }
 .ingest-row-delete {

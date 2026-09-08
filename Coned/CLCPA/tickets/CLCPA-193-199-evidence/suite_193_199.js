@@ -12,7 +12,25 @@ const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 // DAC_APP_OVERRIDE lets the control runner feed a deliberately broken copy in,
 // so every guard can be shown to FAIL when the fix it guards is reverted.
-const NEW = fs.readFileSync(process.env.DAC_APP_OVERRIDE || (REPO + '/' + REL), 'utf8');
+/* THE POST-CHANGE SIDE IS PINNED TOO, and for the same reason the baseline is.
+ *
+ * NEW read the WORKING TREE, so this suite quietly became a check on every
+ * later round instead of on 193/199. It went red twice today: "exactly two
+ * TextEncoder uses remain in code [got 4 want 2]" -- three more encoders
+ * arrived with the CLCPA-219 checksum and the CLCPA-238 Dataverse reads, none
+ * of them anything to do with 193/199 -- and "renderTable( byte-identical",
+ * which the pre-walkthrough header-band item changed on purpose.
+ *
+ * Neither is a regression in 193/199, and widening the assertions to tolerate
+ * them would delete the guards. Frozen evidence describes the code it was
+ * written against: 54540ce, where the work landed. Verified 124 passed, 0
+ * failed at that commit. The env override still feeds a broken copy in for the
+ * mutation controls. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '54540ce';
+const NEW = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"', { cwd: REPO, maxBuffer: 1 << 28 })
+      .toString('utf8').replace(/\r\n/g, '\n').replace(/\n/g, '\r\n');
 // git blobs are stored LF; the working tree is CRLF. Normalise the baseline to
 // CRLF so the indentation anchors and the source-level controls compare like
 // with like -- the same LF/CRLF trap that made a deploy-backup hash disagree.

@@ -1,5 +1,5 @@
 
-=== PART 1 -- BASELINE (git show HEAD): boot MUST download the files ===
+=== PART 1 -- BASELINE (git show 2676c20, pinned): boot MUST download the files ===
   ok   HEAD: listMapLayers called once  [got 1 want 1]
   ok   HEAD: boot downloads BOTH layers (the waste being removed)  [got 2 want 2]
   ok   HEAD: which files boot fetched  [got ["dv-hvi","dv-trees"] want ["dv-hvi","dv-trees"]]

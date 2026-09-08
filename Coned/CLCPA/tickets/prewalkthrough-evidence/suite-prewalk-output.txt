@@ -1,0 +1,117 @@
+======================================================================
+PRE-WALKTHROUGH FIXES -- three items
+  BASE 1573d02 (the deployed build 4613f5bdc6)
+======================================================================
+
+=== 1. THE FALSE "NO 2024 BASELINE" CHIP ===
+  ok   A9 and A10 carry a STATIC mapping.status = "NEW"
+  ok   and their own comparable field says "No 2023 baseline." -- a fixed fact about 2023: "No 2023 baseline."
+  ok   while the data holds 2024 and 2025: 2024,2025
+  ok   BASE gated the chip on `!hasPrevData || status === "NEW"`
+  ok   while the chip TEXT interpolates prevYear dynamically -- so a fixed statement about 2023 printed as a claim about whichever year was selected
+  ok   the detection reads t.data[prevYear], which is the migrated source: the path was never payload-specific, so the migration is not the cause
+  ok   isNew is now hasPrevData alone
+  ok   the status disjunct is gone from the chip
+  ok   and the comparability note still renders, which is where a permanent statement about 2023 belongs
+  ok   the year list is descending, so prevYearOf(2025) is 2024: 2025,2024,2023
+  ok   A9 on 2025 with 2024 present: NO CHIP -- the reported defect
+  ok   A10 on 2025 with 2024 present: NO CHIP
+  ok   A9 on 2024, where 2023 is genuinely absent: the chip RENDERS
+  ok   A10 on 2024, likewise: absent means absent
+  ok   A1 never shows it: it has all three years
+  ok   F6 never shows it either
+  ok   BASE control: A9 on 2025 DID print "NO 2024 BASELINE" -- the reported bug
+  ok   and A10 likewise
+  ok   while BASE was right everywhere else, so only the false positive moved
+  ok   and the static status that caused it is still on the table, unedited: {"status":"NEW","comparable":"No 2023 baseline.","notes":""}
+  ok   and the check skips stored header rows, so a year holding only its own sub-header would not count as a baseline
+
+=== 2. THE HEADER BAND: labels, not input chrome; centred ===
+  ok   the header row still renders read-only
+  ok   still has no delete button
+  ok   and % Change is still read-only
+  ok   all three were already true at BASE: this item changed none of them
+  ok   the sub-header cell rule is found
+  ok   no border: the dashed box is gone
+  ok   no fill: the band supplies the shading
+  ok   no radius
+  ok   and not the mono figure face
+  ok   BASE control: none of that was overridden, so the cells inherited the dashed input chrome
+  ok   .ingest-cell-calc is where the dashed border comes from
+  ok   sub-labels centre in their columns (editor)
+  ok   except the label column, which keeps its left edge
+  ok   group headers centre in the editor
+  ok   and in the read-only viewer
+  ok   including the viewer second header line
+  ok   the centring is scoped to two-level tables, never to every grid
+  ok   the editor emits a colspan for repeated group labels
+  ok   and single-level tables take the untouched path
+  ok   and both names it reads are declared inside renderIngestEditor itself
+  ok   with no identifier borrowed from renderSourceTables left in it
+  ok   A9 repeats each group label per column: ["","2024","2024","2025","2025","% Change","% Change"]
+  ok   which merges to 4 header cells: 4
+  ok   and the spans still total the column count: 1+2+2+2 = 7
+  ok   "2024" spans its Total/DAC pair
+  ok   and the row-label column keeps its own left-aligned class
+  ok   a single-level schema still emits one cell per column, unmerged: 3
+  ok   only adjacent identical labels merge: false,false,true
+  ok   A9 renders WITHOUT throwing, and its table carries the two-level marker
+  ok   its rendered thead really has the merge in it: 4 group cells plus the actions column = 5
+  ok   and "2024" spans its pair in the DOM the editor actually emits
+  ok   A1, single-level, renders and does NOT get the marker
+  ok   and its thead has no colspan at all: 48 of the 52 tables are untouched
+  ok   and a two-level table with an EMPTY draft still merges: the group header reads header_levels, not the row count
+  ok   and the payload fixture was not mutated by any of that
+  ok   BASE control: the editor emitted 7 unmerged cells, so each group label printed once per column: 7
+  ok   and the viewer table carries the marker the stylesheet needs
+
+=== 3. THE EMPTY EXECUTIVE SUMMARY KEEPS THE PAGE SHAPE ===
+  ok   the empty branch is located
+  ok   the populated branch renders header cards
+  ok   and the empty branch renders that row too, rather than dropping it
+  ok   holding a named placeholder where the KPI cards sit
+  ok   the dumbbell position is held by a named placeholder
+  ok   and the strip position likewise
+  ok   three placeholders and the helper that makes them, no more and no fewer: 3 call sites
+  ok   and the map renders FOR REAL, not as a placeholder
+  ok   each placeholder says so explicitly, through the shared empty pane
+  ok   BASE control: the empty branch rendered NO header cards
+  ok   and no strip: every year-dependent visual disappeared
+  ok   only the map survived, alone
+  ok   the two year-dependent placeholders share a two-column row
+  ok   and the map has a single-column row of its own: full width
+  ok   the pair modifier is two columns
+  ok   the solo modifier is one
+  ok   and the single header placeholder spans its row instead of leaving gaps
+  ok   the two grids carry DIFFERENT ids: id="exec-shares-grid", id="exec-shares-map"
+  ok   and nothing looks that id up, so renaming one is safe
+  ok   both populated branches are located and bounded: 437 vs 437 chars
+  ok   the POPULATED branch is byte-identical to BASE, so 2025 is untouched by item 3
+  ok   and that branch is the one 2025 takes: header cards, dumbbell and strip all render for real in it
+  ok   and the anyData test is unchanged, so no populated year becomes empty
+
+=== 4. WHAT THE BRIEF SAID NOT TO TOUCH ===
+  ok   D.1 stays outside the header family: header_levels 0 yields 0 header rows
+  ok   and D1 does carry 0, so its first row is editable with its x
+  ok   DERIVED_COLS is byte-identical to BASE
+  ok   applyDerivedCols is byte-identical to BASE
+  ok   rowsForDisplay is byte-identical to BASE
+  ok   recomputeTotals is byte-identical to BASE
+  ok   kpiDacPct is byte-identical to BASE
+  ok   DAC_SOURCE is still 'dataverse'
+  ok   the composer is byte-identical to BASE
+  ok   and so is the shadow compare
+       changed functions: renderExecutiveSummary, renderIngestEditor, renderSourceTables, renderTable
+  ok   the change to renderExecutiveSummary is accounted for
+  ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderSourceTables is accounted for
+  ok   the change to renderTable is accounted for
+  ok   renderSourceTables changed as intended: item 1, the chip, and the header-row skip
+  ok   renderTable changed as intended: item 2, the two-level table marker
+  ok   renderIngestEditor changed as intended: item 2, the merged group headers
+  ok   renderExecutiveSummary changed as intended: item 3, the empty-state layout
+  ok   and no function outside those four moved at all
+
+======================================================================
+  100 passed, 0 failed
+======================================================================
