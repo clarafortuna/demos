@@ -31,6 +31,7 @@ CLCPA-238 STEP 4 part 1: GENERATE THE SEED. Offline, no org, no writes.
     the seed is proven sufficient BEFORE it is written, not after.
   ok   tables recompose EXACTLY
   ok   sections recompose EXACTLY
+  ok   the meta row STORES current_year = 2025, rather than deriving it from the newest year with data
   ok   meta recomposes EXACTLY, with years DERIVED
   ok   all 18 KPI DEFINITIONS recompose exactly (18/18)
 
@@ -49,8 +50,8 @@ CLCPA-238 STEP 4 part 1: GENERATE THE SEED. Offline, no org, no writes.
   seed_tabledata.json        154 rows   132866 B  sha256 85345ee294ec46dd
   seed_reporttable.json       52 rows    13450 B  sha256 e6616dce1c11ea52
   seed_reportsection.json     10 rows     3167 B  sha256 00b2ae3fa7f26215
-  seed_reportmetric.json      31 rows    13485 B  sha256 12b811f74cf2f71a
+  seed_reportmetric.json      31 rows    13511 B  sha256 a32df2c1c28eb2ab
 
 ======================================================================
-  19 passed, 0 failed
+  20 passed, 0 failed
 ======================================================================

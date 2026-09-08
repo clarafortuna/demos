@@ -14180,10 +14180,9 @@ function wireHTooltips() {
         invert_metric: !!x.cr2bf_invertmetric, blurb: x.cr2bf_blurb };
     });
 
-    /* YEARS ARE DERIVED from the rows that carry data, newest first. Storing
-     * them would be a second source of truth for a fact the rows already
-     * state. The 5 title-only rows are excluded: a year with a title and no
-     * data was never reported and must not appear in the year selector. */
+    /* YEARS ARE DERIVED from the rows that carry data, newest first. The 5
+     * title-only rows are excluded: a year with a title and no data was never
+     * reported and must not appear in the year selector. */
     const years = [];
     (src.tabledata || []).forEach(x => {
       if (x.cr2bf_rows == null) return;
@@ -14196,9 +14195,27 @@ function wireHTooltips() {
     const metaRow = metrics.filter(m => m.cr2bf_kind === 'meta')[0] || null;
     let cfg = {};
     if (metaRow && metaRow.cr2bf_spec) { try { cfg = JSON.parse(metaRow.cr2bf_spec); } catch (e) {} }
+    /* CURRENT_YEAR IS STORED, NOT DERIVED, and the correction matters.
+     *
+     * It was years[0], the newest year carrying data, on the argument that
+     * storing it would be a second source of truth for a fact the rows already
+     * state. The org disproved that within a day: A1:2099 exists, created
+     * during CLCPA-235 testing for a year the report does not cover, so the
+     * newest year with data is 2099 and the dashboard would have opened on a
+     * year holding one table and nothing else.
+     *
+     * The rows state WHICH YEARS HAVE DATA. That is not the same fact as WHICH
+     * YEAR THE REPORT COVERS. The second is an editorial decision and cannot be
+     * derived from data at all, so it belongs beside baseline_options. Deriving
+     * it was wrong on principle, not merely unlucky.
+     *
+     * The fallback to years[0] remains for a store that predates the addendum,
+     * so an un-patched meta row degrades to the old behaviour rather than to
+     * undefined -- but the stored value wins whenever it exists. */
     const meta = {
       title: metaRow ? metaRow.cr2bf_label : null,
-      years: years, current_year: years[0],
+      years: years,
+      current_year: (cfg.current_year != null) ? String(cfg.current_year) : years[0],
       baseline_options: cfg.baseline_options, default_baseline: cfg.default_baseline,
     };
 
@@ -14220,11 +14237,49 @@ function wireHTooltips() {
       o.values = {};
       return o;
     });
+    /* THE SHARED DERIVE ENGINE, RUN BEFORE ANYTHING DERIVES FROM THE TABLES.
+     *
+     * This is the defect the shadow caught, and the fix is the existing rule
+     * one step earlier rather than any new rule.
+     *
+     * 26 tables are in PERSIST_STRIP_TABLES, so their derived columns are
+     * deliberately NOT stored: the app recomputes them at render through
+     * rowsForDisplay, which is why the report shows 0.58 for A1's "% in DACs"
+     * where the store holds null. The composer read those stored nulls straight
+     * into the chart and KPI rules, so every stripped derived cell propagated
+     * as a null where the app shows a number. Measured: 4 of 12 charts and 4 of
+     * 12 reported KPIs read a table in that set.
+     *
+     * rowsForDisplay is the SHIPPED read path -- the same function the report
+     * and the PDF use -- and it clones rather than mutating. So the derived
+     * view is what every rule below sees, and the composed payload carries the
+     * same figures a viewer reads on screen.
+     *
+     * `tables` keeps the STORED rows: that is the source of truth and what the
+     * editor must load. Only the DERIVED VIEW feeds the rules. Conflating the
+     * two would put recomputed values back into the store, which is exactly
+     * what CLCPA-141 and CLCPA-142 removed. */
+    const derivedTables = {};
+    Object.keys(tables).forEach(id => {
+      const t = tables[id];
+      const d = { id: t.id, section: t.section, number: t.number,
+        short_title: t.short_title, data: {},
+        title_by_year: t.title_by_year, schema_by_year: t.schema_by_year };
+      if (t.mapping !== undefined) d.mapping = t.mapping;
+      if (t.header_levels !== undefined) d.header_levels = t.header_levels;
+      if (t.currency_cols !== undefined) d.currency_cols = t.currency_cols;
+      Object.keys(t.data).forEach(y => {
+        const schema = (t.schema_by_year || {})[y] || null;
+        d.data[y] = rowsForDisplay(t.data[y], schema, id);
+      });
+      derivedTables[id] = d;
+    });
+
     const reported = kpiFrom('kpi_reported');
     reported.forEach(k => {
       const rule = DAC_KPI_REPORTED[k.id]; if (!rule) return;
       years.forEach(y => {
-        const v = rule(tables, y);
+        const v = rule(derivedTables, y);
         if (v && (v.total !== undefined || v.dac !== undefined)) {
           const e = { total: v.total === undefined ? null : v.total,
                       dac: v.dac === undefined ? null : v.dac };
@@ -14239,7 +14294,7 @@ function wireHTooltips() {
     analytical.forEach(k => {
       const rule = DAC_KPI_ANALYTICAL[k.id]; if (!rule) return;
       years.forEach(y => {
-        const v = rule(tables, y);
+        const v = rule(derivedTables, y);
         if (v !== undefined) k.values[y] = { value: v };
       });
     });
@@ -14254,7 +14309,7 @@ function wireHTooltips() {
       const values = {};
       (spec.years || years).forEach(y => {
         if (!rule) return;
-        const v = rule(tables, y);
+        const v = rule(derivedTables, y);
         if (v !== null && v !== undefined) values[y] = v;
       });
       charts[key] = { values: values };
@@ -14292,11 +14347,44 @@ function wireHTooltips() {
       return { ok: false, reason: 'no source' };
     }
     const ms = (((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - t0).toFixed(0);
+
+    /* BOTH SIDES ARE NORMALISED THROUGH THE SAME SHIPPED DISPLAY PATH.
+     *
+     * The first version compared the composed payload against `payload` as
+     * handed in, and three of the four divergences it reported were artefacts
+     * of that. The composed payload is built from the table that WAS the
+     * override store, so it carries every stored override; and 26 tables have
+     * their derived columns recomputed at render rather than stored. Comparing
+     * one side's stored values against the other side's displayed values can
+     * only disagree, and it disagrees in a way that looks like a data defect.
+     *
+     * What the flip actually promises is that a VIEWER SEES THE SAME FIGURES.
+     * So both sides go through rowsForDisplay -- the same function the report
+     * uses -- and the comparison is display-value against display-value. It
+     * cannot flatter the composer: the normalisation is identical on both
+     * sides, so anything it hides on one side it hides on the other. */
+    const displayView = (p) => {
+      if (!p || !p.tables) return p;
+      const out = {};
+      Object.keys(p.tables).forEach(id => {
+        const t = p.tables[id];
+        const d = Object.assign({}, t, { data: {} });
+        Object.keys(t.data || {}).forEach(y => {
+          const schema = (t.schema_by_year || {})[y] || null;
+          d.data[y] = rowsForDisplay(t.data[y], schema, id);
+        });
+        out[id] = d;
+      });
+      return out;
+    };
+
     const parts = ['meta', 'sections', 'tables', 'kpis', 'charts'];
+    const left = Object.assign({}, composed, { tables: displayView(composed) });
+    const right = Object.assign({}, payload, { tables: displayView(payload) });
     const verdict = {};
     let same = 0;
     parts.forEach(p => {
-      const d = dacFirstDiff(composed[p], payload[p]);
+      const d = dacFirstDiff(left[p], right[p]);
       verdict[p] = d;
       if (d === null) same++;
     });

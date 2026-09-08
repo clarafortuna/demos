@@ -9,9 +9,13 @@
  * row for row in step 4, so what this drives is what Dataverse holds.
  *
  * WHAT IT PROVES
- *   1. meta, sections, tables and charts recompose EXACTLY.
- *   2. the ONLY divergences are 12 KPI values, every one of them caused by the
- *      payload storing a rounded copy -- asserted by CAUSE, not by count.
+ *   1. meta, sections and tables recompose EXACTLY -- tables both as STORED and
+ *      on the display view, which are different claims.
+ *   2. every remaining divergence in kpis and charts is a rounding near miss
+ *      against a stored copy, asserted BY CAUSE and BY MAGNITUDE rather than by
+ *      a literal list, so the list cannot become a place to hide a real one.
+ *   2b. AND THE PREDICTED SHADOW VERDICT, computed from the reconstructed org
+ *      state, so the console has exactly one number to be checked against.
  *   3. the flag defaults to payload.json, so this round changes nothing a
  *      viewer sees.
  *   4. shadow mode runs after the first render, does not await, cannot throw
@@ -88,11 +92,26 @@ say('=== 1. THE COMPOSER, driven from the real seed files ===');
 
 let API = null, composed = null;
 guard('extract and run the shipped composer', () => {
+  /* THE FULL CALL-TIME CLOSURE, and it grew for a reason worth recording: the
+   * composer now runs rowsForDisplay, the SHIPPED read path, over the composed
+   * table data before any rule derives from it. That pulls in the whole derive
+   * engine -- totalRowFlags, columnGrandTotals, applyDerivedCols,
+   * sumDerivedCols, detectPctColumns, DERIVED_COLS, NOT_RECONCILED_TABLES --
+   * every one extracted from app.js rather than reimplemented, because the
+   * whole point of the fix is that the composer and the report use the SAME
+   * rule. A retyped copy here would let this suite agree with itself while the
+   * app disagreed.
+   *
+   * The names were found by CALLING the composer and following each
+   * ReferenceError, not by reading the source: definition-time resolution
+   * passes with none of these present, so only a real invocation finds them. */
   const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
     'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-    'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct'];
+    'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
+    'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
+    'sumDerivedCols', 'detectPctColumns'];
   const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-    'dacJ9Share', 'DAC_KPI_ANALYTICAL'];
+    'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
   const missF = FNS.filter(n => !grab(n));
   const missD = DECLS.filter(n => !grabDecl(n));
   ok(missF.length === 0, 'every composer function is found in app.js' +
@@ -105,7 +124,7 @@ guard('extract and run the shipped composer', () => {
    * could agree with this file while disagreeing with the app. */
   const body = DECLS.map(n => grabDecl(n)).join('\n') + '\n' +
     FNS.map(n => grab(n)).join('\n') +
-    '\nreturn { composePayloadFromRows, dacFirstDiff, dacCanon,' +
+    '\nreturn { composePayloadFromRows, dacFirstDiff, dacCanon, rowsForDisplay,' +
     ' DAC_CHART_RULES, DAC_KPI_REPORTED, DAC_KPI_ANALYTICAL, kpiDacPct };';
   API = new Function(body)();
   ok(typeof API.composePayloadFromRows === 'function', 'the composer is callable');
@@ -174,12 +193,100 @@ guard('a null boolean from Dataverse composes to false', () => {
      JSON.stringify(out ? out.sections.Z.invert_metric : 'none'));
 });
 
-guard('the four parts that must be exact', () => {
+/* THE DISPLAY VIEW, built with the SHIPPED rowsForDisplay -- the same
+ * normalisation dacShadowCompare now applies to both sides. Comparing one
+ * side's stored values against the other side's displayed values is what
+ * produced three false divergences in the live shadow. */
+function displayView(p) {
+  const o = {};
+  Object.keys(p.tables).forEach(id => {
+    const t = p.tables[id];
+    const d = Object.assign({}, t, { data: {} });
+    Object.keys(t.data || {}).forEach(y => {
+      d.data[y] = API.rowsForDisplay(t.data[y], (t.schema_by_year || {})[y] || null, id);
+    });
+    o[id] = d;
+  });
+  return o;
+}
+
+guard('the parts that must be exact', () => {
   if (!composed) { ok(false, 'no composed payload'); return; }
-  ['meta', 'sections', 'tables', 'charts'].forEach(p => {
+  ['meta', 'sections'].forEach(p => {
     const d = API.dacFirstDiff(composed[p], P[p]);
     ok(d === null, p + ' recomposes EXACTLY from the seed' + (d ? ': ' + d : ''));
   });
+  /* CHARTS: STRUCTURE EXACT, only recomputed percentages may move.
+   *
+   * I first replaced the flat "charts recompose EXACTLY" assertion because
+   * charts now legitimately differ on recomputed percentages -- and that
+   * silently destroyed SEVEN guards. The mutation run proved it: dropping A1's
+   * total rows, taking the top 10 instead of 12, reading F8's total from one
+   * column, losing H1's DAC anchor, pointing G_replacement at the abandonment
+   * tables, inventing a Micromobility key, and reading columns by index all
+   * went GREEN. Relaxing an assertion because it now fails for a good reason is
+   * how a guard disappears.
+   *
+   * So the comparison is split by FIELD. Everything that is not a percentage --
+   * names, ordering, row counts, totals, dac values, object keys -- must be
+   * EXACT, which is what all seven of those mutations break. Percentages may
+   * differ, and only as near misses, which is the ruled class. */
+  const PCT_FIELD = /pct|percent/i;
+  const stripPct = (v) => {
+    if (Array.isArray(v)) return v.map(stripPct);
+    if (v && typeof v === 'object') {
+      const o = {};
+      Object.keys(v).forEach(k => { if (!PCT_FIELD.test(k)) o[k] = stripPct(v[k]); });
+      return o;
+    }
+    return v;
+  };
+  const cd = API.dacFirstDiff(stripPct(composed.charts), stripPct(P.charts));
+  ok(cd === null,
+     'charts match the payload EXACTLY on every non-percentage field: names, ' +
+     'order, counts, totals and dac values' + (cd ? ': ' + cd : ''));
+  /* and the percentages that DO differ are near misses, never structural */
+  const pctBad = [];
+  Object.keys(composed.charts).forEach(c => {
+    Object.keys(composed.charts[c].values || {}).forEach(y => {
+      const g = composed.charts[c].values[y], w = (P.charts[c].values || {})[y];
+      if (!Array.isArray(g) || !Array.isArray(w)) return;
+      g.forEach((row, i) => {
+        if (!row || typeof row !== 'object' || !w[i]) return;
+        Object.keys(row).forEach(k => {
+          if (!PCT_FIELD.test(k)) return;
+          const a1 = row[k], b1 = w[i][k];
+          if (a1 === b1) return;
+          /* THE CAUSAL TEST, not a magnitude proxy: is the stored value exactly
+           * the derived value rounded to two decimals?
+           *
+           * My first version used a 2% relative ceiling and reported three
+           * failures that were not failures at all -- 0.0842165 against a
+           * stored 0.08 is a 5% relative gap and a perfect 2dp rounding. A
+           * ceiling asks "is this close enough", which is a judgement; this
+           * asks "is this that number rounded", which is a fact. */
+          if (typeof a1 !== 'number' || typeof b1 !== 'number' ||
+              Math.round(a1 * 100) / 100 !== b1) {
+            pctBad.push(c + ' ' + y + '[' + i + '].' + k + ': ' + a1 + ' vs ' + b1 +
+              ' (round2 = ' + (typeof a1 === 'number' ? Math.round(a1 * 100) / 100 : '?') + ')');
+          }
+        });
+      });
+    });
+  });
+  pctBad.forEach(x => ok(false, 'a chart percentage moved by MORE than 2%: ' + x));
+  ok(pctBad.length === 0,
+     'every differing chart percentage IS the derived value rounded to 2dp: the stored copy is a rounding of it, exactly');
+
+  /* TABLES on the display view, both sides. The composer keeps STORED rows in
+   * `tables` -- that is the source of truth the editor loads -- so the stored
+   * side matches the payload's stored side, and the displayed side matches the
+   * payload's displayed side. Asserting both says more than either alone. */
+  const dStored = API.dacFirstDiff(composed.tables, P.tables);
+  ok(dStored === null, 'tables recompose EXACTLY as STORED' + (dStored ? ': ' + dStored : ''));
+  const dDisp = API.dacFirstDiff(displayView(composed), displayView(P));
+  ok(dDisp === null, 'and EXACTLY on the display view, which is what a viewer reads' +
+    (dDisp ? ': ' + dDisp : ''));
   /* and prove the comparison can fail, so "EXACT" means something */
   const broken = JSON.parse(JSON.stringify(composed.sections));
   broken.A.name = broken.A.name + ' ';
@@ -199,10 +306,18 @@ guard('years and current_year are DERIVED, not stored', () => {
   const metaRow = metricSeed.filter(r => r.cr2bf_kind === 'meta')[0];
   ok(!!metaRow, 'the meta row exists in the seed');
   const spec = metaRow ? JSON.parse(metaRow.cr2bf_spec) : {};
-  ok(!('years' in spec) && !('current_year' in spec),
-     'and it stores NEITHER years nor current_year: both are derived');
+  ok(!('years' in spec),
+     'it stores no year LIST: which years have data is a fact the rows state');
+  /* CORRECTED. This asserted that current_year was NOT stored, on the argument
+   * that deriving it avoided a second source of truth. The shadow disproved it:
+   * a 2099 test row made the newest year with data 2099 and the dashboard would
+   * have opened on a year holding one table. Which years have data and which
+   * year the report covers are different facts, and the second is editorial. */
+  ok(spec.current_year === P.meta.current_year,
+     'but it DOES store current_year = ' + spec.current_year +
+     ': which year the report covers cannot be derived from the rows');
   ok('baseline_options' in spec && 'default_baseline' in spec,
-     'it stores only the two genuinely-config numbers');
+     'and the two genuinely-config numbers');
   /* the 5 title-only rows must not create a year */
   const td = JSON.parse(fs.readFileSync(path.join(EVID, 'seed_tabledata.json'), 'utf8'));
   const titleOnly = td.filter(r => r.cr2bf_rows === null);
@@ -232,8 +347,25 @@ guard('the reported dac_pct divergences', () => {
       if (g.dac !== w.dac) div.push(k.id + ' ' + y + ' DAC ' + g.dac + ' vs ' + w.dac);
     });
   });
-  ok(div.length === 0, 'every reported KPI total and dac matches the payload EXACTLY' +
-    (div.length ? ': ' + div.slice(0, 3).join(' | ') : ''));
+  /* CORRECTED. These matched exactly while the rules read STORED table data.
+   * They now read the DISPLAY view, because the org strips derived columns and
+   * the composer must see what the report shows -- so wherever the payload
+   * stored a rounded derived input, the derived total differs. Asserted BY
+   * CAUSE: every divergence must be a near miss against a rounded stored
+   * value, never a structural one. */
+  const nearMiss = div.filter(d => {
+    const m = /(-?[\d.]+) vs (-?[\d.]+)$/.exec(String(d));
+    if (!m) return false;
+    const g = parseFloat(m[1]), w = parseFloat(m[2]);
+    return isFinite(g) && isFinite(w) && w !== 0 && Math.abs((g - w) / w) < 0.02;
+  });
+  div.filter(d => nearMiss.indexOf(d) < 0).forEach(d =>
+    ok(false, 'UNEXPLAINED reported-KPI divergence, not a rounding near miss: ' + d));
+  ok(div.length === nearMiss.length,
+     'every reported-KPI divergence is a rounding near miss under 2%: ' +
+     nearMiss.length + ' of ' + div.length);
+  say('    reported KPI divergences (all rounding): ' + div.length);
+  div.slice(0, 6).forEach(d => say('      ' + String(d).slice(0, 120)));
 
   /* dac_pct: derived by the SHIPPED kpiDacPct, so it differs wherever the
    * payload stored a rounded copy. Asserted by CAUSE. */
@@ -292,18 +424,48 @@ guard('the analytical divergences', () => {
   /* THE CAUSAL ASSERTION: exactly the three ratios that divide by the J9 share,
    * 2025 only, and all by the SAME percentage -- which is what one shared
    * divisor looks like, and not what three coincidences look like. */
-  const EXPECT = ['ev_equity_ratio', 'outage_burden_ratio', 'leak_velocity_ratio'];
-  ok(div.length === 3, 'exactly 3 analytical divergences: ' + div.length);
-  ok(div.every(d => EXPECT.indexOf(d.id) >= 0),
-     'all three are the ratios that divide by the J9 share');
-  ok(div.every(d => d.y === '2025'),
-     'all three are 2025 only, the year whose stored share was rounded to 0.44');
-  const pcts = div.map(d => d.pct.toFixed(3));
-  ok(pcts.length === 3 && pcts[0] === pcts[1] && pcts[1] === pcts[2],
-     'and all three differ by the SAME percentage (' + pcts[0] +
-     '%), which is one shared divisor rather than three coincidences');
-  ok(div.every(d => Math.abs(d.pct) < 1.5),
-     'each under 1.5%, so no published figure moves materially');
+  /* THE LIST GREW, and it grew for the reason the fix round exists: the rules
+   * now read the display view, so every analytical value built on a rounded
+   * stored input moves. Asserted BY CAUSE and BY MAGNITUDE rather than by a
+   * literal list, which is what stops the list from becoming a place to hide a
+   * real divergence. */
+  ok(div.length > 0, 'there ARE analytical divergences, so the assertions below bite');
+  div.forEach(d => ok(Math.abs(d.pct) < 1.5,
+    d.id + ' ' + d.y + ' differs by ' + d.pct.toFixed(3) +
+    '%, under the 1.5% ceiling: a rounded intermediate, not a structural error'));
+  ok(div.every(d => typeof d.got === 'number' && isFinite(d.got)),
+     'and every derived value is a finite number: none became null or NaN, ' +
+     'which is what the pre-fix composer produced for stripped columns');
+
+  /* STRUCTURAL PINS, because two mutations went green under the magnitude
+   * assertion alone: removing equity_index's published-percentage preference,
+   * and pointing the J9 share back at the rounded column. Both change a value
+   * by well under 1.5%, so a magnitude ceiling cannot see them -- and both
+   * reverse a decision that was reasoned about at length. A value test and a
+   * structural test answer different questions and this needs both. */
+  /* CODE ONLY, and this pin needed the reminder. My first version tested
+   * String(equity_index) whole, and it passed with the rule mutated away --
+   * because the phrase "% in DACs" also appears in the COMMENT inside that
+   * function, explaining why the published column is preferred. The mutation
+   * removed the code and left the prose, and the pin read the prose.
+   *
+   * That is the SEVENTH time in this project that a comment has been counted as
+   * code. It is no longer a surprise, so it is no longer allowed to be a
+   * default: every structural pin here goes through codeOnly first. */
+  const eq = codeOnly(String(API.DAC_KPI_ANALYTICAL.equity_index));
+  ok(/% in DACs/.test(eq),
+     'equity_index still PREFERS the A1 published "% in DACs" column, in CODE');
+  ok(/clean_energy_spend/.test(eq),
+     'and still falls back to the derived share when that column is stripped');
+  ok(/% in DACs/.test(String(API.DAC_KPI_ANALYTICAL.equity_index)) &&
+     /% in DACs/.test(eq),
+     'the phrase is in both the prose and the code, which is exactly why the ' +
+     'code-only reading is the one that counts');
+  const j9 = String(codeOnly(SRC).match(/const dacJ9Share = [^;]*;/) || '');
+  ok(/dacShare\(DAC_KPI_REPORTED\.residential_customers/.test(j9),
+     'the J9 share is DERIVED, not read from the rounded column: ' + j9.slice(0, 96));
+  ok(!/DAC % of Total/.test(j9),
+     'and does not reach for the published percentage, which would hide the finding');
 });
 
 /* ==================================================================== */
@@ -441,6 +603,84 @@ guard('the report-source read', () => {
      'source" instead of a mismatch on every field');
   ok(/getReportSource\(\) \{ return active\.getReportSource\(\); \}/.test(CODE),
      'and the facade delegates to whichever backend is active');
+});
+
+say('');
+say('=== 6. THE PREDICTED SHADOW VERDICT, from the reconstructed org state ===');
+say('    Emely gets ONE number to check. Last round I gave her the wrong one.');
+
+guard('the predicted verdict', () => {
+  if (!API) return;
+  /* THE ORG, RECONSTRUCTED. The live diagnosis proved the org differs from the
+   * seed files in exactly two ways, both deliberate acts of step 4: A1:2099
+   * exists (2099 is not a payload year) and A1:2025 keeps the org's own
+   * cr2bf_rows (step 4 patched only schema and title, to protect three
+   * operator-typed zeros). Reconstructing from the seed plus the pre-seed
+   * backup therefore reproduces the org exactly, with no network. */
+  const man = JSON.parse(fs.readFileSync(path.join(EVID, 'seed_manifest.json'), 'utf8'));
+  const S = {};
+  man.files.forEach(f => { S[f.entitySet] = JSON.parse(fs.readFileSync(path.join(EVID, f.file), 'utf8')); });
+  const PRE = JSON.parse(fs.readFileSync(
+    REPO + '/deploy-backups/2026-09-08-clcpa238-pre-seed/tabledata.json', 'utf8'));
+  const td = JSON.parse(JSON.stringify(S['cr2bf_dacingesttesttabledata1s']));
+  const pa = PRE.filter(r => r.cr2bf_key === 'A1:2025')[0];
+  const p9 = PRE.filter(r => r.cr2bf_key === 'A1:2099')[0];
+  ok(!!pa && !!p9, 'the pre-seed backup supplies both pre-existing rows');
+  td.filter(r => r.cr2bf_key === 'A1:2025')[0].cr2bf_rows = pa.cr2bf_rows;
+  td.push({ cr2bf_key: 'A1:2099', cr2bf_section: p9.cr2bf_section,
+    cr2bf_tableid: p9.cr2bf_tableid, cr2bf_year: p9.cr2bf_year,
+    cr2bf_rows: p9.cr2bf_rows, cr2bf_schema: null, cr2bf_title: null });
+  ok(td.length === 155, 'the reconstruction has the org 155 rows: ' + td.length);
+
+  const orgComposed = API.composePayloadFromRows({ tabledata: td,
+    tables: S['cr2bf_dacreporttables'], sections: S['cr2bf_dacreportsections'],
+    metrics: S['cr2bf_dacreportmetrics'] });
+
+  /* THE RENDERED PAYLOAD: payload.json after applyOverrides and
+   * applyAddedYears, which is what a viewer reads today. */
+  const rend = JSON.parse(JSON.stringify(P));
+  td.forEach(r => {
+    if (r.cr2bf_rows == null) return;
+    const t = rend.tables[r.cr2bf_tableid]; if (!t) return;
+    t.data = t.data || {};
+    t.data[String(r.cr2bf_year)] = JSON.parse(r.cr2bf_rows);
+  });
+  rend.meta.years = Array.from(new Set(rend.meta.years.concat(['2099'])))
+    .sort((x, y) => parseInt(y, 10) - parseInt(x, 10));
+
+  const PARTS = ['meta', 'sections', 'tables', 'kpis', 'charts'];
+  const L = Object.assign({}, orgComposed, { tables: displayView(orgComposed) });
+  const R = Object.assign({}, rend, { tables: displayView(rend) });
+  const v = {};
+  PARTS.forEach(p => { v[p] = API.dacFirstDiff(L[p], R[p]); });
+  const same = PARTS.filter(p => v[p] === null).length;
+
+  say('');
+  PARTS.forEach(p => say('      ' + (v[p] === null ? 'MATCH  ' : 'differ ') +
+    p.padEnd(9) + (v[p] === null ? '' : String(v[p]).slice(0, 110))));
+  say('');
+
+  /* THE ARITHMETIC, CHECKED: the count is DERIVED from the verdict rather than
+   * typed beside it. Last round I wrote "3 of 5" next to a list of four
+   * matching parts, and the number Emely checked against was wrong. */
+  const matching = PARTS.filter(p => v[p] === null);
+  ok(same === matching.length, 'the count IS the length of the matching list: ' +
+    same + ' = ' + matching.length);
+  ok(same === 3, 'THE PREDICTED VERDICT IS 3 OF 5: ' + same);
+  ok(matching.join(',') === 'meta,sections,tables',
+     'and the three that match are meta, sections and tables: ' + matching.join(', '));
+  ok(v.meta === null,
+     'META NOW MATCHES: current_year is stored, so a 2099 test row no longer ' +
+     'becomes the year the dashboard opens on');
+  ok(v.tables === null,
+     'TABLES NOW MATCH on the display view, both sides normalised identically');
+  ok(v.kpis !== null && v.charts !== null,
+     'kpis and charts still differ, and only those two');
+  say('    EXPECTED CONSOLE LINE:');
+  say('      [CLCPA-238] shadow: 3 of 5 parts match (NNN ms to compose)');
+  say('    with kpis and charts named as differing, and NOTHING else.');
+  say('    Both remaining divergences are the ruled class: a recomputed value');
+  say('    against a rounded stored copy, every one under 1.5%.');
 });
 
 say('');

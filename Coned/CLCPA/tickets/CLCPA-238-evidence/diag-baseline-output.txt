@@ -1,5 +1,8 @@
 ======================================================================
 CLCPA-238 shadow alarm, part 2: the mechanism, offline
+  app.js read at 546dadf, the commit this diagnosis describes.
+  The defects below are FIXED in later commits; this file records what
+  was wrong, and pinning it is what keeps that record true.
 ======================================================================
 
 === 1. THE ORG, RECONSTRUCTED from the seed plus the pre-seed backup ===

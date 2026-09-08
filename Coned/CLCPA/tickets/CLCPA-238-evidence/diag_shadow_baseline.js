@@ -51,8 +51,29 @@ function guard(label, fn) {
 }
 const sha = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
-/* ---- the SHIPPED composer and compare, extracted from app.js ---------- */
-const SRC = fs.readFileSync(path.join(DEV, 'app.js'), 'utf8');
+/* ---- the composer AS IT STOOD AT THE DIAGNOSIS ------------------------
+ *
+ * PINNED TO THE COMMIT THIS FILE DIAGNOSED, not read from disk.
+ *
+ * It read app.js from the working tree, and it began failing the moment the fix
+ * round landed -- correctly, because it asserts the BROKEN behaviour: 1 of 5,
+ * meta differing on current_year, charts differing on a stripped column. Those
+ * were true of commit 546dadf and they are the whole content of the diagnosis.
+ *
+ * A diagnosis is a historical fact. It does not become false because the defect
+ * was fixed, and rewriting it to assert the fixed behaviour would destroy the
+ * record of what was wrong. So it is pinned, exactly as suite_badge's
+ * blast-radius guard was pinned to its own merge. */
+const { execSync: _exec } = require('child_process');
+const DIAG = process.env.DAC_DIAG_COMMIT || '546dadf';
+/* CRLF, built from char codes rather than escapes: a heredoc ate the
+ * backslashes out of /\r?\n/ twice while this file was being written, and
+ * String.fromCharCode cannot be eaten. */
+const CR = String.fromCharCode(13), LF = String.fromCharCode(10);
+const SRC = _exec('git show ' + DIAG + ':"Coned/CLCPA/ExecutiveDashboard_dev/app.js"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8')
+  .split(CR + LF).join(LF).split(LF).join(CR + LF);
+
 function grab(name) {
   for (const pad of ['  ', '    ', '']) for (const kw of ['function ', 'async function ']) {
     const head = '\r\n' + pad + kw + name + '(';
@@ -84,6 +105,9 @@ const PARTS = ['meta', 'sections', 'tables', 'kpis', 'charts'];
 
 say('======================================================================');
 say('CLCPA-238 shadow alarm, part 2: the mechanism, offline');
+say('  app.js read at ' + DIAG + ', the commit this diagnosis describes.');
+say('  The defects below are FIXED in later commits; this file records what');
+say('  was wrong, and pinning it is what keeps that record true.');
 say('======================================================================');
 
 /* ---- reconstruct the org, from the seed + the pre-seed backup --------- */
