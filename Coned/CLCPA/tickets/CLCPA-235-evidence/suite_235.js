@@ -60,7 +60,12 @@ function grabDecl(name, src) {
 }
 
 /* ---- the app, as shipped, with NOTHING that matters stubbed ------------ */
-const NAMES = ['initIngestState', 'loadIngestDraft', 'ingestSelectionKey', 'recomputeDirty',
+/* adoptIngestReference joined loadIngestDraft's dependencies when the badge
+ * round extracted the reference pair into one helper. Extracted here so this
+ * suite drives the REAL loader rather than a version of it that predates the
+ * refactor. */
+const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
+  'ingestSelectionKey', 'recomputeDirty',
   'recomputeTotals', 'clone2D', 'getTableSchema', 'getTableBody', 'compareTableIds',
   'mostRecentYear', 'allYears', 'validateReportingYear', 'buildIngestImport',
   'parseCsvRows', 'normIngestKey', 'parseNumericInput', 'formatIngestValue',

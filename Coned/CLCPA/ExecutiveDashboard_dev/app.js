@@ -15629,9 +15629,7 @@ function wireHTooltips() {
      *
      * i.baseline is still what Reset restores and what the protection reads. Only
      * the dirty comparison moves. */
-    i.dirtyRef = clone2D(i.baseline);
-    recomputeTotals(i.dirtyRef, i.schema, i.tableId, i.baseline);
-    i.dirty = false;
+    adoptIngestReference();
     // CLCPA-85: a result describes ONE table-year. Cleared here because all
     // three picker handlers already call this, so it cannot be forgotten in one
     // of them and leave a panel describing a table the operator has left.
@@ -15643,6 +15641,50 @@ function wireHTooltips() {
      * add-year all call this function directly, and a key updated at only some
      * of them is worse than no key at all. */
     i.loadedKey = ingestSelectionKey();
+  }
+
+  /**
+   * THE BADGE'S REFERENCE, adopted as ONE operation.
+   *
+   * i.baseline is the source of truth for Reset and for unreconciledTotals.
+   * i.dirtyRef is what the BADGE compares against: the baseline as the editor
+   * would first render it, per the CLCPA-212 slice B reasoning above.
+   *
+   * They were set in two different places and only one of them set both. A
+   * successful Save assigned i.baseline = the saved draft and left i.dirtyRef
+   * holding the values from when the table was OPENED, so the very next render
+   * called recomputeDirty(), compared the saved draft against that stale
+   * reference, found them different -- which they always are, because Save is
+   * only enabled when something was typed -- and put the badge straight back to
+   * "Unsaved Changes" with Reset and Save live, on every single successful
+   * save. Reset escaped the same fate only by luck: it restores the raw
+   * baseline and the render's recomputeTotals then moves the draft onto the
+   * reference before the comparison runs.
+   *
+   * So the two are now adopted together, from whatever i.draft or i.baseline
+   * currently holds, and no caller can update one without the other.
+   */
+  function adoptIngestReference() {
+    const i = state.ingest;
+    if (!i) return;
+    i.dirtyRef = clone2D(i.baseline);
+    recomputeTotals(i.dirtyRef, i.schema, i.tableId, i.baseline);
+    i.dirty = false;
+  }
+
+  /**
+   * THE BADGE TEXT, in one place.
+   *
+   * Two sites rendered it independently -- renderIngestEditor for a full draw
+   * and refreshIngestStatus for the in-place update -- so the two could drift
+   * apart. That is exactly the duplicate the CLCPA-226 ruling had me
+   * consolidate in the stylesheet, for the same reason.
+   */
+  function ingestStatusText(dirty) {
+    return dirty ? '● Unsaved Changes' : '○ No Changes';
+  }
+  function ingestStatusClass(dirty) {
+    return 'ingest-status ' + (dirty ? 'modified' : 'clean');
   }
 
   /**
@@ -19344,9 +19386,8 @@ function wireHTooltips() {
     const cleanTitle = tableTitle.split('|')[0].trim();
 
     // Status bar
-    const statusHtml = i.dirty
-      ? `<span class="ingest-status modified">● Unsaved changes</span>`
-      : `<span class="ingest-status clean">○ No changes</span>`;
+    const statusHtml = `<span class="${ingestStatusClass(i.dirty)}">` +
+      escapeHtml(ingestStatusText(i.dirty)) + `</span>`;
     const saveBtnAttrs = i.dirty ? '' : ' disabled';
     const resetBtnAttrs = i.dirty ? '' : ' disabled';
 
@@ -19438,7 +19479,7 @@ function wireHTooltips() {
           <div class="ingest-actions">
             ${statusHtml}
             <button id="ingest-reset" class="btn btn-secondary"${resetBtnAttrs}>Reset</button>
-            <button id="ingest-save" class="btn btn-primary"${saveBtnAttrs}>Save changes</button>
+            <button id="ingest-save" class="btn btn-primary"${saveBtnAttrs}>Save Changes</button>
           </div>
         </div>
         <div class="ingest-grid-wrap">
@@ -19452,7 +19493,7 @@ function wireHTooltips() {
           </table>
         </div>
         <div class="ingest-card-foot">
-          <button id="ingest-add-row" class="btn btn-link" type="button">+ Add row</button>
+          <button id="ingest-add-row" class="btn btn-link" type="button">+ Add Row</button>
           ${editorTotalFlags.some(Boolean)
             ? '<span class="ingest-foot-note">Rows labeled "Total" are auto-calculated from numeric rows above (read-only, shown in grey).</span>'
             : ''}
@@ -19540,7 +19581,7 @@ function wireHTooltips() {
     const history = Storage.getHistoryFor(i.tableId, i.year);
     if (history.length === 0) {
       return `<div class="ingest-history">
-        <h4>Change history</h4>
+        <h4>Change History</h4>
         <p class="ingest-history-empty">No saves yet for ${i.tableId} · ${i.year}. Your save will appear here.</p>
       </div>`;
     }
@@ -19564,7 +19605,7 @@ function wireHTooltips() {
         </div>
         <div class="ingest-history-body">
           <span class="ingest-history-summary">${summary}</span>
-          <button class="ingest-history-toggle btn-link" type="button" data-idx="${idx}" aria-expanded="false">Show details</button>
+          <button class="ingest-history-toggle btn-link" type="button" data-idx="${idx}" aria-expanded="false">Show Details</button>
         </div>
         <div class="ingest-history-detail-wrap" id="hist-detail-${idx}" hidden>
           ${detailHtml}
@@ -19574,16 +19615,16 @@ function wireHTooltips() {
 
     const showAllLink = (!showAll && history.length > 10)
       ? `<div class="ingest-history-showall-wrap">
-          <button id="ingest-history-showall" class="btn-link" type="button">Show all ${history.length} saves</button>
+          <button id="ingest-history-showall" class="btn-link" type="button">Show All ${history.length} Saves</button>
         </div>`
       : (showAll && history.length > 10)
         ? `<div class="ingest-history-showall-wrap">
-            <button id="ingest-history-showless" class="btn-link" type="button">Show recent 10 only</button>
+            <button id="ingest-history-showless" class="btn-link" type="button">Show Recent 10 Only</button>
           </div>`
         : '';
 
     return `<div class="ingest-history">
-      <h4>Change history <span class="ingest-history-count">(${history.length} save${history.length !== 1 ? 's' : ''})</span></h4>
+      <h4>Change History <span class="ingest-history-count">(${history.length} save${history.length !== 1 ? 's' : ''})</span></h4>
       <ul class="ingest-history-list">${entries}</ul>
       ${showAllLink}
     </div>`;
@@ -20417,11 +20458,11 @@ function wireHTooltips() {
         <div class="ingest-modal-body">
           <p>You are about to save <strong>${changeCount}</strong> cell change${changeCount !== 1 ? 's' : ''}. It will be recorded under your signed-in identity:</p>
           <div class="ingest-modal-field">
-            <label for="ingest-modal-name">Your name</label>
+            <label for="ingest-modal-name">Your Name</label>
             <input id="ingest-modal-name" type="text" autocomplete="name" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
           </div>
           <div class="ingest-modal-field">
-            <label for="ingest-modal-email">Your email</label>
+            <label for="ingest-modal-email">Your Email</label>
             <input id="ingest-modal-email" type="email" autocomplete="email" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
           </div>
           <div class="ingest-modal-hint">From your Power Apps profile</div>
@@ -20463,9 +20504,12 @@ function wireHTooltips() {
         table.data[i.year] = clone2D(i.draft);
       }
 
-      // New baseline = the draft we just saved
+      // New baseline = the draft we just saved, and the badge's reference with
+      // it. Adopted through the one helper, because setting only the baseline
+      // here is what left the badge reading "Unsaved Changes" after every
+      // successful save.
       i.baseline = clone2D(i.draft);
-      i.dirty = false;
+      adoptIngestReference();
 
       close();
       rerenderIngestEditor();
@@ -20590,8 +20634,8 @@ function wireHTooltips() {
     const dirty = !!(state.ingest && state.ingest.dirty);
     const status = document.querySelector('.ingest-status');
     if (status) {
-      status.textContent = dirty ? '● Unsaved changes' : '○ No changes';
-      status.className = 'ingest-status ' + (dirty ? 'modified' : 'clean');
+      status.textContent = ingestStatusText(dirty);
+      status.className = ingestStatusClass(dirty);
     }
     const save = document.getElementById('ingest-save');
     const reset = document.getElementById('ingest-reset');
@@ -20616,7 +20660,7 @@ function wireHTooltips() {
         if (!wrap) return;
         const isOpen = !wrap.hidden;
         wrap.hidden = isOpen;
-        btn.textContent = isOpen ? 'Show details' : 'Hide details';
+        btn.textContent = isOpen ? 'Show Details' : 'Hide Details';
         btn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
       });
     });

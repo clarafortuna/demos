@@ -1,0 +1,135 @@
+======================================================================
+THE BADGE ROUND -- acceptance
+  BASE  4e85514 (main before this round)
+======================================================================
+
+=== 1. THE DEFECT: the badge is clean after a successful Save ===
+  ok   adoptIngestReference is found in app.js
+  ok   recomputeDirty is found in app.js
+  ok   clone2D is the shipped one, not a harness copy
+  ok   adoption leaves the state clean by itself, before any recompute
+  ok   adoption runs recomputeTotals exactly once: 1
+  ok   and passes it the draft-shaped copy plus the real baseline
+  ok   on a COPY, so the baseline itself is never recomputed
+  ok   on open the badge is clean
+  ok   after typing, the badge is dirty
+  ok   dirty before the save, so Save is enabled
+  ok   AFTER A SUCCESSFUL SAVE THE BADGE IS CLEAN -- the round is about this
+  ok   the reference holds the COMPUTED value, not the stored one
+  ok   while the baseline still holds what ConEd published: 0.47
+  ok   so a table whose stored value is rounded opens CLEAN -- the CLCPA-212 fix
+  ok   against the BASELINE the same table would open dirty: why dirtyRef exists
+  ok   WITHOUT adoption the same save leaves the badge DIRTY: the defect, reproduced
+  ok   because the reference still holds the values from when the table opened
+  ok   openSaveModal is found
+  ok   it still adopts the saved draft as the new baseline
+  ok   and adopts the badge reference through the one helper
+  ok   and does NOT set i.dirty by hand, which is what let the pair drift
+  ok   the BASE save handler is found
+  ok   at BASE it moved the baseline
+  ok   and touched the badge reference NOWHERE: the defect shipped
+  ok   i.dirtyRef is assigned once in the whole file: 1
+  ok   and that one assignment is inside adoptIngestReference
+  ok   the helper is declared once and called from load and save: 3 mentions
+  ok   loadIngestDraft adopts the reference when a table is opened
+  ok   and no longer sets it itself
+  ok   at BASE it was also assigned once -- one writer, two callers needing it
+
+=== 2. THE BADGE TEXT LIVES ONCE ===
+  ok   the string exists
+  ok   the dirty/clean pair is written exactly once: 1
+  ok   and it is inside ingestStatusText
+  ok   the full draw calls it
+  ok   and so does the in-place refresh
+  ok   the full draw no longer carries its own copy of the words
+  ok   and neither does the refresh
+  ok   at BASE both sites spelled it out separately, so they could drift
+  ok   the modified/clean class is centralised with it
+
+=== 3. TITLE CASE, BY RULE ===
+  ok   it accepts a correct label
+  ok   it rejects the sentence-case version, naming the word: changes
+  ok   the badge glyph is not a word
+  ok   nor is the plus
+  ok   an interpolation is exempt
+  ok   but the words around it are not: all,saves
+  ok   connectors and numbers are allowed
+  ok   and it separates the two spellings of the ruled button
+  ok   the dirty badge reads "● Unsaved Changes"
+  ok     and satisfies the rule
+  ok   the clean badge reads "○ No Changes"
+  ok     and satisfies the rule
+  ok   the save button reads "Save Changes"
+  ok     and satisfies the rule
+  ok   the dirty badge has no sentence-case copy left
+  ok   the clean badge has no sentence-case copy left
+  ok   the save button has no sentence-case copy left
+  ok   the add-row link is title case
+  ok     and satisfies the rule
+  ok   the history heading, empty state is title case
+  ok     and satisfies the rule
+  ok   the history heading, populated is title case
+  ok     and satisfies the rule
+  ok   the history toggle, initial is title case
+  ok     and satisfies the rule
+  ok   the toggle in js is title case
+  ok     and satisfies the rule
+  ok   the show-all link is title case
+  ok     and satisfies the rule
+  ok   the show-less link is title case
+  ok     and satisfies the rule
+  ok   the name field label is title case
+  ok     and satisfies the rule
+  ok   the email field label is title case
+  ok     and satisfies the rule
+  ok   the toggle label agrees with its initial render
+  ok   no sentence-case copy of "+ Add row<"
+  ok   no sentence-case copy of "<h4>Change history"
+  ok   no sentence-case copy of ">Show details<"
+  ok   no sentence-case copy of "'Show details'"
+  ok   no sentence-case copy of ">Show recent 10 only<"
+  ok   no sentence-case copy of ">Your name<"
+  ok   no sentence-case copy of ">Your email<"
+  ok   the Report Data region is located
+  ok   labels found in the region: 24
+  ok   no captured label still carries code: none
+  ok   no Report Data button, h4 or label is sentence case except the named exemption
+  ok   the exemption is REAL and still present: "Nothing was imported"
+       exempt: "Nothing was imported" -- a status SENTENCE, the same family as the CLCPA-234 success panel heading below, which Emely approved as delivered
+  ok   the exemption is REAL and still present: "Imported into the draft: cell"
+       exempt: "Imported into the draft: cell" -- THE CLCPA-234 SUCCESS PANEL, approved verbatim two days ago. I cited it as the precedent for the exemption above and then left it out of the list, so the suite reported it -- correctly
+
+=== 4. WHAT WAS DELIBERATELY LEFT ALONE ===
+  ok   buildHistorySummary is found
+  ok   its "No changes" is unchanged: it is prose, not the badge
+  ok   and it sits with the "N cells edited" family that proves it is prose
+  ok   so the two coexist deliberately: prose lowercase, badge title case
+  ok   the delete-row tooltip still reads "Delete row", both attributes
+  ok   and was not quietly retitled
+  ok   renderIngestImportResult is found
+  ok   and at BASE
+  ok   the import result panel is unchanged by this round
+  ok   including the reminder Emely approved verbatim
+  ok   top-level functions enumerated: 352
+       new functions     : adoptIngestReference, ingestStatusClass, ingestStatusText
+       changed functions : loadIngestDraft, openSaveModal, refreshIngestStatus, renderIngestEditor, renderIngestHistory, wireIngestHistory
+       removed functions : none
+  ok   no function was removed
+  ok   exactly the three intended helpers are new
+  ok   the change to loadIngestDraft is accounted for
+  ok   the change to openSaveModal is accounted for
+  ok   the change to refreshIngestStatus is accounted for
+  ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestHistory is accounted for
+  ok   the change to wireIngestHistory is accounted for
+  ok   loadIngestDraft changed as intended: sets the reference through the helper now
+  ok   openSaveModal changed as intended: adopts the reference after a save -- THE FIX, plus Your Name/Your Email
+  ok   renderIngestEditor changed as intended: the badge via ingestStatusText, and Save Changes / + Add Row
+  ok   refreshIngestStatus changed as intended: the badge via the same helper instead of its own copy
+  ok   renderIngestHistory changed as intended: Change History, Show Details, Show All N Saves, Show Recent 10 Only
+  ok   wireIngestHistory changed as intended: the Show Details / Hide Details toggle
+  ok   and no function outside that list moved at all
+
+======================================================================
+  114 passed, 0 failed
+======================================================================
