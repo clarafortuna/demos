@@ -1,0 +1,132 @@
+======================================================================
+CLCPA-242 -- the Executive Summary tooltips
+  BASE 8fa362c (the dacCol branch point)
+======================================================================
+
+=== 1. THE CLAMP: one positioner, four edges, driven ===
+  ok   BASE had 16 bare pageX positioners in the file
+  ok   and no shared clamp at all
+  ok   the chart rows positioned with no bounds
+  ok   and so did the KPI cards
+  ok   placeTooltipAtPointer exists
+  ok   it reads BOTH viewport dimensions
+  ok   and both scroll offsets, so the comparison is document-to-document
+  ok   and the tip's own measured size
+  ok   the chart rows go through it
+  ok   the KPI cards go through it
+  ok   and NEITHER positions raw any more
+  ok   inside the viewport it offsets by +14 / -8: 114px 292px
+  ok   at the right edge it FLIPS to the left of the cursor: 1136px
+  ok   and the box fits: right edge at 1336
+  ok   at the bottom it slides up: top 742px
+  ok   near the top it is floored at 8: 8px
+  ok   a flip that would go negative is floored at 8, not off-screen left: 8px (unfloored it would be -4)
+  ok   and never negative
+  ok   on a page scrolled 2000px the tip is NOT dragged to the viewport top: 2392px
+  ok   it stays in document coordinates: 2392px
+
+=== 2. PLACED BEFORE SHOWN, and HIDDEN ON RE-RENDER ===
+  ok   chart rows: positions inside the enter handler
+  ok   chart rows: and does it BEFORE revealing, so nothing is painted in the old place
+  ok   KPI cards: positions inside the enter handler
+  ok   KPI cards: and does it BEFORE revealing, so nothing is painted in the old place
+  ok   BASE control: the enter handler never positioned at all
+  ok   the chart enter handler takes the event
+  ok   and so does the card one
+  ok   hideExecTooltip exists
+  ok   it hides the box
+  ok   AND clears the content, so a stale body cannot flash on the next hover
+  ok   the render path calls it
+  ok   and calls it FIRST, before re-wiring: 52 < 103
+  ok   BASE control: nothing hid it, so it survived a year change
+  ok   driven: it clears both: opacity=0 innerHTML=""
+  ok   and it is safe before any tooltip exists
+
+=== 3. THE CONTENT IS UNTOUCHED: only the wiring moved ===
+  ok   renderDumbbell is byte-identical to BASE
+  ok   renderStripWithGap is byte-identical to BASE
+  ok   computeHeaderCards is byte-identical: the card tooltip rows are unchanged
+
+=== 4. THE HONESTY RULE ON TOOLTIP CONTENT -- closing the 237 limit ===
+  ok   2099: ten rows on each surface: 10, 10
+  ok   no null, NaN, undefined or [object reaches any tooltip attribute: 0 of 180
+  ok   the prior figure is rendered under the words "Prior year"
+  ok   and the current figure under the SELECTED year, named
+  ok   and the prior row is omitted entirely when there is none, never shown empty
+  ok     B: dashed current, prior is either n/a or a labelled percentage: 38.9%
+  ok     C: dashed current, prior is either n/a or a labelled percentage: 32.6%
+  ok     D: dashed current, prior is either n/a or a labelled percentage: 36.4%
+  ok     E: dashed current, prior is either n/a or a labelled percentage: 45.3%
+  ok     F: dashed current, prior is either n/a or a labelled percentage: 31.6%
+  ok     G: dashed current, prior is either n/a or a labelled percentage: 47.0%
+  ok     H: dashed current, prior is either n/a or a labelled percentage: 34.2%
+  ok     I: dashed current, prior is either n/a or a labelled percentage: n/a
+  ok     J: dashed current, prior is either n/a or a labelled percentage: 43.7%
+  ok   2099: 9 dashed rows checked
+  ok   2025: ten rows on each surface: 10, 10
+  ok   no null, NaN, undefined or [object reaches any tooltip attribute: 0 of 180
+  ok   the prior figure is rendered under the words "Prior year"
+  ok   and the current figure under the SELECTED year, named
+  ok   and the prior row is omitted entirely when there is none, never shown empty
+  ok     I: dashed current, prior is either n/a or a labelled percentage: n/a
+  ok   2025: 1 dashed rows checked
+  ok   2099: three cards
+  ok   2099 card 1: no leakage in 6 tooltip rows
+  ok     and 3 rows carry an explicit year in the label, so no figure is unattributed
+  ok   2099 card 2: no leakage in 6 tooltip rows
+  ok     and 2 rows carry an explicit year in the label, so no figure is unattributed
+  ok   2099 card 3: no leakage in 6 tooltip rows
+  ok     and 3 rows carry an explicit year in the label, so no figure is unattributed
+  ok   2025: three cards
+  ok   2025 card 1: no leakage in 6 tooltip rows
+  ok     and 3 rows carry an explicit year in the label, so no figure is unattributed
+  ok   2025 card 2: no leakage in 6 tooltip rows
+  ok     and 2 rows carry an explicit year in the label, so no figure is unattributed
+  ok   2025 card 3: no leakage in 6 tooltip rows
+  ok     and 3 rows carry an explicit year in the label, so no figure is unattributed
+
+=== 5. WHAT IS OUT OF SCOPE, PINNED SO IT CANNOT DRIFT ===
+  ok   exactly 14 raw positioners remain, all on section pages: 14
+  ok   down from 16 at BASE: the two exec ones are fixed
+  ok   exactly TWO were converted, which is the scope
+  ok   the map's positionTooltipAt is byte-identical: it never had this defect
+
+=== 6. THE BLAST RADIUS ===
+       changed functions: hideExecTooltip, placeTooltipAtPointer, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+  ok   the change to hideExecTooltip is accounted for
+  ok   the change to placeTooltipAtPointer is accounted for
+  ok   the change to wireExecutiveInteractions is accounted for
+  ok   the change to wireExecutiveTooltips is accounted for
+  ok   the change to wireHeaderCardsTooltips is accounted for
+  ok   wireExecutiveTooltips changed as intended: the chart rows: shared clamp, placed before shown
+  ok   wireHeaderCardsTooltips changed as intended: the KPI cards: the same
+  ok   wireExecutiveInteractions changed as intended: hide-on-re-render
+  ok   placeTooltipAtPointer changed as intended: NEW: the shared four-edge clamp
+  ok   hideExecTooltip changed as intended: NEW: the hide helper the render path calls
+  ok   exactly FIVE, three amended and two new: 5
+  ok   and the two new ones did not exist at BASE, which is why they count
+  ok   dacCol exists in both sources
+  ok   dacCol is byte-identical to BASE
+  ok   dacRow exists in both sources
+  ok   dacRow is byte-identical to BASE
+  ok   composePayloadFromRows exists in both sources
+  ok   composePayloadFromRows is byte-identical to BASE
+  ok   buildSectionDAC exists in both sources
+  ok   buildSectionDAC is byte-identical to BASE
+  ok   totalRowFlags exists in both sources
+  ok   totalRowFlags is byte-identical to BASE
+  ok   rowsForDisplay exists in both sources
+  ok   rowsForDisplay is byte-identical to BASE
+  ok   renderExecutiveSummary exists in both sources
+  ok   renderExecutiveSummary is byte-identical to BASE
+  ok   renderIngestPicker exists in both sources
+  ok   renderIngestPicker is byte-identical to BASE
+  ok   ensureTooltip exists in both sources
+  ok   ensureTooltip is byte-identical to BASE
+  ok   positionTooltipAt exists in both sources
+  ok   positionTooltipAt is byte-identical to BASE
+  ok   DAC_SOURCE is still 'dataverse'
+
+======================================================================
+  111 passed, 0 failed
+======================================================================
