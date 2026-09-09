@@ -79,58 +79,17 @@ const M = [
     /* the brief said presentation only; a behavioural change must fail */
     expect: 'the header row still renders read-only' },
 
-  /* ---- item 3, the empty state --------------------------------------- */
-  { t: APP, name: 'THE VISUALS VANISH AGAIN: the dumbbell placeholder is deleted',
-    from: "            ${emptyCard('DAC Impact · Movement vs Prior Year',\n               `No ${year} figures to compare`)}\n",
-    to:   "",
-    expect: 'the dumbbell position is held by a named placeholder' },
-  { t: APP, name: 'the strip placeholder is deleted',
-    from: "            ${emptyCard('DAC Impact by Section', `No ${year} section shares`, 'sg-card')}\n",
-    to:   "",
-    expect: 'and the strip position likewise' },
-  { t: APP, name: 'the header-card ROW is renamed out of existence',
-    from: "        <div class=\"exec-header-cards exec-header-cards-empty\" id=\"exec-header-cards\">",
-    to:   "        <div class=\"exec-hdr-gone\" id=\"exec-hdr-gone\">",
-    expect: 'the empty branch renders that row too' },
-  { t: APP, name: 'the header-card placeholder inside it is deleted',
-    from: "          ${emptyCard('Reported KPIs', `Nothing reported for ${year}`)}\n",
-    to:   "",
-    expect: 'holding a named placeholder where the KPI cards sit' },
-  { t: APP, name: 'a FOURTH placeholder appears, so the count drifts',
-    from: "          ${emptyCard('Reported KPIs', `Nothing reported for ${year}`)}\n",
-    to:   "          ${emptyCard('Reported KPIs', `Nothing reported for ${year}`)}\n          ${emptyCard('Extra', 'x')}\n",
-    expect: 'three placeholders and the helper that makes them' },
-  { t: APP, name: 'the placeholders stop saying they are empty',
-    from: "          ${emptyYearPane(year, {\n            message: `No ${year} data to chart yet.`,",
-    to:   "          ${emptyYearPaneX(year, {\n            message: `No ${year} data to chart yet.`,",
-    expect: 'each placeholder says so explicitly' },
-  { t: APP, name: 'the map becomes a placeholder instead of drawing for real',
-    from: "          <div class=\"exec-shares-grid exec-shares-grid-solo\" id=\"exec-shares-map\">\n            ${renderDACMap(baseline, year, sections)}",
-    to:   "          <div class=\"exec-shares-grid exec-shares-grid-solo\" id=\"exec-shares-map\">\n            ${emptyCard('DAC Tracts', 'no map')}",
-    /* CLCPA-158: the map is not year-dependent and must still draw */
-    expect: 'the map renders FOR REAL, not as a placeholder' },
-  { t: APP, name: 'the two grids share an id again',
-    from: "id=\"exec-shares-map\"",
-    to:   "id=\"exec-shares-grid\"",
-    expect: 'the two grids carry DIFFERENT ids' },
-  { t: APP, name: 'the map row loses full width and goes back to a third',
-    from: "exec-shares-grid exec-shares-grid-solo\" id=\"exec-shares-map\"",
-    to:   "exec-shares-grid\" id=\"exec-shares-map\"",
-    expect: 'the map has a single-column row of its own: full width' },
-  { t: CSS, name: 'the placeholder pair reverts to three columns',
-    from: ".exec-shares-grid-pair { grid-template-columns: 1fr 1fr; }",
-    to:   ".exec-shares-grid-pair { grid-template-columns: 1fr 1fr 1fr; }",
-    expect: 'the pair modifier is two columns' },
-  { t: APP, name: 'THE REGRESSION GUARD: the POPULATED branch is edited',
-    from: "          ${renderDumbbell(baseline, year, sections)}",
-    to:   "          ${renderDumbbell(baseline, year, sections)}${''}",
-    /* 2025 must render with zero visual diff */
-    expect: 'the POPULATED branch is byte-identical to BASE' },
-  { t: APP, name: 'anyData is widened, so a populated year becomes empty',
-    from: "      p.kpis.reported.some(k => k.values && k.values[year])",
-    to:   "      p.kpis.reported.some(k => k.values && k.values[year] && false)",
-    expect: 'the anyData test is unchanged' },
-
+  /* ---- item 3, the empty state: CONTROLS REMOVED, SUBJECT DELETED ----
+   *
+   * CLCPA-237 item F deleted the empty branch, so these 12 controls had
+   * nothing left to mutate -- they reported "ANCHOR 0, NOT APPLIED" rather
+   * than catching anything, and suite_prewalk section 3 now reads the pinned
+   * d658ab7 where its subject still exists.
+   *
+   * Every one has a live successor in mut_237f, and one transfer matters:
+   * THE REGRESSION GUARD -- "the POPULATED branch is edited", the 2025
+   * zero-visual-diff control -- lives there now and goes red there. The
+   * claim changed owner; it was not dropped. */
   /* ---- the exclusions the brief named -------------------------------- */
   { t: APP, name: 'EXCLUSION: D.1 is dragged into the header family',
     from: "      if (typeof lv !== 'number' || lv < 2) return 0;",
@@ -147,7 +106,7 @@ const M = [
   { t: APP, name: 'EXCLUSION: a function outside the four is changed',
     from: "  function ingestSelectionKey() {",
     to:   "  function ingestSelectionKey() {\n    void 0;",
-    expect: 'no function outside those four moved at all' },
+    expect: 'no function outside those five moved at all' },
 ];
 
 let caught = 0, missed = 0;

@@ -392,7 +392,34 @@ guard('the editor now merges group headers like the viewer always did', () => {
 
 /* ==================================================================== */
 say('');
-say('=== 3. THE EMPTY EXECUTIVE SUMMARY KEEPS THE PAGE SHAPE ===');
+say('=== 3. THE EMPTY EXECUTIVE SUMMARY (PINNED to d658ab7) ===');
+/* SECTION 3'S SUBJECT WAS DELETED THE NEXT MORNING.
+ *
+ * Item 3 gave the empty year the populated anatomy in placeholder form. Emely
+ * then ruled CLCPA-237 item F in and expanded it -- walkthrough-critical,
+ * because a live import lands on this screen -- and item F deletes the empty
+ * branch entirely: ONE layout for every year, the real renderers dashing where
+ * a year has no data. The placeholders, the pair/solo grids and anyData all go
+ * with it.
+ *
+ * So these assertions are true of d658ab7, which is the build item 3 shipped
+ * as and what this brief is answerable for. They are pinned there rather than
+ * relaxed, because relaxing them to tolerate a deletion would leave nothing
+ * being checked. suite_237f owns the live claim, including the 2025
+ * zero-visual-diff guard in its own section 5.
+ *
+ * Item F also settled why item 3's grid modifiers never rendered: a later
+ * `.exec-shares-grid { ... !important }` block owned the columns and placed the
+ * children by nth-child. Sections 1, 2 and 4 below are NOT pinned -- the chip
+ * and the header band are untouched by item F and stay under a live check.
+ */
+const F_REV = process.env.DAC_PREWALK_COMMIT || 'd658ab7';
+const P3_SRC = process.env.DAC_APP_OVERRIDE ? SRC
+  : execSync('git show ' + F_REV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+const P3_CSS = process.env.DAC_APP_OVERRIDE ? CSS
+  : execSync('git show ' + F_REV + ':"' + CSSREL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 
 /* THE EMPTY BRANCH, BOUNDED AT ITS OWN END.
  *
@@ -414,9 +441,9 @@ function emptyBranchOf(src) {
 }
 
 guard('every populated visual has a position in the empty state', () => {
-  const ex = grab('renderExecutiveSummary');
+  const ex = grab('renderExecutiveSummary', P3_SRC);
   const c = codeOnly(ex);
-  const empty = emptyBranchOf(SRC);
+  const empty = emptyBranchOf(P3_SRC);
   ok(empty.length > 0, 'the empty branch is located');
   /* the populated reference: header cards, then the shares grid with three */
   ok(/renderHeaderCards\(\)/.test(c), 'the populated branch renders header cards');
@@ -450,23 +477,23 @@ guard('every populated visual has a position in the empty state', () => {
 });
 
 guard('the map is full width, the placeholders are a pair', () => {
-  const c = codeOnly(grab('renderExecutiveSummary'));
-  const empty = emptyBranchOf(SRC);
+  const c = codeOnly(grab('renderExecutiveSummary', P3_SRC));
+  const empty = emptyBranchOf(P3_SRC);
   ok(/exec-shares-grid-pair/.test(empty),
      'the two year-dependent placeholders share a two-column row');
   ok(/exec-shares-grid-solo/.test(empty),
      'and the map has a single-column row of its own: full width');
-  ok(/\.exec-shares-grid-pair \{ grid-template-columns: 1fr 1fr; \}/.test(CSS),
+  ok(/\.exec-shares-grid-pair \{ grid-template-columns: 1fr 1fr; \}/.test(P3_CSS),
      'the pair modifier is two columns');
-  ok(/\.exec-shares-grid-solo \{ grid-template-columns: 1fr; \}/.test(CSS),
+  ok(/\.exec-shares-grid-solo \{ grid-template-columns: 1fr; \}/.test(P3_CSS),
      'the solo modifier is one');
-  ok(/\.exec-header-cards-empty \{ grid-template-columns: 1fr; \}/.test(CSS),
+  ok(/\.exec-header-cards-empty \{ grid-template-columns: 1fr; \}/.test(P3_CSS),
      'and the single header placeholder spans its row instead of leaving gaps');
   /* NO DUPLICATE IDS: two grids in one page cannot share an id */
   const ids = (empty.match(/id="exec-shares-[a-z-]*"/g) || []);
   ok(ids.length === 2 && ids[0] !== ids[1],
      'the two grids carry DIFFERENT ids: ' + ids.join(', '));
-  ok(!/getElementById\('exec-shares-grid'\)/.test(CODE),
+  ok(!/getElementById\('exec-shares-grid'\)/.test(codeOnly(P3_SRC)),
      'and nothing looks that id up, so renaming one is safe');
 });
 
@@ -494,7 +521,7 @@ guard('THE REGRESSION GUARD: 2025 renders with zero visual diff', () => {
     if (i < 0 || j < 0 || k < 0) return null;
     return c.slice(k);
   };
-  const popNow = populatedOf(SRC), popBase = populatedOf(BASE_SRC);
+  const popNow = populatedOf(P3_SRC), popBase = populatedOf(BASE_SRC);
   ok(popNow && popBase && popNow.length > 400 && popBase.length > 400,
      'both populated branches are located and bounded: ' +
      (popNow || '').length + ' vs ' + (popBase || '').length + ' chars');
@@ -513,7 +540,7 @@ guard('THE REGRESSION GUARD: 2025 renders with zero visual diff', () => {
     const i = c.indexOf('const anyData');
     return c.slice(i, c.indexOf(';', c.indexOf('kpis.reported.some', i))).replace(/\s+/g, ' ');
   };
-  ok(anyOf(SRC) === anyOf(BASE_SRC),
+  ok(anyOf(P3_SRC) === anyOf(BASE_SRC),
      'and the anyData test is unchanged, so no populated year becomes empty');
 });
 
@@ -553,17 +580,32 @@ guard('the four exclusions', () => {
   names.forEach(n => { if (grab(n, BASE_SRC) !== grab(n, SRC)) changed.push(n); });
   changed.sort();
   say('       changed functions: ' + changed.join(', '));
+  /* FIVE now, not four, and the fifth is NAMED rather than tolerated.
+   *
+   * CLCPA-237 item F -- ruled in the next morning as walkthrough-critical --
+   * added computeHeaderCards, fixing two defects the empty branch had been
+   * hiding: a null dereference that THREW on a new year beside a populated
+   * prior one, and a reduce seeded at 0 that reported "$0 invested" for a year
+   * with no data. Both are asserted in suite_237f, driven. Item F also rewrote
+   * renderExecutiveSummary again, to delete the branch item 3 had built.
+   *
+   * A blast radius that silently grows is not a blast radius, so every member
+   * is accounted for by name and the count is exact. */
   const EXPECT = {
     renderSourceTables: 'item 1, the chip, and the header-row skip',
     renderTable: 'item 2, the two-level table marker',
     renderIngestEditor: 'item 2, the merged group headers',
-    renderExecutiveSummary: 'item 3, the empty-state layout',
+    renderExecutiveSummary: 'item 3, the empty-state layout -- then DELETED by ' +
+      'CLCPA-237 item F, which suite_237f owns',
+    computeHeaderCards: 'NOT this brief: CLCPA-237 item F, the card crash and ' +
+      'the invented $0',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
+  ok(changed.length === 5, 'exactly FIVE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those four moved at all');
+     'and no function outside those five moved at all');
 });
 
 say('');

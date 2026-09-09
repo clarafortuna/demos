@@ -18,7 +18,7 @@ CLCPA-237 items E + D -- the phantom KPI entry and the empty-year grid
   ok   BASE control: the undefined test was there
   ok   clean_energy_jobs still returns dac: null, which is correct -- no DAC breakdown for jobs exists, and the guard is what had to change
 
-=== 2. ITEM D: the empty-year grid anchor ===
+=== 2. ITEM D: the empty-year grid anchor (PINNED to 40642e2) ===
   ok   renderExecutiveSummary is found
   ok   the EMPTY branch carries the solo modifier
   ok   and exactly once in the whole function: 1 -- the populated branch keeps its three columns
@@ -32,11 +32,12 @@ CLCPA-237 items E + D -- the phantom KPI entry and the empty-year grid
   ok   the media query still collapses to one column below 1300px, where the defect never showed
 
 === 3. WHAT THIS TICKET DELIBERATELY DID NOT DO ===
-  ok   anyData is still a single page-level boolean: item F is not smuggled in
+  ok   at 40642e2 anyData was still a single page-level boolean: item F was NOT smuggled into this ticket
+  ok   and it is gone from the live build, by the later item F ruling, which suite_237f owns
   ok   and renderExecutiveSummary is otherwise UNCHANGED from BASE: the only edit is the solo class
   ok   section pages already name the section in their empty state
   ok   and still show the source tables: per-section degradation already exists
 
 ======================================================================
-  28 passed, 0 failed
+  29 passed, 0 failed
 ======================================================================

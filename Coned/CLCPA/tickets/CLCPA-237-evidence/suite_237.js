@@ -174,9 +174,27 @@ guard('the guard asks the right question', () => {
 });
 
 say('');
-say('=== 2. ITEM D: the empty-year grid anchor ===');
+say('=== 2. ITEM D: the empty-year grid anchor (PINNED to 40642e2) ===');
+/* ITEM D'S SUBJECT NO LONGER EXISTS.
+ *
+ * CLCPA-237 item F deleted the empty-year branch outright and the three grid
+ * modifiers with it, so "the empty branch carries the solo modifier" is a claim
+ * about code that has been removed on purpose. It was TRUE at 40642e2, which is
+ * what this ticket is answerable for, so this section reads that commit -- the
+ * same treatment item E's claim already has, and for the same reason.
+ *
+ * Item F also proved WHY the modifier never mattered: a later
+ * `.exec-shares-grid { ... !important }` block owned the property and placed
+ * the children by nth-child, so the solo template lost the cascade regardless
+ * of source order. The cascade assertions below are correct about ordering and
+ * were still testing the wrong competitor. suite_237f owns the live claim now.
+ */
+const D_SRC = process.env.DAC_APP_OVERRIDE ? SRC : toCRLF(execSync(
+  'git show 40642e2:"' + REL + '"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
+const D_CSS = process.env.DAC_APP_OVERRIDE ? CSS : toCRLF(execSync(
+  'git show 40642e2:"' + CSSREL + '"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
 guard('the solo modifier', () => {
-  const ex = grab('renderExecutiveSummary');
+  const ex = grab('renderExecutiveSummary', D_SRC);
   ok(!!ex, 'renderExecutiveSummary is found');
   const c = codeOnly(ex);
   /* the empty branch is the one with the banner; the populated branch must NOT
@@ -198,30 +216,30 @@ guard('the solo modifier', () => {
 });
 
 guard('the CSS, and its cascade position', () => {
-  ok(/\.exec-shares-grid \{[^}]*grid-template-columns: 1fr 1fr 1fr/.test(CSS),
+  ok(/\.exec-shares-grid \{[^}]*grid-template-columns: 1fr 1fr 1fr/.test(D_CSS),
      'the base grid is still three columns');
-  ok(/\.exec-shares-grid-solo \{ grid-template-columns: 1fr; \}/.test(CSS),
+  ok(/\.exec-shares-grid-solo \{ grid-template-columns: 1fr; \}/.test(D_CSS),
      'and the solo modifier is one column');
   /* EXACTLY ONE, and a mutation exposed the need for this. Inserting a second
    * copy earlier in the file went GREEN: indexOf found the first, the last one
    * still won, and the ordering assertions were satisfied by accident. Two
    * copies of a cascade-sensitive rule is a drift waiting to happen -- whichever
    * one someone edits next may not be the one that applies. */
-  const soloRules = (CSS.match(/\.exec-shares-grid-solo\s*\{/g) || []).length;
+  const soloRules = (D_CSS.match(/\.exec-shares-grid-solo\s*\{/g) || []).length;
   ok(soloRules === 1,
      'and it is declared exactly ONCE in styles.css: ' + soloRules);
   /* CASCADE, checked rather than assumed: both selectors are one class, so
    * SOURCE ORDER decides. The modifier must come after the base rule AND after
    * the 1300px media query, or above 1300px the base three-column rule wins and
    * the fix does nothing. */
-  const iBase = CSS.indexOf('.exec-shares-grid {');
-  const iMedia = CSS.indexOf('.exec-shares-grid { grid-template-columns: 1fr; gap: 12px; }');
-  const iSolo = CSS.indexOf('.exec-shares-grid-solo {');
+  const iBase = D_CSS.indexOf('.exec-shares-grid {');
+  const iMedia = D_CSS.indexOf('.exec-shares-grid { grid-template-columns: 1fr; gap: 12px; }');
+  const iSolo = D_CSS.indexOf('.exec-shares-grid-solo {');
   ok(iBase > 0 && iSolo > iBase,
      'the modifier is declared AFTER the base rule, so it wins at equal specificity');
   ok(iMedia > 0 && iSolo > iMedia,
      'and after the 1300px media query, which is what makes it apply on wide screens');
-  ok(/@media \(max-width: 1300px\)/.test(CSS),
+  ok(/@media \(max-width: 1300px\)/.test(D_CSS),
      'the media query still collapses to one column below 1300px, where the ' +
      'defect never showed');
 });
@@ -233,8 +251,18 @@ guard('item F stays post-Sept-10', () => {
   /* anyData is still ONE boolean for the page. Item F -- per-section empty
    * state, matching what the section pages already do -- is a redesign of a
    * page Emely passed today, and is deliberately not in this ticket. */
-  ok(/const anyData = \(/.test(ex),
-     'anyData is still a single page-level boolean: item F is not smuggled in');
+  /* OBSOLETE BY RULING, not by drift. This pin existed to stop item F being
+   * smuggled into a ticket that had not been authorised for it. Item F was
+   * then ruled IN and expanded -- walkthrough-critical, since a live import
+   * lands on this screen -- and it deleted anyData along with the branch. The
+   * pin is replaced by the fact it was guarding against, stated plainly and
+   * checked against the commit where it held. */
+  ok(/const anyData = \(/.test(codeOnly(grab('renderExecutiveSummary', D_SRC))),
+     'at 40642e2 anyData was still a single page-level boolean: item F was NOT ' +
+     'smuggled into this ticket');
+  ok(!/anyData/.test(codeOnly(SRC)),
+     'and it is gone from the live build, by the later item F ruling, which ' +
+     'suite_237f owns');
   /* THIS ONE CLAIM IS PINNED TO THE COMMIT 237 LANDED AS, not to the working
    * tree. It says "item E's only edit was the solo class", which was true at
    * 40642e2 and is what this ticket is answerable for. The pre-walkthrough
