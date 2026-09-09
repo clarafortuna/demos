@@ -10180,7 +10180,7 @@ function utf8ByteLength(str) {
       const idx = parseInt(card.getAttribute('data-card-idx'), 10);
       const cfg = _lastHeaderCards[idx];
       if (!cfg || !cfg.tooltip) return;
-      card.addEventListener('mouseenter', () => {
+      card.addEventListener('mouseenter', (e) => {
         const rowsHtml = cfg.tooltip.rows.map(r =>
           `<div class="tt-row"><span>${escapeHtml(r.label)}</span><span class="v">${escapeHtml(r.value)}</span></div>`
         ).join('');
@@ -10190,12 +10190,14 @@ function utf8ByteLength(str) {
           `<div class="tt-row" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--line)">` +
             `<span style="font-size:9.5px;color:var(--text-3);line-height:1.4">${escapeHtml(cfg.tooltip.note)}</span>` +
           `</div>`;
+        /* CLCPA-242: PLACED BEFORE IT IS SHOWN.
+         * Positioning happened only on mousemove, so the first frame of a
+         * hover painted the box at wherever the PREVIOUS hover left it -- a
+         * visible jump, and on a fresh page a box in the top-left corner. */
+        placeTooltipAtPointer(tip, e);
         tip.style.opacity = '1';
       });
-      card.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top = (e.pageY - 8) + 'px';
-      });
+      card.addEventListener('mousemove', e => placeTooltipAtPointer(tip, e));
       card.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
   }
@@ -10419,6 +10421,57 @@ function utf8ByteLength(str) {
     return tip;
   }
 
+  /* CLCPA-242: ONE CLAMP FOR EVERY POINTER-FOLLOWING TOOLTIP.
+   *
+   * The exec surfaces positioned with a bare `left = e.pageX + 14; top =
+   * e.pageY - 8` and no bounds at all, so near the right edge or low on the
+   * page the box ran off screen. The map has never had that problem --
+   * positionTooltipAt clamps all four edges -- and the KPI cards got a clamp of
+   * their own under CLCPA-226, but only for the hug variant. Three positioners,
+   * one of them correct. This is the fourth and last: the chart rows and the
+   * cards both come through here.
+   *
+   * DOCUMENT coordinates on both sides of every comparison. pageX/pageY are
+   * document-relative and innerWidth/innerHeight are viewport measures, so the
+   * scroll offset has to be added to the viewport side or the clamp drifts down
+   * a scrolled page -- the same trap CLCPA-226 wrote down.
+   *
+   * Horizontally it FLIPS to the other side of the cursor rather than sliding,
+   * so the pointer never sits on top of the text it opened. Vertically it
+   * slides, because a flip there would put the box under the cursor's own row. */
+  function placeTooltipAtPointer(tip, e) {
+    if (!tip || !e) return;
+    const sx = window.pageXOffset || 0;
+    const sy = window.pageYOffset || 0;
+    const vw = window.innerWidth || 0;
+    const vh = window.innerHeight || 0;
+    const w = tip.offsetWidth || 0;
+    const h = tip.offsetHeight || 0;
+    let left = e.pageX + 14;
+    if (w && left + w > sx + vw - 8) left = e.pageX - w - 14;
+    if (left < sx + 8) left = sx + 8;
+    let top = e.pageY - 8;
+    if (h && top + h > sy + vh - 8) top = sy + vh - h - 8;
+    if (top < sy + 8) top = sy + 8;
+    tip.style.left = left + 'px';
+    tip.style.top = top + 'px';
+  }
+
+  /* CLCPA-242: a tooltip may not outlive the rows it describes.
+   *
+   * mouseleave only set opacity to 0; the div stayed in the DOM at its last
+   * coordinates with its last content. Change the year and the rows are
+   * re-rendered underneath it, so a tooltip could linger over a page that no
+   * longer has the row it came from, or reappear stale on the next hover
+   * before the new content is written. Called from the render path, so every
+   * re-render starts with nothing showing. */
+  function hideExecTooltip() {
+    const tip = document.querySelector('.exec-tooltip');
+    if (!tip) return;
+    tip.style.opacity = '0';
+    tip.innerHTML = '';
+  }
+
   /** Wire hover tooltips for the three equity charts. */
   function wireExecutiveTooltips() {
     const tip = ensureTooltip();
@@ -10426,7 +10479,7 @@ function utf8ByteLength(str) {
       '.strip-row[data-section], .dumb-row[data-section], .radar-dot[data-section]'
     );
     targets.forEach(el => {
-      el.addEventListener('mouseenter', () => {
+      el.addEventListener('mouseenter', (e) => {
         const id = el.getAttribute('data-section');
         const name = el.getAttribute('data-name');
         const pct = el.getAttribute('data-pct');
@@ -10458,18 +10511,22 @@ function utf8ByteLength(str) {
                 `<span style="font-size:9.5px;color:var(--text-3);line-height:1.4">Source: filed DAC report. DAC % = DAC value ÷ total value for the primary metric of Section ${id}.</span>` +
                 `</div>`;
         tip.innerHTML = html;
+        /* CLCPA-242: PLACED BEFORE IT IS SHOWN.
+         * Positioning happened only on mousemove, so the first frame of a
+         * hover painted the box at wherever the PREVIOUS hover left it -- a
+         * visible jump, and on a fresh page a box in the top-left corner. */
+        placeTooltipAtPointer(tip, e);
         tip.style.opacity = '1';
       });
-      el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top = (e.pageY - 8) + 'px';
-      });
+      el.addEventListener('mousemove', e => placeTooltipAtPointer(tip, e));
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
   }
 
   /** Called after Executive view is rendered to wire interactive parts. */
   function wireExecutiveInteractions() {
+    /* CLCPA-242: nothing may be showing when the view re-renders. */
+    hideExecTooltip();
     wireBaselineToggle();
     wireExecutiveTooltips();
     wireHeaderCardsTooltips();
