@@ -92,9 +92,10 @@ CLCPA-242 -- the Executive Summary tooltips
   ok   the map's positionTooltipAt is byte-identical: it never had this defect
 
 === 6. THE BLAST RADIUS ===
-       changed functions: hideExecTooltip, placeTooltipAtPointer, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: hideExecTooltip, placeTooltipAtPointer, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
   ok   the change to hideExecTooltip is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
+  ok   the change to wireControlTips is accounted for
   ok   the change to wireExecutiveInteractions is accounted for
   ok   the change to wireExecutiveTooltips is accounted for
   ok   the change to wireHeaderCardsTooltips is accounted for
@@ -103,7 +104,8 @@ CLCPA-242 -- the Executive Summary tooltips
   ok   wireExecutiveInteractions changed as intended: hide-on-re-render
   ok   placeTooltipAtPointer changed as intended: NEW: the shared four-edge clamp
   ok   hideExecTooltip changed as intended: NEW: the hide helper the render path calls
-  ok   exactly FIVE, three amended and two new: 5
+  ok   wireControlTips changed as intended: ROUND 2: the early-out for tip-owning surfaces
+  ok   SIX: round 1 five, plus round 2 wireControlTips: 6
   ok   and the two new ones did not exist at BASE, which is why they count
   ok   dacCol exists in both sources
   ok   dacCol is byte-identical to BASE
@@ -128,5 +130,5 @@ CLCPA-242 -- the Executive Summary tooltips
   ok   DAC_SOURCE is still 'dataverse'
 
 ======================================================================
-  111 passed, 0 failed
+  113 passed, 0 failed
 ======================================================================

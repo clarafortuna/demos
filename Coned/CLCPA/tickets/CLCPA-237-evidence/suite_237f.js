@@ -488,13 +488,14 @@ guard('the blast radius is accounted for, function by function', () => {
     wireExecutiveTooltips: 'CLCPA-242: clamp, placed before shown',
     wireHeaderCardsTooltips: 'CLCPA-242: the same',
     wireExecutiveInteractions: 'CLCPA-242: calls hideExecTooltip',
+    wireControlTips: 'CLCPA-242 round 2: the early-out for tip-owning surfaces',
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to ' + ALSO[n]));
   ok(mine.length === 2,
      'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
-  ok(changed.length === 10, 'ten in total, all named: ' + changed.length);
+  ok(changed.length === 11, 'eleven in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

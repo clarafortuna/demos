@@ -426,11 +426,12 @@ guard('two functions, and nothing else', () => {
     wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
     wireHeaderCardsTooltips: 'NOT this brief: CLCPA-242',
     wireExecutiveInteractions: 'NOT this brief: CLCPA-242',
+    wireControlTips: 'NOT this brief: CLCPA-242 round 2, the early-out',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 8, 'exactly EIGHT functions changed: ' + changed.length);
+  ok(changed.length === 9, 'exactly NINE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

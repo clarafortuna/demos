@@ -57,12 +57,13 @@ CLCPA-240 second half -- the value-less Total row
   ok   and still used elsewhere: 3 references
 
 === 5. THE BLAST RADIUS ===
-       changed functions: dacCol, hideExecTooltip, placeTooltipAtPointer, renderIngestPicker, totalRowFlags, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: dacCol, hideExecTooltip, placeTooltipAtPointer, renderIngestPicker, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
   ok   the change to dacCol is accounted for
   ok   the change to hideExecTooltip is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderIngestPicker is accounted for
   ok   the change to totalRowFlags is accounted for
+  ok   the change to wireControlTips is accounted for
   ok   the change to wireExecutiveInteractions is accounted for
   ok   the change to wireExecutiveTooltips is accounted for
   ok   the change to wireHeaderCardsTooltips is accounted for
@@ -74,7 +75,8 @@ CLCPA-240 second half -- the value-less Total row
   ok   wireExecutiveTooltips changed as intended: NOT this brief: CLCPA-242
   ok   wireHeaderCardsTooltips changed as intended: NOT this brief: CLCPA-242
   ok   wireExecutiveInteractions changed as intended: NOT this brief: CLCPA-242
-  ok   exactly EIGHT functions changed: 8
+  ok   wireControlTips changed as intended: NOT this brief: CLCPA-242 round 2, the early-out
+  ok   exactly NINE functions changed: 9
   ok   DERIVED_COLS is byte-identical to BASE
   ok   isStrictTotalRowLabel exists in both sources, so comparing them means something
   ok   isStrictTotalRowLabel is byte-identical to BASE
@@ -110,5 +112,5 @@ CLCPA-240 second half -- the value-less Total row
   ok   and the import planner buildIngestImport is untouched: 240's matcher half stays post-Sept-10
 
 ======================================================================
-  93 passed, 0 failed
+  95 passed, 0 failed
 ======================================================================

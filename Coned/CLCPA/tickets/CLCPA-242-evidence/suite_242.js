@@ -420,6 +420,7 @@ guard('three functions, all wiring', () => {
     wireExecutiveInteractions: 'hide-on-re-render',
     placeTooltipAtPointer: 'NEW: the shared four-edge clamp',
     hideExecTooltip: 'NEW: the hide helper the render path calls',
+    wireControlTips: 'ROUND 2: the early-out for tip-owning surfaces',
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -428,7 +429,7 @@ guard('three functions, all wiring', () => {
   /* FIVE: three amended plus the two helpers this ticket ADDS. New functions
    * legitimately register as changed against a BASE that lacks them, so they
    * are named rather than excused by a bigger number. */
-  ok(changed.length === 5, 'exactly FIVE, three amended and two new: ' + changed.length);
+  ok(changed.length === 6, 'SIX: round 1 five, plus round 2 wireControlTips: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
      'and the two new ones did not exist at BASE, which is why they count');

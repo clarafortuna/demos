@@ -10381,9 +10381,42 @@ function utf8ByteLength(str) {
       const t = e.target;
       return t && t.closest ? t.closest('[data-tip]') : null;
     };
+    /* CLCPA-242 fix A: SURFACES THAT OWN THE SHARED TIP THEMSELVES.
+     *
+     * .exec-tooltip is ONE div on document.body, shared by nine wirings. The
+     * delegated handler below blanket-hid it on any mouseover that was not over
+     * a [data-tip] control -- and a chart row is not one. So a row's mouseenter
+     * opened the tooltip and the very next bubbling mouseover closed it. Worse,
+     * mouseover RE-FIRES when the pointer crosses into a child of the same row
+     * (.dumb-label -> .dumb-bar -> .dumb-pill) while mouseenter does not, so it
+     * shut the moment the pointer moved a few pixels inside the row it was
+     * describing. Emely's words: "salen de momento pero se esconden".
+     *
+     * This collision PREDATES CLCPA-242. What this ticket did was place the box
+     * correctly, which turned an easily-dismissed flicker into an obvious
+     * defect. The positioning fix was incomplete, not wrong.
+     *
+     * The early-out is deliberately a LIST OF SURFACES rather than a blanket
+     * "don't hide": the control tips must still close when the pointer leaves a
+     * control for ordinary page background, which is what the else-branch is
+     * for. It only declines to hide over the four surfaces that open the tip
+     * themselves and close it on their own mouseleave.
+     *
+     * The general answer -- one owner for the shared div, claim and release
+     * across all nine wirings -- is a separate ticket by ruling, not smuggled
+     * in here. */
+    const OWNS_TIP = '.dumb-row, .strip-row, .ai-header-card, .radar-dot';
+    const ownsTip = (e) => {
+      const t = e.target;
+      return !!(t && t.closest && t.closest(OWNS_TIP));
+    };
     document.addEventListener('mouseover', (e) => {
       const el = target(e);
-      if (el) show(el); else hide();
+      if (el) { show(el); return; }
+      /* not a control, and a surface that manages the tip itself is under the
+       * pointer: leave it alone */
+      if (ownsTip(e)) return;
+      hide();
     });
     document.addEventListener('mouseout', (e) => { if (target(e)) hide(); });
     document.addEventListener('focusin', (e) => {
@@ -10447,12 +10480,35 @@ function utf8ByteLength(str) {
     const vh = window.innerHeight || 0;
     const w = tip.offsetWidth || 0;
     const h = tip.offsetHeight || 0;
+    /* CLCPA-242 fix B: A SIZE OF ZERO IS UNKNOWN, NOT ZERO.
+     *
+     * offsetWidth/offsetHeight read 0 for a box that is empty or mid-teardown,
+     * and nine wirings share this one div, so an interleaved hide and show can
+     * be measured in exactly that state. The clamps then did arithmetic on a
+     * zero: `top = sy + vh - 0 - 8` pins the box to the BOTTOM EDGE OF THE
+     * VIEWPORT, which on a scrolled executive page is over the map -- a card's
+     * tooltip content, frozen mid-opacity, floating over a widget it does not
+     * belong to. That is the ghost in Emely's screenshot, and while the
+     * placement was a hypothesis rather than something I could reproduce
+     * headlessly, an unmeasured box must not be clamped whether or not it is
+     * the cause.
+     *
+     * `if (w && ...)` already skipped the flip on a zero width. The FLOORS did
+     * not, and the bottom clamp is the one that reaches the viewport edge. So a
+     * zero measurement now skips ALL of the edge handling for that axis and the
+     * box keeps its plain offset: possibly overflowing, never teleported. The
+     * next mousemove measures a real box and clamps properly. */
+    const knownW = w > 0, knownH = h > 0;
     let left = e.pageX + 14;
-    if (w && left + w > sx + vw - 8) left = e.pageX - w - 14;
-    if (left < sx + 8) left = sx + 8;
+    if (knownW) {
+      if (left + w > sx + vw - 8) left = e.pageX - w - 14;
+      if (left < sx + 8) left = sx + 8;
+    }
     let top = e.pageY - 8;
-    if (h && top + h > sy + vh - 8) top = sy + vh - h - 8;
-    if (top < sy + 8) top = sy + 8;
+    if (knownH) {
+      if (top + h > sy + vh - 8) top = sy + vh - h - 8;
+      if (top < sy + 8) top = sy + 8;
+    }
     tip.style.left = left + 'px';
     tip.style.top = top + 'px';
   }
