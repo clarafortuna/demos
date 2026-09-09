@@ -28,7 +28,7 @@ dacCol schema fallback -- mutation controls
   red  EXCLUSION: a KPI rule is widened to compensate
        1 red, incl: DAC_KPI_REPORTED is byte-identical: no rule was widened to compensate
   red  EXCLUSION: a second function is changed
-       2 red, incl: exactly ONE function changed, and it is dacCol: dacCell, dacCol
+       2 red, incl: exactly ONE function is THIS ticket's, and it is dacCol: dacCell, dacCol
 
   14 caught, 0 not caught, of 14
   clean re-run against restored source: PASSES

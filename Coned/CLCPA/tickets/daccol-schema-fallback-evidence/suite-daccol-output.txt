@@ -69,8 +69,13 @@ THE COMPOSED LAYER WAS BLIND TO IMPORTED YEARS -- dacCol schema fallback
   ok   and for the real org the charts are identical to BASE, as everything else is
 
 === 4. THE BLAST RADIUS ===
-       changed functions: dacCol
-  ok   exactly ONE function changed, and it is dacCol: dacCol
+       changed functions: dacCol, hideExecTooltip, placeTooltipAtPointer, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+  ok   placeTooltipAtPointer changed, and it belongs to CLCPA-242, not this ticket
+  ok   hideExecTooltip changed, and it belongs to CLCPA-242, not this ticket
+  ok   wireExecutiveTooltips changed, and it belongs to CLCPA-242, not this ticket
+  ok   wireHeaderCardsTooltips changed, and it belongs to CLCPA-242, not this ticket
+  ok   wireExecutiveInteractions changed, and it belongs to CLCPA-242, not this ticket
+  ok   exactly ONE function is THIS ticket's, and it is dacCol: dacCol
   ok   dacRow exists in both sources
   ok   dacRow is byte-identical to BASE
   ok   dacCell exists in both sources
@@ -97,5 +102,5 @@ THE COMPOSED LAYER WAS BLIND TO IMPORTED YEARS -- dacCol schema fallback
   ok   and so is DAC_CHART_RULES
 
 ======================================================================
-  84 passed, 0 failed
+  89 passed, 0 failed
 ======================================================================

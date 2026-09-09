@@ -367,8 +367,16 @@ guard('one function', () => {
   names.forEach(n => { if (grab(n, BASE_SRC) !== grab(n, SRC)) changed.push(n); });
   changed.sort();
   say('       changed functions: ' + changed.join(', '));
-  ok(changed.length === 1 && changed[0] === 'dacCol',
-     'exactly ONE function changed, and it is dacCol: ' + changed.join(', '));
+  /* CLCPA-242 landed on top of this branch and added five tooltip-wiring
+   * functions. THIS ticket's blast radius is still one; the others are named
+   * so the claim stays exact rather than being relaxed to a bigger number. */
+  const ALSO = ['placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
+                'wireHeaderCardsTooltips', 'wireExecutiveInteractions'];
+  const mine = changed.filter(n => ALSO.indexOf(n) < 0);
+  ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
+    n + ' changed, and it belongs to CLCPA-242, not this ticket'));
+  ok(mine.length === 1 && mine[0] === 'dacCol',
+     'exactly ONE function is THIS ticket\'s, and it is dacCol: ' + mine.join(', '));
   /* every name compared must exist, or the comparison means nothing */
   ['dacRow', 'dacCell', 'getTableSchema', 'composePayloadFromRows', 'kpiDacPct',
    'buildSectionDAC', 'computeHeaderCards', 'totalRowFlags', 'rowsForDisplay',
