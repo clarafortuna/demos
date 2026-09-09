@@ -112,11 +112,12 @@ CLCPA-237 item F -- ONE LAYOUT FOR EVERY YEAR
   ok   OPEN LIMIT: the tooltip-by-tooltip honesty sweep is DEFERRED post-Sept-10 by ruling. This section covers the three cards, the dumbbell and the strip -- the five surfaces the audit measured -- and claims nothing beyond them.
 
 === 7. WHAT THIS TICKET DID NOT TOUCH ===
-       changed functions: computeHeaderCards, renderExecutiveSummary, renderIngestPicker, totalRowFlags
+       changed functions: computeHeaderCards, dacCol, renderExecutiveSummary, renderIngestPicker, totalRowFlags
   ok   totalRowFlags changed, and it belongs to CLCPA-240: the value-less Total row
   ok   renderIngestPicker changed, and it belongs to CLCPA-240 cosmetic: the year dropdown
+  ok   dacCol changed, and it belongs to the schema fallback for imported years, found in 240 follow-up
   ok   exactly TWO functions are THIS ticket's: computeHeaderCards, renderExecutiveSummary
-  ok   four in total, all named: 4
+  ok   five in total, all named: 5
   ok   computeHeaderCards, for item 2
   ok   renderExecutiveSummary, for item 1
   ok   DERIVED_COLS is byte-identical to BASE
@@ -134,5 +135,5 @@ CLCPA-237 item F -- ONE LAYOUT FOR EVERY YEAR
   ok   the map still renders from the one layout, so CLCPA-158 is unconditional now
 
 ======================================================================
-  115 passed, 0 failed
+  116 passed, 0 failed
 ======================================================================

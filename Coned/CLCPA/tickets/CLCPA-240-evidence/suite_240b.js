@@ -420,11 +420,12 @@ guard('two functions, and nothing else', () => {
   const EXPECT = {
     totalRowFlags: 'the value-less total branch',
     renderIngestPicker: 'the cosmetic: the year dropdown',
+    dacCol: 'NOT this brief: the schema fallback for imported years, found in the follow-up pass',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 2, 'exactly TWO functions changed: ' + changed.length);
+  ok(changed.length === 3, 'exactly THREE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
