@@ -33,8 +33,9 @@ CLCPA-240 second half -- mutation controls
        1 red, incl: applyIngestImportX exists in both sources, so comparing them means something
   red  EXCLUSION: DAC_SOURCE is flipped back
        1 red, incl: DAC_SOURCE is still 'dataverse'
-  red  EXCLUSION: a third function is changed
-       3 red, incl: exactly TWO functions changed: 3
+  ??? EXCLUSION: a third function is changed -- 3 red, not the expected one
+       want: exactly TWO functions changed
+       got : the change to rowsForDisplay is accounted for
 
-  17 caught, 0 not caught, of 17
+  16 caught, 1 not caught, of 17
   clean re-run against restored source: PASSES

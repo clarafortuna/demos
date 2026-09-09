@@ -1,0 +1,34 @@
+======================================================================
+dacCol schema fallback -- mutation controls
+======================================================================
+  red  THE FIX IS REVERTED: no fallback
+       14 red, incl: clean_energy_spend HAS a 2099 value now
+  red  WIDENED: the fallback fires even when the year HAS a schema
+       6 red, incl: and it is IDENTICAL to BASE, byte for byte
+  red  WIDENED: the fallback replaces the lookup entirely
+       6 red, incl: and it is IDENTICAL to BASE, byte for byte
+  red  the fallback picks the LAST year rather than any
+       1 red, incl: dacCol falls back to any year's schema
+  red  FABRICATION: dacRow gains the same fallback
+       8 red, incl: dacRow still refuses to fall back: borrowing another year's VALUES would be fabrication, where borrowing 
+  red  dacRow is edited at all
+       3 red, incl: and dacRow is byte-identical to BASE
+  red  getTableSchema loses its fallback, breaking the parity claim
+       3 red, incl: and getTableSchema itself is byte-identical to BASE: only dacCol moved
+  red  the KPI usable-test rejects the imported year again
+       15 red, incl: clean_energy_spend HAS a 2099 value now
+  red  buildSectionDAC stops reading the primary KPI
+       8 red, incl: section A's share for 2099 is 1 (100%): null
+  red  card 1 starts rendering a figure for an empty E1
+       3 red, incl: card 1 Strategic Capital STAYS dashed -- E1 has no 2099 data, and the partial-rendering design is correct
+  red  the chart loop drops its spec gate
+       5 red, incl: the composed CHARTS are identical to BASE even for the imported year
+  red  a name in the exclusion list is misspelled
+       1 red, incl: renderDumbbellX exists in both sources
+  red  EXCLUSION: a KPI rule is widened to compensate
+       1 red, incl: DAC_KPI_REPORTED is byte-identical: no rule was widened to compensate
+  red  EXCLUSION: a second function is changed
+       2 red, incl: exactly ONE function changed, and it is dacCol: dacCell, dacCol
+
+  14 caught, 0 not caught, of 14
+  clean re-run against restored source: PASSES

@@ -14002,9 +14002,40 @@ function wireHTooltips() {
     for (let i = 0; i < d.length; i++) if (labelRe.test(String(d[i][0]))) return d[i];
     return null;
   }
+  /* THE COMPOSED LAYER WAS BLIND TO IMPORTED YEARS, and this was the whole of
+   * it. Found in the CLCPA-240 follow-up pass, on the walkthrough build.
+   *
+   * A year created by import carries cr2bf_schema = null, so the composed table
+   * has no schema_by_year entry for it. This returned -1 on the missing entry,
+   * dacCell then returned undefined, and every KPI and chart rule that names a
+   * column by header silently produced nothing. 2099 held 23 saved A1 rows and
+   * the section page rendered them correctly, while the Executive Summary
+   * dashed Clean Energy on both charts and on card 2 -- not because A1 was
+   * insufficient (clean_energy_spend derives from A1 alone) but because the
+   * COLUMN could not be found.
+   *
+   * The fallback is not new behaviour invented here: getTableSchema has carried
+   * exactly this, with exactly this reason, since new years were introduced --
+   *
+   *     // Fall back to any year's schema (used when adding a brand-new year)
+   *
+   * -- which is why the section page and the editor were unaffected. Two
+   * readers of one thing, one of them with the fallback. Now both.
+   *
+   * ONLY THE SCHEMA FALLS BACK. dacRow reads data[y] and must never do this:
+   * borrowing another year's VALUES would be fabrication, where borrowing
+   * another year's COLUMN NAMES is reading the same table's own shape. The
+   * fallback also cannot fire for a year that has its own schema, so no
+   * existing table-year can move -- asserted payload-wide against BASE. */
   function dacCol(T, id, y, nameRe) {
     const t = T[id]; if (!t) return -1;
-    const s = (t.schema_by_year || {})[y]; if (!s) return -1;
+    const by = t.schema_by_year || {};
+    let s = by[y];
+    if (!s) {
+      const anyYear = Object.keys(by)[0];
+      s = anyYear ? by[anyYear] : null;
+    }
+    if (!s) return -1;
     for (let i = 0; i < s.length; i++) if (s[i] != null && nameRe.test(String(s[i]))) return i;
     return -1;
   }

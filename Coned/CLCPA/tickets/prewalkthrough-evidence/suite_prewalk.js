@@ -607,13 +607,14 @@ guard('the four exclusions', () => {
       'the invented $0',
     totalRowFlags: 'NOT this brief: CLCPA-240, the value-less Total row',
     renderIngestPicker: 'NOT this brief: CLCPA-240 cosmetic, the year dropdown',
+    dacCol: 'NOT this brief: the schema fallback for imported years',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 7, 'exactly SEVEN functions changed: ' + changed.length);
+  ok(changed.length === 8, 'exactly EIGHT functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those seven moved at all');
+     'and no function outside those eight moved at all');
 });
 
 say('');

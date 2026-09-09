@@ -1,0 +1,101 @@
+======================================================================
+THE COMPOSED LAYER WAS BLIND TO IMPORTED YEARS -- dacCol schema fallback
+  BASE 80db8e8 (the deployed build 7a69dabb96)
+======================================================================
+
+=== 1. THE DEFECT, DRIVEN, AND ITS EXACT DISCRIMINATOR ===
+  ok   the composer SEES all 23 saved rows: 23
+  ok   including the computed Total: ["Total",21978,21978,1]
+  ok   but there is NO schema_by_year entry, because cr2bf_schema is null
+  ok   so clean_energy_spend has no 2099 value at BASE -- the rows are visible and the COLUMN is not findable
+  ok   and NO reported KPI derives at all: none
+  ok   because dacCol returned -1 on a missing entry, with no fallback
+  ok   dacCol falls back to any year's schema
+  ok   and getTableSchema has carried exactly that for as long as new years have existed, which is why the section page was never affected
+  ok   with its reason written down: "used when adding a brand-new year"
+  ok   and getTableSchema itself is byte-identical to BASE: only dacCol moved
+  ok   dacRow still refuses to fall back: borrowing another year's VALUES would be fabrication, where borrowing its COLUMN NAMES is the table's own shape
+  ok   and dacRow is byte-identical to BASE
+
+=== 2. THE GUARD: every existing table-year composes IDENTICALLY ===
+  ok   the composed payload is substantial: 135056 chars
+  ok   and it is IDENTICAL to BASE, byte for byte
+  ok     tables identical
+  ok     kpis identical
+  ok     charts identical
+  ok     sections identical
+  ok     meta identical
+  ok   covering 154 table-years
+  ok   the fallback is inside `if (!s)`, so a present schema is never overridden
+  ok   A1:2025 schema unchanged
+  ok   A1:2024 schema unchanged
+  ok   A1:2023 schema unchanged
+  ok   E1:2025 schema unchanged
+  ok   E1:2024 schema unchanged
+  ok   E1:2023 schema unchanged
+  ok   J4:2025 schema unchanged
+  ok   J4:2024 schema unchanged
+  ok   J4:2023 schema unchanged
+  ok   F7:2025 schema unchanged
+  ok   F7:2024 schema unchanged
+  ok   F7:2023 schema unchanged
+  ok   D2:2025 schema unchanged
+  ok   D2:2024 schema unchanged
+  ok   D2:2023 schema unchanged
+
+=== 3. THE NEW-YEAR FIXTURE: an imported year now derives ===
+  ok   clean_energy_spend HAS a 2099 value now
+  ok   and it is the saved figures: {"total":21978,"dac":21978,"dac_pct":1}
+  ok   with a 100% share, which is what 999/999 means
+  ok   and it is the ONLY reported KPI with a 2099 value: clean_energy_spend
+  ok   section A's share for 2099 is 1 (100%): 1
+  ok   and no other section has one, correctly: none
+  ok   Movement: section A is NO LONGER is-na
+  ok   and its tooltip carries 100.0%: 100.0%
+  ok   while the other nine areas stay dashed: 9
+  ok   Impact by Section: nine N/A bars, not ten: 9
+  ok   and section A carries 100.0%
+  ok   card 2 Clean Energy Incentive Spend RENDERS: "$22K"
+  ok   card 1 Strategic Capital STAYS dashed -- E1 has no 2099 data, and the partial-rendering design is correct as shipped
+  ok   card 3 Customer Arrears STAYS dashed -- J4 has none
+  ok   E1 genuinely has no 2099 data
+  ok   J4 genuinely has no 2099 data
+  ok   the composed CHARTS are identical to BASE even for the imported year
+  ok   and none has a 2099 entry: none
+  ok   because the chart loop iterates (spec.years || years)
+  ok   while the reported-KPI loop iterates `years` with no spec gate, which is why the exec summary IS fixed and the section charts are not
+  ok   there are 12 chart metrics: 12
+  ok   and ALL TWELVE pin spec.years to the seed years, excluding 2099: 12
+  ok   and for the real org the charts are identical to BASE, as everything else is
+
+=== 4. THE BLAST RADIUS ===
+       changed functions: dacCol
+  ok   exactly ONE function changed, and it is dacCol: dacCol
+  ok   dacRow exists in both sources
+  ok   dacRow is byte-identical to BASE
+  ok   dacCell exists in both sources
+  ok   dacCell is byte-identical to BASE
+  ok   getTableSchema exists in both sources
+  ok   getTableSchema is byte-identical to BASE
+  ok   composePayloadFromRows exists in both sources
+  ok   composePayloadFromRows is byte-identical to BASE
+  ok   kpiDacPct exists in both sources
+  ok   kpiDacPct is byte-identical to BASE
+  ok   buildSectionDAC exists in both sources
+  ok   buildSectionDAC is byte-identical to BASE
+  ok   computeHeaderCards exists in both sources
+  ok   computeHeaderCards is byte-identical to BASE
+  ok   totalRowFlags exists in both sources
+  ok   totalRowFlags is byte-identical to BASE
+  ok   rowsForDisplay exists in both sources
+  ok   rowsForDisplay is byte-identical to BASE
+  ok   renderDumbbell exists in both sources
+  ok   renderDumbbell is byte-identical to BASE
+  ok   renderStripWithGap exists in both sources
+  ok   renderStripWithGap is byte-identical to BASE
+  ok   DAC_KPI_REPORTED is byte-identical: no rule was widened to compensate
+  ok   and so is DAC_CHART_RULES
+
+======================================================================
+  84 passed, 0 failed
+======================================================================

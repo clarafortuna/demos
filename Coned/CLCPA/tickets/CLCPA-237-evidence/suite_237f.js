@@ -482,13 +482,14 @@ guard('the blast radius is accounted for, function by function', () => {
   const ALSO = {
     totalRowFlags: 'CLCPA-240: the value-less Total row',
     renderIngestPicker: 'CLCPA-240 cosmetic: the year dropdown',
+    dacCol: 'the schema fallback for imported years, found in 240 follow-up',
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to ' + ALSO[n]));
   ok(mine.length === 2,
      'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
-  ok(changed.length === 4, 'four in total, all named: ' + changed.length);
+  ok(changed.length === 5, 'five in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
