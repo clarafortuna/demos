@@ -608,13 +608,18 @@ guard('the four exclusions', () => {
     totalRowFlags: 'NOT this brief: CLCPA-240, the value-less Total row',
     renderIngestPicker: 'NOT this brief: CLCPA-240 cosmetic, the year dropdown',
     dacCol: 'NOT this brief: the schema fallback for imported years',
+    placeTooltipAtPointer: 'NOT this brief: CLCPA-242, the shared clamp (new)',
+    hideExecTooltip: 'NOT this brief: CLCPA-242, hide on re-render (new)',
+    wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
+    wireHeaderCardsTooltips: 'NOT this brief: CLCPA-242',
+    wireExecutiveInteractions: 'NOT this brief: CLCPA-242',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 8, 'exactly EIGHT functions changed: ' + changed.length);
+  ok(changed.length === 13, 'exactly THIRTEEN functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those eight moved at all');
+     'and no function outside those thirteen moved at all');
 });
 
 say('');
