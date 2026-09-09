@@ -1,0 +1,136 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-240 second half -- a Total row imported with no numbers is
+       recognised and computes; the year dropdown drops its added suffix
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD (as read) = 1ae2dfb
+              source folder clean, so the pushed bytes are exactly 1ae2dfb.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  18 suites green, 2044 assertions.
+              the sweep rewrote 3 output file(s) with LF
+              endings; content identical, restoring them:
+                M Coned/CLCPA/tickets/CLCPA-235-evidence/suite-235-output.txt
+                M Coned/CLCPA/tickets/CLCPA-237-evidence/suite-237-output.txt
+                M Coned/CLCPA/tickets/prewalkthrough-evidence/suite-prewalk-output.txt
+              tree clean on content: the bytes to push are 1ae2dfb.
+PRE-FLIGHT 4  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      7a69dabb96  == expected
+                 styles.css  37d0e57db0  == expected
+PRE-FLIGHT 5  stamps applied in memory (nothing on disk is modified);
+              the HTML references ?v=7a69dabb96 and ?v=37d0e57db0,
+              with no unstamped reference left.
+PRE-FLIGHT 6  deploy-backups/2026-09-09-clcpa-240/ is absent: the snapshot
+              will be created, not overwritten.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  EMCT3TRM4
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1097752B  local=1100447B
+unchanged  styles.css   deployed=271763B  local=271763B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+
+PROVENANCE  the snapshot holds:
+              stamped as        31b63d1a70
+              derived from bytes 31b63d1a70
+              expected          31b63d1a70  MATCH
+BACKUP  live bytes archived to deploy-backups/2026-09-09-clcpa-240/
+
+ROLLBACK DURABILITY
+  main before the snapshot commit: 1ae2dfb
+  staged, records only: 4 files, none outside the snapshot
+  snapshot commit: 28c08b2
+  push attempt 1: remote main = 28c08b2  MATCHES the snapshot commit
+  the committed app.js blob fb39361153 is 1097752B, sha256 579ba233177f68f5...
+  and it is byte-identical to what the server returned.
+ROLLBACK IS DURABLE: 28c08b2 on origin/main.
+
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1100447B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s) in ONE call
+published.
+
+READ-BACK app.js                  1100447B  sha256 b49ecc4ffb71dfcbd6b47efba5d22424cc30a8c9bd1fd6ee7eb8c001a3ac2cdf  VERIFIED byte-identical
+READ-BACK styles.css              271763B  sha256 37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html 4080B  sha256 ec7a94fc5c23e899d3782ac331307d1c784f4094c575e87b0793f46574426e52  VERIFIED byte-identical
+
+SERVER-SIDE ID CHECK
+  app.js on the server stamps itself: 7a69dabb96  == 7a69dabb96
+  the server HTML references app.js?v=7a69dabb96
+  the server HTML references styles.css?v=37d0e57db0
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 7a69dabb96
+styles.css id    : 37d0e57db0
+source           : ExecutiveDashboard_dev/ at main @ 1ae2dfb
+rollback         : deploy-backups/2026-09-09-clcpa-240/ holds 31b63d1a70 whole
+requests: GET 13, PATCH 2, POST 1
+
+server sha256, the three resources as published:
+  app.js                  b49ecc4ffb71dfcbd6b47efba5d22424cc30a8c9bd1fd6ee7eb8c001a3ac2cdf
+  styles.css              37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094
+  ExecutiveDashboard.html ec7a94fc5c23e899d3782ac331307d1c784f4094c575e87b0793f46574426e52
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 7a69dabb96
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO LOOK AT -- the CLCPA-240 walkthrough, end to end:
+  1. Report Data, section A, table A.1, year 2099. Import the same
+     A1 template CSV that reproduced this.
+  2. THE TOTAL ROW IS NOW A TOTAL: grey read-only calc cells, not
+     inputs, and it COMPUTES from the value rows above it -- Total
+     Funds Expended and DAC Funding both filled, % in DACs with them.
+     No dashes across it.
+  3. The import summary now says TWO cells were left to the dashboard
+     on that row, worded "this row is a calculated total". That is
+     correct and ratified: a total the FILE supplies is recomputed,
+     never imported, and the operator is told rather than left to
+     guess. New years now behave like existing ones.
+  4. Press Save. The REPORT page for 2099 then shows A.1 with its
+     Total row complete.
+     BEFORE the Save it reads "-- / -- / 52.7%" -- blank amounts with
+     a real percentage. Expected and pinned: the report shows STORED
+     values and never recomputes a total, while the derived share is
+     computed from this year's own rows. It is not a stale figure.
+  5. THE COSMETIC: the year dropdown reads a plain "2099". No
+     " · added" suffix on it or on any other year.
+     The Remove-year button must still appear for an empty added
+     year -- it reads the same addedYears list the suffix used to.
+
+  AND NOTHING ELSE MOVES. Every existing year classifies exactly as
+  before: asserted across all 133 table-years, verdict identical to
+  31b63d1a70. 79 rows in the payload carry a strict total label and
+  none has empty cells, so the new branch fires on no existing data.
+  Spot-check 2025: A.1's Total unchanged, and section I (Jobs) still
+  shows its one N/A row, which is correct and always has been.
+
+AND THE MIGRATION MUST STILL HOLD, since this build carries it:
+  the console still prints [CLCPA-238] source = DATAVERSE, no shadow line.
+
+THE REVERT PATHS, both still one step:
+  the migration -- DAC_SOURCE back to payload, seconds.
+  this deploy   -- restore deploy-backups/2026-09-09-clcpa-240/,
+                   which holds build 31b63d1a70 whole.
+
+=== log written by deploy_240.js ===
