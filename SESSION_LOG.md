@@ -1,5 +1,7 @@
 # Session Log — Con Edison DAC Dashboard
 
+> **FROZEN as of 2026-07-10 -- do not append.** Everything after that date is missing here; the project bitacora in Jira is the log of record, with chat as the channel. Kept for history only.
+
 Running log of what landed and what's next, so a fresh session (human or Claude Code)
 has fast context without reconstructing it from `git log`. Newest entry first.
 
