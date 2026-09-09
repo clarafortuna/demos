@@ -84,6 +84,9 @@ say('======================================================================');
 /* ---- the shipped renderer, with its real closure --------------------- */
 const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
   'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
+  /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
+   * total row that has no numbers yet, so the closure needs it. */
+  'isStrictTotalRowLabel',
   'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
   'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
   'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',

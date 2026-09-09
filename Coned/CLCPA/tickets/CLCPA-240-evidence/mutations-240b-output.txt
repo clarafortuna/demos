@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-240 second half -- mutation controls
+======================================================================
+  red  THE FIX IS REVERTED: the branch is deleted
+       16 red, incl: the Total row IS recognised now
+  red  WIDENED: the no-numbers guard is dropped
+       5 red, incl: and NOT ONE classification differs from BASE: A3:2023, A3:2024, A4:2023, J8:2025
+  red  WIDENED: the whole-label match becomes a substring match
+       2 red, incl: and NOT ONE classification differs from BASE: F7:2024, F7:2025, J8:2025
+  red  WIDENED: both guards dropped at once (this one MUST go red)
+       16 red, incl: and NOT ONE classification differs from BASE: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025, A3:20
+  red  NARROWED: it requires numbers, so it can never fire
+       21 red, incl: the Total row IS recognised now
+  red  NARROWED: it marks the row false instead of true
+       16 red, incl: the Total row IS recognised now
+  red  the branch runs BEFORE the arithmetic instead of after
+       16 red, incl: the Total row IS recognised now
+  red  recomputeTotals classifies the BASELINE, never the draft
+       11 red, incl: recomputeTotals fills Total Funds Expended: null
+  red  the derived column stops computing for a flagged total
+       3 red, incl: the change to rowsForDisplay is accounted for
+  red  THE SUFFIX RETURNS: the year reads "2099 - added" again
+       3 red, incl: no " · added" is emitted
+  red  addedYears is removed too, breaking the Remove-year button
+       1 red, incl: addedYears is still read, because the Remove-year button needs it
+  red  the option loses the selected attribute
+       1 red, incl: the option renders the year and nothing else
+  red  EXCLUSION: the whole-label predicate itself is loosened
+       46 red, incl: isStrictTotalRowLabel is byte-identical to BASE
+  red  EXCLUSION: the import planner is touched (the matcher half)
+       4 red, incl: buildIngestImport is byte-identical to BASE
+  red  a name in the exclusion list is misspelled (the vacuous-pin class)
+       1 red, incl: applyIngestImportX exists in both sources, so comparing them means something
+  red  EXCLUSION: DAC_SOURCE is flipped back
+       1 red, incl: DAC_SOURCE is still 'dataverse'
+  red  EXCLUSION: a third function is changed
+       3 red, incl: exactly TWO functions changed: 3
+
+  17 caught, 0 not caught, of 17
+  clean re-run against restored source: PASSES

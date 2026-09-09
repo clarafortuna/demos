@@ -323,6 +323,9 @@ guard('the editor now merges group headers like the viewer always did', () => {
     } };
     const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
       'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
+      /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
+       * total row that has no numbers yet, so the closure needs it. */
+      'isStrictTotalRowLabel',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -363,6 +366,9 @@ guard('the editor now merges group headers like the viewer always did', () => {
       schema: t.schema_by_year['2025'], baseline: [], draft: [], dirty: false } };
     const FNS2 = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
       'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
+      /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
+       * total row that has no numbers yet, so the closure needs it. */
+      'isStrictTotalRowLabel',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -599,13 +605,15 @@ guard('the four exclusions', () => {
       'CLCPA-237 item F, which suite_237f owns',
     computeHeaderCards: 'NOT this brief: CLCPA-237 item F, the card crash and ' +
       'the invented $0',
+    totalRowFlags: 'NOT this brief: CLCPA-240, the value-less Total row',
+    renderIngestPicker: 'NOT this brief: CLCPA-240 cosmetic, the year dropdown',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 5, 'exactly FIVE functions changed: ' + changed.length);
+  ok(changed.length === 7, 'exactly SEVEN functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those five moved at all');
+     'and no function outside those seven moved at all');
 });
 
 say('');

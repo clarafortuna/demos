@@ -40,7 +40,7 @@ PRE-WALKTHROUGH FIXES -- mutation controls
   red  EXCLUSION: DAC_SOURCE is flipped back
        1 red, incl: DAC_SOURCE is still 'dataverse'
   red  EXCLUSION: a function outside the four is changed
-       3 red, incl: and no function outside those five moved at all
+       3 red, incl: and no function outside those seven moved at all
 
   20 caught, 0 not caught, of 20
   clean re-run against restored source: PASSES

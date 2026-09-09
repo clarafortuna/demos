@@ -101,20 +101,24 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: computeHeaderCards, renderExecutiveSummary, renderIngestEditor, renderSourceTables, renderTable
+       changed functions: computeHeaderCards, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags
   ok   the change to computeHeaderCards is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestPicker is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
+  ok   the change to totalRowFlags is accounted for
   ok   renderSourceTables changed as intended: item 1, the chip, and the header-row skip
   ok   renderTable changed as intended: item 2, the two-level table marker
   ok   renderIngestEditor changed as intended: item 2, the merged group headers
   ok   renderExecutiveSummary changed as intended: item 3, the empty-state layout -- then DELETED by CLCPA-237 item F, which suite_237f owns
   ok   computeHeaderCards changed as intended: NOT this brief: CLCPA-237 item F, the card crash and the invented $0
-  ok   exactly FIVE functions changed: 5
-  ok   and no function outside those five moved at all
+  ok   totalRowFlags changed as intended: NOT this brief: CLCPA-240, the value-less Total row
+  ok   renderIngestPicker changed as intended: NOT this brief: CLCPA-240 cosmetic, the year dropdown
+  ok   exactly SEVEN functions changed: 7
+  ok   and no function outside those seven moved at all
 
 ======================================================================
-  103 passed, 0 failed
+  107 passed, 0 failed
 ======================================================================
