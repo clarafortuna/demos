@@ -1,0 +1,54 @@
+======================================================================
+CLCPA-242 -- mutation controls
+======================================================================
+  red  THE CLAMP IS REVERTED: the chart rows position raw again
+       3 red, incl: and NEITHER positions raw any more
+  red  the KPI cards position raw again
+       3 red, incl: and NEITHER positions raw any more
+  red  RIGHT EDGE: the flip is removed
+       3 red, incl: at the right edge it FLIPS to the left of the cursor: 1364px
+  red  BOTTOM EDGE: the slide is removed
+       1 red, incl: at the bottom it slides up: top 872px
+  red  LEFT EDGE: the floor is removed
+       2 red, incl: a flip that would go negative is floored at 8, not off-screen left: -4px (unfloored it would be -4)
+  red  TOP EDGE: the floor is removed
+       1 red, incl: near the top it is floored at 8: -6px
+  red  THE SCROLL TRAP: the viewport side loses its offset
+       1 red, incl: on a page scrolled 2000px the tip is NOT dragged to the viewport top: 2008px
+  red  the clamp stops measuring the tip and assumes a size
+       5 red, incl: at the right edge it FLIPS to the left of the cursor: 1364px
+  red  the chart rows go back to positioning only on move
+       2 red, incl: chart rows: positions inside the enter handler
+  red  the cards reveal BEFORE placing
+       1 red, incl: KPI cards: and does it BEFORE revealing, so nothing is painted in the old place
+  red  the enter handler stops receiving the event
+       1 red, incl: the chart enter handler takes the event
+  red  HIDE IS REMOVED from the render path
+       2 red, incl: the render path calls it
+  red  hide runs AFTER the tooltips are re-wired
+       1 red, incl: and calls it FIRST, before re-wiring: 109 < 79
+  red  hide stops clearing the stale content
+       2 red, incl: AND clears the content, so a stale body cannot flash on the next hover
+  red  hide throws when no tooltip exists yet
+       1 red, incl: and it is safe before any tooltip exists
+  red  HONESTY: the prior figure loses its "Prior year" label
+       2 red, incl: the prior figure is rendered under the words "Prior year"
+  red  HONESTY: the current row stops naming the selected year
+       2 red, incl: and the current figure under the SELECTED year, named
+  red  HONESTY: an absent prior renders as an empty row
+       2 red, incl: and the prior row is omitted entirely when there is none, never shown empty
+  red  LEAKAGE: a null reaches a tooltip attribute
+       7 red, incl: no null, NaN, undefined or [object reaches any tooltip attribute: I.data-prev-pct=null
+  red  a raw positioner is ADDED, violating the pinned scope
+       4 red, incl: exactly 14 raw positioners remain, all on section pages: 15
+  red  a name in the exclusion list is misspelled
+       1 red, incl: rowsForDisplayX exists in both sources
+  red  EXCLUSION: the map positioner is touched
+       4 red, incl: positionTooltipAt is byte-identical to BASE
+  red  EXCLUSION: tooltip CONTENT is changed, not just wiring
+       3 red, incl: renderDumbbell is byte-identical to BASE
+  red  EXCLUSION: dacCol is touched by this ticket
+       3 red, incl: dacCol is byte-identical to BASE
+
+  24 caught, 0 not caught, of 24
+  clean re-run against restored source: PASSES
