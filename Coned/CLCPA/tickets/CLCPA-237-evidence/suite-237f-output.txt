@@ -1,0 +1,135 @@
+======================================================================
+CLCPA-237 item F -- ONE LAYOUT FOR EVERY YEAR
+  BASE d658ab7 (the deployed build d7e9e7921d)
+======================================================================
+
+=== 1. THE CRASH THE BRANCH WAS HIDING (item 2, card 3) ===
+  ok   at BASE, computeHeaderCards(2099) THROWS
+  ok   and the message names the exact dereference: Cannot read properties of null (reading 'dac')
+  ok   the scenario: the PRIOR year (2025) has J4 data
+  ok   and the selected year (2099) has none -- which is what a live import makes
+  ok   because BASE guarded on j4Then alone and then dereferenced j4Now
+  ok   computeHeaderCards(2099) does NOT throw
+  ok   all THREE cards are returned, none hidden: 3
+  ok   card 1 (Strategic Capital Investments) hero is the dash glyph: "—"
+  ok     and its delta is null, so no percentage is invented
+  ok   card 2 (Clean Energy Incentive Spend) hero is the dash glyph: "—"
+  ok     and its delta is null, so no percentage is invented
+  ok   card 3 (Customer Arrears (90+ Days Past Due)) hero is the dash glyph: "—"
+  ok     and its delta is null, so no percentage is invented
+  ok   card 3 requires BOTH before it dereferences either
+  ok   prior-only renders the prior figure against a dashed current
+  ok   current-only keeps its own wording
+  ok   and neither renders the dash
+  ok   2025 still returns three cards
+  ok   and every hero is a real figure: $538.4M, $148.7M, $545.8M
+  ok   and hero/delta/detail are IDENTICAL to BASE for 2025: the populated year is untouched by this ticket
+
+=== 2. CARD 1 STOPS INVENTING A NUMBER (items 2 and 5) ===
+  ok   E1 has no 2099 categories: 0
+  ok   while 2025 has 4
+  ok   and BASE summed them with a bare reduce seeded at 0, so the hero was $0
+  ok   with no emptiness test at all
+  ok   BASE eDacTotal = 0 -- a figure, not an absence
+  ok   and BASE would have shown a confident -100% delta for a year that has not reported
+  ok   emptiness is tested explicitly
+  ok   and both sums are null rather than 0 when there is nothing to sum
+  ok   the share guards the null explicitly, not by relying on null > 0
+  ok   and the delta requires the CURRENT side, so null - prior cannot become -100%
+  ok   card 1 hero on 2099 is the dash glyph, not "$0": "—"
+  ok   and no delta at all
+  ok   the detail shows prior against a dashed current: "$538.4M → —"
+  ok   and "$0" appears nowhere in it
+  ok   and the 2099 tooltip rows dash rather than read $0: Source=Section E · Capital tables | Categories=0 investment areas | Total invested 2099=— | DAC share=— | DAC invested 2099=— | DAC invested 2025=$538.4M
+  ok   SYNTHETIC (E1 emptied): card 1 hero is the dash glyph
+  ok   and with no prior figure either, the detail is a dash rather than "Weighted across 0 categories": "—"
+  ok   the count of an empty list is never presented as a finding
+
+=== 3. ITEMS 3 AND 4 WERE ALREADY BUILT -- REGRESSION PINS ===
+  ok   renderDumbbell is byte-identical to BASE
+  ok   renderStripWithGap is byte-identical to BASE
+  ok   and so is renderHeaderCards: only computeHeaderCards changed
+  ok   ten sections exist: 10
+  ok   and none has a 2099 figure, so every row must take the dash treatment
+  ok   all ten areas are still LISTED, none hidden: 10
+  ok   and all ten carry is-na, the existing dash treatment
+  ok   with a neutral pill rather than an invented direction
+  ok   and no current-year dot is plotted at all
+  ok   prior-year context is still carried, in a PREV-named attribute
+  ok   and the sub-text names both years explicitly
+  ok   ten rows, one per section
+  ok   ten N/A bars
+  ok   ten not-available pills
+  ok   and no NaN reaches the markup
+  ok   the sub-text names the selected year, so the empty bars are unambiguous
+  ok   2025 has exactly ONE section with no share, and it is I (Jobs): I
+  ok     and exactly one N/A bar renders for it, unchanged by this ticket
+  ok   2024 has exactly ONE section with no share, and it is I (Jobs): I
+  ok     and exactly one N/A bar renders for it, unchanged by this ticket
+  ok   2023 has exactly ONE section with no share, and it is I (Jobs): I
+  ok     and exactly one N/A bar renders for it, unchanged by this ticket
+
+=== 4. ITEM 1: THE EMPTY BRANCH IS GONE, NOT FIXED ===
+  ok   no `if (!anyData)` remains
+  ok   and anyData is not declared any more
+  ok   nor referenced anywhere in the file
+  ok   the placeholder helper is gone with it
+  ok   renderExecutiveSummary has exactly ONE return template: 1
+  ok   BASE control: the branch was there
+  ok   and BASE had a second, differently-shaped return for it
+  ok   BASE control: .exec-shares-grid-solo existed
+  ok   .exec-shares-grid-solo is absent from the stylesheet
+  ok   and nothing in app.js emits it
+  ok   BASE control: .exec-shares-grid-pair existed
+  ok   .exec-shares-grid-pair is absent from the stylesheet
+  ok   and nothing in app.js emits it
+  ok   BASE control: .exec-header-cards-empty existed
+  ok   .exec-header-cards-empty is absent from the stylesheet
+  ok   and nothing in app.js emits it
+  ok   the block that outranked them is still there, still !important
+  ok   and it still places children by nth-child, which is why a plain modifier on the container could never have taken effect
+  ok   the base .exec-shares-grid rule survives, since one layout now uses it
+
+=== 5. THE REGRESSION GUARD: 2025 RENDERS WITH ZERO VISUAL DIFF ===
+  ok   both populated branches are located and bounded: 437 vs 437 chars
+  ok   the POPULATED branch is byte-identical to BASE, so 2025 is untouched
+  ok   and it is the branch that renders all four visuals for real
+  ok   the page header template survived the cut
+
+=== 6. THE HONESTY RULE, ON THE FIVE MEASURED SURFACES ===
+  ok   card 1: the hero (the selected year) is a dash, never the prior figure
+  ok   card 2: the hero (the selected year) is a dash, never the prior figure
+  ok   card 3: the hero (the selected year) is a dash, never the prior figure
+  ok   card 1: prior context ends in an arrow to a dash, so the left figure reads as prior: "$538.4M → —"
+  ok     and the left side is a REAL prior figure, not a second dash: "$538.4M"
+  ok   card 2: prior context ends in an arrow to a dash, so the left figure reads as prior: "$148.7M → —"
+  ok     and the left side is a REAL prior figure, not a second dash: "$148.7M"
+  ok   card 3: prior context ends in an arrow to a dash, so the left figure reads as prior: "$545.8M → —"
+  ok     and the left side is a REAL prior figure, not a second dash: "$545.8M"
+  ok   and every delta sub-label names its own basis
+  ok   the dumbbell legend distinguishes 2025 from 2099 by name
+  ok   and the strip names the selected year
+  ok   OPEN LIMIT: the tooltip-by-tooltip honesty sweep is DEFERRED post-Sept-10 by ruling. This section covers the three cards, the dumbbell and the strip -- the five surfaces the audit measured -- and claims nothing beyond them.
+
+=== 7. WHAT THIS TICKET DID NOT TOUCH ===
+       changed functions: computeHeaderCards, renderExecutiveSummary
+  ok   exactly TWO functions changed: 2
+  ok   computeHeaderCards, for item 2
+  ok   renderExecutiveSummary, for item 1
+  ok   DERIVED_COLS is byte-identical to BASE
+  ok   applyDerivedCols is byte-identical to BASE
+  ok   rowsForDisplay is byte-identical to BASE
+  ok   recomputeTotals is byte-identical to BASE
+  ok   kpiDacPct is byte-identical to BASE
+  ok   composePayloadFromRows is byte-identical to BASE
+  ok   dacShadowCompare is byte-identical to BASE
+  ok   renderDACMap is byte-identical to BASE
+  ok   renderTable is byte-identical to BASE
+  ok   renderIngestEditor is byte-identical to BASE
+  ok   renderSourceTables is byte-identical to BASE
+  ok   DAC_SOURCE is still 'dataverse'
+  ok   the map still renders from the one layout, so CLCPA-158 is unconditional now
+
+======================================================================
+  112 passed, 0 failed
+======================================================================

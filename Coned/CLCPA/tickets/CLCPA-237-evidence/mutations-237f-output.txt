@@ -1,0 +1,62 @@
+======================================================================
+CLCPA-237 item F -- mutation controls
+======================================================================
+  red  THE CRASH RETURNS: card 3 guards on j4Then alone again
+       3 red, incl: computeHeaderCards(2099) does NOT throw: Cannot read properties of null (reading 'dac')
+  red  the guard is inverted, so a POPULATED year loses its detail
+       4 red, incl: and hero/delta/detail are IDENTICAL to BASE for 2025: the populated year is untouched by this ticket
+  red  the prior-only arm drops the prior figure entirely
+       2 red, incl:   and the left side is a REAL prior figure, not a second dash: "—"
+  red  the prior-only arm renders the PRIOR figure as the current one
+       3 red, incl: card 3: prior context ends in an arrow to a dash, so the left figure reads as prior: "— → $545.8M"
+  red  THE $0 RETURNS: the sums go back to a bare reduce
+       12 red, incl: card 1 hero on 2099 is the dash glyph, not "$0": "$0"
+  red  only the HERO sum is restored, so the detail still says $0
+       12 red, incl: and "$0" appears nowhere in it
+  red  THE FABRICATED DELTA: the current side is dropped from eGrow
+       3 red, incl: and the delta requires the CURRENT side, so null - prior cannot become -100%
+  red  the null share test leans on `null > 0` again
+       1 red, incl: the share guards the null explicitly, not by relying on null > 0
+  red  the emptiness test is deleted outright
+       14 red, incl: emptiness is tested explicitly
+  red  the "0 categories" fallback comes back
+       2 red, incl: and with no prior figure either, the detail is a dash rather than "Weighted across 0 categories": "Weight
+  red  anyData comes back, dead but present
+       2 red, incl: and anyData is not declared any more
+  red  a SECOND return template appears, so there are two layouts again
+       4 red, incl: renderExecutiveSummary has exactly ONE return template: 2
+  red  THE REGRESSION GUARD: the populated branch is edited
+       1 red, incl: the POPULATED branch is byte-identical to BASE, so 2025 is untouched
+  red  the map is dropped from the one layout, undoing CLCPA-158
+       4 red, incl: the POPULATED branch is byte-identical to BASE, so 2025 is untouched
+  red  the page header template is lost in the cut
+       1 red, incl: the page header template survived the cut
+  red  the dumbbell stops listing areas without the year
+       6 red, incl: renderDumbbell is byte-identical to BASE
+  red  the strip stops listing sections without the year
+       8 red, incl: renderStripWithGap is byte-identical to BASE
+  red  the strip plots 0% instead of dashing
+       2 red, incl: renderStripWithGap is byte-identical to BASE
+  red  the dumbbell invents a direction for a missing year
+       3 red, incl: renderDumbbell is byte-identical to BASE
+  red  the deleted pair modifier is restored (and still loses)
+       1 red, incl: .exec-shares-grid-pair is absent from the stylesheet
+  red  the deleted solo modifier is restored
+       1 red, incl: .exec-shares-grid-solo is absent from the stylesheet
+  red  the deleted empty header-cards modifier is restored
+       1 red, incl: .exec-header-cards-empty is absent from the stylesheet
+  red  THE STRONGEST COMPETITOR: the !important block is removed
+       1 red, incl: the block that outranked them is still there, still !important
+  red  the nth-child placement is removed with it
+       1 red, incl: and it still places children by nth-child, which is why a plain modifier on the container could never hav
+  red  the BASE grid rule is deleted, breaking the one layout
+       1 red, incl: the base .exec-shares-grid rule survives, since one layout now uses it
+  red  EXCLUSION: the derive engine is touched
+       2 red, incl: applyDerivedCols is byte-identical to BASE
+  red  EXCLUSION: DAC_SOURCE is flipped back
+       1 red, incl: DAC_SOURCE is still 'dataverse'
+  red  EXCLUSION: a third function is changed
+       2 red, incl: exactly TWO functions changed: 3
+
+  28 caught, 0 not caught, of 28
+  clean re-run against restored source: PASSES

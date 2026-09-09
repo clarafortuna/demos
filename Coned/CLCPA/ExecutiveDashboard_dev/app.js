@@ -9923,13 +9923,31 @@ function utf8ByteLength(str) {
     // CLCPA-164: live from the E1 table (same helper Section E uses).
     const eCats = parseE1Categories(p.tables.E1, year);
     const eCatsPrev = prevYear ? parseE1Categories(p.tables.E1, prevYear) : [];
-    const eTotal = eCats.reduce((s, c) => s + (c.total || 0), 0);
-    const eDacTotal = eCats.reduce((s, c) => s + (c.total || 0) * (c.dac_pct || 0), 0);
-    const eDacPct = eTotal > 0 ? (eDacTotal / eTotal * 100) : null;
+    /* CLCPA-237 item F: NO DATA IS NULL, NOT ZERO.
+     *
+     * These were bare reduces seeded at 0, so a year with no E1 rows summed to
+     * 0 and the card reported "$0" invested -- a figure, not an absence.
+     * Measured on 2099: parseE1Categories returns 0 categories, eDacTotal came
+     * out 0, and the detail line read "$538.4M -> $0", which says capital
+     * investment collapsed. It says nothing of the kind; the year simply has no
+     * data yet. fmtBig(null) is the dash glyph and fmtBig(0) is a number, so
+     * the distinction has to be made HERE, before formatting.
+     *
+     * This is also the item-5 honesty violation: an invented current value
+     * standing beside a real prior one. */
+    const eHas = eCats.length > 0;
+    const eTotal = eHas ? eCats.reduce((s, c) => s + (c.total || 0), 0) : null;
+    const eDacTotal = eHas
+      ? eCats.reduce((s, c) => s + (c.total || 0) * (c.dac_pct || 0), 0)
+      : null;
+    const eDacPct = (eTotal !== null && eTotal > 0) ? (eDacTotal / eTotal * 100) : null;
     const eDacPrev = eCatsPrev.length
       ? eCatsPrev.reduce((s, c) => s + (c.total || 0) * (c.dac_pct || 0), 0)
       : null;
-    const eGrow = (eDacPrev && eDacPrev > 0)
+    /* and the delta needs the CURRENT side too. `null - 538363957` is
+     * -538363957, which rounds to a confident "-100%" for a year that has not
+     * reported. A fabricated delta is worse than no delta. */
+    const eGrow = (eDacPrev && eDacPrev > 0 && eDacTotal !== null)
       ? Math.round((eDacTotal - eDacPrev) / eDacPrev * 100)
       : null;
 
@@ -9994,9 +10012,13 @@ function utf8ByteLength(str) {
         deltaColor: eGrow !== null
           ? (eGrow >= 0 ? 'var(--green)' : 'var(--red)')
           : 'var(--green)',
+        /* prior -> current, and the current side dashes when absent, so the
+         * prior figure is never mistaken for this year's. With neither side
+         * present there is nothing to say: "Weighted across 0 categories" was
+         * the old output and it read like a finding. */
         detail: eDacPrev !== null
           ? fmtBig(eDacPrev) + ' → ' + fmtBig(eDacTotal)
-          : 'Weighted across ' + eCats.length + ' categories',
+          : (eHas ? 'Weighted across ' + eCats.length + ' categories' : '—'),
         href: '#/section/E',
         tooltip: {
           title: 'Strategic Electric Capital Investments',
@@ -10049,9 +10071,24 @@ function utf8ByteLength(str) {
         deltaColor: j4Grow !== null
           ? (j4Grow >= 0 ? 'var(--red)' : 'var(--green)')
           : 'var(--green)',
-        detail: j4Then
+        /* CLCPA-237 item F: THE CRASH THIS CARD HAS BEEN HIDING BEHIND A BRANCH.
+         *
+         * This read `fmtBig(j4Now.dac)` inside the `j4Then ?` arm, so whenever
+         * the PRIOR year had J4 data and the SELECTED year did not, j4Then was
+         * truthy, j4Now was null, and computeHeaderCards threw
+         *   TypeError: Cannot read properties of null (reading 'dac')
+         * taking the whole Executive Summary with it.
+         *
+         * It was unreachable only because the empty branch caught every such
+         * year first. Item F deletes that branch, and the exact shape it was
+         * hiding is a NEW YEAR BESIDE A POPULATED PRIOR ONE -- which is what a
+         * live import creates. Measured on 2099 against a populated 2025.
+         *
+         * The four cases are now all named rather than two of them assumed. */
+        detail: (j4Then && j4Now)
           ? fmtBig(j4Then.dac) + ' → ' + fmtBig(j4Now.dac)
-          : (j4Now ? fmtBig(j4Now.total) + ' total unpaid' : '—'),
+          : (j4Then ? fmtBig(j4Then.dac) + ' → ' + fmtBig(null)
+                    : (j4Now ? fmtBig(j4Now.total) + ' total unpaid' : '—')),
         href: '#/section/J',
         tooltip: {
           title: 'Past-Due 90+ days · Customer Operations',
@@ -10132,15 +10169,32 @@ function utf8ByteLength(str) {
     const baseline = getBaseline();
     const year = state.year;
 
-    // Check if the selected year has any data across the dashboard at all.
-    // If not, the exec summary becomes a single "no data" banner.
-    const anyData = (
-      // Some section has a non-null pct for this year
-      sections.some(s => s.pctByYear[year] != null) ||
-      // Or some reported KPI has values for this year
-      p.kpis.reported.some(k => k.values && k.values[year])
-    );
-
+    /* CLCPA-237 item F: ONE LAYOUT FOR EVERY YEAR.
+     *
+     * There was a second branch here. A year with no figures rendered a
+     * banner, three placeholder cards and the map, in a grid of its own --
+     * and it is gone rather than fixed, because the anatomy it was
+     * imitating is the one below and every renderer below already handles a
+     * year with nothing in it.
+     *
+     * MEASURED, not assumed, on 2099 against a populated 2025:
+     *   renderDumbbell    10 of 10 sections listed, all is-na
+     *   renderStripWithGap 10 rows, 10 N/A bars, 10 na pills
+     * Both already show the dash treatment with prior-year context, which
+     * is items 3 and 4 of the spec satisfied before this ticket started.
+     * The cards needed two fixes, both in computeHeaderCards above.
+     *
+     * The three grid modifiers the branch used are deleted from the
+     * stylesheet with it. They never took effect anyway -- a later block
+     * owns .exec-shares-grid with !important and places its children by
+     * nth-child, so the pair/solo/empty templates lost the cascade. That
+     * defect dissolves with its containers.
+     *
+     * anyData went too: nothing asks the question any more.
+     *
+     * CLCPA-158 still holds and is now unconditional: the map draws census
+     * tracts from the tract datasets, reads none of its three arguments,
+     * and so cannot depend on whether this year has table data. */
     const header = `
       <div class="page-header exec-page-header">
         <div class="exec-page-header-text">
@@ -10149,81 +10203,6 @@ function utf8ByteLength(str) {
         </div>
         <div class="exec-reporting-year"><span class="exec-reporting-year-label">Reporting Year</span><span class="exec-reporting-year-value">${year}</span></div>
       </div>`;
-
-    /* CLCPA-158: the DAC map is NOT gated on anyData.
-     *
-     * anyData asks "did anyone enter tabular figures for this reporting year".
-     * The map answers a different question entirely -- it draws census tracts from
-     * the tract datasets, which are geographic reference data with no reporting
-     * year in them. Verified rather than assumed: renderDACMap(baseline, year,
-     * sections) reads NONE of its three arguments; it is driven wholly by
-     * _mapState and the hydrated datasets. So the map's output cannot depend on
-     * whether this year has table data, and hiding it here was collateral damage
-     * from an unrelated check, not a deliberate coupling.
-     *
-     * The empty-state message stays, because the tables really are empty. It just
-     * no longer takes the map down with it.
-     */
-    if (!anyData) {
-      /* THE EMPTY YEAR KEEPS THE PAGE'S SHAPE.
-       *
-       * It used to render the banner and the map and nothing else, so every
-       * other visual VANISHED -- and the map, alone in a three-column grid, sat
-       * at a third of the width with two thirds of the row blank. A reader could
-       * not tell "this year has no data" from "this dashboard is broken".
-       *
-       * Now every visual that exists for a populated year still occupies its
-       * position, saying explicitly that it has nothing to show. The reference
-       * is 2025: header cards row, then the shares grid, then the map.
-       *
-       * THE MAP IS NOT A PLACEHOLDER. It draws census tracts from the tract
-       * datasets, which carry no reporting year -- verified in CLCPA-158, where
-       * renderDACMap was found to read none of its three arguments. So it
-       * renders for real, full width, below the year-dependent cards. Its
-       * year-dependent overlays and counts show their own empty state, which is
-       * the map's own behaviour and not this function's business. */
-      const emptyCard = (title, sub, cls) => `
-        <div class="exec-card${cls ? ' ' + cls : ''}">
-          <div class="chart-card-head">
-            <div>
-              <h3>${escapeHtml(title)}</h3>
-              <p class="chart-sub">${escapeHtml(sub)}</p>
-            </div>
-          </div>
-          ${emptyYearPane(year, {
-            message: `No ${year} data to chart yet.`,
-            hint: 'This panel fills in once values exist for the year.'
-          })}
-        </div>`;
-
-      return header + `
-        <div class="chart-card" style="min-height:220px">
-          ${emptyYearPane(year, {
-            message: `No data has been entered for ${year} yet.`,
-            hint: 'Switch to a populated year using the selector above, or use Report Data to add values for this year.'
-          })}
-        </div>
-
-        <div class="exec-header-cards exec-header-cards-empty" id="exec-header-cards">
-          ${emptyCard('Reported KPIs', `Nothing reported for ${year}`)}
-        </div>
-
-        <div class="kpi-group">
-          <div class="exec-shares-grid exec-shares-grid-pair" id="exec-shares-grid">
-            ${emptyCard('DAC Impact · Movement vs Prior Year',
-               `No ${year} figures to compare`)}
-            ${emptyCard('DAC Impact by Section', `No ${year} section shares`, 'sg-card')}
-          </div>
-        </div>
-
-        <div class="kpi-group">
-          <div class="exec-shares-grid exec-shares-grid-solo" id="exec-shares-map">
-            ${renderDACMap(baseline, year, sections)}
-          </div>
-        </div>
-
-        <div id="dac-tract-detail" class="dac-tract-detail" hidden></div>`;
-    }
 
     return `
       ${header}

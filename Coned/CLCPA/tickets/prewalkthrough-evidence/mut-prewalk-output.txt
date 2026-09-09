@@ -33,38 +33,14 @@ PRE-WALKTHROUGH FIXES -- mutation controls
        1 red, incl: and the viewer table carries the marker the stylesheet needs
   red  BEHAVIOUR CREEP: the header row becomes editable again
        1 red, incl: the header row still renders read-only
-  red  THE VISUALS VANISH AGAIN: the dumbbell placeholder is deleted
-       2 red, incl: the dumbbell position is held by a named placeholder
-  red  the strip placeholder is deleted
-       2 red, incl: and the strip position likewise
-  red  the header-card ROW is renamed out of existence
-       1 red, incl: and the empty branch renders that row too, rather than dropping it
-  red  the header-card placeholder inside it is deleted
-       2 red, incl: holding a named placeholder where the KPI cards sit
-  red  a FOURTH placeholder appears, so the count drifts
-       1 red, incl: three placeholders and the helper that makes them, no more and no fewer: 4 call sites
-  red  the placeholders stop saying they are empty
-       1 red, incl: each placeholder says so explicitly, through the shared empty pane
-  red  the map becomes a placeholder instead of drawing for real
-       2 red, incl: and the map renders FOR REAL, not as a placeholder
-  red  the two grids share an id again
-       1 red, incl: the two grids carry DIFFERENT ids: id="exec-shares-grid", id="exec-shares-grid"
-  red  the map row loses full width and goes back to a third
-       1 red, incl: and the map has a single-column row of its own: full width
-  red  the placeholder pair reverts to three columns
-       1 red, incl: the pair modifier is two columns
-  red  THE REGRESSION GUARD: the POPULATED branch is edited
-       1 red, incl: the POPULATED branch is byte-identical to BASE, so 2025 is untouched by item 3
-  red  anyData is widened, so a populated year becomes empty
-       1 red, incl: and the anyData test is unchanged, so no populated year becomes empty
   red  EXCLUSION: D.1 is dragged into the header family
        1 red, incl: D.1 stays outside the header family: header_levels 0 yields 0 header rows
   red  EXCLUSION: the derive engine is touched
-       3 red, incl: applyDerivedCols is byte-identical to BASE
+       4 red, incl: applyDerivedCols is byte-identical to BASE
   red  EXCLUSION: DAC_SOURCE is flipped back
        1 red, incl: DAC_SOURCE is still 'dataverse'
   red  EXCLUSION: a function outside the four is changed
-       2 red, incl: and no function outside those four moved at all
+       3 red, incl: and no function outside those five moved at all
 
-  32 caught, 0 not caught, of 32
+  20 caught, 0 not caught, of 20
   clean re-run against restored source: PASSES

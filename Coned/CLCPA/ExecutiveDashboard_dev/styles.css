@@ -2137,27 +2137,6 @@ a.nav-item { text-decoration: none; }
   .exec-shares-grid { grid-template-columns: 1fr; gap: 12px; }
 }
 
-/* CLCPA-237 item D: the EMPTY-YEAR branch of the executive summary puts ONE
- * child in this grid -- the DAC map, which CLCPA-158 deliberately left
- * un-gated because it draws geographic reference data with no reporting year in
- * it. The template stayed at three columns, so the map sat in column 1 at a
- * third of the width with two thirds of the row blank. Not a float: a grid
- * child with no siblings in a fixed three-column template. Only visible above
- * 1300px, because the media query below already collapses to one column. */
-.exec-shares-grid-solo { grid-template-columns: 1fr; }
-
-/* The empty year's two YEAR-DEPENDENT placeholders sit side by side, above the
- * full-width map. Two columns rather than three, because a third empty cell is
- * the very artefact this replaces. */
-.exec-shares-grid-pair { grid-template-columns: 1fr 1fr; }
-@media (max-width: 1300px) {
-  .exec-shares-grid-pair { grid-template-columns: 1fr; }
-}
-
-/* The header-card row on an empty year holds ONE placeholder where three real
- * cards would be, so it spans the row instead of leaving two gaps. */
-.exec-header-cards-empty { grid-template-columns: 1fr; }
-
 /* ===== Card shell — uses existing .chart-card-head from shared.css =====
    We wrap with .exec-card so we can scope tweaks without touching .chart-card */
 .exec-shares-grid .exec-card {

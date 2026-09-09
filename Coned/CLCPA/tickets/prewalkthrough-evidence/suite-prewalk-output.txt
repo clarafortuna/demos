@@ -65,7 +65,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   BASE control: the editor emitted 7 unmerged cells, so each group label printed once per column: 7
   ok   and the viewer table carries the marker the stylesheet needs
 
-=== 3. THE EMPTY EXECUTIVE SUMMARY KEEPS THE PAGE SHAPE ===
+=== 3. THE EMPTY EXECUTIVE SUMMARY (PINNED to d658ab7) ===
   ok   the empty branch is located
   ok   the populated branch renders header cards
   ok   and the empty branch renders that row too, rather than dropping it
@@ -101,7 +101,8 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: renderExecutiveSummary, renderIngestEditor, renderSourceTables, renderTable
+       changed functions: computeHeaderCards, renderExecutiveSummary, renderIngestEditor, renderSourceTables, renderTable
+  ok   the change to computeHeaderCards is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderSourceTables is accounted for
@@ -109,9 +110,11 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   renderSourceTables changed as intended: item 1, the chip, and the header-row skip
   ok   renderTable changed as intended: item 2, the two-level table marker
   ok   renderIngestEditor changed as intended: item 2, the merged group headers
-  ok   renderExecutiveSummary changed as intended: item 3, the empty-state layout
-  ok   and no function outside those four moved at all
+  ok   renderExecutiveSummary changed as intended: item 3, the empty-state layout -- then DELETED by CLCPA-237 item F, which suite_237f owns
+  ok   computeHeaderCards changed as intended: NOT this brief: CLCPA-237 item F, the card crash and the invented $0
+  ok   exactly FIVE functions changed: 5
+  ok   and no function outside those five moved at all
 
 ======================================================================
-  100 passed, 0 failed
+  103 passed, 0 failed
 ======================================================================
