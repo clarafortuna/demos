@@ -106,7 +106,7 @@ const M = [
   { t: APP, name: 'EXCLUSION: a function outside the four is changed',
     from: "  function ingestSelectionKey() {",
     to:   "  function ingestSelectionKey() {\n    void 0;",
-    expect: 'no function outside those five moved at all' },
+    expect: 'no function outside those seven moved at all' },
 ];
 
 let caught = 0, missed = 0;

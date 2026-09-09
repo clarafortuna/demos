@@ -467,14 +467,30 @@ guard('no prior-year figure ever renders as the selected year value', () => {
 say('');
 say('=== 7. WHAT THIS TICKET DID NOT TOUCH ===');
 
-guard('the blast radius is two functions', () => {
+guard('the blast radius is accounted for, function by function', () => {
   const names = [...new Set((SRC.match(/\r\n  (?:async )?function (\w+)\(/g) || [])
     .map(m => /function (\w+)\(/.exec(m)[1]))];
   const changed = names.filter(n => grab(n) !== grab(n, BASE_SRC));
   say('       changed functions: ' + changed.sort().join(', '));
-  ok(changed.length === 2, 'exactly TWO functions changed: ' + changed.length);
-  ok(changed.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
-  ok(changed.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
+  /* FOUR now, not two, and the two newcomers are NAMED rather than tolerated.
+   *
+   * CLCPA-240 landed after this ticket and against the same BASE: totalRowFlags
+   * gained the value-less-Total branch, and renderIngestPicker dropped the
+   * " · added" suffix from the year dropdown. Both are asserted in suite_240b.
+   * A count that quietly grows is not a blast radius, so every member is
+   * accounted for by name and the total is exact. */
+  const ALSO = {
+    totalRowFlags: 'CLCPA-240: the value-less Total row',
+    renderIngestPicker: 'CLCPA-240 cosmetic: the year dropdown',
+  };
+  const mine = changed.filter(n => !(n in ALSO));
+  Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
+    n + ' changed, and it belongs to ' + ALSO[n]));
+  ok(mine.length === 2,
+     'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
+  ok(changed.length === 4, 'four in total, all named: ' + changed.length);
+  ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
+  ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
 
 guard('the exclusions hold', () => {

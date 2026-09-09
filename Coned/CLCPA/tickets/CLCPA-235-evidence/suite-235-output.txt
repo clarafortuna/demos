@@ -4,14 +4,14 @@ CLCPA-235 -- an import may never end in silence
 
 === THE REPRO, verbatim, driven end to end ===
   ok   standing on A1 / 2099 with an empty draft
-  ok   the dialog stages it and reports: 23 rows, 3 matching columns, 46 values ready to import.
+  ok   the dialog stages it and reports: 23 rows, 3 matching columns, 44 values ready to import.
   ok   the dry run plans 23 rows, as the operator was told: 23
   ok   the apply plans cleanly against the new year
   ok   and lands 23 rows in the draft
   ok   AFTER THE REDRAW the draft still holds its 23 rows -- this is the assertion the ticket exists for
   ok   and the result survives the redraw
   ok   and the panel RENDERS from it, rather than being erased first
-  ok   saying how much landed: Imported into the draft: 46 cells
+  ok   saying how much landed: Imported into the draft: 44 cells
   ok   and that nothing is stored until Save, which is ruling 1 restated
   ok   and NOT the old enumeration, which the addendum removed
 
@@ -32,7 +32,7 @@ CLCPA-235 -- an import may never end in silence
   ok   (a) CSV (Comma delimited), new year: nothing added, nothing applied
   ok   (a) CSV (Comma delimited), new year: and the reason names the encoding
   ok   (b) CSV UTF-8, new year: accepted
-  ok   (b) CSV UTF-8, new year: 46 values planned, 23 rows created
+  ok   (b) CSV UTF-8, new year: 44 values planned, 23 rows created
   ok   (c) CSV (Comma delimited), existing year: REJECTED WHOLE, so no rows are created
   ok   (c) CSV (Comma delimited), existing year: nothing added, nothing applied
   ok   (c) CSV (Comma delimited), existing year: and the reason names the encoding

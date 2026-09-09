@@ -2820,6 +2820,44 @@ function utf8ByteLength(str) {
         if (confirms(rows[cand], data)) { out[cand] = true; break; }
       }
     }
+
+    /* CLCPA-240: A TOTAL ROW THAT HAS NO NUMBERS YET.
+     *
+     * Everything above is arithmetic, by design -- "structure proposes,
+     * arithmetic confirms", because CLCPA-209 proved a label cannot decide this
+     * in either direction. Arithmetic has one blind spot: a row with NO numbers
+     * is never even tested. Both loops above open with `if (!hasNumbers(...))
+     * continue`, so such a row is skipped as a candidate rather than rejected.
+     *
+     * That state is exactly what a fresh import creates, and CLCPA-85 round 4
+     * predicted it in its own comment: the template writes "(calculated)" into
+     * the cells the dashboard computes, applyIngestImport SKIPS those cells so
+     * the marker never lands as text, and the Total row therefore arrives with
+     * a label and nothing else. Emely reproduced it on build 31b63d1a70 by
+     * importing A1's own template into a fresh 2099: every value row landed
+     * including the computed % in DACs, and the Total row sat there as an
+     * ordinary row, dashes across it, computing nothing.
+     *
+     * WHY THIS CANNOT REOPEN CLCPA-209. That defect was a loose label match
+     * OVERWRITING real magnitudes -- D2/2025 "Total # of projects" 88,150
+     * became 0.688, the sum of a percentage column. This branch requires
+     * hasNumbers(row) to be FALSE, so it can only ever fire on a row that holds
+     * no value to overwrite, and it requires a WHOLE-label match, so
+     * "Total # of projects" and "Total amount of residential electric usage"
+     * are both outside it. One number anywhere in the row and it is unreachable.
+     *
+     * Measured on the frozen payload: 79 rows carry a strict total label and
+     * ZERO of them have no numbers. So this fires on no existing data at all --
+     * only on a year that has just been created or imported into, where it is
+     * a one-time bootstrap: the editor marks the row, recomputeTotals fills it
+     * from the rows above, and once saved the arithmetic recognises it
+     * unaided ever after. */
+    for (let i = 0; i < rows.length; i++) {
+      if (out[i]) continue;
+      if (hasNumbers(rows[i])) continue;
+      if (!Array.isArray(rows[i]) || !isStrictTotalRowLabel(rows[i][0])) continue;
+      out[i] = true;
+    }
     return out;
   }
 
@@ -20017,11 +20055,18 @@ function wireHTooltips() {
     ).join('');
 
 
-    const yearOpts = years.map(y => {
-      const isAdded = addedYears.includes(y);
-      const label = isAdded ? y + ' · added' : y;
-      return `<option value="${y}"${y === i.year ? ' selected' : ''}>${label}</option>`;
-    }).join('');
+    /* CLCPA-240 cosmetic: the year reads as itself.
+     *
+     * This appended " · added" to any year not in payload.meta.years. It was
+     * describing where the year came from, which is provenance, not identity --
+     * and after an import the operator's own new year read "2099 · added" in
+     * the selector while every other surface called it 2099. The suffix is
+     * gone; the year is the year.
+     *
+     * addedYears is still read above, because the Remove-year button uses it. */
+    const yearOpts = years.map(y =>
+      `<option value="${y}"${y === i.year ? ' selected' : ''}>${y}</option>`
+    ).join('');
 
     // CLCPA-155/160: always render the button element; syncRemoveYearButton() controls
     // its visibility + label from the currently-selected year, so a year change updates

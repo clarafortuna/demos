@@ -1,0 +1,102 @@
+======================================================================
+CLCPA-240 second half -- the value-less Total row
+  BASE be81d92 (the deployed build 31b63d1a70)
+======================================================================
+
+=== 1. THE DEFECT, AND THE FIX, BOTH DRIVEN ===
+  ok   the fixture is the post-import shape: ["Total",null,null,null]
+  ok   at BASE, NOTHING is flagged as a total: 0
+  ok   the Total row specifically is not recognised
+  ok   because BOTH candidate loops open by skipping a row with no numbers
+  ok   and BASE never consults the label predicate at all
+  ok   the Total row IS recognised now
+  ok   and exactly one row is flagged, not a sweep: 1
+  ok   ingestComputed agrees, so the editor renders calc cells instead of inputs
+  ok   recomputeTotals fills Total Funds Expended: 282132686
+  ok   and DAC Funding: 148672653
+  ok   to exactly the figures 2025 already stores, so the sums are right
+  ok   and after filling, it is still recognised -- by ARITHMETIC
+  ok   which BASE also does: the branch is a bootstrap, not a permanent crutch
+
+=== 2. THE CLCPA-209 FAILURE MODE, IMPOSSIBLE IN BOTH DIRECTIONS ===
+  ok   with a number in column 1, the verdict is IDENTICAL to BASE: the branch took no part
+  ok   with a number in column 2, the verdict is IDENTICAL to BASE: the branch took no part
+  ok   with a number in column 3, the verdict is IDENTICAL to BASE: the branch took no part
+  ok   the payload holds 167 rows whose label CONTAINS "total" but is not a whole match
+  ok   including the CLCPA-209 row itself: D2:2023 "Total # of projects"
+  ok   and every table-year containing one is classified IDENTICALLY to BASE: 0 differ
+  ok   and the whole-label predicate rejects every one of them
+  ok   79 rows in the payload carry a strict total label
+  ok   and ZERO of them have no numbers, so the branch is unreachable on every row of existing data: 0
+  ok   compared 149 table-years
+  ok   and NOT ONE classification differs from BASE: 0 of 149
+
+=== 3. WHAT THE REPORT PAGE SHOWS, AND A CONSEQUENCE TO SEE ===
+  ok   BASE control: the report showed three dashes
+  ok   the AMOUNT columns are still blank before a Save, as the report reads stored values: [null,null]
+  ok   but the DERIVED % now computes from the data rows: 0.5269600453171172 -- NEW on the report, correct arithmetic, and transient until Save
+  ok   equal to sum(DAC)/sum(Total) over the rows above it, so nothing is stale
+  ok   the amounts are there: [282132686,148672653]
+  ok   and the share: 0.5269600453171172
+  ok   IDENTICAL to what 2025 displays, which is the whole point of the ticket
+
+=== 3b. THE IMPORT-PATH CONSEQUENCE, NAMED AND PINNED ===
+  ok   at BASE only the DERIVED column was withheld from the Total row: [3]
+  ok   now all three are, because the row is a recognised total: [1,2,3]
+  ok   exactly TWO more cells are withheld -- the 46-to-44 the sweep saw
+  ok   and the reason given is "this row is a calculated total", so the operator sees it: CLCPA-235's no-silence rule holds
+  ok   and what replaces the withheld values is the true sum of the rows above
+
+=== 4. THE COSMETIC: the year reads as itself ===
+  ok   no " · added" is emitted
+  ok   and isAdded is gone from the whole file
+  ok   the option renders the year and nothing else
+  ok   BASE control: isAdded existed
+  ok   and appended the suffix
+  ok   addedYears is still read, because the Remove-year button needs it
+  ok   and still used elsewhere: 3 references
+
+=== 5. THE BLAST RADIUS ===
+       changed functions: renderIngestPicker, totalRowFlags
+  ok   the change to renderIngestPicker is accounted for
+  ok   the change to totalRowFlags is accounted for
+  ok   totalRowFlags changed as intended: the value-less total branch
+  ok   renderIngestPicker changed as intended: the cosmetic: the year dropdown
+  ok   exactly TWO functions changed: 2
+  ok   DERIVED_COLS is byte-identical to BASE
+  ok   isStrictTotalRowLabel exists in both sources, so comparing them means something
+  ok   isStrictTotalRowLabel is byte-identical to BASE
+  ok   recomputeTotals exists in both sources, so comparing them means something
+  ok   recomputeTotals is byte-identical to BASE
+  ok   rowsForDisplay exists in both sources, so comparing them means something
+  ok   rowsForDisplay is byte-identical to BASE
+  ok   applyDerivedCols exists in both sources, so comparing them means something
+  ok   applyDerivedCols is byte-identical to BASE
+  ok   columnGrandTotals exists in both sources, so comparing them means something
+  ok   columnGrandTotals is byte-identical to BASE
+  ok   totalRowSums exists in both sources, so comparing them means something
+  ok   totalRowSums is byte-identical to BASE
+  ok   ingestComputed exists in both sources, so comparing them means something
+  ok   ingestComputed is byte-identical to BASE
+  ok   buildIngestImport exists in both sources, so comparing them means something
+  ok   buildIngestImport is byte-identical to BASE
+  ok   applyIngestImport exists in both sources, so comparing them means something
+  ok   applyIngestImport is byte-identical to BASE
+  ok   composePayloadFromRows exists in both sources, so comparing them means something
+  ok   composePayloadFromRows is byte-identical to BASE
+  ok   computeHeaderCards exists in both sources, so comparing them means something
+  ok   computeHeaderCards is byte-identical to BASE
+  ok   renderExecutiveSummary exists in both sources, so comparing them means something
+  ok   renderExecutiveSummary is byte-identical to BASE
+  ok   renderDumbbell exists in both sources, so comparing them means something
+  ok   renderDumbbell is byte-identical to BASE
+  ok   renderStripWithGap exists in both sources, so comparing them means something
+  ok   renderStripWithGap is byte-identical to BASE
+  ok   renderTable exists in both sources, so comparing them means something
+  ok   renderTable is byte-identical to BASE
+  ok   DAC_SOURCE is still 'dataverse'
+  ok   and the import planner buildIngestImport is untouched: 240's matcher half stays post-Sept-10
+
+======================================================================
+  81 passed, 0 failed
+======================================================================
