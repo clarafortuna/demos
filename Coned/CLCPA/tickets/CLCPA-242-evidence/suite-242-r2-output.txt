@@ -1,0 +1,95 @@
+======================================================================
+CLCPA-242 round 2 -- the collision, and the unmeasured box
+  BASE d58141b (the deployed build 5d4d42c9a6 that failed the pass)
+======================================================================
+
+=== 1. FIX A: the delegated handler stops hiding other surfaces' tips ===
+  ok   at BASE the handler was `if (el) show(el); else hide();`
+  ok   with no notion of a surface that owns the tip
+  ok   .dumb-row carries no data-tip, so target() is null over it
+  ok   .strip-row carries no data-tip, so target() is null over it
+  ok   .ai-header-card carries no data-tip, so target() is null over it
+  ok   DRIVEN at BASE: a mouseover inside a chart row HIDES the shared tip -- opacity 0
+  ok   the four owning surfaces are named exactly
+  ok   and the handler returns before hiding
+  ok   the early-out precedes the hide, not after it
+  ok   a mouseover inside a chart row LEAVES the tooltip alone: opacity 1
+  ok   a mouseover over ordinary background STILL hides it, so control tips still close: opacity 0
+  ok   a mouseover over a [data-tip] control still SHOWS: opacity 1
+  ok   and a control nested inside an owning surface still shows: the control branch is tested first
+  ok   a mouseover whose target has no closest() does NOT throw
+  ok   and it still hides, because a node that cannot be matched owns nothing
+  ok   calling the SAME wireControlTips twice registers NO further mouseover listener: 1 -> 1 (listeners on a shared div must not accumulate)
+  ok   mouseout is still registered
+  ok   focusin is still registered
+  ok   focusout is still registered
+  ok   keydown is still registered
+  ok   Escape still dismisses, driven
+  ok   and leaving a control still hides it
+  ok   and the once-per-document guard is intact, so listeners cannot accumulate
+
+=== 2. FIX B: a size of zero is UNKNOWN, never clamped ===
+  ok   at BASE a zero-height box already kept its plain offset: top 2092px, NOT the viewport bottom (2892). The hypothesis was wrong.
+  ok   because BASE guarded the slide with `if (h && ...)` all along
+  ok   and the flip with `if (w && ...)`
+  ok   what BASE ran unconditionally were the two FLOORS -- that is the whole of what fix B changes
+  ok   BASE floored the TOP of an UNMEASURED box to sy+8: 2008px (left 16px already cleared it) -- small, wrong, now fixed
+  ok   zero is treated as unknown
+  ok   and BOTH axes skip their edge handling when unmeasured
+  ok   top is the plain offset: 2092px
+  ok   and left likewise: 314px
+  ok   an unmeasured box near the scroll origin now keeps its plain offset instead of being floored: 16px 1996px
+  ok   a known WIDTH still flips even when the height is unknown: 1176px
+  ok   while the unknown height keeps its plain offset
+  ok   inside: plain offset
+  ok   right edge: flips
+  ok   bottom edge: slides up
+  ok   a flip that would go negative is still floored at 8: 8px
+  ok   and the scrolled-page case still holds
+
+=== 3. WHAT ROUND 1 GOT RIGHT IS UNCHANGED ===
+  ok   the chart rows still route through the shared clamp
+  ok   and so do the KPI cards
+  ok   hideExecTooltip is byte-identical: the re-render hook was cleared by the audit and is not the cause
+  ok   and so is its caller
+  ok   wireExecutiveTooltips is byte-identical: fix A lives in the DELEGATED handler, not in the surfaces
+  ok   and so is the card wiring
+
+=== 4. WHAT IS DELIBERATELY NOT HERE ===
+  ok   no claim/release mechanism exists yet: fix C is still a separate ticket
+  ok   the div is still shared by all nine wirings: 10 call sites
+  ok   still exactly 14 raw positioners, unchanged by this round: 14
+  ok   the same count as the deployed build: 14
+
+=== 5. THE BLAST RADIUS ===
+       changed functions: placeTooltipAtPointer, wireControlTips
+  ok   the change to placeTooltipAtPointer is accounted for
+  ok   the change to wireControlTips is accounted for
+  ok   wireControlTips changed as intended: fix A: the early-out for tip-owning surfaces
+  ok   placeTooltipAtPointer changed as intended: fix B: a size of zero is unknown
+  ok   exactly TWO functions changed: 2
+  ok   dacCol exists in both sources
+  ok   dacCol is byte-identical to BASE
+  ok   dacRow exists in both sources
+  ok   dacRow is byte-identical to BASE
+  ok   ensureTooltip exists in both sources
+  ok   ensureTooltip is byte-identical to BASE
+  ok   positionTooltipAt exists in both sources
+  ok   positionTooltipAt is byte-identical to BASE
+  ok   renderDumbbell exists in both sources
+  ok   renderDumbbell is byte-identical to BASE
+  ok   renderStripWithGap exists in both sources
+  ok   renderStripWithGap is byte-identical to BASE
+  ok   computeHeaderCards exists in both sources
+  ok   computeHeaderCards is byte-identical to BASE
+  ok   composePayloadFromRows exists in both sources
+  ok   composePayloadFromRows is byte-identical to BASE
+  ok   buildSectionDAC exists in both sources
+  ok   buildSectionDAC is byte-identical to BASE
+  ok   totalRowFlags exists in both sources
+  ok   totalRowFlags is byte-identical to BASE
+  ok   DAC_SOURCE is still 'dataverse'
+
+======================================================================
+  76 passed, 0 failed
+======================================================================

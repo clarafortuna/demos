@@ -101,7 +101,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: computeHeaderCards, dacCol, hideExecTooltip, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: computeHeaderCards, dacCol, hideExecTooltip, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to hideExecTooltip is accounted for
@@ -112,6 +112,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
   ok   the change to totalRowFlags is accounted for
+  ok   the change to wireControlTips is accounted for
   ok   the change to wireExecutiveInteractions is accounted for
   ok   the change to wireExecutiveTooltips is accounted for
   ok   the change to wireHeaderCardsTooltips is accounted for
@@ -128,9 +129,10 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   wireExecutiveTooltips changed as intended: NOT this brief: CLCPA-242
   ok   wireHeaderCardsTooltips changed as intended: NOT this brief: CLCPA-242
   ok   wireExecutiveInteractions changed as intended: NOT this brief: CLCPA-242
-  ok   exactly THIRTEEN functions changed: 13
-  ok   and no function outside those thirteen moved at all
+  ok   wireControlTips changed as intended: NOT this brief: CLCPA-242 round 2, the early-out
+  ok   exactly FOURTEEN functions changed: 14
+  ok   and no function outside those fourteen moved at all
 
 ======================================================================
-  119 passed, 0 failed
+  121 passed, 0 failed
 ======================================================================

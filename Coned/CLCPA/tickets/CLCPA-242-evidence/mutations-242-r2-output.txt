@@ -1,0 +1,50 @@
+======================================================================
+CLCPA-242 round 2 -- mutation controls
+======================================================================
+  red  FIX A REVERTED: the handler blanket-hides again
+       3 red, incl: a mouseover inside a chart row LEAVES the tooltip alone: opacity 0
+  red  OVER-WIDENED: it never hides, so control tips stick open
+       4 red, incl: a mouseover over ordinary background STILL hides it, so control tips still close: opacity 1
+  red  the early-out runs AFTER the hide, so the hide still wins
+       1 red, incl: a mouseover inside a chart row LEAVES the tooltip alone: opacity 0
+  red  the control branch is tested AFTER the early-out
+       2 red, incl: a mouseover over a [data-tip] control still SHOWS: opacity 0
+  red  a surface is dropped from the owning list
+       1 red, incl: the four owning surfaces are named exactly
+  red  the owning list becomes a catch-all
+       1 red, incl: the four owning surfaces are named exactly
+  red  ownsTip stops guarding against a missing closest
+       2 red, incl: a mouseover whose target has no closest() does NOT throw
+  red  Escape stops dismissing
+       1 red, incl: Escape still dismisses, driven
+  red  leaving a control stops hiding it
+       1 red, incl: and leaving a control still hides it
+  red  the once-per-document guard is removed
+       1 red, incl: calling the SAME wireControlTips twice registers NO further mouseover listener: 1 -> 2 (listeners on a sh
+  red  FIX B REVERTED: the floors run on an unmeasured box again
+       3 red, incl: an unmeasured box near the scroll origin now keeps its plain offset instead of being floored: 16px 2008px
+  red  zero is treated as known, so an empty box clamps
+       2 red, incl: an unmeasured box near the scroll origin now keeps its plain offset instead of being floored: 16px 2008px
+  red  a NEGATIVE size counts as known
+       2 red, incl: an unmeasured box near the scroll origin now keeps its plain offset instead of being floored: 16px 2008px
+  red  the two axes are coupled, so one unknown disables both
+       2 red, incl: a known WIDTH still flips even when the height is unknown: 1404px
+  red  the right-edge flip is lost
+       3 red, incl: right edge: flips
+  red  the bottom slide is lost
+       1 red, incl: bottom edge: slides up
+  red  the scroll offset is dropped from the slide
+       1 red, incl: and the scrolled-page case still holds
+  red  a surface stops routing through the clamp
+       3 red, incl: wireExecutiveTooltips is byte-identical: fix A lives in the DELEGATED handler, not in the surfaces
+  red  fix C is smuggled in: a claim token appears
+       3 red, incl: the change to ensureTooltip is accounted for
+  red  a name in the exclusion list is misspelled
+       1 red, incl: buildSectionDACX exists in both sources
+  red  EXCLUSION: a third function is changed
+       3 red, incl: exactly TWO functions changed: 3
+  red  EXCLUSION: the section-page positioners are converted
+       4 red, incl: still exactly 14 raw positioners, unchanged by this round: 15
+
+  22 caught, 0 not caught, of 22
+  clean re-run against restored source: PASSES

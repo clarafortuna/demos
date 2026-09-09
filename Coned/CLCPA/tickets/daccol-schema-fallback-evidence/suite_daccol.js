@@ -371,7 +371,8 @@ guard('one function', () => {
    * functions. THIS ticket's blast radius is still one; the others are named
    * so the claim stays exact rather than being relaxed to a bigger number. */
   const ALSO = ['placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
-                'wireHeaderCardsTooltips', 'wireExecutiveInteractions'];
+                'wireHeaderCardsTooltips', 'wireExecutiveInteractions',
+                'wireControlTips'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

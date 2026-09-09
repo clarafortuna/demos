@@ -613,13 +613,14 @@ guard('the four exclusions', () => {
     wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
     wireHeaderCardsTooltips: 'NOT this brief: CLCPA-242',
     wireExecutiveInteractions: 'NOT this brief: CLCPA-242',
+    wireControlTips: 'NOT this brief: CLCPA-242 round 2, the early-out',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 13, 'exactly THIRTEEN functions changed: ' + changed.length);
+  ok(changed.length === 14, 'exactly FOURTEEN functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those thirteen moved at all');
+     'and no function outside those fourteen moved at all');
 });
 
 say('');

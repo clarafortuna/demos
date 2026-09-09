@@ -16,7 +16,7 @@ CLCPA-242 -- mutation controls
   red  THE SCROLL TRAP: the viewport side loses its offset
        1 red, incl: on a page scrolled 2000px the tip is NOT dragged to the viewport top: 2008px
   red  the clamp stops measuring the tip and assumes a size
-       5 red, incl: at the right edge it FLIPS to the left of the cursor: 1364px
+       6 red, incl: at the right edge it FLIPS to the left of the cursor: 1364px
   red  the chart rows go back to positioning only on move
        2 red, incl: chart rows: positions inside the enter handler
   red  the cards reveal BEFORE placing
