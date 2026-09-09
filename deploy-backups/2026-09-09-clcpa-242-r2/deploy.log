@@ -1,0 +1,147 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-242 round 2 -- the delegated handler stops hiding other
+       surfaces tooltips, and a size of 0 is unknown rather than clamped
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD (as read) = 76d6244
+              source folder clean, so the pushed bytes are exactly 76d6244.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  21 suites green, 2358 assertions.
+              the sweep rewrote 1 output file(s) with LF
+              endings; content identical, restoring them:
+                M Coned/CLCPA/tickets/prewalkthrough-evidence/suite-prewalk-output.txt
+              tree clean on content: the bytes to push are 76d6244.
+PRE-FLIGHT 3b  CLCPA-243  const anyYear = Object.keys(by) x1  == 1
+PRE-FLIGHT 3b  CLCPA-242 r2 A  OWNS_TIP x2  == 2
+PRE-FLIGHT 3b  CLCPA-242 r2 A  ownsTip x2  == 2
+PRE-FLIGHT 3b  CLCPA-242 r2 B  knownW x2  == 2
+PRE-FLIGHT 3b  CLCPA-242 r2 B  knownH x2  == 2
+PRE-FLIGHT 3b  CLCPA-242  placeTooltipAtPointer x5  == 5
+PRE-FLIGHT 3b  CLCPA-242  hideExecTooltip x2  == 2
+PRE-FLIGHT 4  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      b201bb3fcd  == expected
+                 styles.css  37d0e57db0  == expected
+PRE-FLIGHT 5  stamps applied in memory (nothing on disk is modified);
+              the HTML references ?v=b201bb3fcd and ?v=37d0e57db0,
+              with no unstamped reference left.
+PRE-FLIGHT 6  deploy-backups/2026-09-09-clcpa-242-r2/ is absent: the snapshot
+              will be created, not overwritten.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FCV559Q2J
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1105160B  local=1108323B
+unchanged  styles.css   deployed=271763B  local=271763B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+
+PROVENANCE  the snapshot holds:
+              stamped as        5d4d42c9a6
+              derived from bytes 5d4d42c9a6
+              expected          5d4d42c9a6  MATCH
+BACKUP  live bytes archived to deploy-backups/2026-09-09-clcpa-242-r2/
+
+ROLLBACK DURABILITY
+  main before the snapshot commit: 76d6244
+  staged, records only: 4 files, none outside the snapshot
+  snapshot commit: 7c5956a
+  push attempt 1: remote main = 7c5956a  MATCHES the snapshot commit
+  the committed app.js blob 0d273eafef is 1105160B, sha256 d950be00a3e74bd7...
+  and it is byte-identical to what the server returned.
+ROLLBACK IS DURABLE: 7c5956a on origin/main.
+
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1108323B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s) in ONE call
+published.
+
+READ-BACK app.js                  1108323B  sha256 d322529e238faaa46032d10d3d5fb52f690072fbabea1f06c81335603cacda2b  VERIFIED byte-identical
+READ-BACK styles.css              271763B  sha256 37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html 4080B  sha256 4c0c50fa0071c5c7ff64c69f6b126dec32afb13a243c2906a84343f3fa4434d3  VERIFIED byte-identical
+
+SERVER-SIDE ID CHECK
+  app.js on the server stamps itself: b201bb3fcd  == b201bb3fcd
+  the server HTML references app.js?v=b201bb3fcd
+  the server HTML references styles.css?v=37d0e57db0
+
+=== DEPLOY COMPLETE ===
+build id (app.js): b201bb3fcd
+styles.css id    : 37d0e57db0
+source           : ExecutiveDashboard_dev/ at main @ 76d6244
+rollback         : deploy-backups/2026-09-09-clcpa-242-r2/ holds 5d4d42c9a6 whole
+requests: GET 13, PATCH 2, POST 1
+
+server sha256, the three resources as published:
+  app.js                  d322529e238faaa46032d10d3d5fb52f690072fbabea1f06c81335603cacda2b
+  styles.css              37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094
+  ExecutiveDashboard.html 4c0c50fa0071c5c7ff64c69f6b126dec32afb13a243c2906a84343f3fa4434d3
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build b201bb3fcd
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO LOOK AT -- CLCPA-242 round 2, the hosted pass that failed:
+
+  1. THE ONE THAT FAILED. Hover a Movement row and an Impact by
+     Section row and MOVE THE POINTER AROUND INSIDE THE ROW --
+     across the label, the bar, the pill. The tooltip must STAY.
+     Before, it vanished the moment the pointer crossed from one
+     child of the row into the next: "salen de momento pero se
+     esconden". Same on the three KPI cards.
+  2. AND THE CONTROL TIPS MUST STILL CLOSE. Hover any control with
+     its own little tip -- a toggle, an icon button -- then move off
+     it onto plain background. It must disappear. If those now stick
+     open, the fix is too wide and that is worse than the defect.
+  3. Escape still dismisses whatever is showing.
+
+  4. THE GHOST, AND I CANNOT PROMISE THIS ONE. My explanation for it
+     was DISPROVEN by its own control: the code already skipped the
+     clamp on a zero-size box, so that was never the cause. The
+     placement is still unexplained. Fix A may remove it as a
+     side-effect, since a show/hide race is what freezes an opacity
+     transition mid-way, or it may not.
+     IF IT REAPPEARS, two observations crack it:
+       - is it at the BOTTOM EDGE of the viewport specifically?
+       - does it follow hovering a KPI CARD rather than a chart row?
+
+  5. POSITIONING MUST NOT REGRESS -- you passed it last round. Near
+     the right edge the box flips left; low on the page it slides up;
+     scrolled down it stays by the cursor, not at the window top.
+
+  UNCHANGED BY DESIGN: the fourteen SECTION-PAGE tooltips still
+  position without a clamp, pinned at fourteen. And fix C -- one
+  owner for the shared div across all nine wirings -- is a separate
+  ticket, not in this build; a control fires if it appears.
+
+  AND NOTHING ELSE MOVES: CLCPA-243 and round 1 are byte-identical,
+  so 2099 Clean Energy still derives and the clamp still clamps.
+
+AND THE MIGRATION MUST STILL HOLD, since this build carries it:
+  the console still prints [CLCPA-238] source = DATAVERSE, no shadow line.
+
+THE REVERT PATHS, both still one step:
+  the migration -- DAC_SOURCE back to payload, seconds.
+  this deploy   -- restore deploy-backups/2026-09-09-clcpa-242-r2/,
+                   which holds build 5d4d42c9a6 whole.
+
+=== log written by deploy_242r2.js ===
