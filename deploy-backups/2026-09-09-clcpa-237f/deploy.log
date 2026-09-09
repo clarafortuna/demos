@@ -1,0 +1,166 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-237 item F -- ONE layout for every year: the empty branch
+       and its three dead modifiers deleted, the two card defects fixed
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD (as read) = be81d92
+              source folder clean, so the pushed bytes are exactly be81d92.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  17 suites green, 1956 assertions.
+              the sweep rewrote 3 output file(s) with LF
+              endings; content identical, restoring them:
+                M Coned/CLCPA/tickets/CLCPA-233-evidence/suite-233-output.txt
+                M Coned/CLCPA/tickets/CLCPA-237-evidence/suite-237-output.txt
+                M Coned/CLCPA/tickets/prewalkthrough-evidence/suite-prewalk-output.txt
+              tree clean on content: the bytes to push are be81d92.
+PRE-FLIGHT 4  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      31b63d1a70  == expected
+                 styles.css  37d0e57db0  == expected
+PRE-FLIGHT 5  stamps applied in memory (nothing on disk is modified);
+              the HTML references ?v=31b63d1a70 and ?v=37d0e57db0,
+              with no unstamped reference left.
+PRE-FLIGHT 6  deploy-backups/2026-09-09-clcpa-237f/ is absent: the snapshot
+              will be created, not overwritten.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  EDNSYZG8R
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1098001B  local=1097752B
+WILL PUSH  styles.css   deployed=272934B  local=271763B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+
+PROVENANCE  the snapshot holds:
+              stamped as        d7e9e7921d
+              derived from bytes d7e9e7921d
+              expected          d7e9e7921d  MATCH
+BACKUP  live bytes archived to deploy-backups/2026-09-09-clcpa-237f/
+
+ROLLBACK DURABILITY
+  main before the snapshot commit: be81d92
+  staged, records only: 4 files, none outside the snapshot
+  snapshot commit: 8025bfb
+  push attempt 1: remote main = 8025bfb  MATCHES the snapshot commit
+  the committed app.js blob 88445579fe is 1098001B, sha256 c06891292bb85364...
+  and it is byte-identical to what the server returned.
+ROLLBACK IS DURABLE: 8025bfb on origin/main.
+
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1097752B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (271763B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s) in ONE call
+published.
+
+READ-BACK app.js                  1097752B  sha256 579ba233177f68f50ef1c3cfc21f288710ed88812f7b22ecb4eef2f7bca99cf3  VERIFIED byte-identical
+READ-BACK styles.css              271763B  sha256 37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html 4080B  sha256 3c113da7960e0ea5a4460792c1833a6a38ed4c6d3340d52c558241869bc5ef3a  VERIFIED byte-identical
+
+SERVER-SIDE ID CHECK
+  app.js on the server stamps itself: 31b63d1a70  == 31b63d1a70
+  the server HTML references app.js?v=31b63d1a70
+  the server HTML references styles.css?v=37d0e57db0
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 31b63d1a70
+styles.css id    : 37d0e57db0
+source           : ExecutiveDashboard_dev/ at main @ be81d92
+rollback         : deploy-backups/2026-09-09-clcpa-237f/ holds d7e9e7921d whole
+requests: GET 13, PATCH 3, POST 1
+
+server sha256, the three resources as published:
+  app.js                  579ba233177f68f50ef1c3cfc21f288710ed88812f7b22ecb4eef2f7bca99cf3
+  styles.css              37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094
+  ExecutiveDashboard.html 3c113da7960e0ea5a4460792c1833a6a38ed4c6d3340d52c558241869bc5ef3a
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 31b63d1a70
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO LOOK AT, the three items:
+  1. A.9 and A.10 on 2025: NO "NO 2024 BASELINE" chip. Switch to 2024
+     and the chip comes back as "NO 2023 BASELINE" -- 2023 really is
+     absent for those two, so that one is correct. A.1 and F.6 never
+     show it. The comparability note still reads "No 2023 baseline."
+     on A.9, which is where that permanent fact belongs.
+  2. A.9 / A.10 / F.6 header band: plain centred labels, no dashed
+     boxes, no input chrome, and each group label ("2024", "2025",
+     "% Change") sits ONCE, centred over its pair -- in the Report
+     Data editor AND in the read-only viewer.
+     D.1 MUST BE UNCHANGED: first row editable, with its x. Any other
+     table, say A.1: first row still editable with its x.
+  3. A year with no data -- 2099 -- in the Executive Summary: the NO
+     DATA banner, then a Reported KPIs placeholder, then a pair of
+     placeholders where the dumbbell and the section strip sit, then
+     the DAC Tracts map FULL WIDTH below them. Every panel says it
+     has nothing to show; the map draws for real.
+  AND 2025 MUST BE PIXEL-FOR-PIXEL AS IT WAS: header cards, dumbbell,
+     strip and map three across. That is the regression guard.
+
+AND THE MIGRATION MUST STILL HOLD, since this build carries it:
+  the console still prints [CLCPA-238] source = DATAVERSE, no shadow line.
+
+THE REVERT PATHS, both still one step:
+  the migration -- DAC_SOURCE back to payload, seconds.
+  this deploy   -- restore deploy-backups/2026-09-09-clcpa-237f/,
+                   which holds build d7e9e7921d whole.
+
+=== log written by deploy_prewalk.js ===
+
+======================================================================
+CORRECTION TO THIS LOG, appended rather than rewritten
+======================================================================
+
+The "WHAT TO LOOK AT" item 3 above is STALE AND WRONG. It was carried over
+from the previous deploy script and describes the empty-state placeholders --
+"the NO DATA banner, then a Reported KPIs placeholder, then a pair of
+placeholders ... the DAC Tracts map FULL WIDTH below them".
+
+THAT IS EXACTLY WHAT THIS DEPLOY DELETED. CLCPA-237 item F removed the empty
+branch, the three placeholders and the banner. A verifier following that
+checklist would look for a screen that no longer exists and report a failure
+that is the fix working.
+
+It is appended rather than edited because a deploy log records what the script
+printed. Rewriting the printed section would make the record say something the
+run did not say, and the whole point of these logs is that they describe the
+code that is really there.
+
+WHAT TO LOOK AT ON 2099, CORRECTED:
+
+  NO banner and NO placeholders. One layout, the same anatomy as 2025:
+    - three KPI cards, each showing a DASH for the amount and no percentage
+      delta, with prior-year context as "$538.4M -> --" so the left figure
+      reads as prior and nothing reads as a 2099 value
+    - the DAC Tracts map across the left two thirds, drawing for real
+    - Movement vs Prior Year top right: all 10 areas LISTED, every one with a
+      dash pill and no current-year dot
+    - DAC Impact by Section bottom right: 10 rows, 10 N/A bars, 10 pills
+  Nothing may read "$0" anywhere, and the page must not error.
+
+  AND 2025 MUST BE PIXEL-FOR-PIXEL AS IT WAS, which is the regression guard.
+  One measured detail so it is not mistaken for a defect: section I (Jobs)
+  shows ONE N/A bar on 2025, 2024 and 2023 alike. Jobs carries no DAC share in
+  any year. That is unchanged by this deploy.
+
+Items 1 and 2 in the printed checklist (the baseline chip, the header band)
+are still correct as written.
