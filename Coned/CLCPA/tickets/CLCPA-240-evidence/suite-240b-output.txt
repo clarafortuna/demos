@@ -57,14 +57,24 @@ CLCPA-240 second half -- the value-less Total row
   ok   and still used elsewhere: 3 references
 
 === 5. THE BLAST RADIUS ===
-       changed functions: dacCol, renderIngestPicker, totalRowFlags
+       changed functions: dacCol, hideExecTooltip, placeTooltipAtPointer, renderIngestPicker, totalRowFlags, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
   ok   the change to dacCol is accounted for
+  ok   the change to hideExecTooltip is accounted for
+  ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderIngestPicker is accounted for
   ok   the change to totalRowFlags is accounted for
+  ok   the change to wireExecutiveInteractions is accounted for
+  ok   the change to wireExecutiveTooltips is accounted for
+  ok   the change to wireHeaderCardsTooltips is accounted for
   ok   totalRowFlags changed as intended: the value-less total branch
   ok   renderIngestPicker changed as intended: the cosmetic: the year dropdown
   ok   dacCol changed as intended: NOT this brief: the schema fallback for imported years, found in the follow-up pass
-  ok   exactly THREE functions changed: 3
+  ok   placeTooltipAtPointer changed as intended: NOT this brief: CLCPA-242, the shared clamp (new)
+  ok   hideExecTooltip changed as intended: NOT this brief: CLCPA-242, hide on re-render (new)
+  ok   wireExecutiveTooltips changed as intended: NOT this brief: CLCPA-242
+  ok   wireHeaderCardsTooltips changed as intended: NOT this brief: CLCPA-242
+  ok   wireExecutiveInteractions changed as intended: NOT this brief: CLCPA-242
+  ok   exactly EIGHT functions changed: 8
   ok   DERIVED_COLS is byte-identical to BASE
   ok   isStrictTotalRowLabel exists in both sources, so comparing them means something
   ok   isStrictTotalRowLabel is byte-identical to BASE
@@ -100,5 +110,5 @@ CLCPA-240 second half -- the value-less Total row
   ok   and the import planner buildIngestImport is untouched: 240's matcher half stays post-Sept-10
 
 ======================================================================
-  83 passed, 0 failed
+  93 passed, 0 failed
 ======================================================================
