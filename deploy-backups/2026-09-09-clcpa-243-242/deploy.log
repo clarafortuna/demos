@@ -1,0 +1,151 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: TWO tickets -- CLCPA-243 (dacCol schema fallback, so an imported
+       year derives) and CLCPA-242 (the exec tooltip clamp and hide)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present, constants set, 3 resources.
+PRE-FLIGHT 1  branch = main, HEAD (as read) = 2a4f918
+              source folder clean, so the pushed bytes are exactly 2a4f918.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  20 suites green, 2274 assertions.
+              the sweep rewrote 1 output file(s) with LF
+              endings; content identical, restoring them:
+                M Coned/CLCPA/tickets/prewalkthrough-evidence/suite-prewalk-output.txt
+              tree clean on content: the bytes to push are 2a4f918.
+PRE-FLIGHT 3b  CLCPA-243  const anyYear = Object.keys(by) x1  == 1
+PRE-FLIGHT 3b  CLCPA-242  placeTooltipAtPointer x5  == 5
+PRE-FLIGHT 3b  CLCPA-242  hideExecTooltip x2  == 2
+PRE-FLIGHT 4  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      5d4d42c9a6  == expected
+                 styles.css  37d0e57db0  == expected
+PRE-FLIGHT 5  stamps applied in memory (nothing on disk is modified);
+              the HTML references ?v=5d4d42c9a6 and ?v=37d0e57db0,
+              with no unstamped reference left.
+PRE-FLIGHT 6  deploy-backups/2026-09-09-clcpa-243-242/ is absent: the snapshot
+              will be created, not overwritten.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  EJWL33ZME
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+WhoAmI UserId = 44d1f3d9-8f03-f111-8408-00224831be5d
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1100447B  local=1105160B
+unchanged  styles.css   deployed=271763B  local=271763B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B
+
+PROVENANCE  the snapshot holds:
+              stamped as        7a69dabb96
+              derived from bytes 7a69dabb96
+              expected          7a69dabb96  MATCH
+BACKUP  live bytes archived to deploy-backups/2026-09-09-clcpa-243-242/
+
+ROLLBACK DURABILITY
+  main before the snapshot commit: 2a4f918
+  staged, records only: 4 files, none outside the snapshot
+  snapshot commit: 31542da
+  push attempt 1: remote main = 31542da  MATCHES the snapshot commit
+  the committed app.js blob b911137f30 is 1100447B, sha256 b49ecc4ffb71dfcb...
+  and it is byte-identical to what the server returned.
+ROLLBACK IS DURABLE: 31542da on origin/main.
+
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1105160B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s) in ONE call
+published.
+
+READ-BACK app.js                  1105160B  sha256 d950be00a3e74bd794cde021ac3550c37e093243f5da63a3dedd91af47d57f23  VERIFIED byte-identical
+READ-BACK styles.css              271763B  sha256 37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html 4080B  sha256 0d5abd4db9017c2cdf69223b27412ffbeae38dbce53ed79f93dfe2074af436e1  VERIFIED byte-identical
+
+SERVER-SIDE ID CHECK
+  app.js on the server stamps itself: 5d4d42c9a6  == 5d4d42c9a6
+  the server HTML references app.js?v=5d4d42c9a6
+  the server HTML references styles.css?v=37d0e57db0
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 5d4d42c9a6
+styles.css id    : 37d0e57db0
+source           : ExecutiveDashboard_dev/ at main @ 2a4f918
+rollback         : deploy-backups/2026-09-09-clcpa-243-242/ holds 7a69dabb96 whole
+requests: GET 13, PATCH 2, POST 1
+
+server sha256, the three resources as published:
+  app.js                  d950be00a3e74bd794cde021ac3550c37e093243f5da63a3dedd91af47d57f23
+  styles.css              37d0e57db0ed348bf64223f8abad38e41b6e986da7793213fbeeb3257a3c4094
+  ExecutiveDashboard.html 0d5abd4db9017c2cdf69223b27412ffbeae38dbce53ed79f93dfe2074af436e1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 5d4d42c9a6
+If it prints anything else, the browser is holding an older app.js.
+
+WHAT TO LOOK AT -- two tickets:
+
+CLCPA-243, the one that matters for a live import:
+  1. Stand on 2099, which already holds saved A1 data (999s).
+  2. THE EXECUTIVE SUMMARY now derives Clean Energy from it:
+       Movement vs Prior Year -- section A has a DOT and a delta,
+       no longer a dash pill. Its tooltip reads 100.0%.
+       Impact by Section     -- NINE N/A bars, not ten. Section A
+       computes.
+       Card 2, Clean Energy Incentive Spend -- a figure, not a dash.
+  3. CARDS 1 AND 3 MUST STAY DASHED. E1 and J4 genuinely have no
+     2099 data, and partial rendering is correct as shipped. A figure
+     appearing there would be the defect, not the fix.
+  4. The SECTION A page is unchanged -- it always worked. That
+     asymmetry was the whole symptom.
+
+  KNOWN AND DISCLOSED, not fixed: section-page CHARTS still will not
+  compose for 2099. All twelve chart metric rows pin spec.years to the
+  seed years, so no code change reaches them. Editing those 12 stored
+  rows is a DATA change with its own ticket and its own GO.
+
+CLCPA-242, the tooltips:
+  5. Hover a Movement row and an Impact row NEAR THE RIGHT EDGE of a
+     wide window. The box flips to the LEFT of the cursor and stays
+     on screen. Same low on the page: it slides up, never clipped.
+  6. Hover one KPI card, then another. No jump from the old position
+     on the first frame -- it is placed before it is shown.
+  7. Hover a row, then CHANGE YEAR while it is showing. No tooltip
+     lingers, and the next hover shows fresh content, never the
+     previous row body.
+  8. SCROLL DOWN and hover near the bottom. The box must not jump to
+     the top of the window: document and viewport coordinates are
+     mixed nowhere.
+
+  UNCHANGED BY DESIGN: fourteen SECTION-PAGE tooltips still position
+  without a clamp. Out of scope, pinned at 14 in the suite so the
+  number cannot drift. Section-page tooltips may still clip near an
+  edge, exactly as they did before this deploy.
+
+  AND NOTHING ELSE MOVES: the composed payload is identical to
+  7a69dabb96 for all 133 existing table-years, and no tooltip CONTENT
+  changed -- renderDumbbell, renderStripWithGap and computeHeaderCards
+  are byte-identical.
+
+AND THE MIGRATION MUST STILL HOLD, since this build carries it:
+  the console still prints [CLCPA-238] source = DATAVERSE, no shadow line.
+
+THE REVERT PATHS, both still one step:
+  the migration -- DAC_SOURCE back to payload, seconds.
+  this deploy   -- restore deploy-backups/2026-09-09-clcpa-243-242/,
+                   which holds build 7a69dabb96 whole.
+
+=== log written by deploy_240.js ===
