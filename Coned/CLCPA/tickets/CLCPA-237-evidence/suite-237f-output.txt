@@ -112,17 +112,12 @@ CLCPA-237 item F -- ONE LAYOUT FOR EVERY YEAR
   ok   OPEN LIMIT: the tooltip-by-tooltip honesty sweep is DEFERRED post-Sept-10 by ruling. This section covers the three cards, the dumbbell and the strip -- the five surfaces the audit measured -- and claims nothing beyond them.
 
 === 7. WHAT THIS TICKET DID NOT TOUCH ===
-       changed functions: computeHeaderCards, dacCol, hideExecTooltip, placeTooltipAtPointer, renderExecutiveSummary, renderIngestPicker, totalRowFlags, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: computeHeaderCards, dacCol, renderExecutiveSummary, renderIngestPicker, totalRowFlags
   ok   totalRowFlags changed, and it belongs to CLCPA-240: the value-less Total row
   ok   renderIngestPicker changed, and it belongs to CLCPA-240 cosmetic: the year dropdown
   ok   dacCol changed, and it belongs to the schema fallback for imported years, found in 240 follow-up
-  ok   placeTooltipAtPointer changed, and it belongs to CLCPA-242: the shared tooltip clamp (new)
-  ok   hideExecTooltip changed, and it belongs to CLCPA-242: hide on re-render (new)
-  ok   wireExecutiveTooltips changed, and it belongs to CLCPA-242: clamp, placed before shown
-  ok   wireHeaderCardsTooltips changed, and it belongs to CLCPA-242: the same
-  ok   wireExecutiveInteractions changed, and it belongs to CLCPA-242: calls hideExecTooltip
   ok   exactly TWO functions are THIS ticket's: computeHeaderCards, renderExecutiveSummary
-  ok   ten in total, all named: 10
+  ok   five in total, all named: 5
   ok   computeHeaderCards, for item 2
   ok   renderExecutiveSummary, for item 1
   ok   DERIVED_COLS is byte-identical to BASE
@@ -140,5 +135,5 @@ CLCPA-237 item F -- ONE LAYOUT FOR EVERY YEAR
   ok   the map still renders from the one layout, so CLCPA-158 is unconditional now
 
 ======================================================================
-  121 passed, 0 failed
+  116 passed, 0 failed
 ======================================================================
