@@ -101,20 +101,15 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: computeHeaderCards, dacCol, hideExecTooltip, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: computeHeaderCards, dacCol, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
-  ok   the change to hideExecTooltip is accounted for
-  ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestPicker is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
   ok   the change to totalRowFlags is accounted for
-  ok   the change to wireExecutiveInteractions is accounted for
-  ok   the change to wireExecutiveTooltips is accounted for
-  ok   the change to wireHeaderCardsTooltips is accounted for
   ok   renderSourceTables changed as intended: item 1, the chip, and the header-row skip
   ok   renderTable changed as intended: item 2, the two-level table marker
   ok   renderIngestEditor changed as intended: item 2, the merged group headers
@@ -123,14 +118,9 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   totalRowFlags changed as intended: NOT this brief: CLCPA-240, the value-less Total row
   ok   renderIngestPicker changed as intended: NOT this brief: CLCPA-240 cosmetic, the year dropdown
   ok   dacCol changed as intended: NOT this brief: the schema fallback for imported years
-  ok   placeTooltipAtPointer changed as intended: NOT this brief: CLCPA-242, the shared clamp (new)
-  ok   hideExecTooltip changed as intended: NOT this brief: CLCPA-242, hide on re-render (new)
-  ok   wireExecutiveTooltips changed as intended: NOT this brief: CLCPA-242
-  ok   wireHeaderCardsTooltips changed as intended: NOT this brief: CLCPA-242
-  ok   wireExecutiveInteractions changed as intended: NOT this brief: CLCPA-242
-  ok   exactly THIRTEEN functions changed: 13
-  ok   and no function outside those thirteen moved at all
+  ok   exactly EIGHT functions changed: 8
+  ok   and no function outside those eight moved at all
 
 ======================================================================
-  119 passed, 0 failed
+  109 passed, 0 failed
 ======================================================================

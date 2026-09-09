@@ -421,16 +421,11 @@ guard('two functions, and nothing else', () => {
     totalRowFlags: 'the value-less total branch',
     renderIngestPicker: 'the cosmetic: the year dropdown',
     dacCol: 'NOT this brief: the schema fallback for imported years, found in the follow-up pass',
-    placeTooltipAtPointer: 'NOT this brief: CLCPA-242, the shared clamp (new)',
-    hideExecTooltip: 'NOT this brief: CLCPA-242, hide on re-render (new)',
-    wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
-    wireHeaderCardsTooltips: 'NOT this brief: CLCPA-242',
-    wireExecutiveInteractions: 'NOT this brief: CLCPA-242',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 8, 'exactly EIGHT functions changed: ' + changed.length);
+  ok(changed.length === 3, 'exactly THREE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

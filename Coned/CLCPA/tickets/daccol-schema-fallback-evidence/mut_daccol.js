@@ -98,7 +98,7 @@ const M = [
   { t: APP, name: 'EXCLUSION: a second function is changed',
     from: "  function dacCell(T, id, y, labelRe, nameRe) {",
     to:   "  function dacCell(T, id, y, labelRe, nameRe) {\n    void 0;",
-    expect: 'exactly ONE function is THIS ticket' },
+    expect: 'exactly ONE function changed' },
 ];
 
 let caught = 0, missed = 0;
