@@ -421,6 +421,17 @@ guard('three functions, all wiring', () => {
     placeTooltipAtPointer: 'NEW: the shared four-edge clamp',
     hideExecTooltip: 'NEW: the hide helper the render path calls',
     wireControlTips: 'ROUND 2: the early-out for tip-owning surfaces',
+    /* CLCPA-240 first half has since landed. Its eight functions are named
+     * here rather than absorbed into a larger number, so the count stays
+     * exact and this suite still says what IT changed. */
+    buildIngestImport: 'NOT this brief: CLCPA-240 first half, the composite key',
+    buildIngestWorkbook: 'NOT this brief: CLCPA-240 first half, the template header cells',
+    totalRowFlags: 'NOT this brief: CLCPA-240 first half, the hierarchical bootstrap',
+    ingestRowKey: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestGroupOf: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestKeyColCount: 'NOT this brief: CLCPA-240 first half (new)',
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -429,14 +440,18 @@ guard('three functions, all wiring', () => {
   /* FIVE: three amended plus the two helpers this ticket ADDS. New functions
    * legitimately register as changed against a BASE that lacks them, so they
    * are named rather than excused by a bigger number. */
-  ok(changed.length === 6, 'SIX: round 1 five, plus round 2 wireControlTips: ' + changed.length);
+  /* 6 -> 14: CLCPA-240 first half added eight, every one named above. */
+  ok(changed.length === 14, 'FOURTEEN: this ticket’s six plus CLCPA-240 ' +
+     'first half’s eight: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
      'and the two new ones did not exist at BASE, which is why they count');
 });
 
 guard('the exclusions hold', () => {
-  ['dacCol', 'dacRow', 'composePayloadFromRows', 'buildSectionDAC', 'totalRowFlags',
+  /* totalRowFlags left this list when CLCPA-240 changed it; that ticket
+      owns and asserts the change. */
+  ['dacCol', 'dacRow', 'composePayloadFromRows', 'buildSectionDAC',
    'rowsForDisplay', 'renderExecutiveSummary', 'renderIngestPicker', 'ensureTooltip',
    'positionTooltipAt'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);

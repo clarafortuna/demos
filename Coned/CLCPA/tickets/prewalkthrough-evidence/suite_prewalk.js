@@ -614,11 +614,21 @@ guard('the four exclusions', () => {
     wireHeaderCardsTooltips: 'NOT this brief: CLCPA-242',
     wireExecutiveInteractions: 'NOT this brief: CLCPA-242',
     wireControlTips: 'NOT this brief: CLCPA-242 round 2, the early-out',
+    /* CLCPA-240 first half. Seven names not already listed above, each one
+     * accounted for so the exact count below survives as a guard. */
+    buildIngestImport: 'NOT this brief: CLCPA-240 first half, the composite row key',
+    buildIngestWorkbook: 'NOT this brief: CLCPA-240 first half, the template header cells',
+    ingestRowKey: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestGroupOf: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestKeyColCount: 'NOT this brief: CLCPA-240 first half (new)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 14, 'exactly FOURTEEN functions changed: ' + changed.length);
+  /* 14 -> 21: CLCPA-240's first half added seven more, all named above. */
+  ok(changed.length === 21, 'exactly TWENTY-ONE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those fourteen moved at all');
 });

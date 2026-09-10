@@ -101,10 +101,17 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: computeHeaderCards, dacCol, hideExecTooltip, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, hideExecTooltip, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestKeyColCount, ingestRowKey, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+  ok   the change to buildIngestImport is accounted for
+  ok   the change to buildIngestWorkbook is accounted for
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to hideExecTooltip is accounted for
+  ok   the change to ingestGroupOf is accounted for
+  ok   the change to ingestIsBlankCell is accounted for
+  ok   the change to ingestIsHeaderRow is accounted for
+  ok   the change to ingestKeyColCount is accounted for
+  ok   the change to ingestRowKey is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
@@ -130,9 +137,16 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   wireHeaderCardsTooltips changed as intended: NOT this brief: CLCPA-242
   ok   wireExecutiveInteractions changed as intended: NOT this brief: CLCPA-242
   ok   wireControlTips changed as intended: NOT this brief: CLCPA-242 round 2, the early-out
-  ok   exactly FOURTEEN functions changed: 14
+  ok   buildIngestImport changed as intended: NOT this brief: CLCPA-240 first half, the composite row key
+  ok   buildIngestWorkbook changed as intended: NOT this brief: CLCPA-240 first half, the template header cells
+  ok   ingestRowKey changed as intended: NOT this brief: CLCPA-240 first half (new)
+  ok   ingestGroupOf changed as intended: NOT this brief: CLCPA-240 first half (new)
+  ok   ingestIsHeaderRow changed as intended: NOT this brief: CLCPA-240 first half (new)
+  ok   ingestIsBlankCell changed as intended: NOT this brief: CLCPA-240 first half (new)
+  ok   ingestKeyColCount changed as intended: NOT this brief: CLCPA-240 first half (new)
+  ok   exactly TWENTY-ONE functions changed: 21
   ok   and no function outside those fourteen moved at all
 
 ======================================================================
-  121 passed, 0 failed
+  135 passed, 0 failed
 ======================================================================

@@ -1955,6 +1955,53 @@ function utf8ByteLength(str) {
            /\btotal\s+installations?$/i.test(s);
   }
 
+  /* CLCPA-240: THE THREE TABLE SETS WHOSE SHAPE THE ROW LABEL DOES NOT DESCRIBE.
+   *
+   * Declared here, above the derive engine, because both the engine
+   * (totalRowFlags) and the importer (buildIngestImport) read them and a second
+   * copy in the ingest section would be a second source of truth.
+   *
+   * DECLARED, NEVER DETECTED. Two measurements settled that:
+   *
+   *   1. Detecting the key columns as "leading columns that hold no numbers"
+   *      is UNSTABLE ACROSS YEARS inside one table -- C1 reads [3,6,6],
+   *      C2/C3/C4/C5 read [1,3,3], G1 reads [2,2,1]. A detector that changes
+   *      its mind by year would silently re-key stored data.
+   *
+   *   2. Detecting hierarchy structurally, at run time, is unsafe on exactly
+   *      the state this ticket is about. A freshly imported table arrives with
+   *      its total rows EMPTY, and an empty row is shaped identically to a
+   *      group header, so almost every table reads as hierarchical mid-import.
+   *      111 rows across the 48 flat tables carry a label containing "total"
+   *      without being a strict total -- D2's "Total # of projects" among them,
+   *      which is the CLCPA-209 defect itself. A declared scope cannot reach
+   *      any of them; a structural one would reach all 111.
+   */
+
+  /* Tables whose row label repeats by design, so the label alone is not an
+   * identity. A3/A4 have NO header rows: the identity is the pair
+   * (Participant Type, Program Name), and "Residential" appears seven times,
+   * "Commercial" eight. The count is how many LEADING schema columns form the
+   * key. Everything absent from here is 1, which is today's behaviour. */
+  const INGEST_KEY_COLS = { A3: 2, A4: 2 };
+
+  /* Tables where a row's identity includes the GROUP it sits under -- the
+   * nearest header row above it. A5/2025 carries "HVAC" six times, once per
+   * group; the group is not in any column, it is in a preceding ROW.
+   *
+   * A7 is deliberately ABSENT even though it is hierarchical: its labels are
+   * already unique, so adding group context would change its key without
+   * changing any outcome, and leaving it out keeps 47 tables keying
+   * byte-identically to before this ticket. */
+  const INGEST_GROUPED = { A5: true, A6: true, A8: true };
+
+  /* The third set, the hierarchical tables, is declared INSIDE totalRowFlags
+   * rather than here. It has exactly one consumer, so keeping it in that
+   * consumer is locality rather than a second source of truth -- and a
+   * module-level constant would add a dependency to every harness that
+   * assembles totalRowFlags, which is ten of them. See HIERARCHICAL_TOTALS
+   * there. */
+
   // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
   // ratios that must be COMPUTED, never summed). Keyed by table id; column indices
   // are 0-based (0 = row label). Consumed by recomputeTotals.
@@ -2857,6 +2904,58 @@ function utf8ByteLength(str) {
       if (hasNumbers(rows[i])) continue;
       if (!Array.isArray(rows[i]) || !isStrictTotalRowLabel(rows[i][0])) continue;
       out[i] = true;
+    }
+
+    /* CLCPA-240 first half: THE SAME BOOTSTRAP FOR A HIERARCHICAL TABLE.
+     *
+     * The branch above is a WHOLE-label match, which is what keeps CLCPA-209
+     * shut. A5, A6, A7 and A8 do not label their totals that way: A5 says
+     * "Subtotal" in 2023 and "<group> Total" in 2024 and 2025, and its grand
+     * total is "Commercial Programs Total Installations" with the word in the
+     * middle. So a fresh import of A5's own template left all ten group totals
+     * blank forever -- nothing confirmed them arithmetically, so nothing
+     * computed them, so nothing ever would. Measured on the simulated import:
+     * A5/2023 bootstrapped 10 of its 11 because "Subtotal" is a whole label and
+     * its grand total is not; A5/2025 bootstrapped 0 of 10. Now 11 and 10.
+     *
+     * WHY A SUBSTRING MATCH IS SAFE HERE AND NOT GENERALLY. It is scoped to
+     * four DECLARED tables. Inside them, measured on the frozen payload: all
+     * 75 total rows carry total/subtotal in the label, and none of the 67
+     * group headers do, so the match separates the two shapes with no
+     * overlap. Outside them the strict rule is untouched, which matters
+     * because 111 rows in the other 48 tables carry "total" without being
+     * one -- including "Total # of projects", the row CLCPA-209 was filed
+     * about. The scope is a declaration precisely so no fresh import can
+     * widen it: see HIERARCHICAL_TOTALS.
+     *
+     * The two conditions from the branch above still both apply: the row must
+     * hold NO number, so there is never a magnitude to overwrite, and a row
+     * already confirmed by arithmetic is left alone. A group header cannot be
+     * reached -- it is value-less, but its label carries no "total". */
+    /* Tables built as group header / measures / group total, where a total
+     * row's label is NOT a whole-word "Total". The convention is inconsistent
+     * even inside one table -- A5 uses "Subtotal" in 2023 and "<group> Total"
+     * in 2024 and 2025, and its grand total is "Commercial Programs Total
+     * Installations", with "total" in the MIDDLE. Measured across these four
+     * tables: 79 total rows all carry total/subtotal somewhere in the label,
+     * and ZERO of their 67 group headers do. That is what makes a substring
+     * match safe HERE and only here.
+     *
+     * DECLARED, and declared in this function, for two separate reasons. A
+     * run-time structural test would reach 111 rows in the other 48 tables on
+     * a fresh import, "Total # of projects" among them, which is CLCPA-209
+     * itself. And a module-level constant would become a dependency of every
+     * harness that assembles this function, of which there are ten. */
+    const HIERARCHICAL_TOTALS = { A5: true, A6: true, A7: true, A8: true };
+    if (tableId && HIERARCHICAL_TOTALS[tableId]) {
+      for (let i = 0; i < rows.length; i++) {
+        if (out[i]) continue;
+        if (hasNumbers(rows[i])) continue;
+        if (!Array.isArray(rows[i])) continue;
+        const lbl = rows[i][0];
+        if (lbl == null || !/total/i.test(String(lbl))) continue;
+        out[i] = true;
+      }
     }
     return out;
   }
@@ -15346,6 +15445,113 @@ function wireHTooltips() {
       .replace(/\uFEFF/g, '').trim().toLowerCase().replace(/\s+/g, ' ');
   }
 
+  /* The separator between the parts of a composite row key. A control
+   * character, so a label cannot forge one and split its own key: spreadsheet
+   * cells carry text, and normIngestKey collapses every run of whitespace to a
+   * single space before this is applied. Built with fromCharCode rather than
+   * written as an escape, because an escape sequence in a source patch is one
+   * more thing that can be interpreted twice. */
+  const INGEST_KEY_SEP = String.fromCharCode(31);
+
+  /* The marker the TEMPLATE writes into cells the dashboard computes. One
+   * constant rather than two literals, because the importer skips it and the
+   * template writes it and a drift between the two is silent. */
+  const INGEST_CALC_MARKER = '(calculated)';
+
+  /* How many LEADING schema columns form this table's row key. 1 unless the
+   * table is declared in INGEST_KEY_COLS, which is today's behaviour for the
+   * 50 tables that are not. */
+  function ingestKeyColCount(tableId) {
+    return (tableId && INGEST_KEY_COLS[tableId]) || 1;
+  }
+
+  /* Empty for the purposes of reading a row's SHAPE. The calculated marker
+   * counts as empty because it is not operator input: it means "the dashboard
+   * fills this in". */
+  function ingestIsBlankCell(v) {
+    if (v == null) return true;
+    const s = String(v).trim();
+    return s === '' || s === INGEST_CALC_MARKER;
+  }
+
+  /* A group header: the key column is set and every other cell is empty.
+   *
+   * `labelCols` is passed in rather than assumed, because this reads a FILE
+   * (where the key columns sit wherever their headings sat -- Excel users
+   * reorder) as well as a DRAFT (where they are the schema's first columns).
+   *
+   * The template is what makes this decidable in a file. It used to stamp
+   * "(calculated)" into a header row's derived column, which left the header
+   * indistinguishable from a data row; buildIngestWorkbook now leaves a header
+   * row's cells genuinely blank.
+   *
+   * SO THE MARKER IS NOT BLANK HERE, and that distinction is load-bearing in
+   * both directions. A group header's cells are EMPTY; a TOTAL row's cells all
+   * carry the marker, because the dashboard computes them. Treating the marker
+   * as empty made every total row in a downloaded file read as a group header,
+   * which matched nothing on the draft side and appended A5's ten totals a
+   * second time on any re-import -- 60 rows where there should be 50. The key
+   * parts in ingestRowKey still treat the marker as empty, which is a
+   * different question: what the operator SUPPLIED, not what shape the row is.
+   *
+   * KNOWN LIMIT: an operator who both deletes the "(calculated)" text from a
+   * data row and leaves every value blank produces a row shaped like a header.
+   * It is then treated as one, which costs nothing -- the row had no values to
+   * land -- but it does become the group for the rows beneath it. */
+  function ingestIsHeaderRow(row, labelCols) {
+    if (!Array.isArray(row) || row.length < 2) return false;
+    const lc = labelCols[0];
+    if (row[lc] == null || String(row[lc]).trim() === '') return false;
+    for (let c = 0; c < row.length; c++) {
+      if (c === lc) continue;
+      if (row[c] != null && String(row[c]).trim() !== '') return false;
+    }
+    return true;
+  }
+
+  /* The nearest group header ABOVE idx, '' when there is none. A header row's
+   * own group is not the header above it, so ingestRowKey keys headers in
+   * their own namespace rather than calling this for them. */
+  function ingestGroupOf(rows, idx, labelCols) {
+    for (let i = idx - 1; i >= 0; i--) {
+      if (ingestIsHeaderRow(rows[i], labelCols)) {
+        return normIngestKey(rows[i][labelCols[0]]);
+      }
+    }
+    return '';
+  }
+
+  /* CLCPA-240: A ROW'S IDENTITY, for matching a file row to a draft row.
+   *
+   * [groupContext, ...labelColumns], NUL-separated so no label can forge a
+   * separator. '' means "not keyable" -- no label -- which callers report as
+   * an unmatched row rather than treating as a key.
+   *
+   * `grouped` is false for the 47 tables that are not declared, and for them
+   * the key is 'r' + '' + label, which is byte-identically the label key this
+   * function replaced. That equivalence is what keeps the untouched tables
+   * untouched, and the suite asserts it table by table.
+   *
+   * Headers live in a separate namespace so a group header can never collide
+   * with a data row of the same name. Measured: group header labels are
+   * distinct within every table-year, and the composite key is unique in all
+   * 149 table-years of the frozen payload. */
+  function ingestRowKey(rows, idx, labelCols, grouped) {
+    const row = rows[idx] || [];
+    const label = normIngestKey(row[labelCols[0]]);
+    if (!label) return '';
+    if (grouped && ingestIsHeaderRow(row, labelCols)) return 'h' + INGEST_KEY_SEP + label;
+    const group = grouped ? ingestGroupOf(rows, idx, labelCols) : '';
+    /* A key cell holding the calculated marker counts as EMPTY, not as the
+     * text "(calculated)". A3/A4's total row is computed in every column, so
+     * the template stamps the marker into its Program Name too; keying on that
+     * string made the row miss its target and then land "(calculated)" in the
+     * column as if the operator had typed it. */
+    return 'r' + INGEST_KEY_SEP + group + INGEST_KEY_SEP +
+      labelCols.map(c => (ingestIsBlankCell(row[c]) ? '' : normIngestKey(row[c])))
+        .join(INGEST_KEY_SEP);
+  }
+
   /**
    * Which cells are NOT operator input.
    *
@@ -15477,10 +15683,32 @@ function wireHTooltips() {
     }
     res.labelColumn = schema[0];
 
+    /* CLCPA-240: the rest of the KEY columns, resolved the same way -- by
+     * HEADING, not by position. A3/A4 declare two, so "Program Name" is part
+     * of the row's identity; without this it fell through to colMap and would
+     * have been written as a VALUE, run through parseNumericInput. Its absence
+     * is a hard rejection for the same reason schema[0]'s is: the file cannot
+     * say which row a value belongs to. */
+    const keyCols = Math.max(1, Math.min(ingestKeyColCount(tableId), schema.length));
+    const grouped = !!(tableId && INGEST_GROUPED[tableId]);
+    const labelCols = [labelCol];
+    for (let s = 1; s < keyCols; s++) {
+      const fIdx = header.indexOf(normIngestKey(schema[s]));
+      if (fIdx < 0) {
+        reject('The file has no “' + schema[s] + '” column. This table has ' +
+          'rows that repeat the same “' + schema[0] + '”, so that column on ' +
+          'its own cannot say which row a value belongs to. Download the template ' +
+          'for this table and year to see the headings it expects.', {});
+        return res;
+      }
+      labelCols.push(fIdx);
+    }
+    res.keyColumns = schema.slice(0, keyCols);
+
     // file column index -> schema column index
     const colMap = {};
     header.forEach((h, idx) => {
-      if (idx === labelCol || !h) return;
+      if (labelCols.indexOf(idx) >= 0 || !h) return;
       const sIdx = schemaNorm.indexOf(h);
       if (sIdx > 0) { colMap[idx] = sIdx; res.matchedColumns.push(schema[sIdx]); }
       else res.notTouched.unmatchedColumns.push(fileRows[0][idx]);
@@ -15494,17 +15722,32 @@ function wireHTooltips() {
     // ---- rows -------------------------------------------------------------
     const body = fileRows.slice(1);
     res.fileRowCount = body.length;
+    /* CLCPA-240: duplicates are counted on the COMPOSITE key.
+     *
+     * A5's six "HVAC" rows sit in six different groups and are six different
+     * rows, so counting labels rejected the very file the template wrote:
+     * "The file has 6 rows with this label, so which one wins is ambiguous."
+     * Two rows identical in group AND in every key column are still a hard
+     * rejection, because then it genuinely is ambiguous. */
     const dupLabel = {};
-    body.forEach(r => {
-      const k = normIngestKey(r[labelCol]);
+    const dupFirst = {};
+    body.forEach((r, bi) => {
+      const k = ingestRowKey(body, bi, labelCols, grouped);
       if (!k) return;
       dupLabel[k] = (dupLabel[k] || 0) + 1;
+      if (dupFirst[k] === undefined) dupFirst[k] = bi;
     });
     Object.keys(dupLabel).forEach(k => {
       if (dupLabel[k] > 1) {
-        const shown = (body.filter(r => normIngestKey(r[labelCol]) === k)[0] || [])[labelCol];
-        reject('The file has ' + dupLabel[k] + ' rows with this label, so which one ' +
-          'wins is ambiguous.', { label: shown });
+        const r = body[dupFirst[k]] || [];
+        const shown = labelCols.map(c => r[c])
+          .filter(v => v != null && String(v).trim() !== '').join(' / ');
+        const what = keyCols > 1
+          ? ' rows with this same ' + schema.slice(0, keyCols).join(' and ')
+          : (grouped ? ' rows with this label inside the same group'
+                     : ' rows with this label');
+        reject('The file has ' + dupLabel[k] + what + ', so which one wins ' +
+          'is ambiguous.', { label: shown });
       }
     });
 
@@ -15531,23 +15774,40 @@ function wireHTooltips() {
 
     // ---- build the candidate ----------------------------------------------
     const candidate = (draft || []).map(row => (row || []).slice());
+    /* In the DRAFT the key columns ARE the schema's first columns; in the FILE
+     * they are wherever their headings sat. Two index lists, one key builder. */
+    const draftCols = [];
+    for (let s = 0; s < keyCols; s++) draftCols.push(s);
     const labelIndex = {};
     candidate.forEach((row, idx) => {
-      const k = normIngestKey(row[0]);
+      const k = ingestRowKey(candidate, idx, draftCols, grouped);
       if (k && labelIndex[k] === undefined) labelIndex[k] = idx;
     });
 
     const targets = [];   // { rowIdx, fileRow, added }
-    body.forEach(r => {
-      const k = normIngestKey(r[labelCol]);
+    body.forEach((r, bi) => {
+      const k = ingestRowKey(body, bi, labelCols, grouped);
       if (!k) { res.notTouched.unmatchedRows.push({ label: r[labelCol], why: 'the row has no label' }); return; }
       if (labelIndex[k] !== undefined) {
         targets.push({ rowIdx: labelIndex[k], fileRow: r, added: false });
         return;
       }
-      // Shaped exactly as the editor's + Add row shapes a new row.
+      /* Shaped exactly as the editor's + Add row shapes a new row, and every
+       * KEY column is carried across, not just the label.
+       *
+       * A group header arrives with all its value cells blank, so it is
+       * recreated AS a header -- which is what lets A5's group structure
+       * rebuild itself in a year that has none. Rows are appended in FILE
+       * order, so the group above each new row is the group it had in the
+       * file, and the key computed on the file side therefore matches the one
+       * the draft side would compute for the same row. */
       const fresh = schema.map(() => null);
-      fresh[0] = String(r[labelCol]).trim();
+      labelCols.forEach((c, s) => {
+        /* The marker is not a value the operator supplied, so it is never
+         * carried into a key column -- the same rule ingestRowKey applies. */
+        fresh[s] = ingestIsBlankCell(r[c]) ? null : String(r[c]).trim();
+      });
+      if (fresh[0] == null) fresh[0] = String(r[labelCols[0]]).trim();
       candidate.push(fresh);
       const idx = candidate.length - 1;
       labelIndex[k] = idx;
@@ -15598,7 +15858,7 @@ function wireHTooltips() {
          * classify as computed. It also protects the plain CSV path: a file
          * saved with the markers left in is now ignored rather than imported
          * as text. */
-        if (String(raw).trim() === '(calculated)') {
+        if (String(raw).trim() === INGEST_CALC_MARKER) {
           res.notTouched.computed.push(Object.assign({
             why: 'the template marks this cell as calculated, so it is left to ' +
               'the dashboard',
@@ -16085,13 +16345,24 @@ function wireHTooltips() {
     src.rows.forEach((row, idx) => {
       // Round 6: a Total row carries the dashboard's total-row look, whole row.
       const isTotal = computed.totalRow(idx);
+      /* CLCPA-240: A GROUP HEADER'S CELLS STAY GENUINELY BLANK.
+       *
+       * A5, A6, A7 and A8 all carry a derived column, so a group header used
+       * to be stamped "(calculated)" in it -- which made the header
+       * indistinguishable from a data row in the downloaded file, and the
+       * importer could not tell which group a row belonged to. A header has
+       * nothing to calculate: it is a caption for the rows beneath it. This is
+       * what makes A5's own template carry the key the matcher reads. */
+      const isGroupHeader = ingestIsHeaderRow(row, [0]);
       rows.push(schema.map((h, c) => {
         if (c === 0) {
           return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
                    text: row[0] };
         }
         const style = isTotal ? XLSX_STYLE_TOTAL : XLSX_STYLE_LOCKED;
-        if (computed.any(idx, c)) return { style: style, text: '(calculated)' };
+        if (!isGroupHeader && computed.any(idx, c)) {
+          return { style: style, text: INGEST_CALC_MARKER };
+        }
         /* EMPTY, and LOCKED like everything else: the workbook shows the
          * format, it is not filled in. The operator types into their own CSV,
          * saved from this sheet. */

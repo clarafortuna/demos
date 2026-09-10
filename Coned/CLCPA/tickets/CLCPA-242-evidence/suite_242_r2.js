@@ -376,17 +376,34 @@ guard('two functions', () => {
   const EXPECT = {
     wireControlTips: 'fix A: the early-out for tip-owning surfaces',
     placeTooltipAtPointer: 'fix B: a size of zero is unknown',
+    /* CLCPA-240 first half has since landed. Its eight functions are named
+     * here rather than absorbed into a larger number, so the count stays
+     * exact and this suite still says what IT changed. */
+    buildIngestImport: 'NOT this brief: CLCPA-240 first half, the composite key',
+    buildIngestWorkbook: 'NOT this brief: CLCPA-240 first half, the template header cells',
+    totalRowFlags: 'NOT this brief: CLCPA-240 first half, the hierarchical bootstrap',
+    ingestRowKey: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestGroupOf: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half (new)',
+    ingestKeyColCount: 'NOT this brief: CLCPA-240 first half (new)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 2, 'exactly TWO functions changed: ' + changed.length);
+  /* 2 -> 10: CLCPA-240's first half added eight, each named in EXPECT above,
+   * so the count stays exact rather than becoming a range. */
+  ok(changed.length === 10, 'TEN: this round\'s two plus CLCPA-240 first ' +
+     'half\'s eight: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
   ['dacCol', 'dacRow', 'ensureTooltip', 'positionTooltipAt', 'renderDumbbell',
    'renderStripWithGap', 'computeHeaderCards', 'composePayloadFromRows',
-   'buildSectionDAC', 'totalRowFlags'].forEach(fn => {
+   /* totalRowFlags left this list when CLCPA-240's first half changed it. That
+    * ticket owns the change and asserts it by name; this suite's claim is only
+    * that ROUND 2 did not touch it, which the named inventory above states. */
+   'buildSectionDAC'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);
     if (!ok(a !== null && b !== null, fn + ' exists in both sources')) return;
     ok(a === b, fn + ' is byte-identical to BASE');

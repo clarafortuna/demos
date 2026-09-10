@@ -1,0 +1,66 @@
+======================================================================
+CLCPA-240 first half -- mutation controls
+======================================================================
+  red  A3/A4 lose their second key column
+       8 red, incl: C1 the importer accepts A3 own template: The file has 7 rows with this label, so which one wins is ambi
+  red  the key-column count is DETECTED instead of declared
+       2 red, incl: S1 INGEST_KEY_COLS declares exactly A3:2 and A4:2
+  red  A5 stops being grouped, so the label alone is the key again
+       10 red, incl: R3 the importer ACCEPTS the file the template wrote: The file has 6 rows with this label, so which one 
+  red  A7 is added to the grouped set, changing a key it should not
+       2 red, incl: S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)
+  red  the hierarchical total scope is dropped
+       9 red, incl: H4 A5:2025 bootstraps 0 of 10 totals (BASE: 0)
+  red  THE CLCPA-209 DIRECTION: the scope grows to a flat table
+       3 red, incl: P2 on a simulated FRESH IMPORT the 48 flat tables flag identically to BASE: D2:2023, D2:2024, D2:2025
+  red  THE CLCPA-209 DIRECTION: the branch is gated structurally, not declared
+       3 red, incl: P4 NONE of those 111 is flagged on a fresh import, so CLCPA-209 cannot reopen: D2:2023 r0 Total # of pr
+  red  the group is dropped from the key
+       9 red, incl: R3 the importer ACCEPTS the file the template wrote: The file has 6 rows with this label inside the sam
+  red  only the first key column enters the key
+       4 red, incl: C1 the importer accepts A3 own template: The file has 7 rows with this same Participant Type and Progra
+  red  the calculated marker is keyed as literal text again
+       2 red, incl: M2 A3: it MATCHES all 23 rows instead of appending duplicates: 24
+  red  headers stop having their own namespace, so one can shadow a data row
+       4 red, incl: M4 a group header named after a data row is not a collision: The file has 2 rows with this label inside
+  red  an unkeyable row is given a key anyway
+       2 red, incl: M8 and is not created as a row: 3 rows, not 3
+  red  the group scan walks DOWN instead of up
+       2 red, incl: M10 row 1 keys under g1, the header ABOVE it, not g2: "r\u001fg2\u001fhvac"
+  red  the header test ignores the value cells, so every row is a header
+       13 red, incl: R3 the importer ACCEPTS the file the template wrote: The file has 6 rows with this label inside the sam
+  red  THE RE-IMPORT DIRECTION: the marker counts as blank for SHAPE again
+       2 red, incl: M2 A5: it MATCHES all 50 rows instead of appending duplicates: 60
+  red  the marker stops counting as an empty cell in a KEY
+       3 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 1 differ: r22 want null got "(c
+  red  THE OVER-WIDE DIRECTION: the duplicate rejection is removed
+       3 red, incl: D1 two rows identical in group AND label are rejected
+  red  duplicates are counted on the label again, not the composite key
+       13 red, incl: R3 the importer ACCEPTS the file the template wrote: The file has 6 rows with this label inside the sam
+  red  a key column falls through to colMap as a VALUE
+       1 red, incl: C6 Program Name is NOT in matchedColumns, so it is never written as a value
+  red  a missing second key column is accepted silently
+       2 red, incl: M16b and it is the MISSING-COLUMN rejection, not the ambiguity one: "The file has 2 rows with this same
+  red  only the label is carried into a created row
+       2 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 22 differ: r0 want "Clean Heat 
+  red  the marker is written into a created key column
+       1 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 1 differ: r22 want null got "(c
+  red  THE ORIGINAL DEFECT: headers are stamped (calculated) again
+       5 red, incl: R2 all 9 group headers carry NO "(calculated)": 0 blank
+  red  THE OVER-WIDE DIRECTION: the marker is dropped from every row
+       2 red, incl: T3 every one of the 282 non-header rows KEEPS its marker: 0 -- the change did not widen past headers
+  red  the header test in the template reads the wrong column
+       5 red, incl: T2 not one of them is stamped "(calculated)" any more: A5:2023 r0, A5:2023 r3, A5:2023 r6
+  red  the hierarchical branch requires a strict label after all
+       8 red, incl: H4 A5:2025 bootstraps 0 of 10 totals (BASE: 0)
+  red  THE MAGNITUDE DIRECTION: the branch stops requiring an empty row
+       1 red, incl: P1 on STORED data the flags are identical to BASE for every table-year: A8:2025 -- the change fires on 
+  red  HARNESS: the baseline is repointed at the working tree
+       1 red, incl: M18 the baseline in this file is a literal commit sha, not a symbolic ref that would collapse onto the 
+  red  HARNESS: the CRLF normalisation of the baseline is removed
+       1 red, incl: the BASE source assembles and every entry point RUNS THREW: BASE cannot resolve buildIngestWorkbook
+  red  HARNESS: a declaration is deleted and left quoted in a comment
+       10 red, incl: S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)
+
+  30 caught, 0 not caught, of 30
+  clean re-run against byte-restored source: PASSES -- 84 passed, 0 failed

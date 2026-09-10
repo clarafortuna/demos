@@ -107,8 +107,12 @@ const M = [
 
   /* ---- the harness itself -------------------------------------------- */
   { t: SUITE, name: 'a name in the exclusion list is misspelled',
-    from: "   'buildSectionDAC', 'totalRowFlags'].forEach(fn => {",
-    to:   "   'buildSectionDACX', 'totalRowFlags'].forEach(fn => {",
+    /* Anchor updated when CLCPA-240's first half removed totalRowFlags from
+     * this exclusion list. A mutation whose anchor has rotted reports
+     * "ANCHOR 0, NOT APPLIED", which is a dead control rather than a passing
+     * one -- so it is repointed at the line as it now reads. */
+    from: "   'buildSectionDAC'].forEach(fn => {",
+    to:   "   'buildSectionDACX'].forEach(fn => {",
     expect: 'exists in both sources' },
 
   /* ---- exclusions ----------------------------------------------------- */

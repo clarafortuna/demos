@@ -244,6 +244,9 @@ const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
   'recomputeTotals', 'clone2D', 'getTableSchema', 'getTableBody', 'compareTableIds',
   'mostRecentYear', 'allYears', 'validateReportingYear', 'buildIngestImport',
   'parseCsvRows', 'normIngestKey', 'parseNumericInput', 'formatIngestValue',
+  /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
+     these, so the functions cannot be assembled without them. */
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
   'ingestComputed', 'totalRowFlags', 'isStrictTotalRowLabel', 'isSplitCell',
   'cellText', 'cellCount', 'cellPct', 'rawNum', 'applyIngestImport',
   'addsOnlyPrecision', 'ingestStagedSummary', 'detectPctColumns', 'detectAvgColumns',
@@ -286,7 +289,17 @@ function grabDeclAll() {
     }
     return (s < 0 || e < 0) ? '' : L.slice(s, e + 1).join('\n');
   };
-  return one('DERIVED_COLS') + '\n' + one('DERIVED_ROWS') + '\n' + one('SHORT_TITLES');
+  /* CLCPA-240 dependencies. Single-line consts, so they are read with a
+   * bounded one-line match rather than through one() above, which scans to the
+   * next dedented `};` and would swallow whatever follows. Read from the
+   * SOURCE, never retyped: a harness holding its own copy of the table sets
+   * could pass while app.js declared something different. */
+  const ingestDecls = ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP',
+    'INGEST_CALC_MARKER']
+    .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
+    .filter(Boolean).join('\n');
+  return one('DERIVED_COLS') + '\n' + one('DERIVED_ROWS') + '\n' +
+    one('SHORT_TITLES') + '\n' + ingestDecls;
 }
 
 /* THE HANDLER, extracted and run. Everything the dialog reaches for is real

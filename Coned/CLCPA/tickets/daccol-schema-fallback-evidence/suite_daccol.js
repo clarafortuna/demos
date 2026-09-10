@@ -370,17 +370,24 @@ guard('one function', () => {
   /* CLCPA-242 landed on top of this branch and added five tooltip-wiring
    * functions. THIS ticket's blast radius is still one; the others are named
    * so the claim stays exact rather than being relaxed to a bigger number. */
+  /* CLCPA-240's first half then landed too, adding or changing eight more.
+   * Same treatment: named, not absorbed into a looser number. */
   const ALSO = ['placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
                 'wireHeaderCardsTooltips', 'wireExecutiveInteractions',
-                'wireControlTips'];
+                'wireControlTips',
+                'buildIngestImport', 'buildIngestWorkbook', 'totalRowFlags',
+                'ingestRowKey', 'ingestGroupOf', 'ingestIsHeaderRow',
+                'ingestIsBlankCell', 'ingestKeyColCount'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));
   ok(mine.length === 1 && mine[0] === 'dacCol',
      'exactly ONE function is THIS ticket\'s, and it is dacCol: ' + mine.join(', '));
   /* every name compared must exist, or the comparison means nothing */
+  /* totalRowFlags left this list when CLCPA-240's first half changed it; it is
+   * named in ALSO above instead, so the claim is still exact. */
   ['dacRow', 'dacCell', 'getTableSchema', 'composePayloadFromRows', 'kpiDacPct',
-   'buildSectionDAC', 'computeHeaderCards', 'totalRowFlags', 'rowsForDisplay',
+   'buildSectionDAC', 'computeHeaderCards', 'rowsForDisplay',
    'renderDumbbell', 'renderStripWithGap'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);
     if (!ok(a !== null && b !== null, fn + ' exists in both sources')) return;
