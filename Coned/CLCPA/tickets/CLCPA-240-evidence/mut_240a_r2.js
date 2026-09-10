@@ -99,7 +99,7 @@ const M = [
     to:   '        <td class="ingest-td-actions">${false ? \'\'',
     expect: 'L3 and not one has a delete button' },
   { t: APP, name: 'THE LOCK SPREADS: every row in the family locks',
-    from: '    const isGroupHeaderRow = (row) => isHierFamily && Array.isArray(row) &&\n      !!baselineHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
+    from: '    const isGroupHeaderRow = (row) => isHierFamily && Array.isArray(row) &&\n      !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
     to:   '    const isGroupHeaderRow = (row) => isHierFamily && Array.isArray(row);',
     expect: 'L9 every one of them KEEPS its inputs' },
   { t: APP, name: 'THE LOCK SPREADS: the family scope is dropped',
@@ -107,18 +107,22 @@ const M = [
     to:   '    const isHierFamily = true;',
     expect: 'F2 every one is byte-identical to BASE' },
   { t: APP, name: 'THE LOCK SPREADS: identification moves to the DRAFT shape',
-    from: '      !!baselineHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
+    from: '      !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
     to:   '      !ingestIsHeaderRow(row, [0]) === false;',
     /* a row the operator is still filling in would lock on the next render */
     expect: 'N2 a label that is NOT in the baseline stays editable' },
   { t: APP, name: 'the "holds no number" condition is dropped',
-    from: '      !!baselineHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
-    to:   '      !!baselineHeaderLabels[normIngestKey(row[0])];',
+    from: '      !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
+    to:   '      !!groupHeaderLabels[normIngestKey(row[0])];',
     expect: 'N6 and the "holds no number" condition is what keeps a DATA row' },
-  { t: APP, name: 'the baseline is read from the DRAFT instead',
-    from: '      (i.baseline || []).forEach(r => {\n        if (ingestIsHeaderRow(r, [0])) out[normIngestKey(r[0])] = true;\n      });',
-    to:   '      (i.draft || []).forEach(r => {\n        if (ingestIsHeaderRow(r, [0])) out[normIngestKey(r[0])] = true;\n      });',
-    expect: 'N2 a label that is NOT in the baseline stays editable' },
+  /* DELETED in round 3, with the reason kept. This control mutated the header
+   * set to read the DRAFT instead of the baseline, on the premise that reading
+   * the draft was the defect. Round 3 established the opposite: the baseline is
+   * EMPTY on a year imported but not yet saved, so the draft is a legitimate
+   * fallback and reading it is the fix, not the bug. The risk that replaced it
+   * -- using the fallback even when a baseline exists -- is covered by
+   * mut_240a_r3's "the fallback is skipped whenever the baseline exists as an
+   * array". A control whose premise is gone is a dead control. */
 
   /* ---- the total-row half (item 2) ------------------------------------- */
   { t: APP, name: 'ITEM 2 REVERTED: a total row label is editable again',
@@ -126,8 +130,9 @@ const M = [
     to:   '        if (false) {',
     expect: 'L6 their LABELS are locked too' },
   { t: APP, name: 'ITEM 2 SPREADS: flat-table totals get locked too',
-    from: '      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow;',
-    to:   '      const lockTotalRow = isTotal && !isHeaderRow;',
+    /* Anchor repointed: round 3 added the label condition to this line. */
+    from: '      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&\n        isHierarchicalTotalLabel(row[0]);',
+    to:   '      const lockTotalRow = isTotal && !isHeaderRow &&\n        isHierarchicalTotalLabel(row[0]);',
     /* CLCPA-205 item 2 is a pending decision on the all-totals tables and this
      * round must not pre-empt it */
     expect: 'F4 its label is still editable, because A1 is not in the family' },

@@ -101,7 +101,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, hideExecTooltip, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, hideExecTooltip, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isHierarchicalTotalLabel, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to computeHeaderCards is accounted for
@@ -113,6 +113,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to ingestIsShapeBlank is accounted for
   ok   the change to ingestKeyColCount is accounted for
   ok   the change to ingestRowKey is accounted for
+  ok   the change to isHierarchicalTotalLabel is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
@@ -148,9 +149,10 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   ingestKeyColCount changed as intended: NOT this brief: CLCPA-240 first half (new)
   ok   ingestIsShapeBlank changed as intended: NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)
   ok   xlsxInstructionBlocks changed as intended: NOT this brief: CLCPA-240 round 2, the (no value) instruction
-  ok   exactly TWENTY-THREE functions changed: 23
+  ok   isHierarchicalTotalLabel changed as intended: NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)
+  ok   exactly TWENTY-THREE functions changed: 24
   ok   and no function outside those fourteen moved at all
 
 ======================================================================
-  139 passed, 0 failed
+  141 passed, 0 failed
 ======================================================================

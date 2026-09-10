@@ -107,7 +107,7 @@ guard('extract and run the shipped composer', () => {
    * passes with none of these present, so only a real invocation finds them. */
   const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
     'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-    'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
+    'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
     'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
     'sumDerivedCols', 'detectPctColumns'];
   const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',

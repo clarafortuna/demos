@@ -166,13 +166,15 @@ const M = [
     expect: 'T2 not one of them is stamped "(calculated)" any more' },
 
   /* ---- stage 3 ---------------------------------------------------------- */
+  /* Both anchors repointed by CLCPA-240 round 3, which moved the label test
+   * into the shared isHierarchicalTotalLabel and dropped the local `lbl`. */
   { t: APP, name: 'the hierarchical branch requires a strict label after all',
-    from: '        if (lbl == null || !/total/i.test(String(lbl))) continue;',
-    to:   '        if (lbl == null || !isStrictTotalRowLabel(lbl)) continue;',
+    from: '        if (!isHierarchicalTotalLabel(rows[i][0])) continue;',
+    to:   '        if (!isStrictTotalRowLabel(rows[i][0])) continue;',
     expect: 'H4 A5:2025 bootstraps' },
   { t: APP, name: 'THE MAGNITUDE DIRECTION: the branch stops requiring an empty row',
-    from: '        if (hasNumbers(rows[i])) continue;\n        if (!Array.isArray(rows[i])) continue;\n        const lbl = rows[i][0];',
-    to:   '        if (!Array.isArray(rows[i])) continue;\n        const lbl = rows[i][0];',
+    from: '        if (hasNumbers(rows[i])) continue;\n        if (!Array.isArray(rows[i])) continue;\n        if (!isHierarchicalTotalLabel(rows[i][0])) continue;',
+    to:   '        if (!Array.isArray(rows[i])) continue;\n        if (!isHierarchicalTotalLabel(rows[i][0])) continue;',
     expect: 'P1 on STORED data the flags are identical to BASE' },
   /* NOT LISTED, and deliberately so: removing `if (out[i]) continue;` from the
    * hierarchical branch cannot change any outcome. The branch only runs on

@@ -2017,6 +2017,18 @@ function utf8ByteLength(str) {
    * them, which is CLCPA-209 itself. */
   const HIERARCHICAL_TABLES = { A5: true, A6: true, A7: true, A8: true };
 
+  /* "The label says this row is a total", for the four tables above and for
+   * nowhere else. A substring, because their convention is not a whole word
+   * and not even a suffix -- see HIERARCHICAL_TABLES.
+   *
+   * ONE definition, read by totalRowFlags' value-less bootstrap and by the
+   * editor's label lock. Two copies of a rule is the thing this file does not
+   * do, and the cost of sharing it is a dependency in the harnesses, which is
+   * the same trade HIERARCHICAL_TABLES made. */
+  function isHierarchicalTotalLabel(v) {
+    return v != null && /total/i.test(String(v));
+  }
+
   // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
   // ratios that must be COMPUTED, never summed). Keyed by table id; column indices
   // are 0-based (0 = row label). Consumed by recomputeTotals.
@@ -2955,8 +2967,7 @@ function utf8ByteLength(str) {
         if (out[i]) continue;
         if (hasNumbers(rows[i])) continue;
         if (!Array.isArray(rows[i])) continue;
-        const lbl = rows[i][0];
-        if (lbl == null || !/total/i.test(String(lbl))) continue;
+        if (!isHierarchicalTotalLabel(rows[i][0])) continue;
         out[i] = true;
       }
     }
@@ -20844,31 +20855,72 @@ function wireHTooltips() {
      * suppresses the delete button, and .ingest-row-subheader already exists.
      * No CSS changes.
      *
-     * IDENTIFIED BY BASELINE LABEL, not by the draft's shape. "+ Add Row"
-     * creates ['', null, null, null], and a structural rule would lock a row
-     * the operator is still filling in the moment anything re-renders the grid
-     * -- which Add Row and Delete Row both do. A label that is not in the
-     * baseline cannot be a stored group header, so a new row can never be
-     * caught. It also survives rows moving, where an index rule would not.
+     * IDENTIFIED BY LABEL. "+ Add Row" creates ['', null, null, null], and a
+     * naive structural rule would lock a row the operator is still filling in
+     * the moment anything re-renders the grid -- which Add Row and Delete Row
+     * both do. Matching on a label the table already has cannot catch a new
+     * row, and it survives rows moving, where an index rule would not.
+     *
+     * ROUND 3: WHERE THE LABELS COME FROM WHEN NOTHING IS SAVED YET.
+     *
+     * Round 2 took them from i.baseline alone, and i.baseline is
+     * getTableBody(table, year) -- EMPTY for a table-year whose data has never
+     * been saved. That is exactly the screen this feature exists for: the
+     * operator has just imported into a fresh year and has not pressed Save.
+     * Emely found all nine of A5:2099's headers with an open input and a
+     * delete button, and both of my suites had missed it because both always
+     * supplied a populated baseline. The design error was mine: I chose
+     * baseline identification to avoid trapping a half-typed row and never
+     * asked what the baseline holds on the one screen that matters.
+     *
+     * So: the baseline when it has rows, and otherwise the DRAFT's own
+     * structure -- restricted to a header that is FOLLOWED, before the next
+     * structural header, by a row that HOLDS A NUMBER. A group the operator
+     * has filled in always has one. A row just typed at the bottom is followed
+     * by nothing, so it can never lock, and a group with nothing under it yet
+     * stays open because the scan stops at the next header rather than
+     * borrowing a later group's values.
+     *
+     * KNOWN LIMIT, measured and asserted rather than hoped: a draft in which
+     * NOTHING has a value -- a template imported with no figures typed -- locks
+     * nothing at all, because every row is then shaped like a header and the
+     * scan cannot advance past the first one. There is nothing to protect in
+     * that state and nothing to lose, and the moment a group gets one value its
+     * caption locks. I first wrote an "or a total-labelled row" alternative to
+     * cover it; it changed no outcome anywhere, for the same reason, so it is
+     * gone rather than left as a branch that cannot fire.
      *
      * The "holds no number" condition keeps a DATA row that happens to share a
-     * header's name from being frozen. KNOWN LIMIT: such a row would still
-     * lock while it is empty. Measured on the frozen payload: zero of the 67
-     * group headers shares a name with a data row, so this is unreachable
-     * today. */
+     * header's name from being frozen. KNOWN LIMITS, both narrow and both
+     * asserted rather than hoped: such a row still locks while it is empty
+     * (measured: zero of the 67 group headers shares a name with a data row);
+     * and a hand-typed row would lock if the operator then added ANOTHER row
+     * beneath it and gave that one a value. */
     const isHierFamily = !!(i.tableId && HIERARCHICAL_TABLES[i.tableId]);
-    const baselineHeaderLabels = (() => {
+    const rowHasNumber = (r) => Array.isArray(r) &&
+      r.slice(1).some(v => typeof v === 'number' && isFinite(v));
+    const groupHeaderLabels = (() => {
       const out = {};
       if (!isHierFamily) return out;
-      (i.baseline || []).forEach(r => {
-        if (ingestIsHeaderRow(r, [0])) out[normIngestKey(r[0])] = true;
+      const base = i.baseline || [];
+      if (base.length) {
+        base.forEach(r => {
+          if (ingestIsHeaderRow(r, [0])) out[normIngestKey(r[0])] = true;
+        });
+        return out;
+      }
+      const rows = i.draft || [];
+      const structural = rows.map(r => ingestIsHeaderRow(r, [0]));
+      rows.forEach((r, idx) => {
+        if (!structural[idx]) return;
+        for (let k = idx + 1; k < rows.length && !structural[k]; k++) {
+          if (rowHasNumber(rows[k])) { out[normIngestKey(r[0])] = true; return; }
+        }
       });
       return out;
     })();
-    const rowHasNumber = (r) => Array.isArray(r) &&
-      r.slice(1).some(v => typeof v === 'number' && isFinite(v));
     const isGroupHeaderRow = (row) => isHierFamily && Array.isArray(row) &&
-      !!baselineHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);
+      !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);
 
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
       const isHeaderRow = rowIdx < headerRowCount || isGroupHeaderRow(row);
@@ -20880,7 +20932,24 @@ function wireHTooltips() {
        * removing a group total breaks the group/total pairing the report and
        * the importer both read. Flat tables are untouched: the all-totals
        * tables are CLCPA-205 item 2 and stay pending. */
-      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow;
+      /* ROUND 3: THE LABEL LOCK FOLLOWS THE LABEL, NOT THE FLAG ALONE.
+       *
+       * A row is flagged a total when arithmetic confirms it sums the rows
+       * above it in its segment, and on a SPARSE draft that inference lands on
+       * data rows: measured on a half-filled A5, "Building Shell" and "HVAC"
+       * are flagged, and recomputeTotals then writes a segment sum into them.
+       * That mis-inference PREDATES this ticket -- five of the six appear on
+       * 899fd8a698, before any of CLCPA-240 -- and correcting it is
+       * derive-engine surgery with its own audit.
+       *
+       * What round 2 added was the harm: locking the label made a wrong
+       * computed number authoritative and left the operator no way to correct
+       * it. Gating on the label undoes exactly that much. A mis-flagged
+       * "Building Shell" keeps its input and its delete button, as it had
+       * before round 2; a real group total, whose label always says so, stays
+       * locked. Measured: all 79 total rows in the family carry the word. */
+      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&
+        isHierarchicalTotalLabel(row[0]);
       const cells = i.schema.map((_, colIdx) => {
         const v = row[colIdx];
         /* A HEADER ROW: every cell read-only, including the label column, and

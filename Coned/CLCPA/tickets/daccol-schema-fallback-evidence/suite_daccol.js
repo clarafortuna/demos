@@ -82,7 +82,7 @@ function codeOnly(src) {
 
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
@@ -383,7 +383,9 @@ guard('one function', () => {
                 'ingestRowKey', 'ingestGroupOf', 'ingestIsHeaderRow',
                 'ingestIsBlankCell', 'ingestKeyColCount',
                 /* CLCPA-240 round 2 */
-                'ingestIsShapeBlank', 'renderIngestEditor', 'xlsxInstructionBlocks'];
+                'ingestIsShapeBlank', 'renderIngestEditor', 'xlsxInstructionBlocks',
+                /* CLCPA-240 round 3 */
+                'isHierarchicalTotalLabel'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

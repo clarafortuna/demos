@@ -84,7 +84,7 @@ const CODE = codeOnly(SRC);
 /* ---- the composed org, with the imported 2099 ------------------------ */
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
@@ -443,6 +443,9 @@ guard('three functions, all wiring', () => {
     ingestIsShapeBlank: 'NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)',
     renderIngestEditor: 'NOT this brief: CLCPA-240 round 2, the group-header lock',
     xlsxInstructionBlocks: 'NOT this brief: CLCPA-240 round 2, the (no value) instruction',
+    /* CLCPA-240 ROUND 3: the group-header lock now works on the screen it
+     * exists for -- a year imported but not yet saved. */
+    isHierarchicalTotalLabel: 'NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)',
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -452,7 +455,7 @@ guard('three functions, all wiring', () => {
    * legitimately register as changed against a BASE that lacks them, so they
    * are named rather than excused by a bigger number. */
   /* 6 -> 14: CLCPA-240 first half added eight, every one named above. */
-  ok(changed.length === 17, 'FOURTEEN: this ticket’s six plus CLCPA-240 ' +
+  ok(changed.length === 18, 'FOURTEEN: this ticket’s six plus CLCPA-240 ' +
      'first half’s eight: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

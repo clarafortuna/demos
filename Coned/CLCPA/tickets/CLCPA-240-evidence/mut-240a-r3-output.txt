@@ -1,0 +1,46 @@
+======================================================================
+CLCPA-240 first half, ROUND 3 -- mutation controls
+======================================================================
+  red  ROUND 2s DEFECT: the draft fallback is removed
+       7 red, incl: B3 not one of them has an input, with NOTHING saved yet: rows 0, 3, 6, 10, 24, 28, 32, 36, 46
+  red  the fallback is skipped whenever the baseline exists as an array
+       7 red, incl: B3 not one of them has an input, with NOTHING saved yet: rows 0, 3, 6, 10, 24, 28, 32, 36, 46
+  red  the follow-scan runs past the next header
+       2 red, incl: C6 a group with nothing under it does NOT lock, even when a LATER group has values: the follow-scan
+  red  TOO EAGER: every structural header in the draft locks
+       7 red, incl: C4 a hand-built table with no values anywhere locks nothing: the fallback needs a value-bearing or 
+  red  TOO EAGER: the holds-no-number condition is dropped
+       1 red, incl: D3 and now none is: a wrong computed number stays correctable: [26]
+  red  TOO EAGER: the family scope is dropped
+       2 red, incl: F2 every one is byte-identical to BASE: A1:2025, A1:2025 (empty baseline), A2:2025, A2:2025 (empty 
+  red  FIX 2 REVERTED: the label lock follows the flag alone again
+       2 red, incl: D3 and now none is: a wrong computed number stays correctable: [8,26]
+  red  FIX 2 WIDENED: no total row is locked at all
+       3 red, incl: D5 every row the RENDER flagged, whose label says total, is locked: 3 flagged, 3 open
+  red  the label test is inverted
+       19 red, incl: D5 every row the RENDER flagged, whose label says total, is locked: 0 flagged, 0 open
+  red  the shared predicate becomes a whole-word match
+       8 red, incl: D5 every row the RENDER flagged, whose label says total, is locked: 0 flagged, 0 open
+  red  the header lock itself is reverted
+       8 red, incl: B3 not one of them has an input, with NOTHING saved yet: rows 0, 3, 6, 10, 24, 28, 32, 36, 46
+  red  the delete button returns on locked rows
+       4 red, incl: B4 and not one has a delete button: rows 0, 3, 6, 10, 24, 28, 32, 36, 46
+  red  the marker stops being shape-blank, so the import breaks again
+       4 red, incl: B: an empty baseline still locks every group header THREW: the 2099 import did not complete: The fi
+  red  the editor keeps its own copy of the label rule
+       2 red, incl: S2b and neither does renderIngestEditor
+  red  totalRowFlags keeps its own copy
+       2 red, incl: S2 totalRowFlags keeps no copy of the regex
+  red  a table leaves the family
+       15 red, incl: B3 not one of them has an input, with NOTHING saved yet: rows 0, 3, 6, 10, 24, 28, 32, 36, 46
+  red  styles.css is touched, when the point is that it need not be
+       1 red, incl: S8 styles.css is byte-identical to BASE: still no CSS
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: S9 the baseline is a literal commit sha: "HEAD"
+  red  HARNESS: state B is rendered with a populated baseline after all
+       1 red, incl: B5b and the baseline this was rendered with really is empty: 50 rows
+  red  HARNESS: the lock check looks at a class instead of an input
+       12 red, incl: B7 on BASE all nine headers had an open input: 0  []
+
+  20 caught, 0 not caught, of 20
+  clean re-run against byte-restored source: PASSES -- 50 passed, 0 failed

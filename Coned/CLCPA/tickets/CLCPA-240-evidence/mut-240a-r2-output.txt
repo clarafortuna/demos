@@ -35,8 +35,6 @@ CLCPA-240 first half, ROUND 2 -- mutation controls
        2 red, incl: N2 a label that is NOT in the baseline stays editable, so "+ Add Row" plus a re-render cannot trap th
   red  the "holds no number" condition is dropped
        1 red, incl: N6 and the "holds no number" condition is what keeps a DATA row that shares a header name from being 
-  red  the baseline is read from the DRAFT instead
-       2 red, incl: N2 a label that is NOT in the baseline stays editable, so "+ Add Row" plus a re-render cannot trap th
   red  ITEM 2 REVERTED: a total row label is editable again
        2 red, incl: L6 their LABELS are locked too, not just their values: rows 2, 5, 9, 23, 27, 31, 35, 45, 48, 49
   red  ITEM 2 SPREADS: flat-table totals get locked too
@@ -52,9 +50,9 @@ CLCPA-240 first half, ROUND 2 -- mutation controls
   red  styles.css is touched, when the whole point is that it need not be
        1 red, incl: S8 styles.css is byte-identical to BASE: the round reuses .ingest-row-subheader and adds no CSS
   red  HARNESS: the baseline is repointed at the working tree
-       1 red, incl: S9 the baseline in this file is a literal commit sha, not a symbolic ref: "HEAD"
+       5 red, incl: S9 the baseline in this file is a literal commit sha, not a symbolic ref: "HEAD"
   red  HARNESS: the lock check looks for a class instead of an input
        8 red, incl: L11 on BASE all 9 group headers had editable inputs: 0
 
-  27 caught, 0 not caught, of 27
-  clean re-run against byte-restored source: PASSES -- 82 passed, 0 failed
+  26 caught, 0 not caught, of 26
+  clean re-run against byte-restored source: PASSES -- 83 passed, 0 failed
