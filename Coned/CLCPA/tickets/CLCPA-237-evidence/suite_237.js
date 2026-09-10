@@ -85,7 +85,7 @@ say('======================================================================');
 /* ---- the shipped composer, driven over the reconstructed org state ---- */
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',

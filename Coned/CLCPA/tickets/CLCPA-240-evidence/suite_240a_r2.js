@@ -95,7 +95,7 @@ function codeOnly(src) {
 /* ---------- the editor, assembled and CALLED ------------------------------ */
 const EDITOR_FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
   'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
-  'isStrictTotalRowLabel', 'columnGrandTotals', 'applyDerivedCols',
+  'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'columnGrandTotals', 'applyDerivedCols',
   'applyDerivedRows', 'recomputeDirty', 'ingestStatusClass', 'ingestStatusText',
   'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'rawNum',
   'isSplitCell', 'formatIngestValue', 'fmtDerivedCell', 'sumDerivedCols',
@@ -807,8 +807,17 @@ guard('S: the declarations and the reuse', () => {
      'S5 the editor reads the shared set rather than its own copy');
   ok(/rowIdx < headerRowCount \|\| isGroupHeaderRow\(row\)/.test(ed),
      'S6 and the lock EXTENDS CLCPA-233s isHeaderRow rather than adding a path');
-  ok(/i\.baseline/.test(ed) && /baselineHeaderLabels/.test(ed),
-     'S7 identification is by BASELINE label, not by the draft shape');
+  /* ROUND 3 CHANGED EXACTLY THIS, and the change is the reason this ticket had
+   * a third round: the baseline is EMPTY on a year imported but not yet saved,
+   * so baseline-only identification locked nothing on the one screen the
+   * feature exists for. Restated to the claim round 2 was entitled to make --
+   * identification is by LABEL rather than by row index -- with the fallback
+   * itself owned and asserted by suite_240a_r3. */
+  ok(/i\.baseline/.test(ed) && /groupHeaderLabels/.test(ed),
+     'S7 identification is by LABEL, not by row index');
+  ok(!/rowIdx <[^|]*isGroupHeaderRow\(rowIdx\)/.test(ed),
+     'S7b and the group test takes a ROW, not an index, so rows moving cannot ' +
+     'shift the lock');
   /* zero CSS: the band already existed */
   const css = fs.readFileSync(path.join(REPO,
     'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');

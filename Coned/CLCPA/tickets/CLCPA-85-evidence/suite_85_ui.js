@@ -573,7 +573,7 @@ const dialogStates = {};
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
-     'isStrictTotalRowLabel', 'isSplitCell', 'cellText', 'cellCount', 'cellPct',
+     'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell', 'cellText', 'cellCount', 'cellPct',
      'rawNum', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
      'getTableSchema', 'getTableBody', 'csvField', 'ingestTemplateSource',
      'compareTableIds', 'ingestStagedSummary']

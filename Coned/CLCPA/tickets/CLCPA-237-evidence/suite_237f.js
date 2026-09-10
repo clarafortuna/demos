@@ -104,7 +104,7 @@ function orgRows() {
 
 const BASE_FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const BASE_DECLS = [
@@ -506,6 +506,8 @@ guard('the blast radius is accounted for, function by function', () => {
     ingestIsShapeBlank: 'CLCPA-240 round 2: the shape-blank predicate (new)',
     renderIngestEditor: 'CLCPA-240 round 2: the group-header lock',
     xlsxInstructionBlocks: 'CLCPA-240 round 2: the (no value) instruction',
+    /* CLCPA-240 ROUND 3 */
+    isHierarchicalTotalLabel: 'CLCPA-240 round 3: the shared total-label rule (new)',
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -513,7 +515,7 @@ guard('the blast radius is accounted for, function by function', () => {
   ok(mine.length === 2,
      'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
   /* 11 -> 18: CLCPA-240's first half added seven names not already listed. */
-  ok(changed.length === 21, 'twenty-one in total, all named: ' + changed.length);
+  ok(changed.length === 22, 'twenty-two in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

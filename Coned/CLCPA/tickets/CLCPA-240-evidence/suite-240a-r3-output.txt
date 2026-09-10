@@ -1,0 +1,70 @@
+======================================================================
+CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
+  BASE   : 5b6e57e  (the round-2 build that failed the pass)
+======================================================================
+  ok   the changed source and BASE (5b6e57e) both assemble, and both survive a baseline-bearing recompute plus a render with an EMPTY baseline
+
+=== B. imported into a fresh year, NOT yet saved: baseline is [] ======
+  ok   B1 the grid renders all 50 imported rows: 50
+  ok   B2 A5 has nine group headers: 9
+  ok   B3 not one of them has an input, with NOTHING saved yet
+  ok   B4 and not one has a delete button
+  ok   B5 and each carries the header band: 9
+  ok   B5b and the baseline this was rendered with really is empty: 0 rows
+  ok   B6 all 31 data rows keep their input and their x
+  ok   B7 on BASE all nine headers had an open input: 9  [0,3,6,10,24,28,32,36,46]
+  ok   B8 and all nine had a delete button: 9
+  ok   B9 including an input in Total Installations on the FIRST header, which is the screenshot
+
+=== A. after Save: identical to the build Emely accepted on that point ==
+  ok   A1 every header is locked
+  ok   A2 and the whole grid is byte-identical to BASE in this state, so round 3 changed nothing an operator had already accepted
+
+=== C. the operator building rows by hand, with nothing saved ==========
+  ok   C1 a typed row at the bottom keeps its input and its x, because nothing follows it -- a group header always has a row beneath it
+  ok   C2 and is not given the header band
+  ok   C3 and so does the blank row Add Row actually creates
+  ok   C4 a hand-built table with no values anywhere locks nothing: the fallback needs a value-bearing or total-labelled row beneath a header
+  ok   C5 KNOWN LIMIT recorded: give the row beneath a value and the row above locks as a header, which is correct for an import and a trap for a hand-built table
+  ok   C6 a group with nothing under it does NOT lock, even when a LATER group has values: the follow-scan stops at the next header
+  ok   C7 while the group that does have a value under it locks
+  ok   C8 KNOWN LIMIT: a template imported with NO values typed locks nothing, and all nine headers stay open: 9
+  ok   C9 and one value in the first group locks THAT caption and no other, which is what the limit resolves into as soon as figures arrive
+
+=== D. the sparse draft: a wrong inference must stay fixable ===========
+  ok   D1 the same six data rows are mis-flagged on both builds: 6 vs 6  -- the inference is NOT what round 3 touched
+  ok   D2 on BASE two of them were FROZEN, label and delete gone: [8,26]
+  ok   D3 and now none is: a wrong computed number stays correctable
+  ok   D4 "Building Shell", the row Emely named, is still flagged by the inference and still carries its input and its x
+  ok   D5 every row the RENDER flagged, whose label says total, is locked: 3 flagged, 0 open
+
+=== E. disclosed, not fixed: the render defeats its own bootstrap =====
+  ok   E1 twelve rows are flagged before a render: 12
+  ok   E2 the render MUTATES its own draft: 2 rows change shape, because recomputeTotals runs before the flags
+  ok   E3 so the flag count DROPS across one render: 12 -> 5
+  ok   E4 BASE behaves identically (12 -> 5), so this is disclosed and not introduced
+
+=== F. everything outside the family, and the round trip =============
+  ok   F1 rendered 48 tables outside the family, in both states
+  ok   F2 every one is byte-identical to BASE
+  ok   F3 A1:2025 has a Total row: 22
+  ok   F4 and it keeps its input and its x: CLCPA-205 item 2 stays pending
+  ok   F5 A5s own template still lands 50 rows in a fresh year: 50
+  ok   F6 and all 10 totals still compute
+  ok   F7 the headers still land at the same indices, so (no value) is still import-equivalent to blank
+  ok   F8 and a re-import still MATCHES: 50 rows, 0 created
+
+=== S. structure ======================================================
+  ok   S1 the "label says total" rule is one named function
+  ok   S2 totalRowFlags keeps no copy of the regex
+  ok   S2b and neither does renderIngestEditor
+  ok   S2c the rule has exactly one definition: 1
+  ok   S3 totalRowFlags reads it
+  ok   S4 and so does the editor label lock, rather than keeping its own copy
+  ok   S5 the header set uses the baseline WHEN IT HAS ROWS
+  ok   S6 and falls back to the draft when it does not
+  ok   S7 with a header required to be FOLLOWED by a value-bearing row, which is what keeps a just-typed row free
+  ok   S8 styles.css is byte-identical to BASE: still no CSS
+  ok   S9 the baseline is a literal commit sha: "5b6e57e"
+
+  50 passed, 0 failed

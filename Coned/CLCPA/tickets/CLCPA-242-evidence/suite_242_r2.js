@@ -394,13 +394,16 @@ guard('two functions', () => {
     ingestIsShapeBlank: 'NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)',
     renderIngestEditor: 'NOT this brief: CLCPA-240 round 2, the group-header lock',
     xlsxInstructionBlocks: 'NOT this brief: CLCPA-240 round 2, the (no value) instruction',
+    /* CLCPA-240 ROUND 3: the group-header lock now works on the screen it
+     * exists for -- a year imported but not yet saved. */
+    isHierarchicalTotalLabel: 'NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 2 -> 10: CLCPA-240's first half added eight, each named in EXPECT above,
    * so the count stays exact rather than becoming a range. */
-  ok(changed.length === 13, 'TEN: this round\'s two plus CLCPA-240 first ' +
+  ok(changed.length === 14, 'TEN: this round\'s two plus CLCPA-240 first ' +
      'half\'s eight: ' + changed.length);
 });
 
