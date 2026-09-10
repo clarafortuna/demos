@@ -427,11 +427,21 @@ guard('two functions, and nothing else', () => {
     wireHeaderCardsTooltips: 'NOT this brief: CLCPA-242',
     wireExecutiveInteractions: 'NOT this brief: CLCPA-242',
     wireControlTips: 'NOT this brief: CLCPA-242 round 2, the early-out',
+    /* CLCPA-240 FIRST HALF has now landed, so the seven functions it added or
+     * changed appear here by name. Each is accounted for rather than tolerated:
+     * the count below is still exact. */
+    buildIngestImport: 'NOT this brief: CLCPA-240 first half, the composite key',
+    buildIngestWorkbook: 'NOT this brief: CLCPA-240 first half, headers stop being stamped calculated',
+    ingestRowKey: 'NOT this brief: CLCPA-240 first half, the key builder (new)',
+    ingestGroupOf: 'NOT this brief: CLCPA-240 first half, the group scan (new)',
+    ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half, the header predicate (new)',
+    ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half, the blank-cell predicate (new)',
+    ingestKeyColCount: 'NOT this brief: CLCPA-240 first half, the declared key width (new)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 9, 'exactly NINE functions changed: ' + changed.length);
+  ok(changed.length === 16, 'exactly SIXTEEN functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
@@ -447,8 +457,12 @@ guard('the exclusions hold', () => {
    *
    * The non-null check is the systemic fix: a typo in this list is now a
    * FAILURE rather than a silent pass. */
+  /* buildIngestImport LEFT this list when CLCPA-240's first half landed: it is
+   * the function that half exists to change. Removing it is not weakening the
+   * exclusion -- the pin that replaced it is at the bottom of this block, and
+   * it now states what the matcher did rather than that it never happened. */
   ['isStrictTotalRowLabel', 'recomputeTotals', 'rowsForDisplay', 'applyDerivedCols',
-   'columnGrandTotals', 'totalRowSums', 'ingestComputed', 'buildIngestImport',
+   'columnGrandTotals', 'totalRowSums', 'ingestComputed',
    'applyIngestImport', 'composePayloadFromRows', 'computeHeaderCards',
    'renderExecutiveSummary', 'renderDumbbell', 'renderStripWithGap',
    'renderTable'].forEach(fn => {
@@ -458,11 +472,22 @@ guard('the exclusions hold', () => {
     ok(now === before, fn + ' is byte-identical to BASE');
   });
   ok(/var DAC_SOURCE = 'dataverse';/.test(CODE), "DAC_SOURCE is still 'dataverse'");
-  /* the hierarchical-matcher half is OUT OF SCOPE and stays out */
-  ok(grab('buildIngestImport') !== null &&
-     grab('buildIngestImport') === grab('buildIngestImport', BASE_SRC),
-     'and the import planner buildIngestImport is untouched: 240\'s matcher ' +
-     'half stays post-Sept-10');
+  /* THE MATCHER HALF HAS LANDED, so this stops asserting that it has not.
+   *
+   * This suite used to require buildIngestImport to be byte-identical to BASE,
+   * on the reasoning that CLCPA-240's matcher half was deferred past Sept 10.
+   * Emely ruled it ships, and it did. The honest replacement is not to delete
+   * the guard but to restate it: the SECOND half's own contribution to that
+   * function is still nothing, which is what this suite is entitled to claim.
+   * The second half touched totalRowFlags and renderIngestPicker only, and
+   * that is asserted above by name and by exact count. */
+  ok(grab('buildIngestImport') !== null,
+     'buildIngestImport still exists to be reasoned about');
+  ok(/ingestRowKey\(body, bi, labelCols, grouped\)/.test(codeOnly(grab('buildIngestImport') || '')),
+     'and it now keys rows through CLCPA-240 first half\'s composite key, ' +
+     'which is that ticket\'s change and not this one\'s');
+  ok(!/isStrictTotalRowLabel/.test(codeOnly(grab('buildIngestImport') || '')),
+     'while THIS half\'s predicate stayed out of the import planner entirely');
 });
 
 /* ==================================================================== */

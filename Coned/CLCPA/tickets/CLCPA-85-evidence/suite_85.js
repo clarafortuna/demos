@@ -73,6 +73,9 @@ function grabDecl(src, name) {
  * assumed). They are extracted because totalRowFlags and rawNum call them, so
  * leaving them out makes the shared functions throw rather than run. */
 const WANT_FN = ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'buildIngestImport',
+  /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
+     these, so the functions cannot be assembled without them. */
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',
                  'formatIngestValue', 'compareTableIds', 'isStrictTotalRowLabel',
@@ -100,7 +103,14 @@ try {
   const body = '"use strict";\n' +
     'const state = { payload: PAYLOAD, ingest: {} };\n' +
     'const console = { warn: () => {}, info: () => {}, error: () => {} };\n' +
-    DC + '\n' + parts.join('\n') + '\n' +
+    DC + '\n' +
+    /* CLCPA-240 dependencies. Single-line consts, so a bounded one-line match
+     * rather than grabDecl, which scans to the next dedented `};`. Read from
+     * the SOURCE, never retyped. */
+    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER']
+      .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
+      .filter(Boolean).join('\n') + '\n' +
+    parts.join('\n') + '\n' +
     'return { parseCsvRows, buildIngestImport, parseNumericInput,' +
     ' ingestComputed, normIngestKey, ingestTemplateSource, getTableSchema, getTableBody,' +
     ' totalRowFlags, state };';

@@ -79,6 +79,9 @@ const NAMES = ['crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
   'totalRowFlags', 'isStrictTotalRowLabel', 'isSplitCell', 'cellText', 'cellCount',
   'cellPct', 'getTableSchema', 'getTableBody', 'rawNum', 'parseCsvRows',
   'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
+  /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
+     these, so the functions cannot be assembled without them. */
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
   'compareTableIds'];
 const missing = NAMES.filter(n => !grab(n));
 if (missing.length) { console.error('EXTRACTION FAILED: ' + missing.join(', ')); process.exit(1); }
@@ -86,7 +89,11 @@ const STYLE_CONSTS = ['XLSX_STYLE_DEFAULT', 'XLSX_STYLE_HEADER', 'XLSX_STYLE_LOC
   'XLSX_STYLE_HDRBAND', 'XLSX_STYLE_APPNAME', 'XLSX_STYLE_TITLE', 'XLSX_STYLE_SUBTITLE',
   'XLSX_STYLE_SECTION', 'XLSX_STYLE_BODY', 'XLSX_STYLE_BAND', 'XLSX_STYLE_NOTE',
   'XLSX_STYLE_LABEL', 'XLSX_STYLE_TOTAL', 'XLSX_STYLE_TOTAL_LABEL'];
-const consts = STYLE_CONSTS.concat(['XLSX_INK', 'XLSX_DUSK', 'XLSX_DUSK_TINT',
+const consts = STYLE_CONSTS.concat([
+  /* CLCPA-240: read from the source, so the harness cannot pass while the
+     real declarations say something else. */
+  'INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER',
+  'XLSX_INK', 'XLSX_DUSK', 'XLSX_DUSK_TINT',
   'XLSX_TEXT2', 'XLSX_TEXT3', 'XLSX_WHITE', 'XLSX_PALE',
   'XLSX_SMOKE', 'XLSX_TEXT']).map(n => {
   const m = SRC.match(new RegExp('  const ' + n + ' = [^;]+;'));

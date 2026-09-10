@@ -1,0 +1,90 @@
+======================================================================
+CLCPA-240 first half -- hierarchical / composite-key matcher
+  BASE   : 899fd8a698  (predates the change)
+======================================================================
+  ok   NEW assembles, resolving 33 functions and 29 declarations by following ReferenceErrors
+  ok   BASE (899fd8a698) assembles, resolving 28 functions and 25 declarations
+  ok   S1 INGEST_KEY_COLS declares exactly A3:2 and A4:2
+  ok   S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)
+  ok   S3 HIERARCHICAL_TOTALS declares exactly A5, A6, A7, A8, inside totalRowFlags
+  ok   S3b and NOT at module level, where it would burden every other harness
+  ok   S4 A7 is NOT grouped, so its key is unchanged
+  ok   S5 the hierarchical branch is gated on the DECLARATION
+  ok   S6 it is NOT gated on a run-time count of header rows
+  ok   S7 the calculated marker is one constant, not two literals: 1 literal(s)
+  ok   R1 the template writes a heading row and all 50 labels: 51 rows
+  ok   R2 all 9 group headers carry NO "(calculated)": 9 blank
+  ok   R3 the importer ACCEPTS the file the template wrote
+  ok   R4 every row landed, none duplicated: 50 of 50
+  ok   R5 all 50 rows were created in a year that had none: 50
+  ok   R6 all 10 group and grand totals COMPUTED: 10 hold numbers
+  ok   R7 the round trip reproduces what the dashboard computes for A5:2025 in 199 of 200 cells, differing only where the payload stores a grand total 1 short of its own parts
+  ok   R7a the discrepancy is stated as numbers: stored keeps 27833, a fresh import computes 27834 (the sum of the nine segment totals)
+  ok   R7b stated for the record: the engine itself moves 33 stored cells (rounded stored percentages), which is why the comparison is engine-to-engine and not against the payload text
+  ok   R7c every cell the engine does not touch survives the round trip exactly as stored, except the one grand total the payload stores short
+  ok   R8 the 9 group headers land at the same indices, so the groups rebuilt in file order
+  ok   R9 BASE rejects A5 own template: "The file has 6 rows with this label, so which one wins is ambi"
+  ok   R10 and rejects it as ambiguous, which is the defect this ticket names
+  ok   R11 BASE stamped "(calculated)" into all 9 group headers, which is what made the group unreadable: 9
+  ok   C1 the importer accepts A3 own template
+  ok   C2 it reports TWO key columns: ["Participant Type","Program Name"]
+  ok   C3 all 23 rows landed distinctly: 23
+  ok   C4 every Program Name survives as its own text, never numeric-parsed
+  ok   C5 no Program Name became a number: 0
+  ok   C6 Program Name is NOT in matchedColumns, so it is never written as a value
+  ok   C7a the A3 Total row bootstraps and computes after import: [null,2034907,null,null]
+  ok   C7 the A3 Total row computes its one summable column from the rows that landed: 2034907 = the sum of the 22 data rows
+  ok   C7b and leaves the two AVERAGE columns blank rather than summing averages: [null,null]
+  ok   C7c stated for the record: the stored A3 total is 2034938 against a row sum of 2034907, a payload discrepancy that predates this ticket and stays disclosed-not-fixed under the freeze
+  ok   C7d and every row EXCEPT the total round-trips cell for cell
+  ok   C8 BASE rejects A3 own template: "The file has 7 rows with this label, so which one wins is "
+  ok   D1 two rows identical in group AND label are rejected: "The file has 2 rows with this label inside the same group, s"
+  ok   D2 and the draft is left untouched
+  ok   D3 the same label in two different groups is accepted
+  ok   D4 and lands as four separate rows: 4
+  ok   D5 each HVAC keeps its OWN values, not the first one twice
+  ok   D6 A3 accepts two rows sharing Participant Type with different Program Names
+  ok   D7 A3 rejects two rows identical in BOTH key columns
+  ok   K1 exactly 47 tables are outside the declarations: 47
+  ok   K2 none of the 47 has a repeated label, so a label key and a composite key partition them identically
+  ok   K3 checked across 134 table-years
+  ok   K4 drove a real import on 47 untouched tables
+  ok   K5 every one imports byte-identically to BASE
+  ok   P1 on STORED data the flags are identical to BASE for every table-year -- the change fires on no existing data
+  ok   P2 on a simulated FRESH IMPORT the 48 flat tables flag identically to BASE
+  ok   P3 the flat tables really do carry the risky rows: 111 labels contain "total" without being a strict total
+  ok   P4 NONE of those 111 is flagged on a fresh import, so CLCPA-209 cannot reopen
+  ok   P5 J1 row 1, the CLCPA-200 row, is not flagged even when blank
+  ok   H1 the four tables carry 79 total rows across their years: 79
+  ok   H2 the branch bootstraps 56 totals that BASE left blank
+  ok   H3 NO group header is ever flagged as a total
+  ok   H4 A5:2023 bootstraps 11 of 11 totals (BASE: 10)
+  ok   H4 A5:2025 bootstraps 10 of 10 totals (BASE: 0)
+  ok   T1 the four tables carry 67 group headers: 67
+  ok   T2 not one of them is stamped "(calculated)" any more
+  ok   T3 every one of the 282 non-header rows KEEPS its marker: 282 -- the change did not widen past headers
+  ok   M1 A3: re-importing its own template into its own year is accepted
+  ok   M2 A3: it MATCHES all 23 rows instead of appending duplicates: 23
+  ok   M3 A3: not one row was created: 0
+  ok   M1 A5: re-importing its own template into its own year is accepted
+  ok   M2 A5: it MATCHES all 50 rows instead of appending duplicates: 50
+  ok   M3 A5: not one row was created: 0
+  ok   M4 a group header named after a data row is not a collision
+  ok   M5 and all four rows land: 4
+  ok   M6 with the data row keeping its own value, not the header row
+  ok   M7 a blank-label row does not fail the whole import
+  ok   M8 and is not created as a row: 2 rows, not 3
+  ok   M9 it is reported as unmatched, with the reason: 1
+  ok   M10 row 1 keys under g1, the header ABOVE it, not g2: "r\u001fg1\u001fhvac"
+  ok   M11 row 3 keys under g2: "r\u001fg2\u001fhvac"
+  ok   M12 so the two HVAC rows have different keys
+  ok   M13 a header keys in the header namespace: "h\u001fg"
+  ok   M14 and with grouping OFF the two rows key identically, which is what keeps the 47 undeclared tables behaving exactly as before
+  ok   M15 A3 rejects a file with no Program Name column: "The file has no “Program Name” column. This table has rows that "
+  ok   M16 and the message names the column the file needs
+  ok   M16b and it is the MISSING-COLUMN rejection, not the ambiguity one: "The file has no “Program Name” column. This table has rows"
+  ok   M16c so the operator is not told two rows clash over a column that is absent
+  ok   M17 and the draft is untouched
+  ok   M18 the baseline in this file is a literal commit sha, not a symbolic ref that would collapse onto the change itself: "899fd8a698"
+
+  84 passed, 0 failed
