@@ -1,0 +1,106 @@
+======================================================================
+CLCPA-240 first half, ROUND 2 -- protecting the hierarchical structure
+  BASE   : 438bf64  (the round-1 build as deployed)
+======================================================================
+  ok   the changed source and BASE (438bf64) both assemble and run
+
+=== R. the guard that could undo the build that shipped an hour ago ===
+  ok   R1 all 9 group headers are marked "(no value)" in every value column: 9
+  ok   R2 the importer still ACCEPTS the marked file
+  ok   R3 all 50 rows still land: 50
+  ok   R4 the 9 headers land at the same indices, so the marker is still import-equivalent to blank: [0,3,6,10,24,28,32,36,46]
+  ok   R5 all 10 totals still compute: 10
+  ok   R6 neither marker is ever written into a cell
+  ok   R7 and the round trip still reproduces A5:2025 everywhere except the one grand total the payload stores short
+  ok   R8 re-importing into a populated year still MATCHES: 50 rows, 0 created
+
+=== D. disclosed, not fixed: a new year mixes two years of schema ======
+  ok   D1 identical to BASE, so round 2 did not cause it: "Program Name & Installation Type"
+  ok   D2 the heading comes from the OLDEST year, 2023
+  ok   D3 while the row labels come from the most recent year with rows, 2025
+  ok   D4 and for A5 those two disagree: "Program Name & Installation Type" vs "Commercial Programs Installations"
+
+=== M. (no value) vs (calculated): the difference is load-bearing ===
+  ok   M1 (no value) is SHAPE-blank, so a marked header is still a header
+  ok   M2 (calculated) is NOT shape-blank -- that is what tells a TOTAL row from a header, and treating it as blank cost 60 rows instead of 50 in round 1
+  ok   M3 genuinely empty is shape-blank
+  ok   M4 a zero is a VALUE, not a blank
+  ok   M5 BOTH markers count as "not operator input" for keys and created rows
+  ok   M6 and a real label does not
+  ok   M7 a marked header row reads as a header
+  ok   M8 a total row does NOT
+  ok   M9 a file carrying both markers is accepted
+  ok   M10 neither marker lands in any cell
+  ok   M11 real values beside a marker still land
+  ok   M12 a stray (no value) in a data row is skipped, not parsed: ["Rogue",null,7,null]
+  ok   M13 and it is REPORTED, not silently dropped: 3
+
+=== L. the editor: group headers and totals are render-only ===
+  ok   L1 the grid renders all 50 rows: 50
+  ok   L2 not one of the 9 group headers has an input
+  ok   L3 and not one has a delete button, so the row cannot be removed
+  ok   L4 and each carries CLCPA-233s .ingest-row-subheader band, reused as is
+  ok   L5 A5:2025 has ten total rows: 10
+  ok   L6 their LABELS are locked too, not just their values
+  ok   L7 and none carries a delete button
+  ok   L8 and 31 ordinary data rows: 31
+  ok   L9 every one of them KEEPS its inputs -- the lock did not spread
+  ok   L10 and keeps its delete button
+  ok   L11 on BASE all 9 group headers had editable inputs: 9
+  ok   L12 and all had a delete button: 9
+  ok   L13 and every total row label was editable on BASE too
+  ok   L14 67 group headers across the family: 67
+  ok   L15 78 rows the engine confirms as totals: 78
+  ok   L16 every one of the 145 is render-only with no delete
+  ok   L17 the row is A8:2025 r25: "Total CES Programs Installations"
+  ok   L18 the engine does not confirm it as a total, because 336599 exceeds the table total 283852 by 52747
+  ok   L19 while the two totals it CAN confirm are locked
+  ok   L20 so r25 remains editable and deletable -- the one total-labelled row in the family the lock does not reach
+
+=== N. the operator can still work: a new row never locks ===
+  ok   N1 the appended row renders: 51 rows
+  ok   N2 a label that is NOT in the baseline stays editable, so "+ Add Row" plus a re-render cannot trap the operator mid-edit
+  ok   N3 and keeps its delete button
+  ok   N4 and the empty row + Add Row really creates is editable too
+  ok   N5 KNOWN LIMIT recorded: a new row whose label equals a stored group header, with no numbers, does lock
+  ok   N6 and the "holds no number" condition is what keeps a DATA row that shares a header name from being frozen
+
+=== H. the three harm scenarios, and why the UI can no longer cause them ==
+  ok   H1 the harm is real: deleting or valuing one group header drops a total row from 10 recognised to 9
+  ok   H2 and moves the grand total: 27833 -> 27836 deleted, -> 27837 valued
+  ok   H3 route 1 closed: row 3 has no delete button
+  ok   H4 route 2 closed: row 3 has no input to type a value into
+  ok   H5 route 3: into the intact table the same file creates nothing
+  ok   H6 and into a table missing that header it creates 3 rows, which is the silent re-key -- now unreachable because the deletion is
+
+=== F. everything outside the family is byte-identical ==================
+  ok   F1 rendered 48 tables outside the family
+  ok   F2 every one is byte-identical to BASE
+  ok   F3 A1:2025 has a Total row: index 22
+  ok   F4 its label is still editable, because A1 is not in the family
+  ok   F5 and it still carries a delete button
+  ok   F6 no stored table-year changes its flags
+  ok   F7 the payload is not mutated by rendering or by a mutated draft
+
+=== T. the template marks headers and nothing else =====================
+  ok   T1 67 headers and 78 engine-confirmed totals seen: 67, 78
+  ok   T2 and 204 ordinary data rows
+  ok   T3 headers marked (no value), totals still (calculated), data rows unmarked
+  ok   T4 no flat table template carries the marker
+  ok   T5 the instructions sheet mentions (no value)
+  ok   T6 and says in so many words that a heading row is marked (no value)
+  ok   T6b and that it takes no figures
+  ok   T7 which BASE did not say, because there was nothing to say it about
+
+=== S. the shape of the change ========================================
+  ok   S1 HIERARCHICAL_TABLES is declared once at module scope
+  ok   S2 exactly one definition: 1
+  ok   S3 the marker is one constant, not a scattered literal
+  ok   S4 and appears as a literal exactly once: 1
+  ok   S5 the editor reads the shared set rather than its own copy
+  ok   S6 and the lock EXTENDS CLCPA-233s isHeaderRow rather than adding a path
+  ok   S7 identification is by BASELINE label, not by the draft shape
+  ok   S8 styles.css is byte-identical to BASE: the round reuses .ingest-row-subheader and adds no CSS
+  ok   S9 the baseline in this file is a literal commit sha, not a symbolic ref: "438bf64"
+
+  82 passed, 0 failed

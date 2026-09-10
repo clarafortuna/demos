@@ -28,7 +28,7 @@ PRE-WALKTHROUGH FIXES -- three items
 
 === 2. THE HEADER BAND: labels, not input chrome; centred ===
   ok   the header row still renders read-only
-  ok   still has no delete button
+  ok   still has no delete button for a header row
   ok   and % Change is still read-only
   ok   all three were already true at BASE: this item changed none of them
   ok   the sub-header cell rule is found
@@ -101,7 +101,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, hideExecTooltip, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestKeyColCount, ingestRowKey, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips
+       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, hideExecTooltip, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to computeHeaderCards is accounted for
@@ -110,6 +110,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to ingestGroupOf is accounted for
   ok   the change to ingestIsBlankCell is accounted for
   ok   the change to ingestIsHeaderRow is accounted for
+  ok   the change to ingestIsShapeBlank is accounted for
   ok   the change to ingestKeyColCount is accounted for
   ok   the change to ingestRowKey is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
@@ -123,6 +124,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to wireExecutiveInteractions is accounted for
   ok   the change to wireExecutiveTooltips is accounted for
   ok   the change to wireHeaderCardsTooltips is accounted for
+  ok   the change to xlsxInstructionBlocks is accounted for
   ok   renderSourceTables changed as intended: item 1, the chip, and the header-row skip
   ok   renderTable changed as intended: item 2, the two-level table marker
   ok   renderIngestEditor changed as intended: item 2, the merged group headers
@@ -144,9 +146,11 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   ingestIsHeaderRow changed as intended: NOT this brief: CLCPA-240 first half (new)
   ok   ingestIsBlankCell changed as intended: NOT this brief: CLCPA-240 first half (new)
   ok   ingestKeyColCount changed as intended: NOT this brief: CLCPA-240 first half (new)
-  ok   exactly TWENTY-ONE functions changed: 21
+  ok   ingestIsShapeBlank changed as intended: NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)
+  ok   xlsxInstructionBlocks changed as intended: NOT this brief: CLCPA-240 round 2, the (no value) instruction
+  ok   exactly TWENTY-THREE functions changed: 23
   ok   and no function outside those fourteen moved at all
 
 ======================================================================
-  135 passed, 0 failed
+  139 passed, 0 failed
 ======================================================================

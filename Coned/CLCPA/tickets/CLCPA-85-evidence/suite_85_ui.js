@@ -565,13 +565,14 @@ const dialogStates = {};
   const realEngine = new Function('PAYLOAD',
     ESC + grabDecl(SRC, 'DERIVED_COLS') + '\n' +
     /* CLCPA-240 dependencies, read from the SOURCE rather than retyped here. */
-    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER']
+    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER',
+     'INGEST_NOVALUE_MARKER', 'HIERARCHICAL_TABLES']
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n') + '\n' +
     ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'totalRowFlags',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
-  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
      'isStrictTotalRowLabel', 'isSplitCell', 'cellText', 'cellCount', 'cellPct',
      'rawNum', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
      'getTableSchema', 'getTableBody', 'csvField', 'ingestTemplateSource',

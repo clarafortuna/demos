@@ -275,21 +275,31 @@ guard('S: the three declarations', () => {
      'S1 INGEST_KEY_COLS declares exactly A3:2 and A4:2');
   ok(/const INGEST_GROUPED = \{ A5: true, A6: true, A8: true \};/.test(code),
      'S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)');
-  /* Declared INSIDE totalRowFlags, not at module level: it has exactly one
-   * consumer, and a module-level constant becomes a dependency of every
-   * harness that assembles that function -- ten of them in this repository,
-   * all of which went red on it before this moved. Asserted against the
-   * FUNCTION text so the location is part of the claim. */
+  /* ROUND 2 MOVED THIS, and the reversal is the point.
+   *
+   * In round 1 the hierarchical table set lived INSIDE totalRowFlags, because
+   * it had exactly one consumer and a module-level constant is a dependency of
+   * every harness that assembles that function -- ten of them here. Round 2
+   * gave it a second consumer, renderIngestEditor, and two copies of a table
+   * set is a second source of truth. So it moved back out, and the harnesses
+   * took the dependency. Asserted as ONE definition, at module scope. */
   const tfCode = codeOnly(grabFn('totalRowFlags', SRC) || '');
-  ok(/const HIERARCHICAL_TOTALS = \{ A5: true, A6: true, A7: true, A8: true \};/.test(tfCode),
-     'S3 HIERARCHICAL_TOTALS declares exactly A5, A6, A7, A8, inside totalRowFlags');
-  ok(!/\r\n  const HIERARCHICAL_TOTALS/.test(codeOnly(SRC)),
-     'S3b and NOT at module level, where it would burden every other harness');
+  ok(/\r\n  const HIERARCHICAL_TABLES = \{ A5: true, A6: true, A7: true, A8: true \};/.test(code),
+     'S3 HIERARCHICAL_TABLES declares exactly A5, A6, A7, A8, at module scope');
+  ok((code.split('const HIERARCHICAL_TABLES').length - 1) === 1,
+     'S3b exactly ONE definition of it: ' +
+     (code.split('const HIERARCHICAL_TABLES').length - 1));
+  ok(!/HIERARCHICAL_TOTALS/.test(code),
+     'S3c and the round-1 name is gone, not left beside it');
+  ok(/HIERARCHICAL_TABLES\[/.test(tfCode),
+     'S3d totalRowFlags reads the shared declaration rather than its own copy');
+  ok(/HIERARCHICAL_TABLES\[/.test(codeOnly(grabFn('renderIngestEditor', SRC) || '')),
+     'S3e and so does renderIngestEditor, which is why it moved');
   ok(!/const INGEST_GROUPED = \{[^}]*A7/.test(code),
      'S4 A7 is NOT grouped, so its key is unchanged');
   // the scope is a declaration, not a run-time structural test
   const tf = grabFn('totalRowFlags', SRC) || '';
-  ok(/HIERARCHICAL_TOTALS\[tableId\]/.test(codeOnly(tf)),
+  ok(/HIERARCHICAL_TABLES\[tableId\]/.test(codeOnly(tf)),
      'S5 the hierarchical branch is gated on the DECLARATION');
   ok(!/starts\.length[^\r\n]*\r?\n?[^\r\n]*\/total\/i/.test(codeOnly(tf)),
      'S6 it is NOT gated on a run-time count of header rows');
@@ -308,11 +318,20 @@ guard('R: A5 own template -> empty 2099', () => {
      ' labels: ' + tpl.rows.length + ' rows');
 
   const hdrIdx = stored.map((r, i) => i).filter(i => isHdrRow(stored[i]));
-  const hdrBlank = hdrIdx.filter(i => tpl.rows[i + 1].slice(1)
-    .every(c => c == null || String(c).trim() === ''));
-  ok(hdrBlank.length === hdrIdx.length,
+  /* ROUND 2: a group header's cells are no longer merely blank -- blank told
+   * the operator nothing, so they now SAY (no value). What must still hold is
+   * that they carry no (calculated), because that is what would make the row
+   * read as a total instead of a header. */
+  const hdrNoCalc = hdrIdx.filter(i => tpl.rows[i + 1].slice(1)
+    .every(c => String(c).trim() !== '(calculated)'));
+  ok(hdrNoCalc.length === hdrIdx.length,
      'R2 all ' + hdrIdx.length + ' group headers carry NO "(calculated)": ' +
-     hdrBlank.length + ' blank');
+     hdrNoCalc.length);
+  const hdrMarked = hdrIdx.filter(i => tpl.rows[i + 1].slice(1)
+    .every(c => String(c).trim() === '(no value)'));
+  ok(hdrMarked.length === hdrIdx.length,
+     'R2b and every one of them is marked "(no value)" in every value ' +
+     'column, so nothing is left silently typeable: ' + hdrMarked.length);
 
   const file = fillLikeOperator(tpl.rows, stored);
   const res = NEW.buildIngestImport(file, tpl.schema, [], 'A5');

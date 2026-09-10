@@ -246,7 +246,7 @@ const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
   'parseCsvRows', 'normIngestKey', 'parseNumericInput', 'formatIngestValue',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
-  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
   'ingestComputed', 'totalRowFlags', 'isStrictTotalRowLabel', 'isSplitCell',
   'cellText', 'cellCount', 'cellPct', 'rawNum', 'applyIngestImport',
   'addsOnlyPrecision', 'ingestStagedSummary', 'detectPctColumns', 'detectAvgColumns',
@@ -295,7 +295,7 @@ function grabDeclAll() {
    * SOURCE, never retyped: a harness holding its own copy of the table sets
    * could pass while app.js declared something different. */
   const ingestDecls = ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP',
-    'INGEST_CALC_MARKER']
+    'INGEST_CALC_MARKER', 'INGEST_NOVALUE_MARKER', 'HIERARCHICAL_TABLES']
     .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
     .filter(Boolean).join('\n');
   return one('DERIVED_COLS') + '\n' + one('DERIVED_ROWS') + '\n' +

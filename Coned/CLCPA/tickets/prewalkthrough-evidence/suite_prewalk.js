@@ -204,7 +204,14 @@ guard('presentation only -- behaviour is untouched', () => {
   const baseEd = codeOnly(grab('renderIngestEditor', BASE_SRC));
   /* the three behavioural facts the brief said not to change */
   ok(/if \(isHeaderRow\) \{/.test(ed), 'the header row still renders read-only');
-  ok(/\$\{isHeaderRow \? ''/.test(ed), 'still has no delete button');
+  /* CLCPA-240 round 2 extended this condition to `(isHeaderRow ||
+   * lockTotalRow)`. The FACT this guards -- a header row gets no delete
+   * button -- is unchanged, and is now asserted far more strongly by
+   * suite_240a_r2 L3, which reads the rendered HTML rather than the source.
+   * Restated to require isHeaderRow in the actions condition, so it still
+   * fails if the suppression is dropped but survives the condition growing. */
+  ok(/ingest-td-actions">\$\{[^}]*isHeaderRow/.test(ed),
+     'still has no delete button for a header row');
   ok(/if \(readOnlyByName\[colIdx\]\) \{/.test(ed), 'and % Change is still read-only');
   ok(/if \(isHeaderRow\) \{/.test(baseEd) && /if \(readOnlyByName\[colIdx\]\) \{/.test(baseEd),
      'all three were already true at BASE: this item changed none of them');
@@ -330,8 +337,18 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
       'formatIngestValue', 'fmtDerivedCell', 'sumDerivedCols',
-      'withinSourceRounding', 'addsOnlyPrecision', 'storedDecimals'];
-    const body = ['DERIVED_COLS', 'DERIVED_ROWS'].map(n => grabDecl(n)).join('\n') +
+      'withinSourceRounding', 'addsOnlyPrecision', 'storedDecimals',
+      /* CLCPA-240 round 2: the editor locks the hierarchical family’s group
+       * header rows, which reaches these three. */
+      'ingestIsHeaderRow', 'ingestIsShapeBlank', 'normIngestKey'];
+    /* CLCPA-240 round 2: single-line consts, read with a bounded one-line
+     * match rather than grabDecl, which scans to the next dedented `};` and
+     * would swallow whatever follows. Read from the SOURCE, never retyped. */
+    const r2 = ['HIERARCHICAL_TABLES', 'INGEST_CALC_MARKER', 'INGEST_NOVALUE_MARKER']
+      .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
+      .filter(Boolean).join('\n');
+    const body = r2 + '\n' +
+      ['DERIVED_COLS', 'DERIVED_ROWS'].map(n => grabDecl(n)).join('\n') +
       '\n' + FNS.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
     return new Function('state', 'escapeHtml', 'document', body)(
       st, esc, { getElementById: () => null })();
@@ -373,8 +390,18 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
       'formatIngestValue', 'fmtDerivedCell', 'sumDerivedCols',
-      'withinSourceRounding', 'addsOnlyPrecision', 'storedDecimals'];
-    const body = ['DERIVED_COLS', 'DERIVED_ROWS'].map(n => grabDecl(n)).join('\n') +
+      'withinSourceRounding', 'addsOnlyPrecision', 'storedDecimals',
+      /* CLCPA-240 round 2: the editor locks the hierarchical family’s group
+       * header rows, which reaches these three. */
+      'ingestIsHeaderRow', 'ingestIsShapeBlank', 'normIngestKey'];
+    /* CLCPA-240 round 2: single-line consts, read with a bounded one-line
+     * match rather than grabDecl, which scans to the next dedented `};` and
+     * would swallow whatever follows. Read from the SOURCE, never retyped. */
+    const r2 = ['HIERARCHICAL_TABLES', 'INGEST_CALC_MARKER', 'INGEST_NOVALUE_MARKER']
+      .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
+      .filter(Boolean).join('\n');
+    const body = r2 + '\n' +
+      ['DERIVED_COLS', 'DERIVED_ROWS'].map(n => grabDecl(n)).join('\n') +
       '\n' + FNS2.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
     const html = new Function('state', 'escapeHtml', 'document', body)(
       st, esc, { getElementById: () => null })();
@@ -623,12 +650,15 @@ guard('the four exclusions', () => {
     ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half (new)',
     ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half (new)',
     ingestKeyColCount: 'NOT this brief: CLCPA-240 first half (new)',
+    /* CLCPA-240 ROUND 2: the group-header lock and the (no value) marking. */
+    ingestIsShapeBlank: 'NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)',
+    xlsxInstructionBlocks: 'NOT this brief: CLCPA-240 round 2, the (no value) instruction',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 14 -> 21: CLCPA-240's first half added seven more, all named above. */
-  ok(changed.length === 21, 'exactly TWENTY-ONE functions changed: ' + changed.length);
+  ok(changed.length === 23, 'exactly TWENTY-THREE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those fourteen moved at all');
 });

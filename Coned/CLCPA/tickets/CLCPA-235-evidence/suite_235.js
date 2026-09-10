@@ -71,7 +71,7 @@ const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
   'parseCsvRows', 'normIngestKey', 'parseNumericInput', 'formatIngestValue',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
-  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
   'ingestComputed', 'totalRowFlags', 'isStrictTotalRowLabel', 'isSplitCell',
   'cellText', 'cellCount', 'cellPct', 'rawNum', 'applyIngestImport',
   'addsOnlyPrecision', 'ingestStagedSummary', 'detectPctColumns', 'detectAvgColumns',
@@ -94,7 +94,8 @@ function freshApp() {
   const api = new Function('PAYLOAD', 'Storage', 'state', 'console', 'escapeHtml',
     grabDecl('DERIVED_COLS') + '\n' + grabDecl('DERIVED_ROWS') + '\n' +
     /* CLCPA-240 dependencies, read from the SOURCE rather than retyped here. */
-    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER']
+    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER',
+     'INGEST_NOVALUE_MARKER', 'HIERARCHICAL_TABLES']
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n') + '\n' +
     grabDecl('SHORT_TITLES') + '\n' + NAMES.map(n => grab(n)).join('\n') + '\n' +

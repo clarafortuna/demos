@@ -42,16 +42,20 @@ const M = [
     from: '  const INGEST_GROUPED = { A5: true, A6: true, A8: true };',
     to:   '  const INGEST_GROUPED = { A5: true, A6: true, A7: true, A8: true };',
     expect: 'S2 INGEST_GROUPED declares exactly A5, A6, A8' },
+  /* Anchors repointed by CLCPA-240 round 2, which renamed the table set to
+   * HIERARCHICAL_TABLES and moved it to module scope once renderIngestEditor
+   * became a second consumer. A rotted anchor reports ANCHOR 0, which is a
+   * DEAD control -- worth no more than a green one. */
   { t: APP, name: 'the hierarchical total scope is dropped',
-    from: '  const HIERARCHICAL_TOTALS = { A5: true, A6: true, A7: true, A8: true };',
-    to:   '  const HIERARCHICAL_TOTALS = {};',
+    from: '  const HIERARCHICAL_TABLES = { A5: true, A6: true, A7: true, A8: true };',
+    to:   '  const HIERARCHICAL_TABLES = {};',
     expect: 'H4 A5:2025 bootstraps' },
   { t: APP, name: 'THE CLCPA-209 DIRECTION: the scope grows to a flat table',
-    from: '  const HIERARCHICAL_TOTALS = { A5: true, A6: true, A7: true, A8: true };',
-    to:   '  const HIERARCHICAL_TOTALS = { A5: true, A6: true, A7: true, A8: true, D2: true };',
+    from: '  const HIERARCHICAL_TABLES = { A5: true, A6: true, A7: true, A8: true };',
+    to:   '  const HIERARCHICAL_TABLES = { A5: true, A6: true, A7: true, A8: true, D2: true };',
     expect: 'P2 on a simulated FRESH IMPORT the 48 flat tables flag identically to BASE' },
   { t: APP, name: 'THE CLCPA-209 DIRECTION: the branch is gated structurally, not declared',
-    from: '    if (tableId && HIERARCHICAL_TOTALS[tableId]) {',
+    from: '    if (tableId && HIERARCHICAL_TABLES[tableId]) {',
     to:   '    if (starts.length) {',
     expect: 'P4 NONE of those 111 is flagged on a fresh import' },
 
@@ -89,19 +93,23 @@ const M = [
      * therefore agree. Guard M10 asserts the key against a fixture. */
     expect: 'M10 row 1 keys under g1' },
   { t: APP, name: 'the header test ignores the value cells, so every row is a header',
-    from: '      if (row[c] != null && String(row[c]).trim() !== \'\') return false;',
+    /* Repointed: round 2 routed the shape test through ingestIsShapeBlank. */
+    from: '      if (!ingestIsShapeBlank(row[c])) return false;',
     to:   '      if (false) return false;',
     /* Corrected prediction: this goes red on R3, not on R8 -- the file is
      * rejected as ambiguous before any group index is compared. */
     expect: 'R3 the importer ACCEPTS the file the template wrote' },
   { t: APP, name: 'THE RE-IMPORT DIRECTION: the marker counts as blank for SHAPE again',
-    from: '      if (row[c] != null && String(row[c]).trim() !== \'\') return false;',
+    /* Repointed. Round 2 made this the difference between the two predicates,
+     * so the mutation is now simply swapping one for the other. */
+    from: '      if (!ingestIsShapeBlank(row[c])) return false;',
     to:   '      if (!ingestIsBlankCell(row[c])) return false;',
     /* The defect guard M2 caught: a total row in the file then reads as a group
      * header, matches nothing, and A5 re-imports as 60 rows instead of 50. */
     expect: 'M2 A5: it MATCHES all 50 rows' },
   { t: APP, name: 'the marker stops counting as an empty cell in a KEY',
-    from: '    return s === \'\' || s === INGEST_CALC_MARKER;',
+    /* Repointed: round 2 added the second marker to this predicate. */
+    from: '    return s === \'\' || s === INGEST_CALC_MARKER || s === INGEST_NOVALUE_MARKER;',
     to:   '    return s === \'\';',
     /* Corrected prediction: the marker then lands in A3's key column, so C4 is
      * what notices, not R3. */
@@ -141,12 +149,16 @@ const M = [
 
   /* ---- the template ----------------------------------------------------- */
   { t: APP, name: 'THE ORIGINAL DEFECT: headers are stamped (calculated) again',
-    from: '        if (!isGroupHeader && computed.any(idx, c)) {',
-    to:   '        if (computed.any(idx, c)) {',
+    /* Repointed: round 2 replaced the negated guard with an early return that
+     * writes (no value). Removing that return lets the calculated branch
+     * stamp a header again, which is the round-1 defect. */
+    from: '        if (isGroupHeader) return { style: style, text: INGEST_NOVALUE_MARKER };',
+    to:   '        if (false) return { style: style, text: INGEST_NOVALUE_MARKER };',
     expect: 'R2 all 9 group headers carry NO "(calculated)"' },
   { t: APP, name: 'THE OVER-WIDE DIRECTION: the marker is dropped from every row',
-    from: '        if (!isGroupHeader && computed.any(idx, c)) {',
-    to:   '        if (false && computed.any(idx, c)) {',
+    /* Repointed at the calculated branch itself. */
+    from: '        if (computed.any(idx, c)) {\n          return { style: style, text: INGEST_CALC_MARKER };\n        }',
+    to:   '        if (false) {\n          return { style: style, text: INGEST_CALC_MARKER };\n        }',
     expect: 'T3 every one of the 282 non-header rows KEEPS its marker' },
   { t: APP, name: 'the header test in the template reads the wrong column',
     from: '      const isGroupHeader = ingestIsHeaderRow(row, [0]);',

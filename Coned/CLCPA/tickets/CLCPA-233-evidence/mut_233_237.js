@@ -28,7 +28,11 @@ const M = [
     expect: 'row 0 contains NO input' },
   { ticket: 'CLCPA-233', target: APP,
     name: 'the delete button comes back on the header row',
-    from: "        <td class=\"ingest-td-actions\">${isHeaderRow ? ''",
+    /* Anchor updated when CLCPA-240 round 2 extended this condition to
+     * `(isHeaderRow || lockTotalRow)`. A mutation whose anchor has rotted
+     * reports "ANCHOR 0, NOT APPLIED", which is a dead control rather than a
+     * passing one, so it is repointed at the line as it now reads. */
+    from: "        <td class=\"ingest-td-actions\">${(isHeaderRow || lockTotalRow) ? ''",
     to:   "        <td class=\"ingest-td-actions\">${false ? ''",
     expect: 'NO delete button' },
   { ticket: 'CLCPA-233', target: APP,

@@ -88,7 +88,11 @@ const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct'
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
+  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
+     the functions cannot be assembled without them. Dependencies, not
+     assertions. */
+  'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER'];
 const composer = new Function(
   DECLS.map(n => grabDecl(n)).join(NL) + NL +
   FNS.map(n => grab(n)).join(NL) + NL + 'return composePayloadFromRows;')();
@@ -432,6 +436,13 @@ guard('three functions, all wiring', () => {
     ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half (new)',
     ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half (new)',
     ingestKeyColCount: 'NOT this brief: CLCPA-240 first half (new)',
+    /* CLCPA-240 ROUND 2, Emely’s finding after the round-1 hosted pass:
+     * hierarchical group headers and totals are now render-only, and the
+     * template marks a heading (no value). Named, so the exact count below
+     * survives as a guard rather than being relaxed. */
+    ingestIsShapeBlank: 'NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)',
+    renderIngestEditor: 'NOT this brief: CLCPA-240 round 2, the group-header lock',
+    xlsxInstructionBlocks: 'NOT this brief: CLCPA-240 round 2, the (no value) instruction',
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -441,7 +452,7 @@ guard('three functions, all wiring', () => {
    * legitimately register as changed against a BASE that lacks them, so they
    * are named rather than excused by a bigger number. */
   /* 6 -> 14: CLCPA-240 first half added eight, every one named above. */
-  ok(changed.length === 14, 'FOURTEEN: this ticket’s six plus CLCPA-240 ' +
+  ok(changed.length === 17, 'FOURTEEN: this ticket’s six plus CLCPA-240 ' +
      'first half’s eight: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
