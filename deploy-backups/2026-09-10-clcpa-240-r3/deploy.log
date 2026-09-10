@@ -50,3 +50,66 @@ PROVENANCE of the archive:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 6eb356c
+          remote main = 6eb356c  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1135348B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1135348B  sha256 2cd7bc615e39892f...  VERIFIED byte-identical
+READ-BACK styles.css  271763B  sha256 37d0e57db0ed348b...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 af981d7b6ce0de8f...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 92b1a65b17  ok
+  app.js canonicalised + hashed : 92b1a65b17  ok
+  HTML references app.js?v=     : 92b1a65b17  ok
+  HTML references styles.css?v= : 37d0e57db0  ok
+  all 29 ticket symbols present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 92b1a65b17
+styles.css id    : 37d0e57db0 (not pushed; bytes identical to live)
+previous build   : d91e1d19ff, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ c2a34ee
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 92b1a65b17
+If it prints anything else, the browser is holding an older app.js.
+
+THE ACCEPTANCE PASS for CLCPA-240 round 3:
+  1. THE SCREEN THAT FAILED. A.5, a fresh year, IMPORT and do NOT save.
+     The 9 group headers render as BANDS: no input, no x. Round 2 left
+     all nine open here, and that is the whole of this round.
+  2. The 31 data rows KEEP their inputs and their x. The lock must not
+     have spread.
+  3. + Add Row, type a program name, then + Add Row again: the row you
+     were filling in stays editable. It must not lock under you.
+  4. Save, then reopen: unchanged from what you already accepted.
+  5. Type a couple of values and leave the rest blank. A row such as
+     "Building Shell" may still be wrongly inferred as a total -- that is
+     pre-existing and has its own ticket -- but it KEEPS its input and
+     its x, so you can correct it. Round 2 froze two such rows.
+  6. A.1, a FLAT table: its Total row still has an editable label and
+     an x. CLCPA-205 item 2 is deliberately untouched.
+  7. The template is unchanged from round 2: headings read (no value),
+     totals read (calculated), and the round trip still lands 50 rows.
+
+THINGS THAT ARE NOT DEFECTS IN THIS BUILD, all disclosed:
+  - A8:2025 row 25, "Total CES Programs Installations", stays EDITABLE
+    with its x. It holds 336,599 where A8s own rows sum to 283,852, so
+    arithmetic cannot confirm it and the lock does not reach it.
+  - 2099 A5 computes a grand total of 27,834 where 2025 shows the stored
+    27,833. Correct-by-route, disclosed in PR #220.
+  - A draft in which NOTHING has a value locks no headers at all. Nothing
+    has landed in that state; one value in a group locks its caption.
+  - The render calls recomputeTotals before computing its flags, so on a
+    sparse draft a value-less total row loses its total status. Identical
+    on the previous build; it goes with the sparse-inference ticket.
+
+=== log written by deploy_240a_r3.js ===
