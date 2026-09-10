@@ -50,3 +50,76 @@ PROVENANCE of the archive:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as bf9a8a2
+          remote main = bf9a8a2  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1131284B)
+
+DEPLOY ERROR: fetch failed
+
+
+===== RESUMED by finish_240a_r2.js after "fetch failed" =====
+=== CLCPA-240 round 2: inspect, then finish the approved deploy ===
+org: https://org9076e69b.crm.dynamics.com
+
+PRE-FLIGHT 0  self-check: helpers present and self-tested.
+PRE-FLIGHT 1  branch = main, HEAD = bf9a8a2
+              clean, and 68567b8 is an ancestor.
+PRE-FLIGHT 1b the rollback is intact and pushed: archive proves 69d8b300a7,
+              bf9a8a2 is on origin/main (now at bf9a8a2).
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  ids: app.js d91e1d19ff, styles.css 37d0e57db0
+PRE-FLIGHT 3b all 22 ticket symbols verified in the COMMITTED BLOB.
+PRE-FLIGHT 4  stamps applied in memory. Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  F4LXK8QRU
+#################################################
+
+Authorized.
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+GATE  all three ids resolve to the expected names.
+
+LIVE STATE, read rather than assumed:
+  app.js                  1123590B  sha 1379309f7c86  previous bytes
+  styles.css              271763B  sha 37d0e57db0ed  NEW bytes
+  ExecutiveDashboard.html 4080B  sha 2a0142e0dd6a  previous bytes
+  app.js APP_BUILD stamp        : 69d8b300a7
+  app.js canonicalised + hashed : 69d8b300a7
+
+CLASSIFIED: app.js is still the previous build (the PATCH did not land), HTML is previous.
+            Either way the state is KNOWN, so finishing is safe.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1131284B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call)
+published.
+
+READ-BACK app.js                  1131284B  sha256 1b850715db044f28  VERIFIED byte-identical
+READ-BACK styles.css              271763B  sha256 37d0e57db0ed348b  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html 4080B  sha256 ae87b3fa335ac07e  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : d91e1d19ff  ok
+  app.js canonicalised + hashed : d91e1d19ff  ok
+  HTML references app.js?v=     : d91e1d19ff  ok
+  HTML references styles.css?v= : 37d0e57db0  ok
+  all 22 ticket symbols present in the SERVER copy.
+
+=== DEPLOY COMPLETE (resumed) ===
+build id (app.js): d91e1d19ff
+styles.css id    : 37d0e57db0 (not pushed; bytes identical to live)
+previous build   : 69d8b300a7, archived and pushed as bf9a8a2
+source           : ExecutiveDashboard_dev/ at main @ bf9a8a2
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK: hard-refresh and confirm the console prints
+   [DAC dashboard] build d91e1d19ff
+
+=== resumed log written by finish_240a_r2.js ===
