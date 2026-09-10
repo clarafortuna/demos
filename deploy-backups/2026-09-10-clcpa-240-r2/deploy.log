@@ -1,0 +1,52 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: CLCPA-240 round 2 (group headers and totals are structure)
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present and self-tested,
+              constants set, 3 resources, 22 ticket symbols to count.
+PRE-FLIGHT 1  branch = main, HEAD = 5b6e57e
+              source folder clean, so the pushed bytes are exactly 5b6e57e.
+              and 68567b8, the round-2 tip, is an ancestor of HEAD.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      d91e1d19ff
+                 styles.css  37d0e57db0
+              both match the ids approved in advance.
+PRE-FLIGHT 3b all 22 ticket symbols verified in the COMMITTED BLOB, 0 NUL bytes.
+PRE-FLIGHT 3c all 23 suites green.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both verified present and no stale
+              third stamp left behind. Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  A2Y3SA4L3
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1123590B  local=1131284B
+unchanged  styles.css   deployed=271763B  local=271763B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PROVENANCE of the archive:
+  app.js APP_BUILD stamp        : 69d8b300a7
+  app.js canonicalised + hashed : 69d8b300a7
+  expected previous build       : 69d8b300a7
+  styles.css id (cross-check)   : 37d0e57db0
+  -> all three agree. The archive holds 69d8b300a7.
+
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
