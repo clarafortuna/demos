@@ -2941,7 +2941,7 @@ function utf8ByteLength(str) {
      * because 111 rows in the other 48 tables carry "total" without being
      * one -- including "Total # of projects", the row CLCPA-209 was filed
      * about. The scope is a declaration precisely so no fresh import can
-     * widen it: see HIERARCHICAL_TOTALS.
+     * widen it: see HIERARCHICAL_TABLES.
      *
      * The two conditions from the branch above still both apply: the row must
      * hold NO number, so there is never a magnitude to overwrite, and a row
