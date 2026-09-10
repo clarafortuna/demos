@@ -75,7 +75,7 @@ function grabDecl(src, name) {
 const WANT_FN = ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'buildIngestImport',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
-  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',
                  'formatIngestValue', 'compareTableIds', 'isStrictTotalRowLabel',
@@ -107,7 +107,8 @@ try {
     /* CLCPA-240 dependencies. Single-line consts, so a bounded one-line match
      * rather than grabDecl, which scans to the next dedented `};`. Read from
      * the SOURCE, never retyped. */
-    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER']
+    ['INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER',
+     'INGEST_NOVALUE_MARKER', 'HIERARCHICAL_TABLES']
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n') + '\n' +
     parts.join('\n') + '\n' +

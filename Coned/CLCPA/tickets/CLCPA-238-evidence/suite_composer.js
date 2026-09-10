@@ -111,7 +111,11 @@ guard('extract and run the shipped composer', () => {
     'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
     'sumDerivedCols', 'detectPctColumns'];
   const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-    'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
+    'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
+     the functions cannot be assembled without them. Dependencies, not
+     assertions. */
+  'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER'];
   const missF = FNS.filter(n => !grab(n));
   const missD = DECLS.filter(n => !grabDecl(n));
   ok(missF.length === 0, 'every composer function is found in app.js' +

@@ -2,18 +2,22 @@
 CLCPA-240 first half -- hierarchical / composite-key matcher
   BASE   : 899fd8a698  (predates the change)
 ======================================================================
-  ok   NEW assembles, resolving 33 functions and 29 declarations by following ReferenceErrors
+  ok   NEW assembles, resolving 34 functions and 31 declarations by following ReferenceErrors
   ok   BASE (899fd8a698) assembles, resolving 28 functions and 25 declarations
   ok   S1 INGEST_KEY_COLS declares exactly A3:2 and A4:2
   ok   S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)
-  ok   S3 HIERARCHICAL_TOTALS declares exactly A5, A6, A7, A8, inside totalRowFlags
-  ok   S3b and NOT at module level, where it would burden every other harness
+  ok   S3 HIERARCHICAL_TABLES declares exactly A5, A6, A7, A8, at module scope
+  ok   S3b exactly ONE definition of it: 1
+  ok   S3c and the round-1 name is gone, not left beside it
+  ok   S3d totalRowFlags reads the shared declaration rather than its own copy
+  ok   S3e and so does renderIngestEditor, which is why it moved
   ok   S4 A7 is NOT grouped, so its key is unchanged
   ok   S5 the hierarchical branch is gated on the DECLARATION
   ok   S6 it is NOT gated on a run-time count of header rows
   ok   S7 the calculated marker is one constant, not two literals: 1 literal(s)
   ok   R1 the template writes a heading row and all 50 labels: 51 rows
-  ok   R2 all 9 group headers carry NO "(calculated)": 9 blank
+  ok   R2 all 9 group headers carry NO "(calculated)": 9
+  ok   R2b and every one of them is marked "(no value)" in every value column, so nothing is left silently typeable: 9
   ok   R3 the importer ACCEPTS the file the template wrote
   ok   R4 every row landed, none duplicated: 50 of 50
   ok   R5 all 50 rows were created in a year that had none: 50
@@ -87,4 +91,4 @@ CLCPA-240 first half -- hierarchical / composite-key matcher
   ok   M17 and the draft is untouched
   ok   M18 the baseline in this file is a literal commit sha, not a symbolic ref that would collapse onto the change itself: "899fd8a698"
 
-  84 passed, 0 failed
+  88 passed, 0 failed

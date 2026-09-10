@@ -86,7 +86,11 @@ const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct'
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
+  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
+     the functions cannot be assembled without them. Dependencies, not
+     assertions. */
+  'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER'];
 const composerFrom = (src) => new Function(
   DECLS.map(n => grabDecl(n, src)).join(NL) + NL +
   FNS.map(n => grab(n, src)).join(NL) + NL + 'return composePayloadFromRows;')();
@@ -377,7 +381,9 @@ guard('one function', () => {
                 'wireControlTips',
                 'buildIngestImport', 'buildIngestWorkbook', 'totalRowFlags',
                 'ingestRowKey', 'ingestGroupOf', 'ingestIsHeaderRow',
-                'ingestIsBlankCell', 'ingestKeyColCount'];
+                'ingestIsBlankCell', 'ingestKeyColCount',
+                /* CLCPA-240 round 2 */
+                'ingestIsShapeBlank', 'renderIngestEditor', 'xlsxInstructionBlocks'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

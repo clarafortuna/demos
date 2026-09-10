@@ -107,7 +107,10 @@ const BASE_FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'da
   'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
-const BASE_DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
+const BASE_DECLS = [
+  /* CLCPA-240 round 2 dependencies */
+  'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER',
+  'DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
   'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
 const NL = String.fromCharCode(10);
 
@@ -499,6 +502,10 @@ guard('the blast radius is accounted for, function by function', () => {
     ingestIsHeaderRow: 'CLCPA-240 first half: the header predicate (new)',
     ingestIsBlankCell: 'CLCPA-240 first half: the blank-cell predicate (new)',
     ingestKeyColCount: 'CLCPA-240 first half: the declared key width (new)',
+    /* CLCPA-240 ROUND 2 */
+    ingestIsShapeBlank: 'CLCPA-240 round 2: the shape-blank predicate (new)',
+    renderIngestEditor: 'CLCPA-240 round 2: the group-header lock',
+    xlsxInstructionBlocks: 'CLCPA-240 round 2: the (no value) instruction',
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -506,7 +513,7 @@ guard('the blast radius is accounted for, function by function', () => {
   ok(mine.length === 2,
      'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
   /* 11 -> 18: CLCPA-240's first half added seven names not already listed. */
-  ok(changed.length === 18, 'eighteen in total, all named: ' + changed.length);
+  ok(changed.length === 21, 'twenty-one in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
@@ -516,7 +523,10 @@ guard('the exclusions hold', () => {
   ok(dc === dcB, 'DERIVED_COLS is byte-identical to BASE');
   ['applyDerivedCols', 'rowsForDisplay', 'recomputeTotals', 'kpiDacPct',
    'composePayloadFromRows', 'dacShadowCompare', 'renderDACMap', 'renderTable',
-   'renderIngestEditor', 'renderSourceTables'].forEach(fn => {
+   /* renderIngestEditor left this list when CLCPA-240 round 2 locked the
+    * hierarchical family's group header rows. That ticket owns the change and
+    * asserts it by name in ALSO above, so the claim here stays exact. */
+   'renderSourceTables'].forEach(fn => {
     ok(grab(fn) === grab(fn, BASE_SRC), fn + ' is byte-identical to BASE');
   });
   ok(/var DAC_SOURCE = 'dataverse';/.test(CODE), "DAC_SOURCE is still 'dataverse'");

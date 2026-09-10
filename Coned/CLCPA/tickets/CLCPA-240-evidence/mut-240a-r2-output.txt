@@ -1,0 +1,60 @@
+======================================================================
+CLCPA-240 first half, ROUND 2 -- mutation controls
+======================================================================
+  red  THE ROUND TRIP: (no value) stops counting as shape-blank
+       5 red, incl: R2 the importer still ACCEPTS the marked file: The file has 6 rows with this label inside the same gr
+  red  THE ROUND TRIP: (calculated) starts counting as shape-blank
+       5 red, incl: M2 (calculated) is NOT shape-blank -- that is what tells a TOTAL row from a header, and treating it a
+  red  the two predicates are collapsed into one
+       5 red, incl: M2 (calculated) is NOT shape-blank -- that is what tells a TOTAL row from a header, and treating it a
+  red  the marker stops being "not operator input" for KEYS
+       1 red, incl: M5 BOTH markers count as "not operator input" for keys and created rows
+  red  THE MARKER BECOMES DATA: the import stops skipping (no value)
+       6 red, incl: M10 neither marker lands in any cell
+  red  the skip is silent: the cell is dropped with no report
+       1 red, incl: M13 and it is REPORTED, not silently dropped: 0
+  red  THE ORIGINAL FINDING: headers go back to unmarked blanks
+       2 red, incl: R1 all 9 group headers are marked "(no value)" in every value column: 0
+  red  the marker is written into TOTAL rows as well
+       5 red, incl: T3 headers marked (no value), totals still (calculated), data rows unmarked: A5:2023 total r2 ["(no v
+  red  the marker leaks into flat tables
+       5 red, incl: T4 no flat table template carries the marker: A1 r1, A1 r1, A1 r1, A1 r2
+  red  the calculated branch is tested first again
+       5 red, incl: R1 all 9 group headers are marked "(no value)" in every value column: 0
+  red  the instructions stop explaining the marker
+       1 red, incl: T6 and says in so many words that a heading row is marked (no value)
+  red  THE FINDING: the lock is reverted
+       8 red, incl: L2 not one of the 9 group headers has an input: rows 0, 3, 6, 10, 24, 28, 32, 36, 46
+  red  the delete button comes back on locked rows
+       5 red, incl: L3 and not one has a delete button, so the row cannot be removed: rows 0, 3, 6, 10, 24, 28, 32, 36, 4
+  red  THE LOCK SPREADS: every row in the family locks
+       7 red, incl: L9 every one of them KEEPS its inputs -- the lock did not spread: rows 1, 4, 7, 8, 11, 12, 13, 14, 15
+  red  THE LOCK SPREADS: the family scope is dropped
+       4 red, incl: F2 every one is byte-identical to BASE: A1:2025, A2:2025, A3:2025, A4:2025, B1:2025
+  red  THE LOCK SPREADS: identification moves to the DRAFT shape
+       2 red, incl: N2 a label that is NOT in the baseline stays editable, so "+ Add Row" plus a re-render cannot trap th
+  red  the "holds no number" condition is dropped
+       1 red, incl: N6 and the "holds no number" condition is what keeps a DATA row that shares a header name from being 
+  red  the baseline is read from the DRAFT instead
+       2 red, incl: N2 a label that is NOT in the baseline stays editable, so "+ Add Row" plus a re-render cannot trap th
+  red  ITEM 2 REVERTED: a total row label is editable again
+       2 red, incl: L6 their LABELS are locked too, not just their values: rows 2, 5, 9, 23, 27, 31, 35, 45, 48, 49
+  red  ITEM 2 SPREADS: flat-table totals get locked too
+       3 red, incl: F4 its label is still editable, because A1 is not in the family
+  red  the locked label is rendered as an input anyway
+       2 red, incl: L6 their LABELS are locked too, not just their values: rows 2, 5, 9, 23, 27, 31, 35, 45, 48, 49
+  red  the family set is duplicated instead of shared
+       1 red, incl: S5 the editor reads the shared set rather than its own copy
+  red  a table leaves the family
+       2 red, incl: S1 HIERARCHICAL_TABLES is declared once at module scope
+  red  the marker string is inlined rather than named
+       10 red, incl: S3 the marker is one constant, not a scattered literal
+  red  styles.css is touched, when the whole point is that it need not be
+       1 red, incl: S8 styles.css is byte-identical to BASE: the round reuses .ingest-row-subheader and adds no CSS
+  red  HARNESS: the baseline is repointed at the working tree
+       1 red, incl: S9 the baseline in this file is a literal commit sha, not a symbolic ref: "HEAD"
+  red  HARNESS: the lock check looks for a class instead of an input
+       8 red, incl: L11 on BASE all 9 group headers had editable inputs: 0
+
+  27 caught, 0 not caught, of 27
+  clean re-run against byte-restored source: PASSES -- 82 passed, 0 failed

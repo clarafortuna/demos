@@ -90,8 +90,18 @@ const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
   'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
   'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
   'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
-  'formatIngestValue', 'fmtDerivedCell', 'sumDerivedCols', 'withinSourceRounding', 'addsOnlyPrecision', 'storedDecimals'];
+  'formatIngestValue', 'fmtDerivedCell', 'sumDerivedCols', 'withinSourceRounding', 'addsOnlyPrecision', 'storedDecimals',
+  /* CLCPA-240 round 2: the editor now locks the hierarchical family's group
+   * header rows, which reaches these three. Dependencies of the function, not
+   * assertions about it -- without them it cannot be assembled at all. */
+  'ingestIsHeaderRow', 'ingestIsShapeBlank', 'normIngestKey'];
 const DECLS = ['DERIVED_COLS', 'DERIVED_ROWS'];
+/* CLCPA-240 round 2: single-line consts, read with a bounded one-line match.
+ * The grabDecl above scans to the next dedented `};` and would swallow
+ * whatever follows a one-liner. Read from the SOURCE, never retyped. */
+const R2_DECLS = ['HIERARCHICAL_TABLES', 'INGEST_CALC_MARKER', 'INGEST_NOVALUE_MARKER']
+  .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
+  .filter(Boolean).join('\n');
 
 function renderFor(tableId, year) {
   const t = P.tables[tableId];
@@ -102,7 +112,7 @@ function renderFor(tableId, year) {
     draft: JSON.parse(JSON.stringify((t.data || {})[year] || [])),
     dirty: false,
   } };
-  const body = DECLS.map(n => grabDecl(n)).join('\n') + '\n' +
+  const body = DECLS.map(n => grabDecl(n)).join('\n') + '\n' + R2_DECLS + '\n' +
     FNS.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
   const f = new Function('state', 'escapeHtml', 'document', body)(
     state, (s) => String(s == null ? '' : s)

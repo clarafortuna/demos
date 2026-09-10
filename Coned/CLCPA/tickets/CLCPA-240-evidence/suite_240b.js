@@ -437,11 +437,18 @@ guard('two functions, and nothing else', () => {
     ingestIsHeaderRow: 'NOT this brief: CLCPA-240 first half, the header predicate (new)',
     ingestIsBlankCell: 'NOT this brief: CLCPA-240 first half, the blank-cell predicate (new)',
     ingestKeyColCount: 'NOT this brief: CLCPA-240 first half, the declared key width (new)',
+    /* CLCPA-240 ROUND 2, Emely’s finding after the round-1 hosted pass:
+     * hierarchical group headers and totals are now render-only, and the
+     * template marks a heading (no value). Named, so the exact count below
+     * survives as a guard rather than being relaxed. */
+    ingestIsShapeBlank: 'NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)',
+    renderIngestEditor: 'NOT this brief: CLCPA-240 round 2, the group-header lock',
+    xlsxInstructionBlocks: 'NOT this brief: CLCPA-240 round 2, the (no value) instruction',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 16, 'exactly SIXTEEN functions changed: ' + changed.length);
+  ok(changed.length === 19, 'exactly NINETEEN functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

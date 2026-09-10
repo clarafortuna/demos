@@ -1995,12 +1995,27 @@ function utf8ByteLength(str) {
    * byte-identically to before this ticket. */
   const INGEST_GROUPED = { A5: true, A6: true, A8: true };
 
-  /* The third set, the hierarchical tables, is declared INSIDE totalRowFlags
-   * rather than here. It has exactly one consumer, so keeping it in that
-   * consumer is locality rather than a second source of truth -- and a
-   * module-level constant would add a dependency to every harness that
-   * assembles totalRowFlags, which is ten of them. See HIERARCHICAL_TOTALS
-   * there. */
+  /* Tables built as group header / measure rows / group total.
+   *
+   * MOVED BACK OUT HERE in round 2, and the reason it was ever inside
+   * totalRowFlags is worth keeping: with ONE consumer, a constant living in
+   * that consumer is locality, and it spared ten harnesses a dependency. Round
+   * 2 gave it a SECOND consumer -- renderIngestEditor locks these tables'
+   * group header rows -- and two copies of a table set is a second source of
+   * truth, which is the thing this file does not do. So the harnesses get the
+   * dependency and this gets one home.
+   *
+   * A total row's label here is NOT a whole-word "Total". The convention is
+   * inconsistent even inside one table: A5 says "Subtotal" in 2023 and
+   * "<group> Total" in 2024 and 2025, and its grand total reads "Commercial
+   * Programs Total Installations" with the word in the MIDDLE. Measured across
+   * these four: 79 total rows all carry total/subtotal somewhere in the label,
+   * and ZERO of their 67 group headers do.
+   *
+   * DECLARED, never detected. A run-time structural test would reach 111 rows
+   * in the other 48 tables on a fresh import, "Total # of projects" among
+   * them, which is CLCPA-209 itself. */
+  const HIERARCHICAL_TABLES = { A5: true, A6: true, A7: true, A8: true };
 
   // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
   // ratios that must be COMPUTED, never summed). Keyed by table id; column indices
@@ -2932,22 +2947,10 @@ function utf8ByteLength(str) {
      * hold NO number, so there is never a magnitude to overwrite, and a row
      * already confirmed by arithmetic is left alone. A group header cannot be
      * reached -- it is value-less, but its label carries no "total". */
-    /* Tables built as group header / measures / group total, where a total
-     * row's label is NOT a whole-word "Total". The convention is inconsistent
-     * even inside one table -- A5 uses "Subtotal" in 2023 and "<group> Total"
-     * in 2024 and 2025, and its grand total is "Commercial Programs Total
-     * Installations", with "total" in the MIDDLE. Measured across these four
-     * tables: 79 total rows all carry total/subtotal somewhere in the label,
-     * and ZERO of their 67 group headers do. That is what makes a substring
-     * match safe HERE and only here.
-     *
-     * DECLARED, and declared in this function, for two separate reasons. A
-     * run-time structural test would reach 111 rows in the other 48 tables on
-     * a fresh import, "Total # of projects" among them, which is CLCPA-209
-     * itself. And a module-level constant would become a dependency of every
-     * harness that assembles this function, of which there are ten. */
-    const HIERARCHICAL_TOTALS = { A5: true, A6: true, A7: true, A8: true };
-    if (tableId && HIERARCHICAL_TOTALS[tableId]) {
+    /* The four hierarchical tables, declared once at module scope beside the
+     * other two ingest table sets. See HIERARCHICAL_TABLES for why a substring
+     * match is safe for these four and for nothing else. */
+    if (tableId && HIERARCHICAL_TABLES[tableId]) {
       for (let i = 0; i < rows.length; i++) {
         if (out[i]) continue;
         if (hasNumbers(rows[i])) continue;
@@ -15465,13 +15468,47 @@ function wireHTooltips() {
     return (tableId && INGEST_KEY_COLS[tableId]) || 1;
   }
 
-  /* Empty for the purposes of reading a row's SHAPE. The calculated marker
-   * counts as empty because it is not operator input: it means "the dashboard
-   * fills this in". */
+  /* CLCPA-240 round 2: the marker a GROUP HEADER's value cells carry.
+   *
+   * A group header is a caption for the rows beneath it and has nothing to
+   * calculate, so the template used to leave its cells blank. Blank says
+   * nothing to an operator, who can type into them -- and typing a value into
+   * a group header stops it being a header, which merges two groups and
+   * silently moves computed totals (measured on A5:2025: a group total
+   * 518 -> 523 and the grand total 27,833 -> 27,837). So the cells now say so.
+   *
+   * IT IS A DIFFERENT STRING FROM (calculated) ON PURPOSE, and the difference
+   * is load-bearing in the two predicates below:
+   *
+   *   ingestIsBlankCell  -- "did the operator supply this?" Neither marker is
+   *                         operator input, so BOTH count as blank. Used for
+   *                         key parts and for cells written into a new row.
+   *
+   *   ingestIsHeaderRow  -- "what SHAPE is this row?" A header's cells are
+   *                         empty; a TOTAL row's cells all carry
+   *                         (calculated). So (no value) counts as blank here
+   *                         and (calculated) must NOT -- treating it as blank
+   *                         made every total row in a downloaded file read as
+   *                         a group header, and A5 re-imported as 60 rows
+   *                         instead of 50.
+   *
+   * Neither marker is ever parsed into a cell: the import skips both. */
+  const INGEST_NOVALUE_MARKER = '(no value)';
+
+  /* Not operator input. Both markers, so neither is keyed as literal text nor
+   * carried into a created row. */
   function ingestIsBlankCell(v) {
     if (v == null) return true;
     const s = String(v).trim();
-    return s === '' || s === INGEST_CALC_MARKER;
+    return s === '' || s === INGEST_CALC_MARKER || s === INGEST_NOVALUE_MARKER;
+  }
+
+  /* Blank for the purposes of reading a row's SHAPE. (calculated) is
+   * deliberately absent: it is what distinguishes a total row from a header. */
+  function ingestIsShapeBlank(v) {
+    if (v == null) return true;
+    const s = String(v).trim();
+    return s === '' || s === INGEST_NOVALUE_MARKER;
   }
 
   /* A group header: the key column is set and every other cell is empty.
@@ -15485,26 +15522,26 @@ function wireHTooltips() {
    * indistinguishable from a data row; buildIngestWorkbook now leaves a header
    * row's cells genuinely blank.
    *
-   * SO THE MARKER IS NOT BLANK HERE, and that distinction is load-bearing in
-   * both directions. A group header's cells are EMPTY; a TOTAL row's cells all
-   * carry the marker, because the dashboard computes them. Treating the marker
-   * as empty made every total row in a downloaded file read as a group header,
-   * which matched nothing on the draft side and appended A5's ten totals a
-   * second time on any re-import -- 60 rows where there should be 50. The key
-   * parts in ingestRowKey still treat the marker as empty, which is a
-   * different question: what the operator SUPPLIED, not what shape the row is.
+   * SO (calculated) IS NOT BLANK HERE, and that distinction is load-bearing in
+   * both directions. A group header's cells are empty, or carry (no value); a
+   * TOTAL row's cells all carry (calculated), because the dashboard computes
+   * them. Treating (calculated) as empty made every total row in a downloaded
+   * file read as a group header, which matched nothing on the draft side and
+   * appended A5's ten totals a second time on any re-import -- 60 rows where
+   * there should be 50. ingestIsBlankCell answers the different question of
+   * what the operator SUPPLIED, and counts both markers.
    *
-   * KNOWN LIMIT: an operator who both deletes the "(calculated)" text from a
-   * data row and leaves every value blank produces a row shaped like a header.
-   * It is then treated as one, which costs nothing -- the row had no values to
-   * land -- but it does become the group for the rows beneath it. */
+   * KNOWN LIMIT: an operator who both deletes the marker text from a data row
+   * and leaves every value blank produces a row shaped like a header. It is
+   * then treated as one, which costs nothing -- the row had no values to land
+   * -- but it does become the group for the rows beneath it. */
   function ingestIsHeaderRow(row, labelCols) {
     if (!Array.isArray(row) || row.length < 2) return false;
     const lc = labelCols[0];
     if (row[lc] == null || String(row[lc]).trim() === '') return false;
     for (let c = 0; c < row.length; c++) {
       if (c === lc) continue;
-      if (row[c] != null && String(row[c]).trim() !== '') return false;
+      if (!ingestIsShapeBlank(row[c])) return false;
     }
     return true;
   }
@@ -15862,6 +15899,18 @@ function wireHTooltips() {
           res.notTouched.computed.push(Object.assign({
             why: 'the template marks this cell as calculated, so it is left to ' +
               'the dashboard',
+          }, where));
+          return;
+        }
+        /* CLCPA-240 round 2: (no value) is NEVER parsed into a cell either. A
+         * group header has no values by definition, and the marker exists to
+         * tell the operator that, not to become data. Without this the literal
+         * text would be run through parseNumericInput and written into the
+         * row -- the same defect the calculated marker had in round 1, which
+         * put "(calculated)" into A3's Program Name. */
+        if (String(raw).trim() === INGEST_NOVALUE_MARKER) {
+          res.notTouched.computed.push(Object.assign({
+            why: 'this row is a group heading, so it holds no values',
           }, where));
           return;
         }
@@ -16291,9 +16340,16 @@ function wireHTooltips() {
         'the active sheet, so these instructions are never part of your file.' },
       { style: XLSX_STYLE_BODY, ht: 60, text:
         '3. Open the CSV you saved and fill in the values. Type values only in ' +
-        'the positions the example shows empty; leave (calculated) positions ' +
-        'empty; do not change the header row or the program names. You MAY add ' +
-        'new program rows at the bottom: the import will create them.' },
+        'the positions the example shows empty; leave (calculated) and ' +
+        '(no value) positions exactly as they are; do not change the header ' +
+        'row or the program names. You MAY add new program rows at the ' +
+        'bottom: the import will create them.' },
+      { style: XLSX_STYLE_BODY, ht: 46, text:
+        'Some tables group their rows under a heading, and a heading row is ' +
+        'marked (no value) across its columns. A heading is a caption for the ' +
+        'rows beneath it, not a row of its own: it takes no figures, and the ' +
+        'import uses it to know which group each row belongs to. Leave those ' +
+        'rows alone.' },
       { style: XLSX_STYLE_BODY, ht: 46, text:
         '4. In the dashboard, open Report Data, Add New Year, choose this ' +
         'section and table, Import From File, and pick your CSV. The values land ' +
@@ -16360,7 +16416,18 @@ function wireHTooltips() {
                    text: row[0] };
         }
         const style = isTotal ? XLSX_STYLE_TOTAL : XLSX_STYLE_LOCKED;
-        if (!isGroupHeader && computed.any(idx, c)) {
+        /* CLCPA-240 round 2: a group header SAYS it takes no values.
+         *
+         * Round 1 left these cells blank so the importer could read the group
+         * structure out of the file, and blank tells the operator nothing --
+         * they can type into them, and a valued header stops being a header,
+         * merging two groups and moving totals with no warning. (no value)
+         * counts as shape-blank in ingestIsHeaderRow, so the structure is
+         * still readable, and it is skipped on import, so it never lands as
+         * data. Checked BEFORE the calculated branch: a header has nothing to
+         * calculate, whatever DERIVED_COLS says about the column. */
+        if (isGroupHeader) return { style: style, text: INGEST_NOVALUE_MARKER };
+        if (computed.any(idx, c)) {
           return { style: style, text: INGEST_CALC_MARKER };
         }
         /* EMPTY, and LOCKED like everything else: the workbook shows the
@@ -20755,9 +20822,65 @@ function wireHTooltips() {
       if (h != null && /^\s*%\s*change\s*$/i.test(String(h))) readOnlyByName[idx] = true;
     });
 
+    /* CLCPA-240 round 2: A GROUP HEADER IS STRUCTURE, NOT DATA.
+     *
+     * A5, A6, A7 and A8 are built as group header / measure rows / group
+     * total, and the group a row belongs to IS the nearest header above it --
+     * that is the key the importer matches on. The editor rendered those
+     * headers as ordinary rows: editable label, editable cells, delete button.
+     * Measured on A5:2025, driving the real engine:
+     *
+     *   deleting the header at row 3   -> one total stops being recognised,
+     *                                     that group's total 518 -> 522 and
+     *                                     the grand total 27,833 -> 27,836
+     *   typing 1 into that same header -> it stops being a header,
+     *                                     518 -> 523 and 27,833 -> 27,837
+     *   re-importing the same CSV after -> 52 rows with 3 created, because
+     *   the deletion                       every row below silently re-keyed
+     *
+     * None of the three warned. This is the defect class CLCPA-233 closed for
+     * multi-row headers, on the hierarchical family, and it reuses that exact
+     * path: isHeaderRow below already renders every cell read-only and already
+     * suppresses the delete button, and .ingest-row-subheader already exists.
+     * No CSS changes.
+     *
+     * IDENTIFIED BY BASELINE LABEL, not by the draft's shape. "+ Add Row"
+     * creates ['', null, null, null], and a structural rule would lock a row
+     * the operator is still filling in the moment anything re-renders the grid
+     * -- which Add Row and Delete Row both do. A label that is not in the
+     * baseline cannot be a stored group header, so a new row can never be
+     * caught. It also survives rows moving, where an index rule would not.
+     *
+     * The "holds no number" condition keeps a DATA row that happens to share a
+     * header's name from being frozen. KNOWN LIMIT: such a row would still
+     * lock while it is empty. Measured on the frozen payload: zero of the 67
+     * group headers shares a name with a data row, so this is unreachable
+     * today. */
+    const isHierFamily = !!(i.tableId && HIERARCHICAL_TABLES[i.tableId]);
+    const baselineHeaderLabels = (() => {
+      const out = {};
+      if (!isHierFamily) return out;
+      (i.baseline || []).forEach(r => {
+        if (ingestIsHeaderRow(r, [0])) out[normIngestKey(r[0])] = true;
+      });
+      return out;
+    })();
+    const rowHasNumber = (r) => Array.isArray(r) &&
+      r.slice(1).some(v => typeof v === 'number' && isFinite(v));
+    const isGroupHeaderRow = (row) => isHierFamily && Array.isArray(row) &&
+      !!baselineHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);
+
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
-      const isHeaderRow = rowIdx < headerRowCount;
+      const isHeaderRow = rowIdx < headerRowCount || isGroupHeaderRow(row);
       const isTotal = editorTotalFlags[rowIdx];
+      /* CLCPA-240 round 2, item 2: in the hierarchical family a total row's
+       * LABEL is structure too. Its value cells were already read-only, but
+       * the label column returned an editable input before the total branch
+       * was ever reached, and the row carried a delete button. Renaming or
+       * removing a group total breaks the group/total pairing the report and
+       * the importer both read. Flat tables are untouched: the all-totals
+       * tables are CLCPA-205 item 2 and stay pending. */
+      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow;
       const cells = i.schema.map((_, colIdx) => {
         const v = row[colIdx];
         /* A HEADER ROW: every cell read-only, including the label column, and
@@ -20767,6 +20890,13 @@ function wireHTooltips() {
          * have a derive rule, and without this the sub-header's "% DAC" would
          * be routed through fmtDerivedCell as though it were a percentage. */
         if (isHeaderRow) {
+          const text = (v == null || v === '') ? '' : String(v);
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc ingest-cell-calc-text" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(text)}</span></td>`;
+        }
+        if (colIdx === 0 && lockTotalRow) {
+          /* A locked total label: shown as the text it is, with no input.
+           * Same treatment as a header row's label, and it must be checked
+           * BEFORE the editable-label branch below, which is unconditional. */
           const text = (v == null || v === '') ? '' : String(v);
           return `<td class="ingest-td-calc"><span class="ingest-cell-calc ingest-cell-calc-text" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(text)}</span></td>`;
         }
@@ -20815,7 +20945,7 @@ function wireHTooltips() {
         : (isTotal ? ' class="ingest-row-total"' : '');
       return `<tr${rowCls} data-row="${rowIdx}">
         ${cells}
-        <td class="ingest-td-actions">${isHeaderRow ? ''
+        <td class="ingest-td-actions">${(isHeaderRow || lockTotalRow) ? ''
           : `<button class="ingest-row-delete" type="button" data-row="${rowIdx}" data-tip="Delete row" aria-label="Delete row">×</button>`}
         </td>
       </tr>`;

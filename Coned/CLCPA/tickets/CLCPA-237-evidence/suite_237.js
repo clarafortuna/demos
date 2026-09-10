@@ -89,7 +89,11 @@ const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct'
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
+  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
+     the functions cannot be assembled without them. Dependencies, not
+     assertions. */
+  'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER'];
 
 function composerFrom(src) {
   const body = DECLS.map(n => grabDecl(n, src)).join('\n') + '\n' +

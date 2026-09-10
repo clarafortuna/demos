@@ -3,7 +3,7 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
 ======================================================================
 
 === the archive itself ===
-  ok   a workbook is produced: 17270 bytes
+  ok   a workbook is produced: 17697 bytes
   ok   SEVEN parts, no logo: 7
   ok   part present: [Content_Types].xml
   ok   part present: _rels/.rels
@@ -69,7 +69,7 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
   ok   xl/styles.xml: XML declaration then a root element
   ok   xl/styles.xml: tags balance (41/41)
   ok   xl/worksheets/sheet1.xml: XML declaration then a root element
-  ok   xl/worksheets/sheet1.xml: tags balance (54/54)
+  ok   xl/worksheets/sheet1.xml: tags balance (58/58)
   ok   xl/worksheets/sheet2.xml: XML declaration then a root element
   ok   xl/worksheets/sheet2.xml: tags balance (183/183)
 
@@ -213,7 +213,7 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
   ok   but no real table needs it: longest is 25 chars
 
 === ROUND 5: the Instructions sheet, redesigned and verbatim ===
-  ok   the expected number of text blocks: 12 of 12
+  ok   the expected number of text blocks: 13 of 13
   ok   block 1 is verbatim
   ok   block 2 is verbatim
   ok   block 3 is verbatim
@@ -226,6 +226,7 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
   ok   block 10 is verbatim
   ok   block 11 is verbatim
   ok   block 12 is verbatim
+  ok   block 13 is verbatim
   ok   the bracketed parts are substituted with the real table and year
   ok   and the text says the workbook is a read-only example, not a form
   ok   and tells the operator they may append program rows
@@ -236,7 +237,7 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
   ok   and the closing note
   ok   the body style wraps its text
   ok   and so does the callout
-  ok   rows carry set heights so the wrapped text is readable: 14
+  ok   rows carry set heights so the wrapped text is readable: 15
   ok   and column A is wide enough to read
 
 === PROTECTION on both sheets, no password ===
@@ -247,8 +248,8 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
   ok   protection is guidance against accidents, not security (stated, not tested)
 
 === PER-CELL: every cell on BOTH sheets resolves LOCKED ===
-  ok   sheet1: has cells to check: 14
-  ok   sheet1: EVERY one of its 14 cells resolves locked
+  ok   sheet1: has cells to check: 15
+  ok   sheet1: EVERY one of its 15 cells resolves locked
   ok   sheet1: and every style index is a real format
   ok   sheet2: has cells to check: 96
   ok   sheet2: EVERY one of its 96 cells resolves locked
@@ -294,5 +295,5 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
   ok   nor ever CALLS a compression stream: STORED entries need none
 
 ======================================================================
-  265 passed, 0 failed
+  266 passed, 0 failed
 ======================================================================
