@@ -50,3 +50,50 @@ PROVENANCE of the archive:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 9899296
+          remote main = 9899296  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1123590B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1123590B  sha256 1379309f7c860cb1...  VERIFIED byte-identical
+READ-BACK styles.css  271763B  sha256 37d0e57db0ed348b...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 2a0142e0dd6a7773...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 69d8b300a7  ok
+  app.js canonicalised + hashed : 69d8b300a7  ok
+  HTML references app.js?v=     : 69d8b300a7  ok
+  HTML references styles.css?v= : 37d0e57db0  ok
+  all 13 ticket symbols present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 69d8b300a7
+styles.css id    : 37d0e57db0 (not pushed; bytes identical to live)
+previous build   : b201bb3fcd, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ a97991b
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 69d8b300a7
+If it prints anything else, the browser is holding an older app.js.
+
+THE ACCEPTANCE PASS for CLCPA-240 first half:
+  1. Report Data -> A.5, download the template for 2025.
+  2. Type values into it, save as CSV, import into 2099.
+  3. All 50 rows land, including the 9 group headers and 10 totals.
+  4. The ten group and grand totals COMPUTE, they do not sit blank.
+  5. Save, then reopen: the report reads correctly.
+  6. A.3: the same, and Program Name stays text in every row.
+  7. Re-import the same file into the SAME year: it MATCHES, it does not
+     append duplicates. A5 stays 50 rows, not 60.
+
+Expect 2099 A5 to compute a grand total of 27,834 where 2025 shows the
+stored 27,833. That is the payload discrepancy disclosed in PR #220, it is
+correct-by-route, and it is not a defect in this build.
+
+=== log written by deploy_240a.js ===
