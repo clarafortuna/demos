@@ -515,6 +515,7 @@ say('');
 say('=== F. everything outside the family, and the round trip =============');
 guard('F: flat tables render byte-identically to BASE', () => {
   const fam = { A5: 1, A6: 1, A7: 1, A8: 1 };
+  let e1 = null, e1empty = null;
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
     if (fam[id]) return;
@@ -530,19 +531,36 @@ guard('F: flat tables render byte-identically to BASE', () => {
       b = renderWith(OLD, id, y, schema, rows, rows).html;
     } catch (e) { diff.push(id + ':' + y + ' threw: ' + e.message); return; }
     checked++;
-    if (a !== b) diff.push(id + ':' + y);
+    /* E1 is the ONE table CLCPA-244 moved on purpose: its source-share column
+     * is a weighted mean, whose marking became total-row-only, so the four
+     * category rows turned from read-only grey into editable inputs. It is
+     * carved out BY NAME and its difference is then asserted in the expected
+     * direction below -- an unexplained exclusion would delete the guard. */
+    if (a !== b) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
     /* and with an EMPTY baseline too, since that is what round 3 changed */
     let a2, b2;
     try {
       a2 = renderWith(NEW, id, y, schema, rows, []).html;
       b2 = renderWith(OLD, id, y, schema, rows, []).html;
     } catch (e) { diff.push(id + ':' + y + ' (empty baseline) threw'); return; }
-    if (a2 !== b2) diff.push(id + ':' + y + ' (empty baseline)');
+    /* the same CLCPA-244 carve-out, in the state round 3 exists for */
+    if (a2 !== b2) {
+      if (id === 'E1') e1empty = { a: a2, b: b2 };
+      else diff.push(id + ':' + y + ' (empty baseline)');
+    }
   });
   ok(checked >= 40, 'F1 rendered ' + checked + ' tables outside the family, in both states');
   ok(diff.length === 0,
      'F2 every one is byte-identical to BASE' +
      (diff.length ? ': ' + diff.slice(0, 5).join(', ') : ''));
+  ok(e1 !== null, 'F3 E1 DID change, which is what CLCPA-244 did');
+  ok(e1empty !== null, 'F3b and in the EMPTY-baseline state too, the one round 3 fixed');
+  if (e1) {
+    const calcs = (h) => (h.match(/ingest-cell-calc/g) || []).length;
+    ok(calcs(e1.a) === calcs(e1.b) - 4,
+       'F4 and exactly FOUR cells stopped being calculated: ' +
+       calcs(e1.b) + ' -> ' + calcs(e1.a));
+  }
 });
 
 guard('F: A1s flat Total row is still editable and deletable', () => {

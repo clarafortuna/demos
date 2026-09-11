@@ -75,7 +75,7 @@ function grabDecl(name) {
 
 const NAMES = ['crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
   'xlsxStylesXml', 'xlsxCell', 'xlsxSheetXml', 'xlsxInstructionBlocks',
-  'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed',
+  'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed', 'isTotalOnlyDerived',
   'totalRowFlags', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell', 'cellText', 'cellCount',
   'cellPct', 'getTableSchema', 'getTableBody', 'rawNum', 'parseCsvRows',
   'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',

@@ -1,0 +1,55 @@
+======================================================================
+CLCPA-244 -- E1s source percentages, and the fallback year
+  BASE   : 18f11e2
+======================================================================
+  ok   the changed source and BASE (18f11e2) both assemble and run
+
+=== D1. E1: the four shares are source, the Grand Total is the output ==
+  ok   D1a all four category rows render an EDITABLE percentage: 4 of 4
+  ok   D1b and the Grand Total stays read-only grey, because it IS a computed weighted mean
+  ok   D1c on BASE all four were read-only, which is the defect
+  ok   D1d the template leaves all four category cells FILLABLE: 4
+  ok   D1e and still writes (calculated) on the Grand Total
+  ok   D1f on BASE every one was marked (calculated)
+  ok   D1g the file the template wrote is accepted
+  ok   D1h all four shares LAND: [0.45,0.44,0.45,0.46,null]
+  ok   D1i and the Grand Total is left to the dashboard, not taken from the file
+  ok   D1j each landed value is the one in the file
+  ok   D1k and a plain CSV with no markers lands them too
+  ok   D1l on BASE none of them landed, by any route
+  ok   D1m the Grand Total is the investment-weighted mean of the four shares: 0.452793 against 0.452793
+  ok   D1n a typed share is never overwritten
+  ok   D1o and the Grand Total follows it: 0.484194
+
+=== D1x. the other 25 derived tables are untouched ====================
+  ok   D1x1 compared 69 table-years outside E1
+  ok   D1x2 not one cell changes its calculated marking
+  ok   D1x3 weightedMean is used by exactly one table, and it is E1
+
+=== D2. a year with no schema of its own borrows the MOST RECENT ======
+  ok   D2a a fresh year now borrows 2025s heading: "2025 Total Investment"
+  ok   D2b on BASE it borrowed 2023s: "2023 Total Investment ($)"
+  ok   D2c so "2023 Total Investment ($)" no longer appears in a 2099 template
+  ok   D2d and ingestTemplateSource borrows the SAME year the schema now does: 2025 both sides
+  ok   D2e 149 table-years have a schema of their own
+  ok   D2f NOT ONE of them changes, and every fallback year takes the newest
+  ok   D2g and the fallback path was actually exercised 104 times, so D2f is not vacuous
+  ok   D2h 38 schema headings carry a year literal: 38
+  ok   D2i and TEN deliberately name a different year -- prior-year comparison columns -- which is why substituting the year in the text was rejected: 10
+  ok   D2j A9:2025 carries both years on purpose: ["","2024","2024","2025","2025","% Change","% Change"]
+
+=== S. structure ======================================================
+  ok   S1 the total-row-only rule is one named predicate
+  ok   S2 defined once and read twice, by ingestComputed and by the editor: 3 occurrences
+  ok   S3 and it keys on the rule TYPE, not on a table id
+  ok   S4 neither surface names E1: a second wmean table would be handled
+  ok   S5 getTableSchema sorts its fallback years descending
+  ok   S6 and the first-key fallback is gone
+  ok   S7 recomputeTotals is byte-identical: the ENGINE was already right, only the marking was wrong
+  ok   S8 styles.css is byte-identical to BASE
+  ok   S9 and DERIVED_COLS itself is unchanged: no rule was edited, only how the marking reads one
+  ok   S10 the editor exempts a total-row-only rule ONLY on a body row
+  ok   S11 and the weighted-mean check computes its own expectation rather than asking recomputeTotals for it
+  ok   S12 the baseline is a literal commit sha: "18f11e2"
+
+  41 passed, 0 failed

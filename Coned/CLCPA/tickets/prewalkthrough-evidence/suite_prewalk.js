@@ -332,7 +332,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
-      'isStrictTotalRowLabel', 'isHierarchicalTotalLabel',
+      'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -385,7 +385,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
-      'isStrictTotalRowLabel', 'isHierarchicalTotalLabel',
+      'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -656,14 +656,19 @@ guard('the four exclusions', () => {
     /* CLCPA-240 ROUND 3: the group-header lock now works on the screen it
      * exists for -- a year imported but not yet saved. */
     isHierarchicalTotalLabel: 'NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)',
+    /* CLCPA-244: E1's weighted-mean marking and the schema fallback. */
+    isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
+    ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  /* 14 -> 21: CLCPA-240's first half added seven more, all named above. */
-  ok(changed.length === 24, 'exactly TWENTY-THREE functions changed: ' + changed.length);
+  /* 14 -> 21 -> 24 -> 27: CLCPA-240's first half added seven, its later
+   * rounds four more, and CLCPA-244 three. Every one named above. */
+  ok(changed.length === 27, 'exactly TWENTY-SEVEN functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those fourteen moved at all');
+     'and no function outside those twenty-seven moved at all');
 });
 
 say('');

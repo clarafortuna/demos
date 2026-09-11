@@ -50,6 +50,9 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
 === F. everything outside the family, and the round trip =============
   ok   F1 rendered 48 tables outside the family, in both states
   ok   F2 every one is byte-identical to BASE
+  ok   F3 E1 DID change, which is what CLCPA-244 did
+  ok   F3b and in the EMPTY-baseline state too, the one round 3 fixed
+  ok   F4 and exactly FOUR cells stopped being calculated: 6 -> 2
   ok   F3 A1:2025 has a Total row: 22
   ok   F4 and it keeps its input and its x: CLCPA-205 item 2 stays pending
   ok   F5 A5s own template still lands 50 rows in a fresh year: 50
@@ -70,4 +73,4 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   S8 styles.css is byte-identical to BASE: still no CSS
   ok   S9 the baseline is a literal commit sha: "5b6e57e"
 
-  53 passed, 0 failed
+  56 passed, 0 failed

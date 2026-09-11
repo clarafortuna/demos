@@ -72,7 +72,7 @@ function grabDecl(src, name) {
  * payload freeze: the payload holds ZERO split cells today (measured, not
  * assumed). They are extracted because totalRowFlags and rawNum call them, so
  * leaving them out makes the shared functions throw rather than run. */
-const WANT_FN = ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'buildIngestImport',
+const WANT_FN = ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnlyDerived', 'buildIngestImport',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',

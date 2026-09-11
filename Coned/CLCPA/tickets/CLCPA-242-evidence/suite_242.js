@@ -446,6 +446,12 @@ guard('three functions, all wiring', () => {
     /* CLCPA-240 ROUND 3: the group-header lock now works on the screen it
      * exists for -- a year imported but not yet saved. */
     isHierarchicalTotalLabel: 'NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)',
+    /* CLCPA-244, Emely's two E1 defects. Named so the exact count below
+     * stays a guard: the weighted-mean marking became total-row-only, and
+     * getTableSchema's fallback stopped serving the OLDEST year. */
+    isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
+    ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -455,8 +461,9 @@ guard('three functions, all wiring', () => {
    * legitimately register as changed against a BASE that lacks them, so they
    * are named rather than excused by a bigger number. */
   /* 6 -> 14: CLCPA-240 first half added eight, every one named above. */
-  ok(changed.length === 18, 'FOURTEEN: this ticket’s six plus CLCPA-240 ' +
-     'first half’s eight: ' + changed.length);
+  /* 18 -> 21: CLCPA-244 changed three more, every one named above. */
+  ok(changed.length === 21, 'TWENTY-ONE: this ticket’s six, CLCPA-240 first ' +
+     'half’s eight, round 2 and 3’s four, and CLCPA-244’s three: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
      'and the two new ones did not exist at BASE, which is why they count');

@@ -53,7 +53,11 @@ CLCPA-240 first half, ROUND 4 -- the label has a veto in four tables
   ok   S3 exactly one veto: 1
   ok   S4 confirms() itself is byte-identical to BASE: the general correction is not in this round
   ok   S5 styles.css is byte-identical to BASE
-  ok   S6 and renderIngestEditor is untouched: round 3s lock is unchanged
+  ok   S6.1 round 3s lock line 1 is byte-identical to BASE
+  ok   S6.2 round 3s lock line 2 is byte-identical to BASE
+  ok   S6.3 round 3s lock line 3 is byte-identical to BASE
+  ok   S6.4 exactly ONE code line differs from BASE, both ways: +1/-1
+  ok   S6.5 and it is CLCPA-244s line: if (dDesc && !(isTotalOnlyDerived(dDesc) && !isTotal)) {
   ok   S7 the baseline is a literal commit sha: "c2a34ee"
 
-  43 passed, 0 failed
+  47 passed, 0 failed

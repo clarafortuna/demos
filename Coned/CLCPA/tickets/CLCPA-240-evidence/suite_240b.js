@@ -447,11 +447,17 @@ guard('two functions, and nothing else', () => {
     /* CLCPA-240 ROUND 3: the group-header lock now works on the screen it
      * exists for -- a year imported but not yet saved. */
     isHierarchicalTotalLabel: 'NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)',
+    /* CLCPA-244, Emely's two E1 defects. Named so the exact count below
+     * stays a guard: the weighted-mean marking became total-row-only, and
+     * getTableSchema's fallback stopped serving the OLDEST year. */
+    isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
+    ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 20, 'exactly NINETEEN functions changed: ' + changed.length);
+  ok(changed.length === 23, 'exactly TWENTY-THREE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
@@ -472,7 +478,11 @@ guard('the exclusions hold', () => {
    * exclusion -- the pin that replaced it is at the bottom of this block, and
    * it now states what the matcher did rather than that it never happened. */
   ['isStrictTotalRowLabel', 'recomputeTotals', 'rowsForDisplay', 'applyDerivedCols',
-   'columnGrandTotals', 'totalRowSums', 'ingestComputed',
+   'columnGrandTotals', 'totalRowSums',
+   /* ingestComputed LEFT this list under CLCPA-244, which made a weighted mean
+    * mark only its total row. Deleting an exclusion weakens nothing only if
+    * something narrower replaces it, so the pin below states exactly which
+    * part moved and proves the other two answers did not. */
    'applyIngestImport', 'composePayloadFromRows', 'computeHeaderCards',
    'renderExecutiveSummary', 'renderDumbbell', 'renderStripWithGap',
    'renderTable'].forEach(fn => {
@@ -481,6 +491,23 @@ guard('the exclusions hold', () => {
             fn + ' exists in both sources, so comparing them means something')) return;
     ok(now === before, fn + ' is byte-identical to BASE');
   });
+  /* CLCPA-244 confined: only the `any` clause moved. Both other getters are
+   * byte-identical to BASE, and derivedCol still answers the same for every
+   * column of every table -- the map it reads changed from `true` to the rule
+   * descriptor, which is still truthy. Behaviour compared, not just text. */
+  (() => {
+    const now = grab('ingestComputed'), before = grab('ingestComputed', BASE_SRC);
+    if (!ok(now !== null && before !== null, 'ingestComputed exists in both')) return;
+    ok(now !== before, 'ingestComputed DID change, which is why it left the list');
+    ['totalRow: (r) => !!totals[r],', 'derivedCol: (c) => !!derived[c],']
+      .forEach((lit, k) => ok(now.indexOf(lit) >= 0 && before.indexOf(lit) >= 0,
+        ['totalRow', 'derivedCol'][k] + ' is unchanged from BASE'));
+    const mk = (src) => callWith(src, 'ingestComputed', [importedA1(), 'A1', A1SCHEMA]);
+    const cn = mk(SRC), cb = mk(BASE_SRC);
+    let diffs = 0;
+    for (let c = 0; c < 12; c++) if (cn.derivedCol(c) !== cb.derivedCol(c)) diffs++;
+    ok(diffs === 0, 'and derivedCol answers identically on every column: ' + diffs);
+  })();
   ok(/var DAC_SOURCE = 'dataverse';/.test(CODE), "DAC_SOURCE is still 'dataverse'");
   /* THE MATCHER HALF HAS LANDED, so this stops asserting that it has not.
    *

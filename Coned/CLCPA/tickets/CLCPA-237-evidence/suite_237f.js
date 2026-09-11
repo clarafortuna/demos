@@ -508,6 +508,12 @@ guard('the blast radius is accounted for, function by function', () => {
     xlsxInstructionBlocks: 'CLCPA-240 round 2: the (no value) instruction',
     /* CLCPA-240 ROUND 3 */
     isHierarchicalTotalLabel: 'CLCPA-240 round 3: the shared total-label rule (new)',
+    /* CLCPA-244, Emely's two E1 defects. Named so the exact count below
+     * stays a guard: the weighted-mean marking became total-row-only, and
+     * getTableSchema's fallback stopped serving the OLDEST year. */
+    isTotalOnlyDerived: 'CLCPA-244, the total-row-only rule predicate (new)',
+    ingestComputed: 'CLCPA-244, a weighted mean marks only its total row',
+    getTableSchema: 'CLCPA-244, the fallback takes the most recent year',
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -515,7 +521,8 @@ guard('the blast radius is accounted for, function by function', () => {
   ok(mine.length === 2,
      'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
   /* 11 -> 18: CLCPA-240's first half added seven names not already listed. */
-  ok(changed.length === 22, 'twenty-two in total, all named: ' + changed.length);
+  /* 22 -> 25: CLCPA-244 changed three more, each named in ALSO above. */
+  ok(changed.length === 25, 'twenty-five in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

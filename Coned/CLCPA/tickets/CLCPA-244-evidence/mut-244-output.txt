@@ -1,0 +1,39 @@
+======================================================================
+CLCPA-244 -- mutation controls
+======================================================================
+  red  THE DEFECT: the marking claims every row again
+       5 red, incl: D1d the template leaves all four category cells FILLABLE: 0
+  red  the editor reverts, so the shares go read-only again
+       3 red, incl: D1a all four category rows render an EDITABLE percentage: 0 of 4
+  red  the predicate never matches
+       5 red, incl: D1a all four category rows render an EDITABLE percentage: 0 of 4
+  red  THE SPREAD: every derived column becomes total-row-only
+       1 red, incl: D1x2 not one cell changes its calculated marking: A1:2023 r0c3, A1:2023 r1c3, A1:2023 r2c3, A1:2023
+  red  the predicate keys on the TABLE instead of the rule
+       1 red, incl: D1x2 not one cell changes its calculated marking: F2:2023 r0c2, F2:2023 r1c2, F2:2024 r0c2, F2:2024
+  red  the editor exempts a total row as well as a body row
+       1 red, incl: S10 the editor exempts a total-row-only rule ONLY on a body row
+  red  the template stops marking the Grand Total
+       3 red, incl: D1e and still writes (calculated) on the Grand Total
+  red  DERIVED_COLS is edited instead of the marking
+       3 red, incl: S9 and DERIVED_COLS itself is unchanged: no rule was edited, only how the marking reads one
+  red  the weighted mean becomes a plain ratio
+       10 red, incl: S9 and DERIVED_COLS itself is unchanged: no rule was edited, only how the marking reads one
+  red  THE FOSSIL: the fallback takes the first key again
+       5 red, incl: D2a a fresh year now borrows 2025s heading: "2023 Total Investment ($)"
+  red  the sort runs ascending, so it takes the oldest
+       4 red, incl: D2a a fresh year now borrows 2025s heading: "2023 Total Investment ($)"
+  red  THE GATE: the fallback fires even when the year HAS a schema
+       1 red, incl: D2f NOT ONE of them changes, and every fallback year takes the newest: A10:2024, A10:2024 (not own)
+  red  the sort is lexical, which breaks at a century boundary
+       1 red, incl: S5 getTableSchema sorts its fallback years descending
+  red  HARNESS: the gate stops exercising the fallback
+       1 red, incl: D2g and the fallback path was actually exercised 0 times, so D2f is not vacuous
+  red  HARNESS: the Grand Total is checked against the engine
+       1 red, incl: S11 and the weighted-mean check computes its own expectation rather than asking recomputeTotals for
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: S12 the baseline is a literal commit sha: "HEAD"
+
+  16 caught, 0 not caught, of 16 guards
+  0 declared blind spot(s)
+  clean re-run against byte-restored source: PASSES -- 41 passed, 0 failed
