@@ -1,0 +1,44 @@
+======================================================================
+CLCPA-244 round 3 -- mutation controls
+======================================================================
+  red  THE DEFECT: wrapping is gated off entirely
+       6 red, incl: R3 the shipped layout has the wrap search
+  red  the search never accepts a wrapped candidate
+       4 red, incl: D1 all six narrow widths render BIGGER than round 2: 0/6
+  red  the card height is never measured
+       4 red, incl: D1 all six narrow widths render BIGGER than round 2: 0/6
+  red  THE ACCEPTED LAYOUT MOVES: the full-size cap is lifted
+       2 red, incl: W1 every wide width, at EVERY height, still renders 4x1 at full size (0 cases): 1400x0 4x1 k=1.804,
+  red  wrapping is allowed to win at full width too
+       1 red, incl: W1 every wide width, at EVERY height, still renders 4x1 at full size (30 cases): 1400x400 2x2 k=1.0
+  red  IT REGRESSES: the width-only answer stops being the floor
+       3 red, incl: S4 nothing is smaller than round 2 rendered it: 1@1400x0, 1@1200x0, 1@1000x0, 1@900x0, 1@800x0
+  red  IT OVERCLAIMS: the height test is dropped from the search
+       3 red, incl: S3 no WRAPPED layout claims height it does not have: 2@360x100, 2@320x100, 2@360x160, 2@320x160, 2@
+  red  the height test uses one row instead of all of them
+       3 red, incl: S3 no WRAPPED layout claims height it does not have: 2@360x160, 2@320x160, 2@360x200, 2@320x200, 2@
+  red  THE FORK: the renderer stops calling the shared formula
+       1 red, incl: G2 the renderer CALLS it rather than re-deriving the height
+  red  the shared formula forgets the text floor
+       1 red, incl: F1 all 35 cases fall back to round 2 EXACTLY: 320x160 -> 3x2 k=0.449
+  red  THE ROW IS NOT WIRED: every arc goes back to one centre line
+       1 red, incl: G8 and y from the row
+  red  x stops using the column, so rows overlap horizontally
+       1 red, incl: G7 x comes from the COLUMN, not the index
+  red  the labels hang off row 0 for every gauge
+       1 red, incl: G9 labels hang off their own gauge, not off row 0
+  red  the hit test goes back to x-only
+       1 red, incl: G10 the hit test is two-dimensional, so row 2 gets its own tooltips
+  red  round 2s percent rule is reverted while nobody is looking
+       3 red, incl: X1 parseNumericInput is byte-identical to BASE: the % unit rule is unchanged
+  red  OPTION B SNEAKS IN: the header gets the magnitude guard
+       3 red, incl: X3 the section header still multiplies unconditionally, as ruled
+  red  HARNESS: the search extraction silently stops extracting
+       2 red, incl: R1 the shipped constants AND rowHeightFor were really read
+  red  HARNESS: the sweep stops sweeping heights
+       1 red, incl: S1 swept 72 width/height/count combinations
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X7 BASE is a literal commit sha: HEAD
+
+  19 caught, 0 not caught, of 19 guards
+  clean re-run against byte-restored source: PASSES -- 44 passed, 0 failed

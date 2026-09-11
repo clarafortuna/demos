@@ -20,12 +20,33 @@
  * Ends with a CLEAN re-run against byte-restored source and says so loudly.
  */
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
-const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-244-evidence';
-const APP = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-244-evidence';
 const SUITE = DIR + '/suite_244_r2.js';
+
+/* MUTATE A MATERIALISED COPY OF ROUND 2'S BUILD, not the working tree.
+ *
+ * suite_244_r2 is now pinned on both sides -- round 3 moved the layout, and a
+ * suite reading the working tree would re-judge every later round. That pin
+ * broke these controls: they were editing an app.js the suite no longer reads,
+ * so 14 of 17 mutations stopped registering and the run reported them as
+ * uncaught. The controls were not wrong; their subject had moved.
+ *
+ * So round 2's source is written out here and DAC_APP_OVERRIDE points the
+ * suite at it. The controls go on proving what they were written to prove, on
+ * the build they were written for, and they stay runnable rather than becoming
+ * a frozen number nobody can reproduce.
+ */
+const NEW_COMMIT = process.env.DAC_244R2_COMMIT || 'b256467';
+const APP = path.join(os.tmpdir(), 'clcpa244r2-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 
 const M = [
   /* ---- part 1: the percent sign ---------------------------------------- */
@@ -134,7 +155,8 @@ M.forEach((m) => {
   }
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_244_r2.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_244_r2.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -158,7 +180,8 @@ M.forEach((m) => {
 });
 
 let cleanOk = true, cleanOut = '';
-try { cleanOut = execFileSync('node', ['suite_244_r2.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { cleanOut = execFileSync('node', ['suite_244_r2.js'],
+  { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) { cleanOk = false; cleanOut = (e.stdout || '') + (e.stderr || ''); }
 
 const head = [
