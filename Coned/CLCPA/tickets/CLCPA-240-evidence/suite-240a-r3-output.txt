@@ -32,17 +32,20 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   C9 and one value in the first group locks THAT caption and no other, which is what the limit resolves into as soon as figures arrive
 
 === D. the sparse draft: a wrong inference must stay fixable ===========
-  ok   D1 the same six data rows are mis-flagged on both builds: 6 vs 6  -- the inference is NOT what round 3 touched
+  ok   D1 BASE (the round-3 build) mis-flags six data rows: 6
+  ok   D1b and CLCPA-240 round 4 mis-flags none, because the label now has a veto in these four tables: 0
   ok   D2 on BASE two of them were FROZEN, label and delete gone: [8,26]
   ok   D3 and now none is: a wrong computed number stays correctable
-  ok   D4 "Building Shell", the row Emely named, is still flagged by the inference and still carries its input and its x
-  ok   D5 every row the RENDER flagged, whose label says total, is locked: 3 flagged, 0 open
+  ok   D4 "Building Shell", the row Emely named, was flagged by the inference on BASE: ["r12"]
+  ok   D4b and round 4 no longer flags it at all: 0
+  ok   D4c and either way it keeps its input and its x, which is what round 3 was responsible for
+  ok   D5 every row the RENDER flagged, whose label says total, is locked: 5 flagged, 0 open
 
 === E. disclosed, not fixed: the render defeats its own bootstrap =====
-  ok   E1 twelve rows are flagged before a render: 12
-  ok   E2 the render MUTATES its own draft: 2 rows change shape, because recomputeTotals runs before the flags
-  ok   E3 so the flag count DROPS across one render: 12 -> 5
-  ok   E4 BASE behaves identically (12 -> 5), so this is disclosed and not introduced
+  ok   E1 after round 4 the render no longer changes any row shape on this draft: 0
+  ok   E2 the flag count still falls across a render, by two rather than by seven: 7 -> 5  (the ordering is reduced, not fixed)
+  ok   E3 on BASE the count fell 12 -> 5 across one render: 12 -> 5
+  ok   E4 renderIngestEditor still calls recomputeTotals BEFORE computing its flags, so the ordering is disclosed and not fixed here
 
 === F. everything outside the family, and the round trip =============
   ok   F1 rendered 48 tables outside the family, in both states
@@ -67,4 +70,4 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   S8 styles.css is byte-identical to BASE: still no CSS
   ok   S9 the baseline is a literal commit sha: "5b6e57e"
 
-  50 passed, 0 failed
+  53 passed, 0 failed

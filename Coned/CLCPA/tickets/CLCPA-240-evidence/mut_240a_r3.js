@@ -52,12 +52,11 @@ const M = [
     from: '      rows.forEach((r, idx) => {\n        if (!structural[idx]) return;\n        for (let k = idx + 1; k < rows.length && !structural[k]; k++) {\n          if (rowHasNumber(rows[k])) { out[normIngestKey(r[0])] = true; return; }\n        }\n      });',
     to:   '      rows.forEach((r, idx) => {\n        if (structural[idx]) out[normIngestKey(r[0])] = true;\n      });',
     expect: 'C4 a hand-built table with no values anywhere locks nothing' },
-  { t: APP, name: 'TOO EAGER: the holds-no-number condition is dropped',
-    from: '      !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);',
-    to:   '      !!groupHeaderLabels[normIngestKey(row[0])];',
-    /* Corrected prediction: a data row sharing a header's name is then frozen,
-     * and D3 is what notices -- not B6, whose rows do not share a name. */
-    expect: 'D3 and now none is: a wrong computed number stays correctable' },
+  /* DELETED in round 4: this suite no longer has a case that can see it.
+   * The condition it attacks protects a DATA row that shares a group header's
+   * name, and round 4 removed the mis-flagged rows this suite used to reach it
+   * through, so the control went green. mut_240a_r2 owns it now -- its N6
+   * supplies such a row deliberately -- and catches it there. */
   { t: APP, name: 'TOO EAGER: the family scope is dropped',
     from: '    const isHierFamily = !!(i.tableId && HIERARCHICAL_TABLES[i.tableId]);',
     to:   '    const isHierFamily = true;',
@@ -67,7 +66,10 @@ const M = [
   { t: APP, name: 'FIX 2 REVERTED: the label lock follows the flag alone again',
     from: '      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&\n        isHierarchicalTotalLabel(row[0]);',
     to:   '      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow;',
-    expect: 'D3 and now none is: a wrong computed number stays correctable' },
+    /* Round 4 removed the mis-flagged data rows entirely, so there is no longer
+     * a frozen row for the behavioural guard to find. What is left is the
+     * structural claim -- that the lock consults the LABEL -- and S4 is it. */
+    expect: 'S4 and so does the editor label lock' },
   { t: APP, name: 'FIX 2 WIDENED: no total row is locked at all',
     from: '      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&\n        isHierarchicalTotalLabel(row[0]);',
     to:   '      const lockTotalRow = false;',

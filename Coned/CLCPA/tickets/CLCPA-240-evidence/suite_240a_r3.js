@@ -391,10 +391,21 @@ guard('D: fix 2 removes round 2s contribution and nothing else', () => {
       frozen: misflagged.filter(i => !hasInput(r.row(i)) || !hasDel(r.row(i))) };
   };
   const now = mk(NEW), before = mk(OLD);
-  ok(now.misflagged.length === before.misflagged.length && now.misflagged.length === 6,
-     'D1 the same six data rows are mis-flagged on both builds: ' +
-     now.misflagged.length + ' vs ' + before.misflagged.length +
-     '  -- the inference is NOT what round 3 touched');
+  /* ROUND 4 CHANGED THIS, and the change is the point of that round.
+   *
+   * When round 3 shipped, both builds mis-flagged the same six data rows and
+   * this assertion said so: the inference was pre-existing and round 3 only
+   * stopped the label lock from freezing them. Emely's pass on 92b1a65b17 then
+   * hit those six with a full uniform draft, and round 4 gave the label a veto
+   * in the four hierarchical tables. So BASE still mis-flags six and the
+   * changed build mis-flags none. Restated rather than deleted, because what
+   * this suite is entitled to claim -- that ROUND 3 did not touch the
+   * inference -- is still true and is now visible in the BASE column. */
+  ok(before.misflagged.length === 6,
+     'D1 BASE (the round-3 build) mis-flags six data rows: ' + before.misflagged.length);
+  ok(now.misflagged.length === 0,
+     'D1b and CLCPA-240 round 4 mis-flags none, because the label now has a ' +
+     'veto in these four tables: ' + now.misflagged.length);
   ok(before.frozen.length === 2,
      'D2 on BASE two of them were FROZEN, label and delete gone: ' +
      JSON.stringify(before.frozen));
@@ -402,10 +413,16 @@ guard('D: fix 2 removes round 2s contribution and nothing else', () => {
      'D3 and now none is: a wrong computed number stays correctable' +
      (now.frozen.length ? ': ' + JSON.stringify(now.frozen) : ''));
   const bs = now.rows.map((x, i) => i).filter(i => String(now.rows[i][0]) === 'Building Shell');
-  const bsFlagged = bs.filter(i => now.f[i]);
-  ok(bsFlagged.length >= 1 && bsFlagged.every(i => hasInput(now.r.row(i)) && hasDel(now.r.row(i))),
-     'D4 "Building Shell", the row Emely named, is still flagged by the ' +
-     'inference and still carries its input and its x');
+  const bsBefore = bs.filter(i => before.f[i]);
+  const bsNow = bs.filter(i => now.f[i]);
+  ok(bsBefore.length >= 1,
+     'D4 "Building Shell", the row Emely named, was flagged by the inference ' +
+     'on BASE: ' + JSON.stringify(bsBefore.map(i => 'r' + i)));
+  ok(bsNow.length === 0,
+     'D4b and round 4 no longer flags it at all: ' + bsNow.length);
+  ok(bs.every(i => hasInput(now.r.row(i)) && hasDel(now.r.row(i))),
+     'D4c and either way it keeps its input and its x, which is what round 3 ' +
+     'was responsible for');
 
   /* A REAL total, whose label says so, stays locked -- ASSERTED AGAINST THE
    * FLAGS THE RENDER ITSELF USED.
@@ -445,27 +462,52 @@ guard('E: the leading recomputeTotals unflags a value-less total', () => {
   NEW.recomputeTotals(rows, schema99, 'A5', []);
   const beforeFlags = NEW.totalRowFlags(rows, 'A5', schema99).filter(Boolean).length;
   renderWith(NEW, 'A5', '2099', schema99, rows, []);
-  ok(beforeFlags === 12, 'E1 twelve rows are flagged before a render: ' + beforeFlags);
+  /* ROUND 4 REMOVED THE SYMPTOM IN THESE FOUR TABLES.
+   *
+   * When round 3 shipped, a sparse A5 draft flagged twelve rows, the render's
+   * leading recomputeTotals wrote a derived value into the value-less totals,
+   * and the count fell to five across one render. Round 4's label veto stops
+   * the mis-flagged data rows from ever being totals, and the drift goes with
+   * them. The ORDERING itself is untouched and still owned by the
+   * sparse-inference ticket, so it is pinned structurally below rather than
+   * declared fixed. */
   const drift = NEW.STATE.ingest.draft.map((r, i) => i)
     .filter(i => hdrLike(rows[i]) !== hdrLike(NEW.STATE.ingest.draft[i]));
-  ok(drift.length > 0,
-     'E2 the render MUTATES its own draft: ' + drift.length +
-     ' rows change shape, because recomputeTotals runs before the flags');
   const afterFlags = NEW.totalRowFlags(NEW.STATE.ingest.draft, 'A5', schema99)
     .filter(Boolean).length;
-  ok(afterFlags < beforeFlags,
-     'E3 so the flag count DROPS across one render: ' + beforeFlags +
-     ' -> ' + afterFlags);
-  /* and BASE does the same, which is what makes it not this round's */
+  ok(drift.length === 0,
+     'E1 after round 4 the render no longer changes any row shape on this ' +
+     'draft: ' + drift.length);
+  /* BUT THE ORDERING SYMPTOM IS NOT GONE, and saying it was would have been
+   * the easy wrong answer. The veto stops data rows being mistaken for totals,
+   * so no row changes SHAPE any more -- but the render's leading
+   * recomputeTotals still writes a derived value into a value-less total,
+   * which still costs that row the value-less bootstrap. Two flags are still
+   * lost across a render, down from seven. Measured, not assumed. */
+  ok(afterFlags < beforeFlags && (beforeFlags - afterFlags) === 2,
+     'E2 the flag count still falls across a render, by two rather than by ' +
+     'seven: ' + beforeFlags + ' -> ' + afterFlags +
+     '  (the ordering is reduced, not fixed)');
+
+  /* BASE showed both, which is what makes this a change and not a claim. */
   const rowsB = sparseDraft(2, 999);
   OLD.recomputeTotals(rowsB, schema99, 'A5', []);
   const bBefore = OLD.totalRowFlags(rowsB, 'A5', schema99).filter(Boolean).length;
   renderWith(OLD, 'A5', '2099', schema99, rowsB, []);
   const bAfter = OLD.totalRowFlags(OLD.STATE.ingest.draft, 'A5', schema99)
     .filter(Boolean).length;
-  ok(bBefore === beforeFlags && bAfter === afterFlags,
-     'E4 BASE behaves identically (' + bBefore + ' -> ' + bAfter +
-     '), so this is disclosed and not introduced');
+  ok(bBefore === 12 && bAfter === 5,
+     'E3 on BASE the count fell 12 -> 5 across one render: ' +
+     bBefore + ' -> ' + bAfter);
+
+  /* THE ORDERING IS STILL THERE. Round 4 removed what made it visible here,
+   * not the call order itself, and the routed-out ticket still owns it. */
+  const ed = grab('renderIngestEditor', SRC) || '';
+  const flagsAt = ed.indexOf('totalRowFlags(i.draft');
+  const recomputeAt = ed.indexOf('recomputeTotals(i.draft');
+  ok(recomputeAt >= 0 && flagsAt > recomputeAt,
+     'E4 renderIngestEditor still calls recomputeTotals BEFORE computing its ' +
+     'flags, so the ordering is disclosed and not fixed here');
 });
 
 /* ============ F: nothing else moved ==================================== */
