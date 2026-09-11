@@ -636,6 +636,8 @@ guard('K: the untouched tables key exactly as before', () => {
 guard('K: driven -- import behaviour identical to BASE on the untouched tables', () => {
   const declared = { A3: 1, A4: 1, A5: 1, A6: 1, A8: 1 };
   let checked = 0, mismatch = [];
+  const pctStrTables = { A9:1, A10:1, C2:1, F7:1, J1:1, J3:1, J4:1, J6:1, J7:1, J8:1 };
+  const pctStrHit = {};
   Object.keys(PAYLOAD.tables).sort().forEach(id => {
     if (declared[id]) return;
     const t = PAYLOAD.tables[id];
@@ -654,12 +656,43 @@ guard('K: driven -- import behaviour identical to BASE on the untouched tables',
     if (rN.rejections.length !== rO.rejections.length) {
       mismatch.push(id + ':' + y + ' rejections ' + rO.rejections.length + '->' + rN.rejections.length);
     } else if (JSON.stringify(rN.candidate) !== JSON.stringify(rO.candidate)) {
-      mismatch.push(id + ':' + y + ' candidate differs');
+      /* CLCPA-244 round 2 made an explicit % a UNIT, so a table whose stored
+       * cells are %-suffixed STRINGS now imports them as numbers. Measured
+       * payload-wide: 122 such cells in ten tables, and the rendered VALUE is
+       * unchanged -- 45% becomes 45.0%, a decimal place, not a number.
+       * Carved out BY NAME and then asserted positively below; an unexplained
+       * exclusion would delete the guard. */
+      if (pctStrTables[id]) pctStrHit[id] = { before: rO.candidate, after: rN.candidate };
+      else mismatch.push(id + ':' + y + ' candidate differs');
     } else if ((rN.addedRows || []).length !== (rO.addedRows || []).length) {
       mismatch.push(id + ':' + y + ' addedRows ' + rO.addedRows.length + '->' + rN.addedRows.length);
     }
   });
   ok(checked >= 40, 'K4 drove a real import on ' + checked + ' untouched tables');
+  /* the carve-out, PROVED rather than assumed: every difference must be
+   * exactly a %-suffixed string becoming its own fraction, and nothing else. */
+  const hit = Object.keys(pctStrHit).sort();
+  ok(hit.length > 0,
+     'K4b the %-string tables DID change, which is CLCPA-244 round 2: ' + hit.join(', '));
+  const valueMoved = [];
+  hit.forEach(id => {
+    const b0 = pctStrHit[id].before || [], a0 = pctStrHit[id].after || [];
+    for (let i = 0; i < Math.max(b0.length, a0.length); i++) {
+      const rb = b0[i] || [], ra = a0[i] || [];
+      for (let j = 0; j < Math.max(rb.length, ra.length); j++) {
+        if (JSON.stringify(rb[j]) === JSON.stringify(ra[j])) continue;
+        const wasStr = typeof rb[j] === 'string' && /^\s*[-+]?[\d.]+\s*%\s*$/.test(rb[j]);
+        const nowNum = typeof ra[j] === 'number';
+        const sameValue = wasStr && nowNum &&
+          Math.abs(parseFloat(rb[j]) / 100 - ra[j]) < 1e-12;
+        if (!sameValue) valueMoved.push(id + " r" + i + "c" + j + " " +
+          JSON.stringify(rb[j]) + " -> " + JSON.stringify(ra[j]));
+      }
+    }
+  });
+  ok(valueMoved.length === 0,
+     'K4c and EVERY difference is exactly a %-string becoming its own fraction, ' +
+     'no value moved: ' + (valueMoved.length ? valueMoved.slice(0, 5).join(' | ') : 'none'));
   ok(mismatch.length === 0,
      'K5 every one imports byte-identically to BASE' +
      (mismatch.length ? ': ' + mismatch.slice(0, 3).join(' | ') : ''));

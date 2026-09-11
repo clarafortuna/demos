@@ -20,7 +20,9 @@ CLCPA-85 -- Report Data import from CSV
   ok   commas stripped, as when typed
   ok   dollar signs stripped, as when typed
   ok   empty becomes null, as when typed
-  ok   a percent stays the STRING "31%"
+  ok   a percent is a UNIT: "31%" lands 0.31, not the string
+  ok   and its type is number, which is what the derive engine needs
+  ok   while a BARE 31 is still 31: no magnitude guessing was introduced
   ok   a number is a number, not a string
 
 === mapping: headers and labels, order-blind ===
@@ -42,8 +44,8 @@ CLCPA-85 -- Report Data import from CSV
 
 === percent strings and text round-trip ===
   ok   the C2 percent fixture imports
-  ok   a percent cell is stored as the STRING "44%": 44%
-  ok   and its type is string, not 0.44
+  ok   a percent cell IMPORTS as 0.44, not the string "44%": 0.44
+  ok   and its type is number now
   ok   the F5 text fixture imports
   ok   a text column keeps its text
   ok   and "1,234" became the number 1234
@@ -157,5 +159,5 @@ CLCPA-85 -- Report Data import from CSV
   ok   and no ESCAPED one either, which renders the same
 
 ======================================================================
-  130 passed, 0 failed
+  132 passed, 0 failed
 ======================================================================

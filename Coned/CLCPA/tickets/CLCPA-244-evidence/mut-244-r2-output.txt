@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-244 round 2 -- mutation controls
+======================================================================
+  red  THE DEFECT: the percent sign is unhandled again
+       13 red, incl: U1 "10%" lands 0.1, the fraction every stored year uses: "10%"
+  red  THE CONVENTION SLIPS: "10%" lands 10, not 0.1
+       10 red, incl: U1 "10%" lands 0.1, the fraction every stored year uses: 10
+  red  the divide goes the wrong way
+       10 red, incl: U1 "10%" lands 0.1, the fraction every stored year uses: 1000
+  red  MAGNITUDE GUESSING leaks in: a bare number is reinterpreted
+       4 red, incl: U3 "10" lands 10, unchanged: a BARE number is never reinterpreted
+  red  the anchors go, so text containing % becomes a number
+       2 red, incl: U8 "up 10% YoY" still falls through as text: 0.1
+  red  THE CLIP RETURNS: the radius is hardcoded again
+       8 red, incl: G2b the shipped layout constants were actually READ, not nulls
+  red  the floor goes back to a value that still clips
+       5 red, incl: G8 the scale floor is 0.25, read from the source
+  red  the scale is allowed to go degenerate
+       8 red, incl: G8 the scale floor is 0.25, read from the source
+  red  a WIDE window stops reproducing the old layout
+       4 red, incl: G3 the FULL-SIZE radius is unchanged at 82, so a wide window is untouched
+  red  the resize redraw is never wired
+       3 red, incl: G12 and section E calls it on mount
+  red  listeners accumulate on every re-mount
+       1 red, incl: G13 the prior handler is removed before a new one is added
+  red  the redraw stops being coalesced
+       1 red, incl: G14 and the redraw is rAF-coalesced, since resize fires continuously
+  red  OPTION B SNEAKS IN: the header gets the magnitude guard
+       3 red, incl: X1 the section header still multiplies unconditionally, as ruled
+  red  round 1s schema fallback is reverted while nobody is looking
+       3 red, incl: X6 round 1s getTableSchema fix is unchanged
+  red  HARNESS: the stored-year gate stops comparing anything
+       1 red, incl: S1 compared 0 stored table-years
+  red  HARNESS: the geometry sweep goes back to the broken extractor
+       17 red, incl: exactly FOUR functions changed: 20
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X8 BASE is a literal commit sha: HEAD
+
+  17 caught, 0 not caught, of 17 guards
+  clean re-run against byte-restored source: PASSES -- 70 passed, 0 failed

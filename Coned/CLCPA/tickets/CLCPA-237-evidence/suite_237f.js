@@ -514,6 +514,18 @@ guard('the blast radius is accounted for, function by function', () => {
     isTotalOnlyDerived: 'CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
+     * section-E gauge strip shrinks to fit instead of losing its fourth
+     * gauge. Four functions, each named so the exact count below stays a
+     * guard rather than being relaxed.
+     *
+     * Only TWO of that round's four appear here. drawSectionEArc and
+     * wireSectionEArcResize are declared at COLUMN 0, and this suite's name
+     * scan only matches IIFE-scoped declarations, so it cannot see them at
+     * all -- listing them would demand a change this suite is blind to.
+     * suite_244_r2 owns those two, with a brace-matching extractor. */
+    parseNumericInput: 'CLCPA-244 round 2, a trailing % is a unit',
+    wireSectionInteractions: 'CLCPA-244 round 2, wires that redraw on mount',
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -522,7 +534,9 @@ guard('the blast radius is accounted for, function by function', () => {
      'exactly TWO functions are THIS ticket\'s: ' + mine.sort().join(', '));
   /* 11 -> 18: CLCPA-240's first half added seven names not already listed. */
   /* 22 -> 25: CLCPA-244 changed three more, each named in ALSO above. */
-  ok(changed.length === 25, 'twenty-five in total, all named: ' + changed.length);
+  /* 25 -> 29: CLCPA-244 round 2 changed four more, each named in ALSO. */
+  /* 25 -> 27: CLCPA-244 round 2 changed two functions THIS suite can see. */
+  ok(changed.length === 27, 'twenty-seven in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

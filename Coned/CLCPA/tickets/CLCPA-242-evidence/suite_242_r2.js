@@ -403,6 +403,11 @@ guard('two functions', () => {
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
+     * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
+     * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
+    parseNumericInput: 'NOT this brief: CLCPA-244 round 2, a trailing % is a unit',
+    wireSectionInteractions: 'NOT this brief: CLCPA-244 round 2, wires the gauge redraw',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -410,8 +415,9 @@ guard('two functions', () => {
   /* 2 -> 10: CLCPA-240's first half added eight, each named in EXPECT above,
    * so the count stays exact rather than becoming a range. */
   /* 14 -> 17: CLCPA-244 changed three more, every one named in EXPECT. */
-  ok(changed.length === 17, 'SEVENTEEN: this round\'s two, CLCPA-240\'s twelve ' +
-     'and CLCPA-244\'s three: ' + changed.length);
+  /* 17 -> 19: CLCPA-244 round 2 changed two this suite can see. */
+  ok(changed.length === 19, 'NINETEEN: this round\'s two, CLCPA-240\'s twelve ' +
+     'and CLCPA-244\'s five: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

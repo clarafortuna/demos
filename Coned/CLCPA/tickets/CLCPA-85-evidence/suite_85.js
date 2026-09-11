@@ -218,7 +218,17 @@ lines.push('=== ruling 1: EQUIVALENCE with the typing path ===');
   ok(api.parseNumericInput('1,234') === 1234, 'commas stripped, as when typed');
   ok(api.parseNumericInput('$2500') === 2500, 'dollar signs stripped, as when typed');
   ok(api.parseNumericInput('') === null, 'empty becomes null, as when typed');
-  ok(api.parseNumericInput('31%') === '31%', 'a percent stays the STRING "31%"');
+  /* INVERTED under CLCPA-244 round 2, which made an explicit % a UNIT.
+   * This pin recorded the old behaviour faithfully; that behaviour was a
+   * defect -- a string in a numeric cell nulls the derive engine, the KPI
+   * and the section header. The claim is flipped, not widened, and BASE is
+   * no longer asserted to agree because it no longer should. */
+  ok(api.parseNumericInput('31%') === 0.31,
+     'a percent is a UNIT: "31%" lands 0.31, not the string');
+  ok(typeof api.parseNumericInput('31%') === 'number',
+     'and its type is number, which is what the derive engine needs');
+  ok(api.parseNumericInput('31') === 31,
+     'while a BARE 31 is still 31: no magnitude guessing was introduced');
   ok(typeof api.parseNumericInput('7') === 'number', 'a number is a number, not a string');
 }
 
@@ -275,8 +285,11 @@ lines.push('=== percent strings and text round-trip ===');
     api.getTableSchema(C2, '2023'), api.getTableBody(C2, '2023').map(x => x.slice()), 'C2');
   ok(r.ok, 'the C2 percent fixture imports');
   const dac = r.candidate.filter(x => api.normIngestKey(x[0]) === 'dac')[0];
-  ok(dac && dac[1] === '44%', 'a percent cell is stored as the STRING "44%": ' + (dac && dac[1]));
-  ok(dac && typeof dac[1] === 'string', 'and its type is string, not 0.44');
+  /* INVERTED with the pin above, same reason: the importer and the editor
+   * share parseNumericInput, so the C2 fixture proves the IMPORT half. */
+  ok(dac && dac[1] === 0.44,
+     'a percent cell IMPORTS as 0.44, not the string "44%": ' + (dac && dac[1]));
+  ok(dac && typeof dac[1] === 'number', 'and its type is number now');
 
   const F5 = PAYLOAD.tables['F5'];
   const rf = api.buildIngestImport(api.parseCsvRows(readFix('f5-2023-text.csv')),
