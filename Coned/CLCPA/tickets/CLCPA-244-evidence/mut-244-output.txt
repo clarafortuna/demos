@@ -32,7 +32,7 @@ CLCPA-244 -- mutation controls
   red  HARNESS: the Grand Total is checked against the engine
        1 red, incl: S11 and the weighted-mean check computes its own expectation rather than asking recomputeTotals for
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: S12 the baseline is a literal commit sha: "HEAD"
+       5 red, incl: S12 the baseline is a literal commit sha: "HEAD"
 
   16 caught, 0 not caught, of 16 guards
   0 declared blind spot(s)

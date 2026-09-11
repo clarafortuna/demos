@@ -453,11 +453,25 @@ guard('two functions, and nothing else', () => {
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
+     * section-E gauge strip shrinks to fit instead of losing its fourth
+     * gauge. Four functions, each named so the exact count below stays a
+     * guard rather than being relaxed.
+     *
+     * Only TWO of that round's four appear here. drawSectionEArc and
+     * wireSectionEArcResize are declared at COLUMN 0, and this suite's name
+     * scan only matches IIFE-scoped declarations, so it cannot see them at
+     * all -- listing them would demand a change this suite is blind to.
+     * suite_244_r2 owns those two, with a brace-matching extractor. */
+    parseNumericInput: 'NOT this brief: CLCPA-244 round 2, a trailing % is a unit',
+    wireSectionInteractions: 'NOT this brief: CLCPA-244 round 2, wires that redraw on mount',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 23, 'exactly TWENTY-THREE functions changed: ' + changed.length);
+  /* 23 -> 27: CLCPA-244 round 2 changed four more, every one named above. */
+  /* 23 -> 25: CLCPA-244 round 2 changed two functions THIS suite can see. */
+  ok(changed.length === 25, 'exactly TWENTY-FIVE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

@@ -452,6 +452,11 @@ guard('three functions, all wiring', () => {
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
+     * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
+     * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
+    parseNumericInput: 'NOT this brief: CLCPA-244 round 2, a trailing % is a unit',
+    wireSectionInteractions: 'NOT this brief: CLCPA-244 round 2, wires the gauge redraw',
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -462,8 +467,9 @@ guard('three functions, all wiring', () => {
    * are named rather than excused by a bigger number. */
   /* 6 -> 14: CLCPA-240 first half added eight, every one named above. */
   /* 18 -> 21: CLCPA-244 changed three more, every one named above. */
-  ok(changed.length === 21, 'TWENTY-ONE: this ticket’s six, CLCPA-240 first ' +
-     'half’s eight, round 2 and 3’s four, and CLCPA-244’s three: ' + changed.length);
+  /* 21 -> 23: CLCPA-244 round 2 changed two this suite can see. */
+  ok(changed.length === 23, 'TWENTY-THREE: this ticket’s six, CLCPA-240 first ' +
+     'half’s eight, round 2 and 3’s four, and CLCPA-244’s five: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
      'and the two new ones did not exist at BASE, which is why they count');

@@ -1,0 +1,90 @@
+======================================================================
+CLCPA-244 ROUND 2 -- unit discipline at entry, shrink-to-fit gauges
+  BASE dc47788 (the build Emely passed items 1-4 on)
+======================================================================
+  ok   the changed source and BASE both assemble and run
+
+=== U. parseNumericInput: an explicit % is a UNIT ====================
+  ok   U1 "10%" lands 0.1, the fraction every stored year uses: 0.1
+  ok   U2 "0.1" lands 0.1, unchanged
+  ok   U3 "10" lands 10, unchanged: a BARE number is never reinterpreted
+  ok   U4 and the 0.5 / 50 ambiguity is left exactly as it was, not guessed at
+  ok   U5 at BASE "10%" returned the STRING "10%": "10%"
+  ok   U6 and now returns a number, which is the whole defect
+  ok   U7 "35%" -> 0.35 (want 0.35)
+  ok   U7 "  35 % " -> 0.35 (want 0.35)
+  ok   U7 "-10%" -> -0.1 (want -0.1)
+  ok   U7 "+10%" -> 0.1 (want 0.1)
+  ok   U7 ".5%" -> 0.005 (want 0.005)
+  ok   U7 "100%" -> 1 (want 1)
+  ok   U7 "0%" -> 0 (want 0)
+  ok   U7 "$1,234" -> 1234 (want 1234)
+  ok   U7 "1,234" -> 1234 (want 1234)
+  ok   U7 "" -> null (want null)
+  ok   U8 "n/a" still falls through as text: "n/a"
+  ok   U8 "up 10% YoY" still falls through as text: "up 10% YoY"
+  ok   U8 "%" still falls through as text: "%"
+  ok   U8 "10%%" still falls through as text: "10%%"
+
+=== E. the E1 chain that the string used to empty ====================
+  ok   E1 at BASE the weighted Grand Total was null: null
+  ok   E2 at BASE the KPI share was null, so the header dashed
+  ok   E3 now the Grand Total is a number: 0.3170445521028795
+  ok   E4 and the header reads a sane percentage: 31.7%
+  ok   E5 "10%" and "0.1" produce the IDENTICAL stored total: 0.3170445521028795 vs 0.3170445521028795
+  ok   E6 and the identical header: 31.7% vs 31.7%
+
+=== S. THE GATE: every stored table-year is unchanged ================
+  ok   S1 compared 149 stored table-years
+  ok   S2 NOT ONE of them changed
+  ok   S3 compared 36 reported KPI-years
+  ok   S4 NOT ONE of them changed
+
+=== G. shrink-to-fit: GEOMETRY, not rendering ========================
+    (a canvas cannot be read from node. What is proven here is that every
+     computed centre and radius lands inside the bitmap -- the property
+     that actually broke. It is NOT proof the strip looks right.)
+  ok   G0 the draw function was found in both sources
+  ok   G1 the shipped layout derives a scale factor
+  ok   G2 BASE hardcoded the radius, which is the defect
+  ok   G2b the shipped layout constants were actually READ, not nulls
+  ok   G2c and so were BASEs: a null here makes the sweep vacuous
+  ok   G3 the FULL-SIZE radius is unchanged at 82, so a wide window is untouched
+  ok   G3b both layouts are readable, so this sweep means something
+  ok   G4 BASE clips in 26 of the swept cases, incl 2@360, 3@500, 3@420, 3@360
+  ok   G5 including FOUR gauges at 700 and 600, which is what Emely saw
+  ok   G6 the shipped layout clips in NONE of the 66 swept cases
+  ok   G7 at every width where BASE already fitted, the layout is IDENTICAL (5 widths)
+  ok   G8 the scale floor is 0.25, read from the source
+  ok   G9 THE CONTRACT: 1 to 6 gauges, 320px to 1400px, nothing clips and no radius goes degenerate
+  ok   G10 at 194px the four-gauge scale sits ON the floor: 0.25
+  ok   G11 and four gauges STILL fit there: right edge 192.0
+  ok   G12 DISCLOSED: six gauges under 290px clip, past the floor. E1 has four.
+  ok   G11 a resize wirer exists
+  ok   G12 and section E calls it on mount
+  ok   G13 the prior handler is removed before a new one is added
+  ok   G14 and the redraw is rAF-coalesced, since resize fires continuously
+  ok   G15 none of which existed at BASE
+
+=== X. the exclusions, including the one Emely ruled OUT =============
+  ok   X1 the section header still multiplies unconditionally, as ruled
+  ok   X2 and so does the section-goals gauge row
+  ok   X3 kpiDacPct is byte-identical to BASE
+  ok   X4 dacPct is byte-identical to BASE
+  ok   X5 DERIVED_COLS is byte-identical to BASE
+  ok   X6 round 1s getTableSchema fix is unchanged
+  ok   X7 and so is round 1s isTotalOnlyDerived
+       changed: drawSectionEArc, parseNumericInput, wireSectionEArcResize, wireSectionInteractions
+  ok   the change to drawSectionEArc is accounted for
+  ok   the change to parseNumericInput is accounted for
+  ok   the change to wireSectionEArcResize is accounted for
+  ok   the change to wireSectionInteractions is accounted for
+  ok   parseNumericInput changed as intended: the percent sign becomes a unit
+  ok   drawSectionEArc changed as intended: shrink to fit
+  ok   wireSectionEArcResize changed as intended: the resize redraw (new)
+  ok   wireSectionInteractions changed as intended: calls wireSectionEArcResize when E mounts
+  ok   exactly FOUR functions changed: 4
+  ok   X8 BASE is a literal commit sha: dc47788
+  ok   X9 and it is an ancestor of HEAD, so it really is the before-state
+
+  70 passed, 0 failed

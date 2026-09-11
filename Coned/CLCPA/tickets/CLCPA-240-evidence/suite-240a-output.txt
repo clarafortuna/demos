@@ -53,6 +53,8 @@ CLCPA-240 first half -- hierarchical / composite-key matcher
   ok   K2 none of the 47 has a repeated label, so a label key and a composite key partition them identically
   ok   K3 checked across 134 table-years
   ok   K4 drove a real import on 47 untouched tables
+  ok   K4b the %-string tables DID change, which is CLCPA-244 round 2: F7, J1, J8
+  ok   K4c and EVERY difference is exactly a %-string becoming its own fraction, no value moved: none
   ok   K5 every one imports byte-identically to BASE
   ok   P1 on STORED data the flags are identical to BASE for every table-year -- the change fires on no existing data
   ok   P2 on a simulated FRESH IMPORT the 48 flat tables flag identically to BASE
@@ -91,4 +93,4 @@ CLCPA-240 first half -- hierarchical / composite-key matcher
   ok   M17 and the draft is untouched
   ok   M18 the baseline in this file is a literal commit sha, not a symbolic ref that would collapse onto the change itself: "899fd8a698"
 
-  88 passed, 0 failed
+  90 passed, 0 failed

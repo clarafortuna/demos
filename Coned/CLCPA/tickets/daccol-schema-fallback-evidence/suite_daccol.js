@@ -455,7 +455,11 @@ guard('one function', () => {
                  * getTableSchema is the one that makes this suite's original
                  * "only dacCol moved" claim expire; it is named here so the
                  * blast radius below stays exactly one rather than growing. */
-                'getTableSchema', 'ingestComputed', 'isTotalOnlyDerived'];
+                'getTableSchema', 'ingestComputed', 'isTotalOnlyDerived',
+                /* CLCPA-244 round 2. Only the two this suite can SEE: the
+                 * canvas pair is declared at column 0 and its name scan is
+                 * IIFE-scoped, so it is blind to them by construction. */
+                'parseNumericInput', 'wireSectionInteractions',];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

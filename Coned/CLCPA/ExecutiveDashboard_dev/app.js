@@ -13679,6 +13679,40 @@ function wireBTooltips() {
     });
   }
 
+/* CLCPA-244 round 2: redraw the arc strip when the window resizes.
+ *
+ * The strip laid itself out ONCE per render and the only resize listener in
+ * the app was the map's, so a window narrowed after load kept a canvas sized
+ * for the old width. Shrink-to-fit is computed from clientWidth, so without
+ * this it only took effect on a re-render -- which is why the clipping looked
+ * like it depended on how you arrived at the page.
+ *
+ * The prior handler is removed before the new one is added, the same shape
+ * _mapResizeHandler uses: re-mounting a section must not accumulate listeners.
+ * The redraw is rAF-coalesced because a drag fires resize continuously and
+ * each draw resizes the bitmap, which is the expensive part. */
+let _eArcResizeHandler = null;
+function wireSectionEArcResize() {
+  if (_eArcResizeHandler) window.removeEventListener('resize', _eArcResizeHandler);
+  let pending = false;
+  _eArcResizeHandler = function () {
+    if (pending) return;
+    pending = true;
+    window.requestAnimationFrame(function () {
+      pending = false;
+      /* the canvas is gone once another section is mounted; drop the listener
+       * rather than redrawing into nothing on every resize thereafter */
+      if (!document.getElementById('e-arc-canvas-section')) {
+        window.removeEventListener('resize', _eArcResizeHandler);
+        _eArcResizeHandler = null;
+        return;
+      }
+      drawSectionEArc();
+    });
+  };
+  window.addEventListener('resize', _eArcResizeHandler);
+}
+
 function drawSectionEArc() {
     const canvas = document.getElementById('e-arc-canvas-section');
     if (!canvas) return;
@@ -13696,14 +13730,44 @@ function drawSectionEArc() {
 
     const DPR = Math.max(window.devicePixelRatio || 1, 2);
     const CW = canvas.parentElement.clientWidth - 32;
-    const R_OUT = 82, R_IN = 54, SW_OUT = 20, SW_IN = 18;
+    /* CLCPA-244 round 2: SHRINK TO FIT.
+     *
+     * THE DEFECT. R_OUT was the constant 82 and GAP was clamped at 8, so the
+     * strip needed a 768px canvas -- an 800px parent -- to lay out four
+     * gauges. Below that the fourth was drawn past the bitmap edge and simply
+     * vanished: no wrap, no shrink, no scroll, no warning. Emely lost System
+     * Expansion, which is E1's last row and therefore the last gauge.
+     *
+     * The natural width is what four full-size gauges plus their minimum gaps
+     * would need. When the canvas is narrower, everything scales by the single
+     * factor k, so the gauges get smaller instead of disappearing, and when it
+     * is wider k is 1 and the old full-size layout is reproduced exactly.
+     *
+     * Text scales too, or the labels outgrow their shrunken arcs -- but on its
+     * own floor, because a 6px label is not a fix either. */
+    const R_OUT_F = 82, R_IN_F = 54, SW_OUT_F = 20, SW_IN_F = 18;
+    const MIN_GAP = 8;
+    const N = cats.length;
+    const NATURAL_ARC = (R_OUT_F + SW_OUT_F / 2) * 2;
+    const NATURAL_W = NATURAL_ARC * N + MIN_GAP * (N + 1);
+    /* The floor exists only to stop degenerate geometry (a zero or negative
+     * radius), NOT to stop shrinking. It was 0.45 for one draft, and the
+     * geometry sweep in suite_244_r2 showed that floor still clips six gauges
+     * at 500px -- reintroducing the exact defect this change removes, just
+     * further along. A gauge that is small is honest; a gauge that has
+     * silently vanished is not. Measured: 0.25 is the highest floor at which
+     * nothing clips anywhere in the swept range (1-6 gauges, 320-1400px). */
+    const k = Math.max(0.25, Math.min(1, CW > 0 ? CW / NATURAL_W : 1));
+    const R_OUT = R_OUT_F * k, R_IN = R_IN_F * k;
+    const SW_OUT = SW_OUT_F * k, SW_IN = SW_IN_F * k;
+    const TEXT_K = Math.max(0.7, k);
     const TOP_PAD = SW_OUT/2 + 4;
     const CY = TOP_PAD + R_OUT;
-    const LABEL_PAD = 1, LINE_H = 22;
+    const LABEL_PAD = 1, LINE_H = 22 * TEXT_K;
     const CH = CY + LABEL_PAD + LINE_H * 3 + 4;
     const ARC_WIDTH = (R_OUT + SW_OUT/2) * 2;
-    const TOTAL_ARCS_W = ARC_WIDTH * cats.length;
-    const GAP = Math.max(8, (CW - TOTAL_ARCS_W) / (cats.length + 1));
+    const TOTAL_ARCS_W = ARC_WIDTH * N;
+    const GAP = Math.max(MIN_GAP * k, (CW - TOTAL_ARCS_W) / (N + 1));
     const SIDE_PAD = GAP + R_OUT + SW_OUT/2;
     const SPACING = ARC_WIDTH + GAP;
 
@@ -13741,13 +13805,13 @@ function drawSectionEArc() {
       let ty = CY + LABEL_PAD;
       ctx.textAlign = 'center';
 
-      ctx.font = '700 25px Inter, system-ui, sans-serif';
+      ctx.font = '700 ' + (25 * TEXT_K).toFixed(1) + 'px Inter, system-ui, sans-serif';
       ctx.fillStyle = c24;
       ty += LINE_H;
       ctx.fillText((cat.curr*100).toFixed(0)+'%', cx, ty);
 
       if (cat.prev !== null) {
-        ctx.font = '500 12px Inter, system-ui, sans-serif';
+        ctx.font = '500 ' + (12 * TEXT_K).toFixed(1) + 'px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#aaa';
         ty += LINE_H + 1;
         ctx.fillText((cat.prev*100).toFixed(0)+'% → '+(cat.curr*100).toFixed(0)+'%', cx, ty);
@@ -13755,7 +13819,7 @@ function drawSectionEArc() {
         ty += LINE_H - 1;
       }
 
-      ctx.font = '600 13px Inter, system-ui, sans-serif';
+      ctx.font = '600 ' + (13 * TEXT_K).toFixed(1) + 'px Inter, system-ui, sans-serif';
       ctx.fillStyle = '#111';
       ty += LINE_H - 1;
       ctx.fillText(cat.name, cx, ty);
@@ -15165,7 +15229,7 @@ function wireHTooltips() {
     wireHelpButtons();
     if (letter === 'A') wireSectionATooltips();
     if (letter === 'B') wireBTooltips();
-    if (letter === 'E') drawSectionEArc();
+    if (letter === 'E') { drawSectionEArc(); wireSectionEArcResize(); }
     if (letter === 'J') wireJTooltips();
     if (letter === 'D') wireDTooltips();
     if (letter === 'F' || letter === 'H') wireFTooltips();
@@ -15460,12 +15524,49 @@ function wireHTooltips() {
   }
 
   /** Parse a string from a numeric input back to a number (or null/string). */
+  /**
+   * CLCPA-244 round 2: a trailing % is a UNIT, not noise.
+   *
+   * THE DEFECT. This stripped $ and commas but not %, so "10%" failed
+   * Number(), fell through to `return trimmed`, and a STRING landed in a
+   * numeric cell. Measured consequence on E1: the weighted Grand Total goes
+   * null (the derive engine skips non-numbers), the strategic_capital KPI goes
+   * null with it, and the section header dashes. One character typed by an
+   * operator silently empties a KPI.
+   *
+   * Reachable in E1's percentage column for the first time in CLCPA-244 round
+   * 1, which made those four cells typeable and importable. Both the editor
+   * inputs and the importer parse through here, so both carried it.
+   *
+   * THE CONVENTION, and why this one:
+   *
+   *     "10%"  -> 0.1     an explicit unit is honoured
+   *     "0.1"  -> 0.1     unchanged
+   *     "10"   -> 10      unchanged: a bare number is NEVER reinterpreted
+   *
+   * Dividing by 100 matches dacPct(), which has always read a %-suffixed
+   * string as parseFloat(v)/100. The app therefore ends with ONE convention
+   * rather than two that disagree, and every stored year is a fraction already.
+   *
+   * The bare-number case is deliberately left alone. Inferring a unit from
+   * magnitude is what makes 0.5 ambiguous between half a percent and fifty,
+   * and adding a second guess to paper over the first is not a fix. A bare
+   * number means exactly what it says.
+   */
   function parseNumericInput(str) {
     if (str == null) return null;
     const trimmed = String(str).trim();
     if (trimmed === '') return null;
     // Strip $ and commas
     const cleaned = trimmed.replace(/[$,]/g, '');
+    /* An explicit percent sign, and nothing else unparseable around it. The
+     * anchors matter: a stray "%" inside text must still fall through to the
+     * string branch rather than being silently turned into a number. */
+    const pm = /^([-+]?(?:\d+\.?\d*|\.\d+))\s*%$/.exec(cleaned);
+    if (pm) {
+      const p = Number(pm[1]);
+      if (isFinite(p)) return p / 100;
+    }
     const n = Number(cleaned);
     return isFinite(n) ? n : trimmed;
   }
