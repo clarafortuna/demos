@@ -1,0 +1,66 @@
+======================================================================
+CLCPA-244 ROUND 3 -- the gauge strip uses BOTH dimensions
+  BASE 3cdb178 (the round-2 build Emely tested)
+======================================================================
+  ok   R0 the draw function was found in both sources
+  ok   R1 the shipped constants AND rowHeightFor were really read
+  ok   R2 and BASEs were too
+       height formula, shipped: shipped function, extracted and called
+       height formula, BASE   : BASE inline expression, each line confirmed present
+  ok   R3 the shipped layout has the wrap search
+  ok   R4 BASE did not, which is the defect Emely saw
+
+=== D. the dead band: a stretched card is USED, not wasted ===========
+       700:3x2 k=0.96 h=320  600:3x2 k=0.96 h=320  500:2x2 k=0.96 h=320  420:2x2 k=0.96 h=320  360:2x2 k=0.92 h=308  320:2x2 k=0.82 h=276
+  ok   D1 all six narrow widths render BIGGER than round 2: 6/6
+  ok   D2 and each uses at least 80% of the card height: 6/6
+  ok   D3 500px lays out 2x2 rather than 4x1: 2x2
+  ok   D4 and the gauges are near full size again: k=0.956 against round 2s 0.644
+
+=== W. the accepted layout is reproduced EXACTLY at full width =======
+  ok   W1 every wide width, at EVERY height, still renders 4x1 at full size (45 cases)
+
+=== F. no height measurement, or too little: round 2 unchanged =======
+  ok   F1 all 36 cases fall back to round 2 EXACTLY
+  ok   F2 and the source gates wrapping on a real measurement
+
+=== S. the sweep: nothing clips, overflows, regresses or degenerates ==
+  ok   S1 swept 648 width/height/count combinations
+  ok   S2 nothing clips horizontally
+  ok   S3 no WRAPPED layout claims height it does not have
+  ok   S4 nothing is smaller than round 2 rendered it
+  ok   S5 no radius goes degenerate
+  ok   S6 BASE wasted the height at all four narrow widths, which is the defect
+
+=== G. one height formula, and a strip that knows it has rows ========
+  ok   G1 rowHeightFor exists
+  ok   G2 the renderer CALLS it rather than re-deriving the height
+  ok   G3 and so does the planner, so the two cannot disagree
+  ok   G4 the earlier simplified model is GONE, not left beside it
+  ok   G5 drawSemi takes cy as a parameter
+  ok   G6 and no longer draws every arc on one shared centre line
+  ok   G7 x comes from the COLUMN, not the index
+  ok   G8 and y from the row
+  ok   G9 labels hang off their own gauge, not off row 0
+  ok   G10 the hit test is two-dimensional, so row 2 gets its own tooltips
+  ok   G11 BASEs hit test was x-only, which a second row would have broken
+
+=== X. the exclusions ================================================
+  ok   X1 parseNumericInput is byte-identical to BASE: the % unit rule is unchanged
+  ok   X2 and so is the resize redraw
+  ok   X3 the section header still multiplies unconditionally, as ruled
+  ok   X4 and so does the section-goals gauge row
+  ok   X5 styles.css is byte-identical: this is not a CSS fix
+       changed: drawSectionEArc, drawSemi, rowHeightFor
+  ok   the change to drawSectionEArc is accounted for
+  ok   the change to drawSemi is accounted for
+  ok   the change to rowHeightFor is accounted for
+  ok   drawSectionEArc changed as intended: the two-dimensional layout search
+  ok   drawSemi changed as intended: takes cy, because there is more than one row now
+  ok   rowHeightFor changed as intended: the shared height formula (new)
+  ok   X6 exactly THREE functions changed, all inside the arc strip: 3
+  ok   X6b and each really exists in the shipped source, so the list means something
+  ok   X7 BASE is a literal commit sha: 3cdb178
+  ok   X8 and it is an ancestor of HEAD
+
+  44 passed, 0 failed

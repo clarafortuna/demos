@@ -45,7 +45,26 @@ const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-244-evidence/suite-244-r2
 const BASE = process.env.DAC_BASE_COMMIT || 'dc47788';
 const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
 
-const SRC = fs.readFileSync(APP, 'utf8');
+/* BOTH SIDES PINNED, as suite_193_199 and suite_237 already are.
+ *
+ * Round 3 replaced this round's width-only scale with a two-dimensional
+ * search, so a suite whose post-change side read the working tree would keep
+ * re-judging every later round against a layout that no longer exists -- and
+ * it did: eleven guards went red on a build that is strictly better. The
+ * readability guard added in this very round is what caught it rather than
+ * letting the sweeps go quietly vacuous.
+ *
+ * This suite is ROUND 2'S EVIDENCE, so its subject is round 2's build.
+ * Round 3's geometry is covered by suite_244_r3, whose guards are strictly
+ * stronger: they sweep height as well as width and run the SHIPPED search
+ * rather than a model of it. DAC_APP_OVERRIDE still wins, so the mutation
+ * controls keep working.
+ */
+const NEW_COMMIT = process.env.DAC_244R2_COMMIT || 'b256467';
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(APP, 'utf8')
+  : execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(
