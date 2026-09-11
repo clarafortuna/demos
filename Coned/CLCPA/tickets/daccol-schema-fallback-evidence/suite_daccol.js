@@ -459,7 +459,9 @@ guard('one function', () => {
                 /* CLCPA-244 round 2. Only the two this suite can SEE: the
                  * canvas pair is declared at column 0 and its name scan is
                  * IIFE-scoped, so it is blind to them by construction. */
-                'parseNumericInput', 'wireSectionInteractions',];
+                /* round 4's revert restored wireSectionInteractions, so it is
+                 * no longer a changed function and has left this list. */
+                'parseNumericInput',];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

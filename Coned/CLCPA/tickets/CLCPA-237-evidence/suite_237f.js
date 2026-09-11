@@ -525,7 +525,11 @@ guard('the blast radius is accounted for, function by function', () => {
      * all -- listing them would demand a change this suite is blind to.
      * suite_244_r2 owns those two, with a brace-matching extractor. */
     parseNumericInput: 'CLCPA-244 round 2, a trailing % is a unit',
-    wireSectionInteractions: 'CLCPA-244 round 2, wires that redraw on mount',
+    /* CLCPA-244 ROUND 4 removed wireSectionInteractions from this list:
+     * Emely reverted the gauge sizing after the round-3 hosted pass, so the
+     * call site went back to its original one-line form and the function is
+     * unchanged again. parseNumericInput stays -- the percent-unit rule
+     * survived the revert. */
   };
   const mine = changed.filter(n => !(n in ALSO));
   Object.keys(ALSO).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -536,7 +540,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 22 -> 25: CLCPA-244 changed three more, each named in ALSO above. */
   /* 25 -> 29: CLCPA-244 round 2 changed four more, each named in ALSO. */
   /* 25 -> 27: CLCPA-244 round 2 changed two functions THIS suite can see. */
-  ok(changed.length === 27, 'twenty-seven in total, all named: ' + changed.length);
+  /* 27 -> 26: round 4's revert restored wireSectionInteractions. */
+  ok(changed.length === 26, 'twenty-six in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
