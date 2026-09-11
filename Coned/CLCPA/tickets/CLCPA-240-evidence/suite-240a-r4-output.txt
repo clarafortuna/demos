@@ -1,0 +1,59 @@
+======================================================================
+CLCPA-240 first half, ROUND 4 -- the label has a veto in four tables
+  BASE   : c2a34ee  (the round-3 build Emely tested)
+======================================================================
+  ok   the changed source and BASE (c2a34ee) both assemble and run
+
+=== V. the guard that was missing: totals vs arithmetic this suite does ==
+  ok   V1 uniform: ten total rows to check: 10
+  ok   V2 uniform: every group and grand total equals the sum this suite computed itself
+  ok   V3 uniform: no DATA row is flagged as a total
+  ok   V4 uniform: and every real total IS flagged
+  ok   V1 real: ten total rows to check: 10
+  ok   V2 real: every group and grand total equals the sum this suite computed itself
+  ok   V3 real: no DATA row is flagged as a total
+  ok   V4 real: and every real total IS flagged
+  ok   V5 the oracle says Commercial Water Heaters PEI Total is 2 rows x 999 = 1998: 1998  (Emely saw 14,985)
+  ok   V6 and the GRAND total sums the whole table, 31 data rows: 30969
+  ok   V7 change one data row and the oracle moves with it, so it is really computing rather than asserting a constant: 1000
+  ok   V8 and it CALLS nothing in app.js: the comparison is not engine-to-engine
+  ok   V11 ten totals in the published A5:2025: 10
+  ok   V12 and the oracle reproduces nine of them from the published figures, differing only at r49: ["r49"]
+  ok   V13 and the difference is exactly the disclosed one: the parts sum to 27834 where the payload stores 27833
+  ok   V9 the UNIFORM input really ran: 4 assertions
+  ok   V10 and so did the REAL input: 4 assertions
+
+=== B. the screen Emely tested, on the build she tested ================
+  ok   B1 on BASE seven of the ten totals are wrong: 7
+  ok   B2 including Commercial Water Heaters PEI Total at 14,985, which is the number in the screenshot: 14985
+  ok   B3 and Instant Lighting 15,984 and Midstream 16,983
+  ok   B4 six data rows flagged as totals on BASE: 6  ["HVAC","Building Shell","Refrigeration","Lighting - Contr","HVAC","HVAC"]
+  ok   B5 on real figures BASE gets all ten right, which is why it shipped: 0 wrong
+  ok   B6 the changed build is right on BOTH inputs: uniform 0 wrong, real 0 wrong
+
+=== N. measurably free: no stored table-year changes a flag ===========
+  ok   N1 checked 149 stored table-years
+  ok   N2 of which 11 are in the family
+  ok   N3 not one changes a flag
+  ok   N4 the family holds 79 total rows: 79
+  ok   N5 and 67 group headers: 67
+  ok   N6 and nothing flagged in stored data lacks the word, so the veto is a complete no-op there
+
+=== O. the general confirms() correction stays OUT ====================
+  ok   O1 not one of the 48 flat tables changes a flag
+  ok   O2 the 48 flat tables hold 94 rows whose label says total and which are correctly NOT flagged -- so the label is evidence HERE and would be a defect if generalised, which is why the veto is scoped
+  ok   O3 and a sparse FLAT draft flags identically to BASE
+  ok   O4 the 48 flat tables carry 167 total-labelled rows that a fresh import puts within reach of a label rule
+  ok   O5 and on a simulated fresh import not one of them flags differently from BASE
+
+=== S. structure ======================================================
+  ok   S1 the veto clears a flag whose label does not say total
+  ok   S2 the declared-family branch is locatable: chars 3701..4177
+  ok   S2b and the veto sits INSIDE it, so the other 48 tables cannot reach it
+  ok   S3 exactly one veto: 1
+  ok   S4 confirms() itself is byte-identical to BASE: the general correction is not in this round
+  ok   S5 styles.css is byte-identical to BASE
+  ok   S6 and renderIngestEditor is untouched: round 3s lock is unchanged
+  ok   S7 the baseline is a literal commit sha: "c2a34ee"
+
+  43 passed, 0 failed

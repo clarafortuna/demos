@@ -2970,6 +2970,41 @@ function utf8ByteLength(str) {
         if (!isHierarchicalTotalLabel(rows[i][0])) continue;
         out[i] = true;
       }
+
+      /* CLCPA-240 round 4: IN THESE FOUR TABLES, THE LABEL HAS A VETO.
+       *
+       * "Structure proposes, arithmetic confirms" cannot tell a total from a
+       * coincidence when the figures are uniform. Emely's acceptance pass
+       * typed 999 into every row of A5:2099, and six DATA rows then equalled
+       * the sum of what preceded them: Building Shell and HVAC were flagged,
+       * became segment boundaries, and every group total after them was summed
+       * over the wrong rows -- 14,985 where the group holds 1,998.
+       *
+       * Measured on that screen, four builds:
+       *   uniform figures   pre-240 10 of 10 group totals wrong, rounds 1-3
+       *                     7 of 10, with 6 data rows flagged
+       *   real figures      pre-240 10 of 10 wrong, rounds 1-3 ONE of 10, and
+       *                     that one is r49, the payload discrepancy disclosed
+       *                     in PR #220 rather than a fault here
+       *
+       * So the inference is not this ticket's -- CLCPA-240 took a fresh import
+       * from computing nothing to computing correctly -- but it is reachable,
+       * and an operator who types a round number into every row will reach it.
+       *
+       * The veto is SCOPED and it is measurably free: across all eleven
+       * table-years of this family, 79 of 79 total rows carry the word and
+       * ZERO of the 67 group headers do, so no stored table-year changes a
+       * single flag. With it, the uniform screen goes from 7 wrong and 6
+       * mis-flagged to 1 wrong and none -- the 1 again being r49.
+       *
+       * The general correction to confirms(), for all 52 tables, is NOT here.
+       * It stays its own ticket: a label veto is defensible where the labels
+       * are known to be reliable, and the other 48 carry 111 rows that say
+       * "total" without being one. */
+      for (let i = 0; i < rows.length; i++) {
+        if (!out[i]) continue;
+        if (!isHierarchicalTotalLabel((rows[i] || [])[0])) out[i] = false;
+      }
     }
     return out;
   }

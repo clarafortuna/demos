@@ -1,0 +1,36 @@
+======================================================================
+CLCPA-240 first half, ROUND 4 -- mutation controls
+======================================================================
+  red  EMELYS SCREEN: the veto is removed
+       7 red, incl: V2 uniform: every group and grand total equals the sum this suite computed itself -- 7 wrong: r9 wa
+  red  the veto is inverted: only UNlabelled rows survive
+       7 red, incl: V: uniform figures THREW: withinSourceRounding is not defined
+  red  the veto only clears rows that hold no numbers
+       5 red, incl: V3 uniform: no DATA row is flagged as a total: HVAC, Building Shell, Refrigeration, Lighting - Cont
+  red  CLCPA-209 DIRECTION: the veto moves outside the family branch
+       1 red, incl: S2b and the veto sits INSIDE it, so the other 48 tables cannot reach it
+  red  a flat table joins the family
+       1 red, incl: O5 and on a simulated fresh import not one of them flags differently from BASE: D2:2023, D2:2024, D
+  red  a table LEAVES the family, so its screen breaks again
+       6 red, incl: V2 uniform: every group and grand total equals the sum this suite computed itself -- 10 wrong: r2 w
+  red  the label rule becomes a whole-word match
+       6 red, incl: V4 uniform: and every real total IS flagged: 2, 5, 9, 23, 27, 31, 35, 45, 48, 49
+  red  the label rule becomes case-sensitive
+       6 red, incl: V4 uniform: and every real total IS flagged: 2, 5, 9, 23, 27, 31, 35, 45, 48, 49
+  red  the value-less bootstrap is removed, so a fresh import computes nothing
+       6 red, incl: V4 uniform: and every real total IS flagged: 2, 5, 9, 23, 27, 31, 35, 45, 48, 49
+  red  the editor lock is touched, when this round must not touch it
+       1 red, incl: S6 and renderIngestEditor is untouched: round 3s lock is unchanged
+  red  HARNESS: the oracle borrows the engine it is meant to check
+       7 red, incl: V: uniform figures THREW: recomputeTotals is not defined
+  red  HARNESS: the oracle counts total rows as data
+       1 red, incl: V13 and the difference is exactly the disclosed one: the parts sum to 83501 where the payload store
+  red  HARNESS: the oracle measures from the header again
+       8 red, incl: V2 uniform: every group and grand total equals the sum this suite computed itself -- 8 wrong: r5 wa
+  red  HARNESS: only real figures are tested, as before
+       1 red, incl: V9 the UNIFORM input really ran: 0 assertions
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: S7 the baseline is a literal commit sha: "HEAD"
+
+  15 caught, 0 not caught, of 15
+  clean re-run against byte-restored source: PASSES -- 43 passed, 0 failed
