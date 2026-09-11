@@ -397,14 +397,21 @@ guard('two functions', () => {
     /* CLCPA-240 ROUND 3: the group-header lock now works on the screen it
      * exists for -- a year imported but not yet saved. */
     isHierarchicalTotalLabel: 'NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)',
+    /* CLCPA-244, Emely's two E1 defects. Named so the exact count below
+     * stays a guard: the weighted-mean marking became total-row-only, and
+     * getTableSchema's fallback stopped serving the OLDEST year. */
+    isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
+    ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 2 -> 10: CLCPA-240's first half added eight, each named in EXPECT above,
    * so the count stays exact rather than becoming a range. */
-  ok(changed.length === 14, 'TEN: this round\'s two plus CLCPA-240 first ' +
-     'half\'s eight: ' + changed.length);
+  /* 14 -> 17: CLCPA-244 changed three more, every one named in EXPECT. */
+  ok(changed.length === 17, 'SEVENTEEN: this round\'s two, CLCPA-240\'s twelve ' +
+     'and CLCPA-244\'s three: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

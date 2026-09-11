@@ -184,16 +184,81 @@ guard('the fix: the same fallback getTableSchema already documents', () => {
   const fn = codeOnly(grab('dacCol'));
   ok(/const anyYear = Object\.keys\(by\)\[0\];/.test(fn),
      'dacCol falls back to any year\'s schema');
-  /* IT IS THE SAME RULE, not a new invention -- proved against the other reader */
+  /* IT WAS THE SAME RULE WHEN THIS TICKET SHIPPED. It no longer is, and the
+   * three pins that said so are inverted rather than deleted.
+   *
+   * CLCPA-244 defect 2 changed getTableSchema's fallback to the MOST RECENT
+   * year with a schema. dacCol still takes Object.keys(by)[0], the oldest. The
+   * two readers of the same fallback now disagree.
+   *
+   * WHICH ONE IS WRONG, measured rather than assumed: a fresh year's template
+   * borrows its rows from the most recent year that has them, so those rows
+   * are 5 columns wide for B2 and 8 for C3/C4/C5, while the oldest schema is 4.
+   * dacCol was therefore ALREADY pointing at the wrong index before CLCPA-244 --
+   * that ticket fixed the heading half of this fossil and left dacCol's half
+   * standing. This is disclosure of a PRE-EXISTING defect made visible, not a
+   * regression CLCPA-244 introduced, and the pin below proves that claim by
+   * comparing indices rather than restating it. OUT OF SCOPE for CLCPA-244,
+   * which was scoped to getTableSchema; it needs its own ticket. */
   const gts = codeOnly(grab('getTableSchema'));
-  ok(/const anyYear = Object\.keys\(table\.schema_by_year\)\[0\];/.test(gts),
-     'and getTableSchema has carried exactly that for as long as new years have ' +
-     'existed, which is why the section page was never affected');
-  ok(/Fall back to any year's schema \(used when adding a brand-new year\)/
-     .test(grab('getTableSchema')),
-     'with its reason written down: "used when adding a brand-new year"');
-  ok(grab('getTableSchema') === grab('getTableSchema', BASE_SRC),
-     'and getTableSchema itself is byte-identical to BASE: only dacCol moved');
+  ok(/const anyYear = Object\.keys\(table\.schema_by_year\)\[0\];/.test(gts) === false,
+     'getTableSchema NO LONGER carries the oldest-year fallback: CLCPA-244 ' +
+     'moved it to the most recent year with a schema');
+  ok(/\.sort\(\(a, b\) => parseInt\(b, 10\) - parseInt\(a, 10\)\)/.test(gts),
+     'and it sorts descending to get there');
+  ok(grab('getTableSchema') !== grab('getTableSchema', BASE_SRC),
+     'so getTableSchema is NOT byte-identical to BASE any more, and this ' +
+     "suite's claim that only dacCol moved has expired");
+
+  /* THE DIVERGENCE, MEASURED. Not a count that could drift silently: the exact
+   * call sites are named, and each is checked under both rules. */
+  /* the shipped payload, read here: this suite had no need of it before. */
+  const P = JSON.parse(fs.readFileSync(
+    REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/payload.json', 'utf8'));
+  const findCol = (s, re) => {
+    if (!s) return -1;
+    for (let i = 0; i < s.length; i++) if (s[i] != null && re.test(String(s[i]))) return i;
+    return -1;
+  };
+  const SITES = [
+    ['C3', /^Program Participants$/i], ['C3', /^Committed Load Relief/i],
+    ['C3', /^Delivered Load Relief/i], ['C4', /^Program Participants$/i],
+    ['C4', /^Committed Load Relief/i], ['C4', /^Delivered Load Relief/i],
+    ['C5', /^Program Participants$/i], ['C5', /^Committed Load Relief/i],
+    ['C5', /^Delivered Load Relief/i], ['B2', /^Micromobility Power Cabinets$/i],
+    ['B2', /^Total Plugs$/i], ['A1', /^Total Funds Expended/i],
+    ['A1', /^DAC Funding/i], ['A1', /^% in DACs/i], ['E1', /Total Investment/i],
+    ['E1', /Percentage.*Affecting DACs/i], ['F8', /^DAC$/i], ['F8', /^Non-DAC$/i],
+    ['H1', /^Non-DAC Repairs/i], ['H1', /^DAC Repairs/i], ['H1', /^Grand Total/i],
+    ['B2', /^L2 Plugs$/i], ['B2', /^DCFC Plugs$/i],
+  ];
+  let disagree = 0, checked = 0;
+  const named = [];
+  SITES.forEach(([id, re]) => {
+    const by = (P.tables[id] || {}).schema_by_year || {};
+    const ys = Object.keys(by).filter(y => Array.isArray(by[y]));
+    if (!ys.length) return;
+    checked++;
+    const oldIdx = findCol(by[ys[0]], re);
+    const newIdx = findCol(by[ys.slice().sort((a, b) => parseInt(b, 10) - parseInt(a, 10))[0]], re);
+    if (oldIdx !== newIdx) { disagree++; named.push(id); }
+  });
+  ok(checked === 23, 'all 23 dacCol call sites are reachable: ' + checked);
+  ok(disagree === 11,
+     'and ELEVEN of them resolve to a different column under the two rules: ' +
+     disagree + ' (' + [...new Set(named)].sort().join(', ') + ')');
+  /* THE ROW WIDTH IS WHY THE OLDEST IS THE WRONG ONE. Asserted, not asserted
+   * about: a rule that disagrees with the data it indexes is the broken rule. */
+  ['B2', 'C3', 'C4', 'C5'].forEach(id => {
+    const d = P.tables[id].data || {};
+    const ys = Object.keys(d).filter(y => (d[y] || []).length);
+    const w = Math.max.apply(null, d[ys[ys.length - 1]].map(r => r.length));
+    const by = P.tables[id].schema_by_year || {};
+    const oldest = by[Object.keys(by).filter(y => Array.isArray(by[y]))[0]].length;
+    ok(w !== oldest,
+       id + ': a fresh year borrows ' + w + '-wide rows while dacCol indexes a ' +
+       oldest + '-wide schema, so dacCol is the reader that is wrong');
+  });
 
   /* ONLY THE SCHEMA FALLS BACK */
   const rowFn = codeOnly(grab('dacRow'));
@@ -385,7 +450,12 @@ guard('one function', () => {
                 /* CLCPA-240 round 2 */
                 'ingestIsShapeBlank', 'renderIngestEditor', 'xlsxInstructionBlocks',
                 /* CLCPA-240 round 3 */
-                'isHierarchicalTotalLabel'];
+                'isHierarchicalTotalLabel',
+                /* CLCPA-244, which fixed the OTHER reader of this same fallback.
+                 * getTableSchema is the one that makes this suite's original
+                 * "only dacCol moved" claim expire; it is named here so the
+                 * blast radius below stays exactly one rather than growing. */
+                'getTableSchema', 'ingestComputed', 'isTotalOnlyDerived'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));
@@ -394,7 +464,11 @@ guard('one function', () => {
   /* every name compared must exist, or the comparison means nothing */
   /* totalRowFlags left this list when CLCPA-240's first half changed it; it is
    * named in ALSO above instead, so the claim is still exact. */
-  ['dacRow', 'dacCell', 'getTableSchema', 'composePayloadFromRows', 'kpiDacPct',
+  /* getTableSchema left this list under CLCPA-244, which changed its fallback
+   * to the most recent year. It is named in ALSO above and its new behaviour is
+   * asserted in full at the top of this file, including the measurement that
+   * dacCol is now the reader left holding the fossil. */
+  ['dacRow', 'dacCell', 'composePayloadFromRows', 'kpiDacPct',
    'buildSectionDAC', 'computeHeaderCards', 'rowsForDisplay',
    'renderDumbbell', 'renderStripWithGap'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);

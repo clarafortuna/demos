@@ -2,7 +2,7 @@
 CLCPA-240 first half -- hierarchical / composite-key matcher
   BASE   : 899fd8a698  (predates the change)
 ======================================================================
-  ok   NEW assembles, resolving 35 functions and 31 declarations by following ReferenceErrors
+  ok   NEW assembles, resolving 36 functions and 31 declarations by following ReferenceErrors
   ok   BASE (899fd8a698) assembles, resolving 28 functions and 25 declarations
   ok   S1 INGEST_KEY_COLS declares exactly A3:2 and A4:2
   ok   S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)

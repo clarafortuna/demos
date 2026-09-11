@@ -516,9 +516,38 @@ guard('S: the veto is scoped and singular', () => {
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   ok(css === baseCss, 'S5 styles.css is byte-identical to BASE');
+  /* S6 USED TO BE whole-function equality against BASE, which was stronger
+   * than the claim it made. CLCPA-244 later changed one line of this function
+   * for an unrelated reason -- a total-row-only derived rule falls through to
+   * an editable input on a BODY row -- and the pin went red while round 3's
+   * lock was in fact untouched. The claim is now asserted as written: the lock
+   * itself is byte-identical, and the ONLY difference anywhere in the function
+   * is the one CLCPA-244 line, named. Narrowed to the truth, not widened. */
   const ed = grab('renderIngestEditor', SRC);
-  ok(ed === grab('renderIngestEditor', BASE_SRC),
-     'S6 and renderIngestEditor is untouched: round 3s lock is unchanged');
+  const edBase = grab('renderIngestEditor', BASE_SRC);
+  const LOCK = [
+    'const isGroupHeaderRow = (row) => isHierFamily && Array.isArray(row) &&',
+    'const isHeaderRow = rowIdx < headerRowCount || isGroupHeaderRow(row);',
+    'const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&',
+  ];
+  LOCK.forEach((lit, k) => ok(ed.indexOf(lit) >= 0 && edBase.indexOf(lit) >= 0,
+    'S6.' + (k + 1) + ' round 3s lock line ' + (k + 1) + ' is byte-identical to BASE'));
+  /* codeOnly runs over the WHOLE function, never line by line: a block comment
+   * spans lines, so a per-line strip leaves its middle lines looking like code
+   * and the diff counts prose as a change. That is the comment-as-code trap
+   * this project has hit eight times, here in a new costume. */
+  const only = (a, b) => {
+    const sb = new Set(codeOnly(b).split('\r\n').map(l => l.trim()));
+    return codeOnly(a).split('\r\n').map(l => l.trim())
+      .filter(l => l && !sb.has(l));
+  };
+  const added = only(ed, edBase), removed = only(edBase, ed);
+  ok(added.length === 1 && removed.length === 1,
+     'S6.4 exactly ONE code line differs from BASE, both ways: +' +
+     added.length + '/-' + removed.length);
+  ok((added[0] || '').indexOf('isTotalOnlyDerived(dDesc)') >= 0 &&
+     (removed[0] || '') === 'if (dDesc) {',
+     'S6.5 and it is CLCPA-244s line: ' + (added[0] || '').trim());
   const declared = (fs.readFileSync(__filename, 'utf8')
     .match(/DAC_BASE_COMMIT \|\| '([^']*)'/) || [])[1];
   ok(/^[0-9a-f]{7,40}$/.test(String(declared)),

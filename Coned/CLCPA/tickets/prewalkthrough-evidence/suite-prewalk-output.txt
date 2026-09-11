@@ -101,12 +101,14 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, hideExecTooltip, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isHierarchicalTotalLabel, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isHierarchicalTotalLabel, isTotalOnlyDerived, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
+  ok   the change to getTableSchema is accounted for
   ok   the change to hideExecTooltip is accounted for
+  ok   the change to ingestComputed is accounted for
   ok   the change to ingestGroupOf is accounted for
   ok   the change to ingestIsBlankCell is accounted for
   ok   the change to ingestIsHeaderRow is accounted for
@@ -114,6 +116,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to ingestKeyColCount is accounted for
   ok   the change to ingestRowKey is accounted for
   ok   the change to isHierarchicalTotalLabel is accounted for
+  ok   the change to isTotalOnlyDerived is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
@@ -150,9 +153,12 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   ingestIsShapeBlank changed as intended: NOT this brief: CLCPA-240 round 2, the shape-blank predicate (new)
   ok   xlsxInstructionBlocks changed as intended: NOT this brief: CLCPA-240 round 2, the (no value) instruction
   ok   isHierarchicalTotalLabel changed as intended: NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)
-  ok   exactly TWENTY-THREE functions changed: 24
-  ok   and no function outside those fourteen moved at all
+  ok   isTotalOnlyDerived changed as intended: NOT this brief: CLCPA-244, the total-row-only rule predicate (new)
+  ok   ingestComputed changed as intended: NOT this brief: CLCPA-244, a weighted mean marks only its total row
+  ok   getTableSchema changed as intended: NOT this brief: CLCPA-244, the fallback takes the most recent year
+  ok   exactly TWENTY-SEVEN functions changed: 27
+  ok   and no function outside those twenty-seven moved at all
 
 ======================================================================
-  141 passed, 0 failed
+  147 passed, 0 failed
 ======================================================================

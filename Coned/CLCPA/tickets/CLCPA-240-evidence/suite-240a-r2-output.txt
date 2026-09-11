@@ -14,11 +14,11 @@ CLCPA-240 first half, ROUND 2 -- protecting the hierarchical structure
   ok   R7 and the round trip still reproduces A5:2025 everywhere except the one grand total the payload stores short
   ok   R8 re-importing into a populated year still MATCHES: 50 rows, 0 created
 
-=== D. disclosed, not fixed: a new year mixes two years of schema ======
-  ok   D1 identical to BASE, so round 2 did not cause it: "Program Name & Installation Type"
-  ok   D2 the heading comes from the OLDEST year, 2023
-  ok   D3 while the row labels come from the most recent year with rows, 2025
-  ok   D4 and for A5 those two disagree: "Program Name & Installation Type" vs "Commercial Programs Installations"
+=== D. disclosed here, FIXED LATER under CLCPA-244 ====================
+  ok   D1 at BASE the heading came from the OLDEST year, 2023: "Program Name & Installation Type"
+  ok   D2 and CLCPA-244 moved it: "Commercial Programs Installations"
+  ok   D3 the row labels still come from the most recent year with rows, 2025
+  ok   D4 and for A5 the two now AGREE: "Commercial Programs Installations"
 
 === M. (no value) vs (calculated): the difference is load-bearing ===
   ok   M1 (no value) is SHAPE-blank, so a marked header is still a header
@@ -76,6 +76,8 @@ CLCPA-240 first half, ROUND 2 -- protecting the hierarchical structure
 === F. everything outside the family is byte-identical ==================
   ok   F1 rendered 48 tables outside the family
   ok   F2 every one is byte-identical to BASE
+  ok   F3 E1 DID change, which is what CLCPA-244 did
+  ok   F4 and exactly FOUR cells stopped being calculated: 6 -> 2
   ok   F3 A1:2025 has a Total row: index 22
   ok   F4 its label is still editable, because A1 is not in the family
   ok   F5 and it still carries a delete button
@@ -104,4 +106,4 @@ CLCPA-240 first half, ROUND 2 -- protecting the hierarchical structure
   ok   S8 styles.css is byte-identical to BASE: the round reuses .ingest-row-subheader and adds no CSS
   ok   S9 the baseline in this file is a literal commit sha, not a symbolic ref: "438bf64"
 
-  83 passed, 0 failed
+  85 passed, 0 failed

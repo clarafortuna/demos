@@ -2029,6 +2029,28 @@ function utf8ByteLength(str) {
     return v != null && /total/i.test(String(v));
   }
 
+  /* CLCPA-244: A DERIVED COLUMN THAT ONLY EXISTS ON THE TOTAL ROW.
+   *
+   * DERIVED_COLS is keyed by COLUMN, so a rule claims every row of it. That is
+   * right for a pct(), which computes from each row's own cells. It is wrong
+   * for a weighted mean: E1's "Percentage Affecting DACs" is what ConEd
+   * REPORTS per category -- there is no DAC-dollar column to divide by -- and
+   * only the Grand Total is an aggregate, weighted by investment.
+   *
+   * recomputeTotals already knew this. Its CLCPA-212 comment says it outright:
+   * "column 2 on a BODY row is an input the operator can edit, while column 2
+   * on the TOTAL row is the output", and the engine writes only the total row.
+   * The MARKING never learned it, so all four source rows rendered read-only
+   * grey, the template stamped them (calculated), and the import skipped them
+   * -- 0 of 5 shares landed, and typing over the marker did not help, because
+   * the skip reads ingestComputed rather than the file's text.
+   *
+   * Measured across all 52 tables: weightedMean is used exactly once, by E1.
+   * Every other rule is a pct that genuinely owns its column. */
+  function isTotalOnlyDerived(d) {
+    return !!d && d.type === 'weightedMean';
+  }
+
   // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
   // ratios that must be COMPUTED, never summed). Keyed by table id; column indices
   // are 0-based (0 = row label). Consumed by recomputeTotals.
@@ -15334,10 +15356,29 @@ function wireHTooltips() {
     if (table.schema_by_year && table.schema_by_year[year]) {
       return table.schema_by_year[year].slice();
     }
-    // Fall back to any year's schema (used when adding a brand-new year)
+    /* CLCPA-244: FALL BACK TO THE MOST RECENT YEAR, NOT THE FIRST KEY.
+     *
+     * This fired for a brand-new year and took Object.keys(...)[0] -- the
+     * OLDEST -- while ingestTemplateSource borrows the most recent year that
+     * HAS ROWS. A fresh year therefore got 2023's column headings above 2025's
+     * row labels, which is how E1's template and editor showed
+     * "2023 Total Investment ($)" whatever year was selected. The stored
+     * schemas were never wrong: 2023 says 2023, 2024 says 2024, 2025 says
+     * 2025. The two halves simply disagreed about which year to borrow.
+     *
+     * Fixed here rather than by substituting the year at render time: a sweep
+     * of all 52 tables found 38 headings carrying a year literal and TEN that
+     * deliberately name a different year -- A9:2025 reads
+     * ["", "2024", "2024", "2025", "2025", "% Change", "% Change"] -- so
+     * rewriting years in the text would corrupt real prior-year columns.
+     *
+     * A year that HAS its own schema cannot reach this branch, so no stored
+     * table-year can move. The suite proves that across all 52. */
     if (table.schema_by_year) {
-      const anyYear = Object.keys(table.schema_by_year)[0];
-      if (anyYear) return table.schema_by_year[anyYear].slice();
+      const years = Object.keys(table.schema_by_year)
+        .filter(y => Array.isArray(table.schema_by_year[y]))
+        .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+      if (years.length) return table.schema_by_year[years[0]].slice();
     }
     return [];
   }
@@ -15644,12 +15685,20 @@ function wireHTooltips() {
    */
   function ingestComputed(rows, tableId, schema) {
     const totals = totalRowFlags(rows, tableId, schema) || [];
+    /* the DESCRIPTOR, not a boolean: a total-row-only rule has to be told apart
+     * from a per-row one, and only the descriptor carries that */
     const derived = {};
-    ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => { derived[d.column] = true; });
+    ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => { derived[d.column] = d; });
     return {
       totalRow: (r) => !!totals[r],
       derivedCol: (c) => !!derived[c],
-      any: (r, c) => !!totals[r] || !!derived[c],
+      /* CLCPA-244: a weighted-mean column is the dashboard's OUTPUT on the
+       * total row and the operator's INPUT everywhere else, so it is only
+       * "calculated" where totals[r] already says so. This one accessor gates
+       * both surfaces that matter: the template writes (calculated) from it,
+       * and the import skips a cell from it. */
+      any: (r, c) => !!totals[r] ||
+        (!!derived[c] && !isTotalOnlyDerived(derived[c])),
     };
   }
 
@@ -21011,7 +21060,11 @@ function wireHTooltips() {
           </td>`;
         }
         const dDesc = derivedByCol[colIdx];
-        if (dDesc) {
+        /* CLCPA-244: a total-row-only rule computes nothing on a BODY row, so
+         * the cell falls through to the ordinary editable input below. E1's
+         * four category shares are source figures and the operator must be
+         * able to type them; the Grand Total keeps the computed treatment. */
+        if (dDesc && !(isTotalOnlyDerived(dDesc) && !isTotal)) {
           // Derived cell — computed (read-only), formatted as % / ratio.
           return `<td class="ingest-td-calc"><span class="ingest-cell-calc" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
         }

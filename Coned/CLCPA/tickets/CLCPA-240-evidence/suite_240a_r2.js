@@ -373,34 +373,41 @@ guard('R: A5 own template -> empty 2099, WITH the marker present', () => {
 
 /* ===================== D: a finding this round did not cause ============= */
 say('');
-say('=== D. disclosed, not fixed: a new year mixes two years of schema ======');
-guard('D: the template pairs the OLDEST headings with the NEWEST labels', () => {
-  /* getTableSchema falls back to Object.keys(schema_by_year)[0], the OLDEST
-   * year, while ingestTemplateSource deliberately borrows the MOST RECENT year
-   * that has rows. So A5's template for a brand-new year carries 2023's column
-   * headings above 2025's row labels.
+say('=== D. disclosed here, FIXED LATER under CLCPA-244 ====================');
+guard('D: the template no longer pairs OLD headings with NEW labels', () => {
+  /* WHAT THIS BLOCK ORIGINALLY ASSERTED, and why it now asserts the opposite.
    *
-   * The round trip is unaffected, because the template and the importer use
-   * the same fallback, which is why Emely's round-1 pass succeeded. But the
-   * operator sees a heading from a year they did not ask for.
+   * At this round, getTableSchema fell back to Object.keys(schema_by_year)[0],
+   * the OLDEST year, while ingestTemplateSource deliberately borrows the MOST
+   * RECENT year that has rows. So A5's template for a brand-new year carried
+   * 2023's column headings above 2025's row labels. The round trip was
+   * unaffected, because template and importer used the same fallback, which is
+   * why Emely's round-1 pass succeeded -- but the operator saw a heading from a
+   * year they did not ask for.
    *
-   * PRE-EXISTING and asserted against BASE to prove this round did not cause
-   * it. Changing a schema fallback reaches the composed layer and the editor as
-   * well as the template, so it is its own ticket -- the same shape as
-   * CLCPA-243, which took the first key too. */
+   * It was disclosed here as PRE-EXISTING and pinned against BASE, with the
+   * note that it needed its own ticket because a schema fallback reaches the
+   * composed layer and the editor as well as the template. That ticket was
+   * CLCPA-244, defect 2, and it took the most recent year instead.
+   *
+   * The pins are INVERTED rather than deleted: the BASE side still proves the
+   * fossil was real at this round, so this block goes on carrying the evidence
+   * that CLCPA-240 did not cause it, and now also carries the proof it is
+   * gone. A suite that asserts a defect must be flipped when the defect is
+   * fixed, never widened until it stops noticing either way. */
   const newFirst = NEW.getTableSchema(P.tables.A5, '2099')[0];
   const baseFirst = OLD.getTableSchema(P.tables.A5, '2099')[0];
   const oldest = Object.keys(P.tables.A5.schema_by_year)[0];
   const borrowed = NEW.ingestTemplateSource(P.tables.A5, '2099').year;
-  ok(newFirst === baseFirst,
-     'D1 identical to BASE, so round 2 did not cause it: ' + JSON.stringify(newFirst));
-  ok(newFirst === P.tables.A5.schema_by_year[oldest][0],
-     'D2 the heading comes from the OLDEST year, ' + oldest);
+  ok(baseFirst === P.tables.A5.schema_by_year[oldest][0],
+     'D1 at BASE the heading came from the OLDEST year, ' + oldest +
+     ': ' + JSON.stringify(baseFirst));
+  ok(newFirst !== baseFirst,
+     'D2 and CLCPA-244 moved it: ' + JSON.stringify(newFirst));
   ok(String(borrowed) === '2025',
-     'D3 while the row labels come from the most recent year with rows, ' + borrowed);
-  ok(newFirst !== P.tables.A5.schema_by_year['2025'][0],
-     'D4 and for A5 those two disagree: ' + JSON.stringify(newFirst) + ' vs ' +
-     JSON.stringify(P.tables.A5.schema_by_year['2025'][0]));
+     'D3 the row labels still come from the most recent year with rows, ' + borrowed);
+  ok(newFirst === P.tables.A5.schema_by_year['2025'][0],
+     'D4 and for A5 the two now AGREE: ' + JSON.stringify(newFirst));
 });
 
 /* ===================== M: the marker, in both predicates ================= */
@@ -667,6 +674,7 @@ say('');
 say('=== F. everything outside the family is byte-identical ==================');
 guard('F: the editor renders flat tables exactly as BASE did', () => {
   const fam = { A5: 1, A6: 1, A7: 1, A8: 1 };
+  let e1 = null;
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
     if (fam[id]) return;
@@ -677,12 +685,24 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
     try { a = renderFor(id, y).html; b = renderFor(id, y, null, BASE_SRC).html; }
     catch (e) { diff.push(id + ':' + y + ' threw: ' + e.message); return; }
     checked++;
-    if (a !== b) diff.push(id + ':' + y);
+    /* E1 is the ONE table CLCPA-244 moved on purpose: its source-share column
+     * is a weighted mean, whose marking became total-row-only, so the four
+     * category rows turned from read-only grey into editable inputs. It is
+     * carved out BY NAME and its difference is then asserted in the expected
+     * direction below -- an unexplained exclusion would delete the guard. */
+    if (a !== b) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
   });
   ok(checked >= 40, 'F1 rendered ' + checked + ' tables outside the family');
   ok(diff.length === 0,
      'F2 every one is byte-identical to BASE' +
      (diff.length ? ': ' + diff.slice(0, 5).join(', ') : ''));
+  ok(e1 !== null, 'F3 E1 DID change, which is what CLCPA-244 did');
+  if (e1) {
+    const calcs = (h) => (h.match(/ingest-cell-calc/g) || []).length;
+    ok(calcs(e1.a) === calcs(e1.b) - 4,
+       'F4 and exactly FOUR cells stopped being calculated: ' +
+       calcs(e1.b) + ' -> ' + calcs(e1.a));
+  }
 });
 
 guard('F: a FLAT table keeps its editable total label and delete button', () => {
