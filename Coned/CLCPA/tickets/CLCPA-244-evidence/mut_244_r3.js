@@ -24,12 +24,28 @@
  * Ends with a CLEAN re-run against byte-restored source and says so loudly.
  */
 const fs = require('fs');
+const os = require('os');
+const path = require('path');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
-const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-244-evidence';
-const APP = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-244-evidence';
 const SUITE = DIR + '/suite_244_r3.js';
+
+/* RETIRED, and mutating a materialised copy for it.
+ *
+ * Emely reverted this round's sizing code after the hosted pass, so the
+ * working tree no longer contains the subject of these controls. They mutate
+ * round 3's own build instead and point the suite at it, exactly as
+ * mut_244_r2 does: the controls go on proving what they were written to prove,
+ * on the build they were written for, rather than becoming a number nobody can
+ * reproduce. */
+const NEW_COMMIT = process.env.DAC_244R3_COMMIT || '7746463';
+const APP = path.join(os.tmpdir(), 'clcpa244r3-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 
 const M = [
   /* ---- the dead band returns ------------------------------------------- */
@@ -154,7 +170,8 @@ M.forEach((m) => {
   }
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_244_r3.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_244_r3.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -178,7 +195,8 @@ M.forEach((m) => {
 });
 
 let cleanOk = true, cleanOut = '';
-try { cleanOut = execFileSync('node', ['suite_244_r3.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { cleanOut = execFileSync('node', ['suite_244_r3.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) { cleanOk = false; cleanOut = (e.stdout || '') + (e.stderr || ''); }
 
 const head = [

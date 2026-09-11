@@ -671,7 +671,11 @@ guard('the four exclusions', () => {
      * all -- listing them would demand a change this suite is blind to.
      * suite_244_r2 owns those two, with a brace-matching extractor. */
     parseNumericInput: 'NOT this brief: CLCPA-244 round 2, a trailing % is a unit',
-    wireSectionInteractions: 'NOT this brief: CLCPA-244 round 2, wires that redraw on mount',
+    /* CLCPA-244 ROUND 4 removed wireSectionInteractions from this list:
+     * Emely reverted the gauge sizing after the round-3 hosted pass, so the
+     * call site went back to its original one-line form and the function is
+     * unchanged again. parseNumericInput stays -- the percent-unit rule
+     * survived the revert. */
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -680,9 +684,10 @@ guard('the four exclusions', () => {
    * rounds four more, and CLCPA-244 three. Every one named above. */
   /* 27 -> 31: CLCPA-244 round 2 changed four more, every one named above. */
   /* 27 -> 29: CLCPA-244 round 2 changed two functions THIS suite can see. */
-  ok(changed.length === 29, 'exactly TWENTY-NINE functions changed: ' + changed.length);
+  /* 29 -> 28: round 4's revert restored wireSectionInteractions. */
+  ok(changed.length === 28, 'exactly TWENTY-EIGHT functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those twenty-nine moved at all');
+     'and no function outside those twenty-eight moved at all');
 });
 
 say('');

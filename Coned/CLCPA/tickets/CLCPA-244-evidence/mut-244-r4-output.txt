@@ -1,0 +1,35 @@
+======================================================================
+CLCPA-244 round 4 -- mutation controls for the revert
+======================================================================
+  red  A FRAGMENT SURVIVES: the radius is scaled again
+       3 red, incl: O1 BYTE-IDENTICAL to dc47788: 6062 vs 6040 chars
+  red  the gap rule keeps round 2s scaled minimum
+       3 red, incl: O6 and the original gap rule, clamped at 8
+  red  the resize redraw is wired back up
+       3 red, incl: O4 wireSectionEArcResize is gone (round 2s resize redraw)
+  red  the arc keeps a per-gauge centre line
+       3 red, incl: O1 BYTE-IDENTICAL to dc47788: 6044 vs 6040 chars
+  red  x goes back to being column-derived
+       3 red, incl: O8 x comes from the index again, so there is one row
+  red  OVER-REVERT: the percent rule is taken out with the sizing
+       2 red, incl: U1 "10%" still lands 0.1
+  red  the percent rule survives but changes its convention
+       2 red, incl: U1 "10%" still lands 0.1
+  red  parseNumericInput is restored to pre-ticket as well
+       1 red, incl: U5 byte-identical to the rejected build: the revert did not reach it
+  red  PAST THE TICKET: round 1s schema fallback is reverted too
+       2 red, incl: E4 round 1s getTableSchema is intact (unchanged from dc47788, which contains it)
+  red  round 1s marking predicate is reverted too
+       3 red, incl: E4 round 1s isTotalOnlyDerived is intact (unchanged from dc47788, which contains it)
+  red  THE STRONG CLAIM: a second function differs from pre-ticket
+       1 red, incl: E1 exactly ONE function differs from pre-ticket, and it is parseNumericInput: formatTimeAgo, parseN
+  red  HARNESS: the pre-ticket reference is repointed at the rejected build
+       6 red, incl: B3 and they are different commits, so the comparison has two sides
+  red  HARNESS: the gone-symbol list compares the build against ITSELF
+       10 red, incl: O4a all 9 symbols really WERE in the rejected build (0), so their absence now means something
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: B1 rejected build is a literal sha: HEAD
+
+  14 caught, 0 not caught, of 14 guards
+  0 declared blind spot(s), listed above
+  clean re-run against byte-restored source: PASSES -- 53 passed, 0 failed

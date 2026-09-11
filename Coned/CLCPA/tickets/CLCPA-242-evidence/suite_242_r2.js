@@ -407,7 +407,11 @@ guard('two functions', () => {
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
      * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
     parseNumericInput: 'NOT this brief: CLCPA-244 round 2, a trailing % is a unit',
-    wireSectionInteractions: 'NOT this brief: CLCPA-244 round 2, wires the gauge redraw',
+    /* CLCPA-244 ROUND 4 removed wireSectionInteractions from this list:
+     * Emely reverted the gauge sizing after the round-3 hosted pass, so the
+     * call site went back to its original one-line form and the function is
+     * unchanged again. parseNumericInput stays -- the percent-unit rule
+     * survived the revert. */
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -416,8 +420,9 @@ guard('two functions', () => {
    * so the count stays exact rather than becoming a range. */
   /* 14 -> 17: CLCPA-244 changed three more, every one named in EXPECT. */
   /* 17 -> 19: CLCPA-244 round 2 changed two this suite can see. */
-  ok(changed.length === 19, 'NINETEEN: this round\'s two, CLCPA-240\'s twelve ' +
-     'and CLCPA-244\'s five: ' + changed.length);
+  /* 19 -> 18: round 4's revert restored wireSectionInteractions. */
+  ok(changed.length === 18, 'EIGHTEEN: this round\'s two, CLCPA-240\'s twelve ' +
+     'and CLCPA-244\'s four: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

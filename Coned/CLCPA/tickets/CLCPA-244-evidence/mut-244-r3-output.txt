@@ -38,7 +38,7 @@ CLCPA-244 round 3 -- mutation controls
   red  HARNESS: the sweep stops sweeping heights
        1 red, incl: S1 swept 72 width/height/count combinations
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X7 BASE is a literal commit sha: HEAD
+       8 red, incl: X7 BASE is a literal commit sha: HEAD
 
   19 caught, 0 not caught, of 19 guards
   clean re-run against byte-restored source: PASSES -- 44 passed, 0 failed

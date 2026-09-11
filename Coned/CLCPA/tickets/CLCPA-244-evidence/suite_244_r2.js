@@ -1,3 +1,26 @@
+/* ============================ RETIRED ==============================
+ *
+ * THE GEOMETRY HALF OF THIS SUITE GUARDS CODE THAT NO LONGER SHIPS.
+ *
+ * Emely rejected round 3's wrap at the hosted pass -- System Expansion alone
+ * on a second row read worse than the original clipping -- and ruled the
+ * gauge sizing REVERTED to pre-ticket geometry. Rounds 2 and 3 both built on
+ * that sizing, so every G* guard below describes a build that was shipped,
+ * tested and withdrawn. The narrow-window clipping is ACCEPTED AS-WAS and is
+ * no longer this ticket's finding.
+ *
+ * WHAT IS STILL LIVE HERE: the U*, E* and S* guards. Round 2's percent-unit
+ * discipline survived the revert untouched, and those guards still hold
+ * against the shipped build -- suite_244_r4 asserts the same rule
+ * independently.
+ *
+ * THE FILE IS KEPT, not deleted, and it is kept GREEN: it is pinned to its
+ * own build (b256467) on both sides, so it remains the record of what was
+ * built and of the reasoning that produced it. A retired guard that is
+ * quietly removed takes its evidence with it. What guards the strip now is
+ * suite_244_r4, and what it guards is that nobody changed it.
+ *
+ * ================================================================== */
 /* CLCPA-244 ROUND 2: unit discipline at entry, and shrink-to-fit gauges.
  *
  * Emely's hosted pass on 19987bbd95 passed items 1-4 and surfaced two things.

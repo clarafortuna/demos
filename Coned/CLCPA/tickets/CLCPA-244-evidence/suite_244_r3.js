@@ -1,3 +1,25 @@
+/* ============================ RETIRED ==============================
+ *
+ * THIS ENTIRE SUITE GUARDS CODE THAT NO LONGER SHIPS.
+ *
+ * Emely rejected the layout it describes at the hosted pass on e17afdbf91:
+ * the 3+1 wrap, with System Expansion alone on a second row and the tooltip
+ * floating over the gap, read worse than the original clipping. The ruling
+ * was to REVERT the gauge sizing to pre-ticket geometry, and the narrow-
+ * window clipping is ACCEPTED AS-WAS.
+ *
+ * So every assertion below is about a build that was shipped, tested and
+ * withdrawn. It is pinned to that build (7746463) on both sides and kept
+ * GREEN on purpose: the harness lesson inside it is the reason it survives.
+ * This suite is where the class was found -- a sweep that ran the harness's
+ * own copy of the algorithm, so NINE of nineteen mutations to the shipped
+ * search moved nothing. Deleting the file would delete that record.
+ *
+ * The strip is now guarded by suite_244_r4, which asserts it is byte-
+ * identical to pre-ticket and that exactly one function in app.js differs
+ * from that build.
+ *
+ * ================================================================== */
 /* CLCPA-244 ROUND 3: the gauge strip uses BOTH dimensions.
  *
  * Emely's pass on 03ee74fdb2 accepted the mechanics -- all four gauges shrink
@@ -44,7 +66,15 @@ const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-244-evidence/suite-244-r3
 const BASE = process.env.DAC_BASE_COMMIT || '3cdb178';
 const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
 
-const SRC = fs.readFileSync(APP, 'utf8');
+/* BOTH SIDES PINNED, because the subject was withdrawn. Reading the
+ * working tree would make this retired suite re-judge every later build
+ * against a layout that was deliberately removed. DAC_APP_OVERRIDE still
+ * wins, so the mutation controls keep working. */
+const NEW_COMMIT = process.env.DAC_244R3_COMMIT || '7746463';
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(APP, 'utf8')
+  : execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BS = String.fromCharCode(92);

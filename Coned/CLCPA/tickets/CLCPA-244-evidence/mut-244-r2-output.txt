@@ -34,7 +34,7 @@ CLCPA-244 round 2 -- mutation controls
   red  HARNESS: the geometry sweep goes back to the broken extractor
        17 red, incl: exactly FOUR functions changed: 20
   red  HARNESS: the baseline is repointed at a symbolic ref
-       13 red, incl: X8 BASE is a literal commit sha: HEAD
+       14 red, incl: X8 BASE is a literal commit sha: HEAD
 
   17 caught, 0 not caught, of 17 guards
   clean re-run against byte-restored source: PASSES -- 70 passed, 0 failed

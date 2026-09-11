@@ -13679,40 +13679,6 @@ function wireBTooltips() {
     });
   }
 
-/* CLCPA-244 round 2: redraw the arc strip when the window resizes.
- *
- * The strip laid itself out ONCE per render and the only resize listener in
- * the app was the map's, so a window narrowed after load kept a canvas sized
- * for the old width. Shrink-to-fit is computed from clientWidth, so without
- * this it only took effect on a re-render -- which is why the clipping looked
- * like it depended on how you arrived at the page.
- *
- * The prior handler is removed before the new one is added, the same shape
- * _mapResizeHandler uses: re-mounting a section must not accumulate listeners.
- * The redraw is rAF-coalesced because a drag fires resize continuously and
- * each draw resizes the bitmap, which is the expensive part. */
-let _eArcResizeHandler = null;
-function wireSectionEArcResize() {
-  if (_eArcResizeHandler) window.removeEventListener('resize', _eArcResizeHandler);
-  let pending = false;
-  _eArcResizeHandler = function () {
-    if (pending) return;
-    pending = true;
-    window.requestAnimationFrame(function () {
-      pending = false;
-      /* the canvas is gone once another section is mounted; drop the listener
-       * rather than redrawing into nothing on every resize thereafter */
-      if (!document.getElementById('e-arc-canvas-section')) {
-        window.removeEventListener('resize', _eArcResizeHandler);
-        _eArcResizeHandler = null;
-        return;
-      }
-      drawSectionEArc();
-    });
-  };
-  window.addEventListener('resize', _eArcResizeHandler);
-}
-
 function drawSectionEArc() {
     const canvas = document.getElementById('e-arc-canvas-section');
     if (!canvas) return;
@@ -13730,118 +13696,16 @@ function drawSectionEArc() {
 
     const DPR = Math.max(window.devicePixelRatio || 1, 2);
     const CW = canvas.parentElement.clientWidth - 32;
-    /* CLCPA-244 round 2: SHRINK TO FIT.
-     *
-     * THE DEFECT. R_OUT was the constant 82 and GAP was clamped at 8, so the
-     * strip needed a 768px canvas -- an 800px parent -- to lay out four
-     * gauges. Below that the fourth was drawn past the bitmap edge and simply
-     * vanished: no wrap, no shrink, no scroll, no warning. Emely lost System
-     * Expansion, which is E1's last row and therefore the last gauge.
-     *
-     * The natural width is what four full-size gauges plus their minimum gaps
-     * would need. When the canvas is narrower, everything scales by the single
-     * factor k, so the gauges get smaller instead of disappearing, and when it
-     * is wider k is 1 and the old full-size layout is reproduced exactly.
-     *
-     * Text scales too, or the labels outgrow their shrunken arcs -- but on its
-     * own floor, because a 6px label is not a fix either. */
-    const R_OUT_F = 82, R_IN_F = 54, SW_OUT_F = 20, SW_IN_F = 18;
-    const MIN_GAP = 8;
-    const N = cats.length;
-    const NATURAL_ARC = (R_OUT_F + SW_OUT_F / 2) * 2;
-    const NATURAL_W = NATURAL_ARC * N + MIN_GAP * (N + 1);
-    /* ROUND 3: USE BOTH DIMENSIONS.
-     *
-     * Round 2 scaled against WIDTH alone. It stopped the fourth gauge
-     * vanishing, but a narrow window then produced small gauges floating in a
-     * card with a dead band beneath them: .chart-row is a CSS grid, so this
-     * card is STRETCHED to its row-mate's height, and that spare height was
-     * simply wasted.
-     *
-     * Scaling by height alone cannot help -- a semicircle's height is set by
-     * its radius, and the radius is what the width constrains. The way to
-     * spend vertical space is to take fewer gauges per row: at 500px, four in
-     * one row forces k = 0.64, while TWO rows of two need only 392px per row
-     * and go back to FULL SIZE. So the layout now picks the column count that
-     * makes the gauges biggest within BOTH dimensions.
-     *
-     * Guarantees, all asserted in suite_244_r2:
-     *   - never smaller than round 2's width-only answer (the search starts
-     *     from it and only accepts an improvement), so this cannot regress;
-     *   - never larger than full size, so a wide window is byte-identical to
-     *     the layout Emely already accepted;
-     *   - never overflows either dimension. */
-    /* The available height comes from the CARD, which the grid has already
-     * stretched. Reading it is safe rather than circular: in the dead-band
-     * case the canvas is the SHORT element, so the card's height is set by its
-     * row-mate. When the canvas is instead the tallest thing, height is not
-     * the binding constraint and the full-size cap decides. A zero or missing
-     * measurement falls back to width-only, which is round 2's behaviour. */
-    const card = canvas.parentElement;
-    const head = card ? card.querySelector('.chart-card-head') : null;
-    let availH = 0;
-    try {
-      const cs = card && window.getComputedStyle ? window.getComputedStyle(card) : null;
-      const padV = cs ? (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0) : 0;
-      availH = (card ? card.clientHeight : 0) - (head ? head.offsetHeight : 0) - padV;
-    } catch (e) { availH = 0; }
-
-    const floorK = 0.25;   /* degenerate-geometry guard only; see round 2 */
-    /* ONE height formula, shared by the planner and the renderer.
-     *
-     * My first draft gave the planner its own simplified version, and the two
-     * disagreed wherever TEXT_K hit its 0.7 floor: the planner accepted a
-     * two-row layout at k=0.958 that actually measured 321px against 320px of
-     * card. A planner that models the renderer instead of calling it is a
-     * second source of truth, which is the mistake this codebase already
-     * refuses everywhere else. */
-    function rowHeightFor(kk) {
-      const swo = SW_OUT_F * kk;
-      return (swo / 2 + 4) + R_OUT_F * kk + 1 + (22 * Math.max(0.7, kk)) * 3 + 4;
-    }
-    /* the width-only answer, exactly as round 2 computed it. It is the FLOOR:
-     * a wrapped candidate is accepted only if it beats this, so round 3 can
-     * never render anything smaller than round 2 did. */
-    const single = { cols: N, rows: 1,
-      k: Math.min(1, CW > 0 ? CW / NATURAL_W : 1) };
-    let plan = single;
-    /* Wrapping is only considered when the card's height is actually KNOWN and
-     * the wrapped strip FITS it. Growing the card to make room would move the
-     * rest of the section, which is not what "use the available space" means;
-     * and with no measurement at all the safe answer is round 2's. */
-    if (availH > 0) {
-      for (let c = N - 1; c >= 1; c--) {
-        const rows = Math.ceil(N / c);
-        const kW = (CW > 0) ? CW / (NATURAL_ARC * c + MIN_GAP * (c + 1)) : 1;
-        /* largest k that fits BOTH, found against the real height formula */
-        let lo = 0, hi = Math.min(1, kW);
-        for (let it = 0; it < 40; it++) {
-          const mid = (lo + hi) / 2;
-          if (rowHeightFor(mid) * rows <= availH) lo = mid; else hi = mid;
-        }
-        if (lo > plan.k + 1e-9) plan = { cols: c, rows: rows, k: lo };
-      }
-    }
-    const COLS = plan.cols, ROWS = plan.rows;
-    const k = Math.max(floorK, plan.k);
-    const R_OUT = R_OUT_F * k, R_IN = R_IN_F * k;
-    const SW_OUT = SW_OUT_F * k, SW_IN = SW_IN_F * k;
-    const TEXT_K = Math.max(0.7, k);
+    const R_OUT = 82, R_IN = 54, SW_OUT = 20, SW_IN = 18;
     const TOP_PAD = SW_OUT/2 + 4;
-    const LABEL_PAD = 1, LINE_H = 22 * TEXT_K;
-    /* the SAME function the planner used, called rather than re-derived */
-    const ROW_H = rowHeightFor(k);
-    /* CY is row 0's centre; every gauge adds its own row offset */
     const CY = TOP_PAD + R_OUT;
-    const CH = ROW_H * ROWS;
+    const LABEL_PAD = 1, LINE_H = 22;
+    const CH = CY + LABEL_PAD + LINE_H * 3 + 4;
     const ARC_WIDTH = (R_OUT + SW_OUT/2) * 2;
-    const TOTAL_ARCS_W = ARC_WIDTH * COLS;
-    const GAP = Math.max(MIN_GAP * k, (CW - TOTAL_ARCS_W) / (COLS + 1));
+    const TOTAL_ARCS_W = ARC_WIDTH * cats.length;
+    const GAP = Math.max(8, (CW - TOTAL_ARCS_W) / (cats.length + 1));
     const SIDE_PAD = GAP + R_OUT + SW_OUT/2;
     const SPACING = ARC_WIDTH + GAP;
-    const rowOf = (i) => Math.floor(i / COLS);
-    const colOf = (i) => i % COLS;
-    const cyOf = (i) => CY + rowOf(i) * ROW_H;
 
     canvas.width = CW * DPR;
     canvas.height = CH * DPR;
@@ -13851,14 +13715,12 @@ function drawSectionEArc() {
     ctx.scale(DPR, DPR);
     ctx.textBaseline = 'middle';
 
-    /* cy is a PARAMETER now: with more than one row the strip no longer
-     * shares a single centre line. */
-    function drawSemi(cx, cy, r, pct, color, sw) {
+    function drawSemi(cx, r, pct, color, sw) {
       if (pct <= 0.001) return;
       const p = Math.min(pct, 0.9999);
       const endAngle = Math.PI + Math.PI * p;
       ctx.beginPath();
-      ctx.arc(cx, cy, r, Math.PI, endAngle, false);
+      ctx.arc(cx, CY, r, Math.PI, endAngle, false);
       ctx.strokeStyle = color;
       ctx.lineWidth = sw;
       ctx.lineCap = 'round';
@@ -13867,26 +13729,25 @@ function drawSectionEArc() {
 
     const hitZones = [];
     cats.forEach((cat, i) => {
-      const cx = SIDE_PAD + colOf(i) * SPACING;
-      const cy = cyOf(i);
+      const cx = SIDE_PAD + i * SPACING;
       const isBig = i === biggestIdx;
       const c24 = isBig ? '#2A7755' : '#2F5496';
 
-      drawSemi(cx, cy, R_OUT, 1.0, '#f0f0f0', SW_OUT);
-      drawSemi(cx, cy, R_IN, 1.0, '#f0f0f0', SW_IN);
-      if (cat.prev !== null) drawSemi(cx, cy, R_IN, cat.prev, '#BDDBF5', SW_IN);
-      drawSemi(cx, cy, R_OUT, cat.curr, c24, SW_OUT);
+      drawSemi(cx, R_OUT, 1.0, '#f0f0f0', SW_OUT);
+      drawSemi(cx, R_IN, 1.0, '#f0f0f0', SW_IN);
+      if (cat.prev !== null) drawSemi(cx, R_IN, cat.prev, '#BDDBF5', SW_IN);
+      drawSemi(cx, R_OUT, cat.curr, c24, SW_OUT);
 
-      let ty = cy + LABEL_PAD;
+      let ty = CY + LABEL_PAD;
       ctx.textAlign = 'center';
 
-      ctx.font = '700 ' + (25 * TEXT_K).toFixed(1) + 'px Inter, system-ui, sans-serif';
+      ctx.font = '700 25px Inter, system-ui, sans-serif';
       ctx.fillStyle = c24;
       ty += LINE_H;
       ctx.fillText((cat.curr*100).toFixed(0)+'%', cx, ty);
 
       if (cat.prev !== null) {
-        ctx.font = '500 ' + (12 * TEXT_K).toFixed(1) + 'px Inter, system-ui, sans-serif';
+        ctx.font = '500 12px Inter, system-ui, sans-serif';
         ctx.fillStyle = '#aaa';
         ty += LINE_H + 1;
         ctx.fillText((cat.prev*100).toFixed(0)+'% → '+(cat.curr*100).toFixed(0)+'%', cx, ty);
@@ -13894,13 +13755,13 @@ function drawSectionEArc() {
         ty += LINE_H - 1;
       }
 
-      ctx.font = '600 ' + (13 * TEXT_K).toFixed(1) + 'px Inter, system-ui, sans-serif';
+      ctx.font = '600 13px Inter, system-ui, sans-serif';
       ctx.fillStyle = '#111';
       ty += LINE_H - 1;
       ctx.fillText(cat.name, cx, ty);
 
       const delta = cat.prev !== null ? Math.round((cat.curr - cat.prev) * 100) : null;
-      hitZones.push({ cx, cy, cat, delta, isBig });
+      hitZones.push({ cx, cat, delta, isBig });
     });
 
     let tip = document.querySelector('.e-tt');
@@ -13913,11 +13774,7 @@ function drawSectionEArc() {
     canvas.onmousemove = function(e) {
       const rect = canvas.getBoundingClientRect();
       const mx = (e.clientX - rect.left) * (CW / rect.width);
-      const my = (e.clientY - rect.top) * (CH / rect.height);
-      /* TWO dimensions: with rows stacked, an x-only test would hand every
-       * row the tooltip of the one above it. */
-      const hit = hitZones.find(z => Math.abs(mx - z.cx) < SPACING/2 &&
-        my >= z.cy - (TOP_PAD + R_OUT) && my < z.cy - (TOP_PAD + R_OUT) + ROW_H);
+      const hit = hitZones.find(z => Math.abs(mx - z.cx) < SPACING/2);
       if (hit) {
         const c = hit.cat, d = hit.delta;
         const dColor = d === null ? 'var(--text-3)' : (d > 0 ? 'var(--green)' : (d < 0 ? 'var(--red)' : 'var(--text-3)'));
@@ -15308,7 +15165,7 @@ function wireHTooltips() {
     wireHelpButtons();
     if (letter === 'A') wireSectionATooltips();
     if (letter === 'B') wireBTooltips();
-    if (letter === 'E') { drawSectionEArc(); wireSectionEArcResize(); }
+    if (letter === 'E') drawSectionEArc();
     if (letter === 'J') wireJTooltips();
     if (letter === 'D') wireDTooltips();
     if (letter === 'F' || letter === 'H') wireFTooltips();

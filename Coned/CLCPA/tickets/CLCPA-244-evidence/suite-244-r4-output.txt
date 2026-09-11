@@ -1,0 +1,70 @@
+======================================================================
+CLCPA-244 ROUND 4 -- the gauge sizing is REVERTED
+  pre-ticket dc47788   rejected build 4f74597
+======================================================================
+
+=== O. the strip is the ORIGINAL, byte for byte ======================
+  ok   O0 the function exists in all three sources, so comparing means something
+  ok   O1 BYTE-IDENTICAL to dc47788: 6040 vs 6040 chars
+  ok   O2 and NOT the rejected build, which is the point of the revert
+  ok   O3 the rejected build was longer (12294 vs 6040), so this is a removal, not a rewrite
+  ok   O4a all 9 symbols really WERE in the rejected build (9), so their absence now means something
+  ok   O4 rowHeightFor is gone (round 3s shared height formula)
+  ok   O4b and it was present in the rejected build
+  ok   O4 NATURAL_W is gone (round 2s width-scale denominator)
+  ok   O4b and it was present in the rejected build
+  ok   O4 floorK is gone (round 3s degenerate-geometry floor)
+  ok   O4b and it was present in the rejected build
+  ok   O4 availH is gone (the card-height measurement)
+  ok   O4b and it was present in the rejected build
+  ok   O4 colOf(i) is gone (row-aware x)
+  ok   O4b and it was present in the rejected build
+  ok   O4 cyOf(i) is gone (row-aware y)
+  ok   O4b and it was present in the rejected build
+  ok   O4 wireSectionEArcResize is gone (round 2s resize redraw)
+  ok   O4b and it was present in the rejected build
+  ok   O4 _eArcResizeHandler is gone (its handler variable)
+  ok   O4b and it was present in the rejected build
+  ok   O4 TEXT_K is gone (round 2s text scale)
+  ok   O4b and it was present in the rejected build
+  ok   O5 the fixed radii are restored
+  ok   O6 and the original gap rule, clamped at 8
+  ok   O7 every arc is back on one shared centre line
+  ok   O8 x comes from the index again, so there is one row
+  ok   O9 and the hit test is x-only again, which is correct for one row
+  ok   O10 the call site no longer wires a resize handler
+
+=== U. round 2s percent-unit discipline is untouched by the revert ===
+  ok   U0 parseNumericInput was found
+  ok   U1 "10%" still lands 0.1
+  ok   U2 "0.1" still lands 0.1
+  ok   U3 "10" is still untouched: no magnitude guessing
+  ok   U4 and prose still falls through as text
+  ok   U5 byte-identical to the rejected build: the revert did not reach it
+  ok   U6 and it is NOT the pre-ticket version, which is the whole point of keeping it
+
+=== E. EXACTLY ONE function differs from pre-ticket ==================
+       differing from dc47788: parseNumericInput
+  ok   E1 exactly ONE function differs from pre-ticket, and it is parseNumericInput: parseNumericInput
+  ok   E2 no function was added since pre-ticket
+  ok   E3 and none was lost
+  ok   E4 round 1s getTableSchema is intact (unchanged from dc47788, which contains it)
+  ok   E4 round 1s ingestComputed is intact (unchanged from dc47788, which contains it)
+  ok   E4 round 1s isTotalOnlyDerived is intact (unchanged from dc47788, which contains it)
+  ok   E4 round 1s renderIngestEditor is intact (unchanged from dc47788, which contains it)
+  ok   E5 and isTotalOnlyDerived still keys on the rule type
+
+=== S. the data layer is untouched ===================================
+  ok   S1 styles.css is byte-identical to pre-ticket
+  ok   S2 the payload is untouched: E1 still has 5 rows
+  ok   S3 the section header still multiplies unconditionally
+  ok   S4 and so does the section-goals gauge row
+
+=== B. the pins =====================================================
+  ok   B1 pre-ticket is a literal sha: dc47788
+  ok   B2 pre-ticket dc47788 is an ancestor of HEAD
+  ok   B1 rejected build is a literal sha: 4f74597
+  ok   B2 rejected build 4f74597 is an ancestor of HEAD
+  ok   B3 and they are different commits, so the comparison has two sides
+
+  53 passed, 0 failed

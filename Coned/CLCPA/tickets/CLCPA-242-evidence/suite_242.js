@@ -456,7 +456,11 @@ guard('three functions, all wiring', () => {
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
      * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
     parseNumericInput: 'NOT this brief: CLCPA-244 round 2, a trailing % is a unit',
-    wireSectionInteractions: 'NOT this brief: CLCPA-244 round 2, wires the gauge redraw',
+    /* CLCPA-244 ROUND 4 removed wireSectionInteractions from this list:
+     * Emely reverted the gauge sizing after the round-3 hosted pass, so the
+     * call site went back to its original one-line form and the function is
+     * unchanged again. parseNumericInput stays -- the percent-unit rule
+     * survived the revert. */
   };
   changed.forEach(n => ok(n in EXPECT || n === 'ensureTooltip',
     'the change to ' + n + ' is accounted for'));
@@ -468,8 +472,9 @@ guard('three functions, all wiring', () => {
   /* 6 -> 14: CLCPA-240 first half added eight, every one named above. */
   /* 18 -> 21: CLCPA-244 changed three more, every one named above. */
   /* 21 -> 23: CLCPA-244 round 2 changed two this suite can see. */
-  ok(changed.length === 23, 'TWENTY-THREE: this ticket’s six, CLCPA-240 first ' +
-     'half’s eight, round 2 and 3’s four, and CLCPA-244’s five: ' + changed.length);
+  /* 23 -> 22: round 4's revert restored wireSectionInteractions. */
+  ok(changed.length === 22, 'TWENTY-TWO: this ticket’s six, CLCPA-240 first ' +
+     'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
      'and the two new ones did not exist at BASE, which is why they count');
