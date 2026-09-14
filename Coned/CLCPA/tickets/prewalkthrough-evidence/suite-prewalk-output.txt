@@ -101,9 +101,10 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
+  ok   the change to compareColWidths is accounted for
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to getTableSchema is accounted for
@@ -163,10 +164,11 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   isAnchoredTotalRowLabel changed as intended: NOT this brief: CLCPA-245, the anchored-suffix predicate (new)
   ok   wireIngestLabelTips changed as intended: NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)
   ok   wireIngestPage changed as intended: NOT this brief: CLCPA-245 round 2, it calls that wiring
+  ok   compareColWidths changed as intended: NOT this brief: CLCPA-248, the shared width vector (new)
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly THIRTY-ONE functions changed: 31
-  ok   and no function outside those thirty-one moved at all
+  ok   exactly THIRTY-TWO functions changed: 32
+  ok   and no function outside those thirty-two moved at all
 
 ======================================================================
-  155 passed, 0 failed
+  157 passed, 0 failed
 ======================================================================

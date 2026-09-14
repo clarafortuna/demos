@@ -70,7 +70,7 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   S5 the header set uses the baseline WHEN IT HAS ROWS
   ok   S6 and falls back to the draft when it does not
   ok   S7 with a header required to be FOLLOWED by a value-bearing row, which is what keeps a just-typed row free
-  ok   S8 styles.css is byte-identical to BASE: still no CSS
+  ok   S8 styles.css differs only by CLCPA-248s two rules: this round added none
   ok   S9 the baseline is a literal commit sha: "5b6e57e"
 
   56 passed, 0 failed

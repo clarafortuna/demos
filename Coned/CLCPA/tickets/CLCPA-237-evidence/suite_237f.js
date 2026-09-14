@@ -524,6 +524,13 @@ guard('the blast radius is accounted for, function by function', () => {
      * ownership entry. Named so the exact count below stays a guard. */
     wireIngestLabelTips: 'CLCPA-245 round 2, the shared-tooltip wiring (new)',
     wireIngestPage: 'CLCPA-245 round 2, it calls that wiring',
+    /* CLCPA-248: one anatomy across the two compare panels. The prior was
+     * never a separate render path -- both always called renderTable -- so
+     * the fix is a shared width vector emitted as a colgroup in both.
+     * Named so the exact count below stays a guard. */
+    renderTable: 'CLCPA-248, the colgroup and the text-cell wrap',
+    compareColWidths: 'CLCPA-248, the shared width vector (new)',
+    renderSourceTables: 'CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -553,7 +560,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 27 -> 26: round 4's revert restored wireSectionInteractions. */
   /* 26 -> 27: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 27 -> 29: CLCPA-245 round 2 added two more. */
-  ok(changed.length === 29, 'twenty-nine in total, all named: ' + changed.length);
+  /* 29 -> 32: CLCPA-248 changed three more. */
+  ok(changed.length === 32, 'thirty-two in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
@@ -561,12 +569,19 @@ guard('the blast radius is accounted for, function by function', () => {
 guard('the exclusions hold', () => {
   const dc = grabDecl('DERIVED_COLS'), dcB = grabDecl('DERIVED_COLS', BASE_SRC);
   ok(dc === dcB, 'DERIVED_COLS is byte-identical to BASE');
+    /* renderTable and renderSourceTables LEFT this list under CLCPA-248,
+     * which gave the two compare panels one shared colgroup. Both are named
+     * in that ticket's own inventory and asserted there; removing them here
+     * is not weakening the exclusion, because the claim it makes is about
+     * THIS ticket's blast radius, not about the file never changing. */
   ['applyDerivedCols', 'rowsForDisplay', 'recomputeTotals', 'kpiDacPct',
-   'composePayloadFromRows', 'dacShadowCompare', 'renderDACMap', 'renderTable',
+   'composePayloadFromRows', 'dacShadowCompare', 'renderDACMap',
    /* renderIngestEditor left this list when CLCPA-240 round 2 locked the
     * hierarchical family's group header rows. That ticket owns the change and
-    * asserts it by name in ALSO above, so the claim here stays exact. */
-   'renderSourceTables'].forEach(fn => {
+    * asserts it by name in ALSO above, so the claim here stays exact.
+    * renderTable and renderSourceTables left it under CLCPA-248, for the same
+    * reason and with the same treatment: both are named in ALSO. */
+  ].forEach(fn => {
     ok(grab(fn) === grab(fn, BASE_SRC), fn + ' is byte-identical to BASE');
   });
   ok(/var DAC_SOURCE = 'dataverse';/.test(CODE), "DAC_SOURCE is still 'dataverse'");

@@ -231,7 +231,18 @@ guard('S: styles.css and the payload readers are unchanged', () => {
   const origStyles = execSync('git show ' + ORIG +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-  ok(styles === origStyles, 'S1 styles.css is byte-identical to pre-ticket');
+  /* CLCPA-248 CHANGED THE STYLESHEET, the first ticket to do so in several.
+   * This pin stays EXACT rather than being dropped: the file may differ only
+   * by the two rules that ticket adds, stripped by name below, and any other
+   * change still turns it red. */
+  const strip248 = (c) => String(c)
+    .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
+    .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
+    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ok(strip248(styles) === strip248(origStyles),
+     'S1 styles.css differs from pre-ticket only by CLCPA-248s rules');
   ok(P.tables.E1.data['2025'].length === 5, 'S2 the payload is untouched: E1 still has 5 rows');
 });
 

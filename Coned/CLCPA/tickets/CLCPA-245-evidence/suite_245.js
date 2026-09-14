@@ -526,7 +526,18 @@ guard('X: the family veto and the derive engine are untouched', () => {
   const baseStyles = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-  ok(styles === baseStyles, 'X6 styles.css is byte-identical: the tooltip is native');
+  /* CLCPA-248 CHANGED THE STYLESHEET, the first ticket to do so in several.
+   * This pin stays EXACT rather than being dropped: the file may differ only
+   * by the two rules that ticket adds, stripped by name below, and any other
+   * change still turns it red. */
+  const strip248 = (c) => String(c)
+    .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
+    .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
+    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ok(strip248(styles) === strip248(baseStyles),
+     'X6 styles.css differs only by CLCPA-248s rules: the tooltip added none');
 });
 
 guard('X: item 3 closes at ZERO, measured not assumed', () => {
@@ -558,6 +569,12 @@ guard('X: the blast radius', () => {
     totalRowFlags: 'the general label veto',
     isAnchoredTotalRowLabel: 'the anchored-suffix predicate (new)',
     renderIngestEditor: 'the label tooltip: data-label-tip, no native title',
+    /* CLCPA-248 landed after this ticket and against the same BASE: the two
+     * compare panels now share one colgroup. Three functions, each named so
+     * this suite's count stays exact rather than being relaxed. */
+    renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text wrap',
+    compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
+    renderSourceTables: 'NOT this brief: CLCPA-248, it computes that vector',
     /* ROUND 2, by ruling: the native title became the dashboard s own
      * tooltip, which needs a wiring, a call site, and the CLCPA-242
      * ownership entry. Three more functions, each named. */
@@ -568,7 +585,8 @@ guard('X: the blast radius', () => {
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 6, 'X8 exactly SIX functions changed: ' + changed.length);
+  /* 6 -> 9: CLCPA-248 added three, every one named above. */
+  ok(changed.length === 9, 'X8 exactly NINE functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

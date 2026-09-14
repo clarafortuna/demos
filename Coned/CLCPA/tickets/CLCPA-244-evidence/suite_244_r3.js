@@ -399,7 +399,18 @@ guard('X: round 2s other half is untouched', () => {
   const baseStyles = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-  ok(styles === baseStyles, 'X5 styles.css is byte-identical: this is not a CSS fix');
+  /* CLCPA-248 CHANGED THE STYLESHEET, the first ticket to do so in several.
+   * This pin stays EXACT rather than being dropped: the file may differ only
+   * by the two rules that ticket adds, stripped by name below, and any other
+   * change still turns it red. */
+  const strip248 = (c) => String(c)
+    .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
+    .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
+    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ok(strip248(styles) === strip248(baseStyles),
+     'X5 styles.css differs only by CLCPA-248s rules: this round added none');
 });
 
 guard('X: the blast radius is exactly one function', () => {

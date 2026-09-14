@@ -392,7 +392,18 @@ guard('S: scoped and singular', () => {
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-  ok(css === baseCss, 'S8 styles.css is byte-identical to BASE');
+  /* CLCPA-248 CHANGED THE STYLESHEET, the first ticket to do so in several.
+   * This pin stays EXACT rather than being dropped: the file may differ only
+   * by the two rules that ticket adds, stripped by name below, and any other
+   * change still turns it red. */
+  const strip248 = (c) => String(c)
+    .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
+    .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
+    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ok(strip248(css) === strip248(baseCss),
+     'S8 styles.css differs only by CLCPA-248s two named rules');
   ok(grabConst('DERIVED_COLS', SRC) === grabConst('DERIVED_COLS', BASE_SRC),
      'S9 and DERIVED_COLS itself is unchanged: no rule was edited, only how ' +
      'the marking reads one');
