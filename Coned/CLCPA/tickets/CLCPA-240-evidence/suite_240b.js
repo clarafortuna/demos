@@ -463,6 +463,13 @@ guard('two functions, and nothing else', () => {
      * ownership entry. Named so the exact count below stays a guard. */
     wireIngestLabelTips: 'NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)',
     wireIngestPage: 'NOT this brief: CLCPA-245 round 2, it calls that wiring',
+    /* CLCPA-248: one anatomy across the two compare panels. The prior was
+     * never a separate render path -- both always called renderTable -- so
+     * the fix is a shared width vector emitted as a colgroup in both.
+     * Named so the exact count below stays a guard. */
+    renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text-cell wrap',
+    compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
+    renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -489,7 +496,8 @@ guard('two functions, and nothing else', () => {
   /* 24 -> 25: CLCPA-245 added isAnchoredTotalRowLabel; totalRowFlags and
    * renderIngestEditor were already counted. */
   /* 25 -> 27: CLCPA-245 round 2 added two more. */
-  ok(changed.length === 27, 'exactly TWENTY-SEVEN functions changed: ' + changed.length);
+  /* 27 -> 30: CLCPA-248 changed three more, every one named above. */
+  ok(changed.length === 30, 'exactly THIRTY functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
@@ -520,9 +528,13 @@ guard('the exclusions hold', () => {
     * mark only its total row. Deleting an exclusion weakens nothing only if
     * something narrower replaces it, so the pin below states exactly which
     * part moved and proves the other two answers did not. */
+   /* renderTable LEFT this list under CLCPA-248, which gave the two compare
+    * panels one shared colgroup. It is named in that ticket's own inventory
+    * and asserted there; the claim this list makes is about THIS ticket's
+    * blast radius, not about the file never changing again. */
    'applyIngestImport', 'composePayloadFromRows', 'computeHeaderCards',
-   'renderExecutiveSummary', 'renderDumbbell', 'renderStripWithGap',
-   'renderTable'].forEach(fn => {
+   'renderExecutiveSummary', 'renderDumbbell',
+   'renderStripWithGap'].forEach(fn => {
     const now = grab(fn), before = grab(fn, BASE_SRC);
     if (!ok(now !== null && before !== null,
             fn + ' exists in both sources, so comparing them means something')) return;

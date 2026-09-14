@@ -462,6 +462,13 @@ guard('three functions, all wiring', () => {
      * ownership entry. Named so the exact count below stays a guard. */
     wireIngestLabelTips: 'NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)',
     wireIngestPage: 'NOT this brief: CLCPA-245 round 2, it calls that wiring',
+    /* CLCPA-248: one anatomy across the two compare panels. The prior was
+     * never a separate render path -- both always called renderTable -- so
+     * the fix is a shared width vector emitted as a colgroup in both.
+     * Named so the exact count below stays a guard. */
+    renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text-cell wrap',
+    compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
+    renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
      * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
@@ -485,7 +492,8 @@ guard('three functions, all wiring', () => {
   /* 23 -> 22: round 4's revert restored wireSectionInteractions. */
   /* 22 -> 23: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 23 -> 25: CLCPA-245 round 2 added two more. */
-  ok(changed.length === 25, 'TWENTY-FIVE: this ticket’s six, CLCPA-240 first ' +
+  /* 25 -> 28: CLCPA-248 changed three more. */
+  ok(changed.length === 28, 'TWENTY-EIGHT: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

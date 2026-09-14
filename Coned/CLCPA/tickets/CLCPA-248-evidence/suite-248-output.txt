@@ -1,0 +1,93 @@
+======================================================================
+CLCPA-248 -- one anatomy across the two compare panels
+  BASE d0d0a45
+======================================================================
+  ok   the changed source and BASE both assemble and render
+
+=== O. both panels receive an IDENTICAL colgroup ====================
+  ok   O1 compared 12 current/prior pairs
+  ok   O2 every compare panel carries a colgroup
+  ok   O3 and the two panels of a pair are IDENTICAL
+  ok   OS0 renderSourceTables was found
+  ok   OS1 the width vector is computed EXACTLY ONCE
+  ok   OS2 and from the CURRENT panels rows, so the prior inherits them
+  ok   OS3 and the SAME cmpOpts object reaches both panels
+  ok   OS4 renderOpts itself is never given widths, so the single-panel branch cannot inherit them
+  ok   OS5 and the compare class is applied exactly when a colgroup is emitted
+  ok   O4 BASE renders the pair
+  ok   O5 neither BASE panel emitted one, so each negotiated its own widths
+  ok   O6 the computation is deterministic
+  ok   O7 and it is a function of the rows it is given: [37.14,31.43,31.43] from 2025, [25,37.5,37.5] from 2024
+  ok   O8 and the pair uses the CURRENT years vector
+
+=== W. the resolved widths, at the tested pairs ======================
+  ok   W1 every vector sums to 100 with positive columns
+  ok   W2 and no label column falls below its 25% floor
+  ok   W3 and it genuinely bites: I1 2024/2023 lands exactly on it, where proportion alone gave 12.38%
+
+=== N. a TEXT cell wraps even in a numeric column ====================
+  ok   N1 I1 has long text in numeric columns: 2 cells
+  ok   N2 and EVERY one carries the wrap modifier
+  ok   N3 while keeping the num class, so CLCPA-140s column alignment holds
+  ok   N4 and plain numeric cells still exist: 10
+  ok   N5 none of which carries the text modifier
+  ok   N6 BASE had no such modifier
+  ok   N7 and 2 prose cells sat in a nowrap numeric column
+
+=== B. global mechanism, visible on long text only ===================
+  ok   B1 exactly TEN such cells payload-wide: 10
+  ok   B2 and all of them in I1: I1
+  ok   B3 A1 compare panels are identical
+  ok   B4 A1 current: every wrap-modified cell is genuinely text, not a number
+  ok   B4 A1 prior: every wrap-modified cell is genuinely text, not a number
+  ok   B3 A3 compare panels are identical
+  ok   B4 A3 current: every wrap-modified cell is genuinely text, not a number
+  ok   B4 A3 prior: every wrap-modified cell is genuinely text, not a number
+  ok   B3 A5 compare panels are identical
+  ok   B4 A5 current: every wrap-modified cell is genuinely text, not a number
+  ok   B4 A5 prior: every wrap-modified cell is genuinely text, not a number
+
+=== S. the single-panel view is untouched ============================
+  ok   S1 rendered 149 single-panel table-years
+  ok   S2 NOT ONE carries a colgroup or the compare class
+  ok   S3 compared 149 table-years against BASE
+  ok   S4 and the ONLY difference anywhere is the num-text modifier
+
+=== C. the stylesheet, scoped to the compare path ====================
+  ok   C1 table-layout: fixed is on .data-table-cmp only
+  ok   C2 the shared .data-table keeps table-layout: auto
+  ok   C2b a COMMENTED-OUT fixed-layout rule exists in the file, which is why this suite strips CSS comments before asserting anything
+  ok   C3 the wrap is a MODIFIER on .num, not a replacement for it
+  ok   C4 and it restores wrapping
+  ok   C4b and does NOT touch alignment: my first version set text-align:left, which would have silently re-aligned 95 cells across TEN tables
+  ok   C5 neither existed at BASE
+  ok   C6 and .num still nowraps, which is what numbers need
+
+=== T. the CLCPA-245 label tooltip, in both panels ===================
+  ok   T1 the pair renders
+  ok   T2 neither compare panel contains an ingest label at all
+  ok   T3 nor the attribute the tooltip binds to
+  ok   T4 the wiring targets the EDITOR label, which is why
+  ok   T5 and this ticket did not touch it
+
+=== X. what this ticket did NOT touch ================================
+  ok   X1 rowsForDisplay is byte-identical to BASE
+  ok   X1 totalRowFlags is byte-identical to BASE
+  ok   X1 recomputeTotals is byte-identical to BASE
+  ok   X1 columnNumericMask is byte-identical to BASE
+  ok   X1 getTableSchema is byte-identical to BASE
+  ok   X1 renderIngestEditor is byte-identical to BASE
+  ok   X1 parseNumericInput is byte-identical to BASE
+  ok   X2 DERIVED_COLS is byte-identical
+       changed: compareColWidths, renderSourceTables, renderTable
+  ok   the change to compareColWidths is accounted for
+  ok   the change to renderSourceTables is accounted for
+  ok   the change to renderTable is accounted for
+  ok   renderTable changed as intended: the colgroup and the text-cell modifier
+  ok   compareColWidths changed as intended: the shared width vector (new)
+  ok   renderSourceTables changed as intended: it computes the vector once and passes it to both
+  ok   X3 exactly THREE functions changed: 3
+  ok   X4 BASE is a literal commit sha: d0d0a45
+  ok   X5 and an ancestor of HEAD
+
+  70 passed, 0 failed

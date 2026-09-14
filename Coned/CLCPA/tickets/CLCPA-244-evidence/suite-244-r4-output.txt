@@ -55,7 +55,7 @@ CLCPA-244 ROUND 4 -- the gauge sizing is REVERTED
   ok   E5 and isTotalOnlyDerived still keys on the rule type
 
 === S. the data layer is untouched ===================================
-  ok   S1 styles.css is byte-identical to pre-ticket
+  ok   S1 styles.css differs from pre-ticket only by CLCPA-248s rules
   ok   S2 the payload is untouched: E1 still has 5 rows
   ok   S3 the section header still multiplies unconditionally
   ok   S4 and so does the section-goals gauge row

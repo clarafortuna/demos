@@ -670,6 +670,11 @@ guard('the four exclusions', () => {
      * ownership entry. Named so the exact count below stays a guard. */
     wireIngestLabelTips: 'NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)',
     wireIngestPage: 'NOT this brief: CLCPA-245 round 2, it calls that wiring',
+    /* CLCPA-248: one anatomy across the two compare panels. The prior was
+     * never a separate render path -- both always called renderTable -- so
+     * the fix is a shared width vector emitted as a colgroup in both.
+     * Named so the exact count below stays a guard. */
+    compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -697,9 +702,11 @@ guard('the four exclusions', () => {
   /* 29 -> 28: round 4's revert restored wireSectionInteractions. */
   /* 28 -> 29: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 29 -> 31: CLCPA-245 round 2 added two more. */
-  ok(changed.length === 31, 'exactly THIRTY-ONE functions changed: ' + changed.length);
+  /* 31 -> 32: CLCPA-248 changed three functions but this suite's name scan
+   * is IIFE-scoped and sees only some of them -- measured, not assumed. */
+  ok(changed.length === 32, 'exactly THIRTY-TWO functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those thirty-one moved at all');
+     'and no function outside those thirty-two moved at all');
 });
 
 say('');

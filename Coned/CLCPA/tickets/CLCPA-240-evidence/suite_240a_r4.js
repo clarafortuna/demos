@@ -531,7 +531,18 @@ guard('S: the veto is scoped and singular', () => {
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-  ok(css === baseCss, 'S5 styles.css is byte-identical to BASE');
+  /* CLCPA-248 CHANGED THE STYLESHEET, the first ticket to do so in several.
+   * This pin stays EXACT rather than being dropped: the file may differ only
+   * by the two rules that ticket adds, stripped by name below, and any other
+   * change still turns it red. */
+  const strip248 = (c) => String(c)
+    .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
+    .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
+    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
+    .replace(/\s+/g, ' ').trim();
+  ok(strip248(css) === strip248(baseCss),
+     'S5 styles.css differs only by CLCPA-248s two named rules');
   /* S6 USED TO BE whole-function equality against BASE, which was stronger
    * than the claim it made. CLCPA-244 later changed one line of this function
    * for an unrelated reason -- a total-row-only derived rule falls through to

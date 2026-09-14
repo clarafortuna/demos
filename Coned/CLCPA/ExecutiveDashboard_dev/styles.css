@@ -582,6 +582,33 @@ body {
 .year-col.current .year-col-header { background: var(--white-smoke); color: var(--text-3); }
 .year-col .data-table { font-size: 11px; }
 .year-col .data-table th, .year-col .data-table td { padding: 5px 8px; }
+
+/* CLCPA-248: ONE ANATOMY IN COMPARE MODE.
+   The two panels always shared a renderer; what differed was the layout each
+   table negotiated for itself. table-layout: fixed makes the colgroup the
+   authority, so the widths computed once from the current panel govern both.
+   Scoped to .data-table-cmp, which is emitted ONLY when compare mode supplies
+   those widths -- the single-panel view keeps table-layout: auto. */
+.data-table-cmp { table-layout: fixed; }
+
+/* CLCPA-248: a TEXT cell wraps even in a numeric column.
+   CLCPA-140 made ALIGNMENT a column property so blanks and dashes align with
+   their neighbours; it never made WRAPPING one. columnNumericMask needs a
+   single numeric cell to mark a column, so I1s 96-character prose inherited
+   nowrap from .num, could not break, and demanded ~96 characters of width --
+   which is what crushed the label column. The num class stays, so the
+   right-alignment CLCPA-140 ruled on is untouched; only the wrap is returned
+   to the cell. Measured: 10 cells payload-wide, all in I1. */
+/* ALIGNMENT IS NOT TOUCHED. My first version of this rule also set
+   text-align: left, and the suite caught what that meant: 95 cells across TEN
+   tables carry this modifier (any text in a numeric column, not just long
+   text), so it would have re-aligned all of them. CLCPA-140 ruled alignment
+   is a COLUMN property, and CLCPA-249 says text cells follow their column.
+   Only the wrap comes back to the cell. */
+.data-table td.num.num-text {
+  white-space: normal;
+  word-break: break-word;
+}
 .empty-pane { color: var(--text-3); font-style: italic; padding: 18px; text-align: center; background: var(--white-smoke); border-radius: 4px; font-size: 11.5px; }
 
 .empty-year-pane {

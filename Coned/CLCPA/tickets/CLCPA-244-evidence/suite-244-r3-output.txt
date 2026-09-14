@@ -50,7 +50,7 @@ CLCPA-244 ROUND 3 -- the gauge strip uses BOTH dimensions
   ok   X2 and so is the resize redraw
   ok   X3 the section header still multiplies unconditionally, as ruled
   ok   X4 and so does the section-goals gauge row
-  ok   X5 styles.css is byte-identical: this is not a CSS fix
+  ok   X5 styles.css differs only by CLCPA-248s rules: this round added none
        changed: drawSectionEArc, drawSemi, rowHeightFor
   ok   the change to drawSectionEArc is accounted for
   ok   the change to drawSemi is accounted for

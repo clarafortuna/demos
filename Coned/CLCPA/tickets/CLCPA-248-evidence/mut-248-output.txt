@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-248 -- mutation controls
+======================================================================
+  red  THE DEFECT: no colgroup is emitted at all
+       1 red, incl: O2 every compare panel carries a colgroup: I1:2099, I1:2025, I1:2024, A1:2025, A3:2025, A5:2025, D2
+  red  the prior panel gets its OWN widths again
+       2 red, incl: OS3 and the SAME cmpOpts object reaches both panels
+  red  the width vector is computed from the PRIOR panel
+       1 red, incl: OS2 and from the CURRENT panels rows, so the prior inherits them
+  red  THE ADVISORY COLGROUP: the compare table stays auto
+       1 red, incl: C1 table-layout: fixed is on .data-table-cmp only
+  red  the compare class is never applied, so the CSS cannot bind
+       1 red, incl: OS5 and the compare class is applied exactly when a colgroup is emitted
+  red  THE LEAK: every table gets a colgroup, compare or not
+       1 red, incl: OS4 renderOpts itself is never given widths, so the single-panel branch cannot inherit them
+  red  ALIGNMENT MOVES: the wrap modifier re-aligns the cell
+       1 red, incl: C4b and does NOT touch alignment: my first version set text-align:left, which would have silently r
+  red  THE CRUSH RETURNS: the wrap modifier does nothing
+       1 red, incl: C4 and it restores wrapping
+  red  the modifier is never applied to any cell
+       1 red, incl: N2 and EVERY one carries the wrap modifier
+  red  OVER-APPLIED: a real number gets the wrap modifier too
+       7 red, incl: N4 and plain numeric cells still exist: 0
+  red  the num class is dropped instead of modified
+       2 red, incl: N2 and EVERY one carries the wrap modifier
+  red  the label floor is removed, so the label column collapses
+       2 red, incl: W2 and no label column falls below its 25% floor: I1:2024 label 12.38%, A1:2025 label 17.14%, A3:20
+  red  the vector stops summing to 100
+       1 red, incl: W1 every vector sums to 100 with positive columns: I1:2024 sums 112.62, A1:2025 sums 107.86, A3:202
+  red  a column can come out at zero width
+       1 red, incl: W1 every vector sums to 100 with positive columns: C3:2025 has a non-positive column
+  red  HARNESS: the CSS assertions read the RAW file again
+       1 red, incl: C2 the shared .data-table keeps table-layout: auto
+  red  HARNESS: the single-panel sweep stops rendering anything
+       1 red, incl: S1 rendered 0 single-panel table-years
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X4 BASE is a literal commit sha: HEAD
+
+  17 caught, 0 not caught, of 17 guards
+  clean re-run against byte-restored source: PASSES -- 70 passed, 0 failed

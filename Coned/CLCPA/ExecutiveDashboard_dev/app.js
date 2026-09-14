@@ -3604,7 +3604,27 @@ function utf8ByteLength(str) {
         // Unwrapped BEFORE formatCell, so formatting behaves exactly as it did when
         // the cell was that string.
         const cv = cellText(c);
-        const numCls = numericCol[i] ? ' class="num"' : (cv === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
+        /* CLCPA-248: ALIGNMENT follows the column; WRAPPING follows the cell.
+         *
+         * CLCPA-140 ruled that alignment is a column property so blanks and
+         * dashes align right with their neighbours. It said nothing about
+         * wrapping, and `.num` carries white-space: nowrap as well. I1's value
+         * columns hold numbers in five rows and 96-character prose in the
+         * other four, so columnNumericMask marks them numeric -- it needs only
+         * ONE numeric cell -- and the prose then inherits nowrap, cannot break,
+         * and demands ~96 characters of width. That is what crushes the label
+         * column into wrapping.
+         *
+         * Measured across all 52 tables and every year: 10 such cells, ALL in
+         * I1, longest 96 characters. So this modifier changes I1 and nothing
+         * else today, and it is a rule rather than a carve-out: a cell holding
+         * text is allowed to wrap wherever it lives.
+         *
+         * Alignment is untouched -- the num class stays, so CLCPA-140 holds. */
+        const isTextCell = typeof cv === 'string' && !isNumeric(cv);
+        const numCls = numericCol[i]
+          ? (isTextCell ? ' class="num num-text"' : ' class="num"')
+          : (cv === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
         if (cv == null || cv === '') return `<td${numCls}></td>`;
         return `<td${numCls}>${formatCell(cv, i, row[0])}</td>`;
       }).join('');
@@ -3614,7 +3634,79 @@ function utf8ByteLength(str) {
     /* the two-level marker, so the stylesheet can centre a group header over
      * the columns it spans without touching every single-level table */
     const tblCls = headerLevels === 2 ? 'data-table data-table-2level' : 'data-table';
-    return `<table class="${tblCls}"${opts.tableId ? ` data-table-id="${opts.tableId}"` : ''}>${headerHtml}<tbody>${bodyRows}</tbody></table>`;
+    /* CLCPA-248: ONE ANATOMY ACROSS THE TWO COMPARE PANELS.
+     *
+     * Both panels already call THIS renderer with the SAME opts -- there is no
+     * second render path and never was. What differed was the LAYOUT each
+     * table asked for: under table-layout:auto inside `1fr 1fr`, a track whose
+     * min-content is larger takes more than its half, so two datasets produced
+     * two anatomies. Measured on I1 2099-vs-2025: 29 characters of min-content
+     * against 205, a ratio of 7.07.
+     *
+     * The widths are computed ONCE from the current panel and handed to both,
+     * so the prior inherits them rather than negotiating its own. Emitted only
+     * when the caller passes them, so the single-panel view is untouched. */
+    const colGroup = Array.isArray(opts.colWidths) && opts.colWidths.length
+      ? '<colgroup>' + opts.colWidths.map(w =>
+          `<col style="width:${w}%" />`).join('') + '</colgroup>'
+      : '';
+    const cmpCls = colGroup ? tblCls + ' data-table-cmp' : tblCls;
+    return `<table class="${cmpCls}"${opts.tableId ? ` data-table-id="${opts.tableId}"` : ''}>${colGroup}${headerHtml}<tbody>${bodyRows}</tbody></table>`;
+  }
+
+  /**
+   * CLCPA-248: the column widths both compare panels share.
+   *
+   * Computed from the CURRENT panel's rows, so the prior inherits the current's
+   * anatomy rather than negotiating its own -- which is the whole requirement:
+   * one structure regardless of which years are compared.
+   *
+   * The measure is MIN-CONTENT in characters, the same quantity the browser's
+   * auto layout uses: a cell that cannot wrap counts whole, a cell that can
+   * counts its longest word. Normalised to percentages, with a floor so a
+   * column of blanks never collapses and the label column keeps a readable
+   * share on a table whose values are wide.
+   */
+  function compareColWidths(rows, opts) {
+    if (!Array.isArray(rows) || rows.length < 2) return null;
+    const headerLevels = (opts && opts.headerLevels) || 1;
+    const header = rows[headerLevels - 1] || rows[0];
+    const body = rows.slice(headerLevels);
+    const mask = columnNumericMask(header, body, opts && opts.tableId);
+    const n = Math.max(header.length, ...body.map(r => (r || []).length));
+    if (!n) return null;
+    const widest = (s) => String(s == null ? '' : s).split(/\s+/)
+      .reduce((m, w) => Math.max(m, w.length), 0);
+    const mins = [];
+    for (let c = 0; c < n; c++) {
+      /* the header is nowrap in the stylesheet, so it counts whole */
+      let m = String(header[c] == null ? '' : header[c]).length;
+      body.forEach(r => {
+        const v = cellText((r || [])[c]);
+        const s = String(v == null ? '' : v);
+        /* a numeric cell cannot wrap; a text cell can, wherever it lives */
+        m = Math.max(m, (mask[c] && isNumeric(v)) ? s.length : widest(s));
+      });
+      mins.push(Math.max(m, 4));
+    }
+    const total = mins.reduce((a, b) => a + b, 0);
+    if (!total) return null;
+    let pct = mins.map(m => m / total * 100);
+    /* THE LABEL COLUMN KEEPS A READABLE SHARE.
+     *
+     * Proportional-only gave I1 2024-vs-2023 a 12.4% label column, because
+     * both value columns hold prose whose longest word is 46 characters
+     * against the label's 13. One anatomy, but a cramped one -- and a cramped
+     * label column is the thing Emely photographed. The floor is applied to
+     * column 0 only, and only when the proportion falls below it; the
+     * remainder is rescaled so the row still sums to 100. */
+    const LABEL_FLOOR = 25;
+    if (pct.length > 1 && pct[0] < LABEL_FLOOR) {
+      const rest = 100 - LABEL_FLOOR;
+      const restNow = pct.slice(1).reduce((a, b) => a + b, 0) || 1;
+      pct = [LABEL_FLOOR].concat(pct.slice(1).map(p => p / restNow * rest));
+    }
+    return pct.map(p => +p.toFixed(2));
   }
 
   // ============================================================
@@ -3727,12 +3819,17 @@ function utf8ByteLength(str) {
     // -- Body: either current-only or side-by-side
     let bodyHtml = '';
     if (yearView === 'both') {
+      /* CLCPA-248: ONE width vector, computed from the CURRENT panel and given
+       * to BOTH, so the prior inherits the current's anatomy instead of
+       * negotiating its own from its own content. */
+      const cmpOpts = Object.assign({}, renderOpts,
+        { colWidths: compareColWidths(dataCurrent, renderOpts) });
       const priorContent = hasPrevData
-        ? renderTable(dataPrev, renderOpts)
+        ? renderTable(dataPrev, cmpOpts)
         : `<div class="empty-pane">No data available for this view.</div>`;
       const priorLabel = prevYear ? `${prevYear} (prior)` : '(no prior year)';
       bodyHtml = `<div class="year-cols">
-          <div class="year-col current"><div class="year-col-header">${year} (current)</div>${renderTable(dataCurrent, renderOpts)}</div>
+          <div class="year-col current"><div class="year-col-header">${year} (current)</div>${renderTable(dataCurrent, cmpOpts)}</div>
           <div class="year-col"><div class="year-col-header">${priorLabel}</div>${priorContent}</div>
         </div>`;
     } else {

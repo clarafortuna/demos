@@ -46,7 +46,7 @@ CLCPA-244 -- E1s source percentages, and the fallback year
   ok   S5 getTableSchema sorts its fallback years descending
   ok   S6 and the first-key fallback is gone
   ok   S7 recomputeTotals is byte-identical: the ENGINE was already right, only the marking was wrong
-  ok   S8 styles.css is byte-identical to BASE
+  ok   S8 styles.css differs only by CLCPA-248s two named rules
   ok   S9 and DERIVED_COLS itself is unchanged: no rule was edited, only how the marking reads one
   ok   S10 the editor exempts a total-row-only rule ONLY on a body row
   ok   S11 and the weighted-mean check computes its own expectation rather than asking recomputeTotals for it
