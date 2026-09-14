@@ -292,7 +292,10 @@ guard('A: a populated baseline behaves exactly as BASE did', () => {
    * now differs by that attribute on every row. Stripped from both sides;
    * everything else is still compared byte for byte, which is what this
    * assertion was ever about. */
-  const stripTitle = (h) => String(h).replace(/ title="[^"]*"/g, '');
+  /* both attribute names, for the same reason as the sweep above */
+  const stripTitle = (h) => String(h)
+    .replace(/ title="[^"]*"/g, '')
+    .replace(/ data-label-tip="[^"]*"/g, '');
   ok(stripTitle(a.html) === stripTitle(b.html),
      'A2 and the whole grid is byte-identical to BASE in this state, so ' +
      'round 3 changed nothing an operator had already accepted');
@@ -555,7 +558,13 @@ guard('F: flat tables render byte-identically to BASE', () => {
      * sides and the rest is still compared BYTE FOR BYTE, so anything else
      * CLCPA-245 touched would still show. The attribute itself is asserted
      * separately, below and in suite_245. */
-    const noTitle = (h) => String(h).replace(/ title="[^"]*"/g, '');
+    /* ROUND 2 of CLCPA-245 renamed the attribute: the native title became
+     * data-label-tip, feeding the dashboard's own tooltip. Both are
+     * stripped, so this normaliser keeps working whichever build it meets
+     * and still compares everything else byte for byte. */
+    const noTitle = (h) => String(h)
+      .replace(/ title="[^"]*"/g, '')
+      .replace(/ data-label-tip="[^"]*"/g, '');
     if (noTitle(a) !== noTitle(b)) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
     /* and with an EMPTY baseline too, since that is what round 3 changed */

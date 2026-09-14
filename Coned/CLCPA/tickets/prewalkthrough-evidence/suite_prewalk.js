@@ -665,6 +665,11 @@ guard('the four exclusions', () => {
      * ANCHORED label rather than by arithmetic coincidence, plus the editor
      * label tooltip. Named so the exact count below stays a guard. */
     isAnchoredTotalRowLabel: 'NOT this brief: CLCPA-245, the anchored-suffix predicate (new)',
+    /* CLCPA-245 ROUND 2, by ruling: the native title became the dashboard's
+     * own tooltip, which needs a wiring, a call site and the CLCPA-242
+     * ownership entry. Named so the exact count below stays a guard. */
+    wireIngestLabelTips: 'NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)',
+    wireIngestPage: 'NOT this brief: CLCPA-245 round 2, it calls that wiring',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -691,9 +696,10 @@ guard('the four exclusions', () => {
   /* 27 -> 29: CLCPA-244 round 2 changed two functions THIS suite can see. */
   /* 29 -> 28: round 4's revert restored wireSectionInteractions. */
   /* 28 -> 29: CLCPA-245 added isAnchoredTotalRowLabel. */
-  ok(changed.length === 29, 'exactly TWENTY-NINE functions changed: ' + changed.length);
+  /* 29 -> 31: CLCPA-245 round 2 added two more. */
+  ok(changed.length === 31, 'exactly THIRTY-ONE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those twenty-nine moved at all');
+     'and no function outside those thirty-one moved at all');
 });
 
 say('');

@@ -19,12 +19,24 @@ CLCPA-245 -- mutation controls
        1 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
   red  the family branch is bypassed, so the family gets the general rule
        1 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
-  red  THE TOOLTIP GOES UNESCAPED
-       1 red, incl: T2 and it is ESCAPED, like every other attribute here
-  red  the tooltip is emitted even for a blank label
-       2 red, incl: T7 and the blank label gets NO title rather than an empty one
-  red  the tooltip is never emitted at all
-       3 red, incl: T6 the long label carries its full text as a title
+  red  THE NATIVE TITLE COMES BACK
+       5 red, incl: T1 the label cell emits NO native title any more
+  red  the tooltip text goes UNESCAPED onto the attribute
+       1 red, incl: T2 the full text rides on data-label-tip, ESCAPED
+  red  the attribute is emitted even for a blank label
+       1 red, incl: T3 and it is absent for a blank label
+  red  A FIFTH POSITIONER: it places the box itself
+       1 red, incl: T8 it does NOT position the box itself: one clamp, not a fifth
+  red  innerHTML instead of textContent, on operator text
+       1 red, incl: T9 textContent, never innerHTML: a label is operator-supplied text
+  red  THE OWNERSHIP LESSON IS LOST: the label leaves OWNS_TIP
+       1 red, incl: T13 and the ingest label is IN it, so the control-tip handler does not
+  red  THE LABEL BLANKET-HIDES: it calls the global hide
+       2 red, incl: T15 and the label hides the tip ONLY when the pointer leaves a label
+  red  the wiring stops being idempotent, so handlers stack
+       1 red, incl: T17 it is idempotent, like wireControlTips
+  red  the wiring is never called
+       1 red, incl: T19 and the page wiring calls it
   red  HARNESS: the gate stops comparing table-years
        1 red, incl: G1 compared 0 stored table-years (expected 149)
   red  HARNESS: the oracle borrows the shipped predicate
@@ -32,7 +44,7 @@ CLCPA-245 -- mutation controls
   red  HARNESS: the 21-row check stops finding any rows
        1 red, incl: G4 found all 21 County/Systemwide Total rows: 0
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X9 BASE is a literal commit sha: HEAD
+       6 red, incl: X9 BASE is a literal commit sha: HEAD
 
-  16 caught, 0 not caught, of 16 guards
-  clean re-run against byte-restored source: PASSES -- 65 passed, 0 failed
+  22 caught, 0 not caught, of 22 guards
+  clean re-run against byte-restored source: PASSES -- 87 passed, 0 failed

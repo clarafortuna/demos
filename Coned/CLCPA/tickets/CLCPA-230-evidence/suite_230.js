@@ -547,6 +547,12 @@ function sitesDriver(over) {
     recomputeTotals: () => calls.push('recomputeTotals'),
     clone2D: (m) => m.map(r => r.slice()),
     refreshIngestStatus: () => {}, parseNumericInput: (s) => s,
+    /* CLCPA-245 round 2: wireIngestPage now calls the ingest label tooltip
+     * wiring. It is delegated and idempotent, and this suite is about the
+     * six confirm/revert SITES rather than tooltips, so a no-op stub is the
+     * honest double: it keeps the function reachable without pretending this
+     * suite tests it. suite_245 owns that behaviour. */
+    wireIngestLabelTips: () => {},
     escapeHtml: (s) => String(s == null ? '' : s),
   };
   const keys = Object.keys(deps);

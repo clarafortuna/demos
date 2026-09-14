@@ -54,15 +54,31 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   O5 the oracle says I1 has NO total row, independently
   ok   O6 and that it DOES find one in G2, so it is not simply always false
 
-=== T. the label tooltip =============================================
+=== T. the label tooltip, in the DASHBOARDS OWN style =============
   ok   T0 renderIngestEditor was found
-  ok   T1 a title is computed from the label text
-  ok   T2 and it is ESCAPED, like every other attribute here
-  ok   T3 and interpolated into the input
-  ok   T4 BASE had none, which is the rider
-  ok   T5 the editor rendered
-  ok   T6 the long label carries its full text as a title
-  ok   T7 and the blank label gets NO title rather than an empty one
+  ok   T1 the label cell emits NO native title any more
+  ok   T2 the full text rides on data-label-tip, ESCAPED
+  ok   T3 and it is absent for a blank label
+  ok   T4 exactly one place emits it: 1
+  ok   T5 wireIngestLabelTips exists
+  ok   T6 it opens the SHARED .exec-tooltip via ensureTooltip
+  ok   T7 and positions it with the shared CLCPA-242 clamp
+  ok   T8 it does NOT position the box itself: one clamp, not a fifth
+  ok   T9 textContent, never innerHTML: a label is operator-supplied text
+  ok   T10 and the hug modifier, because this is one short string
+  ok   T11 wireControlTips was found
+  ok   T12 the tip-owning list is still there
+  ok   T13 and the ingest label is IN it, so the control-tip handler does not
+  ok   T14 hide the box the label just opened
+  ok   T15 and the label hides the tip ONLY when the pointer leaves a label
+  ok   T16 it never calls the global hide, which would close another surfaces tip
+  ok   T17 it is idempotent, like wireControlTips
+  ok   T18 and DELEGATED rather than bound per row, since the grid is rebuilt
+  ok   T19 and the page wiring calls it
+  ok   T20 the editor rendered
+  ok   T21 the long label carries its full text on the attribute
+  ok   T22 and NO native title anywhere in the grid
+  ok   T23 and the blank label gets no attribute at all
 
 === X. what this ticket did NOT touch ================================
   ok   X1 CLCPA-240 round 4s family predicate is byte-identical
@@ -72,15 +88,21 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css is byte-identical: the tooltip is native
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: isAnchoredTotalRowLabel, renderIngestEditor, totalRowFlags
+       changed: isAnchoredTotalRowLabel, renderIngestEditor, totalRowFlags, wireControlTips, wireIngestLabelTips, wireIngestPage
   ok   the change to isAnchoredTotalRowLabel is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to totalRowFlags is accounted for
+  ok   the change to wireControlTips is accounted for
+  ok   the change to wireIngestLabelTips is accounted for
+  ok   the change to wireIngestPage is accounted for
   ok   totalRowFlags changed as intended: the general label veto
   ok   isAnchoredTotalRowLabel changed as intended: the anchored-suffix predicate (new)
-  ok   renderIngestEditor changed as intended: the label tooltip
-  ok   X8 exactly THREE functions changed: 3
+  ok   renderIngestEditor changed as intended: the label tooltip: data-label-tip, no native title
+  ok   wireIngestLabelTips changed as intended: round 2, the shared-tooltip wiring (new)
+  ok   wireIngestPage changed as intended: round 2, it calls that wiring
+  ok   wireControlTips changed as intended: round 2, the ingest label joins OWNS_TIP
+  ok   X8 exactly SIX functions changed: 6
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  65 passed, 0 failed
+  87 passed, 0 failed
