@@ -675,6 +675,7 @@ guard('the four exclusions', () => {
      * the fix is a shared width vector emitted as a colgroup in both.
      * Named so the exact count below stays a guard. */
     compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
+    isWhollyNumeric: 'NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -704,7 +705,8 @@ guard('the four exclusions', () => {
   /* 29 -> 31: CLCPA-245 round 2 added two more. */
   /* 31 -> 32: CLCPA-248 changed three functions but this suite's name scan
    * is IIFE-scoped and sees only some of them -- measured, not assumed. */
-  ok(changed.length === 32, 'exactly THIRTY-TWO functions changed: ' + changed.length);
+  /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
+  ok(changed.length === 33, 'exactly THIRTY-THREE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those thirty-two moved at all');
 });

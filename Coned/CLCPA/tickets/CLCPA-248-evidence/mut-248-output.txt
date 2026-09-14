@@ -8,7 +8,11 @@ CLCPA-248 -- mutation controls
   red  THE ROUND-1 DEFECT: the skeleton is measured per YEAR again
        1 red, incl: OS2 and from the TABLE, not from either years rows, so the skeleton cannot move with the pair
   red  THE ADVISORY COLGROUP: the compare table stays auto
-       1 red, incl: C1 table-layout: fixed is on .data-table-cmp only
+       1 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table.data-table-cmp" line 606
+  red  ROUND 3 UNDONE: the selector drops back to ONE class
+       3 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table" line 1516
+  red  the shared rule takes !important, outranking specificity
+       3 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table" line 1516
   red  the compare class is never applied, so the CSS cannot bind
        1 red, incl: OS5 and the compare class is applied exactly when a colgroup is emitted
   red  THE LEAK: every table gets a colgroup, compare or not
@@ -16,17 +20,17 @@ CLCPA-248 -- mutation controls
   red  ALIGNMENT MOVES: the wrap modifier re-aligns the cell
        1 red, incl: C4b and does NOT touch alignment: my first version set text-align:left, which would have silently r
   red  THE CRUSH RETURNS: the wrap modifier does nothing
-       1 red, incl: C4 and it restores wrapping
+       1 red, incl: C4 a text cell in a numeric column RESOLVES to white-space: normal, from ".data-table td.num"
   red  the modifier is never applied to any cell
-       1 red, incl: N2 and EVERY one carries the wrap modifier
+       6 red, incl: N2 and EVERY one carries the wrap modifier
   red  OVER-APPLIED: a real number gets the wrap modifier too
-       7 red, incl: N4 and plain numeric cells still exist: 0
+       12 red, incl: N4 and plain numeric cells still exist: 0
   red  the num class is dropped instead of modified
-       2 red, incl: N2 and EVERY one carries the wrap modifier
+       6 red, incl: N2 and EVERY one carries the wrap modifier
   red  the label floor is removed, so the label column collapses
        2 red, incl: W2 label in its 25-45 band, no value column under 4%: A3:2025 label 9.64%, C3:2025 label 11.65%
   red  the vector stops summing to 100
-       1 red, incl: W1 every vector sums to 100 with positive columns: A1:2025 sums 89.44, A3:2025 sums 115.35, A5:2025
+       3 red, incl: W1 every vector sums to 100 with positive columns: A1:2025 sums 89.44, A3:2025 sums 115.35, A5:2025
   red  the label CEILING is removed, so text starves the numbers
        2 red, incl: W2 label in its 25-45 band, no value column under 4%: A1:2025 label 55.56%, A5:2025 label 61.21%, D
   red  the per-column minimum goes, so C1 gets its sliver back
@@ -35,12 +39,38 @@ CLCPA-248 -- mutation controls
        1 red, incl: O9 and the resolved I1 vector is the accepted one: [37.14,31.43,31.43]
   red  ONLY ONE YEAR IS MEASURED, so the pair can move the skeleton
        2 red, incl: O8 and adding or removing a year does not move it
-  red  HARNESS: the CSS assertions read the RAW file again
-       1 red, incl: C2 the shared .data-table keeps table-layout: auto
+  red  THE PREDICATE REVERTS: the wrap asks isNumeric again
+       3 red, incl: P6 exactly NINETEEN cells change class: 0
+  red  the predicate accepts a leading number and trailing words
+       6 red, incl: P2 while isWhollyNumeric says it is not, which is what earns the wrap
+  red  the predicate calls everything text, so numbers wrap
+       12 red, incl: P3 isWhollyNumeric("32,919") is true
+  red  isNumeric is "fixed" instead, which moves the masks too
+       4 red, incl: X3b and isNumeric itself is byte-identical to BASE
+  red  the two-column cell-width rule is deleted
+       2 red, incl: Q3 the cell-width rule is present and unchanged in shape
+  red  KIT: source order is REVERSED, so the defect reads as fixed
+       3 red, incl: R1 at EQUAL specificity the later rule wins, which is the whole defect
+  red  KIT: every rule reports the line of the one before it
+       1 red, incl: R11b and rules report the line they actually start on: [1,1]
+  red  KIT: specificity is ignored, so the FIX cannot be told apart
+       4 red, incl: R3 specificity beats order, which is why the fix names two classes
+  red  KIT: !important stops winning
+       1 red, incl: R4 and !important beats specificity
+  red  KIT: comments are code again, the eight-time trap
+       7 red, incl: R5 a commented rule is not a rule
+  red  KIT: undecidable rules are counted as if they applied
+       2 red, incl: R9 nor is an at-rule body judged as if it always applied
+  red  KIT: an ancestor selector matches anything, chain or not
+       1 red, incl: R8 a rule needing an ancestor is CONDITIONAL when no chain is supplied
+  red  HARNESS: the round-1 pin is repointed off the broken build
+       1 red, incl: R13 while the rule it was supposed to obey was present and correct, which is precisely what a prese
+  red  HARNESS: the round-3 delta is measured against BASE again
+       3 red, incl: P6 exactly NINETEEN cells change class: 261
   red  HARNESS: the single-panel sweep stops rendering anything
        1 red, incl: S1 rendered 0 single-panel table-years
   red  HARNESS: the baseline is repointed at a symbolic ref
-       7 red, incl: X4 BASE is a literal commit sha: HEAD
+       9 red, incl: X4 BASE is a literal commit sha: HEAD
 
-  20 caught, 0 not caught, of 20 guards
-  clean re-run against byte-restored source: PASSES -- 73 passed, 0 failed
+  35 caught, 0 not caught, of 35 guards
+  clean re-run against byte-restored source: PASSES -- 133 passed, 0 failed

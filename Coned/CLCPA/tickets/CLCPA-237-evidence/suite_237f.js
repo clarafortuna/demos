@@ -530,6 +530,7 @@ guard('the blast radius is accounted for, function by function', () => {
      * Named so the exact count below stays a guard. */
     renderTable: 'CLCPA-248, the colgroup and the text-cell wrap',
     compareColWidths: 'CLCPA-248, the shared width vector (new)',
+    isWhollyNumeric: 'CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
     renderSourceTables: 'CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
@@ -561,7 +562,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 26 -> 27: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 27 -> 29: CLCPA-245 round 2 added two more. */
   /* 29 -> 32: CLCPA-248 changed three more. */
-  ok(changed.length === 32, 'thirty-two in total, all named: ' + changed.length);
+  /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
+  ok(changed.length === 33, 'thirty-three in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

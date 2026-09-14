@@ -29,11 +29,47 @@
  * that both panels receive an IDENTICAL colgroup and that the single-panel
  * view receives none. Emely's eye is the acceptance.
  *
- * BASE is d0d0a45.
+ * ---------------------------------------------------------------------------
+ * ROUND 3, AND THE CORRECTION OF RECORD THAT COMES WITH IT.
+ *
+ * The colgroup was never authoritative on screen. `.data-table-cmp` and
+ * `.data-table` declare table-layout at the SAME specificity, and the shared
+ * rule sits 900 lines later, so auto won for two shipped rounds. Under auto a
+ * colgroup is advisory: the browser distributes by min-content, a nowrap cell
+ * demands its whole string, and each panel renegotiated from the year it
+ * happened to hold. Measured from the real emitted HTML, I1's label column:
+ * 37.14% where the year's values are short, 12.38% where they are prose --
+ * which is precisely "current wide, prior narrow", then "both narrow".
+ *
+ * Round 1's measure was min-content, the same quantity the browser was
+ * already using, so its vector agreed with what the screen was doing anyway
+ * and the change looked plausible. It never governed anything. The wrap it
+ * shipped was real and did work.
+ *
+ * WHY THIS SUITE DID NOT SEE IT. C1 asserted the rule existed. C2 asserted
+ * the overriding rule existed and called that correct. Neither asked which
+ * one WINS. That is the second sighting of the CSS-assertion-mistaken-for-a-
+ * layout-one class, after 237-D. Section R now resolves the cascade, and
+ * R12 pins the round-1 stylesheet resolving to AUTO: the assertion that fails
+ * rounds 1 and 2 and passes this one.
+ *
+ * Round 3 ships three things: the selector wins by SPECIFICITY (0,2,0) so no
+ * later edit can undo it by being later; isTextCell asks isWhollyNumeric
+ * rather than the deliberately lenient isNumeric, which is left untouched;
+ * and the resolver itself, shared kit, self-tested in R before it is trusted
+ * in C.
+ *
+ * BASE is d0d0a45. The round-1 stylesheet is pinned at d43fd32 and the
+ * round-2 app.js at d2bb9c2; both literal, both predating what they measure.
  */
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* ROUND 3: the cascade resolver, shared kit. A rule's PRESENCE is not its
+ * effect, and presence is all C1/C2 ever checked. Self-tested in section R
+ * before it is trusted in section C, because a shared helper that drifts
+ * silently rewrites every suite that leans on it. */
+const cascade = require('../_kit/css_cascade.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -41,6 +77,17 @@ const CSS = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-248-evidence/suite-248-output.txt');
 
 const BASE = process.env.DAC_BASE_COMMIT || 'd0d0a45';
+/* The ROUND-1 stylesheet, the one that shipped the inert rule. Section R
+ * resolves it and requires the answer `auto`: that is the assertion which
+ * fails rounds 1 and 2 and passes round 3. Pinned to a literal sha, both
+ * sides, so it cannot quietly become a check on whatever is current. */
+const R1_COMMIT = process.env.CLCPA248_R1 || 'd43fd32';
+/* The ROUND-2 app.js, the build that is live while this ships. BASE answers
+ * "what did the whole ticket do"; this answers "what did ROUND 3 do", which
+ * is the only side on which the 19-cell figure means anything. Measuring the
+ * predicate against BASE instead reports 267, because it counts round 1's
+ * wrap modifier all over again. */
+const R2_COMMIT = process.env.CLCPA248_R2 || 'd2bb9c2';
 const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
 
 const SRC = fs.readFileSync(APP, 'utf8');
@@ -48,6 +95,10 @@ const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const CSS_SRC = fs.readFileSync(path.join(REPO, CSS), 'utf8');
 const CSS_BASE = execSync('git show ' + BASE + ':"' + CSS + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+const CSS_R1 = execSync('git show ' + R1_COMMIT + ':"' + CSS + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+const R2_SRC = execSync('git show ' + R2_COMMIT + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(
   path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/payload.json'), 'utf8'));
@@ -455,23 +506,265 @@ guard('S: and the single-panel HTML is otherwise byte-identical to BASE', () => 
      (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
 });
 
+/* =================== P: the wrap predicate =========================== */
+say('');
+say('=== P. isWhollyNumeric, and what it moves ============================');
+guard('P: the predicate discriminates where isNumeric could not', () => {
+  ok(typeof NEW.isWhollyNumeric === 'function',
+     'P0 isWhollyNumeric is reachable from the real assembled source');
+  if (typeof NEW.isWhollyNumeric !== 'function') return;
+  const PROSE = '1; Senior Specialist Customer Energy Solutions';
+  /* THE discriminating pair, driven through both REAL functions. */
+  ok(NEW.isNumeric(PROSE) === true,
+     'P1 isNumeric still says the I1 prose is numeric, because parseFloat is');
+  ok(NEW.isWhollyNumeric(PROSE) === false,
+     'P2 while isWhollyNumeric says it is not, which is what earns the wrap');
+  /* real numbers must stay numbers, or the wrap leaks onto figures */
+  [['32,919', true], ['$1,234.56', true], ['12.5%', true], ['-3', true],
+   ['.5', true], ['1e3', true], ['0', true], ['  7  ', true],
+   ['3 of 4', false], ['Yes', false], ['No: 0', false], ['2024 total', false],
+   ['', false], ['1;', false]].forEach(([s, want]) => {
+    ok(NEW.isWhollyNumeric(s) === want,
+       'P3 isWhollyNumeric(' + JSON.stringify(s) + ') is ' + want);
+  });
+  ok(NEW.isWhollyNumeric(5) === true && NEW.isWhollyNumeric(null) === false &&
+     NEW.isWhollyNumeric(undefined) === false && NEW.isWhollyNumeric(NaN) === false,
+     'P4 and non-strings answer sensibly');
+});
+
+guard('P: the exact cell population that changes, both sides driven', () => {
+  /* Every table, every year, one render each, NEW against the ROUND-2 build
+   * that is live right now. The classes are read back out of the HTML, so
+   * this measures what SHIPS, not what the predicate returns in isolation.
+   * The payload tables as committed, not the 2099 fixture, so the figure is
+   * the same one the audit reported and can be reproduced against the file. */
+  const R2 = build(R2_SRC, 'R2');
+  const census = (api) => {
+    const out = [];
+    Object.keys(P.tables).sort().forEach(id => {
+      const t = P.tables[id];
+      Object.keys(t.data || {}).sort().forEach(y => {
+        const rows = resolveRows(api, t, y);
+        if (!rows || !rows.length) return;
+        const h = api.renderTable(rows, { headerLevels: hlOf(t), tableId: id });
+        (h.match(/<td([^>]*)>([\s\S]*?)<\/td>/g) || []).forEach((cell, idx) => {
+          const m = /<td([^>]*)>([\s\S]*?)<\/td>/.exec(cell);
+          out.push({
+            id, y, idx,
+            cls: (/class="([^"]*)"/.exec(m[1]) || [, ''])[1],
+            text: m[2].replace(/<[^>]*>/g, '').trim(),
+          });
+        });
+      });
+    });
+    return out;
+  };
+  const a = census(R2), b = census(NEW);
+  ok(a.length === b.length,
+     'P5 the same cells are rendered on both sides: ' + a.length + ' / ' + b.length);
+  if (a.length !== b.length) return;
+  const moved = [];
+  for (let i = 0; i < b.length; i++) if (a[i].cls !== b[i].cls) moved.push({ i, a: a[i], b: b[i] });
+  ok(moved.length === 19, 'P6 exactly NINETEEN cells change class: ' + moved.length);
+  ok(moved.every(m => m.a.cls === 'num' && m.b.cls === 'num num-text'),
+     'P7 and every single move is num -> num num-text, so nothing LOSES a ' +
+     'class and nothing that wrapped stops wrapping');
+  const byTable = {};
+  moved.forEach(m => { byTable[m.b.id] = (byTable[m.b.id] || 0) + 1; });
+  ok(JSON.stringify(byTable) === '{"C2":15,"I1":4}',
+     'P8 C2 fifteen and I1 four: ' + JSON.stringify(byTable));
+  /* THE COLLATERAL, NAMED. The C2 fifteen are CLCPA-216's composite
+   * "value (pct)" strings: parseFloat read them as numbers, so they were held
+   * on one line. They may now wrap, and that shows on the single-panel view
+   * as well as in compare mode. Flagged for Emely's eye, pinned here so it
+   * cannot grow quietly. */
+  const c2 = moved.filter(m => m.b.id === 'C2').map(m => m.b.text);
+  ok(c2.every(s => /^[\d.,]+ \(\d+%\)$/.test(s)),
+     'P9 and the C2 fifteen are all the "value (pct)" composite, nothing else: ' +
+     JSON.stringify(c2.slice(0, 3)));
+  const i1 = moved.filter(m => m.b.id === 'I1').map(m => m.b.text);
+  ok(i1.every(s => s === '1; Senior Specialist Customer Energy Solutions'),
+     'P10 and the I1 four are the one string the audit named');
+});
+
+/* =================== Q: the two-column tables, PINNED ================= */
+say('');
+say('=== Q. the four two-column compare tables ============================');
+guard('Q: the other live rule that sets a width on these cells', () => {
+  /* Emely asked for this pinned, not claimed. `.data-table tbody tr
+   * td:nth-child(2):last-child` sets width:100%; max-width:0 and applies only
+   * to a two-column table. Under table-layout: fixed, CSS 2.1 17.5.2.1 gives
+   * col elements precedence over cell widths, so the colgroup should still
+   * govern -- but that is a BROWSER behaviour this suite cannot execute. What
+   * is pinned here is the population and the inputs, so if the set grows or
+   * the rule moves, the next reader is told. The eye is the acceptance. */
+  const two = [];
+  Object.keys(P.tables).sort().forEach(id => {
+    const t = tableOf(id);
+    const y = Object.keys(t.data || {}).sort().pop();
+    if (!y) return;
+    const w = NEW.compareColWidths(t, { headerLevels: hlOf(t), tableId: id });
+    if (w && w.length === 2) two.push(id);
+  });
+  ok(two.join(',') === 'B1,D1,F1,F3',
+     'Q1 exactly four compare tables are two-column: ' + two.join(','));
+  two.forEach(id => {
+    const t = tableOf(id);
+    const w = NEW.compareColWidths(t, { headerLevels: hlOf(t), tableId: id });
+    ok(w && Math.abs(w.reduce((x, y2) => x + y2, 0) - 100) < 0.01 && w.every(x => x > 0),
+       'Q2 ' + id + ' still gets a complete two-column vector: ' + JSON.stringify(w));
+  });
+  const rule = /\.data-table tbody tr td:nth-child\(2\):last-child \{([\s\S]*?)\}/.exec(CSS_LIVE);
+  ok(!!rule && /width: 100%/.test(rule[1]) && /max-width: 0/.test(rule[1]),
+     'Q3 the cell-width rule is present and unchanged in shape');
+  ok(rule && CSS_BASE.indexOf(rule[0].slice(0, 60)) >= 0,
+     'Q4 and it predates this ticket, so it is inherited, not introduced');
+  ok(!/is-definitions/.test(codeOnly(SRC)),
+     'Q5 .data-table.is-definitions is never emitted by the app, so its own ' +
+     'fixed-layout and 25/75 widths cannot interact with the colgroup');
+});
+
+/* =================== R: the cascade resolver ========================== */
+say('');
+say('=== R. the resolver itself, before it is trusted on a real file ======');
+guard('R: synthetic input with a known right answer', () => {
+  const EL = { tag: 'table', classes: ['data-table', 'data-table-cmp'] };
+  const win = (css) => {
+    const r = cascade.resolve(css, EL, 'table-layout');
+    return r.winner ? r.winner.value : null;
+  };
+  ok(win('.data-table-cmp{table-layout:fixed}\n.data-table{table-layout:auto}') === 'auto',
+     'R1 at EQUAL specificity the later rule wins, which is the whole defect');
+  ok(win('.data-table{table-layout:auto}\n.data-table-cmp{table-layout:fixed}') === 'fixed',
+     'R2 and order genuinely decides it, both ways');
+  ok(win('.data-table.data-table-cmp{table-layout:fixed}\n.data-table{table-layout:auto}') === 'fixed',
+     'R3 specificity beats order, which is why the fix names two classes');
+  ok(win('.data-table.data-table-cmp{table-layout:fixed}\n.data-table{table-layout:auto !important}') === 'auto',
+     'R4 and !important beats specificity');
+  /* No space after the opener, deliberately: with a space the commented
+   * selector parses as two compounds and lands in `conditional`, so the
+   * assertion would pass even with comment-stripping disabled. It has to be
+   * a shape that would otherwise become a real, matching candidate, or it is
+   * an assertion that cannot fail. */
+  ok(win('.data-table-cmp{table-layout:fixed}/*.data-table{table-layout:auto}*/') === 'fixed',
+     'R5 a commented rule is not a rule');
+  ok(win('.data-table-cmp{table-layout:fixed}\n.other{table-layout:auto}') === 'fixed',
+     'R6 a non-matching selector is ignored');
+  ok(win('.data-table-cmp{table-layout:auto;table-layout:fixed}') === 'fixed',
+     'R7 the LAST declaration in a block is the one that counts');
+  /* the refusals, which matter as much as the answers */
+  const anc = cascade.resolve('.wrap .data-table{table-layout:auto}', EL, 'table-layout');
+  ok(anc.winner === null && anc.conditional.length === 1,
+     'R8 a rule needing an ancestor is CONDITIONAL when no chain is supplied');
+  /* and DECIDED when one is */
+  const withChain = (ancestors) => cascade.resolve(
+    '.wrap .data-table{table-layout:auto}',
+    { tag: 'table', classes: ['data-table', 'data-table-cmp'], ancestors },
+    'table-layout');
+  const inside = withChain([{ tag: 'div', classes: ['wrap'] }]);
+  ok(inside.winner !== null && inside.winner.value === 'auto' && !inside.conditional.length,
+     'R8b given the chain it DOES judge a descendant selector');
+  const outside = withChain([{ tag: 'div', classes: ['other'] }]);
+  ok(outside.winner === null && !outside.conditional.length,
+     'R8c and rules the chain excludes are dropped, not counted');
+  const child = cascade.resolve('.wrap > .data-table{table-layout:auto}',
+    { tag: 'table', classes: ['data-table'], ancestors: [{ tag: 'div', classes: ['x'] }, { tag: 'div', classes: ['wrap'] }] },
+    'table-layout');
+  ok(child.winner !== null && child.winner.value === 'auto',
+     'R8d the child combinator binds to the immediate parent');
+  const notChild = cascade.resolve('.wrap > .data-table{table-layout:auto}',
+    { tag: 'table', classes: ['data-table'], ancestors: [{ tag: 'div', classes: ['wrap'] }, { tag: 'div', classes: ['x'] }] },
+    'table-layout');
+  ok(notChild.winner === null,
+     'R8e and refuses when the parent is someone else');
+  const sib = cascade.resolve('.a + .data-table{table-layout:auto}',
+    { tag: 'table', classes: ['data-table'], ancestors: [] }, 'table-layout');
+  ok(sib.winner === null && sib.conditional.length === 1,
+     'R8f a sibling combinator stays undecidable even with a chain');
+  const med = cascade.resolve('@media print{.data-table{table-layout:auto}}', EL, 'table-layout');
+  ok(med.winner === null && med.conditional.length === 1,
+     'R9 nor is an at-rule body judged as if it always applied');
+  const kf = cascade.resolve('@keyframes x{from{table-layout:auto}}', EL, 'table-layout');
+  ok(kf.winner === null && kf.conditional.length === 0,
+     'R10 and a keyframe block is not a style rule at all');
+  ok(JSON.stringify(cascade.specificity('.data-table.data-table-cmp')) === '[0,2,0]' &&
+     JSON.stringify(cascade.specificity('.data-table')) === '[0,1,0]',
+     'R11 the specificity arithmetic is the one the two rules turn on');
+  /* THE LINE NUMBERS THEMSELVES. The order tie-break is computed from them,
+   * and the first cut of this module stamped every rule with the line of the
+   * one before it -- so adjacent rules tied, the tie-break never ran, and the
+   * right answer came out of sort stability instead. A mutation that reversed
+   * the ordering moved nothing, which is how it was found. */
+  const lines2 = cascade.resolve('.data-table-cmp{table-layout:fixed}\n' +
+    '\n.data-table{table-layout:auto}', EL, 'table-layout').candidates.map(c => c.line);
+  ok(JSON.stringify(lines2) === '[1,3]',
+     'R11b and rules report the line they actually start on: ' + JSON.stringify(lines2));
+});
+
+guard('R: THE ASSERTION THAT WOULD HAVE FAILED ROUNDS 1 AND 2', () => {
+  /* The round-1 stylesheet is still in git. Resolved, it says auto: the
+   * colgroup was advisory on screen for two shipped rounds while C1 and C2
+   * passed. This is the regression pin for the whole class. */
+  const EL = { tag: 'table', classes: ['data-table', 'data-table-cmp'] };
+  const r1 = cascade.resolve(CSS_R1, EL, 'table-layout');
+  ok(r1.winner !== null && r1.winner.value === 'auto',
+     'R12 the round-1 stylesheet resolves to AUTO at ' + R1_COMMIT +
+     ', from "' + (r1.winner ? r1.winner.sel : '?') + '" line ' +
+     (r1.winner ? r1.winner.line : '?'));
+  ok(/\.data-table-cmp \{ table-layout: fixed; \}/.test(cascade.stripComments(CSS_R1).css),
+     'R13 while the rule it was supposed to obey was present and correct, ' +
+     'which is precisely what a presence assertion cannot see');
+});
+
 /* =================== C: the CSS ======================================= */
 say('');
-say('=== C. the stylesheet, scoped to the compare path ====================');
-guard('C: fixed layout is scoped, and the wrap is a modifier', () => {
-  ok(/\.data-table-cmp \{ table-layout: fixed; \}/.test(CSS_LIVE),
-     'C1 table-layout: fixed is on .data-table-cmp only');
-  ok(!/^\.data-table \{[^}]*table-layout: fixed/m.test(CSS_LIVE),
-     'C2 the shared .data-table keeps table-layout: auto');
+say('=== C. the stylesheet, RESOLVED rather than matched ==================');
+guard('C: fixed layout actually wins, and the wrap is a modifier', () => {
+  const CMP = { tag: 'table', classes: ['data-table', 'data-table-cmp'] };
+  const ONE = { tag: 'table', classes: ['data-table'] };
+  const r = cascade.resolve(CSS_SRC, CMP, 'table-layout');
+  ok(r.winner !== null && r.winner.value === 'fixed',
+     'C1 a compare table RESOLVES to table-layout: fixed, from "' +
+     (r.winner ? r.winner.sel : 'NOTHING') + '" line ' + (r.winner ? r.winner.line : '-'));
+  ok(r.winner !== null && /data-table-cmp/.test(r.winner.sel),
+     'C1b and the winner is the compare rule, not something else that agrees');
+  /* C2, POLARITY FLIPPED. The old C2 asserted that .data-table still says
+   * auto and called that correct. It is correct, and irrelevant: what matters
+   * is that it does not BEAT the compare rule. */
+  const beaten = r.candidates.filter(c => !/data-table-cmp/.test(c.sel) && c.value !== 'fixed');
+  ok(beaten.length > 0,
+     'C2 the shared .data-table does still declare auto for the single-panel ' +
+     'view (' + beaten.length + ' such declaration(s)), and');
+  ok(r.winner !== null && beaten.every(c => cascade.specificity(r.winner.sel)[1] > c.spec[1]),
+     'C2b it loses on SPECIFICITY, not on source order: a later stylesheet ' +
+     'edit cannot undo this fix by being later');
+  const one = cascade.resolve(CSS_SRC, ONE, 'table-layout');
+  ok(one.winner !== null && one.winner.value === 'auto',
+     'C2c and the single-panel table is still auto, which is untouched');
+  ok(r.conditional.length === 0,
+     'C2d no ancestor-scoped or at-rule declaration of table-layout can reach ' +
+     'these tables, so the resolver is judging the whole picture');
+  ok(cascade.stripComments(CSS_SRC).unterminated === 0,
+     'C2e and no unterminated comment is swallowing the rest of the file');
   /* the dead block recorded, not left as a surprise for the next reader */
   ok(/\.data-table \{[\s\S]{0,40}table-layout: fixed/.test(CSS_SRC),
-     'C2b a COMMENTED-OUT fixed-layout rule exists in the file, which is why ' +
+     'C7 a COMMENTED-OUT fixed-layout rule exists in the file, which is why ' +
      'this suite strips CSS comments before asserting anything');
   ok(/\.data-table td\.num\.num-text \{/.test(CSS_LIVE),
      'C3 the wrap is a MODIFIER on .num, not a replacement for it');
-  ok(/white-space: normal;/.test(
-      (/\.data-table td\.num\.num-text \{([\s\S]*?)\}/.exec(CSS_LIVE) || [])[1] || ''),
-     'C4 and it restores wrapping');
+  /* C4 RESOLVED, not matched: the same mistake one property over would be the
+   * wrap declared, present, and beaten by .num's nowrap. */
+  const inTable = [{ tag: 'table', classes: ['data-table', 'data-table-cmp'] },
+                   { tag: 'tbody', classes: [] }, { tag: 'tr', classes: [] }];
+  const wrapCell = cascade.resolve(CSS_SRC,
+    { tag: 'td', classes: ['num', 'num-text'], ancestors: inTable }, 'white-space');
+  ok(wrapCell.winner !== null && wrapCell.winner.value === 'normal',
+     'C4 a text cell in a numeric column RESOLVES to white-space: normal, ' +
+     'from "' + (wrapCell.winner ? wrapCell.winner.sel : 'NOTHING') + '"');
+  const numCell = cascade.resolve(CSS_SRC,
+    { tag: 'td', classes: ['num'], ancestors: inTable }, 'white-space');
+  ok(numCell.winner !== null && numCell.winner.value === 'nowrap',
+     'C4a while a plain numeric cell still resolves to nowrap');
   ok(!/text-align/.test(
       (/\.data-table td\.num\.num-text \{([\s\S]*?)\}/.exec(CSS_LIVE) || [])[1] || ''),
      'C4b and does NOT touch alignment: my first version set text-align:left, ' +
@@ -527,11 +820,16 @@ guard('X: the blast radius', () => {
     renderTable: 'the colgroup and the text-cell modifier',
     compareColWidths: 'the shared width vector (new)',
     renderSourceTables: 'it computes the vector once and passes it to both',
+    isWhollyNumeric: 'round 3: the wrap predicate, new, and isNumeric untouched',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 3, 'X3 exactly THREE functions changed: ' + changed.length);
+  ok(changed.length === 4, 'X3 exactly FOUR functions changed: ' + changed.length);
+  /* the one that must NOT have moved: isNumeric feeds the column masks, the
+   * formatters and the derive engine, and round 3 deliberately leaves it. */
+  ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),
+     'X3b and isNumeric itself is byte-identical to BASE');
 });
 
 guard('X: the baseline', () => {

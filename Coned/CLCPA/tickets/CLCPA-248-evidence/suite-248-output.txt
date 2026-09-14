@@ -56,12 +56,75 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   S3 compared 149 table-years against BASE
   ok   S4 and the ONLY difference anywhere is the num-text modifier
 
-=== C. the stylesheet, scoped to the compare path ====================
-  ok   C1 table-layout: fixed is on .data-table-cmp only
-  ok   C2 the shared .data-table keeps table-layout: auto
-  ok   C2b a COMMENTED-OUT fixed-layout rule exists in the file, which is why this suite strips CSS comments before asserting anything
+=== P. isWhollyNumeric, and what it moves ============================
+  ok   P0 isWhollyNumeric is reachable from the real assembled source
+  ok   P1 isNumeric still says the I1 prose is numeric, because parseFloat is
+  ok   P2 while isWhollyNumeric says it is not, which is what earns the wrap
+  ok   P3 isWhollyNumeric("32,919") is true
+  ok   P3 isWhollyNumeric("$1,234.56") is true
+  ok   P3 isWhollyNumeric("12.5%") is true
+  ok   P3 isWhollyNumeric("-3") is true
+  ok   P3 isWhollyNumeric(".5") is true
+  ok   P3 isWhollyNumeric("1e3") is true
+  ok   P3 isWhollyNumeric("0") is true
+  ok   P3 isWhollyNumeric("  7  ") is true
+  ok   P3 isWhollyNumeric("3 of 4") is false
+  ok   P3 isWhollyNumeric("Yes") is false
+  ok   P3 isWhollyNumeric("No: 0") is false
+  ok   P3 isWhollyNumeric("2024 total") is false
+  ok   P3 isWhollyNumeric("") is false
+  ok   P3 isWhollyNumeric("1;") is false
+  ok   P4 and non-strings answer sensibly
+  ok   P5 the same cells are rendered on both sides: 6086 / 6086
+  ok   P6 exactly NINETEEN cells change class: 19
+  ok   P7 and every single move is num -> num num-text, so nothing LOSES a class and nothing that wrapped stops wrapping
+  ok   P8 C2 fifteen and I1 four: {"C2":15,"I1":4}
+  ok   P9 and the C2 fifteen are all the "value (pct)" composite, nothing else: ["32,919 (32%)","404.87 (41%)","303.07 (40%)"]
+  ok   P10 and the I1 four are the one string the audit named
+
+=== Q. the four two-column compare tables ============================
+  ok   Q1 exactly four compare tables are two-column: B1,D1,F1,F3
+  ok   Q2 B1 still gets a complete two-column vector: [27.59,72.41]
+  ok   Q2 D1 still gets a complete two-column vector: [25,75]
+  ok   Q2 F1 still gets a complete two-column vector: [25,75]
+  ok   Q2 F3 still gets a complete two-column vector: [42.86,57.14]
+  ok   Q3 the cell-width rule is present and unchanged in shape
+  ok   Q4 and it predates this ticket, so it is inherited, not introduced
+  ok   Q5 .data-table.is-definitions is never emitted by the app, so its own fixed-layout and 25/75 widths cannot interact with the colgroup
+
+=== R. the resolver itself, before it is trusted on a real file ======
+  ok   R1 at EQUAL specificity the later rule wins, which is the whole defect
+  ok   R2 and order genuinely decides it, both ways
+  ok   R3 specificity beats order, which is why the fix names two classes
+  ok   R4 and !important beats specificity
+  ok   R5 a commented rule is not a rule
+  ok   R6 a non-matching selector is ignored
+  ok   R7 the LAST declaration in a block is the one that counts
+  ok   R8 a rule needing an ancestor is CONDITIONAL when no chain is supplied
+  ok   R8b given the chain it DOES judge a descendant selector
+  ok   R8c and rules the chain excludes are dropped, not counted
+  ok   R8d the child combinator binds to the immediate parent
+  ok   R8e and refuses when the parent is someone else
+  ok   R8f a sibling combinator stays undecidable even with a chain
+  ok   R9 nor is an at-rule body judged as if it always applied
+  ok   R10 and a keyframe block is not a style rule at all
+  ok   R11 the specificity arithmetic is the one the two rules turn on
+  ok   R11b and rules report the line they actually start on: [1,3]
+  ok   R12 the round-1 stylesheet resolves to AUTO at d43fd32, from ".data-table" line 1502
+  ok   R13 while the rule it was supposed to obey was present and correct, which is precisely what a presence assertion cannot see
+
+=== C. the stylesheet, RESOLVED rather than matched ==================
+  ok   C1 a compare table RESOLVES to table-layout: fixed, from ".data-table.data-table-cmp" line 606
+  ok   C1b and the winner is the compare rule, not something else that agrees
+  ok   C2 the shared .data-table does still declare auto for the single-panel view (1 such declaration(s)), and
+  ok   C2b it loses on SPECIFICITY, not on source order: a later stylesheet edit cannot undo this fix by being later
+  ok   C2c and the single-panel table is still auto, which is untouched
+  ok   C2d no ancestor-scoped or at-rule declaration of table-layout can reach these tables, so the resolver is judging the whole picture
+  ok   C2e and no unterminated comment is swallowing the rest of the file
+  ok   C7 a COMMENTED-OUT fixed-layout rule exists in the file, which is why this suite strips CSS comments before asserting anything
   ok   C3 the wrap is a MODIFIER on .num, not a replacement for it
-  ok   C4 and it restores wrapping
+  ok   C4 a text cell in a numeric column RESOLVES to white-space: normal, from ".data-table td.num.num-text"
+  ok   C4a while a plain numeric cell still resolves to nowrap
   ok   C4b and does NOT touch alignment: my first version set text-align:left, which would have silently re-aligned 95 cells across TEN tables
   ok   C5 neither existed at BASE
   ok   C6 and .num still nowraps, which is what numbers need
@@ -82,15 +145,18 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   X1 renderIngestEditor is byte-identical to BASE
   ok   X1 parseNumericInput is byte-identical to BASE
   ok   X2 DERIVED_COLS is byte-identical
-       changed: compareColWidths, renderSourceTables, renderTable
+       changed: compareColWidths, isWhollyNumeric, renderSourceTables, renderTable
   ok   the change to compareColWidths is accounted for
+  ok   the change to isWhollyNumeric is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
   ok   renderTable changed as intended: the colgroup and the text-cell modifier
   ok   compareColWidths changed as intended: the shared width vector (new)
   ok   renderSourceTables changed as intended: it computes the vector once and passes it to both
-  ok   X3 exactly THREE functions changed: 3
+  ok   isWhollyNumeric changed as intended: round 3: the wrap predicate, new, and isNumeric untouched
+  ok   X3 exactly FOUR functions changed: 4
+  ok   X3b and isNumeric itself is byte-identical to BASE
   ok   X4 BASE is a literal commit sha: d0d0a45
   ok   X5 and an ancestor of HEAD
 
-  73 passed, 0 failed
+  133 passed, 0 failed

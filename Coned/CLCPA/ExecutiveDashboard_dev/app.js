@@ -1603,6 +1603,34 @@ function utf8ByteLength(str) {
     return cleaned !== '' && !isNaN(parseFloat(cleaned)) && isFinite(parseFloat(cleaned));
   }
 
+  /**
+   * CLCPA-248 round 3: is this string a NUMBER AND NOTHING ELSE?
+   *
+   * isNumeric above is deliberately lenient -- it asks whether a value PARSES
+   * as a number, which is the right question for the column masks, the
+   * formatters and the derive engine, and it is left exactly as it is. But
+   * parseFloat('1; Senior Specialist Customer Energy Solutions') is 1, so that
+   * prose answered "numeric", never earned the num-text wrap modifier, kept
+   * .num's nowrap, and demanded all 46 of its characters as min-content. One
+   * cell did that: it is what pinned the I1 prior panel to a 12.38% label
+   * column.
+   *
+   * This asks the different question the WRAP needs: after the currency,
+   * percent, thousands and space decoration is removed, is what remains a
+   * complete number? A string with words in it is not, however it starts.
+   *
+   * Measured payload-wide over every table and year: 19 cells change class,
+   * C2 x15 and I1 x4, and every move is num -> num num-text. Alignment is
+   * untouched -- the num class still comes from the column, so CLCPA-140
+   * holds.
+   */
+  function isWhollyNumeric(v) {
+    if (typeof v === 'number') return isFinite(v);
+    if (typeof v !== 'string') return false;
+    const cleaned = v.replace(/[,$%\s]/g, '');
+    return cleaned !== '' && /^[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?$/.test(cleaned);
+  }
+
   /** Year-over-year delta as a fraction (0.05 = +5%). Returns null if invalid. */
   function deltaPct(curr, prev) {
     if (curr === null || prev === null || prev === 0 ||
@@ -3620,8 +3648,21 @@ function utf8ByteLength(str) {
          * else today, and it is a rule rather than a carve-out: a cell holding
          * text is allowed to wrap wherever it lives.
          *
-         * Alignment is untouched -- the num class stays, so CLCPA-140 holds. */
-        const isTextCell = typeof cv === 'string' && !isNumeric(cv);
+         * Alignment is untouched -- the num class stays, so CLCPA-140 holds.
+         *
+         * ROUND 3: the test is isWhollyNumeric, not isNumeric. isNumeric asks
+         * whether a value parses as a number and answers yes to
+         * '1; Senior Specialist Customer Energy Solutions', so that cell was
+         * denied the wrap and held the prior panel at a 12.38% label column.
+         *
+         * Measured on both sides over all 52 tables and every year, one render
+         * each: 19 cells change class, and every one of them moves num ->
+         * num num-text. No cell loses a class, so nothing that wrapped stops.
+         * They are C2 x15 and I1 x4. The C2 fifteen are CLCPA-216's composite
+         * "value (pct)" strings, which parseFloat read as numbers; they are
+         * now permitted to wrap, which shows only where the column is too
+         * narrow to hold the string on one line. */
+        const isTextCell = typeof cv === 'string' && !isWhollyNumeric(cv);
         const numCls = numericCol[i]
           ? (isTextCell ? ' class="num num-text"' : ' class="num"')
           : (cv === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
