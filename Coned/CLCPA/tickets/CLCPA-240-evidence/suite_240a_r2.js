@@ -703,7 +703,13 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
      * sides and the rest is still compared BYTE FOR BYTE, so anything else
      * CLCPA-245 touched would still show. The attribute itself is asserted
      * separately, below and in suite_245. */
-    const noTitle = (h) => String(h).replace(/ title="[^"]*"/g, '');
+    /* ROUND 2 of CLCPA-245 renamed the attribute: the native title became
+     * data-label-tip, feeding the dashboard's own tooltip. Both are
+     * stripped, so this normaliser keeps working whichever build it meets
+     * and still compares everything else byte for byte. */
+    const noTitle = (h) => String(h)
+      .replace(/ title="[^"]*"/g, '')
+      .replace(/ data-label-tip="[^"]*"/g, '');
     if (noTitle(a) !== noTitle(b)) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
   });

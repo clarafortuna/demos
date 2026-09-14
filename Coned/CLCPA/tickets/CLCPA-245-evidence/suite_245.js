@@ -398,25 +398,76 @@ guard('O: outside the family the flags ARE the label answer, both inputs', () =>
 
 /* ===================== T: the tooltip rider ============================ */
 say('');
-say('=== T. the label tooltip =============================================');
-guard('T: the label input carries a native title', () => {
+say('=== T. the label tooltip, in the DASHBOARDS OWN style =============');
+/* ROUND 2, by ruling: round 1 used a native `title` and it must not. The
+ * tooltip goes through the shared .exec-tooltip div and the shared pointer
+ * clamp, so it reads like every other tooltip on the page. */
+guard('T: the native title is GONE and a data attribute replaced it', () => {
   const ed = grabFn('renderIngestEditor');
   if (!ok(ed !== null, 'T0 renderIngestEditor was found')) return;
   const code = codeOnly(ed);
-  ok(/const labelTitle = labelText\.trim\(\)/.test(code),
-     'T1 a title is computed from the label text');
-  ok(/title="\$\{escapeHtml\(labelText\)\}"/.test(code),
-     'T2 and it is ESCAPED, like every other attribute here');
-  ok(/\$\{labelTitle\}/.test(code), 'T3 and interpolated into the input');
-  ok(!/title=/.test(codeOnly(grabFn('renderIngestEditor', BASE_SRC)) || ''),
-     'T4 BASE had none, which is the rider');
+  ok(!/ title="/.test(code),
+     'T1 the label cell emits NO native title any more');
+  ok(/data-label-tip="\$\{escapeHtml\(labelText\)\}"/.test(code),
+     'T2 the full text rides on data-label-tip, ESCAPED');
+  ok(/const labelTip = labelText\.trim\(\)/.test(code),
+     'T3 and it is absent for a blank label');
+  /* the attribute must not have leaked into any other cell */
+  ok((codeOnly(SRC).match(/data-label-tip=/g) || []).length === 1,
+     'T4 exactly one place emits it: ' +
+     (codeOnly(SRC).match(/data-label-tip=/g) || []).length);
 });
 
-guard('T: driven -- a long label gets a title, a blank one does not', () => {
+guard('T: it uses the SHARED tooltip machinery, not a fourth positioner', () => {
+  const w = grabFn('wireIngestLabelTips');
+  if (!ok(w !== null, 'T5 wireIngestLabelTips exists')) return;
+  const code = codeOnly(w);
+  ok(/ensureTooltip\(\)/.test(code),
+     'T6 it opens the SHARED .exec-tooltip via ensureTooltip');
+  ok(/placeTooltipAtPointer\(tip, e\)/.test(code),
+     'T7 and positions it with the shared CLCPA-242 clamp');
+  ok(!/style\.left|style\.top/.test(code),
+     'T8 it does NOT position the box itself: one clamp, not a fifth');
+  ok(/tip\.textContent = text;/.test(code) && !/innerHTML/.test(code),
+     'T9 textContent, never innerHTML: a label is operator-supplied text');
+  ok(/exec-tooltip-hug/.test(code),
+     'T10 and the hug modifier, because this is one short string');
+});
+
+guard('T: CLCPA-242s ownership lesson is honoured', () => {
+  const wc = grabFn('wireControlTips');
+  if (!ok(wc !== null, 'T11 wireControlTips was found')) return;
+  const code = codeOnly(wc);
+  ok(/OWNS_TIP = /.test(code), 'T12 the tip-owning list is still there');
+  ok(/ingest-cell-label\[data-label-tip\]/.test(code),
+     'T13 and the ingest label is IN it, so the control-tip handler does not',
+  );
+  ok(/if \(ownsTip\(e\)\) return;/.test(code),
+     'T14 hide the box the label just opened');
+  /* and the label must not blanket-hide either: its own hide fires only
+   * when the pointer leaves a LABEL, never on any other mouseout */
+  const w = codeOnly(grabFn('wireIngestLabelTips') || '');
+  ok(/mouseout.*if \(labelOf\(e\)\) hide\(\)/.test(w.replace(/\s+/g, ' ')),
+     'T15 and the label hides the tip ONLY when the pointer leaves a label');
+  ok(!/hideExecTooltip\(\)/.test(w),
+     'T16 it never calls the global hide, which would close another surfaces tip');
+});
+
+guard('T: delegated once, so a rebuilt grid cannot stack handlers', () => {
+  const w = codeOnly(grabFn('wireIngestLabelTips') || '');
+  ok(/if \(wireIngestLabelTips\._wired\) return;/.test(w),
+     'T17 it is idempotent, like wireControlTips');
+  ok(/document\.addEventListener/.test(w) && !/querySelectorAll/.test(w),
+     'T18 and DELEGATED rather than bound per row, since the grid is rebuilt');
+  ok(/wireIngestLabelTips\(\);/.test(codeOnly(grabFn('wireIngestPage') || '')),
+     'T19 and the page wiring calls it');
+});
+
+guard('T: driven -- the attribute lands, and not on a blank label', () => {
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;')
     .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  const rows = [['A very long metric label that the editor would otherwise clip silently', 1, 2],
-                ['', 3, 4]];
+  const LONG = 'A very long metric label that the editor would otherwise clip silently';
+  const rows = [[LONG, 1, 2], ['', 3, 4]];
   const schema = ['Metric', 'Unique', 'Non-Unique'];
   const STATE = { payload: P, ingest: { tableId: 'I1', year: '2025', schema: schema,
     baseline: rows.map(r => r.slice()), draft: rows.map(r => r.slice()), dirty: false } };
@@ -432,29 +483,30 @@ guard('T: driven -- a long label gets a title, a blank one does not', () => {
     try { f = new Function('state', 'escapeHtml', body)(STATE, esc); }
     catch (e) {
       const nm = (/^(\w+) is not defined$/.exec(e.message || '') || [])[1];
-      if (!nm) { ok(false, 'T5 the editor would not assemble: ' + e.message); return; }
+      if (!nm) { ok(false, 'T20 the editor would not assemble: ' + e.message); return; }
       if (grab(nm) && fns.indexOf(nm) < 0) { fns.push(nm); continue; }
       if (grabConst(nm) && cs.indexOf(nm) < 0) { cs.push(nm); continue; }
-      ok(false, 'T5 cannot resolve ' + nm); return;
+      ok(false, 'T20 cannot resolve ' + nm); return;
     }
     try { html = f(); break; }
     catch (e) {
       const nm = (/^(\w+) is not defined$/.exec(e.message || '') || [])[1];
-      if (!nm) { ok(false, 'T5 the editor threw: ' + e.message); return; }
+      if (!nm) { ok(false, 'T20 the editor threw: ' + e.message); return; }
       if (grab(nm) && fns.indexOf(nm) < 0) { fns.push(nm); continue; }
       if (grabConst(nm) && cs.indexOf(nm) < 0) { cs.push(nm); continue; }
-      ok(false, 'T5 cannot resolve ' + nm + ' (call)'); return;
+      ok(false, 'T20 cannot resolve ' + nm + ' (call)'); return;
     }
   }
-  if (!ok(html !== null, 'T5 the editor rendered')) return;
-  ok(html.indexOf('title="A very long metric label that the editor would otherwise clip silently"') >= 0,
-     'T6 the long label carries its full text as a title');
+  if (!ok(html !== null, 'T20 the editor rendered')) return;
+  ok(html.indexOf('data-label-tip="' + LONG + '"') >= 0,
+     'T21 the long label carries its full text on the attribute');
+  ok(html.indexOf(' title=') < 0,
+     'T22 and NO native title anywhere in the grid');
   const trs = html.match(/<tr[^>]*data-row="\d+"[\s\S]*?<\/tr>/g) || [];
   const blankRow = trs.find(tr => /data-row="1"/.test(tr));
-  ok(blankRow && !/title=/.test(blankRow),
-     'T7 and the blank label gets NO title rather than an empty one');
+  ok(blankRow && !/data-label-tip/.test(blankRow),
+     'T23 and the blank label gets no attribute at all');
 });
-
 /* ===================== X: the exclusions =============================== */
 say('');
 say('=== X. what this ticket did NOT touch ================================');
@@ -505,12 +557,18 @@ guard('X: the blast radius', () => {
   const EXPECT = {
     totalRowFlags: 'the general label veto',
     isAnchoredTotalRowLabel: 'the anchored-suffix predicate (new)',
-    renderIngestEditor: 'the label tooltip',
+    renderIngestEditor: 'the label tooltip: data-label-tip, no native title',
+    /* ROUND 2, by ruling: the native title became the dashboard s own
+     * tooltip, which needs a wiring, a call site, and the CLCPA-242
+     * ownership entry. Three more functions, each named. */
+    wireIngestLabelTips: 'round 2, the shared-tooltip wiring (new)',
+    wireIngestPage: 'round 2, it calls that wiring',
+    wireControlTips: 'round 2, the ingest label joins OWNS_TIP',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 3, 'X8 exactly THREE functions changed: ' + changed.length);
+  ok(changed.length === 6, 'X8 exactly SIX functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

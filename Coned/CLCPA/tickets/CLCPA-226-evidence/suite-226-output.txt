@@ -61,7 +61,7 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   both error chips keep their native title: 2
   ok   the territory valueField tooltips stay, as ruled: 2
   ok   and the territory load-error title with them
-  ok   SEVEN static native titles -- 4 category B, 2 error chips, and the CLCPA-245 ingest label: 7
+  ok   SIX static native titles remain -- 4 category B plus 2 error chips: 6
   ok   BASE control: there were 15, so 9 static were converted: 15
   ok   THREE dynamic titles remain, all ruled deliberate: 3
   ok   BASE control: there were 4, so 1 dynamic was converted: 4
@@ -143,7 +143,7 @@ CLCPA-226 -- the native tooltips become the app s own styled one
 === the ensureTooltip consolidation ===
   ok   the lazy-singleton block exists ONCE, inside ensureTooltip: 1
   ok   BASE control: it was copy-pasted SIX times: 6
-  ok   NINE callers now: the 3 that already used it, the 5 that duplicated its body, and wireControlTips itself -- 9
+  ok   TEN callers now: the 3 that already used it, the 5 that duplicated its body, and wireControlTips itself -- 10
   ok   BASE control: the helper existed with only 3, while 5 sites copied it: 3
   ok   and wireControlTips is called from boot, once
 
@@ -173,7 +173,7 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   hovering the control again re-adds it
   ok   the reset lives in ensureTooltip, which every caller passes through
   ok   and only the control path adds it
-  ok   exactly ONE place in the app adds it: 1
+  ok   TWO places add it: the control path and CLCPA-245s ingest label: 2
   ok   estimate holds for "Delete row"
   ok   estimate holds for "Data Source"
   ok   estimate holds for "Required to save"

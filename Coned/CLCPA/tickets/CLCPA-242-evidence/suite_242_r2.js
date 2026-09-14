@@ -137,8 +137,14 @@ guard('BASE control: it blanket-hid, and the rows are not controls', () => {
 
 guard('the early-out, driven over the shipped handler', () => {
   const f = codeOnly(grab('wireControlTips'));
-  ok(/const OWNS_TIP = '\.dumb-row, \.strip-row, \.ai-header-card, \.radar-dot';/.test(f),
-     'the four owning surfaces are named exactly');
+  /* FIVE now. CLCPA-245 round 2 added the ingest label, and it belongs here
+   * for exactly the reason this list exists: it opens the shared tip itself
+   * and closes it on its own mouseout. This round's four are still asserted
+   * by name, so the addition cannot hide a removal. */
+  ok(/\.dumb-row, \.strip-row, \.ai-header-card, \.radar-dot/.test(f),
+     'this rounds four owning surfaces are still named exactly');
+  ok(/ingest-cell-label\[data-label-tip\]/.test(f),
+     'and CLCPA-245s ingest label joined them');
   ok(/if \(ownsTip\(e\)\) return;/.test(f), 'and the handler returns before hiding');
   const iOwns = f.indexOf('if (ownsTip(e)) return;');
   const iHide = f.indexOf('hide();', iOwns);
@@ -408,6 +414,11 @@ guard('two functions', () => {
      * ANCHORED label rather than by arithmetic coincidence, plus the editor
      * label tooltip. Named so the exact count below stays a guard. */
     isAnchoredTotalRowLabel: 'NOT this brief: CLCPA-245, the anchored-suffix predicate (new)',
+    /* CLCPA-245 ROUND 2, by ruling: the native title became the dashboard's
+     * own tooltip, which needs a wiring, a call site and the CLCPA-242
+     * ownership entry. Named so the exact count below stays a guard. */
+    wireIngestLabelTips: 'NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)',
+    wireIngestPage: 'NOT this brief: CLCPA-245 round 2, it calls that wiring',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
      * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
@@ -427,7 +438,8 @@ guard('two functions', () => {
   /* 17 -> 19: CLCPA-244 round 2 changed two this suite can see. */
   /* 19 -> 18: round 4's revert restored wireSectionInteractions. */
   /* 18 -> 19: CLCPA-245 added isAnchoredTotalRowLabel. */
-  ok(changed.length === 19, 'NINETEEN: this round\'s two, CLCPA-240\'s twelve ' +
+  /* 19 -> 21: CLCPA-245 round 2 added two more. */
+  ok(changed.length === 21, 'TWENTY-ONE: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 

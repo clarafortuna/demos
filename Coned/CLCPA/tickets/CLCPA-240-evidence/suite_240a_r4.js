@@ -565,7 +565,8 @@ guard('S: the veto is scoped and singular', () => {
    * this pin only has to show that nothing ELSE crept in unnamed. */
   const CLAIMED = [
     { add: 'isTotalOnlyDerived(dDesc)', why: 'CLCPA-244' },
-    { add: 'labelTitle', why: 'CLCPA-245, the label tooltip' },
+    { add: 'labelTip', why: 'CLCPA-245 round 2, the data attribute' },
+    { add: 'data-label-tip', why: 'CLCPA-245 round 2, on the input' },
     { add: 'labelText', why: 'CLCPA-245, the label tooltip' },
   ];
   const unexplained = added.filter(l => !CLAIMED.some(c => l.indexOf(c.add) >= 0));

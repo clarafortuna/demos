@@ -10638,7 +10638,14 @@ function utf8ByteLength(str) {
      * The general answer -- one owner for the shared div, claim and release
      * across all nine wirings -- is a separate ticket by ruling, not smuggled
      * in here. */
-    const OWNS_TIP = '.dumb-row, .strip-row, .ai-header-card, .radar-dot';
+    /* CLCPA-245 round 2 adds the ingest label to this list, and it belongs
+     * here for exactly the reason the list exists: the label opens the shared
+     * tip itself and closes it on its own mouseout. Without the entry, this
+     * handler's mouseover sees a non-control under the pointer and hides the
+     * box the label has just opened -- the flicker CLCPA-242 was filed about,
+     * one surface further on. */
+    const OWNS_TIP = '.dumb-row, .strip-row, .ai-header-card, .radar-dot, ' +
+      '.ingest-cell-label[data-label-tip]';
     const ownsTip = (e) => {
       const t = e.target;
       return !!(t && t.closest && t.closest(OWNS_TIP));
@@ -21158,14 +21165,21 @@ function wireHTooltips() {
           /* CLCPA-245 rider: the label is a plain input with no width rule, so
            * a long metric name is clipped by the box with no ellipsis and no
            * way to read it. Measured: 27 labels in the payload exceed 80
-           * characters, 15 of them in I1, longest 136. A native title gives
-           * the full text on hover without touching the row rhythm the lock
-           * affordances depend on. Empty when it would add nothing. */
+           * characters, 15 of them in I1, longest 136.
+           *
+           * ROUND 2, by ruling: the DASHBOARD'S OWN tooltip, not the browser's
+           * native title bubble. Round 1 used `title=`, which is trivial but
+           * looks like nothing else on the page. The full text rides on a data
+           * attribute and wireIngestLabelTips opens the shared .exec-tooltip
+           * over it, so this label reads like every other tooltip here.
+           *
+           * The attribute is absent for a blank label, so there is nothing to
+           * open over one. */
           const labelText = String(rawNum(v) == null ? '' : rawNum(v));
-          const labelTitle = labelText.trim()
-            ? ` title="${escapeHtml(labelText)}"` : '';
+          const labelTip = labelText.trim()
+            ? ` data-label-tip="${escapeHtml(labelText)}"` : '';
           return `<td class="ingest-td-label">
-            <input type="text" value="${escapeHtml(rawNum(v))}"${labelTitle} data-row="${rowIdx}" data-col="0" class="ingest-cell ingest-cell-label" />
+            <input type="text" value="${escapeHtml(rawNum(v))}"${labelTip} data-row="${rowIdx}" data-col="0" class="ingest-cell ingest-cell-label" />
           </td>`;
         }
         const dDesc = derivedByCol[colIdx];
@@ -21405,6 +21419,9 @@ function wireHTooltips() {
 
   /** Wire all clicks and input events for the ingest page. */
   function wireIngestPage() {
+    /* CLCPA-245 round 2: delegated and idempotent, so it is safe to call from
+     * the page wiring even though the editor grid is rebuilt beneath it. */
+    wireIngestLabelTips();
     /* Round 2: the import controls are NOT on the page any more, so nothing is
      * wired for them here. They are wired by the dialog that renders them. */
     const addYear = document.getElementById('ingest-addyear');
@@ -22345,6 +22362,73 @@ function wireHTooltips() {
     if (!view) return;
     view.innerHTML = renderIngestPage();
     wireIngestPage();
+  }
+
+  /**
+   * CLCPA-245 round 2: the ingest label tooltip, in the dashboard's own style.
+   *
+   * Round 1 used a native `title`. Ruled out: it must look like every other
+   * tooltip on the page, so it goes through the SHARED .exec-tooltip div and
+   * the shared pointer clamp rather than growing a fourth positioner.
+   *
+   * ONLY WHEN THE LABEL IS ACTUALLY CLIPPED. A tooltip that repeats a label
+   * already fully readable is noise on every row of every table; scrollWidth
+   * past clientWidth is the browser's own answer to "is this truncated". When
+   * the element cannot be measured -- zero on both, which is what a
+   * mid-teardown or unattached input reads -- the tip is SHOWN rather than
+   * suppressed: failing toward more information is the safe direction for a
+   * label the operator cannot otherwise read. That is the same
+   * zero-is-unknown rule CLCPA-242 wrote into placeTooltipAtPointer.
+   *
+   * textContent, never innerHTML: a label is operator-supplied text.
+   *
+   * The hug modifier, because this is one short string like a control label
+   * rather than a data readout. ensureTooltip clears it for every other
+   * caller, so adding it here cannot leak.
+   *
+   * DELEGATED, once per document. The editor re-renders on nearly every
+   * keystroke path, and per-render listeners on a rebuilt grid are how
+   * duplicate handlers accumulate -- the mistake wireControlTips guards with
+   * its own _wired flag and _mapResizeHandler with removeEventListener.
+   */
+  function wireIngestLabelTips() {
+    if (wireIngestLabelTips._wired) return;
+    wireIngestLabelTips._wired = true;
+
+    const labelOf = (e) => {
+      const t = e.target;
+      if (!t || !t.closest) return null;
+      const el = t.closest('.ingest-cell-label[data-label-tip]');
+      return el || null;
+    };
+    const clipped = (el) => {
+      const sw = el.scrollWidth || 0, cw = el.clientWidth || 0;
+      if (!sw && !cw) return true;      /* unmeasurable: show, do not suppress */
+      return sw > cw + 1;
+    };
+    const hide = () => {
+      const tip = document.querySelector('.exec-tooltip');
+      if (tip) tip.style.opacity = '0';
+    };
+
+    document.addEventListener('mouseover', (e) => {
+      const el = labelOf(e);
+      if (!el) return;
+      const text = el.getAttribute('data-label-tip');
+      if (!text || !clipped(el)) return;
+      const tip = ensureTooltip();
+      if (tip.classList) tip.classList.add('exec-tooltip-hug');
+      tip.textContent = text;
+      placeTooltipAtPointer(tip, e);
+      tip.style.opacity = '1';
+    });
+    document.addEventListener('mousemove', (e) => {
+      const el = labelOf(e);
+      if (!el) return;
+      const tip = document.querySelector('.exec-tooltip');
+      if (tip && tip.style.opacity === '1') placeTooltipAtPointer(tip, e);
+    });
+    document.addEventListener('mouseout', (e) => { if (labelOf(e)) hide(); });
   }
 
   function rerenderIngestEditor() {

@@ -464,7 +464,9 @@ guard('one function', () => {
                 'parseNumericInput',
                 /* CLCPA-245: the anchored-suffix predicate this suite CAN see,
                  * since it sits at the IIFE indent its name scan matches. */
-                'isAnchoredTotalRowLabel'];
+                'isAnchoredTotalRowLabel',
+                /* CLCPA-245 round 2: the tooltip wiring and its call site */
+                'wireIngestLabelTips', 'wireIngestPage'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

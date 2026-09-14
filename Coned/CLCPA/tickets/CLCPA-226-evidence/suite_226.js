@@ -216,13 +216,13 @@ guard('the natives that stay', () => {
 
   /* the count adds up: nothing was converted by accident and nothing missed */
   const staticTitles = (SRC.match(/title="/g) || []).length;
-  /* 6 -> 7 under CLCPA-245: the ingest editor label gained a native title,
-   * so a long metric name can be read instead of being clipped silently.
-   * It is a NEW title rather than one of this ticket's conversions, and it
-   * is named here so the count stays exact rather than being relaxed. */
-  ok(staticTitles === 7,
-     'SEVEN static native titles -- 4 category B, 2 error chips, and ' +
-     'the CLCPA-245 ingest label: ' + staticTitles);
+  /* 7 -> 6 again. CLCPA-245 round 1 added a native title to the ingest
+   * label; Emely ruled that out and round 2 replaced it with the
+   * dashboard's own tooltip, so the native count is back where this ticket
+   * left it. The round trip is recorded rather than quietly reverted. */
+  ok(staticTitles === 6,
+     'SIX static native titles remain -- 4 category B plus 2 error chips: ' +
+     staticTitles);
   const baseStatic = (BASE_SRC.match(/title="/g) || []).length;
   ok(baseStatic === 15, 'BASE control: there were 15, so 9 static were converted: ' + baseStatic);
   const dyn = (codeOnly(SRC).match(/\.title = /g) || []).length;
@@ -563,8 +563,11 @@ guard('consolidation', () => {
     .filter(m => !/function/.test(m)).length -
     (codeOnly(s).match(/function ensureTooltip\(\)/g) || []).length;
   const callers = calls(SRC);
-  ok(callers === 9,
-     'NINE callers now: the 3 that already used it, the 5 that duplicated its ' +
+  /* 9 -> 10: CLCPA-245 round 2's ingest label tooltip opens the shared box
+   * through ensureTooltip like every other caller, which is the point of
+   * the ruling. */
+  ok(callers === 10,
+     'TEN callers now: the 3 that already used it, the 5 that duplicated its ' +
      'body, and wireControlTips itself -- ' + callers);
   const baseCallers = calls(BASE_SRC);
   ok(baseCallers === 3,
@@ -720,7 +723,11 @@ guard('round 2: driven -- who gets the modifier and who does not', () => {
      'and only the control path adds it');
   /* no chart caller adds it anywhere */
   const adds = (codeOnly(SRC).match(/classList\.add\('exec-tooltip-hug'\)/g) || []).length;
-  ok(adds === 1, 'exactly ONE place in the app adds it: ' + adds);
+  /* 1 -> 2: the ingest label is one short string like a control label, so it
+   * takes the hug modifier too. ensureTooltip clears it for every other
+   * caller, so a second adder cannot leak into the chart boxes. */
+  ok(adds === 2, 'TWO places add it: the control path and CLCPA-245s ingest ' +
+     'label: ' + adds);
 });
 
 guard('round 2: WHICH sites were inflated, measured', () => {

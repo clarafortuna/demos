@@ -457,6 +457,11 @@ guard('three functions, all wiring', () => {
      * ANCHORED label rather than by arithmetic coincidence, plus the editor
      * label tooltip. Named so the exact count below stays a guard. */
     isAnchoredTotalRowLabel: 'NOT this brief: CLCPA-245, the anchored-suffix predicate (new)',
+    /* CLCPA-245 ROUND 2, by ruling: the native title became the dashboard's
+     * own tooltip, which needs a wiring, a call site and the CLCPA-242
+     * ownership entry. Named so the exact count below stays a guard. */
+    wireIngestLabelTips: 'NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)',
+    wireIngestPage: 'NOT this brief: CLCPA-245 round 2, it calls that wiring',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
      * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
@@ -479,7 +484,8 @@ guard('three functions, all wiring', () => {
   /* 21 -> 23: CLCPA-244 round 2 changed two this suite can see. */
   /* 23 -> 22: round 4's revert restored wireSectionInteractions. */
   /* 22 -> 23: CLCPA-245 added isAnchoredTotalRowLabel. */
-  ok(changed.length === 23, 'TWENTY-THREE: this ticket’s six, CLCPA-240 first ' +
+  /* 23 -> 25: CLCPA-245 round 2 added two more. */
+  ok(changed.length === 25, 'TWENTY-FIVE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
