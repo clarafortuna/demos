@@ -1,0 +1,86 @@
+======================================================================
+CLCPA-245 -- the general label veto, and the label tooltip
+  BASE 00d6dd3
+======================================================================
+  ok   both sources assemble and drive the veto path
+
+=== G. THE GATE: 149 stored table-years, nothing moves ===============
+  ok   G1 compared 149 stored table-years (expected 149)
+  ok   G2 ZERO flags lost
+  ok   G3 ZERO flags gained
+  ok   G4 found all 21 County/Systemwide Total rows: 21
+  ok   G5 and EVERY one is still flagged
+  ok   G6 the whole-label rule really does reject "County Total", which is why the shipped rule anchors at the END instead
+
+=== M. uniform imports: the arithmetic coincidence is vetoed =========
+  ok   M1 BASE mis-flagged 52 rows across 22 tables, which is the defect
+  ok   M2 the shipped rule mis-flags NONE outside the family: 0
+
+=== I. I1 has no total row, so it flags NOTHING ======================
+  ok   I1 [all filled] flags NOTHING now: 0   (BASE flagged 0)
+  ok   I1 [numeric filled, text blank] flags NOTHING now: 0   (BASE flagged 4)
+  ok   I1 [EMELY 2099 mixed: 0 and 2 text, 1 blank, 3-8 uniform] flags NOTHING now: 0   (BASE flagged 5)
+  ok   I1 [stored, untouched] flags NOTHING now: 0   (BASE flagged 0)
+  ok   I2 blank row 0: 0 flags now
+  ok   I2 blank row 1: 0 flags now
+  ok   I2 blank row 2: 0 flags now
+  ok   I2 blank row 3: 0 flags now
+  ok   I2 blank row 4: 0 flags now
+  ok   I2 blank row 5: 0 flags now
+  ok   I2 blank row 6: 0 flags now
+  ok   I2 blank row 7: 0 flags now
+  ok   I2 blank row 8: 0 flags now
+  ok   I3 and BASE flagged up to 4 of 9 across that sweep, which is the defect Emely photographed
+
+=== C. the caution: a label that BEGINS with the word ================
+  ok   C1 the label really does begin with the word: "Total number of hires at Con Edison from [th"
+  ok   C2 and a SUBSTRING rule would match it
+  ok   C3 isAnchoredTotalRowLabel was found
+  ok   C4 the SHIPPED predicate refuses it, because it anchors at the END
+  ok   C5 while "County Total" passes
+  ok   C6 and "Systemwide Total"
+  ok   C7 and the bare forms the strict rule already covered
+  ok   C8 and CLCPA-209s own row, "Total # of projects", stays data
+  ok   C9 and CLCPA-200s J1 row too
+  ok   C10 a label ending in the LETTERS but not the WORD is refused
+  ok   C11 while the same with a word boundary is accepted
+  ok   C12 and the boundary is what separates them, not the spelling
+
+=== O. totals checked against arithmetic computed HERE ===============
+  ok   O1 real inputs: 138 table-years
+  ok   O2 no flag outside the family lacks the anchored label
+  ok   O3 uniform inputs: 276 drives
+  ok   O4 and the same holds under uniform figures
+  ok   O5 the oracle says I1 has NO total row, independently
+  ok   O6 and that it DOES find one in G2, so it is not simply always false
+
+=== T. the label tooltip =============================================
+  ok   T0 renderIngestEditor was found
+  ok   T1 a title is computed from the label text
+  ok   T2 and it is ESCAPED, like every other attribute here
+  ok   T3 and interpolated into the input
+  ok   T4 BASE had none, which is the rider
+  ok   T5 the editor rendered
+  ok   T6 the long label carries its full text as a title
+  ok   T7 and the blank label gets NO title rather than an empty one
+
+=== X. what this ticket did NOT touch ================================
+  ok   X1 CLCPA-240 round 4s family predicate is byte-identical
+  ok   X2 and CLCPA-200s strict predicate
+  ok   X3 DERIVED_COLS is byte-identical
+  ok   X4 recomputeTotals is byte-identical: the ordering item is NOT bought here
+  ok   X5 and CLCPA-244s percent rule
+  ok   X6 styles.css is byte-identical: the tooltip is native
+  ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
+       changed: isAnchoredTotalRowLabel, renderIngestEditor, totalRowFlags
+  ok   the change to isAnchoredTotalRowLabel is accounted for
+  ok   the change to renderIngestEditor is accounted for
+  ok   the change to totalRowFlags is accounted for
+  ok   totalRowFlags changed as intended: the general label veto
+  ok   isAnchoredTotalRowLabel changed as intended: the anchored-suffix predicate (new)
+  ok   renderIngestEditor changed as intended: the label tooltip
+  ok   X8 exactly THREE functions changed: 3
+  ok   X9 BASE is a literal commit sha: 00d6dd3
+  ok   X10 and an ancestor of HEAD
+
+  65 passed, 0 failed

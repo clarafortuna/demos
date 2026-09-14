@@ -61,7 +61,7 @@ CLCPA-226 -- the native tooltips become the app s own styled one
   ok   both error chips keep their native title: 2
   ok   the territory valueField tooltips stay, as ruled: 2
   ok   and the territory load-error title with them
-  ok   SIX static native titles remain -- 4 category B plus 2 error chips: 6
+  ok   SEVEN static native titles -- 4 category B, 2 error chips, and the CLCPA-245 ingest label: 7
   ok   BASE control: there were 15, so 9 static were converted: 15
   ok   THREE dynamic titles remain, all ruled deliberate: 3
   ok   BASE control: there were 4, so 1 dynamic was converted: 4

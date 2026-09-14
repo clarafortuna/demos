@@ -93,7 +93,7 @@ function grabDecl(name) {
 }
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'kpiDacPct'];
+  'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'kpiDacPct'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
   'dacJ9Share', 'DAC_KPI_ANALYTICAL'];
 const API = new Function(DECLS.map(grabDecl).join('\n') + '\n' +

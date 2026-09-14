@@ -247,7 +247,7 @@ const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
-  'ingestComputed', /* CLCPA-244 dep */ 'isTotalOnlyDerived', 'totalRowFlags', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell',
+  'ingestComputed', /* CLCPA-244 dep */ 'isTotalOnlyDerived', 'totalRowFlags', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell',
   'cellText', 'cellCount', 'cellPct', 'rawNum', 'applyIngestImport',
   'addsOnlyPrecision', 'ingestStagedSummary', 'detectPctColumns', 'detectAvgColumns',
   'unreconciledTotals', 'totalRowSums', 'columnGrandTotals', 'applyDerivedCols',

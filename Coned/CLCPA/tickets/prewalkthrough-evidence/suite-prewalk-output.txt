@@ -101,7 +101,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isHierarchicalTotalLabel, isTotalOnlyDerived, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to computeHeaderCards is accounted for
@@ -115,6 +115,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to ingestIsShapeBlank is accounted for
   ok   the change to ingestKeyColCount is accounted for
   ok   the change to ingestRowKey is accounted for
+  ok   the change to isAnchoredTotalRowLabel is accounted for
   ok   the change to isHierarchicalTotalLabel is accounted for
   ok   the change to isTotalOnlyDerived is accounted for
   ok   the change to parseNumericInput is accounted for
@@ -157,10 +158,11 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   isTotalOnlyDerived changed as intended: NOT this brief: CLCPA-244, the total-row-only rule predicate (new)
   ok   ingestComputed changed as intended: NOT this brief: CLCPA-244, a weighted mean marks only its total row
   ok   getTableSchema changed as intended: NOT this brief: CLCPA-244, the fallback takes the most recent year
+  ok   isAnchoredTotalRowLabel changed as intended: NOT this brief: CLCPA-245, the anchored-suffix predicate (new)
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly TWENTY-EIGHT functions changed: 28
-  ok   and no function outside those twenty-eight moved at all
+  ok   exactly TWENTY-NINE functions changed: 29
+  ok   and no function outside those twenty-nine moved at all
 
 ======================================================================
-  149 passed, 0 failed
+  151 passed, 0 failed
 ======================================================================

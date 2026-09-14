@@ -22,7 +22,18 @@ const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
 const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-244-evidence';
-const APP = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+const os = require('os');
+const path = require('path');
+const { execSync } = require('child_process');
+/* suite_244_r4 is now pinned to round 4s build, so these controls mutate a
+ * materialised copy of it and point the suite there -- the same treatment
+ * mut_244_r2 and _r3 already carry. */
+const NEW_COMMIT = process.env.DAC_244R4_COMMIT || '6a3b0b7';
+const APP = path.join(os.tmpdir(), 'clcpa244r4-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT +
+  ':"Coned/CLCPA/ExecutiveDashboard_dev/app.js"',
+  { cwd: 'c:/Users/emely/Desktop/Projects/demos', maxBuffer: 1 << 28 })
+  .toString('utf8').replace(new RegExp(String.fromCharCode(92)+"r?"+String.fromCharCode(92)+"n",'g'), String.fromCharCode(13)+String.fromCharCode(10)));
 const SUITE = DIR + '/suite_244_r4.js';
 
 const M = [
@@ -129,7 +140,8 @@ M.forEach((m) => {
   }
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_244_r4.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_244_r4.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -159,7 +171,8 @@ M.forEach((m) => {
 });
 
 let cleanOk = true, cleanOut = '';
-try { cleanOut = execFileSync('node', ['suite_244_r4.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { cleanOut = execFileSync('node', ['suite_244_r4.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) { cleanOk = false; cleanOut = (e.stdout || '') + (e.stderr || ''); }
 
 const head = [

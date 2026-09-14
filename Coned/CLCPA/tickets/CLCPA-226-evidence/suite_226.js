@@ -216,8 +216,13 @@ guard('the natives that stay', () => {
 
   /* the count adds up: nothing was converted by accident and nothing missed */
   const staticTitles = (SRC.match(/title="/g) || []).length;
-  ok(staticTitles === 6,
-     'SIX static native titles remain -- 4 category B plus 2 error chips: ' + staticTitles);
+  /* 6 -> 7 under CLCPA-245: the ingest editor label gained a native title,
+   * so a long metric name can be read instead of being clipped silently.
+   * It is a NEW title rather than one of this ticket's conversions, and it
+   * is named here so the count stays exact rather than being relaxed. */
+  ok(staticTitles === 7,
+     'SEVEN static native titles -- 4 category B, 2 error chips, and ' +
+     'the CLCPA-245 ingest label: ' + staticTitles);
   const baseStatic = (BASE_SRC.match(/title="/g) || []).length;
   ok(baseStatic === 15, 'BASE control: there were 15, so 9 static were converted: ' + baseStatic);
   const dyn = (codeOnly(SRC).match(/\.title = /g) || []).length;

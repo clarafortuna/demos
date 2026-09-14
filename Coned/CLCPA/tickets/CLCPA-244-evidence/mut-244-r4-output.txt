@@ -28,7 +28,7 @@ CLCPA-244 round 4 -- mutation controls for the revert
   red  HARNESS: the gone-symbol list compares the build against ITSELF
        10 red, incl: O4a all 9 symbols really WERE in the rejected build (0), so their absence now means something
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: B1 rejected build is a literal sha: HEAD
+       13 red, incl: B1 rejected build is a literal sha: HEAD
 
   14 caught, 0 not caught, of 14 guards
   0 declared blind spot(s), listed above

@@ -332,7 +332,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
-      'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
+      'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -385,7 +385,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
-      'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
+      'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -660,6 +660,11 @@ guard('the four exclusions', () => {
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
+     * outside the four declared tables a total is now decided by an
+     * ANCHORED label rather than by arithmetic coincidence, plus the editor
+     * label tooltip. Named so the exact count below stays a guard. */
+    isAnchoredTotalRowLabel: 'NOT this brief: CLCPA-245, the anchored-suffix predicate (new)',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -685,9 +690,10 @@ guard('the four exclusions', () => {
   /* 27 -> 31: CLCPA-244 round 2 changed four more, every one named above. */
   /* 27 -> 29: CLCPA-244 round 2 changed two functions THIS suite can see. */
   /* 29 -> 28: round 4's revert restored wireSectionInteractions. */
-  ok(changed.length === 28, 'exactly TWENTY-EIGHT functions changed: ' + changed.length);
+  /* 28 -> 29: CLCPA-245 added isAnchoredTotalRowLabel. */
+  ok(changed.length === 29, 'exactly TWENTY-NINE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those twenty-eight moved at all');
+     'and no function outside those twenty-nine moved at all');
 });
 
 say('');
