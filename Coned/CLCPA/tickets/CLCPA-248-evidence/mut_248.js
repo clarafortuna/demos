@@ -39,19 +39,19 @@ const M = [
     expect: 'O2 every compare panel carries a colgroup' },
   { t: APP, name: 'the prior panel gets its OWN widths again',
     from: '      const priorContent = hasPrevData\r\n        ? renderTable(dataPrev, cmpOpts)',
-    to:   '      const priorContent = hasPrevData\r\n        ? renderTable(dataPrev, Object.assign({}, renderOpts, { colWidths: compareColWidths(dataPrev, renderOpts) }))',
+    to:   '      const priorContent = hasPrevData\r\n        ? renderTable(dataPrev, Object.assign({}, renderOpts, { colWidths: null }))',
     /* two anatomies again, which is the ticket */
     /* GREEN on the first run: comparePair REPRODUCES the compare branch, so
      * a mutation to the SHIPPED branch moved nothing. OS3 is the pin that
      * sees it -- the same cmpOpts object must reach both panels. */
     expect: 'OS3 and the SAME cmpOpts object reaches both panels' },
-  { t: APP, name: 'the width vector is computed from the PRIOR panel',
-    from: '        { colWidths: compareColWidths(dataCurrent, renderOpts) });',
-    to:   '        { colWidths: compareColWidths(dataPrev, renderOpts) });',
+  { t: APP, name: 'THE ROUND-1 DEFECT: the skeleton is measured per YEAR again',
+    from: '        { colWidths: compareColWidths(t, renderOpts) });',
+    to:   '        { colWidths: compareColWidths({ data: { y: dataCurrent.slice(1) } }, renderOpts) });',
     /* still one anatomy, but the wrong one: the prior no longer inherits the
      * current's, which is what Emely ruled */
     /* GREEN on the first run, same cause. OS2 owns it. */
-    expect: 'OS2 and from the CURRENT panels rows' },
+    expect: 'OS2 and from the TABLE, not from either years rows' },
 
   /* ---- the colgroup is advisory ----------------------------------------- */
   { t: CSS, name: 'THE ADVISORY COLGROUP: the compare table stays auto',
@@ -69,8 +69,8 @@ const M = [
 
   /* ---- it leaks into the single-panel view ------------------------------ */
   { t: APP, name: 'THE LEAK: every table gets a colgroup, compare or not',
-    from: '      const cmpOpts = Object.assign({}, renderOpts,\r\n        { colWidths: compareColWidths(dataCurrent, renderOpts) });',
-    to:   '      const cmpOpts = Object.assign({}, renderOpts,\r\n        { colWidths: compareColWidths(dataCurrent, renderOpts) });\r\n      renderOpts.colWidths = cmpOpts.colWidths;',
+    from: '      const cmpOpts = Object.assign({}, renderOpts,\r\n        { colWidths: compareColWidths(t, renderOpts) });',
+    to:   '      const cmpOpts = Object.assign({}, renderOpts,\r\n        { colWidths: compareColWidths(t, renderOpts) });\r\n      renderOpts.colWidths = cmpOpts.colWidths;',
     /* renderOpts is shared with the single-panel branch.
      * GREEN on the first run, same cause: the leak is planted in the SHIPPED
      * branch, which the suite reproduced rather than ran. OS4 owns it. */
@@ -114,15 +114,40 @@ const M = [
   { t: APP, name: 'the label floor is removed, so the label column collapses',
     from: '    const LABEL_FLOOR = 25;',
     to:   '    const LABEL_FLOOR = 0;',
-    expect: 'W2 and no label column falls below its 25% floor' },
+    expect: 'W2 label in its 25-45 band' },
   { t: APP, name: 'the vector stops summing to 100',
-    from: '      pct = [LABEL_FLOOR].concat(pct.slice(1).map(p => p / restNow * rest));',
-    to:   '      pct = [LABEL_FLOOR].concat(pct.slice(1));',
+    from: '      pct = [want].concat(pct.slice(1).map(p => p / restNow * rest));',
+    to:   '      pct = [want].concat(pct.slice(1));',
     expect: 'W1 every vector sums to 100 with positive columns' },
-  { t: APP, name: 'a column can come out at zero width',
-    from: '      mins.push(Math.max(m, 4));',
-    to:   '      mins.push(m);',
-    expect: 'W1 every vector sums to 100 with positive columns' },
+  /* RETIRED, and why: this control removed the 4-character floor on the raw
+   * measure, and round 2s MIN_COL now rescues any column that would have gone
+   * slim, so the mutation changes nothing observable. A control that cannot
+   * fail is not a control; the property it guarded is covered by the MIN_COL
+   * control above, which does turn W5 red. */
+
+  /* ---- the round-2 band, the per-column minimum, and the measure -------- */
+  { t: APP, name: 'the label CEILING is removed, so text starves the numbers',
+    from: '    const LABEL_CEIL = 45;',
+    to:   '    const LABEL_CEIL = 100;',
+    /* A1, A5, D2 and J1 all reach past half without it */
+    expect: 'W2 label in its 25-45 band' },
+  { t: APP, name: 'the per-column minimum goes, so C1 gets its sliver back',
+    from: '    const MIN_COL = 4;',
+    to:   '    const MIN_COL = 0;',
+    expect: 'W5 and C1s sliver column is raised to the 4% minimum' },
+  { t: APP, name: 'MEASURED BY LONGEST WORD AGAIN, which undersells the label',
+    from: "        m = Math.max(m, String(v == null ? '' : v).length);",
+    to:   "        m = Math.max(m, String(v == null ? '' : v).split(/\\s+/).reduce((x, w) => Math.max(x, w.length), 0));",
+    /* the round-1 measure: it put I1 on the floor at 25%, which is the
+     * "both narrow" Emely photographed */
+    /* O7 cannot see it: a different MEASURE still makes the three pairs
+     * agree with each other, just on the wrong numbers. O9 pins what they
+     * agree ON, which is the resolved-winner assertion Emely asked for. */
+    expect: 'O9 and the resolved I1 vector is the accepted one' },
+  { t: APP, name: 'ONLY ONE YEAR IS MEASURED, so the pair can move the skeleton',
+    from: '    const years = Object.keys(table.data).filter(y => (table.data[y] || []).length);',
+    to:   '    const years = Object.keys(table.data).filter(y => (table.data[y] || []).length).slice(-1);',
+    expect: 'O8 and adding or removing a year does not move it' },
 
   /* ---- the harness itself ------------------------------------------------ */
   { t: SUITE, name: 'HARNESS: the CSS assertions read the RAW file again',
