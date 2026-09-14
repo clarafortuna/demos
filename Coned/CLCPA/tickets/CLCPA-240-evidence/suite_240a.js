@@ -145,6 +145,11 @@ function buildEnv(src, tag) {
     try {
       candidate.totalRowFlags(PAYLOAD.tables.A5.data['2025'], 'A5',
         PAYLOAD.tables.A5.schema_by_year['2025']);
+      /* CLCPA-245: a FLAGGING NON-FAMILY table too. The new veto loop opens
+       * with `if (!out[i]) continue`, so a family table never reaches it and
+       * the resolver never learns the dependency. A1 has a real Total row. */
+      candidate.totalRowFlags(PAYLOAD.tables.A1.data['2025'].map(r => r.slice()), 'A1',
+        PAYLOAD.tables.A1.schema_by_year['2025']);
       candidate.buildIngestWorkbook('A5', '2099');
       candidate.buildIngestImport(
         [PAYLOAD.tables.A5.schema_by_year['2025'], ['HVAC', 1, 1, null]],

@@ -453,6 +453,11 @@ guard('two functions, and nothing else', () => {
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
+     * outside the four declared tables a total is now decided by an
+     * ANCHORED label rather than by arithmetic coincidence, plus the editor
+     * label tooltip. Named so the exact count below stays a guard. */
+    isAnchoredTotalRowLabel: 'NOT this brief: CLCPA-245, the anchored-suffix predicate (new)',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -476,7 +481,9 @@ guard('two functions, and nothing else', () => {
   /* 23 -> 27: CLCPA-244 round 2 changed four more, every one named above. */
   /* 23 -> 25: CLCPA-244 round 2 changed two functions THIS suite can see. */
   /* 25 -> 24: round 4's revert restored wireSectionInteractions. */
-  ok(changed.length === 24, 'exactly TWENTY-FOUR functions changed: ' + changed.length);
+  /* 24 -> 25: CLCPA-245 added isAnchoredTotalRowLabel; totalRowFlags and
+   * renderIngestEditor were already counted. */
+  ok(changed.length === 25, 'exactly TWENTY-FIVE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
@@ -496,6 +503,11 @@ guard('the exclusions hold', () => {
    * the function that half exists to change. Removing it is not weakening the
    * exclusion -- the pin that replaced it is at the bottom of this block, and
    * it now states what the matcher did rather than that it never happened. */
+  /* isAnchoredTotalRowLabel is deliberately NOT in this list: it is NEW in
+   * CLCPA-245, so there is nothing at BASE to compare it against, and the
+   * existence check below would fail. It is accounted for by name in EXPECT
+   * above instead. This is an EXCLUSION list, not a dependency list -- my
+   * blanket dependency patch put it here by pattern and it does not belong. */
   ['isStrictTotalRowLabel', 'recomputeTotals', 'rowsForDisplay', 'applyDerivedCols',
    'columnGrandTotals', 'totalRowSums',
    /* ingestComputed LEFT this list under CLCPA-244, which made a weighted mean

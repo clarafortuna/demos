@@ -86,7 +86,7 @@ const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
   'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
   /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
    * total row that has no numbers yet, so the closure needs it. */
-  'isStrictTotalRowLabel', 'isHierarchicalTotalLabel',
+  'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel',
   /* CLCPA-244: the editor now asks whether a derived rule is total-row-only. */
   'isTotalOnlyDerived',
   'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',

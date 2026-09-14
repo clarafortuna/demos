@@ -104,7 +104,7 @@ function orgRows() {
 
 const BASE_FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const BASE_DECLS = [
@@ -514,6 +514,11 @@ guard('the blast radius is accounted for, function by function', () => {
     isTotalOnlyDerived: 'CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
+     * outside the four declared tables a total is now decided by an
+     * ANCHORED label rather than by arithmetic coincidence, plus the editor
+     * label tooltip. Named so the exact count below stays a guard. */
+    isAnchoredTotalRowLabel: 'CLCPA-245, the anchored-suffix predicate (new)',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -541,7 +546,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 25 -> 29: CLCPA-244 round 2 changed four more, each named in ALSO. */
   /* 25 -> 27: CLCPA-244 round 2 changed two functions THIS suite can see. */
   /* 27 -> 26: round 4's revert restored wireSectionInteractions. */
-  ok(changed.length === 26, 'twenty-six in total, all named: ' + changed.length);
+  /* 26 -> 27: CLCPA-245 added isAnchoredTotalRowLabel. */
+  ok(changed.length === 27, 'twenty-seven in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

@@ -1,0 +1,38 @@
+======================================================================
+CLCPA-245 -- mutation controls
+======================================================================
+  red  THE DEFECT: the general veto is removed entirely
+       10 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
+  red  the veto loop never runs, because the else branch is dead
+       10 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
+  red  the predicate always says yes, so nothing is vetoed
+       15 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
+  red  THE REJECTED RULE: back to the whole-label form
+       6 red, incl: G2 ZERO flags lost: G1:2025 r2 Systemwide Total | G2:2023 r2 County Total | G2:2024 r2 County Total
+  red  THE ANCHOR DISSOLVES: a substring match
+       15 red, incl: C4 the SHIPPED predicate refuses it, because it anchors at the END
+  red  the anchor moves to the START
+       19 red, incl: C4 the SHIPPED predicate refuses it, because it anchors at the END
+  red  the word boundary goes, so "subtotals" inside a word matches
+       2 red, incl: C10 a label ending in the LETTERS but not the WORD is refused
+  red  THE LEAK: the family veto is replaced by this one
+       1 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
+  red  the family branch is bypassed, so the family gets the general rule
+       1 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
+  red  THE TOOLTIP GOES UNESCAPED
+       1 red, incl: T2 and it is ESCAPED, like every other attribute here
+  red  the tooltip is emitted even for a blank label
+       2 red, incl: T7 and the blank label gets NO title rather than an empty one
+  red  the tooltip is never emitted at all
+       3 red, incl: T6 the long label carries its full text as a title
+  red  HARNESS: the gate stops comparing table-years
+       1 red, incl: G1 compared 0 stored table-years (expected 149)
+  red  HARNESS: the oracle borrows the shipped predicate
+       2 red, incl: O2 no flag outside the family lacks the anchored label: G1:2025 r2, G2:2023 r2, G2:2024 r2, G2:2025
+  red  HARNESS: the 21-row check stops finding any rows
+       1 red, incl: G4 found all 21 County/Systemwide Total rows: 0
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X9 BASE is a literal commit sha: HEAD
+
+  16 caught, 0 not caught, of 16 guards
+  clean re-run against byte-restored source: PASSES -- 65 passed, 0 failed

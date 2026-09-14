@@ -111,6 +111,9 @@ function build(src, tag) {
       const d = P.tables.A5.data['2025'].map(r => r.slice());
       api.recomputeTotals(d, s25, 'A5', []);
       api.totalRowFlags(d, 'A5', s25);
+      /* CLCPA-245: a FLAGGING NON-FAMILY table too. */
+      api.totalRowFlags(P.tables.A1.data['2025'].map(r => r.slice()), 'A1',
+        P.tables.A1.schema_by_year['2025']);
       /* DRIVE THE SHAPES THE GUARDS USE, not just the stored one. A draft with
        * every value blanked, and a uniform one, reach paths the published data
        * never does -- and a mutation that changes which rows are totals reaches
@@ -504,8 +507,21 @@ guard('S: the veto is scoped and singular', () => {
      'S2 the declared-family branch is locatable: chars ' + bi + '..' + end);
   ok(end > bi && tf.slice(bi, end).indexOf('out[i] = false') >= 0,
      'S2b and the veto sits INSIDE it, so the other 48 tables cannot reach it');
-  ok((tf.split('out[i] = false').length - 1) === 1,
-     'S3 exactly one veto: ' + (tf.split('out[i] = false').length - 1));
+  /* TWO vetoes now, and the distinction this round cares about is unchanged.
+   *
+   * CLCPA-245 added the general one: outside the declared family a flag
+   * survives only if the label ends in total/totals. This round's claim was
+   * never "there is exactly one veto in the file" -- it was "THIS round's veto
+   * is scoped to the four declared tables", which S2/S2b assert by position
+   * and which is still true. The count is updated and the second one is
+   * identified by the predicate it calls, so the two cannot be confused. */
+  ok((tf.split('out[i] = false').length - 1) === 2,
+     'S3 exactly TWO vetoes: this round\'s family one and CLCPA-245\'s general ' +
+     'one: ' + (tf.split('out[i] = false').length - 1));
+  ok(tf.slice(bi, end).indexOf('isHierarchicalTotalLabel') >= 0,
+     'S3b this round\'s veto is the one calling isHierarchicalTotalLabel');
+  ok(tf.indexOf('isAnchoredTotalRowLabel') > end,
+     'S3c and CLCPA-245\'s sits AFTER the family branch, outside it');
   ok(grab('confirms', SRC) === grab('confirms', BASE_SRC) ||
      grab('confirms', SRC) === null,
      'S4 confirms() itself is byte-identical to BASE: the general correction ' +
@@ -542,12 +558,31 @@ guard('S: the veto is scoped and singular', () => {
       .filter(l => l && !sb.has(l));
   };
   const added = only(ed, edBase), removed = only(edBase, ed);
-  ok(added.length === 1 && removed.length === 1,
-     'S6.4 exactly ONE code line differs from BASE, both ways: +' +
-     added.length + '/-' + removed.length);
-  ok((added[0] || '').indexOf('isTotalOnlyDerived(dDesc)') >= 0 &&
-     (removed[0] || '') === 'if (dDesc) {',
-     'S6.5 and it is CLCPA-244s line: ' + (added[0] || '').trim());
+  /* TWO tickets have touched this function since round 3, and each is named.
+   * CLCPA-244 made a total-row-only derived rule fall through to an editable
+   * input on a body row; CLCPA-245 added the label tooltip. Round 3s LOCK is
+   * what this round guards, and S6.1-S6.3 above assert it byte for byte --
+   * this pin only has to show that nothing ELSE crept in unnamed. */
+  const CLAIMED = [
+    { add: 'isTotalOnlyDerived(dDesc)', why: 'CLCPA-244' },
+    { add: 'labelTitle', why: 'CLCPA-245, the label tooltip' },
+    { add: 'labelText', why: 'CLCPA-245, the label tooltip' },
+  ];
+  const unexplained = added.filter(l => !CLAIMED.some(c => l.indexOf(c.add) >= 0));
+  ok(unexplained.length === 0,
+     'S6.4 every added line belongs to a NAMED ticket' +
+     (unexplained.length ? ': ' + unexplained.slice(0, 3).join(' | ') : ''));
+  /* SYMMETRIC with S6.4, and it had to become so: my first version claimed
+   * only one line was REMOVED, and CLCPA-245s tooltip also rewrote the label
+   * input line. Two removals, each named. */
+  const CLAIMED_OUT = [
+    { line: 'if (dDesc) {', why: 'CLCPA-244' },
+    { line: 'class=\"ingest-cell ingest-cell-label\"', why: 'CLCPA-245, the tooltip' },
+  ];
+  const unexplainedOut = removed.filter(l => !CLAIMED_OUT.some(c => l.indexOf(c.line) >= 0));
+  ok(unexplainedOut.length === 0,
+     'S6.5 and every removed line belongs to a NAMED ticket too' +
+     (unexplainedOut.length ? ': ' + unexplainedOut.slice(0, 3).join(' | ') : ''));
   const declared = (fs.readFileSync(__filename, 'utf8')
     .match(/DAC_BASE_COMMIT \|\| '([^']*)'/) || [])[1];
   ok(/^[0-9a-f]{7,40}$/.test(String(declared)),

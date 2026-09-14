@@ -43,7 +43,25 @@ const BASE = process.env.DAC_BASE_COMMIT || '4f74597';
 const ORIG = process.env.DAC_244_ORIG || 'dc47788';
 const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
 
-const SRC = fs.readFileSync(APP, 'utf8');
+/* BOTH SIDES PINNED, as suite_244_r2 and _r3 already are.
+ *
+ * This suite's central claim is that CLCPA-244's revert was COMPLETE: exactly
+ * one function differed from pre-ticket, and it was parseNumericInput. That
+ * was true of the build it was written for and is the evidence for the revert.
+ * CLCPA-245 then legitimately changed three more functions, so a suite reading
+ * the working tree would report the revert as incomplete forever -- which is
+ * the opposite of what it proves.
+ *
+ * So its subject is CLCPA-244 round 4's build. The CURRENT state of those same
+ * functions is guarded by suite_245, which asserts what CLCPA-245 changed and
+ * that nothing else moved. DAC_APP_OVERRIDE still wins, so the mutation
+ * controls keep working.
+ */
+const NEW_COMMIT = process.env.DAC_244R4_COMMIT || '6a3b0b7';
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(APP, 'utf8')
+  : execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const show = (c) => execSync('git show ' + c + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = show(BASE);

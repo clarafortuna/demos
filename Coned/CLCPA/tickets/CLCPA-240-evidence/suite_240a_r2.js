@@ -95,7 +95,7 @@ function codeOnly(src) {
 /* ---------- the editor, assembled and CALLED ------------------------------ */
 const EDITOR_FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
   'detectAvgColumns', 'unreconciledTotals', 'totalRowSums', 'totalRowFlags',
-  'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'columnGrandTotals', 'applyDerivedCols',
+  'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'columnGrandTotals', 'applyDerivedCols',
   'applyDerivedRows', 'recomputeDirty', 'ingestStatusClass', 'ingestStatusText',
   'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'rawNum',
   'isSplitCell', 'formatIngestValue', 'fmtDerivedCell', 'sumDerivedCols',
@@ -162,7 +162,12 @@ const ENTRY = ['buildIngestWorkbook', 'buildIngestImport', 'totalRowFlags',
   'recomputeTotals', 'getTableSchema', 'getTableBody', 'ingestComputed',
   'ingestTemplateSource', 'normIngestKey', 'crc32', 'xlsxCol'];
 const OPTIONAL = ['ingestRowKey', 'ingestIsHeaderRow', 'ingestGroupOf',
-  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank'];
+  'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank',
+  /* CLCPA-245: totalRowFlags vetoes on this outside the declared family. It
+   * is OPTIONAL rather than required because BASE predates it -- an
+   * unconditional entry breaks the BASE build, which is how this suite first
+   * failed. */
+  'isAnchoredTotalRowLabel'];
 
 function buildEnv(src, tag) {
   const fns = ENTRY.concat(OPTIONAL.filter(n => grab(n, src)));
@@ -674,6 +679,7 @@ say('');
 say('=== F. everything outside the family is byte-identical ==================');
 guard('F: the editor renders flat tables exactly as BASE did', () => {
   const fam = { A5: 1, A6: 1, A7: 1, A8: 1 };
+  let titleOnly = 0;
   let e1 = null;
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
@@ -690,7 +696,16 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
      * category rows turned from read-only grey into editable inputs. It is
      * carved out BY NAME and its difference is then asserted in the expected
      * direction below -- an unexplained exclusion would delete the guard. */
-    if (a !== b) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
+    /* CLCPA-245 NORMALISATION, not a carve-out. That ticket added a native
+     * title to every ingest label, so EVERY table now differs from BASE by
+     * exactly that attribute -- comparing raw HTML would turn this pin into a
+     * permanent red rather than a guard. The title is stripped from both
+     * sides and the rest is still compared BYTE FOR BYTE, so anything else
+     * CLCPA-245 touched would still show. The attribute itself is asserted
+     * separately, below and in suite_245. */
+    const noTitle = (h) => String(h).replace(/ title="[^"]*"/g, '');
+    if (noTitle(a) !== noTitle(b)) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
+    if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
   });
   ok(checked >= 40, 'F1 rendered ' + checked + ' tables outside the family');
   ok(diff.length === 0,

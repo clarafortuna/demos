@@ -50,14 +50,16 @@ CLCPA-240 first half, ROUND 4 -- the label has a veto in four tables
   ok   S1 the veto clears a flag whose label does not say total
   ok   S2 the declared-family branch is locatable: chars 3701..4177
   ok   S2b and the veto sits INSIDE it, so the other 48 tables cannot reach it
-  ok   S3 exactly one veto: 1
+  ok   S3 exactly TWO vetoes: this round's family one and CLCPA-245's general one: 2
+  ok   S3b this round's veto is the one calling isHierarchicalTotalLabel
+  ok   S3c and CLCPA-245's sits AFTER the family branch, outside it
   ok   S4 confirms() itself is byte-identical to BASE: the general correction is not in this round
   ok   S5 styles.css is byte-identical to BASE
   ok   S6.1 round 3s lock line 1 is byte-identical to BASE
   ok   S6.2 round 3s lock line 2 is byte-identical to BASE
   ok   S6.3 round 3s lock line 3 is byte-identical to BASE
-  ok   S6.4 exactly ONE code line differs from BASE, both ways: +1/-1
-  ok   S6.5 and it is CLCPA-244s line: if (dDesc && !(isTotalOnlyDerived(dDesc) && !isTotal)) {
+  ok   S6.4 every added line belongs to a NAMED ticket
+  ok   S6.5 and every removed line belongs to a NAMED ticket too
   ok   S7 the baseline is a literal commit sha: "c2a34ee"
 
-  47 passed, 0 failed
+  49 passed, 0 failed

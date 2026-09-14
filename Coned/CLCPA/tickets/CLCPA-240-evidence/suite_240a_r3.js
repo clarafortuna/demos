@@ -126,6 +126,12 @@ function build(src, tag) {
       /* BASELINE-BEARING, which is the path both earlier suites skipped */
       api.recomputeTotals(d, s25, 'A5', P.tables.A5.data['2025'].map(r => r.slice()));
       api.totalRowFlags(d, 'A5', s25);
+      /* CLCPA-245: drive a FLAGGING NON-FAMILY table too. The new veto loop
+       * opens with `if (!out[i]) continue`, so a family table never reaches
+       * it and the resolver never learns the dependency. A1 has a real Total
+       * row, so it does. */
+      api.totalRowFlags(P.tables.A1.data['2025'].map(r => r.slice()), 'A1',
+        P.tables.A1.schema_by_year['2025']);
       api.buildIngestImport([s25, ['HVAC', 1, 1, null]], s25, [], 'A5');
       STATE.ingest = { tableId: 'A5', year: '2025', schema: s25,
         baseline: P.tables.A5.data['2025'].map(r => r.slice()),
@@ -282,7 +288,12 @@ guard('A: a populated baseline behaves exactly as BASE did', () => {
     importedInto2099(OLD));
   ok(HDR.filter(i => hasInput(a.row(i)) || hasDel(a.row(i))).length === 0,
      'A1 every header is locked');
-  ok(a.html === b.html,
+  /* CLCPA-245 added a native title to every ingest label, so the raw HTML
+   * now differs by that attribute on every row. Stripped from both sides;
+   * everything else is still compared byte for byte, which is what this
+   * assertion was ever about. */
+  const stripTitle = (h) => String(h).replace(/ title="[^"]*"/g, '');
+  ok(stripTitle(a.html) === stripTitle(b.html),
      'A2 and the whole grid is byte-identical to BASE in this state, so ' +
      'round 3 changed nothing an operator had already accepted');
 });
@@ -515,6 +526,7 @@ say('');
 say('=== F. everything outside the family, and the round trip =============');
 guard('F: flat tables render byte-identically to BASE', () => {
   const fam = { A5: 1, A6: 1, A7: 1, A8: 1 };
+  let titleOnly = 0;
   let e1 = null, e1empty = null;
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
@@ -536,7 +548,16 @@ guard('F: flat tables render byte-identically to BASE', () => {
      * category rows turned from read-only grey into editable inputs. It is
      * carved out BY NAME and its difference is then asserted in the expected
      * direction below -- an unexplained exclusion would delete the guard. */
-    if (a !== b) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
+    /* CLCPA-245 NORMALISATION, not a carve-out. That ticket added a native
+     * title to every ingest label, so EVERY table now differs from BASE by
+     * exactly that attribute -- comparing raw HTML would turn this pin into a
+     * permanent red rather than a guard. The title is stripped from both
+     * sides and the rest is still compared BYTE FOR BYTE, so anything else
+     * CLCPA-245 touched would still show. The attribute itself is asserted
+     * separately, below and in suite_245. */
+    const noTitle = (h) => String(h).replace(/ title="[^"]*"/g, '');
+    if (noTitle(a) !== noTitle(b)) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
+    if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
     /* and with an EMPTY baseline too, since that is what round 3 changed */
     let a2, b2;
     try {
@@ -544,7 +565,7 @@ guard('F: flat tables render byte-identically to BASE', () => {
       b2 = renderWith(OLD, id, y, schema, rows, []).html;
     } catch (e) { diff.push(id + ':' + y + ' (empty baseline) threw'); return; }
     /* the same CLCPA-244 carve-out, in the state round 3 exists for */
-    if (a2 !== b2) {
+    if (noTitle(a2) !== noTitle(b2)) {
       if (id === 'E1') e1empty = { a: a2, b: b2 };
       else diff.push(id + ':' + y + ' (empty baseline)');
     }

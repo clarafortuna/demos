@@ -2746,6 +2746,31 @@ function utf8ByteLength(str) {
   }
 
   /**
+   * CLCPA-245: the same rule, anchored at the END instead of over the whole
+   * label. Used ONLY as a veto -- a row the arithmetic has already proposed
+   * keeps its flag only if its label ends in the word.
+   *
+   * WHY THE WHOLE-LABEL RULE WAS NOT ENOUGH. It was the obvious candidate and
+   * it fails its own gate: measured across all 149 stored table-years it
+   * would strip 21 legitimate totals, every G-family "County Total" plus G1's
+   * "Systemwide Total". Anchoring at the end keeps all 21.
+   *
+   * WHY A SUBSTRING IS STILL NOT AVAILABLE. I1 row 8 is
+   * "Total number of hires at Con Edison from [the Academy] who resided in a
+   * disadvantaged community at the time of enrollment in the program" -- a
+   * data row whose label BEGINS with the word. A substring match flags it;
+   * this does not. That is CLCPA-200's lesson, in a table CLCPA-200 never saw.
+   *
+   * Measured both directions on the frozen payload:
+   *   stored data     0 flags lost, 0 gained, 149 table-years
+   *   uniform import  72 mis-flags outside the family -> 0
+   */
+  function isAnchoredTotalRowLabel(label) {
+    if (label == null) return false;
+    return /(^|\s)(grand\s+|sub)?totals?$/i.test(String(label).trim());
+  }
+
+  /**
    * CLCPA-209: THE total-row classifier. Structural, plus arithmetic confirmation.
    *
    * Replaces isTotalRowLabel, an unanchored /total|grand total|subtotal/i substring
@@ -3026,6 +3051,44 @@ function utf8ByteLength(str) {
       for (let i = 0; i < rows.length; i++) {
         if (!out[i]) continue;
         if (!isHierarchicalTotalLabel((rows[i] || [])[0])) out[i] = false;
+      }
+    } else {
+      /* CLCPA-245: OUTSIDE THE FAMILY, THE LABEL HAS A VETO TOO.
+       *
+       * Round 4 scoped its veto to the four declared tables and said the
+       * general correction stays its own ticket, "because the other 48 carry
+       * 111 rows that say total without being one". This is that ticket, and
+       * the answer is that the rule must ANCHOR rather than match a substring.
+       *
+       * THE DEFECT, measured. Arithmetic alone cannot tell a total from a
+       * coincidence when the figures are uniform, and outside the family
+       * nothing else was checking. Driving 999 and 9999 imports across all 52
+       * tables: 24 tables mis-flag, 72 data rows flagged with no total label.
+       * I1 is the clean case -- it has NO total row in any year, and Emely's
+       * mixed-fill import of 2099 locked FIVE of its nine data rows. The count
+       * moves with which row is left blank (5, 4, 3, 2, 1, 0 as the blank
+       * walks down), because a blank row reads as a structural header and
+       * re-segments the grouped branch.
+       *
+       * WHY ANCHORED-SUFFIX AND NOT THE WHOLE-LABEL RULE. The obvious answer
+       * was isStrictTotalRowLabel, CLCPA-200's rule. Measured across all 149
+       * stored table-years it LOSES 21 legitimate totals: every G-family
+       * "County Total" and G1's "Systemwide Total", none of which is the bare
+       * word. Anchoring at the END keeps all 21 and still refuses
+       * "Total number of hires at Con Edison from [the Academy]..." -- I1's
+       * data row whose label BEGINS with the word. That row is the reason a
+       * substring match is not available: it is CLCPA-200's lesson in a new
+       * table.
+       *
+       * Measured both directions:
+       *   stored data   0 flags lost, 0 gained, across 149 table-years
+       *   uniform import  72 mis-flags -> 0 outside the family
+       *
+       * Tables with no total-labelled row flag NOTHING, which is the whole of
+       * I1's fix: no rule can invent a total that does not exist. */
+      for (let i = 0; i < rows.length; i++) {
+        if (!out[i]) continue;
+        if (!isAnchoredTotalRowLabel((rows[i] || [])[0])) out[i] = false;
       }
     }
     return out;
@@ -21092,8 +21155,17 @@ function wireHTooltips() {
         }
         if (colIdx === 0) {
           // Label column — always editable text input
+          /* CLCPA-245 rider: the label is a plain input with no width rule, so
+           * a long metric name is clipped by the box with no ellipsis and no
+           * way to read it. Measured: 27 labels in the payload exceed 80
+           * characters, 15 of them in I1, longest 136. A native title gives
+           * the full text on hover without touching the row rhythm the lock
+           * affordances depend on. Empty when it would add nothing. */
+          const labelText = String(rawNum(v) == null ? '' : rawNum(v));
+          const labelTitle = labelText.trim()
+            ? ` title="${escapeHtml(labelText)}"` : '';
           return `<td class="ingest-td-label">
-            <input type="text" value="${escapeHtml(rawNum(v))}" data-row="${rowIdx}" data-col="0" class="ingest-cell ingest-cell-label" />
+            <input type="text" value="${escapeHtml(rawNum(v))}"${labelTitle} data-row="${rowIdx}" data-col="0" class="ingest-cell ingest-cell-label" />
           </td>`;
         }
         const dDesc = derivedByCol[colIdx];

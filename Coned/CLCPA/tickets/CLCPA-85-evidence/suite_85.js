@@ -78,7 +78,7 @@ const WANT_FN = ['parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnly
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',
-                 'formatIngestValue', 'compareTableIds', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel',
+                 'formatIngestValue', 'compareTableIds', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel',
                  'isSplitCell', 'cellText', 'cellCount', 'cellPct'];
 const missing = [];
 const parts = [];

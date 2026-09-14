@@ -84,7 +84,7 @@ const CODE = codeOnly(SRC);
 /* ---- the composed org, with the imported 2099 ------------------------ */
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
@@ -452,6 +452,11 @@ guard('three functions, all wiring', () => {
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
+    /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
+     * outside the four declared tables a total is now decided by an
+     * ANCHORED label rather than by arithmetic coincidence, plus the editor
+     * label tooltip. Named so the exact count below stays a guard. */
+    isAnchoredTotalRowLabel: 'NOT this brief: CLCPA-245, the anchored-suffix predicate (new)',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
      * scan is IIFE-scoped, so it cannot see them. suite_244_r2 owns those. */
@@ -473,7 +478,8 @@ guard('three functions, all wiring', () => {
   /* 18 -> 21: CLCPA-244 changed three more, every one named above. */
   /* 21 -> 23: CLCPA-244 round 2 changed two this suite can see. */
   /* 23 -> 22: round 4's revert restored wireSectionInteractions. */
-  ok(changed.length === 22, 'TWENTY-TWO: this ticket’s six, CLCPA-240 first ' +
+  /* 22 -> 23: CLCPA-245 added isAnchoredTotalRowLabel. */
+  ok(changed.length === 23, 'TWENTY-THREE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

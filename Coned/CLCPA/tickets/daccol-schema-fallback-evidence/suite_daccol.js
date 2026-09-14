@@ -82,7 +82,7 @@ function codeOnly(src) {
 
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
-  'composePayloadFromRows', 'isStrictTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
+  'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
@@ -461,7 +461,10 @@ guard('one function', () => {
                  * IIFE-scoped, so it is blind to them by construction. */
                 /* round 4's revert restored wireSectionInteractions, so it is
                  * no longer a changed function and has left this list. */
-                'parseNumericInput',];
+                'parseNumericInput',
+                /* CLCPA-245: the anchored-suffix predicate this suite CAN see,
+                 * since it sits at the IIFE indent its name scan matches. */
+                'isAnchoredTotalRowLabel'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));
