@@ -238,7 +238,7 @@ guard('S: styles.css and the payload readers are unchanged', () => {
   const strip248 = (c) => String(c)
     .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
     .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
-    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/(?:\.data-table)?\.data-table-cmp \{ table-layout: fixed; \}/g, '')
     .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
     .replace(/\s+/g, ' ').trim();
   ok(strip248(styles) === strip248(origStyles),

@@ -533,7 +533,7 @@ guard('X: the family veto and the derive engine are untouched', () => {
   const strip248 = (c) => String(c)
     .replace(/\/\* CLCPA-248[\s\S]*?\*\//g, '')
     .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
-    .replace(/\.data-table-cmp \{ table-layout: fixed; \}/g, '')
+    .replace(/(?:\.data-table)?\.data-table-cmp \{ table-layout: fixed; \}/g, '')
     .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
     .replace(/\s+/g, ' ').trim();
   ok(strip248(styles) === strip248(baseStyles),
@@ -575,6 +575,7 @@ guard('X: the blast radius', () => {
     renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text wrap',
     compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
     renderSourceTables: 'NOT this brief: CLCPA-248, it computes that vector',
+    isWhollyNumeric: 'NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
     /* ROUND 2, by ruling: the native title became the dashboard s own
      * tooltip, which needs a wiring, a call site, and the CLCPA-242
      * ownership entry. Three more functions, each named. */
@@ -586,7 +587,8 @@ guard('X: the blast radius', () => {
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 6 -> 9: CLCPA-248 added three, every one named above. */
-  ok(changed.length === 9, 'X8 exactly NINE functions changed: ' + changed.length);
+  /* 9 -> 10: CLCPA-248 round 3 added isWhollyNumeric. */
+  ok(changed.length === 10, 'X8 exactly TEN functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

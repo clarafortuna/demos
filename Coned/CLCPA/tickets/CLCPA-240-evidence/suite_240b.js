@@ -469,6 +469,7 @@ guard('two functions, and nothing else', () => {
      * Named so the exact count below stays a guard. */
     renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text-cell wrap',
     compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
+    isWhollyNumeric: 'NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
     renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
@@ -497,7 +498,8 @@ guard('two functions, and nothing else', () => {
    * renderIngestEditor were already counted. */
   /* 25 -> 27: CLCPA-245 round 2 added two more. */
   /* 27 -> 30: CLCPA-248 changed three more, every one named above. */
-  ok(changed.length === 30, 'exactly THIRTY functions changed: ' + changed.length);
+  /* 30 -> 31: CLCPA-248 round 3 added isWhollyNumeric. */
+  ok(changed.length === 31, 'exactly THIRTY-ONE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

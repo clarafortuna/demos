@@ -586,10 +586,24 @@ body {
 /* CLCPA-248: ONE ANATOMY IN COMPARE MODE.
    The two panels always shared a renderer; what differed was the layout each
    table negotiated for itself. table-layout: fixed makes the colgroup the
-   authority, so the widths computed once from the current panel govern both.
-   Scoped to .data-table-cmp, which is emitted ONLY when compare mode supplies
-   those widths -- the single-panel view keeps table-layout: auto. */
-.data-table-cmp { table-layout: fixed; }
+   authority, so the widths computed once for the table govern both panels.
+   Emitted ONLY when compare mode supplies those widths, so the single-panel
+   view keeps table-layout: auto.
+
+   ROUND 3, AND THE REASON THIS SELECTOR NAMES TWO CLASSES.
+   It was `.data-table-cmp`, one class, specificity 0,1,0 -- and `.data-table`
+   at line ~1503 of this file declares table-layout: auto at the SAME
+   specificity, 900-odd lines later. Source order settled it, so auto won on
+   every compare table and the colgroup was never authoritative: not in round
+   1, not in round 2. Under auto the browser distributes by min-content and a
+   nowrap cell demands its whole string, which is why the prior panel came out
+   at a 12.38% label column while the colgroup said 41.46%.
+   Two classes make it 0,2,0, so it wins on SPECIFICITY and no later edit to
+   this stylesheet can quietly reverse it by being later. The renderer emits
+   both classes together on exactly these tables.
+   The harness now resolves this cascade rather than checking the rule exists;
+   presence is what C1 and C2 checked, and presence is what shipped twice. */
+.data-table.data-table-cmp { table-layout: fixed; }
 
 /* CLCPA-248: a TEXT cell wraps even in a numeric column.
    CLCPA-140 made ALIGNMENT a column property so blanks and dashes align with

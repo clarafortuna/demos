@@ -468,7 +468,10 @@ guard('one function', () => {
                 /* CLCPA-245 round 2: the tooltip wiring and its call site */
                 'wireIngestLabelTips', 'wireIngestPage',
                 /* CLCPA-248: the compare-panel anatomy */
-                'renderTable', 'compareColWidths', 'renderSourceTables'];
+                'renderTable', 'compareColWidths', 'renderSourceTables',
+                /* CLCPA-248 round 3: the wrap predicate. isNumeric, which
+                 * dacCol's callers lean on, is deliberately untouched. */
+                'isWhollyNumeric'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

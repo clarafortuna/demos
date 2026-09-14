@@ -19,6 +19,16 @@
  *   THE WRAP IS LOST OR OVER-APPLIED -- prose stays nowrap (the crush), or a
  *   real number starts wrapping.
  *
+ *   ROUND 3: THE RULE IS PRESENT AND INERT -- the selector drops back to one
+ *   class and is beaten by `.data-table` 900 lines later at equal
+ *   specificity. That is exactly what shipped twice, and no presence
+ *   assertion can see it. "ROUND 3 UNDONE" is that mutation.
+ *
+ *   ROUND 3: THE RESOLVER LIES -- it is shared kit, so a wrong answer would
+ *   make every CSS assertion built on it worthless while looking green. Six
+ *   controls attack it directly, and one of them found a real defect in it:
+ *   every rule reported the line of the one before it.
+ *
  * Ends with a CLEAN re-run against byte-restored source and says so loudly.
  */
 const fs = require('fs');
@@ -30,6 +40,10 @@ const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-248-evidence';
 const APP = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const CSS = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const SUITE = DIR + '/suite_248.js';
+/* ROUND 3: the shared cascade resolver. It is kit, not ticket code, so it
+ * gets controls of its own -- a resolver that answers wrongly would make
+ * every CSS assertion built on it worthless while looking green. */
+const KIT = REPO + '/Coned/CLCPA/tickets/_kit/css_cascade.js';
 
 const M = [
   /* ---- the two anatomies return ----------------------------------------- */
@@ -55,10 +69,23 @@ const M = [
 
   /* ---- the colgroup is advisory ----------------------------------------- */
   { t: CSS, name: 'THE ADVISORY COLGROUP: the compare table stays auto',
-    from: '.data-table-cmp { table-layout: fixed; }',
-    to:   '.data-table-cmp { table-layout: auto; }',
+    from: '.data-table.data-table-cmp { table-layout: fixed; }',
+    to:   '.data-table.data-table-cmp { table-layout: auto; }',
     /* emitted but powerless: min-content wins and the anatomies diverge again */
-    expect: 'C1 table-layout: fixed is on .data-table-cmp only' },
+    expect: 'C1 a compare table RESOLVES to table-layout: fixed' },
+  { t: CSS, name: 'ROUND 3 UNDONE: the selector drops back to ONE class',
+    from: '.data-table.data-table-cmp { table-layout: fixed; }',
+    to:   '.data-table-cmp { table-layout: fixed; }',
+    /* THE SHIPPED DEFECT OF ROUNDS 1 AND 2, reproduced exactly: the rule is
+     * present, correct, and beaten by `.data-table` 900 lines later at the
+     * same specificity. Nothing about the rule text betrays it. This is the
+     * mutation the old presence-matching C1 could not see. */
+    expect: 'C1 a compare table RESOLVES to table-layout: fixed' },
+  { t: CSS, name: 'the shared rule takes !important, outranking specificity',
+    from: '.data-table {\r\n  table-layout: auto;\r\n}',
+    to:   '.data-table {\r\n  table-layout: auto !important;\r\n}',
+    /* specificity is not the only axis, and the resolver has to know it */
+    expect: 'C1 a compare table RESOLVES to table-layout: fixed' },
   { t: APP, name: 'the compare class is never applied, so the CSS cannot bind',
     from: '    const cmpCls = colGroup ? tblCls + \' data-table-cmp\' : tblCls;',
     to:   '    const cmpCls = tblCls;',
@@ -89,13 +116,13 @@ const M = [
   { t: CSS, name: 'THE CRUSH RETURNS: the wrap modifier does nothing',
     from: '.data-table td.num.num-text {\r\n  white-space: normal;\r\n  word-break: break-word;\r\n}',
     to:   '.data-table td.num.num-text {\r\n  word-break: break-word;\r\n}',
-    expect: 'C4 and it restores wrapping' },
+    expect: 'C4 a text cell in a numeric column RESOLVES to white-space' },
   { t: APP, name: 'the modifier is never applied to any cell',
-    from: '        const isTextCell = typeof cv === \'string\' && !isNumeric(cv);',
+    from: '        const isTextCell = typeof cv === \'string\' && !isWhollyNumeric(cv);',
     to:   '        const isTextCell = false;',
     expect: 'N2 and EVERY one carries the wrap modifier' },
   { t: APP, name: 'OVER-APPLIED: a real number gets the wrap modifier too',
-    from: '        const isTextCell = typeof cv === \'string\' && !isNumeric(cv);',
+    from: '        const isTextCell = typeof cv === \'string\' && !isWhollyNumeric(cv);',
     to:   '        const isTextCell = true;',
     /* N4 owns it and is the tighter statement: with every cell modified
      * there are no plain numeric cells LEFT, which is the first thing that
@@ -149,13 +176,97 @@ const M = [
     to:   '    const years = Object.keys(table.data).filter(y => (table.data[y] || []).length).slice(-1);',
     expect: 'O8 and adding or removing a year does not move it' },
 
+  /* ---- round 3: the wrap predicate --------------------------------------- */
+  { t: APP, name: 'THE PREDICATE REVERTS: the wrap asks isNumeric again',
+    from: '        const isTextCell = typeof cv === \'string\' && !isWhollyNumeric(cv);',
+    to:   '        const isTextCell = typeof cv === \'string\' && !isNumeric(cv);',
+    /* the round-2 shipped state: prose beginning with a digit keeps nowrap */
+    expect: 'P6 exactly NINETEEN cells change class' },
+  { t: APP, name: 'the predicate accepts a leading number and trailing words',
+    from: '    return cleaned !== \'\' && /^[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?$/.test(cleaned);',
+    to:   '    return cleaned !== \'\' && /^[-+]?(?:\\d+\\.?\\d*|\\.\\d+)(?:[eE][-+]?\\d+)?/.test(cleaned);',
+    /* THE ANCHOR DROPPED. One character, and the predicate collapses back
+     * into isNumeric: this project has shipped an unanchored /total/i before
+     * (CLCPA-200) and it cost a blanked data row. */
+    expect: 'P2 while isWhollyNumeric says it is not' },
+  { t: APP, name: 'the predicate calls everything text, so numbers wrap',
+    from: '  function isWhollyNumeric(v) {\r\n    if (typeof v === \'number\') return isFinite(v);',
+    to:   '  function isWhollyNumeric(v) {\r\n    if (true) return false;\r\n    if (typeof v === \'number\') return isFinite(v);',
+    expect: 'P3 isWhollyNumeric("32,919") is true' },
+  { t: APP, name: 'isNumeric is "fixed" instead, which moves the masks too',
+    from: '    return cleaned !== \'\' && !isNaN(parseFloat(cleaned)) && isFinite(parseFloat(cleaned));',
+    to:   '    return cleaned !== \'\' && /^[-+]?(?:\\d+\\.?\\d*|\\.\\d+)$/.test(cleaned);',
+    /* the tempting shortcut, and the reason it is refused: isNumeric feeds
+     * columnNumericMask, the formatters and the derive engine */
+    expect: 'X3b and isNumeric itself is byte-identical to BASE' },
+
+  /* ---- round 3: the two-column pin --------------------------------------- */
+  { t: CSS, name: 'the two-column cell-width rule is deleted',
+    from: '.data-table tbody tr td:nth-child(2):last-child {',
+    to:   '.data-table tbody tr td:nth-child(2):last-child-REMOVED {',
+    expect: 'Q3 the cell-width rule is present and unchanged in shape' },
+
+  /* ---- round 3: the resolver, which is shared kit ------------------------ */
+  { t: KIT, name: 'KIT: source order is REVERSED, so the defect reads as fixed',
+    from: '  return a.line - b.line;',
+    to:   '  return b.line - a.line;',
+    /* `return 0` was the first cut and it moved nothing: candidates are
+     * collected in source order and Array.sort is stable, so the last one
+     * still won and the answer came out right by accident. A control that
+     * cannot fail is not a control. */
+    expect: 'R1 at EQUAL specificity the later rule wins' },
+  { t: KIT, name: 'KIT: every rule reports the line of the one before it',
+    from: '    if (buf.trim() === \'\' && !/\\s/.test(c) && c !== \'{\' && c !== \'}\') startLine = line;',
+    to:   '    if (false) startLine = line;',
+    /* the module's own first defect: adjacent rules then tie on line, the
+     * order tie-break never runs, and the answer comes out of sort stability */
+    expect: 'R11b and rules report the line they actually start on' },
+  { t: KIT, name: 'KIT: specificity is ignored, so the FIX cannot be told apart',
+    from: '  for (let k = 0; k < 3; k++) if (a.spec[k] !== b.spec[k]) return a.spec[k] - b.spec[k];',
+    to:   '  for (let k = 0; k < 0; k++) if (a.spec[k] !== b.spec[k]) return a.spec[k] - b.spec[k];',
+    expect: 'R3 specificity beats order' },
+  { t: KIT, name: 'KIT: !important stops winning',
+    from: '  if (a.important !== b.important) return a.important ? 1 : -1;',
+    to:   '  if (false) return a.important ? 1 : -1;',
+    expect: 'R4 and !important beats specificity' },
+  { t: KIT, name: 'KIT: comments are code again, the eight-time trap',
+    from: '    if (!inC && css[i] === \'/\' && css[i + 1] === \'*\') { inC = true; openedAt = i; i += 2; continue; }',
+    to:   '    if (false) { inC = true; openedAt = i; i += 2; continue; }',
+    expect: 'R5 a commented rule is not a rule' },
+  { t: KIT, name: 'KIT: undecidable rules are counted as if they applied',
+    from: '      if (m === \'conditional\' || r.at.length) conditional.push(entry);',
+    to:   '      if (false) conditional.push(entry);',
+    /* an @media print rule would then govern the screen */
+    expect: 'R9 nor is an at-rule body judged as if it always applied' },
+  { t: KIT, name: 'KIT: an ancestor selector matches anything, chain or not',
+    from: '      if (!hasChain && parts.length > 1) {',
+    to:   '      if (false) {',
+    expect: 'R8 a rule needing an ancestor is CONDITIONAL' },
+
   /* ---- the harness itself ------------------------------------------------ */
-  { t: SUITE, name: 'HARNESS: the CSS assertions read the RAW file again',
-    from: 'const CSS_LIVE = cssOnly(fs.readFileSync(path.join(REPO, CSS), \'utf8\'));',
-    to:   'const CSS_LIVE = fs.readFileSync(path.join(REPO, CSS), \'utf8\');',
-    /* the dead block then reads as live and C2 reports the shared table as
-     * fixed-layout when it is auto -- the trap this suite exists to avoid */
-    expect: 'C2 the shared .data-table keeps table-layout: auto' },
+  { t: SUITE, name: 'HARNESS: the round-1 pin is repointed off the broken build',
+    from: "const R1_COMMIT = process.env.CLCPA248_R1 || 'd43fd32';",
+    to:   "const R1_COMMIT = process.env.CLCPA248_R1 || 'd0d0a45';",
+    /* The regression pin is only a pin while it points at the build that
+     * SHIPPED the inert rule. Repointed at BASE it still resolves to auto --
+     * there is no compare rule there at all -- so R12 stays green and R13,
+     * which requires the rule to have been present, is what notices. Pointing
+     * it at HEAD proves nothing either: HEAD carries the fix only after the
+     * commit, so that control would pass or fail by timing. */
+    expect: 'R13 while the rule it was supposed to obey was present' },
+  { t: SUITE, name: 'HARNESS: the round-3 delta is measured against BASE again',
+    from: "const R2_COMMIT = process.env.CLCPA248_R2 || 'd2bb9c2';",
+    to:   "const R2_COMMIT = process.env.CLCPA248_R2 || 'd0d0a45';",
+    /* it then reports 267 moved cells, counting round 1 all over again */
+    expect: 'P6 exactly NINETEEN cells change class' },
+  /* RETIRED, and why: this control fed the raw stylesheet to CSS_LIVE so the
+   * dead block would read as live. It owned the old C1/C2, which matched rule
+   * TEXT. Those assertions are gone: C1 and C2 now resolve the cascade, and
+   * the resolver strips comments itself, so the property this control guarded
+   * moved into the kit. It is guarded there by "KIT: comments are code
+   * again", which turns R5 red. CSS_LIVE still feeds C3, C5, C6 and C7, and
+   * raw text breaks none of them, so the mutation moved nothing: a control
+   * that cannot fail is not a control. */
   { t: SUITE, name: 'HARNESS: the single-panel sweep stops rendering anything',
     from: '      checked++;\r\n      const h = NEW.renderTable(resolveRows(NEW, t, y), { headerLevels: hlOf(t), tableId: id });',
     to:   '      if (true) return;\r\n      checked++;\r\n      const h = NEW.renderTable(resolveRows(NEW, t, y), { headerLevels: hlOf(t), tableId: id });',
