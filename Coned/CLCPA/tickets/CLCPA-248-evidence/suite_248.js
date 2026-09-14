@@ -193,7 +193,9 @@ function comparePair(api, id, cur, prev) {
   const ro = { headerLevels: hlOf(t), tableId: id };
   const a = resolveRows(api, t, cur), b = resolveRows(api, t, prev);
   if (!a || !b) return null;
-  const w = api.compareColWidths ? api.compareColWidths(a, ro) : null;
+  /* ROUND 2: the vector is a property of the TABLE, so it is asked for once
+   * and does not depend on which pair is being rendered. */
+  const w = api.compareColWidths ? api.compareColWidths(t, ro) : null;
   const opts = w ? Object.assign({}, ro, { colWidths: w }) : ro;
   return { widths: w, cur: api.renderTable(a, opts), prev: api.renderTable(b, opts) };
 }
@@ -230,8 +232,9 @@ guard('O: THE SHIPPED COMPARE BRANCH, pinned structurally', () => {
   if (!ok(rs !== '', 'OS0 renderSourceTables was found')) return;
   ok((rs.match(/compareColWidths\(/g) || []).length === 1,
      'OS1 the width vector is computed EXACTLY ONCE');
-  ok(/compareColWidths\(dataCurrent, renderOpts\)/.test(rs),
-     'OS2 and from the CURRENT panels rows, so the prior inherits them');
+  ok(/compareColWidths\(t, renderOpts\)/.test(rs),
+     'OS2 and from the TABLE, not from either years rows, so the skeleton ' +
+     'cannot move with the pair');
   ok((rs.match(/renderTable\(dataPrev, cmpOpts\)/g) || []).length === 1 &&
      (rs.match(/renderTable\(dataCurrent, cmpOpts\)/g) || []).length === 1,
      'OS3 and the SAME cmpOpts object reaches both panels');
@@ -249,25 +252,37 @@ guard('O: BASE had no colgroup at all, which is the defect', () => {
      'O5 neither BASE panel emitted one, so each negotiated its own widths');
 });
 
-guard('O: the widths are the CURRENT panels, not a blend', () => {
-  /* the vector must be a function of the CURRENT rows alone: swapping which
-   * year is prior must not change it */
+guard('O: the vector is INVARIANT across year pairs', () => {
+  /* THE ROUND-2 RULING. Round 1 computed the widths from the CURRENT panel,
+   * so both panels always matched each other but the anatomy moved as you
+   * changed which years were compared. Measured on I1's label column across
+   * the three pairs Emely tested: 44.83%, then 37.14%, then 25.00% -- which
+   * her eye read as "twin and correct", "prior narrow", "both narrow", in
+   * that order. The skeleton is now a property of the TABLE. */
   const t = tableOf('I1');
   const ro = { headerLevels: hlOf(t), tableId: 'I1' };
-  const w1 = NEW.compareColWidths(resolveRows(NEW, t, '2025'), ro);
-  const w2 = NEW.compareColWidths(resolveRows(NEW, t, '2025'), ro);
-  ok(JSON.stringify(w1) === JSON.stringify(w2), 'O6 the computation is deterministic');
-  const wPrev = NEW.compareColWidths(resolveRows(NEW, t, '2024'), ro);
-  ok(JSON.stringify(w1) !== JSON.stringify(wPrev) ||
-     JSON.stringify(w1) === JSON.stringify(wPrev),
-     'O7 and it is a function of the rows it is given: ' +
-     JSON.stringify(w1) + ' from 2025, ' + JSON.stringify(wPrev) + ' from 2024');
-  /* the pair uses the CURRENT one on both sides */
-  const r = comparePair(NEW, 'I1', '2025', '2024');
-  ok(JSON.stringify(r.widths) === JSON.stringify(w1),
-     'O8 and the pair uses the CURRENT years vector');
+  const v = NEW.compareColWidths(t, ro);
+  ok(!!v, 'O6 I1 has a width vector');
+  const pairs = [['2099', '2025'], ['2025', '2024'], ['2024', '2023']];
+  const seen = pairs.map(([a, b]) => {
+    const r = comparePair(NEW, "I1", a, b);
+    return r && r.widths ? JSON.stringify(r.widths) : null;
+  });
+  ok(seen.every(x => x !== null && x === seen[0]),
+     'O7 all three of Emelys pairs get the IDENTICAL vector: ' +
+     (seen[0] || 'MISSING'));
+  /* and it does not depend on whether the imported year exists at all */
+  const without = NEW.compareColWidths(P.tables.I1, ro);
+  ok(JSON.stringify(without) === JSON.stringify(v),
+     'O8 and adding or removing a year does not move it');
+  /* THE RESOLVED WINNER, at the tested widths. O7 says the three pairs
+   * AGREE; this says WHAT they agree on, so a change of measure that keeps
+   * them agreeing -- longest-word instead of max-content, which put I1 on
+   * the 25% floor and is the "both narrow" Emely photographed -- is still
+   * caught. Agreement alone is not the requirement. */
+  ok(JSON.stringify(v) === '[41.46,29.27,29.27]',
+     'O9 and the resolved I1 vector is the accepted one: ' + JSON.stringify(v));
 });
-
 /* =================== W: the widths are sane =========================== */
 say('');
 say('=== W. the resolved widths, at the tested pairs ======================');
@@ -278,18 +293,35 @@ guard('W: every vector sums to 100 and keeps the label column readable', () => {
     if (!r || !r.widths) return;
     const sum = r.widths.reduce((a, b) => a + b, 0);
     if (Math.abs(sum - 100) > 0.5) bad.push(id + ':' + cur + ' sums ' + sum.toFixed(2));
-    if (r.widths[0] < 25 - 0.01) cramped.push(id + ':' + cur + ' label ' + r.widths[0] + '%');
+    if (r.widths[0] < 25 - 0.01 || r.widths[0] > 45 + 0.01)
+      cramped.push(id + ':' + cur + ' label ' + r.widths[0] + '%');
+    r.widths.slice(1).forEach((x, i) => {
+      if (x < 4 - 0.01) cramped.push(id + ':' + cur + ' col' + (i + 1) + ' ' + x + '%');
+    });
     if (r.widths.some(w => !(w > 0))) bad.push(id + ':' + cur + ' has a non-positive column');
   });
   ok(bad.length === 0, 'W1 every vector sums to 100 with positive columns' +
      (bad.length ? ': ' + bad.join(', ') : ''));
-  ok(cramped.length === 0, 'W2 and no label column falls below its 25% floor' +
+  ok(cramped.length === 0, 'W2 label in its 25-45 band, no value column under 4%' +
      (cramped.length ? ': ' + cramped.join(', ') : ''));
   /* the floor must actually BITE somewhere, or W2 proves nothing */
-  const r = comparePair(NEW, 'I1', '2024', '2023');
-  ok(r && Math.abs(r.widths[0] - 25) < 0.01,
-     'W3 and it genuinely bites: I1 2024/2023 lands exactly on it, ' +
-     'where proportion alone gave 12.38%');
+  /* the band must genuinely BITE at both ends, or W2 proves nothing */
+  const atCeil = [], atFloor = [];
+  Object.keys(P.tables).forEach(id => {
+    const tt = P.tables[id];
+    const w = NEW.compareColWidths(tt, { headerLevels: hlOf(tt), tableId: id });
+    if (!w) return;
+    if (Math.abs(w[0] - 45) < 0.01) atCeil.push(id);
+    if (Math.abs(w[0] - 25) < 0.01) atFloor.push(id);
+  });
+  ok(atCeil.length > 0, 'W3 the 45% ceiling bites on ' + atCeil.length +
+     ' tables: ' + atCeil.slice(0, 6).join(', '));
+  ok(atFloor.length > 0, 'W4 and the 25% floor on ' + atFloor.length +
+     ' tables: ' + atFloor.slice(0, 6).join(', '));
+  /* C1 is the per-column floor's own case: a 0.51% sliver before it */
+  const c1 = NEW.compareColWidths(P.tables.C1, { headerLevels: hlOf(P.tables.C1), tableId: 'C1' });
+  ok(c1 && c1.slice(1).every(x => x >= 4 - 0.01),
+     'W5 and C1s sliver column is raised to the 4% minimum: ' + JSON.stringify(c1));
 });
 
 /* =================== N: the nowrap prose ============================== */

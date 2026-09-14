@@ -3657,9 +3657,21 @@ function utf8ByteLength(str) {
   /**
    * CLCPA-248: the column widths both compare panels share.
    *
-   * Computed from the CURRENT panel's rows, so the prior inherits the current's
-   * anatomy rather than negotiating its own -- which is the whole requirement:
-   * one structure regardless of which years are compared.
+   * ROUND 2, by ruling: the skeleton is a property of the TABLE, not of the
+   * year pair being viewed.
+   *
+   * Round 1 computed it from the CURRENT panel's rows. That gave one anatomy
+   * per PAIR -- both panels always matched each other -- but the anatomy moved
+   * as you changed which years were compared, because each year's content
+   * negotiated afresh. Measured on I1, the label column across the three pairs
+   * Emely tested: 44.83% for 2099-vs-2025, 37.14% for 2025-vs-2024, 25.00% for
+   * 2024-vs-2023. Her eye read those as "twin and correct", "prior narrow" and
+   * "both narrow", in that order, which is the same three numbers.
+   *
+   * So the measurement now runs over EVERY YEAR THE TABLE HAS, once, and the
+   * result is the same vector whichever pair is on screen. A year with long
+   * prose wraps inside the fixed columns; content never renegotiates the
+   * skeleton.
    *
    * The measure is MIN-CONTENT in characters, the same quantity the browser's
    * auto layout uses: a cell that cannot wrap counts whole, a cell that can
@@ -3667,25 +3679,43 @@ function utf8ByteLength(str) {
    * column of blanks never collapses and the label column keeps a readable
    * share on a table whose values are wide.
    */
-  function compareColWidths(rows, opts) {
-    if (!Array.isArray(rows) || rows.length < 2) return null;
+  function compareColWidths(table, opts) {
+    if (!table || !table.data) return null;
     const headerLevels = (opts && opts.headerLevels) || 1;
-    const header = rows[headerLevels - 1] || rows[0];
-    const body = rows.slice(headerLevels);
-    const mask = columnNumericMask(header, body, opts && opts.tableId);
+    const tableId = opts && opts.tableId;
+    /* EVERY year, so the answer cannot depend on which pair is displayed */
+    const years = Object.keys(table.data).filter(y => (table.data[y] || []).length);
+    if (!years.length) return null;
+    const header = getTableSchema(table, years[years.length - 1]) ||
+      (table.data[years[years.length - 1]] || [])[0];
+    if (!header || !header.length) return null;
+    const body = [];
+    years.forEach(y => {
+      (table.data[y] || []).slice(Math.max(0, headerLevels - 1)).forEach(r => body.push(r));
+    });
+    const mask = columnNumericMask(header, body, tableId);
     const n = Math.max(header.length, ...body.map(r => (r || []).length));
     if (!n) return null;
-    const widest = (s) => String(s == null ? '' : s).split(/\s+/)
-      .reduce((m, w) => Math.max(m, w.length), 0);
+    /* MAX-CONTENT, not min-content.
+     *
+     * Round 1 measured each column by its longest WORD, which answers "how
+     * narrow can this column get without overflowing". That was the right
+     * question while a nowrap cell could refuse to shrink. It is the wrong one
+     * now: with the text wrap shipped, every column can get narrow, so the
+     * measure stopped discriminating and the label column -- whose words are
+     * short but whose text is 136 characters -- was consistently undersold.
+     * I1 landed at 25%, the floor, which is the "both narrow" Emely
+     * photographed.
+     *
+     * The question that matters for a fixed skeleton is how much TEXT a column
+     * carries, which is max-content. On I1 that gives 41.5% to the label,
+     * against the 44.8% her eye accepted on the one pair that looked right. */
     const mins = [];
     for (let c = 0; c < n; c++) {
-      /* the header is nowrap in the stylesheet, so it counts whole */
       let m = String(header[c] == null ? '' : header[c]).length;
       body.forEach(r => {
         const v = cellText((r || [])[c]);
-        const s = String(v == null ? '' : v);
-        /* a numeric cell cannot wrap; a text cell can, wherever it lives */
-        m = Math.max(m, (mask[c] && isNumeric(v)) ? s.length : widest(s));
+        m = Math.max(m, String(v == null ? '' : v).length);
       });
       mins.push(Math.max(m, 4));
     }
@@ -3701,10 +3731,39 @@ function utf8ByteLength(str) {
      * column 0 only, and only when the proportion falls below it; the
      * remainder is rescaled so the row still sums to 100. */
     const LABEL_FLOOR = 25;
-    if (pct.length > 1 && pct[0] < LABEL_FLOOR) {
-      const rest = 100 - LABEL_FLOOR;
+    /* AND A CEILING. Max-content lets a table of long labels and short numbers
+     * take most of the row -- A1, A5, D2 and J1 all reach for more than half,
+     * which starves four numeric columns to make room for text that could
+     * simply wrap. The label column is clamped into a band instead: never
+     * cramped, never dominant. */
+    const LABEL_CEIL = 45;
+    const clamp = (want) => {
+      const rest = 100 - want;
       const restNow = pct.slice(1).reduce((a, b) => a + b, 0) || 1;
-      pct = [LABEL_FLOOR].concat(pct.slice(1).map(p => p / restNow * rest));
+      pct = [want].concat(pct.slice(1).map(p => p / restNow * rest));
+    };
+    if (pct.length > 1 && pct[0] < LABEL_FLOOR) clamp(LABEL_FLOOR);
+    else if (pct.length > 1 && pct[0] > LABEL_CEIL) clamp(LABEL_CEIL);
+    /* NO COLUMN MAY BE UNUSABLE. C1 came out with a 0.51% column: its fifth
+     * holds a single short value against two 33% prose columns, and a
+     * proportional share of a large total is a sliver nothing can render in.
+     * Any value column below the floor is raised to it and the remaining value
+     * columns give up the difference in proportion; the label column, already
+     * clamped, is left alone. */
+    const MIN_COL = 4;
+    if (pct.length > 2) {
+      const small = [];
+      for (let i = 1; i < pct.length; i++) if (pct[i] < MIN_COL) small.push(i);
+      if (small.length) {
+        const need = small.reduce((a, i) => a + (MIN_COL - pct[i]), 0);
+        const donors = [];
+        for (let i = 1; i < pct.length; i++) if (small.indexOf(i) < 0) donors.push(i);
+        const pool = donors.reduce((a, i) => a + pct[i], 0);
+        if (pool > need) {
+          small.forEach(i => { pct[i] = MIN_COL; });
+          donors.forEach(i => { pct[i] = pct[i] - (pct[i] / pool) * need; });
+        }
+      }
     }
     return pct.map(p => +p.toFixed(2));
   }
@@ -3823,7 +3882,7 @@ function utf8ByteLength(str) {
        * to BOTH, so the prior inherits the current's anatomy instead of
        * negotiating its own from its own content. */
       const cmpOpts = Object.assign({}, renderOpts,
-        { colWidths: compareColWidths(dataCurrent, renderOpts) });
+        { colWidths: compareColWidths(t, renderOpts) });
       const priorContent = hasPrevData
         ? renderTable(dataPrev, cmpOpts)
         : `<div class="empty-pane">No data available for this view.</div>`;

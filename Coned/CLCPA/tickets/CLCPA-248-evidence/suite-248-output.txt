@@ -10,20 +10,23 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   O3 and the two panels of a pair are IDENTICAL
   ok   OS0 renderSourceTables was found
   ok   OS1 the width vector is computed EXACTLY ONCE
-  ok   OS2 and from the CURRENT panels rows, so the prior inherits them
+  ok   OS2 and from the TABLE, not from either years rows, so the skeleton cannot move with the pair
   ok   OS3 and the SAME cmpOpts object reaches both panels
   ok   OS4 renderOpts itself is never given widths, so the single-panel branch cannot inherit them
   ok   OS5 and the compare class is applied exactly when a colgroup is emitted
   ok   O4 BASE renders the pair
   ok   O5 neither BASE panel emitted one, so each negotiated its own widths
-  ok   O6 the computation is deterministic
-  ok   O7 and it is a function of the rows it is given: [37.14,31.43,31.43] from 2025, [25,37.5,37.5] from 2024
-  ok   O8 and the pair uses the CURRENT years vector
+  ok   O6 I1 has a width vector
+  ok   O7 all three of Emelys pairs get the IDENTICAL vector: [41.46,29.27,29.27]
+  ok   O8 and adding or removing a year does not move it
+  ok   O9 and the resolved I1 vector is the accepted one: [41.46,29.27,29.27]
 
 === W. the resolved widths, at the tested pairs ======================
   ok   W1 every vector sums to 100 with positive columns
-  ok   W2 and no label column falls below its 25% floor
-  ok   W3 and it genuinely bites: I1 2024/2023 lands exactly on it, where proportion alone gave 12.38%
+  ok   W2 label in its 25-45 band, no value column under 4%
+  ok   W3 the 45% ceiling bites on 22 tables: A1, A2, A5, A6, A7, A8
+  ok   W4 and the 25% floor on 18 tables: A3, A4, B2, C1, C2, C3
+  ok   W5 and C1s sliver column is raised to the 4% minimum: [25,4,31.5,4,4,31.5]
 
 === N. a TEXT cell wraps even in a numeric column ====================
   ok   N1 I1 has long text in numeric columns: 2 cells
@@ -90,4 +93,4 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   X4 BASE is a literal commit sha: d0d0a45
   ok   X5 and an ancestor of HEAD
 
-  70 passed, 0 failed
+  73 passed, 0 failed
