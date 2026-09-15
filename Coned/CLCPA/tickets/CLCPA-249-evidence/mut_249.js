@@ -44,8 +44,8 @@ const M = [
     /* present, correct, outranked: the exact shape of the defect */
     expect: 'A1 th column 2' },
   { t: CSS, name: 'the pair is declared but a LATER rule re-aligns the cells',
-    from: '.data-table th:first-child,\r\n.data-table td:first-child {\r\n  text-align: left;\r\n}',
-    to:   '.data-table th:first-child,\r\n.data-table td:first-child {\r\n  text-align: left;\r\n}\r\n' +
+    from: '.data-table thead tr:first-child > th:first-child,\r\n.data-table tbody tr > td:first-child {\r\n  text-align: left;\r\n}',
+    to:   '.data-table thead tr:first-child > th:first-child,\r\n.data-table tbody tr > td:first-child {\r\n  text-align: left;\r\n}\r\n' +
           '.data-table td.num { text-align: right; }',
     expect: 'A1 td.num column 2' },
   { t: CSS, name: 'centring becomes left: the rule says nothing new at all',
@@ -53,13 +53,47 @@ const M = [
     to:   '.data-table th,\r\n.data-table td {\r\n  text-align: left;\r\n}',
     expect: 'A1 th column 2' },
 
+  /* ---- round 2, finding 1: text columns ---------------------------------- */
+  { t: CSS, name: 'ROUND 1 BACK: text columns centre with everything else',
+    from: '.data-table td:not(.num) {\r\n  text-align: left;\r\n}',
+    to:   '',
+    /* the state Emely rejected on the hosted pass */
+    expect: 'A1 td plain column 4' },
+  { t: CSS, name: 'the text rule is a CELL test, so composites go left too',
+    from: '.data-table td:not(.num) {\r\n  text-align: left;\r\n}',
+    to:   '.data-table td.num-text,\r\n.data-table td:not(.num) {\r\n  text-align: left;\r\n}',
+    /* C2's composites live in NUMERIC columns and were ruled to stay centred:
+     * this is the per-cell reading of the rule, which the ruling forbids */
+    expect: 'A1 td.num.num-text column 4' },
+  { t: CSS, name: 'the editor keeps text columns centred, so the surfaces drift',
+    from: '.ingest-cell-text { text-align: left; }',
+    to:   '.ingest-cell-text { text-align: center; }',
+    expect: 'A4 editor input .ingest-cell-text' },
+
+  /* ---- round 2, findings 2 and 3: the sub-header ------------------------- */
+  { t: CSS, name: 'THE BUG RETURNS: th:first-child unscoped again',
+    from: '.data-table thead tr:first-child > th:first-child,\r\n.data-table tbody tr > td:first-child {\r\n  text-align: left;\r\n}',
+    to:   '.data-table th:first-child,\r\n.data-table td:first-child {\r\n  text-align: left;\r\n}',
+    /* A9/A10s "TOTAL" and F6s "NON-EXCLUDABLE" go left among centred
+     * siblings, which is exactly what the hosted pass photographed */
+    expect: 'A3 band ROW2 col1 -- the bug' },
+  { t: CSS, name: 'the scope goes the other way: no first column at all',
+    from: '.data-table thead tr:first-child > th:first-child,\r\n.data-table tbody tr > td:first-child {\r\n  text-align: left;\r\n}',
+    to:   '.data-table thead tr:first-child > th:first-child {\r\n  text-align: left;\r\n}',
+    /* a NUMERIC first column then centres: the text rule cannot save it */
+    expect: 'A1 td.num column 1' },
+
   /* ---- the first column moves ------------------------------------------- */
   { t: CSS, name: 'THE ROW LABEL CENTRES: the one thing the rule forbids',
-    from: '.data-table th:first-child,\r\n.data-table td:first-child {\r\n  text-align: left;\r\n}',
+    from: '.data-table thead tr:first-child > th:first-child,\r\n.data-table tbody tr > td:first-child {\r\n  text-align: left;\r\n}',
     to:   '',
-    expect: 'A1 td column 1, row label' },
+    /* a plain first-column cell is still caught by the text-column rule,
+     * so the observable is the NUMERIC first column, which nothing else
+     * protects. That is the case the old stylesheet used to settle by
+     * source order between two equal selectors. */
+    expect: 'A1 td.num column 1' },
   { t: CSS, name: 'the label column is addressed by CLASS, not position',
-    from: '.data-table th:first-child,\r\n.data-table td:first-child {\r\n  text-align: left;\r\n}',
+    from: '.data-table thead tr:first-child > th:first-child,\r\n.data-table tbody tr > td:first-child {\r\n  text-align: left;\r\n}',
     to:   '.data-table th:not(.num),\r\n.data-table td:not(.num) {\r\n  text-align: left;\r\n}',
     /* a numeric first column then centres with everything else, which is the
      * case the old stylesheet decided by source order */
@@ -75,10 +109,12 @@ const M = [
     from: '.ingest-cell-num { text-align: center; }',
     to:   '.ingest-cell-num { text-align: right; }',
     expect: 'A4 editor input .ingest-cell-num' },
-  { t: CSS, name: 'the editor text inputs keep CLCPA-140s left',
-    from: '.ingest-cell-text { text-align: center; }',
-    to:   '.ingest-cell-text { text-align: left; }',
-    expect: 'A4 editor input .ingest-cell-text' },
+  /* RETIRED, and why: this control flipped the editor's text inputs from
+   * centre back to CLCPA-140's left. Round 2 rules that text columns read
+   * LEFT, so left is now the shipped state and the mutation is a no-op.
+   * The property it guarded -- the two surfaces agreeing -- is covered by
+   * "the editor keeps text columns centred, so the surfaces drift", which
+   * mutates in the direction that is now wrong. */
   { t: CSS, name: 'the grey derived box keeps its right alignment',
     from: '  text-align: center;\r\n  font-weight: 600;\r\n  border: 1px dashed var(--line);',
     to:   '  text-align: right;\r\n  font-weight: 600;\r\n  border: 1px dashed var(--line);',
@@ -91,7 +127,7 @@ const M = [
           '/* CLCPA-249, and this is CLCPA-241\'s rider closing with it:',
     /* it is not inert any more -- it WINS over the pair on specificity -- so
      * B2 stays green and B3 is what sees the extra declaration */
-    expect: 'B3 and exactly two declarations can reach these cells at all' },
+    expect: 'B3 and exactly three declarations can reach these cells' },
   { t: CSS, name: 'the dac-yes centring is restored, inert again',
     from: '.data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; }',
     to:   '.data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; text-align: center; }',

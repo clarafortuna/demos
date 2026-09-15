@@ -2,27 +2,35 @@
 CLCPA-249 -- mutation controls
 ======================================================================
   red  THE OLD !important IS BACK, so the pair ships inert
-       12 red, incl: A1 th column 2                -> left (want center)  from .data-table th:not(.num) @1952
+       14 red, incl: A1 th column 2                -> left (want center)  from .data-table th:not(.num) @1978
   red  the pair is declared but a LATER rule re-aligns the cells
-       8 red, incl: A1 td.num column 2            -> right (want center)  from .data-table td.num @1960
+       7 red, incl: A1 td.num column 2            -> right (want center)  from .data-table td.num @1989
   red  centring becomes left: the rule says nothing new at all
-       13 red, incl: A1 th column 2                -> left (want center)  from .data-table th @1952
+       14 red, incl: A1 th column 2                -> left (want center)  from .data-table th @1978
+  red  ROUND 1 BACK: text columns centre with everything else
+       4 red, incl: A1 td plain column 4          -> center (want left)  from .data-table td @1978
+  red  the text rule is a CELL test, so composites go left too
+       2 red, incl: A1 td.num.num-text column 4   -> left (want center)  from .data-table td.num-text @1982
+  red  the editor keeps text columns centred, so the surfaces drift
+       1 red, incl: A4 editor input .ingest-cell-text        -> center (want left)
+  red  THE BUG RETURNS: th:first-child unscoped again
+       2 red, incl: A3 band ROW2 col1 -- the bug -> left (want center)
+  red  the scope goes the other way: no first column at all
+       2 red, incl: A1 td.num column 1            -> center (want left)  from .data-table td @1978
   red  THE ROW LABEL CENTRES: the one thing the rule forbids
-       9 red, incl: A1 td column 1, row label     -> center (want left)  from .data-table td @1952
+       7 red, incl: A1 td.num column 1            -> center (want left)  from .data-table td @1978
   red  the label column is addressed by CLASS, not position
-       12 red, incl: A1 td.num column 1            -> center (want left)  from .data-table td @1952
+       14 red, incl: A1 td.num column 1            -> center (want left)  from .data-table td @1978
   red  the editor label input centres too
        3 red, incl: G4 and it still resolves LEFT, so scrollWidth measures what it did before
   red  THE SURFACES DRIFT: the editor keeps numbers right
        1 red, incl: A4 editor input .ingest-cell-num         -> right (want center)
-  red  the editor text inputs keep CLCPA-140s left
-       1 red, incl: A4 editor input .ingest-cell-text        -> left (want center)
   red  the grey derived box keeps its right alignment
        1 red, incl: A4 editor derived box .ingest-cell-calc  -> right (want center)
   red  ONE INERT RULE SURVIVES: the band centre comes back
-       3 red, incl: B3 and exactly two declarations can reach these cells at all: .data-table th@1952, .data-table th:f
+       3 red, incl: B3 and exactly three declarations can reach these cells: .data-table th@1978, .data-table thead tr:
   red  the dac-yes centring is restored, inert again
-       2 red, incl: B7 gone: the inert dac-yes centre
+       3 red, incl: B7 gone: the inert dac-yes centre
   red  the is-definitions !important is left loaded
        1 red, incl: B9 zero !important alignment declarations on any table cell: 1
   red  the surgery took a LIVE rule with it
@@ -34,9 +42,9 @@ CLCPA-249 -- mutation controls
   red  and the wrap modifier stops wrapping
        1 red, incl: C3 a text cell in a numeric column still wraps
   red  KIT: :first-child matches at every position
-       18 red, incl: K2 and does not match at index 2
+       19 red, incl: K2 and does not match at index 2
   red  KIT: :not() stops excluding, so it matches what it forbids
-       3 red, incl: K6 :not(.num) EXCLUDES a .num cell, which is the whole 1899 rule
+       8 red, incl: K6 :not(.num) EXCLUDES a .num cell, which is the whole 1899 rule
   red  KIT: an unknown position is GUESSED instead of refused
        1 red, incl: K8 without index/of a structural pseudo stays CONDITIONAL, never guessed
   red  KIT: :hover is judged as if it always applied
@@ -46,9 +54,9 @@ CLCPA-249 -- mutation controls
   red  HARNESS: the population census renders ONE table
        10 red, incl: P1 header cells, left -> centre (first column excepted): 15
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X4 BASE is a literal commit sha: HEAD
+       13 red, incl: X4 BASE is a literal commit sha: HEAD
   red  HARNESS: the inert census measures ONE table family
        3 red, incl: B1 35 element shapes measured
 
-  24 caught, 0 not caught, of 24 guards
-  clean re-run against byte-restored source: PASSES -- 113 passed, 0 failed
+  28 caught, 0 not caught, of 28 guards
+  clean re-run against byte-restored source: PASSES -- 134 passed, 0 failed

@@ -1941,20 +1941,49 @@ a.nav-item { text-decoration: none; }
    value in column 1 is still a row label's column and stays left; that
    case used to be decided by source order between two equal selectors.
 
-   Cells that move, measured payload-wide, one render per table-year:
+   Cells that move, measured payload-wide, one render per table-year, as the
+   rule stands after round 2:
      3,765 .num values            right  -> centre
-       261 .num.num-text cells    right  -> centre  (text follows its column)
-       674 plain text cells       left   -> centre  (text follows its column)
+       261 .num.num-text cells    right  -> centre  (inside NUMERIC columns)
+       674 plain text cells       left   -> LEFT, unchanged: they sit in the
+                                  20 text columns, which round 2 returned
        798 header cells           left   -> centre, first column excepted
         42 A9/A10/F6 band cells   left   -> centre  (CLCPA-241's rider)
      1,386 row labels             left   -> LEFT, untouched
    ===================================================================== */
+/* ROUND 2, three findings from the hosted pass, two of them one bug.
+ *
+ * 1. TEXT COLUMNS STAY LEFT. Headers centre always; a column whose CONTENT
+ *    is text reads left. A COLUMN test, not a cell test, and the test is
+ *    columnNumericMask -- which is already what puts the .num class on a
+ *    cell, so `td:not(.num)` IS "this column is a text column" and no
+ *    renderer change is needed.
+ *
+ *    Measured against the alternative, majority-of-cells: 177 value columns,
+ *    20 text by mask, 15 by majority, 13 disagreements. Majority would move
+ *    C2's "Committed Load Relief (MW)" and "Average Event Reductions (MW)"
+ *    (5 text against 2 numeric) -- the CLCPA-216 composite columns Emely
+ *    ruled stay centred -- and I1's Unique / Non-Unique on a margin of 14 to
+ *    13. The mask keeps both as they passed, so the mask is the rule.
+ *
+ * 2 and 3. THE FIRST SUB-HEADER CELL. A9/A10's "TOTAL" and F6's
+ *    "NON-EXCLUDABLE" rendered left among centred siblings. One mechanism:
+ *    the label header carries rowspan="2", so the SECOND header row's first
+ *    child is the first DATA column's header, and a bare th:first-child
+ *    catches it. The exception is now scoped to the first header ROW and to
+ *    tbody, so it can only ever mean the table's actual first column.
+ *
+ * NO TIES AND NO !important. The three rules resolve 0,1,1 then 0,2,1 then
+ * 0,2,3 and 0,3,3, so none of them depends on being later in the file. */
 .data-table th,
 .data-table td {
   text-align: center;
 }
-.data-table th:first-child,
-.data-table td:first-child {
+.data-table td:not(.num) {
+  text-align: left;
+}
+.data-table thead tr:first-child > th:first-child,
+.data-table tbody tr > td:first-child {
   text-align: left;
 }
 /* =============================================================
@@ -5631,7 +5660,11 @@ a.nav-item { text-decoration: none; }
    column is centred. 674 inputs move, the same 674 cells that move on the
    report side. */
 .ingest-cell-num { text-align: center; }
-.ingest-cell-text { text-align: center; }
+/* CLCPA-249 round 2: a TEXT column reads left, on this surface too. The
+   editor classes ARE the mask -- ingest-cell-text is emitted exactly when
+   columnNumericMask says the column is not numeric -- so the two surfaces
+   stay in step without a second rule to keep aligned. */
+.ingest-cell-text { text-align: left; }
 
 .ingest-td-calc {
   padding: 6px 8px;
@@ -5652,7 +5685,7 @@ a.nav-item { text-decoration: none; }
 }
 /* CLCPA-249: a derived cell in a text column follows its column too. The
    first column keeps its own rule below, which is what the row label needs. */
-.ingest-cell-calc-text { text-align: center; }
+.ingest-cell-calc-text { text-align: left; }
 
 .ingest-row-total td {
   background: rgba(20, 81, 153, 0.03);

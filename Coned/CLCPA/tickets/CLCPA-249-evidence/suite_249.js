@@ -151,8 +151,11 @@ guard('A: the report surface', () => {
     ['td.num column 1',          cell('td', ['num'], 1, ['data-table']),                  'left'],
     ['td.num column 2',          cell('td', ['num'], 2, ['data-table']),                  'center'],
     ['td.num.num-text column 4', cell('td', ['num', 'num-text'], 4, ['data-table']),      'center'],
-    ['td plain column 4',        cell('td', [], 4, ['data-table']),                       'center'],
-    ['td.dac-yes column 3',      cell('td', ['dac-yes'], 3, ['data-table']),              'center'],
+    /* ROUND 2: a column whose CONTENT is text reads left. The test is the
+     * mask, which is already what puts .num on a cell, so `td:not(.num)`
+     * IS "this column is a text column". */
+    ['td plain column 4',        cell('td', [], 4, ['data-table']),                       'left'],
+    ['td.dac-yes column 3',      cell('td', ['dac-yes'], 3, ['data-table']),              'left'],
     ['td.num in a TOTAL row',    cell('td', ['num'], 3, ['data-table'], null, ['is-total']), 'center'],
     ['td.num in a SUBTOTAL row', cell('td', ['num'], 3, ['data-table'], null, ['is-subtotal']), 'center'],
   ];
@@ -177,11 +180,30 @@ guard('A: the compare panels, which carry the CLCPA-248 skeleton', () => {
 });
 
 guard('A: the A9/A10/F6 header band, CLCPA-241s rider', () => {
+  /* a th in header ROW `row` of a two-row thead, at column `i` */
+  const bandTh = (cls, i, row) => ({
+    tag: 'th', classes: cls, index: i, of: N,
+    ancestors: REPORT_WRAP.concat([
+      { tag: 'table', classes: ['data-table', 'data-table-2level'], index: 1, of: 1 },
+      { tag: 'thead', classes: [], index: 1, of: 2 },
+      { tag: 'tr', classes: [], index: row, of: 2 }]),
+  });
   [['band th column 1', cell('th', [], 1, ['data-table', 'data-table-2level']), 'left'],
    ['band th column 2', cell('th', [], 2, ['data-table', 'data-table-2level']), 'center'],
    ['band th column 5', cell('th', [], 5, ['data-table', 'data-table-2level']), 'center'],
-   ['band 2nd line td',  cell('td', [], 3, ['data-table', 'data-table-2level'], null, ['is-subheader']), 'center'],
-   ['band 2nd line td c1', cell('td', [], 1, ['data-table', 'data-table-2level'], null, ['is-subheader']), 'left'],
+   /* THE ROUND-2 BUG, and it is one mechanism behind both sightings.
+    * Measured in the emitted markup: A9 row 1 is `<th rowspan="2">` for the
+    * label plus three `th.th-group` with colspan 2; row 2 is six
+    * `th.th-detail`. Because the label header spans both rows, row 2's
+    * FIRST child is the first DATA column's header -- A9/A10's "TOTAL",
+    * F6's "NON-EXCLUDABLE" -- and a bare th:first-child caught it. These
+    * shapes are the real ones, not a synthetic subheader row: the band's
+    * second line lives in THEAD, not in tbody. */
+   ['band row1 col1, rowspan=2 label', bandTh(['th-group'], 1, 1), 'left'],
+   ['band row1 col2, group header',    bandTh(['th-group'], 2, 1), 'center'],
+   ['band ROW2 col1 -- the bug',       bandTh(['th-detail'], 1, 2), 'center'],
+   ['band ROW2 col2, its sibling',     bandTh(['th-detail'], 2, 2), 'center'],
+   ['band ROW2 col4',                  bandTh(['th-detail'], 4, 2), 'center'],
   ].forEach(([label, el, want]) => {
     const a = align(el);
     ok(a.value === want, 'A3 ' + label.padEnd(22) + ' -> ' + String(a.value) + ' (want ' + want + ')');
@@ -204,9 +226,9 @@ guard('A: the editor surface reads the SAME as the report', () => {
    ['th column 3', eth([], 3), 'center'],
    ['input .ingest-cell-label', einput(['ingest-cell-label'], 1), 'left'],
    ['input .ingest-cell-num', einput(['ingest-cell-num'], 3), 'center'],
-   ['input .ingest-cell-text', einput(['ingest-cell-text'], 3), 'center'],
+   ['input .ingest-cell-text', einput(['ingest-cell-text'], 3), 'left'],
    ['derived box .ingest-cell-calc', ecalc([], 3), 'center'],
-   ['derived box, text column', ecalc(['ingest-cell-calc-text'], 3), 'center'],
+   ['derived box, text column', ecalc(['ingest-cell-calc-text'], 3), 'left'],
   ].forEach(([label, el, want]) => {
     const a = align(el);
     ok(a.value === want, 'A4 editor ' + label.padEnd(30) + ' -> ' + String(a.value) +
@@ -235,7 +257,7 @@ guard('B: no reachable text-align rule loses everywhere any more', () => {
   ok(shapes.length === 105, 'B1 ' + shapes.length + ' element shapes measured');
   ok(inert.length === 0, 'B2 ZERO reachable declarations are inert' +
      (inert.length ? ': ' + inert.map(l => reachable.get(l).sel + '@' + l).join(', ') : ''));
-  ok(reachable.size === 2, 'B3 and exactly two declarations can reach these cells at all: ' +
+  ok(reachable.size === 3, 'B3 and exactly three declarations can reach these cells: ' +
      Array.from(reachable.values()).map(c => c.sel + '@' + c.line).join(', '));
 
   /* the same census at BASE, which is where the eight were */
@@ -457,7 +479,8 @@ guard('P: every table and year, one render each', () => {
   ok(JSON.stringify(numTextBy) ===
      '{"A3":7,"A4":7,"A5":81,"A6":45,"A7":5,"A8":69,"C2":15,"I1":28,"J1":2,"J2":2}',
      'P5 and they are in these ten tables: ' + JSON.stringify(numTextBy));
-  ok(c.plain === 674, 'P6 plain text in a non-label column, left -> centre: ' + c.plain);
+  ok(c.plain === 674, 'P6 text cells in the 20 TEXT columns, LEFT and unmoved ' +
+     'after round 2: ' + c.plain);
   ok(Object.keys(plainBy).length === 14,
      'P7 across fourteen tables: ' + Object.keys(plainBy).sort().join(','));
   ok(c.dacYes === 0, 'P8 and .dac-yes is emitted on zero cells, so its retired ' +
@@ -506,6 +529,108 @@ guard('P: the named populations Emely asked to see', () => {
   ok(band === 42, 'P14 and 42 band cells past column 1 move with them: ' + band);
 });
 
+/* =================== T: what makes a column a TEXT column ============ */
+say('');
+say('=== T. the column test, and the twenty columns that read left =======');
+guard('T: the mask is the rule, and the alternative is measured not asserted', () => {
+  const LINES = SRC.split('\r\n');
+  const TOP = [];
+  LINES.forEach((ln, n) => {
+    const m = /^  (?:function|const|let|var)\s+([A-Za-z_$][\w$]*)/.exec(ln);
+    if (m) TOP.push({ name: m[1], line: n });
+  });
+  const bound = TOP.map(d => d.line).concat([LINES.length]);
+  const find = (nm) => {
+    const k = TOP.findIndex(d => d.name === nm);
+    return k < 0 ? null : LINES.slice(TOP[k].line, bound[k + 1]).join('\n');
+  };
+  const parts = []; const have = new Set();
+  const add = (n) => { if (have.has(n)) return false; const f = find(n); if (!f) return false;
+    have.add(n); parts.push(f); return true; };
+  ['columnNumericMask', 'getTableSchema', 'isWhollyNumeric', 'cellText'].forEach(add);
+  let api = null;
+  const attempt = (call) => {
+    for (let r = 0; r < 300; r++) {
+      try {
+        if (!api) api = new Function('PAYLOAD', parts.join('\n\n') +
+          '\n;if (typeof state !== "undefined") state.payload = PAYLOAD;' +
+          '\n;return { columnNumericMask, getTableSchema, isWhollyNumeric, cellText };')(P);
+        return call();
+      } catch (e) {
+        const m = /(\w+) is not defined/.exec(e.message);
+        if (m && add(m[1])) { api = null; continue; }
+        throw e;
+      }
+    }
+  };
+  const cols = [];
+  Object.keys(P.tables).sort().forEach(id => {
+    const t = P.tables[id];
+    const years = Object.keys(t.data || {}).sort();
+    if (!years.length) return;
+    const hl = t.header_levels !== undefined ? t.header_levels : 1;
+    const schema = attempt(() => api.getTableSchema(t, years[years.length - 1]));
+    if (!schema) return;
+    const body = [];
+    years.forEach(y => (t.data[y] || []).slice(Math.max(0, hl - 1)).forEach(r => body.push(r)));
+    const mask = attempt(() => api.columnNumericMask(schema, body, id));
+    for (let c = 1; c < schema.length; c++) {
+      let numeric = 0, text = 0;
+      body.forEach(r => {
+        const v = attempt(() => api.cellText((r || [])[c]));
+        const str = v == null ? '' : String(v).trim();
+        if (str === '') return;
+        if (attempt(() => api.isWhollyNumeric(str))) numeric++; else text++;
+      });
+      cols.push({ id, c, header: String(schema[c] == null ? '' : schema[c]),
+        mask: !!mask[c], numeric, text, majorityText: (numeric + text) > 0 && text > numeric });
+    }
+  });
+  ok(cols.length === 177, 'T1 value columns across every table: ' + cols.length);
+  const byMask = cols.filter(c => !c.mask);
+  const byMaj = cols.filter(c => c.majorityText);
+  ok(byMask.length === 20, 'T2 TEXT by the MASK, which is the shipped rule: ' + byMask.length);
+  ok(byMaj.length === 15, 'T3 TEXT by majority-of-cells, the alternative: ' + byMaj.length);
+  const disagree = cols.filter(c => (!c.mask) !== c.majorityText);
+  ok(disagree.length === 13, 'T4 and they disagree on ' + disagree.length + ' columns, ' +
+     'which is why the choice had to be measured');
+  /* THE TWO THAT DECIDE IT. Majority would move the CLCPA-216 composite
+   * columns Emely ruled stay centred, and I1's pair that passed in round 1. */
+  const c2 = cols.filter(c => c.id === 'C2' && c.majorityText && c.mask);
+  ok(c2.length === 2 && c2.every(c => c.text === 5 && c.numeric === 2),
+     'T5 majority would send C2s two composite columns LEFT on 5 text against ' +
+     '2 numeric, and the ruling says they stay centred: ' +
+     c2.map(c => '"' + c.header + '"').join(', '));
+  const i1 = cols.filter(c => c.id === 'I1' && c.majorityText && c.mask);
+  ok(i1.length === 2 && i1.every(c => c.text === 14 && c.numeric === 13),
+     'T6 and I1s Unique / Non-Unique on a margin of 14 to 13, which passed ' +
+     'round 1 centred');
+  /* THE ENUMERATION Emely asked for, so her pass has the list */
+  const byTable = {};
+  byMask.forEach(c => { (byTable[c.id] = byTable[c.id] || []).push(c); });
+  ok(Object.keys(byTable).length === 12,
+     'T7 the twenty text columns sit in twelve tables: ' +
+     Object.keys(byTable).sort().join(', '));
+  Object.keys(byTable).sort().forEach(id => {
+    say('       ' + id.padEnd(4) + ' ' + byTable[id].map(c =>
+      'col' + c.c + (c.header ? ' "' + c.header + '"' : ' (unnamed)')).join(', '));
+  });
+  /* every column Emely named by hand, checked one by one */
+  [['A3', 'Program Name'], ['A4', 'Program Name'], ['C1', 'Category'],
+   ['C1', 'Description'], ['D1', 'Description'], ['F1', 'Description'],
+   ['F5', 'Borough / County'], ['F6', 'Borough / County']].forEach(([id, h]) => {
+    const hit = cols.filter(c => c.id === id && c.header.indexOf(h) >= 0);
+    ok(hit.length > 0 && hit.every(c => !c.mask),
+       'T8 ' + id + ' "' + h + '" is classified TEXT and reads left');
+  });
+  /* and the ones that must NOT flip */
+  ['Non-Excludable', 'Excludable', 'Grand Total'].forEach(h => {
+    const hit = cols.filter(c => c.id === 'F5' && c.header.indexOf(h) >= 0);
+    ok(hit.length > 0 && hit.every(c => c.mask),
+       'T9 F5 "' + h + '" stays NUMERIC and centred');
+  });
+});
+
 /* =================== X: the exclusions and the baseline ============== */
 say('');
 say('=== X. CSS only, and the baseline ===================================');
@@ -539,14 +664,16 @@ guard('X: the stylesheet changed, and only where it should', () => {
   ].sort();
   const EXPECT_ADDED = [
     '.data-table th, .data-table td',
-    '.data-table th:first-child, .data-table td:first-child',
+    '.data-table td:not(.num)',
+    '.data-table thead tr:first-child > th:first-child, .data-table tbody tr > td:first-child',
   ].sort();
   ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
      'X3 exactly these NINE rules were retired: ' + removed.length +
      (JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED) ? '' :
       '  GOT ' + JSON.stringify(removed)));
   ok(JSON.stringify(added) === JSON.stringify(EXPECT_ADDED),
-     'X3b and exactly TWO were added, the rule pair: ' + JSON.stringify(added));
+     'X3b and exactly THREE were added: centre, text-column left, and the ' +
+     'first column scoped so it cannot catch a sub-header: ' + added.length);
 });
 guard('X: the baseline', () => {
   ok(/^[0-9a-f]{7,40}$/.test(BASE), 'X4 BASE is a literal commit sha: ' + BASE);
