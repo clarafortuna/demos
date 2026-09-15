@@ -1,0 +1,562 @@
+/* CLCPA-249: dashboard-wide table alignment.
+ *
+ * THE RULE, as filed: on every table, report pages AND the Report Data
+ * editor, column headers are CENTRED and the values under them are CENTRED;
+ * the first column is the row label and stays LEFT. A text value in a
+ * non-label column follows its column.
+ *
+ * WHY EVERY ASSERTION HERE RESOLVES THE CASCADE RATHER THAN MATCHING RULE
+ * TEXT. This stylesheet already contained five declarations trying to centre
+ * headers or columns, and every one of them was inert. They lost to
+ *
+ *     .data-table th:not(.num),
+ *     .data-table td:not(.num) { text-align: left !important; }
+ *
+ * which no ordinary rule can outrank. So the file has claimed for a long time
+ * that headers are centred while every header on the dashboard rendered left.
+ * Counting eight inert declarations across 105 element shapes is what this
+ * suite does first, and it is the reason the ticket is not a one-line diff.
+ *
+ * That is instances five through eight of the class CLCPA-248 named twice --
+ * a declaration's presence is not its effect. There it was source order at
+ * equal specificity; here it is !important.
+ *
+ * CSS ONLY. app.js is asserted byte-identical to BASE: both surfaces already
+ * classify cells by column through the same columnNumericMask, so there was
+ * nothing to change in the renderer.
+ *
+ * WHAT THIS CANNOT DO. No browser runs here. What is proven is which
+ * DECLARATION wins for a given element, and that the two surfaces resolve to
+ * the same answer for the same cell. Where the glyphs land is Emely's eye.
+ *
+ * BASE is eef4d6f.
+ */
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const cascade = require('../_kit/css_cascade.js');
+
+const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+const CSS = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
+const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-249-evidence/suite-249-output.txt');
+
+const BASE = process.env.DAC_BASE_COMMIT || 'eef4d6f';
+const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
+const CSS_PATH = process.env.DAC_CSS_OVERRIDE || path.join(REPO, CSS);
+
+const SRC = fs.readFileSync(APP, 'utf8');
+const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+const CSS_SRC = fs.readFileSync(CSS_PATH, 'utf8');
+const CSS_BASE = execSync('git show ' + BASE + ':"' + CSS + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+const P = JSON.parse(fs.readFileSync(
+  path.join(REPO, 'Coned/CLCPA/ExecutiveDashboard_dev/payload.json'), 'utf8'));
+
+let pass = 0, fail = 0;
+const lines = [];
+const ok = (c, m) => {
+  if (c) { pass++; lines.push('  ok   ' + m); } else { fail++; lines.push('  FAIL ' + m); }
+  return !!c;
+};
+const say = (m) => lines.push(m);
+function guard(label, fn) {
+  try { fn(); } catch (e) {
+    fail++; lines.push('  FAIL ' + label + ' THREW: ' + (e && e.message));
+  }
+}
+const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\r\n]*/g, '$1');
+
+/* ---- element shapes, described the way the browser sees them ------------ */
+const div = (c) => ({ tag: 'div', classes: c, index: 1, of: 1 });
+const N = 7;
+const REPORT_WRAP = [div(['section']), div(['table-wrap'])];
+const CMP_WRAP = [div(['year-cols']), div(['year-col'])];
+const EDIT_WRAP = [div(['ingest-grid-wrap'])];
+
+function cell(tag, classes, index, tableCls, wrap, rowCls, of) {
+  return {
+    tag, classes, index, of: of || N,
+    ancestors: (wrap || REPORT_WRAP).concat([
+      { tag: 'table', classes: tableCls, index: 1, of: 1 },
+      { tag: tag === 'th' ? 'thead' : 'tbody', classes: [], index: tag === 'th' ? 1 : 2, of: 2 },
+      { tag: 'tr', classes: rowCls || [], index: 1, of: 1 },
+    ]),
+  };
+}
+const align = (el) => {
+  const r = cascade.resolve(CSS_SRC, el, 'text-align');
+  return { value: r.winner ? r.winner.value : null, sel: r.winner ? r.winner.sel : null,
+           line: r.winner ? r.winner.line : null, cond: r.conditional.length, r };
+};
+
+say('======================================================================');
+say('CLCPA-249 -- headers and values centred, the row label stays left');
+say('  BASE ' + BASE);
+say('======================================================================');
+
+/* =================== K: the kit extension ============================= */
+say('');
+say('=== K. the resolver gained structural pseudos, and is checked first ===');
+guard('K: synthetic input with a known right answer', () => {
+  const EL = { tag: 'td', classes: ['num'], index: 1, of: 5 };
+  const w = (css, el) => {
+    const r = cascade.resolve(css, el || EL, 'text-align');
+    return r.winner ? r.winner.value : null;
+  };
+  ok(w('td:first-child{text-align:left}') === 'left', 'K1 :first-child matches at index 1');
+  ok(w('td:first-child{text-align:left}', { tag: 'td', classes: [], index: 2, of: 5 }) === null,
+     'K2 and does not match at index 2');
+  ok(w('td:last-child{text-align:left}', { tag: 'td', classes: [], index: 5, of: 5 }) === 'left',
+     'K3 :last-child counts from the end');
+  ok(w('td:nth-child(3){text-align:center}', { tag: 'td', classes: [], index: 3, of: 5 }) === 'center',
+     'K4 :nth-child(n) matches its position');
+  ok(w('td:nth-last-child(2){text-align:center}', { tag: 'td', classes: [], index: 4, of: 5 }) === 'center',
+     'K5 :nth-last-child(n) too');
+  ok(w('td:not(.num){text-align:left}') === null,
+     'K6 :not(.num) EXCLUDES a .num cell, which is the whole 1899 rule');
+  ok(w('td:not(.num){text-align:left}', { tag: 'td', classes: [], index: 2, of: 5 }) === 'left',
+     'K7 and admits a cell without it');
+  /* position unknown: judged as undecidable rather than guessed */
+  const noPos = cascade.resolve('td:first-child{text-align:left}',
+    { tag: 'td', classes: [] }, 'text-align');
+  ok(noPos.winner === null && noPos.conditional.length === 1,
+     'K8 without index/of a structural pseudo stays CONDITIONAL, never guessed');
+  /* non-structural pseudos are still refused */
+  const hov = cascade.resolve('td:hover{text-align:left}', EL, 'text-align');
+  ok(hov.winner === null && hov.conditional.length === 1,
+     'K9 and :hover is still refused: nothing here knows the pointer');
+  /* specificity: :not() contributes its ARGUMENT, not itself */
+  ok(JSON.stringify(cascade.specificity('.data-table th:not(.num)')) === '[0,2,1]',
+     'K10 :not() adds nothing itself, its argument counts: ' +
+     JSON.stringify(cascade.specificity('.data-table th:not(.num)')));
+  ok(JSON.stringify(cascade.specificity('.data-table td.num')) === '[0,2,1]',
+     'K11 which ties it with .data-table td.num, as CSS says');
+  /* and the kit's first consumer is not disturbed */
+  ok(cascade.resolve('.a.b{table-layout:fixed}\n.a{table-layout:auto}',
+     { tag: 'table', classes: ['a', 'b'] }, 'table-layout').winner.value === 'fixed',
+     'K12 the CLCPA-248 answer is unchanged by the extension');
+});
+
+/* =================== A: the resolved winners, both surfaces =========== */
+say('');
+say('=== A. every element shape, RESOLVED, on both surfaces ===============');
+guard('A: the report surface', () => {
+  const SHAPES = [
+    ['th column 1',              cell('th', [], 1, ['data-table']),                       'left'],
+    ['th column 2',              cell('th', [], 2, ['data-table']),                       'center'],
+    ['th column 7 (last)',       cell('th', [], 7, ['data-table']),                       'center'],
+    ['td column 1, row label',   cell('td', [], 1, ['data-table']),                       'left'],
+    ['td.num column 1',          cell('td', ['num'], 1, ['data-table']),                  'left'],
+    ['td.num column 2',          cell('td', ['num'], 2, ['data-table']),                  'center'],
+    ['td.num.num-text column 4', cell('td', ['num', 'num-text'], 4, ['data-table']),      'center'],
+    ['td plain column 4',        cell('td', [], 4, ['data-table']),                       'center'],
+    ['td.dac-yes column 3',      cell('td', ['dac-yes'], 3, ['data-table']),              'center'],
+    ['td.num in a TOTAL row',    cell('td', ['num'], 3, ['data-table'], null, ['is-total']), 'center'],
+    ['td.num in a SUBTOTAL row', cell('td', ['num'], 3, ['data-table'], null, ['is-subtotal']), 'center'],
+  ];
+  SHAPES.forEach(([label, el, want]) => {
+    const a = align(el);
+    ok(a.value === want, 'A1 ' + label.padEnd(26) + ' -> ' + String(a.value) +
+       ' (want ' + want + ')' + (a.sel ? '  from ' + a.sel + ' @' + a.line : ''));
+    ok(a.cond === 0, 'A1b ' + label.padEnd(26) + ' has no undecidable rule in play');
+  });
+});
+
+guard('A: the compare panels, which carry the CLCPA-248 skeleton', () => {
+  [['th column 1', cell('th', [], 1, ['data-table', 'data-table-cmp'], CMP_WRAP), 'left'],
+   ['th column 2', cell('th', [], 2, ['data-table', 'data-table-cmp'], CMP_WRAP), 'center'],
+   ['td column 1', cell('td', [], 1, ['data-table', 'data-table-cmp'], CMP_WRAP), 'left'],
+   ['td.num column 2', cell('td', ['num'], 2, ['data-table', 'data-table-cmp'], CMP_WRAP), 'center'],
+  ].forEach(([label, el, want]) => {
+    const a = align(el);
+    ok(a.value === want, 'A2 compare ' + label.padEnd(18) + ' -> ' + String(a.value) +
+       ' (want ' + want + ')');
+  });
+});
+
+guard('A: the A9/A10/F6 header band, CLCPA-241s rider', () => {
+  [['band th column 1', cell('th', [], 1, ['data-table', 'data-table-2level']), 'left'],
+   ['band th column 2', cell('th', [], 2, ['data-table', 'data-table-2level']), 'center'],
+   ['band th column 5', cell('th', [], 5, ['data-table', 'data-table-2level']), 'center'],
+   ['band 2nd line td',  cell('td', [], 3, ['data-table', 'data-table-2level'], null, ['is-subheader']), 'center'],
+   ['band 2nd line td c1', cell('td', [], 1, ['data-table', 'data-table-2level'], null, ['is-subheader']), 'left'],
+  ].forEach(([label, el, want]) => {
+    const a = align(el);
+    ok(a.value === want, 'A3 ' + label.padEnd(22) + ' -> ' + String(a.value) + ' (want ' + want + ')');
+  });
+});
+
+guard('A: the editor surface reads the SAME as the report', () => {
+  const eth = (cls, i) => ({ tag: 'th', classes: cls, index: i, of: N,
+    ancestors: EDIT_WRAP.concat([{ tag: 'table', classes: ['ingest-grid'], index: 1, of: 1 },
+      { tag: 'thead', classes: [], index: 1, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 }]) });
+  const einput = (cls, i) => ({ tag: 'input', classes: ['ingest-cell'].concat(cls), index: 1, of: 1,
+    ancestors: EDIT_WRAP.concat([{ tag: 'table', classes: ['ingest-grid'], index: 1, of: 1 },
+      { tag: 'tbody', classes: [], index: 2, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 },
+      { tag: 'td', classes: [], index: i, of: N }]) });
+  const ecalc = (cls, i) => ({ tag: 'span', classes: ['ingest-cell-calc'].concat(cls), index: 1, of: 1,
+    ancestors: EDIT_WRAP.concat([{ tag: 'table', classes: ['ingest-grid'], index: 1, of: 1 },
+      { tag: 'tbody', classes: [], index: 2, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 },
+      { tag: 'td', classes: ['ingest-td-calc'], index: i, of: N }]) });
+  [['th label column', eth(['ingest-th-label'], 1), 'left'],
+   ['th column 3', eth([], 3), 'center'],
+   ['input .ingest-cell-label', einput(['ingest-cell-label'], 1), 'left'],
+   ['input .ingest-cell-num', einput(['ingest-cell-num'], 3), 'center'],
+   ['input .ingest-cell-text', einput(['ingest-cell-text'], 3), 'center'],
+   ['derived box .ingest-cell-calc', ecalc([], 3), 'center'],
+   ['derived box, text column', ecalc(['ingest-cell-calc-text'], 3), 'center'],
+  ].forEach(([label, el, want]) => {
+    const a = align(el);
+    ok(a.value === want, 'A4 editor ' + label.padEnd(30) + ' -> ' + String(a.value) +
+       ' (want ' + want + ')');
+  });
+});
+
+/* =================== B: nothing is left inert ========================= */
+say('');
+say('=== B. the eight defeated declarations, retired ======================');
+guard('B: no reachable text-align rule loses everywhere any more', () => {
+  const shapes = [];
+  [['data-table'], ['data-table', 'data-table-cmp'], ['data-table', 'data-table-2level']].forEach(tc => {
+    for (let i = 1; i <= N; i++) {
+      shapes.push(cell('th', [], i, tc));
+      [[], ['num'], ['num', 'num-text'], ['dac-yes']].forEach(cc => shapes.push(cell('td', cc, i, tc)));
+    }
+  });
+  const winners = new Set(), reachable = new Map();
+  shapes.forEach(el => {
+    const r = cascade.resolve(CSS_SRC, el, 'text-align');
+    if (r.winner) winners.add(r.winner.line);
+    r.candidates.forEach(c => { if (!reachable.has(c.line)) reachable.set(c.line, c); });
+  });
+  const inert = Array.from(reachable.keys()).filter(l => !winners.has(l));
+  ok(shapes.length === 105, 'B1 ' + shapes.length + ' element shapes measured');
+  ok(inert.length === 0, 'B2 ZERO reachable declarations are inert' +
+     (inert.length ? ': ' + inert.map(l => reachable.get(l).sel + '@' + l).join(', ') : ''));
+  ok(reachable.size === 2, 'B3 and exactly two declarations can reach these cells at all: ' +
+     Array.from(reachable.values()).map(c => c.sel + '@' + c.line).join(', '));
+
+  /* the same census at BASE, which is where the eight were */
+  const wB = new Set(), rB = new Map();
+  shapes.forEach(el => {
+    const r = cascade.resolve(CSS_BASE, el, 'text-align');
+    if (r.winner) wB.add(r.winner.line);
+    r.candidates.forEach(c => { if (!rB.has(c.line)) rB.set(c.line, c); });
+  });
+  const inertB = Array.from(rB.keys()).filter(l => !wB.has(l));
+  ok(inertB.length === 8, 'B4 and at BASE there were EIGHT: ' + inertB.length);
+  const centring = inertB.filter(l => rB.get(l).value === 'center');
+  ok(centring.length === 5, 'B5 five of them were trying to CENTRE something: ' +
+     centring.map(l => rB.get(l).sel.slice(0, 34) + '@' + l).join(', '));
+  ok(wB.size === 3 && Array.from(wB).some(l => rB.get(l).important),
+     'B6 and one of the three BASE winners carried !important, which is why');
+});
+
+guard('B: the retired declarations are gone from the file', () => {
+  const live = cascade.stripComments(CSS_SRC).css;
+  const liveBase = cascade.stripComments(CSS_BASE).css;
+  const GONE = [
+    ['.data-table th:not(.num)', 'the !important that governed everything'],
+    ['.data-table-2level thead th { text-align: center; }', 'the inert band centre'],
+    ['.data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; text-align: center; }',
+      'the inert dac-yes centre'],
+    ['.data-table thead tr th:nth-child(2)', 'the inert nth-child header centre'],
+    ['.data-table tbody tr td:nth-child(2):not(.num)', 'the inert nth-child value centre'],
+  ];
+  GONE.forEach(([s, why]) => {
+    ok(live.indexOf(s) < 0, 'B7 gone: ' + why);
+    ok(liveBase.indexOf(s) >= 0, 'B7b and it WAS at BASE, so the assertion means something');
+  });
+  ok(!/text-align:\s*right/.test(
+      (/\.data-table td\.num \{([^}]*)\}/.exec(live) || [, ''])[1]),
+     'B8 .data-table td.num no longer declares text-align: right');
+  ok(/font-variant-numeric: tabular-nums/.test(
+      (/\.data-table td\.num \{([^}]*)\}/.exec(live) || [, ''])[1]),
+     'B8b while its mono figures and nowrap are untouched');
+});
+
+guard('B: and NO !important is left on a table cells alignment', () => {
+  const live = cascade.stripComments(CSS_SRC).css;
+  const imps = (live.match(/[^}]*text-align:\s*[a-z]+\s*!important[^}]*/g) || []);
+  const onCells = imps.filter(s => /data-table|ingest-|edit-table|rows-table/.test(s));
+  ok(onCells.length === 0, 'B9 zero !important alignment declarations on any table cell' +
+     (onCells.length ? ': ' + onCells.length : ''));
+  const baseLive = cascade.stripComments(CSS_BASE).css;
+  const baseOn = (baseLive.match(/[^}]*text-align:\s*[a-z]+\s*!important[^}]*/g) || [])
+    .filter(s => /data-table|ingest-|edit-table|rows-table/.test(s));
+  ok(baseOn.length === 2, 'B9b where BASE had two: ' + baseOn.length);
+});
+
+/* =================== D: the dead block surgery ======================== */
+say('');
+say('=== D. the commented block, and the trap named in place ==============');
+guard('D: only the proven-inert span went', () => {
+  const live = cascade.stripComments(CSS_SRC).css;
+  const liveBase = cascade.stripComments(CSS_BASE).css;
+  ok(CSS_SRC.indexOf('.data-table {\r\n  table-layout: fixed;\r\n  width: 100%;\r\n}') < 0,
+     'D1 the commented-out table-layout: fixed block is deleted');
+  ok(CSS_BASE.indexOf('.data-table {\r\n  table-layout: fixed;\r\n  width: 100%;\r\n}') >= 0,
+     'D1b and it was there at BASE');
+  ok(/CSS comments do not nest/.test(CSS_SRC),
+     'D2 and the trap is named in place for the next reader');
+  /* 1551-1578 UNTOUCHED, by ruling: they are LIVE rules with real effects */
+  /* MEMBERSHIP IN THE RULE SET, not indexOf. `...nth-last-child(2)` is a
+   * SUBSTRING of `...nth-last-child(2) ~ td`, so a deleted rule still
+   * answered present and the control that deleted it went red on the wrong
+   * assertion. That is the same substring trap the CLCPA-248 strippers hit. */
+  const selSet = (c) => new Set(cascade.parseRules(cascade.stripComments(c).css)
+    .map(r => r.selectorText.replace(/\s+/g, ' ').trim()));
+  const nowSet = selSet(CSS_SRC), baseSet = selSet(CSS_BASE);
+  ['.data-table tbody tr td:first-child:nth-last-child(2)',
+   '.data-table tbody tr td:first-child:nth-last-child(2) ~ td',
+   '.data-table thead tr th:first-child:nth-last-child(2)',
+   '.data-table thead tr th:first-child:nth-last-child(2) ~ th',
+   '.data-table thead tr:first-child .th-group',
+   '.data-table thead tr:nth-child(2) .th-detail:nth-child(2n)'].forEach(sel => {
+    ok(nowSet.has(sel) && baseSet.has(sel),
+       'D3 still live and untouched: ' + sel.slice(0, 52));
+  });
+  /* and they are still LIVE, not merely present: the width rules are the
+   * finding queued for its own ticket, so their status is pinned */
+  const twoCol = cascade.resolve(CSS_SRC,
+    { tag: 'td', classes: [], index: 1, of: 2,
+      ancestors: REPORT_WRAP.concat([{ tag: 'table', classes: ['data-table'], index: 1, of: 1 },
+        { tag: 'tbody', classes: [], index: 2, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 }]) },
+    'width');
+  ok(twoCol.winner !== null && twoCol.winner.value === '35%',
+     'D4 the 35%/65% rules on two-column tables are LIVE, queued as their own ' +
+     'finding and deliberately not touched here: ' +
+     (twoCol.winner ? twoCol.winner.value : 'NOT LIVE'));
+});
+
+/* =================== C: CLCPA-248 is undisturbed ===================== */
+say('');
+say('=== C. the compare skeleton, which this ticket must not move =========');
+guard('C: table-layout still resolves to fixed', () => {
+  const cmp = { tag: 'table', classes: ['data-table', 'data-table-cmp'], index: 1, of: 1,
+    ancestors: CMP_WRAP };
+  const r = cascade.resolve(CSS_SRC, cmp, 'table-layout');
+  ok(r.winner !== null && r.winner.value === 'fixed',
+     'C1 the compare table still resolves table-layout: fixed, from "' +
+     (r.winner ? r.winner.sel : 'NOTHING') + '"');
+  ok(r.winner !== null && /data-table-cmp/.test(r.winner.sel) &&
+     cascade.specificity(r.winner.sel)[1] === 2,
+     'C1b still winning on SPECIFICITY, two classes');
+  const one = cascade.resolve(CSS_SRC, { tag: 'table', classes: ['data-table'], index: 1, of: 1,
+    ancestors: REPORT_WRAP }, 'table-layout');
+  ok(one.winner !== null && one.winner.value === 'auto',
+     'C2 and the single-panel table is still auto');
+  /* the wrap modifier too */
+  const inTable = REPORT_WRAP.concat([
+    { tag: 'table', classes: ['data-table', 'data-table-cmp'], index: 1, of: 1 },
+    { tag: 'tbody', classes: [], index: 2, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 }]);
+  const wrap = cascade.resolve(CSS_SRC,
+    { tag: 'td', classes: ['num', 'num-text'], index: 3, of: N, ancestors: inTable }, 'white-space');
+  ok(wrap.winner !== null && wrap.winner.value === 'normal',
+     'C3 a text cell in a numeric column still wraps');
+  const num = cascade.resolve(CSS_SRC,
+    { tag: 'td', classes: ['num'], index: 3, of: N, ancestors: inTable }, 'white-space');
+  ok(num.winner !== null && num.winner.value === 'nowrap',
+     'C4 and a numeric cell still nowraps');
+});
+
+/* =================== G: CLCPA-245 clip detection ===================== */
+say('');
+say('=== G. the label tooltip, which measures a width ====================');
+guard('G: the clip math cannot have moved', () => {
+  const code = codeOnly(SRC);
+  ok(/data-label-tip="\$\{escapeHtml\(labelText\)\}"/.test(code),
+     'G1 data-label-tip is still emitted');
+  const emit = /data-col="0" class="ingest-cell ingest-cell-label"/.test(code);
+  ok(emit, 'G2 and ONLY on the data-col="0" input, which is the row label');
+  ok((code.match(/data-label-tip/g) || []).length ===
+     (codeOnly(BASE_SRC).match(/data-label-tip/g) || []).length,
+     'G3 the same number of sites as BASE');
+  /* the label column is the one column this ticket leaves alone */
+  const lab = cascade.resolve(CSS_SRC,
+    { tag: 'input', classes: ['ingest-cell', 'ingest-cell-label'], index: 1, of: 1,
+      ancestors: EDIT_WRAP.concat([{ tag: 'table', classes: ['ingest-grid'], index: 1, of: 1 },
+        { tag: 'tbody', classes: [], index: 2, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 },
+        { tag: 'td', classes: ['ingest-td-label'], index: 1, of: N }]) }, 'text-align');
+  ok(lab.winner !== null && lab.winner.value === 'left',
+     'G4 and it still resolves LEFT, so scrollWidth measures what it did before');
+  const base = cascade.resolve(CSS_BASE, { tag: 'input',
+    classes: ['ingest-cell', 'ingest-cell-label'], index: 1, of: 1,
+    ancestors: EDIT_WRAP.concat([{ tag: 'table', classes: ['ingest-grid'], index: 1, of: 1 },
+      { tag: 'tbody', classes: [], index: 2, of: 2 }, { tag: 'tr', classes: [], index: 1, of: 1 },
+      { tag: 'td', classes: ['ingest-td-label'], index: 1, of: N }]) }, 'text-align');
+  ok(base.winner && base.winner.value === lab.winner.value,
+     'G5 identical to BASE, so the tooltip fires on exactly the labels it did');
+  ok((SRC.match(/scrollWidth/g) || []).length ===
+     (BASE_SRC.match(/scrollWidth/g) || []).length,
+     'G6 and the number of scrollWidth readers is unchanged');
+});
+
+/* =================== P: the populations, for Emelys pass ============= */
+say('');
+say('=== P. what moves, counted through the real renderer =================');
+let CENSUS = null;
+guard('P: every table and year, one render each', () => {
+  const LINES = SRC.split('\r\n');
+  const TOP = [];
+  LINES.forEach((ln, n) => {
+    const m = /^  (?:function|const|let|var)\s+([A-Za-z_$][\w$]*)/.exec(ln);
+    if (m) TOP.push({ name: m[1], line: n });
+  });
+  const bound = TOP.map(d => d.line).concat([LINES.length]);
+  const find = (nm) => {
+    const k = TOP.findIndex(d => d.name === nm);
+    return k < 0 ? null : LINES.slice(TOP[k].line, bound[k + 1]).join('\n');
+  };
+  const parts = []; const have = new Set();
+  const add = (n) => { if (have.has(n)) return false; const f = find(n); if (!f) return false;
+    have.add(n); parts.push(f); return true; };
+  ['renderSourceTables', 'columnNumericMask', 'getTableSchema'].forEach(add);
+  let api = null;
+  const attempt = (call) => {
+    for (let r = 0; r < 300; r++) {
+      try {
+        if (!api) api = new Function('PAYLOAD', parts.join('\n\n') +
+          '\n;if (typeof state !== "undefined") state.payload = PAYLOAD;' +
+          '\n;return { renderSourceTables, columnNumericMask, getTableSchema };')(P);
+        return call();
+      } catch (e) {
+        const m = /(\w+) is not defined/.exec(e.message);
+        if (m && add(m[1])) { api = null; continue; }
+        throw e;
+      }
+    }
+  };
+  const c = { th: 0, label: 0, num: 0, numText: 0, plain: 0, dacYes: 0 };
+  const numTextBy = {}, plainBy = {};
+  Object.keys(P.tables).sort().forEach(id => {
+    const t = P.tables[id];
+    Object.keys(t.data || {}).sort().forEach(y => {
+      let h;
+      try { h = attempt(() => api.renderSourceTables([t], y, {}, id)); } catch (e) { return; }
+      c.th += (h.match(/<th[^>]*>/g) || []).length;
+      (h.match(/<tr[^>]*>[\s\S]*?<\/tr>/g) || []).forEach(row => {
+        (row.match(/<td([^>]*)>([\s\S]*?)<\/td>/g) || []).forEach((x, i) => {
+          const cls = (/class="([^"]*)"/.exec(x) || [, ''])[1];
+          if (i === 0) { c.label++; return; }
+          if (/\bnum-text\b/.test(cls)) { c.numText++; numTextBy[id] = (numTextBy[id] || 0) + 1; return; }
+          if (/\bnum\b/.test(cls)) { c.num++; return; }
+          if (/dac-yes/.test(cls)) { c.dacYes++; return; }
+          c.plain++; plainBy[id] = (plainBy[id] || 0) + 1;
+        });
+      });
+    });
+  });
+  CENSUS = c;
+  ok(c.th === 798, 'P1 header cells, left -> centre (first column excepted): ' + c.th);
+  ok(c.label === 1386, 'P2 row labels, LEFT and untouched: ' + c.label);
+  ok(c.num === 3765, 'P3 .num values, right -> centre: ' + c.num);
+  ok(c.numText === 261, 'P4 text in a numeric column, follows its column: ' + c.numText);
+  ok(JSON.stringify(numTextBy) ===
+     '{"A3":7,"A4":7,"A5":81,"A6":45,"A7":5,"A8":69,"C2":15,"I1":28,"J1":2,"J2":2}',
+     'P5 and they are in these ten tables: ' + JSON.stringify(numTextBy));
+  ok(c.plain === 674, 'P6 plain text in a non-label column, left -> centre: ' + c.plain);
+  ok(Object.keys(plainBy).length === 14,
+     'P7 across fourteen tables: ' + Object.keys(plainBy).sort().join(','));
+  ok(c.dacYes === 0, 'P8 and .dac-yes is emitted on zero cells, so its retired ' +
+     'centring rule never centred anything');
+  /* the editor population, from the SAME mask, must match cell for cell */
+  let edLabel = 0, edNum = 0, edText = 0;
+  Object.keys(P.tables).sort().forEach(id => {
+    const t = P.tables[id];
+    const hl = t.header_levels !== undefined ? t.header_levels : 1;
+    Object.keys(t.data || {}).sort().forEach(y => {
+      const schema = attempt(() => api.getTableSchema(t, y));
+      const rows = t.data[y] || [];
+      if (!rows.length || !schema) return;
+      const mask = attempt(() => api.columnNumericMask(schema, rows.slice(Math.max(0, hl - 1)), id));
+      rows.slice(Math.max(0, hl - 1)).forEach(() => {
+        for (let k = 0; k < schema.length; k++) {
+          if (k === 0) edLabel++; else if (mask[k]) edNum++; else edText++;
+        }
+      });
+    });
+  });
+  ok(edLabel === c.label, 'P9 the editor has the same 1,386 label cells: ' + edLabel);
+  ok(edNum === c.num + c.numText,
+     'P10 and the same numeric population, 3,765 + 261 = ' + edNum);
+  ok(edText === c.plain, 'P11 and the same 674 text cells: ' + edText);
+});
+
+guard('P: the named populations Emely asked to see', () => {
+  let comp = 0; const compT = {};
+  Object.keys(P.tables).forEach(id => {
+    Object.keys(P.tables[id].data || {}).forEach(y => {
+      (P.tables[id].data[y] || []).forEach(r => (r || []).forEach(v => {
+        if (typeof v === 'string' && /^[\d.,]+ \(\d+%\)$/.test(v.trim())) { comp++; compT[id] = 1; }
+      }));
+    });
+  });
+  ok(comp === 15 && Object.keys(compT).join(',') === 'C2',
+     'P12 the CLCPA-216 "value (pct)" composites: ' + comp + ' in ' + Object.keys(compT).join(','));
+  const two = Object.keys(P.tables).filter(id => P.tables[id].header_levels === 2);
+  ok(two.join(',') === 'A9,A10,F6', 'P13 the two-level bands: ' + two.join(','));
+  let band = 0;
+  two.forEach(id => Object.keys(P.tables[id].data || {}).forEach(y => {
+    const r = (P.tables[id].data[y] || [])[0];
+    if (r) band += r.length - 1;
+  }));
+  ok(band === 42, 'P14 and 42 band cells past column 1 move with them: ' + band);
+});
+
+/* =================== X: the exclusions and the baseline ============== */
+say('');
+say('=== X. CSS only, and the baseline ===================================');
+guard('X: app.js is byte-identical to BASE', () => {
+  ok(SRC === BASE_SRC, 'X1 app.js is BYTE-IDENTICAL to BASE: this ticket is CSS only');
+  ok(SRC.length === BASE_SRC.length, 'X1b same length too: ' + SRC.length);
+});
+guard('X: the stylesheet changed, and only where it should', () => {
+  ok(CSS_SRC !== CSS_BASE, 'X2 styles.css did change');
+  const strip = (c) => cascade.stripComments(c).css.replace(/\s+/g, ' ').trim();
+  ok(strip(CSS_SRC) !== strip(CSS_BASE), 'X2b and not only in its comments');
+  /* THE RULE SET, BY NAME. A count is the weaker statement and my first cut
+   * of this assertion carried a guessed one: I wrote four, the file says
+   * nine out and two in. Naming them cannot be satisfied by an accident. */
+  const sels = (c) => cascade.parseRules(cascade.stripComments(c).css)
+    .map(r => r.selectorText.replace(/\s+/g, ' ').trim());
+  const cnt = (l) => l.reduce((m, s) => ((m[s] = (m[s] || 0) + 1), m), {});
+  const a = cnt(sels(CSS_BASE)), b = cnt(sels(CSS_SRC));
+  const removed = Object.keys(a).filter(k => (a[k] || 0) > (b[k] || 0)).sort();
+  const added = Object.keys(b).filter(k => (b[k] || 0) > (a[k] || 0)).sort();
+  const EXPECT_REMOVED = [
+    '.data-table tbody tr td:nth-child(2):not(.num), .data-table tbody tr td:nth-child(3):not(.num)',
+    '.data-table th',
+    '.data-table th:first-child',
+    '.data-table th:not(.num), .data-table td:not(.num)',
+    '.data-table thead tr th:nth-child(2), .data-table thead tr th:nth-child(3)',
+    '.data-table td:first-child',
+    '.data-table-2level thead th',
+    '.data-table-2level thead th:first-child',
+    '.data-table-2level thead tr:nth-child(2) th',
+  ].sort();
+  const EXPECT_ADDED = [
+    '.data-table th, .data-table td',
+    '.data-table th:first-child, .data-table td:first-child',
+  ].sort();
+  ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
+     'X3 exactly these NINE rules were retired: ' + removed.length +
+     (JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED) ? '' :
+      '  GOT ' + JSON.stringify(removed)));
+  ok(JSON.stringify(added) === JSON.stringify(EXPECT_ADDED),
+     'X3b and exactly TWO were added, the rule pair: ' + JSON.stringify(added));
+});
+guard('X: the baseline', () => {
+  ok(/^[0-9a-f]{7,40}$/.test(BASE), 'X4 BASE is a literal commit sha: ' + BASE);
+  let anc = false;
+  try { execSync('git merge-base --is-ancestor ' + BASE + ' HEAD', { cwd: REPO }); anc = true; }
+  catch (e) {}
+  ok(anc, 'X5 and an ancestor of HEAD');
+});
+
+lines.forEach(l => console.log(l));
+console.log('\n  ' + pass + ' passed, ' + fail + ' failed');
+fs.writeFileSync(OUT, lines.join('\n') + '\n  ' + pass + ' passed, ' + fail + ' failed\n');
+process.exit(fail ? 1 : 0);

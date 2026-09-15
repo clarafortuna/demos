@@ -1,0 +1,134 @@
+======================================================================
+CLCPA-249 -- headers and values centred, the row label stays left
+  BASE eef4d6f
+======================================================================
+
+=== K. the resolver gained structural pseudos, and is checked first ===
+  ok   K1 :first-child matches at index 1
+  ok   K2 and does not match at index 2
+  ok   K3 :last-child counts from the end
+  ok   K4 :nth-child(n) matches its position
+  ok   K5 :nth-last-child(n) too
+  ok   K6 :not(.num) EXCLUDES a .num cell, which is the whole 1899 rule
+  ok   K7 and admits a cell without it
+  ok   K8 without index/of a structural pseudo stays CONDITIONAL, never guessed
+  ok   K9 and :hover is still refused: nothing here knows the pointer
+  ok   K10 :not() adds nothing itself, its argument counts: [0,2,1]
+  ok   K11 which ties it with .data-table td.num, as CSS says
+  ok   K12 the CLCPA-248 answer is unchanged by the extension
+
+=== A. every element shape, RESOLVED, on both surfaces ===============
+  ok   A1 th column 1                -> left (want left)  from .data-table th:first-child @1956
+  ok   A1b th column 1                has no undecidable rule in play
+  ok   A1 th column 2                -> center (want center)  from .data-table th @1952
+  ok   A1b th column 2                has no undecidable rule in play
+  ok   A1 th column 7 (last)         -> center (want center)  from .data-table th @1952
+  ok   A1b th column 7 (last)         has no undecidable rule in play
+  ok   A1 td column 1, row label     -> left (want left)  from .data-table td:first-child @1956
+  ok   A1b td column 1, row label     has no undecidable rule in play
+  ok   A1 td.num column 1            -> left (want left)  from .data-table td:first-child @1956
+  ok   A1b td.num column 1            has no undecidable rule in play
+  ok   A1 td.num column 2            -> center (want center)  from .data-table td @1952
+  ok   A1b td.num column 2            has no undecidable rule in play
+  ok   A1 td.num.num-text column 4   -> center (want center)  from .data-table td @1952
+  ok   A1b td.num.num-text column 4   has no undecidable rule in play
+  ok   A1 td plain column 4          -> center (want center)  from .data-table td @1952
+  ok   A1b td plain column 4          has no undecidable rule in play
+  ok   A1 td.dac-yes column 3        -> center (want center)  from .data-table td @1952
+  ok   A1b td.dac-yes column 3        has no undecidable rule in play
+  ok   A1 td.num in a TOTAL row      -> center (want center)  from .data-table td @1952
+  ok   A1b td.num in a TOTAL row      has no undecidable rule in play
+  ok   A1 td.num in a SUBTOTAL row   -> center (want center)  from .data-table td @1952
+  ok   A1b td.num in a SUBTOTAL row   has no undecidable rule in play
+  ok   A2 compare th column 1        -> left (want left)
+  ok   A2 compare th column 2        -> center (want center)
+  ok   A2 compare td column 1        -> left (want left)
+  ok   A2 compare td.num column 2    -> center (want center)
+  ok   A3 band th column 1       -> left (want left)
+  ok   A3 band th column 2       -> center (want center)
+  ok   A3 band th column 5       -> center (want center)
+  ok   A3 band 2nd line td       -> center (want center)
+  ok   A3 band 2nd line td c1    -> left (want left)
+  ok   A4 editor th label column                -> left (want left)
+  ok   A4 editor th column 3                    -> center (want center)
+  ok   A4 editor input .ingest-cell-label       -> left (want left)
+  ok   A4 editor input .ingest-cell-num         -> center (want center)
+  ok   A4 editor input .ingest-cell-text        -> center (want center)
+  ok   A4 editor derived box .ingest-cell-calc  -> center (want center)
+  ok   A4 editor derived box, text column       -> center (want center)
+
+=== B. the eight defeated declarations, retired ======================
+  ok   B1 105 element shapes measured
+  ok   B2 ZERO reachable declarations are inert
+  ok   B3 and exactly two declarations can reach these cells at all: .data-table th@1952, .data-table th:first-child@1956
+  ok   B4 and at BASE there were EIGHT: 8
+  ok   B5 five of them were trying to CENTRE something: .data-table th@1020, .data-table td.dac-yes@571, .data-table thead tr th:nth-child(@1588, .data-table tbody tr td:nth-child(@1584, .data-table-2level thead th@5634
+  ok   B6 and one of the three BASE winners carried !important, which is why
+  ok   B7 gone: the !important that governed everything
+  ok   B7b and it WAS at BASE, so the assertion means something
+  ok   B7 gone: the inert band centre
+  ok   B7b and it WAS at BASE, so the assertion means something
+  ok   B7 gone: the inert dac-yes centre
+  ok   B7b and it WAS at BASE, so the assertion means something
+  ok   B7 gone: the inert nth-child header centre
+  ok   B7b and it WAS at BASE, so the assertion means something
+  ok   B7 gone: the inert nth-child value centre
+  ok   B7b and it WAS at BASE, so the assertion means something
+  ok   B8 .data-table td.num no longer declares text-align: right
+  ok   B8b while its mono figures and nowrap are untouched
+  ok   B9 zero !important alignment declarations on any table cell
+  ok   B9b where BASE had two: 2
+
+=== D. the commented block, and the trap named in place ==============
+  ok   D1 the commented-out table-layout: fixed block is deleted
+  ok   D1b and it was there at BASE
+  ok   D2 and the trap is named in place for the next reader
+  ok   D3 still live and untouched: .data-table tbody tr td:first-child:nth-last-child(2
+  ok   D3 still live and untouched: .data-table tbody tr td:first-child:nth-last-child(2
+  ok   D3 still live and untouched: .data-table thead tr th:first-child:nth-last-child(2
+  ok   D3 still live and untouched: .data-table thead tr th:first-child:nth-last-child(2
+  ok   D3 still live and untouched: .data-table thead tr:first-child .th-group
+  ok   D3 still live and untouched: .data-table thead tr:nth-child(2) .th-detail:nth-chi
+  ok   D4 the 35%/65% rules on two-column tables are LIVE, queued as their own finding and deliberately not touched here: 35%
+
+=== C. the compare skeleton, which this ticket must not move =========
+  ok   C1 the compare table still resolves table-layout: fixed, from ".data-table.data-table-cmp"
+  ok   C1b still winning on SPECIFICITY, two classes
+  ok   C2 and the single-panel table is still auto
+  ok   C3 a text cell in a numeric column still wraps
+  ok   C4 and a numeric cell still nowraps
+
+=== G. the label tooltip, which measures a width ====================
+  ok   G1 data-label-tip is still emitted
+  ok   G2 and ONLY on the data-col="0" input, which is the row label
+  ok   G3 the same number of sites as BASE
+  ok   G4 and it still resolves LEFT, so scrollWidth measures what it did before
+  ok   G5 identical to BASE, so the tooltip fires on exactly the labels it did
+  ok   G6 and the number of scrollWidth readers is unchanged
+
+=== P. what moves, counted through the real renderer =================
+  ok   P1 header cells, left -> centre (first column excepted): 798
+  ok   P2 row labels, LEFT and untouched: 1386
+  ok   P3 .num values, right -> centre: 3765
+  ok   P4 text in a numeric column, follows its column: 261
+  ok   P5 and they are in these ten tables: {"A3":7,"A4":7,"A5":81,"A6":45,"A7":5,"A8":69,"C2":15,"I1":28,"J1":2,"J2":2}
+  ok   P6 plain text in a non-label column, left -> centre: 674
+  ok   P7 across fourteen tables: A3,A4,A7,C1,C2,C3,C4,C5,D1,F1,F4,F5,F6,G1
+  ok   P8 and .dac-yes is emitted on zero cells, so its retired centring rule never centred anything
+  ok   P9 the editor has the same 1,386 label cells: 1386
+  ok   P10 and the same numeric population, 3,765 + 261 = 4026
+  ok   P11 and the same 674 text cells: 674
+  ok   P12 the CLCPA-216 "value (pct)" composites: 15 in C2
+  ok   P13 the two-level bands: A9,A10,F6
+  ok   P14 and 42 band cells past column 1 move with them: 42
+
+=== X. CSS only, and the baseline ===================================
+  ok   X1 app.js is BYTE-IDENTICAL to BASE: this ticket is CSS only
+  ok   X1b same length too: 1160619
+  ok   X2 styles.css did change
+  ok   X2b and not only in its comments
+  ok   X3 exactly these NINE rules were retired: 9
+  ok   X3b and exactly TWO were added, the rule pair: [".data-table th, .data-table td",".data-table th:first-child, .data-table td:first-child"]
+  ok   X4 BASE is a literal commit sha: eef4d6f
+  ok   X5 and an ancestor of HEAD
+  113 passed, 0 failed

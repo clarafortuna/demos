@@ -1,0 +1,54 @@
+======================================================================
+CLCPA-249 -- mutation controls
+======================================================================
+  red  THE OLD !important IS BACK, so the pair ships inert
+       12 red, incl: A1 th column 2                -> left (want center)  from .data-table th:not(.num) @1952
+  red  the pair is declared but a LATER rule re-aligns the cells
+       8 red, incl: A1 td.num column 2            -> right (want center)  from .data-table td.num @1960
+  red  centring becomes left: the rule says nothing new at all
+       13 red, incl: A1 th column 2                -> left (want center)  from .data-table th @1952
+  red  THE ROW LABEL CENTRES: the one thing the rule forbids
+       9 red, incl: A1 td column 1, row label     -> center (want left)  from .data-table td @1952
+  red  the label column is addressed by CLASS, not position
+       12 red, incl: A1 td.num column 1            -> center (want left)  from .data-table td @1952
+  red  the editor label input centres too
+       3 red, incl: G4 and it still resolves LEFT, so scrollWidth measures what it did before
+  red  THE SURFACES DRIFT: the editor keeps numbers right
+       1 red, incl: A4 editor input .ingest-cell-num         -> right (want center)
+  red  the editor text inputs keep CLCPA-140s left
+       1 red, incl: A4 editor input .ingest-cell-text        -> left (want center)
+  red  the grey derived box keeps its right alignment
+       1 red, incl: A4 editor derived box .ingest-cell-calc  -> right (want center)
+  red  ONE INERT RULE SURVIVES: the band centre comes back
+       3 red, incl: B3 and exactly two declarations can reach these cells at all: .data-table th@1952, .data-table th:f
+  red  the dac-yes centring is restored, inert again
+       2 red, incl: B7 gone: the inert dac-yes centre
+  red  the is-definitions !important is left loaded
+       1 red, incl: B9 zero !important alignment declarations on any table cell: 1
+  red  the surgery took a LIVE rule with it
+       3 red, incl: D3 still live and untouched: .data-table tbody tr td:first-child:nth-last-child(2
+  red  the comments-do-not-nest warning is dropped
+       1 red, incl: D2 and the trap is named in place for the next reader
+  red  THE 248 SKELETON: the compare table goes back to auto
+       4 red, incl: C1 the compare table still resolves table-layout: fixed, from ".data-table"
+  red  and the wrap modifier stops wrapping
+       1 red, incl: C3 a text cell in a numeric column still wraps
+  red  KIT: :first-child matches at every position
+       18 red, incl: K2 and does not match at index 2
+  red  KIT: :not() stops excluding, so it matches what it forbids
+       3 red, incl: K6 :not(.num) EXCLUDES a .num cell, which is the whole 1899 rule
+  red  KIT: an unknown position is GUESSED instead of refused
+       1 red, incl: K8 without index/of a structural pseudo stays CONDITIONAL, never guessed
+  red  KIT: :hover is judged as if it always applied
+       1 red, incl: K9 and :hover is still refused: nothing here knows the pointer
+  red  KIT: :not() counts toward specificity again
+       1 red, incl: K10 :not() adds nothing itself, its argument counts: [0,3,1]
+  red  HARNESS: the population census renders ONE table
+       10 red, incl: P1 header cells, left -> centre (first column excepted): 15
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X4 BASE is a literal commit sha: HEAD
+  red  HARNESS: the inert census measures ONE table family
+       3 red, incl: B1 35 element shapes measured
+
+  24 caught, 0 not caught, of 24 guards
+  clean re-run against byte-restored source: PASSES -- 113 passed, 0 failed

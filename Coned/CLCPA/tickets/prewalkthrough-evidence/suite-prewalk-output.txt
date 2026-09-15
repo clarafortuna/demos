@@ -41,8 +41,9 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   sub-labels centre in their columns (editor)
   ok   except the label column, which keeps its left edge
   ok   group headers centre in the editor
-  ok   and in the read-only viewer
-  ok   including the viewer second header line
+  ok   and in the read-only viewer, RESOLVED: center from .data-table th
+  ok   including the viewer second header line, RESOLVED: center
+  ok   with the label column excepted, which is CLCPA-249s first-column rule
   ok   the centring is scoped to two-level tables, never to every grid
   ok   the editor emits a colspan for repeated group labels
   ok   and single-level tables take the untouched path
@@ -172,5 +173,5 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   and no function outside those thirty-two moved at all
 
 ======================================================================
-  159 passed, 0 failed
+  160 passed, 0 failed
 ======================================================================

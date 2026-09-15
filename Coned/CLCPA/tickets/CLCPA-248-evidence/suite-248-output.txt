@@ -114,7 +114,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   R13 while the rule it was supposed to obey was present and correct, which is precisely what a presence assertion cannot see
 
 === C. the stylesheet, RESOLVED rather than matched ==================
-  ok   C1 a compare table RESOLVES to table-layout: fixed, from ".data-table.data-table-cmp" line 606
+  ok   C1 a compare table RESOLVES to table-layout: fixed, from ".data-table.data-table-cmp" line 617
   ok   C1b and the winner is the compare rule, not something else that agrees
   ok   C2 the shared .data-table does still declare auto for the single-panel view (1 such declaration(s)), and
   ok   C2b it loses on SPECIFICITY, not on source order: a later stylesheet edit cannot undo this fix by being later

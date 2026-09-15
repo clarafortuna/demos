@@ -24,8 +24,18 @@
  *     rightmost compound matches is returned in `conditional`, never silently
  *     counted and never silently dropped. A caller that ignores `conditional`
  *     is back to guessing.
- *   - sibling combinators, at-rule bodies, attribute and pseudo selectors are
- *     always conditional: nothing here knows the document.
+ *   - STRUCTURAL pseudo-classes are judged when the caller says where the
+ *     element sits: :first-child, :last-child, :only-child, :nth-child(n),
+ *     :nth-last-child(n), and :not(simple-compound). Supply `index` (1-based)
+ *     and `of` (sibling count) on the element and its ancestors. Omit them and
+ *     any selector needing them is conditional rather than guessed.
+ *     Added for CLCPA-249: the rule governing alignment across this whole
+ *     dashboard is `.data-table th:not(.num) { text-align: left !important }`,
+ *     so a resolver that parks :not() cannot answer the question the ticket
+ *     is about. Measurement demanded it; it is not speculative generality.
+ *   - sibling combinators, at-rule bodies, attribute selectors and every
+ *     non-structural pseudo are always conditional: nothing here knows the
+ *     document, the user's pointer, or the browsing history.
  *
  * Pure, no I/O. Every consumer self-tests it on synthetic input before
  * trusting it on a real file, because this module is shared and a shared
@@ -48,9 +58,16 @@ function stripComments(css) {
   return { css: out, unterminated: inC ? css.slice(0, openedAt).split('\n').length : 0 };
 }
 
-/* [ids, classes+attributes+pseudo-classes, types+pseudo-elements] */
+/* [ids, classes+attributes+pseudo-classes, types+pseudo-elements]
+ *
+ * :not() contributes NOTHING itself; its argument counts normally. Unwrapping
+ * it before the count is the whole correction -- counted as a pseudo-class it
+ * inflated `.data-table th:not(.num)` to [0,3,1] when CSS says [0,2,1], and
+ * that selector is the one governing alignment across this dashboard. The
+ * !important on it decides the cascade either way, which is exactly why the
+ * error could sit here unnoticed. */
 function specificity(sel) {
-  const s = String(sel);
+  const s = String(sel).replace(/:not\(([^()]*)\)/g, '$1');
   return [
     (s.match(/#[A-Za-z0-9_-]+/g) || []).length,
     (s.match(/\.[A-Za-z0-9_-]+|\[[^\]]*\]|:(?!:)[a-z-]+/gi) || []).length,
@@ -117,17 +134,49 @@ function lastDeclaration(body, prop) {
   return last;
 }
 
+/* The structural pseudo-classes this module will judge, and nothing else.
+ * :not() takes one simple compound, which is all CSS3 allows and all this
+ * stylesheet uses. */
+const STRUCTURAL = /:(?:not\(([^()]*)\)|nth-child\(\s*(\d+)\s*\)|nth-last-child\(\s*(\d+)\s*\)|first-child|last-child|only-child)/g;
+
 function compoundMatches(compound, el) {
-  if (/[\[:]/.test(compound)) return 'conditional';
-  const tag = (/^[A-Za-z][A-Za-z0-9]*/.exec(compound) || [null])[0];
-  const id = (/#([A-Za-z0-9_-]+)/.exec(compound) || [, null])[1];
-  const classes = (compound.match(/\.[A-Za-z0-9_-]+/g) || []).map(c => c.slice(1));
   if (compound === '*') return true;
+  const pseudos = [];
+  const rest = String(compound).replace(STRUCTURAL, (m) => { pseudos.push(m); return ''; });
+  /* anything still carrying : or [ is a pseudo or attribute we will not guess */
+  if (/[\[:]/.test(rest)) return 'conditional';
+  const tag = (/^[A-Za-z][A-Za-z0-9]*/.exec(rest) || [null])[0];
+  const id = (/#([A-Za-z0-9_-]+)/.exec(rest) || [, null])[1];
+  const classes = (rest.match(/\.[A-Za-z0-9_-]+/g) || []).map(c => c.slice(1));
   if (tag && el.tag && tag.toLowerCase() !== String(el.tag).toLowerCase()) return false;
   if (id && id !== el.id) return false;
   const own = el.classes || [];
   if (!classes.every(c => own.indexOf(c) >= 0)) return false;
-  return true;
+
+  let conditional = false;
+  for (const p of pseudos) {
+    /* position is only known if the caller supplied it */
+    const needsPos = p !== ':not' && !/^:not\(/.test(p);
+    if (needsPos && (el.index == null || el.of == null)) { conditional = true; continue; }
+    if (p === ':first-child') { if (el.index !== 1) return false; continue; }
+    if (p === ':last-child') { if (el.index !== el.of) return false; continue; }
+    if (p === ':only-child') { if (el.of !== 1) return false; continue; }
+    let m = /^:nth-child\(\s*(\d+)\s*\)$/.exec(p);
+    if (m) { if (el.index !== +m[1]) return false; continue; }
+    m = /^:nth-last-child\(\s*(\d+)\s*\)$/.exec(p);
+    if (m) { if (el.of - el.index + 1 !== +m[1]) return false; continue; }
+    m = /^:not\(([^()]*)\)$/.exec(p);
+    if (m) {
+      const inner = m[1].trim();
+      if (!inner) { conditional = true; continue; }
+      const r = compoundMatches(inner, el);
+      if (r === 'conditional') { conditional = true; continue; }
+      if (r === true) return false;        /* it matched, so :not() excludes us */
+      continue;
+    }
+    conditional = true;
+  }
+  return conditional ? 'conditional' : true;
 }
 
 function compare(a, b) {

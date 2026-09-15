@@ -242,10 +242,38 @@ guard('centring, in both views', () => {
      'except the label column, which keeps its left edge');
   ok(/\.ingest-grid-2level thead th \{ text-align: center; \}/.test(CSS),
      'group headers centre in the editor');
-  ok(/\.data-table-2level thead th \{ text-align: center; \}/.test(CSS),
-     'and in the read-only viewer');
-  ok(/\.data-table-2level thead tr:nth-child\(2\) th \{ text-align: center; \}/.test(CSS),
-     'including the viewer second header line');
+  /* CLCPA-249 RE-PINS THESE TWO, and the reason is the point of that ticket.
+   * They matched the rule TEXT `.data-table-2level thead th { text-align:
+   * center; }`, which was present, correct, and INERT: a shared
+   * `text-align: left !important` outranked it, so the viewer band rendered
+   * LEFT for as long as this assertion had been passing. CLCPA-249 retired
+   * the dead rule and centres the band from the one alignment rule at the
+   * shared layer. The claim is unchanged -- the band centres in the viewer --
+   * but it is now RESOLVED against the cascade instead of grepped, which is
+   * the only form of it that could ever have failed. */
+  const cascade = require('../_kit/css_cascade.js');
+  const bandTh = (i) => ({
+    tag: 'th', classes: [], index: i, of: 7,
+    ancestors: [{ tag: 'div', classes: ['table-wrap'], index: 1, of: 1 },
+      { tag: 'table', classes: ['data-table', 'data-table-2level'], index: 1, of: 1 },
+      { tag: 'thead', classes: [], index: 1, of: 2 },
+      { tag: 'tr', classes: [], index: 1, of: 1 }],
+  });
+  const w2 = cascade.resolve(CSS, bandTh(2), 'text-align').winner;
+  ok(w2 && w2.value === 'center',
+     'and in the read-only viewer, RESOLVED: ' + (w2 ? w2.value + ' from ' + w2.sel : 'nothing'));
+  const line2 = { tag: 'th', classes: [], index: 3, of: 7,
+    ancestors: [{ tag: 'div', classes: ['table-wrap'], index: 1, of: 1 },
+      { tag: 'table', classes: ['data-table', 'data-table-2level'], index: 1, of: 1 },
+      { tag: 'thead', classes: [], index: 1, of: 2 },
+      { tag: 'tr', classes: [], index: 2, of: 2 }] };
+  const wl2 = cascade.resolve(CSS, line2, 'text-align').winner;
+  ok(wl2 && wl2.value === 'center',
+     'including the viewer second header line, RESOLVED: ' +
+     (wl2 ? wl2.value : 'nothing'));
+  const w1 = cascade.resolve(CSS, bandTh(1), 'text-align').winner;
+  ok(w1 && w1.value === 'left',
+     'with the label column excepted, which is CLCPA-249s first-column rule');
   /* SCOPED: single-level tables must be untouched, which is 48 of the 52 */
   ok(/\.ingest-grid-2level/.test(CSS) && !/\.ingest-grid thead th \{ text-align: center/.test(CSS),
      'the centring is scoped to two-level tables, never to every grid');
