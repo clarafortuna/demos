@@ -18,27 +18,27 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   K12 the CLCPA-248 answer is unchanged by the extension
 
 === A. every element shape, RESOLVED, on both surfaces ===============
-  ok   A1 th column 1                -> left (want left)  from .data-table th:first-child @1956
+  ok   A1 th column 1                -> left (want left)  from .data-table thead tr:first-child > th:first-child @1985
   ok   A1b th column 1                has no undecidable rule in play
-  ok   A1 th column 2                -> center (want center)  from .data-table th @1952
+  ok   A1 th column 2                -> center (want center)  from .data-table th @1978
   ok   A1b th column 2                has no undecidable rule in play
-  ok   A1 th column 7 (last)         -> center (want center)  from .data-table th @1952
+  ok   A1 th column 7 (last)         -> center (want center)  from .data-table th @1978
   ok   A1b th column 7 (last)         has no undecidable rule in play
-  ok   A1 td column 1, row label     -> left (want left)  from .data-table td:first-child @1956
+  ok   A1 td column 1, row label     -> left (want left)  from .data-table tbody tr > td:first-child @1985
   ok   A1b td column 1, row label     has no undecidable rule in play
-  ok   A1 td.num column 1            -> left (want left)  from .data-table td:first-child @1956
+  ok   A1 td.num column 1            -> left (want left)  from .data-table tbody tr > td:first-child @1985
   ok   A1b td.num column 1            has no undecidable rule in play
-  ok   A1 td.num column 2            -> center (want center)  from .data-table td @1952
+  ok   A1 td.num column 2            -> center (want center)  from .data-table td @1978
   ok   A1b td.num column 2            has no undecidable rule in play
-  ok   A1 td.num.num-text column 4   -> center (want center)  from .data-table td @1952
+  ok   A1 td.num.num-text column 4   -> center (want center)  from .data-table td @1978
   ok   A1b td.num.num-text column 4   has no undecidable rule in play
-  ok   A1 td plain column 4          -> center (want center)  from .data-table td @1952
+  ok   A1 td plain column 4          -> left (want left)  from .data-table td:not(.num) @1982
   ok   A1b td plain column 4          has no undecidable rule in play
-  ok   A1 td.dac-yes column 3        -> center (want center)  from .data-table td @1952
+  ok   A1 td.dac-yes column 3        -> left (want left)  from .data-table td:not(.num) @1982
   ok   A1b td.dac-yes column 3        has no undecidable rule in play
-  ok   A1 td.num in a TOTAL row      -> center (want center)  from .data-table td @1952
+  ok   A1 td.num in a TOTAL row      -> center (want center)  from .data-table td @1978
   ok   A1b td.num in a TOTAL row      has no undecidable rule in play
-  ok   A1 td.num in a SUBTOTAL row   -> center (want center)  from .data-table td @1952
+  ok   A1 td.num in a SUBTOTAL row   -> center (want center)  from .data-table td @1978
   ok   A1b td.num in a SUBTOTAL row   has no undecidable rule in play
   ok   A2 compare th column 1        -> left (want left)
   ok   A2 compare th column 2        -> center (want center)
@@ -47,20 +47,23 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   A3 band th column 1       -> left (want left)
   ok   A3 band th column 2       -> center (want center)
   ok   A3 band th column 5       -> center (want center)
-  ok   A3 band 2nd line td       -> center (want center)
-  ok   A3 band 2nd line td c1    -> left (want left)
+  ok   A3 band row1 col1, rowspan=2 label -> left (want left)
+  ok   A3 band row1 col2, group header -> center (want center)
+  ok   A3 band ROW2 col1 -- the bug -> center (want center)
+  ok   A3 band ROW2 col2, its sibling -> center (want center)
+  ok   A3 band ROW2 col4         -> center (want center)
   ok   A4 editor th label column                -> left (want left)
   ok   A4 editor th column 3                    -> center (want center)
   ok   A4 editor input .ingest-cell-label       -> left (want left)
   ok   A4 editor input .ingest-cell-num         -> center (want center)
-  ok   A4 editor input .ingest-cell-text        -> center (want center)
+  ok   A4 editor input .ingest-cell-text        -> left (want left)
   ok   A4 editor derived box .ingest-cell-calc  -> center (want center)
-  ok   A4 editor derived box, text column       -> center (want center)
+  ok   A4 editor derived box, text column       -> left (want left)
 
 === B. the eight defeated declarations, retired ======================
   ok   B1 105 element shapes measured
   ok   B2 ZERO reachable declarations are inert
-  ok   B3 and exactly two declarations can reach these cells at all: .data-table th@1952, .data-table th:first-child@1956
+  ok   B3 and exactly three declarations can reach these cells: .data-table th@1978, .data-table thead tr:first-child > th:first-child@1985, .data-table td:not(.num)@1982
   ok   B4 and at BASE there were EIGHT: 8
   ok   B5 five of them were trying to CENTRE something: .data-table th@1020, .data-table td.dac-yes@571, .data-table thead tr th:nth-child(@1588, .data-table tbody tr td:nth-child(@1584, .data-table-2level thead th@5634
   ok   B6 and one of the three BASE winners carried !important, which is why
@@ -112,7 +115,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   P3 .num values, right -> centre: 3765
   ok   P4 text in a numeric column, follows its column: 261
   ok   P5 and they are in these ten tables: {"A3":7,"A4":7,"A5":81,"A6":45,"A7":5,"A8":69,"C2":15,"I1":28,"J1":2,"J2":2}
-  ok   P6 plain text in a non-label column, left -> centre: 674
+  ok   P6 text cells in the 20 TEXT columns, LEFT and unmoved after round 2: 674
   ok   P7 across fourteen tables: A3,A4,A7,C1,C2,C3,C4,C5,D1,F1,F4,F5,F6,G1
   ok   P8 and .dac-yes is emitted on zero cells, so its retired centring rule never centred anything
   ok   P9 the editor has the same 1,386 label cells: 1386
@@ -122,13 +125,45 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   P13 the two-level bands: A9,A10,F6
   ok   P14 and 42 band cells past column 1 move with them: 42
 
+=== T. the column test, and the twenty columns that read left =======
+  ok   T1 value columns across every table: 177
+  ok   T2 TEXT by the MASK, which is the shipped rule: 20
+  ok   T3 TEXT by majority-of-cells, the alternative: 15
+  ok   T4 and they disagree on 13 columns, which is why the choice had to be measured
+  ok   T5 majority would send C2s two composite columns LEFT on 5 text against 2 numeric, and the ruling says they stay centred: "Committed Load Relief (MW)", "Average Event Reductions (MW)"
+  ok   T6 and I1s Unique / Non-Unique on a margin of 14 to 13, which passed round 1 centred
+  ok   T7 the twenty text columns sit in twelve tables: A3, A4, C1, C2, C3, C4, C5, D1, F1, F4, F5, F6
+       A3   col1 "Program Name"
+       A4   col1 "Program Name"
+       C1   col1 (unnamed), col2 (unnamed), col3 "Category", col4 (unnamed), col5 "Description"
+       C2   col4 (unnamed), col6 (unnamed)
+       C3   col4 (unnamed), col6 (unnamed)
+       C4   col4 (unnamed), col6 (unnamed)
+       C5   col4 (unnamed), col6 (unnamed)
+       D1   col1 "Description"
+       F1   col1 "Description"
+       F4   col1 "Borough / County"
+       F5   col1 "Borough / County"
+       F6   col1 "Borough / County"
+  ok   T8 A3 "Program Name" is classified TEXT and reads left
+  ok   T8 A4 "Program Name" is classified TEXT and reads left
+  ok   T8 C1 "Category" is classified TEXT and reads left
+  ok   T8 C1 "Description" is classified TEXT and reads left
+  ok   T8 D1 "Description" is classified TEXT and reads left
+  ok   T8 F1 "Description" is classified TEXT and reads left
+  ok   T8 F5 "Borough / County" is classified TEXT and reads left
+  ok   T8 F6 "Borough / County" is classified TEXT and reads left
+  ok   T9 F5 "Non-Excludable" stays NUMERIC and centred
+  ok   T9 F5 "Excludable" stays NUMERIC and centred
+  ok   T9 F5 "Grand Total" stays NUMERIC and centred
+
 === X. CSS only, and the baseline ===================================
   ok   X1 app.js is BYTE-IDENTICAL to BASE: this ticket is CSS only
   ok   X1b same length too: 1160619
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 9
-  ok   X3b and exactly TWO were added, the rule pair: [".data-table th, .data-table td",".data-table th:first-child, .data-table td:first-child"]
+  ok   X3b and exactly THREE were added: centre, text-column left, and the first column scoped so it cannot catch a sub-header: 3
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  113 passed, 0 failed
+  134 passed, 0 failed

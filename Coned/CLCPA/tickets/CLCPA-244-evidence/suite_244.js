@@ -411,6 +411,10 @@ guard('S: scoped and singular', () => {
        named here, so this comparison still fails on anything else. */
     .replace(/\/\* CLCPA-249[\s\S]*?\*\//g, '')
     .replace(/\/\* =+\s*THE ALIGNMENT RULE[\s\S]*?\*\//g, '')
+    /* round 2: the refined rule and its own comment block */
+    .replace(/\/\* ROUND 2, three findings from the hosted pass[\s\S]*?\*\//g, '')
+    .replace(/\.data-table td:not\(\.num\) \{\s*text-align: left;\s*\}/g, '')
+    .replace(/\.data-table thead tr:first-child > th:first-child,\s*\.data-table tbody tr > td:first-child \{\s*text-align: left;\s*\}/g, '')
     .replace(/\/\* READ THIS BEFORE SKIMMING[\s\S]*?\*\//g, '')
     .replace(/\.data-table th,\s*\.data-table td \{\s*text-align: center;\s*\}/g, '')
     .replace(/\.data-table th:first-child,\s*\.data-table td:first-child \{\s*text-align: left;\s*\}/g, '')
