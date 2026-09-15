@@ -551,7 +551,11 @@ body {
 }
 .table-card-body { padding: 10px 16px 16px; overflow-x: auto; }
 .data-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-.data-table th, .data-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+/* CLCPA-249: text-align removed from here. Alignment for every .data-table
+   cell is declared once, at the end of this file, under "THE ALIGNMENT RULE".
+   This declaration was inert already: the !important at the shared layer beat
+   it everywhere. */
+.data-table th, .data-table td { padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .data-table thead th { 
   font-size: 9.5px; 
   text-transform: uppercase; 
@@ -563,12 +567,19 @@ body {
   white-space: nowrap; }
 .data-table tbody tr:last-child td { border-bottom: none; }
 .data-table tbody tr.is-total td { font-weight: 700; background: var(--white-smoke); border-top: 2px solid var(--ink); color: var(--text); }
-.data-table td.num { font-family: var(--font-mono); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-2); }
+/* CLCPA-249: text-align: right removed. Numeric values are CENTERED under
+   their centered headers now; see "THE ALIGNMENT RULE". Everything else here
+   -- the mono face, tabular figures, the nowrap CLCPA-248 works around -- is
+   unchanged. */
+.data-table td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-2); }
 .data-table tbody tr.is-total td.num { color: var(--text); }
 
 /* CLCPA-140: the I1 Unique / Non-Unique columns now follow the standard numeric
    right alignment (the one-off center override was removed for consistency). */
-.data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; text-align: center; }
+/* CLCPA-249: text-align removed. It was INERT -- the shared !important beat
+   it -- and the class is emitted on 0 cells payload-wide today, so this rule
+   has never centered anything. Colour and weight stay. */
+.data-table td.dac-yes { color: var(--mauve-shadow); font-weight: 700; }
 .year-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .year-col { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
 .year-col-header { 
@@ -1017,9 +1028,11 @@ a.nav-item { text-decoration: none; }
 /* CLCPA-140: headers centered; label (first col) left. Numeric alignment is the
    single source of truth in `.data-table td.num` above (right-aligned) — the old
    center override here was removed to avoid a cascade conflict. */
-.data-table th { text-align: center; }
-.data-table th:first-child { text-align: left; }
-.data-table td:first-child { text-align: left; }
+/* CLCPA-249: this trio moved to "THE ALIGNMENT RULE" at the end of the file.
+   Two of the three were inert here -- the shared !important outranked them --
+   and the third, td:first-child, only ever won on a NUMERIC first column,
+   by source order against .data-table td.num. Guessing which of two equal
+   rules is later is not a way to align a dashboard. */
 
 /* 2) Compare-view year-col header: darker than the regular table header (ink) */
 .year-col-header {
@@ -1534,19 +1547,15 @@ a.nav-item { text-decoration: none; }
   white-space: normal;
   line-height: 1.5;
 }
-/* =============================================================
-.data-table {
-  table-layout: fixed;
-  width: 100%;
-}
-.data-table th,
-.data-table td {
-  word-wrap: break-word;
-  overflow-wrap: anywhere;
-  white-space: normal;
-  vertical-align: top;
-  line-height: 1.5;
-}
+/* CLCPA-249: fourteen lines deleted here. They were a commented-out
+   `.data-table { table-layout: fixed; width: 100% }` and a typography block,
+   7 declarations over 2 selectors, both selectors declared live elsewhere, so
+   removing the comment changed nothing.
+
+   READ THIS BEFORE SKIMMING THE NEXT FIFTY LINES: CSS comments do not nest.
+   The opener that used to sit here was closed by the inner comment on the
+   very next line, so everything from there down is LIVE CSS, not commented
+   out, whatever the banner rules make it look like. */
 /* When table has exactly 2 columns, give col 1 = 35%, col 2 = 65% */
 .data-table tbody tr td:first-child:nth-last-child(2) {
   width: 35%;
@@ -1581,14 +1590,10 @@ a.nav-item { text-decoration: none; }
    When a table has 3 columns and the cells in cols 2/3 are text
    (not numeric), center them for readability
    ============================================================= */
-.data-table tbody tr td:nth-child(2):not(.num),
-.data-table tbody tr td:nth-child(3):not(.num) {
-  text-align: center;
-}
-.data-table thead tr th:nth-child(2),
-.data-table thead tr th:nth-child(3) {
-  text-align: center;
-}
+/* CLCPA-249: both of these blocks are gone. They tried to centre columns 2
+   and 3 and never once won -- the shared !important beat them on every shape
+   measured. What they wanted is now what the whole dashboard does, for every
+   column rather than the first two, under "THE ALIGNMENT RULE". */
 
 /* ============================================================
    Data Ingestion v3 — Multi-year editor
@@ -1886,19 +1891,71 @@ a.nav-item { text-decoration: none; }
 }
 
 /* Force all cells in definitions tables to align left (both in section pages AND ingestion) */
+/* CLCPA-249: the text-align: left !important is gone from here too. Neither
+   .edit-table nor .is-definitions is emitted anywhere in app.js or the shell
+   HTML -- measured, 0 occurrences of each -- so this never aligned anything.
+   Left in place it would be a loaded gun: the one declaration in the file
+   able to outrank THE ALIGNMENT RULE, waiting for whoever revives the class.
+   vertical-align stays; it is harmless and matches its neighbours. */
 .edit-table.is-definitions th,
 .edit-table.is-definitions td,
 .data-table.is-definitions th,
 .data-table.is-definitions td {
-  text-align: left !important;
   vertical-align: top;
 }
 
-/* Force first column always left in any data-table (covers A3, A4, etc.) */
-/* Force ALL non-numeric cells to align left in data-table */
-.data-table th:not(.num),
-.data-table td:not(.num) {
-  text-align: left !important;
+/* =====================================================================
+   THE ALIGNMENT RULE                                        CLCPA-249
+   =====================================================================
+
+   Column headers and the values under them are CENTRED. The first column
+   is the row label and stays LEFT. That is the whole rule, it is declared
+   here once, and it governs both surfaces.
+
+   WHAT WAS HERE, and why one line mattered so much:
+
+       .data-table th:not(.num),
+       .data-table td:not(.num) { text-align: left !important; }
+
+   !important, so nothing could outrank it without saying !important too.
+   Measured across 105 element shapes, EIGHT text-align declarations on
+   .data-table cells could match and never won anywhere: five of them were
+   trying to centre something. `.data-table th` centre, the nth-child(2)
+   and (3) centres, `.data-table td.dac-yes` centre, and the A9/A10/F6
+   band's `.data-table-2level thead th` centre. Every one present,
+   correct, and inert -- this stylesheet has claimed for a long time that
+   headers are centred while every header on the dashboard rendered left.
+   All eight are gone; this block is what replaces them.
+
+   That is instances five through eight of the class CLCPA-248 named
+   twice: a declaration's presence is not its effect. There the loser was
+   source order at equal specificity; here it is !important, which is the
+   same mistake one axis over.
+
+   NO !important HERE. It is not needed once the competing declarations
+   are gone, and reaching for it is how the last one became unanswerable.
+   If a future rule has to beat this block, it should win on specificity
+   and say so out loud.
+
+   THE FIRST COLUMN IS ADDRESSED BY POSITION, not by class. A numeric
+   value in column 1 is still a row label's column and stays left; that
+   case used to be decided by source order between two equal selectors.
+
+   Cells that move, measured payload-wide, one render per table-year:
+     3,765 .num values            right  -> centre
+       261 .num.num-text cells    right  -> centre  (text follows its column)
+       674 plain text cells       left   -> centre  (text follows its column)
+       798 header cells           left   -> centre, first column excepted
+        42 A9/A10/F6 band cells   left   -> centre  (CLCPA-241's rider)
+     1,386 row labels             left   -> LEFT, untouched
+   ===================================================================== */
+.data-table th,
+.data-table td {
+  text-align: center;
+}
+.data-table th:first-child,
+.data-table td:first-child {
+  text-align: left;
 }
 /* =============================================================
    REPORTED KPI CARDS — bar + benchmark (matches card_options_v3)
@@ -5566,8 +5623,15 @@ a.nav-item { text-decoration: none; }
   font-weight: 600;
   text-align: left;
 }
-.ingest-cell-num { text-align: right; }
-.ingest-cell-text { text-align: left; }   /* CLCPA-140: editable text-column inputs */
+/* CLCPA-249: the editor reads the same as the report page, because it is the
+   same question. .ingest-cell is width: 100% inside its td, so centring the
+   input's text centres it across the whole cell -- there is no second
+   question about centring the input itself. CLCPA-140 put text-column inputs
+   left; this ticket rules that a text value follows its COLUMN, and the
+   column is centred. 674 inputs move, the same 674 cells that move on the
+   report side. */
+.ingest-cell-num { text-align: center; }
+.ingest-cell-text { text-align: center; }
 
 .ingest-td-calc {
   padding: 6px 8px;
@@ -5580,11 +5644,15 @@ a.nav-item { text-decoration: none; }
   color: var(--text-3);
   background: var(--white-smoke);
   border-radius: 3px;
-  text-align: right;
+  /* CLCPA-249: the grey derived box is display: block and fills its cell, so
+     this centres its CONTENTS and leaves the box where it is. */
+  text-align: center;
   font-weight: 600;
   border: 1px dashed var(--line);
 }
-.ingest-cell-calc-text { text-align: left; }   /* CLCPA-140: text-column calc/total cells */
+/* CLCPA-249: a derived cell in a text column follows its column too. The
+   first column keeps its own rule below, which is what the row label needs. */
+.ingest-cell-calc-text { text-align: center; }
 
 .ingest-row-total td {
   background: rgba(20, 81, 153, 0.03);
@@ -5631,11 +5699,11 @@ a.nav-item { text-decoration: none; }
  * in both places rather than appearing twice in the editor. */
 .ingest-grid-2level thead th { text-align: center; }
 .ingest-grid-2level thead th.ingest-th-label { text-align: left; }
-.data-table-2level thead th { text-align: center; }
-.data-table-2level thead th:first-child { text-align: left; }
-/* and the viewer's second header line centres under its group, matching the
- * editor's sub-header row */
-.data-table-2level thead tr:nth-child(2) th { text-align: center; }
+/* CLCPA-249, and this is CLCPA-241's rider closing with it: the A9/A10/F6
+   header band follows the same rule as every other header, first column
+   excepted. These three declarations were inert -- the shared !important beat
+   them -- so the band has been rendering LEFT while this file claimed it was
+   centred. Now it genuinely centres, from "THE ALIGNMENT RULE". */
 
 .ingest-td-actions { width: 32px; }
 .ingest-row-delete {

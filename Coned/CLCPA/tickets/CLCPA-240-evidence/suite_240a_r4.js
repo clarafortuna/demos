@@ -540,6 +540,39 @@ guard('S: the veto is scoped and singular', () => {
     .replace(/\/\* ALIGNMENT IS NOT TOUCHED[\s\S]*?\*\//g, '')
     .replace(/(?:\.data-table)?\.data-table-cmp \{ table-layout: fixed; \}/g, '')
     .replace(/\.data-table td\.num\.num-text \{[\s\S]*?\}/g, '')
+    /* the dead-block surgery, both sides collapsed to one token: BASE has
+       the commented-out block, this build has the note replacing it, and
+       both end at the same two-column comment. Must precede the generic
+       CLCPA-249 comment pattern below. */
+    .replace(/\/\* =+\s*\.data-table \{\s*table-layout: fixed;[\s\S]*?col 2 = 65% \*\//g, 'DEADBLOCK')
+    .replace(/\/\* CLCPA-249: fourteen lines deleted[\s\S]*?col 2 = 65% \*\//g, 'DEADBLOCK')
+    /* CLCPA-249: the alignment rule. Every selector it retired or added is
+       named here, so this comparison still fails on anything else. */
+    .replace(/\/\* CLCPA-249[\s\S]*?\*\//g, '')
+    .replace(/\/\* =+\s*THE ALIGNMENT RULE[\s\S]*?\*\//g, '')
+    .replace(/\/\* READ THIS BEFORE SKIMMING[\s\S]*?\*\//g, '')
+    .replace(/\.data-table th,\s*\.data-table td \{\s*text-align: center;\s*\}/g, '')
+    .replace(/\.data-table th:first-child,\s*\.data-table td:first-child \{\s*text-align: left;\s*\}/g, '')
+    .replace(/\.data-table th \{ text-align: center; \}/g, '')
+    .replace(/\.data-table th:first-child \{ text-align: left; \}/g, '')
+    .replace(/\.data-table td:first-child \{ text-align: left; \}/g, '')
+    .replace(/\.data-table-2level thead th \{ text-align: center; \}/g, '')
+    .replace(/\.data-table-2level thead th:first-child \{ text-align: left; \}/g, '')
+    .replace(/\.data-table-2level thead tr:nth-child\(2\) th \{ text-align: center; \}/g, '')
+    .replace(/\.data-table tbody tr td:nth-child\(2\):not\(\.num\),[\s\S]*?\}/g, '')
+    .replace(/\.data-table thead tr th:nth-child\(2\),[\s\S]*?\}/g, '')
+    .replace(/\.data-table th:not\(\.num\),[\s\S]*?\}/g, '')
+    .replace(/\.data-table td\.dac-yes \{[^}]*\}/g, '')
+    .replace(/\.data-table th, \.data-table td \{ (?:text-align: left; )?padding: 6px 10px;[^}]*\}/g, '')
+    .replace(/\.data-table td\.num \{ font-family: var\(--font-mono\);[^}]*\}/g, '')
+    .replace(/\.ingest-cell-num \{ text-align: (?:right|center); \}/g, '')
+    .replace(/\.ingest-cell-text \{ text-align: (?:left|center); \}[^\n]*/g, '')
+    .replace(/\.ingest-cell-calc-text \{ text-align: (?:left|center); \}[^\n]*/g, '')
+    .replace(/text-align: (?:right|center);\s*\n?\s*font-weight: 600;/g, 'CALCBOX')
+    .replace(/\.edit-table\.is-definitions th,[\s\S]*?\}/g, '')
+    .replace(/\/\* and the viewer's second header line centres[\s\S]*?\*\//g, '')
+    .replace(/\/\* Force first column always left[^*]*\*\//g, '')
+    .replace(/\/\* Force ALL non-numeric cells[^*]*\*\//g, '')
     .replace(/\s+/g, ' ').trim();
   ok(strip248(css) === strip248(baseCss),
      'S5 styles.css differs only by CLCPA-248s two named rules');
