@@ -227,8 +227,15 @@ guard('X: the blast radius', () => {
     .map(m => /function (\w+)/.exec(m)[1]))];
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
-  ok(changed.length === 1 && changed[0] === 'dacCol',
-     'X1 exactly ONE function changed, and it is dacCol: ' + changed.join(', '));
+  /* Group D stacks on top of this one, so its two functions are named here.
+   * An unnamed change still turns X1 red. */
+  const LATER = { phantomSpacerCols: 'CLCPA-260, group D', buildIngestWorkbook: 'CLCPA-260, group D',
+    renderIngestEditor: 'CLCPA-260, group D' };
+  const mine = changed.filter(n => !(n in LATER));
+  changed.forEach(n => ok(n === 'dacCol' || n in LATER,
+    'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
+  ok(mine.length === 1 && mine[0] === 'dacCol',
+     'X1b exactly ONE function is THIS tickets, and it is dacCol: ' + mine.join(', '));
   ['getTableSchema', 'dacCell', 'renderSourceTables', 'tableCaption',
    'ingestComputed'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

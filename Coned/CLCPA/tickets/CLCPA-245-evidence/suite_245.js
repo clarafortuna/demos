@@ -616,6 +616,8 @@ guard('X: the blast radius', () => {
     /* Section C group A, not this ticket's, each named so the count stays exact */
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     renderSectionC: 'NOT this ticket: CLCPA-259, the panel reads C1',
@@ -634,7 +636,7 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   /* 6 -> 9: CLCPA-248 added three, every one named above. */
   /* 9 -> 10: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 17, 'X8 exactly SIXTEEN functions changed: ' + changed.length);
+  ok(changed.length === 19, 'X8 exactly SIXTEEN functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

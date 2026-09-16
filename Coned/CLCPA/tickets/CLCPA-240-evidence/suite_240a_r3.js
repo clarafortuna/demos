@@ -535,6 +535,7 @@ say('=== F. everything outside the family, and the round trip =============');
 guard('F: flat tables render byte-identically to BASE', () => {
   const fam = { A5: 1, A6: 1, A7: 1, A8: 1 };
   let titleOnly = 0;
+  const spacer = [];
   let e1 = null, e1empty = null;
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
@@ -570,7 +571,15 @@ guard('F: flat tables render byte-identically to BASE', () => {
     const noTitle = (h) => String(h)
       .replace(/ title="[^"]*"/g, '')
       .replace(/ data-label-tip="[^"]*"/g, '');
-    if (noTitle(a) !== noTitle(b)) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
+    /* CLCPA-260 hides the unnamed spacer columns in the editor, so C1-C5
+     * render narrower than BASE by design. Collected by name; the difference
+     * is asserted below, so nothing is merely excused. */
+    const SPACERS = ['C1', 'C2', 'C3', 'C4', 'C5'];
+    if (noTitle(a) !== noTitle(b)) {
+      if (id === 'E1') e1 = { a: a, b: b };
+      else if (SPACERS.indexOf(id) >= 0) spacer.push({ id: id, y: y, a: a, b: b });
+      else diff.push(id + ':' + y);
+    }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
     /* and with an EMPTY baseline too, since that is what round 3 changed */
     let a2, b2;
@@ -581,10 +590,26 @@ guard('F: flat tables render byte-identically to BASE', () => {
     /* the same CLCPA-244 carve-out, in the state round 3 exists for */
     if (noTitle(a2) !== noTitle(b2)) {
       if (id === 'E1') e1empty = { a: a2, b: b2 };
+      else if (SPACERS.indexOf(id) >= 0) spacer.push({ id: id, y: y + ' (empty)', a: a2, b: b2 });
       else diff.push(id + ':' + y + ' (empty baseline)');
     }
   });
   ok(checked >= 40, 'F1 rendered ' + checked + ' tables outside the family, in both states');
+  const colsOf = (h) => { const out = []; String(h).replace(/data-col="(d+)"/g,
+    (_, d) => { out.push(Number(d)); return ''; });
+    return out.sort((p, q) => p - q).filter((v, i, arr) => i === 0 || arr[i - 1] !== v); };
+  const HIDE = { C1: [1, 2, 4], C2: [1, 2, 4, 6], C3: [1, 2, 4, 6], C4: [1, 2, 4, 6], C5: [1, 2, 4, 6] };
+  const spacerBad = [];
+  spacer.forEach((x) => {
+    const now = colsOf(x.a), was = colsOf(x.b);
+    const want = was.filter((c) => HIDE[x.id].indexOf(c) < 0);
+    if (JSON.stringify(now) !== JSON.stringify(want)) {
+      spacerBad.push(x.id + ':' + x.y + ' renders [' + now + '] want [' + want + ']');
+    }
+  });
+  ok(spacer.length === 10, 'F1b the five spacer tables differ in both states: ' + spacer.length);
+  ok(spacerBad.length === 0, 'F1c and each renders exactly BASEs columns minus its spacers' +
+     (spacerBad.length ? ': ' + spacerBad.slice(0, 4).join(' | ') : ''));
   ok(diff.length === 0,
      'F2 every one is byte-identical to BASE' +
      (diff.length ? ': ' + diff.slice(0, 5).join(', ') : ''));

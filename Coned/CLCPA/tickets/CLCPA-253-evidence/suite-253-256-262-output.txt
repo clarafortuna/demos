@@ -77,11 +77,13 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   Z3 and all 149 in COMPARE mode too
 
 === X. what else moved =============================================
-       changed: dacCol, ingestComputed, openAddYearDialog, openSaveModal, renderIngestEditor, renderSourceTables, tableCaption
+       changed: buildIngestWorkbook, dacCol, ingestComputed, openAddYearDialog, openSaveModal, phantomSpacerCols, renderIngestEditor, renderSourceTables, tableCaption
+  ok   the change to buildIngestWorkbook is accounted for (NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them)
   ok   the change to dacCol is accounted for (NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback)
   ok   the change to ingestComputed is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
+  ok   the change to phantomSpacerCols is accounted for (NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new)
   ok   the change to renderIngestEditor is accounted for (CLCPA-252, group B: the editor calls it)
   ok   the change to renderSourceTables is accounted for (CLCPA-252, group B: the report page calls it)
   ok   the change to tableCaption is accounted for (CLCPA-252, group B: the caption helper, new)
@@ -98,4 +100,4 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 794eecf
   ok   X4 and an ancestor of HEAD
-  85 passed, 0 failed
+  87 passed, 0 failed

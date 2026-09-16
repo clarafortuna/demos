@@ -94,6 +94,8 @@ const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
    * this suite THROWING rather than failing, which is why the list is
    * explicit rather than resolved on demand. */
   'tableCaption',
+  /* CLCPA-260: the editor asks which columns are phantom spacers */
+  'phantomSpacerCols', 'getTableSchema',
   'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
   'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
   'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',

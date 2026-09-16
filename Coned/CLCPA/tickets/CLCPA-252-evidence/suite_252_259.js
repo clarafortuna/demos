@@ -299,9 +299,29 @@ guard('X: the blast radius', () => {
     renderIngestEditor: 'CLCPA-252: the editor calls it',
     renderSectionC: 'CLCPA-259: the panel reads C1',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
-  ok(changed.length <= 4, 'X1 at most four functions changed: ' + changed.length);
+  /* THIS GROUPS four, plus whatever the groups stacked ON TOP add. Named, not
+   * counted loosely: an unnamed change still turns X1 red. */
+  const LATER = { dacCol: 'CLCPA-257, group C', phantomSpacerCols: 'CLCPA-260, group D',
+    renderIngestEditor: 'CLCPA-252 AND CLCPA-260 both touch it; group D is the later one',
+    buildIngestWorkbook: 'CLCPA-260, group D' };
+  const mine = changed.filter(n => !(n in LATER));
+  changed.forEach(n => ok(n in EXPECT || n in LATER,
+    'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
+  /* renderIngestEditor is claimed by BOTH this group (the caption) and group D
+   * (the spacer filter), so it counts in LATER and three remain uniquely
+   * this group's. The caption call site itself is asserted in T7. */
+  /* renderIngestEditor and renderSectionC are claimed by LATER groups too --
+   * group D filters spacer columns in the editor, and group C touched nothing
+   * there but group D did. Two remain uniquely this group's: the caption
+   * helper and the report page that calls it. The editor's caption call site
+   * is asserted directly in T7, so nothing goes unguarded. */
+  ok(mine.length === 2 && mine.indexOf('tableCaption') >= 0 &&
+     mine.indexOf('renderSourceTables') >= 0,
+     'X1b two functions are uniquely THIS groups: ' + mine.sort().join(', '));
   ['recomputeTotals', 'columnNumericMask', 'parseCPrograms', 'ingestComputed',
    'openSaveModal'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

@@ -460,6 +460,8 @@ guard('X: the blast radius', () => {
   const LATER = {
     tableCaption: 'CLCPA-252, group B: the caption helper, new',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     renderSourceTables: 'CLCPA-252, group B: the report page calls it',
     renderIngestEditor: 'CLCPA-252, group B: the editor calls it',
     renderSectionC: 'CLCPA-259, group B: the panel reads C1',

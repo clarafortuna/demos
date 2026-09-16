@@ -284,14 +284,39 @@ function templateOf(api, tableId, year) {
 }
 /* The operator's half: type numbers into the cells left blank, and leave every
  * marker exactly as the template wrote it. */
-function fillLikeOperator(tplRows, stored) {
+/* FILLS BY HEADING, because that is how the importer reads it back.
+ *
+ * This took `src[c]` -- the STORED row indexed by the TEMPLATE's column
+ * position. That held only while the template emitted every stored column.
+ * CLCPA-260 stops emitting the unnamed spacer columns, and then template
+ * column 1 is "Participants" while src[1] is a stored spacer: every value
+ * lands under the wrong heading, and the import faithfully reports what the
+ * file said. Measured on C2:2025 -- filling by position put "37,988 (33%)",
+ * the Participants figure, under "Average Event Reductions (MW)".
+ *
+ * Nothing in app.js maps a column by position; buildIngestImport resolves
+ * `schemaNorm.indexOf(h)`. This helper was the only positional assumption in
+ * the loop, and it was a HARNESS assumption -- which is why the app round
+ * trip, driven directly, is byte-identical wide or narrow.
+ *
+ * `schema` is the table's full stored schema; the template's heading row
+ * names which of its columns each template column holds. */
+function fillLikeOperator(tplRows, stored, schema) {
+  const norm = (h) => String(h == null ? '' : h).trim().toLowerCase();
+  const header = tplRows[0] || [];
+  const full = schema || header;
+  const srcIdx = header.map((h, c) => {
+    if (c === 0 || !norm(h)) return c;
+    const k = full.findIndex(s => norm(s) && norm(s) === norm(h));
+    return k >= 0 ? k : c;
+  });
   return tplRows.map((row, i) => {
-    if (i === 0) return row.slice();
+    if (i === 0) return row.slice();          // the heading row
     const src = stored[i - 1] || [];
     return row.map((cell, c) => {
       if (c === 0) return cell;
-      if (cell != null && String(cell).trim() !== '') return cell;
-      const v = src[c];
+      if (cell != null && String(cell).trim() !== '') return cell;   // marker: leave it
+      const v = src[srcIdx[c]];
       return (v == null || v === '') ? null : v;
     });
   });
@@ -681,6 +706,7 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
   const fam = { A5: 1, A6: 1, A7: 1, A8: 1 };
   let titleOnly = 0;
   let e1 = null;
+  const spacer = [];
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
     if (fam[id]) return;
@@ -707,13 +733,55 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
      * data-label-tip, feeding the dashboard's own tooltip. Both are
      * stripped, so this normaliser keeps working whichever build it meets
      * and still compares everything else byte for byte. */
-    const noTitle = (h) => String(h)
+  const noTitle = (h) => String(h)
       .replace(/ title="[^"]*"/g, '')
       .replace(/ data-label-tip="[^"]*"/g, '');
-    if (noTitle(a) !== noTitle(b)) { if (id === 'E1') e1 = { a: a, b: b }; else diff.push(id + ':' + y); }
+    /* CLCPA-260 hides the unnamed spacer columns in the editor, so C1-C5
+     * render narrower than BASE by design. Collected separately rather than
+     * forgiven: the assertion below requires the difference to be exactly
+     * those cells disappearing and nothing else. */
+    const SPACER_TABLES = ['C1', 'C2', 'C3', 'C4', 'C5'];
+    if (noTitle(a) !== noTitle(b)) {
+      if (id === 'E1') e1 = { a: a, b: b };
+      else if (SPACER_TABLES.indexOf(id) >= 0) spacer.push({ id: id, y: y, a: a, b: b });
+      else diff.push(id + ':' + y);
+    }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
   });
   ok(checked >= 40, 'F1 rendered ' + checked + ' tables outside the family');
+  /* THE SPACER TABLES, asserted rather than excused: CLCPA-260 removes the
+   * unnamed spacer cells from the editor, so each of these must render with
+   * FEWER cells and be otherwise unchanged once those cells are gone. */
+  /* `a` is THIS build, `b` is BASE. The claim is precise: this build renders
+   * exactly the columns BASE did MINUS the spacer indexes, and every column
+   * it still renders is the one BASE rendered at that index. Comparing cell
+   * COUNTS would pass for any narrowing; comparing the data-col SET names
+   * which columns went. */
+  ok(spacer.length === 5,
+     'F1b and the five spacer tables differ on their newest year: ' +
+     spacer.map(function (x) { return x.id + ':' + x.y; }).join(', '));
+  var spacerBad = [];
+  var colsOf = function (h) {
+    var out = [];
+    String(h).replace(/data-col="(\d+)"/g, function (_, d) { out.push(Number(d)); return ''; });
+    return out.sort(function (p, q) { return p - q; }).filter(function (v, i, arr) {
+      return i === 0 || arr[i - 1] !== v; });
+  };
+  var HIDE = { C1: [1, 2, 4], C2: [1, 2, 4, 6], C3: [1, 2, 4, 6],
+               C4: [1, 2, 4, 6], C5: [1, 2, 4, 6] };
+  spacer.forEach(function (x) {
+    var now = colsOf(x.a), was = colsOf(x.b);
+    var want = was.filter(function (c) { return HIDE[x.id].indexOf(c) < 0; });
+    if (JSON.stringify(now) !== JSON.stringify(want)) {
+      spacerBad.push(x.id + ':' + x.y + ' renders [' + now + '] want [' + want + ']');
+    }
+    HIDE[x.id].forEach(function (c) {
+      if (was.indexOf(c) < 0) spacerBad.push(x.id + ' col' + c + ' was not in BASE either');
+    });
+  });
+  ok(spacerBad.length === 0,
+     'F1c and each renders exactly BASEs columns minus its spacers' +
+     (spacerBad.length ? ': ' + spacerBad.slice(0, 4).join(' | ') : ''));
   ok(diff.length === 0,
      'F2 every one is byte-identical to BASE' +
      (diff.length ? ': ' + diff.slice(0, 5).join(', ') : ''));

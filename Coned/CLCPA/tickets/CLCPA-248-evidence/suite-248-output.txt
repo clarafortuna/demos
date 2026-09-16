@@ -65,7 +65,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   H6 drawSectionEArc is either refused or bounded, never half the file: refused
   ok   H7 refused, which is the honest answer for an unbounded span
   ok   H8 and refusing cannot be mistaken for "unchanged"
-  ok   H9 the changed-function count is plausible (11), not the 25 the over-reading grab reported
+  ok   H9 the changed-function count is plausible (13), not the 25 the over-reading grab reported
   ok   H10 and the three phantoms it used to report are gone from it
 
 === P. isWhollyNumeric, and what it moves ============================
@@ -156,13 +156,15 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   X1 getTableSchema is byte-identical to BASE
   ok   X1 parseNumericInput is byte-identical to BASE
   ok   X2 DERIVED_COLS is byte-identical
-       changed: compareColWidths, dacCol, ingestComputed, isWhollyNumeric, openAddYearDialog, openSaveModal, renderIngestEditor, renderSourceTables, renderTable, tableCaption, wire
+       changed: buildIngestWorkbook, compareColWidths, dacCol, ingestComputed, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, renderIngestEditor, renderSourceTables, renderTable, tableCaption, wire
+  ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to ingestComputed is accounted for
   ok   the change to isWhollyNumeric is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
+  ok   the change to phantomSpacerCols is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
@@ -178,10 +180,12 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   wire changed as intended: NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252, the caption helper, new
   ok   dacCol changed as intended: NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback
+  ok   phantomSpacerCols changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new
+  ok   buildIngestWorkbook changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them
   ok   renderIngestEditor changed as intended: NOT this ticket: CLCPA-252, the editor calls it
-  ok   X3 exactly TEN functions changed: 11
+  ok   X3 exactly TEN functions changed: 13
   ok   X3b and isNumeric itself is byte-identical to BASE
   ok   X4 BASE is a literal commit sha: d0d0a45
   ok   X5 and an ancestor of HEAD
 
-  156 passed, 0 failed
+  160 passed, 0 failed

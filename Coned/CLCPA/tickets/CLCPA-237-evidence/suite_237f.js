@@ -486,6 +486,8 @@ guard('the blast radius is accounted for, function by function', () => {
     totalRowFlags: 'CLCPA-240: the value-less Total row',
     renderIngestPicker: 'CLCPA-240 cosmetic: the year dropdown',
     dacCol: 'the schema fallback for imported years, found in 240 follow-up',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     placeTooltipAtPointer: 'CLCPA-242: the shared tooltip clamp (new)',
     hideExecTooltip: 'CLCPA-242: hide on re-render (new)',
     wireExecutiveTooltips: 'CLCPA-242: clamp, placed before shown',
@@ -569,7 +571,7 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 27 -> 29: CLCPA-245 round 2 added two more. */
   /* 29 -> 32: CLCPA-248 changed three more. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 36, 'thirty-seven in total, all named: ' + changed.length);
+  ok(changed.length === 37, 'thirty-seven in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

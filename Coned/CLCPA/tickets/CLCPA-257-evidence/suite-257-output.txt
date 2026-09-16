@@ -33,8 +33,12 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   N1b and BASE said 2, which is where the 2023 shape put it
 
 === X. what else moved ============================================
-       changed: dacCol
-  ok   X1 exactly ONE function changed, and it is dacCol: dacCol
+       changed: buildIngestWorkbook, dacCol, phantomSpacerCols, renderIngestEditor
+  ok   X1 buildIngestWorkbook is accounted for (CLCPA-260, group D)
+  ok   X1 dacCol is accounted for
+  ok   X1 phantomSpacerCols is accounted for (CLCPA-260, group D)
+  ok   X1 renderIngestEditor is accounted for (CLCPA-260, group D)
+  ok   X1b exactly ONE function is THIS tickets, and it is dacCol: dacCol
   ok   X2 getTableSchema is byte-identical to BASE
   ok   X2 dacCell is byte-identical to BASE
   ok   X2 renderSourceTables is byte-identical to BASE
@@ -42,4 +46,4 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 3e47e89
   ok   X4 and an ancestor of HEAD, so this group stacks on Group B
-  31 passed, 0 failed
+  35 passed, 0 failed

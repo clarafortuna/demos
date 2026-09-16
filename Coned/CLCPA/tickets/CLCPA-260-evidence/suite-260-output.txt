@@ -1,0 +1,90 @@
+======================================================================
+Section C group D -- CLCPA-260, the phantom spacer columns
+  BASE 0076083   (stacked on Group C)
+======================================================================
+
+=== T. the three conditions, and the ruled widths ==================
+  ok   T1 C1:2025  6 stored -> 3 visible (ruled 3), hiding [1,2,4]
+  ok   T1 C2:2025  8 stored -> 4 visible (ruled 4), hiding [1,2,4,6]
+  ok   T1 C3:2025  8 stored -> 4 visible (ruled 4), hiding [1,2,4,6]
+  ok   T1 C4:2025  8 stored -> 4 visible (ruled 4), hiding [1,2,4,6]
+  ok   T1 C5:2025  8 stored -> 4 visible (ruled 4), hiding [1,2,4,6]
+  ok   T2 C1:2023 hides nothing: its schema names every column
+  ok   T2 C2:2023 hides nothing: its schema names every column
+  ok   T2 C3:2023 hides nothing: its schema names every column
+  ok   T2 C4:2023 hides nothing: its schema names every column
+  ok   T2 C5:2023 hides nothing: its schema names every column
+  ok   T3 A9 col0 is never hidden, in any year
+  ok   T3 A10 col0 is never hidden, in any year
+  ok   T3 F7 col0 is never hidden, in any year
+  ok   T3 F6 col3 is never hidden, in any year
+  ok   T3 F6 col5 is never hidden, in any year
+  ok   T3b and between them they hold 149 real values
+  ok   T3c condition 2: a blank-headed column holding "kept" is NOT hidden
+  ok   T3d while its empty neighbour at index 3 IS: [3]
+  ok   T3e condition 2 spans the WIDTH, not the year: col1 is empty in 2096 but holds "live" in 2095, so it is not hidden
+  ok   T3f and the same answer viewing 2095
+  ok   T3g the label column is never hidden, even when its header is blank and every cell is empty: []
+  ok   T4c condition 3: the same shape marked two-level hides nothing
+  ok   T4d and marked single-level it hides both blanks: [1,2] -- so condition 3 is what makes the difference, not an accident of the data
+  ok   T4 A9 is two-level
+  ok   T4b and hides nothing: 0
+  ok   T4 A10 is two-level
+  ok   T4b and hides nothing: 0
+  ok   T4 F6 is two-level
+  ok   T4b and hides nothing: 0
+  ok   T5 C1:2023 index 1 is "Category"
+  ok   T5b while C1:2025 index 1 is blank
+  ok   T5c and index 1 IS hidden in 2025, which a cross-year predicate would have refused
+  ok   T6 the source compares only years of the SAME schema width
+  ok   T7 the tables with phantom spacers are exactly C1-C5: C1,C2,C3,C4,C5
+  ok   T8 and 38 table-year columns in all: 38
+  ok   T9 BASE had no such predicate at all
+
+=== R. the app round trip, wide file and narrow file ================
+  ok   R0 the wide file has 8 headings and the narrow one 4: 8 vs 4
+  ok   R1 both files import cleanly
+  ok   R2 the same columns match: ["Participants","Committed Load Relief (MW)","Average Event Reductions (MW)"]
+  ok   R3 and the same 9 values are populated: 9
+  ok   R4 the resulting candidate rows are IDENTICAL, wide or narrow
+  ok   R5 and equal to the stored rows, so the round trip is a true identity
+  ok   R6 buildIngestImport maps a column by NAME, not by position, which is why the narrowing is safe
+
+=== E. the template stops emitting them ============================
+  ok   E1 the workbook asks the predicate
+  ok   E2 with one filter used for header, body and widths
+  ok   E3 the heading row is filtered
+  ok   E4 the body maps over the FULL schema then filters, so c stays the REAL column index
+  ok   E5 and so are the widths
+  ok   E6 the unfiltered heading row is gone
+  ok   E6b and it was there at BASE
+  ok   E7 the editor asks the predicate once per render
+  ok   E8 the heading cells skip a hidden column
+  ok   E9 and so do the body cells
+  ok   E10 while data-col still carries the REAL index, so editing, importing and saving see the shape they always did
+
+=== Z. the stored years, and what this ticket does NOT touch ========
+  ok   Z1 all 149 stored table-years rendered, every one with a <table>
+  ok   Z2 and the REPORT page is byte-identical on every one: this ticket changes the editor and the template, not the published tables
+  ok   Z3 the predicate was located
+  ok   Z4 and it assigns to neither schema_by_year nor data: it only reads
+  ok   Z5 which the source says in as many words
+
+=== X. what else moved ============================================
+       changed: buildIngestWorkbook, phantomSpacerCols, renderIngestEditor
+  ok   the change to buildIngestWorkbook is accounted for
+  ok   the change to phantomSpacerCols is accounted for
+  ok   the change to renderIngestEditor is accounted for
+  ok   phantomSpacerCols changed as intended: CLCPA-260: the predicate, new
+  ok   buildIngestWorkbook changed as intended: CLCPA-260: the template stops emitting them
+  ok   renderIngestEditor changed as intended: CLCPA-260: the editor stops rendering them
+  ok   X1 exactly THREE functions changed: 3
+  ok   X2 buildIngestImport is byte-identical to BASE
+  ok   X2 recomputeTotals is byte-identical to BASE
+  ok   X2 renderSourceTables is byte-identical to BASE
+  ok   X2 dacCol is byte-identical to BASE
+  ok   X2 tableCaption is byte-identical to BASE
+  ok   X2 ingestComputed is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: 0076083
+  ok   X4 and an ancestor of HEAD, so this group stacks on Group C
+  74 passed, 0 failed

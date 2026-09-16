@@ -571,7 +571,10 @@ guard('H: grab returns the function asked for, padded and column-0 alike', () =>
   const names = [...new Set((SRC.match(/(?:^|\r\n)[ \t]*(?:async )?function (\w+)\s*\(/g) || [])
     .map(m => /function (\w+)/.exec(m)[1]))];
   const changed = names.filter(n => grab(n, SRC) !== grab(n, BASE_SRC));
-  ok(changed.length < 12,
+  /* the ceiling rises with the stack: Section C groups A-D add functions to
+   * the tree this suite reads. What it guards is the ORDER OF MAGNITUDE --
+   * the over-reading grab reported 25 where the truth was single figures. */
+  ok(changed.length < 20,
      'H9 the changed-function count is plausible (' + changed.length + '), not the ' +
      '25 the over-reading grab reported');
   ok(changed.indexOf('drawSectionEArc') < 0 &&
@@ -905,6 +908,8 @@ guard('X: the blast radius', () => {
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     renderSourceTables: 'NOT this ticket: CLCPA-252, the report page calls it',
     renderIngestEditor: 'NOT this ticket: CLCPA-252, the editor calls it',
   };
@@ -913,7 +918,7 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   /* 4 -> 8: Section C group A added four, every one named above. The
    * over-reading grab used to report 25 here; see section H. */
-  ok(changed.length === 11, 'X3 exactly TEN functions changed: ' + changed.length);
+  ok(changed.length === 13, 'X3 exactly TEN functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),
