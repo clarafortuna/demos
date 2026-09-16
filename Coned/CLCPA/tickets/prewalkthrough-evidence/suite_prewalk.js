@@ -385,7 +385,10 @@ guard('the editor now merges group headers like the viewer always did', () => {
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n');
     const body = r2 + '\n' +
-      ['DERIVED_COLS', 'DERIVED_ROWS', 'SHORT_TITLES'].map(n => grabDecl(n)).join('\n') +
+      ['DERIVED_COLS', 'DERIVED_ROWS', 'SHORT_TITLES',
+       /* CLCPA-263: rowsForDisplay reads the composite-share declaration */
+       'COMPOSITE_SHARE_COLS',
+      ].map(n => grabDecl(n)).join('\n') +
       '\n' + FNS.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
     return new Function('state', 'escapeHtml', 'document', body)(
       st, esc, { getElementById: () => null })();
@@ -443,7 +446,10 @@ guard('the editor now merges group headers like the viewer always did', () => {
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n');
     const body = r2 + '\n' +
-      ['DERIVED_COLS', 'DERIVED_ROWS', 'SHORT_TITLES'].map(n => grabDecl(n)).join('\n') +
+      ['DERIVED_COLS', 'DERIVED_ROWS', 'SHORT_TITLES',
+       /* CLCPA-263: rowsForDisplay reads the composite-share declaration */
+       'COMPOSITE_SHARE_COLS',
+      ].map(n => grabDecl(n)).join('\n') +
       '\n' + FNS2.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
     const html = new Function('state', 'escapeHtml', 'document', body)(
       st, esc, { getElementById: () => null })();
@@ -637,7 +643,12 @@ guard('the four exclusions', () => {
   /* recomputeTotals left this list under CLCPA-254, which puts one declared
    * column back in the sum. It is named in EXPECT below, and suite_244 and
    * suite_245 both pin the rest of the function to BASE byte for byte. */
-  ['applyDerivedCols', 'rowsForDisplay', 'kpiDacPct'].forEach(fn => {
+  /* rowsForDisplay LEFT this list under CLCPA-263, which gave it the
+   * composite-share derivation. It is named in the census map below
+   * instead, so the change stays accounted for, just not as 'untouched'.
+   * The four new helpers are NOT added here: this is an EXCLUSION list,
+   * not a dependency list, and a seed landed in it by mistake. */
+  ['applyDerivedCols', 'kpiDacPct'].forEach(fn => {
     ok(grab(fn) === grab(fn, BASE_SRC), fn + ' is byte-identical to BASE');
   });
 
@@ -737,6 +748,11 @@ guard('the four exclusions', () => {
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -770,7 +786,8 @@ guard('the four exclusions', () => {
   /* 37 -> 40: Section C group E moved three this suite can see. */
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
   /* 42 -> 44: CLCPA-264 added two, both named above. */
-  ok(changed.length === 44, 'exactly FORTY-FOUR functions changed: ' + changed.length);
+  /* 44 -> 49: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 49, 'exactly FORTY-NINE functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those forty moved at all');
 });

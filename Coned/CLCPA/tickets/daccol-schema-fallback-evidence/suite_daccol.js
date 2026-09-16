@@ -83,10 +83,13 @@ function codeOnly(src) {
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
-  'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
+  'rowsForDisplay',
+    /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
+     * its clone, so the closure needs the derivation and its three helpers. */
+    'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', /* CLCPA-263: the composite-share declaration */ 'COMPOSITE_SHARE_COLS', 'NOT_RECONCILED_TABLES',
   /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
      the functions cannot be assembled without them. Dependencies, not
      assertions. */
@@ -504,7 +507,10 @@ guard('one function', () => {
                 /* CLCPA-252 round 2: the title derivation, both new */
                 'deriveTableCaption', 'deriveTableCaptionInfo',
                 /* CLCPA-264: the import identity advisory, both new */
-                'declaredTableFromFilename', 'importIdentityNotice'];
+                'declaredTableFromFilename', 'importIdentityNotice',
+                /* CLCPA-263: the composite-share derivation, on the display clone */
+                'rowsForDisplay', 'applyCompositeShares', 'isCompositeShareCol',
+                'compositeValueText', 'bareNumber'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));
@@ -518,7 +524,9 @@ guard('one function', () => {
    * asserted in full at the top of this file, including the measurement that
    * dacCol is now the reader left holding the fossil. */
   ['dacRow', 'dacCell', 'composePayloadFromRows', 'kpiDacPct',
-   'buildSectionDAC', 'computeHeaderCards', 'rowsForDisplay',
+   /* rowsForDisplay LEFT this list under CLCPA-263, which gave it the
+    * composite-share derivation on its clone. It is named in ALSO above. */
+   'buildSectionDAC', 'computeHeaderCards',
    'renderDumbbell', 'renderStripWithGap'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);
     if (!ok(a !== null && b !== null, fn + ' exists in both sources')) return;

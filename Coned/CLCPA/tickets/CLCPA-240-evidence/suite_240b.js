@@ -482,6 +482,11 @@ guard('two functions, and nothing else', () => {
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     /* Section C group E, not this ticket's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration before refusing an average column',
@@ -518,7 +523,8 @@ guard('two functions, and nothing else', () => {
   /* 35 -> 38: Section C group E moved three this suite can see. */
   /* 38 -> 40: CLCPA-252 round 2 added two, both named above. */
   /* 40 -> 42: CLCPA-264 added two, both named above. */
-  ok(changed.length === 42, 'exactly FORTY-TWO functions changed: ' + changed.length);
+  /* 42 -> 47: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 47, 'exactly FORTY-SEVEN functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
@@ -546,7 +552,10 @@ guard('the exclusions hold', () => {
   /* recomputeTotals LEFT this list under CLCPA-254, which puts one declared
    * column back in the sum. It is named in EXPECT above, the same treatment
    * buildIngestImport, ingestComputed and renderTable already received. */
-  ['isStrictTotalRowLabel', 'rowsForDisplay', 'applyDerivedCols',
+  /* rowsForDisplay LEFT this list under CLCPA-263, which gave it the
+   * composite-share derivation on its clone. It is named in the census map
+   * instead, so the change stays accounted for. */
+  ['isStrictTotalRowLabel', 'applyDerivedCols',
    'columnGrandTotals', 'totalRowSums',
    /* ingestComputed LEFT this list under CLCPA-244, which made a weighted mean
     * mark only its total row. Deleting an exclusion weakens nothing only if

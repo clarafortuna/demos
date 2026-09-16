@@ -439,6 +439,11 @@ guard('two functions', () => {
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     declaredTableFromFilename: 'NOT this round: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this round: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this round: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this round: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this round: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this round: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this round: CLCPA-263: the bare-number test (new)',
     /* Section C group E, not this round's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this round: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this round: CLCPA-254: it consults that declaration',
@@ -468,7 +473,8 @@ guard('two functions', () => {
   /* 30 -> 33: Section C group E moved three this suite can see. */
   /* 33 -> 35: CLCPA-252 round 2 added two, both named above. */
   /* 35 -> 37: CLCPA-264 added two, both named above. */
-  ok(changed.length === 37, 'THIRTY-SEVEN: this round\'s two, CLCPA-240\'s twelve ' +
+  /* 37 -> 42: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 42, 'FORTY-TWO: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 

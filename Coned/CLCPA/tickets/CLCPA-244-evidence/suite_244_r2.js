@@ -186,7 +186,10 @@ function grabFn(name, src) {
  * that merely assembles proves nothing, which cost this ticket a probe round
  * already. */
 function build(src, tag) {
-  const fns = ['parseNumericInput', 'rowsForDisplay', 'kpiDacPct', 'dacPct',
+  const fns = ['parseNumericInput', 'rowsForDisplay',
+    /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
+     * its clone, so the closure needs the derivation and its three helpers. */
+    'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'kpiDacPct', 'dacPct',
     'dacCell', 'buildIngestImport', 'getTableSchema', 'totalRowFlags'];
   const cs = ['DAC_KPI_REPORTED'];
   for (let it = 0; it < 600; it++) {

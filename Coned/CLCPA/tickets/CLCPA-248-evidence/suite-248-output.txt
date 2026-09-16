@@ -65,7 +65,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   H6 drawSectionEArc is either refused or bounded, never half the file: refused
   ok   H7 refused, which is the honest answer for an unbounded span
   ok   H8 and refusing cannot be mistaken for "unchanged"
-  ok   H9 the changed-function count is plausible (22), not the 25 the over-reading grab reported
+  ok   H9 the changed-function count is plausible (27), not the 25 the over-reading grab reported
   ok   H10 and the three phantoms it used to report are gone from it
 
 === P. isWhollyNumeric, and what it moves ============================
@@ -149,22 +149,25 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   T5 and this ticket did not touch it
 
 === X. what this ticket did NOT touch ================================
-  ok   X1 rowsForDisplay is byte-identical to BASE
   ok   X1 totalRowFlags is byte-identical to BASE
   ok   X1 columnNumericMask is byte-identical to BASE
   ok   X1 getTableSchema is byte-identical to BASE
   ok   X1 parseNumericInput is byte-identical to BASE
   ok   X2 DERIVED_COLS is byte-identical
-       changed: buildIngestImport, buildIngestWorkbook, compareColWidths, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, renderTable, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isCompositeShareCol, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, renderTable, rowsForDisplay, stagedBlock, tableCaption, wire
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
+  ok   the change to compositeValueText is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to ingestComputed is accounted for
+  ok   the change to isCompositeShareCol is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to isWhollyNumeric is accounted for
   ok   the change to openAddYearDialog is accounted for
@@ -175,6 +178,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
+  ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
@@ -188,6 +192,11 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   stagedBlock changed as intended: NOT this ticket: CLCPA-264, nested in openAddYearDialog, it renders the identity advisory
   ok   declaredTableFromFilename changed as intended: NOT this ticket: CLCPA-264, the filename extractor (new)
   ok   importIdentityNotice changed as intended: NOT this ticket: CLCPA-264, the import identity advisory (new)
+  ok   rowsForDisplay changed as intended: NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone
+  ok   applyCompositeShares changed as intended: NOT this ticket: CLCPA-263: the derivation (new)
+  ok   isCompositeShareCol changed as intended: NOT this ticket: CLCPA-263: the declaration predicate (new)
+  ok   compositeValueText changed as intended: NOT this ticket: CLCPA-263: the value formatting (new)
+  ok   bareNumber changed as intended: NOT this ticket: CLCPA-263: the bare-number test (new)
   ok   wire changed as intended: NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252, the caption helper, new
   ok   deriveTableCaption changed as intended: NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)
@@ -200,9 +209,9 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254, it consults that declaration before refusing an average column
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261, it collects the fraction notices
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261, the import summary announces them
-  ok   X3 exactly TWENTY-TWO functions changed: 22
+  ok   X3 exactly TWENTY-SEVEN functions changed: 27
   ok   X3b and isNumeric itself is byte-identical to BASE
   ok   X4 BASE is a literal commit sha: d0d0a45
   ok   X5 and an ancestor of HEAD
 
-  177 passed, 0 failed
+  186 passed, 0 failed

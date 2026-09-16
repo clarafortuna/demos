@@ -1,0 +1,32 @@
+======================================================================
+CLCPA-263 -- mutation controls
+======================================================================
+  red  THE GATE: it stops requiring a bare number and rewrites stored cells
+       6 red, incl: S2 and every one is byte-identical to BASE: C2:2023, C2:2025
+  red  THE GATE: a percentage string is treated as a bare number
+       4 red, incl: S2 and every one is byte-identical to BASE: C2:2023
+  red  IT IS STORED: the derivation runs on the input, not the clone
+       1 red, incl: R1 rowsForDisplay left its input untouched, so nothing derived can be saved
+  red  THE DENOMINATOR: the total row shares in its own total
+       9 red, incl: D5 the total row column 3 is untouched: "116,581 (100%)"
+  red  THE DENOMINATOR: the total row is found by ARITHMETIC again
+       11 red, incl: D5 the total row column 3 is untouched: "116,581 (50%)"
+  red  THE DENOMINATOR: zero is accepted and produces Infinity
+       3 red, incl: N1g and neither does a value against a zero total: "5 (Infinity%)"
+  red  THE FORMATTING REGRESSES: the raw value is concatenated
+       4 red, incl: F4 the derived cell keeps the separator: "37988 (33%)"
+  red  THE FORMATTING: decimals are truncated to integers
+       6 red, incl: F6 and a small decimal: "3 (0%)"
+  red  THE ROUNDING: the share is truncated instead of rounded
+       3 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
+  red  IT SPREADS: the declaration reaches every table
+       1 red, incl: C5 and the same heading in another table is not, because it is per TABLE
+  red  IT SPREADS: every column of C2 derives
+       1 red, incl: N2 the spacer column is untouched: "500 (50%)"
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X3 BASE is a literal commit sha: HEAD
+  red  HARNESS: the fresh fixture stops using C2s own figures
+       6 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
+
+  13 caught, 0 not caught, of 13 guards
+  clean re-run against byte-restored source: PASSES -- 80 passed, 0 failed

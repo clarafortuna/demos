@@ -85,10 +85,13 @@ const CODE = codeOnly(SRC);
 const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
-  'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
+  'rowsForDisplay',
+    /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
+     * its clone, so the closure needs the derivation and its three helpers. */
+    'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', /* CLCPA-263: the composite-share declaration */ 'COMPOSITE_SHARE_COLS', 'NOT_RECONCILED_TABLES',
   /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
      the functions cannot be assembled without them. Dependencies, not
      assertions. */
@@ -482,6 +485,11 @@ guard('three functions, all wiring', () => {
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     /* Section C group E, not this ticket's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration',
@@ -514,7 +522,8 @@ guard('three functions, all wiring', () => {
   /* 34 -> 37: Section C group E moved three this suite can see. */
   /* 37 -> 39: CLCPA-252 round 2 added two, both named above. */
   /* 39 -> 41: CLCPA-264 added two, both named above. */
-  ok(changed.length === 41, 'FORTY-ONE: this ticket’s six, CLCPA-240 first ' +
+  /* 41 -> 46: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 46, 'FORTY-SIX: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
@@ -528,7 +537,10 @@ guard('the exclusions hold', () => {
      fallback; that ticket owns and asserts the change, and names it in the
      EXPECT map above. */
   ['dacRow', 'composePayloadFromRows', 'buildSectionDAC',
-   'rowsForDisplay', 'renderExecutiveSummary', 'renderIngestPicker', 'ensureTooltip',
+  /* rowsForDisplay LEFT this list under CLCPA-263, which gave it the
+   * composite-share derivation on its clone. It is named in the census map
+   * instead, so the change stays accounted for. */
+   'renderExecutiveSummary', 'renderIngestPicker', 'ensureTooltip',
    'positionTooltipAt'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);
     if (!ok(a !== null && b !== null, fn + ' exists in both sources')) return;

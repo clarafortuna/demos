@@ -89,10 +89,13 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: buildIngestImport, buildIngestWorkbook, compareColWidths, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isAnchoredTotalRowLabel, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSectionC, renderSourceTables, renderTable, stagedBlock, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isAnchoredTotalRowLabel, isCompositeShareCol, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSectionC, renderSourceTables, renderTable, rowsForDisplay, stagedBlock, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
+  ok   the change to compositeValueText is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
@@ -100,6 +103,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to importIdentityNotice is accounted for
   ok   the change to ingestComputed is accounted for
   ok   the change to isAnchoredTotalRowLabel is accounted for
+  ok   the change to isCompositeShareCol is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to isWhollyNumeric is accounted for
   ok   the change to openAddYearDialog is accounted for
@@ -111,6 +115,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to renderSectionC is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
+  ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to totalRowFlags is accounted for
@@ -138,6 +143,11 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   stagedBlock changed as intended: NOT this ticket: CLCPA-264, nested in openAddYearDialog, it renders the identity advisory
   ok   declaredTableFromFilename changed as intended: NOT this ticket: CLCPA-264, the filename extractor (new)
   ok   importIdentityNotice changed as intended: NOT this ticket: CLCPA-264, the import identity advisory (new)
+  ok   rowsForDisplay changed as intended: NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone
+  ok   applyCompositeShares changed as intended: NOT this ticket: CLCPA-263: the derivation (new)
+  ok   isCompositeShareCol changed as intended: NOT this ticket: CLCPA-263: the declaration predicate (new)
+  ok   compositeValueText changed as intended: NOT this ticket: CLCPA-263: the value formatting (new)
+  ok   bareNumber changed as intended: NOT this ticket: CLCPA-263: the bare-number test (new)
   ok   wire changed as intended: NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change
   ok   wireIngestLabelTips changed as intended: round 2, the shared-tooltip wiring (new)
   ok   wireIngestPage changed as intended: round 2, it calls that wiring
@@ -146,8 +156,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261: it collects the fraction notices
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261: the import summary announces them
-  ok   X8 exactly TWENTY-EIGHT functions changed: 28
+  ok   X8 exactly THIRTY-THREE functions changed: 33
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  132 passed, 0 failed
+  142 passed, 0 failed

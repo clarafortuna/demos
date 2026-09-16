@@ -72,20 +72,30 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   Z2 and every one is byte-identical: this ticket touches the importer, not the published tables
 
 === X. what else moved =============================================
-       changed: declaredTableFromFilename, importIdentityNotice, openAddYearDialog, renderIngestImportResult, stagedBlock, wire
+       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, wire
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
+  ok   the change to compositeValueText is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to importIdentityNotice is accounted for
+  ok   the change to isCompositeShareCol is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to wire is accounted for
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor, new
   ok   importIdentityNotice changed as intended: CLCPA-264: the advisory sentence, new
+  ok   rowsForDisplay changed as intended: NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone
+  ok   applyCompositeShares changed as intended: NOT this ticket: CLCPA-263: the derivation (new)
+  ok   isCompositeShareCol changed as intended: NOT this ticket: CLCPA-263: the declaration predicate (new)
+  ok   compositeValueText changed as intended: NOT this ticket: CLCPA-263: the value formatting (new)
+  ok   bareNumber changed as intended: NOT this ticket: CLCPA-263: the bare-number test (new)
   ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces it
   ok   openAddYearDialog changed as intended: CLCPA-264: stagedBlock warns, and the call site attaches the advisory
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it attaches the advisory to the plan
-  ok   X1 exactly SIX functions changed: 6
+  ok   X1 exactly ELEVEN functions changed: 11
   ok   X2 buildIngestImport is byte-identical to BASE
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X2 parseCsvRows is byte-identical to BASE
@@ -95,4 +105,4 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  74 passed, 0 failed
+  84 passed, 0 failed

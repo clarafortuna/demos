@@ -77,15 +77,19 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   Z3 and all 149 in COMPARE mode too
 
 === X. what else moved =============================================
-       changed: buildIngestImport, buildIngestWorkbook, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isDeclaredSummable, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, tableCaption
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, rowsForDisplay, tableCaption
+  ok   the change to applyCompositeShares is accounted for (CLCPA-263: the derivation (new))
+  ok   the change to bareNumber is accounted for (CLCPA-263: the bare-number test (new))
   ok   the change to buildIngestImport is accounted for (CLCPA-261, group E: it collects the fraction notices)
   ok   the change to buildIngestWorkbook is accounted for (NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them)
+  ok   the change to compositeValueText is accounted for (CLCPA-263: the value formatting (new))
   ok   the change to dacCol is accounted for (NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback)
   ok   the change to declaredTableFromFilename is accounted for (CLCPA-264: the filename extractor (new))
   ok   the change to deriveTableCaption is accounted for (CLCPA-252 round 2: the derivation (new))
   ok   the change to deriveTableCaptionInfo is accounted for (CLCPA-252 round 2: the three strategies (new))
   ok   the change to importIdentityNotice is accounted for (CLCPA-264: the import identity advisory (new))
   ok   the change to ingestComputed is accounted for
+  ok   the change to isCompositeShareCol is accounted for (CLCPA-263: the declaration predicate (new))
   ok   the change to isDeclaredSummable is accounted for (CLCPA-254, group E: the declared-summable column, new)
   ok   the change to openAddYearDialog is accounted for (CLCPA-264: it attaches the advisory to the plan)
   ok   the change to openSaveModal is accounted for
@@ -94,6 +98,7 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   the change to renderIngestEditor is accounted for (CLCPA-252, group B: the editor calls it)
   ok   the change to renderIngestImportResult is accounted for (CLCPA-261, group E: the summary announces them)
   ok   the change to renderSourceTables is accounted for (CLCPA-252, group B: the report page calls it)
+  ok   the change to rowsForDisplay is accounted for (CLCPA-263: it derives the value (pct) composites on its clone)
   ok   the change to tableCaption is accounted for (CLCPA-252, group B: the caption helper, new)
   ok   ingestComputed changed as intended: CLCPA-253: the marker is column-aware
   ok   openSaveModal changed as intended: CLCPA-256: the change count normalises empty
@@ -107,4 +112,4 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 794eecf
   ok   X4 and an ancestor of HEAD
-  94 passed, 0 failed
+  99 passed, 0 failed

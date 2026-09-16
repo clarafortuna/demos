@@ -111,13 +111,18 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   E7 and a null table still returns the empty string
 
 === X. what else moved =============================================
-       changed: declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, openAddYearDialog, renderIngestImportResult, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, tableCaption, wire
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
+  ok   the change to compositeValueText is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to importIdentityNotice is accounted for
+  ok   the change to isCompositeShareCol is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
@@ -126,11 +131,16 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   deriveTableCaption changed as intended: CLCPA-252 r2: the text-only wrapper, new
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor (new)
   ok   importIdentityNotice changed as intended: CLCPA-264: the import identity advisory (new)
+  ok   rowsForDisplay changed as intended: CLCPA-263: it derives the value (pct) composites on its clone
+  ok   applyCompositeShares changed as intended: CLCPA-263: the derivation (new)
+  ok   isCompositeShareCol changed as intended: CLCPA-263: the declaration predicate (new)
+  ok   compositeValueText changed as intended: CLCPA-263: the value formatting (new)
+  ok   bareNumber changed as intended: CLCPA-263: the bare-number test (new)
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
   ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces the advisory
-  ok   X1 exactly NINE functions changed: 9
+  ok   X1 exactly FOURTEEN functions changed: 14
   ok   X2 renderSourceTables is byte-identical to BASE
   ok   X2 renderIngestEditor is byte-identical to BASE
   ok   X2 getTableSchema is byte-identical to BASE
@@ -144,4 +154,4 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   X10 and HEAD descends from it
   ok   X11 and the two sources genuinely differ
 
-  76 passed, 0 failed
+  86 passed, 0 failed
