@@ -48,22 +48,29 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
 
 === Z. the stored years ===========================================
   ok   Z1 all 149 rendered, every one a <table>
+  ok   Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ["A8:2023"]
   ok   Z2 and every one is byte-identical
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: buildIngestImport, isDeclaredSummable, recomputeTotals, renderIngestEditor, renderIngestImportResult
+       changed: buildIngestImport, deriveTableCaption, deriveTableCaptionInfo, isDeclaredSummable, recomputeTotals, renderIngestEditor, renderIngestImportResult, tableCaption
   ok   the change to buildIngestImport is accounted for
+  ok   the change to deriveTableCaption is accounted for
+  ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to recomputeTotals is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to tableCaption is accounted for
   ok   isDeclaredSummable changed as intended: CLCPA-254: the declaration, new
+  ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 2, it consults the derivation
+  ok   deriveTableCaption changed as intended: NOT this ticket: CLCPA-252 round 2, the title derivation (new)
+  ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 2, the three strategies (new)
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
   ok   renderIngestImportResult changed as intended: CLCPA-261: and rendered
-  ok   X1 exactly FIVE functions changed: 5
+  ok   X1 exactly EIGHT functions changed: 8
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -73,4 +80,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  58 passed, 0 failed
+  65 passed, 0 failed

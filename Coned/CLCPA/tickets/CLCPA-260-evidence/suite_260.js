@@ -344,7 +344,7 @@ say('');
 say('=== Z. the stored years, and what this ticket does NOT touch ========');
 guard('Z: the report page is untouched', () => {
   let checked = 0, tables = 0;
-  const moved = [];
+  const moved = [], derivedOnly = [];
   Object.keys(P.tables).sort().forEach(id => {
     const t = P.tables[id];
     Object.keys(t.data || {}).sort().forEach(y => {
@@ -352,11 +352,17 @@ guard('Z: the report page is untouched', () => {
       const b = NEW.attempt(api => api.renderSourceTables([t], y, {}, id));
       checked++;
       if (/<table/.test(String(b))) tables++;
-      if (a !== b) moved.push(id + ':' + y);
+      /* CLCPA-252 round 2: A8:2023 is the one data-carrying year with no
+       * stored title, so its caption DERIVES now and the panel moves. Named
+       * rather than tolerated -- anything else moving still fails Z2. */
+      if (a !== b) { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
     });
   });
   ok(checked === 149 && tables === 149,
      'Z1 all 149 stored table-years rendered, every one with a <table>');
+  ok(derivedOnly.join(',') === 'A8:2023',
+     'Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
+     JSON.stringify(derivedOnly));
   ok(moved.length === 0,
      'Z2 and the REPORT page is byte-identical on every one: this ticket ' +
      'changes the editor and the template, not the published tables' +
@@ -408,15 +414,22 @@ guard('X: the blast radius', () => {
     recomputeTotals: 'NOT this ticket: CLCPA-254, group E: it consults that declaration',
     buildIngestImport: 'NOT this ticket: CLCPA-261, group E: it collects the fraction notices',
     renderIngestImportResult: 'NOT this ticket: CLCPA-261, group E: the summary announces them',
+    tableCaption: 'NOT this ticket: CLCPA-252 round 2, it consults the derivation',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 7, 'X1 exactly THREE functions changed: ' + changed.length);
+  /* 7 -> 10: CLCPA-252 round 2 added two and changed tableCaption, all named. */
+  ok(changed.length === 10, 'X1 exactly TEN functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
+  /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a
+   * derivation to consult. It is named in the map above instead, so the
+   * change stays accounted for, just not as 'untouched'. */
   ['renderSourceTables', 'dacCol',
-   'tableCaption', 'ingestComputed'].forEach(n => {
+   'ingestComputed'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
 });

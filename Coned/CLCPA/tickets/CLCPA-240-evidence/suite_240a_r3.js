@@ -98,7 +98,20 @@ function build(src, tag) {
   const fns = ['recomputeTotals', 'totalRowFlags', 'buildIngestImport',
     'getTableSchema', 'getTableBody', 'ingestComputed', 'ingestTemplateSource',
     'normIngestKey', 'ingestIsHeaderRow', 'ingestIsBlankCell',
-    'renderIngestEditor', 'columnNumericMask'];
+    'renderIngestEditor', 'columnNumericMask',
+    /* CLCPA-252 round 2: renderIngestEditor -> tableCaption ->
+     * deriveTableCaption, so the closure needs all three or every guard in
+     * this block reports THREW instead of its own verdict. The ReferenceError
+     * resolver below cannot supply them, because the throw happens when a
+     * GUARD calls the function rather than while the closure is built.
+     *
+     * FILTERED PER SOURCE, and that is the whole point: this suite's BASE is
+     * 5b6e57e, which predates CLCPA-252 entirely, so none of the three exist
+     * there. Seeding them unconditionally turned "2 failures" into "assembly
+     * failed: BASE cannot resolve tableCaption" -- a suite reporting nothing
+     * at all, which is worse than a suite reporting a problem. */
+    'tableCaption', 'deriveTableCaption', 'deriveTableCaptionInfo']
+    .filter(n => grab(n, src));
   const cs = [];
   const STATE = { payload: P, ingest: {} };
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;')

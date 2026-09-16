@@ -456,6 +456,8 @@ guard('two functions, and nothing else', () => {
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -512,7 +514,8 @@ guard('two functions, and nothing else', () => {
   /* 27 -> 30: CLCPA-248 changed three more, every one named above. */
   /* 30 -> 31: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 35 -> 38: Section C group E moved three this suite can see. */
-  ok(changed.length === 38, 'exactly THIRTY-EIGHT functions changed: ' + changed.length);
+  /* 38 -> 40: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 40, 'exactly FORTY functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

@@ -909,6 +909,8 @@ guard('X: the blast radius', () => {
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
@@ -926,7 +928,8 @@ guard('X: the blast radius', () => {
   /* 4 -> 8: Section C group A added four, every one named above. 13 -> 17:
    * group E moved five, and renderIngestEditor was already counted. The
    * over-reading grab used to report 25 here; see section H. */
-  ok(changed.length === 17, 'X3 exactly TEN functions changed: ' + changed.length);
+  /* 17 -> 19: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 19, 'X3 exactly NINETEEN functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),

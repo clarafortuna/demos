@@ -500,7 +500,9 @@ guard('one function', () => {
                 /* Section C group E: CLCPA-254's declared-summable column and
                  * the engine that consults it, plus CLCPA-261's fraction
                  * notices and the summary that announces them. */
-                'isDeclaredSummable', 'recomputeTotals', 'renderIngestImportResult'];
+                'isDeclaredSummable', 'recomputeTotals', 'renderIngestImportResult',
+                /* CLCPA-252 round 2: the title derivation, both new */
+                'deriveTableCaption', 'deriveTableCaptionInfo'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

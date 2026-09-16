@@ -105,8 +105,19 @@ guard('T: the live bare caption is healed', () => {
   const cap = (t, y) => NEW.attempt(api => api.tableCaption(t, y));
   ok(!(P.tables.A8.title_by_year || {})['2023'],
      'T0 A8:2023 genuinely has no stored title, which is why it rendered bare');
-  ok(cap(P.tables.A8, '2023') === 'Table A8. Residential Install',
+  /* ROUND 2 SUPERSEDES THIS. Round 1's claim was that a bald "Table A8"
+   * became "Table A8. Residential Install" -- the short_title. Round 2's whole
+   * point is that short_title is not what the stored years render, so A8:2023
+   * now derives the full descriptive title from its newest sibling.
+   *
+   * Re-pinned rather than relaxed: the claim is still exact, it is just the
+   * round-2 string. Round 1's own achievement -- that this caption is no
+   * longer BALD -- is what T1b keeps, and that is the part this suite owns. */
+  ok(cap(P.tables.A8, '2023') ===
+     'Table A8. 2023 Installations by Measure Category for Residential Programs (Total and in DACs)',
      'T1 and it now reads "' + cap(P.tables.A8, '2023') + '"');
+  ok(!/^Table A8$/.test(cap(P.tables.A8, '2023')),
+     'T1c and it is not bald, which is what round 1 bought and round 2 keeps');
   /* the BASE side, driven rather than described: at BASE the same call
    * returns the bare string. An `ok(true, ...)` placeholder stood here for
    * one run; an assertion that cannot fail is not an assertion. */
@@ -123,13 +134,41 @@ guard('T: no table renders bare on a year that does not exist yet', () => {
     /^Table \w+$/.test(cap(P.tables[id], '2098')));
   ok(bare.length === 0, 'T2 bare captions on a fresh year: ' + bare.length +
      ' of ' + Object.keys(P.tables).length + (bare.length ? ' -- ' + bare.join(',') : ''));
-  /* and each is built from the table's own short_title */
-  const sample = ['C1', 'C5', 'A8', 'I1', 'J8'];
-  sample.forEach(id => {
-    const t = P.tables[id];
-    ok(cap(t, '2098') === 'Table ' + id + '. ' + t.short_title,
-       'T3 ' + id + ' -> "' + cap(t, '2098') + '"');
+  /* ROUND 2 SUPERSEDES THE SHORT_TITLE FORM. Round 1 built a fresh year's
+   * caption from the table's own short_title, and T2 above -- that nothing
+   * renders bare -- is what round 1 actually bought and still holds.
+   *
+   * What changed is the SHAPE. short_title is not what the stored years
+   * render, so round 2 derives the full descriptive title instead. These five
+   * are re-pinned to the round-2 strings rather than relaxed to a pattern: a
+   * tolerant assertion here would stop noticing a derivation that regressed.
+   * The reach and the strategies are suite_252_r2's to prove; this suite only
+   * has to show that round 1's claim survived the change to it. */
+  const SAMPLE = {
+    C1: 'Table C1. 2098 Summary of Con Edison Demand Response Programs',
+    A8: 'Table A8. 2098 Installations by Measure Category for Residential Programs (Total and in DACs)',
+    I1: 'Table I1. 2098 Year Totals',
+    /* J8's donor carries a "|  Main  |  PDF page 55" tail, which the
+     * derivation strips: a 2098 caption must not cite a 2025 page. */
+    J8: 'Table J8. 2098 Amount Expended for EAP Discounts',
+    /* C5's donor still reads "Summary4" HERE, because payload.json is the
+     * frozen revert parachute and CLCPA-258 corrected the stored row in
+     * Dataverse only. The divergence is recorded on the parachute item; this
+     * assertion states what the FILE produces, which is what this suite
+     * reads, rather than pretending the two agree. */
+    C5: 'Table C5. 2098 Total Program Participation Summary4',
+  };
+  Object.keys(SAMPLE).forEach(id => {
+    const got = cap(P.tables[id], '2098');
+    ok(got === SAMPLE[id], 'T3 ' + id + ' -> "' + got + '"');
+    ok(got !== 'Table ' + id + '. ' + P.tables[id].short_title,
+       'T3b and ' + id + ' is no longer the round-1 short_title form');
   });
+  /* D2 is the ONE table the derivation cannot reach -- its title reads
+   * "Table D2.For All..." with no space after the period -- so it still takes
+   * round 1's short_title path. Named, so "51 of 52" is a measured claim. */
+  ok(cap(P.tables.D2, '2098') === 'Table D2. ' + P.tables.D2.short_title,
+     'T4 D2 still falls back to short_title: "' + cap(P.tables.D2, '2098') + '"');
 });
 
 guard('T: a STORED title still wins, byte for byte', () => {
@@ -265,8 +304,14 @@ guard('Z: exactly one stored table-year renders differently', () => {
   ok(a.replace(/Table A8[^<]*/g, 'CAP') === b.replace(/Table A8[^<]*/g, 'CAP'),
      'Z3 and with the caption masked the two renders are identical, so the ' +
      'caption is the ONLY thing that moved');
-  ok(/Table A8\. Residential Install/.test(b) && !/Table A8\. Residential Install/.test(a),
-     'Z4 BASE rendered it bare; this build names it');
+  /* Round 1's string was "Table A8. Residential Install"; round 2 derives the
+   * full descriptive title instead. The CLAIM is unchanged -- BASE rendered a
+   * bald caption and this build names the table -- so it is stated against
+   * what the build actually produces rather than against round 1's wording. */
+  ok(/Table A8\. 2023 Installations by Measure Category/.test(b),
+     'Z4 this build names it: ' + (/(Table A8[^<]*)/.exec(b) || [])[1]);
+  ok(/>Table A8</.test(a) || /Table A8\s*</.test(a),
+     'Z4b and BASE rendered it bald: ' + JSON.stringify((/(Table A8[^<]*)/.exec(a) || [])[1]));
 });
 
 /* =================== X: blast radius and baseline =================== */
@@ -305,6 +350,8 @@ guard('X: the blast radius', () => {
     recomputeTotals: 'NOT this ticket: CLCPA-254, Section C group E: it consults that declaration',
     buildIngestImport: 'NOT this ticket: CLCPA-261, Section C group E: it collects the fraction notices',
     renderIngestImportResult: 'NOT this ticket: CLCPA-261, Section C group E: the summary announces them',
+    deriveTableCaption: 'CLCPA-252 ROUND 2: the title derivation, new',
+    deriveTableCaptionInfo: 'CLCPA-252 ROUND 2: the three strategies, new',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   /* THIS GROUPS four, plus whatever the groups stacked ON TOP add. Named, not
@@ -313,7 +360,13 @@ guard('X: the blast radius', () => {
     renderIngestEditor: 'CLCPA-252 AND CLCPA-260 both touch it; group D is the later one',
     buildIngestWorkbook: 'CLCPA-260, group D',
     isDeclaredSummable: 'CLCPA-254, group E', recomputeTotals: 'CLCPA-254, group E',
-    buildIngestImport: 'CLCPA-261, group E', renderIngestImportResult: 'CLCPA-261, group E' };
+    buildIngestImport: 'CLCPA-261, group E', renderIngestImportResult: 'CLCPA-261, group E',
+    /* ROUND 2 of this very ticket. It stacks on round 1, so from this
+     * suite's point of view the two derivation functions belong to a
+     * later round -- and tableCaption is claimed by BOTH, which is why
+     * X1b still counts exactly two as uniquely round 1's. */
+    deriveTableCaption: 'CLCPA-252 round 2', deriveTableCaptionInfo: 'CLCPA-252 round 2',
+    tableCaption: 'CLCPA-252 round 1 AND round 2; round 2 is the later one' };
   const mine = changed.filter(n => !(n in LATER));
   changed.forEach(n => ok(n in EXPECT || n in LATER,
     'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
@@ -325,9 +378,17 @@ guard('X: the blast radius', () => {
    * there but group D did. Two remain uniquely this group's: the caption
    * helper and the report page that calls it. The editor's caption call site
    * is asserted directly in T7, so nothing goes unguarded. */
-  ok(mine.length === 2 && mine.indexOf('tableCaption') >= 0 &&
-     mine.indexOf('renderSourceTables') >= 0,
-     'X1b two functions are uniquely THIS groups: ' + mine.sort().join(', '));
+  /* ROUND 2 TOOK tableCaption OUT OF "uniquely this group's". Round 1 created
+   * that helper and round 2 gave it a derivation to consult, so it is claimed
+   * by both and counts in LATER -- the same treatment renderIngestEditor and
+   * renderSectionC already get. ONE function remains uniquely round 1's: the
+   * report page that calls the helper. The helper's own creation is not left
+   * unguarded by this -- T1 and T3 drive it directly, and suite_252_r2 owns
+   * the derivation. */
+  ok(mine.length === 1 && mine.indexOf('renderSourceTables') >= 0,
+     'X1b ONE function is uniquely round 1s, the report page: ' + mine.sort().join(', '));
+  ok(changed.indexOf('tableCaption') >= 0,
+     'X1c and tableCaption still moved, claimed by round 1 and round 2 both');
   /* recomputeTotals left this list under CLCPA-254, which puts one declared
    * column back in the sum. It is named in EXPECT and in LATER above instead,
    * so the change stays accounted for, just not as "untouched". */

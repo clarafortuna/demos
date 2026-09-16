@@ -456,6 +456,8 @@ guard('three functions, all wiring', () => {
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -508,7 +510,8 @@ guard('three functions, all wiring', () => {
   /* 23 -> 25: CLCPA-245 round 2 added two more. */
   /* 25 -> 28: CLCPA-248 changed three more. */
   /* 34 -> 37: Section C group E moved three this suite can see. */
-  ok(changed.length === 37, 'THIRTY-SEVEN: this ticket’s six, CLCPA-240 first ' +
+  /* 37 -> 39: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 39, 'THIRTY-NINE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

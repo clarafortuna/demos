@@ -459,6 +459,8 @@ guard('X: the blast radius', () => {
    * whole point of a blast radius. */
   const LATER = {
     tableCaption: 'CLCPA-252, group B: the caption helper, new',
+    deriveTableCaption: 'CLCPA-252 round 2: the derivation (new)',
+    deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',

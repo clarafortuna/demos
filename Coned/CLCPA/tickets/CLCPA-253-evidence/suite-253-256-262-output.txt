@@ -77,10 +77,12 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   Z3 and all 149 in COMPARE mode too
 
 === X. what else moved =============================================
-       changed: buildIngestImport, buildIngestWorkbook, dacCol, ingestComputed, isDeclaredSummable, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, tableCaption
+       changed: buildIngestImport, buildIngestWorkbook, dacCol, deriveTableCaption, deriveTableCaptionInfo, ingestComputed, isDeclaredSummable, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, tableCaption
   ok   the change to buildIngestImport is accounted for (CLCPA-261, group E: it collects the fraction notices)
   ok   the change to buildIngestWorkbook is accounted for (NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them)
   ok   the change to dacCol is accounted for (NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback)
+  ok   the change to deriveTableCaption is accounted for (CLCPA-252 round 2: the derivation (new))
+  ok   the change to deriveTableCaptionInfo is accounted for (CLCPA-252 round 2: the three strategies (new))
   ok   the change to ingestComputed is accounted for
   ok   the change to isDeclaredSummable is accounted for (CLCPA-254, group E: the declared-summable column, new)
   ok   the change to openAddYearDialog is accounted for
@@ -102,4 +104,4 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 794eecf
   ok   X4 and an ancestor of HEAD
-  89 passed, 0 failed
+  91 passed, 0 failed
