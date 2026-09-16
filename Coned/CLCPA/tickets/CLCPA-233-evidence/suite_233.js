@@ -89,6 +89,11 @@ const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
   'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel',
   /* CLCPA-244: the editor now asks whether a derived rule is total-row-only. */
   'isTotalOnlyDerived',
+  /* CLCPA-252: the editor's caption comes from a shared helper now, so the
+   * closure needs it. A missing dependency here shows up as every guard in
+   * this suite THROWING rather than failing, which is why the list is
+   * explicit rather than resolved on demand. */
+  'tableCaption',
   'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
   'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
   'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',

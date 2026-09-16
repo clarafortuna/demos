@@ -1519,6 +1519,33 @@ function utf8ByteLength(str) {
   // Short display titles for each table (used in the source-tables tab bar).
   // Kept as a simple lookup; the data team controls the long titles via the
   // payload (table.title_by_year).
+  /**
+   * CLCPA-252: THE CAPTION COMES FROM THE TABLE, NOT FROM THE YEAR.
+   *
+   * Both surfaces read `(t.title_by_year || {})[year] || ('Table ' + id)`, and
+   * a year that has just been created has no title_by_year entry for any of
+   * the 52 tables -- so every caption on a fresh year rendered as a bare
+   * "Table C1". The CLCPA-124 audit photographed that across Section C; it is
+   * dashboard-wide, and it is not only a new-year problem: A8:2023 is a
+   * STORED year with no title entry, and it has been rendering bare all
+   * along. 148 of 149 stored table-years carry a title; that one does not.
+   *
+   * A table's identity does not depend on which year is on screen, and all 52
+   * carry a year-independent short_title, so the fallback is built from the
+   * definition. The stored per-year title still wins when it exists, because
+   * it is the filed wording and some years genuinely differ.
+   *
+   * Format matches what the stored titles look like once the "| Main | PDF
+   * page N" suffix is split off, which is what both callers already display.
+   */
+  function tableCaption(t, year) {
+    if (!t) return '';
+    const stored = (t.title_by_year || {})[year];
+    if (stored) return stored;
+    const short = t.short_title || SHORT_TITLES[t.id] || '';
+    return short ? ('Table ' + t.id + '. ' + short) : ('Table ' + t.id);
+  }
+
   const SHORT_TITLES = {
     'A1': 'Incentive $', 'A2': 'Energy Savings', 'A3': 'Participants', 'A4': 'DAC Participants',
     'A5': 'Commercial Install', 'A6': 'Multifamily Install', 'A7': 'Multisector Install',
@@ -3901,7 +3928,7 @@ function utf8ByteLength(str) {
 
     const dataCurrent = resolveRows(year);
     const dataPrev = prevYear ? resolveRows(prevYear) : null;
-    const titleCurrent = (t.title_by_year || {})[year] || ('Table ' + t.id);
+    const titleCurrent = tableCaption(t, year);   /* CLCPA-252 */
 
     /* Empty check on BODY rows, skipping any stored header rows.
      *
@@ -11721,13 +11748,42 @@ function renderSectionC() {
         </div>`;
 
       // ===== CARD 2 · Program performance table =====
-      const PROG_CATEGORIES = {
-        'CSRP': 'Peak Shaving',
-        'DLRP': 'Contingency',
-        'Term-DLM': 'Peak Shaving',
-        'Auto-DLM': 'Multi-purpose',
-        'BYOT': 'Mass-market'
-      };
+      /* CLCPA-259: THE CATEGORY COMES FROM C1, FOR THE YEAR ON SCREEN.
+       *
+       * This was a hard-coded map, and the CLCPA-124 audit caught it: on a
+       * fresh year the panel still read Peak Shaving / Contingency /
+       * Multi-purpose / Mass-market while Table C1 immediately below it on
+       * the same page showed the year's own values. Two of those captions --
+       * "Multi-purpose" and "Mass-market" -- appear in NO year's C1 at all,
+       * which is how you can tell the panel was reading nothing.
+       *
+       * C1 keys its rows by the long programme name, "Commercial System
+       * Relief Program (CSRP)", while C3/C4/C5 key theirs by the short code,
+       * "CSRP". The join is the parenthetical, with a whole-string match
+       * first so a table that already uses short codes still works.
+       *
+       * HONEST ABSENCE: a year whose C1 has no Category column, or no row for
+       * a programme, yields '' -- the same empty string the old map produced
+       * for an unknown key -- rather than a caption borrowed from a different
+       * year. Fossilised text is exactly what this ticket removes. */
+      const PROG_CATEGORIES = (() => {
+        const out = {};
+        const c1t = p.tables && p.tables.C1;
+        const schema = c1t ? getTableSchema(c1t, yr) : null;
+        const rows = c1t && c1t.data ? (c1t.data[yr] || []) : [];
+        if (!schema || !rows.length) return out;
+        const catIdx = schema.findIndex(h => /^\s*category\s*$/i.test(String(h == null ? '' : h)));
+        if (catIdx < 0) return out;
+        rows.forEach(row => {
+          const label = String((row || [])[0] == null ? '' : (row || [])[0]).trim();
+          const cat = String((row || [])[catIdx] == null ? '' : (row || [])[catIdx]).trim();
+          if (!label || !cat) return;
+          out[label] = cat;
+          const paren = /\(([^)]+)\)\s*$/.exec(label);
+          if (paren) out[paren[1].trim()] = cat;
+        });
+        return out;
+      })();
 
       // Build per-program rows: lookup committed & delivered for each segment
       const programs = c5.map(p => {
@@ -21102,7 +21158,7 @@ function wireHTooltips() {
     recomputeDirty();
 
     const tableNum = i.tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
-    const tableTitle = (table.title_by_year || {})[i.year] || ('Table ' + i.tableId);
+    const tableTitle = tableCaption(table, i.year);   /* CLCPA-252 */
     const cleanTitle = tableTitle.split('|')[0].trim();
 
     // Status bar

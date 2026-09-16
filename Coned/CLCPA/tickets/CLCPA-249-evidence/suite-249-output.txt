@@ -158,15 +158,18 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   T9 F5 "Grand Total" stays NUMERIC and centred
 
 === X. CSS only, and the baseline ===================================
+  ok   X1 app.js function tableCaption moved, and it is named by a later ticket: CLCPA-252, Section C group B
+  ok   X1 app.js function renderSourceTables moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function ingestComputed moved, and it is named by a later ticket: CLCPA-253, Section C group A
+  ok   X1 app.js function renderIngestEditor moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function openAddYearDialog moved, and it is named by a later ticket: CLCPA-262, Section C group A
   ok   X1 app.js function wire moved, and it is named by a later ticket: CLCPA-262, nested inside openAddYearDialog
   ok   X1 app.js function openSaveModal moved, and it is named by a later ticket: CLCPA-256, Section C group A
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (4) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (7) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 9
   ok   X3b and exactly THREE were added: centre, text-column left, and the first column scoped so it cannot catch a sub-header: 3
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  137 passed, 0 failed
+  140 passed, 0 failed

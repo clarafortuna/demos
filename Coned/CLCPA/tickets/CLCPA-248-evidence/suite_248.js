@@ -876,8 +876,11 @@ guard('T: it is an EDITOR feature and does not reach these panels', () => {
 say('');
 say('=== X. what this ticket did NOT touch ================================');
 guard('X: the data layer and the editor are untouched', () => {
+  /* renderIngestEditor left this list when CLCPA-252 gave the editor its
+   * caption from a shared helper. It is named in the EXPECT map below
+   * instead, so the change is still accounted for, just not as "untouched". */
   ['rowsForDisplay', 'totalRowFlags', 'recomputeTotals', 'columnNumericMask',
-   'getTableSchema', 'renderIngestEditor', 'parseNumericInput'].forEach(n => {
+   'getTableSchema', 'parseNumericInput'].forEach(n => {
     ok(grab(n) === grab(n, BASE_SRC), 'X1 ' + n + ' is byte-identical to BASE');
   });
   ok(grabConst('DERIVED_COLS') === grabConst('DERIVED_COLS', BASE_SRC),
@@ -899,13 +902,17 @@ guard('X: the blast radius', () => {
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
+    /* Section C group B */
+    tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
+    renderSourceTables: 'NOT this ticket: CLCPA-252, the report page calls it',
+    renderIngestEditor: 'NOT this ticket: CLCPA-252, the editor calls it',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 4 -> 8: Section C group A added four, every one named above. The
    * over-reading grab used to report 25 here; see section H. */
-  ok(changed.length === 8, 'X3 exactly EIGHT functions changed: ' + changed.length);
+  ok(changed.length === 10, 'X3 exactly TEN functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),
