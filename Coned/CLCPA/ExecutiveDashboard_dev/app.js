@@ -21578,7 +21578,9 @@ function wireHTooltips() {
      * convention stands, the values are in the draft, and the panel names
      * them so the review it asks for is possible. */
     const notices = (r.unitNotices || []).length
-      ? '<div class="ingest-import-notice">' +
+      /* CLCPA-266: the AMBER accent. A class attribute and nothing else --
+       * the text, the order and the advisory nature are untouched. */
+      ? '<div class="ingest-import-notice is-warn">' +
         '<h4>Read as a fraction: ' + r.unitNotices.length + ' cell' +
         (r.unitNotices.length === 1 ? '' : 's') + '</h4>' +
         '<p>A percentage was typed into a column that is not a percentage ' +
@@ -21592,7 +21594,9 @@ function wireHTooltips() {
      * whole defect is that a twin's file imports cleanly, so the moment the
      * operator most needs telling is the moment everything looks fine. */
     const identity = r.identityNotice
-      ? '<div class="ingest-import-notice">' +
+      /* CLCPA-266: the RED accent, matching the staged warning this notice is
+       * the post-load twin of. A class attribute and nothing else. */
+      ? '<div class="ingest-import-notice is-alert">' +
         '<h4>Check the table this file was for</h4>' +
         '<p>' + escapeHtml(r.identityNotice) + '</p></div>'
       : '';

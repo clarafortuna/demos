@@ -456,6 +456,12 @@ guard('S: scoped and singular', () => {
     /* CLCPA-264: the import identity advisory's own rule, named so this
      * stripper stays exact rather than becoming tolerant. */
     .replace(/\/\* CLCPA-264: the import identity advisory[\s\S]*?\.ingest-staged-warn \{[\s\S]*?\}/g, '')
+    /* CLCPA-266: the notice-box component and the restyled staged warning,
+     * named so this stripper stays exact rather than becoming tolerant. */
+    .replace(/\/\* ---- CLCPA-266: every post-load notice is a BOX[\s\S]*?\.ingest-import-notice > :last-child \{ margin-bottom: 0; \}/g, '')
+    .replace(/\/\* CLCPA-264's import identity advisory, restyled by CLCPA-266[\s\S]*?font-weight: 500;\s*\}/g, '')
+    .replace(/\/\* CLCPA-264: the import identity advisory\.[\s\S]*?font-weight: 500;\s*\}/g, '')
+    .replace(/\.ingest-import-result \{[\s\S]*?\.ingest-import-result li \{[^}]*\}/g, '')
     .replace(/\s+/g, ' ').trim();
   ok(strip248(css) === strip248(baseCss),
      'S8 styles.css differs only by CLCPA-248s two named rules');

@@ -424,11 +424,12 @@ guard('X: the blast radius', () => {
     isCompositeShareCol: 'CLCPA-263: the declaration predicate, new',
     compositeValueText: 'CLCPA-263: the value formatting, new',
     bareNumber: 'CLCPA-263: the bare-number test, new',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-266, the notice boxes gain their accent classes',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 5, 'X1 exactly FIVE functions changed: ' + changed.length);
+  ok(changed.length === 6, 'X1 exactly SIX functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['applyDerivedCols', 'columnGrandTotals', 'recomputeTotals', 'totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {

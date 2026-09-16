@@ -708,7 +708,17 @@ guard('X: the stylesheet changed, and only where it should', () => {
   const a = cnt(sels(CSS_BASE)), b = cnt(sels(CSS_SRC));
   const removed = Object.keys(a).filter(k => (a[k] || 0) > (b[k] || 0)).sort();
   const added = Object.keys(b).filter(k => (b[k] || 0) > (a[k] || 0)).sort();
+  /* LATER TICKETS retire and add rules here too, and each is named so this
+   * inventory stays an exact statement rather than a widened one. CLCPA-266
+   * folded the six .ingest-import-result rules into a shared component, so
+   * the single-selector forms leave and the combined forms arrive. */
   const EXPECT_REMOVED = [
+    '.ingest-import-result',
+    '.ingest-import-result h4',
+    '.ingest-import-result h4 ~ h4',
+    '.ingest-import-result li',
+    '.ingest-import-result p',
+    '.ingest-import-result ul',
     '.data-table tbody tr td:nth-child(2):not(.num), .data-table tbody tr td:nth-child(3):not(.num)',
     '.data-table th',
     '.data-table th:first-child',
@@ -720,6 +730,20 @@ guard('X: the stylesheet changed, and only where it should', () => {
     '.data-table-2level thead tr:nth-child(2) th',
   ].sort();
   const EXPECT_ADDED = [
+    /* CLCPA-266: the shared notice-box component and its two accents */
+    '.ingest-import-notice.is-alert',
+    '.ingest-import-notice.is-warn',
+    '.ingest-import-result > :last-child, .ingest-import-notice > :last-child',
+    '.ingest-import-result h4 ~ h4, .ingest-import-notice h4 ~ h4',
+    '.ingest-import-result h4, .ingest-import-notice h4',
+    '.ingest-import-result li, .ingest-import-notice li',
+    '.ingest-import-result p, .ingest-import-notice p',
+    '.ingest-import-result ul, .ingest-import-notice ul',
+    '.ingest-import-result, .ingest-import-notice',
+    /* .ingest-staged-warn is NOT repeated here: the CLCPA-264 round already
+     * named it further down, and listing it twice made this inventory claim
+     * fourteen additions where the stylesheet has thirteen. CLCPA-266 restyles
+     * that rule rather than adding it. */
     '.data-table th, .data-table td',
     '.data-table td:not(.num)',
     '.data-table thead tr:first-child > th:first-child, .data-table tbody tr > td:first-child',

@@ -76,18 +76,20 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, bareNumber, compositeValueText, isCompositeShareCol, rowsForDisplay
+       changed: applyCompositeShares, bareNumber, compositeValueText, isCompositeShareCol, renderIngestImportResult, rowsForDisplay
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to compositeValueText is accounted for
   ok   the change to isCompositeShareCol is accounted for
+  ok   the change to renderIngestImportResult is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   rowsForDisplay changed as intended: CLCPA-263: it applies the shares to the clone
   ok   applyCompositeShares changed as intended: CLCPA-263: the derivation, new
   ok   isCompositeShareCol changed as intended: CLCPA-263: the declaration predicate, new
   ok   compositeValueText changed as intended: CLCPA-263: the value formatting, new
   ok   bareNumber changed as intended: CLCPA-263: the bare-number test, new
-  ok   X1 exactly FIVE functions changed: 5
+  ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-266, the notice boxes gain their accent classes
+  ok   X1 exactly SIX functions changed: 6
   ok   X2 applyDerivedCols is byte-identical to BASE
   ok   X2 columnGrandTotals is byte-identical to BASE
   ok   X2 recomputeTotals is byte-identical to BASE
@@ -98,4 +100,4 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  80 passed, 0 failed
+  82 passed, 0 failed
