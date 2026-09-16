@@ -1,0 +1,61 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org: https://org9076e69b.crm.dynamics.com
+slice: THE SECTION C ROUND-2 WAVE -- three tickets
+       CLCPA-252 round 2, CLCPA-263, CLCPA-264
+files: app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  this script self-checks: helpers present and self-tested,
+              constants set, 3 resources, 3 ticket groups,
+              27 app symbols + 4 stylesheet symbols, 3 commits.
+PRE-FLIGHT 1  branch = main, HEAD = c3fab85
+              source folder clean, so the pushed bytes are exactly c3fab85.
+              ancestor: 63dea00  CLCPA-252 round 2: the title derivation
+              ancestor: c6d0453  CLCPA-264: the import identity advisory
+              ancestor: 4d9012c  CLCPA-263: the render-derived composites
+              local main == remote main == c3fab85.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      b1108e5fcf
+                 styles.css  25ca2005dc
+              both match the ids approved in advance.
+              ok  CLCPA-252 r2: a fresh year DERIVES its title
+              ok  CLCPA-264: the import identity advisory
+              ok  CLCPA-263: the value (pct) composites, derived at render
+PRE-FLIGHT 3b all 3 ticket groups verified in the COMMITTED BLOB (27 symbols), 0 NUL bytes.
+              and the STYLESHEET half: 4 symbols verified in the committed styles.css.
+PRE-FLIGHT 3c all 41 suites green, 4428 assertions.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both verified present and no stale
+              third stamp left behind. Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FNJLYXKJ2
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1179068B  local=1197009B
+WILL PUSH  styles.css   deployed=281101B  local=281482B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PROVENANCE of the archive:
+  app.js APP_BUILD stamp        : 9eb3bab955
+  app.js canonicalised + hashed : 9eb3bab955
+  expected previous build       : 9eb3bab955  (CLCPA-248 round 3)
+  styles.css LIVE (to replace)  : af0c14ea64   expected af0c14ea64
+  -> all three agree. The archive holds 9eb3bab955.
+
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+

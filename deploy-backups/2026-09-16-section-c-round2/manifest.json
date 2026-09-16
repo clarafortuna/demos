@@ -1,0 +1,47 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-09-16T19:35:49.883Z",
+  "note": "Pre-deploy snapshot of the live cr2bf_dactest web resources. Restore by PATCHing webresourceset({webResourceId}) with the base64 of the saved file, then PublishXml.",
+  "slice": "section-c-package",
+  "sourceCommit": "c3fab85",
+  "resources": [
+    {
+      "file": "app.js",
+      "webResourceName": "cr2bf_dactest/app.js",
+      "webResourceId": "79151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 1179068,
+      "sha256": "18a4436d9c3e490c78f128ab6ac6f6d730b3a8859d8366ac6990226f0909dfb8",
+      "savedAs": "app.js",
+      "willBeReplaced": true
+    },
+    {
+      "file": "styles.css",
+      "webResourceName": "cr2bf_dactest/styles.css",
+      "webResourceId": "7b151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 281101,
+      "sha256": "af0c14ea6429bacb449703b151660aad8ff7eb23f21b9b6c1ed9ce4dba3f88c1",
+      "savedAs": "styles.css",
+      "willBeReplaced": true
+    },
+    {
+      "file": "ExecutiveDashboard.html",
+      "webResourceName": "cr2bf_dactest/ExecutiveDashboard.html",
+      "webResourceId": "77151fe9-3c64-f111-ab0c-7c1e521c7110",
+      "bytes": 4080,
+      "sha256": "a3ed32e4f49a80ee485e8c5b4e5784b9f847dbb8ca609a78b64e0750a850a770",
+      "savedAs": "ExecutiveDashboard.html",
+      "willBeReplaced": true
+    }
+  ],
+  "provenance": {
+    "stampedAs": "9eb3bab955",
+    "derivedBuildId": "9eb3bab955",
+    "expectedPrevBuildId": "9eb3bab955",
+    "styleId": "af0c14ea64",
+    "expectedPrevStyleId": "af0c14ea64",
+    "newStyleId": "25ca2005dc",
+    "matches": true,
+    "newBuildId": "b1108e5fcf",
+    "note": "The previous build is CLCPA-248 round 3. Group A (9699f62) merged to main on 2026-09-15 and was NEVER deployed, so mains tip does not describe the live build and this constant was read from the org."
+  }
+}
