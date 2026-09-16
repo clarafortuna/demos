@@ -1,0 +1,87 @@
+======================================================================
+CLCPA-266 -- every post-load notice is a box, one component, three accents
+  BASE 11c22d6
+======================================================================
+
+=== D. the defect: .ingest-import-notice had no rule at all =========
+  ok   D1 BASE already emitted .ingest-import-notice
+  ok   D2 and BASE styles.css contained NO rule for it -- the notices were loose text
+  ok   D3 while .ingest-import-result had the box all along
+  ok   D4 and this build styles it
+
+=== B. one component: the three boxes resolve to the same box =======
+  ok   B1 padding is the same on all four shapes: "14px 16px"
+  ok   B1 background is the same on all four shapes: "var(--white)"
+  ok   B1 border-radius is the same on all four shapes: "8px"
+  ok   B1 border-left-width is the same on all four shapes: "3px"
+  ok   B1 margin-top is the same on all four shapes: "12px"
+  ok   B2 info resolves an accent: "var(--dusk)"  (from .ingest-import-result)
+  ok   B2 bad resolves an accent: "var(--red)"  (from .ingest-import-result.ingest-import-bad)
+  ok   B2 warn resolves an accent: "var(--amber)"  (from .ingest-import-notice.is-warn)
+  ok   B2 alert resolves an accent: "var(--red)"  (from .ingest-import-notice.is-alert)
+  ok   B3 info keeps the blue it always had
+  ok   B4 the fraction notice is AMBER
+  ok   B5 the identity notice is RED
+  ok   B6 and the rejected case is still red
+  ok   B7 the three post-load accents are three DIFFERENT colours
+  ok   B8 info uses a token, not a literal colour: var(--dusk)
+  ok   B8 bad uses a token, not a literal colour: var(--red)
+  ok   B8 warn uses a token, not a literal colour: var(--amber)
+  ok   B8 alert uses a token, not a literal colour: var(--red)
+  ok   B9 .is-warn declares border-left-color and nothing else: .ingest-import-notice.is-warn { border-left-color: var(--amber); }
+  ok   B10 and so does .is-alert: .ingest-import-notice.is-alert { border-left-color: var(--red); }
+
+=== T. the text inside a notice is styled like the text inside the box =
+  ok   T1 h4 font-size matches in both: "12.5px"
+  ok   T1 h4 color matches in both: "var(--ink)"
+  ok   T1 p font-size matches in both: "12px"
+  ok   T1 p color matches in both: "var(--text-2)"
+  ok   T1 li font-size matches in both: "12px"
+  ok   T1 li line-height matches in both: "1.55"
+  ok   T1 ul padding-left matches in both: "18px"
+  ok   T2 the fraction box contains the per-cell list
+  ok   T3 with one line per noticed cell: 2
+  ok   T4 naming the column
+
+=== S. stacking: three boxes, in order, never touching ==============
+  ok   S1 three boxes: 3
+  ok   S2 first the info box
+  ok   S3 then the fraction notice
+  ok   S4 then the identity notice
+  ok   S5 and it is BASEs order, unchanged: ["ingest-import-result","ingest-import-notice","ingest-import-notice"]
+  ok   S6 every box carries margin-top: 12px
+  ok   S7 the same value the info box already used, so the rhythm is the panels own
+  ok   S8 and the last element inside a box has no trailing margin: 0
+
+=== M. the staged warning matches its post-load twin ================
+  ok   M1 the staged warning resolves the SAME red accent as its twin: var(--red)
+  ok   M2 and the same 3px accent edge
+  ok   M3 and the same ground
+  ok   M4 at BASE it was text coloured with var(--warn-fg)
+  ok   M5 and no longer uses it
+  ok   M6 --warn-fg is not a defined token in this stylesheet, so it was resolving to its literal fallback
+  ok   M7 and .ingest-staged itself is byte-identical: no row added, no layout moved
+
+=== L. style only: no logic, no wording, no rejection ===============
+  ok   L1 with the two class attributes undone, app.js is BYTE-IDENTICAL to BASE
+  ok   L2 the rendered TEXT is identical to BASE, word for word
+  ok   L3 the fraction heading is unchanged
+  ok   L4 and the identity heading
+  ok   L5 and the CLCPA-234 reminder Emely approved verbatim
+  ok   L6 rendering rejects nothing and does not touch the plan
+  ok   L7 a clean import still renders exactly ONE box
+
+=== X. what else moved =============================================
+       changed: renderIngestImportResult
+  ok   X1 exactly ONE function changed, and it is the panel: renderIngestImportResult
+  ok   X2 buildIngestImport is byte-identical to BASE
+  ok   X2 applyIngestImport is byte-identical to BASE
+  ok   X2 importIdentityNotice is byte-identical to BASE
+  ok   X2 declaredTableFromFilename is byte-identical to BASE
+  ok   X2 openAddYearDialog is byte-identical to BASE
+  ok   X3 with the two CLCPA-266 blocks masked, styles.css is identical to BASE
+  ok   X4 and the stylesheet genuinely moved
+  ok   X5 BASE is a literal commit sha: 11c22d6
+  ok   X6 and HEAD descends from it
+
+  66 passed, 0 failed

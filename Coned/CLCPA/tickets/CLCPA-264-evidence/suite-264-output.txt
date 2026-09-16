@@ -61,11 +61,11 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
 
 === C. the styling says WARNING, not rejection =====================
   ok   C1 .ingest-staged-warn exists
-  ok   C2 and it uses the warn colour
-  ok   C3 not the red of .is-bad, because nothing was rejected
-  ok   C4 which is the amber .ingest-foot-warn already uses
+  ok   C2 and it now uses the RED accent, per CLCPA-266
+  ok   C3 and no longer var(--warn-fg), which is not a defined token in this file
+  ok   C4 --warn-fg really is undefined here, so it had been resolving to a literal
   ok   C5 and BASE had no such rule
-  ok   C6 and the rest of the stylesheet is byte-identical to BASE
+  ok   C6 and with CLCPA-264s and CLCPA-266s blocks masked, the rest of the stylesheet is byte-identical to BASE
 
 === Z. the report page is untouched ================================
   ok   Z1 149 stored table-years rendered on both sides

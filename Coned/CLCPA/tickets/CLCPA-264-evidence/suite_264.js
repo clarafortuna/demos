@@ -318,15 +318,34 @@ guard('C: the advisory is amber, not the red of a rejection', () => {
   const i = css.indexOf('.ingest-staged-warn');
   ok(i > 0, 'C1 .ingest-staged-warn exists');
   const rule = css.slice(i, css.indexOf('}', i));
-  ok(/--warn-fg/.test(rule), 'C2 and it uses the warn colour');
-  ok(!/--red/.test(rule), 'C3 not the red of .is-bad, because nothing was rejected');
-  /* the same amber the editor's other warning already uses */
-  ok(/\.ingest-foot-warn[\s\S]{0,120}--warn-fg/.test(css),
-     'C4 which is the amber .ingest-foot-warn already uses');
+  /* SUPERSEDED BY CLCPA-266, by ruling: the staged warning now gets the RED
+   * accent treatment, matching its post-load twin, so an operator meets one
+   * thing in two places rather than two things that look unrelated.
+   *
+   * CLCPA-264's reasoning for amber -- "nothing was rejected, and red would
+   * say stopped about something that did not stop" -- is not overturned by
+   * the colour: nothing IS rejected, and R1/R2 above still drive a mismatched
+   * import to completion. What changed is that the identity advisory is the
+   * one whose case costs most if skimmed, and the ruling weighs that higher.
+   *
+   * The claim is re-pinned, not relaxed: still one colour, still a token,
+   * still asserted against what the cascade resolves. */
+  ok(/--red/.test(rule), 'C2 and it now uses the RED accent, per CLCPA-266');
+  ok(!/--warn-fg/.test(rule),
+     'C3 and no longer var(--warn-fg), which is not a defined token in this file');
+  ok(!/^\s*--warn-fg\s*:/m.test(css),
+     'C4 --warn-fg really is undefined here, so it had been resolving to a literal');
   ok(baseCss.indexOf('.ingest-staged-warn') < 0, 'C5 and BASE had no such rule');
-  /* nothing else in the stylesheet moved */
-  const strip = (s) => s.replace(/\/\* CLCPA-264[\s\S]*?\.ingest-staged-warn \{[\s\S]*?\}\r?\n/, '');
-  ok(strip(css) === baseCss, 'C6 and the rest of the stylesheet is byte-identical to BASE');
+  /* nothing else in the stylesheet moved. CLCPA-266's own block is masked
+   * alongside CLCPA-264's, because this suite's BASE predates both. */
+  const strip = (s) => s
+    .replace(/\/\* CLCPA-264's import identity advisory, restyled by CLCPA-266[\s\S]*?font-weight: 500;\r?\n\}\r?\n/, '')
+    .replace(/\/\* CLCPA-264[\s\S]*?\.ingest-staged-warn \{[\s\S]*?\}\r?\n/, '')
+    .replace(/\/\* ---- CLCPA-266: every post-load notice is a BOX[\s\S]*?\.ingest-import-notice > :last-child \{ margin-bottom: 0; \}\r?\n/, 'C266')
+    .replace(/\.ingest-import-result \{[\s\S]*?\.ingest-import-result li \{[^}]*\}\r?\n/, 'C266');
+  ok(strip(css) === strip(baseCss),
+     'C6 and with CLCPA-264s and CLCPA-266s blocks masked, the rest of the ' +
+     'stylesheet is byte-identical to BASE');
 });
 
 /* =============== Z: no stored year moves ============================ */

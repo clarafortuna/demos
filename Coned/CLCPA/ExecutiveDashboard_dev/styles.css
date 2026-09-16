@@ -8419,13 +8419,21 @@ a.nav-item { text-decoration: none; }
 }
 .ingest-staged.is-bad { border-left-color: var(--red); }
 .ingest-staged strong { color: var(--ink); display: block; }
-/* CLCPA-264: the import identity advisory. It reuses the amber of
-   .ingest-foot-warn rather than the red of .is-bad, and deliberately: this is
-   a WARNING, not a rejection, and the file still imports. Red here would say
-   "stopped" about something that did not stop. */
+/* CLCPA-264's import identity advisory, restyled by CLCPA-266 to match its
+   POST-LOAD TWIN: the same box component, the same red accent, so the operator
+   meets one thing in two places rather than two things that look unrelated.
+
+   It stays inside the staged box and adds no row, so the modal's layout is
+   untouched -- only this paragraph becomes a box.
+
+   It also drops var(--warn-fg), which is not defined anywhere in this
+   stylesheet and was resolving to its literal fallback. The accent now comes
+   from --red, a real token, like every other accent in the component. */
 .ingest-staged-warn {
-  margin: 8px 0 0;
-  color: var(--warn-fg, #8a5a00);
+  margin: 10px 0 0; padding: 10px 12px;
+  background: var(--white); border: 1px solid var(--line); border-left-width: 3px;
+  border-left-color: var(--red); border-radius: 6px;
+  font-size: 12px; line-height: 1.55; color: var(--text-2);
   font-weight: 500;
 }
 
@@ -8439,18 +8447,53 @@ a.nav-item { text-decoration: none; }
 .ingest-import-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .ingest-import-btn { margin: 0; }
 .ingest-import-note { font-size: 11.5px; color: var(--text-3); line-height: 1.5; flex: 1 1 260px; }
-.ingest-import-result {
+/* ---- CLCPA-266: every post-load notice is a BOX, in one component -------
+ *
+ * THE DEFECT, verified on build b1108e5fcf: only "Imported into the draft"
+ * had a box. CLCPA-261's fraction notice and CLCPA-264's identity notice
+ * emitted .ingest-import-notice, which had NO rule anywhere in this
+ * stylesheet, so both rendered as loose text under the one box that did.
+ *
+ * ONE COMPONENT, THREE ACCENTS. The box is defined once, for both class
+ * names, and the only thing a variant changes is border-left-color. That is
+ * what the existing component already used to distinguish the rejected case
+ * (.ingest-import-bad), so the accents extend a pattern rather than inventing
+ * one -- and no notice carries a colour of its own.
+ *
+ * STYLE ONLY. No notice is reworded, reordered, or made to reject anything.
+ * The markup change is a class attribute on two blocks that already existed.
+ *
+ * THE STACKING RHYTHM is the component's own margin-top: 12px, so the boxes
+ * sit 12px apart and cannot touch, using the spacing the panel already had
+ * rather than a new number. */
+.ingest-import-result,
+.ingest-import-notice {
   margin-top: 12px; padding: 14px 16px;
   background: var(--white); border: 1px solid var(--line); border-left-width: 3px;
   border-left-color: var(--dusk); border-radius: 8px;
 }
 /* The rejected case is the one the operator must not skim past. */
 .ingest-import-result.ingest-import-bad { border-left-color: var(--red); }
-.ingest-import-result h4 { font-size: 12.5px; margin: 0 0 6px; color: var(--ink); }
-.ingest-import-result h4 ~ h4 { margin-top: 12px; }
-.ingest-import-result p { font-size: 12px; color: var(--text-2); margin: 0 0 6px; line-height: 1.55; }
-.ingest-import-result ul { margin: 0; padding-left: 18px; }
-.ingest-import-result li { font-size: 12px; color: var(--text-2); line-height: 1.55; margin-bottom: 4px; }
+/* AMBER: CLCPA-261's percentage-as-fraction advisory. The value is in the
+   draft and the import succeeded, so this is not red. */
+.ingest-import-notice.is-warn { border-left-color: var(--amber); }
+/* RED: CLCPA-264's wrong-table advisory. Still an advisory -- nothing was
+   rejected -- but a twin's file importing cleanly is the case that costs the
+   most if it is skimmed past. */
+.ingest-import-notice.is-alert { border-left-color: var(--red); }
+.ingest-import-result h4,
+.ingest-import-notice h4 { font-size: 12.5px; margin: 0 0 6px; color: var(--ink); }
+.ingest-import-result h4 ~ h4,
+.ingest-import-notice h4 ~ h4 { margin-top: 12px; }
+.ingest-import-result p,
+.ingest-import-notice p { font-size: 12px; color: var(--text-2); margin: 0 0 6px; line-height: 1.55; }
+.ingest-import-result ul,
+.ingest-import-notice ul { margin: 0; padding-left: 18px; }
+.ingest-import-result li,
+.ingest-import-notice li { font-size: 12px; color: var(--text-2); line-height: 1.55; margin-bottom: 4px; }
+/* the last paragraph or list in a box needs no trailing gap of its own */
+.ingest-import-result > :last-child,
+.ingest-import-notice > :last-child { margin-bottom: 0; }
 
 /* ---- CLCPA-223: the not-available view ---------------------------------
 

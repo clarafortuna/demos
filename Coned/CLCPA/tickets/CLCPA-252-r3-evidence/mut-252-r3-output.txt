@@ -28,7 +28,7 @@ CLCPA-252 round 3 -- mutation controls
   red  PAIRED: harness and code share the word-boundary blind spot
        2 red, incl: L6 A1:2023 stores "2023Incentive" with no space, and still strips: "Table A1. 2023Incentive Dollars Spent
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X5 BASE is a literal commit sha: HEAD
+       8 red, incl: X5 BASE is a literal commit sha: HEAD
 
   14 caught, 0 not caught, of 14 guards
-  clean re-run against byte-restored source: PASSES -- 78 passed, 0 failed
+  clean re-run against byte-restored source: PASSES -- 80 passed, 0 failed
