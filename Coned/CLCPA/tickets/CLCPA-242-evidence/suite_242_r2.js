@@ -408,6 +408,7 @@ guard('two functions', () => {
      * getTableSchema's fallback stopped serving the OLDEST year. */
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
@@ -454,12 +455,14 @@ guard('two functions', () => {
   /* 18 -> 19: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 19 -> 21: CLCPA-245 round 2 added two more. */
   /* 21 -> 24: CLCPA-248 changed three more. */
-  ok(changed.length === 28, 'TWENTY-NINE: this round\'s two, CLCPA-240\'s twelve ' +
+  ok(changed.length === 29, 'TWENTY-NINE: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
-  ['dacCol', 'dacRow', 'ensureTooltip', 'positionTooltipAt', 'renderDumbbell',
+  /* dacCol left this list when CLCPA-257 gave it the newest-year schema
+     fallback; that ticket owns and asserts the change. */
+  ['dacRow', 'ensureTooltip', 'positionTooltipAt', 'renderDumbbell',
    'renderStripWithGap', 'computeHeaderCards', 'composePayloadFromRows',
    /* totalRowFlags left this list when CLCPA-240's first half changed it. That
     * ticket owns the change and asserts it by name; this suite's claim is only

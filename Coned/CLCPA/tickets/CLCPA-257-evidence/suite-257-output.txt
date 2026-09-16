@@ -1,0 +1,45 @@
+======================================================================
+Section C group C -- CLCPA-257, dacCols schema fallback
+  BASE 3e47e89   (stacked on Group B)
+======================================================================
+
+=== R. the fallback, and what it cost =============================
+  ok   R1 BASE resolved C2 "Participants" to column 1 on a year with no schema: the 2023 shape
+  ok   R2 and it now resolves to column 3: the newest shape
+  ok   R3 because C2 is 4 columns in 2023 and 8 from 2024
+  ok   R4 and column 1 in the wide shape is an unnamed spacer, which is why the summary found nothing and printed a dash
+  ok   R5 while the value it wanted sits at column 3: "Participants"
+  ok   R6 dacCol sorts the schema years descending
+  ok   R7 and so does getTableSchema, so the two no longer disagree
+  ok   R8 the oldest-year expression is gone from the source
+  ok   R9 and it was there at BASE
+
+=== G. the hard gate: no stored table-year moves ===================
+  ok   G1 149 stored table-years
+  ok   G2 and every one has schema_by_year[y], so the fallback branch is NEVER reached for a stored year
+  ok   G3 1192 of 1,192 table-year x probe combinations resolved identically (149 years x 8 probes)
+  ok   G4 and not one differs
+  ok   G5 all 149 rendered, and every one produced a <table>
+  ok   G6 and every one is byte-identical
+
+=== N. the year that does move, which is the point =================
+  ok   N1 C2 "Committed" -> column 5, which is where the newest schema puts it (5)
+  ok   N1b and BASE said 2, which is where the 2023 shape put it
+  ok   N1 C3 "Committed" -> column 5, which is where the newest schema puts it (5)
+  ok   N1b and BASE said 2, which is where the 2023 shape put it
+  ok   N1 C4 "Committed" -> column 5, which is where the newest schema puts it (5)
+  ok   N1b and BASE said 2, which is where the 2023 shape put it
+  ok   N1 C5 "Committed" -> column 5, which is where the newest schema puts it (5)
+  ok   N1b and BASE said 2, which is where the 2023 shape put it
+
+=== X. what else moved ============================================
+       changed: dacCol
+  ok   X1 exactly ONE function changed, and it is dacCol: dacCol
+  ok   X2 getTableSchema is byte-identical to BASE
+  ok   X2 dacCell is byte-identical to BASE
+  ok   X2 renderSourceTables is byte-identical to BASE
+  ok   X2 tableCaption is byte-identical to BASE
+  ok   X2 ingestComputed is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: 3e47e89
+  ok   X4 and an ancestor of HEAD, so this group stacks on Group B
+  31 passed, 0 failed

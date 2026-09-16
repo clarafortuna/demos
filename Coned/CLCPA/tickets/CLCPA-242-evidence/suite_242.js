@@ -451,6 +451,7 @@ guard('three functions, all wiring', () => {
      * getTableSchema's fallback stopped serving the OLDEST year. */
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
@@ -500,7 +501,7 @@ guard('three functions, all wiring', () => {
   /* 22 -> 23: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 23 -> 25: CLCPA-245 round 2 added two more. */
   /* 25 -> 28: CLCPA-248 changed three more. */
-  ok(changed.length === 32, 'THIRTY-THREE: this ticket’s six, CLCPA-240 first ' +
+  ok(changed.length === 33, 'THIRTY-THREE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
@@ -510,7 +511,10 @@ guard('three functions, all wiring', () => {
 guard('the exclusions hold', () => {
   /* totalRowFlags left this list when CLCPA-240 changed it; that ticket
       owns and asserts the change. */
-  ['dacCol', 'dacRow', 'composePayloadFromRows', 'buildSectionDAC',
+  /* dacCol left this list when CLCPA-257 gave it the newest-year schema
+     fallback; that ticket owns and asserts the change, and names it in the
+     EXPECT map above. */
+  ['dacRow', 'composePayloadFromRows', 'buildSectionDAC',
    'rowsForDisplay', 'renderExecutiveSummary', 'renderIngestPicker', 'ensureTooltip',
    'positionTooltipAt'].forEach(fn => {
     const a = grab(fn), b = grab(fn, BASE_SRC);

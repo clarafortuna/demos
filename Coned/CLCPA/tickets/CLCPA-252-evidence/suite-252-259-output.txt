@@ -46,11 +46,12 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   Z4 BASE rendered it bare; this build names it
 
 === X. what else moved ============================================
-       changed: renderIngestEditor, renderSourceTables, tableCaption
+       changed: dacCol, renderIngestEditor, renderSourceTables, tableCaption
+  ok   the change to dacCol is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to tableCaption is accounted for
-  ok   X1 at most four functions changed: 3
+  ok   X1 at most four functions changed: 4
   ok   X2 recomputeTotals is byte-identical to BASE
   ok   X2 columnNumericMask is byte-identical to BASE
   ok   X2 parseCPrograms is byte-identical to BASE
@@ -58,4 +59,4 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   X2 openSaveModal is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 9699f62
   ok   X4 and an ancestor of HEAD, so this group stacks on Group A
-  47 passed, 0 failed
+  48 passed, 0 failed

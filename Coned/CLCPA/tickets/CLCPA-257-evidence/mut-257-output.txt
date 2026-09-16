@@ -1,0 +1,24 @@
+======================================================================
+Section C group C -- mutation controls
+======================================================================
+  RETIRED, with its reason: "an EMPTY schema counts as a schema". No
+  stored table carries an empty schema array, so the mutation is inert
+  against the real payload, and a synthetic case would test the filter
+  rather than the ticket. Written down rather than counted.
+  red  THE DEFECT: the oldest-year fallback returns
+       11 red, incl: R2 and it now resolves to column 1: the newest shape
+  red  the sort runs the wrong way, so it picks the oldest again
+       10 red, incl: R2 and it now resolves to column 1: the newest shape
+  red  the years are sorted as STRINGS, which is not the same rule
+       1 red, incl: R6 dacCol sorts the schema years descending
+  red  it stops falling back at all
+       5 red, incl: N1 C2 "Committed" -> column -1, which is where the newest schema puts it (5)
+  red  THE HARD GATE: a stored year resolves differently
+       2 red, incl: G4 and not one differs: A6:2023 /total/i, B2:2023 /total/i, C2:2023 /participants/i, C2:2023 /commi
+  red  HARNESS: the gate stops probing any column
+       1 red, incl: G3 0 of 1,192 table-year x probe combinations resolved identically (149 years x 8 probes)
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X3 BASE is a literal commit sha: HEAD
+
+  7 caught, 0 not caught, of 7 guards
+  clean re-run against byte-restored source: PASSES -- 31 passed, 0 failed
