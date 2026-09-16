@@ -508,6 +508,7 @@ guard('one function', () => {
                 'deriveTableCaption', 'deriveTableCaptionInfo',
                 /* CLCPA-264: the import identity advisory, both new */
                 'declaredTableFromFilename', 'importIdentityNotice',
+                /* CLCPA-252 round 3: the caption year strip */ 'stripCaptionYear',
                 /* CLCPA-263: the composite-share derivation, on the display clone */
                 'rowsForDisplay', 'applyCompositeShares', 'isCompositeShareCol',
                 'compositeValueText', 'bareNumber'];

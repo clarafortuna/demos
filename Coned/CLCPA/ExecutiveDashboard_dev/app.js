@@ -1714,14 +1714,80 @@ function utf8ByteLength(str) {
         : 'Check that this is the file you meant to load.');
   }
 
+  /* CLCPA-252 ROUND 3: NO CAPTION CARRIES A YEAR. Any table, any year, any
+   * surface.
+   *
+   * This SUPERSEDES round 2's ruling. Round 2 made a fresh year's caption look
+   * like a stored year's by carrying the year across; round 3 says the year
+   * does not belong in a caption at all, so 2023, 2098 and 2099 alike render
+   * "Table C1. Summary of Con Edison Demand Response Programs".
+   *
+   * RENDER-SIDE ONLY. 64 of the 153 stored titles carry their year inside the
+   * stored string and NONE of them is touched -- the strip runs here, on the
+   * way to the screen, and Dataverse keeps exactly what it holds.
+   *
+   * SAFE, AND MEASURED BEFORE IT WAS WRITTEN. Every four-digit run in every
+   * stored title, in every short_title and in SHORT_TITLES was classified
+   * first: 67 runs, every one a STANDALONE 19xx/20xx token equal to its own
+   * reporting year, zero ambiguous, zero runs of five or more digits. So a
+   * standalone-year rule cannot reach a table id, a measure code or any other
+   * number. Had one been unclassifiable this ticket was to HALT, and the audit
+   * is what earned the right not to. */
+  function stripCaptionYear(s) {
+    let out = String(s == null ? '' : s);
+    /* 1. a PARENTHESISED year, brackets and all: "...Non-Network (2025)"
+     *    would otherwise leave "()" behind. Measured: 2 titles. */
+    out = out.replace(/\s*\(\s*(?:19|20)\d{2}\s*\)/g, '');
+    /* 2. a year introduced by a PREPOSITION, which would otherwise leave the
+     *    preposition dangling: "...Funding Spent in 2025" -> "...Funding
+     *    Spent". Measured: the only non-id words preceding a year today are
+     *    "in" and "In" (6 titles) and "Rate" (3, which reads correctly with
+     *    the year simply gone). The set below is a handful of English function
+     *    words, not a list of data -- no years, no table ids, no captions --
+     *    and it is written generically so a future title saying "for 2099"
+     *    tidies the same way. "Total and in DACs" is untouched, because the
+     *    year must follow the preposition immediately. */
+    out = out.replace(/\s+\b(?:in|for|of|during|through)\b\s+(?:19|20)\d{2}\b/gi, '');
+    /* 3. anything still standing: a bare year token.
+     *
+     * DIGIT BOUNDARIES, NOT WORD BOUNDARIES, and that distinction is the whole
+     * defect this pass was written wrong for once. Two stored titles glue the
+     * year to the next word -- A1:2023 reads "Table A1. 2023Incentive Dollars
+     * Spent" and D4:2023 reads "Table D4. 2023For All Net Metering Projects",
+     * both missing a space. `\b` requires a non-word character after the
+     * token, so it matches neither, and those two captions would have kept
+     * their year while every other caption lost it. My own assertion used the
+     * same `\b`, so the suite was blind in exactly the place the code was.
+     *
+     * Written as a capture-and-restore rather than a lookbehind: the guard is
+     * only "not touching another digit", and this form needs no lookbehind
+     * support in whatever browser the model-driven app is hosting.
+     *
+     * The leading \s is NOT consumed here -- "2023Incentive" would lose the
+     * space that separates it from "Table A1." -- so spacing is left to the
+     * tidy pass below. */
+    out = out.replace(/(\d?)((?:19|20)\d{2})(\d?)/g,
+                      (m, before, y, after) => (before || after) ? m : '');
+    /* 4. tidy what the removals left: doubled spaces, a space before a comma
+     *    or full stop, and a trailing separator. */
+    out = out.replace(/\s{2,}/g, ' ').replace(/\s+([,.;:])/g, '$1')
+             .replace(/[\s,;:-]+$/, '').trim();
+    return out;
+  }
+
   function tableCaption(t, year) {
     if (!t) return '';
+    /* THE STRIP IS APPLIED ONCE, TO EVERY PATH. Stored, derived and
+     * short_title all leave through here, so no caller can pick a route that
+     * skips it -- and the two caption surfaces both call this function, which
+     * is why the fix lands in one place rather than per surface. */
     const stored = (t.title_by_year || {})[year];
-    if (stored) return stored;
+    if (stored) return stripCaptionYear(stored);
     const derived = deriveTableCaption(t, year);
-    if (derived) return derived;
+    if (derived) return stripCaptionYear(derived);
     const short = t.short_title || SHORT_TITLES[t.id] || '';
-    return short ? ('Table ' + t.id + '. ' + short) : ('Table ' + t.id);
+    return stripCaptionYear(
+      short ? ('Table ' + t.id + '. ' + short) : ('Table ' + t.id));
   }
 
   /* The derivation itself, and the strategy it took, so the caller and the
@@ -1741,25 +1807,38 @@ function utf8ByteLength(str) {
     const donor = String(by[donorYear]).replace(/\s*\|.*$/, '').trim();
     if (!donor) return null;
 
+    /* CLCPA-252 ROUND 3: THE YEAR IS NO LONGER CARRIED ACROSS.
+     *
+     * Round 2's two strategies differed only in how they placed the reporting
+     * year in the donor's wording -- A substituted it, B inserted it after the
+     * prefix. Round 3 strips every year from every caption, so both placements
+     * are now pointless, and leaving them would be shipping code whose only
+     * effect is undone two lines later.
+     *
+     * WHAT THE TWO GATES STILL DO, and why they stay: they decide whether this
+     * donor may speak for another year at all. A donor whose year is clean and
+     * singular (A), or which names no year behind a well-formed prefix (B),
+     * is a title that reads correctly for any year once de-yeared. A donor
+     * that is neither -- two different years, or a malformed prefix -- falls
+     * to C, the short_title fallback. That is what keeps D2 on short_title,
+     * exactly as round 2 left it: "Table D2.For All..." has no space after the
+     * period and fails B's prefix test. The reach is unchanged at 13 / 38 / 1.
+     *
+     * `y` is no longer used to build the text, only to reject a non-year. */
     const years = donor.match(/\b(19|20)\d{2}\b/g) || [];
-    /* A: substitute, only when the donor's own year appears exactly once and
-     * is the only year in the string. F3:2023 carries its year twice and is
-     * exactly what this condition refuses. */
+    /* A: the donor's own year appears exactly once and is the only year in the
+     * string. F3:2023 carries its year twice and is what this refuses. */
     if (years.length === 1 && years[0] === donorYear &&
         donor.split(donorYear).length - 1 === 1) {
-      return { strategy: 'A', donorYear: donorYear,
-        text: donor.split(donorYear).join(y) };
+      return { strategy: 'A', donorYear: donorYear, text: donor };
     }
-    /* B: insert after a clean "Table XX. " or "Chart XX. " prefix, only when
-     * the donor names NO year at all. A donor carrying some OTHER year is
-     * left to C rather than guessed at -- the audit measured zero of those,
-     * and this branch is what keeps that true if one ever appears. */
+    /* B: the donor names NO year at all, behind a clean "Table XX. " or
+     * "Chart XX. " prefix. A donor carrying some OTHER year is left to C
+     * rather than guessed at -- the audit measured zero of those, and this
+     * branch is what keeps that true if one ever appears. */
     if (years.length === 0) {
       const m = /^((?:Table|Chart)\s+[A-Z]\d+\.\s+)/.exec(donor);
-      if (m) {
-        return { strategy: 'B', donorYear: donorYear,
-          text: m[1] + y + ' ' + donor.slice(m[1].length) };
-      }
+      if (m) return { strategy: 'B', donorYear: donorYear, text: donor };
     }
     return null;
   }

@@ -23,6 +23,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -128,7 +130,12 @@ guard('S: and the whole report page is unchanged too', () => {
       checked++;
       const a = String(OLD.attempt(api => api.renderSourceTables([t], y, {}, id)));
       const b = String(NEW.attempt(api => api.renderSourceTables([t], y, {}, id)));
-      if (a !== b) moved.push(id + ':' + y);
+      /* CLCPA-252 ROUND 3 changes what a STORED year renders: every caption
+       * loses its year. This pin is NARROWED, not widened -- the shared kit
+       * requires everything outside the <h3> to be byte-identical AND each
+       * caption to be its BASE self with year tokens removed. A reworded
+       * caption, a changed cell or an ADDED year still fails. */
+      if (!kit.onlyCaptionYearsChanged(b, a)) moved.push(id + ':' + y);
     });
   });
   ok(checked === 149, 'S3 ' + checked + ' panels rendered on both sides');
@@ -424,12 +431,22 @@ guard('X: the blast radius', () => {
     isCompositeShareCol: 'CLCPA-263: the declaration predicate, new',
     compositeValueText: 'CLCPA-263: the value formatting, new',
     bareNumber: 'CLCPA-263: the bare-number test, new',
+    /* BOTH SIDES PRESERVED. CLCPA-252 round 3 landed on main while CLCPA-266
+     * was in flight, and both extended this same census map. Neither set is
+     * dropped: a census that forgets a landed ticket stops being an inventory. */
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3, the caption year strip (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 3, it stops carrying the year across',
+    tableCaption: 'NOT this ticket: CLCPA-252 round 3, it strips on all three paths',
     renderIngestImportResult: 'NOT this ticket: CLCPA-266, the notice boxes gain their accent classes',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 6, 'X1 exactly SIX functions changed: ' + changed.length);
+  /* 5 -> 9, MEASURED on the merged state, not arithmetic: CLCPA-263's five,
+   * plus CLCPA-252 round 3's three and CLCPA-266's one, all named above. The
+   * number was read from this suite's own sentinel run, which reported the
+   * nine by name before it was written here. */
+  ok(changed.length === 9, 'X1 exactly NINE functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['applyDerivedCols', 'columnGrandTotals', 'recomputeTotals', 'totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {

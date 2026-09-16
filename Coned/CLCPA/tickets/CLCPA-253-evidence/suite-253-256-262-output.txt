@@ -77,7 +77,7 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   Z3 and all 149 in COMPARE mode too
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, rowsForDisplay, tableCaption
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, rowsForDisplay, stripCaptionYear, tableCaption
   ok   the change to applyCompositeShares is accounted for (CLCPA-263: the derivation (new))
   ok   the change to bareNumber is accounted for (CLCPA-263: the bare-number test (new))
   ok   the change to buildIngestImport is accounted for (CLCPA-261, group E: it collects the fraction notices)
@@ -99,6 +99,7 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   the change to renderIngestImportResult is accounted for (CLCPA-261, group E: the summary announces them)
   ok   the change to renderSourceTables is accounted for (CLCPA-252, group B: the report page calls it)
   ok   the change to rowsForDisplay is accounted for (CLCPA-263: it derives the value (pct) composites on its clone)
+  ok   the change to stripCaptionYear is accounted for (CLCPA-252 round 3: the caption year strip (new))
   ok   the change to tableCaption is accounted for (CLCPA-252, group B: the caption helper, new)
   ok   ingestComputed changed as intended: CLCPA-253: the marker is column-aware
   ok   openSaveModal changed as intended: CLCPA-256: the change count normalises empty
@@ -112,4 +113,4 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 794eecf
   ok   X4 and an ancestor of HEAD
-  99 passed, 0 failed
+  100 passed, 0 failed

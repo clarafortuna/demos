@@ -26,6 +26,8 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+const kit = require('../_kit/caption_diff.js');
+
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const OUT = path.join(REPO,
@@ -110,6 +112,14 @@ say('======================================================================');
 /* ---- THE CLAIMS. Every difference must match one; every one must match
  * something. A ticket whose claim matches nothing did not land. -------- */
 const CLAIMS = [
+  { id: 'CLCPA-252 r3',
+    what: 'no caption carries a year, on any surface: every stored caption ' +
+          'with a year token loses it at render time',
+    /* the shared kit: everything outside the <h3> byte-identical, and each
+     * caption its BASE self with year tokens removed. A reworded caption or a
+     * changed cell still falls through to the next claim and then to the
+     * unclaimed list. */
+    hit: (id, y, a, b) => kit.onlyCaptionYearsChanged(b, a) },
   { id: 'CLCPA-252',
     what: 'the caption comes from the table definition, so a stored year with ' +
           'no title entry names itself instead of rendering bare',
@@ -266,7 +276,12 @@ guard('E: the declared column changes the RECOMPUTE, not the stored render', () 
   ['2023', '2024', '2025'].filter(y => (t.data[y] || []).length).forEach(y => {
     const a = String(OLD.attempt(api => api.renderSourceTables([t], y, {}, 'C2')));
     const b = String(NEW.attempt(api => api.renderSourceTables([t], y, {}, 'C2')));
-    ok(a === b, 'E1 C2:' + y + ' renders byte-identically: no filed figure moved');
+    /* CLCPA-252 round 3: C2:2023 stores "Table C2.2023 Participation..." with
+     * the year glued to the table id, so its caption moves. The claim worth
+     * keeping is about FIGURES, so it is narrowed to that: nothing outside the
+     * caption moved, and the caption only lost a year. */
+    ok(kit.onlyCaptionYearsChanged(b, a),
+       'E1 C2:' + y + ' differs only by its caption losing a year: no filed figure moved');
   });
   /* and the recompute, which is where the fix lives: BASE refuses the column,
    * this build sums it. Driven on both sides rather than described.

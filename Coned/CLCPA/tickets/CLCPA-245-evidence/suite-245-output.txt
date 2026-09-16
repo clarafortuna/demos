@@ -89,7 +89,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isAnchoredTotalRowLabel, isCompositeShareCol, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSectionC, renderSourceTables, renderTable, rowsForDisplay, stagedBlock, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isAnchoredTotalRowLabel, isCompositeShareCol, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSectionC, renderSourceTables, renderTable, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
@@ -117,6 +117,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to renderTable is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
+  ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to totalRowFlags is accounted for
   ok   the change to wire is accounted for
@@ -136,6 +137,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   buildIngestWorkbook changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252, the caption helper
   ok   deriveTableCaption changed as intended: NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)
+  ok   stripCaptionYear changed as intended: NOT this ticket: CLCPA-252 round 3: the caption year strip (new)
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 2, the three strategies (new)
   ok   renderSectionC changed as intended: NOT this ticket: CLCPA-259, the panel reads C1
   ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
@@ -156,8 +158,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261: it collects the fraction notices
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261: the import summary announces them
-  ok   X8 exactly THIRTY-THREE functions changed: 33
+  ok   X8 exactly THIRTY-FOUR functions changed: 34
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  142 passed, 0 failed
+  144 passed, 0 failed

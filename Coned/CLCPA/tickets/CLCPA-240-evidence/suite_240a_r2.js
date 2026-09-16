@@ -25,6 +25,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -770,10 +772,21 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
      * be exactly that button disappearing from exactly those rows, with the
      * rest of the row -- the label input CLCPA-205 exempts included -- byte
      * for byte what BASE rendered. */
-    if (noTitle(a) !== noTitle(b)) {
+    /* CLCPA-252 ROUND 3: the editor header loses its year too, and
+     * onlyTheTotalRowX compares only <tr> elements -- so it silently forgave a
+     * caption change on any table that ALSO lost a total-row x, and flagged
+     * only the two whose caption was the sole difference. Both halves are made
+     * explicit here: the caption must differ ONLY by year tokens, and the rest
+     * of the fragment is then compared with the captions masked out.
+     *
+     * Strictly narrower than before, not wider: a reworded caption now fails
+     * where the rows-only predicate would have waved it through. */
+    const capOK = kit.captionsDifferOnlyByYear(a, b);
+    const am = kit.maskCaptions(a), bm = kit.maskCaptions(b);
+    if (noTitle(am) !== noTitle(bm) || !capOK) {
       if (id === 'E1') e1 = { a: a, b: b };
       else if (SPACER_TABLES.indexOf(id) >= 0) spacer.push({ id: id, y: y, a: a, b: b });
-      else if (onlyTheTotalRowX(noTitle(a), noTitle(b))) totalX.push({ id: id, y: y });
+      else if (onlyTheTotalRowX(noTitle(am), noTitle(bm))) totalX.push({ id: id, y: y });
       else diff.push(id + ':' + y);
     }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;

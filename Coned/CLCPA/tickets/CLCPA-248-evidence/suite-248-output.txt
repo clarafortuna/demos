@@ -65,7 +65,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   H6 drawSectionEArc is either refused or bounded, never half the file: refused
   ok   H7 refused, which is the honest answer for an unbounded span
   ok   H8 and refusing cannot be mistaken for "unchanged"
-  ok   H9 the changed-function count is plausible (27), not the 25 the over-reading grab reported
+  ok   H9 the changed-function count is plausible (28), not the 25 the over-reading grab reported
   ok   H10 and the three phantoms it used to report are gone from it
 
 === P. isWhollyNumeric, and what it moves ============================
@@ -154,7 +154,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   X1 getTableSchema is byte-identical to BASE
   ok   X1 parseNumericInput is byte-identical to BASE
   ok   X2 DERIVED_COLS is byte-identical
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isCompositeShareCol, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, renderTable, rowsForDisplay, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, ingestComputed, isCompositeShareCol, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, renderTable, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
@@ -180,6 +180,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   the change to renderTable is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
+  ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   renderTable changed as intended: the colgroup and the text-cell modifier
@@ -200,6 +201,7 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   wire changed as intended: NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252, the caption helper, new
   ok   deriveTableCaption changed as intended: NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)
+  ok   stripCaptionYear changed as intended: NOT this ticket: CLCPA-252 round 3: the caption year strip (new)
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 2, the three strategies (new)
   ok   dacCol changed as intended: NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback
   ok   phantomSpacerCols changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new
@@ -209,9 +211,9 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254, it consults that declaration before refusing an average column
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261, it collects the fraction notices
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261, the import summary announces them
-  ok   X3 exactly TWENTY-SEVEN functions changed: 27
+  ok   X3 exactly TWENTY-EIGHT functions changed: 28
   ok   X3b and isNumeric itself is byte-identical to BASE
   ok   X4 BASE is a literal commit sha: d0d0a45
   ok   X5 and an ancestor of HEAD
 
-  186 passed, 0 failed
+  188 passed, 0 failed

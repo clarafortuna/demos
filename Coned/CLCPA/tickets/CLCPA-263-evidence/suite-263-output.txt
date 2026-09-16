@@ -76,20 +76,26 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, bareNumber, compositeValueText, isCompositeShareCol, renderIngestImportResult, rowsForDisplay
+       changed: applyCompositeShares, bareNumber, compositeValueText, deriveTableCaptionInfo, isCompositeShareCol, renderIngestImportResult, rowsForDisplay, stripCaptionYear, tableCaption
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to compositeValueText is accounted for
+  ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to isCompositeShareCol is accounted for
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to rowsForDisplay is accounted for
+  ok   the change to stripCaptionYear is accounted for
+  ok   the change to tableCaption is accounted for
   ok   rowsForDisplay changed as intended: CLCPA-263: it applies the shares to the clone
   ok   applyCompositeShares changed as intended: CLCPA-263: the derivation, new
   ok   isCompositeShareCol changed as intended: CLCPA-263: the declaration predicate, new
   ok   compositeValueText changed as intended: CLCPA-263: the value formatting, new
   ok   bareNumber changed as intended: CLCPA-263: the bare-number test, new
+  ok   stripCaptionYear changed as intended: NOT this ticket: CLCPA-252 round 3, the caption year strip (new)
+  ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 3, it stops carrying the year across
+  ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 3, it strips on all three paths
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-266, the notice boxes gain their accent classes
-  ok   X1 exactly SIX functions changed: 6
+  ok   X1 exactly NINE functions changed: 9
   ok   X2 applyDerivedCols is byte-identical to BASE
   ok   X2 columnGrandTotals is byte-identical to BASE
   ok   X2 recomputeTotals is byte-identical to BASE
@@ -100,4 +106,4 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  82 passed, 0 failed
+  88 passed, 0 failed

@@ -72,17 +72,20 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   Z2 and every one is byte-identical: this ticket touches the importer, not the published tables
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, wire
+       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to compositeValueText is accounted for
   ok   the change to declaredTableFromFilename is accounted for
+  ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to isCompositeShareCol is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
+  ok   the change to stripCaptionYear is accounted for
+  ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor, new
   ok   importIdentityNotice changed as intended: CLCPA-264: the advisory sentence, new
@@ -92,10 +95,13 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   compositeValueText changed as intended: NOT this ticket: CLCPA-263: the value formatting (new)
   ok   bareNumber changed as intended: NOT this ticket: CLCPA-263: the bare-number test (new)
   ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces it
+  ok   stripCaptionYear changed as intended: NOT this ticket: CLCPA-252 round 3, the caption year strip (new)
+  ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 3, it stops carrying the year across
+  ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 3, it strips on all three paths
   ok   openAddYearDialog changed as intended: CLCPA-264: stagedBlock warns, and the call site attaches the advisory
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it attaches the advisory to the plan
-  ok   X1 exactly ELEVEN functions changed: 11
+  ok   X1 exactly FOURTEEN functions changed: 14
   ok   X2 buildIngestImport is byte-identical to BASE
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X2 parseCsvRows is byte-identical to BASE
@@ -105,4 +111,4 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  84 passed, 0 failed
+  90 passed, 0 failed

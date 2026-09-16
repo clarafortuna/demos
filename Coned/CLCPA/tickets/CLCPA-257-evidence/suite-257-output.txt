@@ -34,7 +34,7 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   N1b and BASE said 2, which is where the 2023 shape put it
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, rowsForDisplay, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
   ok   X1 applyCompositeShares is accounted for (CLCPA-263: the derivation (new))
   ok   X1 bareNumber is accounted for (CLCPA-263: the bare-number test (new))
   ok   X1 buildIngestImport is accounted for (CLCPA-261, group E: it collects the fraction notices)
@@ -54,6 +54,7 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   X1 renderIngestImportResult is accounted for (CLCPA-264: the result panel announces the advisory)
   ok   X1 rowsForDisplay is accounted for (CLCPA-263: it derives the value (pct) composites on its clone)
   ok   X1 stagedBlock is accounted for (CLCPA-264: nested in openAddYearDialog, it renders the advisory)
+  ok   X1 stripCaptionYear is accounted for (CLCPA-252 round 3: the caption year strip (new))
   ok   X1 tableCaption is accounted for (CLCPA-252 round 2: it consults the derivation)
   ok   X1 wire is accounted for (CLCPA-264: nested in openAddYearDialog, it holds the call site)
   ok   X1b exactly ONE function is THIS tickets, and it is dacCol: dacCol
@@ -63,4 +64,4 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 3e47e89
   ok   X4 and an ancestor of HEAD, so this group stacks on Group B
-  52 passed, 0 failed
+  53 passed, 0 failed
