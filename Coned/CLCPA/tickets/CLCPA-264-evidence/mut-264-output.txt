@@ -1,0 +1,36 @@
+======================================================================
+CLCPA-264 -- mutation controls
+======================================================================
+  red  IT REJECTS: the advisory flips plan.ok
+       1 red, incl: R4c and with it undone the call site is BYTE-IDENTICAL to BASE: nothing there flips plan.ok, return
+  red  IT REJECTS: the staged box turns red on a mismatch
+       1 red, incl: D5 and `bad` is unchanged, so the box does not turn red and the button stays enabled
+  red  IT CRIES WOLF: the id is matched anywhere in the name
+       1 red, incl: S2 silent: "notes-about-C3.csv"  (an id that is not at the start)
+  red  IT CRIES WOLF: an id this payload does not have still warns
+       1 red, incl: S2 silent: "Z9-2025.csv"  (an id this payload does not have)
+  red  IT CRIES WOLF: a file named for its own destination warns
+       1 red, incl: S1 all 27 twin tables are silent on their own file: A3, A4, A6, A8, C3, C4, C5, D2, D3, D4, F8, F9,
+  red  IT GOES QUIET: the advisory never fires
+       9 red, incl: W2 every one warns: SILENT A3->A4, A4->A3, A6->A8, A8->A6, C3->C4, C3->C5
+  red  IT GOES QUIET: only the reported pair is recognised
+       6 red, incl: W2 every one warns: SILENT A3->A4, A4->A3, A6->A8, A8->A6, C4->C3, C4->C5
+  red  IT OVERCLAIMS: every mismatch is called an identical-heading twin
+       1 red, incl: W7 but does NOT claim identical headings, because they are not: "This file is named for Table A1 (I
+  red  the two-digit id is truncated, so A10 reads as A1
+       2 red, incl: S4 and a two-digit id survives: A10
+  red  THE MISSING CLOSURE: stagedBlock reaches for getTarget again
+       2 red, incl: D2 it calls importIdentityNotice with the staged name and target().tableId
+  red  the result panel stops announcing it
+       2 red, incl: R8 and carries the advisory heading
+  red  the panel announces it even when there is nothing to say
+       1 red, incl: R10 and a matching file renders no advisory block at all
+  red  the advisory is styled as a REJECTION, in red
+       2 red, incl: C2 and it uses the warn colour
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X3 BASE is a literal commit sha: HEAD
+  red  HARNESS: the families are hardcoded instead of measured
+       3 red, incl: F1 1 header signatures are shared by more than one table
+
+  15 caught, 0 not caught, of 15 guards
+  clean re-run against byte-restored source: PASSES -- 74 passed, 0 failed

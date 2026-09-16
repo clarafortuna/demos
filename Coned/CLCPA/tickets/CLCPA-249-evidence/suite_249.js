@@ -665,6 +665,9 @@ guard('X: app.js is byte-identical to BASE', () => {
     ingestComputed: 'CLCPA-253, Section C group A',
     openSaveModal: 'CLCPA-256, Section C group A',
     openAddYearDialog: 'CLCPA-262, Section C group A',
+    stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the identity advisory',
+    declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
+    importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
     wire: 'CLCPA-262, nested inside openAddYearDialog',
     tableCaption: 'CLCPA-252, Section C group B',
     deriveTableCaption: 'CLCPA-252 round 2: the derivation (new)',
@@ -715,6 +718,10 @@ guard('X: the stylesheet changed, and only where it should', () => {
     '.data-table th, .data-table td',
     '.data-table td:not(.num)',
     '.data-table thead tr:first-child > th:first-child, .data-table tbody tr > td:first-child',
+    /* CLCPA-264 added a FOURTH rule: the import identity advisory. Named here
+     * rather than excused, so this list stays an exact inventory of what the
+     * stylesheet gained since BASE. */
+    '.ingest-staged-warn',
   ].sort();
   ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
      'X3 exactly these NINE rules were retired: ' + removed.length +

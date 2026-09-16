@@ -1642,6 +1642,78 @@ function utf8ByteLength(str) {
    * NO STORED TITLE IS TOUCHED. The stored branch returns first and is
    * unchanged, which is what keeps all 153 stored table-years byte-identical.
    */
+  /* CLCPA-264: the table a file DECLARES it is for, read from its name.
+   *
+   * THE DEFECT: twin-schema tables accept each other's files in silence. A C3
+   * export landed in C4 and reported "3 matching columns", because C3, C4 and
+   * C5 share an identical header signature -- and so do thirteen other
+   * families. Measured payload-wide: 14 signatures shared by more than one
+   * table, covering 27 of the 52. Not an edge case.
+   *
+   * WHY THE FILENAME AND NOT THE INSTRUCTIONS SHEET. The template is a real
+   * .xlsx whose first sheet names the table, but the IMPORTER READS CSV ONLY
+   * (ruling A, and for a good reason: an .xlsx cell showing 31% is usually the
+   * number 0.31, wrong by 100x). A CSV is one sheet, and the operator exports
+   * the second. So the Instructions sheet never reaches this code, and neither
+   * does the sheet name. What survives a Save As is the FILENAME, which the
+   * template already sets to "<TableId>-<year>-example.xlsx" and which the
+   * staged box already displays.
+   *
+   * ADVISORY, NEVER A REJECTION, by ruling. An operator may rename a file for
+   * any reason, so an unrecognisable name is SILENT rather than suspicious --
+   * a warning that cries wolf on ordinary filenames would be turned off, and
+   * then it would not be there for the case it exists for.
+   *
+   * Returns null when the name declares nothing this payload recognises. */
+  function declaredTableFromFilename(name) {
+    const base = String(name == null ? '' : name)
+      .replace(/^.*[\\/]/, '')            // any path the browser hands over
+      .replace(/\.[A-Za-z0-9]+$/, '');    // the extension
+    /* the template's own shape: the id, then a separator. Anchored at the
+     * start so "notes-about-C3.csv" declares nothing -- the template never
+     * produces that, and guessing from the middle of a name is how a warning
+     * starts crying wolf. */
+    const m = /^([A-Za-z])(\d{1,2})(?=[-_. ]|$)/.exec(base);
+    if (!m) return null;
+    const id = m[1].toUpperCase() + m[2];
+    const tables = (state.payload && state.payload.tables) || {};
+    /* it must be a table this payload actually has, or it declares nothing */
+    return Object.prototype.hasOwnProperty.call(tables, id) ? id : null;
+  }
+
+  /* The advisory itself: a sentence, or null when there is nothing to say.
+   * Null covers every silent case -- no name, an unrecognisable name, a name
+   * declaring the destination itself. */
+  function importIdentityNotice(fileName, destTableId) {
+    const declared = declaredTableFromFilename(fileName);
+    if (!declared || !destTableId || declared === destTableId) return null;
+    const tables = (state.payload && state.payload.tables) || {};
+    const nameOf = (id) => {
+      const t = tables[id];
+      const short = (t && t.short_title) || SHORT_TITLES[id] || '';
+      return short ? (id + ' (' + short + ')') : id;
+    };
+    /* THE "similar columns" SENTENCE IS ONLY SAID WHEN IT IS TRUE. Measured
+     * payload-wide: 14 header signatures are shared by more than one table,
+     * covering 27 of the 52, and a twin is the case where a wrong file imports
+     * CLEANLY. For a non-twin the import will already look wrong -- few
+     * matching columns -- so claiming similarity there would be a sentence
+     * that does not describe what the operator is seeing. */
+    const sig = (id) => {
+      const t = tables[id]; const by = (t && t.schema_by_year) || {};
+      return Object.keys(by).map(y => JSON.stringify((by[y] || []).map(h =>
+        String(h == null ? '' : h).trim().toLowerCase())));
+    };
+    const mine = sig(declared), theirs = sig(destTableId);
+    const twins = mine.some(s => theirs.indexOf(s) >= 0);
+    return 'This file is named for Table ' + nameOf(declared) +
+      ', but it is being imported into Table ' + nameOf(destTableId) + '. ' +
+      (twins
+        ? 'Those tables have identical column headings, so the wrong file can ' +
+          'import cleanly and still be the wrong data. Check before saving.'
+        : 'Check that this is the file you meant to load.');
+  }
+
   function tableCaption(t, year) {
     if (!t) return '';
     const stored = (t.title_by_year || {})[year];
@@ -21390,11 +21462,20 @@ function wireHTooltips() {
           cell(x) + ': ' + x.read + ' read as ' + x.landed)).join('') +
         '</ul></div>'
       : '';
+    /* CLCPA-264: the identity advisory, in the same panel and the same voice
+     * as CLCPA-261's. It is shown on a SUCCESSFUL import on purpose -- the
+     * whole defect is that a twin's file imports cleanly, so the moment the
+     * operator most needs telling is the moment everything looks fine. */
+    const identity = r.identityNotice
+      ? '<div class="ingest-import-notice">' +
+        '<h4>Check the table this file was for</h4>' +
+        '<p>' + escapeHtml(r.identityNotice) + '</p></div>'
+      : '';
     return '<div class="ingest-import-result">' +
       '<h4>Imported into the draft: ' + r.populated.length + ' cell' +
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
       '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
-      '</div>' + notices;
+      '</div>' + notices + identity;
   }
   /** The editor (status bar + grid + add-row button). */
   function renderIngestEditor() {
@@ -22418,9 +22499,25 @@ function wireHTooltips() {
     function stagedBlock() {
       if (!staged) return '';
       const bad = !!(staged.error || (staged.dry && !staged.dry.ok));
+      /* CLCPA-264: the identity advisory, raised at STAGING as well as in the
+       * result panel. Warning before the import is strictly better than after,
+       * and the filename is already on screen here -- this only says what is
+       * wrong with it. It is a WARNING, not an error: `bad` is untouched, so
+       * the Add Year button stays enabled and nothing is rejected.
+       *
+       * target(), NOT getTarget: getTarget is a parameter of
+       * wireIngestStaging and is out of scope here -- a missing closure that
+       * only shows up when the function is assembled for real. target() is
+       * this dialog's own handle on the destination and it reads sel.tableId,
+       * so the advisory follows the Table dropdown the operator can still
+       * change after staging, which is the case that matters. */
+      const idNote = importIdentityNotice(staged.name, target().tableId);
       return '<div class="ingest-staged' + (bad ? ' is-bad' : '') + '" id="dlg-stagedbox">' +
         '<strong>' + escapeHtml(staged.name) + '</strong> ' +
-        '<span>' + escapeHtml(ingestStagedSummary(staged)) + '</span></div>';
+        '<span>' + escapeHtml(ingestStagedSummary(staged)) + '</span>' +
+        (idNote ? '<p class="ingest-staged-warn" id="dlg-identity-warn">' +
+          escapeHtml(idNote) + '</p>' : '') +
+        '</div>';
     }
 
     function draw() {
@@ -22651,6 +22748,15 @@ function wireHTooltips() {
               failed = true;
             } else {
               const plan = buildIngestImport(staged.rows, i.schema, i.draft, i.tableId);
+              /* CLCPA-264: the identity advisory rides on the plan, the way
+               * CLCPA-261's unit notices do, so the result panel can announce
+               * it. Attached HERE rather than inside buildIngestImport because
+               * that function is given rows and a schema and has no idea what
+               * the file was called -- and giving it the filename purely to
+               * carry it through would widen its contract for nothing.
+               *
+               * It never touches plan.ok. The import proceeds either way. */
+              plan.identityNotice = importIdentityNotice(staged.name, i.tableId);
               i.importResult = plan;
               if (plan.ok) applyIngestImport(plan); else failed = true;
             }

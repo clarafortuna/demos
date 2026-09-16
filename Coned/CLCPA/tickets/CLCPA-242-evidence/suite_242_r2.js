@@ -437,6 +437,8 @@ guard('two functions', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    declaredTableFromFilename: 'NOT this round: CLCPA-264, the filename extractor (new)',
+    importIdentityNotice: 'NOT this round: CLCPA-264, the import identity advisory (new)',
     /* Section C group E, not this round's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this round: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this round: CLCPA-254: it consults that declaration',
@@ -465,7 +467,8 @@ guard('two functions', () => {
   /* 21 -> 24: CLCPA-248 changed three more. */
   /* 30 -> 33: Section C group E moved three this suite can see. */
   /* 33 -> 35: CLCPA-252 round 2 added two, both named above. */
-  ok(changed.length === 35, 'THIRTY-FIVE: this round\'s two, CLCPA-240\'s twelve ' +
+  /* 35 -> 37: CLCPA-264 added two, both named above. */
+  ok(changed.length === 37, 'THIRTY-SEVEN: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 

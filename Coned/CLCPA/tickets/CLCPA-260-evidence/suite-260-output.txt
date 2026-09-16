@@ -72,31 +72,41 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: buildIngestImport, buildIngestWorkbook, deriveTableCaption, deriveTableCaptionInfo, isDeclaredSummable, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, tableCaption
+       changed: buildIngestImport, buildIngestWorkbook, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isDeclaredSummable, openAddYearDialog, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, stagedBlock, tableCaption, wire
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
+  ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to importIdentityNotice is accounted for
   ok   the change to isDeclaredSummable is accounted for
+  ok   the change to openAddYearDialog is accounted for
   ok   the change to phantomSpacerCols is accounted for
   ok   the change to recomputeTotals is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to stagedBlock is accounted for
   ok   the change to tableCaption is accounted for
+  ok   the change to wire is accounted for
   ok   phantomSpacerCols changed as intended: CLCPA-260: the predicate, new
   ok   buildIngestWorkbook changed as intended: CLCPA-260: the template stops emitting them
   ok   renderIngestEditor changed as intended: CLCPA-260: the editor stops rendering them; and CLCPA-255, group E
   ok   isDeclaredSummable changed as intended: NOT this ticket: CLCPA-254, group E: the declared-summable column, new
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254, group E: it consults that declaration
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261, group E: it collects the fraction notices
-  ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261, group E: the summary announces them
+  ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces the advisory
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 2, it consults the derivation
   ok   deriveTableCaption changed as intended: NOT this ticket: CLCPA-252 round 2, the title derivation (new)
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 2, the three strategies (new)
-  ok   X1 exactly TEN functions changed: 10
+  ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor (new)
+  ok   importIdentityNotice changed as intended: CLCPA-264: the import identity advisory (new)
+  ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
+  ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
+  ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
+  ok   X1 exactly FIFTEEN functions changed: 15
   ok   X2 renderSourceTables is byte-identical to BASE
   ok   X2 dacCol is byte-identical to BASE
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  86 passed, 0 failed
+  96 passed, 0 failed

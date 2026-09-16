@@ -480,6 +480,8 @@ guard('three functions, all wiring', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
+    importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
     /* Section C group E, not this ticket's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration',
@@ -511,7 +513,8 @@ guard('three functions, all wiring', () => {
   /* 25 -> 28: CLCPA-248 changed three more. */
   /* 34 -> 37: Section C group E moved three this suite can see. */
   /* 37 -> 39: CLCPA-252 round 2 added two, both named above. */
-  ok(changed.length === 39, 'THIRTY-NINE: this ticket’s six, CLCPA-240 first ' +
+  /* 39 -> 41: CLCPA-264 added two, both named above. */
+  ok(changed.length === 41, 'FORTY-ONE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

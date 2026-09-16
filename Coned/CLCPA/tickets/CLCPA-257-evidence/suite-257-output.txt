@@ -34,18 +34,23 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   N1b and BASE said 2, which is where the 2023 shape put it
 
 === X. what else moved ============================================
-       changed: buildIngestImport, buildIngestWorkbook, dacCol, deriveTableCaption, deriveTableCaptionInfo, isDeclaredSummable, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, tableCaption
+       changed: buildIngestImport, buildIngestWorkbook, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isDeclaredSummable, openAddYearDialog, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, stagedBlock, tableCaption, wire
   ok   X1 buildIngestImport is accounted for (CLCPA-261, group E: it collects the fraction notices)
   ok   X1 buildIngestWorkbook is accounted for (CLCPA-260, group D)
   ok   X1 dacCol is accounted for
+  ok   X1 declaredTableFromFilename is accounted for (CLCPA-264: the filename extractor (new))
   ok   X1 deriveTableCaption is accounted for (CLCPA-252 round 2: the title derivation (new))
   ok   X1 deriveTableCaptionInfo is accounted for (CLCPA-252 round 2: the three strategies (new))
+  ok   X1 importIdentityNotice is accounted for (CLCPA-264: the import identity advisory (new))
   ok   X1 isDeclaredSummable is accounted for (CLCPA-254, group E: the declared-summable column, new)
+  ok   X1 openAddYearDialog is accounted for (CLCPA-264: it attaches the advisory to the plan)
   ok   X1 phantomSpacerCols is accounted for (CLCPA-260, group D)
   ok   X1 recomputeTotals is accounted for (CLCPA-254, group E: it consults that declaration)
   ok   X1 renderIngestEditor is accounted for (CLCPA-260, group D; and CLCPA-255, group E)
-  ok   X1 renderIngestImportResult is accounted for (CLCPA-261, group E: the summary announces them)
+  ok   X1 renderIngestImportResult is accounted for (CLCPA-264: the result panel announces the advisory)
+  ok   X1 stagedBlock is accounted for (CLCPA-264: nested in openAddYearDialog, it renders the advisory)
   ok   X1 tableCaption is accounted for (CLCPA-252 round 2: it consults the derivation)
+  ok   X1 wire is accounted for (CLCPA-264: nested in openAddYearDialog, it holds the call site)
   ok   X1b exactly ONE function is THIS tickets, and it is dacCol: dacCol
   ok   X2 getTableSchema is byte-identical to BASE
   ok   X2 dacCell is byte-identical to BASE
@@ -53,4 +58,4 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 3e47e89
   ok   X4 and an ancestor of HEAD, so this group stacks on Group B
-  42 passed, 0 failed
+  47 passed, 0 failed

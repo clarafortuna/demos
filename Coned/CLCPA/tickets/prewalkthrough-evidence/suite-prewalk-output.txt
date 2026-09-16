@@ -101,16 +101,18 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, deriveTableCaption, deriveTableCaptionInfo, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isDeclaredSummable, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, phantomSpacerCols, placeTooltipAtPointer, recomputeTotals, renderExecutiveSummary, renderIngestEditor, renderIngestImportResult, renderIngestPicker, renderSourceTables, renderTable, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, getTableSchema, hideExecTooltip, importIdentityNotice, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isDeclaredSummable, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, phantomSpacerCols, placeTooltipAtPointer, recomputeTotals, renderExecutiveSummary, renderIngestEditor, renderIngestImportResult, renderIngestPicker, renderSourceTables, renderTable, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
+  ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to getTableSchema is accounted for
   ok   the change to hideExecTooltip is accounted for
+  ok   the change to importIdentityNotice is accounted for
   ok   the change to ingestComputed is accounted for
   ok   the change to ingestGroupOf is accounted for
   ok   the change to ingestIsBlankCell is accounted for
@@ -185,10 +187,12 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   isWhollyNumeric changed as intended: NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched
   ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
   ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
+  ok   declaredTableFromFilename changed as intended: NOT this ticket: CLCPA-264, the filename extractor (new)
+  ok   importIdentityNotice changed as intended: NOT this ticket: CLCPA-264, the import identity advisory (new)
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly FORTY-TWO functions changed: 42
+  ok   exactly FORTY-FOUR functions changed: 44
   ok   and no function outside those forty moved at all
 
 ======================================================================
-  177 passed, 0 failed
+  181 passed, 0 failed
 ======================================================================

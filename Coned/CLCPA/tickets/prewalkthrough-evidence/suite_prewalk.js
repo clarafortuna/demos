@@ -735,6 +735,8 @@ guard('the four exclusions', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
+    importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
      * gauge. Four functions, each named so the exact count below stays a
@@ -767,7 +769,8 @@ guard('the four exclusions', () => {
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 37 -> 40: Section C group E moved three this suite can see. */
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
-  ok(changed.length === 42, 'exactly FORTY-TWO functions changed: ' + changed.length);
+  /* 42 -> 44: CLCPA-264 added two, both named above. */
+  ok(changed.length === 44, 'exactly FORTY-FOUR functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those forty moved at all');
 });

@@ -658,6 +658,16 @@ const dialogStates = {};
     confirm: () => true,
     state: { payload: PAYLOAD, ingest: { sectionId: 'A', tableId: 'A1', year: '2025',
       dirty: false, schema: null, draft: [] } },
+    /* CLCPA-264: openAddYearDialog's stagedBlock asks whether the staged file
+     * names a different table. Supplied REAL, cut from the same source, so
+     * this suite drives the advisory rather than stubbing it away. Without it
+     * the run died with "importIdentityNotice is not defined" from inside
+     * reader.onload and produced NO TALLY AT ALL -- which in a sweep reads as
+     * a missing suite rather than a failing one. */
+    importIdentityNotice: new Function('state', 'SHORT_TITLES',
+      grab(SRC, 'declaredTableFromFilename') + '\n' +
+      grab(SRC, 'importIdentityNotice') + '\nreturn importIdentityNotice;')(
+      { payload: PAYLOAD }, ST),
     _typed: '2026',
   };
   const keys = Object.keys(deps).filter(k => k[0] !== '_');

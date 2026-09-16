@@ -455,6 +455,11 @@ guard('every Report Data label passes the rule, not just the ones I listed', () 
       'CLCPA-261, the unit notice, ruled by Emely as a visible NOTICE in the ' +
       'import summary rather than a rejection. Same family and same panel as ' +
       'the two above: a status SENTENCE, not a control label',
+    'Check the table this file was for':
+      'CLCPA-264, the import identity advisory, ruled as a SOFT warning in the ' +
+      'same panel and never a rejection. A status sentence in the same family ' +
+      'as the three above, and an instruction to the reader rather than a ' +
+      'label on a control',
   };
   const unexplained = offenders.filter(x => !(x.l.text in EXEMPT));
   unexplained.forEach(x => ok(false,
@@ -521,7 +526,16 @@ guard('the CLCPA-234 panel text is byte-identical', () => {
   const e = undone.indexOf(N_BLOCK_END, s);
   ok(s >= 0 && e > s, 'CLCPA-261s notice block is found, so undoing it means something');
   if (s >= 0 && e > s) undone = undone.slice(0, s) + undone.slice(e + N_BLOCK_END.length);
-  const APPEND = "      '</div>' + notices;";
+  /* CLCPA-264 appended a SECOND block to the same panel, so the undo is now
+   * two blocks and a two-token append. Both are removed the same way: exact
+   * anchors, each required to appear once, and what remains must be BASE. */
+  const I_BLOCK_START = '    /* CLCPA-264: the identity advisory,';
+  const I_BLOCK_END = "      : '';\r\n";
+  const si = undone.indexOf(I_BLOCK_START);
+  const ei = undone.indexOf(I_BLOCK_END, si);
+  ok(si >= 0 && ei > si, 'CLCPA-264s advisory block is found, so undoing it means something');
+  if (si >= 0 && ei > si) undone = undone.slice(0, si) + undone.slice(ei + I_BLOCK_END.length);
+  const APPEND = "      '</div>' + notices + identity;";
   ok(undone.split(APPEND).length - 1 === 1,
      'and its one-token append is present exactly once');
   undone = undone.replace(APPEND, () => "      '</div>';");
