@@ -384,9 +384,24 @@ guard('S: scoped and singular', () => {
      'S5 getTableSchema sorts its fallback years descending');
   ok(!/Object\.keys\(table\.schema_by_year\)\[0\]/.test(gts),
      'S6 and the first-key fallback is gone');
-  ok(grab('recomputeTotals', SRC) === grab('recomputeTotals', BASE_SRC),
-     'S7 recomputeTotals is byte-identical: the ENGINE was already right, only ' +
-     'the marking was wrong');
+  /* S7 said "byte-identical" until CLCPA-254 put one DECLARED column back in
+   * the sum. That is a deliberate change to the engine, so a flat byte
+   * comparison would now be a stale pin, and widening it to "mostly the same"
+   * would be a deleted guard. The narrower form: undo CLCPA-254's exception,
+   * the only edit that landed here, and require what remains to be BASE
+   * exactly. Anything else that moves in this function still turns S7 red. */
+  const CLCPA254 = '/* CLCPA-212: does not sum -- unless CLCPA-254 has declared this\r\n' +
+    '         * column summable by name. The declaration is the exception; the\r\n' +
+    '         * predicate is unchanged. */\r\n' +
+    '        if ((pctCol[c] || avgCol[c]) &&\r\n' +
+    '            !isDeclaredSummable(tableId, schema[c])) continue;';
+  const BASE254 = 'if (pctCol[c] || avgCol[c]) continue;         // CLCPA-212: does not sum';
+  const rtNow = grab('recomputeTotals', SRC) || '';
+  ok(rtNow.split(CLCPA254).length - 1 === 1,
+     'S7a CLCPA-254s exception is present exactly once, so undoing it means something');
+  ok(rtNow.replace(CLCPA254, () => BASE254) === grab('recomputeTotals', BASE_SRC),
+     'S7 recomputeTotals is byte-identical once CLCPA-254s declared-summable ' +
+     'exception is undone: the ENGINE was already right, only the marking was wrong');
   const css = fs.readFileSync(path.join(REPO,
     'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
   const baseCss = execSync('git show ' + BASE +

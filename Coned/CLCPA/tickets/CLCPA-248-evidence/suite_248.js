@@ -880,9 +880,11 @@ say('');
 say('=== X. what this ticket did NOT touch ================================');
 guard('X: the data layer and the editor are untouched', () => {
   /* renderIngestEditor left this list when CLCPA-252 gave the editor its
-   * caption from a shared helper. It is named in the EXPECT map below
-   * instead, so the change is still accounted for, just not as "untouched". */
-  ['rowsForDisplay', 'totalRowFlags', 'recomputeTotals', 'columnNumericMask',
+   * caption from a shared helper. recomputeTotals left it under CLCPA-254,
+   * which puts one declared column back in the sum. Both are named in the
+   * EXPECT map below instead, so the changes are still accounted for, just
+   * not as "untouched". */
+  ['rowsForDisplay', 'totalRowFlags', 'columnNumericMask',
    'getTableSchema', 'parseNumericInput'].forEach(n => {
     ok(grab(n) === grab(n, BASE_SRC), 'X1 ' + n + ' is byte-identical to BASE');
   });
@@ -899,11 +901,11 @@ guard('X: the blast radius', () => {
     renderTable: 'the colgroup and the text-cell modifier',
     compareColWidths: 'the shared width vector (new)',
     renderSourceTables: 'it computes the vector once and passes it to both',
-    isWhollyNumeric: 'round 3: the wrap predicate, new, and isNumeric untouched',
-    /* Section C group A, not this ticket's, each named so the count stays exact */
-    ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
-    openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
-    openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    isWhollyNumeric: 'round 3: the wrap predicate, new, and isNumeric untouched',
+    /* Section C group A, not this ticket's, each named so the count stays exact */
+    ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
+    openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
+    openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
@@ -911,14 +913,20 @@ guard('X: the blast radius', () => {
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     renderSourceTables: 'NOT this ticket: CLCPA-252, the report page calls it',
-    renderIngestEditor: 'NOT this ticket: CLCPA-252, the editor calls it',
+    renderIngestEditor: 'NOT this ticket: CLCPA-252, the editor calls it; and CLCPA-255, a recognised total row loses its delete control',
+    /* Section C group E */
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254, the declared-summable column, new',
+    recomputeTotals: 'NOT this ticket: CLCPA-254, it consults that declaration before refusing an average column',
+    buildIngestImport: 'NOT this ticket: CLCPA-261, it collects the fraction notices',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261, the import summary announces them',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  /* 4 -> 8: Section C group A added four, every one named above. The
-   * over-reading grab used to report 25 here; see section H. */
-  ok(changed.length === 13, 'X3 exactly TEN functions changed: ' + changed.length);
+  /* 4 -> 8: Section C group A added four, every one named above. 13 -> 17:
+   * group E moved five, and renderIngestEditor was already counted. The
+   * over-reading grab used to report 25 here; see section H. */
+  ok(changed.length === 17, 'X3 exactly TEN functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),

@@ -71,20 +71,26 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: buildIngestWorkbook, phantomSpacerCols, renderIngestEditor
+       changed: buildIngestImport, buildIngestWorkbook, isDeclaredSummable, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult
+  ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
+  ok   the change to isDeclaredSummable is accounted for
   ok   the change to phantomSpacerCols is accounted for
+  ok   the change to recomputeTotals is accounted for
   ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestImportResult is accounted for
   ok   phantomSpacerCols changed as intended: CLCPA-260: the predicate, new
   ok   buildIngestWorkbook changed as intended: CLCPA-260: the template stops emitting them
-  ok   renderIngestEditor changed as intended: CLCPA-260: the editor stops rendering them
-  ok   X1 exactly THREE functions changed: 3
-  ok   X2 buildIngestImport is byte-identical to BASE
-  ok   X2 recomputeTotals is byte-identical to BASE
+  ok   renderIngestEditor changed as intended: CLCPA-260: the editor stops rendering them; and CLCPA-255, group E
+  ok   isDeclaredSummable changed as intended: NOT this ticket: CLCPA-254, group E: the declared-summable column, new
+  ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254, group E: it consults that declaration
+  ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261, group E: it collects the fraction notices
+  ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261, group E: the summary announces them
+  ok   X1 exactly THREE functions changed: 7
   ok   X2 renderSourceTables is byte-identical to BASE
   ok   X2 dacCol is byte-identical to BASE
   ok   X2 tableCaption is byte-identical to BASE
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  74 passed, 0 failed
+  80 passed, 0 failed

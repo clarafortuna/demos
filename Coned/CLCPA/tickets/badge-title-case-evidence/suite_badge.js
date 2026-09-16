@@ -451,6 +451,10 @@ guard('every Report Data label passes the rule, not just the ones I listed', () 
       'THE CLCPA-234 SUCCESS PANEL, approved verbatim two days ago. I cited it ' +
       'as the precedent for the exemption above and then left it out of the ' +
       'list, so the suite reported it -- correctly',
+    'Read as a fraction: cell':
+      'CLCPA-261, the unit notice, ruled by Emely as a visible NOTICE in the ' +
+      'import summary rather than a rejection. Same family and same panel as ' +
+      'the two above: a status SENTENCE, not a control label',
   };
   const unexplained = offenders.filter(x => !(x.l.text in EXEMPT));
   unexplained.forEach(x => ok(false,
@@ -504,7 +508,25 @@ guard('the CLCPA-234 panel text is byte-identical', () => {
   ok(!!r, 'renderIngestImportResult is found');
   const baseR = grab('renderIngestImportResult', BASE_SRC);
   ok(!!baseR, 'and at BASE');
-  ok(r === baseR, 'the import result panel is unchanged by this round');
+  /* This said "unchanged" until CLCPA-261 appended its unit notice to the
+   * panel. The claim worth keeping is not that the function never moves --
+   * it is that the CLCPA-234 text Emely approved verbatim survives whole. So:
+   * undo CLCPA-261's addition, which is a block and a one-token append, and
+   * require what remains to be BASE exactly. Anything else that edits this
+   * panel still turns this red. */
+  const N_BLOCK_START = '    /* CLCPA-261: the unit notice.';
+  const N_BLOCK_END = "      : '';\r\n";
+  let undone = r || '';
+  const s = undone.indexOf(N_BLOCK_START);
+  const e = undone.indexOf(N_BLOCK_END, s);
+  ok(s >= 0 && e > s, 'CLCPA-261s notice block is found, so undoing it means something');
+  if (s >= 0 && e > s) undone = undone.slice(0, s) + undone.slice(e + N_BLOCK_END.length);
+  const APPEND = "      '</div>' + notices;";
+  ok(undone.split(APPEND).length - 1 === 1,
+     'and its one-token append is present exactly once');
+  undone = undone.replace(APPEND, () => "      '</div>';");
+  ok(undone === baseR, 'the import result panel is unchanged by this round ' +
+     'once CLCPA-261s unit notice is undone');
   ok(!!r && r.indexOf('Review the values below, then press Save. ' +
      'Nothing has been saved yet.') >= 0,
      'including the reminder Emely approved verbatim');

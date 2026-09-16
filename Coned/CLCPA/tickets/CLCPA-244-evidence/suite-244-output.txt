@@ -45,11 +45,12 @@ CLCPA-244 -- E1s source percentages, and the fallback year
   ok   S4 neither surface names E1: a second wmean table would be handled
   ok   S5 getTableSchema sorts its fallback years descending
   ok   S6 and the first-key fallback is gone
-  ok   S7 recomputeTotals is byte-identical: the ENGINE was already right, only the marking was wrong
+  ok   S7a CLCPA-254s exception is present exactly once, so undoing it means something
+  ok   S7 recomputeTotals is byte-identical once CLCPA-254s declared-summable exception is undone: the ENGINE was already right, only the marking was wrong
   ok   S8 styles.css differs only by CLCPA-248s two named rules
   ok   S9 and DERIVED_COLS itself is unchanged: no rule was edited, only how the marking reads one
   ok   S10 the editor exempts a total-row-only rule ONLY on a body row
   ok   S11 and the weighted-mean check computes its own expectation rather than asking recomputeTotals for it
   ok   S12 the baseline is a literal commit sha: "18f11e2"
 
-  41 passed, 0 failed
+  42 passed, 0 failed

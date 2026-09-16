@@ -84,21 +84,26 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X1 CLCPA-240 round 4s family predicate is byte-identical
   ok   X2 and CLCPA-200s strict predicate
   ok   X3 DERIVED_COLS is byte-identical
-  ok   X4 recomputeTotals is byte-identical: the ordering item is NOT bought here
+  ok   X4a CLCPA-254s exception is present exactly once, so undoing it means something
+  ok   X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: the ordering item is NOT bought here
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: buildIngestWorkbook, compareColWidths, dacCol, ingestComputed, isAnchoredTotalRowLabel, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, renderIngestEditor, renderSectionC, renderSourceTables, renderTable, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+       changed: buildIngestImport, buildIngestWorkbook, compareColWidths, dacCol, ingestComputed, isAnchoredTotalRowLabel, isDeclaredSummable, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSectionC, renderSourceTables, renderTable, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+  ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to ingestComputed is accounted for
   ok   the change to isAnchoredTotalRowLabel is accounted for
+  ok   the change to isDeclaredSummable is accounted for
   ok   the change to isWhollyNumeric is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
   ok   the change to phantomSpacerCols is accounted for
+  ok   the change to recomputeTotals is accounted for
   ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderSectionC is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
@@ -127,8 +132,12 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   wireIngestLabelTips changed as intended: round 2, the shared-tooltip wiring (new)
   ok   wireIngestPage changed as intended: round 2, it calls that wiring
   ok   wireControlTips changed as intended: round 2, the ingest label joins OWNS_TIP
-  ok   X8 exactly SIXTEEN functions changed: 19
+  ok   isDeclaredSummable changed as intended: NOT this ticket: CLCPA-254: the declared-summable column (new)
+  ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE
+  ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261: it collects the fraction notices
+  ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261: the import summary announces them
+  ok   X8 exactly TWENTY-THREE functions changed: 23
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  113 passed, 0 failed
+  122 passed, 0 failed

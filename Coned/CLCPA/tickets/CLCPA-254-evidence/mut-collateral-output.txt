@@ -1,0 +1,30 @@
+======================================================================
+Section C group E -- COLLATERAL mutation controls
+======================================================================
+  --   a SECOND edit lands in recomputeTotals, outside CLCPA-254s exception
+       red  suite_244.js -- S7 recomputeTotals is byte-identical once CLCPA-254s declared-summable exception is undone:
+       red  suite_245.js -- X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: the ordering item
+  --   CLCPA-254s exception is written TWICE, so undoing one leaves one
+       red  suite_244.js -- S7 recomputeTotals is byte-identical once CLCPA-254s declared-summable exception is undone:
+  --   the CLCPA-234 panel text Emely approved verbatim is reworded
+       red  suite_badge.js -- the import result panel is unchanged by this round once CLCPA-261s unit notice is undone
+  --   a SECOND change lands in the editor row, alongside the missing x
+       red  suite_240a_r2.js -- F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone: A1:2025
+       red  suite_240a_r3.js -- F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone: A1:2025
+  --   the x is taken off EVERY row, not the recognised total row
+       red  suite_240a_r2.js -- F5b while the body rows around it still carry theirs
+       red  suite_240a_r3.js -- F4c and the body rows around it still carry theirs, so a ROW was recognised
+  --   CLCPA-255 is reverted, so nothing differs and the bucket empties
+       red  suite_240a_r2.js -- F2b and CLCPA-255s total rows are the tables that differ: 0, incl
+       red  suite_240a_r3.js -- F2b and CLCPA-255s total rows are the tables that differ: 0, incl
+  --   buildIngestImport stops asking which columns are percentage columns
+       red  suite_254_255_261.js -- N2 and three cells are noticed: 0
+
+  7 caught, 0 not caught, of 7 mutations
+  clean re-run suite_244.js: PASSES -- 42 passed, 0 failed
+  clean re-run suite_245.js: PASSES -- 122 passed, 0 failed
+  clean re-run suite_badge.js: PASSES -- 118 passed, 0 failed
+  clean re-run suite_240a_r2.js: PASSES -- 89 passed, 0 failed
+  clean re-run suite_240a_r3.js: PASSES -- 61 passed, 0 failed
+  clean re-run suite_254_255_261.js: PASSES -- 58 passed, 0 failed
+  clean re-run against byte-restored source: ALL PASS

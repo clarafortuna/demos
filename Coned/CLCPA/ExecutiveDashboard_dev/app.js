@@ -2100,6 +2100,38 @@ function utf8ByteLength(str) {
    * key. Everything absent from here is 1, which is today's behaviour. */
   const INGEST_KEY_COLS = { A3: 2, A4: 2 };
 
+  /* CLCPA-254: columns whose total IS a plain sum, declared by name.
+   *
+   * detectAvgColumns refuses to sum anything whose heading says "average",
+   * which is right for A3/A4's per-participant averages -- CLCPA-212 measured
+   * A3/2025 receiving 22,297.18, the sum of 22 rounded averages, over a
+   * stored 22,511. That regex is NOT loosened here: loosening it is the
+   * CLCPA-212 defect coming back.
+   *
+   * But C2's "Average Event Reductions (MW)" is not a per-unit average. It is
+   * a figure reported per customer group, and the system total across groups
+   * is their sum. The stored data settles it: C2/2025's total is 736.73 and
+   * the three rows sum to exactly 736.73, while a participants-weighted mean
+   * would be 355.29. So the rule is a plain sum, and the way to say so is a
+   * DECLARATION naming the column -- the INGEST_KEY_COLS shape -- not a
+   * change to a predicate that governs 17 columns across seven tables.
+   *
+   * Matched on the normalised HEADING rather than an index, because the
+   * C-family schema changes width between years and an index means a
+   * different column in each.
+   *
+   * 2024's stored 766.94 matches neither a sum (306.40) nor a weighted mean
+   * (239.12): a legacy stored value, disclosed and not touched. */
+  const SUMMABLE_COLS = {
+    C2: ['average event reductions (mw)'],
+  };
+  function isDeclaredSummable(tableId, header) {
+    const list = tableId && SUMMABLE_COLS[tableId];
+    if (!list) return false;
+    const h = String(header == null ? '' : header).trim().toLowerCase();
+    return !!h && list.indexOf(h) >= 0;
+  }
+
   /* Tables where a row's identity includes the GROUP it sits under -- the
    * nearest header row above it. A5/2025 carries "HVAC" six times, once per
    * group; the group is not in any column, it is in a preceding ROW.
@@ -16191,6 +16223,8 @@ function wireHTooltips() {
       ok: false, rejections: [], candidate: null,
       populated: [], addedRows: [], blankSkipped: [],
       notTouched: { computed: [], unmatchedColumns: [], unmatchedRows: [] },
+      /* CLCPA-261: percent strings that entered a non-percent column */
+      unitNotices: [],
       matchedColumns: [], fileRowCount: 0,
     };
     const reject = (why, where) => res.rejections.push(Object.assign({ why: why }, where || {}));
@@ -16308,6 +16342,9 @@ function wireHTooltips() {
     res.keyColumns = schema.slice(0, keyCols);
 
     // file column index -> schema column index
+    /* CLCPA-261 needs to know which columns are percentages, so a "45%"
+     * landing in a "% in DAC" column says nothing. */
+    const pctCols = detectPctColumns(schema);
     const colMap = {};
     header.forEach((h, idx) => {
       if (labelCols.indexOf(idx) >= 0 || !h) return;
@@ -16488,6 +16525,25 @@ function wireHTooltips() {
         // THE POINT: the same function the editor's own handlers call.
         candidate[t.rowIdx][cIdx] = parseNumericInput(raw);
         res.populated.push(Object.assign({ value: candidate[t.rowIdx][cIdx] }, where));
+        /* CLCPA-261: A PERCENT STRING IN A NON-PERCENT COLUMN IS ANNOUNCED.
+         *
+         * CLCPA-244 ruled that an explicit "%" is a UNIT: "10%" enters as 0.1.
+         * That convention is unchanged and this does not reject anything. But
+         * in a column headed "Committed Load Relief (MW)" the conversion is a
+         * change of unit, not of formatting, and the import summary counted it
+         * as an ordinary matched value. The CLCPA-124 audit watched it surface
+         * downstream as a 32,500% delivered-vs-committed ratio: arithmetically
+         * correct, and not what the preparer meant.
+         *
+         * So it is NOTICED, per the ruling: named cell, what was read, what
+         * landed. Only where the COLUMN is not itself a percentage column --
+         * "45%" in a "% in DAC" column is exactly right and says nothing. */
+        if (/^\s*[-+]?[\d.,]+\s*%\s*$/.test(String(raw)) && !pctCols[cIdx]) {
+          res.unitNotices.push(Object.assign({
+            read: String(raw).trim(),
+            landed: candidate[t.rowIdx][cIdx],
+          }, where));
+        }
       });
     });
 
@@ -17306,7 +17362,11 @@ function wireHTooltips() {
         //
         // Now read from `sums`, which is this row's own segment when it has one and
         // the whole-table figure when it does not. The guard itself is unchanged.
-        if (pctCol[c] || avgCol[c]) continue;         // CLCPA-212: does not sum
+        /* CLCPA-212: does not sum -- unless CLCPA-254 has declared this
+         * column summable by name. The declaration is the exception; the
+         * predicate is unchanged. */
+        if ((pctCol[c] || avgCol[c]) &&
+            !isDeclaredSummable(tableId, schema[c])) continue;
         if (!sums.colHasNum[c]) continue;             // nothing to sum: keep stored
         /* CLCPA-215: an edited body row in this column means the operator changed an
          * input to this total, so it shows the sum -- past the source-disagreement
@@ -21224,11 +21284,27 @@ function wireHTooltips() {
      * The result object still CARRIES addedRows, notTouched and blankSkipped.
      * Only the rendering drops them, so nothing that reads the plan changes
      * and a details view can be added without touching the engine. */
+    /* CLCPA-261: the unit notice. Two lines on a success panel that otherwise
+     * says only how many cells arrived -- because a percent string entering a
+     * MW column is a change of unit, and the operator is the only one who can
+     * say whether that is what they meant. Not a rejection: the CLCPA-244
+     * convention stands, the values are in the draft, and the panel names
+     * them so the review it asks for is possible. */
+    const notices = (r.unitNotices || []).length
+      ? '<div class="ingest-import-notice">' +
+        '<h4>Read as a fraction: ' + r.unitNotices.length + ' cell' +
+        (r.unitNotices.length === 1 ? '' : 's') + '</h4>' +
+        '<p>A percentage was typed into a column that is not a percentage ' +
+        'column. The value entered as its fraction.</p><ul>' +
+        r.unitNotices.map(x => li(
+          cell(x) + ': ' + x.read + ' read as ' + x.landed)).join('') +
+        '</ul></div>'
+      : '';
     return '<div class="ingest-import-result">' +
       '<h4>Imported into the draft: ' + r.populated.length + ' cell' +
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
       '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
-      '</div>';
+      '</div>' + notices;
   }
   /** The editor (status bar + grid + add-row button). */
   function renderIngestEditor() {
@@ -21600,9 +21676,17 @@ function wireHTooltips() {
        * table's second header row from the source. */
       const rowCls = isHeaderRow ? ' class="ingest-row-subheader"'
         : (isTotal ? ' class="ingest-row-total"' : '');
+      /* CLCPA-255: a RECOGNISED TOTAL ROW loses its delete control. The
+       * CLCPA-205 exemption is UPHELD -- the label stays editable, so nothing
+       * here reaches the 35 tables that carry an anchored total label. Only
+       * the destructive half is closed: deleting the row removes the
+       * calculation, and no operator asked to.
+       *
+       * This note sits OUTSIDE the template literal on purpose. Written as an
+       * HTML comment it would ship into the DOM once per rendered row. */
       return `<tr${rowCls} data-row="${rowIdx}">
         ${cells}
-        <td class="ingest-td-actions">${(isHeaderRow || lockTotalRow) ? ''
+        <td class="ingest-td-actions">${(isHeaderRow || lockTotalRow || isTotal) ? ''
           : `<button class="ingest-row-delete" type="button" data-row="${rowIdx}" data-tip="Delete row" aria-label="Delete row">×</button>`}
         </td>
       </tr>`;

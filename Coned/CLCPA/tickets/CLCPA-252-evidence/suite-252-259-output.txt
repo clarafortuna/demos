@@ -46,25 +46,32 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   Z4 BASE rendered it bare; this build names it
 
 === X. what else moved ============================================
-       changed: buildIngestWorkbook, dacCol, phantomSpacerCols, renderIngestEditor, renderSourceTables, tableCaption
+       changed: buildIngestImport, buildIngestWorkbook, dacCol, isDeclaredSummable, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, tableCaption
+  ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to dacCol is accounted for
+  ok   the change to isDeclaredSummable is accounted for
   ok   the change to phantomSpacerCols is accounted for
+  ok   the change to recomputeTotals is accounted for
   ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to tableCaption is accounted for
+  ok   X1 buildIngestImport is accounted for (CLCPA-261, group E)
   ok   X1 buildIngestWorkbook is accounted for (CLCPA-260, group D)
   ok   X1 dacCol is accounted for (CLCPA-257, group C)
+  ok   X1 isDeclaredSummable is accounted for (CLCPA-254, group E)
   ok   X1 phantomSpacerCols is accounted for (CLCPA-260, group D)
+  ok   X1 recomputeTotals is accounted for (CLCPA-254, group E)
   ok   X1 renderIngestEditor is accounted for (CLCPA-252 AND CLCPA-260 both touch it; group D is the later one)
+  ok   X1 renderIngestImportResult is accounted for (CLCPA-261, group E)
   ok   X1 renderSourceTables is accounted for
   ok   X1 tableCaption is accounted for
   ok   X1b two functions are uniquely THIS groups: renderSourceTables, tableCaption
-  ok   X2 recomputeTotals is byte-identical to BASE
   ok   X2 columnNumericMask is byte-identical to BASE
   ok   X2 parseCPrograms is byte-identical to BASE
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X2 openSaveModal is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 9699f62
   ok   X4 and an ancestor of HEAD, so this group stacks on Group A
-  56 passed, 0 failed
+  63 passed, 0 failed

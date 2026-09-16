@@ -632,7 +632,10 @@ guard('the four exclusions', () => {
   /* the derive engine */
   const dc = grabDecl('DERIVED_COLS'), baseDc = grabDecl('DERIVED_COLS', BASE_SRC);
   ok(dc === baseDc, 'DERIVED_COLS is byte-identical to BASE');
-  ['applyDerivedCols', 'rowsForDisplay', 'recomputeTotals', 'kpiDacPct'].forEach(fn => {
+  /* recomputeTotals left this list under CLCPA-254, which puts one declared
+   * column back in the sum. It is named in EXPECT below, and suite_244 and
+   * suite_245 both pin the rest of the function to BASE byte for byte. */
+  ['applyDerivedCols', 'rowsForDisplay', 'kpiDacPct'].forEach(fn => {
     ok(grab(fn) === grab(fn, BASE_SRC), fn + ' is byte-identical to BASE');
   });
 
@@ -677,6 +680,10 @@ guard('the four exclusions', () => {
     dacCol: 'NOT this brief: the schema fallback for imported years',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
+    /* Section C group E, each named so the exact count below stays a guard */
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254, Section C group E: the declared-summable column, new',
+    recomputeTotals: 'NOT this ticket: CLCPA-254, Section C group E: it consults that declaration',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261, Section C group E: the import summary announces the fraction notices',
     placeTooltipAtPointer: 'NOT this brief: CLCPA-242, the shared clamp (new)',
     hideExecTooltip: 'NOT this brief: CLCPA-242, hide on re-render (new)',
     wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
@@ -754,9 +761,10 @@ guard('the four exclusions', () => {
   /* 31 -> 32: CLCPA-248 changed three functions but this suite's name scan
    * is IIFE-scoped and sees only some of them -- measured, not assumed. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 37, 'exactly THIRTY-SEVEN functions changed: ' + changed.length);
+  /* 37 -> 40: Section C group E moved three this suite can see. */
+  ok(changed.length === 40, 'exactly FORTY functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
-     'and no function outside those thirty-two moved at all');
+     'and no function outside those forty moved at all');
 });
 
 say('');

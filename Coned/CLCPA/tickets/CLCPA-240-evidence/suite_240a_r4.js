@@ -623,6 +623,10 @@ guard('S: the veto is scoped and singular', () => {
     { add: 'state.payload.tables[i.tableId]', why: 'CLCPA-260' },
     { add: 'i.year);', why: 'CLCPA-260' },
     { add: 'hiddenCols', why: 'CLCPA-260' },
+    /* CLCPA-255: a recognised total row loses its delete control. Round 3's
+     * LOCK is untouched -- the exemption this suite guards is about the
+     * LABEL, and the label input is byte-identical either way. */
+    { add: '(isHeaderRow || lockTotalRow || isTotal)', why: 'CLCPA-255' },
     { rm: "(table.title_by_year || {})[i.year] || ('Table ' + i.tableId)", why: 'CLCPA-252' },
   ];
   const unexplained = added.filter(l => !CLAIMED.some(c => l.indexOf(c.add) >= 0));
@@ -639,6 +643,7 @@ guard('S: the veto is scoped and singular', () => {
      * shared tableCaption helper so a year with no stored title still names
      * its table. */
     { line: "const tableTitle = (table.title_by_year", why: 'CLCPA-252' },
+    { line: '(isHeaderRow || lockTotalRow) ?', why: 'CLCPA-255, the same line, one term wider' },
   ];
   const unexplainedOut = removed.filter(l => !CLAIMED_OUT.some(c => l.indexOf(c.line) >= 0));
   ok(unexplainedOut.length === 0,

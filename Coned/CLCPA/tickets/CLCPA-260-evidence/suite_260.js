@@ -401,13 +401,21 @@ guard('X: the blast radius', () => {
   const EXPECT = {
     phantomSpacerCols: 'CLCPA-260: the predicate, new',
     buildIngestWorkbook: 'CLCPA-260: the template stops emitting them',
-    renderIngestEditor: 'CLCPA-260: the editor stops rendering them',
+    renderIngestEditor: 'CLCPA-260: the editor stops rendering them; and CLCPA-255, group E',
+    /* Group E stacks on top of this one. Named, not absorbed into a wider
+     * count: an UNNAMED change still turns the first assertion red. */
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254, group E: the declared-summable column, new',
+    recomputeTotals: 'NOT this ticket: CLCPA-254, group E: it consults that declaration',
+    buildIngestImport: 'NOT this ticket: CLCPA-261, group E: it collects the fraction notices',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261, group E: the summary announces them',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 3, 'X1 exactly THREE functions changed: ' + changed.length);
-  ['buildIngestImport', 'recomputeTotals', 'renderSourceTables', 'dacCol',
+  ok(changed.length === 7, 'X1 exactly THREE functions changed: ' + changed.length);
+  /* buildIngestImport and recomputeTotals left this list when group E moved
+   * them; both are named in EXPECT above. */
+  ['renderSourceTables', 'dacCol',
    'tableCaption', 'ingestComputed'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });

@@ -227,10 +227,14 @@ guard('X: the blast radius', () => {
     .map(m => /function (\w+)/.exec(m)[1]))];
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
-  /* Group D stacks on top of this one, so its two functions are named here.
-   * An unnamed change still turns X1 red. */
+  /* Groups D and E stack on top of this one, so their functions are named
+   * here. An unnamed change still turns X1 red. */
   const LATER = { phantomSpacerCols: 'CLCPA-260, group D', buildIngestWorkbook: 'CLCPA-260, group D',
-    renderIngestEditor: 'CLCPA-260, group D' };
+    renderIngestEditor: 'CLCPA-260, group D; and CLCPA-255, group E',
+    isDeclaredSummable: 'CLCPA-254, group E: the declared-summable column, new',
+    recomputeTotals: 'CLCPA-254, group E: it consults that declaration',
+    buildIngestImport: 'CLCPA-261, group E: it collects the fraction notices',
+    renderIngestImportResult: 'CLCPA-261, group E: the summary announces them' };
   const mine = changed.filter(n => !(n in LATER));
   changed.forEach(n => ok(n === 'dacCol' || n in LATER,
     'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));

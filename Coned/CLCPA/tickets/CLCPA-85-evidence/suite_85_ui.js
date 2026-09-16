@@ -574,7 +574,12 @@ const dialogStates = {};
      these, so the functions cannot be assembled without them. */
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
      'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell', 'cellText', 'cellCount', 'cellPct',
-     'rawNum', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
+     'rawNum', 'parseNumericInput', 'formatIngestValue',
+     /* CLCPA-261 dep: buildIngestImport asks which columns are percentage
+        columns before it raises a fraction notice, so it cannot be assembled
+        without this. The failure shape without it was the staged box reading
+        "The file could not be read: detectPctColumns is not defined". */
+     'detectPctColumns', 'buildIngestImport',
      'getTableSchema', 'getTableBody', 'csvField', 'ingestTemplateSource',
      'compareTableIds', 'ingestStagedSummary']
       .map(n => grab(SRC, n)).join('\n') +

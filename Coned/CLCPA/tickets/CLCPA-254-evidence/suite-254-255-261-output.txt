@@ -1,0 +1,76 @@
+======================================================================
+Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
+  BASE 8eaa2ac   (stacked on Group D)
+======================================================================
+
+=== S. CLCPA-254: the declared plain sum ===========================
+  ok   S1 at BASE the third total stayed EMPTY, which is C-05
+  ok   S2 and it now computes 1332.6, the sum 333.25 + 0.1 + 999.25
+  ok   S3 while the other two totals are unchanged: 1332, 1666.5
+  ok   S4 C2/2025 stored 736.73 equals the plain sum 736.73
+  ok   S5 and NOT the participants-weighted mean 355.29, which is what rules out (a)
+  ok   S6 the declaration exists
+  ok   S7 naming C2s column, matched on the heading rather than an index
+  ok   S8 detectAvgColumns still calls it an average column
+  ok   S9 and detectAvgColumns is BYTE-IDENTICAL to BASE: the regex is not loosened
+  ok   S9b as is detectPctColumns
+  ok   S10 A3 average columns are unchanged from BASE: [null,null]
+  ok   S10b and still refuse to sum, which is CLCPA-212
+  ok   S10 A4 average columns are unchanged from BASE: [null,null]
+  ok   S10b and still refuse to sum, which is CLCPA-212
+  ok   S11 the declaration names A3 nowhere
+  ok   S12 and names C2s column exactly
+  ok   S13 per TABLE, so the same heading elsewhere is untouched
+
+=== D. CLCPA-255: the narrow x-suppression =========================
+  ok   D1 the actions cell is empty for a total row
+  ok   D2 where BASE emitted the button for it
+  ok   D3 the label input is byte-identical to BASE: it is still an input
+  ok   D4 and it really is an <input>, not a read-only span
+  ok   D5 no label-lock was introduced under another name
+  ok   D6 35 tables carry an anchored total-row label
+       and every one of them keeps an editable label: the ruling was to
+       uphold CLCPA-205 and build only the destructive half.
+
+=== N. CLCPA-261: the notice, not a rejection ======================
+  ok   N1 the import still SUCCEEDS: this is not a rejection
+  ok   N2 and three cells are noticed: 3
+  ok   N3 each naming what was read and what landed: 10% -> 0.1
+  ok   N4 with the row label and the column, so the operator can find them
+  ok   N5 and the values ARE in the draft: the CLCPA-244 convention is unchanged
+  ok   N5b with NOTHING rejected: []
+  ok   N5c and the success panel announces them: Read as a fraction: 3 cells
+  ok   N5d naming what was read and what landed, in the panel itself
+  ok   N6 F9 has a percentage column at 2
+  ok   N7 and a "45%" typed into it raises NO notice: []
+  ok   N8 BASE imported the same file with no unitNotices field at all
+  ok   N9 and the panel that shows them is new
+
+=== Z. the stored years ===========================================
+  ok   Z1 all 149 rendered, every one a <table>
+  ok   Z2 and every one is byte-identical
+  ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
+
+=== X. what else moved ============================================
+       changed: buildIngestImport, isDeclaredSummable, recomputeTotals, renderIngestEditor, renderIngestImportResult
+  ok   the change to buildIngestImport is accounted for
+  ok   the change to isDeclaredSummable is accounted for
+  ok   the change to recomputeTotals is accounted for
+  ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestImportResult is accounted for
+  ok   isDeclaredSummable changed as intended: CLCPA-254: the declaration, new
+  ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
+  ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
+  ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
+  ok   renderIngestImportResult changed as intended: CLCPA-261: and rendered
+  ok   X1 exactly FIVE functions changed: 5
+  ok   X2 detectAvgColumns is byte-identical to BASE
+  ok   X2 detectPctColumns is byte-identical to BASE
+  ok   X2 totalRowFlags is byte-identical to BASE
+  ok   X2 columnGrandTotals is byte-identical to BASE
+  ok   X2 renderSourceTables is byte-identical to BASE
+  ok   X2 phantomSpacerCols is byte-identical to BASE
+  ok   X2 dacCol is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: 8eaa2ac
+  ok   X4 and an ancestor of HEAD, so this group stacks on Group D
+  58 passed, 0 failed

@@ -18,7 +18,7 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
 
 === A. after Save: identical to the build Emely accepted on that point ==
   ok   A1 every header is locked
-  ok   A2 and the whole grid is byte-identical to BASE in this state, so round 3 changed nothing an operator had already accepted
+  ok   A2 and the whole grid is byte-identical to BASE in this state apart from CLCPA-255s total-row x, so round 3 changed nothing an operator had already accepted
 
 === C. the operator building rows by hand, with nothing saved ==========
   ok   C1 a typed row at the bottom keeps its input and its x, because nothing follows it -- a group header always has a row beneath it
@@ -51,12 +51,15 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   F1 rendered 48 tables outside the family, in both states
   ok   F1b the five spacer tables differ in both states: 10
   ok   F1c and each renders exactly BASEs columns minus its spacers
-  ok   F2 every one is byte-identical to BASE
+  ok   F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone
+  ok   F2b and CLCPA-255s total rows are the tables that differ: 50, incl A1:2025, A1:2025 (empty baseline), A2:2025, A2:2025 (empty baseline)
   ok   F3 E1 DID change, which is what CLCPA-244 did
   ok   F3b and in the EMPTY-baseline state too, the one round 3 fixed
   ok   F4 and exactly FOUR cells stopped being calculated: 6 -> 2
   ok   F3 A1:2025 has a Total row: 22
-  ok   F4 and it keeps its input and its x: CLCPA-205 item 2 stays pending
+  ok   F4 and it keeps its editable label: the CLCPA-205 exemption is upheld
+  ok   F4b while CLCPA-255 has taken its x away
+  ok   F4c and the body rows around it still carry theirs, so a ROW was recognised
   ok   F5 A5s own template still lands 50 rows in a fresh year: 50
   ok   F6 and all 10 totals still compute
   ok   F7 the headers still land at the same indices, so (no value) is still import-equivalent to blank
@@ -75,4 +78,4 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   S8 styles.css differs only by CLCPA-248s two rules: this round added none
   ok   S9 the baseline is a literal commit sha: "5b6e57e"
 
-  58 passed, 0 failed
+  61 passed, 0 failed
