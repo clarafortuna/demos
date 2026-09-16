@@ -192,6 +192,29 @@ const hasNumV = r => Array.isArray(r) && r.slice(1).some(
 const totalish = l => /total/i.test(String(l == null ? '' : l));
 const hasInput = t => /<input/.test(t);
 const hasDel = t => /ingest-row-delete/.test(t);
+/* CLCPA-255: the ONE difference this build is allowed to have against BASE in
+ * a table with a recognised total row. True only when every row is byte for
+ * byte what BASE rendered once the delete BUTTON is put back on the rows that
+ * lost it, and each of those rows had one at BASE and has none now. A row that
+ * changed in any other way, a row count that moved, or a table with no such
+ * row at all, all return false and the caller reports it as an unexplained
+ * difference. */
+const DELETE_BTN = /<button class="ingest-row-delete" type="button" data-row="\d+" data-tip="Delete row" aria-label="Delete row">[^<]*<\/button>/;
+const trsOf = (html) => (String(html).match(/<tr[^>]*data-row="\d+"[\s\S]*?<\/tr>/g) || []);
+function onlyTheTotalRowX(now, base) {
+  const a = trsOf(now), b = trsOf(base);
+  if (!a.length || a.length !== b.length) return false;
+  let lost = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] === b[i]) continue;
+    const btn = DELETE_BTN.exec(b[i]);
+    if (!btn) return false;                       // BASE had no x to lose
+    if (DELETE_BTN.test(a[i])) return false;      // this build still has one
+    if (b[i].replace(btn[0], () => '') !== a[i]) return false;  // something else moved
+    lost++;
+  }
+  return lost > 0;
+}
 
 function renderWith(api, tableId, year, schema, draft, baseline) {
   api.STATE.ingest = { tableId: tableId, year: year, schema: schema,
@@ -301,9 +324,17 @@ guard('A: a populated baseline behaves exactly as BASE did', () => {
     .replace(/ title="[^"]*"/g, '')
     .replace(/ data-label-tip="[^"]*"/g, '')
     .replace(/Table [A-Z]\d+[^<]*/g, 'CAPTION');
-  ok(stripTitle(a.html) === stripTitle(b.html),
-     'A2 and the whole grid is byte-identical to BASE in this state, so ' +
-     'round 3 changed nothing an operator had already accepted');
+  /* A5:2099 carries a recognised total row, and CLCPA-255 has taken its x
+   * away. The predicate puts that ONE button back and requires the rest of
+   * every row to be BASE byte for byte -- so the claim this assertion makes
+   * is unchanged, it is just stated against the one difference Emely ruled
+   * in. Either side of the disjunction proves it; a second difference of any
+   * kind fails both. */
+  const sa = stripTitle(a.html), sb = stripTitle(b.html);
+  ok(sa === sb || onlyTheTotalRowX(sa, sb),
+     'A2 and the whole grid is byte-identical to BASE in this state apart ' +
+     'from CLCPA-255s total-row x, so round 3 changed nothing an operator ' +
+     'had already accepted');
 });
 
 /* ============ C: a hand-typed row must never lock ====================== */
@@ -537,7 +568,7 @@ guard('F: flat tables render byte-identically to BASE', () => {
   let titleOnly = 0;
   const spacer = [];
   let e1 = null, e1empty = null;
-  let checked = 0, diff = [];
+  let checked = 0, diff = [], totalX = [];
   Object.keys(P.tables).sort().forEach(id => {
     if (fam[id]) return;
     const years = Object.keys(P.tables[id].data || {})
@@ -575,9 +606,14 @@ guard('F: flat tables render byte-identically to BASE', () => {
      * render narrower than BASE by design. Collected by name; the difference
      * is asserted below, so nothing is merely excused. */
     const SPACERS = ['C1', 'C2', 'C3', 'C4', 'C5'];
+    /* CLCPA-255 takes the delete control off a RECOGNISED TOTAL ROW, so every
+     * table that carries one now differs from BASE. Collected and then
+     * asserted, not forgiven: the predicate requires the difference to be
+     * exactly that button disappearing from exactly those rows. */
     if (noTitle(a) !== noTitle(b)) {
       if (id === 'E1') e1 = { a: a, b: b };
       else if (SPACERS.indexOf(id) >= 0) spacer.push({ id: id, y: y, a: a, b: b });
+      else if (onlyTheTotalRowX(noTitle(a), noTitle(b))) totalX.push(id + ':' + y);
       else diff.push(id + ':' + y);
     }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
@@ -591,6 +627,7 @@ guard('F: flat tables render byte-identically to BASE', () => {
     if (noTitle(a2) !== noTitle(b2)) {
       if (id === 'E1') e1empty = { a: a2, b: b2 };
       else if (SPACERS.indexOf(id) >= 0) spacer.push({ id: id, y: y + ' (empty)', a: a2, b: b2 });
+      else if (onlyTheTotalRowX(noTitle(a2), noTitle(b2))) totalX.push(id + ':' + y + ' (empty baseline)');
       else diff.push(id + ':' + y + ' (empty baseline)');
     }
   });
@@ -611,8 +648,14 @@ guard('F: flat tables render byte-identically to BASE', () => {
   ok(spacerBad.length === 0, 'F1c and each renders exactly BASEs columns minus its spacers' +
      (spacerBad.length ? ': ' + spacerBad.slice(0, 4).join(' | ') : ''));
   ok(diff.length === 0,
-     'F2 every one is byte-identical to BASE' +
+     'F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone' +
      (diff.length ? ': ' + diff.slice(0, 5).join(', ') : ''));
+  /* Required to be non-empty: if CLCPA-255 ever stopped taking the x off
+   * anything, this bucket would empty and the pin would go red rather than
+   * quietly passing as "nothing differed". */
+  ok(totalX.length > 0,
+     'F2b and CLCPA-255s total rows are the tables that differ: ' + totalX.length +
+     ', incl ' + totalX.slice(0, 4).join(', '));
   ok(e1 !== null, 'F3 E1 DID change, which is what CLCPA-244 did');
   ok(e1empty !== null, 'F3b and in the EMPTY-baseline state too, the one round 3 fixed');
   if (e1) {
@@ -623,14 +666,23 @@ guard('F: flat tables render byte-identically to BASE', () => {
   }
 });
 
-guard('F: A1s flat Total row is still editable and deletable', () => {
+guard('F: A1s flat Total row is still editable', () => {
+  /* The DELETABLE half of this claim was bought by CLCPA-255, ruled by Emely
+   * as the NARROW alternative: a recognised total row loses its x and keeps
+   * its editable label. So the x assertion is inverted rather than deleted,
+   * and the label claim -- which is what the CLCPA-205 exemption is actually
+   * about, and what "stays pending" meant -- stands unchanged. */
   const rows = P.tables.A1.data['2025'];
   const schema = P.tables.A1.schema_by_year['2025'];
   const r = renderWith(NEW, 'A1', '2025', schema, rows, rows);
   const t = rows.map((x, i) => i).filter(i => /^total$/i.test(String(rows[i][0]).trim()));
   ok(t.length >= 1, 'F3 A1:2025 has a Total row: ' + t.join(','));
-  ok(t.every(i => hasInput(r.row(i)) && hasDel(r.row(i))),
-     'F4 and it keeps its input and its x: CLCPA-205 item 2 stays pending');
+  ok(t.every(i => hasInput(r.row(i))),
+     'F4 and it keeps its editable label: the CLCPA-205 exemption is upheld');
+  ok(t.every(i => !hasDel(r.row(i))),
+     'F4b while CLCPA-255 has taken its x away');
+  ok(rows.some((x, i) => t.indexOf(i) < 0 && hasDel(r.row(i))),
+     'F4c and the body rows around it still carry theirs, so a ROW was recognised');
 });
 
 guard('F: the round trip and the re-import are still green', () => {

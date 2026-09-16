@@ -478,6 +478,10 @@ guard('two functions, and nothing else', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    /* Section C group E, not this ticket's, each named so the count stays exact */
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
+    recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration before refusing an average column',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces the fraction notices',
     renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
@@ -507,7 +511,8 @@ guard('two functions, and nothing else', () => {
   /* 25 -> 27: CLCPA-245 round 2 added two more. */
   /* 27 -> 30: CLCPA-248 changed three more, every one named above. */
   /* 30 -> 31: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 35, 'exactly THIRTY-FIVE functions changed: ' + changed.length);
+  /* 35 -> 38: Section C group E moved three this suite can see. */
+  ok(changed.length === 38, 'exactly THIRTY-EIGHT functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {
@@ -532,7 +537,10 @@ guard('the exclusions hold', () => {
    * existence check below would fail. It is accounted for by name in EXPECT
    * above instead. This is an EXCLUSION list, not a dependency list -- my
    * blanket dependency patch put it here by pattern and it does not belong. */
-  ['isStrictTotalRowLabel', 'recomputeTotals', 'rowsForDisplay', 'applyDerivedCols',
+  /* recomputeTotals LEFT this list under CLCPA-254, which puts one declared
+   * column back in the sum. It is named in EXPECT above, the same treatment
+   * buildIngestImport, ingestComputed and renderTable already received. */
+  ['isStrictTotalRowLabel', 'rowsForDisplay', 'applyDerivedCols',
    'columnGrandTotals', 'totalRowSums',
    /* ingestComputed LEFT this list under CLCPA-244, which made a weighted mean
     * mark only its total row. Deleting an exclusion weakens nothing only if

@@ -106,12 +106,18 @@ const ENTRY = ['buildIngestWorkbook', 'buildIngestImport', 'totalRowFlags',
  * and BASE simply reports null for them. Seeded explicitly rather than resolved
  * on demand: a name reached only through `typeof` never raises a
  * ReferenceError, so the resolver would never think to grab it. */
-const OPTIONAL = ['ingestRowKey', 'ingestIsHeaderRow', 'ingestGroupOf',
+const OPTIONAL = [/* CLCPA-254: exists only in the changed source, so it belongs
+   * in OPTIONAL rather than ENTRY -- BASE reports null for it and the BASE
+   * side keeps assembling. */ 'isDeclaredSummable',
+  'ingestRowKey', 'ingestIsHeaderRow', 'ingestGroupOf',
   'ingestKeyColCount', 'ingestIsBlankCell'];
 
 function buildEnv(src, tag) {
   const fns = ENTRY.concat(OPTIONAL.filter(n => grabFn(n, src)));
-  const consts = [];
+  /* CLCPA-254: isDeclaredSummable reads SUMMABLE_COLS, and the ReferenceError
+   * resolver only runs during assembly -- a name reached for the first time in
+   * a later guard never gets added. Seeded, with the BASE side shimmed below. */
+  const consts = ['SUMMABLE_COLS'];
   let api = null;
   for (let iter = 0; iter < 500; iter++) {
     const extraFns = fns.filter(n => n !== null);
@@ -122,6 +128,10 @@ function buildEnv(src, tag) {
       ' querySelector: () => null, createElement: () => ({ style: {}, appendChild: () => {} }) };\n' +
       'const window = { location: { href: "" } };\n' +
       'const localStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };\n' +
+      /* CLCPA-254: SUMMABLE_COLS is new, so BASE has none and isDeclaredSummable
+       * would throw on it there. Declared empty when absent -- the same
+       * treatment OPTIONAL gives a function that exists on one side only. */
+      (grabConst('SUMMABLE_COLS', src) ? '' : 'const SUMMABLE_COLS = {};\n') +
       consts.map(n => grabConst(n, src)).join('\n') + '\n' +
       extraFns.map(n => grabFn(n, src)).join('\n') + '\n' +
       'return {' + ENTRY.join(', ') + ', ' +

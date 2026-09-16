@@ -91,13 +91,15 @@ THE BADGE ROUND -- acceptance
   ok   no sentence-case copy of ">Your name<"
   ok   no sentence-case copy of ">Your email<"
   ok   the Report Data region is located
-  ok   labels found in the region: 24
+  ok   labels found in the region: 25
   ok   no captured label still carries code: none
   ok   no Report Data button, h4 or label is sentence case except the named exemption
   ok   the exemption is REAL and still present: "Nothing was imported"
        exempt: "Nothing was imported" -- a status SENTENCE, the same family as the CLCPA-234 success panel heading below, which Emely approved as delivered
   ok   the exemption is REAL and still present: "Imported into the draft: cell"
        exempt: "Imported into the draft: cell" -- THE CLCPA-234 SUCCESS PANEL, approved verbatim two days ago. I cited it as the precedent for the exemption above and then left it out of the list, so the suite reported it -- correctly
+  ok   the exemption is REAL and still present: "Read as a fraction: cell"
+       exempt: "Read as a fraction: cell" -- CLCPA-261, the unit notice, ruled by Emely as a visible NOTICE in the import summary rather than a rejection. Same family and same panel as the two above: a status SENTENCE, not a control label
 
 === 4. WHAT WAS DELIBERATELY LEFT ALONE ===
   ok   buildHistorySummary is found
@@ -108,7 +110,9 @@ THE BADGE ROUND -- acceptance
   ok   and was not quietly retitled
   ok   renderIngestImportResult is found
   ok   and at BASE
-  ok   the import result panel is unchanged by this round
+  ok   CLCPA-261s notice block is found, so undoing it means something
+  ok   and its one-token append is present exactly once
+  ok   the import result panel is unchanged by this round once CLCPA-261s unit notice is undone
   ok   including the reminder Emely approved verbatim
   ok   app.js at the badge round's merge 97e2df0 is readable
   ok   top-level functions enumerated: 352
@@ -132,5 +136,5 @@ THE BADGE ROUND -- acceptance
   ok   and no function outside that list moved at all
 
 ======================================================================
-  115 passed, 0 failed
+  118 passed, 0 failed
 ======================================================================

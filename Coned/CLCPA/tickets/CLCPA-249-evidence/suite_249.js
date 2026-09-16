@@ -671,8 +671,12 @@ guard('X: app.js is byte-identical to BASE', () => {
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     renderSourceTables: 'CLCPA-252, Section C group B',
-    renderIngestEditor: 'CLCPA-252, Section C group B',
+    renderIngestEditor: 'CLCPA-252, Section C group B; and CLCPA-255, group E',
     renderSectionC: 'CLCPA-259, Section C group B',
+    isDeclaredSummable: 'CLCPA-254, Section C group E: the declared-summable column, new',
+    recomputeTotals: 'CLCPA-254, Section C group E: it consults that declaration',
+    buildIngestImport: 'CLCPA-261, Section C group E: it collects the fraction notices',
+    renderIngestImportResult: 'CLCPA-261, Section C group E: the summary announces them',
   };
   changed.forEach(n => ok(n in LATER,
      'X1 app.js function ' + n + ' moved, and it is named by a later ticket' +

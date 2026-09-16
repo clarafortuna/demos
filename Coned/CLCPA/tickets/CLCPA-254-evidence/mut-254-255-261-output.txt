@@ -1,0 +1,32 @@
+======================================================================
+Section C group E -- mutation controls
+======================================================================
+  red  254 THE DEFECT: the declaration is never consulted
+       1 red, incl: S2 and it now computes null, the sum 333.25 + 0.1 + 999.25
+  red  254 THE REGEX IS LOOSENED instead, which re-breaks A3/A4
+       5 red, incl: S9 and detectAvgColumns is BYTE-IDENTICAL to BASE: the regex is not loosened
+  red  254 the declaration is widened to every table
+       3 red, incl: S11 the declaration names A3 nowhere
+  red  254 it matches on the heading of ANY table
+       1 red, incl: S13 per TABLE, so the same heading elsewhere is untouched
+  red  255 THE X COMES BACK on a recognised total row
+       1 red, incl: D1 the actions cell is empty for a total row
+  red  255 OVERSHOT: the total rows LABEL is locked too
+       1 red, incl: D3 the label input is byte-identical to BASE: it is still an input
+  red  261 IT REJECTS instead of noticing
+       1 red, incl: N5b with NOTHING rejected: ["A percentage cannot be imported into this column.","A percentage canno
+  red  261 it notices nothing at all
+       3 red, incl: N2 and three cells are noticed: 0
+  red  261 it notices a percentage in a PERCENTAGE column too
+       1 red, incl: N7 and a "45%" typed into it raises NO notice: ["DAC % of System Total"]
+  red  261 the panel stops rendering the notices
+       2 red, incl: N5c and the success panel announces them: NOTHING RENDERED
+  red  THE STORED-YEAR GATE: a recompute rewrites a filed total
+       1 red, incl: Z3 C2/2025 is returned unchanged by a recompute of its stored rows
+  red  HARNESS: the audit case stops being driven on BASE
+       1 red, incl: S3 while the other two totals are unchanged: 1332, 1666.5
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X3 BASE is a literal commit sha: HEAD
+
+  13 caught, 0 not caught, of 13 guards
+  clean re-run against byte-restored source: PASSES -- 58 passed, 0 failed

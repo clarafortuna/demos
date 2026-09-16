@@ -147,6 +147,28 @@ function renderFor(tableId, year, mutate, src) {
   throw new Error('renderFor(' + tableId + ':' + year + '): no convergence');
 }
 const rowsOf = (html) => (html.match(/<tr[^>]*data-row="\d+"[\s\S]*?<\/tr>/g) || []);
+/* CLCPA-255: the ONE difference this build is allowed to have against BASE in
+ * a table with a recognised total row. True only when every row is byte for
+ * byte what BASE rendered once the delete BUTTON is put back on the rows that
+ * lost it, and each of those rows had one at BASE and has none now. A row that
+ * changed in any other way, a row count that moved, or a table with no such
+ * row at all, all return false and the caller reports it as an unexplained
+ * difference. */
+const DELETE_BTN = /<button class="ingest-row-delete" type="button" data-row="\d+" data-tip="Delete row" aria-label="Delete row">[^<]*<\/button>/;
+function onlyTheTotalRowX(now, base) {
+  const a = rowsOf(now), b = rowsOf(base);
+  if (!a.length || a.length !== b.length) return false;
+  let lost = 0;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] === b[i]) continue;
+    const btn = DELETE_BTN.exec(b[i]);
+    if (!btn) return false;                       // BASE had no x to lose
+    if (DELETE_BTN.test(a[i])) return false;      // this build still has one
+    if (b[i].replace(btn[0], () => '') !== a[i]) return false;  // something else moved
+    lost++;
+  }
+  return lost > 0;
+}
 const hasInput = (tr) => /<input/.test(tr);
 const hasDelete = (tr) => /ingest-row-delete/.test(tr);
 
@@ -707,6 +729,7 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
   let titleOnly = 0;
   let e1 = null;
   const spacer = [];
+  const totalX = [];
   let checked = 0, diff = [];
   Object.keys(P.tables).sort().forEach(id => {
     if (fam[id]) return;
@@ -741,9 +764,16 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
      * forgiven: the assertion below requires the difference to be exactly
      * those cells disappearing and nothing else. */
     const SPACER_TABLES = ['C1', 'C2', 'C3', 'C4', 'C5'];
+    /* CLCPA-255 takes the delete control off a RECOGNISED TOTAL ROW, so every
+     * table that carries one now differs from BASE. Collected separately and
+     * then asserted, not forgiven: the check below requires the difference to
+     * be exactly that button disappearing from exactly those rows, with the
+     * rest of the row -- the label input CLCPA-205 exempts included -- byte
+     * for byte what BASE rendered. */
     if (noTitle(a) !== noTitle(b)) {
       if (id === 'E1') e1 = { a: a, b: b };
       else if (SPACER_TABLES.indexOf(id) >= 0) spacer.push({ id: id, y: y, a: a, b: b });
+      else if (onlyTheTotalRowX(noTitle(a), noTitle(b))) totalX.push({ id: id, y: y });
       else diff.push(id + ':' + y);
     }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
@@ -783,8 +813,15 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
      'F1c and each renders exactly BASEs columns minus its spacers' +
      (spacerBad.length ? ': ' + spacerBad.slice(0, 4).join(' | ') : ''));
   ok(diff.length === 0,
-     'F2 every one is byte-identical to BASE' +
+     'F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone' +
      (diff.length ? ': ' + diff.slice(0, 5).join(', ') : ''));
+  /* Named, and required to be non-empty: if CLCPA-255 ever stopped taking the
+   * x off anything, this bucket would empty and the pin would go red rather
+   * than quietly passing as "nothing differed". */
+  ok(totalX.length > 0,
+     'F2b and CLCPA-255s total rows are the tables that differ: ' +
+     totalX.length + ', incl ' +
+     totalX.slice(0, 4).map(x => x.id + ':' + x.y).join(', '));
   ok(e1 !== null, 'F3 E1 DID change, which is what CLCPA-244 did');
   if (e1) {
     const calcs = (h) => (h.match(/ingest-cell-calc/g) || []).length;
@@ -794,17 +831,28 @@ guard('F: the editor renders flat tables exactly as BASE did', () => {
   }
 });
 
-guard('F: a FLAT table keeps its editable total label and delete button', () => {
+guard('F: a FLAT table keeps its editable total label', () => {
   /* A1 has a Total row and is not in the family. CLCPA-205 item 2 is pending
-   * on the all-totals tables and this round must not pre-empt it. */
+   * on the all-totals tables and this round must not pre-empt it.
+   *
+   * The delete button half of this claim was bought by CLCPA-255, which Emely
+   * ruled as the NARROW alternative: a recognised total row loses its x and
+   * keeps its editable label. So F5 is inverted rather than deleted -- the x
+   * must now be GONE, and F4's label claim, which is what the CLCPA-205
+   * exemption is actually about, stands unchanged. */
   const stored = P.tables.A1.data['2025'];
   const trs = rowsOf(renderFor('A1', '2025').html);
   const tIdx = stored.map((r, i) => i).filter(i => /^total$/i.test(String(stored[i][0]).trim()));
   ok(tIdx.length >= 1, 'F3 A1:2025 has a Total row: index ' + tIdx.join(','));
   ok(tIdx.every(i => hasInput(trs[i])),
      'F4 its label is still editable, because A1 is not in the family');
-  ok(tIdx.every(i => hasDelete(trs[i])),
-     'F5 and it still carries a delete button');
+  ok(tIdx.every(i => !hasDelete(trs[i])),
+     'F5 and CLCPA-255 has taken its delete button away');
+  /* the x is gone from the TOTAL row only: every body row above it keeps one,
+   * which is what says CLCPA-255 recognised a row rather than blanking a
+   * column. */
+  ok(trs.some((tr, i) => tIdx.indexOf(i) < 0 && hasDelete(tr)),
+     'F5b while the body rows around it still carry theirs');
 });
 
 guard('F: totalRowFlags on stored data is identical to BASE everywhere', () => {

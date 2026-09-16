@@ -465,6 +465,10 @@ guard('X: the blast radius', () => {
     renderSourceTables: 'CLCPA-252, group B: the report page calls it',
     renderIngestEditor: 'CLCPA-252, group B: the editor calls it',
     renderSectionC: 'CLCPA-259, group B: the panel reads C1',
+    isDeclaredSummable: 'CLCPA-254, group E: the declared-summable column, new',
+    recomputeTotals: 'CLCPA-254, group E: it consults that declaration',
+    buildIngestImport: 'CLCPA-261, group E: it collects the fraction notices',
+    renderIngestImportResult: 'CLCPA-261, group E: the summary announces them',
   };
   changed.forEach(n => ok(n in EXPECT || n in LATER,
     'the change to ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
@@ -472,9 +476,11 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   const mine = changed.filter(n => !(n in LATER));
   ok(mine.length === 3, 'X1 exactly THREE functions are THIS groups: ' + mine.join(', '));
-  /* the ones that must NOT move */
-  ['recomputeTotals', 'columnGrandTotals', 'detectAvgColumns', 'detectPctColumns',
-   'totalRowFlags', 'buildIngestImport', 'applyIngestImport'].forEach(n => {
+  /* the ones that must NOT move. recomputeTotals (CLCPA-254) and
+   * buildIngestImport (CLCPA-261) left this list when group E moved them;
+   * both are named in LATER above, so the changes stay accounted for. */
+  ['columnGrandTotals', 'detectAvgColumns', 'detectPctColumns',
+   'totalRowFlags', 'applyIngestImport'].forEach(n => {
     ok(grab(n, SRC) === grab(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
 });

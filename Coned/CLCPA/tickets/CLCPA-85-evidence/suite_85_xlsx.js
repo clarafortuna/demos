@@ -80,7 +80,7 @@ const NAMES = ['crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
   'phantomSpacerCols',
   'totalRowFlags', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell', 'cellText', 'cellCount',
   'cellPct', 'getTableSchema', 'getTableBody', 'rawNum', 'parseCsvRows',
-  'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',
+  'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',

@@ -301,13 +301,19 @@ guard('X: the blast radius', () => {
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254, Section C group E: the declared-summable column, new',
+    recomputeTotals: 'NOT this ticket: CLCPA-254, Section C group E: it consults that declaration',
+    buildIngestImport: 'NOT this ticket: CLCPA-261, Section C group E: it collects the fraction notices',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261, Section C group E: the summary announces them',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   /* THIS GROUPS four, plus whatever the groups stacked ON TOP add. Named, not
    * counted loosely: an unnamed change still turns X1 red. */
   const LATER = { dacCol: 'CLCPA-257, group C', phantomSpacerCols: 'CLCPA-260, group D',
     renderIngestEditor: 'CLCPA-252 AND CLCPA-260 both touch it; group D is the later one',
-    buildIngestWorkbook: 'CLCPA-260, group D' };
+    buildIngestWorkbook: 'CLCPA-260, group D',
+    isDeclaredSummable: 'CLCPA-254, group E', recomputeTotals: 'CLCPA-254, group E',
+    buildIngestImport: 'CLCPA-261, group E', renderIngestImportResult: 'CLCPA-261, group E' };
   const mine = changed.filter(n => !(n in LATER));
   changed.forEach(n => ok(n in EXPECT || n in LATER,
     'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
@@ -322,7 +328,10 @@ guard('X: the blast radius', () => {
   ok(mine.length === 2 && mine.indexOf('tableCaption') >= 0 &&
      mine.indexOf('renderSourceTables') >= 0,
      'X1b two functions are uniquely THIS groups: ' + mine.sort().join(', '));
-  ['recomputeTotals', 'columnNumericMask', 'parseCPrograms', 'ingestComputed',
+  /* recomputeTotals left this list under CLCPA-254, which puts one declared
+   * column back in the sum. It is named in EXPECT and in LATER above instead,
+   * so the change stays accounted for, just not as "untouched". */
+  ['columnNumericMask', 'parseCPrograms', 'ingestComputed',
    'openSaveModal'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });

@@ -539,6 +539,10 @@ guard('the blast radius is accounted for, function by function', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    /* Section C group E, not this ticket's, each named so the count stays exact */
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
+    recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration before refusing an average column',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces the fraction notices',
     renderSourceTables: 'CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
@@ -571,7 +575,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 27 -> 29: CLCPA-245 round 2 added two more. */
   /* 29 -> 32: CLCPA-248 changed three more. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 37, 'thirty-seven in total, all named: ' + changed.length);
+  /* 37 -> 40: Section C group E moved three this suite can see. */
+  ok(changed.length === 40, 'forty in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
@@ -584,8 +589,11 @@ guard('the exclusions hold', () => {
      * in that ticket's own inventory and asserted there; removing them here
      * is not weakening the exclusion, because the claim it makes is about
      * THIS ticket's blast radius, not about the file never changing. */
-  ['applyDerivedCols', 'rowsForDisplay', 'recomputeTotals', 'kpiDacPct',
+  ['applyDerivedCols', 'rowsForDisplay', 'kpiDacPct',
    'composePayloadFromRows', 'dacShadowCompare', 'renderDACMap',
+   /* recomputeTotals left this list under CLCPA-254, which puts one declared
+    * column back in the sum. It is named in ALSO above and asserted there,
+    * with the same treatment renderIngestEditor and renderTable received. */
    /* renderIngestEditor left this list when CLCPA-240 round 2 locked the
     * hierarchical family's group header rows. That ticket owns the change and
     * asserts it by name in ALSO above, so the claim here stays exact.

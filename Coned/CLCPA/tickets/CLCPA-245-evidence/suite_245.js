@@ -517,8 +517,23 @@ guard('X: the family veto and the derive engine are untouched', () => {
      'X2 and CLCPA-200s strict predicate');
   ok(grabConst('DERIVED_COLS') === grabConst('DERIVED_COLS', BASE_SRC),
      'X3 DERIVED_COLS is byte-identical');
-  ok(grab('recomputeTotals') === grab('recomputeTotals', BASE_SRC),
-     'X4 recomputeTotals is byte-identical: the ordering item is NOT bought here');
+  /* X4 said "byte-identical" until CLCPA-254 put one DECLARED column back in
+   * the sum. Undoing that one exception -- the only edit that has landed in
+   * this function since -- and requiring the rest to be BASE exactly keeps the
+   * claim as narrow as it was. Widening it to a substring check would delete
+   * the guard instead of re-pinning it. */
+  const CLCPA254 = '/* CLCPA-212: does not sum -- unless CLCPA-254 has declared this\r\n' +
+    '         * column summable by name. The declaration is the exception; the\r\n' +
+    '         * predicate is unchanged. */\r\n' +
+    '        if ((pctCol[c] || avgCol[c]) &&\r\n' +
+    '            !isDeclaredSummable(tableId, schema[c])) continue;';
+  const BASE254 = 'if (pctCol[c] || avgCol[c]) continue;         // CLCPA-212: does not sum';
+  const rtNow = grab('recomputeTotals') || '';
+  ok(rtNow.split(CLCPA254).length - 1 === 1,
+     'X4a CLCPA-254s exception is present exactly once, so undoing it means something');
+  ok(rtNow.replace(CLCPA254, () => BASE254) === grab('recomputeTotals', BASE_SRC),
+     'X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: ' +
+     'the ordering item is NOT bought here');
   ok(grab('parseNumericInput') === grab('parseNumericInput', BASE_SRC),
      'X5 and CLCPA-244s percent rule');
   const styles = fs.readFileSync(path.join(REPO,
@@ -630,13 +645,19 @@ guard('X: the blast radius', () => {
     wireIngestLabelTips: 'round 2, the shared-tooltip wiring (new)',
     wireIngestPage: 'round 2, it calls that wiring',
     wireControlTips: 'round 2, the ingest label joins OWNS_TIP',
+    /* Section C group E, not this ticket's, each named so the count stays exact */
+    isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
+    recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE',
+    buildIngestImport: 'NOT this ticket: CLCPA-261: it collects the fraction notices',
+    renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces them',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 6 -> 9: CLCPA-248 added three, every one named above. */
   /* 9 -> 10: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 19, 'X8 exactly SIXTEEN functions changed: ' + changed.length);
+  /* 19 -> 23: Section C group E moved four this suite can see. */
+  ok(changed.length === 23, 'X8 exactly TWENTY-THREE functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

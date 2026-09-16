@@ -435,6 +435,10 @@ guard('two functions', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    /* Section C group E, not this round's, each named so the count stays exact */
+    isDeclaredSummable: 'NOT this round: CLCPA-254: the declared-summable column (new)',
+    recomputeTotals: 'NOT this round: CLCPA-254: it consults that declaration',
+    renderIngestImportResult: 'NOT this round: CLCPA-261: the import summary announces the fraction notices',
     renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
@@ -457,7 +461,8 @@ guard('two functions', () => {
   /* 18 -> 19: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 19 -> 21: CLCPA-245 round 2 added two more. */
   /* 21 -> 24: CLCPA-248 changed three more. */
-  ok(changed.length === 30, 'TWENTY-NINE: this round\'s two, CLCPA-240\'s twelve ' +
+  /* 30 -> 33: Section C group E moved three this suite can see. */
+  ok(changed.length === 33, 'THIRTY-THREE: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 
