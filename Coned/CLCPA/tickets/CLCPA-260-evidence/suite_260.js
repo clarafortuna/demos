@@ -419,6 +419,11 @@ guard('X: the blast radius', () => {
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
+    rowsForDisplay: 'CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'CLCPA-263: the value formatting (new)',
+    bareNumber: 'CLCPA-263: the bare-number test (new)',
     openAddYearDialog: 'CLCPA-264: it attaches the advisory to the plan',
     stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the advisory',
     wire: 'CLCPA-264: nested in openAddYearDialog, it holds the call site',
@@ -429,7 +434,8 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   /* 7 -> 10: CLCPA-252 round 2 added two and changed tableCaption, all named. */
   /* 10 -> 15: CLCPA-264 moved five this suite can see, all named above. */
-  ok(changed.length === 15, 'X1 exactly FIFTEEN functions changed: ' + changed.length);
+  /* 15 -> 20: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 20, 'X1 exactly TWENTY functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

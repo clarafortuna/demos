@@ -408,6 +408,11 @@ guard('X: the blast radius', () => {
     /* CLCPA-264 stacks on this ticket, so its six are named here too. */
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
+    rowsForDisplay: 'CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'CLCPA-263: the value formatting (new)',
+    bareNumber: 'CLCPA-263: the bare-number test (new)',
     openAddYearDialog: 'CLCPA-264: it attaches the advisory to the plan',
     stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the advisory',
     wire: 'CLCPA-264: nested in openAddYearDialog, it holds the call site',
@@ -417,7 +422,8 @@ guard('X: the blast radius', () => {
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 3 -> 9: CLCPA-264 stacks on this ticket and moved six, all named above. */
-  ok(changed.length === 9, 'X1 exactly NINE functions changed: ' + changed.length);
+  /* 9 -> 14: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 14, 'X1 exactly FOURTEEN functions changed: ' + changed.length);
   /* the ones that must NOT move: the render path and the short_title map */
   ['renderSourceTables', 'renderIngestEditor', 'getTableSchema'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

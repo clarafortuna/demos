@@ -375,6 +375,11 @@ guard('X: the blast radius', () => {
   const EXPECT = {
     declaredTableFromFilename: 'CLCPA-264: the filename extractor, new',
     importIdentityNotice: 'CLCPA-264: the advisory sentence, new',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     renderIngestImportResult: 'CLCPA-264: the result panel announces it',
     openAddYearDialog: 'CLCPA-264: stagedBlock warns, and the call site attaches the advisory',
     /* both NESTED inside openAddYearDialog, and both counted separately
@@ -386,7 +391,8 @@ guard('X: the blast radius', () => {
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 6, 'X1 exactly SIX functions changed: ' + changed.length);
+  /* 6 -> 11: CLCPA-263 stacks on this ticket and moved five, all named. */
+  ok(changed.length === 11, 'X1 exactly ELEVEN functions changed: ' + changed.length);
   /* the importer's own engine is untouched: this adds a warning beside it */
   ['buildIngestImport', 'applyIngestImport', 'parseCsvRows', 'getTableSchema',
    'ingestStagedSummary'].forEach(n => {

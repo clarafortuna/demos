@@ -354,6 +354,11 @@ guard('X: the blast radius', () => {
     deriveTableCaptionInfo: 'CLCPA-252 ROUND 2: the three strategies, new',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
+    rowsForDisplay: 'CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'CLCPA-263: the value formatting (new)',
+    bareNumber: 'CLCPA-263: the bare-number test (new)',
     openAddYearDialog: 'CLCPA-264: it attaches the advisory to the plan',
     stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the advisory',
     wire: 'CLCPA-264: nested in openAddYearDialog, it holds the call site',
@@ -367,6 +372,10 @@ guard('X: the blast radius', () => {
     buildIngestWorkbook: 'CLCPA-260, group D',
     isDeclaredSummable: 'CLCPA-254, group E', recomputeTotals: 'CLCPA-254, group E',
     buildIngestImport: 'CLCPA-261, group E', renderIngestImportResult: 'CLCPA-261, group E',
+    /* CLCPA-263, later still: the composite shares on the display clone. */
+    rowsForDisplay: 'CLCPA-263', applyCompositeShares: 'CLCPA-263',
+    isCompositeShareCol: 'CLCPA-263', compositeValueText: 'CLCPA-263',
+    bareNumber: 'CLCPA-263',
     /* ROUND 2 of this very ticket. It stacks on round 1, so from this
      * suite's point of view the two derivation functions belong to a
      * later round -- and tableCaption is claimed by BOTH, which is why

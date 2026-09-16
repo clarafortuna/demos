@@ -184,7 +184,10 @@ function grabConst(name, src) {
 }
 
 function build(src, tag) {
-  const fns = ['renderTable', 'getTableSchema', 'rowsForDisplay', 'columnNumericMask'];
+  const fns = ['renderTable', 'getTableSchema', 'rowsForDisplay',
+    /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
+     * its clone, so the closure needs the derivation and its three helpers. */
+    'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'columnNumericMask'];
   const cs = [];
   if (grab('compareColWidths', src)) fns.push('compareColWidths');
   for (let it = 0; it < 500; it++) {
@@ -577,7 +580,9 @@ guard('H: grab returns the function asked for, padded and column-0 alike', () =>
   /* 20 -> 25: CLCPA-252 round 2 and CLCPA-264 each added two more to the
    * tree this suite reads. The ORDER OF MAGNITUDE is what this guards, and
    * the exact list is X3 above; raising the ceiling here does not relax that. */
-  ok(changed.length < 25,
+  /* 25 -> 30: CLCPA-263 moved five more into the tree this suite reads.
+   * The ORDER OF MAGNITUDE is what this guards; the exact list is X3. */
+  ok(changed.length < 30,
      'H9 the changed-function count is plausible (' + changed.length + '), not the ' +
      '25 the over-reading grab reported');
   ok(changed.indexOf('drawSectionEArc') < 0 &&
@@ -887,7 +892,10 @@ guard('X: the data layer and the editor are untouched', () => {
    * which puts one declared column back in the sum. Both are named in the
    * EXPECT map below instead, so the changes are still accounted for, just
    * not as "untouched". */
-  ['rowsForDisplay', 'totalRowFlags', 'columnNumericMask',
+  /* rowsForDisplay LEFT this list under CLCPA-263, which gave it the
+   * composite-share derivation on its clone. It is named in the census
+   * map instead, so the change stays accounted for. */
+  ['totalRowFlags', 'columnNumericMask',
    'getTableSchema', 'parseNumericInput'].forEach(n => {
     ok(grab(n) === grab(n, BASE_SRC), 'X1 ' + n + ' is byte-identical to BASE');
   });
@@ -912,6 +920,11 @@ guard('X: the blast radius', () => {
     stagedBlock: 'NOT this ticket: CLCPA-264, nested in openAddYearDialog, it renders the identity advisory',
     declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
@@ -936,7 +949,8 @@ guard('X: the blast radius', () => {
    * over-reading grab used to report 25 here; see section H. */
   /* 17 -> 19: CLCPA-252 round 2 added two, both named above. */
   /* 19 -> 22: CLCPA-264 added two and moved stagedBlock, all named above. */
-  ok(changed.length === 22, 'X3 exactly TWENTY-TWO functions changed: ' + changed.length);
+  /* 22 -> 27: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 27, 'X3 exactly TWENTY-SEVEN functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),

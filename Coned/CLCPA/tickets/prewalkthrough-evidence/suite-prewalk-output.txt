@@ -96,15 +96,17 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   and D1 does carry 0, so its first row is editable with its x
   ok   DERIVED_COLS is byte-identical to BASE
   ok   applyDerivedCols is byte-identical to BASE
-  ok   rowsForDisplay is byte-identical to BASE
   ok   kpiDacPct is byte-identical to BASE
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, getTableSchema, hideExecTooltip, importIdentityNotice, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isDeclaredSummable, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, phantomSpacerCols, placeTooltipAtPointer, recomputeTotals, renderExecutiveSummary, renderIngestEditor, renderIngestImportResult, renderIngestPicker, renderSourceTables, renderTable, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+       changed functions: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compareColWidths, compositeValueText, computeHeaderCards, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, getTableSchema, hideExecTooltip, importIdentityNotice, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isCompositeShareCol, isDeclaredSummable, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, phantomSpacerCols, placeTooltipAtPointer, recomputeTotals, renderExecutiveSummary, renderIngestEditor, renderIngestImportResult, renderIngestPicker, renderSourceTables, renderTable, rowsForDisplay, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
+  ok   the change to compositeValueText is accounted for
   ok   the change to computeHeaderCards is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to declaredTableFromFilename is accounted for
@@ -121,6 +123,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to ingestKeyColCount is accounted for
   ok   the change to ingestRowKey is accounted for
   ok   the change to isAnchoredTotalRowLabel is accounted for
+  ok   the change to isCompositeShareCol is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to isHierarchicalTotalLabel is accounted for
   ok   the change to isTotalOnlyDerived is accounted for
@@ -137,6 +140,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to renderIngestPicker is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
+  ok   the change to rowsForDisplay is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to totalRowFlags is accounted for
   ok   the change to wireControlTips is accounted for
@@ -189,10 +193,15 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
   ok   declaredTableFromFilename changed as intended: NOT this ticket: CLCPA-264, the filename extractor (new)
   ok   importIdentityNotice changed as intended: NOT this ticket: CLCPA-264, the import identity advisory (new)
+  ok   rowsForDisplay changed as intended: NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone
+  ok   applyCompositeShares changed as intended: NOT this ticket: CLCPA-263: the derivation (new)
+  ok   isCompositeShareCol changed as intended: NOT this ticket: CLCPA-263: the declaration predicate (new)
+  ok   compositeValueText changed as intended: NOT this ticket: CLCPA-263: the value formatting (new)
+  ok   bareNumber changed as intended: NOT this ticket: CLCPA-263: the bare-number test (new)
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly FORTY-FOUR functions changed: 44
+  ok   exactly FORTY-NINE functions changed: 49
   ok   and no function outside those forty moved at all
 
 ======================================================================
-  181 passed, 0 failed
+  190 passed, 0 failed
 ======================================================================

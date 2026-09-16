@@ -1,0 +1,101 @@
+======================================================================
+CLCPA-263 -- the value (pct) composites, derived at render
+  BASE c6d0453
+======================================================================
+
+=== S. the gate: every stored table-year renders byte-identical =====
+  ok   S1 149 stored table-years put through the display view
+  ok   S2 and every one is byte-identical to BASE
+  ok   S3 149 panels rendered on both sides
+  ok   S4 and every panel is byte-identical
+  ok   S5 C2:2023 stores a bare PERCENTAGE: "31%"
+  ok   S6 C2:2025 stores a COMPOSITE: "37,988 (33%)"
+  ok   S7 C2:2023 is returned unchanged
+  ok   S7 C2:2024 is returned unchanged
+  ok   S7 C2:2025 is returned unchanged
+
+=== D. a fresh year of typed numbers derives the composites ========
+  ok   D1 EIGHT of the nine match the stored string exactly: 8
+  ok   D2 and exactly one differs: r2c7 derived "434.34 (59%)" stored "434.34 (58%)"
+  ok   D3 and it is the disclosed C2:2025 rounding disagreement, not a new one
+  ok   D4 the arithmetic: 434.34/736.73 = 58.96%, which rounds to 59
+  ok   D5 the total row column 3 is untouched: 116581
+  ok   D5 the total row column 5 is untouched: 955.06
+  ok   D5 the total row column 7 is untouched: 736.73
+  ok   D6 a total is 100% of itself, and saying so would be noise
+  ok   D7 at BASE the fresh cell stays a bare number: 37988
+  ok   D8 and BASE has no derivation at all
+
+=== N. it fires on a bare number and nothing else ==================
+  ok   N1 left alone: "37,988 (33%)"  (an already-composite string)
+  ok   N1 left alone: "31%"  (a bare percentage string)
+  ok   N1 left alone: "n/a"  (text)
+  ok   N1 left alone: ""  (empty)
+  ok   N1 left alone: null  (null)
+  ok   N1 "1,234 " is a bare number and derives: "1,234 (1234%)"
+  ok   N1b the share is of the TOTAL ROW (100), not the body sum (40): "25 (25%)"
+  ok   N1c and so is the second row: "15 (15%)"
+  ok   N1d the body-sum answer would have been 63%, so N1b was not free
+  ok   N1e a zero total derives nothing: 0
+  ok   N1f and no cell reads NaN% or Infinity%: ["DAC",null,null,0,null,null,null,null]
+  ok   N1g and neither does a value against a zero total: 5
+  ok   N2 the spacer column is untouched: 500
+  ok   N3 while the declared column derives
+  ok   N4 C3 derives nothing, because the declaration names C2 alone: ["Row A",10,20,30]
+
+=== C. the scope: C2 alone, three columns ==========================
+  ok   C1 exactly ONE table stores composites: C2
+  ok   C2 in exactly three columns: 3,5,7
+  ok   C3 declared: "Participants"
+  ok   C3 declared: "Committed Load Relief (MW)"
+  ok   C3 declared: "Average Event Reductions (MW)"
+  ok   C4 and the label column is not
+  ok   C5 and the same heading in another table is not, because it is per TABLE
+
+=== F. the value half looks as renderTable would have printed it ====
+  ok   F1 BASE prints 37988 as "37,988"
+  ok   F2 and 389.65 as "389.65"
+  ok   F3 and 2.82 as "2.82"
+  ok   F4 the derived cell keeps the separator: "37,988 (33%)"
+  ok   F5 and the decimals: "389.65 (41%)"
+  ok   F6 and a small decimal: "2.82 (0%)"
+  ok   F7 compositeValueText matches toLocaleString for an integer
+  ok   F8 and keeps two decimals under 100
+  ok   F9 column 3 is not a percentage column, so the default branch applies
+  ok   F9 column 5 is not a percentage column, so the default branch applies
+  ok   F9 column 7 is not a percentage column, so the default branch applies
+  ok   F10 and none of the three is a currency column: []
+
+=== R. render-only: nothing composite is ever stored ===============
+  ok   R1 rowsForDisplay left its input untouched, so nothing derived can be saved
+  ok   R2 while the returned clone did derive
+  ok   R3 it is called from rowsForDisplay, on the clone
+  ok   R3b and NOT the arithmetic totalFlags, which cannot see an unbalanced total
+  ok   R4 recomputeTotals does not touch it
+  ok   R4 applyIngestImport does not touch it
+  ok   R4 buildIngestImport does not touch it
+
+=== X. what else moved =============================================
+       changed: applyCompositeShares, bareNumber, compositeValueText, isCompositeShareCol, rowsForDisplay
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
+  ok   the change to compositeValueText is accounted for
+  ok   the change to isCompositeShareCol is accounted for
+  ok   the change to rowsForDisplay is accounted for
+  ok   rowsForDisplay changed as intended: CLCPA-263: it applies the shares to the clone
+  ok   applyCompositeShares changed as intended: CLCPA-263: the derivation, new
+  ok   isCompositeShareCol changed as intended: CLCPA-263: the declaration predicate, new
+  ok   compositeValueText changed as intended: CLCPA-263: the value formatting, new
+  ok   bareNumber changed as intended: CLCPA-263: the bare-number test, new
+  ok   X1 exactly FIVE functions changed: 5
+  ok   X2 applyDerivedCols is byte-identical to BASE
+  ok   X2 columnGrandTotals is byte-identical to BASE
+  ok   X2 recomputeTotals is byte-identical to BASE
+  ok   X2 totalRowFlags is byte-identical to BASE
+  ok   X2 kpiDacPct is byte-identical to BASE
+  ok   X2 detectPctColumns is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: c6d0453
+  ok   X4 and HEAD descends from it
+  ok   X5 and the two sources genuinely differ
+
+  80 passed, 0 failed

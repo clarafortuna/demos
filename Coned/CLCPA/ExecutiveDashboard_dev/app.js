@@ -2958,7 +2958,132 @@ function utf8ByteLength(str) {
         if (pctCols[c] && !covered.has(c)) row[c] = '—';
       }
     });
+    applyCompositeShares(clone, tableId, schema, colSum);
     return clone;
+  }
+
+  /* CLCPA-263: the "value (pct)" composites, DERIVED at render.
+   *
+   * WHAT THE STORED YEARS DO. C2's 2024 and 2025 rows store the composite
+   * INSIDE the string -- "37,988 (33%)" -- and nothing in this app computes
+   * that share. It was typed. So a fresh year, where the operator enters bare
+   * numbers, renders bare numbers next to a stored year that shows shares.
+   *
+   * THE SCOPE IS MEASURED, not assumed. A payload-wide scan for a numeric
+   * parenthetical found composites in ONE table: C2, three columns, two years.
+   * Everything else that matched a parenthesis was prose (D1, F1 definitions)
+   * or a measure name (A3/A4's "PEI (Pump Energy...)"). So the declaration
+   * names those three columns and nothing else -- the INGEST_KEY_COLS /
+   * SUMMABLE_COLS shape, by heading rather than index, because the C-family
+   * schema changes width between years.
+   *
+   * THE CONVENTION IS MEASURED TOO. Of the 15 stored composite cells, 14 are
+   * round(value / the TOTAL ROW's value * 100) at zero decimal places. The
+   * fifteenth, C2:2025 "All Others" at 434.34 of 736.73, stores 58 where
+   * 58.96 rounds to 59 -- a stored inconsistency, disclosed and not touched,
+   * because stored years are the reference.
+   *
+   * IT ONLY FIRES ON A BARE NUMBER, and that is what keeps every stored year
+   * byte-identical. 2024 and 2025 hold composite STRINGS; 2023 holds bare
+   * percentage strings like "31%". None of them is a bare number, so none of
+   * them is touched. A fresh year's typed figures are, which is the case this
+   * ticket exists for.
+   *
+   * TOTAL ROWS ARE SKIPPED. A total is 100% of itself and saying so is noise.
+   *
+   * This is RENDER-ONLY: it runs on the clone rowsForDisplay already made, so
+   * nothing composite is ever stored. A stored copy of a computed figure is a
+   * second source of truth, which is the rule this whole project runs on. */
+  const COMPOSITE_SHARE_COLS = {
+    C2: ['participants', 'committed load relief (mw)',
+         'average event reductions (mw)'],
+  };
+  function isCompositeShareCol(tableId, header) {
+    const list = tableId && COMPOSITE_SHARE_COLS[tableId];
+    if (!list) return false;
+    const h = String(header == null ? '' : header).trim().toLowerCase();
+    return !!h && list.indexOf(h) >= 0;
+  }
+  /* A BARE NUMBER: what the operator typed, before anything decorated it.
+   * A string carrying a percent sign, a parenthesis, or any other text is not
+   * bare and is left exactly as it is. */
+  function bareNumber(v) {
+    if (typeof v === 'number') return isFinite(v) ? v : null;
+    const s = String(v == null ? '' : v).trim();
+    if (!s) return null;
+    if (!/^[-+]?[\d,]*\.?\d+$/.test(s)) return null;
+    const n = parseFloat(s.replace(/,/g, ''));
+    return isFinite(n) ? n : null;
+  }
+  /* THE VALUE HALF MUST LOOK LIKE IT WOULD HAVE LOOKED.
+   *
+   * renderTable formats a NUMBER cell before printing it -- 37988 reaches the
+   * screen as "37,988". Turning the cell into a composite STRING bypasses that
+   * branch entirely, so a derivation that simply concatenated the raw value
+   * would have silently dropped the thousands separators that every stored
+   * composite carries. Measured against C2:2025's own nine cells, this rule
+   * reproduces "37,988", "389.65", "6.84" and "2.82" exactly.
+   *
+   * It mirrors renderTable's DEFAULT numeric branch deliberately, and the
+   * suite drives renderTable itself to prove the two still agree rather than
+   * trusting this copy. C2's three columns are neither percentage nor currency
+   * columns, so the default branch is the only one they can take -- and the
+   * suite asserts that too, because if one ever became a currency column this
+   * copy would quietly diverge. */
+  function compositeValueText(v) {
+    if (Number.isInteger(v) || Math.abs(v) >= 100) return v.toLocaleString();
+    return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+  function applyCompositeShares(rows, tableId, schema, colSum) {
+    if (!rows || !schema || !COMPOSITE_SHARE_COLS[tableId]) return;
+    /* WHICH ROW IS THE TOTAL IS A LABEL QUESTION HERE, not an arithmetic one.
+     *
+     * The first cut used totalRowFlags, and two of this suite's own cases
+     * caught it: those flags require the row to actually SUM its columns
+     * (CLCPA-245), so a year whose filed total does not equal its rows -- which
+     * is exactly C2:2024's shape, 104,025 against two rows summing to 41,848 --
+     * left the total UNFLAGGED. It then fell through to colSum, which had
+     * counted that same total row as if it were data: 25 of (25+15+100) came
+     * out as 18% where the answer is 25%. A zero total gave "5 (100%)" the
+     * same way.
+     *
+     * isStrictTotalRowLabel is the whole-label predicate this function already
+     * uses a few lines above, and it answers the question actually being
+     * asked: which row is the operator calling the total. */
+    const isTotal = rows.map(r => isStrictTotalRowLabel((r || [])[0]));
+    for (let c = 1; c < schema.length; c++) {
+      if (!isCompositeShareCol(tableId, schema[c])) continue;
+      /* the denominator, in the order the stored data justifies: the TOTAL
+       * ROW's own figure where there is one, else the sum of the body rows.
+       * The source's filed total wins, because the shares an operator needs
+       * are the source's shares and not shares of a subtotal we invented. */
+      let denom = null;
+      for (let r = 0; r < rows.length; r++) {
+        if (!isTotal[r]) continue;
+        const t = bareNumber((rows[r] || [])[c]);
+        if (t !== null) { denom = t; break; }
+      }
+      if (denom === null && colSum && colSum[c] != null) {
+        /* no total row at all: sum the BODY rows here rather than trusting
+         * colSum, which is computed against a different total predicate. */
+        let s = 0, any = false;
+        for (let r = 0; r < rows.length; r++) {
+          if (isTotal[r]) continue;
+          const v = bareNumber((rows[r] || [])[c]);
+          if (v !== null) { s += v; any = true; }
+        }
+        denom = any ? s : null;
+      }
+      if (!denom) continue;                       // nothing to divide by, and 0 is not a denominator
+      for (let r = 0; r < rows.length; r++) {
+        if (isTotal[r]) continue;                 // a total is 100% of itself
+        const raw = (rows[r] || [])[c];
+        const v = bareNumber(raw);
+        if (v === null) continue;                 // already composite, or text
+        const pct = Math.round((v / denom) * 100);
+        rows[r][c] = compositeValueText(v) + ' (' + pct + '%)';
+      }
+    }
   }
 
 

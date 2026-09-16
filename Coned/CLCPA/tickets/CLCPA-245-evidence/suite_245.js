@@ -646,6 +646,11 @@ guard('X: the blast radius', () => {
     stagedBlock: 'NOT this ticket: CLCPA-264, nested in openAddYearDialog, it renders the identity advisory',
     declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* ROUND 2, by ruling: the native title became the dashboard s own
      * tooltip, which needs a wiring, a call site, and the CLCPA-242
@@ -667,7 +672,8 @@ guard('X: the blast radius', () => {
   /* 19 -> 23: Section C group E moved four this suite can see. */
   /* 23 -> 25: CLCPA-252 round 2 added two, both named above. */
   /* 25 -> 28: CLCPA-264 added two and moved stagedBlock, all named above. */
-  ok(changed.length === 28, 'X8 exactly TWENTY-EIGHT functions changed: ' + changed.length);
+  /* 28 -> 33: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 33, 'X8 exactly THIRTY-THREE functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

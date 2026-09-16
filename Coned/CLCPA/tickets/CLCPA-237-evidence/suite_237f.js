@@ -105,13 +105,17 @@ function orgRows() {
 const BASE_FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
-  'rowsForDisplay', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
+  'rowsForDisplay',
+    /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
+     * its clone, so the closure needs the derivation and its three helpers. */
+    'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
   'sumDerivedCols', 'detectPctColumns'];
 const BASE_DECLS = [
   /* CLCPA-240 round 2 dependencies */
   'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER',
   'DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES'];
+  'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', 'NOT_RECONCILED_TABLES',
+  /* CLCPA-263: the composite-share declaration */ 'COMPOSITE_SHARE_COLS'];
 const NL = String.fromCharCode(10);
 
 function composerFrom(src) {
@@ -543,6 +547,11 @@ guard('the blast radius is accounted for, function by function', () => {
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
     importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
+    rowsForDisplay: 'NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone',
+    applyCompositeShares: 'NOT this ticket: CLCPA-263: the derivation (new)',
+    isCompositeShareCol: 'NOT this ticket: CLCPA-263: the declaration predicate (new)',
+    compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
+    bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     /* Section C group E, not this ticket's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration before refusing an average column',
@@ -582,7 +591,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 37 -> 40: Section C group E moved three this suite can see. */
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
   /* 42 -> 44: CLCPA-264 added two, both named above. */
-  ok(changed.length === 44, 'forty-four in total, all named: ' + changed.length);
+  /* 44 -> 49: CLCPA-263 moved five, all named above. */
+  ok(changed.length === 49, 'forty-nine in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
@@ -595,7 +605,10 @@ guard('the exclusions hold', () => {
      * in that ticket's own inventory and asserted there; removing them here
      * is not weakening the exclusion, because the claim it makes is about
      * THIS ticket's blast radius, not about the file never changing. */
-  ['applyDerivedCols', 'rowsForDisplay', 'kpiDacPct',
+  /* rowsForDisplay LEFT this list under CLCPA-263, which gave it the
+   * composite-share derivation on its clone. It is named in the census
+   * map instead, so the change stays accounted for. */
+  ['applyDerivedCols', 'kpiDacPct',
    'composePayloadFromRows', 'dacShadowCompare', 'renderDACMap',
    /* recomputeTotals left this list under CLCPA-254, which puts one declared
     * column back in the sum. It is named in ALSO above and asserted there,

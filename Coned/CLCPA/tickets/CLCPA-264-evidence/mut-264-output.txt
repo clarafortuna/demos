@@ -28,9 +28,9 @@ CLCPA-264 -- mutation controls
   red  the advisory is styled as a REJECTION, in red
        2 red, incl: C2 and it uses the warn colour
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X3 BASE is a literal commit sha: HEAD
+       12 red, incl: X3 BASE is a literal commit sha: HEAD
   red  HARNESS: the families are hardcoded instead of measured
        3 red, incl: F1 1 header signatures are shared by more than one table
 
   15 caught, 0 not caught, of 15 guards
-  clean re-run against byte-restored source: PASSES -- 74 passed, 0 failed
+  clean re-run against byte-restored source: PASSES -- 84 passed, 0 failed

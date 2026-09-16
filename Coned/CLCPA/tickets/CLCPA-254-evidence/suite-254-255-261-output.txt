@@ -53,17 +53,22 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: buildIngestImport, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isDeclaredSummable, openAddYearDialog, recomputeTotals, renderIngestEditor, renderIngestImportResult, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, compositeValueText, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, recomputeTotals, renderIngestEditor, renderIngestImportResult, rowsForDisplay, stagedBlock, tableCaption, wire
+  ok   the change to applyCompositeShares is accounted for
+  ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
+  ok   the change to compositeValueText is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to importIdentityNotice is accounted for
+  ok   the change to isCompositeShareCol is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to recomputeTotals is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
@@ -73,6 +78,11 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 2, the three strategies (new)
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor (new)
   ok   importIdentityNotice changed as intended: CLCPA-264: the import identity advisory (new)
+  ok   rowsForDisplay changed as intended: CLCPA-263: it derives the value (pct) composites on its clone
+  ok   applyCompositeShares changed as intended: CLCPA-263: the derivation (new)
+  ok   isCompositeShareCol changed as intended: CLCPA-263: the declaration predicate (new)
+  ok   compositeValueText changed as intended: CLCPA-263: the value formatting (new)
+  ok   bareNumber changed as intended: CLCPA-263: the bare-number test (new)
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
@@ -80,7 +90,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
-  ok   X1 exactly THIRTEEN functions changed: 13
+  ok   X1 exactly EIGHTEEN functions changed: 18
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -90,4 +100,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  75 passed, 0 failed
+  85 passed, 0 failed
