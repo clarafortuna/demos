@@ -59,3 +59,59 @@ PROVENANCE of the archive, read from the ORG:
 
         3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 235772d
+          remote main = 235772d  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1202421B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (283879B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1202421B  sha256 836ada9af8619721...  VERIFIED byte-identical
+READ-BACK styles.css  283879B  sha256 04471d05bfb284d1...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 c073e24a6a52c70a...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 804f35afc7  ok
+  app.js canonicalised + hashed : 804f35afc7  ok
+  styles.css hashed             : 04471d05bf  ok
+  HTML references app.js?v=     : 804f35afc7  ok
+  HTML references styles.css?v= : 04471d05bf  ok
+  all 2 ticket groups and 7 stylesheet symbols present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the round-3 wave -- CLCPA-252 round 3, CLCPA-266
+build id (app.js): 804f35afc7
+styles.css id    : 04471d05bf   (replaced 25ca2005dc)
+previous build   : b1108e5fcf, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 5478ed6
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 804f35afc7
+
+THE ACCEPTANCE PASS:
+  CLCPA-252 r3  NO CAPTION CARRIES A YEAR, any table, any year, any surface.
+     Open 2023, 2025 and a fresh year: Table C1 reads "Table C1. Summary of
+     Con Edison Demand Response Programs" on ALL of them. 51 of 52 derive;
+     D2 alone shows its short title. No caption cites a PDF page. Check the
+     compare panel and the Report Data editor header too -- same strip.
+     A1 on 2023 stored "2023Incentive" with no space and must still read
+     "Table A1. Incentive Dollars Spent (Total and in DACs)".
+  CLCPA-266  EVERY POST-LOAD NOTICE IS A BOX.
+     Import a file that raises both advisories. Three boxes, never touching:
+     blue "Imported into the draft", AMBER "Read as a fraction" with its
+     per-cell lines inside it, RED "Check the table this file was for".
+     Same order as before, same words, nothing rejected. In the Add Data
+     modal the staged warning is a RED box matching its post-load twin.
+
+STILL DISCLOSED, not defects in this build:
+  - C2/2024 stores 766.94, matching neither a sum nor a weighted mean.
+  - C2 stored rows are split-format and recompute to nothing on ANY build.
+  - A5:2025 stores 27,833 where its parts give 27,834. Under the payload freeze.
+  - payload.json still stores C5 2025 as "...Summary4"; Dataverse is corrected.
+
+=== log written by deploy_round3.js ===
