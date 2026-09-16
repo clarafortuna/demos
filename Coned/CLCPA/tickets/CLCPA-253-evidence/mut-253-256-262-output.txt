@@ -1,0 +1,36 @@
+======================================================================
+Section C group A -- mutation controls
+======================================================================
+  red  253 THE DEFECT: the marker is row-scoped again
+       8 red, incl: T2 C2 none of them is (calculated) any more
+  red  253 the derived carve-out goes, so a weightedMean loses its marker
+       1 red, incl: T7 the predicate admits a derived column on a total row unconditionally
+  red  253 blank headers stop counting, so the spacers come back
+       7 red, incl: T2 C2 none of them is (calculated) any more
+  red  253 MY OWN FIRST CUT: pct and avg excluded here too
+       6 red, incl: T5 it is still (calculated), exactly as at BASE: this ticket moves spacers only
+  red  253 OVER-CORRECTED: nothing on a total row is calculated
+       8 red, incl: T3 C3 keeps (calculated) on all three named columns: [3,5,7]
+  red  256 THE DEFECT: the raw !== comparison returns
+       5 red, incl: S2 and now it counts the 15 non-empty cells it is actually writing: 30
+  red  256 zero is treated as empty, hiding a real figure
+       1 red, incl: S6c and typing 0 into an empty cell counts too
+  red  256 the comparison stops normalising the BASELINE side
+       3 red, incl: S5 null, undefined and empty string compare equal
+  red  262 THE DEFECT: a rejection closes the dialog again
+       2 red, incl: D3 and returns BEFORE close(), so the dialog stays
+  red  262 a rejected plan stops being recorded as a failure
+       1 red, incl: D2 a rejected plan sets it
+  red  262 an unreadable file stops being recorded as a failure
+       1 red, incl: D2b and so does a file that could not be read at all
+  red  THE STORED-YEAR GATE: a report cell changes on every table
+       4 red, incl: Z2 every one is byte-identical: MOVED A1:2025, A2:2025, A3:2023, A3:2024, A3:2025, A4:2023, A4:2024
+  red  HARNESS: the stored-year sweep stops rendering anything
+       2 red, incl: Z1b and every one of the 149 produced a <table>: 0
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X3 BASE is a literal commit sha: HEAD
+  red  HARNESS: the counter slice is re-implemented instead of cut out
+       8 red, incl: S1 at BASE C1 reported 30 changes for 10 typed values, exactly as the audit photographed: 15
+
+  15 caught, 0 not caught, of 15 guards
+  clean re-run against byte-restored source: PASSES -- 80 passed, 0 failed

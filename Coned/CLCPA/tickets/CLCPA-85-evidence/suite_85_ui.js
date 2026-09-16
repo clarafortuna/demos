@@ -849,7 +849,13 @@ const dialogStates = {};
   ok((deps.state.ingest.importResult.rejections || []).length > 0,
      'with its reasons: ' + (deps.state.ingest.importResult.rejections || [])
        .map(r => r.why).join(' ').slice(0, 60));
-  ok(calls.indexOf('modal.remove') >= 0, 'and the dialog closes');
+  /* CLCPA-262 REVERSED THIS, deliberately: a rejection used to close the
+   * dialog, putting the reason on the page behind a dialog the operator had
+   * just been dismissed from and taking the file input with it. The dialog
+   * now STAYS on the failure path. Re-pinned to the new ruling rather than
+   * relaxed: the assertion still fires, in the opposite direction. */
+  ok(calls.indexOf('modal.remove') < 0,
+     'and the dialog STAYS OPEN on a rejection (CLCPA-262)');
 }
 
 /* ---------- renders, from the shipped code ------------------------------- */

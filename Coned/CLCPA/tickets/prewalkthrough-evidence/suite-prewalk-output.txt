@@ -102,7 +102,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
@@ -121,6 +121,8 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to isHierarchicalTotalLabel is accounted for
   ok   the change to isTotalOnlyDerived is accounted for
   ok   the change to isWhollyNumeric is accounted for
+  ok   the change to openAddYearDialog is accounted for
+  ok   the change to openSaveModal is accounted for
   ok   the change to parseNumericInput is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderExecutiveSummary is accounted for
@@ -161,17 +163,19 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   xlsxInstructionBlocks changed as intended: NOT this brief: CLCPA-240 round 2, the (no value) instruction
   ok   isHierarchicalTotalLabel changed as intended: NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)
   ok   isTotalOnlyDerived changed as intended: NOT this brief: CLCPA-244, the total-row-only rule predicate (new)
-  ok   ingestComputed changed as intended: NOT this brief: CLCPA-244, a weighted mean marks only its total row
+  ok   ingestComputed changed as intended: NOT this ticket: CLCPA-253: the (calculated) marker is column-aware
   ok   getTableSchema changed as intended: NOT this brief: CLCPA-244, the fallback takes the most recent year
   ok   isAnchoredTotalRowLabel changed as intended: NOT this brief: CLCPA-245, the anchored-suffix predicate (new)
   ok   wireIngestLabelTips changed as intended: NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)
   ok   wireIngestPage changed as intended: NOT this brief: CLCPA-245 round 2, it calls that wiring
   ok   compareColWidths changed as intended: NOT this brief: CLCPA-248, the shared width vector (new)
   ok   isWhollyNumeric changed as intended: NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched
+  ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
+  ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly THIRTY-THREE functions changed: 33
+  ok   exactly THIRTY-SEVEN functions changed: 35
   ok   and no function outside those thirty-two moved at all
 
 ======================================================================
-  160 passed, 0 failed
+  164 passed, 0 failed
 ======================================================================

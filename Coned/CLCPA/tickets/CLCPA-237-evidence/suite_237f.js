@@ -531,6 +531,10 @@ guard('the blast radius is accounted for, function by function', () => {
     renderTable: 'CLCPA-248, the colgroup and the text-cell wrap',
     compareColWidths: 'CLCPA-248, the shared width vector (new)',
     isWhollyNumeric: 'CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
+    /* Section C group A, not this ticket's, each named so the count stays exact */
+    ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
+    openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
+    openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     renderSourceTables: 'CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2: an explicit % becomes a unit at entry, and the
      * section-E gauge strip shrinks to fit instead of losing its fourth
@@ -563,7 +567,7 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 27 -> 29: CLCPA-245 round 2 added two more. */
   /* 29 -> 32: CLCPA-248 changed three more. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 33, 'thirty-three in total, all named: ' + changed.length);
+  ok(changed.length === 35, 'thirty-seven in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });
