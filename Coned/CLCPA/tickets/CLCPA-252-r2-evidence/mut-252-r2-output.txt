@@ -20,9 +20,9 @@ CLCPA-252 round 2 -- mutation controls
   red  the derivation is switched off entirely
        6 red, incl: D6 C1 renders the commissioned string: "Table C1. DR Programs"
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X9 BASE is a literal commit sha: HEAD
+       8 red, incl: X9 BASE is a literal commit sha: HEAD
   red  HARNESS: the stored-panel sweep stops driving BASE
        1 red, incl: S5 the only panel that moves is A8:2023, the one stored year with data and no title: []
 
   11 caught, 0 not caught, of 11 guards
-  clean re-run against byte-restored source: PASSES -- 64 passed, 0 failed
+  clean re-run against byte-restored source: PASSES -- 76 passed, 0 failed

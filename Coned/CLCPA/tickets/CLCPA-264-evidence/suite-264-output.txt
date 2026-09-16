@@ -1,0 +1,98 @@
+======================================================================
+CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
+  BASE 63dea00
+======================================================================
+
+=== F. the twin families, measured from the payload ================
+  ok   F1 14 header signatures are shared by more than one table
+  ok   F2 covering 27 of the 52 tables
+  ok   F3 and C3/C4 really are twins, which is the reported case: C3, C4, C5
+       families: A3/A4  |  A6/A8  |  C3/C4/C5  |  C3/C4/C5  |  D2/D3/D4  |  D2/D3/D4  |  D2/D3/D4  |  F8/F9  |  F8/F9  |  G1/G2/G4/G6/G8  |  G3/G5/G7/G9  |  J1/J2/J5  |  J3/J4/J6  |  J3/J4/J6
+
+=== W. all 88 sibling pairs warn, and say why it matters ===========
+  ok   W1 88 ordered sibling pairs across the 14 families
+  ok   W2 every one warns
+  ok   W3 and every one says the headings are IDENTICAL, which is what makes a wrong file import cleanly: 88
+  ok   W4 the reported case names both tables: "This file is named for Table C3 (DAC Customers), but it is being imported into Table C4 (Low-Income). Those tables have identical column headings, so the wrong file can import cleanly and still be the wrong data. Check before saving."
+  ok   W5 and it asks for a check, not a correction
+  ok   W6 a non-twin mismatch still warns
+  ok   W7 but does NOT claim identical headings, because they are not: "This file is named for Table A1 (Incentive $), but it is being imported into Table C4 (Low-Income). Check that this is the file you meant to load."
+  ok   W8 and A1/C4 really are not twins, so W7 was not free
+
+=== S. the silent cases: a warning that cries wolf gets ignored =====
+  ok   S1 all 27 twin tables are silent on their own file
+  ok   S2 silent: ""  (a file with no name)
+  ok   S2 silent: "my data.csv"  (ordinary words)
+  ok   S2 silent: "2025-figures.csv"  (a year first)
+  ok   S2 silent: "notes-about-C3.csv"  (an id that is not at the start)
+  ok   S2 silent: "Z9-2025.csv"  (an id this payload does not have)
+  ok   S2 "C3.csv" DOES declare C3 -- the separator is optional at the end
+  ok   S3 the template filename declares C3
+  ok   S4 and a two-digit id survives: A10
+  ok   S5 and G10, not G1
+  ok   S6 lower case is accepted, since Save As may change it
+  ok   S7 and a path the browser prepends is stripped
+
+=== R. the ruling: an advisory NEVER rejects =======================
+  ok   R0 C3:2025 has rows to offer: 6
+  ok   R1 the plan is OK -- the mismatch does not reject it
+  ok   R2 and its cells LAND: 15 populated
+  ok   R3 while the advisory still fires for the same file
+  ok   R4 the import call site is found in both sources
+  ok   R4b and CLCPA-264s one added line is there to undo
+  ok   R4c and with it undone the call site is BYTE-IDENTICAL to BASE: nothing there flips plan.ok, returns early, or rejects
+  ok   R5 BASE imported it too -- this ticket adds a warning, it does not add a check
+  ok   R6 and BASE had no advisory at all, which is the defect
+  ok   R7 the success panel still reports the import
+  ok   R8 and carries the advisory heading
+  ok   R9 with the sentence itself
+  ok   R10 and a matching file renders no advisory block at all
+  ok   R11 and the CLCPA-234 reminder is still there, verbatim
+
+=== D. the staged box, wired to what is actually in scope ===========
+  ok   D1 stagedBlock is found
+  ok   D2 it calls importIdentityNotice with the staged name and target().tableId
+  ok   D3 and NOT getTarget, which is out of scope here
+  ok   D4 target() is the handle this dialog really has
+  ok   D5 and `bad` is unchanged, so the box does not turn red and the button stays enabled
+  ok   D6 the advisory has its own class
+  ok   D7 the plan carries the advisory, attached at the call site
+  ok   D8 and buildIngestImport does not mention it, because it has no filename
+
+=== C. the styling says WARNING, not rejection =====================
+  ok   C1 .ingest-staged-warn exists
+  ok   C2 and it uses the warn colour
+  ok   C3 not the red of .is-bad, because nothing was rejected
+  ok   C4 which is the amber .ingest-foot-warn already uses
+  ok   C5 and BASE had no such rule
+  ok   C6 and the rest of the stylesheet is byte-identical to BASE
+
+=== Z. the report page is untouched ================================
+  ok   Z1 149 stored table-years rendered on both sides
+  ok   Z2 and every one is byte-identical: this ticket touches the importer, not the published tables
+
+=== X. what else moved =============================================
+       changed: declaredTableFromFilename, importIdentityNotice, openAddYearDialog, renderIngestImportResult, stagedBlock, wire
+  ok   the change to declaredTableFromFilename is accounted for
+  ok   the change to importIdentityNotice is accounted for
+  ok   the change to openAddYearDialog is accounted for
+  ok   the change to renderIngestImportResult is accounted for
+  ok   the change to stagedBlock is accounted for
+  ok   the change to wire is accounted for
+  ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor, new
+  ok   importIdentityNotice changed as intended: CLCPA-264: the advisory sentence, new
+  ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces it
+  ok   openAddYearDialog changed as intended: CLCPA-264: stagedBlock warns, and the call site attaches the advisory
+  ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
+  ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it attaches the advisory to the plan
+  ok   X1 exactly SIX functions changed: 6
+  ok   X2 buildIngestImport is byte-identical to BASE
+  ok   X2 applyIngestImport is byte-identical to BASE
+  ok   X2 parseCsvRows is byte-identical to BASE
+  ok   X2 getTableSchema is byte-identical to BASE
+  ok   X2 ingestStagedSummary is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: 63dea00
+  ok   X4 and HEAD descends from it
+  ok   X5 and the two sources genuinely differ
+
+  74 passed, 0 failed

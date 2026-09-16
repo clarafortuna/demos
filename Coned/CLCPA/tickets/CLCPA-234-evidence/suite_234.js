@@ -331,8 +331,18 @@ function runHandler(opts) {
     'state', 'sel', 'addReportingYear', 'loadIngestDraft', 'staged',
     'buildIngestImport', 'applyIngestImport', 'confirmDiscardChanges', 'close',
     'modal', 'markRedraw',
+    /* CLCPA-264: the handler now attaches an identity advisory to the plan, so
+     * the closure needs it. Supplied REAL rather than stubbed -- a stub
+     * returning null would let this suite pass while the advisory was broken.
+     * Without it the handler threw ReferenceError, importResult stayed null,
+     * and the failure surfaced as "a result is set" plus a THREW, which says
+     * nothing about what actually went wrong. */
+    'importIdentityNotice',
     'let needsRedraw = false;\n' + handlerSrc.replace(/needsRedraw = true;/g,
       'needsRedraw = true; markRedraw();'));
+  const realIdentityNotice = new Function('state', 'SHORT_TITLES',
+    grab('declaredTableFromFilename') + '\n' + grab('importIdentityNotice') +
+    '\nreturn importIdentityNotice;')({ payload: PAYLOAD }, e.api.SHORT_TITLES || {});
   /* A THROW IS AN OUTCOME. The handler threw under the mutation that makes an
    * existing year take the create branch -- v is null there -- and aborting
    * the block meant the assertion about what was CALLED never ran. Recorded
@@ -348,7 +358,7 @@ function runHandler(opts) {
        () => { calls.push('loadIngestDraft'); e.api.loadIngestDraft(); },
        o.staged || null, e.api.buildIngestImport, e.api.applyIngestImport,
        (cb) => cb(), () => { closed = true; }, modal,
-       () => { redrew = true; });
+       () => { redrew = true; }, realIdentityNotice);
   } catch (err) { threw = err && err.message ? err.message : String(err); }
   return { engine: e, calls: calls, closed: closed, redrew: redrew,
            err: errNode.textContent, years: years, threw: threw };

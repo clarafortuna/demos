@@ -587,6 +587,9 @@ guard('X: the family veto and the derive engine are untouched', () => {
     .replace(/\/\* and the viewer's second header line centres[\s\S]*?\*\//g, '')
     .replace(/\/\* Force first column always left[^*]*\*\//g, '')
     .replace(/\/\* Force ALL non-numeric cells[^*]*\*\//g, '')
+    /* CLCPA-264: the import identity advisory's own rule, named so this
+     * stripper stays exact rather than becoming tolerant. */
+    .replace(/\/\* CLCPA-264: the import identity advisory[\s\S]*?\.ingest-staged-warn \{[\s\S]*?\}/g, '')
     .replace(/\s+/g, ' ').trim();
   ok(strip248(styles) === strip248(baseStyles),
      'X6 styles.css differs only by CLCPA-248s rules: the tooltip added none');
@@ -640,6 +643,9 @@ guard('X: the blast radius', () => {
     renderSectionC: 'NOT this ticket: CLCPA-259, the panel reads C1',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    stagedBlock: 'NOT this ticket: CLCPA-264, nested in openAddYearDialog, it renders the identity advisory',
+    declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
+    importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* ROUND 2, by ruling: the native title became the dashboard s own
      * tooltip, which needs a wiring, a call site, and the CLCPA-242
@@ -660,7 +666,8 @@ guard('X: the blast radius', () => {
   /* 9 -> 10: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 19 -> 23: Section C group E moved four this suite can see. */
   /* 23 -> 25: CLCPA-252 round 2 added two, both named above. */
-  ok(changed.length === 25, 'X8 exactly TWENTY-FIVE functions changed: ' + changed.length);
+  /* 25 -> 28: CLCPA-264 added two and moved stagedBlock, all named above. */
+  ok(changed.length === 28, 'X8 exactly TWENTY-EIGHT functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

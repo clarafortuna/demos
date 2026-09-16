@@ -8419,6 +8419,15 @@ a.nav-item { text-decoration: none; }
 }
 .ingest-staged.is-bad { border-left-color: var(--red); }
 .ingest-staged strong { color: var(--ink); display: block; }
+/* CLCPA-264: the import identity advisory. It reuses the amber of
+   .ingest-foot-warn rather than the red of .is-bad, and deliberately: this is
+   a WARNING, not a rejection, and the file still imports. Red here would say
+   "stopped" about something that did not stop. */
+.ingest-staged-warn {
+  margin: 8px 0 0;
+  color: var(--warn-fg, #8a5a00);
+  font-weight: 500;
+}
 
 /* The divider between choosing a target and acting on it. */
 .ingest-modal-rule { border: none; border-top: 1px solid var(--line); margin: 16px 0; }

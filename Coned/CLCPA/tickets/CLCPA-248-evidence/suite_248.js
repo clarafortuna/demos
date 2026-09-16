@@ -574,7 +574,10 @@ guard('H: grab returns the function asked for, padded and column-0 alike', () =>
   /* the ceiling rises with the stack: Section C groups A-D add functions to
    * the tree this suite reads. What it guards is the ORDER OF MAGNITUDE --
    * the over-reading grab reported 25 where the truth was single figures. */
-  ok(changed.length < 20,
+  /* 20 -> 25: CLCPA-252 round 2 and CLCPA-264 each added two more to the
+   * tree this suite reads. The ORDER OF MAGNITUDE is what this guards, and
+   * the exact list is X3 above; raising the ceiling here does not relax that. */
+  ok(changed.length < 25,
      'H9 the changed-function count is plausible (' + changed.length + '), not the ' +
      '25 the over-reading grab reported');
   ok(changed.indexOf('drawSectionEArc') < 0 &&
@@ -906,6 +909,9 @@ guard('X: the blast radius', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    stagedBlock: 'NOT this ticket: CLCPA-264, nested in openAddYearDialog, it renders the identity advisory',
+    declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
+    importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
@@ -929,7 +935,8 @@ guard('X: the blast radius', () => {
    * group E moved five, and renderIngestEditor was already counted. The
    * over-reading grab used to report 25 here; see section H. */
   /* 17 -> 19: CLCPA-252 round 2 added two, both named above. */
-  ok(changed.length === 19, 'X3 exactly NINETEEN functions changed: ' + changed.length);
+  /* 19 -> 22: CLCPA-264 added two and moved stagedBlock, all named above. */
+  ok(changed.length === 22, 'X3 exactly TWENTY-TWO functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),

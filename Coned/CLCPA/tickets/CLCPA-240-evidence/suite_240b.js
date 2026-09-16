@@ -480,6 +480,8 @@ guard('two functions, and nothing else', () => {
     ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    declaredTableFromFilename: 'NOT this ticket: CLCPA-264, the filename extractor (new)',
+    importIdentityNotice: 'NOT this ticket: CLCPA-264, the import identity advisory (new)',
     /* Section C group E, not this ticket's, each named so the count stays exact */
     isDeclaredSummable: 'NOT this ticket: CLCPA-254: the declared-summable column (new)',
     recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration before refusing an average column',
@@ -515,7 +517,8 @@ guard('two functions, and nothing else', () => {
   /* 30 -> 31: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 35 -> 38: Section C group E moved three this suite can see. */
   /* 38 -> 40: CLCPA-252 round 2 added two, both named above. */
-  ok(changed.length === 40, 'exactly FORTY functions changed: ' + changed.length);
+  /* 40 -> 42: CLCPA-264 added two, both named above. */
+  ok(changed.length === 42, 'exactly FORTY-TWO functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

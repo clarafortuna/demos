@@ -461,6 +461,12 @@ guard('X: the blast radius', () => {
     tableCaption: 'CLCPA-252, group B: the caption helper, new',
     deriveTableCaption: 'CLCPA-252 round 2: the derivation (new)',
     deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)',
+    declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
+    importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
+    openAddYearDialog: 'CLCPA-264: it attaches the advisory to the plan',
+    stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the advisory',
+    wire: 'CLCPA-264: nested in openAddYearDialog, it holds the call site',
+    renderIngestImportResult: 'CLCPA-264: the result panel announces the advisory',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
@@ -477,7 +483,17 @@ guard('X: the blast radius', () => {
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   const mine = changed.filter(n => !(n in LATER));
-  ok(mine.length === 3, 'X1 exactly THREE functions are THIS groups: ' + mine.join(', '));
+  /* CLCPA-264 TOOK openAddYearDialog OUT OF "uniquely this group's". Group A
+   * (CLCPA-262) made a rejected import keep the dialog open; CLCPA-264 made
+   * the same function attach an identity advisory. Claimed by both, so it
+   * counts in LATER -- the same treatment tableCaption got when CLCPA-252
+   * round 2 landed on it. TWO remain uniquely group A's, and CLCPA-262's own
+   * behaviour is still asserted directly, by name, above. */
+  ok(mine.length === 2 && mine.indexOf('ingestComputed') >= 0 &&
+     mine.indexOf('openSaveModal') >= 0,
+     'X1 TWO functions are uniquely THIS groups: ' + mine.join(', '));
+  ok(changed.indexOf('openAddYearDialog') >= 0,
+     'X1b and openAddYearDialog still moved, claimed by CLCPA-262 and CLCPA-264 both');
   /* the ones that must NOT move. recomputeTotals (CLCPA-254) and
    * buildIngestImport (CLCPA-261) left this list when group E moved them;
    * both are named in LATER above, so the changes stay accounted for. */

@@ -352,6 +352,12 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-261, Section C group E: the summary announces them',
     deriveTableCaption: 'CLCPA-252 ROUND 2: the title derivation, new',
     deriveTableCaptionInfo: 'CLCPA-252 ROUND 2: the three strategies, new',
+    declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
+    importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
+    openAddYearDialog: 'CLCPA-264: it attaches the advisory to the plan',
+    stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the advisory',
+    wire: 'CLCPA-264: nested in openAddYearDialog, it holds the call site',
+    renderIngestImportResult: 'CLCPA-264: the result panel announces the advisory',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   /* THIS GROUPS four, plus whatever the groups stacked ON TOP add. Named, not
@@ -366,6 +372,9 @@ guard('X: the blast radius', () => {
      * later round -- and tableCaption is claimed by BOTH, which is why
      * X1b still counts exactly two as uniquely round 1's. */
     deriveTableCaption: 'CLCPA-252 round 2', deriveTableCaptionInfo: 'CLCPA-252 round 2',
+    declaredTableFromFilename: 'CLCPA-264', importIdentityNotice: 'CLCPA-264',
+    openAddYearDialog: 'CLCPA-264', stagedBlock: 'CLCPA-264', wire: 'CLCPA-264',
+    renderIngestImportResult: 'CLCPA-264',
     tableCaption: 'CLCPA-252 round 1 AND round 2; round 2 is the later one' };
   const mine = changed.filter(n => !(n in LATER));
   changed.forEach(n => ok(n in EXPECT || n in LATER,

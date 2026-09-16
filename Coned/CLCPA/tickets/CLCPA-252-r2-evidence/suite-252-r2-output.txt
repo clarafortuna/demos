@@ -111,14 +111,26 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   E7 and a null table still returns the empty string
 
 === X. what else moved =============================================
-       changed: deriveTableCaption, deriveTableCaptionInfo, tableCaption
+       changed: declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, openAddYearDialog, renderIngestImportResult, stagedBlock, tableCaption, wire
+  ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to importIdentityNotice is accounted for
+  ok   the change to openAddYearDialog is accounted for
+  ok   the change to renderIngestImportResult is accounted for
+  ok   the change to stagedBlock is accounted for
   ok   the change to tableCaption is accounted for
+  ok   the change to wire is accounted for
   ok   tableCaption changed as intended: CLCPA-252 r2: it consults the derivation before short_title
   ok   deriveTableCaptionInfo changed as intended: CLCPA-252 r2: the three strategies, new
   ok   deriveTableCaption changed as intended: CLCPA-252 r2: the text-only wrapper, new
-  ok   X1 exactly THREE functions changed: 3
+  ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor (new)
+  ok   importIdentityNotice changed as intended: CLCPA-264: the import identity advisory (new)
+  ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
+  ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
+  ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
+  ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces the advisory
+  ok   X1 exactly NINE functions changed: 9
   ok   X2 renderSourceTables is byte-identical to BASE
   ok   X2 renderIngestEditor is byte-identical to BASE
   ok   X2 getTableSchema is byte-identical to BASE
@@ -132,4 +144,4 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   X10 and HEAD descends from it
   ok   X11 and the two sources genuinely differ
 
-  64 passed, 0 failed
+  76 passed, 0 failed

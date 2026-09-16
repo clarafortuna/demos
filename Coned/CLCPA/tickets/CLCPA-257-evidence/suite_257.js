@@ -243,7 +243,13 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'CLCPA-261, group E: the summary announces them',
     tableCaption: 'CLCPA-252 round 2: it consults the derivation',
     deriveTableCaption: 'CLCPA-252 round 2: the title derivation (new)',
-    deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)' };
+    deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)',
+    declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
+    importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
+    openAddYearDialog: 'CLCPA-264: it attaches the advisory to the plan',
+    stagedBlock: 'CLCPA-264: nested in openAddYearDialog, it renders the advisory',
+    wire: 'CLCPA-264: nested in openAddYearDialog, it holds the call site',
+    renderIngestImportResult: 'CLCPA-264: the result panel announces the advisory' };
   const mine = changed.filter(n => !(n in LATER));
   changed.forEach(n => ok(n === 'dacCol' || n in LATER,
     'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));

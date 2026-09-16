@@ -1027,6 +1027,9 @@ guard('S: the declarations and the reuse', () => {
     .replace(/\/\* and the viewer's second header line centres[\s\S]*?\*\//g, '')
     .replace(/\/\* Force first column always left[^*]*\*\//g, '')
     .replace(/\/\* Force ALL non-numeric cells[^*]*\*\//g, '')
+    /* CLCPA-264: the import identity advisory's own rule, named so this
+     * stripper stays exact rather than becoming tolerant. */
+    .replace(/\/\* CLCPA-264: the import identity advisory[\s\S]*?\.ingest-staged-warn \{[\s\S]*?\}/g, '')
     .replace(/\s+/g, ' ').trim();
   ok(strip248(css) === strip248(baseCss), 'S8 styles.css differs only by CLCPA-248s two rules: the round reuses ' +
      '.ingest-row-subheader and adds no CSS');
