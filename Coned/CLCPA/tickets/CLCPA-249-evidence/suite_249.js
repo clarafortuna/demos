@@ -666,6 +666,10 @@ guard('X: app.js is byte-identical to BASE', () => {
     openSaveModal: 'CLCPA-256, Section C group A',
     openAddYearDialog: 'CLCPA-262, Section C group A',
     wire: 'CLCPA-262, nested inside openAddYearDialog',
+    tableCaption: 'CLCPA-252, Section C group B',
+    renderSourceTables: 'CLCPA-252, Section C group B',
+    renderIngestEditor: 'CLCPA-252, Section C group B',
+    renderSectionC: 'CLCPA-259, Section C group B',
   };
   changed.forEach(n => ok(n in LATER,
      'X1 app.js function ' + n + ' moved, and it is named by a later ticket' +

@@ -1,0 +1,61 @@
+======================================================================
+Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
+  BASE 9699f62   (stacked on Group A)
+======================================================================
+
+=== T. CLCPA-252: the caption comes from the table =================
+  ok   T0 A8:2023 genuinely has no stored title, which is why it rendered bare
+  ok   T1 and it now reads "Table A8. Residential Install"
+  ok   T1b at BASE it was not even a helper -- the expression was inline
+  ok   T2 bare captions on a fresh year: 0 of 52
+  ok   T3 C1 -> "Table C1. DR Programs"
+  ok   T3 C5 -> "Table C5. Total Program"
+  ok   T3 A8 -> "Table A8. Residential Install"
+  ok   T3 I1 -> "Table I1. Year Totals"
+  ok   T3 J8 -> "Table J8. EAP Spending"
+  ok   T4 148 stored table-years carry a title
+  ok   T5 and every one is returned unchanged
+  ok   T6 the report page uses tableCaption
+  ok   T7 and so does the Report Data editor
+  ok   T8 the old report-page expression is gone
+  ok   T9 and so is the editor one
+  ok   T10 both were there at BASE, which is the defect
+
+=== C. CLCPA-259: the panel reads C1 for the year on screen ========
+  ok   C1 the hard-coded map is gone
+  ok   C1b and it was there at BASE
+  ok   C1c including "Multi-purpose", a caption that appears in NO years C1
+  ok   C2 the new lookup is a per-year expression, not a constant
+  ok   C3 2025: CSRP -> Peak Shaving, DLRP -> Contingency
+  ok   C4 Auto-DLM reads C1s "Peak Shaving and Contingency", where the map said "Multi-purpose"
+  ok   C5 BYOT likewise, where the map said "Mass-market"
+  ok   C6 the long C1 label resolves
+  ok   C7 and so does the parenthetical short code C3/C4/C5 use
+  ok   C8 a year with no C1 data yields an EMPTY map, not a fossil: {}
+  ok   C9 2023 resolves 10 keys
+  ok   C9 2024 resolves 10 keys
+  ok   C9 2025 resolves 10 keys
+  ok   C10 a row WITH a category resolves: ALPHA -> Peak Shaving
+  ok   C11 and rows whose Category is empty or null are ABSENT, not present with an empty caption: ["Alpha Program (ALPHA)","ALPHA"]
+
+=== Z. the stored years: one caption moves, and it is the fix ======
+  ok   Z1 149 stored table-years rendered on both sides
+  ok   Z1b and every one produced a <table>
+  ok   Z2 exactly ONE moved, and it is A8:2023: ["A8:2023"]
+  ok   Z3 and with the caption masked the two renders are identical, so the caption is the ONLY thing that moved
+  ok   Z4 BASE rendered it bare; this build names it
+
+=== X. what else moved ============================================
+       changed: renderIngestEditor, renderSourceTables, tableCaption
+  ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderSourceTables is accounted for
+  ok   the change to tableCaption is accounted for
+  ok   X1 at most four functions changed: 3
+  ok   X2 recomputeTotals is byte-identical to BASE
+  ok   X2 columnNumericMask is byte-identical to BASE
+  ok   X2 parseCPrograms is byte-identical to BASE
+  ok   X2 ingestComputed is byte-identical to BASE
+  ok   X2 openSaveModal is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: 9699f62
+  ok   X4 and an ancestor of HEAD, so this group stacks on Group A
+  47 passed, 0 failed

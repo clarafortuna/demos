@@ -452,6 +452,8 @@ guard('two functions, and nothing else', () => {
      * getTableSchema's fallback stopped serving the OLDEST year. */
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    /* Section C group B, not this ticket's */
+    tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -503,7 +505,7 @@ guard('two functions, and nothing else', () => {
   /* 25 -> 27: CLCPA-245 round 2 added two more. */
   /* 27 -> 30: CLCPA-248 changed three more, every one named above. */
   /* 30 -> 31: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 33, 'exactly THIRTY-FIVE functions changed: ' + changed.length);
+  ok(changed.length === 34, 'exactly THIRTY-FIVE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

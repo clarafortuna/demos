@@ -361,6 +361,8 @@ guard('the editor now merges group headers like the viewer always did', () => {
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
       'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
+      /* CLCPA-252: the editor's caption comes from a shared helper now */
+      'tableCaption',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -376,7 +378,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n');
     const body = r2 + '\n' +
-      ['DERIVED_COLS', 'DERIVED_ROWS'].map(n => grabDecl(n)).join('\n') +
+      ['DERIVED_COLS', 'DERIVED_ROWS', 'SHORT_TITLES'].map(n => grabDecl(n)).join('\n') +
       '\n' + FNS.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
     return new Function('state', 'escapeHtml', 'document', body)(
       st, esc, { getElementById: () => null })();
@@ -414,6 +416,8 @@ guard('the editor now merges group headers like the viewer always did', () => {
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
       'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
+      /* CLCPA-252: the editor's caption comes from a shared helper now */
+      'tableCaption',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -429,7 +433,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       .map(n => (SRC.match(new RegExp('\\r\\n  const ' + n + ' = [^;\\r\\n]*;')) || [''])[0].trim())
       .filter(Boolean).join('\n');
     const body = r2 + '\n' +
-      ['DERIVED_COLS', 'DERIVED_ROWS'].map(n => grabDecl(n)).join('\n') +
+      ['DERIVED_COLS', 'DERIVED_ROWS', 'SHORT_TITLES'].map(n => grabDecl(n)).join('\n') +
       '\n' + FNS2.map(n => grab(n)).join('\n') + '\nreturn renderIngestEditor;';
     const html = new Function('state', 'escapeHtml', 'document', body)(
       st, esc, { getElementById: () => null })();
@@ -687,6 +691,8 @@ guard('the four exclusions', () => {
     /* CLCPA-244: E1's weighted-mean marking and the schema fallback. */
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    /* Section C group B, not this ticket's */
+    tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -738,7 +744,7 @@ guard('the four exclusions', () => {
   /* 31 -> 32: CLCPA-248 changed three functions but this suite's name scan
    * is IIFE-scoped and sees only some of them -- measured, not assumed. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 35, 'exactly THIRTY-SEVEN functions changed: ' + changed.length);
+  ok(changed.length === 36, 'exactly THIRTY-SEVEN functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those thirty-two moved at all');
 });

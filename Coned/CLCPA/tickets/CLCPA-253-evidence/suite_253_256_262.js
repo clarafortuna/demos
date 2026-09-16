@@ -377,13 +377,29 @@ guard('D: THE NEGATIVE, checked rather than asserted', () => {
 say('');
 say('=== Z. the 149 stored table-years, proven unmoved ===================');
 guard('Z: every stored table-year renders byte-identically', () => {
+  /* BOTH SIDES PINNED TO COMMITS, because this group is the bottom of a
+   * stack. The claim is "GROUP A moved no stored year", and that claim is
+   * about what Group A shipped -- not about whatever the working tree holds
+   * once Group B is stacked on top of it. Reading the tree here made this
+   * gate fail on A8:2023, which is CLCPA-252's caption fix working correctly
+   * one group up. The stacked state gets its own proof at the end of the
+   * session, per the ruling.
+   *
+   * The ticket's own behaviour is still read from the tree everywhere else in
+   * this suite, so the mutation controls keep working on the code that ships. */
+  const GROUP_COMMIT = process.env.DAC_GROUP_COMMIT || '9699f62';
+  const GROUP_SRC = execSync('git show ' + GROUP_COMMIT + ':"' + REL + '"',
+    { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+  const SHIPPED = harness(GROUP_SRC);
+  ok(/^[0-9a-f]{7,40}$/.test(GROUP_COMMIT),
+     'Z0 the group commit is a literal sha: ' + GROUP_COMMIT);
   let checked = 0, bytes = 0, tables = 0;
   const moved = [];
   Object.keys(P.tables).sort().forEach(id => {
     const t = P.tables[id];
     Object.keys(t.data || {}).sort().forEach(y => {
       const a = OLD.attempt(api => api.renderSourceTables([t], y, {}, id));
-      const b = NEW.attempt(api => api.renderSourceTables([t], y, {}, id));
+      const b = SHIPPED.attempt(api => api.renderSourceTables([t], y, {}, id));
       checked++;
       bytes += String(b).length;
       if (/<table/.test(String(b))) tables++;
@@ -407,7 +423,7 @@ guard('Z: every stored table-year renders byte-identically', () => {
     const t = P.tables[id];
     Object.keys(t.data || {}).sort().forEach(y => {
       const a = OLD.attempt(api => api.renderSourceTables([t], y, { [id]: 'both' }, id));
-      const b = NEW.attempt(api => api.renderSourceTables([t], y, { [id]: 'both' }, id));
+      const b = SHIPPED.attempt(api => api.renderSourceTables([t], y, { [id]: 'both' }, id));
       cmp++;
       if (a !== b) cmpMoved.push(id + ':' + y);
     });
@@ -437,10 +453,22 @@ guard('X: the blast radius', () => {
     openSaveModal: 'CLCPA-256: the change count normalises empty',
     openAddYearDialog: 'CLCPA-262: a rejection keeps the dialog',
   };
-  changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
+  /* THIS GROUP IS THE BOTTOM OF A STACK, and the working tree carries the
+   * groups above it. Their functions are named here so the count stays exact
+   * rather than relaxed: an UNNAMED change still turns this red, which is the
+   * whole point of a blast radius. */
+  const LATER = {
+    tableCaption: 'CLCPA-252, group B: the caption helper, new',
+    renderSourceTables: 'CLCPA-252, group B: the report page calls it',
+    renderIngestEditor: 'CLCPA-252, group B: the editor calls it',
+    renderSectionC: 'CLCPA-259, group B: the panel reads C1',
+  };
+  changed.forEach(n => ok(n in EXPECT || n in LATER,
+    'the change to ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 3, 'X1 exactly THREE functions changed: ' + changed.length);
+  const mine = changed.filter(n => !(n in LATER));
+  ok(mine.length === 3, 'X1 exactly THREE functions are THIS groups: ' + mine.join(', '));
   /* the ones that must NOT move */
   ['recomputeTotals', 'columnGrandTotals', 'detectAvgColumns', 'detectPctColumns',
    'totalRowFlags', 'buildIngestImport', 'applyIngestImport'].forEach(n => {

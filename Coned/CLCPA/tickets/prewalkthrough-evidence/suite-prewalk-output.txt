@@ -102,7 +102,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
@@ -130,6 +130,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to renderIngestPicker is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
+  ok   the change to tableCaption is accounted for
   ok   the change to totalRowFlags is accounted for
   ok   the change to wireControlTips is accounted for
   ok   the change to wireExecutiveInteractions is accounted for
@@ -164,6 +165,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   isHierarchicalTotalLabel changed as intended: NOT this brief: CLCPA-240 round 3, the shared total-label rule (new)
   ok   isTotalOnlyDerived changed as intended: NOT this brief: CLCPA-244, the total-row-only rule predicate (new)
   ok   ingestComputed changed as intended: NOT this ticket: CLCPA-253: the (calculated) marker is column-aware
+  ok   tableCaption changed as intended: NOT this ticket: CLCPA-252, the caption helper
   ok   getTableSchema changed as intended: NOT this brief: CLCPA-244, the fallback takes the most recent year
   ok   isAnchoredTotalRowLabel changed as intended: NOT this brief: CLCPA-245, the anchored-suffix predicate (new)
   ok   wireIngestLabelTips changed as intended: NOT this brief: CLCPA-245 round 2, the shared-tooltip wiring (new)
@@ -173,9 +175,9 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
   ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly THIRTY-SEVEN functions changed: 35
+  ok   exactly THIRTY-SEVEN functions changed: 36
   ok   and no function outside those thirty-two moved at all
 
 ======================================================================
-  164 passed, 0 failed
+  166 passed, 0 failed
 ======================================================================

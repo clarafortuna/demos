@@ -69,6 +69,7 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   D10 and the redraw replaces #view-container, not the body, so it cannot resurrect an overlay. The success-side symptom is NOT in this code.
 
 === Z. the 149 stored table-years, proven unmoved ===================
+  ok   Z0 the group commit is a literal sha: 9699f62
   ok   Z1 149 stored table-years rendered on both sides
   ok   Z1b and every one of the 149 produced a <table>: 149
   ok   Z1c totalling 322447 bytes of markup (floor 200k, measured 322,447), so the comparison had something to compare
@@ -76,14 +77,17 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   Z3 and all 149 in COMPARE mode too
 
 === X. what else moved =============================================
-       changed: ingestComputed, openAddYearDialog, openSaveModal
+       changed: ingestComputed, openAddYearDialog, openSaveModal, renderIngestEditor, renderSourceTables, tableCaption
   ok   the change to ingestComputed is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
+  ok   the change to renderIngestEditor is accounted for (CLCPA-252, group B: the editor calls it)
+  ok   the change to renderSourceTables is accounted for (CLCPA-252, group B: the report page calls it)
+  ok   the change to tableCaption is accounted for (CLCPA-252, group B: the caption helper, new)
   ok   ingestComputed changed as intended: CLCPA-253: the marker is column-aware
   ok   openSaveModal changed as intended: CLCPA-256: the change count normalises empty
   ok   openAddYearDialog changed as intended: CLCPA-262: a rejection keeps the dialog
-  ok   X1 exactly THREE functions changed: 3
+  ok   X1 exactly THREE functions are THIS groups: ingestComputed, openAddYearDialog, openSaveModal
   ok   X2 recomputeTotals is byte-identical to BASE
   ok   X2 columnGrandTotals is byte-identical to BASE
   ok   X2 detectAvgColumns is byte-identical to BASE
@@ -93,4 +97,4 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 794eecf
   ok   X4 and an ancestor of HEAD
-  80 passed, 0 failed
+  84 passed, 0 failed

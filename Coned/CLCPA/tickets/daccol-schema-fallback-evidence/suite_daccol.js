@@ -476,7 +476,9 @@ guard('one function', () => {
                 /* wire() is nested inside openAddYearDialog; this suite's grab
                  * cannot bound a nested function, so it never sees it change.
                  * Named in suite_248, which has the line-indexed grab. */
-                'ingestComputed', 'openSaveModal', 'openAddYearDialog'];
+                'ingestComputed', 'openSaveModal', 'openAddYearDialog',
+                /* Section C group B */
+                'tableCaption'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

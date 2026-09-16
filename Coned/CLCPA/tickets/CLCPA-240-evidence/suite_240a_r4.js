@@ -616,6 +616,9 @@ guard('S: the veto is scoped and singular', () => {
     { add: 'labelTip', why: 'CLCPA-245 round 2, the data attribute' },
     { add: 'data-label-tip', why: 'CLCPA-245 round 2, on the input' },
     { add: 'labelText', why: 'CLCPA-245, the label tooltip' },
+    /* CLCPA-252: the editor's caption comes from the table definition */
+    { add: 'tableCaption(table, i.year)', why: 'CLCPA-252' },
+    { rm: "(table.title_by_year || {})[i.year] || ('Table ' + i.tableId)", why: 'CLCPA-252' },
   ];
   const unexplained = added.filter(l => !CLAIMED.some(c => l.indexOf(c.add) >= 0));
   ok(unexplained.length === 0,
@@ -627,6 +630,10 @@ guard('S: the veto is scoped and singular', () => {
   const CLAIMED_OUT = [
     { line: 'if (dDesc) {', why: 'CLCPA-244' },
     { line: 'class=\"ingest-cell ingest-cell-label\"', why: 'CLCPA-245, the tooltip' },
+    /* CLCPA-252: the editor's inline caption expression, replaced by the
+     * shared tableCaption helper so a year with no stored title still names
+     * its table. */
+    { line: "const tableTitle = (table.title_by_year", why: 'CLCPA-252' },
   ];
   const unexplainedOut = removed.filter(l => !CLAIMED_OUT.some(c => l.indexOf(c.line) >= 0));
   ok(unexplainedOut.length === 0,

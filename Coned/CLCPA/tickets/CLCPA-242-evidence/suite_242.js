@@ -451,6 +451,8 @@ guard('three functions, all wiring', () => {
      * getTableSchema's fallback stopped serving the OLDEST year. */
     isTotalOnlyDerived: 'NOT this brief: CLCPA-244, the total-row-only rule predicate (new)',
     ingestComputed: 'NOT this brief: CLCPA-244, a weighted mean marks only its total row',
+    /* Section C group B, not this ticket's */
+    tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -498,7 +500,7 @@ guard('three functions, all wiring', () => {
   /* 22 -> 23: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 23 -> 25: CLCPA-245 round 2 added two more. */
   /* 25 -> 28: CLCPA-248 changed three more. */
-  ok(changed.length === 31, 'THIRTY-THREE: this ticket’s six, CLCPA-240 first ' +
+  ok(changed.length === 32, 'THIRTY-THREE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,
