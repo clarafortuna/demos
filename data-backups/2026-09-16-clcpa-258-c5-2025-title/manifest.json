@@ -1,0 +1,18 @@
+{
+  "org": "https://org9076e69b.crm.dynamics.com",
+  "capturedAt": "2026-09-16T16:48:14.565Z",
+  "ticket": "CLCPA-258",
+  "note": "Pre-write backup of ONE stored reporting-year row. Restore by PATCHing cr2bf_dacingesttesttabledata1s(30931db0-95ab-f111-aaab-7ced8d183701) with the fields in row-before.json.",
+  "entity": "cr2bf_dacingesttesttabledata1",
+  "entitySet": "cr2bf_dacingesttesttabledata1s",
+  "rowId": "30931db0-95ab-f111-aaab-7ced8d183701",
+  "tableId": "C5",
+  "year": 2025,
+  "field": "cr2bf_title",
+  "before": "Table C5. Total Program Participation Summary4",
+  "after": "Table C5. Total Program Participation Summary",
+  "rowSha256": "adff79ff934054f896d92270d61f0abc87b6ec2ffcbbb8ab475750f9a139d894",
+  "fieldCount": 28,
+  "sourceCommit": "cef60fc",
+  "clcpa224": "This is a STORED-YEAR TOUCH on a production year, authorized explicitly for this one field. C5:2025 cr2bf_title only. No other field, no other row, no other year."
+}

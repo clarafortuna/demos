@@ -1,0 +1,37 @@
+=== CLCPA-258: C5 2025 stored title, one character ===
+org: https://org9076e69b.crm.dynamics.com
+row: cr2bf_dacingesttesttabledata1 where tableid=C5 and year=2025
+field: cr2bf_title
+
+PRE-FLIGHT 0  helpers present, constants set.
+PRE-FLIGHT 1  the change is exactly one trailing "4" and nothing else:
+                 before "Table C5. Total Program Participation Summary4"  (46 chars)
+                 after  "Table C5. Total Program Participation Summary"  (45 chars)
+PRE-FLIGHT 2  on main @ cef60fc, local == remote.
+PRE-FLIGHT 3  the real tableCaption() assembles and echoes the stored title.
+              (with no stored title it would render "Table C5. Total Program")
+PRE-FLIGHT 4  backup directory is absent, so the backup will be created.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  AKYVH2L46
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+entity set resolved from metadata: cr2bf_dacingesttesttabledata1s
+
+query matched 1 row(s) for C5:2025
+row id: 30931db0-95ab-f111-aaab-7ced8d183701
+
+BACKUP    whole row saved, 28 fields, sha256 adff79ff934054f8...
+          current cr2bf_title: "Table C5. Total Program Participation Summary4"
+          it matches the audit exactly, so the correction is the one planned.
+
+RENDER BEFORE (real tableCaption on the SERVER value):
+   "Table C5. Total Program Participation Summary4"
