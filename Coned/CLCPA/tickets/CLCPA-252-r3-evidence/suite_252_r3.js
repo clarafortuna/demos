@@ -434,11 +434,15 @@ guard('X: the blast radius', () => {
     stripCaptionYear: 'CLCPA-252 r3: the year strip, new',
     tableCaption: 'CLCPA-252 r3: it strips on all three paths',
     deriveTableCaptionInfo: 'CLCPA-252 r3: it stops carrying the year across',
+    /* CLCPA-266 rides in the same session and lands in the same branch, so it
+     * is named here the way every census names a later ticket. */
+    renderIngestImportResult: 'NOT this ticket: CLCPA-266, the notice boxes gain their accent classes',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 3, 'X1 exactly THREE functions changed: ' + changed.length);
+  /* 3 -> 4: CLCPA-266 moved one more, named above. */
+  ok(changed.length === 4, 'X1 exactly FOUR functions changed: ' + changed.length);
   /* the render paths themselves are untouched: this is a caption change */
   ['renderSourceTables', 'renderIngestEditor', 'renderTable', 'getTableSchema',
    'rowsForDisplay'].forEach(n => {
@@ -452,7 +456,18 @@ guard('X: the blast radius', () => {
     'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
   const baseCss = execSync('git show ' + BASE + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-  ok(css === baseCss, 'X4 styles.css is byte-identical to BASE: this ticket is JS only');
+  /* THIS TICKET is still JS only, and that is what X4 claims. CLCPA-266 moves
+   * the stylesheet in the same branch, so its two blocks are masked and the
+   * REST must be byte-identical -- narrowed, not dropped: any other stylesheet
+   * change still turns this red. */
+  const mask = (c) => c
+    .replace(/\/\* ---- CLCPA-266: every post-load notice is a BOX[\s\S]*?\.ingest-import-notice > :last-child \{ margin-bottom: 0; \}/, 'C266')
+    .replace(/\.ingest-import-result \{[\s\S]*?\.ingest-import-result li \{[^}]*\}/, 'C266')
+    .replace(/\/\* CLCPA-264's import identity advisory, restyled by CLCPA-266[\s\S]*?font-weight: 500;\s*\}/, 'WARN')
+    .replace(/\/\* CLCPA-264: the import identity advisory\.[\s\S]*?font-weight: 500;\s*\}/, 'WARN');
+  ok(mask(css) === mask(baseCss),
+     'X4 with CLCPA-266s blocks masked, styles.css is byte-identical to BASE: ' +
+     'THIS ticket is JS only');
 });
 
 guard('X: the baseline', () => {

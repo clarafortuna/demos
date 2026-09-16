@@ -29,7 +29,17 @@ const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const CSS = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-266-evidence/suite-266-output.txt');
 
-const BASE = process.env.DAC_BASE_COMMIT || '2724b8d';
+/* BASE is mains tip, 11c22d6, which carries CLCPA-252 round 3.
+ *
+ * It was 2724b8d -- the commit this branch forked from -- and that was right
+ * until round 3 merged into main while this ticket was in flight. With the
+ * older pin this suite measured BOTH tickets and reported four changed
+ * functions where CLCPA-266 changes one.
+ *
+ * 11c22d6 still PREDATES every line of this ticket, which is the rule that
+ * matters; it simply no longer predates a ticket that has already landed. The
+ * diff it measures is now exactly CLCPA-266's. */
+const BASE = process.env.DAC_BASE_COMMIT || '11c22d6';
 const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
 const CSS_PATH = process.env.DAC_CSS_OVERRIDE || path.join(REPO, CSS);
 

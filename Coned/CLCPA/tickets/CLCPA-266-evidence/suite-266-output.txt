@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-266 -- every post-load notice is a box, one component, three accents
-  BASE 2724b8d
+  BASE 11c22d6
 ======================================================================
 
 === D. the defect: .ingest-import-notice had no rule at all =========
@@ -81,7 +81,7 @@ CLCPA-266 -- every post-load notice is a box, one component, three accents
   ok   X2 openAddYearDialog is byte-identical to BASE
   ok   X3 with the two CLCPA-266 blocks masked, styles.css is identical to BASE
   ok   X4 and the stylesheet genuinely moved
-  ok   X5 BASE is a literal commit sha: 2724b8d
+  ok   X5 BASE is a literal commit sha: 11c22d6
   ok   X6 and HEAD descends from it
 
   66 passed, 0 failed

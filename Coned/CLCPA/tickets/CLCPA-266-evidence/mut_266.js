@@ -104,7 +104,12 @@ const M = [
 
   /* ---- the harness -------------------------------------------------------- */
   { t: SUITE, name: 'HARNESS: the baseline is repointed at a symbolic ref',
-    from: "const BASE = process.env.DAC_BASE_COMMIT || '2724b8d';",
+    /* the literal moved when the branch took main in: CLCPA-252 round 3 landed
+     * on main mid-flight and this suite's baseline was re-pointed to 11c22d6,
+     * so the control's anchor had to follow it. A mutation whose anchor has
+     * gone stale reports ANCHOR 0 and skips silently, which is why the runner
+     * counts a skip as a miss rather than a pass. */
+    from: "const BASE = process.env.DAC_BASE_COMMIT || '11c22d6';",
     to:   "const BASE = process.env.DAC_BASE_COMMIT || 'HEAD';",
     expect: 'X5 BASE is a literal commit sha' },
   { t: SUITE, name: 'HARNESS: the style claims stop resolving and just grep the text',
