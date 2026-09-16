@@ -1598,12 +1598,102 @@ function utf8ByteLength(str) {
     return out;
   }
 
+  /* CLCPA-252 ROUND 2: a year with no stored title DERIVES one from the
+   * newest year that has one, instead of falling back to short_title.
+   *
+   * Round 1 cured the bald caption -- a fresh year rendered "Table C1" and now
+   * renders "Table C1. DR Programs". That is short_title, and it is not what
+   * the stored years render: they carry the full descriptive title. So a fresh
+   * year still looked like a different document from the year beside it.
+   *
+   * WHY A DERIVATION AND NOT A REGEX OVER FREE TEXT. The audit measured all
+   * 153 stored titles across 52 tables before any of this was written:
+   *
+   *   64 embed their own year, 89 embed none, and ZERO name a DIFFERENT year.
+   *
+   * That last count is why substitution is safe at all. Ten CHART HEADINGS in
+   * this payload deliberately name a year other than the reporting year, and
+   * CLCPA-244 had to carve them out; titles were measured for the same trap
+   * and do not share it. A blind rewrite would still be wrong -- F3:2023
+   * carries its year TWICE -- so substitution only runs where the own-year
+   * token appears exactly once and is the only year present.
+   *
+   * THREE STRATEGIES, in order, each reporting which one it took:
+   *
+   *   A  SUBSTITUTE   the newest title's own-year token (13 tables measured:
+   *      A1-A8, B1, B2, F2, F3, I1). "Table A1. 2025 Program Incentive..."
+   *      becomes "Table A1. 2098 Program Incentive...".
+   *
+   *   B  INSERT       after a clean "Table XX. " / "Chart XX. " prefix, for a
+   *      newest title carrying NO year (38 tables). "Table C1. Summary of Con
+   *      Edison Demand Response Programs" becomes "Table C1. 2098 Summary of
+   *      Con Edison Demand Response Programs". The shape is not invented: it
+   *      is exactly what the 13 tables in A already store, generalised to the
+   *      tables whose titles happen to omit the year.
+   *
+   *   C  SHORT_TITLE  where neither holds. Measured: ONE table, D2, whose
+   *      title reads "Table D2.For All..." with no space after the period.
+   *
+   * THE PDF TAIL IS STRIPPED. 92 of 153 stored titles end in a tail like
+   * "|  Main  |  PDF page 19", which cites a page of one printed report. A
+   * derived 2098 title inheriting "PDF page 19" would be a citation to a
+   * document that does not describe it, so the tail does not travel.
+   *
+   * NO STORED TITLE IS TOUCHED. The stored branch returns first and is
+   * unchanged, which is what keeps all 153 stored table-years byte-identical.
+   */
   function tableCaption(t, year) {
     if (!t) return '';
     const stored = (t.title_by_year || {})[year];
     if (stored) return stored;
+    const derived = deriveTableCaption(t, year);
+    if (derived) return derived;
     const short = t.short_title || SHORT_TITLES[t.id] || '';
     return short ? ('Table ' + t.id + '. ' + short) : ('Table ' + t.id);
+  }
+
+  /* The derivation itself, and the strategy it took, so the caller and the
+   * evidence can both see WHICH branch answered rather than only what it
+   * returned. Returns null when no strategy applies, which is C's signal. */
+  function deriveTableCaptionInfo(t, year) {
+    const y = String(year == null ? '' : year);
+    if (!/^\d{4}$/.test(y)) return null;
+    const by = (t && t.title_by_year) || {};
+    /* the NEWEST year that has a title, which is the same choice
+     * getTableSchema and dacCol make (CLCPA-244, CLCPA-257) */
+    const donorYear = Object.keys(by)
+      .filter(k => /^\d{4}$/.test(k) && by[k] && String(by[k]).trim())
+      .sort((a, b) => parseInt(b, 10) - parseInt(a, 10))[0];
+    if (!donorYear) return null;
+    /* the tail cites a page of one printed report and must not travel */
+    const donor = String(by[donorYear]).replace(/\s*\|.*$/, '').trim();
+    if (!donor) return null;
+
+    const years = donor.match(/\b(19|20)\d{2}\b/g) || [];
+    /* A: substitute, only when the donor's own year appears exactly once and
+     * is the only year in the string. F3:2023 carries its year twice and is
+     * exactly what this condition refuses. */
+    if (years.length === 1 && years[0] === donorYear &&
+        donor.split(donorYear).length - 1 === 1) {
+      return { strategy: 'A', donorYear: donorYear,
+        text: donor.split(donorYear).join(y) };
+    }
+    /* B: insert after a clean "Table XX. " or "Chart XX. " prefix, only when
+     * the donor names NO year at all. A donor carrying some OTHER year is
+     * left to C rather than guessed at -- the audit measured zero of those,
+     * and this branch is what keeps that true if one ever appears. */
+    if (years.length === 0) {
+      const m = /^((?:Table|Chart)\s+[A-Z]\d+\.\s+)/.exec(donor);
+      if (m) {
+        return { strategy: 'B', donorYear: donorYear,
+          text: m[1] + y + ' ' + donor.slice(m[1].length) };
+      }
+    }
+    return null;
+  }
+  function deriveTableCaption(t, year) {
+    const info = deriveTableCaptionInfo(t, year);
+    return info ? info.text : null;
   }
 
   const SHORT_TITLES = {

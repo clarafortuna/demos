@@ -302,7 +302,7 @@ say('');
 say('=== Z. the stored years ===========================================');
 guard('Z: the report page is byte-identical on all 149', () => {
   let checked = 0, tables = 0;
-  const moved = [];
+  const moved = [], derivedOnly = [];
   Object.keys(P.tables).sort().forEach(id => {
     const t = P.tables[id];
     Object.keys(t.data || {}).sort().forEach(y => {
@@ -310,10 +310,16 @@ guard('Z: the report page is byte-identical on all 149', () => {
       const b = NEW.attempt(api => api.renderSourceTables([t], y, {}, id));
       checked++;
       if (/<table/.test(String(b))) tables++;
-      if (a !== b) moved.push(id + ':' + y);
+      /* CLCPA-252 round 2: A8:2023 is the one data-carrying year with no
+       * stored title, so its caption DERIVES now and the panel moves. Named
+       * rather than tolerated -- anything else moving still fails. */
+      if (a !== b) { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
     });
   });
   ok(checked === 149 && tables === 149, 'Z1 all 149 rendered, every one a <table>');
+  ok(derivedOnly.join(',') === 'A8:2023',
+     'Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
+     JSON.stringify(derivedOnly));
   ok(moved.length === 0, 'Z2 and every one is byte-identical' +
      (moved.length ? ': ' + moved.slice(0, 6).join(', ') : ''));
 });
@@ -355,6 +361,9 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
     isDeclaredSummable: 'CLCPA-254: the declaration, new',
+    tableCaption: 'NOT this ticket: CLCPA-252 round 2, it consults the derivation',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     recomputeTotals: 'CLCPA-254: it consults the declaration',
     renderIngestEditor: 'CLCPA-255: a total row loses its delete control',
     buildIngestImport: 'CLCPA-261: the unit notice is collected',
@@ -363,7 +372,8 @@ guard('X: the blast radius', () => {
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 5, 'X1 exactly FIVE functions changed: ' + changed.length);
+  /* 5 -> 8: CLCPA-252 round 2 added two and changed tableCaption, all named. */
+  ok(changed.length === 8, 'X1 exactly EIGHT functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags', 'columnGrandTotals',
    'renderSourceTables', 'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

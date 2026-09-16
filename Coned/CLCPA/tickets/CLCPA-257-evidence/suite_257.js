@@ -170,7 +170,7 @@ guard('G: the resolved column index is identical, everywhere', () => {
 
 guard('G: and the composed render is byte-identical on all 149', () => {
   let checked = 0, tables = 0;
-  const moved = [];
+  const moved = [], derivedOnly = [];
   Object.keys(P.tables).sort().forEach(id => {
     const t = P.tables[id];
     Object.keys(t.data || {}).sort().forEach(y => {
@@ -178,11 +178,17 @@ guard('G: and the composed render is byte-identical on all 149', () => {
       const b = NEW.attempt(api => api.renderSourceTables([t], y, {}, id));
       checked++;
       if (/<table/.test(String(b))) tables++;
-      if (a !== b) moved.push(id + ':' + y);
+      /* CLCPA-252 round 2: A8:2023 is the one data-carrying year with no
+       * stored title, so its caption DERIVES now and the panel moves. Named
+       * rather than tolerated -- anything else moving still fails. */
+      if (a !== b) { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
     });
   });
   ok(checked === 149 && tables === 149,
      'G5 all 149 rendered, and every one produced a <table>');
+  ok(derivedOnly.join(',') === 'A8:2023',
+     'G5b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
+     JSON.stringify(derivedOnly));
   ok(moved.length === 0, 'G6 and every one is byte-identical' +
      (moved.length ? ': ' + moved.slice(0, 6).join(', ') : ''));
 });
@@ -234,13 +240,19 @@ guard('X: the blast radius', () => {
     isDeclaredSummable: 'CLCPA-254, group E: the declared-summable column, new',
     recomputeTotals: 'CLCPA-254, group E: it consults that declaration',
     buildIngestImport: 'CLCPA-261, group E: it collects the fraction notices',
-    renderIngestImportResult: 'CLCPA-261, group E: the summary announces them' };
+    renderIngestImportResult: 'CLCPA-261, group E: the summary announces them',
+    tableCaption: 'CLCPA-252 round 2: it consults the derivation',
+    deriveTableCaption: 'CLCPA-252 round 2: the title derivation (new)',
+    deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)' };
   const mine = changed.filter(n => !(n in LATER));
   changed.forEach(n => ok(n === 'dacCol' || n in LATER,
     'X1 ' + n + ' is accounted for' + (n in LATER ? ' (' + LATER[n] + ')' : '')));
   ok(mine.length === 1 && mine[0] === 'dacCol',
      'X1b exactly ONE function is THIS tickets, and it is dacCol: ' + mine.join(', '));
-  ['getTableSchema', 'dacCell', 'renderSourceTables', 'tableCaption',
+  /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a
+   * derivation to consult. It is named in the map above instead, so the
+   * change stays accounted for, just not as 'untouched'. */
+  ['getTableSchema', 'dacCell', 'renderSourceTables',
    'ingestComputed'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });

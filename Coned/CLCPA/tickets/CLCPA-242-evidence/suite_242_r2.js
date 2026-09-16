@@ -413,6 +413,8 @@ guard('two functions', () => {
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
+    deriveTableCaption: 'NOT this round: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    deriveTableCaptionInfo: 'NOT this round: CLCPA-252 round 2, the three strategies (new)',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -462,7 +464,8 @@ guard('two functions', () => {
   /* 19 -> 21: CLCPA-245 round 2 added two more. */
   /* 21 -> 24: CLCPA-248 changed three more. */
   /* 30 -> 33: Section C group E moved three this suite can see. */
-  ok(changed.length === 33, 'THIRTY-THREE: this round\'s two, CLCPA-240\'s twelve ' +
+  /* 33 -> 35: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 35, 'THIRTY-FIVE: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 

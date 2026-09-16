@@ -5,14 +5,21 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
 
 === T. CLCPA-252: the caption comes from the table =================
   ok   T0 A8:2023 genuinely has no stored title, which is why it rendered bare
-  ok   T1 and it now reads "Table A8. Residential Install"
+  ok   T1 and it now reads "Table A8. 2023 Installations by Measure Category for Residential Programs (Total and in DACs)"
+  ok   T1c and it is not bald, which is what round 1 bought and round 2 keeps
   ok   T1b at BASE it was not even a helper -- the expression was inline
   ok   T2 bare captions on a fresh year: 0 of 52
-  ok   T3 C1 -> "Table C1. DR Programs"
-  ok   T3 C5 -> "Table C5. Total Program"
-  ok   T3 A8 -> "Table A8. Residential Install"
-  ok   T3 I1 -> "Table I1. Year Totals"
-  ok   T3 J8 -> "Table J8. EAP Spending"
+  ok   T3 C1 -> "Table C1. 2098 Summary of Con Edison Demand Response Programs"
+  ok   T3b and C1 is no longer the round-1 short_title form
+  ok   T3 A8 -> "Table A8. 2098 Installations by Measure Category for Residential Programs (Total and in DACs)"
+  ok   T3b and A8 is no longer the round-1 short_title form
+  ok   T3 I1 -> "Table I1. 2098 Year Totals"
+  ok   T3b and I1 is no longer the round-1 short_title form
+  ok   T3 J8 -> "Table J8. 2098 Amount Expended for EAP Discounts"
+  ok   T3b and J8 is no longer the round-1 short_title form
+  ok   T3 C5 -> "Table C5. 2098 Total Program Participation Summary4"
+  ok   T3b and C5 is no longer the round-1 short_title form
+  ok   T4 D2 still falls back to short_title: "Table D2. DER Projects"
   ok   T4 148 stored table-years carry a title
   ok   T5 and every one is returned unchanged
   ok   T6 the report page uses tableCaption
@@ -43,13 +50,16 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   Z1b and every one produced a <table>
   ok   Z2 exactly ONE moved, and it is A8:2023: ["A8:2023"]
   ok   Z3 and with the caption masked the two renders are identical, so the caption is the ONLY thing that moved
-  ok   Z4 BASE rendered it bare; this build names it
+  ok   Z4 this build names it: Table A8. 2023 Installations by Measure Category for Residential Programs (Total and in DACs)
+  ok   Z4b and BASE rendered it bald: "Table A8"
 
 === X. what else moved ============================================
-       changed: buildIngestImport, buildIngestWorkbook, dacCol, isDeclaredSummable, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, tableCaption
+       changed: buildIngestImport, buildIngestWorkbook, dacCol, deriveTableCaption, deriveTableCaptionInfo, isDeclaredSummable, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, tableCaption
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to dacCol is accounted for
+  ok   the change to deriveTableCaption is accounted for
+  ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to phantomSpacerCols is accounted for
   ok   the change to recomputeTotals is accounted for
@@ -60,18 +70,21 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   X1 buildIngestImport is accounted for (CLCPA-261, group E)
   ok   X1 buildIngestWorkbook is accounted for (CLCPA-260, group D)
   ok   X1 dacCol is accounted for (CLCPA-257, group C)
+  ok   X1 deriveTableCaption is accounted for (CLCPA-252 round 2)
+  ok   X1 deriveTableCaptionInfo is accounted for (CLCPA-252 round 2)
   ok   X1 isDeclaredSummable is accounted for (CLCPA-254, group E)
   ok   X1 phantomSpacerCols is accounted for (CLCPA-260, group D)
   ok   X1 recomputeTotals is accounted for (CLCPA-254, group E)
   ok   X1 renderIngestEditor is accounted for (CLCPA-252 AND CLCPA-260 both touch it; group D is the later one)
   ok   X1 renderIngestImportResult is accounted for (CLCPA-261, group E)
   ok   X1 renderSourceTables is accounted for
-  ok   X1 tableCaption is accounted for
-  ok   X1b two functions are uniquely THIS groups: renderSourceTables, tableCaption
+  ok   X1 tableCaption is accounted for (CLCPA-252 round 1 AND round 2; round 2 is the later one)
+  ok   X1b ONE function is uniquely round 1s, the report page: renderSourceTables
+  ok   X1c and tableCaption still moved, claimed by round 1 and round 2 both
   ok   X2 columnNumericMask is byte-identical to BASE
   ok   X2 parseCPrograms is byte-identical to BASE
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X2 openSaveModal is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 9699f62
   ok   X4 and an ancestor of HEAD, so this group stacks on Group A
-  63 passed, 0 failed
+  76 passed, 0 failed

@@ -635,6 +635,8 @@ guard('X: the blast radius', () => {
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     renderSectionC: 'NOT this ticket: CLCPA-259, the panel reads C1',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
     openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
@@ -657,7 +659,8 @@ guard('X: the blast radius', () => {
   /* 6 -> 9: CLCPA-248 added three, every one named above. */
   /* 9 -> 10: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 19 -> 23: Section C group E moved four this suite can see. */
-  ok(changed.length === 23, 'X8 exactly TWENTY-THREE functions changed: ' + changed.length);
+  /* 23 -> 25: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 25, 'X8 exactly TWENTY-FIVE functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

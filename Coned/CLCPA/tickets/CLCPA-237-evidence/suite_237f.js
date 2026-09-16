@@ -517,6 +517,8 @@ guard('the blast radius is accounted for, function by function', () => {
     ingestComputed: 'CLCPA-244, a weighted mean marks only its total row',
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     getTableSchema: 'CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
      * outside the four declared tables a total is now decided by an
@@ -576,7 +578,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 29 -> 32: CLCPA-248 changed three more. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 37 -> 40: Section C group E moved three this suite can see. */
-  ok(changed.length === 40, 'forty in total, all named: ' + changed.length);
+  /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 42, 'forty-two in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

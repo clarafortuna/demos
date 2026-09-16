@@ -365,8 +365,9 @@ guard('the editor now merges group headers like the viewer always did', () => {
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
       'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
-      /* CLCPA-252: the editor's caption comes from a shared helper now */
-      'tableCaption',
+      /* CLCPA-252: the editor's caption comes from a shared helper now,
+       * and CLCPA-252 round 2 gave that helper a derivation to call. */
+      'tableCaption', 'deriveTableCaption', 'deriveTableCaptionInfo',
       /* CLCPA-260: the editor asks which columns are phantom spacers */
       'phantomSpacerCols', 'getTableSchema',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
@@ -422,8 +423,9 @@ guard('the editor now merges group headers like the viewer always did', () => {
       /* CLCPA-240: totalRowFlags now calls the whole-label predicate for a
        * total row that has no numbers yet, so the closure needs it. */
       'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
-      /* CLCPA-252: the editor's caption comes from a shared helper now */
-      'tableCaption',
+      /* CLCPA-252: the editor's caption comes from a shared helper now,
+       * and CLCPA-252 round 2 gave that helper a derivation to call. */
+      'tableCaption', 'deriveTableCaption', 'deriveTableCaptionInfo',
       /* CLCPA-260: the editor asks which columns are phantom spacers */
       'phantomSpacerCols', 'getTableSchema',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
@@ -679,6 +681,8 @@ guard('the four exclusions', () => {
     renderIngestPicker: 'NOT this brief: CLCPA-240 cosmetic, the year dropdown',
     dacCol: 'NOT this brief: the schema fallback for imported years',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     /* Section C group E, each named so the exact count below stays a guard */
     isDeclaredSummable: 'NOT this ticket: CLCPA-254, Section C group E: the declared-summable column, new',
@@ -762,7 +766,8 @@ guard('the four exclusions', () => {
    * is IIFE-scoped and sees only some of them -- measured, not assumed. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
   /* 37 -> 40: Section C group E moved three this suite can see. */
-  ok(changed.length === 40, 'exactly FORTY functions changed: ' + changed.length);
+  /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
+  ok(changed.length === 42, 'exactly FORTY-TWO functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those forty moved at all');
 });

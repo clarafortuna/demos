@@ -667,6 +667,8 @@ guard('X: app.js is byte-identical to BASE', () => {
     openAddYearDialog: 'CLCPA-262, Section C group A',
     wire: 'CLCPA-262, nested inside openAddYearDialog',
     tableCaption: 'CLCPA-252, Section C group B',
+    deriveTableCaption: 'CLCPA-252 round 2: the derivation (new)',
+    deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
