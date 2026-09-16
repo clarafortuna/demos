@@ -59,3 +59,71 @@ PROVENANCE of the archive:
 
         3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 09187e5
+          remote main = 09187e5  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1197009B)
+   transport error on PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e5 (attempt 1/4): fetch failed
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (281482B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1197009B  sha256 f382f3bb1e259c0f...  VERIFIED byte-identical
+READ-BACK styles.css  281482B  sha256 25ca2005dcb688fd...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 bcc35db1451ce065...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : b1108e5fcf  ok
+  app.js canonicalised + hashed : b1108e5fcf  ok
+  HTML references app.js?v=     : b1108e5fcf  ok
+  HTML references styles.css?v= : 25ca2005dc  ok
+  all 10 ticket groups (27 symbols) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+build id (app.js): b1108e5fcf
+styles.css id    : 25ca2005dc  (REPLACED: it was af0c14ea64)
+previous build   : 9eb3bab955, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ c3fab85
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build b1108e5fcf
+If it prints anything else, the browser is holding an older app.js.
+
+THE ROUND-2 PASS -- three screens:
+  CLCPA-252 r2  A FRESH YEAR NAMES ITS TABLES LIKE A STORED ONE.
+     Create 2098. Table C1 must read "Table C1. 2098 Summary of Con
+     Edison Demand Response Programs", not "Table C1. DR Programs".
+     51 of 52 derive; D2 alone still shows its short title, because
+     its stored title has no space after the period. And NO derived
+     caption may cite a PDF page: that tail belongs to one report.
+     A8 on 2023 -- the one stored year with no title -- now reads
+     like its 2025 sibling rather than "Table A8. Residential Install".
+  CLCPA-264  A TWINS FILE WARNS, AND STILL IMPORTS.
+     Download the C3 template, rename nothing, import it into C4.
+     A soft amber notice appears in the staged box BEFORE the import
+     and again in the result panel after it, naming both tables -- and
+     the import still lands. Nothing is rejected, ever.
+     Import C4s own file into C4: SILENT. Rename a file to anything
+     that is not a table id: SILENT. No false alarms.
+  CLCPA-263  A FRESH YEAR SHOWS ITS SHARES.
+     Type C2s figures into a fresh year: Participants, Committed Load
+     Relief and Average Event Reductions each render "value (pct%)",
+     matching how 2025 reads. The TOTAL row stays a bare number.
+     2023, 2024 and 2025 must look EXACTLY as they do today.
+
+STILL DISCLOSED, not defects in this build:
+  - C2/2024 stores 766.94, which matches neither a sum (306.40) nor a
+    weighted mean (239.12). Legacy stored value, disclosed not touched.
+  - C2 s stored rows are split-format ("299.57 (41%)") and recompute to
+    nothing on ANY build. Pre-existing, filed as its own finding.
+  - A5:2025 stores a grand total of 27,833 where its own parts give
+    27,834, and A3:2025 is off by 31. Under the payload freeze.
+  - CLCPA-258, the stray "4" in C5 s stored 2025 title, is NOT in this
+    build. It rides separately on its own GO.
+  - The 2098 test residue in Dataverse belongs to CLCPA-224.
+
+=== log written by deploy_section_c_package.js ===
