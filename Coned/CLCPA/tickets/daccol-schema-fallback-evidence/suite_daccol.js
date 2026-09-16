@@ -471,7 +471,12 @@ guard('one function', () => {
                 'renderTable', 'compareColWidths', 'renderSourceTables',
                 /* CLCPA-248 round 3: the wrap predicate. isNumeric, which
                  * dacCol's callers lean on, is deliberately untouched. */
-                'isWhollyNumeric'];
+                'isWhollyNumeric',
+                /* Section C group A */
+                /* wire() is nested inside openAddYearDialog; this suite's grab
+                 * cannot bound a nested function, so it never sees it change.
+                 * Named in suite_248, which has the line-indexed grab. */
+                'ingestComputed', 'openSaveModal', 'openAddYearDialog'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

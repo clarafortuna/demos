@@ -469,6 +469,10 @@ guard('three functions, all wiring', () => {
     renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text-cell wrap',
     compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
     isWhollyNumeric: 'NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
+    /* Section C group A, not this ticket's, each named so the count stays exact */
+    ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
+    openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
+    openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
@@ -494,7 +498,7 @@ guard('three functions, all wiring', () => {
   /* 22 -> 23: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 23 -> 25: CLCPA-245 round 2 added two more. */
   /* 25 -> 28: CLCPA-248 changed three more. */
-  ok(changed.length === 29, 'TWENTY-NINE: this ticket’s six, CLCPA-240 first ' +
+  ok(changed.length === 31, 'THIRTY-THREE: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

@@ -300,7 +300,26 @@ guard('nothing about the store moved', () => {
   ok(!/% *[Cc]hange/.test(comp),
      'and knows nothing about "% Change": item B is editor-only');
   const save = grab('openSaveModal'), baseSave = grab('openSaveModal', BASE_SRC);
-  ok(save === baseSave, 'and openSaveModal is byte-identical: the save path is untouched');
+  /* CLCPA-256 changed openSaveModal on purpose: the confirm dialog counted
+   * rows x columns instead of real changes. What THIS ticket needs is that
+   * the save PATH is untouched, so the assertion narrows to that rather than
+   * to the whole function. */
+  /* the backslashes were eaten passing this through a shell once; written
+   * with the Edit tool so the character class survives */
+  /* COMMENTS FIRST, then the counter. CLCPA-256 added a long explanatory
+   * comment ahead of the block, and a strip that starts at `const
+   * changeCount` leaves that comment in the comparison -- which is the
+   * comment-as-code trap wearing a different hat. */
+  const strip = (x) => {
+    const s = codeOnly(String(x));
+    const a = s.indexOf('const changeCount');
+    if (a < 0) return s;
+    const b = s.indexOf('})();', a);
+    return (b < 0 ? s : s.slice(0, a) + 'COUNT' + s.slice(b + 5)).replace(/\s+/g, ' ');
+  };
+  ok(strip(save) === strip(baseSave),
+     'and openSaveModal differs from BASE ONLY in its change counter, which ' +
+     'is CLCPA-256: the save path itself is untouched');
   ok(!/PERSIST_STRIP_TABLES = new Set\(\[\s*'A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A10'/.test(CODE) === false,
      'PERSIST_STRIP_TABLES is unchanged, so no column starts being stripped');
 

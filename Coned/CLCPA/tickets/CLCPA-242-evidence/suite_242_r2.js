@@ -426,6 +426,10 @@ guard('two functions', () => {
     renderTable: 'NOT this brief: CLCPA-248, the colgroup and the text-cell wrap',
     compareColWidths: 'NOT this brief: CLCPA-248, the shared width vector (new)',
     isWhollyNumeric: 'NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched',
+    /* Section C group A, not this ticket's, each named so the count stays exact */
+    ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
+    openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
+    openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
     renderSourceTables: 'NOT this brief: CLCPA-248, it computes the vector once for both',
     /* CLCPA-244 ROUND 2. Two of that round's four: drawSectionEArc and
      * wireSectionEArcResize are declared at COLUMN 0 and this suite's name
@@ -448,7 +452,7 @@ guard('two functions', () => {
   /* 18 -> 19: CLCPA-245 added isAnchoredTotalRowLabel. */
   /* 19 -> 21: CLCPA-245 round 2 added two more. */
   /* 21 -> 24: CLCPA-248 changed three more. */
-  ok(changed.length === 25, 'TWENTY-FIVE: this round\'s two, CLCPA-240\'s twelve ' +
+  ok(changed.length === 27, 'TWENTY-NINE: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 

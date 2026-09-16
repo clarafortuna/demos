@@ -15993,6 +15993,34 @@ function wireHTooltips() {
      * from a per-row one, and only the descriptor carries that */
     const derived = {};
     ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => { derived[d.column] = d; });
+    /* CLCPA-253: WHICH COLUMNS OF A TOTAL ROW ARE ACTUALLY COMPUTED.
+     *
+     * `any` was row-scoped -- !!totals[r] on its own -- so every column of a
+     * total row was stamped (calculated), the four unnamed spacer columns of
+     * C2-C5's wide schema among them. A preparer following the workbook's own
+     * instruction to leave (calculated) positions untouched was being told
+     * four dead columns are live outputs.
+     *
+     * SPACERS ONLY, and the boundary is load-bearing. My first cut also
+     * excluded percentage and average columns, on the reasoning that
+     * recomputeTotals refuses to sum those. It does -- but this accessor
+     * gates TWO surfaces, and the second one is the import skip. Excluding
+     * them here stopped marking those cells AND stopped protecting them, so
+     * an operator's file could write a summed average straight into A3/A4's
+     * total row: the CLCPA-212 defect, reintroduced through the back door.
+     * suite_240a caught it, on the two columns it was written for.
+     *
+     * So the test is structural and narrow: a column with a BLANK header is
+     * not a column at all, it is a spacer. Measured: 38 blank-headed columns
+     * in the C family, none of which carries data in any stored year.
+     * Percentage and average columns keep today's behaviour exactly.
+     *
+     * A derived column keeps its marker on the total row whatever its header
+     * says, because DERIVED_COLS is an explicit declaration and outranks a
+     * structural guess. */
+    const blankHeader = (schema || []).map(h =>
+      h == null || String(h).trim() === '');
+    const engineWrites = (c) => !blankHeader[c];
     return {
       totalRow: (r) => !!totals[r],
       derivedCol: (c) => !!derived[c],
@@ -16001,7 +16029,7 @@ function wireHTooltips() {
        * "calculated" where totals[r] already says so. This one accessor gates
        * both surfaces that matter: the template writes (calculated) from it,
        * and the import skips a cell from it. */
-      any: (r, c) => !!totals[r] ||
+      any: (r, c) => (!!totals[r] && (!!derived[c] || engineWrites(c))) ||
         (!!derived[c] && !isTotalOnlyDerived(derived[c])),
     };
   }
@@ -22270,16 +22298,45 @@ function wireHTooltips() {
 
           /* 3. Only now apply a staged file, into the year that now exists. A
            *    hard rejection does not undo the year: it is reported on the page. */
+          /* CLCPA-262: THE DIALOG DISMISSES ON A SUCCESSFUL LOAD AND STAYS
+           * OPEN ON A FAILED ONE.
+           *
+           * It used to close either way. On a rejection that put the reason on
+           * the page behind a dialog the operator had just been dismissed
+           * from, with nothing on screen to act on where the dialog was -- and
+           * the file input they need to correct went with it.
+           *
+           * A rejection now keeps the dialog, with the reason in its own error
+           * line, so the next attempt starts where the last one failed. A
+           * success closes, because the filled draft below is the thing to
+           * read next.
+           *
+           * The success-side symptom in the CLCPA-124 report -- the dialog
+           * remaining after a good load -- does NOT reproduce from this code:
+           * close() was already unconditional, the overlay is mounted on
+           * document.body and removed by reference, and nothing re-opens it.
+           * Recorded as such rather than patched blind. */
+          let failed = false;
           if (staged) {
             const i = state.ingest;
             if (!staged.rows) {
               i.importResult = { ok: false, rejections: [{ why: staged.error ||
                 'The file could not be read.' }] };
+              failed = true;
             } else {
               const plan = buildIngestImport(staged.rows, i.schema, i.draft, i.tableId);
               i.importResult = plan;
-              if (plan.ok) applyIngestImport(plan);
+              if (plan.ok) applyIngestImport(plan); else failed = true;
             }
+          }
+          if (failed) {
+            if (err) {
+              const why = (state.ingest.importResult.rejections || [])
+                .map(x => x.why).filter(Boolean)[0] || 'The file could not be imported.';
+              err.textContent = why;
+              err.style.display = 'block';
+            }
+            return;
           }
           close();
         };
@@ -22395,15 +22452,34 @@ function wireHTooltips() {
     const i = state.ingest;
     if (!i || !i.dirty) return;
 
+    /* CLCPA-256: COUNT THE CELLS THAT ACTUALLY CHANGED.
+     *
+     * This compared ar[c] !== br[c] with `!==`, and on a NEWLY CREATED year
+     * the baseline holds no rows at all -- so br[c] is undefined for every
+     * cell, and a draft cell holding '' counted as a change against it. The
+     * dialog then reported rows x columns: the key column the TEMPLATE
+     * pre-filled, and the blank spacer columns nobody typed in. Measured on
+     * the CLCPA-124 audit's own year: C1 said 30 where 10 values were
+     * imported (10 real + 5 pre-filled keys + 15 spacers), C2 said 32 for 9,
+     * and C3/C4/C5 said 48 for 15.
+     *
+     * Empty is empty however it is spelled, so null, undefined and '' compare
+     * equal. The change history written AFTER the save was always accurate --
+     * only this pre-save count lied -- so nothing downstream moves. */
     const changeCount = (() => {
+      const same = (x, y) => {
+        const nx = (x == null || x === '') ? '' : x;
+        const ny = (y == null || y === '') ? '' : y;
+        return nx === ny;
+      };
       let count = 0;
       const a = i.draft, b = i.baseline;
-      const rows = Math.max(a.length, b.length);
+      const rows = Math.max(a.length, (b || []).length);
       for (let r = 0; r < rows; r++) {
-        const ar = a[r] || [], br = b[r] || [];
+        const ar = a[r] || [], br = (b || [])[r] || [];
         const cols = Math.max(ar.length, br.length);
         for (let c = 0; c < cols; c++) {
-          if (ar[c] !== br[c]) count++;
+          if (!same(ar[c], br[c])) count++;
         }
       }
       return count;

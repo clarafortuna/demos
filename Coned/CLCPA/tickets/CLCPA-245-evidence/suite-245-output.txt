@@ -88,14 +88,18 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: compareColWidths, isAnchoredTotalRowLabel, isWhollyNumeric, renderIngestEditor, renderSourceTables, renderTable, totalRowFlags, wireControlTips, wireIngestLabelTips, wireIngestPage
+       changed: compareColWidths, ingestComputed, isAnchoredTotalRowLabel, isWhollyNumeric, openAddYearDialog, openSaveModal, renderIngestEditor, renderSourceTables, renderTable, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
   ok   the change to compareColWidths is accounted for
+  ok   the change to ingestComputed is accounted for
   ok   the change to isAnchoredTotalRowLabel is accounted for
   ok   the change to isWhollyNumeric is accounted for
+  ok   the change to openAddYearDialog is accounted for
+  ok   the change to openSaveModal is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
   ok   the change to totalRowFlags is accounted for
+  ok   the change to wire is accounted for
   ok   the change to wireControlTips is accounted for
   ok   the change to wireIngestLabelTips is accounted for
   ok   the change to wireIngestPage is accounted for
@@ -106,11 +110,15 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   compareColWidths changed as intended: NOT this brief: CLCPA-248, the shared width vector (new)
   ok   renderSourceTables changed as intended: NOT this brief: CLCPA-248, it computes that vector
   ok   isWhollyNumeric changed as intended: NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched
+  ok   ingestComputed changed as intended: NOT this ticket: CLCPA-253: the (calculated) marker is column-aware
+  ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
+  ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
+  ok   wire changed as intended: NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change
   ok   wireIngestLabelTips changed as intended: round 2, the shared-tooltip wiring (new)
   ok   wireIngestPage changed as intended: round 2, it calls that wiring
   ok   wireControlTips changed as intended: round 2, the ingest label joins OWNS_TIP
-  ok   X8 exactly TEN functions changed: 10
+  ok   X8 exactly FOURTEEN functions changed: 14
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  95 passed, 0 failed
+  103 passed, 0 failed

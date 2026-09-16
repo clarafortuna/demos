@@ -1,0 +1,96 @@
+======================================================================
+Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
+  BASE 794eecf
+======================================================================
+  ok   the changed source and BASE both assemble and run
+
+=== T. CLCPA-253: (calculated) only where the engine writes =========
+  ok   T0 C2 has a total row at 3
+  ok   T1 C2 has four blank-headed columns: [1,2,4,6]
+  ok   T2 C2 none of them is (calculated) any more
+  ok   T2b and at BASE every one of them WAS, which is the defect
+  ok   T0 C3 has a total row at 5
+  ok   T1 C3 has four blank-headed columns: [1,2,4,6]
+  ok   T2 C3 none of them is (calculated) any more
+  ok   T2b and at BASE every one of them WAS, which is the defect
+  ok   T0 C4 has a total row at 5
+  ok   T1 C4 has four blank-headed columns: [1,2,4,6]
+  ok   T2 C4 none of them is (calculated) any more
+  ok   T2b and at BASE every one of them WAS, which is the defect
+  ok   T0 C5 has a total row at 5
+  ok   T1 C5 has four blank-headed columns: [1,2,4,6]
+  ok   T2 C5 none of them is (calculated) any more
+  ok   T2b and at BASE every one of them WAS, which is the defect
+  ok   T3 C3 keeps (calculated) on all three named columns: [3,5,7]
+  ok   T3 C4 keeps (calculated) on all three named columns: [3,5,7]
+  ok   T3 C5 keeps (calculated) on all three named columns: [3,5,7]
+  ok   T4 C2s "Average Event Reductions (MW)" is column 7
+  ok   T5 it is still (calculated), exactly as at BASE: this ticket moves spacers only
+  ok   T5b detectAvgColumns matches the word "Average", which is why the engine does not sum it, which is CLCPA-254 and not this ticket
+  ok   T5c and its marker is UNCHANGED across the round, asserted both ways
+  ok   T6 all three of C2s named columns keep their marker: [3,5,7]
+  ok   T7 the predicate admits a derived column on a total row unconditionally
+  ok   T8 and otherwise asks only whether the column has a header at all
+  ok   T8b the percentage and average exclusions are NOT in this predicate: they would have removed the import protection along with the marker
+  ok   T9 the row-scoped predicate is gone
+  ok   T9b and it was there at BASE
+  ok   T10 cells whose marker changed: 32
+  ok   T11 every one is a blank-headed spacer (32), and NOT ONE is a named column (0): the scope is exactly the C-04 complaint
+  ok   T12 across 4 tables: C2, C3, C4, C5
+  ok   T13 and every one sits on a TOTAL row
+
+=== S. CLCPA-256: the confirm dialog counts real changes ============
+  ok   S0 the counter slice was found on both sides
+  ok   S1 at BASE C1 reported 30 changes for 10 typed values, exactly as the audit photographed: 30
+  ok   S2 and now it counts the 15 non-empty cells it is actually writing: 15
+  ok   S3 a row of one label and five blanks: 6 at BASE, 1 now
+  ok   S4 on a stored year with one edited cell both answer 1: the fix is confined to the empty-versus-absent case
+  ok   S5 null, undefined and empty string compare equal
+  ok   S5b where BASE called all three a change
+  ok   S6 and clearing a value that WAS there still counts
+  ok   S6b typing 0 over a stored 7 counts: zero is a figure, not an absence
+  ok   S6c and typing 0 into an empty cell counts too
+  ok   S7 the normalising comparison is named
+  ok   S8 and it is what the loop uses
+  ok   S9 the raw !== is gone
+  ok   S9b it was there at BASE
+
+=== D. CLCPA-262: dismiss on success, stay open on failure ==========
+  ok   D1 the load handler tracks failure
+  ok   D2 a rejected plan sets it
+  ok   D2b and so does a file that could not be read at all
+  ok   D3 and returns BEFORE close(), so the dialog stays
+  ok   D4 with the reason in the dialogs own error line
+  ok   D5 while a success still reaches close()
+  ok   D6 at BASE close() ran on a rejection too, which is the defect
+  ok   D7 the overlay is mounted on document.body
+  ok   D8 and close() removes it by reference
+  ok   D9 openAddYearDialog has exactly one call site plus its declaration (2 mentions), so nothing re-opens it
+  ok   D10 and the redraw replaces #view-container, not the body, so it cannot resurrect an overlay. The success-side symptom is NOT in this code.
+
+=== Z. the 149 stored table-years, proven unmoved ===================
+  ok   Z1 149 stored table-years rendered on both sides
+  ok   Z1b and every one of the 149 produced a <table>: 149
+  ok   Z1c totalling 322447 bytes of markup (floor 200k, measured 322,447), so the comparison had something to compare
+  ok   Z2 every one is byte-identical
+  ok   Z3 and all 149 in COMPARE mode too
+
+=== X. what else moved =============================================
+       changed: ingestComputed, openAddYearDialog, openSaveModal
+  ok   the change to ingestComputed is accounted for
+  ok   the change to openAddYearDialog is accounted for
+  ok   the change to openSaveModal is accounted for
+  ok   ingestComputed changed as intended: CLCPA-253: the marker is column-aware
+  ok   openSaveModal changed as intended: CLCPA-256: the change count normalises empty
+  ok   openAddYearDialog changed as intended: CLCPA-262: a rejection keeps the dialog
+  ok   X1 exactly THREE functions changed: 3
+  ok   X2 recomputeTotals is byte-identical to BASE
+  ok   X2 columnGrandTotals is byte-identical to BASE
+  ok   X2 detectAvgColumns is byte-identical to BASE
+  ok   X2 detectPctColumns is byte-identical to BASE
+  ok   X2 totalRowFlags is byte-identical to BASE
+  ok   X2 buildIngestImport is byte-identical to BASE
+  ok   X2 applyIngestImport is byte-identical to BASE
+  ok   X3 BASE is a literal commit sha: 794eecf
+  ok   X4 and an ancestor of HEAD
+  80 passed, 0 failed

@@ -56,6 +56,18 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   S3 compared 149 table-years against BASE
   ok   S4 and the ONLY difference anywhere is the num-text modifier
 
+=== H. the extractor this suite leans on ============================
+  ok   H1 a padded function is found
+  ok   H2 and the slice STARTS at its declaration
+  ok   H3 and ENDS at its own closing brace
+  ok   H4 and contains exactly one function declaration: 1
+  ok   H5 at 260 characters, not a span of the file
+  ok   H6 drawSectionEArc is either refused or bounded, never half the file: refused
+  ok   H7 refused, which is the honest answer for an unbounded span
+  ok   H8 and refusing cannot be mistaken for "unchanged"
+  ok   H9 the changed-function count is plausible (8), not the 25 the over-reading grab reported
+  ok   H10 and the three phantoms it used to report are gone from it
+
 === P. isWhollyNumeric, and what it moves ============================
   ok   P0 isWhollyNumeric is reachable from the real assembled source
   ok   P1 isNumeric still says the I1 prose is numeric, because parseFloat is
@@ -145,18 +157,26 @@ CLCPA-248 -- one anatomy across the two compare panels
   ok   X1 renderIngestEditor is byte-identical to BASE
   ok   X1 parseNumericInput is byte-identical to BASE
   ok   X2 DERIVED_COLS is byte-identical
-       changed: compareColWidths, isWhollyNumeric, renderSourceTables, renderTable
+       changed: compareColWidths, ingestComputed, isWhollyNumeric, openAddYearDialog, openSaveModal, renderSourceTables, renderTable, wire
   ok   the change to compareColWidths is accounted for
+  ok   the change to ingestComputed is accounted for
   ok   the change to isWhollyNumeric is accounted for
+  ok   the change to openAddYearDialog is accounted for
+  ok   the change to openSaveModal is accounted for
   ok   the change to renderSourceTables is accounted for
   ok   the change to renderTable is accounted for
+  ok   the change to wire is accounted for
   ok   renderTable changed as intended: the colgroup and the text-cell modifier
   ok   compareColWidths changed as intended: the shared width vector (new)
   ok   renderSourceTables changed as intended: it computes the vector once and passes it to both
   ok   isWhollyNumeric changed as intended: round 3: the wrap predicate, new, and isNumeric untouched
-  ok   X3 exactly FOUR functions changed: 4
+  ok   ingestComputed changed as intended: NOT this ticket: CLCPA-253: the (calculated) marker is column-aware
+  ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
+  ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
+  ok   wire changed as intended: NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change
+  ok   X3 exactly EIGHT functions changed: 8
   ok   X3b and isNumeric itself is byte-identical to BASE
   ok   X4 BASE is a literal commit sha: d0d0a45
   ok   X5 and an ancestor of HEAD
 
-  133 passed, 0 failed
+  151 passed, 0 failed

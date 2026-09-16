@@ -239,7 +239,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   nothing is applied
   ok   the failure is recorded for the page panel
   ok   with its reasons: This cell holds a formula rather than a value. Save the file
-  ok   and the dialog closes
+  ok   and the dialog STAYS OPEN on a rejection (CLCPA-262)
 
 renders regenerated from the shipped code:
    1-picker-source-tables.html

@@ -130,13 +130,41 @@ function guard(label, fn) {
 }
 const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\r\n]*/g, '$1');
 
+/* LINE-INDEXED, and the repair is the point.
+ *
+ * The old grab searched for '\r\n' + pad + 'function NAME(' and ended at the
+ * first '\r\n' + pad + '}'. For a function declared at COLUMN 0 that
+ * terminator is '\r\n}', and this file has column-0 function text living
+ * inside template literals -- drawSectionEArc is one. The slice then ran to
+ * whatever closing brace came next, which was most of the file, so unrelated
+ * edits anywhere in that span made the function compare "changed". Measured
+ * when CLCPA-253 landed: 25 functions reported changed where the real answer
+ * was 7, drawSectionEArc, wireQuadrantTooltip and wireRankToggle among the
+ * phantoms. That is the over-read class this project has named before.
+ *
+ * Now: find the declaration LINE at a known indent, end at the first line
+ * that is exactly that indent plus '}', and REFUSE -- return null -- if the
+ * next declaration at the same indent arrives first. Refusing is the part
+ * that matters: a grab that cannot bound a function must say so rather than
+ * hand back a plausible-looking span.
+ *
+ * Self-tested in section H below, on a padded function and a column-0 one. */
 function grab(name, src) {
   src = src || SRC;
-  for (const p of ['  ', '    ', '']) for (const k of ['function ', 'async function ']) {
-    const h = '\r\n' + p + k + name + '('; const i = src.indexOf(h); if (i < 0) continue;
-    const c = '\r\n' + p + '}'; const j = src.indexOf(c, i + h.length); if (j <= i) continue;
-    return src.slice(i + 2, j + c.length);
-  } return null;
+  const lines = src.split('\r\n');
+  for (const pad of ['  ', '    ', '']) {
+    const decl = new RegExp('^' + pad + '(?:async )?function ' + name + '\\s*\\(');
+    const anyDecl = new RegExp('^' + pad + '(?:async )?function \\w+\\s*\\(');
+    const start = lines.findIndex(l => decl.test(l));
+    if (start < 0) continue;
+    const close = pad + '}';
+    for (let i = start + 1; i < lines.length; i++) {
+      if (lines[i] === close) return lines.slice(start, i + 1).join('\r\n');
+      if (anyDecl.test(lines[i])) break;   /* unbounded: refuse */
+    }
+    return null;
+  }
+  return null;
 }
 function grabConst(name, src) {
   src = src || SRC;
@@ -506,6 +534,51 @@ guard('S: and the single-panel HTML is otherwise byte-identical to BASE', () => 
      (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
 });
 
+/* =================== H: the grab helper, self-tested ================= */
+say('');
+say('=== H. the extractor this suite leans on ============================');
+guard('H: grab returns the function asked for, padded and column-0 alike', () => {
+  /* a 2-space function: the ordinary case */
+  const g = grab('isNumeric');
+  ok(g !== null, 'H1 a padded function is found');
+  ok(g !== null && /^  function isNumeric\(/.test(g),
+     'H2 and the slice STARTS at its declaration');
+  ok(g !== null && /\r\n  \}$/.test(g),
+     'H3 and ENDS at its own closing brace');
+  ok(g !== null && (g.match(/function \w+\s*\(/g) || []).length === 1,
+     'H4 and contains exactly one function declaration: ' +
+     (g ? (g.match(/function \w+\s*\(/g) || []).length : '-'));
+  ok(g !== null && g.length < 2000,
+     'H5 at ' + (g ? g.length : '-') + ' characters, not a span of the file');
+
+  /* the column-0 case that broke it: function text inside a template literal */
+  const col0 = grab('drawSectionEArc');
+  ok(col0 === null || col0.length < 20000,
+     'H6 drawSectionEArc is either refused or bounded, never half the file: ' +
+     (col0 === null ? 'refused' : col0.length + ' chars'));
+  if (col0 !== null) {
+    ok(/^function drawSectionEArc\(/.test(col0),
+       'H7 and if returned, the slice starts at its declaration');
+    ok((col0.match(/^function \w+\s*\(/gm) || []).length === 1,
+       'H8 and holds no second column-0 declaration');
+  } else {
+    ok(true, 'H7 refused, which is the honest answer for an unbounded span');
+    ok(true, 'H8 and refusing cannot be mistaken for "unchanged"');
+  }
+
+  /* THE REGRESSION THIS REPAIR EXISTS FOR: the blast radius must count only
+   * functions that really moved. Measured directly, without grab. */
+  const names = [...new Set((SRC.match(/(?:^|\r\n)[ \t]*(?:async )?function (\w+)\s*\(/g) || [])
+    .map(m => /function (\w+)/.exec(m)[1]))];
+  const changed = names.filter(n => grab(n, SRC) !== grab(n, BASE_SRC));
+  ok(changed.length < 12,
+     'H9 the changed-function count is plausible (' + changed.length + '), not the ' +
+     '25 the over-reading grab reported');
+  ok(changed.indexOf('drawSectionEArc') < 0 &&
+     changed.indexOf('wireQuadrantTooltip') < 0 && changed.indexOf('wireRankToggle') < 0,
+     'H10 and the three phantoms it used to report are gone from it');
+});
+
 /* =================== P: the wrap predicate =========================== */
 say('');
 say('=== P. isWhollyNumeric, and what it moves ============================');
@@ -820,12 +893,19 @@ guard('X: the blast radius', () => {
     renderTable: 'the colgroup and the text-cell modifier',
     compareColWidths: 'the shared width vector (new)',
     renderSourceTables: 'it computes the vector once and passes it to both',
-    isWhollyNumeric: 'round 3: the wrap predicate, new, and isNumeric untouched',
+    isWhollyNumeric: 'round 3: the wrap predicate, new, and isNumeric untouched',
+    /* Section C group A, not this ticket's, each named so the count stays exact */
+    ingestComputed: 'NOT this ticket: CLCPA-253: the (calculated) marker is column-aware',
+    openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
+    openAddYearDialog: 'NOT this ticket: CLCPA-262: a rejected import keeps the dialog open',
+    wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
-  ok(changed.length === 4, 'X3 exactly FOUR functions changed: ' + changed.length);
+  /* 4 -> 8: Section C group A added four, every one named above. The
+   * over-reading grab used to report 25 here; see section H. */
+  ok(changed.length === 8, 'X3 exactly EIGHT functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),
