@@ -28,6 +28,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -623,10 +625,21 @@ guard('F: flat tables render byte-identically to BASE', () => {
      * table that carries one now differs from BASE. Collected and then
      * asserted, not forgiven: the predicate requires the difference to be
      * exactly that button disappearing from exactly those rows. */
-    if (noTitle(a) !== noTitle(b)) {
+    /* CLCPA-252 ROUND 3: the editor header loses its year too, and
+     * onlyTheTotalRowX compares only <tr> elements -- so it silently forgave a
+     * caption change on any table that ALSO lost a total-row x, and flagged
+     * only the two whose caption was the sole difference. Both halves are made
+     * explicit here: the caption must differ ONLY by year tokens, and the rest
+     * of the fragment is then compared with the captions masked out.
+     *
+     * Strictly narrower than before, not wider: a reworded caption now fails
+     * where the rows-only predicate would have waved it through. */
+    const capOK = kit.captionsDifferOnlyByYear(a, b);
+    const am = kit.maskCaptions(a), bm = kit.maskCaptions(b);
+    if (noTitle(am) !== noTitle(bm) || !capOK) {
       if (id === 'E1') e1 = { a: a, b: b };
       else if (SPACERS.indexOf(id) >= 0) spacer.push({ id: id, y: y, a: a, b: b });
-      else if (onlyTheTotalRowX(noTitle(a), noTitle(b))) totalX.push(id + ':' + y);
+      else if (onlyTheTotalRowX(noTitle(am), noTitle(bm))) totalX.push(id + ':' + y);
       else diff.push(id + ':' + y);
     }
     if (a !== b && noTitle(a) === noTitle(b) && id !== 'E1') titleOnly++;
@@ -637,10 +650,15 @@ guard('F: flat tables render byte-identically to BASE', () => {
       b2 = renderWith(OLD, id, y, schema, rows, []).html;
     } catch (e) { diff.push(id + ':' + y + ' (empty baseline) threw'); return; }
     /* the same CLCPA-244 carve-out, in the state round 3 exists for */
-    if (noTitle(a2) !== noTitle(b2)) {
+    /* the EMPTY-BASELINE state gets the same caption-aware treatment as the
+     * populated one above: the caption may differ only by year tokens, and the
+     * rest is compared with captions masked. */
+    const capOK2 = kit.captionsDifferOnlyByYear(a2, b2);
+    const am2 = kit.maskCaptions(a2), bm2 = kit.maskCaptions(b2);
+    if (noTitle(am2) !== noTitle(bm2) || !capOK2) {
       if (id === 'E1') e1empty = { a: a2, b: b2 };
       else if (SPACERS.indexOf(id) >= 0) spacer.push({ id: id, y: y + ' (empty)', a: a2, b: b2 });
-      else if (onlyTheTotalRowX(noTitle(a2), noTitle(b2))) totalX.push(id + ':' + y + ' (empty baseline)');
+      else if (onlyTheTotalRowX(noTitle(am2), noTitle(bm2))) totalX.push(id + ':' + y + ' (empty baseline)');
       else diff.push(id + ':' + y + ' (empty baseline)');
     }
   });

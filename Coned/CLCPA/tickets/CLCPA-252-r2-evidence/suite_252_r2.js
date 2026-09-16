@@ -29,6 +29,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -121,7 +123,16 @@ guard('S: no stored table-year moves', () => {
       checked++;
       const a = OLD.attempt(api => api.tableCaption(t, y));
       const b = NEW.attempt(api => api.tableCaption(t, y));
-      if (a !== b) moved.push(id + ':' + y + '  ' + JSON.stringify(a) + ' -> ' + JSON.stringify(b));
+      /* CLCPA-252 ROUND 3 changes what a STORED year renders: every caption
+       * loses its year. This pin is NARROWED, not widened -- the shared kit
+       * requires everything outside the <h3> to be byte-identical AND each
+       * caption to be its BASE self with year tokens removed. A reworded
+       * caption, a changed cell or an ADDED year still fails. */
+      /* CLCPA-252 ROUND 3 supersedes round 2's gate: a stored caption now
+       * LOSES its year. Narrowed to exactly that -- the new caption must be
+       * the BASE caption with year tokens removed and nothing else. */
+      if (b !== kit.captionAfterStrip(a))
+        moved.push(id + ':' + y + '  ' + JSON.stringify(a) + ' -> ' + JSON.stringify(b));
     });
   });
   ok(checked === 153, 'S1 ' + checked + ' stored titles rendered on both sides');
@@ -139,8 +150,11 @@ guard('S: no stored table-year moves', () => {
       const a = String(OLD.attempt(api => api.renderSourceTables([t], y, {}, id)));
       const b = String(NEW.attempt(api => api.renderSourceTables([t], y, {}, id)));
       const hasTitle = !!((t.title_by_year || {})[y]);
-      if (hasTitle) { titled++; if (a !== b) panelMoved.push(id + ':' + y); }
-      else if (a !== b) untitledMoved.push(id + ':' + y);
+      /* same narrowing on the rendered panel: everything outside the <h3>
+       * byte-identical, and the caption only de-yeared. */
+      const same = kit.onlyCaptionYearsChanged(b, a);
+      if (hasTitle) { titled++; if (!same) panelMoved.push(id + ':' + y); }
+      else if (!same) untitledMoved.push(id + ':' + y);
     });
   });
   ok(panels === 149, 'S3 ' + panels + ' stored table-years rendered as PANELS on both sides');
@@ -167,7 +181,12 @@ guard('S: and A8:2023 moves in the intended direction', () => {
   const now = NEW.attempt(api => api.tableCaption(t, '2023'));
   ok(was === 'Table A8. Residential Install',
      'S6 at BASE it rendered round 1s short_title: ' + JSON.stringify(was));
-  ok(now === 'Table A8. 2023 Installations by Measure Category for Residential Programs (Total and in DACs)',
+  /* SUPERSEDED BY CLCPA-252 ROUND 3, which rules that no caption carries a
+   * year at all. Round 2s claim was that the year travels; round 3s is that it
+   * goes. Re-pinned to the round-3 string rather than relaxed -- what round 2
+   * still owns, and still proves here, is that a fresh year gets the FULL
+   * descriptive title instead of short_title. */
+  ok(now === 'Table A8. Installations by Measure Category for Residential Programs (Total and in DACs)',
      'S7 and it now reads like its neighbours: ' + JSON.stringify(now));
   /* and the DONOR really does read that way, or S7 is just a string I typed.
    * The donor is the NEWEST titled year, 2025 -- not 2024, which also stores
@@ -179,8 +198,13 @@ guard('S: and A8:2023 moves in the intended direction', () => {
   ok(donor === 'Table A8. 2025 Installations by Measure Category for Residential Programs (Total and in DACs)',
      'S8 the donor A8:2025 stores exactly that shape, so S7 is a match and not ' +
      'an invention: ' + JSON.stringify(donor));
-  ok(now === donor.split('2025').join('2023'),
-     'S9 and the rendered 2023 caption is the donor with its year substituted, once');
+  /* SUPERSEDED BY ROUND 3: the year is REMOVED, not substituted. The claim is
+   * still exact -- the rendered caption is the donor, transformed the one way
+   * the shipped strip transforms it -- and the shared kit is what says so, so
+   * this suite and the strip cannot drift apart. */
+  ok(now === kit.captionAfterStrip(donor),
+     'S9 and the rendered 2023 caption is the donor with its year REMOVED: ' +
+     JSON.stringify(now));
   /* the neighbour that DOES carry a tail proves the strip is reached here */
   const tailed = (P.tables.A8.title_by_year || {})['2024'];
   ok(/\|\s*Main/.test(String(tailed)) && !/\|/.test(now),
@@ -218,14 +242,14 @@ guard('D: every table derives, and the reach is the measured one', () => {
 
 guard('D: the exact strings Emely named', () => {
   /* the target from the ruling, character for character */
-  ok(strat.C1 && strat.C1.cap === 'Table C1. 2098 Summary of Con Edison Demand Response Programs',
+  ok(strat.C1 && strat.C1.cap === 'Table C1. Summary of Con Edison Demand Response Programs',
      'D6 C1 renders the commissioned string: ' + JSON.stringify(strat.C1 && strat.C1.cap));
   ok(strat.C1 && strat.C1.s === 'B', 'D6b and it took strategy B');
   /* a strategy-A table keeps its own shape, with only the year moved */
-  ok(strat.A1 && strat.A1.cap === 'Table A1. 2098 Program Incentive Dollars Spent (Total and in DACs)',
+  ok(strat.A1 && strat.A1.cap === 'Table A1. Program Incentive Dollars Spent (Total and in DACs)',
      'D7 A1 substitutes: ' + JSON.stringify(strat.A1 && strat.A1.cap));
   /* F3 is a CHART, and the prefix predicate must accept that word too */
-  ok(strat.F3 && strat.F3.cap === 'Chart F3. Customer Interruption Rate 2098',
+  ok(strat.F3 && strat.F3.cap === 'Chart F3. Customer Interruption Rate',
      'D8 F3 is a Chart and still derives: ' + JSON.stringify(strat.F3 && strat.F3.cap));
   ok(strat.D2 && /DER Projects/.test(strat.D2.cap),
      'D9 D2 falls back to short_title: ' + JSON.stringify(strat.D2 && strat.D2.cap));
@@ -334,13 +358,13 @@ guard('N: strategy B accepts a Chart donor that carries no year', () => {
   const info = NEW.attempt(api => api.deriveTableCaptionInfo(chart, '2098'));
   ok(info && info.strategy === 'B',
      'N9 a Chart donor with no year takes strategy B: ' + JSON.stringify(info && info.strategy));
-  ok(info && info.text === 'Chart Z7. 2098 Interruption Rate By Borough',
+  ok(info && info.text === 'Chart Z7. Interruption Rate By Borough',
      'N9b and the year lands after the prefix: ' + JSON.stringify(info && info.text));
   /* the same donor as a Table, so N9 is about the WORD and not about the shape */
   const table = { id: 'Z8', short_title: 'Synthetic',
     title_by_year: { '2025': 'Table Z8. Interruption Rate By Borough' } };
   const i2 = NEW.attempt(api => api.deriveTableCaptionInfo(table, '2098'));
-  ok(i2 && i2.text === 'Table Z8. 2098 Interruption Rate By Borough',
+  ok(i2 && i2.text === 'Table Z8. Interruption Rate By Borough',
      'N9c and a Table donor of the same shape derives identically');
 });
 
@@ -353,7 +377,8 @@ guard('E: the newest year donates, not the first key', () => {
     '2025': 'Table Z4. 2025 New Wording' } };
   const info = NEW.attempt(api => api.deriveTableCaptionInfo(t, '2098'));
   ok(info && info.donorYear === '2025', 'E1 the donor is 2025: ' + (info && info.donorYear));
-  ok(info && info.text === 'Table Z4. 2098 New Wording',
+  /* the INFO carries the donors own wording; the year leaves at tableCaption */
+  ok(info && info.text === 'Table Z4. 2025 New Wording',
      'E2 and the NEW wording is carried: ' + JSON.stringify(info && info.text));
   /* key order in the object is deliberately oldest-first above, which is the
    * shape that fooled dacCol before CLCPA-257 */
@@ -405,6 +430,7 @@ guard('X: the blast radius', () => {
     tableCaption: 'CLCPA-252 r2: it consults the derivation before short_title',
     deriveTableCaptionInfo: 'CLCPA-252 r2: the three strategies, new',
     deriveTableCaption: 'CLCPA-252 r2: the text-only wrapper, new',
+    stripCaptionYear: 'CLCPA-252 round 3: the caption year strip (new)',
     /* CLCPA-264 stacks on this ticket, so its six are named here too. */
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
@@ -423,7 +449,7 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   /* 3 -> 9: CLCPA-264 stacks on this ticket and moved six, all named above. */
   /* 9 -> 14: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 14, 'X1 exactly FOURTEEN functions changed: ' + changed.length);
+  ok(changed.length === 15, 'X1 exactly FIFTEEN functions changed: ' + changed.length);
   /* the ones that must NOT move: the render path and the short_title map */
   ['renderSourceTables', 'renderIngestEditor', 'getTableSchema'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

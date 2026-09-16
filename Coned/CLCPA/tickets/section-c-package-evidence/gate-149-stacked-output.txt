@@ -9,7 +9,8 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z1 149 stored table-years rendered on both sides
   ok   Z1b and every one produced a <table>: 149
   ok   Z2 every difference is claimed by a named ticket
-       moved: 1 of 149
+       moved: 62 of 149
+       CLCPA-252 r3: 61 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
        CLCPA-252: 1 -- A8:2023
 
 === Z. the compare panel, the second anatomy =======================
@@ -17,10 +18,12 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z4 149 table-years rendered in COMPARE on both sides
   ok   Z4b and every one produced a <table>: 149
   ok   Z5 every compare difference is claimed by a named ticket
-       moved: 1 of 149
+       moved: 62 of 149
+       CLCPA-252 r3: 61 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
        CLCPA-252: 1 -- A8:2023
 
 === C. each claim matched something, on at least one panel =========
+  ok   C1 CLCPA-252 r3 changed something on the stored years (122): no caption carries a year, on any surface: every stored caption with a year token loses it at render time
   ok   C1 CLCPA-252 changed something on the stored years (2): the caption comes from the table definition, so a stored year with no title entry names itself instead of rendering bare
   ok   C2 the compare panel is a DIFFERENT render for 149 of 149, so this gate drove two anatomies and not one twice
 
@@ -30,9 +33,9 @@ Section C package -- THE FINAL STACKED GATE
   ok   D3 so C2:2025 renders byte-identically on both sides
 
 === E. CLCPA-254 moves nothing here, and that is the right answer ==
-  ok   E1 C2:2023 renders byte-identically: no filed figure moved
-  ok   E1 C2:2024 renders byte-identically: no filed figure moved
-  ok   E1 C2:2025 renders byte-identically: no filed figure moved
+  ok   E1 C2:2023 differs only by its caption losing a year: no filed figure moved
+  ok   E1 C2:2024 differs only by its caption losing a year: no filed figure moved
+  ok   E1 C2:2025 differs only by its caption losing a year: no filed figure moved
   ok   E2 C2:2025 has the declared column, at index 7
   ok   E3 on a year of typed numbers the deployed build leaves C2s total column null: the blank the audit photographed
   ok   E4 and this build computes 736.73, the sum of the three rows, which is C2:2025s own stored 736.73
@@ -43,4 +46,4 @@ Section C package -- THE FINAL STACKED GATE
   ok   X2 and HEAD descends from it, so it is the build this stack changed
   ok   X3 and the two sources genuinely differ
 
-  23 passed, 0 failed
+  24 passed, 0 failed

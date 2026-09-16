@@ -368,6 +368,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       /* CLCPA-252: the editor's caption comes from a shared helper now,
        * and CLCPA-252 round 2 gave that helper a derivation to call. */
       'tableCaption', 'deriveTableCaption', 'deriveTableCaptionInfo',
+      /* CLCPA-252 round 3: the year strip */ 'stripCaptionYear',
       /* CLCPA-260: the editor asks which columns are phantom spacers */
       'phantomSpacerCols', 'getTableSchema',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
@@ -429,6 +430,7 @@ guard('the editor now merges group headers like the viewer always did', () => {
       /* CLCPA-252: the editor's caption comes from a shared helper now,
        * and CLCPA-252 round 2 gave that helper a derivation to call. */
       'tableCaption', 'deriveTableCaption', 'deriveTableCaptionInfo',
+      /* CLCPA-252 round 3: the year strip */ 'stripCaptionYear',
       /* CLCPA-260: the editor asks which columns are phantom spacers */
       'phantomSpacerCols', 'getTableSchema',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
@@ -693,6 +695,7 @@ guard('the four exclusions', () => {
     dacCol: 'NOT this brief: the schema fallback for imported years',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     /* Section C group E, each named so the exact count below stays a guard */
@@ -787,7 +790,7 @@ guard('the four exclusions', () => {
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
   /* 42 -> 44: CLCPA-264 added two, both named above. */
   /* 44 -> 49: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 49, 'exactly FORTY-NINE functions changed: ' + changed.length);
+  ok(changed.length === 50, 'exactly FIFTY functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those forty moved at all');
 });

@@ -582,7 +582,8 @@ guard('H: grab returns the function asked for, padded and column-0 alike', () =>
    * the exact list is X3 above; raising the ceiling here does not relax that. */
   /* 25 -> 30: CLCPA-263 moved five more into the tree this suite reads.
    * The ORDER OF MAGNITUDE is what this guards; the exact list is X3. */
-  ok(changed.length < 30,
+  /* 30 -> 32: CLCPA-252 round 3 added one more. */
+  ok(changed.length < 32,
      'H9 the changed-function count is plausible (' + changed.length + '), not the ' +
      '25 the over-reading grab reported');
   ok(changed.indexOf('drawSectionEArc') < 0 &&
@@ -929,6 +930,7 @@ guard('X: the blast radius', () => {
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
@@ -950,7 +952,7 @@ guard('X: the blast radius', () => {
   /* 17 -> 19: CLCPA-252 round 2 added two, both named above. */
   /* 19 -> 22: CLCPA-264 added two and moved stagedBlock, all named above. */
   /* 22 -> 27: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 27, 'X3 exactly TWENTY-SEVEN functions changed: ' + changed.length);
+  ok(changed.length === 28, 'X3 exactly TWENTY-EIGHT functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),

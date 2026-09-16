@@ -25,6 +25,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -313,7 +315,13 @@ guard('Z: the report page is byte-identical on all 149', () => {
       /* CLCPA-252 round 2: A8:2023 is the one data-carrying year with no
        * stored title, so its caption DERIVES now and the panel moves. Named
        * rather than tolerated -- anything else moving still fails. */
-      if (a !== b) { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
+      /* CLCPA-252 ROUND 3 changes what a STORED year renders: every caption
+       * loses its year. This pin is NARROWED, not widened -- the shared kit
+       * requires everything outside the <h3> to be byte-identical AND each
+       * caption to be its BASE self with year tokens removed. A reworded
+       * caption, a changed cell or an ADDED year still fails. */
+      if (!kit.onlyCaptionYearsChanged(b, a))
+        { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
     });
   });
   ok(checked === 149 && tables === 149, 'Z1 all 149 rendered, every one a <table>');
@@ -363,6 +371,7 @@ guard('X: the blast radius', () => {
     isDeclaredSummable: 'CLCPA-254: the declaration, new',
     tableCaption: 'NOT this ticket: CLCPA-252 round 2, it consults the derivation',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
@@ -386,7 +395,7 @@ guard('X: the blast radius', () => {
   /* 5 -> 8: CLCPA-252 round 2 added two and changed tableCaption, all named. */
   /* 8 -> 13: CLCPA-264 moved five this suite can see, all named above. */
   /* 13 -> 18: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 18, 'X1 exactly EIGHTEEN functions changed: ' + changed.length);
+  ok(changed.length === 19, 'X1 exactly NINETEEN functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags', 'columnGrandTotals',
    'renderSourceTables', 'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

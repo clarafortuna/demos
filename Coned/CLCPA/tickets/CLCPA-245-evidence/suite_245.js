@@ -639,6 +639,7 @@ guard('X: the blast radius', () => {
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     renderSectionC: 'NOT this ticket: CLCPA-259, the panel reads C1',
     openSaveModal: 'NOT this ticket: CLCPA-256: the confirm dialog counts real changes',
@@ -673,7 +674,7 @@ guard('X: the blast radius', () => {
   /* 23 -> 25: CLCPA-252 round 2 added two, both named above. */
   /* 25 -> 28: CLCPA-264 added two and moved stagedBlock, all named above. */
   /* 28 -> 33: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 33, 'X8 exactly THIRTY-THREE functions changed: ' + changed.length);
+  ok(changed.length === 34, 'X8 exactly THIRTY-FOUR functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

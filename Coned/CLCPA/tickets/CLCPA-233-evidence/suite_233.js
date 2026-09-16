@@ -93,7 +93,9 @@ const FNS = ['renderIngestEditor', 'recomputeTotals', 'detectPctColumns',
    * closure needs it. A missing dependency here shows up as every guard in
    * this suite THROWING rather than failing, which is why the list is
    * explicit rather than resolved on demand. */
-  'tableCaption',
+  /* CLCPA-252 round 3: tableCaption strips the year from every path, so the
+   * closure needs the strip or every guard here reports THREW. */
+  'tableCaption', 'stripCaptionYear',
   /* CLCPA-260: the editor asks which columns are phantom spacers */
   'phantomSpacerCols', 'getTableSchema',
   'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',

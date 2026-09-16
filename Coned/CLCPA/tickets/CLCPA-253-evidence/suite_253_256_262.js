@@ -460,6 +460,7 @@ guard('X: the blast radius', () => {
   const LATER = {
     tableCaption: 'CLCPA-252, group B: the caption helper, new',
     deriveTableCaption: 'CLCPA-252 round 2: the derivation (new)',
+    stripCaptionYear: 'CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',

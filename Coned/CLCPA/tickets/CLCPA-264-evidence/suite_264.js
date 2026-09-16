@@ -26,6 +26,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -339,7 +341,12 @@ guard('Z: all 149 stored table-years render byte-identical', () => {
       checked++;
       const a = String(OLD.attempt(api => api.renderSourceTables([t], y, {}, id)));
       const b = String(NEW.attempt(api => api.renderSourceTables([t], y, {}, id)));
-      if (a !== b) moved.push(id + ':' + y);
+      /* CLCPA-252 ROUND 3 changes what a STORED year renders: every caption
+       * loses its year. This pin is NARROWED, not widened -- the shared kit
+       * requires everything outside the <h3> to be byte-identical AND each
+       * caption to be its BASE self with year tokens removed. A reworded
+       * caption, a changed cell or an ADDED year still fails. */
+      if (!kit.onlyCaptionYearsChanged(b, a)) moved.push(id + ':' + y);
     });
   });
   ok(checked === 149, 'Z1 ' + checked + ' stored table-years rendered on both sides');
@@ -381,6 +388,9 @@ guard('X: the blast radius', () => {
     compositeValueText: 'NOT this ticket: CLCPA-263: the value formatting (new)',
     bareNumber: 'NOT this ticket: CLCPA-263: the bare-number test (new)',
     renderIngestImportResult: 'CLCPA-264: the result panel announces it',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3, the caption year strip (new)',
+    deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 3, it stops carrying the year across',
+    tableCaption: 'NOT this ticket: CLCPA-252 round 3, it strips on all three paths',
     openAddYearDialog: 'CLCPA-264: stagedBlock warns, and the call site attaches the advisory',
     /* both NESTED inside openAddYearDialog, and both counted separately
      * because this suite's name scan sees any `function NAME(` at any indent.
@@ -392,7 +402,7 @@ guard('X: the blast radius', () => {
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed as intended: ' + EXPECT[n]));
   /* 6 -> 11: CLCPA-263 stacks on this ticket and moved five, all named. */
-  ok(changed.length === 11, 'X1 exactly ELEVEN functions changed: ' + changed.length);
+  ok(changed.length === 14, 'X1 exactly FOURTEEN functions changed: ' + changed.length);
   /* the importer's own engine is untouched: this adds a warning beside it */
   ['buildIngestImport', 'applyIngestImport', 'parseCsvRows', 'getTableSchema',
    'ingestStagedSummary'].forEach(n => {
