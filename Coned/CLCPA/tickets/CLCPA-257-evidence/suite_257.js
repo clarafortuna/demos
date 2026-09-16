@@ -25,6 +25,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -181,7 +183,13 @@ guard('G: and the composed render is byte-identical on all 149', () => {
       /* CLCPA-252 round 2: A8:2023 is the one data-carrying year with no
        * stored title, so its caption DERIVES now and the panel moves. Named
        * rather than tolerated -- anything else moving still fails. */
-      if (a !== b) { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
+      /* CLCPA-252 ROUND 3 changes what a STORED year renders: every caption
+       * loses its year. This pin is NARROWED, not widened -- the shared kit
+       * requires everything outside the <h3> to be byte-identical AND each
+       * caption to be its BASE self with year tokens removed. A reworded
+       * caption, a changed cell or an ADDED year still fails. */
+      if (!kit.onlyCaptionYearsChanged(b, a))
+        { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
     });
   });
   ok(checked === 149 && tables === 149,
@@ -243,6 +251,7 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'CLCPA-261, group E: the summary announces them',
     tableCaption: 'CLCPA-252 round 2: it consults the derivation',
     deriveTableCaption: 'CLCPA-252 round 2: the title derivation (new)',
+    stripCaptionYear: 'CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'CLCPA-252 round 2: the three strategies (new)',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',

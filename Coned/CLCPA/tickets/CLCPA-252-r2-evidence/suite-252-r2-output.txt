@@ -11,73 +11,73 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   S4b and every TITLED panel is byte-identical to BASE
   ok   S5 the only panel that moves is A8:2023, the one stored year with data and no title: ["A8:2023"]
   ok   S6 at BASE it rendered round 1s short_title: "Table A8. Residential Install"
-  ok   S7 and it now reads like its neighbours: "Table A8. 2023 Installations by Measure Category for Residential Programs (Total and in DACs)"
+  ok   S7 and it now reads like its neighbours: "Table A8. Installations by Measure Category for Residential Programs (Total and in DACs)"
   ok   S8 the donor A8:2025 stores exactly that shape, so S7 is a match and not an invention: "Table A8. 2025 Installations by Measure Category for Residential Programs (Total and in DACs)"
-  ok   S9 and the rendered 2023 caption is the donor with its year substituted, once
+  ok   S9 and the rendered 2023 caption is the donor with its year REMOVED: "Table A8. Installations by Measure Category for Residential Programs (Total and in DACs)"
   ok   S10 A8:2024 carries a tail and the derived caption does not
 
 === D. a fresh year 2098: all 52 tables, and which strategy each ====
-       A  A1  "Table A1. 2098 Program Incentive Dollars Spent (Total and in DACs)"
-       B  A10 "Table A10. 2098 Installations Comparison Summary"
-       A  A2  "Table A2. 2098 Program Energy Savings Achieved (Total and in DACs)"
-       A  A3  "Table A3. 2098 Total Number of Participants and Average Savings and Incentives by Participant"
-       A  A4  "Table A4. 2098 Total Number of DAC Participants and Average Savings and Incentives by Participant"
-       A  A5  "Table A5. 2098 Installations by Measure Category for Commercial Programs (Total and in DACs)"
-       A  A6  "Table A6. 2098 Installations by Measure Category for Multifamily Programs (Total and in DACs)"
-       A  A7  "Table A7. 2098 Installations by Measure Category for Multisector Programs (Total and in DACs)"
-       A  A8  "Table A8. 2098 Installations by Measure Category for Residential Programs (Total and in DACs)"
-       B  A9  "Table A9. 2098 Incentive and Savings Comparison Summary"
-       A  B1  "Table B1. Total Make-Ready Incentive Funding Spent in 2098"
-       A  B2  "Table B2. Charging Plugs Completed Under the Make-Ready Program In 2098"
-       B  C1  "Table C1. 2098 Summary of Con Edison Demand Response Programs"
-       B  C2  "Table C2. 2098 Participation Summary by Customer Group"
-       B  C3  "Table C3. 2098 DAC Program Participation Summary"
-       B  C4  "Table C4. 2098 Low-Income Program Participation Summary"
-       B  C5  "Table C5. 2098 Total Program Participation Summary4"
-       B  D1  "Table D1. 2098 Typical Compensation Types for Distributed Energy Resources"
+       A  A1  "Table A1. Program Incentive Dollars Spent (Total and in DACs)"
+       B  A10 "Table A10. Installations Comparison Summary"
+       A  A2  "Table A2. Program Energy Savings Achieved (Total and in DACs)"
+       A  A3  "Table A3. Total Number of Participants and Average Savings and Incentives by Participant"
+       A  A4  "Table A4. Total Number of DAC Participants and Average Savings and Incentives by Participant"
+       A  A5  "Table A5. Installations by Measure Category for Commercial Programs (Total and in DACs)"
+       A  A6  "Table A6. Installations by Measure Category for Multifamily Programs (Total and in DACs)"
+       A  A7  "Table A7. Installations by Measure Category for Multisector Programs (Total and in DACs)"
+       A  A8  "Table A8. Installations by Measure Category for Residential Programs (Total and in DACs)"
+       B  A9  "Table A9. Incentive and Savings Comparison Summary"
+       A  B1  "Table B1. Total Make-Ready Incentive Funding Spent"
+       A  B2  "Table B2. Charging Plugs Completed Under the Make-Ready Program"
+       B  C1  "Table C1. Summary of Con Edison Demand Response Programs"
+       B  C2  "Table C2. Participation Summary by Customer Group"
+       B  C3  "Table C3. DAC Program Participation Summary"
+       B  C4  "Table C4. Low-Income Program Participation Summary"
+       B  C5  "Table C5. Total Program Participation Summary4"
+       B  D1  "Table D1. Typical Compensation Types for Distributed Energy Resources"
        C  D2  "Table D2. DER Projects"
-       B  D3  "Table D3. 2098 For All Community DG (CDG) and Remote Crediting (RC) Projects"
-       B  D4  "Table D4. 2098 For All Net Metering Projects"
-       B  E1  "Table E1. 2098 Strategic Electric Capital Investments"
-       B  F1  "Table F1. 2098 Key Terms"
-       A  F2  "Table F2. Excludable and Non-Excludable Outages System-Wide, Network and Non-Network (2098)"
-       A  F3  "Chart F3. Customer Interruption Rate 2098"
-       B  F4  "Table F4. 2098 Outages in Areas Only Supported by Non-Network Load Areas"
-       B  F5  "Table F5. 2098 Outages in Areas Only Supported by Networks"
-       B  F6  "Table F6. 2098 Outages in Areas Supported by Both by Networks and Non-Network Load Areas"
-       B  F7  "Table F7. 2098 Excludable and Non-Excludable Outages by Customers in DACs and Non-DACs"
-       B  F8  "Table F8. 2098 Percentage of Network and Non-Network Customers Systemwide"
-       B  F9  "Table F9. 2098 Percentage of Network and Non-Network Customers Interrupted Systemwide"
-       B  G1  "Table G1. 2098 Total Leak-Prone Pipe Retired and Replaced"
-       B  G10 "Table G10. 2098 Emissions Reductions (metric tons CH4)"
-       B  G2  "Table G2. 2098 Bronx County Retired & Replaced"
-       B  G3  "Table G3. 2098 Bronx County Retired & Abandoned"
-       B  G4  "Table G4. 2098 New York County (Manhattan) Retired & Replaced"
-       B  G5  "Table G5. 2098 New York County (Manhattan) Retired & Abandoned"
-       B  G6  "Table G6. 2098 Queens County Retired & Replaced"
-       B  G7  "Table G7. 2098 Queens County Retired & Abandoned"
-       B  G8  "Table G8. 2098 Westchester County Retired & Replaced"
-       B  G9  "Table G9. 2098 Westchester County Retired & Abandoned"
-       B  H1  "Table H1. 2098 Total Leaks Repaired in DACs and Non-DACs"
-       A  I1  "Table I1. 2098 Year Totals"
-       B  J1  "Table J1. 2098 Residential Electric Usage"
-       B  J2  "Table J2. 2098 Residential Gas Usage"
-       B  J3  "Table J3. 2098 Unpaid Residential Accounts That Were 60 to 90 Days Overdue"
-       B  J4  "Table J4. 2098 Unpaid Residential Accounts That Were 90 Or More Days Overdue"
-       B  J5  "Table J5. 2098 Residential Service Disconnects and Restorations"
-       B  J6  "Table J6. 2098 Residential Customers with DPAs"
-       B  J7  "Table J7. 2098 Number of Customers Enrolled in the Energy Affordability Program"
-       B  J8  "Table J8. 2098 Amount Expended for EAP Discounts"
-       B  J9  "Table J9. 2098 Total Residential Customers"
+       B  D3  "Table D3. For All Community DG (CDG) and Remote Crediting (RC) Projects"
+       B  D4  "Table D4. For All Net Metering Projects"
+       B  E1  "Table E1. Strategic Electric Capital Investments"
+       B  F1  "Table F1. Key Terms"
+       A  F2  "Table F2. Excludable and Non-Excludable Outages System-Wide, Network and Non-Network"
+       A  F3  "Chart F3. Customer Interruption Rate"
+       B  F4  "Table F4. Outages in Areas Only Supported by Non-Network Load Areas"
+       B  F5  "Table F5. Outages in Areas Only Supported by Networks"
+       B  F6  "Table F6. Outages in Areas Supported by Both by Networks and Non-Network Load Areas"
+       B  F7  "Table F7. Excludable and Non-Excludable Outages by Customers in DACs and Non-DACs"
+       B  F8  "Table F8. Percentage of Network and Non-Network Customers Systemwide"
+       B  F9  "Table F9. Percentage of Network and Non-Network Customers Interrupted Systemwide"
+       B  G1  "Table G1. Total Leak-Prone Pipe Retired and Replaced"
+       B  G10 "Table G10. Emissions Reductions (metric tons CH4)"
+       B  G2  "Table G2. Bronx County Retired & Replaced"
+       B  G3  "Table G3. Bronx County Retired & Abandoned"
+       B  G4  "Table G4. New York County (Manhattan) Retired & Replaced"
+       B  G5  "Table G5. New York County (Manhattan) Retired & Abandoned"
+       B  G6  "Table G6. Queens County Retired & Replaced"
+       B  G7  "Table G7. Queens County Retired & Abandoned"
+       B  G8  "Table G8. Westchester County Retired & Replaced"
+       B  G9  "Table G9. Westchester County Retired & Abandoned"
+       B  H1  "Table H1. Total Leaks Repaired in DACs and Non-DACs"
+       A  I1  "Table I1. Year Totals"
+       B  J1  "Table J1. Residential Electric Usage"
+       B  J2  "Table J2. Residential Gas Usage"
+       B  J3  "Table J3. Unpaid Residential Accounts That Were 60 to 90 Days Overdue"
+       B  J4  "Table J4. Unpaid Residential Accounts That Were 90 Or More Days Overdue"
+       B  J5  "Table J5. Residential Service Disconnects and Restorations"
+       B  J6  "Table J6. Residential Customers with DPAs"
+       B  J7  "Table J7. Number of Customers Enrolled in the Energy Affordability Program"
+       B  J8  "Table J8. Amount Expended for EAP Discounts"
+       B  J9  "Table J9. Total Residential Customers"
   ok   D1 strategy A (substitute the year token): 13, measured 13
   ok   D2 strategy B (insert after a clean prefix): 38, measured 38
   ok   D3 strategy C (short_title fallback): 1, measured 1
   ok   D4 and the one fallback is D2, whose title has no space after the period: D2
   ok   D5 all 52 tables accounted for
-  ok   D6 C1 renders the commissioned string: "Table C1. 2098 Summary of Con Edison Demand Response Programs"
+  ok   D6 C1 renders the commissioned string: "Table C1. Summary of Con Edison Demand Response Programs"
   ok   D6b and it took strategy B
-  ok   D7 A1 substitutes: "Table A1. 2098 Program Incentive Dollars Spent (Total and in DACs)"
-  ok   D8 F3 is a Chart and still derives: "Chart F3. Customer Interruption Rate 2098"
+  ok   D7 A1 substitutes: "Table A1. Program Incentive Dollars Spent (Total and in DACs)"
+  ok   D8 F3 is a Chart and still derives: "Chart F3. Customer Interruption Rate"
   ok   D9 D2 falls back to short_title: "Table D2. DER Projects"
 
 === T. the "|  Main  |  PDF page N" tail is stripped ================
@@ -98,12 +98,12 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   N8 a donor whose year also appears as a substring is refused by A: null
   ok   N8b and it takes no strategy, so the cohort label is left alone
   ok   N9 a Chart donor with no year takes strategy B: "B"
-  ok   N9b and the year lands after the prefix: "Chart Z7. 2098 Interruption Rate By Borough"
+  ok   N9b and the year lands after the prefix: "Chart Z7. Interruption Rate By Borough"
   ok   N9c and a Table donor of the same shape derives identically
 
 === E. the donor is the newest year with a title ====================
   ok   E1 the donor is 2025: 2025
-  ok   E2 and the NEW wording is carried: "Table Z4. 2098 New Wording"
+  ok   E2 and the NEW wording is carried: "Table Z4. 2025 New Wording"
   ok   E3 and the first key really is the oldest, so E1 was not free
   ok   E4 a blank title is not a donor: 2024
   ok   E5 a non-numeric year derives nothing
@@ -111,7 +111,7 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   E7 and a null table still returns the empty string
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to compositeValueText is accounted for
@@ -124,11 +124,13 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
+  ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   tableCaption changed as intended: CLCPA-252 r2: it consults the derivation before short_title
   ok   deriveTableCaptionInfo changed as intended: CLCPA-252 r2: the three strategies, new
   ok   deriveTableCaption changed as intended: CLCPA-252 r2: the text-only wrapper, new
+  ok   stripCaptionYear changed as intended: CLCPA-252 round 3: the caption year strip (new)
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor (new)
   ok   importIdentityNotice changed as intended: CLCPA-264: the import identity advisory (new)
   ok   rowsForDisplay changed as intended: CLCPA-263: it derives the value (pct) composites on its clone
@@ -140,7 +142,7 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
   ok   renderIngestImportResult changed as intended: CLCPA-264: the result panel announces the advisory
-  ok   X1 exactly FOURTEEN functions changed: 14
+  ok   X1 exactly FIFTEEN functions changed: 15
   ok   X2 renderSourceTables is byte-identical to BASE
   ok   X2 renderIngestEditor is byte-identical to BASE
   ok   X2 getTableSchema is byte-identical to BASE
@@ -154,4 +156,4 @@ CLCPA-252 round 2 -- a fresh year derives its title
   ok   X10 and HEAD descends from it
   ok   X11 and the two sources genuinely differ
 
-  86 passed, 0 failed
+  88 passed, 0 failed

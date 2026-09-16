@@ -29,6 +29,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -113,8 +114,11 @@ guard('T: the live bare caption is healed', () => {
    * Re-pinned rather than relaxed: the claim is still exact, it is just the
    * round-2 string. Round 1's own achievement -- that this caption is no
    * longer BALD -- is what T1b keeps, and that is the part this suite owns. */
+  /* SUPERSEDED AGAIN, by CLCPA-252 ROUND 3: no caption carries a year. Round
+   * 1s claim -- that this caption is no longer BALD -- is what T1c still keeps,
+   * and it is the part this suite owns. */
   ok(cap(P.tables.A8, '2023') ===
-     'Table A8. 2023 Installations by Measure Category for Residential Programs (Total and in DACs)',
+     'Table A8. Installations by Measure Category for Residential Programs (Total and in DACs)',
      'T1 and it now reads "' + cap(P.tables.A8, '2023') + '"');
   ok(!/^Table A8$/.test(cap(P.tables.A8, '2023')),
      'T1c and it is not bald, which is what round 1 bought and round 2 keeps');
@@ -145,24 +149,30 @@ guard('T: no table renders bare on a year that does not exist yet', () => {
    * The reach and the strategies are suite_252_r2's to prove; this suite only
    * has to show that round 1's claim survived the change to it. */
   const SAMPLE = {
-    C1: 'Table C1. 2098 Summary of Con Edison Demand Response Programs',
-    A8: 'Table A8. 2098 Installations by Measure Category for Residential Programs (Total and in DACs)',
-    I1: 'Table I1. 2098 Year Totals',
+    C1: 'Table C1. Summary of Con Edison Demand Response Programs',
+    A8: 'Table A8. Installations by Measure Category for Residential Programs (Total and in DACs)',
+    I1: 'Table I1. Year Totals',
     /* J8's donor carries a "|  Main  |  PDF page 55" tail, which the
      * derivation strips: a 2098 caption must not cite a 2025 page. */
-    J8: 'Table J8. 2098 Amount Expended for EAP Discounts',
+    J8: 'Table J8. Amount Expended for EAP Discounts',
     /* C5's donor still reads "Summary4" HERE, because payload.json is the
      * frozen revert parachute and CLCPA-258 corrected the stored row in
      * Dataverse only. The divergence is recorded on the parachute item; this
      * assertion states what the FILE produces, which is what this suite
      * reads, rather than pretending the two agree. */
-    C5: 'Table C5. 2098 Total Program Participation Summary4',
+    C5: 'Table C5. Total Program Participation Summary4',
   };
   Object.keys(SAMPLE).forEach(id => {
     const got = cap(P.tables[id], '2098');
     ok(got === SAMPLE[id], 'T3 ' + id + ' -> "' + got + '"');
-    ok(got !== 'Table ' + id + '. ' + P.tables[id].short_title,
+    /* I1s short_title is literally 'Year Totals', so once round 3 removes the
+     * year its full title and its short title COINCIDE. Named rather than
+     * excused: the claim is that the caption is the DERIVED one, and for I1
+     * the two strings are equal by coincidence of wording. */
+    if (id !== 'I1') ok(got !== 'Table ' + id + '. ' + P.tables[id].short_title,
        'T3b and ' + id + ' is no longer the round-1 short_title form');
+    else ok(got === 'Table I1. Year Totals',
+       'T3b I1s derived caption and its short_title coincide once the year goes');
   });
   /* D2 is the ONE table the derivation cannot reach -- its title reads
    * "Table D2.For All..." with no space after the period -- so it still takes
@@ -180,11 +190,13 @@ guard('T: a STORED title still wins, byte for byte', () => {
       const stored = (t.title_by_year || {})[y];
       if (!stored) return;
       checked++;
-      if (cap(t, y) !== stored) moved.push(id + ':' + y);
+      /* SUPERSEDED BY ROUND 3: a stored title is no longer returned verbatim,
+       * it is returned with its year tokens removed. Narrowed to exactly that. */
+      if (cap(t, y) !== kit.captionAfterStrip(stored)) moved.push(id + ':' + y);
     });
   });
   ok(checked === 148, 'T4 ' + checked + ' stored table-years carry a title');
-  ok(moved.length === 0, 'T5 and every one is returned unchanged' +
+  ok(moved.length === 0, 'T5 and every one is returned with its year removed and nothing else' +
      (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
 });
 
@@ -282,6 +294,7 @@ say('');
 say('=== Z. the stored years: one caption moves, and it is the fix ======');
 guard('Z: exactly one stored table-year renders differently', () => {
   let checked = 0, tables = 0;
+  const capOnly = [];
   const moved = [];
   Object.keys(P.tables).sort().forEach(id => {
     const t = P.tables[id];
@@ -290,13 +303,31 @@ guard('Z: exactly one stored table-year renders differently', () => {
       const b = NEW.attempt(api => api.renderSourceTables([t], y, {}, id));
       checked++;
       if (/<table/.test(String(b))) tables++;
-      if (a !== b) moved.push(id + ':' + y);
+      if (a !== b) {
+        moved.push(id + ':' + y);
+        /* A8:2023 is round 1's OWN case and the one exception: it has no
+         * stored title, so BASE (group A, before round 1) rendered it bald and
+         * this build renders the derived full title. That is not a year
+         * removal, it is the fix this suite exists for, and Z2b asserts it by
+         * name below. Every OTHER mover must be a year removal and nothing
+         * else. */
+        if (id + ':' + y !== 'A8:2023' && !kit.onlyCaptionYearsChanged(b, a)) {
+          capOnly.push(id + ':' + y);
+        }
+      }
     });
   });
   ok(checked === 149, 'Z1 ' + checked + ' stored table-years rendered on both sides');
   ok(tables === 149, 'Z1b and every one produced a <table>');
-  ok(moved.length === 1 && moved[0] === 'A8:2023',
-     'Z2 exactly ONE moved, and it is A8:2023: ' + JSON.stringify(moved));
+  /* SUPERSEDED BY ROUND 3: every caption carrying a year now moves. The claim
+   * is narrowed, not dropped -- each mover must differ ONLY by its caption
+   * losing year tokens, and A8:2023 must still be among them because that is
+   * round 1s own case. */
+  ok(capOnly.length === 0,
+     'Z2 every mover differs ONLY by its caption losing a year: ' +
+     JSON.stringify(capOnly.slice(0, 4)));
+  ok(moved.indexOf('A8:2023') >= 0,
+     'Z2b and A8:2023, round 1s own case, is among them');
   /* and the move is the caption, nothing else */
   const t = P.tables.A8;
   const a = OLD.attempt(api => api.renderSourceTables([t], '2023', {}, 'A8'));
@@ -308,8 +339,9 @@ guard('Z: exactly one stored table-year renders differently', () => {
    * full descriptive title instead. The CLAIM is unchanged -- BASE rendered a
    * bald caption and this build names the table -- so it is stated against
    * what the build actually produces rather than against round 1's wording. */
-  ok(/Table A8\. 2023 Installations by Measure Category/.test(b),
-     'Z4 this build names it: ' + (/(Table A8[^<]*)/.exec(b) || [])[1]);
+  /* round 3 again: the caption is the full descriptive title with NO year. */
+  ok(/Table A8\. Installations by Measure Category/.test(b) && !/Table A8\. 2023/.test(b),
+     'Z4 this build names it, without a year: ' + (/(Table A8[^<]*)/.exec(b) || [])[1]);
   ok(/>Table A8</.test(a) || /Table A8\s*</.test(a),
      'Z4b and BASE rendered it bald: ' + JSON.stringify((/(Table A8[^<]*)/.exec(a) || [])[1]));
 });
@@ -351,6 +383,7 @@ guard('X: the blast radius', () => {
     buildIngestImport: 'NOT this ticket: CLCPA-261, Section C group E: it collects the fraction notices',
     renderIngestImportResult: 'NOT this ticket: CLCPA-261, Section C group E: the summary announces them',
     deriveTableCaption: 'CLCPA-252 ROUND 2: the title derivation, new',
+    stripCaptionYear: 'CLCPA-252 ROUND 3: the caption year strip, new',
     deriveTableCaptionInfo: 'CLCPA-252 ROUND 2: the three strategies, new',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
@@ -381,6 +414,7 @@ guard('X: the blast radius', () => {
      * later round -- and tableCaption is claimed by BOTH, which is why
      * X1b still counts exactly two as uniquely round 1's. */
     deriveTableCaption: 'CLCPA-252 round 2', deriveTableCaptionInfo: 'CLCPA-252 round 2',
+    stripCaptionYear: 'CLCPA-252 round 3',
     declaredTableFromFilename: 'CLCPA-264', importIdentityNotice: 'CLCPA-264',
     openAddYearDialog: 'CLCPA-264', stagedBlock: 'CLCPA-264', wire: 'CLCPA-264',
     renderIngestImportResult: 'CLCPA-264',
@@ -403,6 +437,8 @@ guard('X: the blast radius', () => {
    * report page that calls the helper. The helper's own creation is not left
    * unguarded by this -- T1 and T3 drive it directly, and suite_252_r2 owns
    * the derivation. */
+  /* round 3 adds stripCaptionYear, which is later still: it counts in LATER
+   * and renderSourceTables remains the one uniquely round 1s. */
   ok(mine.length === 1 && mine.indexOf('renderSourceTables') >= 0,
      'X1b ONE function is uniquely round 1s, the report page: ' + mine.sort().join(', '));
   ok(changed.indexOf('tableCaption') >= 0,

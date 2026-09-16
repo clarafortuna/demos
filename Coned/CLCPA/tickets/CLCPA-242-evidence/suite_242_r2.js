@@ -414,6 +414,7 @@ guard('two functions', () => {
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     deriveTableCaption: 'NOT this round: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    stripCaptionYear: 'NOT this round: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this round: CLCPA-252 round 2, the three strategies (new)',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
@@ -474,7 +475,7 @@ guard('two functions', () => {
   /* 33 -> 35: CLCPA-252 round 2 added two, both named above. */
   /* 35 -> 37: CLCPA-264 added two, both named above. */
   /* 37 -> 42: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 42, 'FORTY-TWO: this round\'s two, CLCPA-240\'s twelve ' +
+  ok(changed.length === 43, 'FORTY-THREE: this round\'s two, CLCPA-240\'s twelve ' +
      'and CLCPA-244\'s four: ' + changed.length);
 });
 

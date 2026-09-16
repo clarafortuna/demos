@@ -1,0 +1,101 @@
+======================================================================
+CLCPA-252 round 3 -- no caption carries a year, on any surface
+  BASE 2724b8d
+======================================================================
+
+=== A. every table, every year: no caption carries a year ===========
+  ok   A1 260 captions rendered (52 tables x 5 years)
+  ok   A2 NOT ONE carries a year
+  ok   A3 at BASE C1:2099 read "Table C1. 2099 Summary of Con Edison Demand Response Programs"
+  ok   A4 and it now reads "Table C1. Summary of Con Edison Demand Response Programs"
+  ok   A5 C1 renders the SAME caption on all five years: "Table C1. Summary of Con Edison Demand Response Programs"
+
+=== S. every caption surface, driven ===============================
+  ok   S1 every render produced an <h3>: 312/312
+  ok   S2 312 panel captions rendered (52 x 3 years x 2 panels)
+  ok   S3 none carries a year or a PDF tail
+  ok   S4 and the two panels are genuinely different renders
+  ok   S5 the editor header calls tableCaption
+  ok   S6 and strips the PDF tail at the call site
+  ok   S7 and renders that, and nothing else, as its heading
+  ok   S8 tableCaption has exactly TWO call sites, so the strip lands once and covers both surfaces: 2
+  ok   S9 the Add Data modal never calls tableCaption
+  ok   S10 its dropdown shows short_title, which carries no year
+  ok   S11 and no short_title in the payload contains four digits: none
+  ok   S12 nor does the SHORT_TITLES map
+  ok   S13 the xlsx sheet label is code + short_title, so it carries no year either
+  ok   S14 the xlsx Instructions sheet DOES say "reporting year N", deliberately: it is a document subtitle, not a table caption, and is left as it is
+
+=== D. render-side only: the payload keeps its years ===============
+  ok   D1 153 stored titles in the payload
+  ok   D2 carrying 67 year tokens between them, unchanged: 67
+  ok   D3 and rendering a caption does not touch title_by_year
+
+=== N. the strip cannot reach anything that is not a year ==========
+  ok   N1 67 four-digit runs across the stored titles
+  ok   N2 every one is a STANDALONE 19xx/20xx token
+  ok   N3 and no run of five or more digits exists to be mangled
+  ok   N4 untouched: "Table A10. Installations"  (a two-digit table id)
+  ok   N4 untouched: "Table G10. Emissions Reductions (metric tons CH4)"  (a chemical formula)
+  ok   N4 untouched: "Table J3. Accounts 60 to 90 Days Overdue"  (two-digit figures)
+  ok   N4 untouched: "Table X1. Measure 12345 Detail"  (a FIVE-digit code)
+  ok   N4 untouched: "Table X2. Circuit 4160 Volts"  (a four-digit number that is not 19xx/20xx)
+  ok   N4 untouched: "Table X3. Form 1099 Filings"  (a four-digit form number outside the year range)
+  ok   N4 untouched: "Table X4. 123 Main Street"  (a three-digit number)
+  ok   N4 untouched: "Table X6. Meter 12025 Reading"  (a year-shaped run inside a longer number)
+  ok   N4 untouched: "Table X7. Serial 20255 Batch"  (and one with the extra digit trailing)
+  ok   N5 "Table C1. 2099 Summary of Programs" -> "Table C1. Summary of Programs"
+  ok   N5 "Table B1. Funding Spent in 2025" -> "Table B1. Funding Spent"
+  ok   N5 "Table B2. Program In 2023" -> "Table B2. Program"
+  ok   N5 "Table F2. Outages, Network and Non-Network (2025)" -> "Table F2. Outages, Network and Non-Network"
+  ok   N5 "Chart F3. Customer Interruption Rate 2025" -> "Chart F3. Customer Interruption Rate"
+  ok   N5 "Table F3. 2023 Customer Interruption Rate 2023" -> "Table F3. Customer Interruption Rate"
+  ok   N5 "Table X5. Totals for 2099" -> "Table X5. Totals"
+  ok   N6 "in DACs" survives: the preposition rule needs the YEAR right after it
+
+=== H. no year list, no table-id list, no per-table caption =========
+  ok   H1 the strip contains no literal year string
+  ok   H2 and no table id
+  ok   H3 the year is a PATTERN, not a list
+  ok   H4 a table and years the payload has never seen: "Table Z9. Something Measured"
+  ok   H5 and a 19xx year strips the same way
+
+=== R. round 2s two guarantees still hold =========================
+  ok   R1 no caption as SHOWN cites a PDF page: 104 checked
+  ok   R2 and the derivation strips it too: "Table J8. Amount Expended for EAP Discounts"
+  ok   R3 D2 derives NOTHING, so it falls back to short_title
+  ok   R4 and renders its short title: "Table D2. DER Projects"
+  ok   R5 the derivation reach is unchanged from round 2: A=13 B=38 C=1
+  ok   R6 strategy A no longer substitutes the requested year: "Table A1. 2025 Program Incentive Dollars Spent (Total and in DACs)"
+  ok   R7 and strategy B no longer inserts it: "Table C1. Summary of Con Edison Demand Response Programs"
+
+=== L. no dangling preposition, no empty parentheses ==============
+  ok   L1 all 156 rendered captions are well formed
+  ok   L2 B1 loses its dangling "in": "Table B1. Total Make-Ready Incentive Funding Spent"
+  ok   L3 B2 loses its dangling "In"
+  ok   L4 F2 loses its empty parentheses
+  ok   L5 F3:2023 carries its year TWICE and loses both: "Table F3. Customer Interruption Rate"
+  ok   L6 A1:2023 stores "2023Incentive" with no space, and still strips: "Table A1. Incentive Dollars Spent (Total and in DACs)"
+  ok   L7 and D4:2023 stores "2023For": "Table D4. For All Net Metering Projects"
+
+=== X. what else moved =============================================
+       changed: deriveTableCaptionInfo, stripCaptionYear, tableCaption
+  ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to stripCaptionYear is accounted for
+  ok   the change to tableCaption is accounted for
+  ok   stripCaptionYear changed as intended: CLCPA-252 r3: the year strip, new
+  ok   tableCaption changed as intended: CLCPA-252 r3: it strips on all three paths
+  ok   deriveTableCaptionInfo changed as intended: CLCPA-252 r3: it stops carrying the year across
+  ok   X1 exactly THREE functions changed: 3
+  ok   X2 renderSourceTables is byte-identical to BASE
+  ok   X2 renderIngestEditor is byte-identical to BASE
+  ok   X2 renderTable is byte-identical to BASE
+  ok   X2 getTableSchema is byte-identical to BASE
+  ok   X2 rowsForDisplay is byte-identical to BASE
+  ok   X3 SHORT_TITLES is byte-identical
+  ok   X4 styles.css is byte-identical to BASE: this ticket is JS only
+  ok   X5 BASE is a literal commit sha: 2724b8d
+  ok   X6 and HEAD descends from it
+  ok   X7 and the two sources genuinely differ
+
+  78 passed, 0 failed

@@ -41,6 +41,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-252 round 3: the shared caption-difference judgement */
+const kit = require('../_kit/caption_diff.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -355,7 +357,13 @@ guard('Z: the report page is untouched', () => {
       /* CLCPA-252 round 2: A8:2023 is the one data-carrying year with no
        * stored title, so its caption DERIVES now and the panel moves. Named
        * rather than tolerated -- anything else moving still fails Z2. */
-      if (a !== b) { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
+      /* CLCPA-252 ROUND 3 changes what a STORED year renders: every caption
+       * loses its year. This pin is NARROWED, not widened -- the shared kit
+       * requires everything outside the <h3> to be byte-identical AND each
+       * caption to be its BASE self with year tokens removed. A reworded
+       * caption, a changed cell or an ADDED year still fails. */
+      if (!kit.onlyCaptionYearsChanged(b, a))
+        { (((t.title_by_year || {})[y]) ? moved : derivedOnly).push(id + ':' + y); }
     });
   });
   ok(checked === 149 && tables === 149,
@@ -416,6 +424,7 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-261, group E: the summary announces them',
     tableCaption: 'NOT this ticket: CLCPA-252 round 2, it consults the derivation',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     declaredTableFromFilename: 'CLCPA-264: the filename extractor (new)',
     importIdentityNotice: 'CLCPA-264: the import identity advisory (new)',
@@ -435,7 +444,7 @@ guard('X: the blast radius', () => {
   /* 7 -> 10: CLCPA-252 round 2 added two and changed tableCaption, all named. */
   /* 10 -> 15: CLCPA-264 moved five this suite can see, all named above. */
   /* 15 -> 20: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 20, 'X1 exactly TWENTY functions changed: ' + changed.length);
+  ok(changed.length === 21, 'X1 exactly TWENTY-ONE functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

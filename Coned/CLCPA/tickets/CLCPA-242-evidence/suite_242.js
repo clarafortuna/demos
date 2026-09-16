@@ -460,6 +460,7 @@ guard('three functions, all wiring', () => {
     /* Section C group B, not this ticket's */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2: a fresh year DERIVES its title instead of falling back to short_title (new)',
+    stripCaptionYear: 'NOT this ticket: CLCPA-252 round 3: the caption year strip (new)',
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 2, the three strategies (new)',
     getTableSchema: 'NOT this brief: CLCPA-244, the fallback takes the most recent year',
     /* CLCPA-245, the sparse-inference correction routed out of CLCPA-240:
@@ -523,7 +524,7 @@ guard('three functions, all wiring', () => {
   /* 37 -> 39: CLCPA-252 round 2 added two, both named above. */
   /* 39 -> 41: CLCPA-264 added two, both named above. */
   /* 41 -> 46: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 46, 'FORTY-SIX: this ticket’s six, CLCPA-240 first ' +
+  ok(changed.length === 47, 'FORTY-SEVEN: this ticket’s six, CLCPA-240 first ' +
      'half’s eight, round 2 and 3’s four, and CLCPA-244’s four: ' + changed.length);
   ok(grab('placeTooltipAtPointer', BASE_SRC) === null &&
      grab('hideExecTooltip', BASE_SRC) === null,

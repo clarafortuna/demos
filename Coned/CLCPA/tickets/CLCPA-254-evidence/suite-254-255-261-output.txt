@@ -53,7 +53,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, compositeValueText, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, recomputeTotals, renderIngestEditor, renderIngestImportResult, rowsForDisplay, stagedBlock, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, compositeValueText, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, recomputeTotals, renderIngestEditor, renderIngestImportResult, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
@@ -70,11 +70,13 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to stagedBlock is accounted for
+  ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   isDeclaredSummable changed as intended: CLCPA-254: the declaration, new
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 2, it consults the derivation
   ok   deriveTableCaption changed as intended: NOT this ticket: CLCPA-252 round 2, the title derivation (new)
+  ok   stripCaptionYear changed as intended: NOT this ticket: CLCPA-252 round 3: the caption year strip (new)
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 2, the three strategies (new)
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor (new)
   ok   importIdentityNotice changed as intended: CLCPA-264: the import identity advisory (new)
@@ -90,7 +92,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
-  ok   X1 exactly EIGHTEEN functions changed: 18
+  ok   X1 exactly NINETEEN functions changed: 19
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -100,4 +102,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  85 passed, 0 failed
+  87 passed, 0 failed
