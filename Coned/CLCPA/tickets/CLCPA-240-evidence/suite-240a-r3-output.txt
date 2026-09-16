@@ -49,6 +49,8 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
 
 === F. everything outside the family, and the round trip =============
   ok   F1 rendered 48 tables outside the family, in both states
+  ok   F1b the five spacer tables differ in both states: 10
+  ok   F1c and each renders exactly BASEs columns minus its spacers
   ok   F2 every one is byte-identical to BASE
   ok   F3 E1 DID change, which is what CLCPA-244 did
   ok   F3b and in the EMPTY-baseline state too, the one round 3 fixed
@@ -73,4 +75,4 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   S8 styles.css differs only by CLCPA-248s two rules: this round added none
   ok   S9 the baseline is a literal commit sha: "5b6e57e"
 
-  56 passed, 0 failed
+  58 passed, 0 failed

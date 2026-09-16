@@ -102,7 +102,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   DAC_SOURCE is still 'dataverse'
   ok   the composer is byte-identical to BASE
   ok   and so is the shadow compare
-       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
+       changed functions: buildIngestImport, buildIngestWorkbook, compareColWidths, computeHeaderCards, dacCol, getTableSchema, hideExecTooltip, ingestComputed, ingestGroupOf, ingestIsBlankCell, ingestIsHeaderRow, ingestIsShapeBlank, ingestKeyColCount, ingestRowKey, isAnchoredTotalRowLabel, isHierarchicalTotalLabel, isTotalOnlyDerived, isWhollyNumeric, openAddYearDialog, openSaveModal, parseNumericInput, phantomSpacerCols, placeTooltipAtPointer, renderExecutiveSummary, renderIngestEditor, renderIngestPicker, renderSourceTables, renderTable, tableCaption, totalRowFlags, wireControlTips, wireExecutiveInteractions, wireExecutiveTooltips, wireHeaderCardsTooltips, wireIngestLabelTips, wireIngestPage, xlsxInstructionBlocks
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
@@ -124,6 +124,7 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
   ok   the change to parseNumericInput is accounted for
+  ok   the change to phantomSpacerCols is accounted for
   ok   the change to placeTooltipAtPointer is accounted for
   ok   the change to renderExecutiveSummary is accounted for
   ok   the change to renderIngestEditor is accounted for
@@ -147,6 +148,8 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   totalRowFlags changed as intended: NOT this brief: CLCPA-240, the value-less Total row
   ok   renderIngestPicker changed as intended: NOT this brief: CLCPA-240 cosmetic, the year dropdown
   ok   dacCol changed as intended: NOT this brief: the schema fallback for imported years
+  ok   phantomSpacerCols changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new
+  ok   buildIngestWorkbook changed as intended: NOT this brief: CLCPA-240 first half, the template header cells
   ok   placeTooltipAtPointer changed as intended: NOT this brief: CLCPA-242, the shared clamp (new)
   ok   hideExecTooltip changed as intended: NOT this brief: CLCPA-242, hide on re-render (new)
   ok   wireExecutiveTooltips changed as intended: NOT this brief: CLCPA-242
@@ -154,7 +157,6 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   wireExecutiveInteractions changed as intended: NOT this brief: CLCPA-242
   ok   wireControlTips changed as intended: NOT this brief: CLCPA-242 round 2, the early-out
   ok   buildIngestImport changed as intended: NOT this brief: CLCPA-240 first half, the composite row key
-  ok   buildIngestWorkbook changed as intended: NOT this brief: CLCPA-240 first half, the template header cells
   ok   ingestRowKey changed as intended: NOT this brief: CLCPA-240 first half (new)
   ok   ingestGroupOf changed as intended: NOT this brief: CLCPA-240 first half (new)
   ok   ingestIsHeaderRow changed as intended: NOT this brief: CLCPA-240 first half (new)
@@ -175,9 +177,9 @@ PRE-WALKTHROUGH FIXES -- three items
   ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
   ok   openAddYearDialog changed as intended: NOT this ticket: CLCPA-262: a rejected import keeps the dialog open
   ok   parseNumericInput changed as intended: NOT this brief: CLCPA-244 round 2, a trailing % is a unit
-  ok   exactly THIRTY-SEVEN functions changed: 36
+  ok   exactly THIRTY-SEVEN functions changed: 37
   ok   and no function outside those thirty-two moved at all
 
 ======================================================================
-  166 passed, 0 failed
+  168 passed, 0 failed
 ======================================================================

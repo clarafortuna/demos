@@ -310,13 +310,17 @@ guard('the editor now merges group headers like the viewer always did', () => {
      * bound is a guess, so it is asserted rather than assumed */
     const a1 = f.indexOf('\r\n\r\n', a0);
     if (a0 < 0 || a1 <= a0) throw new Error('the headerCells declaration could not be located');
-    return new Function('i', 'isTwoLevel', 'escapeHtml',
+    /* CLCPA-260 gave the single-level branch a third input: hiddenCols, the
+     * phantom spacer columns it must not render. The slice is evaluated in
+     * isolation, so the input has to be supplied here -- otherwise the guard
+     * throws on a name that is perfectly well declared in the real function. */
+    return new Function('i', 'isTwoLevel', 'escapeHtml', 'hiddenCols',
       f.slice(a0, a1) + '\nreturn headerCells;');
   };
   const esc = (s) => String(s == null ? '' : s).replace(/&/g, '&amp;')
     .replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const cells = (schema, isTwoLevel) =>
-    headerCellsFn(SRC)({ schema: schema }, isTwoLevel, esc)
+    headerCellsFn(SRC)({ schema: schema }, isTwoLevel, esc, [])
       .match(/<th[^>]*>/g) || [];
 
   const th = cells(sch, true);
@@ -363,6 +367,8 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
       /* CLCPA-252: the editor's caption comes from a shared helper now */
       'tableCaption',
+      /* CLCPA-260: the editor asks which columns are phantom spacers */
+      'phantomSpacerCols', 'getTableSchema',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -418,6 +424,8 @@ guard('the editor now merges group headers like the viewer always did', () => {
       'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isTotalOnlyDerived',
       /* CLCPA-252: the editor's caption comes from a shared helper now */
       'tableCaption',
+      /* CLCPA-260: the editor asks which columns are phantom spacers */
+      'phantomSpacerCols', 'getTableSchema',
       'columnGrandTotals', 'applyDerivedCols', 'applyDerivedRows', 'recomputeDirty',
       'ingestStatusClass', 'ingestStatusText', 'columnNumericMask',
       'detectCurrencyColumns', 'isNumeric', 'rawNum', 'isSplitCell',
@@ -667,6 +675,8 @@ guard('the four exclusions', () => {
     totalRowFlags: 'NOT this brief: CLCPA-240, the value-less Total row',
     renderIngestPicker: 'NOT this brief: CLCPA-240 cosmetic, the year dropdown',
     dacCol: 'NOT this brief: the schema fallback for imported years',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     placeTooltipAtPointer: 'NOT this brief: CLCPA-242, the shared clamp (new)',
     hideExecTooltip: 'NOT this brief: CLCPA-242, hide on re-render (new)',
     wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
@@ -744,7 +754,7 @@ guard('the four exclusions', () => {
   /* 31 -> 32: CLCPA-248 changed three functions but this suite's name scan
    * is IIFE-scoped and sees only some of them -- measured, not assumed. */
   /* 32 -> 33: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 36, 'exactly THIRTY-SEVEN functions changed: ' + changed.length);
+  ok(changed.length === 37, 'exactly THIRTY-SEVEN functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those thirty-two moved at all');
 });

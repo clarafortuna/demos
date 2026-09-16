@@ -494,7 +494,9 @@ guard('one function', () => {
                  * Named in suite_248, which has the line-indexed grab. */
                 'ingestComputed', 'openSaveModal', 'openAddYearDialog',
                 /* Section C group B */
-                'tableCaption'];
+                'tableCaption',
+                /* Section C group D */
+                'phantomSpacerCols', 'buildIngestWorkbook'];
   const mine = changed.filter(n => ALSO.indexOf(n) < 0);
   ALSO.forEach(n => ok(changed.indexOf(n) >= 0,
     n + ' changed, and it belongs to CLCPA-242, not this ticket'));

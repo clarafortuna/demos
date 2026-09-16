@@ -252,14 +252,39 @@ function templateRows(api, tableId, year) {
 /* The operator's half: type the numbers you have into the cells the template
  * left blank, and leave every "(calculated)" alone. Values come from the
  * STORED payload, so nothing about the expected result is typed here either. */
-function fillLikeOperator(tplRows, stored) {
+/* FILLS BY HEADING, because that is how the importer reads it back.
+ *
+ * This took `src[c]` -- the STORED row indexed by the TEMPLATE's column
+ * position. That held only while the template emitted every stored column.
+ * CLCPA-260 stops emitting the unnamed spacer columns, and then template
+ * column 1 is "Participants" while src[1] is a stored spacer: every value
+ * lands under the wrong heading, and the import faithfully reports what the
+ * file said. Measured on C2:2025 -- filling by position put "37,988 (33%)",
+ * the Participants figure, under "Average Event Reductions (MW)".
+ *
+ * Nothing in app.js maps a column by position; buildIngestImport resolves
+ * `schemaNorm.indexOf(h)`. This helper was the only positional assumption in
+ * the loop, and it was a HARNESS assumption -- which is why the app round
+ * trip, driven directly, is byte-identical wide or narrow.
+ *
+ * `schema` is the table's full stored schema; the template's heading row
+ * names which of its columns each template column holds. */
+function fillLikeOperator(tplRows, stored, schema) {
+  const norm = (h) => String(h == null ? '' : h).trim().toLowerCase();
+  const header = tplRows[0] || [];
+  const full = schema || header;
+  const srcIdx = header.map((h, c) => {
+    if (c === 0 || !norm(h)) return c;
+    const k = full.findIndex(s => norm(s) && norm(s) === norm(h));
+    return k >= 0 ? k : c;
+  });
   return tplRows.map((row, i) => {
     if (i === 0) return row.slice();          // the heading row
     const src = stored[i - 1] || [];
     return row.map((cell, c) => {
       if (c === 0) return cell;
       if (cell != null && String(cell).trim() !== '') return cell;   // marker: leave it
-      const v = src[c];
+      const v = src[srcIdx[c]];
       return (v == null || v === '') ? null : v;
     });
   });
@@ -653,8 +678,8 @@ guard('K: driven -- import behaviour identical to BASE on the untouched tables',
     let tplN, tplO;
     try { tplN = templateRows(NEW, id, y); tplO = templateRows(OLD, id, y); }
     catch (e) { mismatch.push(id + ' template threw: ' + e.message); return; }
-    const fN = fillLikeOperator(tplN.rows, stored);
-    const fO = fillLikeOperator(tplO.rows, stored);
+    const fN = fillLikeOperator(tplN.rows, stored, tplN.schema);
+    const fO = fillLikeOperator(tplO.rows, stored, tplO.schema);
     const rN = NEW.buildIngestImport(fN, tplN.schema, stored.map(r => r.slice()), id);
     const rO = OLD.buildIngestImport(fO, tplO.schema, stored.map(r => r.slice()), id);
     checked++;

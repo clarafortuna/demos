@@ -421,6 +421,8 @@ guard('two functions, and nothing else', () => {
     totalRowFlags: 'the value-less total branch',
     renderIngestPicker: 'the cosmetic: the year dropdown',
     dacCol: 'NOT this brief: the schema fallback for imported years, found in the follow-up pass',
+    phantomSpacerCols: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them',
     placeTooltipAtPointer: 'NOT this brief: CLCPA-242, the shared clamp (new)',
     hideExecTooltip: 'NOT this brief: CLCPA-242, hide on re-render (new)',
     wireExecutiveTooltips: 'NOT this brief: CLCPA-242',
@@ -505,7 +507,7 @@ guard('two functions, and nothing else', () => {
   /* 25 -> 27: CLCPA-245 round 2 added two more. */
   /* 27 -> 30: CLCPA-248 changed three more, every one named above. */
   /* 30 -> 31: CLCPA-248 round 3 added isWhollyNumeric. */
-  ok(changed.length === 34, 'exactly THIRTY-FIVE functions changed: ' + changed.length);
+  ok(changed.length === 35, 'exactly THIRTY-FIVE functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

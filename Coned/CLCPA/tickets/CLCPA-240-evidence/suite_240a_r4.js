@@ -618,6 +618,11 @@ guard('S: the veto is scoped and singular', () => {
     { add: 'labelText', why: 'CLCPA-245, the label tooltip' },
     /* CLCPA-252: the editor's caption comes from the table definition */
     { add: 'tableCaption(table, i.year)', why: 'CLCPA-252' },
+    /* CLCPA-260: the editor stops rendering the phantom spacer columns */
+    { add: 'phantomSpacerCols(', why: 'CLCPA-260' },
+    { add: 'state.payload.tables[i.tableId]', why: 'CLCPA-260' },
+    { add: 'i.year);', why: 'CLCPA-260' },
+    { add: 'hiddenCols', why: 'CLCPA-260' },
     { rm: "(table.title_by_year || {})[i.year] || ('Table ' + i.tableId)", why: 'CLCPA-252' },
   ];
   const unexplained = added.filter(l => !CLAIMED.some(c => l.indexOf(c.add) >= 0));

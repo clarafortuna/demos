@@ -76,6 +76,8 @@ function grabDecl(name) {
 const NAMES = ['crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
   'xlsxStylesXml', 'xlsxCell', 'xlsxSheetXml', 'xlsxInstructionBlocks',
   'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed', 'isTotalOnlyDerived',
+  /* CLCPA-260: the template asks which columns are phantom spacers */
+  'phantomSpacerCols',
   'totalRowFlags', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell', 'cellText', 'cellCount',
   'cellPct', 'getTableSchema', 'getTableBody', 'rawNum', 'parseCsvRows',
   'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport',

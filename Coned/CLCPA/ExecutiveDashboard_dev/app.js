@@ -1538,6 +1538,66 @@ function utf8ByteLength(str) {
    * Format matches what the stored titles look like once the "| Main | PDF
    * page N" suffix is split off, which is what both callers already display.
    */
+  /**
+   * CLCPA-260: THE PHANTOM SPACER COLUMNS.
+   *
+   * C1's schema is 3 columns in 2023 and 6 from 2024; C2-C5 go 4 to 8. The
+   * extra columns are UNNAMED and hold nothing in any stored year -- they are
+   * spacers that came in with the wider schema. They render as blank,
+   * unlabelled, apparently-fillable cells in the editor and as blank columns
+   * in the template, and the CLCPA-124 audit named them: a preparer cannot
+   * tell them from a cell they are supposed to fill.
+   *
+   * THE PREDICATE IS THREE CONDITIONS, and all three are load-bearing:
+   *
+   *   1. the header is BLANK. A named column is a column.
+   *   2. NO stored year has data in it. Measured: 50 blank-headed columns
+   *      exist dashboard-wide and TWELVE of them carry real values --
+   *      A9/A10/F7's label column and F6's detail columns, up to 25 values
+   *      each. A filter on the header alone would erase those.
+   *   3. the table is NOT two-level. A9/A10/F6 put their group structure in
+   *      the header rows, and a blank header there is part of that structure
+   *      rather than a spacer.
+   *
+   * THE STORED SCHEMA IS NOT TOUCHED. This filters what is RENDERED and what
+   * is EMITTED; data[] rows keep every column they have, cell indexes are
+   * unchanged, and a save writes the same shape it read. Changing the stored
+   * schema would be a data change and needs its own ruling.
+   */
+  function phantomSpacerCols(t, year) {
+    const out = [];
+    if (!t) return out;
+    const hl = t.header_levels !== undefined ? t.header_levels : 1;
+    if (hl === 2) return out;                     /* condition 3 */
+    const by = t.schema_by_year || {};
+    const schema = by[year] || getTableSchema(t, year);
+    if (!Array.isArray(schema)) return out;
+    /* PER YEAR, and this is not a detail. C1's 2023 schema is
+     * ["Program","Category","Description"] and its 2025 schema is
+     * ["Program","","","Category","","Description"] -- the same INDEX means a
+     * different column in each. My first cut asked whether a column was blank
+     * in every year, which read 2023's "Category" at index 1 as a reason to
+     * keep 2025's spacer at index 1, and left C1 six columns wide instead of
+     * three. Widths differ, so indexes are only comparable within a width. */
+    const sameWidth = Object.keys(by).filter(y =>
+      Array.isArray(by[y]) && by[y].length === schema.length);
+    for (let c = 1; c < schema.length; c++) {
+      const h = schema[c];
+      if (h != null && String(h).trim() !== '') continue;      /* condition 1 */
+      /* condition 2: empty in EVERY stored year that shares this shape, not
+       * merely in the year on screen -- a column that holds a value in some
+       * other year of the same schema is a column, not a spacer. */
+      const carries = sameWidth.some(y =>
+        ((t.data || {})[y] || []).some(r => {
+          const v = (r || [])[c];
+          return v != null && String(v).trim() !== '';
+        }));
+      if (carries) continue;
+      out.push(c);
+    }
+    return out;
+  }
+
   function tableCaption(t, year) {
     if (!t) return '';
     const stored = (t.title_by_year || {})[year];
@@ -16902,7 +16962,13 @@ function wireHTooltips() {
       { heights: heights1, hideGridlines: true });
 
     // ---- sheet 2: the example table, every cell locked -------------------
-    const rows = [schema.map(h => ({ style: XLSX_STYLE_HEADER, text: h }))];
+    /* CLCPA-260: the phantom spacer columns are not emitted. The importer
+     * matches columns by HEADER NAME, and a blank header matches nothing, so
+     * dropping them changes what the preparer sees and nothing about how the
+     * file is read back. The stored schema is untouched. */
+    const hidden = phantomSpacerCols(table, year);
+    const visible = (arr) => arr.filter((_, i) => hidden.indexOf(i) < 0);
+    const rows = [visible(schema).map(h => ({ style: XLSX_STYLE_HEADER, text: h }))];
     src.rows.forEach((row, idx) => {
       // Round 6: a Total row carries the dashboard's total-row look, whole row.
       const isTotal = computed.totalRow(idx);
@@ -16915,7 +16981,7 @@ function wireHTooltips() {
        * nothing to calculate: it is a caption for the rows beneath it. This is
        * what makes A5's own template carry the key the matcher reads. */
       const isGroupHeader = ingestIsHeaderRow(row, [0]);
-      rows.push(schema.map((h, c) => {
+      rows.push(visible(schema.map((h, c) => {
         if (c === 0) {
           return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
                    text: row[0] };
@@ -16939,7 +17005,7 @@ function wireHTooltips() {
          * format, it is not filled in. The operator types into their own CSV,
          * saved from this sheet. */
         return { style: style, text: null };
-      }));
+      })));
     });
 
     /* ROUND 6: real column widths, because Excel does not autofit at
@@ -16962,7 +17028,7 @@ function wireHTooltips() {
      * 16..28, and the header row wraps too. */
     const longestLabel = src.rows.reduce((m, r) =>
       Math.max(m, String(r[0] == null ? '' : r[0]).length), 0);
-    const widths = schema.map((h, i) => (i === 0
+    const widths = visible(schema).map((h, i) => (i === 0
       ? Math.min(64, Math.max(30, longestLabel + 2))
       : Math.min(28, Math.max(16, String(h).length + 2))));
     const sheet2 = xlsxSheetXml(rows, widths);
@@ -21222,9 +21288,16 @@ function wireHTooltips() {
      * Consecutive IDENTICAL non-empty labels merge. That is the same rule
      * renderTable calls the "legacy consecutive identical values pattern", and
      * matching it rather than inventing a second rule is the point. */
+    /* CLCPA-260: the phantom spacer columns are not RENDERED. Cell indexes
+     * are unchanged -- data-col still carries the real column -- so editing,
+     * importing and saving all see the same shape they always did. */
+    const hiddenCols = phantomSpacerCols(
+      (state.payload && state.payload.tables ? state.payload.tables[i.tableId] : null),
+      i.year);
     const headerCells = (() => {
       if (!isTwoLevel) {
         return i.schema.map((col, idx) =>
+          hiddenCols.indexOf(idx) >= 0 ? '' :
           `<th${idx === 0 ? ' class="ingest-th-label"' : ''}>${escapeHtml(col)}</th>`
         ).join('');
       }
@@ -21445,6 +21518,7 @@ function wireHTooltips() {
       const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&
         isHierarchicalTotalLabel(row[0]);
       const cells = i.schema.map((_, colIdx) => {
+        if (hiddenCols.indexOf(colIdx) >= 0) return '';
         const v = row[colIdx];
         /* A HEADER ROW: every cell read-only, including the label column, and
          * shown as text rather than as a number -- these cells hold words like

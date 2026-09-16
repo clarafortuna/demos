@@ -88,7 +88,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: compareColWidths, dacCol, ingestComputed, isAnchoredTotalRowLabel, isWhollyNumeric, openAddYearDialog, openSaveModal, renderIngestEditor, renderSectionC, renderSourceTables, renderTable, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+       changed: buildIngestWorkbook, compareColWidths, dacCol, ingestComputed, isAnchoredTotalRowLabel, isWhollyNumeric, openAddYearDialog, openSaveModal, phantomSpacerCols, renderIngestEditor, renderSectionC, renderSourceTables, renderTable, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestLabelTips, wireIngestPage
+  ok   the change to buildIngestWorkbook is accounted for
   ok   the change to compareColWidths is accounted for
   ok   the change to dacCol is accounted for
   ok   the change to ingestComputed is accounted for
@@ -96,6 +97,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to isWhollyNumeric is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
+  ok   the change to phantomSpacerCols is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderSectionC is accounted for
   ok   the change to renderSourceTables is accounted for
@@ -115,6 +117,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   isWhollyNumeric changed as intended: NOT this brief: CLCPA-248 round 3: the wrap predicate (new). isNumeric itself untouched
   ok   ingestComputed changed as intended: NOT this ticket: CLCPA-253: the (calculated) marker is column-aware
   ok   dacCol changed as intended: NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback
+  ok   phantomSpacerCols changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new
+  ok   buildIngestWorkbook changed as intended: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252, the caption helper
   ok   renderSectionC changed as intended: NOT this ticket: CLCPA-259, the panel reads C1
   ok   openSaveModal changed as intended: NOT this ticket: CLCPA-256: the confirm dialog counts real changes
@@ -123,8 +127,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   wireIngestLabelTips changed as intended: round 2, the shared-tooltip wiring (new)
   ok   wireIngestPage changed as intended: round 2, it calls that wiring
   ok   wireControlTips changed as intended: round 2, the ingest label joins OWNS_TIP
-  ok   X8 exactly SIXTEEN functions changed: 17
+  ok   X8 exactly SIXTEEN functions changed: 19
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  109 passed, 0 failed
+  113 passed, 0 failed
