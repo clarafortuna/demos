@@ -14,5 +14,9 @@
   "rowSha256": "adff79ff934054f896d92270d61f0abc87b6ec2ffcbbb8ab475750f9a139d894",
   "fieldCount": 28,
   "sourceCommit": "cef60fc",
-  "clcpa224": "This is a STORED-YEAR TOUCH on a production year, authorized explicitly for this one field. C5:2025 cr2bf_title only. No other field, no other row, no other year."
+  "clcpa224": "This is a STORED-YEAR TOUCH on a production year, authorized explicitly for this one field. C5:2025 cr2bf_title only. No other field, no other row, no other year.",
+  "completedAt": "2026-09-16T16:48:25.639Z",
+  "renderBefore": "Table C5. Total Program Participation Summary4",
+  "renderAfter": "Table C5. Total Program Participation Summary",
+  "verified": true
 }

@@ -35,3 +35,37 @@ BACKUP    whole row saved, 28 fields, sha256 adff79ff934054f8...
 
 RENDER BEFORE (real tableCaption on the SERVER value):
    "Table C5. Total Program Participation Summary4"
+
+BACKUP    committed as 483d0d5
+          remote main = 483d0d5  VERIFIED
+          the backup is durable off this machine. Proceeding to write.
+
+PATCH cr2bf_dacingesttesttabledata1s(30931db0-95ab-f111-aaab-7ced8d183701)
+   body: {"cr2bf_title":"Table C5. Total Program Participation Summary"}
+written.
+
+READ-BACK cr2bf_title: "Table C5. Total Program Participation Summary"
+          and every other field is byte-identical to the backup
+          (28 keys compared, 5 Dataverse audit columns excused by name).
+          audit columns that did move, as expected: modifiedon, versionnumber, @odata.etag
+
+RENDER AFTER (real tableCaption on the SERVER value):
+   "Table C5. Total Program Participation Summary"
+   the two renders differ by exactly the trailing "4", and nothing else.
+
+=== CLCPA-258 WRITE COMPLETE ===
+row      30931db0-95ab-f111-aaab-7ced8d183701
+field    cr2bf_title
+before   "Table C5. Total Program Participation Summary4"
+after    "Table C5. Total Program Participation Summary"
+backup   data-backups/2026-09-16-clcpa-258-c5-2025-title/  (committed and pushed before the write)
+requests: GET 6, PATCH 1
+
+NO WEB RESOURCE WAS TOUCHED. The hosted build is still 9eb3bab955 and
+no build id moved -- this was stored data, not code.
+
+YOUR CHECK: open C5 on 2025. The caption must read
+   Table C5. Total Program Participation Summary
+with no trailing 4. Nothing else on C5 or any other year should differ.
+
+=== log written by write_clcpa_258.js ===
