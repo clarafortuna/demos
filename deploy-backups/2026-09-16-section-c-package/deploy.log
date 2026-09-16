@@ -67,3 +67,78 @@ PROVENANCE of the archive:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 4adf39e
+          remote main = 4adf39e  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1179068B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1179068B  sha256 18a4436d9c3e490c...  VERIFIED byte-identical
+READ-BACK styles.css  281101B  sha256 af0c14ea6429bacb...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 a3ed32e4f49a80ee...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 9eb3bab955  ok
+  app.js canonicalised + hashed : 9eb3bab955  ok
+  HTML references app.js?v=     : 9eb3bab955  ok
+  HTML references styles.css?v= : af0c14ea64  ok
+  all 10 ticket groups (44 symbols) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+build id (app.js): 9eb3bab955
+styles.css id    : af0c14ea64 (unchanged since the CLCPA-249 round-2 deploy)
+previous build   : 9a59621784, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 03bedd1
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 9eb3bab955
+If it prints anything else, the browser is holding an older app.js.
+
+THE PACKAGE PASS -- ten screens, one per code ticket:
+  C-03  CLCPA-252  A CAPTION ON EVERY TABLE. Table A8 on 2023 used to
+        read bare "Table A8"; it must now read "Table A8. Residential
+        Install". Create a fresh year: every one of the 52 tables names
+        itself rather than rendering bare.
+  C-11  CLCPA-259  Program Performance on a FRESH year shows that
+        year s own C1 categories, not Peak Shaving / Contingency /
+        Multi-purpose / Mass-market. On 2023-2025 Auto-DLM and BYOT now
+        read "Peak Shaving and Contingency" -- that is the fix, not
+        collateral: the panel was wrong on every year it ever rendered.
+  C-08  CLCPA-257  Section C reads the NEWEST year s schema. C2
+        Participants must show participant counts, not the spacer
+        column it picked up from 2023 s four-column schema.
+  C-02  CLCPA-260  C1-C5 in the Report Data editor render WITHOUT their
+        unnamed spacer columns, and a downloaded template does not
+        emit them either. C1 is six columns wide, not nine.
+  C-05  CLCPA-254  IMPORT OR TYPE a C2 year with plain numbers: the
+        "Average Event Reductions (MW)" total computes as the SUM.
+        A3 and A4 s per-participant averages must STILL refuse to sum --
+        that is CLCPA-212 and it is not loosened.
+  C-06  CLCPA-255  A recognised total row has NO delete x, and its
+        label is STILL editable. Body rows around it keep their x.
+  C-09  CLCPA-261  Import "10%" into a MW column: the summary says
+        "Read as a fraction: 1 cell" and the value is in the draft.
+        It is a notice, not a rejection.
+  C-04  CLCPA-253  The (calculated) marker no longer appears on spacer
+        columns.
+  C-07  CLCPA-256  The Save dialog s change count ignores empty-to-empty.
+  C-12  CLCPA-262  A REJECTED import leaves the Add Year dialog OPEN,
+        with the reason shown.
+
+STILL DISCLOSED, not defects in this build:
+  - C2/2024 stores 766.94, which matches neither a sum (306.40) nor a
+    weighted mean (239.12). Legacy stored value, disclosed not touched.
+  - C2 s stored rows are split-format ("299.57 (41%)") and recompute to
+    nothing on ANY build. Pre-existing, filed as its own finding.
+  - A5:2025 stores a grand total of 27,833 where its own parts give
+    27,834, and A3:2025 is off by 31. Under the payload freeze.
+  - CLCPA-258, the stray "4" in C5 s stored 2025 title, is NOT in this
+    build. It rides separately on its own GO.
+  - The 2098 test residue in Dataverse belongs to CLCPA-224.
+
+=== log written by deploy_section_c_package.js ===
