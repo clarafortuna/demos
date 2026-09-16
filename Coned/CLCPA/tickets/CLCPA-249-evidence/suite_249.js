@@ -667,6 +667,7 @@ guard('X: app.js is byte-identical to BASE', () => {
     openAddYearDialog: 'CLCPA-262, Section C group A',
     wire: 'CLCPA-262, nested inside openAddYearDialog',
     tableCaption: 'CLCPA-252, Section C group B',
+    dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     renderSourceTables: 'CLCPA-252, Section C group B',
     renderIngestEditor: 'CLCPA-252, Section C group B',
     renderSectionC: 'CLCPA-259, Section C group B',

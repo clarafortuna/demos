@@ -77,7 +77,8 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   Z3 and all 149 in COMPARE mode too
 
 === X. what else moved =============================================
-       changed: ingestComputed, openAddYearDialog, openSaveModal, renderIngestEditor, renderSourceTables, tableCaption
+       changed: dacCol, ingestComputed, openAddYearDialog, openSaveModal, renderIngestEditor, renderSourceTables, tableCaption
+  ok   the change to dacCol is accounted for (NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback)
   ok   the change to ingestComputed is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
@@ -97,4 +98,4 @@ Section C group A -- CLCPA-253, CLCPA-256, CLCPA-262
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 794eecf
   ok   X4 and an ancestor of HEAD
-  84 passed, 0 failed
+  85 passed, 0 failed

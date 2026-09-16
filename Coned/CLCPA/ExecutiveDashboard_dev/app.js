@@ -14638,8 +14638,30 @@ function wireHTooltips() {
     const by = t.schema_by_year || {};
     let s = by[y];
     if (!s) {
-      const anyYear = Object.keys(by)[0];
-      s = anyYear ? by[anyYear] : null;
+      /* CLCPA-257: THE NEWEST YEAR WITH A SCHEMA, not the first key.
+       *
+       * This took Object.keys(by)[0], which for this payload is the OLDEST
+       * year -- 2023. The C-family schema WIDENS between 2023 and 2024:
+       * C2 is 4 columns in 2023 and 8 from 2024, with unnamed spacer columns
+       * interleaved. So a year with no schema of its own resolved its column
+       * indexes against the narrow 2023 shape and then read them out of wide
+       * rows, landing on a spacer and finding nothing.
+       *
+       * That is the CLCPA-124 audit's C-08: on a year with complete Section C
+       * data, the Executive Summary showed "Demand Resp --" while Section C
+       * itself computed a 10.0% DAC share from the same saved rows. Section C
+       * reads schema_by_year[y] directly; the summary comes through here.
+       *
+       * The newest year is the same choice getTableSchema makes (CLCPA-244),
+       * so the two fallbacks now agree instead of disagreeing silently.
+       *
+       * NO STORED YEAR IS AFFECTED: all 149 stored table-years carry their
+       * own schema, so this branch is never reached for any of them. The
+       * suite proves that rather than assuming it. */
+      const years = Object.keys(by)
+        .filter(k => Array.isArray(by[k]) && by[k].length)
+        .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+      s = years.length ? by[years[0]] : null;
     }
     if (!s) return -1;
     for (let i = 0; i < s.length; i++) if (s[i] != null && nameRe.test(String(s[i]))) return i;

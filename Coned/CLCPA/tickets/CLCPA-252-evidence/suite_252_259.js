@@ -298,6 +298,7 @@ guard('X: the blast radius', () => {
     renderSourceTables: 'CLCPA-252: the report page calls it',
     renderIngestEditor: 'CLCPA-252: the editor calls it',
     renderSectionC: 'CLCPA-259: the panel reads C1',
+    dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   ok(changed.length <= 4, 'X1 at most four functions changed: ' + changed.length);

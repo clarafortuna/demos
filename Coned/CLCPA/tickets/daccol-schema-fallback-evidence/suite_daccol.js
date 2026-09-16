@@ -182,8 +182,20 @@ guard('BASE control: an imported year derives nothing', () => {
 
 guard('the fix: the same fallback getTableSchema already documents', () => {
   const fn = codeOnly(grab('dacCol'));
-  ok(/const anyYear = Object\.keys\(by\)\[0\];/.test(fn),
-     'dacCol falls back to any year\'s schema');
+  /* CLCPA-257 INVERTS THIS PIN, which is what it was for.
+   *
+   * It asserted `const anyYear = Object.keys(by)[0];` was PRESENT -- the
+   * oldest-year fallback -- so that nobody could change the behaviour this
+   * ticket documented without coming back here first. That is the reviewed
+   * change, ruled and delivered, so the pin turns around rather than being
+   * deleted: the old form must now be ABSENT and the newest-year form
+   * present. Deleting it would leave the behaviour unguarded in either
+   * direction. */
+  ok(!/const anyYear = Object\.keys\(by\)\[0\];/.test(fn),
+     'the oldest-year fallback is GONE from dacCol (CLCPA-257)');
+  ok(/\.sort\(\(a, b\) => parseInt\(b, 10\) - parseInt\(a, 10\)\)/.test(fn),
+     'and it takes the NEWEST year with a schema, the same choice ' +
+     'getTableSchema makes since CLCPA-244');
   /* IT WAS THE SAME RULE WHEN THIS TICKET SHIPPED. It no longer is, and the
    * three pins that said so are inverted rather than deleted.
    *
@@ -255,9 +267,13 @@ guard('the fix: the same fallback getTableSchema already documents', () => {
     const w = Math.max.apply(null, d[ys[ys.length - 1]].map(r => r.length));
     const by = P.tables[id].schema_by_year || {};
     const oldest = by[Object.keys(by).filter(y => Array.isArray(by[y]))[0]].length;
+    /* The width mismatch is still true and still the mechanism; what changed
+     * is which schema dacCol reaches for. Kept as the record of WHY the
+     * oldest-year fallback was wrong, with the conclusion updated. */
     ok(w !== oldest,
-       id + ': a fresh year borrows ' + w + '-wide rows while dacCol indexes a ' +
-       oldest + '-wide schema, so dacCol is the reader that is wrong');
+       id + ': a fresh year borrows ' + w + '-wide rows while the OLDEST ' +
+       'schema is ' + oldest + '-wide -- which is why CLCPA-257 made dacCol ' +
+       'read the newest one instead');
   });
 
   /* ONLY THE SCHEMA FALLS BACK */
@@ -471,8 +487,8 @@ guard('one function', () => {
                 'renderTable', 'compareColWidths', 'renderSourceTables',
                 /* CLCPA-248 round 3: the wrap predicate. isNumeric, which
                  * dacCol's callers lean on, is deliberately untouched. */
-                'isWhollyNumeric',
-                /* Section C group A */
+                'isWhollyNumeric',
+                /* Section C group A */
                 /* wire() is nested inside openAddYearDialog; this suite's grab
                  * cannot bound a nested function, so it never sees it change.
                  * Named in suite_248, which has the line-indexed grab. */

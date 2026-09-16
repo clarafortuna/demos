@@ -904,6 +904,7 @@ guard('X: the blast radius', () => {
     wire: 'NOT this ticket: CLCPA-262: wire() is nested inside openAddYearDialog and holds the change',
     /* Section C group B */
     tableCaption: 'NOT this ticket: CLCPA-252, the caption helper, new',
+    dacCol: 'NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback',
     renderSourceTables: 'NOT this ticket: CLCPA-252, the report page calls it',
     renderIngestEditor: 'NOT this ticket: CLCPA-252, the editor calls it',
   };
@@ -912,7 +913,7 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   /* 4 -> 8: Section C group A added four, every one named above. The
    * over-reading grab used to report 25 here; see section H. */
-  ok(changed.length === 10, 'X3 exactly TEN functions changed: ' + changed.length);
+  ok(changed.length === 11, 'X3 exactly TEN functions changed: ' + changed.length);
   /* the one that must NOT have moved: isNumeric feeds the column masks, the
    * formatters and the derive engine, and round 3 deliberately leaves it. */
   ok(grab('isNumeric') === grab('isNumeric', BASE_SRC),
