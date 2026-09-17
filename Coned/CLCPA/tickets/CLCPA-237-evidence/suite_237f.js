@@ -634,7 +634,8 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
   /* 42 -> 44: CLCPA-264 added two, both named above. */
   /* 44 -> 49: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 50, 'fifty in total, all named: ' + changed.length);
+  /* 49 -> 67: the CLCPA-250/267/271/272/273 wave, all named in ALSO above. */
+  ok(changed.length === 67, 'sixty-seven in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

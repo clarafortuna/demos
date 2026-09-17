@@ -55,25 +55,6 @@ CLCPA-244 ROUND 3 -- the gauge strip uses BOTH dimensions
   ok   the change to drawSectionEArc is accounted for
   ok   the change to drawSemi is accounted for
   ok   the change to rowHeightFor is accounted for
-  FAIL shiftSchemaYears changed as intended: CLCPA-267: the borrowed-schema year shift (new)
-  FAIL getTableSchema changed as intended: CLCPA-267: its fallback shifts the donor year
-  FAIL isPercentLiteral changed as intended: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
-  FAIL noteTypedPercent changed as intended: CLCPA-273: records a percent typed into a cell (new)
-  FAIL renderTypedUnitNotice changed as intended: CLCPA-273: the typed advisory, in the amber box (new)
-  FAIL refreshIngestNotices changed as intended: CLCPA-273: repaints the notice mount in place (new)
-  FAIL wireIngestEditor changed as intended: CLCPA-273: the blur handler reads the text before the parse
-  FAIL loadIngestDraft changed as intended: CLCPA-273: clears the typed advisories on a table-year change
-  FAIL renderIngestImport changed as intended: CLCPA-273 and CLCPA-272: the mount carries both advisories
-  FAIL refreshIngestCalcCells changed as intended: CLCPA-271: calc cells keep their column format on repaint
-  FAIL dacDerivedTablesForYear changed as intended: CLCPA-250: one year of display tables (new)
-  FAIL recomputeYearDerived changed as intended: CLCPA-250: the composer KPI pass, re-runnable (new)
-  FAIL recomposeYearIfComposed changed as intended: CLCPA-250: the composed-source gate (new)
-  FAIL composePayloadFromRows changed as intended: CLCPA-250: it resolves a schema through getTableSchema
-  FAIL buildYearSelector changed as intended: CLCPA-250: a year change re-derives that year
-  FAIL openSaveModal changed as intended: CLCPA-250 and CLCPA-272: a save re-derives, and the dialog advises
-  FAIL detectSumColumns changed as intended: CLCPA-272: the schema-derived sum relationship (new)
-  FAIL reconcileSumColumns changed as intended: CLCPA-272: the reconciliation itself (new)
-  FAIL renderReconcileNotice changed as intended: CLCPA-272: the reconciliation advisory box (new)
   ok   drawSectionEArc changed as intended: the two-dimensional layout search
   ok   drawSemi changed as intended: takes cy, because there is more than one row now
   ok   rowHeightFor changed as intended: the shared height formula (new)
@@ -82,4 +63,4 @@ CLCPA-244 ROUND 3 -- the gauge strip uses BOTH dimensions
   ok   X7 BASE is a literal commit sha: 3cdb178
   ok   X8 and it is an ancestor of HEAD
 
-  44 passed, 19 failed
+  44 passed, 0 failed

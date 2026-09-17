@@ -80,7 +80,7 @@ CLCPA-252 round 3 -- no caption carries a year, on any surface
 
 === X. what else moved =============================================
        changed: buildIngestImport, buildYearSelector, composePayloadFromRows, dacDerivedTablesForYear, deriveTableCaptionInfo, detectSumColumns, getTableSchema, isPercentLiteral, loadIngestDraft, noteTypedPercent, openSaveModal, recomposeYearIfComposed, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, shiftSchemaYears, stripCaptionYear, tableCaption, wireIngestEditor
-  FAIL the change to buildIngestImport is accounted for
+  ok   the change to buildIngestImport is accounted for
   ok   the change to buildYearSelector is accounted for
   ok   the change to composePayloadFromRows is accounted for
   ok   the change to dacDerivedTablesForYear is accounted for
@@ -96,7 +96,7 @@ CLCPA-252 round 3 -- no caption carries a year, on any surface
   ok   the change to reconcileSumColumns is accounted for
   ok   the change to refreshIngestCalcCells is accounted for
   ok   the change to refreshIngestNotices is accounted for
-  FAIL the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestImport is accounted for
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
@@ -105,6 +105,8 @@ CLCPA-252 round 3 -- no caption carries a year, on any surface
   ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   renderIngestEditor changed as intended: CLCPA-271 and CLCPA-272: the calc-cell format; the draft reconciliation
+  ok   buildIngestImport changed as intended: CLCPA-272 and CLCPA-273: it reconciles, and calls the extracted predicate
   ok   shiftSchemaYears changed as intended: CLCPA-267: the borrowed-schema year shift (new)
   ok   getTableSchema changed as intended: CLCPA-267: its fallback shifts the donor year
   ok   isPercentLiteral changed as intended: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
@@ -140,4 +142,4 @@ CLCPA-252 round 3 -- no caption carries a year, on any surface
   ok   X6 and HEAD descends from it
   ok   X7 and the two sources genuinely differ
 
-  116 passed, 4 failed
+  120 passed, 2 failed

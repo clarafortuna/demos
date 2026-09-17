@@ -434,6 +434,10 @@ guard('X: the blast radius', () => {
 
     /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
 
+    renderIngestEditor: 'CLCPA-271 and CLCPA-272: the calc-cell format; the draft reconciliation',
+
+    buildIngestImport: 'CLCPA-272 and CLCPA-273: it reconciles, and calls the extracted predicate',
+
     shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
 
     getTableSchema: 'CLCPA-267: its fallback shifts the donor year',

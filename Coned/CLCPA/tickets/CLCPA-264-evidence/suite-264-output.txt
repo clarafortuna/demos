@@ -75,7 +75,7 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
        changed: applyCompositeShares, bareNumber, buildIngestImport, buildYearSelector, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, isCompositeShareCol, isPercentLiteral, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
-  FAIL the change to buildIngestImport is accounted for
+  ok   the change to buildIngestImport is accounted for
   ok   the change to buildYearSelector is accounted for
   ok   the change to composePayloadFromRows is accounted for
   ok   the change to compositeValueText is accounted for
@@ -96,7 +96,7 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   the change to reconcileSumColumns is accounted for
   ok   the change to refreshIngestCalcCells is accounted for
   ok   the change to refreshIngestNotices is accounted for
-  FAIL the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestImport is accounted for
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
@@ -108,6 +108,8 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   renderIngestEditor changed as intended: CLCPA-271 and CLCPA-272: the calc-cell format; the draft reconciliation
+  ok   buildIngestImport changed as intended: CLCPA-272 and CLCPA-273: it reconciles, and calls the extracted predicate
   ok   shiftSchemaYears changed as intended: CLCPA-267: the borrowed-schema year shift (new)
   ok   getTableSchema changed as intended: CLCPA-267: its fallback shifts the donor year
   ok   isPercentLiteral changed as intended: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
@@ -151,4 +153,4 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  126 passed, 4 failed
+  130 passed, 2 failed
