@@ -23806,19 +23806,58 @@ function wireHTooltips() {
      * Empty is empty however it is spelled, so null, undefined and '' compare
      * equal. The change history written AFTER the save was always accurate --
      * only this pre-save count lied -- so nothing downstream moves. */
+    /* CLCPA-269 ROUND 2: THE COUNT IS THE PREPARER'S CELLS, NOT EVERY CELL.
+     *
+     * Round 1 replaced a rows-times-columns count with a real per-cell diff,
+     * which is right against a POPULATED baseline and wrong against an EMPTY
+     * one: with nothing stored, every non-empty cell differs, so the count
+     * became "every cell in the draft". Reproduced on the live path --
+     * importing the H1 example into empty 2097 -- it read 20 where the
+     * preparer brought 12. Measured on that draft: 5 label cells, 3 computed
+     * cells in the total row, 12 the preparer supplied.
+     *
+     * My round-1 bench reported 12 for this shape and was wrong: it compared a
+     * hand-built pair instead of the draft the editor actually holds, where
+     * the baseline is empty and the import ADDS every row. A bench that does
+     * not build the live draft cannot see this defect.
+     *
+     * So two exclusions, both from classifiers this file already ships rather
+     * than a new idea of what a cell is:
+     *
+     *   KEY CELLS. A label is how a row is identified, not a figure anybody
+     *   filed. ingestKeyColCount is the declaration CLCPA-240 reads.
+     *
+     *   ENGINE CELLS. ingestComputed.any is what the import already consults
+     *   to skip a cell and what the grid renders read-only -- the total row
+     *   and the derived columns.
+     *
+     * RECOMPUTED ROW TOTALS DO COUNT, and this is the decision the ticket
+     * asked to be stated. A body row's total column is a figure in the table:
+     * the preparer files it in the template, the engine may recompute it under
+     * CLCPA-278, and either way the value being saved has moved. Excluding it
+     * would report 8 for an import that plainly brought 12, and would hide
+     * from the operator that a row's total changed under an edit. Both paths
+     * now apply the same two exclusions, which is the consistency the ticket
+     * asked for: the empty-baseline path no longer counts labels and the
+     * total row, and the populated path is unchanged apart from those.
+     */
     const changeCount = (() => {
       const same = (x, y) => {
         const nx = (x == null || x === '') ? '' : x;
         const ny = (y == null || y === '') ? '' : y;
         return nx === ny;
       };
-      let count = 0;
       const a = i.draft, b = i.baseline;
+      const computed = ingestComputed(a, i.tableId, i.schema);
+      const keyCols = Math.max(1, ingestKeyColCount(i.tableId));
+      let count = 0;
       const rows = Math.max(a.length, (b || []).length);
       for (let r = 0; r < rows; r++) {
         const ar = a[r] || [], br = (b || [])[r] || [];
         const cols = Math.max(ar.length, br.length);
         for (let c = 0; c < cols; c++) {
+          if (c < keyCols) continue;
+          if (computed.any(r, c)) continue;
           if (!same(ar[c], br[c])) count++;
         }
       }

@@ -1,0 +1,26 @@
+======================================================================
+CLCPA-269 round 2 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: every cell counts again
+       6 red, incl: A6 it now says 12 (got 20)
+  red  KEY CELLS count again: the labels come back
+       3 red, incl: A6 it now says 12 (got 16)
+  red  ENGINE CELLS count again: the total row comes back
+       5 red, incl: A6 it now says 12 (got 15)
+  red  THE KEY COLUMNS are assumed to be column 0
+       2 red, incl: E2 and the key columns from the shipped declaration
+  red  THE ENGINE CELLS are decided by the row index instead
+       1 red, incl: E3 both exclusions are applied in the count
+  red  THE COUNT excludes the derivable column too, so an import reads 8
+       5 red, incl: A6 it now says 12 (got 8)
+  red  EMPTY IS NO LONGER EMPTY: the null normalisation is dropped
+       1 red, incl: E6 and renaming BOTH of them counts 0 -- neither is a figure
+  red  HARNESS: the bench stops building the LIVE draft (round 1's defect)
+       2 red, incl: X3b the draft under test IS the import plan's candidate, not a copy of stored data that happens to look l
+  red  HARNESS: the counter is re-implemented instead of cut from the dialog
+       6 red, incl: A5 on BASE the dialog said 20 -- the hosted build's exact number (got 15)
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X1 BASE is a literal sha -- none
+
+  10 caught, 0 not caught, of 10 applied
+  clean re-run against byte-restored source: PASSES -- 31 passed, 0 failed
