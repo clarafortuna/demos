@@ -16985,7 +16985,8 @@ function wireHTooltips() {
     /* CLCPA-274: the derivable total COLUMNS, from the schema. Same derivation
      * CLCPA-272 reconciles against, so the template's guidance and the
      * advisory cannot disagree about which columns are derivable. */
-    const sumCols = detectSumColumns(schema, rows, tableId).map(s => s.column);
+    const sumRel = {};
+    detectSumColumns(schema, rows, tableId).forEach((s) => { sumRel[s.column] = s; });
     return {
       totalRow: (r) => !!totals[r],
       derivedCol: (c) => !!derived[c],
@@ -17021,7 +17022,25 @@ function wireHTooltips() {
       marksInTemplate: (r, c) => {
         if ((!!totals[r] && (!!derived[c] || engineWrites(c))) ||
             (!!derived[c] && !isTotalOnlyDerived(derived[c]))) return true;
-        return sumCols.indexOf(c) >= 0;
+        const rel = sumRel[c];
+        if (!rel) return false;
+        /* NOT IN A HEADER ROW. A header has nothing to calculate, whatever the
+         * schema says about the column -- the same rule CLCPA-240 states for
+         * the group-header branch above, which does not reach a SECOND header
+         * row (header_levels 2). Caught by suite_240a's round trip: F6's
+         * sub-header reads ["", "", "Non- Excludable", "Excludable", ...] and
+         * was being handed "(calculated)" in its Grand Total cell, which
+         * changed the shape of the file the operator downloads.
+         *
+         * A header row is told from a blank body row by what its PARTS hold:
+         * text. A body row awaiting figures holds blanks, and that is exactly
+         * where the marker is wanted. */
+        const row = (rows && rows[r]) || [];
+        const partHasText = rel.parts.some((pc) => {
+          const v = row[pc];
+          return v != null && v !== '' && typeof v !== 'number';
+        });
+        return !partHasText;
       },
     };
   }

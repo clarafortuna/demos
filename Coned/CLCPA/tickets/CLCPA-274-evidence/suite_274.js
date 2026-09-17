@@ -19,9 +19,18 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md), the standing model. The post-change
+ * side reads f2c7137, this ticket's own commit, because a
+ * blast-radius claim can only be true at the commit that made the change
+ * -- never on a tip that also carries the tickets merged after it.
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || 'f2c7137';
 const BASE = process.env.DAC_BASE_COMMIT || '050c1c1';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const SRC = fs.readFileSync(APP, 'utf8');
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(
@@ -154,8 +163,8 @@ guard('C-block', () => {
   const ids = changed.map(x => x.id);
   ok(JSON.stringify(ids) === JSON.stringify(['B2', 'F2', 'F4', 'F5', 'F6', 'F7', 'H1']),
     'C1 exactly the seven enumerated tables change -- got ' + ids.join(', '));
-  ok(changed.reduce((s, x) => s + x.n, 0) === 83,
-    'C2 and 83 cells in total -- got ' + changed.reduce((s, x) => s + x.n, 0));
+  ok(changed.reduce((s, x) => s + x.n, 0) === 81,
+    'C2 and 81 cells in total -- got ' + changed.reduce((s, x) => s + x.n, 0));
   /* the relationship is CLCPA-272's, so the two cannot disagree */
   const rels = run(a => Object.keys(P.tables).sort().filter((id) => {
     const y = newest(id); if (!y) return false;
@@ -165,6 +174,53 @@ guard('C-block', () => {
   ok(JSON.stringify(rels) === JSON.stringify(ids),
     'C3 and they are exactly the tables detectSumColumns finds -- guidance and ' +
     'advisory cannot disagree about which columns are derivable');
+});
+
+/* ---- C2b. NOT IN A HEADER ROW ------------------------------------------ */
+log('');
+log('C2b. THE MARKER MUST NOT REACH A STRUCTURAL HEADER ROW');
+guard('C2b-block', () => {
+  /* F6 carries header_levels 2. Its SECOND header row reads
+   * ["", "", "Non- Excludable", "Excludable", ...] and was being handed
+   * "(calculated)" in its Grand Total cell, which changed the shape of the
+   * file the operator downloads. Caught by suite_240a's template round trip,
+   * which reported an import rejection appearing and disappearing. */
+  const f6 = P.tables.F6;
+  const y = newest('F6');
+  const schema = f6.schema_by_year[y];
+  const rows = f6.data[y];
+  const gt = schema.indexOf('Grand Total');
+  const marks = run(a => {
+    const c = a.ingestComputed(rows, 'F6', schema);
+    return rows.map((r, i) => c.marksInTemplate(i, gt));
+  });
+  ok(f6.header_levels === 2, 'C2b1 F6 really does carry header_levels 2');
+  ok(marks[0] === false,
+    'C2b2 its SECOND header row is NOT marked -- a header has nothing to calculate');
+  ok(marks[1] === true, 'C2b3 while the first body row below it IS');
+
+  /* the rule is "the parts hold text", which distinguishes a header from a
+   * BLANK body row -- and the blank body row is exactly where the marker is
+   * most wanted */
+  const blank = rows.map(r => r.slice());
+  [2, 3, 4, 5].forEach(c => { blank[1][c] = null; });
+  const blankMark = run(a => a.ingestComputed(blank, 'F6', schema).marksInTemplate(1, gt));
+  ok(blankMark === true,
+    'C2b4 and a body row whose figures are BLANK is still marked -- blanks are ' +
+    'not text, and a fresh template is the case this ticket exists for');
+
+  /* a percentage row whose parts are "32%"/"68%" strings is not a sum row */
+  const f7 = P.tables.F7;
+  const y7 = newest('F7');
+  const s7 = f7.schema_by_year[y7];
+  const gt7 = s7.findIndex(h => /total/i.test(String(h)));
+  const pctRow = f7.data[y7].findIndex(r => /^% of/i.test(String(r[0])));
+  if (pctRow >= 0 && gt7 >= 0) {
+    const m7 = run(a => a.ingestComputed(f7.data[y7], 'F7', s7).marksInTemplate(pctRow, gt7));
+    ok(m7 === false,
+      'C2b5 and F7\'s "% of Grand Total" row is not marked either -- its parts ' +
+      'hold percentage strings, so it is not a sum of anything');
+  }
 });
 
 /* ---- D. style of change ------------------------------------------------- */

@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-274 -- the template marks derivable total columns (calculated)
-  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  app.js : git show f2c7137:Coned/CLCPA/ExecutiveDashboard_dev/app.js
   BASE   : 050c1c1 (predates this change)
 ======================================================================
 
@@ -28,8 +28,15 @@ C. THE ENUMERATED DERIVABLE-COLUMN TABLES
      F7    3 cells
      H1    4 cells
   ok   C1 exactly the seven enumerated tables change -- got B2, F2, F4, F5, F6, F7, H1
-  ok   C2 and 83 cells in total -- got 83
+  FAIL C2 and 81 cells in total -- got 83
   ok   C3 and they are exactly the tables detectSumColumns finds -- guidance and advisory cannot disagree about which columns are derivable
+
+C2b. THE MARKER MUST NOT REACH A STRUCTURAL HEADER ROW
+  ok   C2b1 F6 really does carry header_levels 2
+  FAIL C2b2 its SECOND header row is NOT marked -- a header has nothing to calculate
+  ok   C2b3 while the first body row below it IS
+  ok   C2b4 and a body row whose figures are BLANK is still marked -- blanks are not text, and a fresh template is the case this ticket exists for
+  FAIL C2b5 and F7's "% of Grand Total" row is not marked either -- its parts hold percentage strings, so it is not a sum of anything
 
 D. STYLE OF CHANGE
   ok   D1 the template has its own accessor
@@ -48,5 +55,5 @@ X. THE HARNESS
   ok   X2 and predates this ticket
 
 ======================================================================
-  26 passed, 0 failed
+  28 passed, 3 failed
 ======================================================================
