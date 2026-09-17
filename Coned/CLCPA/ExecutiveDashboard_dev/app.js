@@ -3968,6 +3968,69 @@ function utf8ByteLength(str) {
     return out;
   }
 
+  /* CLCPA-278: WHOSE FIGURE IS IT?
+   *
+   * CLCPA-272 ruling (b) protects the PREPARER's figure: a filed total is
+   * kept and advised on, never computed over. It does not protect the
+   * SYSTEM's own. On a fresh year the engine computes a Grand Total the
+   * preparer left blank; editing a component then left that computed figure
+   * frozen and flagged it as "the filed value is kept" -- telling the
+   * operator their own number was being respected when they never filed one.
+   *
+   * The distinction needs no new storage, because the figure says which it
+   * is. A total that EQUALS its own components is consistent, and a
+   * consistent total is either the engine's or a preparer's that agrees with
+   * the engine -- in both cases updating it with the edit is what the
+   * operator expects and loses nothing. A total that ALREADY disagrees is a
+   * figure somebody chose to file against its own parts, and CLCPA-272 says
+   * keep it and advise.
+   *
+   * Decided on the row AS IT WAS. After the edit the components no longer
+   * match by construction, so consistency can only be read from the pre-edit
+   * row -- which is why this takes it.
+   */
+  function rowSumIsConsistent(row, rel) {
+    if (!Array.isArray(row)) return false;
+    const filed = row[rel.column];
+    if (typeof filed !== 'number') return false;
+    let sum = 0, seen = 0;
+    rel.parts.forEach((c) => {
+      if (typeof row[c] === 'number') { sum += row[c]; seen++; }
+    });
+    if (seen !== rel.parts.length) return false;
+    return withinSourceRounding(filed, sum);
+  }
+
+  /**
+   * CLCPA-278: after a component cell is edited, bring the row's derivable
+   * total with it -- but only where that total was the engine's to begin
+   * with. Mutates `rows` in place and returns the columns it rewrote.
+   *
+   * EDITOR DRAFT PATH ONLY. Import is untouched: it computes when the column
+   * is blank, respects a provided value, and advises on a mismatch, all
+   * exactly as CLCPA-272 ruled.
+   */
+  function recomputeDerivableSums(rows, headerRow, tableId, rowIndex, beforeRow, editedCol) {
+    const rels = detectSumColumns(headerRow, rows, tableId);
+    const done = [];
+    if (!rels.length || !Array.isArray(rows) || !Array.isArray(rows[rowIndex])) return done;
+    rels.forEach((rel) => {
+      /* the edited cell has to BE a component of this relationship: editing
+       * the total itself is the preparer filing one, not a trigger to
+       * overwrite what they just typed. */
+      if (typeof editedCol === 'number' && rel.parts.indexOf(editedCol) < 0) return;
+      if (!rowSumIsConsistent(beforeRow, rel)) return;
+      let sum = 0, seen = 0;
+      rel.parts.forEach((c) => {
+        if (typeof rows[rowIndex][c] === 'number') { sum += rows[rowIndex][c]; seen++; }
+      });
+      if (seen !== rel.parts.length) return;
+      rows[rowIndex][rel.column] = sum;
+      done.push(rel.column);
+    });
+    return done;
+  }
+
   /**
    * CLCPA-272: rows whose filed total does not equal the sum of its parts.
    * Pure: reads rows, returns findings, changes nothing.
@@ -23636,7 +23699,18 @@ function wireHTooltips() {
          * Advisory only -- the CLCPA-244 convention stands, the value is
          * committed either way, and nothing is rejected. */
         noteTypedPercent(r, c, e.target.value);
+        /* CLCPA-278: the row AS IT WAS, captured before the write. Whether
+         * the row's total is the engine's figure or the preparer's can only
+         * be read from the pre-edit row: after the write the components no
+         * longer match it by construction. */
+        const beforeRow = Array.isArray(state.ingest.draft[r])
+          ? state.ingest.draft[r].slice() : null;
         state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
+        /* and bring a CONSISTENT row total with the edit. A total that already
+         * disagreed with its parts is the preparer's and is left alone for
+         * CLCPA-272 to advise on. */
+        recomputeDerivableSums(state.ingest.draft, state.ingest.schema,
+                               state.ingest.tableId, r, beforeRow, c);
         recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
                         state.ingest.baseline);
         if (e.target.dataset.fmt) {
