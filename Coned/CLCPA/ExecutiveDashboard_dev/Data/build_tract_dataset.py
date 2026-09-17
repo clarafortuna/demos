@@ -128,10 +128,33 @@ else:
     # Nothing found. Name the layout-local path, so the error an operator sees
     # points at where Data/ was expected rather than at a resolved absolute.
     DATA = os.path.join(HERE, "Data")
+
+
+# Data/ is organised by OUTPUT FAMILY (CLCPA-279). Every input sits with the
+# family that eats it, and every output lands in Data/out/:
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs, and its raw/ downloads
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+#
+# fam() returns the family folder when it is there and falls back to flat Data/
+# when it is not, so a repository script this restructure did not touch keeps
+# working unchanged. The handoff package can never take that fallback: it ships
+# no flat inputs, and verify_handoff_package.py asserts exactly that.
+def fam(name):
+    d = os.path.join(DATA, name)
+    return d if os.path.isdir(d) else DATA
+
+
+NYSERDA = fam("nyserda")
+GEOMETRY = fam("tract-geometry")
+ELECTRIC_GAS = fam("electric-gas")
+OUT = os.path.join(DATA, "out")
 ROOT = os.path.dirname(DATA)
 APP_JS = os.path.join(ROOT, "app.js")
 MAP_PATH = os.path.join(ROOT, "map_payload.json")
-OUT_DIR = os.path.join(DATA, "out")
+OUT_DIR = OUT
 
 MANIFEST_SCHEMA = 1
 DATASET_KEY = "nyserda_dac"
@@ -271,7 +294,7 @@ def parse_indicator_catalog(app_js_path):
     return groups
 
 
-CATALOG_PATH = os.path.join(DATA, "indicator_catalog.json")
+CATALOG_PATH = os.path.join(NYSERDA, "indicator_catalog.json")
 
 
 def load_indicator_catalog(path=None):
@@ -396,7 +419,11 @@ def main():
         # into 2020 keep their own values untouched, and the ones that do not
         # are absent rather than re-keyed or re-allocated.
         real2020 = set()
-        with open(os.path.join(DATA, "ny_tracts.geojson"), encoding="utf-8") as fh:
+        # A tract-geometry input read from a nyserda-family script. It is
+        # reached only by --synthetic-v2-demo, which is repository tooling
+        # and never an operator path, so it stays a documented cross-family
+        # read rather than a reason to duplicate the file.
+        with open(os.path.join(GEOMETRY, "ny_tracts.geojson"), encoding="utf-8") as fh:
             for f in json.load(fh)["features"]:
                 real2020.add(str(f["properties"].get("GEOID", "")).zfill(11))
         before = len(rows)

@@ -45,7 +45,7 @@ import tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
-TERR = os.path.join(DATA, "service_territories.geojson")
+TERR = os.path.join(DATA, "out", "service_territories.geojson")
 BUILDER = os.path.join(DATA, "_make_territories.py")
 
 # Mirrors DS_TERRITORY_BBOX / DS_TERRITORY_LAYERS in app.js. Duplicated on purpose:

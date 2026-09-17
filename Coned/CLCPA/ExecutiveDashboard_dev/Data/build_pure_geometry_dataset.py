@@ -108,9 +108,32 @@ else:
     # Nothing found. Name the layout-local path, so the error an operator sees
     # points at where Data/ was expected rather than at a resolved absolute.
     DATA = os.path.join(HERE, "Data")
+
+
+# Data/ is organised by OUTPUT FAMILY (CLCPA-279). Every input sits with the
+# family that eats it, and every output lands in Data/out/:
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs, and its raw/ downloads
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+#
+# fam() returns the family folder when it is there and falls back to flat Data/
+# when it is not, so a repository script this restructure did not touch keeps
+# working unchanged. The handoff package can never take that fallback: it ships
+# no flat inputs, and verify_handoff_package.py asserts exactly that.
+def fam(name):
+    d = os.path.join(DATA, name)
+    return d if os.path.isdir(d) else DATA
+
+
+NYSERDA = fam("nyserda")
+GEOMETRY = fam("tract-geometry")
+ELECTRIC_GAS = fam("electric-gas")
+OUT = os.path.join(DATA, "out")
 ROOT = os.path.dirname(DATA)
 MAP_PATH = os.path.join(ROOT, "map_payload.json")   # --artifact only; see main()
-UNIVERSE_PATH = os.path.join(DATA, "tract_universe.json")
+UNIVERSE_PATH = os.path.join(GEOMETRY, "tract_universe.json")
 
 # The folder holding these scripts, spelled as an operator would type it from
 # ROOT: "Data/" in the repository, "scripts/" in the handoff package. Printed
@@ -167,14 +190,14 @@ def load_tract_universe():
         "byGeoid": {g: {"properties": {"City_Town": city[i]}} for i, g in enumerate(geoids)},
         "provenance": doc.get("provenance") or {},
     }
-OUT_DIR = os.path.join(DATA, "out")
+OUT_DIR = OUT
 
 SRC = {
-    "2010": os.path.join(DATA, "ny_tracts_2010.geojson"),
-    "2020": os.path.join(DATA, "ny_tracts.geojson"),
+    "2010": os.path.join(GEOMETRY, "ny_tracts_2010.geojson"),
+    "2020": os.path.join(GEOMETRY, "ny_tracts.geojson"),
 }
-ELEC = os.path.join(DATA, "Extra_info", "CECONY_Electric")
-GAS = os.path.join(DATA, "Extra_info", "CECONY_Gas")
+ELEC = os.path.join(GEOMETRY, "CECONY_Electric")
+GAS = os.path.join(GEOMETRY, "CECONY_Gas")
 
 # Both crosswalks are resolved by prefix, so the date suffix of whatever was
 # downloaded does not have to be hardcoded. The 2020 table used to be a full
@@ -261,7 +284,7 @@ def territory_fingerprint(path=None):
     """The fingerprint the territory overlay was built from, or None if it carries
     none. A file written before slice 6c has none, which is not an error -- it is
     simply unverifiable, and the caller says so rather than refusing."""
-    terr = path or os.path.join(DATA, "service_territories.geojson")
+    terr = path or os.path.join(DATA, "out", "service_territories.geojson")
     if not os.path.exists(terr):
         return None
     try:
@@ -310,7 +333,7 @@ def find_crosswalk(vintage, where=None):
 
     `where` reads DATA at call time so a test can point it at a temp directory.
     """
-    root = where or DATA
+    root = where or fam("tract-geometry")
     prefix = CROSSWALK_PREFIX[vintage]
     hits = [n for n in sorted(os.listdir(root))
             if n.startswith(prefix) and n.lower().endswith(".csv")]
@@ -825,7 +848,7 @@ def assert_territories_match():
                                     rebuilt, which is a worse trade than saying so.
       stamp DISAGREES            -> REFUSE. This is the trap itself, caught.
     """
-    terr = os.path.join(DATA, "service_territories.geojson")
+    terr = os.path.join(DATA, "out", "service_territories.geojson")
     if not os.path.exists(terr):
         print("NOTE: service_territories.geojson is missing; the map's territory "
               "overlays will not draw. Rebuild it with _make_territories.py, or let "

@@ -92,6 +92,29 @@ else:
     # Nothing found. Name the layout-local path, so the error an operator sees
     # points at where Data/ was expected rather than at a resolved absolute.
     DATA = os.path.join(HERE, "Data")
+
+
+# Data/ is organised by OUTPUT FAMILY (CLCPA-279). Every input sits with the
+# family that eats it, and every output lands in Data/out/:
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs, and its raw/ downloads
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+#
+# fam() returns the family folder when it is there and falls back to flat Data/
+# when it is not, so a repository script this restructure did not touch keeps
+# working unchanged. The handoff package can never take that fallback: it ships
+# no flat inputs, and verify_handoff_package.py asserts exactly that.
+def fam(name):
+    d = os.path.join(DATA, name)
+    return d if os.path.isdir(d) else DATA
+
+
+NYSERDA = fam("nyserda")
+GEOMETRY = fam("tract-geometry")
+ELECTRIC_GAS = fam("electric-gas")
+OUT = os.path.join(DATA, "out")
 ROOT = os.path.dirname(DATA)
 
 # The folder holding these scripts, as an operator would type it from ROOT:
@@ -109,8 +132,8 @@ _spec = importlib.util.spec_from_file_location(
 _bbmp = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_bbmp)
 
-IN_ELEC = os.path.join(DATA, "Electric.xlsx")
-IN_GAS = os.path.join(DATA, "Gas.xlsx")
+IN_ELEC = os.path.join(ELECTRIC_GAS, "Electric.xlsx")
+IN_GAS = os.path.join(ELECTRIC_GAS, "Gas.xlsx")
 
 DATASET_KEY = "coned_operational"
 DATASET_NAME = "Con Edison per-tract operational figures"

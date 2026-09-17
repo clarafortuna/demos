@@ -38,17 +38,24 @@ OUT = os.path.join(HERE, "operator-notebooks")
 # The three steps, in EXECUTION order, as the README states them. Embedded in
 # every notebook header so a reader of any one of them sees the whole order.
 STEPS = [
-    ("Step 1", "docs/02-geometry-and-territories.html",
+    ("Step 1", "docs/tract-shapes.docx, docs/territory-overlays.docx",
      "python scripts/update_map_data.py --vintage 2010",
      "tract shapes AND the territory overlay: one command, two outputs"),
-    ("Step 2", "docs/01-nyserda-indicator-dataset.html",
+    ("Step 2", "docs/dac-indicators.docx",
      "python scripts/convert_nyserda_raw.py --version 1.0 "
      "--geoid-vintage 2010 --raw-date 2023-03-27",
      "the DAC indicator dataset"),
-    ("Step 3", "docs/03-electric-and-gas-figures.html",
+    ("Step 3", "docs/electric-and-gas-figures.docx",
      "python scripts/build_coned_dataset.py --vintage 2010",
      "the electric and gas figures"),
 ]
+
+# The zip as it arrives, and where a Colab operator drops it. F12: the
+# find-the-package cell used to tell an operator to unpack the zip, and no cell
+# did the unpacking, so anyone who had uploaded the zip and nothing else was
+# stopped there with an instruction and no way to follow it.
+ZIP_NAME = "coned-dac-dashboard-data-tools.zip"
+PKG_DIR = "coned-dac-dashboard-data-tools"
 
 
 def md(*lines):
@@ -72,6 +79,66 @@ def order_table(mine):
 # --------------------------------------------------------------------------
 # the shared cells
 # --------------------------------------------------------------------------
+def cell_setup():
+    """F12: unpack the zip, and R7: start the clock.
+
+    The old first cell told an operator to unpack the zip and then did not
+    unpack it, which stopped anyone who had uploaded the zip and nothing else.
+    This runs BEFORE find-the-package, is idempotent, and says which of the two
+    cases it took.
+    """
+    return code(
+        "# SETUP. Unpacks the package if it is not already unpacked, and starts\n",
+        "# the clock for the timing block at the end.\n",
+        "import datetime, glob, hashlib, json, os, subprocess, sys, time, zipfile\n",
+        "\n",
+        "STARTED_AT = datetime.datetime.now(datetime.timezone.utc)\n",
+        "STARTED_CLOCK = time.time()\n",
+        "STAGE_TIMES = []\n",
+        "\n",
+        "ZIP_NAME = %r\n" % ZIP_NAME,
+        "PKG_DIR = %r\n" % PKG_DIR,
+        "\n",
+        "def _looks_like_pkg(d):\n",
+        "    return (os.path.isfile(os.path.join(d, 'MANIFEST.txt'))\n",
+        "            and os.path.isdir(os.path.join(d, 'scripts'))\n",
+        "            and os.path.isdir(os.path.join(d, 'Data')))\n",
+        "\n",
+        "# Already unpacked anywhere sensible? Then do nothing at all.\n",
+        "_found = [d for d in [os.path.join(os.getcwd(), PKG_DIR),\n",
+        "                      os.path.join('/content', PKG_DIR)]\n",
+        "          if _looks_like_pkg(d)]\n",
+        "_found += [d for d in sorted(glob.glob('/content/**/' + PKG_DIR,\n",
+        "                                       recursive=True))\n",
+        "           if _looks_like_pkg(d)]\n",
+        "\n",
+        "if _found:\n",
+        "    print('already unpacked :', _found[0])\n",
+        "    print('nothing to do. Skipping the unpack.')\n",
+        "else:\n",
+        "    _zips = [z for z in ['/content/' + ZIP_NAME,\n",
+        "                         os.path.join(os.getcwd(), ZIP_NAME)]\n",
+        "             if os.path.isfile(z)]\n",
+        "    _zips += sorted(glob.glob('/content/**/' + ZIP_NAME, recursive=True))\n",
+        "    if not _zips:\n",
+        "        raise SystemExit(\n",
+        "            'No package and no zip. Upload ' + ZIP_NAME + ' to this Colab '\n",
+        "            'session (the folder icon in the left sidebar, then the upload '\n",
+        "            'button) and run this cell again.')\n",
+        "    _z = _zips[0]\n",
+        "    _dest = '/content' if os.path.isdir('/content') else os.getcwd()\n",
+        "    print('zip found        :', _z)\n",
+        "    print('unpacking into   :', _dest)\n",
+        "    with zipfile.ZipFile(_z) as _zf:\n",
+        "        _zf.extractall(_dest)\n",
+        "    print('unpacked         :', len(os.listdir(os.path.join(_dest, PKG_DIR))),\n",
+        "          'entries')\n",
+        "\n",
+        "print()\n",
+        "print('STARTED', STARTED_AT.strftime('%Y-%m-%d %H:%M:%S UTC'))\n",
+    )
+
+
 def cell_locate():
     return code(
         "# Find the unpacked package. Nothing here writes anything.\n",
@@ -99,8 +166,10 @@ def cell_locate():
         "            break\n",
         "\n",
         "if PKG is None:\n",
-        "    raise SystemExit('Could not find the package root. Unpack the zip, then set '\n",
-        "                     'PKG above to the folder holding MANIFEST.txt, scripts/ and Data/.')\n",
+        "    raise SystemExit('Could not find the package root. The setup cell above '\n",
+        "                     'unpacks the zip: run it first. If you unpacked somewhere '\n",
+        "                     'unusual, set PKG at the top of this cell to the folder '\n",
+        "                     'holding MANIFEST.txt, scripts/ and Data/.')\n",
         "\n",
         "print('package root :', PKG)\n",
         "print('contents     :', ', '.join(sorted(os.listdir(PKG))))\n",
@@ -208,20 +277,56 @@ def cell_runner():
         "# cwd is the PACKAGE ROOT, which is where the guides say to run from: the\n",
         "# scripts resolve Data/ from their own location, and the paths they print are\n",
         "# relative to the root.\n",
-        "def run(args, expect=0):\n",
+        "# It also times every stage, for the timing block at the end.\n",
+        "def run(args, expect=0, stage=None):\n",
+        "    label = stage or ' '.join(args[:1])\n",
         "    print('$ python ' + ' '.join(args))\n",
         "    print('-' * 70)\n",
+        "    t0 = time.time()\n",
         "    p = subprocess.run([sys.executable] + args, cwd=PKG,\n",
         "                       capture_output=True, text=True)\n",
+        "    elapsed = time.time() - t0\n",
         "    sys.stdout.write(p.stdout)\n",
         "    if p.stderr.strip():\n",
         "        print('--- stderr ---')\n",
         "        sys.stdout.write(p.stderr)\n",
         "    print('-' * 70)\n",
-        "    print('exit code:', p.returncode)\n",
+        "    print('exit code: %d      elapsed: %s' % (p.returncode, hms(elapsed)))\n",
+        "    STAGE_TIMES.append((label, elapsed))\n",
         "    if expect is not None and p.returncode != expect:\n",
         "        raise SystemExit('expected exit %s, got %d' % (expect, p.returncode))\n",
         "    return p\n",
+        "\n",
+        "def hms(seconds):\n",
+        "    seconds = int(round(seconds))\n",
+        "    return '%d:%02d:%02d' % (seconds // 3600, (seconds % 3600) // 60,\n",
+        "                             seconds % 60)\n",
+    )
+
+
+def cell_timing():
+    """R7: one obvious block the operator can read and screenshot."""
+    return code(
+        "# TIMING. One block, meant to be read and screenshotted.\n",
+        "FINISHED_AT = datetime.datetime.now(datetime.timezone.utc)\n",
+        "total = time.time() - STARTED_CLOCK\n",
+        "\n",
+        "print('=' * 58)\n",
+        "print('RUN TIMING')\n",
+        "print('=' * 58)\n",
+        "for label, secs in STAGE_TIMES:\n",
+        "    print('  %-42s %s' % (label, hms(secs)))\n",
+        "if STAGE_TIMES:\n",
+        "    print('-' * 58)\n",
+        "print('  STARTED        %s' % STARTED_AT.strftime('%Y-%m-%d %H:%M:%S UTC'))\n",
+        "print('  FINISHED       %s' % FINISHED_AT.strftime('%Y-%m-%d %H:%M:%S UTC'))\n",
+        "print('  TOTAL ELAPSED  %s' % hms(total))\n",
+        "print('=' * 58)\n",
+        "print()\n",
+        "print('Times vary by machine. A slower computer taking two or three times')\n",
+        "print('as long is normal. Ten times as long is worth investigating rather')\n",
+        "print('than waiting out: check the preflight table for something being')\n",
+        "print('downloaded that should already be here.')\n",
     )
 
 
@@ -320,7 +425,9 @@ def counts_cell(rel, kind):
 # the four notebooks
 # --------------------------------------------------------------------------
 GEO_2010 = "Data/out/tract_geometry_pure-2010.json"
-TERR = "Data/service_territories.geojson"
+# CLCPA-279 wave 2 / R2: the overlay is an output, so it lands in Data/out/ with
+# the rest of them. It used to be written one level up, in Data/.
+TERR = "Data/out/service_territories.geojson"
 DAC = "Data/out/nyserda_dac_v1_0.json"
 CONED = "Data/out/coned_operational_v1_0-2010.json"
 
@@ -383,14 +490,17 @@ def notebook(title, family, step, purpose, produces, notes, cells_mid, verify):
         "\n",
         "## Where this sits in the execution order\n",
         "\n",
-        "The guide filenames are numbered by output family, **not** by sequence, so\n",
-        "the order they run in is not 1, 2, 3. This is the order:\n",
+        "Nothing in this package is numbered. Each guide and notebook is named after\n",
+        "its output family, and the order to run them in is this one:\n",
         "\n",
         order_table(step) + "\n",
         "\n",
     ]
+    # F13: the order table and the callout below it used to butt straight up
+    # against each other with no breathing room. A blank line before each note,
+    # and one after the last, so the table ends and the callout starts.
     for n in notes:
-        head += ["\n", n]
+        head += ["\n", "&nbsp;\n", "\n", n, "\n"]
     head += [
         "\n",
         "## How to use this notebook\n",
@@ -403,13 +513,20 @@ def notebook(title, family, step, purpose, produces, notes, cells_mid, verify):
         "Uploading is a separate manual step, described in the guide.\n",
     ]
     nb["cells"].append(md(*head))
-    nb["cells"].append(md("## 1. Find the package\n"))
+    nb["cells"].append(md(
+        "## Setup: unpack the package, and start the clock\n",
+        "\n",
+        "Upload `coned-dac-dashboard-data-tools.zip` to this session first, then\n",
+        "run this cell. If the package is already unpacked it says so and does\n",
+        "nothing.\n"))
+    nb["cells"].append(cell_setup())
+    nb["cells"].append(md("## Find the package\n"))
     nb["cells"].append(cell_locate())
-    nb["cells"].append(md("## 2. Integrity: is this package intact?\n"))
+    nb["cells"].append(md("## Integrity: is this package intact?\n"))
     nb["cells"].append(cell_integrity())
-    nb["cells"].append(md("## 3. Install the dependencies\n"))
+    nb["cells"].append(md("## Install the dependencies\n"))
     nb["cells"].append(cell_install())
-    nb["cells"].append(md("## 4. The run helper\n"))
+    nb["cells"].append(md("## The run helper\n"))
     nb["cells"].append(cell_runner())
     for c in cells_mid:
         nb["cells"].append(c)
@@ -419,6 +536,12 @@ def notebook(title, family, step, purpose, produces, notes, cells_mid, verify):
         "Sizes and digests are measured from the files the run just wrote.\n",
     ))
     nb["cells"].append(verify)
+    nb["cells"].append(md(
+        "## How long it took\n",
+        "\n",
+        "The block below is the one to screenshot for the run record.\n",
+    ))
+    nb["cells"].append(cell_timing())
     nb["cells"].append(md(
         "## What happens next\n",
         "\n",
@@ -430,18 +553,18 @@ def notebook(title, family, step, purpose, produces, notes, cells_mid, verify):
 
 def build_tract_shapes():
     mid = [
-        md("## 5. Dry run: preflight only\n",
+        md("## Dry run: preflight only\n",
            "\n",
            "`--dry-run` prints the preflight table and stops. No writes, no network.\n"),
-        code("run(['scripts/update_map_data.py', '--vintage', '2010', '--dry-run'])\n"),
-        md("## 6. The real run\n",
+        code("run(['scripts/update_map_data.py', '--vintage', '2010', '--dry-run'], stage='dry run, preflight only')\n"),
+        md("## The real run\n",
            "\n",
            "One command. It writes the tract shapes **and** the territory overlay.\n",
            "\n",
            "If the dataset already exists the preflight refuses and tells you to pass\n",
            "`--force`; that refusal is the tool protecting a file that may be the copy\n",
            "live in Dataverse, so read it before overriding it.\n"),
-        code("run(['scripts/update_map_data.py', '--vintage', '2010'])\n"),
+        code("run(['scripts/update_map_data.py', '--vintage', '2010'], stage='tract shapes and overlay, vintage 2010')\n"),
     ]
     return notebook(
         "Tract shapes", "TRACT SHAPES", "Step 1",
@@ -458,17 +581,17 @@ def build_tract_shapes():
 
 def build_territory_overlays():
     mid = [
-        md("## 5. Dry run: preflight only\n",
+        md("## Dry run: preflight only\n",
            "\n",
            "The preflight names what it will do with the overlay: `WILL BUILD` when\n",
            "it is absent, `WILL REBUILD` when its stamp disagrees with the\n",
            "shapefiles, `PRESENT` when it already matches.\n"),
-        code("run(['scripts/update_map_data.py', '--vintage', '2010', '--dry-run'])\n"),
-        md("## 6. The real run\n",
+        code("run(['scripts/update_map_data.py', '--vintage', '2010', '--dry-run'], stage='dry run, preflight only')\n"),
+        md("## The real run\n",
            "\n",
            "The same single command as step 1, because one command produces both\n",
            "outputs. The overlay lands in `Data/`, **not** in `Data/out/`.\n"),
-        code("run(['scripts/update_map_data.py', '--vintage', '2010'])\n"),
+        code("run(['scripts/update_map_data.py', '--vintage', '2010'], stage='tract shapes and overlay, vintage 2010')\n"),
     ]
     return notebook(
         "Territory overlays", "TERRITORY OVERLAYS", "Step 1",
@@ -484,19 +607,20 @@ def build_territory_overlays():
 
 def build_dac_indicators():
     mid = [
-        md("## 5. Dry run: build without writing\n",
+        md("## Dry run: build without writing\n",
            "\n",
            "`--no-write` does the whole conversion and then does not write the file.\n"),
         code("run(['scripts/convert_nyserda_raw.py', '--version', '1.0',\n",
              "     '--geoid-vintage', '2010', '--raw-date', '2023-03-27',\n",
-             "     '--no-write'])\n"),
-        md("## 6. The real run\n",
+             "     '--no-write'], stage='dry run, no write')\n"),
+        md("## The real run\n",
            "\n",
            "This reads the tract geometry from step 1 as its tract universe. If step\n",
            "1 has not run, `Data/out/` is empty and this stops on a missing input:\n",
            "that is the ordering, not a fault in the package.\n"),
         code("run(['scripts/convert_nyserda_raw.py', '--version', '1.0',\n",
-             "     '--geoid-vintage', '2010', '--raw-date', '2023-03-27'])\n"),
+             "     '--geoid-vintage', '2010', '--raw-date', '2023-03-27'],\n",
+             "     stage='DAC indicators')\n"),
     ]
     return notebook(
         "DAC indicators", "DAC INDICATORS", "Step 2",
@@ -511,17 +635,17 @@ def build_dac_indicators():
 
 def build_coned_figures():
     mid = [
-        md("## 5. Dry run\n",
+        md("## Dry run\n",
            "\n",
            "This script has no dry-run flag, so there is no dry-run cell to offer.\n",
            "Said plainly rather than faked: the run below is the first thing that\n",
            "writes. It refuses rather than overwriting an existing output unless you\n",
            "pass `--force`.\n"),
-        md("## 6. The real run\n",
+        md("## The real run\n",
            "\n",
            "Reads the Con Edison electric and gas extracts, and the tract geometry\n",
            "from step 1 as its tract list.\n"),
-        code("run(['scripts/build_coned_dataset.py', '--vintage', '2010'])\n"),
+        code("run(['scripts/build_coned_dataset.py', '--vintage', '2010'], stage='electric and gas figures, vintage 2010')\n"),
     ]
     return notebook(
         "Electric and gas figures", "ELECTRIC AND GAS FIGURES", "Step 3",

@@ -1,0 +1,9 @@
+# These guides are packaged verbatim into the handoff zip, and that zip's sha256
+# is quoted as its identity.
+#
+# A .docx is a ZIP of XML parts, so it is binary as far as git is concerned.
+# Without this rule git can apply end-of-line conversion to it, which corrupts
+# the archive outright, and would in any case make the package hash differently
+# on a fresh clone than it does here. Same lesson as operator-notebooks, one
+# severity worse: there the bytes changed, here the file stops opening.
+*.docx binary

@@ -1,4 +1,4 @@
-"""Assemble the Con Edison handoff package: the scripts, the three operator
+"""Assemble the Con Edison handoff package: the scripts, the four operator
 guides, their inputs, and a requirements file.
 
 The package has to be self-sufficient in a clean directory with no access to this
@@ -19,36 +19,51 @@ build_coned_dataset imports it rather than reimplementing the header matching.
 Both are import-safe: each has an `if __name__ == "__main__"` guard, so importing
 one does not run it.
 
-LAYOUT (v2, CLCPA-279)
-----------------------
-Five parts, and the shape is the instruction:
+LAYOUT (v3, CLCPA-279 wave 2)
+-----------------------------
+The shape is the instruction, and NOTHING IS NUMBERED. There are four output
+families; every guide, notebook and input folder is named after one of them, and
+the order to run them in is stated in README.txt and in each guide, never by a
+digit in a filename.
 
-    <root>/README.txt  the START HERE, at the root where an operator lands
+    <root>/README.txt   the START HERE, at the root where an operator lands
     <root>/MANIFEST.txt every file in the package, with its full sha256
-    <root>/Data/       inputs only; outputs land in Data/out/, except the
-                       territory overlay, which lands in Data/ itself
-    <root>/docs/       the three operator guides, and the placeholder for the
-                       four per-family Word guides of the later phase
-    <root>/scripts/    every shipped .py, plus requirements.txt
-    <root>/notebooks/  one Colab notebook per output family, orchestrators only
+    <root>/Data/        inputs, one folder per family:
+                          Data/nyserda/         convert_nyserda_raw.py's inputs
+                          Data/tract-geometry/  the geometry chain's inputs
+                          Data/electric-gas/    build_coned_dataset.py's inputs
+                          Data/out/             EVERY output, nothing else
+    <root>/docs/        four Word guides, one per family
+    <root>/scripts/     every shipped .py, plus requirements.txt
+    <root>/notebooks/   one Colab notebook per family, orchestrators only
 
-v1 put the .py files at the package root. They moved into scripts/ so that the
-root holds only the two things an operator reads first, and the scripts' path
-anchor grew the third layout to match -- see the comment on SCRIPTS below.
+Two changes in v3 are worth stating because they were code, not cosmetics:
+
+  * the territory overlay was written to Data/ and is now written to Data/out/,
+    so "everything lands in Data/out/" is true without an exception clause;
+  * Data/ is organised by family, which moved the inputs the scripts resolve. The
+    repository's Data/ has the same shape, so one path still serves both.
+
+v1 put the .py files at the package root. They moved into scripts/ in v2 so the
+root holds only the two files an operator reads first.
 
 WHAT DOES NOT GO IN
 -------------------
 `Data/out/` ships EMPTY. Everything in it is an output, including the tract
 geometry that the other two builders read as their tract universe -- so the
 package's own first command produces it. Shipping a prebuilt copy would let an
-operator run guide 1 successfully without ever running guide 2, and never learn
-that the two are ordered.
+operator run the DAC indicators successfully without ever running the geometry,
+and never learn that the two are ordered.
+
+The three numbered HTML guides no longer ship (v3). They stay in the repository
+at operator-docs/ as history, untouched, and nothing in the package refers to
+them.
 
 `map_payload.json` no longer ships AT ALL. It was carried only to give the
 geometry builder a list of tract numbers and City_Town, so a 4.8 MB file of
 customer account data was being shipped to satisfy a dependency on ~71 KB of
 information. `build_tract_universe.py` extracted the two into
-`Data/tract_universe.json` with its provenance recorded, the builder reads that,
+`Data/tract-geometry/tract_universe.json` with its provenance recorded, the builder reads that,
 and both vintages rebuild byte-identically through it.
 
 Also excluded, each asserted at build time rather than merely listed:
@@ -63,12 +78,12 @@ this package is FOR Con Edison, and listed in MANIFEST.txt under its own heading
 so nobody forwards the package by accident:
 
     Electric.xlsx / Gas.xlsx  per-tract account counts and EAP enrolment
-    Extra_info/CECONY_*       the electric and gas network geometry
+    tract-geometry/CECONY_*   the electric and gas network geometry
 
 `app.js` no longer ships either. It was carried, all 800 KB of it, so that ONE
 function could parse the indicator names out of `const MAP_INDICATOR_GROUPS` --
 which slice 5d then retired. `build_indicator_catalog.py` froze that list into
-`Data/indicator_catalog.json` (6 KB) with the sha256 of the app.js it came from,
+`Data/nyserda/indicator_catalog.json` (6 KB) with the sha256 of the app.js it came from,
 so the traceability is kept and the application stays out of the package.
 
 Neither remaining generated input is customer data: `tract_universe.json` carries
@@ -86,8 +101,9 @@ import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEV = os.path.join(HERE, "ExecutiveDashboard_dev")
-DOCS = os.path.join(HERE, "operator-docs")
+DOCS = os.path.join(HERE, "operator-docs")          # the retired HTML guides
 NOTEBOOKS_SRC = os.path.join(HERE, "operator-notebooks")
+GUIDES_SRC = os.path.join(HERE, "operator-guides")  # the shipped Word guides
 
 PKG_NAME = "coned-dac-dashboard-data-tools"
 
@@ -170,36 +186,58 @@ MUST_NOT_SHIP_DIRS = [
 ]
 
 # Inputs the scripts read at runtime. `client` marks Con Edison internal data.
+#
+# Data/ IS ORGANISED BY OUTPUT FAMILY (CLCPA-279 wave 2). Every input sits in the
+# folder of the family that eats it, and the repository's own Data/ has the same
+# shape, so one path resolves both. The mapping was read out of the code, not
+# assumed: see the fam() comment in any of the shipped scripts.
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+GEO = "Data/tract-geometry/"
 INPUTS = [
-    ("Data/indicator_catalog.json", "Data/indicator_catalog.json", False,
+    ("Data/nyserda/indicator_catalog.json", "Data/nyserda/indicator_catalog.json", False,
      "the six indicator groups and fifty indicators the dataset manifest is built from; replaces app.js, which was carried only to be parsed for this"),
-    ("Data/tract_universe.json", "Data/tract_universe.json", False,
+    (GEO + "tract_universe.json", GEO + "tract_universe.json", False,
      "the 2,333-GEOID tract universe and City_Town, with provenance recorded; "
      "replaces map_payload.json as the geometry builder's universe input"),
-    ("Data/NYS_DAC.geojson", "Data/NYS_DAC.geojson", False,
+    ("Data/nyserda/NYS_DAC.geojson", "Data/nyserda/NYS_DAC.geojson", False,
      "NYSERDA DAC release, from the NY DOS Geographic Information Gateway"),
-    ("Data/ny_tracts.geojson", "Data/ny_tracts.geojson", False,
+    (GEO + "ny_tracts.geojson", GEO + "ny_tracts.geojson", False,
      "US Census 2020 tract boundaries, converted; update_map_data can refetch"),
-    ("Data/ny_tracts_2010.geojson", "Data/ny_tracts_2010.geojson", False,
+    (GEO + "ny_tracts_2010.geojson", GEO + "ny_tracts_2010.geojson", False,
      "US Census 2010 tract boundaries, converted; update_map_data can refetch"),
-    ("Data/2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv",
-     "Data/2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv",
+    (GEO + "2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv",
+     GEO + "2010_Census_Tract_to_Neighborhood_Tabulation_Area_Equivalency_table_20260806.csv",
      False, "NYC Open Data 8ius-dhrr"),
-    ("Data/2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv",
-     "Data/2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv",
+    (GEO + "2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv",
+     GEO + "2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv",
      False, "NYC Open Data hm78-6dwm"),
-    ("Data/Electric.xlsx", "Data/Electric.xlsx", True, "Con Edison electric extract"),
-    ("Data/Gas.xlsx", "Data/Gas.xlsx", True, "Con Edison gas extract"),
+    ("Data/electric-gas/Electric.xlsx", "Data/electric-gas/Electric.xlsx", True,
+     "Con Edison electric extract"),
+    ("Data/electric-gas/Gas.xlsx", "Data/electric-gas/Gas.xlsx", True,
+     "Con Edison gas extract"),
 ]
 
 # Every part of each shapefile the scripts touch. .shp alone is not a shapefile.
+# They are geometry-chain inputs, so they sit in the tract-geometry family.
 SHAPEFILES = ["CECONY_Electric", "CECONY_Gas", "ORU_Territory"]
 SHAPE_PARTS = [".shp", ".shx", ".dbf", ".prj"]
 
-GUIDES = [
-    "01-nyserda-indicator-dataset.html",
-    "02-geometry-and-territories.html",
-    "03-electric-and-gas-figures.html",
+# The operator guides: four Word documents, one per OUTPUT FAMILY, authored by
+# make_operator_guides.py and shipped into docs/.
+#
+# The three numbered HTML guides no longer ship (CLCPA-279 wave 2 / R4). They
+# stay in the repository at operator-docs/ as history, untouched. Nothing in the
+# package refers to them any more: the README, the notebooks and the guides
+# themselves name families, never numbers.
+WORD_GUIDES = [
+    "tract-shapes.docx",
+    "territory-overlays.docx",
+    "dac-indicators.docx",
+    "electric-and-gas-figures.docx",
 ]
 
 # One notebook per OUTPUT FAMILY, and deliberately NOT numbered.
@@ -219,44 +257,21 @@ NOTEBOOKS = [
     "electric-and-gas-figures.ipynb",
 ]
 
-# docs/ ships the three HTML guides AND a placeholder, because the four
-# per-family Word guides are assembled in a later phase. An empty docs/ folder
-# would not survive the zip, and a folder that silently holds three files when
-# the plan says seven is the kind of gap nobody notices until the handoff.
-DOCS_PLACEHOLDER_NAME = "00-WORD-GUIDES-PENDING.txt"
-DOCS_PLACEHOLDER = """\
-The four per-family Word guides are not in this build.
-======================================================
-
-This folder ships three HTML guides, and they are complete and current:
-
-    01-nyserda-indicator-dataset.html    the DAC indicator dataset
-    02-geometry-and-territories.html     tract shapes AND territory overlays
-    03-electric-and-gas-figures.html     the electric and gas figures
-
-A later phase replaces them with four Word guides, one per output family, by
-splitting guide 02 into its two halves. Nothing is missing from this package:
-the three HTML guides cover all four families today, and guide 02 covers two of
-them because ONE command produces both of those outputs.
-
-Until then, the notebooks in notebooks/ are the per-family entry points.
-"""
-
 REQUIREMENTS = """\
 # Con Edison DAC dashboard - data tools
 #
-# The three guides need different things. Install what the guide you are
+# The four guides need different things. Install what the guide you are
 # following asks for; installing all of it is fine too.
 #
-# Guide 1  NYSERDA indicators (convert_nyserda_raw.py)
+# DAC indicators (convert_nyserda_raw.py)
 #          Python standard library only. Nothing to install.
 #
-# Guide 2  Tract geometry and territories (update_map_data.py)
+# Tract shapes and territory overlays (update_map_data.py)
 pyshp>=3.0
 pyproj>=3.7
 shapely>=2.1
 #
-# Guide 3  Electric and gas figures (build_coned_dataset.py)
+# Electric and gas figures (build_coned_dataset.py)
 openpyxl>=3.1
 #
 # Verified on Python 3.14.5 with pyshp 3.0.9, pyproj 3.7.2, shapely 2.1.2.
@@ -268,11 +283,22 @@ Con Edison DAC dashboard - data tools
 
 Everything needed to rebuild the four kinds of data file the dashboard uses.
 
-    Data/       the inputs
+    Data/       the inputs, in one folder per output family
     scripts/    the scripts, and requirements.txt
-    docs/       the operator guides
+    docs/       the operator guides, one per output family
     notebooks/  one notebook per output family, if you would rather run it there
     MANIFEST.txt  every file in this package, with its full sha256
+
+Nothing here is numbered. There are four output families, and every guide,
+notebook and input folder is named after the family it belongs to:
+
+    tract shapes              the shapes the map draws, one per census tract
+    territory overlays       the electric, gas and ORU outlines beneath them
+    DAC indicators           the NYSERDA disadvantaged community values
+    electric and gas figures  per-tract account counts and programme enrolment
+
+The order to run them in is below. It is stated there and in the guides, never
+by a number in a filename.
 
 WHERE TO UNPACK IT (Windows)
 ----------------------------
@@ -305,28 +331,76 @@ terminal later, activate it again before running anything.
 
 START HERE: ONE ORDER, AND IT IS THIS ONE
 -----------------------------------------
-The guide filenames are numbered by OUTPUT FAMILY -- 01, 02, 03 -- and NOT by
-sequence. So the order you run them in is not 1, 2, 3. Work down the three steps
-below, reading each guide before running its command, and the numbering on the
-filenames does not matter.
+Work down the three steps, reading each guide before running its command.
 
-    Step 1    docs/02-geometry-and-territories.html
+    Step 1    docs/tract-shapes.docx  and  docs/territory-overlays.docx
               python scripts/update_map_data.py --vintage 2010
 
               Tract shapes AND the territory overlay: one command, two outputs.
-              This goes first, because the tract shapes it writes are the tract
-              list that steps 2 and 3 both read.
+              Two guides cover it because they are two different families, but
+              there is only ever one command to run.
 
-    Step 2    docs/01-nyserda-indicator-dataset.html
+              This goes FIRST, and the reason is the whole of the ordering: the
+              tract shapes it writes ARE the list of tracts that steps 2 and 3
+              read. Neither of them can decide which tracts exist on its own.
+
+    Step 2    docs/dac-indicators.docx
               python scripts/convert_nyserda_raw.py --version 1.0 \\
                   --geoid-vintage 2010 --raw-date 2023-03-27
 
-    Step 3    docs/03-electric-and-gas-figures.html
+    Step 3    docs/electric-and-gas-figures.docx
               python scripts/build_coned_dataset.py --vintage 2010
 
 `Data/out/` ships empty on purpose. Everything in it is an output, and step 1
 produces the file steps 2 and 3 depend on, so running step 2 first fails on a
 missing input rather than on anything being wrong with the package.
+
+THE SCRIPTS, AND WHICH THREE YOU ACTUALLY RUN
+---------------------------------------------
+Seven scripts ship. You run THREE of them. The other four are called by those
+three, or imported by them, and running one by hand is never part of any
+procedure in this package.
+
+YOU RUN THESE THREE:
+
+    scripts/update_map_data.py
+        Steps 1. Builds the tract shapes AND the territory overlay, in one
+        command, and is the only thing that should build either.
+        Eats:     Data/tract-geometry/
+        Produces: Data/out/tract_geometry_pure-<vintage>.json
+                  Data/out/service_territories.geojson
+
+    scripts/convert_nyserda_raw.py
+        Step 2. Turns the NYSERDA release into the indicator dataset.
+        Eats:     Data/nyserda/  (and step 1's output, for the tract list)
+        Produces: Data/out/nyserda_dac_v1_0.json
+
+    scripts/build_coned_dataset.py
+        Step 3. Turns the two Con Edison spreadsheets into per-tract figures.
+        Eats:     Data/electric-gas/  (and step 1's output, for the tract list)
+        Produces: Data/out/coned_operational_v1_0-<vintage>.json
+
+YOU DO NOT RUN THESE FOUR:
+
+    scripts/build_pure_geometry_dataset.py
+        The geometry builder. update_map_data.py runs it for you, after it has
+        checked the inputs and rebuilt the overlay when needed. Running it by
+        hand skips those checks.
+
+    scripts/_make_territories.py
+        The overlay builder. update_map_data.py runs it for you. It is run as a
+        separate step so that both outputs carry the same stamp.
+
+    scripts/build_tract_dataset.py
+        Imported by convert_nyserda_raw.py for the manifest builder and the
+        indicator catalogue reader. Never run on its own.
+
+    scripts/build_base_map_payload.py
+        Imported by build_coned_dataset.py for the spreadsheet reader. Never run
+        on its own.
+
+If a script is not in the first list, no guide will ever ask you to type its
+name.
 
 HOW TO RUN ANYTHING
 -------------------
@@ -340,20 +414,29 @@ The scripts are in `scripts/`. Their inputs are in `Data/`. Each script finds
 run correctly from anywhere -- but every path it PRINTS is relative to this
 folder, so run them from here and the output reads as written.
 
-WHERE THE OUTPUTS LAND: TWO PLACES
-----------------------------------
-Three of the four outputs land in `Data/out/`. The territory overlay does not,
-and it is one of the files you upload:
+WHERE THE INPUTS ARE
+--------------------
+One folder per family, holding exactly what that family reads:
+
+    Data/nyserda/         NYS_DAC.geojson, indicator_catalog.json
+    Data/tract-geometry/  the census tract boundaries per vintage, the tract
+                          universe, the neighbourhood equivalency tables, and
+                          the CECONY and ORU shapefiles
+    Data/electric-gas/    Electric.xlsx, Gas.xlsx
+
+WHERE THE OUTPUTS LAND: ONE PLACE
+---------------------------------
+Everything this package writes lands in `Data/out/`, with no exceptions:
 
     Data/out/tract_geometry_pure-2010.json      step 1, the tract shapes
-    Data/service_territories.geojson            step 1, the territory overlay
+    Data/out/service_territories.geojson        step 1, the territory overlay
     Data/out/nyserda_dac_v1_0.json              step 2, the DAC indicators
     Data/out/coned_operational_v1_0-2010.json   step 3, electric and gas
 
-The overlay sits beside `Data/out/`, not inside it, because it is not versioned
-per vintage the way the datasets are: one overlay serves both. Each run prints
-the full path of everything it writes, so the run's own output is the reference
-if you are unsure.
+The overlay used to sit one level up, in `Data/`. It does not any more. If you
+are following an older instruction that sends you to `Data/` for it, that
+instruction predates this package. Each run prints the full path of everything
+it writes, so the run's own output is the reference if you are unsure.
 
 Nothing in this package contacts the dashboard. Uploading is a separate, manual
 step, described in the guides.
@@ -363,7 +446,8 @@ NOTEBOOKS
 `notebooks/` holds one notebook per output family, for running this in Google
 Colab or Jupyter instead of a terminal. They orchestrate the same scripts with
 the same commands and reimplement nothing, so a notebook and a terminal produce
-byte-identical files. Each one states where it sits in the three steps above.
+byte-identical files. Each one states where it sits in the three steps above,
+and each prints a timing block you can screenshot.
 
     tract-shapes.ipynb              step 1
     territory-overlays.ipynb        step 1, the same command
@@ -375,7 +459,7 @@ NETWORK
 The geometry build itself is offline. Two things do use the network: fetching a
 Census boundary file if one is missing, and rebuilding the service territory
 overlay, which downloads a coordinate-transformation grid. Both are described in
-guide 2.
+the tract-shapes and territory-overlays guides.
 
 CONTENTS
 --------
@@ -426,11 +510,11 @@ def main():
         take(os.path.join(DEV, src), dst, is_client, note)
     for stem in SHAPEFILES:
         for ext in SHAPE_PARTS:
-            take(os.path.join(DEV, "Data", "Extra_info", stem + ext),
-                 "Data/Extra_info/" + stem + ext, True,
+            take(os.path.join(DEV, "Data", "tract-geometry", stem + ext),
+                 GEO + stem + ext, True,
                  "shapefile part (all four are required)")
-    for g in GUIDES:
-        take(os.path.join(DOCS, g), "docs/" + g, False, "operator guide")
+    for g in WORD_GUIDES:
+        take(os.path.join(GUIDES_SRC, g), "docs/" + g, False, "operator guide")
     for n in NOTEBOOKS:
         take(os.path.join(NOTEBOOKS_SRC, n), "notebooks/" + n, False,
              "Colab notebook, one per output family; orchestrates the scripts")
@@ -446,9 +530,7 @@ def main():
         manifest.append((dst_rel, os.path.getsize(dst), sha256(dst), note))
 
     emit("scripts/requirements.txt", REQUIREMENTS,
-         "pip requirements for all three guides")
-    emit("docs/" + DOCS_PLACEHOLDER_NAME, DOCS_PLACEHOLDER,
-         "placeholder: the four per-family Word guides are a later phase")
+         "pip requirements for all four guides")
     emit("Data/out/.keep",
          "Outputs land here. Empty on purpose -- see README.txt.\n",
          "keeps the empty output folder in the zip")
@@ -501,6 +583,55 @@ def main():
             lines.append("  %-58s %s" % (dst_rel, note))
     with open(os.path.join(stage, "MANIFEST.txt"), "w", encoding="utf-8") as fh:
         fh.write("\n".join(lines) + "\n")
+
+    # THE GUIDES MUST NOT SHIP AN UNMEASURED NUMBER.
+    #
+    # make_operator_guides.py renders any value it has not been given as the
+    # literal MISSING, so a guide quoting a size, a digest, a count or a duration
+    # that nobody measured says so in plain sight rather than carrying a
+    # plausible invention. Audit finding F9 was a stale number in a guide; this
+    # is the guard that stops the next one, and it is a refusal, not a warning.
+    # DAC_ALLOW_UNMEASURED=1 is the MEASUREMENT PASS, and the only reason it
+    # exists: the guides must quote numbers from a clean-room run of the package,
+    # and the package cannot be built until the guides exist. So one throwaway
+    # build is made with the sentinels in place, the chain is run against it, the
+    # measurements are filled in, and the real package is built with this guard
+    # armed. A package built under this flag is not shippable and says so.
+    unmeasured = []
+    for g in WORD_GUIDES:
+        with zipfile.ZipFile(os.path.join(stage, "docs", g)) as z:
+            body = z.read("word/document.xml").decode("utf-8")
+        if "MISSING" in body:
+            unmeasured.append(g)
+    if unmeasured:
+        if os.environ.get("DAC_ALLOW_UNMEASURED") != "1":
+            sys.exit("REFUSED: %d guide(s) still contain MISSING: %s\n"
+                     "  Fill MEASURED in make_operator_guides.py from a "
+                     "clean-room run and regenerate before packaging.\n"
+                     "  For the measurement pass itself, set "
+                     "DAC_ALLOW_UNMEASURED=1." % (len(unmeasured),
+                                                  ", ".join(unmeasured)))
+        print("!" * 66)
+        print("MEASUREMENT PASS ONLY. %d guide(s) contain MISSING: %s"
+              % (len(unmeasured), ", ".join(unmeasured)))
+        print("This package is NOT shippable. Run the chain, fill MEASURED,")
+        print("regenerate the guides, and build again without the flag.")
+        print("!" * 66)
+
+    # THE PACKAGE SHIPS NO FLAT INPUTS.
+    #
+    # The scripts resolve each input through fam(), which falls back to a flat
+    # Data/ when the family folder is absent. That fallback exists for
+    # repository scripts this restructure did not touch. In the PACKAGE it must
+    # never fire, because a package that works through the fallback is a package
+    # whose family layout is decorative. Asserted here, and again from the
+    # outside in verify_handoff_package.py.
+    flat = sorted(n for n in (r[0] for r in manifest)
+                  if n.startswith("Data/") and n.count("/") == 1
+                  and not n.startswith("Data/out/"))
+    if flat:
+        sys.exit("REFUSED: %d input(s) sit directly in Data/ instead of a family "
+                 "folder: %s" % (len(flat), ", ".join(flat)))
 
     # Assert the exclusions rather than trusting the lists above. A file that
     # should never ship is exactly the thing a future edit adds back by accident,
@@ -593,7 +724,7 @@ def main():
     print("  zip       : %s (%d bytes, %.1f MB)"
           % (zip_path, os.path.getsize(zip_path), os.path.getsize(zip_path) / 1e6))
     print("  files     : %d" % len(manifest))
-    print("  scripts   : %d   guides: %d" % (len(SCRIPTS), len(GUIDES)))
+    print("  scripts   : %d   guides: %d" % (len(SCRIPTS), len(WORD_GUIDES)))
     print("  client-data files flagged in MANIFEST.txt: %d" % len(client))
     if missing:
         print("\n  MISSING (not packaged):")

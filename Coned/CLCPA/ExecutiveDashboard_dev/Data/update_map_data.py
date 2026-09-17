@@ -115,8 +115,31 @@ else:
     # Nothing found. Name the layout-local path, so the error an operator sees
     # points at where Data/ was expected rather than at a resolved absolute.
     DATA = os.path.join(HERE, "Data")
+
+
+# Data/ is organised by OUTPUT FAMILY (CLCPA-279). Every input sits with the
+# family that eats it, and every output lands in Data/out/:
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs, and its raw/ downloads
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+#
+# fam() returns the family folder when it is there and falls back to flat Data/
+# when it is not, so a repository script this restructure did not touch keeps
+# working unchanged. The handoff package can never take that fallback: it ships
+# no flat inputs, and verify_handoff_package.py asserts exactly that.
+def fam(name):
+    d = os.path.join(DATA, name)
+    return d if os.path.isdir(d) else DATA
+
+
+NYSERDA = fam("nyserda")
+GEOMETRY = fam("tract-geometry")
+ELECTRIC_GAS = fam("electric-gas")
+OUT = os.path.join(DATA, "out")
 ROOT = os.path.dirname(DATA)
-RAW = os.path.join(DATA, "raw")
+RAW = os.path.join(GEOMETRY, "raw")
 SUPERSEDED = os.path.join(RAW, "superseded")
 
 # The folder holding these scripts, spelled as an operator would type it from
@@ -189,16 +212,16 @@ CONED_INPUTS = [
     # ship, in a table the guide tells operators is the part to actually read.
     # The file is shipped pre-built and there is nothing for an operator to run,
     # so the row says that instead.
-    (os.path.join(DATA, "tract_universe.json"),
+    (os.path.join(GEOMETRY, "tract_universe.json"),
      "the tract universe and City_Town; ships pre-built, nothing to run"),
-    (os.path.join(DATA, "Extra_info", "CECONY_Electric.shp"),
+    (os.path.join(GEOMETRY, "CECONY_Electric.shp"),
      "electric_networks is measured against it"),
-    (os.path.join(DATA, "Extra_info", "CECONY_Electric.dbf"), "its NETWORK attribute"),
-    (os.path.join(DATA, "Extra_info", "CECONY_Electric.prj"), "its CRS"),
-    (os.path.join(DATA, "Extra_info", "CECONY_Gas.shp"),
+    (os.path.join(GEOMETRY, "CECONY_Electric.dbf"), "its NETWORK attribute"),
+    (os.path.join(GEOMETRY, "CECONY_Electric.prj"), "its CRS"),
+    (os.path.join(GEOMETRY, "CECONY_Gas.shp"),
      "gas_areas is measured against it"),
-    (os.path.join(DATA, "Extra_info", "CECONY_Gas.dbf"), "its BORONAME attribute"),
-    (os.path.join(DATA, "Extra_info", "CECONY_Gas.prj"), "its CRS"),
+    (os.path.join(GEOMETRY, "CECONY_Gas.dbf"), "its BORONAME attribute"),
+    (os.path.join(GEOMETRY, "CECONY_Gas.prj"), "its CRS"),
 ]
 
 # Plausible lon/lat for New York. A projected file (EPSG:2263, US survey feet)
@@ -600,7 +623,7 @@ def preflight(a):
     # are gone -- one survives a copy or a checkout without meaning anything --
     # and the comparison is between the fingerprint stamped in the overlay and the
     # shapefile bytes on disk.
-    terr = os.path.join(DATA, "service_territories.geojson")
+    terr = os.path.join(DATA, "out", "service_territories.geojson")
     mine = B.coned_source_fingerprint()
     theirs = B.territory_fingerprint(terr)
     terr_action = None
@@ -802,7 +825,7 @@ def run(argv):
     out("  built from")
     out("    tracts    : %s" % rel(paths["geo"]))
     out("    crosswalk : %s" % rel(paths["crosswalk"] or "(unresolved)"))
-    out("    universe  : %s" % rel(os.path.join(DATA, "tract_universe.json")))
+    out("    universe  : %s" % rel(os.path.join(GEOMETRY, "tract_universe.json")))
     out("")
     out("  Upload it from the Map Layers admin card, with the field block the")
     out("  builder printed above. Nothing here touches Dataverse.")

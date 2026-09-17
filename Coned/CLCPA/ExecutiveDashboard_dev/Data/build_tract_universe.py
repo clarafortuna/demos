@@ -58,7 +58,7 @@ from datetime import datetime, timezone
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SRC = os.path.join(ROOT, "map_payload.json")
-OUT = os.path.join(HERE, "tract_universe.json")
+OUT = os.path.join(HERE, "tract-geometry", "tract_universe.json")
 SCHEMA = 1
 
 

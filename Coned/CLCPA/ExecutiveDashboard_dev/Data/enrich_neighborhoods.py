@@ -26,7 +26,8 @@ ROOT = os.path.dirname(HERE)  # ExecutiveDashboard_dev/
 
 MAP_PATH = os.path.join(ROOT, "map_payload.json")
 BACKUP_PATH = os.path.join(ROOT, "map_payload.backup2.json")
-CSV_PATH = os.path.join(HERE, "2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv")
+CSV_PATH = os.path.join(HERE, "tract-geometry",
+                        "2020_Census_Tracts_to_2020_NTAs_and_CDTAs_Equivalency_20260601.csv")
 
 NYC_COUNTIES = {"Kings", "New York", "Richmond", "Bronx", "Queens"}
 BOROUGH = {

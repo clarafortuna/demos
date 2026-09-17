@@ -57,7 +57,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # Edison handoff package it sits at the package root with Data/ beside it.
 DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
 ROOT = os.path.dirname(DATA)
-OUT = os.path.join(DATA, "indicator_catalog.json")
+OUT = os.path.join(DATA, "nyserda", "indicator_catalog.json")
 SCHEMA = 1
 
 

@@ -142,16 +142,36 @@ def note(detail):
     print("  --    %-10s %s" % ("note", detail))
 
 
+def guide_text(guide_path):
+    """The readable text of a guide, whichever format it is in.
+
+    CLCPA-279 wave 2: the guides became .docx. A .docx is a zip of XML, so
+    reading it as text yields compressed bytes, no command matches, and the
+    RESOLVES check below quietly passes having proved nothing. That is the exact
+    shape of a guard that cannot fail, so the format is handled rather than
+    assumed: word/document.xml, tags stripped, paragraphs kept apart.
+
+    The .html branch stays for the retired guides, so pointing --zip at an older
+    package still verifies it.
+    """
+    if guide_path.lower().endswith(".docx"):
+        with zipfile.ZipFile(guide_path) as z:
+            xml = z.read("word/document.xml").decode("utf-8")
+        # A paragraph break has to become a line break, or every command in the
+        # document runs together into one unmatchable line.
+        xml = xml.replace("</w:p>", "\n")
+        text = re.sub(r"<[^>]+>", "", xml)
+        return html.unescape(text)
+    text = html.unescape(open(guide_path, encoding="utf-8").read())
+    return re.sub(r"<[^>]+>", "", text)
+
+
 def extract_commands(guide_path):
     """Every `python <script> ...` command a guide tells the operator to run.
 
-    Read out of the guide's own text rather than listed here. HTML entities are
-    unescaped first, or a command carrying &quot; or &amp; would be compared in
-    its encoded form and silently never match.
+    Read out of the guide's own text rather than listed here.
     """
-    text = html.unescape(open(guide_path, encoding="utf-8").read())
-    # Strip tags so a command split across <span>s still reads as one line.
-    text = re.sub(r"<[^>]+>", "", text)
+    text = guide_text(guide_path)
     cmds = []
     for line in text.splitlines():
         line = line.strip()
@@ -219,12 +239,40 @@ def main():
             else:
                 fail("present", "%s is missing from the package" % req)
 
-        guides = sorted(glob.glob(os.path.join(root, "docs", "*.html")))
+        guides = sorted(glob.glob(os.path.join(root, "docs", "*.docx"))
+                        + glob.glob(os.path.join(root, "docs", "*.html")))
         if guides:
             ok("guides", "%d guide(s): %s" % (len(guides),
                                               ", ".join(os.path.basename(g) for g in guides)))
         else:
             fail("guides", "no guides in docs/")
+
+        # CLCPA-279 wave 2: Data/ is organised by output family, and the scripts
+        # fall back to a flat Data/ when a family folder is absent. That fallback
+        # is for repository scripts this restructure did not touch. If it ever
+        # fires inside the PACKAGE, the family layout is decorative and the
+        # package works by accident, so prove no input sits loose in Data/.
+        datadir = os.path.join(root, "Data")
+        loose = sorted(f for f in os.listdir(datadir)
+                       if os.path.isfile(os.path.join(datadir, f))) \
+            if os.path.isdir(datadir) else []
+        if loose:
+            fail("families", "%d input(s) sit directly in Data/ rather than in a "
+                             "family folder: %s" % (len(loose), ", ".join(loose)))
+        else:
+            fams = sorted(d for d in os.listdir(datadir)
+                          if os.path.isdir(os.path.join(datadir, d))) \
+                if os.path.isdir(datadir) else []
+            ok("families", "no loose inputs in Data/; folders: %s" % ", ".join(fams))
+
+        # And the other half of R2: every output belongs in Data/out/, so the
+        # overlay must not be sitting beside it the way it used to.
+        stray = os.path.join(datadir, "service_territories.geojson")
+        if os.path.exists(stray):
+            fail("families", "the territory overlay is in Data/; it belongs in "
+                             "Data/out/ with every other output")
+        else:
+            ok("families", "the territory overlay is not loose in Data/")
 
         outdir = os.path.join(root, "Data", "out")
         leftovers = [f for f in os.listdir(outdir)] if os.path.isdir(outdir) else []

@@ -126,6 +126,29 @@ else:
     # Nothing found. Name the layout-local path, so the error an operator sees
     # points at where Data/ was expected rather than at a resolved absolute.
     DATA = os.path.join(HERE, "Data")
+
+
+# Data/ is organised by OUTPUT FAMILY (CLCPA-279). Every input sits with the
+# family that eats it, and every output lands in Data/out/:
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs, and its raw/ downloads
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+#
+# fam() returns the family folder when it is there and falls back to flat Data/
+# when it is not, so a repository script this restructure did not touch keeps
+# working unchanged. The handoff package can never take that fallback: it ships
+# no flat inputs, and verify_handoff_package.py asserts exactly that.
+def fam(name):
+    d = os.path.join(DATA, name)
+    return d if os.path.isdir(d) else DATA
+
+
+NYSERDA = fam("nyserda")
+GEOMETRY = fam("tract-geometry")
+ELECTRIC_GAS = fam("electric-gas")
+OUT = os.path.join(DATA, "out")
 ROOT = os.path.dirname(DATA)
 sys.path.insert(0, HERE)
 
@@ -133,8 +156,8 @@ sys.path.insert(0, HERE)
 # guards its main() behind __main__, so importing it is side-effect free.
 import build_tract_dataset as BTD  # noqa: E402
 
-RAW_DEFAULT = os.path.join(DATA, "NYS_DAC.geojson")
-OUT_DIR = os.path.join(DATA, "out")
+RAW_DEFAULT = os.path.join(NYSERDA, "NYS_DAC.geojson")
+OUT_DIR = OUT
 
 # The six Con Edison counties, as NYSERDA spells them.
 CONED_COUNTIES = {"Bronx", "Kings", "New York", "Queens", "Richmond", "Westchester"}

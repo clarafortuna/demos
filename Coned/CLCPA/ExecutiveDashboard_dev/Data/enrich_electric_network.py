@@ -25,8 +25,8 @@ from shapely.strtree import STRtree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-ELEC = os.path.join(HERE, "Extra_info", "CECONY_Electric")
-GAS = os.path.join(HERE, "Extra_info", "CECONY_Gas")
+ELEC = os.path.join(HERE, "tract-geometry", "CECONY_Electric")
+GAS = os.path.join(HERE, "tract-geometry", "CECONY_Gas")
 MAP = os.path.join(ROOT, "map_payload.json")
 MIN_FRAC = 0.05   # keep areas covering >= 5% of the tract's area
 
