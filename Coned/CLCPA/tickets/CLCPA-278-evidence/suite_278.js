@@ -10,7 +10,7 @@
  * consistent and follows the edit; one that ALREADY disagrees was chosen by
  * somebody and is kept, per (b).
  *
- * BASE predates the change: f2c7137 (CLCPA-274's tip).
+ * BASE predates the change: 4de6a8c (CLCPA-274's tip).
  *
  * Run:  node suite_278.js
  */
@@ -20,9 +20,18 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
-const BASE = process.env.DAC_BASE_COMMIT || 'f2c7137';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const SRC = fs.readFileSync(APP, 'utf8');
+/* PINNED ON BOTH SIDES (CLAUDE.md), the standing model. The post-change
+ * side reads ed44cae, this ticket's own commit, because a
+ * blast-radius claim can only be true at the commit that made the change
+ * -- never on a tip that also carries the tickets merged after it.
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || 'ed44cae';
+const BASE = process.env.DAC_BASE_COMMIT || '4de6a8c';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(

@@ -226,8 +226,7 @@ guard('E: the revert is complete, not merely mostly complete', () => {
 say('');
 say('=== S. the data layer is untouched ===================================');
 guard('S: styles.css and the payload readers are unchanged', () => {
-  const styles = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  const styles = /* DAC_CSS_PINNED: pinned to main before this package; the JS half stays live. A stylesheet claim about what THIS ticket did is history, and CLCPA-275 moved the stylesheet. */ execSync('git show ' + 'ca4c90a' + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const origStyles = execSync('git show ' + ORIG +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');

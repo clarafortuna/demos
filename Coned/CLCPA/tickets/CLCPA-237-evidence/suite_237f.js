@@ -52,7 +52,15 @@ const SRC = process.env.DAC_APP_OVERRIDE
   ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
   : execSync('git show ' + NEWREV + ':"' + REL + '"',
       { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-const CSS = fs.readFileSync(path.join(REPO, CSSREL), 'utf8');
+/* DAC_CSS_PINNED (CLCPA-275 wave): the stylesheet is pinned to the same
+ * commit as app.js. It was left reading the working tree because no
+ * stylesheet had moved since this suite was frozen; one has now, and a
+ * frozen suite must be frozen on BOTH files or it fails on a change it
+ * is not about. */
+const CSS = process.env.DAC_CSS_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_CSS_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + CSSREL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
 const BASE_CSS = toCRLF(execSync('git show ' + BASE + ':"' + CSSREL + '"',

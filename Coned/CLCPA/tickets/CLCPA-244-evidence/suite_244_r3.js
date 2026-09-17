@@ -394,8 +394,7 @@ guard('X: round 2s other half is untouched', () => {
      'X3 the section header still multiplies unconditionally, as ruled');
   ok(/const pctNum = has \? pct \* 100 : 0;/.test(code),
      'X4 and so does the section-goals gauge row');
-  const styles = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  const styles = /* DAC_CSS_PINNED: pinned to main before this package; the JS half stays live. A stylesheet claim about what THIS ticket did is history, and CLCPA-275 moved the stylesheet. */ execSync('git show ' + 'ca4c90a' + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseStyles = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
@@ -472,6 +471,7 @@ guard('X: the blast radius is exactly one function', () => {
    * height formula that both the planner and the renderer call. */
   const EXPECT = {
 
+    
         drawSectionEArc: 'the two-dimensional layout search',
     drawSemi: 'takes cy, because there is more than one row now',
     rowHeightFor: 'the shared height formula (new)',

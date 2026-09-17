@@ -9,6 +9,24 @@ CLCPA-270 -- mutation controls
        2 red, incl: D4 the value lock is the role's
   red  THE DELETE BUTTON re-derives its own three-way test
        1 red, incl: D5 the delete button is the role's
+  red  THE AMENDMENT IS REVERTED: a non-derivable total locks in full again
+       4 red, incl: B5b a total the engine does NOT derive keeps typeable values -- L- V- D-
+  red  THE AMENDMENT OVER-REACHES: it unlocks the LABEL too
+       3 red, incl: B5f and the amendment moves the VALUE bit alone -- label and delete are identical on both sides
+  red  THE AMENDMENT OVER-REACHES: it makes the row deletable again
+       3 red, incl: B5f and the amendment moves the VALUE bit alone -- label and delete are identical on both sides
+  red  THE AMENDMENT REACHES THE COMPUTED ROWS, whose share IS derivable
+       2 red, incl: B5c a COMPUTED share row is unaffected: derivable by construction -- L- V+ D-
+  red  THE ACCESSOR MUTATES THE SHARED TABLE instead of returning a new object
+       1 red, incl: B5g and asking for the open shape did not mutate the declared table -- asked true, table still true, next
+  red  THE RULE IS HARDCODED TO A8 instead of derived (the 259 lesson)
+       1 red, incl: B3b and EXACTLY these five rows keep typeable values -- got 0:
+  red  THE STYLING follows the value lock, so a typeable total stops looking like one
+       1 red, incl: D2c and the row class follows THAT, not the value lock
+  red  THE DERIVED-COLUMN GATE follows the value lock, so a weighted mean goes editable
+       1 red, incl: D2d as does the total-only derived-column gate
+  red  THE RENDERER asks the accessor without the engine flag
+       2 red, incl: D2 and reads its protections from the one accessor, asking the derive engine about THIS row
   red  NARROWED to the strict classifier: 21 G-table rows UNLOCK
        2 red, incl: A1 NOT ONE row became more open -- 21: G1|2025|2, G2|2023|2, G2|2024|2, G2|2025|2, G3|2024|2
   red  THE DECLARED FAMILY is dropped, so 55 group totals UNLOCK
@@ -22,17 +40,19 @@ CLCPA-270 -- mutation controls
   red  THE SHARE RULE is hardcoded to J8's two labels
        1 red, incl: A7 and the same rule reaches F7
   red  A ROLE GOES HALF-OPEN: computed keeps an editable label
-       2 red, incl: B4 computed is not half-open -- [true,false,false]
+       3 red, incl: B4 computed is not half-open -- [true,false,false]
   red  TOTALS BECOME DELETABLE again
-       2 red, incl: B2 total is closed on all three
+       4 red, incl: B2 total is closed on all three
   red  A HEADER stops winning over a total label
        1 red, incl: A10b and a header whose caption reads like a computed share is still a HEADER
   red  THE FOOTER NOTE goes back to the arithmetic flags
        1 red, incl: D10 where BASE asked the arithmetic flags
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X1 BASE is pinned to a literal commit sha -- got none
+       5 red, incl: X1 BASE is pinned to a literal commit sha -- got none
   red  HARNESS: the role is re-implemented instead of sliced
        4 red, incl: A6 a percentage OF A TOTAL is computed, not a total
+  red  HARNESS: the census pin goes back to being dead code
+       1 red, incl: X2 the census reads the PINNED build, not the working tree
 
-  16 caught, 0 not caught, of 16 applied
-  clean re-run against byte-restored source: PASSES -- 49 passed, 0 failed  |  17 passed, 0 failed
+  26 caught, 0 not caught, of 26 applied
+  clean re-run against byte-restored source: PASSES -- 60 passed, 0 failed  |  26 passed, 0 failed

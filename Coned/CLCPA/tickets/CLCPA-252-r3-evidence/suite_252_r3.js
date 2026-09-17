@@ -468,8 +468,12 @@ guard('X: the blast radius', () => {
     return i < 0 ? null : s.slice(i, s.indexOf('\r\n  };', i)); };
   ok(st(SRC) !== null && st(SRC) === st(BASE_SRC), 'X3 SHORT_TITLES is byte-identical');
   /* styles.css is NOT this ticket's */
-  const css = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  /* DAC_CSS_PINNED: read from the same pinned commit as app.js. It was left
+   * on the working tree because no stylesheet had moved since this suite was
+   * frozen; CLCPA-275 moved one, and a frozen suite must be frozen on BOTH
+   * files or it fails on a change it is not about. */
+  const css = execSync('git show ' + NEWREV + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
+    { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseCss = execSync('git show ' + BASE + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   /* THIS TICKET is still JS only, and that is what X4 claims. CLCPA-266 moves

@@ -4,21 +4,25 @@ CLCPA-274 -- mutation controls
   red  THE DEFECT RETURNS: the template writer goes back to `any`
        2 red, incl: D2 and the workbook writer calls it
   red  THE MARKER IS FOLDED INTO `any`: the importer starts discarding filed figures
-       7 red, incl: B2 and the provided 1500 LANDS -- not skipped as computed
+       4 red, incl: D5 the `any` accessor is BYTE-IDENTICAL to BASE
   red  THE IMPORT consults the template accessor
        3 red, incl: B2 and the provided 1500 LANDS -- not skipped as computed
   red  THE DERIVABLE COLUMNS become a hardcoded list
-       5 red, incl: C1 exactly the seven enumerated tables change -- got H1
+       7 red, incl: C1 exactly the seven enumerated tables change -- got H1
   red  THE DERIVABLE COLUMNS are detected without the body rows
-       1 red, incl: D8 the derivable columns come from the schema, not a list
+       6 red, incl: C1 exactly the seven enumerated tables change -- got B2, F2, F7, H1
   red  THE MARKER reaches every column, not the derivable ones
        3 red, incl: C1 exactly the seven enumerated tables change -- got A1, A10, A2, A3, A4, A5, A6, A7, A8, A9, B1, B2, C1,
   red  THE MARKER stops reaching the body rows
-       4 red, incl: A3 they are now marked (calculated) -- 4 cells
+       6 red, incl: A3 they are now marked (calculated) -- 4 cells
+  red  THE HEADER-ROW GUARD is dropped: a second header row is marked again
+       3 red, incl: C2 and 81 cells in total -- got 83
+  red  THE GUARD counts BLANKS as text: a fresh template stops being marked
+       1 red, incl: C2b4 and a body row whose figures are BLANK is still marked -- blanks are not text, and a fresh template 
   red  A GROUP HEADER starts claiming (calculated) instead of (no value)
        1 red, incl: D9 the group-header branch above it is unchanged and still checked FIRST
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X1 BASE is a literal sha -- none
+       3 red, incl: X1 BASE is a literal sha -- none
 
-  9 caught, 0 not caught, of 9 applied
-  clean re-run against byte-restored source: PASSES -- 26 passed, 0 failed
+  11 caught, 0 not caught, of 11 applied
+  clean re-run against byte-restored source: PASSES -- 31 passed, 0 failed

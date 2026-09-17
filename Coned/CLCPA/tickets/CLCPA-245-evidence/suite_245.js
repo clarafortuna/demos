@@ -536,8 +536,7 @@ guard('X: the family veto and the derive engine are untouched', () => {
      'the ordering item is NOT bought here');
   ok(grab('parseNumericInput') === grab('parseNumericInput', BASE_SRC),
      'X5 and CLCPA-244s percent rule');
-  const styles = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  const styles = /* DAC_CSS_PINNED: pinned to main before this package; the JS half stays live. A stylesheet claim about what THIS ticket did is history, and CLCPA-275 moved the stylesheet. */ execSync('git show ' + 'ca4c90a' + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseStyles = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
@@ -627,6 +626,25 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+
+    /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
+
+    ingestRoleOpen: 'CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)',
+    ingestRowRole: 'CLCPA-270: the row role, from its label (new)',
+
+    isTotalRoleLabel: 'CLCPA-270: the total-role label test (new)',
+
+    isComputedShareLabel: 'CLCPA-270: a percentage OF A TOTAL (new)',
+
+    rowSumIsConsistent: 'CLCPA-278: whose figure is this total (new)',
+
+    recomputeDerivableSums: 'CLCPA-278: a consistent total follows the edit (new)',
+
+    clearIngestNotices: 'CLCPA-276: one helper for every notice exit (new)',
+
+    declaredYearFromFilename: 'CLCPA-277: the year token in a filename (new)',
+
+    importYearNotice: 'CLCPA-277: the wrong-year advisory (new)',
 
     /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
 
@@ -718,7 +736,9 @@ guard('X: the blast radius', () => {
   /* 23 -> 25: CLCPA-252 round 2 added two, both named above. */
   /* 25 -> 28: CLCPA-264 added two and moved stagedBlock, all named above. */
   /* 28 -> 33: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 52, 'X8 exactly this many functions changed: ' + changed.length);
+  /* 52 -> 60: the review follow-up package moved 8 more, every one of them named in the map above. The delta equals the number of entries added to that map, so nothing entered this count unattributed. */
+  /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
+  ok(changed.length === 61, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-270 -- one locking model, keyed on the row's structural role
-  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  app.js : git show 83fd9c1:Coned/CLCPA/ExecutiveDashboard_dev/app.js
   BASE   : ca4c90a (predates this change)
 ======================================================================
 
@@ -39,7 +39,7 @@ B. ONE ROLE DECIDES ALL THREE PROTECTIONS
   ok   B5d a header row is unaffected -- L- V- D-
   ok   B5e a data row is unaffected either way
   ok   B5f and the amendment moves the VALUE bit alone -- label and delete are identical on both sides
-  ok   B5g and asking for the open shape did not mutate the declared table
+  ok   B5g and asking for the open shape did not mutate the declared table -- asked true, table still false, next derivable total still false
 
 C. THE SAME ROW, THE SAME PROTECTION, WHATEVER ITS FIGURES
   ok   C1 ingestRowRole takes exactly three arguments -- label, table, header (3)
@@ -63,7 +63,7 @@ D. THE RENDERED GRID
   ok   D10 where BASE asked the arithmetic flags
 
 E. STYLE OF CHANGE
-     added code lines: 100
+     added code lines: 35
   ok   E1 no added code line names a table id
   ok   E2 nor a row label
   ok   E3 totalRowFlags survives -- it is the derive engine's, not protection's

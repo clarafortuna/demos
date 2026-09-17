@@ -414,6 +414,27 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
 
+    /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
+
+    ingestRoleOpen: 'CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)',
+    ingestRowRole: 'CLCPA-270: the row role, from its label (new)',
+
+    isTotalRoleLabel: 'CLCPA-270: the total-role label test (new)',
+
+    isComputedShareLabel: 'CLCPA-270: a percentage OF A TOTAL (new)',
+
+    ingestComputed: 'CLCPA-274: the template gains its own accessor',
+
+    rowSumIsConsistent: 'CLCPA-278: whose figure is this total (new)',
+
+    recomputeDerivableSums: 'CLCPA-278: a consistent total follows the edit (new)',
+
+    clearIngestNotices: 'CLCPA-276: one helper for every notice exit (new)',
+
+    declaredYearFromFilename: 'CLCPA-277: the year token in a filename (new)',
+
+    importYearNotice: 'CLCPA-277: the wrong-year advisory (new)',
+
     /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
 
     shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
@@ -484,14 +505,18 @@ guard('X: the blast radius', () => {
   /* 7 -> 10: CLCPA-252 round 2 added two and changed tableCaption, all named. */
   /* 10 -> 15: CLCPA-264 moved five this suite can see, all named above. */
   /* 15 -> 20: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 40, 'X1 exactly this many functions changed: ' + changed.length);
+  /* 40 -> 49: the review follow-up package moved 9 more, every one of them named in the map above. The delta equals the number of entries added to that map, so nothing entered this count unattributed. */
+  /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
+  ok(changed.length === 50, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a
    * derivation to consult. It is named in the map above instead, so the
    * change stays accounted for, just not as 'untouched'. */
-  ['renderSourceTables', 'dacCol',
-   'ingestComputed'].forEach(n => {
+  /* ingestComputed LEFT this list under CLCPA-274, which gave the template
+   * writer its own accessor. It is named in the map above instead, so the
+   * change stays accounted for, just not as 'untouched'. */
+  ['renderSourceTables', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
 });

@@ -8,7 +8,7 @@
  * decides what a selector actually wins, and CLCPA-248/249 established that a
  * declaration's presence is not its effect.
  *
- * BASE predates the change: 1657756 (CLCPA-277's tip).
+ * BASE predates the change: 7260063 (CLCPA-277's tip).
  *
  * Run:  node suite_275.js
  */
@@ -18,12 +18,24 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md), the standing model. The post-change
+ * side reads 0c25b60, this ticket's own commit, because a
+ * blast-radius claim can only be true at the commit that made the change
+ * -- never on a tip that also carries the tickets merged after it.
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '0c25b60';
 const CSSREL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
-const BASE = process.env.DAC_BASE_COMMIT || '1657756';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const CSSFILE = process.env.DAC_CSS_OVERRIDE || path.join(REPO, CSSREL);
-const SRC = fs.readFileSync(APP, 'utf8');
-const CSS = fs.readFileSync(CSSFILE, 'utf8');
+const BASE = process.env.DAC_BASE_COMMIT || '7260063';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const CSSFILE = process.env.DAC_CSS_OVERRIDE || ('git show ' + NEWREV + ':' + CSSREL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
+const CSS = process.env.DAC_CSS_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_CSS_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + CSSREL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_CSS = execSync('git show ' + BASE + ':"' + CSSREL + '"',

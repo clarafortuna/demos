@@ -12,7 +12,7 @@
  * baseline, buildIngestImport for the rows, recomputeTotals as the editor runs
  * it -- and only then counts. The reproduction comes first; the fix follows it.
  *
- * BASE predates the change: e08bbad (CLCPA-278's tip).
+ * BASE predates the change: ed44cae (CLCPA-278's tip).
  *
  * Run:  node suite_269_r2.js
  */
@@ -22,9 +22,18 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
-const BASE = process.env.DAC_BASE_COMMIT || 'e08bbad';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const SRC = fs.readFileSync(APP, 'utf8');
+/* PINNED ON BOTH SIDES (CLAUDE.md), the standing model. The post-change
+ * side reads 5d584c5, this ticket's own commit, because a
+ * blast-radius claim can only be true at the commit that made the change
+ * -- never on a tip that also carries the tickets merged after it.
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '5d584c5';
+const BASE = process.env.DAC_BASE_COMMIT || 'ed44cae';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(

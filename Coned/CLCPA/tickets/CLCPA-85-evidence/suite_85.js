@@ -563,8 +563,11 @@ lines.push('=== the surfaces exist and say the right things ===');
      'and heads the panel with the fact that nothing was imported');
   ok(/ingest-import-bad/.test(result) && /\.ingest-import-bad/.test(CSS),
      'the rejected case is styled distinctly, and that rule exists');
-  ok(/i\.importResult = null;/.test(SRC), 'a stale result is cleared on selection change');
-  ok(grab(SRC, 'loadIngestDraft').indexOf('importResult = null') > 0,
+  /* CLCPA-276 moved the clearing into one helper, because Reset and a
+   * successful save end the same draft and were not clearing it either. The
+   * guard is the same guard; only the call it looks for has a name now. */
+  ok(/clearIngestNotices\(/.test(SRC), 'a stale result is cleared on selection change');
+  ok(grab(SRC, 'loadIngestDraft').indexOf('clearIngestNotices(i)') > 0,
      'and cleared in loadIngestDraft, which every picker handler calls');
 
   // BASE controls

@@ -22,7 +22,7 @@ CLCPA-278 -- mutation controls
   red  THE RELATIONSHIP is hardcoded instead of read from the schema
        2 red, incl: C1 the rule works on all 7 enumerated tables -- 1
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X1 BASE is a literal sha -- none
+       2 red, incl: X1 BASE is a literal sha -- none
   red  HARNESS: the mutation of state moves back INSIDE the retry loop
        1 red, incl: A1 a CONSISTENT total follows the edit: 1443 -> 1477 (got 1443)
 

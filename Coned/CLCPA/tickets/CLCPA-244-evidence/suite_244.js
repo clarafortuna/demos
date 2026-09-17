@@ -418,8 +418,13 @@ guard('S: scoped and singular', () => {
   ok(rtNow.replace(CLCPA254, () => BASE254) === grab('recomputeTotals', BASE_SRC),
      'S7 recomputeTotals is byte-identical once CLCPA-254s declared-summable ' +
      'exception is undone: the ENGINE was already right, only the marking was wrong');
-  const css = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  /* DAC_CSS_PINNED: the stylesheet is read from the same pinned commit as
+   * app.js. It was left on the working tree because no stylesheet had moved
+   * since this suite was frozen; CLCPA-275 moved one, and a frozen suite must
+   * be frozen on BOTH files or it fails on a change it is not about. */
+  const css = execSync('git show ' + NEWREV +
+    ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
+    { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');

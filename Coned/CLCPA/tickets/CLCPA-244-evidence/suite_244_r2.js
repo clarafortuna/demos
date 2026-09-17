@@ -555,6 +555,7 @@ guard('X: the blast radius, function by function', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
 
+    
         parseNumericInput: 'the percent sign becomes a unit',
     drawSectionEArc: 'shrink to fit',
     wireSectionEArcResize: 'the resize redraw (new)',

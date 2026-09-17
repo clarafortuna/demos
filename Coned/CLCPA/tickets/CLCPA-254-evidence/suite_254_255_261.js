@@ -203,8 +203,33 @@ say('');
 say('=== D. CLCPA-255: the narrow x-suppression =========================');
 guard('D: a recognised total row loses its delete control', () => {
   const src = codeOnly(SRC);
-  ok(/\$\{\(isHeaderRow \|\| lockTotalRow \|\| isTotal\) \? ''/.test(src),
-     'D1 the actions cell is empty for a total row');
+  /* CLCPA-270 replaced the three-flag disjunction with one role lookup. That
+   * is a REWORDING only if the two agree on every role, so prove it rather
+   * than re-pin the new spelling: read the role table out of the shipped
+   * source and evaluate BOTH expressions over all four roles. The old flags
+   * are themselves derived from the same table by the lines above the cell
+   * (isHeaderRow = role 'header', isTotal = !values && !header,
+   * lockTotalRow = !label && !header), so this is a closed comparison. */
+  ok(/\$\{!roleOpen\.deletable \? ''/.test(src),
+     'D1a the actions cell is empty when the ROLE is not deletable');
+  /* the table is a const inside the IIFE, so this harness's column-0 extractor
+   * cannot reach it -- cut the literal out of the shipped bytes instead */
+  const roleSrc = /const INGEST_ROLE_OPEN = \{[\s\S]*?\r?\n  \};/.exec(SRC);
+  ok(!!roleSrc, 'D1z the role table is in the shipped source');
+  const ROLE = new Function(roleSrc[0] + '\nreturn INGEST_ROLE_OPEN;')();
+  const roles = Object.keys(ROLE);
+  ok(roles.length === 4, 'D1b the role table has all four roles: ' + roles.join(','));
+  const disagree = roles.filter((r) => {
+    const o = ROLE[r];
+    const isHeaderRow = r === 'header';
+    const isTotal = !o.values && !isHeaderRow;
+    const lockTotalRow = !o.label && !isHeaderRow;
+    const oldSuppressed = isHeaderRow || lockTotalRow || isTotal;
+    return oldSuppressed !== !o.deletable;
+  });
+  ok(disagree.length === 0,
+     'D1 and that suppresses exactly what CLCPA-255 suppressed, on every ' +
+     'role: ' + (disagree.length ? 'DISAGREE on ' + disagree.join(',') : 'all 4 agree'));
   ok(/\$\{\(isHeaderRow \|\| lockTotalRow\) \? ''/.test(codeOnly(BASE_SRC)),
      'D2 where BASE emitted the button for it');
 });
@@ -369,6 +394,29 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
 
+    /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
+
+    ingestRoleOpen: 'CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)',
+    ingestRowRole: 'CLCPA-270: the row role, from its label (new)',
+
+    isTotalRoleLabel: 'CLCPA-270: the total-role label test (new)',
+
+    isComputedShareLabel: 'CLCPA-270: a percentage OF A TOTAL (new)',
+
+    ingestComputed: 'CLCPA-274: the template gains its own accessor',
+
+    buildIngestWorkbook: 'CLCPA-274: the writer marks derivable total columns',
+
+    rowSumIsConsistent: 'CLCPA-278: whose figure is this total (new)',
+
+    recomputeDerivableSums: 'CLCPA-278: a consistent total follows the edit (new)',
+
+    clearIngestNotices: 'CLCPA-276: one helper for every notice exit (new)',
+
+    declaredYearFromFilename: 'CLCPA-277: the year token in a filename (new)',
+
+    importYearNotice: 'CLCPA-277: the wrong-year advisory (new)',
+
     /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
 
     shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
@@ -435,7 +483,9 @@ guard('X: the blast radius', () => {
   /* 5 -> 8: CLCPA-252 round 2 added two and changed tableCaption, all named. */
   /* 8 -> 13: CLCPA-264 moved five this suite can see, all named above. */
   /* 13 -> 18: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 38, 'X1 exactly this many functions changed: ' + changed.length);
+  /* 38 -> 48: the review follow-up package moved 10 more, every one of them named in the map above. The delta equals the number of entries added to that map, so nothing entered this count unattributed. */
+  /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
+  ok(changed.length === 49, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags', 'columnGrandTotals',
    'renderSourceTables', 'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

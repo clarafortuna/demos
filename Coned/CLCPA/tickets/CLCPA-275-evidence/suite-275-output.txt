@@ -1,7 +1,7 @@
 ======================================================================
 CLCPA-275 -- the notice stack is separated from the card below it
-  styles.css : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\styles.css
-  BASE       : 1657756 (predates this change)
+  styles.css : git show 0c25b60:Coned/CLCPA/ExecutiveDashboard_dev/styles.css
+  BASE       : 7260063 (predates this change)
 ======================================================================
 
 A. THE GAP, RESOLVED THROUGH THE CASCADE
@@ -35,7 +35,7 @@ E. STYLE ONLY
   ok   E4 and it wins on the cascade, not with !important
 
 X. THE HARNESS
-  ok   X1 BASE is a literal sha -- 1657756
+  ok   X1 BASE is a literal sha -- 7260063
   ok   X2 and predates this ticket
   ok   X3 the cascade resolver returns null for a property nothing declares here
 

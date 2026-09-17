@@ -17,7 +17,14 @@ const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-274-evidence';
 const SUITE = DIR + '/suite_274.js';
-const APP = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree. The suite
+ * reads NEWREV unless DAC_APP_OVERRIDE says otherwise, so mutating the
+ * repo's own file would change something the suite never opens and every
+ * control would pass green. Same pattern as mut_271 and mut_244_r2. */
+const NEW_COMMIT = process.env.DAC_NEW_COMMIT || 'b902b0b';
+const APP = path.join(os.tmpdir(), 'clcpa-274-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 
 const M = [
   { t: APP, name: 'THE DEFECT RETURNS: the template writer goes back to `any`',
@@ -39,26 +46,44 @@ const M = [
     alt: 'D3 while the IMPORT still calls `any`' },
 
   /* the relationship must stay the schema's, and CLCPA-272's */
+  /* THESE FOUR ARE ANCHORED ON THE FOLLOW-UP'S SOURCE, not the first cut's.
+   * The header-row fix replaced the `sumCols` array with a `sumRel` map keyed
+   * by column, so the anchors written against the first cut stopped matching
+   * and the runner reported them "ANCHOR 0, NOT APPLIED" -- four controls
+   * silently absent, which is indistinguishable from four controls passing if
+   * nobody reads the applied count. The runner exits non-zero on a missed
+   * control, and that is what caught it. */
   { t: APP, name: 'THE DERIVABLE COLUMNS become a hardcoded list',
-    from: "    const sumCols = detectSumColumns(schema, rows, tableId).map(s => s.column);",
-    to:   "    const sumCols = tableId === 'H1' ? [3] : [];",
+    from: "    detectSumColumns(schema, rows, tableId).forEach((s) => { sumRel[s.column] = s; });",
+    to:   "    if (tableId === 'H1') sumRel[3] = { column: 3, parts: [1, 2] };",
     expect: 'C1 exactly the seven enumerated tables change',
     alt: 'D8 the derivable columns come from the schema, not a list' },
   { t: APP, name: 'THE DERIVABLE COLUMNS are detected without the body rows',
-    from: '    const sumCols = detectSumColumns(schema, rows, tableId).map(s => s.column);',
-    to:   '    const sumCols = detectSumColumns(schema, null, tableId).map(s => s.column);',
+    from: '    detectSumColumns(schema, rows, tableId).forEach((s) => { sumRel[s.column] = s; });',
+    to:   '    detectSumColumns(schema, null, tableId).forEach((s) => { sumRel[s.column] = s; });',
     /* without the rows the numeric mask cannot run and F4/F5's second label
      * column comes back as an addend, changing which columns are derivable */
     expect: 'D8 the derivable columns come from the schema, not a list',
     alt: 'C1 exactly the seven enumerated tables change' },
   { t: APP, name: 'THE MARKER reaches every column, not the derivable ones',
-    from: '        return sumCols.indexOf(c) >= 0;',
-    to:   '        return c > 0;',
-    expect: 'C2 and 83 cells in total', alt: 'C1 exactly the seven enumerated tables change' },
+    from: '        const rel = sumRel[c];\r\n        if (!rel) return false;',
+    to:   '        const rel = sumRel[c] || { parts: [] };',
+    expect: 'C2 and 81 cells in total', alt: 'C1 exactly the seven enumerated tables change' },
   { t: APP, name: 'THE MARKER stops reaching the body rows',
-    from: '        return sumCols.indexOf(c) >= 0;',
+    from: '        return !partHasText;',
     to:   '        return false;',
     expect: 'A3 they are now marked (calculated)' },
+  /* and the header-row guard the follow-up added is itself a control now */
+  { t: APP, name: 'THE HEADER-ROW GUARD is dropped: a second header row is marked again',
+    from: '        return !partHasText;',
+    to:   '        return true;',
+    expect: 'C2b2 its SECOND header row is NOT marked',
+    alt: 'C2 and 81 cells in total' },
+  { t: APP, name: 'THE GUARD counts BLANKS as text: a fresh template stops being marked',
+    from: "      return v != null && v !== '' && typeof v !== 'number';",
+    to:   "      return typeof v !== 'number';",
+    expect: 'C2b4 and a body row whose figures are BLANK is still marked',
+    alt: 'C2 and 81 cells in total' },
 
   /* the group-header marker must still win */
   { t: APP, name: 'A GROUP HEADER starts claiming (calculated) instead of (no value)',
@@ -69,7 +94,7 @@ const M = [
 
   /* harness */
   { t: SUITE, name: 'HARNESS: the baseline is repointed at a symbolic ref',
-    from: "const BASE = process.env.DAC_BASE_COMMIT || '050c1c1';",
+    from: "const BASE = process.env.DAC_BASE_COMMIT || '83fd9c1';",
     to:   "const BASE = process.env.DAC_BASE_COMMIT || 'HEAD';",
     expect: 'X1 BASE is a literal sha' },
 ];
@@ -92,7 +117,7 @@ M.forEach((m) => {
   applied++;
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_274.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_274.js'], { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -115,7 +140,7 @@ M.forEach((m) => {
 log('');
 log('  ' + caught + ' caught, ' + missed + ' not caught, of ' + applied + ' applied');
 let clean = '';
-try { clean = execFileSync('node', ['suite_274.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { clean = execFileSync('node', ['suite_274.js'], { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) { clean = (e.stdout || '') + (e.stderr || ''); }
 const tally = (clean.match(/(\d+) passed, (\d+) failed/) || []);
 log('  clean re-run against byte-restored source: ' +
