@@ -22028,13 +22028,31 @@ function wireHTooltips() {
          * branch so a column that ever gains a real rule is computed rather
          * than frozen. */
         if (readOnlyByName[colIdx]) {
-          const text = (v == null || v === '') ? '—' : String(v);
+          /* CLCPA-271: THE SAME FORMATTER THE EDITABLE CELLS USE.
+           *
+           * This read String(v), so a read-only money cell printed a bare
+           * 1110000 next to editable cells printing $111,000. The column type
+           * is already derived two ways in this closure -- currencyCol from
+           * detectCurrencyColumns(i.schema) and numericCol from
+           * columnNumericMask -- so the formatting derives from the COLUMN,
+           * with no per-table literal and no second detector.
+           *
+           * formatIngestValue returns a non-number unchanged, so a text
+           * residual in a read-only column is still shown as published. */
+          const text = (v == null || v === '') ? '—'
+            : formatIngestValue(v, currencyCol[colIdx]);
           return `<td class="ingest-td-calc"><span class="ingest-cell-calc ingest-cell-calc-text" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(text)}</span></td>`;
         }
         if (isTotal) {
           // Calculated cell — readonly, gray. Alignment follows the column.
-          const display = (v == null || v === '') ? '—' :
-            (typeof v === 'number' ? v.toLocaleString() : String(v));
+          /* CLCPA-271: v.toLocaleString() never carried the currency, so E1's
+           * computed Grand Total rendered 1,110,000 directly beneath its own
+           * body rows rendering $111,000. One branch, every table: the money
+           * marker follows the COLUMN, exactly as it does for an editable
+           * cell, so a computed cell and a typed cell in the same column can
+           * no longer disagree about what the column is. */
+          const display = (v == null || v === '') ? '—'
+            : formatIngestValue(v, currencyCol[colIdx]);
           const calcCls = numericCol[colIdx] ? 'ingest-cell-calc' : 'ingest-cell-calc ingest-cell-calc-text';
           return `<td class="ingest-td-calc"><span class="${calcCls}" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(display)}</span></td>`;
         }
@@ -23361,6 +23379,16 @@ function wireHTooltips() {
     if (!i || !i.draft) return;
     const derivedByCol = {};
     ((DERIVED_COLS[i.tableId]) || []).forEach(d => { derivedByCol[d.column] = d; });
+    /* CLCPA-271: THE SECOND SURFACE, and the one that would have hidden the
+     * first. This function's own contract is to mirror renderIngestEditor's
+     * calc-cell formatting, and it carried the same unformatted expression --
+     * so a money total rendered "$1,110,000" on first paint and reverted to
+     * "1,110,000" the moment any cell was blurred. Fixing only the renderer
+     * would have looked correct until the operator typed.
+     *
+     * Same derivation as the renderer, from the SCHEMA, so the two cannot
+     * drift again. */
+    const currencyCol = detectCurrencyColumns(i.schema);
     document.querySelectorAll('.ingest-grid .ingest-cell-calc[data-col]').forEach(span => {
       const r = parseInt(span.dataset.row, 10);
       const c = parseInt(span.dataset.col, 10);
@@ -23369,7 +23397,7 @@ function wireHTooltips() {
       const d = derivedByCol[c];
       span.textContent = d
         ? fmtDerivedCell(v, d)
-        : ((v == null || v === '') ? '—' : (typeof v === 'number' ? v.toLocaleString() : String(v)));
+        : ((v == null || v === '') ? '—' : formatIngestValue(v, currencyCol[c]));
     });
   }
 

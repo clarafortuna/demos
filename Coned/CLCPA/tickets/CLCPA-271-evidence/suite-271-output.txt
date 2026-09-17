@@ -1,0 +1,57 @@
+======================================================================
+CLCPA-271 -- computed cells render with their column's format
+  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : 2361a6a (predates this change)
+======================================================================
+
+A. THE DEFECT: a computed money cell and a typed money cell, one column
+  ok   A1 the computed total renders $1,110,000 -- got "$1,110,000"
+  ok   A2 the editable body cell in the same column renders $111,000
+  ok   A3 on BASE the same total rendered 1,110,000, with no currency -- the defect was real
+  ok   A4 and this build changed it
+  ok   A5 computed and typed cells now AGREE about the currency marker
+  ok   A6 on BASE they disagreed
+
+B. THE FORMAT FOLLOWS THE COLUMN
+  ok   B1 a NON-currency numeric total keeps separators and takes no $ -- got "4,321"
+  ok   B2 a negative money total renders -$212,177 -- got "-$212,177"
+  ok   B3 an empty computed cell still renders the null glyph, unchanged
+  ok   B4 a non-numeric residual is shown as published, not coerced -- got "n/a"
+
+C. THE READ-ONLY (NOT COMPUTED) BRANCH, fixed in the same pass
+  ok   C1 a read-only money cell formats too -- got "$1,110,000"
+  ok   C2 on BASE it printed a bare 1110000 -- got "1110000"
+  ok   C3 and a text residual in a read-only column is still shown as published
+
+D. SHARED PATH: every currency column in the payload, computed vs typed
+     value currency columns across the payload: 43   (label-column false positives skipped: 3)
+  ok   D1 the payload really does contain currency columns (43)
+  ok   D2 computed and typed cells agree on the $ in ALL 43 currency table-year-columns -- agreed in 43
+  ok   D3 and the known label-column false positives are still exactly 3 (E1 x3), not a number that grew quietly -- found 3
+
+E. STYLE OF CHANGE: render-side only, no stored data, no literals
+  ok   E1 the unformatted calc expression is gone from the shipped CODE (comments ignored)
+  ok   E2 and it WAS there on BASE -- the pin can fail
+  ok   E2b the idiom itself survives elsewhere (11 sites: charts, KPI cards, history detail) -- this ticket did not sweep the file
+  ok   E3 exactly TWO render branches now call the shared formatter with the column -- found 2
+  ok   E3b the in-place refresh uses the same formatter (the second surface)
+  ok   E3c and it derives the money columns from the SCHEMA, as the renderer does
+  ok   E3d and on BASE that same function used the unformatted expression
+  ok   E4 formatIngestValue itself is BYTE-IDENTICAL to BASE
+  ok   E5 detectCurrencyColumns is BYTE-IDENTICAL to BASE -- the derivation did not move
+  ok   E6 two changed render lines located
+  ok   E7 neither names a table id
+  ok   E8 neither carries a literal currency string -- the $ comes from the formatter
+  ok   E9 EVERY byte of app.js outside the TWO named surfaces is identical to BASE
+     git diff vs BASE: +32 -4 lines in app.js
+  ok   E10 git confirms app.js changed (+32 -4)
+  ok   E10b and only 4 lines were REMOVED -- a small, surgical change, not a rewrite of the render path
+
+X. THE HARNESS
+  ok   X1 BASE is pinned to a literal commit sha, not a symbolic ref -- got "2361a6a"
+  ok   X2 and the resolved baseline is not HEAD
+  ok   X3 the cell renderer was sliced out of the shipped app.js, both anchors found
+
+======================================================================
+  34 passed, 0 failed
+======================================================================
