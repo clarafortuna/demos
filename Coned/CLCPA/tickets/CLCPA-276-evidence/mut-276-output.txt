@@ -1,0 +1,26 @@
+======================================================================
+CLCPA-276 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the helper stops clearing the receipt
+       5 red, incl: B1 shape 1: the receipt is GONE after Reset
+  red  THE TYPED ADVISORY is left behind
+       2 red, incl: B2 and so is the typed advisory
+  red  RESET stops clearing (hosted shape 1)
+       2 red, incl: C2 declared once and called from THREE places -- found 2 calls
+  red  A SUCCESSFUL SAVE stops clearing (hosted shape 3)
+       1 red, incl: C2 declared once and called from THREE places -- found 2 calls
+  red  LOADING A TABLE-YEAR stops clearing (hosted shapes 2 and 4)
+       2 red, incl: C2 declared once and called from THREE places -- found 2 calls
+  red  THE RECONCILIATION ADVISORY is cleared too, hiding a live fact
+       1 red, incl: D4 the helper does NOT clear the reconciliation advisory -- it is recomputed from the draft, which is the
+  red  A NOTICE TEXT is reworded while "fixing" the lifecycle
+       2 red, incl: A2 the receipt is rendered
+  red  THE COMPONENT is restyled while "fixing" the lifecycle
+       2 red, incl: D1 renderReconcileNotice is BYTE-IDENTICAL to BASE
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X1 BASE is a literal sha -- none
+  red  HARNESS: the mount is stubbed instead of driven
+       5 red, incl: A2 the receipt is rendered
+
+  10 caught, 0 not caught, of 10 applied
+  clean re-run against byte-restored source: PASSES -- 27 passed, 0 failed
