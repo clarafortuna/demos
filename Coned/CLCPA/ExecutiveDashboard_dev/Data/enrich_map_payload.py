@@ -21,7 +21,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)  # ExecutiveDashboard/
 
-NYS_PATH = os.path.join(HERE, "NYS_DAC.geojson")
+NYS_PATH = os.path.join(HERE, "nyserda", "NYS_DAC.geojson")
 MAP_PATH = os.path.join(ROOT, "map_payload.json")
 
 CONED_COUNTIES = ["Kings", "Bronx", "Queens", "New York", "Westchester", "Richmond"]

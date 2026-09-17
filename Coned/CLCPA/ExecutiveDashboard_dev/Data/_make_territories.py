@@ -36,8 +36,31 @@ else:
     # Nothing found. Name the layout-local path, so the error an operator sees
     # points at where Data/ was expected rather than at a resolved absolute.
     DATA = os.path.join(HERE, "Data")
-SRC = os.path.join(DATA, "Extra_info")
-OUT = os.path.join(DATA, "service_territories.geojson")
+
+
+# Data/ is organised by OUTPUT FAMILY (CLCPA-279). Every input sits with the
+# family that eats it, and every output lands in Data/out/:
+#
+#   Data/nyserda/         convert_nyserda_raw.py's inputs
+#   Data/tract-geometry/  the geometry chain's inputs, and its raw/ downloads
+#   Data/electric-gas/    build_coned_dataset.py's inputs
+#   Data/out/             every output, nothing else
+#
+# fam() returns the family folder when it is there and falls back to flat Data/
+# when it is not, so a repository script this restructure did not touch keeps
+# working unchanged. The handoff package can never take that fallback: it ships
+# no flat inputs, and verify_handoff_package.py asserts exactly that.
+def fam(name):
+    d = os.path.join(DATA, name)
+    return d if os.path.isdir(d) else DATA
+
+
+NYSERDA = fam("nyserda")
+GEOMETRY = fam("tract-geometry")
+ELECTRIC_GAS = fam("electric-gas")
+OUT = os.path.join(DATA, "out")
+SRC = GEOMETRY
+OVERLAY = os.path.join(OUT, "service_territories.geojson")
 
 # CLCPA-189: simplification ON, and the reason the old comment gave for leaving it
 # off no longer holds.
@@ -67,14 +90,14 @@ _ap.add_argument("--tol-ft", type=float, default=TOL_FT_DEFAULT,
                       "0 = full resolution. Default %(default)s.")
 _ap.add_argument("--coord-dp", type=int, default=COORD_DP_DEFAULT,
                  help="decimal places for output lon/lat. Default %(default)s.")
-_ap.add_argument("--out", default=OUT,
+_ap.add_argument("--out", default=OVERLAY,
                  help="output path; override to build a variant without touching "
                       "the deliverable (used by the tolerance sweep and by the "
                       "guard's deliberately broken variants).")
 _args = _ap.parse_args()
 TOL_FT = _args.tol_ft
 COORD_DP = _args.coord_dp
-OUT = _args.out
+OVERLAY = _args.out
 
 # (basename, layer tag, name field, extra fields kept)
 LAYERS = [
@@ -304,7 +327,7 @@ SIMPLIFICATION = {
     "verticesAfter": _tot_after,
 }
 
-with open(OUT, "w", encoding="utf-8") as f:
+with open(OVERLAY, "w", encoding="utf-8") as f:
     json.dump({"type": "FeatureCollection",
                "schema": 1,
                "kind": "territories",
@@ -321,7 +344,7 @@ for b, l, n, bb, vb, va in report:
     print("  %-16s vertices %s -> %s  (%.1f%% kept)"
           % ("", format(vb, ","), format(va, ","),
              100.0 * va / vb if vb else 100.0))
-sz = os.path.getsize(OUT)
+sz = os.path.getsize(OVERLAY)
 print("\ntotal features:", len(features))
 print("simplification: tolerance %g ft (%.2f m), coordinates at %d dp, version %s"
       % (TOL_FT, TOL_FT * _FT_US, COORD_DP, _version))
@@ -332,4 +355,4 @@ print("total vertices: %s -> %s  (%.1f%% kept, %s dropped)"
 print("max deviation : %.4f ft (%.2f m) -- worst dropped vertex, measured inside"
       % (_dev_max_src, _dev_max_src * _FT_US))
 print("                the recursion, so it covers every ring of every layer")
-print("output: %s (%d bytes, %.2f MB)" % (OUT, sz, sz / 1e6))
+print("output: %s (%d bytes, %.2f MB)" % (OVERLAY, sz, sz / 1e6))

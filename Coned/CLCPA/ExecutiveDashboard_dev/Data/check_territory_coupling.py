@@ -67,7 +67,12 @@ def run_case(label, fingerprint_in_overlay, computed, overlay_exists=True):
         B.DATA = tmp
         B.coned_source_fingerprint = lambda: computed
         if overlay_exists:
-            write_overlay(os.path.join(tmp, "service_territories.geojson"),
+            # CLCPA-279: the overlay is an OUTPUT, so it lives in Data/out/ with
+            # the rest of them. The fixture has to go where the code now looks,
+            # or every case here silently becomes the missing-overlay case and
+            # the graduated rule is never exercised at all.
+            os.makedirs(os.path.join(tmp, "out"), exist_ok=True)
+            write_overlay(os.path.join(tmp, "out", "service_territories.geojson"),
                           fingerprint_in_overlay)
         try:
             B.assert_territories_match()
