@@ -1733,6 +1733,43 @@ function utf8ByteLength(str) {
    * standalone-year rule cannot reach a table id, a measure code or any other
    * number. Had one been unclassifiable this ticket was to HALT, and the audit
    * is what earned the right not to. */
+  /* CLCPA-267: SHIFT a borrowed schema's year tokens, never substitute them.
+   *
+   * E1's money column read "2025 Total Investment" on every reporting year,
+   * including brand-new ones. Nothing is hardcoded: the stored schemas are
+   * correct per year (2023 says 2023, 2025 says 2025) and getTableSchema's
+   * fallback borrows the NEWEST year that has one, so a 2099 template
+   * correctly borrows 2025's shape and incorrectly inherits 2025's WORDS.
+   *
+   * Substituting the reporting year into the text would corrupt real columns.
+   * A sweep of the payload finds year literals in many headings and a group
+   * that deliberately name a DIFFERENT year from the reporting one --
+   * A9:2025 reads ["", "2024", "2024", "2025", "2025", "% Change", "% Change"],
+   * a prior-year comparison. Overwriting those with "2099" would destroy the
+   * comparison. The suite measures both counts rather than trusting this note.
+   *
+   * So every year token moves by the SAME delta. A9 borrowed for 2099 becomes
+   * 2098/2098/2099/2099: the relative offsets that carry the meaning survive,
+   * and the single-year case (E1) falls out of the same rule with delta
+   * applied once.
+   *
+   * Digit boundaries are checked by capture-and-restore rather than \b,
+   * because \b sits happily between a digit and a letter: CLCPA-252 round 3
+   * shipped a defect where "2023Incentive" slipped through a \b guard AND the
+   * assertion written to catch it used the same \b. A 5-digit run like 20231
+   * is not a year and is left alone.
+   */
+  function shiftSchemaYears(schema, donorYear, targetYear) {
+    if (!Array.isArray(schema)) return schema;
+    const d = parseInt(targetYear, 10) - parseInt(donorYear, 10);
+    if (!isFinite(d) || d === 0) return schema.slice();
+    return schema.map((h) => {
+      if (h == null) return h;
+      return String(h).replace(/(\d?)((?:19|20)\d{2})(\d?)/g,
+        (m, before, y, after) => (before || after) ? m : String(parseInt(y, 10) + d));
+    });
+  }
+
   function stripCaptionYear(s) {
     let out = String(s == null ? '' : s);
     /* 1. a PARENTHESISED year, brackets and all: "...Non-Network (2025)"
@@ -16181,7 +16218,19 @@ function wireHTooltips() {
       const years = Object.keys(table.schema_by_year)
         .filter(y => Array.isArray(table.schema_by_year[y]))
         .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
-      if (years.length) return table.schema_by_year[years[0]].slice();
+      /* CLCPA-267: borrow the SHAPE, not the donor's year words. This is the
+       * one place a schema is borrowed, so the shift lands once and every
+       * reader of getTableSchema -- the template writer, the draft grid, the
+       * report page, the preparer's CSV, and the importer's column matcher --
+       * sees the same headings. The importer therefore still matches a file
+       * built from the template it wrote.
+       *
+       * A year with its OWN schema cannot reach this branch, so no stored
+       * table-year moves, and nothing here is written back: a save persists
+       * rows only, never cr2bf_schema. */
+      if (years.length) {
+        return shiftSchemaYears(table.schema_by_year[years[0]], years[0], year);
+      }
     }
     return [];
   }
