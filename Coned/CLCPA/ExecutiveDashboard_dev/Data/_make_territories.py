@@ -16,11 +16,26 @@ from pyproj import CRS, Transformer
 pyproj.network.set_network_enabled(True)   # allow PROJ to fetch NADCON grid for NAD27
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
-# Edison handoff package it sits at the package root with Data/ beside it. DATA is
-# the same folder in both layouts, so one copy of the script serves both and the
-# clean-room proof exercises the very file the repository holds.
-DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+# Layout-agnostic paths. THREE layouts resolve to the same Data/ folder, and one
+# copy of the script serves all three, so the clean-room proof exercises the very
+# file the repository holds:
+#
+#   repository          this script lives IN Data/
+#   handoff package     this script lives in scripts/, with Data/ one level up
+#   handoff package v1  this script sat at the package root, with Data/ under it
+#
+# Order matters. HERE/Data is tested before ../Data so that a root-layout copy
+# cannot be captured by an unrelated Data/ folder beside the package.
+if os.path.basename(HERE) == "Data":
+    DATA = HERE
+elif os.path.isdir(os.path.join(HERE, "Data")):
+    DATA = os.path.join(HERE, "Data")
+elif os.path.isdir(os.path.join(os.path.dirname(HERE), "Data")):
+    DATA = os.path.join(os.path.dirname(HERE), "Data")
+else:
+    # Nothing found. Name the layout-local path, so the error an operator sees
+    # points at where Data/ was expected rather than at a resolved absolute.
+    DATA = os.path.join(HERE, "Data")
 SRC = os.path.join(DATA, "Extra_info")
 OUT = os.path.join(DATA, "service_territories.geojson")
 

@@ -55,6 +55,13 @@ by this slice, and it means an overridden value legitimately differs in precisio
 from the dataset value beneath it.
 
 Run:  python Data/build_coned_dataset.py [--vintage 2010|2020] [--force]
+
+That prefix is the REPOSITORY's. In the Con Edison handoff package these scripts
+live in scripts/, so it is `python scripts/build_coned_dataset.py` there.
+
+THIS RUNS LAST. It reads the tract geometry as its tract list, so the geometry
+build goes first:  python <scripts>/update_map_data.py --vintage 2010
+
 Nothing here touches Dataverse. Upload the result from the Map Layers card.
 """
 import argparse
@@ -65,12 +72,33 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
-# Edison handoff package it sits at the package root with Data/ beside it. DATA is
-# the same folder in both layouts, so one copy of the script serves both and the
-# clean-room proof exercises the very file the repository holds.
-DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+# Layout-agnostic paths. THREE layouts resolve to the same Data/ folder, and one
+# copy of the script serves all three, so the clean-room proof exercises the very
+# file the repository holds:
+#
+#   repository          this script lives IN Data/
+#   handoff package     this script lives in scripts/, with Data/ one level up
+#   handoff package v1  this script sat at the package root, with Data/ under it
+#
+# Order matters. HERE/Data is tested before ../Data so that a root-layout copy
+# cannot be captured by an unrelated Data/ folder beside the package.
+if os.path.basename(HERE) == "Data":
+    DATA = HERE
+elif os.path.isdir(os.path.join(HERE, "Data")):
+    DATA = os.path.join(HERE, "Data")
+elif os.path.isdir(os.path.join(os.path.dirname(HERE), "Data")):
+    DATA = os.path.join(os.path.dirname(HERE), "Data")
+else:
+    # Nothing found. Name the layout-local path, so the error an operator sees
+    # points at where Data/ was expected rather than at a resolved absolute.
+    DATA = os.path.join(HERE, "Data")
 ROOT = os.path.dirname(DATA)
+
+# The folder holding these scripts, as an operator would type it from ROOT:
+# "Data/" in the repository, "scripts/" in the handoff package. The refusal below
+# names a command, and a command with the wrong prefix is audit finding F8.
+_SELF_REL = os.path.relpath(HERE, ROOT).replace("\\", "/")
+SELF_DIR = "" if _SELF_REL == "." else _SELF_REL + "/"
 
 # The spreadsheet reader is IMPORTED, not reimplemented. Two copies of the header
 # matching and the zfill rule is exactly how this dataset would drift away from
@@ -148,8 +176,8 @@ def build(vintage, force):
         sys.exit("REFUSED: no geometry dataset at %s.\n"
                  "  The tract universe comes from the geometry that is drawn, not from\n"
                  "  map_payload.json, so this dataset does not depend on the file it\n"
-                 "  exists to replace. Build it with update_map_data.py --vintage %s."
-                 % (os.path.relpath(gpath, ROOT), vintage))
+                 "  exists to replace. Build it with %supdate_map_data.py --vintage %s."
+                 % (os.path.relpath(gpath, ROOT), SELF_DIR, vintage))
     with open(gpath, encoding="utf-8") as fh:
         geo = json.load(fh)
     geoids = geo["tracts"]["geoids"]

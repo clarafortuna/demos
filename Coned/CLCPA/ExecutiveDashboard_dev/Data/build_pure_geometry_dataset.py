@@ -15,6 +15,11 @@ This script builds the pure article, from the Census tract file of that vintage.
   python Data/build_pure_geometry_dataset.py --vintage 2020
   python Data/build_pure_geometry_dataset.py --vintage 2010 [--artifact]
 
+The prefix above is the REPOSITORY's. In the Con Edison handoff package these
+scripts live in scripts/, so it is `python scripts/...` there. Every command this
+script prints at runtime derives the prefix from the layout it is running in, so
+follow those rather than this header if the two ever disagree.
+
 Not a filter over the payload
 -----------------------------
 Two of the seven carried properties are computed FROM the polygons by area
@@ -83,14 +88,36 @@ from shapely.geometry import shape
 from shapely.strtree import STRtree
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
-# Edison handoff package it sits at the package root with Data/ beside it. DATA is
-# the same folder in both layouts, so one copy of the script serves both and the
-# clean-room proof exercises the very file the repository holds.
-DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+# Layout-agnostic paths. THREE layouts resolve to the same Data/ folder, and one
+# copy of the script serves all three, so the clean-room proof exercises the very
+# file the repository holds:
+#
+#   repository          this script lives IN Data/
+#   handoff package     this script lives in scripts/, with Data/ one level up
+#   handoff package v1  this script sat at the package root, with Data/ under it
+#
+# Order matters. HERE/Data is tested before ../Data so that a root-layout copy
+# cannot be captured by an unrelated Data/ folder beside the package.
+if os.path.basename(HERE) == "Data":
+    DATA = HERE
+elif os.path.isdir(os.path.join(HERE, "Data")):
+    DATA = os.path.join(HERE, "Data")
+elif os.path.isdir(os.path.join(os.path.dirname(HERE), "Data")):
+    DATA = os.path.join(os.path.dirname(HERE), "Data")
+else:
+    # Nothing found. Name the layout-local path, so the error an operator sees
+    # points at where Data/ was expected rather than at a resolved absolute.
+    DATA = os.path.join(HERE, "Data")
 ROOT = os.path.dirname(DATA)
 MAP_PATH = os.path.join(ROOT, "map_payload.json")   # --artifact only; see main()
 UNIVERSE_PATH = os.path.join(DATA, "tract_universe.json")
+
+# The folder holding these scripts, spelled as an operator would type it from
+# ROOT: "Data/" in the repository, "scripts/" in the handoff package. Printed
+# commands are built from this rather than hardcoding a prefix that is wrong in
+# one of the two layouts (CLCPA-279 / audit finding F8).
+_SELF_REL = os.path.relpath(HERE, ROOT).replace("\\", "/")
+SELF_DIR = "" if _SELF_REL == "." else _SELF_REL + "/"
 
 
 def load_tract_universe():
@@ -101,10 +128,15 @@ def load_tract_universe():
     apart from where the data comes from.
     """
     if not os.path.exists(UNIVERSE_PATH):
+        # Same class as audit finding F10: this used to tell the operator to run
+        # build_tract_universe.py, which the handoff package does not ship. The
+        # file arrives pre-built, so restoring it from the package is the route,
+        # and regenerating it is ours to do.
         sys.exit("REFUSED: %s is missing.\n"
-                 "  It defines which tracts exist and carries City_Town. Generate it once\n"
-                 "  with `python Data/build_tract_universe.py`, which needs map_payload.json;\n"
-                 "  after that nothing reads the payload again."
+                 "  It defines which tracts exist and carries City_Town, and it ships\n"
+                 "  pre-built: restore it from the package you unpacked, or from the\n"
+                 "  copy alongside the other inputs. It is generated once, by us, from\n"
+                 "  map_payload.json, and nothing here reads that payload."
                  % os.path.relpath(UNIVERSE_PATH, ROOT))
     with open(UNIVERSE_PATH, encoding="utf-8") as fh:
         doc = json.load(fh)
@@ -825,16 +857,31 @@ def assert_territories_match():
             "  gas_areas built here AND the territory outlines the map draws, so",
             "  shipping this would put one vintage's numbers under another's",
             "  outlines. Rebuild both from one set of shapefiles:",
-            "      python Data/update_map_data.py --vintage 2010 --refresh-territories",
+            "      python %supdate_map_data.py --vintage 2010 --refresh-territories "
+            "--force" % SELF_DIR,
         ]))
 
 
 def main():
     if "--vintage" not in sys.argv:
-        sys.exit("usage: python Data/build_pure_geometry_dataset.py --vintage 2010|2020 [--artifact]")
+        sys.exit("usage: python %sbuild_pure_geometry_dataset.py --vintage 2010|2020 "
+                 "[--artifact]" % SELF_DIR)
     vintage = sys.argv[sys.argv.index("--vintage") + 1]
     if vintage not in SRC:
         sys.exit("vintage must be 2010 or 2020")
+
+    # --artifact is checked HERE, before any work, not after the dataset has been
+    # written (CLCPA-279 / audit finding F11). The check at the foot of this
+    # function stays as the final guard, but by the time it ran the dataset had
+    # already been rewritten and the run still reported failure. Same text, same
+    # exit code, decided before anything is touched.
+    if "--artifact" in sys.argv and not os.path.exists(MAP_PATH):
+        sys.exit("REFUSED: --artifact needs %s, which is not here.\n"
+                 "  The change document compares this build against the payload's "
+                 "hybrid\n  geometry, so the payload is the thing it measures. The "
+                 "normal build\n  does not need it -- drop --artifact and the build "
+                 "completes.\n"
+                 "  Nothing has been written." % os.path.basename(MAP_PATH))
 
     # The universe comes from tract_universe.json, not map_payload.json.
     #

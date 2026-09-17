@@ -1,6 +1,12 @@
 """update_map_data.py -- fetch and stage the public inputs, then run the geometry
 build. The operator-facing front door to build_pure_geometry_dataset.py.
 
+Invoked from the folder above this one. That folder is Data/ in the repository
+and scripts/ in the Con Edison handoff package, so the commands below are written
+with the repository's prefix; the usage banner and every echoed command this
+script prints derive the prefix from the layout they are actually running in
+(SELF_DIR, below), which is the fix for audit finding F8.
+
     python Data/update_map_data.py --vintage 2020
     python Data/update_map_data.py --vintage 2010 --dry-run
     python Data/update_map_data.py --vintage 2010 --no-fetch --force
@@ -89,14 +95,40 @@ from datetime import datetime, timezone
 from urllib.request import Request, urlopen
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
-# Edison handoff package it sits at the package root with Data/ beside it. DATA is
-# the same folder in both layouts, so one copy of the script serves both and the
-# clean-room proof exercises the very file the repository holds.
-DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+# Layout-agnostic paths. THREE layouts resolve to the same Data/ folder, and one
+# copy of the script serves all three, so the clean-room proof exercises the very
+# file the repository holds:
+#
+#   repository          this script lives IN Data/
+#   handoff package     this script lives in scripts/, with Data/ one level up
+#   handoff package v1  this script sat at the package root, with Data/ under it
+#
+# Order matters. HERE/Data is tested before ../Data so that a root-layout copy
+# cannot be captured by an unrelated Data/ folder beside the package.
+if os.path.basename(HERE) == "Data":
+    DATA = HERE
+elif os.path.isdir(os.path.join(HERE, "Data")):
+    DATA = os.path.join(HERE, "Data")
+elif os.path.isdir(os.path.join(os.path.dirname(HERE), "Data")):
+    DATA = os.path.join(os.path.dirname(HERE), "Data")
+else:
+    # Nothing found. Name the layout-local path, so the error an operator sees
+    # points at where Data/ was expected rather than at a resolved absolute.
+    DATA = os.path.join(HERE, "Data")
 ROOT = os.path.dirname(DATA)
 RAW = os.path.join(DATA, "raw")
 SUPERSEDED = os.path.join(RAW, "superseded")
+
+# The folder holding these scripts, spelled as an operator would type it from
+# ROOT: "Data/" in the repository, "scripts/" in the handoff package, "" in the
+# pre-v2 package where they sat at the root.
+#
+# CLCPA-279 / audit finding F8. Three hardcoded "Data/" prefixes -- the usage
+# banner and the two echoed subprocess lines -- told a package operator to type a
+# path that does not exist there, and the echo exists precisely so a step can be
+# re-run by hand. Derived from the layout, so it cannot be wrong in either.
+_SELF_REL = os.path.relpath(HERE, ROOT).replace("\\", "/")
+SELF_DIR = "" if _SELF_REL == "." else _SELF_REL + "/"
 
 sys.path.insert(0, HERE)
 # No __pycache__: this is a once-in-a-while operator tool and it should not leave
@@ -112,8 +144,8 @@ except SystemExit as e:
     sys.stderr.write(
         "\nREFUSED\n  build_pure_geometry_dataset.py exited while being imported "
         "(code %s).\n  Nothing has been fetched, staged or built. Run it directly to "
-        "see why:\n    python Data/build_pure_geometry_dataset.py --vintage 2020\n"
-        % getattr(e, "code", "?"))
+        "see why:\n    python %sbuild_pure_geometry_dataset.py --vintage 2020\n"
+        % (getattr(e, "code", "?"), SELF_DIR))
     sys.exit(2)
 except Exception as e:                            # noqa: BLE001
     sys.stderr.write(
@@ -152,8 +184,13 @@ GEO_ID_PREFIX = "1400000US"
 # Con Edison inputs. Not downloadable: if these are missing the run stops with
 # the exact paths, because no flag can fix it.
 CONED_INPUTS = [
+    # CLCPA-279 / audit finding F10. This row used to end "generated once by
+    # build_tract_universe.py", naming a script the handoff package does not
+    # ship, in a table the guide tells operators is the part to actually read.
+    # The file is shipped pre-built and there is nothing for an operator to run,
+    # so the row says that instead.
     (os.path.join(DATA, "tract_universe.json"),
-     "the tract universe and City_Town; generated once by build_tract_universe.py"),
+     "the tract universe and City_Town; ships pre-built, nothing to run"),
     (os.path.join(DATA, "Extra_info", "CECONY_Electric.shp"),
      "electric_networks is measured against it"),
     (os.path.join(DATA, "Extra_info", "CECONY_Electric.dbf"), "its NETWORK attribute"),
@@ -244,7 +281,7 @@ def parse_args(argv):
     return a
 
 
-USAGE = """usage: python Data/update_map_data.py --vintage 2010|2020
+USAGE = """usage: python %(self)supdate_map_data.py --vintage 2010|2020
                  [--census-url URL] [--crosswalk-id ID]
                  [--refetch] [--no-fetch] [--dry-run] [--force] [--artifact]
 
@@ -254,11 +291,20 @@ USAGE = """usage: python Data/update_map_data.py --vintage 2010|2020
   --no-fetch      verify and build from what is on disk; opens no socket
   --dry-run       preflight only: no writes, no network
   --force         allow overwriting an existing dataset in Data/out/
-  --artifact      passed through to the builder
   --refresh-territories
                   rebuild service_territories.geojson even when its stamp already
                   matches the shapefiles. It is rebuilt automatically when the
-                  stamp is absent or disagrees; this forces it otherwise."""
+                  stamp is absent or disagrees; this forces it otherwise.
+
+                  NOT an overlay-only rebuild. This run always goes on to build
+                  the dataset as well, so with a dataset already in Data/out/ it
+                  needs --force too, and both outputs are rewritten.
+
+  --artifact      passed through to the builder, which writes the change document
+                  comparing this build against map_payload.json. It NEEDS that
+                  file, and the handoff package deliberately does not ship it, so
+                  there the flag is refused in preflight before anything is
+                  written.""" % {"self": SELF_DIR}
 
 
 # ---------------------------------------------------------------------------
@@ -576,6 +622,33 @@ def preflight(a):
     else:
         rows.append(("territory overlay", "PRESENT", "stamp matches " + mine[:12]))
 
+    # --artifact, decided HERE and not by the builder's last few lines.
+    #
+    # CLCPA-279 / audit finding F11. The builder does refuse --artifact without
+    # map_payload.json, and the refusal text is good, but it checks at the END of
+    # its run: the dataset had already been rewritten, and all the wrapper added
+    # was "the builder exited 1. Nothing here overrides that." A run reported as
+    # failed had replaced a file this same script guards elsewhere with "it may be
+    # the copy that is live in Dataverse".
+    #
+    # Deciding it in preflight makes the refusal what it always claimed to be: no
+    # write, no network, and the reason in the operator's own words. The builder
+    # keeps its own check for anyone invoking it directly.
+    if a["artifact"]:
+        map_path = os.path.join(ROOT, "map_payload.json")
+        if os.path.exists(map_path):
+            rows.append(("--artifact", "WILL WRITE", "change document vs "
+                         + rel(map_path)))
+        else:
+            rows.append(("--artifact", "REFUSED", "needs " + rel(map_path)))
+            fatal.append(
+                "--artifact needs map_payload.json, which is not here.\n"
+                "  The change document compares this build against the payload's "
+                "hybrid\n  geometry, so the payload is the thing it measures. The "
+                "normal build\n  does not need it -- drop --artifact and the build "
+                "completes.\n"
+                "  Nothing has been written and no socket was opened.")
+
     if terr_action:
         # No extra line here: the table row above already states it, and printing
         # it twice put a stray entry above the header.
@@ -682,7 +755,7 @@ def run(argv):
     if paths.get("terr_action"):
         out("\nTERRITORIES  (subprocess; this step needs the network, see the header)")
         out("  reason: " + paths["terr_action"])
-        out("  python Data/_make_territories.py")
+        out("  python %s_make_territories.py" % SELF_DIR)
         out("")
         tproc = subprocess.run([sys.executable, os.path.join(HERE, "_make_territories.py")],
                                cwd=ROOT)
@@ -705,7 +778,7 @@ def run(argv):
     cmd = [sys.executable, BUILDER, "--vintage", v]
     if a["artifact"]:
         cmd.append("--artifact")
-    out("  %s" % " ".join(["python", "Data/" + os.path.basename(BUILDER),
+    out("  %s" % " ".join(["python", SELF_DIR + os.path.basename(BUILDER),
                            "--vintage", v] + (["--artifact"] if a["artifact"] else [])))
     out("")
     before = os.path.getmtime(paths["out"]) if os.path.exists(paths["out"]) else None
