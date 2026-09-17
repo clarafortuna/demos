@@ -1,0 +1,70 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org:     https://org9076e69b.crm.dynamics.com
+slice:   the E/H/I wave -- CLCPA-271, CLCPA-273, CLCPA-267, CLCPA-250, CLCPA-272
+files:   app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  self-check: helpers present, 5 declared tickets, 10 commits, 3 resources,
+              30 app symbols + 2 stylesheet symbols.
+              PROSE AUDIT: no undeclared build id, commit or ticket anywhere in this file.
+PRE-FLIGHT 1  branch = main, HEAD = 103a00a
+              source folder clean, so the pushed bytes are exactly 103a00a.
+              ancestor: be1d2a2  CLCPA-271: computed cells take their column format
+              ancestor: 6ee833b  CLCPA-273: the percent advisory on every entry route
+              ancestor: 4016675  CLCPA-267: a borrowed schema keeps the shape
+              ancestor: 6972a74  CLCPA-250: re-derive one year when its rows arrive
+              ancestor: 61f7161  CLCPA-272: a filed total is reconciled
+              ancestor: a444741  the locking census, records only, no app code
+              ancestor: dc0501f  harness: census maps and dependency lists
+              ancestor: 87bb387  harness round 2: three patch defects corrected
+              ancestor: 0e2334a  harness round 3: five more dependency lists
+              ancestor: 103a00a  harness maintenance: pin both sides
+              local main == remote main == 103a00a.
+              HEAD is the merge commit the ids were derived from.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      b09515e7d8
+                 styles.css  04471d05bf
+              both match what DEPLOY declares for this wave.
+              ok  CLCPA-271
+              ok  CLCPA-273
+              ok  CLCPA-267
+              ok  CLCPA-250
+              ok  CLCPA-272
+PRE-FLIGHT 3b all 5 ticket groups verified in the COMMITTED BLOB (30 symbols), 0 NUL bytes.
+              and the STYLESHEET half: 2 symbols verified in the committed styles.css.
+PRE-FLIGHT 3c all 48 suites green, 5015 assertions.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both present, no stale third stamp.
+              Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  BJHEBLC3V
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1202421B  local=1226173B
+unchanged  styles.css   deployed=283879B  local=283879B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PROVENANCE of the archive, read from the ORG:
+  app.js APP_BUILD stamp        : 804f35afc7
+  app.js canonicalised + hashed : 804f35afc7
+  expected previous app.js      : 804f35afc7
+  styles.css LIVE (to replace)  : 04471d05bf   expected 04471d05bf
+  -> all agree. The archive holds 804f35afc7 + 04471d05bf.
+
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
