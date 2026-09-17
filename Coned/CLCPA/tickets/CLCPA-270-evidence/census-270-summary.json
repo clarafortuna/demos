@@ -1,0 +1,21 @@
+{
+  "measuredAt": "census only, no code changed",
+  "rows": 1393,
+  "states": [
+    {
+      "state": "L+ V+ D+",
+      "rows": 1168
+    },
+    {
+      "state": "L+ V- D-",
+      "rows": 73
+    },
+    {
+      "state": "L- V- D-",
+      "rows": 152
+    }
+  ],
+  "openTotals": 4,
+  "flippedLabels": 2,
+  "valueLockedButDeletable": 0
+}

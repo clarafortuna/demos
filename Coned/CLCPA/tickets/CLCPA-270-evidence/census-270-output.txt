@@ -1,0 +1,57 @@
+======================================================================
+CLCPA-270 -- CENSUS of structure-row protection
+  read from the shipped app.js; nothing is changed
+======================================================================
+
+SCALE
+  table-years measured : 149
+  rows measured        : 1393
+
+DISTINCT PROTECTION STATES IN USE  (L=label V=values D=deletable, +=open)
+  L+ V+ D+    1168 rows   52 tables   A1,A10,A2,A3,A4,A5,A6,A7,A8,A9 ...
+  L+ V- D-      73 rows   30 tables   A1,A2,A3,A4,B1,B2,C2,C3,C4,C5 ...
+  L- V- D-     152 rows   7 tables   A10,A5,A6,A7,A8,A9,F6
+
+ROWS WHOSE LABEL SAYS "TOTAL" (the strict classifier), by treatment
+  rows with a total LABEL: 79
+  L+ V+ D+       4 rows   3 tables   A3,A4,J8
+  L+ V- D-      52 rows   21 tables   A1,A2,A3,A4,B1,B2,C2,C3,C4,C5,E1,F2 ...
+  L- V- D-      23 rows   3 tables   A5,A6,A8
+
+DISAGREEMENT 1: rows whose label says TOTAL but which are fully OPEN
+  count: 4
+    A3  Total
+    A4  Total
+    J8  Total
+
+DISAGREEMENT 2: the SAME table-row open in one year and locked in another
+  labels whose treatment CHANGES between years: 2
+    A3  Total   2023:L+ V+ D+   2024:L+ V+ D+   2025:L+ V- D-
+    A4  Total   2023:L+ V+ D+   2024:L+ V- D-   2025:L+ V- D-
+
+DISAGREEMENT 3: the hierarchical family against the flat tables
+  hierarchical family : 23 total-labelled rows, 23 with a LOCKED label
+  flat tables         : 56 total-labelled rows, 0 with a LOCKED label
+  -> the label lock is available ONLY to the hierarchical family;
+     a flat table's total label is always editable, whatever its role.
+
+DISAGREEMENT 4: value-locked but still deletable, or the reverse
+  values LOCKED but row DELETABLE : 0
+  values OPEN but row NOT deletable: 0
+
+======================================================================
+WHAT A UNIFIED MODEL WOULD HAVE TO DECIDE
+======================================================================
+  1. Is a total row's LABEL structure in a FLAT table, as it already is
+     in the hierarchical family? Today it is not, and that is the single
+     largest source of the "three different ways" in the ticket.
+  2. Should DELETABILITY follow the same rule as the label lock? Today a
+     row can be value-locked and still deletable (0 rows).
+  3. isTotal is VALUE-dependent: it is arithmetic confirmation, not a
+     structural fact, so a row's protection changes as its numbers
+     change. 2 labels already differ between years.
+     A structural model would have to choose between the label (stable,
+     and what CLCPA-240 round 3 fell back to) and the arithmetic
+     (accurate on well-formed data, wrong on a half-filled draft).
+  4. CLCPA-205 item 2 (the all-totals tables) is still pending and would
+     be decided by the same ruling.
