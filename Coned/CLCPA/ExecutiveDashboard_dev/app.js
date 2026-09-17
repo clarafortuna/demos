@@ -3786,6 +3786,102 @@ function utf8ByteLength(str) {
     return Number(ma[2]) - Number(mb[2]);
   }
 
+  /* CLCPA-272: WHICH COLUMN IS A SUM OF WHICH OTHERS, read from the schema.
+   *
+   * H1's per-row "Grand Total" is preparer-entered and nothing checked it. A
+   * probe filed Westchester 1,500 against a true 666 + 777 = 1,443; it
+   * imported, saved and published clean, the total row stopped reconciling
+   * with itself, the header KPI computed from the bad figure, and the borough
+   * chart -- which recomputes the row -- disagreed with the table on screen.
+   *
+   * The relationship is DERIVED, never a per-table or per-borough literal: a
+   * column whose heading is a total word is the sum of the value columns
+   * beside it that are not themselves totals, percentages or averages. Those
+   * three exclusions reuse the shipped detectors rather than a fourth idea of
+   * what a percentage column is. Column 0 is the label and never a part.
+   *
+   * Ruled option (b), CLCPA-272: this RECONCILES and advises. It never
+   * computes over the preparer's figure -- the filed number is what saves --
+   * and it never rejects. A source that disagrees with its own arithmetic is
+   * something only the preparer can settle, which is the same reasoning
+   * CLCPA-206 applied to a denominator that is not in the table.
+   */
+  function detectSumColumns(headerRow, rows, tableId) {
+    if (!Array.isArray(headerRow)) return [];
+    const isTotalHead = (h) => h != null &&
+      /^\s*(?:grand\s+)?total\b/i.test(String(h).trim());
+    const pct = detectPctColumns(headerRow);
+    const avg = detectAvgColumns(headerRow);
+    /* A SECOND LABEL COLUMN IS NOT A PART. F4, F5 and F6 carry two text
+     * columns -- "Load Area" then "Borough / County" -- and a header-only rule
+     * offered "Borough / County" as an addend. columnNumericMask is the
+     * shipped answer to "does this column hold numbers", read from the body,
+     * so this uses that rather than inventing a fourth column classifier. */
+    const numeric = Array.isArray(rows) && rows.length
+      ? columnNumericMask(headerRow, rows, tableId) : null;
+    const out = [];
+    headerRow.forEach((h, c) => {
+      if (c === 0 || !isTotalHead(h)) return;
+      const parts = [];
+      headerRow.forEach((h2, c2) => {
+        if (c2 === 0 || c2 === c) return;
+        /* A BLANK SCHEMA HEADING IS NOT AN EMPTY COLUMN. Round 1 skipped
+         * every column whose schema entry was null and reported 60 stored F6
+         * rows as not adding up. F6 carries header_levels 2: its schema reads
+         * ["Network or Load Area","Borough / County","NON-NETWORK",null,
+         * "NETWORK",null,"Grand Total"] and the nulls are merged-cell columns
+         * whose names live in the SECOND header row, data[0]. They hold real
+         * figures -- Borough Hall is 0 + 0 + 835 + 2044 = 2879, exactly its
+         * filed total. Skipping them turned a table that reconciles perfectly
+         * into 60 false advisories.
+         *
+         * So membership is decided by whether the column HOLDS NUMBERS, which
+         * columnNumericMask answers from the body, and not by whether someone
+         * wrote a heading above it. The second header row itself is skipped in
+         * reconcileSumColumns, where its total cell is non-numeric. */
+        if (isTotalHead(h2) || pct[c2] || avg[c2]) return;
+        if (numeric ? !numeric[c2] : (h2 == null || !String(h2).trim())) return;
+        parts.push(c2);
+      });
+      /* one part is not a sum, it is a copy: nothing to reconcile */
+      if (parts.length >= 2) out.push({ column: c, parts: parts });
+    });
+    return out;
+  }
+
+  /**
+   * CLCPA-272: rows whose filed total does not equal the sum of its parts.
+   * Pure: reads rows, returns findings, changes nothing.
+   */
+  function reconcileSumColumns(rows, headerRow, tableId) {
+    const rels = detectSumColumns(headerRow, rows, tableId);
+    const out = [];
+    if (!rels.length || !Array.isArray(rows)) return out;
+    rows.forEach((row, r) => {
+      if (!Array.isArray(row)) return;
+      rels.forEach((rel) => {
+        const filed = row[rel.column];
+        if (typeof filed !== 'number') return;
+        let sum = 0, seen = 0;
+        rel.parts.forEach((c) => {
+          if (typeof row[c] === 'number') { sum += row[c]; seen++; }
+        });
+        /* every part must be present, or the "sum" is of a partial row and
+         * the disagreement would be the operator's unfinished typing */
+        if (seen !== rel.parts.length) return;
+        /* the same tolerance the totals engine uses for a stored figure, so
+         * this cannot contradict recomputeTotals about the same numbers */
+        if (withinSourceRounding(filed, sum)) return;
+        out.push({ rowIndex: r,
+          label: String(row[0] == null ? '' : row[0]),
+          column: headerRow[rel.column],
+          parts: rel.parts.map(c => headerRow[c]),
+          filed: filed, computed: sum });
+      });
+    });
+    return out;
+  }
+
   function detectAvgColumns(headerRow) {
     return headerRow.map(h => {
       if (h == null) return false;
@@ -17126,6 +17222,11 @@ function wireHTooltips() {
       });
     });
 
+    /* CLCPA-272: reconcile the filed totals against their own parts, on the
+     * candidate the operator is about to accept. Advisory: res.ok is untouched
+     * and the candidate is untouched, so the preparer's figure is what lands. */
+    res.reconcileNotices = reconcileSumColumns(candidate, schema, tableId);
+
     res.candidate = candidate;
     res.ok = true;
     return res;
@@ -21836,7 +21937,14 @@ function wireHTooltips() {
   function renderIngestImport() {
     const i = state.ingest;
     const r = i && i.importResult;
-    return (r ? renderIngestImportResult(r) : '') + renderTypedUnitNotice();
+    /* CLCPA-272: the DRAFT is reconciled too, not only an import. A total can
+     * stop adding up because it was typed, not only because it arrived in a
+     * file, and the advisory has to be on screen at the moment of Save. */
+    const draftReconcile = (i && i.draft && i.schema)
+      ? reconcileSumColumns(i.draft, i.schema, i.tableId) : [];
+    return (r ? renderIngestImportResult(r) : '') + renderTypedUnitNotice() +
+      (r && r.reconcileNotices && r.reconcileNotices.length
+        ? '' : renderReconcileNotice(draftReconcile));
   }
 
   /* CLCPA-273: THE TYPED-PERCENT ADVISORY.
@@ -21949,7 +22057,25 @@ function wireHTooltips() {
       '<h4>Imported into the draft: ' + r.populated.length + ' cell' +
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
       '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
-      '</div>' + notices + identity;
+      '</div>' + notices + identity + renderReconcileNotice(r.reconcileNotices);
+  }
+
+  /* CLCPA-272: the reconciliation advisory, in CLCPA-266's amber box and in
+   * the same voice as CLCPA-261's and CLCPA-264's. It NAMES THE ROW, because
+   * the operator's next action is to open that row and decide which figure is
+   * right. It never rejects: a source that disagrees with its own arithmetic
+   * is the preparer's to settle. */
+  function renderReconcileNotice(list) {
+    const n = list || [];
+    if (!n.length) return '';
+    const li = (s) => '<li>' + escapeHtml(s) + '</li>';
+    return '<div class="ingest-import-notice is-warn">' +
+      '<h4>Does not add up: ' + n.length + ' row' + (n.length === 1 ? '' : 's') + '</h4>' +
+      '<p>A total column does not equal the sum of its own columns. The filed ' +
+      'value is kept; check which figure is right.</p><ul>' +
+      n.map(x => li(x.label + ' / ' + x.column + ': filed ' + x.filed +
+        ', ' + x.parts.join(' + ') + ' = ' + x.computed)).join('') +
+      '</ul></div>';
   }
   /** The editor (status bar + grid + add-row button). */
   function renderIngestEditor() {
@@ -23429,6 +23555,7 @@ function wireHTooltips() {
         </div>
         <div class="ingest-modal-body">
           <p>You are about to save <strong>${changeCount}</strong> cell change${changeCount !== 1 ? 's' : ''}. It will be recorded under your signed-in identity:</p>
+          ${renderReconcileNotice(reconcileSumColumns(i.draft, i.schema, i.tableId))}
           <div class="ingest-modal-field">
             <label for="ingest-modal-name">Your Name</label>
             <input id="ingest-modal-name" type="text" autocomplete="name" readonly tabindex="-1" style="background:var(--white-smoke);color:var(--text-2);cursor:default" />
