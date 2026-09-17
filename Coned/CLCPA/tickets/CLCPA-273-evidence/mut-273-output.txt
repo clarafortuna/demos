@@ -1,0 +1,42 @@
+======================================================================
+CLCPA-273 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the blur handler stops noticing
+       1 red, incl: F1 the raw text is read BEFORE parseNumericInput destroys it
+  red  NOTICED TOO LATE: read after the parse, when the evidence is gone
+       1 red, incl: F1 the raw text is read BEFORE parseNumericInput destroys it
+  red  THE COLUMN TEST IS DROPPED, so a % column advises about itself
+       4 red, incl: C6 a percent typed into a PERCENTAGE column says nothing (same rule as the import)
+  red  THE COLUMNS ARE NOT DERIVED: an empty pct mask
+       5 red, incl: C6 a percent typed into a PERCENTAGE column says nothing (same rule as the import)
+  red  THE LABEL COLUMN stops being exempt
+       1 red, incl: C13 the label column is exempt
+  red  ADVISORIES STACK: retyping one cell leaves duplicates
+       4 red, incl: C8 retyping one cell REPLACES its advisory
+  red  A CORRECTED CELL keeps its advisory forever
+       1 red, incl: C10 and correcting the value REMOVES the advisory -- it is not a permanent mark
+  red  NOT CLEARED when the operator changes table-year
+       1 red, incl: F8 and the advisories are cleared when the editor changes table-year
+  red  THE WRONG ACCENT: the advisory turns red like a rejection
+       1 red, incl: C2 and renders in the CLCPA-266 AMBER box
+  red  THE WORDING drifts from H1's reference
+       2 red, incl: C3 with CLCPA-261's wording, H1 as the reference
+  red  THE CELL IS NOT NAMED, so the operator cannot find it
+       1 red, incl: C4 naming the row and the column, as the import advisory does
+  red  THE IMPORT PATH REGRESSES: its predicate is retuned
+       5 red, incl: B2 the regex is the one CLCPA-261 shipped, character for character
+  red  THE IMPORT PATH REGRESSES: its column gate is inverted
+       3 red, incl: A1 the import advisory fires for ALL FOUR tables (H1, I1, C2, C3)
+  red  THE INLINE COPY comes back, so there are two predicates again
+       3 red, incl: B3 and it now appears exactly ONCE -- the inline copy is gone
+  red  THE ADVISORY STARTS REJECTING
+       1 red, incl: F7 the typed advisory rejects nothing
+  red  A TABLE IS HARDCODED into the new code
+       5 red, incl: C6 a percent typed into a PERCENTAGE column says nothing (same rule as the import)
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       8 red, incl: X1 BASE is pinned to a literal commit sha -- got "HEAD"
+  red  HARNESS: the predicate is re-implemented instead of sliced
+       2 red, incl: B0 the predicate under test is the NAMED function sliced from app.js
+
+  18 caught, 0 not caught, of 18 applied
+  clean re-run against byte-restored source: PASSES -- 50 passed, 0 failed

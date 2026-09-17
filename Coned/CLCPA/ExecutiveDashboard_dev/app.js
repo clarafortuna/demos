@@ -16310,6 +16310,25 @@ function wireHTooltips() {
     return isFinite(n) ? n : trimmed;
   }
 
+  /* CLCPA-273: IS THIS TEXT A PERCENTAGE LITERAL?
+   *
+   * One predicate, two entry routes. CLCPA-261 put this test inline in
+   * buildIngestImport, so the advisory existed only for values arriving by
+   * FILE. The editor's own input and blur handlers call parseNumericInput
+   * directly, so a percentage typed into a cell became its fraction with
+   * nothing said at all -- in every table, H1 included. The audit read that as
+   * "the notice fires for H1 but not I1 or the C-family"; measured, the import
+   * path fires identically for all four, and the discriminator is the route,
+   * not the table.
+   *
+   * Anchored at both ends, exactly as CLCPA-261 wrote it: a stray "%" inside
+   * text must still fall through to the string branch rather than being
+   * silently converted.
+   */
+  function isPercentLiteral(raw) {
+    return /^\s*[-+]?[\d.,]+\s*%\s*$/.test(String(raw));
+  }
+
   /**
    * Format a raw draft value for DISPLAY in an ingest input on blur — visual only;
    * the stored value stays the raw number. Money columns get a leading "$", numeric
@@ -16904,7 +16923,10 @@ function wireHTooltips() {
          * So it is NOTICED, per the ruling: named cell, what was read, what
          * landed. Only where the COLUMN is not itself a percentage column --
          * "45%" in a "% in DAC" column is exactly right and says nothing. */
-        if (/^\s*[-+]?[\d.,]+\s*%\s*$/.test(String(raw)) && !pctCols[cIdx]) {
+        /* CLCPA-273: the same predicate the editor now calls. The test is
+         * unchanged -- it was lifted out verbatim, not rewritten -- so the
+         * import path this ticket must not regress behaves identically. */
+        if (isPercentLiteral(raw) && !pctCols[cIdx]) {
           res.unitNotices.push(Object.assign({
             read: String(raw).trim(),
             landed: candidate[t.rowIdx][cIdx],
@@ -17917,6 +17939,12 @@ function wireHTooltips() {
     // three picker handlers already call this, so it cannot be forgotten in one
     // of them and leave a panel describing a table the operator has left.
     i.importResult = null;
+    /* CLCPA-273: and the typed-percent advisories with it, for the same
+     * reason and in the same place -- they name cells in the table-year being
+     * left, so carrying them across would describe a grid that is no longer on
+     * screen. Cleared beside importResult so a fourth picker handler cannot
+     * clear one and forget the other. */
+    i.typedUnitNotices = [];
 
     /* CLCPA-235: RECORD WHAT THIS LOAD WAS FOR, so a redraw can tell whether
      * anything moved. Set HERE rather than at the call sites because every
@@ -21617,7 +21645,54 @@ function wireHTooltips() {
   function renderIngestImport() {
     const i = state.ingest;
     const r = i && i.importResult;
-    return r ? renderIngestImportResult(r) : '';
+    return (r ? renderIngestImportResult(r) : '') + renderTypedUnitNotice();
+  }
+
+  /* CLCPA-273: THE TYPED-PERCENT ADVISORY.
+   *
+   * Recorded on blur, keyed by cell so retyping the same cell replaces its
+   * entry rather than stacking duplicates, and cleared when the value stops
+   * being a percentage literal. Nothing here rejects, nothing here writes:
+   * the draft already holds the converted value by the time this runs.
+   *
+   * The column test is detectPctColumns, the SAME derivation buildIngestImport
+   * uses, so a "45%" typed into a "% in DAC" column says nothing here exactly
+   * as it says nothing there. No table is named and no column is named.
+   */
+  function noteTypedPercent(r, c, raw) {
+    const i = state.ingest;
+    if (!i || c === 0) return;
+    i.typedUnitNotices = i.typedUnitNotices || [];
+    const key = r + ':' + c;
+    const at = i.typedUnitNotices.findIndex(x => x.key === key);
+    const pctCols = detectPctColumns(i.schema || []);
+    if (!isPercentLiteral(raw) || pctCols[c]) {
+      if (at >= 0) i.typedUnitNotices.splice(at, 1);
+      return;
+    }
+    const entry = {
+      key: key,
+      label: String(((i.draft || [])[r] || [])[0] == null ? '' : (i.draft[r] || [])[0]),
+      column: (i.schema || [])[c],
+      read: String(raw).trim(),
+      landed: parseNumericInput(raw),
+    };
+    if (at >= 0) i.typedUnitNotices[at] = entry; else i.typedUnitNotices.push(entry);
+  }
+
+  /** The typed-percent advisory, in CLCPA-266's amber box. */
+  function renderTypedUnitNotice() {
+    const i = state.ingest;
+    const n = (i && i.typedUnitNotices) || [];
+    if (!n.length) return '';
+    const li = (s) => '<li>' + escapeHtml(s) + '</li>';
+    const cell = (x) => (x.label ? x.label + ' / ' : '') + (x.column == null ? '' : x.column);
+    return '<div class="ingest-import-notice is-warn">' +
+      '<h4>Read as a fraction: ' + n.length + ' cell' + (n.length === 1 ? '' : 's') + '</h4>' +
+      '<p>A percentage was typed into a column that is not a percentage ' +
+      'column. The value entered as its fraction.</p><ul>' +
+      n.map(x => li(cell(x) + ': ' + x.read + ' read as ' + x.landed)).join('') +
+      '</ul></div>';
   }
 
   /** Populated, not touched, rejected: per ruling 2, nothing is silent. */
@@ -23032,6 +23107,12 @@ function wireHTooltips() {
         const r = parseInt(e.target.dataset.row, 10);
         const c = parseInt(e.target.dataset.col, 10);
         if (isNaN(r) || isNaN(c)) return;
+        /* CLCPA-273: NOTICED HERE TOO, and it has to be read BEFORE the parse,
+         * because parseNumericInput is what destroys the evidence: "10%"
+         * becomes 0.1 and nothing downstream can tell it from a typed 0.1.
+         * Advisory only -- the CLCPA-244 convention stands, the value is
+         * committed either way, and nothing is rejected. */
+        noteTypedPercent(r, c, e.target.value);
         state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
         recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
                         state.ingest.baseline);
@@ -23040,6 +23121,10 @@ function wireHTooltips() {
         }
         refreshIngestCalcCells();
         refreshIngestStatus();
+        /* CLCPA-273: repaint the notice area in place, the way the calc cells
+         * are repainted -- rebuilding the grid here would take the focus the
+         * operator is still using. */
+        refreshIngestNotices();
       });
     });
 
@@ -23399,6 +23484,15 @@ function wireHTooltips() {
         ? fmtDerivedCell(v, d)
         : ((v == null || v === '') ? '—' : formatIngestValue(v, currencyCol[c]));
     });
+  }
+
+  /* CLCPA-273: repaint the notice mount from current state, in place.
+   * The mount already exists in the editor markup and already carries the
+   * import receipt; the typed advisory joins it there rather than opening a
+   * second notice area somewhere else on the page. */
+  function refreshIngestNotices() {
+    const mount = document.getElementById('ingest-import-mount');
+    if (mount) mount.innerHTML = renderIngestImport();
   }
 
   /** Update the dirty indicator + Save/Reset disabled state in place (no rebuild). */
