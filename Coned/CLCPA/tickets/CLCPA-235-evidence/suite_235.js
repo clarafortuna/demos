@@ -64,7 +64,12 @@ function grabDecl(name, src) {
  * round extracted the reference pair into one helper. Extracted here so this
  * suite drives the REAL loader rather than a version of it that predates the
  * refactor. */
-const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
+const NAMES = ['initIngestState',
+  /* CLCPA-250/267/272/273 deps: the composer resolves its schema through
+   * getTableSchema, which shifts the donor year; buildIngestImport calls the
+   * extracted percent predicate and the reconciliation. A hand-fed slice
+   * cannot see a missing closure. */
+  'getTableSchema', 'shiftSchemaYears', 'isPercentLiteral', 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'loadIngestDraft', 'adoptIngestReference',
   'ingestSelectionKey', 'recomputeDirty',
   'recomputeTotals', 'clone2D', 'getTableSchema', 'getTableBody', 'compareTableIds',
   'mostRecentYear', 'allYears', 'validateReportingYear', 'buildIngestImport',

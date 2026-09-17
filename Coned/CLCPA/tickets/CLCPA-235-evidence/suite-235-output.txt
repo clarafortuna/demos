@@ -3,16 +3,29 @@ CLCPA-235 -- an import may never end in silence
 ======================================================================
 
 === THE REPRO, verbatim, driven end to end ===
-  FAIL the repro THREW instead of failing: shiftSchemaYears is not defined
+  ok   standing on A1 / 2099 with an empty draft
+  ok   the dialog stages it and reports: 23 rows, 3 matching columns, 44 values ready to import.
+  ok   the dry run plans 23 rows, as the operator was told: 23
+  ok   the apply plans cleanly against the new year
+  ok   and lands 23 rows in the draft
+  FAIL the repro THREW instead of failing: renderReconcileNotice is not defined
 
 === THE SHARED INVARIANT: draft OR panel, on every consuming path ===
-  FAIL the shared invariant THREW instead of failing: shiftSchemaYears is not defined
+  FAIL the shared invariant THREW instead of failing: renderReconcileNotice is not defined
 
 === THE MATRIX, all four cells ===
   ok   (a) CSV (Comma delimited), new year: REJECTED WHOLE, so no rows are created
   ok   (a) CSV (Comma delimited), new year: nothing added, nothing applied
   ok   (a) CSV (Comma delimited), new year: and the reason names the encoding
-  FAIL the matrix THREW instead of failing: isPercentLiteral is not defined
+  ok   (b) CSV UTF-8, new year: accepted
+  ok   (b) CSV UTF-8, new year: 44 values planned, 23 rows created
+  ok   (c) CSV (Comma delimited), existing year: REJECTED WHOLE, so no rows are created
+  ok   (c) CSV (Comma delimited), existing year: nothing added, nothing applied
+  ok   (c) CSV (Comma delimited), existing year: and the reason names the encoding
+  ok   (d) CSV UTF-8, existing year: accepted
+  ok   (d) CSV UTF-8, existing year: 44 values planned, 0 rows created
+  ok   the mis-encoded fixture carries exactly the 8 mangled labels measured in the audit: 8
+  ok   and it now creates ZERO duplicate rows, where it created 8: 0
 
 === the mojibake reject: whole, named, and BEFORE Add Year ===
   ok   a mis-encoded file is a HARD rejection
@@ -31,7 +44,7 @@ CLCPA-235 -- an import may never end in silence
   ok   a mangled HEADER is rejected too, not only a mangled label
   ok   and counted: 1 cell
   ok   named as row 1, the header row: row 1
-  FAIL the mojibake reject THREW instead of failing: isPercentLiteral is not defined
+  ok   and a correctly encoded file still imports
 
 === the unreadable-file path, read from the dialog itself ===
   ok   the dialog is found
@@ -64,5 +77,5 @@ CLCPA-235 -- an import may never end in silence
   ok   the picker handlers still call it themselves: 8 call sites
 
 ======================================================================
-  43 passed, 4 failed
+  58 passed, 2 failed
 ======================================================================

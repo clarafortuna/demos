@@ -83,7 +83,12 @@ say('  BASE ' + BASE + ' (main before this session)');
 say('======================================================================');
 
 /* ---- the shipped composer, driven over the reconstructed org state ---- */
-const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
+const FNS = ['dacCanon',
+  /* CLCPA-250/267/272/273 deps: the composer resolves its schema through
+   * getTableSchema, which shifts the donor year; buildIngestImport calls the
+   * extracted percent predicate and the reconciliation. A hand-fed slice
+   * cannot see a missing closure. */
+  'getTableSchema', 'shiftSchemaYears', 'isPercentLiteral', 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay',

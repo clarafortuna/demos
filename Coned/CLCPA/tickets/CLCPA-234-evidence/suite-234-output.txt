@@ -63,7 +63,7 @@ CLCPA-234 -- Add Data: one dialog, two cases
   ok   the year list is the same length as before: 3
   ok   addReportingYear IS called for a new year: ["addReportingYear:2099"]
   ok   and the page lands on it
-  FAIL the dialog closes and the page redraws
+  ok   the dialog closes and the page redraws
   ok   nothing is created for an empty year
   ok   the dialog stays open
   ok   with a named error: Please enter a valid year.
@@ -72,8 +72,10 @@ CLCPA-234 -- Add Data: one dialog, two cases
 
 === THE SHARED INVARIANT on this ticket s new path ===
   ok   existing year with a staged file: still creates nothing
-  FAIL a result is set
-  FAIL the shared invariant THREW instead of failing: Cannot read properties of null (reading 'ok')
+  ok   a result is set
+  ok   and it is a clean plan: 44 values, 0 rows added
+  ok   the draft holds rows: 23
+  FAIL the shared invariant THREW instead of failing: renderReconcileNotice is not defined
 
 === the flag that would have lied ===
   ok   the redraw flag is named for what it does
@@ -82,9 +84,13 @@ CLCPA-234 -- Add Data: one dialog, two cases
   ok   BASE control: it was called `added`, which the existing-year case would have set true while adding nothing
 
 === THE ADDENDUM: a success panel of two lines, DRIVEN ===
-  FAIL the slim success panel THREW instead of failing: isPercentLiteral is not defined
+  ok   the fixture plans cleanly
+  ok   creating one row: ["A Brand New Program"]
+  ok   with one unmatched column: Not A Column
+  ok   and blanks skipped: 3
+  FAIL the slim success panel THREW instead of failing: renderReconcileNotice is not defined
   ok   the fixture is rejected
-  FAIL the addendum: a REJECTION keeps full detail THREW instead of failing: reconcileSumColumns is not defined
+  FAIL the addendum: a REJECTION keeps full detail THREW instead of failing: renderTypedUnitNotice is not defined
 
 === THE FIRST DRAW, where the predicate was wrong ===
   ok   the year accessors are found as one block
@@ -105,5 +111,5 @@ CLCPA-234 -- Add Data: one dialog, two cases
   ok   and typedYear still has NO fallback, for validation
 
 ======================================================================
-  77 passed, 5 failed
+  85 passed, 3 failed
 ======================================================================
