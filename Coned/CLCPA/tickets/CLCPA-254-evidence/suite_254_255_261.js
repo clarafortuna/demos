@@ -368,6 +368,46 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
+
+    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
+
+    getTableSchema: 'CLCPA-267: its fallback shifts the donor year',
+
+    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
+
+    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
+
+    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
+
+    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
+
+    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
+
+    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
+
+    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
+
+    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
+
+    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
+
+    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
+
+    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
+
+    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
+
+    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
+
+    openSaveModal: 'CLCPA-250 and CLCPA-272: a save re-derives, and the dialog advises',
+
+    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
+
+    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
+
+    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     isDeclaredSummable: 'CLCPA-254: the declaration, new',
     tableCaption: 'NOT this ticket: CLCPA-252 round 2, it consults the derivation',
     deriveTableCaption: 'NOT this ticket: CLCPA-252 round 2, the title derivation (new)',
@@ -395,7 +435,7 @@ guard('X: the blast radius', () => {
   /* 5 -> 8: CLCPA-252 round 2 added two and changed tableCaption, all named. */
   /* 8 -> 13: CLCPA-264 moved five this suite can see, all named above. */
   /* 13 -> 18: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 19, 'X1 exactly NINETEEN functions changed: ' + changed.length);
+  ok(changed.length === 38, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags', 'columnGrandTotals',
    'renderSourceTables', 'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

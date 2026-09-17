@@ -471,7 +471,8 @@ guard('X: the blast radius is exactly one function', () => {
    * drawSemi gained its cy parameter, and rowHeightFor is the new single
    * height formula that both the planner and the renderer call. */
   const EXPECT = {
-    drawSectionEArc: 'the two-dimensional layout search',
+
+        drawSectionEArc: 'the two-dimensional layout search',
     drawSemi: 'takes cy, because there is more than one row now',
     rowHeightFor: 'the shared height formula (new)',
   };

@@ -38,12 +38,7 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   C5 BYOT likewise, where the map said "Mass-market"
   ok   C6 the long C1 label resolves
   ok   C7 and so does the parenthetical short code C3/C4/C5 use
-  ok   C8 a year with no C1 data yields an EMPTY map, not a fossil: {}
-  ok   C9 2023 resolves 10 keys
-  ok   C9 2024 resolves 10 keys
-  ok   C9 2025 resolves 10 keys
-  ok   C10 a row WITH a category resolves: ALPHA -> Peak Shaving
-  ok   C11 and rows whose Category is empty or null are ABSENT, not present with an empty caption: ["Alpha Program (ALPHA)","ALPHA"]
+  FAIL C: HONEST ABSENCE where the year has nothing to read THREW: shiftSchemaYears is not defined
 
 === Z. the stored years: one caption moves, and it is the fix ======
   ok   Z1 149 stored table-years rendered on both sides
@@ -55,59 +50,97 @@ Section C group B -- CLCPA-252 (captions), CLCPA-259 (programme categories)
   ok   Z4b and BASE rendered it bald: "Table A8"
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, renderSourceTables, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, composePayloadFromRows, compositeValueText, dacCol, dacDerivedTablesForYear, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, isPercentLiteral, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
+  ok   the change to buildYearSelector is accounted for
+  ok   the change to composePayloadFromRows is accounted for
   ok   the change to compositeValueText is accounted for
   ok   the change to dacCol is accounted for
+  ok   the change to dacDerivedTablesForYear is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to detectSumColumns is accounted for
+  ok   the change to getTableSchema is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to isCompositeShareCol is accounted for
   ok   the change to isDeclaredSummable is accounted for
+  ok   the change to isPercentLiteral is accounted for
+  ok   the change to loadIngestDraft is accounted for
+  ok   the change to noteTypedPercent is accounted for
   ok   the change to openAddYearDialog is accounted for
+  ok   the change to openSaveModal is accounted for
   ok   the change to phantomSpacerCols is accounted for
+  ok   the change to recomposeYearIfComposed is accounted for
   ok   the change to recomputeTotals is accounted for
+  ok   the change to recomputeYearDerived is accounted for
+  ok   the change to reconcileSumColumns is accounted for
+  ok   the change to refreshIngestCalcCells is accounted for
+  ok   the change to refreshIngestNotices is accounted for
   ok   the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestImport is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to renderReconcileNotice is accounted for
   ok   the change to renderSourceTables is accounted for
+  ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rowsForDisplay is accounted for
+  ok   the change to shiftSchemaYears is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
+  ok   the change to wireIngestEditor is accounted for
   ok   X1 applyCompositeShares is accounted for (CLCPA-263)
   ok   X1 bareNumber is accounted for (CLCPA-263)
   ok   X1 buildIngestImport is accounted for (CLCPA-261, group E)
   ok   X1 buildIngestWorkbook is accounted for (CLCPA-260, group D)
+  ok   X1 buildYearSelector is accounted for
+  ok   X1 composePayloadFromRows is accounted for
   ok   X1 compositeValueText is accounted for (CLCPA-263)
   ok   X1 dacCol is accounted for (CLCPA-257, group C)
+  ok   X1 dacDerivedTablesForYear is accounted for
   ok   X1 declaredTableFromFilename is accounted for (CLCPA-264)
   ok   X1 deriveTableCaption is accounted for (CLCPA-252 round 2)
   ok   X1 deriveTableCaptionInfo is accounted for (CLCPA-252 round 2)
+  ok   X1 detectSumColumns is accounted for
+  ok   X1 getTableSchema is accounted for
   ok   X1 importIdentityNotice is accounted for (CLCPA-264)
   ok   X1 isCompositeShareCol is accounted for (CLCPA-263)
   ok   X1 isDeclaredSummable is accounted for (CLCPA-254, group E)
+  ok   X1 isPercentLiteral is accounted for
+  ok   X1 loadIngestDraft is accounted for
+  ok   X1 noteTypedPercent is accounted for
   ok   X1 openAddYearDialog is accounted for (CLCPA-264)
+  ok   X1 openSaveModal is accounted for
   ok   X1 phantomSpacerCols is accounted for (CLCPA-260, group D)
+  ok   X1 recomposeYearIfComposed is accounted for
   ok   X1 recomputeTotals is accounted for (CLCPA-254, group E)
+  ok   X1 recomputeYearDerived is accounted for
+  ok   X1 reconcileSumColumns is accounted for
+  ok   X1 refreshIngestCalcCells is accounted for
+  ok   X1 refreshIngestNotices is accounted for
   ok   X1 renderIngestEditor is accounted for (CLCPA-252 AND CLCPA-260 both touch it; group D is the later one)
+  ok   X1 renderIngestImport is accounted for
   ok   X1 renderIngestImportResult is accounted for (CLCPA-264)
+  ok   X1 renderReconcileNotice is accounted for
   ok   X1 renderSourceTables is accounted for
+  ok   X1 renderTypedUnitNotice is accounted for
   ok   X1 rowsForDisplay is accounted for (CLCPA-263)
+  ok   X1 shiftSchemaYears is accounted for
   ok   X1 stagedBlock is accounted for (CLCPA-264)
   ok   X1 stripCaptionYear is accounted for (CLCPA-252 round 3)
   ok   X1 tableCaption is accounted for (CLCPA-252 round 1 AND round 2; round 2 is the later one)
   ok   X1 wire is accounted for (CLCPA-264)
-  ok   X1b ONE function is uniquely round 1s, the report page: renderSourceTables
+  ok   X1 wireIngestEditor is accounted for
+  FAIL X1b ONE function is uniquely round 1s, the report page: buildYearSelector, composePayloadFromRows, dacDerivedTablesForYear, detectSumColumns, getTableSchema, isPercentLiteral, loadIngestDraft, noteTypedPercent, openSaveModal, recomposeYearIfComposed, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestImport, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, shiftSchemaYears, wireIngestEditor
   ok   X1c and tableCaption still moved, claimed by round 1 and round 2 both
   ok   X2 columnNumericMask is byte-identical to BASE
   ok   X2 parseCPrograms is byte-identical to BASE
   ok   X2 ingestComputed is byte-identical to BASE
-  ok   X2 openSaveModal is byte-identical to BASE
+  FAIL X2 openSaveModal is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 9699f62
   ok   X4 and an ancestor of HEAD, so this group stacks on Group A
-  99 passed, 0 failed
+  129 passed, 3 failed

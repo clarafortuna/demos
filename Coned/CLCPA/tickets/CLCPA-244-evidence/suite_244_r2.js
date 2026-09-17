@@ -554,7 +554,8 @@ guard('X: the blast radius, function by function', () => {
   const changed = names.filter(n => grabFn(n) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
-    parseNumericInput: 'the percent sign becomes a unit',
+
+        parseNumericInput: 'the percent sign becomes a unit',
     drawSectionEArc: 'shrink to fit',
     wireSectionEArcResize: 'the resize redraw (new)',
     /* the call site: section E now wires the resize handler on mount. A

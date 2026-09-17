@@ -63,7 +63,7 @@ CLCPA-266 -- every post-load notice is a box, one component, three accents
   ok   M7 and .ingest-staged itself is byte-identical: no row added, no layout moved
 
 === L. style only: no logic, no wording, no rejection ===============
-  ok   L1 with the two class attributes undone, app.js is BYTE-IDENTICAL to BASE
+  FAIL L1 with the two class attributes undone, app.js is BYTE-IDENTICAL to BASE
   ok   L2 the rendered TEXT is identical to BASE, word for word
   ok   L3 the fraction heading is unchanged
   ok   L4 and the identity heading
@@ -72,9 +72,9 @@ CLCPA-266 -- every post-load notice is a box, one component, three accents
   ok   L7 a clean import still renders exactly ONE box
 
 === X. what else moved =============================================
-       changed: renderIngestImportResult
-  ok   X1 exactly ONE function changed, and it is the panel: renderIngestImportResult
-  ok   X2 buildIngestImport is byte-identical to BASE
+       changed: buildIngestImport, buildYearSelector, composePayloadFromRows, dacDerivedTablesForYear, detectSumColumns, getTableSchema, isPercentLiteral, loadIngestDraft, noteTypedPercent, openSaveModal, recomposeYearIfComposed, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, shiftSchemaYears, wireIngestEditor
+  FAIL X1 exactly ONE function changed, and it is the panel: buildIngestImport, buildYearSelector, composePayloadFromRows, dacDerivedTablesForYear, detectSumColumns, getTableSchema, isPercentLiteral, loadIngestDraft, noteTypedPercent, openSaveModal, recomposeYearIfComposed, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, shiftSchemaYears, wireIngestEditor
+  FAIL X2 buildIngestImport is byte-identical to BASE
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X2 importIdentityNotice is byte-identical to BASE
   ok   X2 declaredTableFromFilename is byte-identical to BASE
@@ -84,4 +84,4 @@ CLCPA-266 -- every post-load notice is a box, one component, three accents
   ok   X5 BASE is a literal commit sha: 11c22d6
   ok   X6 and HEAD descends from it
 
-  66 passed, 0 failed
+  63 passed, 3 failed

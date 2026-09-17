@@ -161,6 +161,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function phantomSpacerCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new
   ok   X1 app.js function declaredTableFromFilename moved, and it is named by a later ticket: CLCPA-264: the filename extractor (new)
   ok   X1 app.js function importIdentityNotice moved, and it is named by a later ticket: CLCPA-264: the import identity advisory (new)
+  ok   X1 app.js function shiftSchemaYears moved, and it is named by a later ticket: CLCPA-267: the borrowed-schema year shift (new)
   ok   X1 app.js function stripCaptionYear moved, and it is named by a later ticket: CLCPA-252 round 3: the caption year strip (new)
   ok   X1 app.js function tableCaption moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function deriveTableCaptionInfo moved, and it is named by a later ticket: CLCPA-252 round 2: the three strategies (new)
@@ -171,23 +172,40 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function bareNumber moved, and it is named by a later ticket: CLCPA-263: the bare-number test (new)
   ok   X1 app.js function compositeValueText moved, and it is named by a later ticket: CLCPA-263: the value formatting (new)
   ok   X1 app.js function applyCompositeShares moved, and it is named by a later ticket: CLCPA-263: the derivation (new)
+  ok   X1 app.js function detectSumColumns moved, and it is named by a later ticket: CLCPA-272: the schema-derived sum relationship (new)
+  ok   X1 app.js function reconcileSumColumns moved, and it is named by a later ticket: CLCPA-272: the reconciliation itself (new)
   ok   X1 app.js function renderSourceTables moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function dacCol moved, and it is named by a later ticket: NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback
+  ok   X1 app.js function dacDerivedTablesForYear moved, and it is named by a later ticket: CLCPA-250: one year of display tables (new)
+  ok   X1 app.js function recomputeYearDerived moved, and it is named by a later ticket: CLCPA-250: the composer KPI pass, re-runnable (new)
+  ok   X1 app.js function recomposeYearIfComposed moved, and it is named by a later ticket: CLCPA-250: the composed-source gate (new)
+  ok   X1 app.js function composePayloadFromRows moved, and it is named by a later ticket: CLCPA-250: it resolves a schema through getTableSchema
+  ok   X1 app.js function buildYearSelector moved, and it is named by a later ticket: CLCPA-250: a year change re-derives that year
+  ok   X1 app.js function getTableSchema moved, and it is named by a later ticket: CLCPA-267: its fallback shifts the donor year
+  ok   X1 app.js function isPercentLiteral moved, and it is named by a later ticket: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
   ok   X1 app.js function ingestComputed moved, and it is named by a later ticket: CLCPA-253, Section C group A
   ok   X1 app.js function buildIngestImport moved, and it is named by a later ticket: CLCPA-261, Section C group E: it collects the fraction notices
   ok   X1 app.js function buildIngestWorkbook moved, and it is named by a later ticket: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them
   ok   X1 app.js function recomputeTotals moved, and it is named by a later ticket: CLCPA-254, Section C group E: it consults that declaration
+  ok   X1 app.js function loadIngestDraft moved, and it is named by a later ticket: CLCPA-273: clears the typed advisories on a table-year change
+  ok   X1 app.js function renderIngestImport moved, and it is named by a later ticket: CLCPA-273 and CLCPA-272: the mount carries both advisories
+  ok   X1 app.js function noteTypedPercent moved, and it is named by a later ticket: CLCPA-273: records a percent typed into a cell (new)
+  ok   X1 app.js function renderTypedUnitNotice moved, and it is named by a later ticket: CLCPA-273: the typed advisory, in the amber box (new)
   ok   X1 app.js function renderIngestImportResult moved, and it is named by a later ticket: CLCPA-261, Section C group E: the summary announces them
+  ok   X1 app.js function renderReconcileNotice moved, and it is named by a later ticket: CLCPA-272: the reconciliation advisory box (new)
   ok   X1 app.js function renderIngestEditor moved, and it is named by a later ticket: CLCPA-252, Section C group B; and CLCPA-255, group E
   ok   X1 app.js function openAddYearDialog moved, and it is named by a later ticket: CLCPA-262, Section C group A
   ok   X1 app.js function stagedBlock moved, and it is named by a later ticket: CLCPA-264: nested in openAddYearDialog, it renders the identity advisory
   ok   X1 app.js function wire moved, and it is named by a later ticket: CLCPA-262, nested inside openAddYearDialog
+  ok   X1 app.js function wireIngestEditor moved, and it is named by a later ticket: CLCPA-273: the blur handler reads the text before the parse
   ok   X1 app.js function openSaveModal moved, and it is named by a later ticket: CLCPA-256, Section C group A
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (25) belongs to a later ticket
+  ok   X1 app.js function refreshIngestCalcCells moved, and it is named by a later ticket: CLCPA-271: calc cells keep their column format on repaint
+  ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (43) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly THREE were added: centre, text-column left, and the first column scoped so it cannot catch a sub-header: 13
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  158 passed, 0 failed
+  176 passed, 0 failed

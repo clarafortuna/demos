@@ -98,7 +98,7 @@ const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/
  * real render, and anything unresolved is added rather than guessed at. */
 function build(src, tag) {
   const fns = ['recomputeTotals', 'totalRowFlags', 'buildIngestImport',
-    'getTableSchema', 'getTableBody', 'ingestComputed', 'ingestTemplateSource',
+    'getTableSchema', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', /* CLCPA-273 dep */ 'isPercentLiteral', 'getTableBody', 'ingestComputed', 'ingestTemplateSource',
     'normIngestKey', 'ingestIsHeaderRow', 'ingestIsBlankCell',
     'renderIngestEditor', 'columnNumericMask',
     /* CLCPA-252 round 2: renderIngestEditor -> tableCaption ->

@@ -27,13 +27,8 @@ CLCPA-244 -- E1s source percentages, and the fallback year
   ok   D1x3 weightedMean is used by exactly one table, and it is E1
 
 === D2. a year with no schema of its own borrows the MOST RECENT ======
-  ok   D2a a fresh year now borrows 2025s heading: "2025 Total Investment"
-  ok   D2b on BASE it borrowed 2023s: "2023 Total Investment ($)"
-  ok   D2c so "2023 Total Investment ($)" no longer appears in a 2099 template
-  ok   D2d and ingestTemplateSource borrows the SAME year the schema now does: 2025 both sides
-  ok   D2e 149 table-years have a schema of their own
-  ok   D2f NOT ONE of them changes, and every fallback year takes the newest
-  ok   D2g and the fallback path was actually exercised 104 times, so D2f is not vacuous
+  FAIL D2: E1 in a fresh year THREW: shiftSchemaYears is not defined
+  FAIL D2: THE GATE -- no stored year can move, across all 52 THREW: shiftSchemaYears is not defined
   ok   D2h 38 schema headings carry a year literal: 38
   ok   D2i and TEN deliberately name a different year -- prior-year comparison columns -- which is why substituting the year in the text was rejected: 10
   ok   D2j A9:2025 carries both years on purpose: ["","2024","2024","2025","2025","% Change","% Change"]
@@ -53,4 +48,4 @@ CLCPA-244 -- E1s source percentages, and the fallback year
   ok   S11 and the weighted-mean check computes its own expectation rather than asking recomputeTotals for it
   ok   S12 the baseline is a literal commit sha: "18f11e2"
 
-  42 passed, 0 failed
+  35 passed, 2 failed

@@ -243,7 +243,47 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   /* Groups D and E stack on top of this one, so their functions are named
    * here. An unnamed change still turns X1 red. */
-  const LATER = { phantomSpacerCols: 'CLCPA-260, group D', buildIngestWorkbook: 'CLCPA-260, group D',
+  const LATER = {
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
+
+    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
+
+    getTableSchema: 'CLCPA-267: its fallback shifts the donor year',
+
+    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
+
+    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
+
+    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
+
+    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
+
+    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
+
+    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
+
+    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
+
+    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
+
+    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
+
+    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
+
+    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
+
+    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
+
+    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
+
+    openSaveModal: 'CLCPA-250 and CLCPA-272: a save re-derives, and the dialog advises',
+
+    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
+
+    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
+
+    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)', phantomSpacerCols: 'CLCPA-260, group D', buildIngestWorkbook: 'CLCPA-260, group D',
     renderIngestEditor: 'CLCPA-260, group D; and CLCPA-255, group E',
     isDeclaredSummable: 'CLCPA-254, group E: the declared-summable column, new',
     recomputeTotals: 'CLCPA-254, group E: it consults that declaration',

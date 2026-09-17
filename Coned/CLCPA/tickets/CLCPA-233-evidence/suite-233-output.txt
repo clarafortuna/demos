@@ -71,7 +71,7 @@ CLCPA-233 items A + B -- the editor and the two-level header
   ok   and the change is the usable-value guard
   ok   the composer touches header_levels only where it already did, to carry the presentation hint through
   ok   and knows nothing about "% Change": item B is editor-only
-  ok   and openSaveModal differs from BASE ONLY in its change counter, which is CLCPA-256: the save path itself is untouched
+  FAIL and openSaveModal differs from BASE ONLY in its change counter, which is CLCPA-256: the save path itself is untouched
   ok   PERSIST_STRIP_TABLES is unchanged, so no column starts being stripped
   ok   buildIngestImport is found
   ok   the import indexes a row ONLY when its label is non-empty
@@ -92,5 +92,5 @@ CLCPA-233 items A + B -- the editor and the two-level header
   ok   and its cells are weighted, so "Total / DAC" does not read as a computed row
 
 ======================================================================
-  76 passed, 0 failed
+  75 passed, 1 failed
 ======================================================================

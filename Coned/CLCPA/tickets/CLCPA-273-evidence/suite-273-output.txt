@@ -52,8 +52,8 @@ D. EVERY TABLE: typed and imported agree about what is noticeable
 
 E. H1 AND THE WHOLE IMPORT PATH, UNCHANGED
   ok   E1 buildIngestImport located in both
-  ok   E2 exactly ONE non-comment line of buildIngestImport changed -- found 1
-  ok   E3 and it is the call to the extracted predicate
+  FAIL E2 exactly ONE non-comment line of buildIngestImport changed -- found 2
+  FAIL E3 and it is the call to the extracted predicate
   ok   E4 the import plan is IDENTICAL to BASE on all four tables, notices included
 
 F. STYLE OF CHANGE
@@ -63,7 +63,7 @@ F. STYLE OF CHANGE
   ok   F3 noteTypedPercent is new in this change
   ok   F3 renderTypedUnitNotice is new in this change
   ok   F3 refreshIngestNotices is new in this change
-  ok   F4 no added CODE line names a table id (30 added code lines)
+  ok   F4 no added CODE line names a table id (127 added code lines)
   ok   F5 no added code line names a year
   ok   F6 no added code line names a column
   ok   F7 the typed advisory rejects nothing
@@ -74,5 +74,5 @@ X. THE HARNESS
   ok   X2 and that baseline really predates this ticket
 
 ======================================================================
-  50 passed, 0 failed
+  48 passed, 2 failed
 ======================================================================

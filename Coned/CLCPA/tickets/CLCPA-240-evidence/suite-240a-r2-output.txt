@@ -77,8 +77,8 @@ CLCPA-240 first half, ROUND 2 -- protecting the hierarchical structure
   ok   F1 rendered 48 tables outside the family
   ok   F1b and the five spacer tables differ on their newest year: C1:2025, C2:2025, C3:2025, C4:2025, C5:2025
   ok   F1c and each renders exactly BASEs columns minus its spacers
-  ok   F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone
-  ok   F2b and CLCPA-255s total rows are the tables that differ: 25, incl A1:2025, A2:2025, A3:2025, A4:2025
+  FAIL F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone: A1:2025, A3:2025, A4:2025, B1:2025, J3:2025
+  ok   F2b and CLCPA-255s total rows are the tables that differ: 18, incl A2:2025, B2:2025, F2:2025, F7:2025
   ok   F3 E1 DID change, which is what CLCPA-244 did
   ok   F4 and exactly FOUR cells stopped being calculated: 6 -> 2
   ok   F3 A1:2025 has a Total row: index 22
@@ -110,4 +110,4 @@ CLCPA-240 first half, ROUND 2 -- protecting the hierarchical structure
   ok   S8 styles.css differs only by CLCPA-248s two rules: the round reuses .ingest-row-subheader and adds no CSS
   ok   S9 the baseline in this file is a literal commit sha, not a symbolic ref: "438bf64"
 
-  89 passed, 0 failed
+  88 passed, 1 failed

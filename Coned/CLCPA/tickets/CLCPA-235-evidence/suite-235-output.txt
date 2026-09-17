@@ -8,24 +8,10 @@ CLCPA-235 -- an import may never end in silence
   ok   the dry run plans 23 rows, as the operator was told: 23
   ok   the apply plans cleanly against the new year
   ok   and lands 23 rows in the draft
-  ok   AFTER THE REDRAW the draft still holds its 23 rows -- this is the assertion the ticket exists for
-  ok   and the result survives the redraw
-  ok   and the panel RENDERS from it, rather than being erased first
-  ok   saying how much landed: Imported into the draft: 44 cells
-  ok   and that nothing is stored until Save, which is ruling 1 restated
-  ok   and NOT the old enumeration, which the addendum removed
+  FAIL the repro THREW instead of failing: renderReconcileNotice is not defined
 
 === THE SHARED INVARIANT: draft OR panel, on every consuming path ===
-  ok   new year, clean file: the operator is left with a DRAFT and a PANEL
-  ok   new year, clean file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   existing year, clean file: the operator is left with a DRAFT and a PANEL
-  ok   existing year, clean file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   new year, MIS-ENCODED file: the operator is left with a PANEL
-  ok   new year, MIS-ENCODED file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   existing year, MIS-ENCODED file: the operator is left with a PANEL
-  ok   existing year, MIS-ENCODED file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   new year, unreadable file: the operator is left with a PANEL
-  ok   new year, unreadable file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+  FAIL the shared invariant THREW instead of failing: renderReconcileNotice is not defined
 
 === THE MATRIX, all four cells ===
   ok   (a) CSV (Comma delimited), new year: REJECTED WHOLE, so no rows are created
@@ -91,5 +77,5 @@ CLCPA-235 -- an import may never end in silence
   ok   the picker handlers still call it themselves: 8 call sites
 
 ======================================================================
-  74 passed, 0 failed
+  58 passed, 2 failed
 ======================================================================

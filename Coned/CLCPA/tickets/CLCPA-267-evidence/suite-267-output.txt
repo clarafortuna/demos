@@ -50,8 +50,8 @@ D. THE SHIFT
   ok   D12 a non-array is returned untouched
 
 E. EVERY SURFACE, because they all read getTableSchema
-     getTableSchema call sites in app.js: 14
-  ok   E1 the schema is read from one function by 14 call sites, so the shift lands once for all of them
+     getTableSchema call sites in app.js: 16
+  ok   E1 the schema is read from one function by 16 call sites, so the shift lands once for all of them
   ok   E2 and shiftSchemaYears is DECLARED once and CALLED once -- one borrow point
   ok   E3 a CSV whose header is this build's own 2099 template IMPORTS (ok=true)
   ok   E4 and the shifted money column is MATCHED by name
@@ -59,7 +59,7 @@ E. EVERY SURFACE, because they all read getTableSchema
   ok   E6 a file still carrying the DONOR year is reported as unmatched, not silently accepted
 
 F. STYLE OF CHANGE
-     added code lines: 10
+     added code lines: 96
   ok   F1 no added code line names a table id
   ok   F2 no added code line names a literal year
   ok   F3 no added code line names a column
@@ -68,7 +68,7 @@ F. STYLE OF CHANGE
   ok   F5b and dacCol's matching choice (CLCPA-257) is still there too
   ok   F6 nothing in app.js WRITES cr2bf_schema -- the shift cannot reach storage
   ok   F7 a save still writes rows, as before
-  ok   F8 every byte outside shiftSchemaYears and getTableSchema is identical to BASE
+  FAIL F8 every byte outside shiftSchemaYears and getTableSchema is identical to BASE
 
 X. THE HARNESS
   ok   X1 BASE is pinned to a literal commit sha -- got "6ee833b"
@@ -76,5 +76,5 @@ X. THE HARNESS
   ok   X3 the payload carries several schema years (2023, 2024, 2025)
 
 ======================================================================
-  46 passed, 0 failed
+  45 passed, 1 failed
 ======================================================================

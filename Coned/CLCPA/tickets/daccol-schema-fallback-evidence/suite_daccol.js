@@ -80,7 +80,12 @@ function codeOnly(src) {
   return out;
 }
 
-const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
+const FNS = ['dacCanon',
+  /* CLCPA-250/267/272/273 deps: the composer resolves its schema through
+   * getTableSchema, which shifts the donor year; buildIngestImport calls the
+   * extracted percent predicate and the reconciliation. A hand-fed slice
+   * cannot see a missing closure. */
+  'getTableSchema', 'shiftSchemaYears', 'isPercentLiteral', 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay',
@@ -460,7 +465,11 @@ guard('one function', () => {
    * so the claim stays exact rather than being relaxed to a bigger number. */
   /* CLCPA-240's first half then landed too, adding or changing eight more.
    * Same treatment: named, not absorbed into a looser number. */
-  const ALSO = ['placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
+  const ALSO = [
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the wave of 2026-09-16. */
+
+    'shiftSchemaYears', 'isPercentLiteral', 'noteTypedPercent', 'renderTypedUnitNotice', 'refreshIngestNotices', 'wireIngestEditor', 'loadIngestDraft', 'renderIngestImport', 'refreshIngestCalcCells', 'dacDerivedTablesForYear', 'recomputeYearDerived', 'recomposeYearIfComposed', 'buildYearSelector', 'detectSumColumns', 'reconcileSumColumns', 'renderReconcileNotice','placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
                 'wireHeaderCardsTooltips', 'wireExecutiveInteractions',
                 'wireControlTips',
                 'buildIngestImport', 'buildIngestWorkbook', 'totalRowFlags',
