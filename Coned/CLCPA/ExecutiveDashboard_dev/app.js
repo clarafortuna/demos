@@ -15394,6 +15394,129 @@ function wireHTooltips() {
     },
   };
 
+  /* ---- RECOMPOSE ONE YEAR ------------------------------------------------
+   *
+   * CLCPA-250. composePayloadFromRows runs ONCE, at boot. Nothing recomputed
+   * after that, so kpis.reported[].values held whatever was derivable from the
+   * rows cached at init -- and a year whose data arrived later had no KPI
+   * entry at all until the operator reloaded the page. A KPI-year with no
+   * number is not written (CLCPA-237 item E), so the failure is silent: the
+   * section header stat and the Executive Summary row simply do not appear,
+   * while the table and its charts render correctly from the same rows.
+   *
+   * The editor already wrote the saved rows into the live payload "so the
+   * dashboard updates immediately". The rows did update immediately. The
+   * figures derived FROM the rows did not.
+   *
+   * These two functions are the composer's own KPI pass, extracted so that one
+   * year can be run again against the payload as it now stands. They derive;
+   * they store nothing and they write nothing back to Dataverse.
+   *
+   * NOTE ON SCOPE. This closes a measured structural gap. Whether it is the
+   * whole of the reported 2097/2099 symptom is NOT settled: the stored rows
+   * for both years were read from the org and are clean (a row labelled
+   * exactly "Grand Total", 3 of 3 value cells numeric, schema null on 2097,
+   * 2098 and 2099 alike), and on those rows the KPI computes correctly. The
+   * hosted observation on a clean load decides the rest.
+   */
+  function dacDerivedTablesForYear(payload, year) {
+    const out = {};
+    const src = (payload && payload.tables) || {};
+    Object.keys(src).forEach((id) => {
+      const t = src[id];
+      const d = { id: t.id, section: t.section, number: t.number,
+        short_title: t.short_title, data: {},
+        title_by_year: t.title_by_year, schema_by_year: t.schema_by_year };
+      if (t.mapping !== undefined) d.mapping = t.mapping;
+      if (t.header_levels !== undefined) d.header_levels = t.header_levels;
+      if (t.currency_cols !== undefined) d.currency_cols = t.currency_cols;
+      const rows = (t.data || {})[year];
+      /* the same display view the composer built, through the same schema
+       * resolution -- a recompute that saw different rows from the compose
+       * would be a second source of truth for the same figure */
+      if (rows) d.data[year] = rowsForDisplay(rows, getTableSchema(t, year), id);
+      out[id] = d;
+    });
+    return out;
+  }
+
+  /**
+   * Re-derive every KPI and chart value for ONE year, in place, from the
+   * payload as it now stands. Returns the number of entries written.
+   */
+  function recomputeYearDerived(payload, year) {
+    if (!payload || !year) return 0;
+    const y = String(year);
+    const T = dacDerivedTablesForYear(payload, y);
+    let wrote = 0;
+    const kpis = payload.kpis || {};
+
+    (kpis.reported || []).forEach((k) => {
+      const rule = DAC_KPI_REPORTED[k.id]; if (!rule) return;
+      k.values = k.values || {};
+      const v = rule(T, y);
+      /* CLCPA-237 item E, unchanged: a KPI-year with neither figure is not a
+       * KPI-year. Applied in BOTH directions here -- a year that stops being
+       * derivable must lose its entry, or a deleted table would leave a
+       * figure on the page with nothing behind it. */
+      const usable = v && (typeof v.total === 'number' || typeof v.dac === 'number');
+      if (usable) {
+        const e = { total: v.total === undefined ? null : v.total,
+                    dac: v.dac === undefined ? null : v.dac };
+        e.dac_pct = kpiDacPct(e);
+        k.values[y] = e;
+        wrote++;
+      } else if (k.values[y] !== undefined) {
+        delete k.values[y];
+      }
+    });
+
+    (kpis.analytical || []).forEach((k) => {
+      const rule = DAC_KPI_ANALYTICAL[k.id]; if (!rule) return;
+      k.values = k.values || {};
+      const v = rule(T, y);
+      if (v !== undefined) { k.values[y] = { value: v }; wrote++; }
+      else if (k.values[y] !== undefined) delete k.values[y];
+    });
+
+    const charts = payload.charts || {};
+    Object.keys(charts).forEach((key) => {
+      const rule = DAC_CHART_RULES[key]; if (!rule) return;
+      const c = charts[key]; if (!c) return;
+      c.values = c.values || {};
+      const v = rule(T, y);
+      if (v !== null && v !== undefined) { c.values[y] = v; wrote++; }
+      else if (c.values[y] !== undefined) delete c.values[y];
+    });
+
+    return wrote;
+  }
+
+  /* RECOMPOSE ONLY WHAT WAS COMPOSED, and the restriction is principled
+   * rather than cautious.
+   *
+   * recomputeYearDerived re-runs the COMPOSER's KPI pass. On the Dataverse
+   * source that is exactly what produced the values now on screen, so running
+   * it again is a no-op on any year already composed and fills the gap on a
+   * year whose rows arrived later. On the payload.json parachute the values
+   * were never composed -- they are the file's own stored figures -- and
+   * re-deriving them would apply a different engine to a different source.
+   *
+   * Measured, and this is why the gate exists: on payload.json, 19 stored KPI
+   * entries disagree with the engine, all of them rounded copies of the kind
+   * CLCPA-141 through -143 and CLCPA-238 exist to prevent -- clean_energy_spend
+   * 2023 stores dac_pct 0.49 where the engine derives 0.4939730464674628.
+   * Ungated, changing the reporting year on the parachute would silently move
+   * published percentages. That divergence is pre-existing and disclosed, not
+   * introduced and not fixed here; the parachute keeps rendering exactly what
+   * it renders today.
+   */
+  function recomposeYearIfComposed(year) {
+    if (DAC_SOURCE !== 'dataverse') return 0;
+    if (!state || !state.payload || !year) return 0;
+    return recomputeYearDerived(state.payload, year);
+  }
+
   /* ---- THE COMPOSER ------------------------------------------------------ */
   /**
    * Turn raw Dataverse rows into loadPayload()'s exact shape.
@@ -15545,8 +15668,20 @@ function wireHTooltips() {
       if (t.header_levels !== undefined) d.header_levels = t.header_levels;
       if (t.currency_cols !== undefined) d.currency_cols = t.currency_cols;
       Object.keys(t.data).forEach(y => {
-        const schema = (t.schema_by_year || {})[y] || null;
-        d.data[y] = rowsForDisplay(t.data[y], schema, id);
+        /* CLCPA-250: THE THIRD LIFE OF THE 244/257 PATTERN, and it dies here.
+         *
+         * This read schema_by_year[y] directly and fell to null for a year
+         * created by import, while the EDITOR reached the same schema through
+         * getTableSchema, which falls back to the newest year that has one.
+         * Two readers of one thing, one of them with the fallback -- exactly
+         * what CLCPA-244 fixed in getTableSchema and CLCPA-257 fixed in
+         * dacCol. Now all three resolve a schema the same way, through the one
+         * function, so there is no fourth place for it to reappear.
+         *
+         * A year with its own schema cannot reach the fallback, so no stored
+         * table-year moves; the suite asserts that across all of them rather
+         * than assuming it. */
+        d.data[y] = rowsForDisplay(t.data[y], getTableSchema(t, y), id);
       });
       derivedTables[id] = d;
     });
@@ -15824,6 +15959,13 @@ function wireHTooltips() {
 
     sel.addEventListener('change', e => {
       state.year = e.target.value;
+      /* CLCPA-250: the second trigger the ruling allows, and the one that
+       * covers a year whose rows arrived by a route other than this session's
+       * editor -- another operator's save, or a direct write. Re-deriving one
+       * year is cheap and idempotent: on a year already composed at boot it
+       * writes the identical figures back, which the suite asserts across
+       * every stored year rather than assuming. */
+      recomposeYearIfComposed(state.year);
       // Reset per-table view state so the year change is clean
       state.perTableYearView = {};
       document.getElementById('sidebar-sub').textContent = `Reporting Year ${state.year}`;
@@ -23333,6 +23475,13 @@ function wireHTooltips() {
         table.data = table.data || {};
         table.data[i.year] = clone2D(i.draft);
       }
+      /* CLCPA-250: and re-derive the figures that come FROM those rows.
+       *
+       * The rows updated immediately, as the comment above says. The KPI and
+       * chart values did not: they were computed once at boot and never again,
+       * so a year whose data arrived after boot carried no KPI entry until the
+       * page was reloaded. One year, the one just saved. */
+      recomposeYearIfComposed(i.year);
 
       // New baseline = the draft we just saved, and the badge's reference with
       // it. Adopted through the one helper, because setting only the baseline

@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-250 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: a save no longer re-derives
+       2 red, incl: E1 the gate is declared once and called twice (save + year change) -- found 2 occurrences
+  red  THE YEAR TRIGGER is removed
+       2 red, incl: E1 the gate is declared once and called twice (save + year change) -- found 2 occurrences
+  red  THE SAVE RE-DERIVES THE WRONG YEAR
+       1 red, incl: E2 a SAVE re-derives the year it just wrote
+  red  THE PARACHUTE GATE IS REMOVED: payload.json figures start moving
+       1 red, incl: G2 and the recompute is gated to the composed source, so the parachute renders exactly what it renders toda
+  red  THE GATE IS INVERTED
+       1 red, incl: G2 and the recompute is gated to the composed source, so the parachute renders exactly what it renders toda
+  red  CLCPA-237 ITEM E IS UNDONE: a phantom entry is written again
+       1 red, incl: F6 "has a usable value" (CLCPA-237 item E) is the test IN THE RECOMPUTE, unchanged
+  red  A STALE ENTRY SURVIVES when a year stops being derivable
+       1 red, incl: F7 a year that stops being derivable LOSES its entry rather than keeping a stale one
+  red  dac_pct IS COMPUTED INLINE instead of through the shipped helper
+       1 red, incl: F9 and dac_pct IN THE RECOMPUTE still goes through the shipped kpiDacPct
+  red  THE RECOMPUTE TOUCHES EVERY YEAR, not the one it was given
+       1 red, incl: B2 NOT ONE composed year's KPI or chart values moved -- moved: 2025, 2024
+  red  THE DISPLAY VIEW is skipped, so the recompute sees different rows
+       1 red, incl: G1 exactly 19 stored KPI entries disagree with the engine -- pinned so the divergence cannot grow unnoticed
+  red  THE THIRD LIFE RETURNS: the composer reads the schema directly again
+       1 red, incl: C3 and the composer now resolves it through getTableSchema, as the editor does
+  red  THE SHADOW COMPARATOR is changed too, which this ticket did not ask for
+       1 red, incl: C2b and the shadow comparator keeps its own symmetric read, untouched
+  red  A TABLE IS HARDCODED into the recompute
+       1 red, incl: F1 no added code line names a table id
+  red  THE RECOMPUTE STARTS WRITING to storage
+       1 red, incl: F4 the recompute writes nothing to storage
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X1 BASE is pinned to a literal commit sha -- got "HEAD"
+  red  HARNESS: the no-movement gate is baselined on payload.json again
+       1 red, incl: B2 NOT ONE composed year's KPI or chart values moved -- moved: 2025, 2024, 2023
+  red  HARNESS: the org fixtures are retyped with a wrong total
+       2 red, incl: A5 with the total from the org's own rows -- got 7838377
+
+  17 caught, 0 not caught, of 17 applied
+  clean re-run against byte-restored source: PASSES -- 50 passed, 0 failed
