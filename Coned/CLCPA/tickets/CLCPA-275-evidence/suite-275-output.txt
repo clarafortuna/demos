@@ -1,0 +1,44 @@
+======================================================================
+CLCPA-275 -- the notice stack is separated from the card below it
+  styles.css : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\styles.css
+  BASE       : 1657756 (predates this change)
+======================================================================
+
+A. THE GAP, RESOLVED THROUGH THE CASCADE
+  ok   A1 on BASE the last box had NO bottom gap -- got null
+  ok   A2 it now resolves to 16px -- got "16px"
+  ok   A3 while a box in the MIDDLE of the stack gets none -- got null
+  ok   A4 a lone receipt is the last box and carries the gap
+
+B. THE SAME NUMBER STACKED CARDS ALREADY USE
+  ok   B1 .ingest-card, the card BELOW the stack, carries 16px -- got "16px"
+  ok   B2 and the stack now carries the SAME value, not a new one
+  ok   B3 and .ingest-card carried 16px before this change as well
+
+C. AN UNNOTIFIED IMPORT ADDS NO GAP
+  ok   C1 this ticket's own rule needs no :empty guard at all
+  ok   C2 because it keys on the last BOX in the stack
+  ok   C3 and renderIngestImport returns '' when there is nothing to say
+
+D. THE BOXES AMONG THEMSELVES ARE UNCHANGED
+  ok   D1 .ingest-import-result keeps its 12px stacking rhythm -- got 12px
+  ok   D1 .ingest-import-notice keeps its 12px stacking rhythm -- got 12px
+  ok   D2 .is-warn keeps its accent: var(--amber)
+  ok   D2 .is-alert keeps its accent: var(--red)
+  ok   D3 the last child in a box still has an explicit zero trailing gap -- got "0"
+
+E. STYLE ONLY
+  ok   E1 app.js is BYTE-IDENTICAL to BASE -- no logic, no text
+  ok   E2 the stylesheet gained one block and nothing else
+     added CSS declaration lines: 2
+  ok   E3 exactly TWO lines were added, one grouped selector -- 2
+  ok   E4 and it wins on the cascade, not with !important
+
+X. THE HARNESS
+  ok   X1 BASE is a literal sha -- 1657756
+  ok   X2 and predates this ticket
+  ok   X3 the cascade resolver returns null for a property nothing declares here
+
+======================================================================
+  22 passed, 0 failed
+======================================================================
