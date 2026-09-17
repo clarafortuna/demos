@@ -82,7 +82,7 @@ function codeOnly(src) {
 const CODE = codeOnly(SRC);
 
 /* ---- the composed org, with the imported 2099 ------------------------ */
-const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
+const FNS = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', /* CLCPA-273 dep */ 'isPercentLiteral', 'dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay',
@@ -422,6 +422,42 @@ guard('three functions, all wiring', () => {
   changed.sort();
   say('       changed functions: ' + changed.join(', '));
   const EXPECT = {
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
+
+    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
+
+    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
+
+    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
+
+    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
+
+    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
+
+    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
+
+    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
+
+    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
+
+    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
+
+    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
+
+    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
+
+    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
+
+    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
+
+    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
+
+    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
+
+    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
+
+    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     wireExecutiveTooltips: 'the chart rows: shared clamp, placed before shown',
     wireHeaderCardsTooltips: 'the KPI cards: the same',
     wireExecutiveInteractions: 'hide-on-re-render',

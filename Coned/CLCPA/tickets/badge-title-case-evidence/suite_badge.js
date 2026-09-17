@@ -460,6 +460,13 @@ guard('every Report Data label passes the rule, not just the ones I listed', () 
       'same panel and never a rejection. A status sentence in the same family ' +
       'as the three above, and an instruction to the reader rather than a ' +
       'label on a control',
+    'Does not add up: row':
+      'CLCPA-272, the reconciliation advisory, ruled option (b): it advises ' +
+      'and never rejects, and never computes over the preparer\'s figure. ' +
+      'The same panel, the same amber component and the same family as ' +
+      '"Read as a fraction: cell" above -- a status SENTENCE, not a control ' +
+      'label. This guard caught it on the night it was written, which is ' +
+      'exactly what it is for',
   };
   const unexplained = offenders.filter(x => !(x.l.text in EXEMPT));
   unexplained.forEach(x => ok(false,

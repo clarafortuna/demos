@@ -109,7 +109,12 @@ const BASE_FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'da
     /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
      * its clone, so the closure needs the derivation and its three helpers. */
     'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
-  'sumDerivedCols', 'detectPctColumns'];
+  'sumDerivedCols', 'detectPctColumns',
+    /* CLCPA-250 dep: the composer resolves a schema through getTableSchema
+     * now, instead of reading schema_by_year directly, so the closure needs
+     * it -- and CLCPA-267 dep in turn, because that fallback shifts the
+     * donor year. A hand-fed slice cannot see a missing closure. */
+    'getTableSchema', 'shiftSchemaYears'];
 const BASE_DECLS = [
   /* CLCPA-240 round 2 dependencies */
   'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER',
@@ -487,6 +492,42 @@ guard('the blast radius is accounted for, function by function', () => {
    * A count that quietly grows is not a blast radius, so every member is
    * accounted for by name and the total is exact. */
   const ALSO = {
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
+
+    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
+
+    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out (new)',
+
+    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
+
+    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, amber box (new)',
+
+    refreshIngestNotices: 'CLCPA-273: repaints the notice mount (new)',
+
+    wireIngestEditor: 'CLCPA-273: the blur handler reads before the parse',
+
+    loadIngestDraft: 'CLCPA-273: clears typed advisories on table-year change',
+
+    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both',
+
+    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format',
+
+    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
+
+    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
+
+    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
+
+    composePayloadFromRows: 'CLCPA-250: resolves a schema through getTableSchema',
+
+    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
+
+    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
+
+    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
+
+    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     totalRowFlags: 'CLCPA-240: the value-less Total row',
     renderIngestPicker: 'CLCPA-240 cosmetic: the year dropdown',
     dacCol: 'the schema fallback for imported years, found in 240 follow-up',

@@ -460,7 +460,11 @@ guard('one function', () => {
    * so the claim stays exact rather than being relaxed to a bigger number. */
   /* CLCPA-240's first half then landed too, adding or changing eight more.
    * Same treatment: named, not absorbed into a looser number. */
-  const ALSO = ['placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
+  const ALSO = [
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the wave of 2026-09-16. */
+
+    'shiftSchemaYears', 'isPercentLiteral', 'noteTypedPercent', 'renderTypedUnitNotice', 'refreshIngestNotices', 'wireIngestEditor', 'loadIngestDraft', 'renderIngestImport', 'refreshIngestCalcCells', 'dacDerivedTablesForYear', 'recomputeYearDerived', 'recomposeYearIfComposed', 'buildYearSelector', 'detectSumColumns', 'reconcileSumColumns', 'renderReconcileNotice','placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
                 'wireHeaderCardsTooltips', 'wireExecutiveInteractions',
                 'wireControlTips',
                 'buildIngestImport', 'buildIngestWorkbook', 'totalRowFlags',

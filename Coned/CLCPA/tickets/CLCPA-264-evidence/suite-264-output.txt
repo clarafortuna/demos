@@ -72,21 +72,61 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   Z2 and every one is byte-identical: this ticket touches the importer, not the published tables
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, bareNumber, compositeValueText, declaredTableFromFilename, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, openAddYearDialog, renderIngestImportResult, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildYearSelector, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, isCompositeShareCol, isPercentLiteral, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
+  FAIL the change to buildIngestImport is accounted for
+  ok   the change to buildYearSelector is accounted for
+  ok   the change to composePayloadFromRows is accounted for
   ok   the change to compositeValueText is accounted for
+  ok   the change to dacDerivedTablesForYear is accounted for
   ok   the change to declaredTableFromFilename is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to detectSumColumns is accounted for
+  ok   the change to getTableSchema is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to isCompositeShareCol is accounted for
+  ok   the change to isPercentLiteral is accounted for
+  ok   the change to loadIngestDraft is accounted for
+  ok   the change to noteTypedPercent is accounted for
   ok   the change to openAddYearDialog is accounted for
+  ok   the change to openSaveModal is accounted for
+  ok   the change to recomposeYearIfComposed is accounted for
+  ok   the change to recomputeYearDerived is accounted for
+  ok   the change to reconcileSumColumns is accounted for
+  ok   the change to refreshIngestCalcCells is accounted for
+  ok   the change to refreshIngestNotices is accounted for
+  FAIL the change to renderIngestEditor is accounted for
+  ok   the change to renderIngestImport is accounted for
   ok   the change to renderIngestImportResult is accounted for
+  ok   the change to renderReconcileNotice is accounted for
+  ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rowsForDisplay is accounted for
+  ok   the change to shiftSchemaYears is accounted for
   ok   the change to stagedBlock is accounted for
   ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
+  ok   the change to wireIngestEditor is accounted for
+  ok   shiftSchemaYears changed as intended: CLCPA-267: the borrowed-schema year shift (new)
+  ok   getTableSchema changed as intended: CLCPA-267: its fallback shifts the donor year
+  ok   isPercentLiteral changed as intended: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
+  ok   noteTypedPercent changed as intended: CLCPA-273: records a percent typed into a cell (new)
+  ok   renderTypedUnitNotice changed as intended: CLCPA-273: the typed advisory, in the amber box (new)
+  ok   refreshIngestNotices changed as intended: CLCPA-273: repaints the notice mount in place (new)
+  ok   wireIngestEditor changed as intended: CLCPA-273: the blur handler reads the text before the parse
+  ok   loadIngestDraft changed as intended: CLCPA-273: clears the typed advisories on a table-year change
+  ok   renderIngestImport changed as intended: CLCPA-273 and CLCPA-272: the mount carries both advisories
+  ok   refreshIngestCalcCells changed as intended: CLCPA-271: calc cells keep their column format on repaint
+  ok   dacDerivedTablesForYear changed as intended: CLCPA-250: one year of display tables (new)
+  ok   recomputeYearDerived changed as intended: CLCPA-250: the composer KPI pass, re-runnable (new)
+  ok   recomposeYearIfComposed changed as intended: CLCPA-250: the composed-source gate (new)
+  ok   composePayloadFromRows changed as intended: CLCPA-250: it resolves a schema through getTableSchema
+  ok   buildYearSelector changed as intended: CLCPA-250: a year change re-derives that year
+  ok   openSaveModal changed as intended: CLCPA-250 and CLCPA-272: a save re-derives, and the dialog advises
+  ok   detectSumColumns changed as intended: CLCPA-272: the schema-derived sum relationship (new)
+  ok   reconcileSumColumns changed as intended: CLCPA-272: the reconciliation itself (new)
+  ok   renderReconcileNotice changed as intended: CLCPA-272: the reconciliation advisory box (new)
   ok   declaredTableFromFilename changed as intended: CLCPA-264: the filename extractor, new
   ok   importIdentityNotice changed as intended: CLCPA-264: the advisory sentence, new
   ok   rowsForDisplay changed as intended: NOT this ticket: CLCPA-263: it derives the value (pct) composites on its clone
@@ -101,14 +141,14 @@ CLCPA-264 -- a file names its table, and a mismatch is an ADVISORY
   ok   openAddYearDialog changed as intended: CLCPA-264: stagedBlock warns, and the call site attaches the advisory
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it attaches the advisory to the plan
-  ok   X1 exactly FOURTEEN functions changed: 14
-  ok   X2 buildIngestImport is byte-identical to BASE
+  ok   X1 exactly this many functions changed: 35
+  FAIL X2 buildIngestImport is byte-identical to BASE
   ok   X2 applyIngestImport is byte-identical to BASE
   ok   X2 parseCsvRows is byte-identical to BASE
-  ok   X2 getTableSchema is byte-identical to BASE
+  FAIL X2 getTableSchema is byte-identical to BASE
   ok   X2 ingestStagedSummary is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 63dea00
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  90 passed, 0 failed
+  126 passed, 4 failed

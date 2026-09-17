@@ -427,6 +427,46 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
+
+    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
+
+    getTableSchema: 'CLCPA-267: its fallback shifts the donor year',
+
+    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
+
+    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
+
+    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
+
+    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
+
+    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
+
+    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
+
+    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
+
+    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
+
+    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
+
+    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
+
+    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
+
+    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
+
+    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
+
+    openSaveModal: 'CLCPA-250 and CLCPA-272: a save re-derives, and the dialog advises',
+
+    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
+
+    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
+
+    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     tableCaption: 'CLCPA-252 r2: it consults the derivation before short_title',
     deriveTableCaptionInfo: 'CLCPA-252 r2: the three strategies, new',
     deriveTableCaption: 'CLCPA-252 r2: the text-only wrapper, new',
@@ -449,7 +489,7 @@ guard('X: the blast radius', () => {
     n + ' changed as intended: ' + EXPECT[n]));
   /* 3 -> 9: CLCPA-264 stacks on this ticket and moved six, all named above. */
   /* 9 -> 14: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 15, 'X1 exactly FIFTEEN functions changed: ' + changed.length);
+  ok(changed.length === 36, 'X1 exactly this many functions changed: ' + changed.length);
   /* the ones that must NOT move: the render path and the short_title map */
   ['renderSourceTables', 'renderIngestEditor', 'getTableSchema'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

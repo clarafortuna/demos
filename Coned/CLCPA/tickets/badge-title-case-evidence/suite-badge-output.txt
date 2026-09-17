@@ -91,7 +91,7 @@ THE BADGE ROUND -- acceptance
   ok   no sentence-case copy of ">Your name<"
   ok   no sentence-case copy of ">Your email<"
   ok   the Report Data region is located
-  ok   labels found in the region: 26
+  ok   labels found in the region: 28
   ok   no captured label still carries code: none
   ok   no Report Data button, h4 or label is sentence case except the named exemption
   ok   the exemption is REAL and still present: "Nothing was imported"
@@ -102,6 +102,8 @@ THE BADGE ROUND -- acceptance
        exempt: "Read as a fraction: cell" -- CLCPA-261, the unit notice, ruled by Emely as a visible NOTICE in the import summary rather than a rejection. Same family and same panel as the two above: a status SENTENCE, not a control label
   ok   the exemption is REAL and still present: "Check the table this file was for"
        exempt: "Check the table this file was for" -- CLCPA-264, the import identity advisory, ruled as a SOFT warning in the same panel and never a rejection. A status sentence in the same family as the three above, and an instruction to the reader rather than a label on a control
+  ok   the exemption is REAL and still present: "Does not add up: row"
+       exempt: "Does not add up: row" -- CLCPA-272, the reconciliation advisory, ruled option (b): it advises and never rejects, and never computes over the preparer's figure. The same panel, the same amber component and the same family as "Read as a fraction: cell" above -- a status SENTENCE, not a control label. This guard caught it on the night it was written, which is exactly what it is for
 
 === 4. WHAT WAS DELIBERATELY LEFT ALONE ===
   ok   buildHistorySummary is found
@@ -114,8 +116,8 @@ THE BADGE ROUND -- acceptance
   ok   and at BASE
   ok   CLCPA-261s notice block is found, so undoing it means something
   ok   CLCPA-264s advisory block is found, so undoing it means something
-  ok   and its one-token append is present exactly once
-  ok   the import result panel is unchanged by this round once CLCPA-261s unit notice is undone
+  FAIL and its one-token append is present exactly once
+  FAIL the import result panel is unchanged by this round once CLCPA-261s unit notice is undone
   ok   including the reminder Emely approved verbatim
   ok   app.js at the badge round's merge 97e2df0 is readable
   ok   top-level functions enumerated: 352
@@ -139,5 +141,5 @@ THE BADGE ROUND -- acceptance
   ok   and no function outside that list moved at all
 
 ======================================================================
-  120 passed, 0 failed
+  119 passed, 2 failed
 ======================================================================

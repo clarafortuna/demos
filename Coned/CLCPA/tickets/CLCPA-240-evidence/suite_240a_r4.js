@@ -86,7 +86,7 @@ function grabConst(name, src) {
 const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/[^\r\n]*/g, '$1');
 
 function build(src, tag) {
-  const fns = ['recomputeTotals', 'totalRowFlags', 'getTableSchema', 'getTableBody',
+  const fns = ['recomputeTotals', 'totalRowFlags', 'getTableSchema', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', /* CLCPA-273 dep */ 'isPercentLiteral', 'getTableBody',
     'ingestComputed', 'buildIngestImport', 'normIngestKey', 'ingestIsHeaderRow',
     'isHierarchicalTotalLabel'];
   const cs = [];

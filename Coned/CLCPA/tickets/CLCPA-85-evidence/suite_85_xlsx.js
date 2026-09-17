@@ -73,7 +73,7 @@ function grabDecl(name) {
   return (s < 0 || e < 0) ? null : L.slice(s, e + 1).join('\n');
 }
 
-const NAMES = ['crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
+const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', /* CLCPA-273 dep */ 'isPercentLiteral', 'crc32', 'zipStored', 'xmlEsc', 'xlsxSheetName', 'xlsxCol',
   'xlsxStylesXml', 'xlsxCell', 'xlsxSheetXml', 'xlsxInstructionBlocks',
   'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed', 'isTotalOnlyDerived',
   /* CLCPA-260: the template asks which columns are phantom spacers */

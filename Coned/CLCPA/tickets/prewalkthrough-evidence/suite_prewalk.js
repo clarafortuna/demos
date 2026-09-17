@@ -683,6 +683,42 @@ guard('the four exclusions', () => {
    * A blast radius that silently grows is not a blast radius, so every member
    * is accounted for by name and the count is exact. */
   const EXPECT = {
+
+    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
+
+    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
+
+    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
+
+    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
+
+    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
+
+    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
+
+    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
+
+    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
+
+    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
+
+    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
+
+    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
+
+    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
+
+    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
+
+    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
+
+    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
+
+    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
+
+    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
+
+    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     renderSourceTables: 'item 1, the chip, and the header-row skip',
     renderTable: 'item 2, the two-level table marker',
     renderIngestEditor: 'item 2, the merged group headers',
@@ -790,7 +826,7 @@ guard('the four exclusions', () => {
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
   /* 42 -> 44: CLCPA-264 added two, both named above. */
   /* 44 -> 49: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 50, 'exactly FIFTY functions changed: ' + changed.length);
+  ok(changed.length === 67, 'exactly this many functions changed: ' + changed.length);
   ok(changed.every(n => n in EXPECT),
      'and no function outside those forty moved at all');
 });

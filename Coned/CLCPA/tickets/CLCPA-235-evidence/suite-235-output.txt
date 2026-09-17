@@ -3,43 +3,16 @@ CLCPA-235 -- an import may never end in silence
 ======================================================================
 
 === THE REPRO, verbatim, driven end to end ===
-  ok   standing on A1 / 2099 with an empty draft
-  ok   the dialog stages it and reports: 23 rows, 3 matching columns, 44 values ready to import.
-  ok   the dry run plans 23 rows, as the operator was told: 23
-  ok   the apply plans cleanly against the new year
-  ok   and lands 23 rows in the draft
-  ok   AFTER THE REDRAW the draft still holds its 23 rows -- this is the assertion the ticket exists for
-  ok   and the result survives the redraw
-  ok   and the panel RENDERS from it, rather than being erased first
-  ok   saying how much landed: Imported into the draft: 44 cells
-  ok   and that nothing is stored until Save, which is ruling 1 restated
-  ok   and NOT the old enumeration, which the addendum removed
+  FAIL the repro THREW instead of failing: shiftSchemaYears is not defined
 
 === THE SHARED INVARIANT: draft OR panel, on every consuming path ===
-  ok   new year, clean file: the operator is left with a DRAFT and a PANEL
-  ok   new year, clean file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   existing year, clean file: the operator is left with a DRAFT and a PANEL
-  ok   existing year, clean file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   new year, MIS-ENCODED file: the operator is left with a PANEL
-  ok   new year, MIS-ENCODED file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   existing year, MIS-ENCODED file: the operator is left with a PANEL
-  ok   existing year, MIS-ENCODED file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
-  ok   new year, unreadable file: the operator is left with a PANEL
-  ok   new year, unreadable file: never an empty draft AND no panel, which is the one outcome CLCPA-85 forbids
+  FAIL the shared invariant THREW instead of failing: shiftSchemaYears is not defined
 
 === THE MATRIX, all four cells ===
   ok   (a) CSV (Comma delimited), new year: REJECTED WHOLE, so no rows are created
   ok   (a) CSV (Comma delimited), new year: nothing added, nothing applied
   ok   (a) CSV (Comma delimited), new year: and the reason names the encoding
-  ok   (b) CSV UTF-8, new year: accepted
-  ok   (b) CSV UTF-8, new year: 44 values planned, 23 rows created
-  ok   (c) CSV (Comma delimited), existing year: REJECTED WHOLE, so no rows are created
-  ok   (c) CSV (Comma delimited), existing year: nothing added, nothing applied
-  ok   (c) CSV (Comma delimited), existing year: and the reason names the encoding
-  ok   (d) CSV UTF-8, existing year: accepted
-  ok   (d) CSV UTF-8, existing year: 44 values planned, 0 rows created
-  ok   the mis-encoded fixture carries exactly the 8 mangled labels measured in the audit: 8
-  ok   and it now creates ZERO duplicate rows, where it created 8: 0
+  FAIL the matrix THREW instead of failing: isPercentLiteral is not defined
 
 === the mojibake reject: whole, named, and BEFORE Add Year ===
   ok   a mis-encoded file is a HARD rejection
@@ -58,7 +31,7 @@ CLCPA-235 -- an import may never end in silence
   ok   a mangled HEADER is rejected too, not only a mangled label
   ok   and counted: 1 cell
   ok   named as row 1, the header row: row 1
-  ok   and a correctly encoded file still imports
+  FAIL the mojibake reject THREW instead of failing: isPercentLiteral is not defined
 
 === the unreadable-file path, read from the dialog itself ===
   ok   the dialog is found
@@ -91,5 +64,5 @@ CLCPA-235 -- an import may never end in silence
   ok   the picker handlers still call it themselves: 8 call sites
 
 ======================================================================
-  74 passed, 0 failed
+  43 passed, 4 failed
 ======================================================================

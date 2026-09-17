@@ -580,7 +580,7 @@ const dialogStates = {};
         without this. The failure shape without it was the staged box reading
         "The file could not be read: detectPctColumns is not defined". */
      'detectPctColumns', 'buildIngestImport',
-     'getTableSchema', 'getTableBody', 'csvField', 'ingestTemplateSource',
+     'getTableSchema', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', /* CLCPA-273 dep */ 'isPercentLiteral', 'getTableBody', 'csvField', 'ingestTemplateSource',
      'compareTableIds', 'ingestStagedSummary']
       .map(n => grab(SRC, n)).join('\n') +
     '\nreturn { parseCsvRows, buildIngestImport, getTableSchema, getTableBody,' +
