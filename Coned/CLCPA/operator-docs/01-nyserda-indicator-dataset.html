@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>1 &middot; NYSERDA indicators &mdash; building and uploading a dataset version</title>
+<title>1 &middot; NYSERDA indicators -- building and uploading a dataset version</title>
 <style>
   :root {
     --bg:#fff; --bg-2:#f7f6f2; --bg-3:#f1efe8;
@@ -70,7 +70,7 @@
 
 <header>
   <p class="kicker">Con Edison &middot; DAC dashboard &middot; Operator guide 1 of 3</p>
-  <h1>NYSERDA indicators &mdash; building and uploading a dataset version</h1>
+  <h1>NYSERDA indicators -- building and uploading a dataset version</h1>
   <p>How a new NYSERDA Disadvantaged Communities release becomes the data the map,
   the tooltips, the tract detail panel and the CSV export all read.</p>
 </header>
@@ -80,34 +80,63 @@
   <p class="sub">Three things that decide whether this goes smoothly.</p>
 
   <h3>Where you run these commands</h3>
-  <p>Everything in this guide runs from the folder that <em>contains</em> the
-  <code>Data/</code> folder, invoking scripts as <code>python Data/&lt;script&gt;.py</code>.
-  The scripts resolve their own paths, so running them from inside <code>Data/</code>
-  will fail on missing inputs.</p>
+  <p>Everything in this guide runs from the <strong>package root</strong>: the folder
+  holding <code>Data/</code>, <code>docs/</code> and <code>scripts/</code>. Invoke a
+  script by its path, as <code>python scripts/&lt;script&gt;.py</code>.</p>
+  <p>The scripts live in <code>scripts/</code>. There are no <code>.py</code> files in
+  <code>Data/</code>, which holds only inputs. Each script finds <code>Data/</code>
+  from its own location rather than from your current folder, so it will run from
+  anywhere; but every path it prints is relative to the package root, so run from
+  there and the output reads as written.</p>
 
   <h3>What you need installed</h3>
-  <p>This guide needs <strong>Python only &mdash; no additional packages.</strong>
+  <p>This guide needs <strong>Python only -- no additional packages.</strong>
   The converter uses the Python standard library. (The geometry builder in guide 2
   does need extra packages; this one does not.)</p>
 
   <div class="note info">
     <span class="t">One file in <code>Data/</code> decides what the indicators are called</span>
     <p><code>Data/indicator_catalog.json</code> holds the six indicator groups and the
-    fifty indicators inside them &mdash; their keys, their labels, and whether each is
+    fifty indicators inside them -- their keys, their labels, and whether each is
     a percentage or a score. The converter reads it to build the dataset&rsquo;s own
     description of itself, which is what lets the dashboard&rsquo;s Color by list,
     tooltips and CSV export rebuild themselves from an upload rather than from a code
     change.</p>
     <p>You do not normally touch it. It matters in one situation: <strong>if a future
     NYSERDA release adds, renames or removes an indicator, that file is where the
-    change goes</strong> &mdash; see the <code>NOTE:</code> paragraph in step 3.</p>
+    change goes</strong> -- see the <code>NOTE:</code> paragraph in step 4.</p>
     <p>It records which dashboard build it was taken from, by checksum, so a dataset
     built with it can always be traced back.</p>
   </div>
 </section>
 
 <section>
-  <h2>Step 1 &mdash; Download the NYSERDA release</h2>
+  <h2>Step 1 -- Build the geometry first, if you have not</h2>
+
+  <p>The converter takes its list of tracts from the tract geometry dataset for the
+  vintage you are building. <code>Data/out/</code> ships <strong>empty</strong>, so on
+  a fresh package that file does not exist yet and this guide cannot complete until
+  it does.</p>
+
+  <p>Build it with the one command from guide 2:</p>
+
+  <pre><code>python scripts/update_map_data.py --vintage 2010</code></pre>
+
+  <p>That single command writes both the tract geometry and the service territory
+  overlay. Guide 2 covers it in full. If the geometry is already built, skip this
+  step.</p>
+
+  <div class="note info">
+    <span class="t">Why this guide is numbered 01 but runs second</span>
+    <p>The guide filenames are numbered by <strong>output family</strong>, not by
+    sequence. The order to run them in is guide 2, then this one, then guide 3, and
+    <code>README.txt</code> states it as three numbered steps. Nothing is wrong with
+    your package: the numbering is a label, not an order.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Step 2 -- Download the NYSERDA release</h2>
 
   <p>Source: the New York Department of State Geographic Information Gateway.</p>
   <pre><code>https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc</code></pre>
@@ -134,9 +163,9 @@
 </section>
 
 <section>
-  <h2>Step 2 &mdash; Convert it</h2>
+  <h2>Step 3 -- Convert it</h2>
 
-  <pre><code>python convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27</code></pre>
+  <pre><code>python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27</code></pre>
 
   <table>
     <tr><th>Argument</th><th></th><th>Notes</th></tr>
@@ -148,12 +177,12 @@
     <tr><td class="mono">--raw-date</td><td><span class="tag tag-opt">always pass it</span></td>
         <td><code>YYYY-MM-DD</code>. Written into the stored source label. If you
         omit it, the script falls back to the file&rsquo;s modification date and says
-        so &mdash; but that is the date <em>you downloaded it</em>, not the date the
+        so -- but that is the date <em>you downloaded it</em>, not the date the
         data was published.</td></tr>
     <tr><td class="mono">--raw PATH</td><td><span class="tag tag-opt">optional</span></td>
         <td>Default <code>Data/NYS_DAC.geojson</code>.</td></tr>
     <tr><td class="mono">--universe PATH</td><td><span class="tag tag-opt">optional</span></td>
-        <td>Default <code>Data/out/tract_geometry_pure-&lt;vintage&gt;.json</code> &mdash;
+        <td>Default <code>Data/out/tract_geometry_pure-&lt;vintage&gt;.json</code> --
         the tract geometry from guide 2. It defines which tracts exist.</td></tr>
     <tr><td class="mono">--source-label TEXT</td><td><span class="tag tag-opt">optional</span></td>
         <td>Replaces the generated label. Still capped at 254 characters.</td></tr>
@@ -167,13 +196,13 @@
     <span class="t">Which vintage?</span>
     <p>The vintage must match the tract geometry the map is drawing. Today that is
     <strong>2010</strong>. If you pass <code>2020</code>, the dashboard will refuse
-    the dataset unless matching 2020 geometry is published &mdash; see &ldquo;If the
+    the dataset unless matching 2020 geometry is published -- see &ldquo;If the
     dashboard refuses it&rdquo; below.</p>
   </div>
 </section>
 
 <section>
-  <h2>Step 3 &mdash; Read what it printed</h2>
+  <h2>Step 4 -- Read what it printed</h2>
   <p class="sub">A successful run looks like this. Paths shortened.</p>
 
   <pre><code>==================================================================
@@ -200,9 +229,9 @@ written         : ...\Data\out\nyserda_dac_v1_0.json
 
   <h3>The two middle lines are the extras report</h3>
   <ul>
-    <li><strong><code>discarded</code></strong> &mdash; three artefacts the export
+    <li><strong><code>discarded</code></strong> -- three artefacts the export
     tool adds. Dropped on purpose; nothing to do.</li>
-    <li><strong><code>carried by raw, not by the dataset</code></strong> &mdash; five
+    <li><strong><code>carried by raw, not by the dataset</code></strong> -- five
     real NYSERDA columns the dashboard does not use. Also expected.</li>
   </ul>
 
@@ -232,7 +261,7 @@ written         : ...\Data\out\nyserda_dac_v1_0.json
 </section>
 
 <section>
-  <h2>Step 4 &mdash; Upload it</h2>
+  <h2>Step 5 -- Upload it</h2>
 
   <ol class="steps">
     <li>Open the dashboard and go to <strong>Map Layers</strong>.</li>
@@ -253,7 +282,7 @@ written         : ...\Data\out\nyserda_dac_v1_0.json
   <div class="note ok">
     <span class="t">Activating is deliberately a separate decision</span>
     <p>Uploading stores a version. Activating makes it what everybody sees.
-    Activating one version automatically switches off the previous one &mdash; there
+    Activating one version automatically switches off the previous one -- there
     is never more than one live indicator dataset.</p>
     <p>The previous version stays stored and is how you go back.</p>
   </div>
@@ -306,7 +335,7 @@ written         : ...\Data\out\nyserda_dac_v1_0.json
   <div class="note warn">
     <span class="t">There is no upload for spreadsheets anywhere in the dashboard.</span>
     <p>The file picker accepts <code>.json</code> and <code>.geojson</code> files
-    only. A spreadsheet cannot be uploaded to the dashboard directly &mdash; it has
+    only. A spreadsheet cannot be uploaded to the dashboard directly -- it has
     to be converted by a script first. That is true in every one of these three
     guides.</p>
   </div>

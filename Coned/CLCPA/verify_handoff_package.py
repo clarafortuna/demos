@@ -210,7 +210,10 @@ def main():
             return 1
         ok("unpack", "%d entries -> %s" % (len(names), root))
 
-        for req in ["requirements.txt", "README.txt", "MANIFEST.txt"]:
+        # CLCPA-279: requirements.txt moved into scripts/ with the code it
+        # installs for. README and MANIFEST stay at the root, where an operator
+        # lands. Paths, not bare names, so a file in the wrong place still fails.
+        for req in ["scripts/requirements.txt", "README.txt", "MANIFEST.txt"]:
             if os.path.exists(os.path.join(root, req)):
                 ok("present", req)
             else:
@@ -351,18 +354,23 @@ def main():
             if script in unresolved:
                 continue
             argv = args.split()
+            # CLCPA-279: the guides now name scripts by path (scripts/foo.py), so
+            # the tables below -- which are keyed on the script itself, not on
+            # where it happens to live -- are looked up by basename. Keyed on the
+            # full path, every lookup missed and SAFE MODE silently ran nothing.
+            name = os.path.basename(script)
             blocked = [why for flag, why in CANNOT_VERIFY_OFFLINE.items() if flag in argv]
             if blocked:
                 note("skipped `%s %s`: %s" % (script, args, blocked[0]))
                 continue
-            if script in NEEDS_GUIDE_2_OUTPUT:
-                note("skipped `%s`: %s" % (script, NEEDS_GUIDE_2_OUTPUT[script]))
+            if name in NEEDS_GUIDE_2_OUTPUT:
+                note("skipped `%s`: %s" % (script, NEEDS_GUIDE_2_OUTPUT[name]))
                 continue
-            if script not in SAFE_FLAGS:
+            if name not in SAFE_FLAGS:
                 note("skipped `%s %s`: no no-write mode; it writes real outputs, so it "
                      "belongs to the operator simulation" % (script, args))
                 continue
-            flags = [f for f in SAFE_FLAGS[script] if f not in argv]
+            flags = [f for f in SAFE_FLAGS[name] if f not in argv]
             cmd = [sys.executable, script] + argv + flags
             r = subprocess.run(cmd, cwd=root, capture_output=True, text=True, timeout=900)
             label = "%s %s" % (script, " ".join(argv + flags))

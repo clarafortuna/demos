@@ -19,13 +19,22 @@ build_coned_dataset imports it rather than reimplementing the header matching.
 Both are import-safe: each has an `if __name__ == "__main__"` guard, so importing
 one does not run it.
 
-LAYOUT
-------
-Three parts, and the shape is the instruction:
+LAYOUT (v2, CLCPA-279)
+----------------------
+Five parts, and the shape is the instruction:
 
-    <root>/*.py        the scripts, where a reader meets them first
-    <root>/Data/       inputs only; outputs land in Data/out/
-    <root>/docs/       the three operator guides
+    <root>/README.txt  the START HERE, at the root where an operator lands
+    <root>/MANIFEST.txt every file in the package, with its full sha256
+    <root>/Data/       inputs only; outputs land in Data/out/, except the
+                       territory overlay, which lands in Data/ itself
+    <root>/docs/       the three operator guides, and the placeholder for the
+                       four per-family Word guides of the later phase
+    <root>/scripts/    every shipped .py, plus requirements.txt
+    <root>/notebooks/  one Colab notebook per output family, orchestrators only
+
+v1 put the .py files at the package root. They moved into scripts/ so that the
+root holds only the two things an operator reads first, and the scripts' path
+anchor grew the third layout to match -- see the comment on SCRIPTS below.
 
 WHAT DOES NOT GO IN
 -------------------
@@ -78,28 +87,39 @@ import zipfile
 HERE = os.path.dirname(os.path.abspath(__file__))
 DEV = os.path.join(HERE, "ExecutiveDashboard_dev")
 DOCS = os.path.join(HERE, "operator-docs")
+NOTEBOOKS_SRC = os.path.join(HERE, "operator-notebooks")
 
 PKG_NAME = "coned-dac-dashboard-data-tools"
 
 # (source path relative to DEV, destination relative to the package root)
-# THE .py FILES LIVE AT THE PACKAGE ROOT, not inside Data/.
+# THE .py FILES LIVE IN scripts/ (CLCPA-279), not at the root and not in Data/.
 #
-# Scripts at the top where a reader meets them first; Data/ holding only inputs;
-# docs/ holding only documentation. It also removes the commonest operator error
-# this package can produce -- running a script from inside Data/, which fails on
-# every input path.
+# Data/ holds only inputs, docs/ only documentation, scripts/ only code, and the
+# root only the two files an operator reads before anything else. It also keeps
+# the commonest operator error this package can produce out of reach -- running a
+# script from inside Data/, which fails on every input path.
 #
-# The scripts resolve their own location, so HERE becomes the package root and
-# their inputs resolve to HERE/Data/. That is the repository's layout shifted up one
-# level, so nothing inside the scripts changes.
+# THIS MOVE REQUIRED A CODE CHANGE, and the reason is worth stating because the
+# v1 comment here claimed the opposite. Each script anchors its inputs on its own
+# __file__, and the v1 idiom knew exactly two layouts:
+#
+#     DATA = HERE if basename(HERE) == "Data" else join(HERE, "Data")
+#
+# which resolves a script in scripts/ to <root>/scripts/Data/ -- a folder that
+# does not exist. Every script would have failed on its first input path. The six
+# scripts that resolve their own paths now test three layouts (in Data/, at the
+# root, in scripts/), so one copy still serves the repository and the package, and
+# the clean-room proof still exercises the very file the repository holds.
+# build_base_map_payload.py needs no anchor: it is imported, and takes its paths
+# from the caller.
 SCRIPTS = [
-    ("Data/convert_nyserda_raw.py", "convert_nyserda_raw.py"),
-    ("Data/build_tract_dataset.py", "build_tract_dataset.py"),
-    ("Data/update_map_data.py", "update_map_data.py"),
-    ("Data/build_pure_geometry_dataset.py", "build_pure_geometry_dataset.py"),
-    ("Data/_make_territories.py", "_make_territories.py"),
-    ("Data/build_coned_dataset.py", "build_coned_dataset.py"),
-    ("Data/build_base_map_payload.py", "build_base_map_payload.py"),
+    ("Data/convert_nyserda_raw.py", "scripts/convert_nyserda_raw.py"),
+    ("Data/build_tract_dataset.py", "scripts/build_tract_dataset.py"),
+    ("Data/update_map_data.py", "scripts/update_map_data.py"),
+    ("Data/build_pure_geometry_dataset.py", "scripts/build_pure_geometry_dataset.py"),
+    ("Data/_make_territories.py", "scripts/_make_territories.py"),
+    ("Data/build_coned_dataset.py", "scripts/build_coned_dataset.py"),
+    ("Data/build_base_map_payload.py", "scripts/build_base_map_payload.py"),
 ]
 
 # Deliberately NOT packaged. Asserted at build time below, not just listed here.
@@ -182,6 +202,46 @@ GUIDES = [
     "03-electric-and-gas-figures.html",
 ]
 
+# One notebook per OUTPUT FAMILY, and deliberately NOT numbered.
+#
+# The guides are numbered by family (01, 02, 03) but run in the order 02, 01, 03,
+# and that mismatch is audit finding F1. Numbering the notebooks would invent a
+# second competing sequence and reproduce the same defect in a new place. Each
+# notebook states its own place in the execution order in its header cell
+# instead, which is the thing an operator actually needs.
+#
+# Four notebooks against three guides: guide 2 covers tract shapes AND territory
+# overlays because one command produces both, and both notebooks say so.
+NOTEBOOKS = [
+    "dac-indicators.ipynb",
+    "tract-shapes.ipynb",
+    "territory-overlays.ipynb",
+    "electric-and-gas-figures.ipynb",
+]
+
+# docs/ ships the three HTML guides AND a placeholder, because the four
+# per-family Word guides are assembled in a later phase. An empty docs/ folder
+# would not survive the zip, and a folder that silently holds three files when
+# the plan says seven is the kind of gap nobody notices until the handoff.
+DOCS_PLACEHOLDER_NAME = "00-WORD-GUIDES-PENDING.txt"
+DOCS_PLACEHOLDER = """\
+The four per-family Word guides are not in this build.
+======================================================
+
+This folder ships three HTML guides, and they are complete and current:
+
+    01-nyserda-indicator-dataset.html    the DAC indicator dataset
+    02-geometry-and-territories.html     tract shapes AND territory overlays
+    03-electric-and-gas-figures.html     the electric and gas figures
+
+A later phase replaces them with four Word guides, one per output family, by
+splitting guide 02 into its two halves. Nothing is missing from this package:
+the three HTML guides cover all four families today, and guide 02 covers two of
+them because ONE command produces both of those outputs.
+
+Until then, the notebooks in notebooks/ are the per-family entry points.
+"""
+
 REQUIREMENTS = """\
 # Con Edison DAC dashboard - data tools
 #
@@ -208,13 +268,19 @@ Con Edison DAC dashboard - data tools
 
 Everything needed to rebuild the four kinds of data file the dashboard uses.
 
+    Data/       the inputs
+    scripts/    the scripts, and requirements.txt
+    docs/       the operator guides
+    notebooks/  one notebook per output family, if you would rather run it there
+    MANIFEST.txt  every file in this package, with its full sha256
+
 WHERE TO UNPACK IT (Windows)
 ----------------------------
-Unpack somewhere SHALLOW. `C:\coned-tools\` is ideal; your Desktop is fine.
+Unpack somewhere SHALLOW. `C:\\coned-tools\\` is ideal; your Desktop is fine.
 
-The longest path inside this package is 116 characters, and Windows refuses
-paths over 260 by default. Unpacking into a deep folder therefore fails partway
-through with:
+The longest path inside this package is %(longest)d characters, and Windows
+refuses paths over 260 by default. Unpacking into a deep folder therefore fails
+partway through with:
 
     [WinError 3] The system cannot find the path specified
 
@@ -222,39 +288,87 @@ which names no file and reads like a corrupt download. It is not -- it is the
 path length. Keep the folder you unpack into under about 140 characters and it
 cannot happen. This caught our own verification run, so it is not hypothetical.
 
-START HERE
-----------
-Open the guides in a browser, in order:
+FIRST: A VIRTUAL ENVIRONMENT
+----------------------------
+Do this before you run anything. It keeps these installs off your system Python,
+which matters because this package pins versions of three geometry libraries.
 
-    docs/01-nyserda-indicator-dataset.html
-    docs/02-geometry-and-territories.html
-    docs/03-electric-and-gas-figures.html
+    python -m venv .venv
+
+    .venv\\Scripts\\activate            (Windows)
+    source .venv/bin/activate         (macOS or Linux)
+
+    pip install -r scripts/requirements.txt
+
+The prompt gains a `(.venv)` prefix when it is active. If you open a new
+terminal later, activate it again before running anything.
+
+START HERE: ONE ORDER, AND IT IS THIS ONE
+-----------------------------------------
+The guide filenames are numbered by OUTPUT FAMILY -- 01, 02, 03 -- and NOT by
+sequence. So the order you run them in is not 1, 2, 3. Work down the three steps
+below, reading each guide before running its command, and the numbering on the
+filenames does not matter.
+
+    Step 1    docs/02-geometry-and-territories.html
+              python scripts/update_map_data.py --vintage 2010
+
+              Tract shapes AND the territory overlay: one command, two outputs.
+              This goes first, because the tract shapes it writes are the tract
+              list that steps 2 and 3 both read.
+
+    Step 2    docs/01-nyserda-indicator-dataset.html
+              python scripts/convert_nyserda_raw.py --version 1.0 \\
+                  --geoid-vintage 2010 --raw-date 2023-03-27
+
+    Step 3    docs/03-electric-and-gas-figures.html
+              python scripts/build_coned_dataset.py --vintage 2010
+
+`Data/out/` ships empty on purpose. Everything in it is an output, and step 1
+produces the file steps 2 and 3 depend on, so running step 2 first fails on a
+missing input rather than on anything being wrong with the package.
 
 HOW TO RUN ANYTHING
 -------------------
-Open a terminal in THIS folder -- the one containing `Data/` and `docs/` -- and run
-a script by name:
+Open a terminal in THIS folder -- the one holding `Data/`, `docs/` and
+`scripts/` -- and invoke a script by its path:
 
-    python update_map_data.py --vintage 2010
+    python scripts/update_map_data.py --vintage 2010
 
-The scripts are here at the top level. Their inputs are in `Data/`. Everything they
-write lands in `Data/out/`. Run them from THIS folder, not from inside `Data/`.
+The scripts are in `scripts/`. Their inputs are in `Data/`. Each script finds
+`Data/` from its own location rather than from your current folder, so it will
+run correctly from anywhere -- but every path it PRINTS is relative to this
+folder, so run them from here and the output reads as written.
 
-    pip install -r requirements.txt
+WHERE THE OUTPUTS LAND: TWO PLACES
+----------------------------------
+Three of the four outputs land in `Data/out/`. The territory overlay does not,
+and it is one of the files you upload:
 
-ORDER MATTERS THE FIRST TIME
-----------------------------
-`Data/out/` is empty on purpose. The tract geometry is the tract list that the
-other two builders read, so build it first:
+    Data/out/tract_geometry_pure-2010.json      step 1, the tract shapes
+    Data/service_territories.geojson            step 1, the territory overlay
+    Data/out/nyserda_dac_v1_0.json              step 2, the DAC indicators
+    Data/out/coned_operational_v1_0-2010.json   step 3, electric and gas
 
-    python update_map_data.py --vintage 2010          (guide 2)
-    python convert_nyserda_raw.py --version 1.0 \\
-        --geoid-vintage 2010 --raw-date 2023-03-27         (guide 1)
-    python build_coned_dataset.py --vintage 2010      (guide 3)
+The overlay sits beside `Data/out/`, not inside it, because it is not versioned
+per vintage the way the datasets are: one overlay serves both. Each run prints
+the full path of everything it writes, so the run's own output is the reference
+if you are unsure.
 
-Everything the scripts write lands in `Data/out/`. Nothing in this package
-contacts the dashboard: uploading is a separate, manual step, described in the
-guides.
+Nothing in this package contacts the dashboard. Uploading is a separate, manual
+step, described in the guides.
+
+NOTEBOOKS
+---------
+`notebooks/` holds one notebook per output family, for running this in Google
+Colab or Jupyter instead of a terminal. They orchestrate the same scripts with
+the same commands and reimplement nothing, so a notebook and a terminal produce
+byte-identical files. Each one states where it sits in the three steps above.
+
+    tract-shapes.ipynb              step 1
+    territory-overlays.ipynb        step 1, the same command
+    dac-indicators.ipynb            step 2
+    electric-and-gas-figures.ipynb  step 3
 
 NETWORK
 -------
@@ -265,7 +379,8 @@ guide 2.
 
 CONTENTS
 --------
-See MANIFEST.txt, which also lists which files are Con Edison internal data.
+See MANIFEST.txt, which lists every file with its full sha256, and which also
+flags which files are Con Edison internal data.
 """
 
 
@@ -288,6 +403,8 @@ def main():
     os.makedirs(os.path.join(stage, "Data", "out"), exist_ok=True)
     os.makedirs(os.path.join(stage, "Data", "Extra_info"), exist_ok=True)
     os.makedirs(os.path.join(stage, "docs"), exist_ok=True)
+    os.makedirs(os.path.join(stage, "scripts"), exist_ok=True)
+    os.makedirs(os.path.join(stage, "notebooks"), exist_ok=True)
 
     manifest, missing, client = [], [], []
 
@@ -314,14 +431,38 @@ def main():
                  "shapefile part (all four are required)")
     for g in GUIDES:
         take(os.path.join(DOCS, g), "docs/" + g, False, "operator guide")
+    for n in NOTEBOOKS:
+        take(os.path.join(NOTEBOOKS_SRC, n), "notebooks/" + n, False,
+             "Colab notebook, one per output family; orchestrates the scripts")
 
-    with open(os.path.join(stage, "requirements.txt"), "w", encoding="utf-8") as fh:
-        fh.write(REQUIREMENTS)
-    with open(os.path.join(stage, "README.txt"), "w", encoding="utf-8") as fh:
-        fh.write(README)
-    # Keep the empty output folder in the zip.
-    with open(os.path.join(stage, "Data", "out", ".keep"), "w", encoding="utf-8") as fh:
-        fh.write("Outputs land here. Empty on purpose -- see README.txt.\n")
+    # Files this script WRITES rather than copies. They are manifest rows too --
+    # audit finding F2 was that four of them were in the package and not in the
+    # list, so a completeness check reported unexplained extras.
+    def emit(dst_rel, text, note):
+        dst = os.path.join(stage, dst_rel)
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        with open(dst, "w", encoding="utf-8") as fh:
+            fh.write(text)
+        manifest.append((dst_rel, os.path.getsize(dst), sha256(dst), note))
+
+    emit("scripts/requirements.txt", REQUIREMENTS,
+         "pip requirements for all three guides")
+    emit("docs/" + DOCS_PLACEHOLDER_NAME, DOCS_PLACEHOLDER,
+         "placeholder: the four per-family Word guides are a later phase")
+    emit("Data/out/.keep",
+         "Outputs land here. Empty on purpose -- see README.txt.\n",
+         "keeps the empty output folder in the zip")
+
+    # README carries the longest path in the package as a number, and a number in
+    # prose is a number that drifts (audit finding F9 was exactly that). Measure
+    # it and inject it, so the claim cannot be wrong.
+    #
+    # 116 characters in v1: the longest RELATIVE path, plus the top-level folder
+    # name the zip unpacks into, which is what an operator's path budget actually
+    # spends. Computed the same way here.
+    longest_rel = max(len(r[0]) for r in manifest)
+    longest = longest_rel + len(PKG_NAME) + 1
+    emit("README.txt", README % {"longest": longest}, "this file's own START HERE")
 
     lines = ["Con Edison DAC dashboard - data tools", "=" * 60, ""]
     if client:
@@ -333,10 +474,27 @@ def main():
                   "Con Edison. Do not forward this package outside Con Edison.", ""]
         lines += ["  " + c for c in client]
         lines += [""]
+    # ALL FILES means all files, and sha256 means sha256 (audit findings F2, F3).
+    #
+    # v1 printed digest[:16] under a column headed `sha256`, so an operator
+    # checking against sha256sum output saw no match until they noticed it was a
+    # prefix. Full 64-character digests now, which is why the layout below puts
+    # the digest on its own line rather than fighting for width with the path --
+    # the longest path here is 85 characters and 85 + 10 + 64 does not fit in a
+    # readable line.
     lines += ["ALL FILES", "-" * 60,
-              "%-72s %10s  %s" % ("path", "bytes", "sha256")]
+              "Every file in this package. The digest is the FULL sha256, so",
+              "`sha256sum <path>` output can be compared to it directly.",
+              ""]
     for dst_rel, size, digest, note in sorted(manifest):
-        lines.append("%-72s %10d  %s" % (dst_rel, size, digest[:16]))
+        lines.append("%-72s %10d" % (dst_rel, size))
+        lines.append("    sha256  %s" % digest)
+    # MANIFEST.txt itself is listed, and its digest is NOT -- a file cannot
+    # contain its own sha256. Saying so explicitly is the honest version of F2:
+    # the row exists, so a completeness check finds nothing unexplained, and the
+    # one field that cannot be filled says why instead of being left blank.
+    lines.append("%-72s %10s" % ("MANIFEST.txt", "(this file)"))
+    lines.append("    sha256  not listed: a file cannot contain its own digest")
     lines += ["", "NOTES", "-" * 60]
     for dst_rel, size, digest, note in sorted(manifest):
         if note not in ("script", "operator guide"):
@@ -351,6 +509,27 @@ def main():
     for root, _dirs, files in os.walk(stage):
         for f in files:
             staged.append(os.path.relpath(os.path.join(root, f), stage).replace("\\", "/"))
+    # F2, asserted rather than intended. The manifest claims to list every file,
+    # so prove it against the staged tree instead of trusting that every writer
+    # above remembered to append a row. MANIFEST.txt is the one file not in
+    # `manifest` -- it is listed in the text with its digest explained away.
+    listed = {r[0] for r in manifest} | {"MANIFEST.txt"}
+    unlisted = sorted(set(staged) - listed)
+    phantom = sorted(listed - set(staged))
+    if unlisted or phantom:
+        sys.exit("REFUSED: MANIFEST does not match the package.\n"
+                 "  in the package, not in MANIFEST: %s\n"
+                 "  in MANIFEST, not in the package: %s"
+                 % (", ".join(unlisted) or "(none)",
+                    ", ".join(phantom) or "(none)"))
+
+    # The README states the longest path as a number. Prove the number against
+    # the tree it describes, including the files written after it was computed.
+    real_longest = max(len(s) for s in staged) + len(PKG_NAME) + 1
+    if real_longest != longest:
+        sys.exit("REFUSED: README claims the longest path is %d characters; the "
+                 "package's longest is %d." % (longest, real_longest))
+
     leaked = [n for n in MUST_NOT_SHIP if any(s.endswith("/" + n) or s == n for s in staged)]
     if leaked:
         sys.exit("REFUSED: %d file(s) that must never ship are in the package: %s"
@@ -376,14 +555,14 @@ def main():
     # z.write() stamps each entry with the file's mtime, which breaks that twice
     # over:
     #
-    #   1. FOUR files are written fresh by this script -- MANIFEST.txt,
-    #      README.txt, requirements.txt and Data/out/.keep -- so their mtime is
-    #      "now". Two runs a minute apart differed by exactly 16 bytes: four
-    #      entries times two header copies times the two-byte DOS time field
-    #      (the date matched, being the same day). Content was identical, every
-    #      CRC equal.
+    #   1. FIVE files are written fresh by this script -- MANIFEST.txt,
+    #      README.txt, scripts/requirements.txt, Data/out/.keep and the docs
+    #      placeholder -- so their mtime is "now". Two runs a minute apart
+    #      differed by exactly 16 bytes when there were four of them: entries
+    #      times two header copies times the two-byte DOS time field (the date
+    #      matched, being the same day). Content was identical, every CRC equal.
     #
-    #   2. Worse and invisible on one machine: the other 31 entries carry the
+    #   2. Worse and invisible on one machine: the copied entries carry the
     #      WORKING COPY's mtimes, which in this checkout span June to August. A
     #      fresh git clone stamps checkout time on all of them, so the same
     #      commit packaged elsewhere produces a completely different zip.

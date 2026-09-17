@@ -48,6 +48,13 @@ acceptance test (dataset-driven render == payload-driven render) meaningful.
 
 Usage
 -----
+NOT AN OPERATOR ENTRY POINT. This script ships in the Con Edison handoff package
+because convert_nyserda_raw.py IMPORTS it for the manifest builder and the
+indicator-catalogue loader, not because anything asks you to run it. If you are
+following a guide, the command you want is in the guide. The invocations below
+are repository tooling, and their `Data/` prefix is the repository's; in the
+package these scripts live in scripts/.
+
   python Data/build_tract_dataset.py [--decimals 6]
       --> writes Data/out/nyserda_dac_v1_0.json  and prints the record fields
           to paste into Dataverse (TractCount / FieldCount / KeyChecksum / ...)
@@ -101,11 +108,26 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-# Layout-agnostic paths. In the repository this script lives in Data/; in the Con
-# Edison handoff package it sits at the package root with Data/ beside it. DATA is
-# the same folder in both layouts, so one copy of the script serves both and the
-# clean-room proof exercises the very file the repository holds.
-DATA = HERE if os.path.basename(HERE) == "Data" else os.path.join(HERE, "Data")
+# Layout-agnostic paths. THREE layouts resolve to the same Data/ folder, and one
+# copy of the script serves all three, so the clean-room proof exercises the very
+# file the repository holds:
+#
+#   repository          this script lives IN Data/
+#   handoff package     this script lives in scripts/, with Data/ one level up
+#   handoff package v1  this script sat at the package root, with Data/ under it
+#
+# Order matters. HERE/Data is tested before ../Data so that a root-layout copy
+# cannot be captured by an unrelated Data/ folder beside the package.
+if os.path.basename(HERE) == "Data":
+    DATA = HERE
+elif os.path.isdir(os.path.join(HERE, "Data")):
+    DATA = os.path.join(HERE, "Data")
+elif os.path.isdir(os.path.join(os.path.dirname(HERE), "Data")):
+    DATA = os.path.join(os.path.dirname(HERE), "Data")
+else:
+    # Nothing found. Name the layout-local path, so the error an operator sees
+    # points at where Data/ was expected rather than at a resolved absolute.
+    DATA = os.path.join(HERE, "Data")
 ROOT = os.path.dirname(DATA)
 APP_JS = os.path.join(ROOT, "app.js")
 MAP_PATH = os.path.join(ROOT, "map_payload.json")

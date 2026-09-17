@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3 &middot; Electric and gas figures &mdash; from the Con Edison extracts to the dashboard</title>
+<title>3 &middot; Electric and gas figures -- from the Con Edison extracts to the dashboard</title>
 <style>
   :root {
     --bg:#fff; --bg-2:#f7f6f2; --bg-3:#f1efe8;
@@ -104,7 +104,7 @@
 </section>
 
 <section>
-  <h2>Step 1 &mdash; Put the extracts in place</h2>
+  <h2>Step 1 -- Put the extracts in place</h2>
 
   <p>Two files, saved with exactly these names:</p>
   <pre><code>Data/Electric.xlsx
@@ -125,7 +125,7 @@ Data/Gas.xlsx</code></pre>
   <div class="note info">
     <span class="t">Leave the filter description at the bottom alone</span>
     <p>Both extracts end with a row whose first cell is a description of the query
-    that produced them &mdash; <code>Applied filters: SVC_TYPE_CD is E / Year is
+    that produced them -- <code>Applied filters: SVC_TYPE_CD is E / Year is
     2025 / ...</code>. That is normal, and the converter drops it deliberately and
     tells you it did.</p>
     <p>You do not need to delete it, and deleting other rows to &ldquo;tidy up&rdquo;
@@ -134,7 +134,7 @@ Data/Gas.xlsx</code></pre>
 </section>
 
 <section>
-  <h2>Step 2 &mdash; Build the geometry first, if you have not</h2>
+  <h2>Step 2 -- Build the geometry first, if you have not</h2>
 
   <p>The converter takes its list of tracts from the tract geometry dataset for the
   vintage you are building. If that file is not there, it stops and says so.</p>
@@ -142,15 +142,15 @@ Data/Gas.xlsx</code></pre>
   <pre><code>REFUSED: no geometry dataset at Data/out/tract_geometry_pure-2010.json.
   The tract universe comes from the geometry that is drawn, not from
   map_payload.json, so this dataset does not depend on the file it
-  exists to replace. Build it with update_map_data.py --vintage 2010.</code></pre>
+  exists to replace. Build it with scripts/update_map_data.py --vintage 2010.</code></pre>
 
   <p>Guide 2 covers that command. If the geometry is already built, skip this step.</p>
 </section>
 
 <section>
-  <h2>Step 3 &mdash; Convert</h2>
+  <h2>Step 3 -- Convert</h2>
 
-  <pre><code>python build_coned_dataset.py --vintage 2010</code></pre>
+  <pre><code>python scripts/build_coned_dataset.py --vintage 2010</code></pre>
 
   <table>
     <tr><th>Option</th><th></th><th>What it does</th></tr>
@@ -207,7 +207,7 @@ CONED OPERATIONAL DATASET  v1.0-2010
   </ul>
 
   <div class="note warn">
-    <span class="t">Building for 2020 drops considerably more &mdash; and that is expected</span>
+    <span class="t">Building for 2020 drops considerably more -- and that is expected</span>
     <p>The 2020 tract universe is 2,183 tracts, and <strong>219 tract identifiers
     that carry electric data under 2010 numbering do not exist in 2020 at all.</strong>
     The 2020 build reports them as outside the universe.</p>
@@ -218,13 +218,13 @@ CONED OPERATIONAL DATASET  v1.0-2010
   <h3>Where the file lands</h3>
   <pre><code>Data/out/coned_operational_v1_0-2010.json     176,215 bytes
 Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
-  <p>The version label carries the vintage &mdash; <code>1.0-2010</code>,
-  <code>1.0-2020</code> &mdash; because the two cover different tract lists and are
+  <p>The version label carries the vintage -- <code>1.0-2010</code>,
+  <code>1.0-2020</code> -- because the two cover different tract lists and are
   not interchangeable.</p>
 </section>
 
 <section>
-  <h2>Step 4 &mdash; Upload</h2>
+  <h2>Step 4 -- Upload</h2>
 
   <ol class="steps">
     <li>Dashboard &rarr; <strong>Map Layers</strong> &rarr; <strong>Upload data
@@ -232,7 +232,7 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
     <li>The <strong>Validated</strong> panel shows the tract count and the per-field
     counts. Check them against what the converter printed.</li>
     <li>Read the <strong>Heads up</strong> block. One of its notes always appears and
-    is the important one &mdash; see the next section.</li>
+    is the important one -- see the next section.</li>
     <li>Press <strong>Upload version</strong>. It publishes immediately; there is no
     separate activation step.</li>
   </ol>
@@ -258,8 +258,8 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
   fields, so the order matters:</p>
 
   <div class="stack">
-    <div class="top">Manual corrections &mdash; applied last, so they win</div>
-    <div class="mid">Electric &amp; gas figures dataset &mdash; what the extracts say</div>
+    <div class="top">Manual corrections -- applied last, so they win</div>
+    <div class="mid">Electric &amp; gas figures dataset -- what the extracts say</div>
   </div>
 
   <p>In plain terms:</p>
@@ -272,7 +272,7 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
 
   <div class="note warn">
     <span class="t">Corrected adjustment values will show fewer decimal places. That is correct.</span>
-    <p>The dataset carries the adjustment figures at full precision &mdash; fourteen
+    <p>The dataset carries the adjustment figures at full precision -- fourteen
     or fifteen decimal places, exactly as the extract supplies them. The corrections
     store keeps <strong>four</strong>.</p>
     <p>So a corrected tract legitimately shows a shorter number than an uncorrected
@@ -283,7 +283,7 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
     <span class="t">Today, no tract has been corrected</span>
     <p>At the time of writing the corrections store holds a copy of the extract
     figures rather than any actual corrections. Until that changes, uploading this
-    dataset produces <strong>no visible change on the map</strong> &mdash; which is
+    dataset produces <strong>no visible change on the map</strong> -- which is
     expected, and was verified before release.</p>
     <p>What it does give you is a record of <em>where the figures came from</em>: a
     version, a source label, and a fingerprint of the two extracts. That did not
@@ -299,10 +299,10 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
     <tr><td>Con Edison sends new <code>Electric.xlsx</code> / <code>Gas.xlsx</code></td>
         <td><strong>Yes.</strong> This is the only trigger.</td></tr>
     <tr><td>eGIS sends new network shapefiles</td>
-        <td>No. Those change the boundaries and the tooltip network names &mdash;
-        guide 2 &mdash; not the account figures.</td></tr>
+        <td>No. Those change the boundaries and the tooltip network names --
+        guide 2 -- not the account figures.</td></tr>
     <tr><td>A new NYSERDA release</td>
-        <td>No. Different data entirely &mdash; guide 1.</td></tr>
+        <td>No. Different data entirely -- guide 1.</td></tr>
     <tr><td>You publish geometry for a vintage you had not used before</td>
         <td>Yes, build these figures for that vintage too, or tracts will show no
         electric or gas values.</td></tr>
@@ -313,7 +313,7 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
     <p>This dataset records a fingerprint of <code>Electric.xlsx</code> and
     <code>Gas.xlsx</code>. The geometry and territory files record a fingerprint of
     the <em>shapefiles</em>. They answer different questions and are never compared
-    to each other &mdash; the file says which is which, so nothing can confuse them.</p>
+    to each other -- the file says which is which, so nothing can confuse them.</p>
   </div>
 </section>
 
@@ -323,7 +323,7 @@ Data/out/coned_operational_v1_0-2020.json     164,933 bytes</code></pre>
   <table>
     <tr><th>Message</th><th>What to do</th></tr>
     <tr><td><code>REFUSED: no geometry dataset at &hellip;</code></td>
-        <td>Build the geometry for that vintage first &mdash; guide 2.</td></tr>
+        <td>Build the geometry for that vintage first -- guide 2.</td></tr>
     <tr><td><code>REFUSED: &hellip; already exists. Pass --force to overwrite it.</code></td>
         <td>The output is already there. Re-run with <code>--force</code> if you
         meant to replace it.</td></tr>

@@ -1,0 +1,9 @@
+# These notebooks are packaged verbatim into the handoff zip, and that zip's
+# sha256 is quoted as its identity.
+#
+# make_operator_notebooks.py writes them with LF. Left to its default, git would
+# check them out as CRLF on Windows, the packager would zip those bytes, and the
+# package would hash differently on a fresh clone than it does here -- the same
+# class of defect the packager's own ZIP_EPOCH comment exists to prevent, arriving
+# by a different route. -text stops git touching the bytes.
+*.ipynb -text
