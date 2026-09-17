@@ -1,0 +1,33 @@
+======================================================================
+CLCPA-271 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS in the renderer: the total loses its currency
+       7 red, incl: A1 the computed total renders $1,110,000 -- got "1,110,000"
+  --   THE FORMATTER IS CALLED WITH THE ROW, not the column  -- not applicable, skipped by design
+  red  MONEY IS FORCED ON, so a count column grows a $
+       3 red, incl: B1 a NON-currency numeric total keeps separators and takes no $ -- got "$4,321"
+  red  MONEY IS FORCED OFF, which is the original defect by another route
+       7 red, incl: A1 the computed total renders $1,110,000 -- got "1,110,000"
+  red  THE NULL GLYPH is replaced by an empty string
+       1 red, incl: B3 an empty computed cell still renders the null glyph, unchanged
+  red  SURFACE 2 REVERTS: the in-place refresh drops the formatter
+       2 red, incl: E3b the in-place refresh uses the same formatter (the second surface)
+  red  SURFACE 2 stops deriving its columns from the schema
+       1 red, incl: E3c and it derives the money columns from the SCHEMA, as the renderer does
+  red  THE READ-ONLY BRANCH is left on the old formatting
+       3 red, incl: C1 a read-only money cell formats too -- got "1110000"
+  red  A LITERAL $ is written into the render instead of deriving it
+       5 red, incl: B1 a NON-currency numeric total keeps separators and takes no $ -- got "$4,321"
+  red  THE TABLE IS HARDCODED: E1 named in the render line
+       3 red, incl: B1 a NON-currency numeric total keeps separators and takes no $ -- got "$4,321"
+  red  SOMETHING ELSE MOVED: the shared formatter is "helped"
+       3 red, incl: B1 a NON-currency numeric total keeps separators and takes no $ -- got "$4,321"
+  red  SOMETHING ELSE MOVED: the currency detector is widened
+       3 red, incl: D3 and the known label-column false positives are still exactly 3 (E1 x3), not a number that grew quietly -
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       2 red, incl: X1 BASE is pinned to a literal commit sha, not a symbolic ref -- got "HEAD"
+  red  HARNESS: the renderer is re-implemented instead of sliced
+       8 red, incl: A1 the computed total renders $1,110,000 -- got "$1110000"
+
+  13 caught, 0 not caught, of 13 applied
+  clean re-run against byte-restored source: PASSES -- 34 passed, 0 failed
