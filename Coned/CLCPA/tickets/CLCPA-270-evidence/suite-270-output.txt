@@ -1,0 +1,82 @@
+======================================================================
+CLCPA-270 -- one locking model, keyed on the row's structural role
+  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : ca4c90a (predates this change)
+======================================================================
+
+A. THE ROLE COMES FROM THE LABEL
+  ok   A0 the function under test is the one sliced from app.js
+  ok   A1 "Total" in a flat table is a total
+  ok   A2 "Grand Total" too
+  ok   A3 "County Total" is a total -- the anchored form, which the strict one misses
+  ok   A4 a hierarchical group total is a total
+  ok   A5 including one that carries the word in the MIDDLE, inside the declared family
+  ok   A6 a percentage OF A TOTAL is computed, not a total
+  ok   A7 and the same rule reaches F7
+  ok   A8 an ordinary row is data
+  ok   A9 a structural header wins over everything
+  ok   A10 a group header carrying the word "total" is a HEADER, not a total
+  ok   A10b and a header whose caption reads like a computed share is still a HEADER
+  ok   A11 J1's "Total amount of residential electric usage (kWh)" is DATA
+  ok   A12 and J2's equivalent
+  ok   A13.1 "Percentage of projects in DACs" stays DATA
+  ok   A13.2 "Percentage MW installed in DACs" stays DATA
+  ok   A13.3 "Percentage of subscribers in DACs" stays DATA
+
+B. ONE ROLE DECIDES ALL THREE PROTECTIONS
+  ok   B1 exactly four roles are declared: computed,data,header,total
+  ok   B2 header is closed on all three
+  ok   B2 total is closed on all three
+  ok   B2 computed is closed on all three
+  ok   B3 data is open on all three
+  ok   B4 header is not half-open -- [false,false,false]
+  ok   B4 total is not half-open -- [false,false,false]
+  ok   B4 computed is not half-open -- [false,false,false]
+  ok   B4 data is not half-open -- [true,true,true]
+  ok   B5 a total the engine DERIVES is locked in full -- L- V- D-
+  ok   B5b a total the engine does NOT derive keeps typeable values -- L- V+ D-
+  ok   B5c a COMPUTED share row is unaffected: derivable by construction -- L- V- D-
+  ok   B5d a header row is unaffected -- L- V- D-
+  ok   B5e a data row is unaffected either way
+  ok   B5f and the amendment moves the VALUE bit alone -- label and delete are identical on both sides
+  ok   B5g and asking for the open shape did not mutate the declared table
+
+C. THE SAME ROW, THE SAME PROTECTION, WHATEVER ITS FIGURES
+  ok   C1 ingestRowRole takes exactly three arguments -- label, table, header (3)
+  ok   C2 and its body consults NO arithmetic
+  ok   C3 nor any cell value by index
+
+D. THE RENDERED GRID
+  ok   D1 the renderer derives one role per row
+  ok   D2 and reads its protections from the one accessor, asking the derive engine about THIS row
+  ok   D2a the role table is no longer read directly by the renderer
+  ok   D2b the renderer keeps a separate "is this a total row" question
+  ok   D2c and the row class follows THAT, not the value lock
+  ok   D2d as does the total-only derived-column gate
+  ok   D3 the label lock is the role's
+  ok   D4 the value lock is the role's
+  ok   D5 the delete button is the role's
+  ok   D6 on BASE the label lock was gated on ARITHMETIC and on the family
+  ok   D7 and that gate is gone
+  ok   D8 on BASE the delete button re-derived its own three-way test
+  ok   D9 the "auto-calculated" footer note follows the role too
+  ok   D10 where BASE asked the arithmetic flags
+
+E. STYLE OF CHANGE
+     added code lines: 100
+  ok   E1 no added code line names a table id
+  ok   E2 nor a row label
+  ok   E3 totalRowFlags survives -- it is the derive engine's, not protection's
+  ok   E4 and recomputeTotals still runs on edit
+  ok   E5 nothing writes a schema
+  ok   E6 a save still writes rows only
+  ok   E7 the role reuses the shipped classifiers rather than a fourth regex
+
+X. THE HARNESS
+  ok   X1 BASE is pinned to a literal commit sha -- got ca4c90a
+  ok   X2 and that baseline really predates this ticket
+  ok   X3 the payload the role was measured against is present (52 tables)
+
+======================================================================
+  60 passed, 0 failed
+======================================================================
