@@ -20,12 +20,28 @@ const fs = require('fs');
 const { execFileSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
-const APP = process.env.DAC_APP_OVERRIDE || (REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js');
 const PAYLOAD = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/payload.json';
 const BASE = process.env.DAC_BASE_COMMIT || '6ee833b';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 4016675 instead of the working tree --
+ * this ticket's OWN commit. A blast-radius claim ("nothing else moved")
+ * can only be true at the commit that made the change, never on a tip that
+ * also carries the four tickets merged after it.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '4016675';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
 
-const SRC = fs.readFileSync(APP, 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execFileSync('git', ['show', NEWREV + ':' + REL],
+      { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 }).replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(PAYLOAD, 'utf8'));
 const baseSrc = execFileSync('git', ['show', BASE + ':' + REL],
   { cwd: REPO, encoding: 'utf8', maxBuffer: 1 << 28 }).replace(/\r?\n/g, '\r\n');

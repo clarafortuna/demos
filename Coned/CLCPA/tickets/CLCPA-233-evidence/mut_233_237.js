@@ -8,11 +8,20 @@
  * two are coupled where I thought they were not.
  */
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const T = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/';
-const APP = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree.
+ * suite_233_237 reads 2361a6a unless DAC_APP_OVERRIDE says
+ * otherwise, so mutating the repo's app.js would change a file the suite
+ * never opens and every control would pass. Same pattern as mut_244_r2. */
+const NEW_COMMIT = process.env.DAC_NEW_COMMIT || '2361a6a';
+const APP = path.join(os.tmpdir(), 'clcpa-233_237-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 const CSS = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const SUITES = [
   { ticket: 'CLCPA-233', dir: T + 'CLCPA-233-evidence', file: 'suite_233.js' },

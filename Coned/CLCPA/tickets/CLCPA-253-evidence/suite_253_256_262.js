@@ -44,12 +44,28 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-253-evidence/suite-253-256-262-output.txt');
 
 const BASE = process.env.DAC_BASE_COMMIT || '794eecf';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
 
-const SRC = fs.readFileSync(APP, 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(
@@ -449,44 +465,6 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grab(n, SRC) !== grab(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
-
-    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
-
-    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
-
-    getTableSchema: 'CLCPA-267: its fallback shifts the donor year',
-
-    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
-
-    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
-
-    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
-
-    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
-
-    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
-
-    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
-
-    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
-
-    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
-
-    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
-
-    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
-
-    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
-
-    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
-
-    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
-
-    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
-
-    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
-
-    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     ingestComputed: 'CLCPA-253: the marker is column-aware',
     openSaveModal: 'CLCPA-256: the change count normalises empty',
     openAddYearDialog: 'CLCPA-262: a rejection keeps the dialog',

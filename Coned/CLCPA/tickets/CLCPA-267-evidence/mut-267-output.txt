@@ -28,7 +28,7 @@ CLCPA-267 -- mutation controls
   red  THE SCHEMA STARTS BEING WRITTEN BACK to Dataverse
        2 red, incl: F6 nothing in app.js WRITES cr2bf_schema -- the shift cannot reach storage
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X1 BASE is pinned to a literal commit sha -- got "HEAD"
+       5 red, incl: X1 BASE is pinned to a literal commit sha -- got "HEAD"
   red  HARNESS: the shift is re-implemented instead of sliced
        1 red, incl: D0 the function under test is the one sliced from app.js
 

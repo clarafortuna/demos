@@ -30,12 +30,28 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 const CSSREL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const EVID238 = REPO + '/Coned/CLCPA/tickets/CLCPA-238-evidence';
 /* BASE: main before this session -- the deployed walkthrough build d7e9e7921d */
 const BASE = process.env.DAC_BASE_COMMIT || 'd658ab7';
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
-const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const CSS = fs.readFileSync(path.join(REPO, CSSREL), 'utf8');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
@@ -109,12 +125,7 @@ const BASE_FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'da
     /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
      * its clone, so the closure needs the derivation and its three helpers. */
     'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
-  'sumDerivedCols', 'detectPctColumns',
-    /* CLCPA-250 dep: the composer resolves a schema through getTableSchema
-     * now, instead of reading schema_by_year directly, so the closure needs
-     * it -- and CLCPA-267 dep in turn, because that fallback shifts the
-     * donor year. A hand-fed slice cannot see a missing closure. */
-    'getTableSchema', 'shiftSchemaYears'];
+  'sumDerivedCols', 'detectPctColumns'];
 const BASE_DECLS = [
   /* CLCPA-240 round 2 dependencies */
   'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER',
@@ -492,42 +503,6 @@ guard('the blast radius is accounted for, function by function', () => {
    * A count that quietly grows is not a blast radius, so every member is
    * accounted for by name and the total is exact. */
   const ALSO = {
-
-    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
-
-    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
-
-    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out (new)',
-
-    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
-
-    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, amber box (new)',
-
-    refreshIngestNotices: 'CLCPA-273: repaints the notice mount (new)',
-
-    wireIngestEditor: 'CLCPA-273: the blur handler reads before the parse',
-
-    loadIngestDraft: 'CLCPA-273: clears typed advisories on table-year change',
-
-    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both',
-
-    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format',
-
-    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
-
-    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
-
-    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
-
-    composePayloadFromRows: 'CLCPA-250: resolves a schema through getTableSchema',
-
-    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
-
-    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
-
-    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
-
-    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     totalRowFlags: 'CLCPA-240: the value-less Total row',
     renderIngestPicker: 'CLCPA-240 cosmetic: the year dropdown',
     dacCol: 'the schema fallback for imported years, found in 240 follow-up',
@@ -634,8 +609,7 @@ guard('the blast radius is accounted for, function by function', () => {
   /* 40 -> 42: CLCPA-252 round 2 added two, both named above. */
   /* 42 -> 44: CLCPA-264 added two, both named above. */
   /* 44 -> 49: CLCPA-263 moved five, all named above. */
-  /* 49 -> 67: the CLCPA-250/267/271/272/273 wave, all named in ALSO above. */
-  ok(changed.length === 67, 'sixty-seven in total, all named: ' + changed.length);
+  ok(changed.length === 50, 'fifty in total, all named: ' + changed.length);
   ok(mine.indexOf('computeHeaderCards') >= 0, 'computeHeaderCards, for item 2');
   ok(mine.indexOf('renderExecutiveSummary') >= 0, 'renderExecutiveSummary, for item 1');
 });

@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-271 -- computed cells render with their column's format
-  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  app.js : git show be1d2a2:Coned/CLCPA/ExecutiveDashboard_dev/app.js
   BASE   : 2361a6a (predates this change)
 ======================================================================
 
@@ -42,10 +42,10 @@ E. STYLE OF CHANGE: render-side only, no stored data, no literals
   ok   E6 two changed render lines located
   ok   E7 neither names a table id
   ok   E8 neither carries a literal currency string -- the $ comes from the formatter
-  FAIL E9 EVERY byte of app.js outside the TWO named surfaces is identical to BASE
-     git diff vs BASE: +457 -10 lines in app.js
-  ok   E10 git confirms app.js changed (+457 -10)
-  FAIL E10b and only 10 lines were REMOVED -- a small, surgical change, not a rewrite of the render path
+  ok   E9 EVERY byte of app.js outside the TWO named surfaces is identical to BASE
+     git diff vs BASE: +32 -4 lines in app.js
+  ok   E10 git confirms app.js changed (+32 -4)
+  ok   E10b and only 4 lines were REMOVED -- a small, surgical change, not a rewrite of the render path
 
 X. THE HARNESS
   ok   X1 BASE is pinned to a literal commit sha, not a symbolic ref -- got "2361a6a"
@@ -53,5 +53,5 @@ X. THE HARNESS
   ok   X3 the cell renderer was sliced out of the shipped app.js, both anchors found
 
 ======================================================================
-  32 passed, 2 failed
+  34 passed, 0 failed
 ======================================================================

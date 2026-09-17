@@ -75,7 +75,8 @@ CLCPA-234 -- Add Data: one dialog, two cases
   ok   a result is set
   ok   and it is a clean plan: 44 values, 0 rows added
   ok   the draft holds rows: 23
-  FAIL the shared invariant THREW instead of failing: renderReconcileNotice is not defined
+  ok   AFTER THE REDRAW the draft survives: 23 rows
+  ok   and the panel renders: the CLCPA-235 invariant holds on the new path too
 
 === the flag that would have lied ===
   ok   the redraw flag is named for what it does
@@ -88,9 +89,21 @@ CLCPA-234 -- Add Data: one dialog, two cases
   ok   creating one row: ["A Brand New Program"]
   ok   with one unmatched column: Not A Column
   ok   and blanks skipped: 3
-  FAIL the slim success panel THREW instead of failing: renderReconcileNotice is not defined
+  ok   line one is the cell count: Imported into the draft: 5 cells
+  ok   line two is the review-and-save reminder, verbatim
+  ok   the row it CREATED is not enumerated, though the plan knows about it
+  ok   not even by name
+  ok   there is no not-touched section
+  ok   the unmatched column is not listed
+  ok   nor the blanks
+  ok   one heading and one paragraph, nothing more: 1 + 1
+  ok   the result object still carries every category: only the RENDER dropped them
   ok   the fixture is rejected
-  FAIL the addendum: a REJECTION keeps full detail THREW instead of failing: renderTypedUnitNotice is not defined
+  ok   the panel says nothing was imported
+  ok   and that the draft is untouched
+  ok   NAMING THE REASON, which is the CLCPA-85 law and is untouched here
+  ok   as a list, one entry per rejection: 1
+  ok   a rejection panel is LONG where a success panel is two lines: 292 chars
 
 === THE FIRST DRAW, where the predicate was wrong ===
   ok   the year accessors are found as one block
@@ -111,5 +124,5 @@ CLCPA-234 -- Add Data: one dialog, two cases
   ok   and typedYear still has NO fallback, for validation
 
 ======================================================================
-  85 passed, 3 failed
+  101 passed, 0 failed
 ======================================================================

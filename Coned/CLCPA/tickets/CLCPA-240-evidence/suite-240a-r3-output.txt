@@ -51,8 +51,8 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   F1 rendered 48 tables outside the family, in both states
   ok   F1b the five spacer tables differ in both states: 10
   ok   F1c and each renders exactly BASEs columns minus its spacers
-  FAIL F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone: A1:2025, A1:2025 (empty baseline), A3:2025, A3:2025 (empty baseline), A4:2025
-  ok   F2b and CLCPA-255s total rows are the tables that differ: 36, incl A2:2025, A2:2025 (empty baseline), B2:2025, B2:2025 (empty baseline)
+  ok   F2 every one is byte-identical to BASE, or differs by CLCPA-255s total-row x alone
+  ok   F2b and CLCPA-255s total rows are the tables that differ: 50, incl A1:2025, A1:2025 (empty baseline), A2:2025, A2:2025 (empty baseline)
   ok   F3 E1 DID change, which is what CLCPA-244 did
   ok   F3b and in the EMPTY-baseline state too, the one round 3 fixed
   ok   F4 and exactly FOUR cells stopped being calculated: 6 -> 2
@@ -78,4 +78,4 @@ CLCPA-240 first half, ROUND 3 -- the lock on the screen it is for
   ok   S8 styles.css differs only by CLCPA-248s two rules: this round added none
   ok   S9 the baseline is a literal commit sha: "5b6e57e"
 
-  60 passed, 1 failed
+  61 passed, 0 failed

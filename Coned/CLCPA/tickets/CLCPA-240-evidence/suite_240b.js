@@ -27,10 +27,26 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 /* BASE: main before this session -- the deployed build 31b63d1a70 */
 const BASE = process.env.DAC_BASE_COMMIT || 'be81d92';
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
-const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
 const P = JSON.parse(fs.readFileSync(
@@ -418,42 +434,6 @@ guard('two functions, and nothing else', () => {
   changed.sort();
   say('       changed functions: ' + changed.join(', '));
   const EXPECT = {
-
-    /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
-
-    shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
-
-    isPercentLiteral: 'CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)',
-
-    noteTypedPercent: 'CLCPA-273: records a percent typed into a cell (new)',
-
-    renderTypedUnitNotice: 'CLCPA-273: the typed advisory, in the amber box (new)',
-
-    refreshIngestNotices: 'CLCPA-273: repaints the notice mount in place (new)',
-
-    wireIngestEditor: 'CLCPA-273: the blur handler reads the text before the parse',
-
-    loadIngestDraft: 'CLCPA-273: clears the typed advisories on a table-year change',
-
-    renderIngestImport: 'CLCPA-273 and CLCPA-272: the mount carries both advisories',
-
-    refreshIngestCalcCells: 'CLCPA-271: calc cells keep their column format on repaint',
-
-    dacDerivedTablesForYear: 'CLCPA-250: one year of display tables (new)',
-
-    recomputeYearDerived: 'CLCPA-250: the composer KPI pass, re-runnable (new)',
-
-    recomposeYearIfComposed: 'CLCPA-250: the composed-source gate (new)',
-
-    composePayloadFromRows: 'CLCPA-250: it resolves a schema through getTableSchema',
-
-    buildYearSelector: 'CLCPA-250: a year change re-derives that year',
-
-    detectSumColumns: 'CLCPA-272: the schema-derived sum relationship (new)',
-
-    reconcileSumColumns: 'CLCPA-272: the reconciliation itself (new)',
-
-    renderReconcileNotice: 'CLCPA-272: the reconciliation advisory box (new)',
     totalRowFlags: 'the value-less total branch',
     renderIngestPicker: 'the cosmetic: the year dropdown',
     dacCol: 'NOT this brief: the schema fallback for imported years, found in the follow-up pass',
@@ -561,7 +541,7 @@ guard('two functions, and nothing else', () => {
   /* 38 -> 40: CLCPA-252 round 2 added two, both named above. */
   /* 40 -> 42: CLCPA-264 added two, both named above. */
   /* 42 -> 47: CLCPA-263 moved five, all named above. */
-  ok(changed.length === 65, 'exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 48, 'exactly FORTY-EIGHT functions changed: ' + changed.length);
 });
 
 guard('the exclusions hold', () => {

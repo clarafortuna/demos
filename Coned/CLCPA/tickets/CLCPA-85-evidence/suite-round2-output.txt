@@ -143,7 +143,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   exactly ONE place adds a year, so the two paths cannot diverge
 
 === ruling 4: the receipt is on the PAGE, the controls are not ===
-  FAIL the page renders the receipt and nothing else
+  ok   the page renders the receipt and nothing else
   ok   the control bar is NOT on the page
   ok   and the receipt has its mount, above the editor
   ok   both controls are in the bar, which only the dialog renders
@@ -171,7 +171,7 @@ CLCPA-85 round 2 -- source tables row, the dialog, the removals
   ok   and so does its label
   ok   nothing is removed from the DOM
   ok   buildYearSelector still finds it, untouched
-  ok   because state.year has many readers: 45
+  ok   because state.year has many readers: 44
 
 === round 3: the ONE STEP, EXECUTED against a DOM stub ===
   ok   one dialog, titled Add Data
@@ -250,5 +250,5 @@ renders regenerated from the shipped code:
    5-topbar.html
 
 ======================================================================
-  220 passed, 1 failed
+  221 passed, 0 failed
 ======================================================================

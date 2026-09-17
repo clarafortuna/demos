@@ -32,7 +32,7 @@ CLCPA-272 -- mutation controls
   red  A CLEAN TABLE starts rendering an empty box
        1 red, incl: E9 and a clean table renders no box at all
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X1 BASE is pinned to a literal commit sha -- got "HEAD"
+       2 red, incl: X1 BASE is pinned to a literal commit sha -- got "HEAD"
   red  HARNESS: the reconcile is re-implemented instead of sliced
        1 red, incl: X3 the function under test is the one sliced from app.js
 

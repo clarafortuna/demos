@@ -7,12 +7,22 @@
  * Ends with a CLEAN re-run against byte-restored source and says so loudly.
  */
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-273-evidence';
-const APP = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree.
+ * suite_273 reads 6ee833b unless DAC_APP_OVERRIDE says
+ * otherwise, so mutating the repo's app.js would change a file the suite
+ * never opens and every control would pass. Same pattern as mut_244_r2. */
+const NEW_COMMIT = process.env.DAC_NEW_COMMIT || '6ee833b';
+const APP = path.join(os.tmpdir(), 'clcpa-273-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 const SUITE = DIR + '/suite_273.js';
 
 const M = [
@@ -125,7 +135,8 @@ M.forEach((m) => {
   applied++;
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_273.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_273.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -148,7 +159,8 @@ M.forEach((m) => {
 log('');
 log('  ' + caught + ' caught, ' + missed + ' not caught, of ' + applied + ' applied');
 let clean = '';
-try { clean = execFileSync('node', ['suite_273.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { clean = execFileSync('node', ['suite_273.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) { clean = (e.stdout || '') + (e.stderr || ''); }
 const tally = (clean.match(/(\d+) passed, (\d+) failed/) || []);
 log('  clean re-run against byte-restored source: ' +

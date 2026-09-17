@@ -7,11 +7,20 @@
  * invisible on an unscrolled page.
  */
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-242-evidence';
-const APP = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree.
+ * suite_242 reads 2361a6a unless DAC_APP_OVERRIDE says
+ * otherwise, so mutating the repo's app.js would change a file the suite
+ * never opens and every control would pass. Same pattern as mut_244_r2. */
+const NEW_COMMIT = process.env.DAC_NEW_COMMIT || '2361a6a';
+const APP = path.join(os.tmpdir(), 'clcpa-242-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 const SUITE = DIR + '/suite_242.js';
 
 const M = [
@@ -155,7 +164,8 @@ M.forEach((m) => {
   }
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_242.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_242.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -179,7 +189,8 @@ M.forEach((m) => {
 });
 
 let cleanOk = true;
-try { execFileSync('node', ['suite_242.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { execFileSync('node', ['suite_242.js'],
+    { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) {
   cleanOk = false;
   console.error('THE CLEAN RE-RUN FAILED.');

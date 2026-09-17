@@ -34,7 +34,7 @@ CLCPA-266 -- mutation controls
   red  A CLEAN IMPORT starts rendering empty notice boxes
        2 red, incl: L7 a clean import still renders exactly ONE box
   red  HARNESS: the baseline is repointed at a symbolic ref
-       7 red, incl: X5 BASE is a literal commit sha: HEAD
+       8 red, incl: X5 BASE is a literal commit sha: HEAD
   red  HARNESS: the style claims stop resolving and just grep the text
        9 red, incl: B3 info keeps the blue it always had
 

@@ -25,7 +25,7 @@ CLCPA-271 -- mutation controls
   red  SOMETHING ELSE MOVED: the currency detector is widened
        3 red, incl: D3 and the known label-column false positives are still exactly 3 (E1 x3), not a number that grew quietly -
   red  HARNESS: the baseline is repointed at a symbolic ref
-       2 red, incl: X1 BASE is pinned to a literal commit sha, not a symbolic ref -- got "HEAD"
+       10 red, incl: X1 BASE is pinned to a literal commit sha, not a symbolic ref -- got "HEAD"
   red  HARNESS: the renderer is re-implemented instead of sliced
        8 red, incl: A1 the computed total renders $1,110,000 -- got "$1110000"
 

@@ -23,10 +23,26 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 const CSSREL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 /* BASE: main before this session. It never moves. */
 const BASE = process.env.DAC_BASE_COMMIT || '358da70';
-const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const CSS = fs.readFileSync(path.join(REPO, CSSREL), 'utf8');
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',

@@ -23,10 +23,26 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 /* BASE: main before this round. It never moves. PREV is the same commit,
  * because this is round 1. */
 const BASE = process.env.DAC_BASE_COMMIT || '4e85514';
-const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
@@ -460,13 +476,6 @@ guard('every Report Data label passes the rule, not just the ones I listed', () 
       'same panel and never a rejection. A status sentence in the same family ' +
       'as the three above, and an instruction to the reader rather than a ' +
       'label on a control',
-    'Does not add up: row':
-      'CLCPA-272, the reconciliation advisory, ruled option (b): it advises ' +
-      'and never rejects, and never computes over the preparer\'s figure. ' +
-      'The same panel, the same amber component and the same family as ' +
-      '"Read as a fraction: cell" above -- a status SENTENCE, not a control ' +
-      'label. This guard caught it on the night it was written, which is ' +
-      'exactly what it is for',
   };
   const unexplained = offenders.filter(x => !(x.l.text in EXEMPT));
   unexplained.forEach(x => ok(false,

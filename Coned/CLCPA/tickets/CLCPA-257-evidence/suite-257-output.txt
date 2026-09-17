@@ -34,53 +34,34 @@ Section C group C -- CLCPA-257, dacCols schema fallback
   ok   N1b and BASE said 2, which is where the 2023 shape put it
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, composePayloadFromRows, compositeValueText, dacCol, dacDerivedTablesForYear, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, isPercentLiteral, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, compositeValueText, dacCol, declaredTableFromFilename, deriveTableCaption, deriveTableCaptionInfo, importIdentityNotice, isCompositeShareCol, isDeclaredSummable, openAddYearDialog, phantomSpacerCols, recomputeTotals, renderIngestEditor, renderIngestImportResult, rowsForDisplay, stagedBlock, stripCaptionYear, tableCaption, wire
   ok   X1 applyCompositeShares is accounted for (CLCPA-263: the derivation (new))
   ok   X1 bareNumber is accounted for (CLCPA-263: the bare-number test (new))
   ok   X1 buildIngestImport is accounted for (CLCPA-261, group E: it collects the fraction notices)
   ok   X1 buildIngestWorkbook is accounted for (CLCPA-260, group D)
-  ok   X1 buildYearSelector is accounted for (CLCPA-250: a year change re-derives that year)
-  ok   X1 composePayloadFromRows is accounted for (CLCPA-250: it resolves a schema through getTableSchema)
   ok   X1 compositeValueText is accounted for (CLCPA-263: the value formatting (new))
   ok   X1 dacCol is accounted for
-  ok   X1 dacDerivedTablesForYear is accounted for (CLCPA-250: one year of display tables (new))
   ok   X1 declaredTableFromFilename is accounted for (CLCPA-264: the filename extractor (new))
   ok   X1 deriveTableCaption is accounted for (CLCPA-252 round 2: the title derivation (new))
   ok   X1 deriveTableCaptionInfo is accounted for (CLCPA-252 round 2: the three strategies (new))
-  ok   X1 detectSumColumns is accounted for (CLCPA-272: the schema-derived sum relationship (new))
-  ok   X1 getTableSchema is accounted for (CLCPA-267: its fallback shifts the donor year)
   ok   X1 importIdentityNotice is accounted for (CLCPA-264: the import identity advisory (new))
   ok   X1 isCompositeShareCol is accounted for (CLCPA-263: the declaration predicate (new))
   ok   X1 isDeclaredSummable is accounted for (CLCPA-254, group E: the declared-summable column, new)
-  ok   X1 isPercentLiteral is accounted for (CLCPA-273: the percent predicate, lifted out of buildIngestImport (new))
-  ok   X1 loadIngestDraft is accounted for (CLCPA-273: clears the typed advisories on a table-year change)
-  ok   X1 noteTypedPercent is accounted for (CLCPA-273: records a percent typed into a cell (new))
   ok   X1 openAddYearDialog is accounted for (CLCPA-264: it attaches the advisory to the plan)
-  ok   X1 openSaveModal is accounted for (CLCPA-250 and CLCPA-272: a save re-derives, and the dialog advises)
   ok   X1 phantomSpacerCols is accounted for (CLCPA-260, group D)
-  ok   X1 recomposeYearIfComposed is accounted for (CLCPA-250: the composed-source gate (new))
   ok   X1 recomputeTotals is accounted for (CLCPA-254, group E: it consults that declaration)
-  ok   X1 recomputeYearDerived is accounted for (CLCPA-250: the composer KPI pass, re-runnable (new))
-  ok   X1 reconcileSumColumns is accounted for (CLCPA-272: the reconciliation itself (new))
-  ok   X1 refreshIngestCalcCells is accounted for (CLCPA-271: calc cells keep their column format on repaint)
-  ok   X1 refreshIngestNotices is accounted for (CLCPA-273: repaints the notice mount in place (new))
   ok   X1 renderIngestEditor is accounted for (CLCPA-260, group D; and CLCPA-255, group E)
-  ok   X1 renderIngestImport is accounted for (CLCPA-273 and CLCPA-272: the mount carries both advisories)
   ok   X1 renderIngestImportResult is accounted for (CLCPA-264: the result panel announces the advisory)
-  ok   X1 renderReconcileNotice is accounted for (CLCPA-272: the reconciliation advisory box (new))
-  ok   X1 renderTypedUnitNotice is accounted for (CLCPA-273: the typed advisory, in the amber box (new))
   ok   X1 rowsForDisplay is accounted for (CLCPA-263: it derives the value (pct) composites on its clone)
-  ok   X1 shiftSchemaYears is accounted for (CLCPA-267: the borrowed-schema year shift (new))
   ok   X1 stagedBlock is accounted for (CLCPA-264: nested in openAddYearDialog, it renders the advisory)
   ok   X1 stripCaptionYear is accounted for (CLCPA-252 round 3: the caption year strip (new))
   ok   X1 tableCaption is accounted for (CLCPA-252 round 2: it consults the derivation)
   ok   X1 wire is accounted for (CLCPA-264: nested in openAddYearDialog, it holds the call site)
-  ok   X1 wireIngestEditor is accounted for (CLCPA-273: the blur handler reads the text before the parse)
   ok   X1b exactly ONE function is THIS tickets, and it is dacCol: dacCol
-  FAIL X2 getTableSchema is byte-identical to BASE
+  ok   X2 getTableSchema is byte-identical to BASE
   ok   X2 dacCell is byte-identical to BASE
   ok   X2 renderSourceTables is byte-identical to BASE
   ok   X2 ingestComputed is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 3e47e89
   ok   X4 and an ancestor of HEAD, so this group stacks on Group B
-  71 passed, 1 failed
+  53 passed, 0 failed

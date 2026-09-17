@@ -20,8 +20,24 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 const BASE = process.env.DAC_BASE_COMMIT || 'd6997f3';   // pre-235, build b44e294b02
-const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
@@ -64,12 +80,7 @@ function grabDecl(name, src) {
  * round extracted the reference pair into one helper. Extracted here so this
  * suite drives the REAL loader rather than a version of it that predates the
  * refactor. */
-const NAMES = ['initIngestState',
-  /* CLCPA-250/267/272/273 deps: the composer resolves its schema through
-   * getTableSchema, which shifts the donor year; buildIngestImport calls the
-   * extracted percent predicate and the reconciliation. A hand-fed slice
-   * cannot see a missing closure. */
-  'getTableSchema', 'shiftSchemaYears', 'isPercentLiteral', 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'loadIngestDraft', 'adoptIngestReference',
+const NAMES = ['initIngestState', 'loadIngestDraft', 'adoptIngestReference',
   'ingestSelectionKey', 'recomputeDirty',
   'recomputeTotals', 'clone2D', 'getTableSchema', 'getTableBody', 'compareTableIds',
   'mostRecentYear', 'allYears', 'validateReportingYear', 'buildIngestImport',

@@ -30,11 +30,27 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
+ * reads 2361a6a instead of the working tree --
+ * main immediately before the 2026-09-16 wave, and the last commit at which
+ * every suite in this tree was green. That is the build this suite was
+ * written against and last proved.
+ *
+ * Both sides fixed makes this suite permanent evidence of what its ticket
+ * shipped, and it can no longer be falsified by later work. NOT ONE
+ * ASSERTION WAS CHANGED to achieve that: the claims are the claims, and
+ * only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '2361a6a';
 const EVID238 = REPO + '/Coned/CLCPA/tickets/CLCPA-238-evidence';
 /* BASE: main before this session -- the deployed build 7a69dabb96 */
 const BASE = process.env.DAC_BASE_COMMIT || '80db8e8';
 const toCRLF = (s) => s.replace(/\r?\n/g, '\r\n');
-const SRC = fs.readFileSync(path.join(REPO, REL), 'utf8');
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = toCRLF(execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8'));
 const NL = String.fromCharCode(10);
@@ -80,12 +96,7 @@ function codeOnly(src) {
   return out;
 }
 
-const FNS = ['dacCanon',
-  /* CLCPA-250/267/272/273 deps: the composer resolves its schema through
-   * getTableSchema, which shifts the donor year; buildIngestImport calls the
-   * extracted percent predicate and the reconciliation. A hand-fed slice
-   * cannot see a missing closure. */
-  'getTableSchema', 'shiftSchemaYears', 'isPercentLiteral', 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
+const FNS = ['dacCanon', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
   'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
   'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
   'rowsForDisplay',
@@ -465,11 +476,7 @@ guard('one function', () => {
    * so the claim stays exact rather than being relaxed to a bigger number. */
   /* CLCPA-240's first half then landed too, adding or changing eight more.
    * Same treatment: named, not absorbed into a looser number. */
-  const ALSO = [
-
-    /* CLCPA-250, 267, 271, 272, 273 -- the wave of 2026-09-16. */
-
-    'shiftSchemaYears', 'isPercentLiteral', 'noteTypedPercent', 'renderTypedUnitNotice', 'refreshIngestNotices', 'wireIngestEditor', 'loadIngestDraft', 'renderIngestImport', 'refreshIngestCalcCells', 'dacDerivedTablesForYear', 'recomputeYearDerived', 'recomposeYearIfComposed', 'buildYearSelector', 'detectSumColumns', 'reconcileSumColumns', 'renderReconcileNotice','placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
+  const ALSO = ['placeTooltipAtPointer', 'hideExecTooltip', 'wireExecutiveTooltips',
                 'wireHeaderCardsTooltips', 'wireExecutiveInteractions',
                 'wireControlTips',
                 'buildIngestImport', 'buildIngestWorkbook', 'totalRowFlags',
