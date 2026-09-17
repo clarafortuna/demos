@@ -1,0 +1,81 @@
+======================================================================
+CLCPA-272 -- a filed total is reconciled against its own parts
+  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : 6972a74 (predates this change)
+  stored table-years: 149
+======================================================================
+
+A. THE PROBE FROM THE TICKET: Westchester 1,500 against 666 + 777
+  ok   A1 exactly one row is flagged -- found 1
+  ok   A2 and it NAMES the row
+  ok   A3 reporting filed 1500 against a computed 1443
+  ok   A4 and names the column
+  ok   A5 and the parts it was reconciled against
+  ok   A6 the filed value is NOT overwritten -- 1500 still stands
+  ok   A7 and the function is pure: the rows are unchanged
+
+B. THE GATE: no stored table-year may be flagged
+     stored table-years checked: 149   rows flagged: 0
+  ok   B1 every stored table-year was reconciled (149)
+  ok   B2 NOT ONE stored row is flagged -- 0 flagged
+
+C. THE TRAPS THIS HAD TO SURVIVE
+  ok   C1 F4 has one sum relationship
+  ok   C2 and "Borough / County" (column 1, text) is NOT one of its parts
+  ok   C3 its parts are the two numeric columns
+  ok   C4 F6 has one sum relationship
+  ok   C5 with FOUR parts, including the two merged columns whose names live in the second header row -- got 4
+  ok   C6 (F6 really does carry header_levels 2)
+  ok   C7 (and its schema really does hold nulls at 3 and 5)
+  ok   C8 and Borough Hall reconciles on all four: 0 + 0 + 835 + 2044 = 2879
+  ok   C9 so F6 raises NOTHING -- the blank-heading rule would have raised 60 rows
+  ok   C10 the second header row has no numeric total, so it cannot be flagged
+  ok   C11 a row whose total cell holds text is not flagged -- it is unfilled, not wrong. Found 0
+
+D. EVERY SECTION WITH A PREPARER-ENTERED DERIVABLE COLUMN
+     B2:2025   Total Plugs = L2 Plugs + DCFC Plugs + Micromobility Power Cabinets
+     F2:2025   Grand Total = Network + Non-Network
+     F4:2025   Grand Total = Non- Excludable + Excludable
+     F5:2025   Grand Total = Non-Excludable + Excludable
+     F6:2025   Grand Total = NON-NETWORK + (col 3, 2nd header row) + NETWORK + (col 5, 2nd header row)
+     F7:2025   Total Customers Interrupted = DAC Customers Interrupted + Non-DAC Customers Interrupted
+     H1:2025   Grand Total = Non-DAC Repairs + DAC Repairs
+  ok   D1 SEVEN tables carry a preparer-entered derivable column -- found 7
+  ok   D2 and they are B2, F2, F4, F5, F6, F7, H1 -- got B2, F2, F4, F5, F6, F7, H1
+  ok   D3 H1 is one of seven, not a special case
+  ok   D4 and none of the seven is in DERIVED_COLS -- they are all still preparer-entered, which is what option (b) preserves
+
+E. ADVISORY ONLY
+  ok   E1 an import carrying a bad total still SUCCEEDS (ok=true)
+  ok   E2 with no rejections
+  ok   E3 and one reconciliation advisory -- found 1
+  ok   E4 the preparer's 1500 is what lands in the draft, not a computed 1443
+  ok   E5 it renders in the CLCPA-266 AMBER box
+  ok   E6 with a counted heading
+  ok   E7 naming the row
+  ok   E8 and both figures
+  ok   E9 and a clean table renders no box at all
+
+F. STYLE OF CHANGE
+     added code lines: 48
+  ok   F1 no added code line names a table id
+  ok   F2 no added code line names a borough
+  ok   F3 no added code line names a data column
+  ok   F4 the exclusions reuse the shipped percentage and average detectors
+  ok   F5 and column membership comes from the shipped numeric mask, read from the body
+  ok   F6 the tolerance is the totals engine's own, so the two cannot contradict each other about the same numbers
+  ok   F7a the reconcile body was located
+  ok   F7 it never assigns to the total cell
+  ok   F8 and never rejects
+  ok   F9 IMPORT reconciles the candidate
+  ok   F10 and SAVE reconciles the draft, in the confirm dialog
+
+X. THE HARNESS
+  ok   X1 BASE is pinned to a literal commit sha -- got "6972a74"
+  ok   X2 and that baseline really predates this ticket
+  ok   X3 the function under test is the one sliced from app.js
+  ok   X4 666 + 777 = 1443, as the ticket states
+
+======================================================================
+  48 passed, 0 failed
+======================================================================
