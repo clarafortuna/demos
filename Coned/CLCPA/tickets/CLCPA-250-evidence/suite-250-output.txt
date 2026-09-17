@@ -1,0 +1,83 @@
+======================================================================
+CLCPA-250 -- one year re-derived when its rows arrive
+  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : 4016675 (predates this change)
+  stored years in the payload: 2025, 2024, 2023
+======================================================================
+
+A. THE GAP: rows arrive after boot, figures do not follow
+  ok   A1 the leak_repairs KPI exists in the payload
+  ok   A2 and it has NO entry for the year whose rows just arrived -- the gap
+     entries written for 2097: 2
+  ok   A3 the recompute writes entries (2)
+  ok   A4 leak_repairs now HAS a 2097 entry -- no reload needed
+  ok   A5 with the total from the org's own rows -- got 7838376
+  ok   A6 and the DAC figure -- got 3919188
+  ok   A7 and a dac_pct, through the shipped kpiDacPct
+  ok   A8 and 2099 derives its OWN figures, 13302 / 2106 -- got 13302 / 2106
+
+B. THE NO-MOVEMENT GATE: re-deriving a composed year changes nothing
+     composed years re-derived: 3   changed: 0
+  ok   B1 every stored year was re-derived (3)
+  ok   B2 NOT ONE composed year's KPI or chart values moved
+  ok   B3 running it twice is the same as running it once
+  ok   B4 and every OTHER year is untouched by a recompute of 2097
+
+C. THE 244/257 PATTERN, THIRD AND LAST LIFE
+  ok   C1 on BASE the composer resolved a schema with NO fallback
+  ok   C2 that direct read is gone FROM THE COMPOSER
+  ok   C2b and the shadow comparator keeps its own symmetric read, untouched
+  ok   C3 and the composer now resolves it through getTableSchema, as the editor does
+  ok   C4 a schema-less year resolves to the borrowed 4-column shape, not null
+  ok   C5 with Grand Total at 3 and DAC Repairs at 2
+  ok   C6 and H1's rows survive the display view unchanged (it has no derived columns)
+
+D. THE REFUTED MECHANISMS (measured against the org's own rows)
+  ok   D1 on a SCHEMA-LESS year the KPI computes -- the missing schema is not the cause
+  ok   D2 the same for 2099
+  ok   D3 H1's stored schemas agree on every column but the label -- so oldest-vs-newest donor cannot move this KPI
+  ok   D4 and they differ ONLY in column 0 ("Area" vs "Borough / County")
+  ok   D5 2097 holds a row matching /^Grand Total$/i exactly
+  ok   D6 2097 total row is numeric in every value cell
+  ok   D5 2099 holds a row matching /^Grand Total$/i exactly
+  ok   D6 2099 total row is numeric in every value cell
+
+E. WHERE IT IS TRIGGERED
+  ok   E1 the gate is declared once and called twice (save + year change) -- found 3 occurrences
+  ok   E1b and the ungated engine is declared once and called once, by the gate -- found 2
+  ok   E2 a SAVE re-derives the year it just wrote
+  ok   E3 and changing the reporting year re-derives the year selected
+  ok   E4 neither trigger existed on BASE
+
+F. STYLE OF CHANGE
+     added code lines: 38
+  ok   F1 no added code line names a table id
+  ok   F2 no added code line names a year
+  ok   F3 no added code line names a KPI or a column
+  ok   F4 the recompute writes nothing to storage
+  ok   F5 and still nothing writes cr2bf_schema
+  ok   F6a the recompute body was located for scoping
+  ok   F6 "has a usable value" (CLCPA-237 item E) is the test IN THE RECOMPUTE, unchanged
+  ok   F7 a year that stops being derivable LOSES its entry rather than keeping a stale one
+  ok   F8 it runs the SHIPPED rule tables, not a second copy
+  ok   F9 and dac_pct IN THE RECOMPUTE still goes through the shipped kpiDacPct
+
+G. THE PAYLOAD.JSON DIVERGENCE (pre-existing, disclosed, NOT fixed here)
+     stored KPI entries disagreeing with the engine: 19
+       2025 clean_energy_spend  stored 0.53 vs derived 0.5269600453171172
+       2025 energy_savings  stored 0.52 vs derived 0.5247193275980823
+       2025 strategic_capital  stored 0.45 vs derived 0.45279327779072387
+  ok   G1 exactly 19 stored KPI entries disagree with the engine -- pinned so the divergence cannot grow unnoticed. Found 19
+  ok   G2 and the recompute is gated to the composed source, so the parachute renders exactly what it renders today
+  ok   G3 neither trigger calls the ungated function directly
+
+X. THE HARNESS
+  ok   X1 BASE is pinned to a literal commit sha -- got "4016675"
+  ok   X2 and that baseline really predates this ticket
+  ok   X3 the function under test is the one sliced from app.js
+  ok   X4 the 2097 fixture reconciles with itself (3919188 + 3919188 = 7838376)
+  ok   X5 and the 2099 fixture does too (11196 + 2106 = 13302)
+
+======================================================================
+  50 passed, 0 failed
+======================================================================
