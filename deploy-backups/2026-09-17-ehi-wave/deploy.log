@@ -68,3 +68,81 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as f5bc090
+          remote main = f5bc090  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1226173B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1226173B  sha256 5841222726689bc3...  VERIFIED byte-identical
+READ-BACK styles.css  283879B  sha256 04471d05bfb284d1...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 3a6d2bdf9b9c4996...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : b09515e7d8  ok
+  app.js canonicalised + hashed : b09515e7d8  ok
+  styles.css hashed             : 04471d05bf  ok
+  HTML references app.js?v=     : b09515e7d8  ok
+  HTML references styles.css?v= : 04471d05bf  ok
+  all 5 ticket groups and 2 stylesheet symbols present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the E/H/I wave -- CLCPA-271, CLCPA-273, CLCPA-267, CLCPA-250, CLCPA-272
+build id (app.js): b09515e7d8
+styles.css id    : 04471d05bf   (replaced 04471d05bf)
+previous build   : 804f35afc7, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 103a00a
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build b09515e7d8
+
+THE ACCEPTANCE PASS:
+  CLCPA-271  A COMPUTED CELL AND A TYPED CELL AGREE ABOUT THEIR COLUMN.
+     Open E1 in Report Data. Its computed Grand Total must read $1,110,000,
+     not 1,110,000, matching the $111,000 rows above it. THEN TYPE IN A CELL
+     AND TAB AWAY: the total must still carry its $. That second step is the
+     whole point -- the in-place repaint had the same defect and would have
+     reverted the format on the first blur.
+  CLCPA-273  A PERCENT TYPED INTO A CELL IS NOTICED, NOT ONLY AN IMPORTED ONE.
+     Type 10% into a count column (H1 DAC Repairs) and tab away. An AMBER box
+     appears naming the row, the column, what was read and what landed (0.1).
+     Correct the cell and the box disappears. Type 45% into a PERCENTAGE
+     column and nothing is said. Import still behaves exactly as before.
+  CLCPA-267  A NEW YEAR DOES NOT INHERIT THE DONOR YEAR'S WORDS.
+     Add a fresh year and open E1: the money column must read that year, not
+     2025. Download its template and re-import it -- it must import with no
+     unmatched columns. Check A9 on a fresh year: its prior-year pair must
+     still be a PAIR, one year apart, not the same year twice.
+  CLCPA-250  A YEAR WHOSE DATA ARRIVES DOES NOT NEED A RELOAD.
+     On a year with no H1 KPI showing, save H1 and watch the Section H header
+     and the Executive Summary Leaks row appear WITHOUT reloading. Then
+     change the reporting year away and back: same. No stored year's figures
+     may move -- check a 2025 KPI before and after.
+     AND THE OBSERVATION THIS WAVE OWES: open 2097 on a CLEAN LOAD and look
+     at the Section H header. If the KPIs render, the staleness account is
+     confirmed; if they are still missing, CLCPA-250 stays open and the
+     render path takes that as its constraint.
+  CLCPA-272  A FILED TOTAL THAT DOES NOT ADD UP IS NAMED.
+     Import or type an H1 row whose Grand Total disagrees with its two parts.
+     An AMBER box names the row and both figures, the import still SUCCEEDS,
+     and the filed value is what saves -- nothing is computed over it and
+     nothing is rejected. The same box appears in the Save dialog.
+     Then open F6, which has two merged sub-columns: it must raise NOTHING.
+
+STILL DISCLOSED, not defects in this build:
+  - CLCPA-270 ships as census and harness RECORDS only; it changes no app code
+  -    and stops at a census awaiting a ruling on three disagreements.
+  - payload.json stores 19 KPI entries that disagree with the derive engine
+  -    (0.49 against 0.4939...). Pre-existing, pinned, and the reason the new
+  -    recompute is gated to the composed source; the parachute is unaffected.
+  - A5:2025 stores 27,833 where its parts give 27,834. Under the payload freeze.
+  - C2 stored rows are split-format and recompute to nothing on ANY build.
+  - 26 acceptance suites are now PINNED to the build they were written against
+  -    and no longer watch live main; 21 scripts still do.
+
+=== log written by deploy_ehi_wave.js ===
