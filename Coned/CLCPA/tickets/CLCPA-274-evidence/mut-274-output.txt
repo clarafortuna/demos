@@ -1,0 +1,24 @@
+======================================================================
+CLCPA-274 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the template writer goes back to `any`
+       2 red, incl: D2 and the workbook writer calls it
+  red  THE MARKER IS FOLDED INTO `any`: the importer starts discarding filed figures
+       7 red, incl: B2 and the provided 1500 LANDS -- not skipped as computed
+  red  THE IMPORT consults the template accessor
+       3 red, incl: B2 and the provided 1500 LANDS -- not skipped as computed
+  red  THE DERIVABLE COLUMNS become a hardcoded list
+       5 red, incl: C1 exactly the seven enumerated tables change -- got H1
+  red  THE DERIVABLE COLUMNS are detected without the body rows
+       1 red, incl: D8 the derivable columns come from the schema, not a list
+  red  THE MARKER reaches every column, not the derivable ones
+       3 red, incl: C1 exactly the seven enumerated tables change -- got A1, A10, A2, A3, A4, A5, A6, A7, A8, A9, B1, B2, C1,
+  red  THE MARKER stops reaching the body rows
+       4 red, incl: A3 they are now marked (calculated) -- 4 cells
+  red  A GROUP HEADER starts claiming (calculated) instead of (no value)
+       1 red, incl: D9 the group-header branch above it is unchanged and still checked FIRST
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X1 BASE is a literal sha -- none
+
+  9 caught, 0 not caught, of 9 applied
+  clean re-run against byte-restored source: PASSES -- 26 passed, 0 failed
