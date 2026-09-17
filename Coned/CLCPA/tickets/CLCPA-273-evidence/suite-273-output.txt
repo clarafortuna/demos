@@ -1,0 +1,78 @@
+======================================================================
+CLCPA-273 -- the percent advisory fires on every entry route
+  app.js : c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : be1d2a2 (predates this change)
+======================================================================
+
+A. THE PREMISE: the IMPORT advisory was never table-specific
+     H1  "DAC Repairs"  landed 0.1  advisory FIRES
+     I1  "Unique"  landed 0.1  advisory FIRES
+     C2  "Committed Load Relief (MW)"  landed 0.1  advisory FIRES
+     C3  "Committed Load Relief (MW)"  landed 0.1  advisory FIRES
+  ok   A1 the import advisory fires for ALL FOUR tables (H1, I1, C2, C3)
+  ok   A2 and all four landed 0.1 -- the conversion itself is the CLCPA-244 convention
+
+B. ONE PREDICATE
+  ok   B0 the predicate under test is the NAMED function sliced from app.js
+  ok   B0b and its body is byte-present in the shipped app.js
+  ok   B1 isPercentLiteral("10%") === true
+  ok   B1 isPercentLiteral(" 45 % ") === true
+  ok   B1 isPercentLiteral("-3.5%") === true
+  ok   B1 isPercentLiteral("+2%") === true
+  ok   B1 isPercentLiteral("1,234%") === true
+  ok   B1 isPercentLiteral("10") === false
+  ok   B1 isPercentLiteral("0.1") === false
+  ok   B1 isPercentLiteral("up 10% or so") === false
+  ok   B1 isPercentLiteral("%") === false
+  ok   B1 isPercentLiteral("10%%") === false
+  ok   B1 isPercentLiteral("") === false
+  ok   B2 the regex is the one CLCPA-261 shipped, character for character
+  ok   B3 and it now appears exactly ONCE -- the inline copy is gone
+
+C. THE TYPED ROUTE
+  ok   C1 a percent typed into a count column is recorded
+  ok   C2 and renders in the CLCPA-266 AMBER box
+  ok   C3 with CLCPA-261's wording, H1 as the reference
+  ok   C4 naming the row and the column, as the import advisory does
+  ok   C5 and what was read and what landed
+  ok   C6 a percent typed into a PERCENTAGE column says nothing (same rule as the import)
+  ok   C7 and renders no box at all
+  ok   C8 retyping one cell REPLACES its advisory
+  ok   C9 keeping the latest value
+  ok   C10 and correcting the value REMOVES the advisory -- it is not a permanent mark
+  ok   C11 two different cells accumulate
+  ok   C12 and the count is plural and right
+  ok   C13 the label column is exempt
+
+D. EVERY TABLE: typed and imported agree about what is noticeable
+     value columns checked across all 52 tables: 156   advisory fires on 115
+  ok   D1 a real sweep, not a handful (156 columns)
+  ok   D2 typed and imported agree on ALL 156 columns -- agreed on 156
+  ok   D3 and the rule discriminates: it fires on 115 of 156, not on everything and not on nothing
+
+E. H1 AND THE WHOLE IMPORT PATH, UNCHANGED
+  ok   E1 buildIngestImport located in both
+  ok   E2 exactly ONE non-comment line of buildIngestImport changed -- found 1
+  ok   E3 and it is the call to the extracted predicate
+  ok   E4 the import plan is IDENTICAL to BASE on all four tables, notices included
+
+F. STYLE OF CHANGE
+  ok   F1 the raw text is read BEFORE parseNumericInput destroys it
+  ok   F2 the editor derives its percentage columns from the SCHEMA, as the importer does
+  ok   F3 isPercentLiteral is new in this change
+  ok   F3 noteTypedPercent is new in this change
+  ok   F3 renderTypedUnitNotice is new in this change
+  ok   F3 refreshIngestNotices is new in this change
+  ok   F4 no added CODE line names a table id (30 added code lines)
+  ok   F5 no added code line names a year
+  ok   F6 no added code line names a column
+  ok   F7 the typed advisory rejects nothing
+  ok   F8 and the advisories are cleared when the editor changes table-year
+
+X. THE HARNESS
+  ok   X1 BASE is pinned to a literal commit sha -- got "be1d2a2"
+  ok   X2 and that baseline really predates this ticket
+
+======================================================================
+  50 passed, 0 failed
+======================================================================
