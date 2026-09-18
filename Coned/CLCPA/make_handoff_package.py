@@ -41,7 +41,7 @@ Two changes in v3 are worth stating because they were code, not cosmetics:
 
   * the territory overlay was written to Data/ and is now written to Data/out/,
     so "everything lands in Data/out/" is true without an exception clause;
-  * Data/ is organised by family, which moved the inputs the scripts resolve. The
+  * Data/ is organized by family, which moved the inputs the scripts resolve. The
     repository's Data/ has the same shape, so one path still serves both.
 
 v1 put the .py files at the package root. They moved into scripts/ in v2 so the
@@ -77,7 +77,7 @@ Con Edison internal data, included because the scripts cannot run without it and
 this package is FOR Con Edison, and listed in MANIFEST.txt under its own heading
 so nobody forwards the package by accident:
 
-    Electric.xlsx / Gas.xlsx  per-tract account counts and EAP enrolment
+    Electric.xlsx / Gas.xlsx  per-tract account counts and EAP enrollment
     tract-geometry/CECONY_*   the electric and gas network geometry
 
 `app.js` no longer ships either. It was carried, all 800 KB of it, so that ONE
@@ -187,7 +187,7 @@ MUST_NOT_SHIP_DIRS = [
 
 # Inputs the scripts read at runtime. `client` marks Con Edison internal data.
 #
-# Data/ IS ORGANISED BY OUTPUT FAMILY (CLCPA-279 wave 2). Every input sits in the
+# Data/ IS ORGANIZED BY OUTPUT FAMILY (CLCPA-279 wave 2). Every input sits in the
 # folder of the family that eats it, and the repository's own Data/ has the same
 # shape, so one path resolves both. The mapping was read out of the code, not
 # assumed: see the fam() comment in any of the shipped scripts.
@@ -295,7 +295,7 @@ notebook and input folder is named after the family it belongs to:
     tract shapes              the shapes the map draws, one per census tract
     territory overlays       the electric, gas and ORU outlines beneath them
     DAC indicators           the NYSERDA disadvantaged community values
-    electric and gas figures  per-tract account counts and programme enrolment
+    electric and gas figures  per-tract account counts and program enrollment
 
 The order to run them in is below. It is stated there and in the guides, never
 by a number in a filename.
@@ -345,8 +345,7 @@ Work down the three steps, reading each guide before running its command.
               read. Neither of them can decide which tracts exist on its own.
 
     Step 2    docs/dac-indicators.docx
-              python scripts/convert_nyserda_raw.py --version 1.0 \\
-                  --geoid-vintage 2010 --raw-date 2023-03-27
+              python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27
 
     Step 3    docs/electric-and-gas-figures.docx
               python scripts/build_coned_dataset.py --vintage 2010
@@ -420,7 +419,7 @@ One folder per family, holding exactly what that family reads:
 
     Data/nyserda/         NYS_DAC.geojson, indicator_catalog.json
     Data/tract-geometry/  the census tract boundaries per vintage, the tract
-                          universe, the neighbourhood equivalency tables, and
+                          universe, the neighborhood equivalency tables, and
                           the CECONY and ORU shapefiles
     Data/electric-gas/    Electric.xlsx, Gas.xlsx
 
@@ -551,7 +550,7 @@ def main():
         lines += ["CON EDISON INTERNAL DATA IN THIS PACKAGE",
                   "-" * 60,
                   "These files contain per-tract customer account counts, energy",
-                  "affordability enrolment, or network geometry. They are included",
+                  "affordability enrollment, or network geometry. They are included",
                   "because the scripts cannot run without them and this package is for",
                   "Con Edison. Do not forward this package outside Con Edison.", ""]
         lines += ["  " + c for c in client]
