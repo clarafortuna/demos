@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-278 round 2 -- the pre-edit row, captured before the first write
-  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  app.js : git show d548acc:Coned/CLCPA/ExecutiveDashboard_dev/app.js
   BASE   : 590703c (predates this change)
 ======================================================================
 

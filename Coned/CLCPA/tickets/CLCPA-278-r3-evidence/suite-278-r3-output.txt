@@ -1,0 +1,89 @@
+======================================================================
+CLCPA-278 round 3 -- one reader, three consumers
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 72f1591 (predates this change)
+======================================================================
+
+A. PROVENANCE IS NOT THE DIFFERENTIATOR
+  ok   A1 2099 is user-added
+  ok   A2 and on BASE an all-numeric row there RECOMPUTES -- ["Manhattan",99,500,599]
+  ok   A3 exactly as it does on a seed year
+
+B. THE DEFECT, ON BOTH PROVENANCES, ON BASE
+  ok   B1.seed a numeric-STRING component freezes the total at 1098 -- ["Manhattan",99,500,1098]
+  ok   B2.seed and the advisory fires on it
+  ok   B1.user-added a numeric-STRING component freezes the total at 1098 -- ["Manhattan",99,500,1098]
+  ok   B2.user-added and the advisory fires on it
+
+C. THE FIX, ON BOTH PROVENANCES
+  ok   C1.seed the total now follows the edit -- ["Manhattan",99,500,599]
+  ok   C2.seed and nothing is advised: the row adds up
+  ok   C1.user-added the total now follows the edit -- ["Manhattan",99,500,599]
+  ok   C2.user-added and nothing is advised: the row adds up
+
+D. A GENUINELY UNREADABLE CELL STILL KEEPS THE FILED TOTAL
+  ok   D1.seed a percent component leaves the filed total alone -- ["Manhattan",42,"33%",1098]
+  ok   D2.seed and the advisory names it
+  ok   D3.seed text, the same
+  ok   D4.seed advisory, the same
+  ok   D1.user-added a percent component leaves the filed total alone -- ["Manhattan",42,"33%",1098]
+  ok   D2.user-added and the advisory names it
+  ok   D3.user-added text, the same
+  ok   D4.user-added advisory, the same
+
+E. ONE HELPER, NO PER-FUNCTION COPIES
+  ok   E1 the reader is a named function
+  ok   E2 and it is consumed, not declared and ignored -- 9 references
+  ok   E3.rowSumIsConsistent consumes it
+  ok   E4.rowSumIsConsistent and carries no private copy of the test
+  ok   E3.reconcileSumColumns consumes it
+  ok   E4.reconcileSumColumns and carries no private copy of the test
+  ok   E3.columnGrandTotals consumes it
+  ok   E4.columnGrandTotals and carries no private copy of the test
+  ok   E5 totalRowSums delegates to it, so every segment reads the same way
+
+F. WHAT THE READER REFUSES
+  ok   F0 the reader is reachable
+  ok   F1 reads a number: 1098 -> 1098
+  ok   F1 reads a plain numeric string: "1098" -> 1098
+  ok   F1 reads thousands separators: "1,098" -> 1098
+  ok   F1 reads padding: " 999 " -> 999
+  ok   F1 reads a negative: "-5" -> -5
+  ok   F1 reads a decimal: "1098.5" -> 1098.5
+  ok   F2 refuses an explicit percent is a UNIT (CLCPA-244): "33%"
+  ok   F2 refuses a SPLIT cell is published text (CLCPA-216): "37,988 (33%)"
+  ok   F2 refuses a space separator it cannot claim to understand: "1 098"
+  ok   F2 refuses an accounting negative: "(999)"
+  ok   F2 refuses a label: "Total"
+  ok   F2 refuses empty: ""
+  ok   F2 refuses null: null
+  ok   F2 refuses undefined: undefined
+  ok   F2 refuses NaN: null
+  ok   F2 refuses Infinity: null
+  ok   F3 and never salvages a prefix
+
+G. WHAT THIS CHANGES IN THE STORED PAYLOAD: NOTHING
+  ok   G1 payload.json holds 668 string value cells
+  ok   G2 and NONE of them becomes readable -- 0
+  ok   G3 compared across 149 stored table-years
+  ok   G4 recomputeTotals writes identical figures -- every one
+  ok   G5 and the advisory count is unchanged everywhere -- every one
+
+H. THE DRAFT SURFACE, SHAPE BY SHAPE
+  ok   H1 all numbers BEFORE: total 599, advisory false
+  ok   H2 all numbers AFTER:  total 599, advisory false
+  ok   H1 numeric-string component BEFORE: total 1098, advisory true
+  ok   H2 numeric-string component AFTER:  total 599, advisory false
+  ok   H1 percent component BEFORE: total 1098, advisory true
+  ok   H2 percent component AFTER:  total 1098, advisory true
+  ok   H1 text component BEFORE: total 1098, advisory true
+  ok   H2 text component AFTER:  total 1098, advisory true
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha
+  ok   X2 the driver sends input before blur
+  ok   X3 and every edit here is typed one keystroke at a time
+
+======================================================================
+  62 passed, 0 failed
+======================================================================

@@ -1,0 +1,16 @@
+======================================================================
+CLCPA-274-r3 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the count is applied to the source year again
+       2 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","Brooklyn","607","","307","","2728
+  red  THE SOURCE YEAR stops skipping the rows it carries, so they double
+       2 red, incl: D1 every SEED-year template is byte-identical to BASE -- A9,A10,F6
+  red  THE HEADER TEST stops looking at the label column
+       3 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","Brooklyn","607","","307","","2728
+  red  THE TABLE stops lending its header rows to a year without them
+       5 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","","","","","","(calculated)"]
+  red  EVERY TABLE is treated as two-level
+       1 red, incl: F3 and a one-level table has no header rows to borrow at all
+
+  5 caught, 0 not caught, of 5 applied
+  clean re-run against byte-restored source: PASSES -- 29 passed, 0 failed
