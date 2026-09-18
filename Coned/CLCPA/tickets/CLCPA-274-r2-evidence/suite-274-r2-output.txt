@@ -1,0 +1,56 @@
+======================================================================
+CLCPA-274 round 2 -- the template carries its second header row
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : df6173f (predates this change)
+======================================================================
+
+A. THE DEFECT, ON THE BUILD THAT SHIPPED IT
+  ok   A1 on BASE, F6 template row 2 is entirely blank -- ["","","","","","",""]
+  ok   A2 while the STORED sub-header carries four labels -- ["Non- Excludable","Excludable","Non- Excludable","Excludable"]
+  ok   A3 row 1 did carry the group spans, so only the sub-labels were lost
+  ok   A4 A9 was blank in the same way -- the same missing derivation
+  ok   A5 and A10 was worse: its sub-header row carried "(calculated)"
+
+B. WHOSE DEFECT IT IS: NOT THIS WAVE'S
+  ok   B1 ca4c90a -- main BEFORE the whole package -- emitted the same blank row
+  ok   B2 and so did the CLCPA-274 follow-up, so the marker correction is not the cause
+
+C. THE SUB-HEADER IS EMITTED, VERBATIM
+  ok   C1 F6 row 2 is now the stored sub-header, cell for cell -- ["","","Non- Excludable","Excludable","Non- Excludable","Excludable",""]
+  ok   C2 and it is the same width as row 1: 7 and 7
+  ok   C3 the first DATA row still follows it -- ["Borough Hall",""]
+  ok   C4 the header row carries NO (calculated) marker: a header has nothing to calculate
+  ok   C5 while the body row below it still marks its derivable Grand Total
+  ok   C6 F6 carries 24 marked cells, the follow-up's own number -- 24
+
+D. THE WHOLE TWO-LEVEL FAMILY, AND NOBODY ELSE
+  ok   D1.A9 emits its stored sub-header verbatim -- ["","Total","DAC","Total","DAC","Total","DAC"]
+  ok   D2.A9 and no marker reaches that row
+  ok   D1.A10 emits its stored sub-header verbatim -- ["","Total","DAC","% DAC","Total","DAC","% DAC"]
+  ok   D2.A10 and no marker reaches that row
+  ok   D3 D1 really does carry header_levels 0
+  ok   D4 and D1 row 2 is still its DATA row, not treated as a header -- "Community Distributed Generation (CDG, or Commu
+
+E. EVERY OTHER ENUMERATED TEMPLATE IS BYTE-FOR-BYTE WHAT IT WAS
+  ok   E1.H1 identical to BASE (6 rows)
+  ok   E1.B2 identical to BASE (4 rows)
+  ok   E1.F2 identical to BASE (4 rows)
+  ok   E1.F4 identical to BASE (9 rows)
+  ok   E1.F5 identical to BASE (40 rows)
+  ok   E1.F7 identical to BASE (5 rows)
+
+F. THE RULE LIVES IN ONE PLACE
+  ok   F1 the derivation is a named function
+  ok   F2 declared once and called from BOTH readers -- 3 occurrences
+  ok   F3 the editor reads it
+  ok   F4 and the template writer reads it
+  ok   F5 the editor no longer carries its own inline copy
+  ok   F6 and the predicate is "a number, at least 2" -- never "has the key"
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha
+  ok   X2 the xlsx reader keeps blank cells distinct -- {"A":"x","B":"","C":"","D":"y"}
+
+======================================================================
+  33 passed, 0 failed
+======================================================================

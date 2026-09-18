@@ -17540,6 +17540,27 @@ function wireHTooltips() {
    * So labels come from the selected year when it has rows, and otherwise from
    * the most recent year that does. The template says which it used.
    */
+  /* HOW MANY LEADING data[] ROWS ARE ACTUALLY HEADER.
+   *
+   * header_levels = 2 means schema_by_year is header row 1 and data[0] IS
+   * header row 2, stored as a data row because that is the only place a second
+   * header row can live in this shape. A9, A10 and F6 carry it.
+   *
+   * `0` MEANS SOMETHING ELSE. D1 carries header_levels = 0 and its data[0] is
+   * genuine, editable data -- so the test is "a number, and at least 2", never
+   * "has a header_levels key". That predicate has caused a real defect before.
+   *
+   * CLCPA-274 round 2: extracted from renderIngestEditor, which was the only
+   * reader. The TEMPLATE WRITER needed the same answer and did not have it, so
+   * it blanked F6's sub-header row like a data row and shipped a workbook whose
+   * four value columns were unlabelled. Two readers, one derivation. */
+  function ingestHeaderRowCount(table, rowCount) {
+    const lv = table && table.header_levels;
+    if (typeof lv !== 'number' || lv < 2) return 0;
+    const n = typeof rowCount === 'number' ? rowCount : 0;
+    return Math.min(lv - 1, n);
+  }
+
   function ingestTemplateSource(table, year) {
     const own = getTableBody(table, year);
     if (own && own.length) return { year: year, rows: own, borrowed: false };
@@ -17984,7 +18005,32 @@ function wireHTooltips() {
     const hidden = phantomSpacerCols(table, year);
     const visible = (arr) => arr.filter((_, i) => hidden.indexOf(i) < 0);
     const rows = [visible(schema).map(h => ({ style: XLSX_STYLE_HEADER, text: h }))];
+    /* CLCPA-274 round 2: THE SECOND HEADER ROW IS HEADER, not a blank data row.
+     *
+     * F6 renders with two-level headers -- NON-NETWORK and NETWORK group spans
+     * over NON-EXCLUDABLE / EXCLUDABLE sub-labels -- and the template emitted
+     * row 2 completely empty, because the writer had no notion of
+     * header_levels and every data row is deliberately blanked for the
+     * preparer to fill. The operator could not tell which of the four value
+     * columns was which.
+     *
+     * MEASURED: this predates the wave. The same blank row 2 comes out of
+     * ca4c90a, of the CLCPA-274 follow-up, and of the deployed build, so the
+     * marker correction did not cause it.
+     *
+     * The row is emitted VERBATIM and locked, as header anatomy. It is not
+     * offered for typing and it carries no (calculated) marker: a header has
+     * nothing to calculate, which is the same rule the group-header branch and
+     * marksInTemplate's own guard already state. */
+    const templateHeaderRows = ingestHeaderRowCount(table, src.rows.length);
     src.rows.forEach((row, idx) => {
+      if (idx < templateHeaderRows) {
+        rows.push(visible(schema.map((h, c) => ({
+          style: XLSX_STYLE_HEADER,
+          text: row[c] == null || row[c] === '' ? null : String(row[c]),
+        }))));
+        return;
+      }
       // Round 6: a Total row carries the dashboard's total-row look, whole row.
       const isTotal = computed.totalRow(idx);
       /* CLCPA-240: A GROUP HEADER'S CELLS STAY GENUINELY BLANK.
@@ -22506,11 +22552,7 @@ function wireHTooltips() {
      * RENDER ONLY. The sub-header stays exactly where it is in the store,
      * because that is where the report reads it. Nothing about Dataverse
      * changes. */
-    const headerRowCount = (() => {
-      const lv = table.header_levels;
-      if (typeof lv !== 'number' || lv < 2) return 0;
-      return Math.min(lv - 1, i.draft.length);
-    })();
+    const headerRowCount = ingestHeaderRowCount(table, i.draft.length);
 
     /* CLCPA-233 item B: columns the editor must NOT offer for typing.
      *
