@@ -674,7 +674,25 @@ guard('K: the untouched tables key exactly as before', () => {
 
 /* K, driven: an actual import into each untouched table must behave as BASE. */
 guard('K: driven -- import behaviour identical to BASE on the untouched tables', () => {
-  const declared = { A3: 1, A4: 1, A5: 1, A6: 1, A8: 1 };
+  /* the tables whose TEMPLATE is deliberately different from BASE, so
+   * "imports identically to BASE" is not the question being asked of them.
+   *
+   * CLCPA-274 round 2 added the second three. header_levels 2 means data[0]
+   * is a second header row, and the template used to emit it BLANK -- F6's
+   * four value columns arrived unlabelled. It is now emitted verbatim, which
+   * is a template change by design, asserted in suite_274_r2 instead.
+   *
+   * MEASURED, and reported as a finding rather than absorbed here:
+   *   F6:2025  rejections 1 -> 0   the blank row had been costing one
+   *   A9:2025  rejections 1 -> 3   "two columns with the same heading"
+   *   A10:2025 unchanged
+   * A9's headings genuinely span two rows -- ["","2024","2024","2025",...]
+   * over ["","Total","DAC","Total",...] -- so NEITHER row alone is a unique
+   * heading set, and a single-row CSV header cannot address its columns. That
+   * is a property of the two-level shape rather than of this change: BASE
+   * rejected one too. The change makes the ambiguity explicit instead of
+   * hiding it behind a blank row. It needs its own ticket. */
+  const declared = { A3: 1, A4: 1, A5: 1, A6: 1, A8: 1, A9: 1, A10: 1, F6: 1 };
   let checked = 0, mismatch = [];
   const pctStrTables = { A9:1, A10:1, C2:1, F7:1, J1:1, J3:1, J4:1, J6:1, J7:1, J8:1 };
   const pctStrHit = {};

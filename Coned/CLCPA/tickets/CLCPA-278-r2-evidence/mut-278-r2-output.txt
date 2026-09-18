@@ -1,0 +1,18 @@
+======================================================================
+CLCPA-278 round 2 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the capture goes back into the blur handler
+       6 red, incl: B1 input then blur now recomputes to 1809 -- ["Manhattan",1309,500,1800]
+  red  THE CAPTURE happens on EVERY keystroke, not the first
+       6 red, incl: B4 the snapshot is the row before the FIRST keystroke, not the second -- ["Manhattan",1309,500,1800]
+  red  THE SNAPSHOT is never released, so a second episode reads a stale row
+       3 red, incl: E6 and releases it, so it cannot leak
+  red  THE SNAPSHOT stops being keyed by row
+       1 red, incl: E4 the INPUT handler captures, once per episode
+  red  A DISAGREEING TOTAL starts being overwritten, against the ruling
+       7 red, incl: B1 input then blur now recomputes to 1809 -- ["Manhattan",1309,500,1800]
+  red  THE SNAPSHOT is hung on the stored state
+       2 red, incl: E3 nothing transient was hung on the stored state
+
+  6 caught, 0 not caught, of 6 applied
+  clean re-run against byte-restored source: PASSES -- 33 passed, 0 failed

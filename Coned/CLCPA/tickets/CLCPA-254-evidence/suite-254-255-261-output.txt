@@ -56,7 +56,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestRoleOpen, ingestRowRole, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
+       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowRole, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
   ok   the change to applyCompositeShares is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
@@ -75,6 +75,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
   ok   the change to ingestComputed is accounted for
+  ok   the change to ingestHeaderRowCount is accounted for
   ok   the change to ingestRoleOpen is accounted for
   ok   the change to ingestRowRole is accounted for
   ok   the change to isCompositeShareCol is accounted for
@@ -98,6 +99,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
   ok   the change to renderTypedUnitNotice is accounted for
+  ok   the change to rerenderIngestEditor is accounted for
   ok   the change to rowSumIsConsistent is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to shiftSchemaYears is accounted for
@@ -106,6 +108,8 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   ingestHeaderRowCount changed as intended: CLCPA-274 round 2: how many leading data[] rows are really header, shared by the editor and the template writer (new)
+  ok   rerenderIngestEditor changed as intended: CLCPA-276 round 2: the editor repaint now repaints the notice mount beside it
   ok   ingestRoleOpen changed as intended: CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)
   ok   ingestRowRole changed as intended: CLCPA-270: the row role, from its label (new)
   ok   isTotalRoleLabel changed as intended: CLCPA-270: the total-role label test (new)
@@ -155,7 +159,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
-  ok   X1 exactly this many functions changed: 49
+  ok   X1 exactly this many functions changed: 51
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -165,4 +169,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  150 passed, 0 failed
+  154 passed, 0 failed

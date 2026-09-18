@@ -27,7 +27,7 @@ C. EVERY EXIT, ON THE LIVE PAGE
   ok   C7 a repaint KEEPS a live discrepancy -- recomputed, not cleared
   ok   C8 and the draft really does still disagree
   ok   C9 Reset opens the shared discard guard rather than acting at once
-  ok   C10 and CANCELLING it changes nothing -- ["Manhattan",1309,500,1800]
+  ok   C10 and CANCELLING it changes nothing -- ["Manhattan",1309,491,9999]
   ok   C11 including the advisory, which still describes the live draft
 
 D. ONE PLACE, NOT FIVE
