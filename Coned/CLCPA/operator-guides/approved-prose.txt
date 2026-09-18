@@ -1,0 +1,580 @@
+===== GUIDE: tract-shapes.docx =====
+Tract shapes
+
+Operator guide. Con Edison DAC dashboard data tools.
+
+What you will do
+
+You will run one command and get two files: the tract shapes (the per-tract geometry the map draws, one shape per census tract) and the territory overlay. This takes about five seconds. Everything you need already ships in the package.
+
+One command, two outputs. update_map_data.py is the single producer of both the tract shapes and the territory overlay. It builds them from one set of shapefiles and stamps both with the same fingerprint, so the two cannot drift apart. This guide covers the tract shapes; its companion, territory-overlays.docx, covers the overlay. Whichever guide you follow, the command is the same and you get both files.
+
+Before you start
+
+Three quick checks. If all three are true, this will go smoothly:
+
+-   The package is unzipped somewhere shallow (your Desktop is fine; a deeply nested folder is not, see README.txt).
+
+-   Your virtual environment is active: the prompt shows (.venv). If it does not, activate it first (the FIRST section of README.txt shows how).
+
+-   Your terminal is open at the package root: the folder holding Data, docs, notebooks and scripts.
+
+Where this sits in the order
+
+There are three steps, always in this order. This guide is step 1. Nothing in this package is numbered by filename: the order lives here and in README.txt.
+
+  Step 1 Tract shapes and the territory overlay (one command, two outputs)
+
+  python scripts/update_map_data.py --vintage 2010
+
+  Step 2 DAC indicators
+
+  python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27
+
+  Step 3 Electric and gas figures
+
+  python scripts/build_coned_dataset.py --vintage 2010
+
+Why this order: step 1 writes the list of tracts that steps 2 and 3 read. If you run step 2 or 3 first on a fresh package, it stops and asks for step 1's output. That stop is the ordering protecting you, not something broken.
+
+What goes in, what comes out
+
+Everything this family reads is in Data/tract-geometry/. Nothing it reads lives anywhere else in the package:
+
+-   ny_tracts_2010.geojson and ny_tracts.geojson, the census tract boundaries, one file per vintage
+
+-   tract_universe.json, the list of tracts that exist and their place names. It ships pre-built; there is nothing for you to run to make it
+
+-   the neighborhood equivalency CSV for the vintage you are building
+
+-   CECONY_Electric and CECONY_Gas shapefiles, which the per-tract network and gas fields are measured against
+
+What comes out, both in Data/out/ (everything this package writes lands there):
+
+-   Data/out/tract_geometry_pure-2010.json, the tract shapes
+
+-   Data/out/service_territories.geojson, the territory overlay, produced by the same command
+
+Run it
+
+Always dry run first. It prints the preflight table and stops: no downloads, no writes. It is the cheap way to see what the real run is about to do.
+
+  python scripts/update_map_data.py --vintage 2010 --dry-run
+
+[SCREENSHOT: tract-shapes-01-dry-run]
+
+If the preflight looks right (the next section shows what right looks like), run it for real:
+
+  python scripts/update_map_data.py --vintage 2010
+
+[SCREENSHOT: tract-shapes-02-real-run]
+
+For the 2020 vintage, pass --vintage 2020 instead. The two vintages are separate files and both can exist at once.
+
+What you should see
+
+The preflight table comes first, and it is the part to actually read: it says what is present and what the run is about to do.
+
+  Census tract GeoJSON PRESENT Data/tract-geometry/ny_tracts_2010.geojson
+
+  Census archive not needed the GeoJSON is already here
+
+  tract_universe.json PRESENT the tract universe and City_Town; ships pre-built
+
+  CECONY_Electric.shp PRESENT electric_networks is measured against it
+
+  dataset output WILL WRITE Data/out/tract_geometry_pure-2010.json
+
+  territory overlay WILL BUILD Data/out/service_territories.geojson
+
+The quick read: every input row says PRESENT, and the two output rows say WILL WRITE and WILL BUILD. If that is what you see, you are on track. Then come the two build steps, and the summary:
+
+  DATASET READY
+
+  file : Data/out/tract_geometry_pure-2010.json
+
+  bytes : 1,587,328
+
+  sha256 : 6e9f09f7414f59ed4381b59d0d66bb6baa24f5c162182934b4f9c7d756413f49
+
+[SCREENSHOT: tract-shapes-03-dataset-ready]
+
+If it refuses
+
+Every refusal is the tool protecting something. None of them is a crash, and each tells you what to do. The common ones:
+
+You see: REFUSED ... already exists. It may be the copy that is live in Dataverse.
+
+It means: The output file is already in Data/out/, and the tool will not silently replace something that might be live.
+
+What to do: If you mean to replace it, run the same command again with --force.
+
+You see: REFUSED ... --vintage must be 2010 or 2020.
+
+It means: No vintage was given. There is no default, and the command refuses to guess.
+
+What to do: Add --vintage 2010 or --vintage 2020 to the command.
+
+You see: REFUSED ... --refresh-territories needs the network and --no-fetch forbids it.
+
+It means: Those two flags contradict each other: the territory conversion downloads a coordinate grid, and --no-fetch forbids downloads.
+
+What to do: Drop one of the two flags, whichever does not match your intent.
+
+You see: REFUSED ... --artifact needs map_payload.json, which is not here.
+
+It means: That flag writes a change document measured against a file this package deliberately does not ship. The refusal fires in preflight, before anything is written.
+
+What to do: Drop --artifact. The normal build needs nothing extra.
+
+[SCREENSHOT: tract-shapes-04-refusal]
+
+Check your file
+
+Check the file before you upload it. The run prints its own size and sha256; these are the values this guide was written against, measured on a clean run of this package:
+
+  file : Data/out/tract_geometry_pure-2010.json
+
+  bytes : 1,587,328
+
+  sha256 : 6e9f09f7414f59ed4381b59d0d66bb6baa24f5c162182934b4f9c7d756413f49
+
+  tracts : 2,333
+
+  fields : 8 (the record's FieldCount must say 8, worth checking twice)
+
+For the 2020 vintage the figures differ: 2,183 tracts, 1,285,052 bytes, version label pure-2020, sha256 d288460f7907a79e2bc4f9c6f578cf66ac0aee840fbdeffb38670021c24b875e.
+
+How long it should take
+
+Expected duration: about 5 seconds on the first run, and about 3 seconds afterwards on this run's hardware. Times vary by machine, and a slower computer taking two or three times as long is normal. A run taking ten times as long is worth investigating rather than waiting out: check whether it is downloading something it should already have, and read what it printed.
+
+The notebook for this family prints a timing block at the end, with the start time, the finish time and the total elapsed. That block is the thing to screenshot.
+
+[SCREENSHOT: tract-shapes-05-timing]
+
+Upload it
+
+Nothing in this package contacts the dashboard. The file is produced on your machine and stays there until you upload it by hand. That is a deliberate boundary, not a missing feature.
+
+In the dashboard, open Map Layers, then Upload data file, choose Data/out/tract_geometry_pure-2010.json, and press Upload version.
+
+Paste the field block the run printed into the matching record fields. The run prints exactly the values the record expects, so copy them rather than retyping them.
+
+[SCREENSHOT: tract-shapes-06-upload]
+
+This guide stops here. What the dashboard does with the file after the upload is the dashboard's business, and is covered by the dashboard documentation, not by this package.
+
+===== GUIDE: territory-overlays.docx =====
+Territory overlays
+
+Operator guide. Con Edison DAC dashboard data tools.
+
+What you will do
+
+You will run one command and get two files: the territory overlay (the electric network outlines, the gas service areas, and the Orange and Rockland outlines the map draws beneath the tracts) and the tract shapes. This takes about five seconds.
+
+One command, two outputs. update_map_data.py is the single producer of both the territory overlay and the tract shapes. It builds them from one set of shapefiles and stamps both with the same fingerprint, so the two cannot drift apart. This guide covers the overlay; its companion, tract-shapes.docx, covers the other output. Whichever guide you follow, the command is the same and you get both files. There is no overlay-only command, and that is deliberate.
+
+Before you start
+
+Three quick checks. If all three are true, this will go smoothly:
+
+-   The package is unzipped somewhere shallow (your Desktop is fine; a deeply nested folder is not, see README.txt).
+
+-   Your virtual environment is active: the prompt shows (.venv). If it does not, activate it first (the FIRST section of README.txt shows how).
+
+-   Your terminal is open at the package root: the folder holding Data, docs, notebooks and scripts.
+
+Where this sits in the order
+
+There are three steps, always in this order. This guide is step 1, the same command as tract shapes. Nothing in this package is numbered by filename: the order lives here and in README.txt.
+
+  Step 1 Tract shapes and the territory overlay (one command, two outputs)
+
+  python scripts/update_map_data.py --vintage 2010
+
+  Step 2 DAC indicators
+
+  python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27
+
+  Step 3 Electric and gas figures
+
+  python scripts/build_coned_dataset.py --vintage 2010
+
+Why this order: step 1 writes the list of tracts that steps 2 and 3 read. If you run step 2 or 3 first on a fresh package, it stops and asks for step 1's output. That stop is the ordering protecting you, not something broken.
+
+What goes in, what comes out
+
+Everything this family reads is in Data/tract-geometry/. Nothing it reads lives anywhere else in the package:
+
+-   CECONY_Electric shapefile, the electric network outlines
+
+-   CECONY_Gas shapefile, the gas service areas
+
+-   ORU_Territory shapefile, the Orange and Rockland outlines
+
+-   each shapefile is four files, .shp, .shx, .dbf and .prj, and all four are required
+
+What comes out, both in Data/out/:
+
+-   Data/out/service_territories.geojson, the territory overlay
+
+-   Data/out/tract_geometry_pure-2010.json, the tract shapes, produced by the same command
+
+If you are following an older instruction that looks for the overlay one level up, in Data/, that instruction predates this package: everything now lands in Data/out/.
+
+Run it
+
+Always dry run first. It prints the preflight table and stops: no downloads, no writes.
+
+  python scripts/update_map_data.py --vintage 2010 --dry-run
+
+[SCREENSHOT: territory-overlays-01-dry-run]
+
+Then the real run:
+
+  python scripts/update_map_data.py --vintage 2010
+
+[SCREENSHOT: territory-overlays-02-real-run]
+
+When the overlay is rebuilt, and when it is not
+
+The overlay is not rebuilt on every run, and that is on purpose. It carries a fingerprint of the shapefiles it came from; when that fingerprint still matches, the existing overlay is reused, which is what keeps the two outputs consistent. The preflight row tells you which case you are in:
+
+  territory overlay WILL BUILD it is not there yet
+
+  territory overlay WILL REBUILD its stamp disagrees with the shapefiles
+
+  territory overlay PRESENT its stamp matches, so it is reused
+
+About --refresh-territories: it forces a rebuild when the stamp already matches, but it is not an overlay-only rebuild. The run always goes on to rebuild the tract shapes as well, so if a dataset is already in Data/out/ the flag needs --force too, and both files are rewritten. There is no supported way to rebuild one without the other.
+
+[SCREENSHOT: territory-overlays-03-preflight-overlay]
+
+If it refuses
+
+You see: REFUSED ... --refresh-territories needs the network and --no-fetch forbids it.
+
+It means: The territory conversion downloads a coordinate transformation grid for the Orange and Rockland layer, which is in an older datum, so the network is genuinely required for a rebuild.
+
+What to do: Drop one of the two flags, whichever does not match your intent.
+
+You see: The rebuilt overlay disagrees with the shapefiles, and the run stops.
+
+It means: Building one of the two outputs against different shapefiles than the other is exactly the trap the fingerprint exists to catch. Nothing was written to Data/out/.
+
+What to do: Rebuild both outputs together with the normal command, and if it repeats, check that the shapefiles in Data/tract-geometry/ are the ones the package shipped (MANIFEST.txt has their sha256).
+
+[SCREENSHOT: territory-overlays-04-refusal]
+
+Check your file
+
+Check the file before you upload it. The run prints its own size and sha256; these are the values this guide was written against, measured on a clean run of this package:
+
+  file : Data/out/service_territories.geojson
+
+  bytes : 239,162
+
+  sha256 : a45ae7f05d4aac95cf37d6f77aa4a5d536b4da6dcf08de155a318a19e10ea4c7
+
+  features : 95
+
+  electric 89
+
+  gas 4
+
+  oru 2
+
+The overlay and the tract shapes carry the same sourceFingerprint. If you ever see two different values, the two files were built from different shapefiles and should be rebuilt together.
+
+How long it should take
+
+Expected duration: about 5 seconds on the first run, and about 3 seconds afterwards on this run's hardware. Times vary by machine, and a slower computer taking two or three times as long is normal. A run taking ten times as long is worth investigating rather than waiting out: check whether it is downloading something it should already have, and read what it printed.
+
+The notebook for this family prints a timing block at the end, with the start time, the finish time and the total elapsed. That block is the thing to screenshot.
+
+[SCREENSHOT: territory-overlays-05-timing]
+
+Upload it
+
+Nothing in this package contacts the dashboard. The file is produced on your machine and stays there until you upload it by hand. That is a deliberate boundary, not a missing feature.
+
+In the dashboard, open Map Layers, then Upload data file, choose Data/out/service_territories.geojson, and press Upload version.
+
+Paste the field block the run printed into the matching record fields. The run prints exactly the values the record expects, so copy them rather than retyping them.
+
+[SCREENSHOT: territory-overlays-06-upload]
+
+This guide stops here. What the dashboard does with the file after the upload is the dashboard's business, and is covered by the dashboard documentation, not by this package.
+
+===== GUIDE: dac-indicators.docx =====
+DAC indicators
+
+Operator guide. Con Edison DAC dashboard data tools.
+
+What you will do
+
+You will turn the NYSERDA release into the indicator dataset: the disadvantaged community values the map colors by, the tooltips read, and the CSV export carries. One command, about one second, one output file.
+
+Before you start
+
+Three quick checks. If all three are true, this will go smoothly:
+
+-   The package is unzipped somewhere shallow (your Desktop is fine; a deeply nested folder is not, see README.txt).
+
+-   Your virtual environment is active: the prompt shows (.venv). If it does not, activate it first (the FIRST section of README.txt shows how).
+
+-   Your terminal is open at the package root: the folder holding Data, docs, notebooks and scripts.
+
+-   Step 1 has been run: Data/out/ contains tract_geometry_pure-2010.json. This step reads it for the tract list.
+
+Where this sits in the order
+
+There are three steps, always in this order. This guide is step 2. Nothing in this package is numbered by filename: the order lives here and in README.txt.
+
+  Step 1 Tract shapes and the territory overlay (one command, two outputs)
+
+  python scripts/update_map_data.py --vintage 2010
+
+  Step 2 DAC indicators
+
+  python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27
+
+  Step 3 Electric and gas figures
+
+  python scripts/build_coned_dataset.py --vintage 2010
+
+Why this order: step 1 writes the list of tracts that steps 2 and 3 read. If you run step 2 or 3 first on a fresh package, it stops and asks for step 1's output. That stop is the ordering protecting you, not something broken.
+
+What goes in, what comes out
+
+Everything this family reads is in Data/nyserda/:
+
+-   NYS_DAC.geojson, the NYSERDA release as downloaded from the New York Department of State Geographic Information Gateway
+
+-   indicator_catalog.json, which decides what the indicators are called. It ships with the package and you do not normally touch it
+
+This step also reads Data/out/tract_geometry_pure-2010.json, which is step 1's output, not an input you supply. It is where the list of tracts comes from, which is why the geometry is built first.
+
+What comes out:
+
+-   Data/out/nyserda_dac_v1_0.json, the indicator dataset
+
+Run it
+
+There is a no-write mode, and it is worth using first: it does the whole conversion and then does not write the file, so you can see what it would produce before it produces it.
+
+  python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27 --no-write
+
+[SCREENSHOT: dac-indicators-01-no-write]
+
+Then the real run, the same command without --no-write:
+
+  python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27
+
+[SCREENSHOT: dac-indicators-02-real-run]
+
+About --raw-date: it is the date the DAC criteria were finalized by the New York State Climate Justice Working Group, which is 2023-03-27 for the current release. It is recorded in the dataset, not used to fetch anything.
+
+What you should see
+
+The counts are the part to read. The output has more tracts than the input, and that is correct: the NYSERDA file holds designated DAC tracts only, and the converter builds the Non-DAC roster itself.
+
+  raw features : 1736 statewide -> 1059 in the six counties
+
+  tracts written : 2,333 (1059 DAC + 1274 Non-DAC roster)
+
+  fields : 56
+
+  bytes : 1,181,466
+
+The quick read: tracts written says 2,333 and fields says 56. If that is what you see, you are on track.
+
+[SCREENSHOT: dac-indicators-03-counts]
+
+If it refuses
+
+You see: A missing geometry dataset.
+
+It means: The tract list comes from step 1's output, and on a fresh package it is not there yet.
+
+What to do: Run step 1 (the tract shapes guide) and come back. This is the ordering working, not a fault.
+
+You see: An unknown GEOID vintage.
+
+It means: Only 2010 and 2020 are accepted; anything else is rejected rather than guessed.
+
+What to do: Pass --geoid-vintage 2010 or --geoid-vintage 2020.
+
+[SCREENSHOT: dac-indicators-04-refusal]
+
+Check your file
+
+Check the file before you upload it. The run prints its own size and sha256; these are the values this guide was written against, measured on a clean run of this package:
+
+  file : Data/out/nyserda_dac_v1_0.json
+
+  bytes : 1,181,466
+
+  sha256 : 6df6a4d8378390c6ec8668651316a8f20b81fafe0f0753376d51b8e86ff50163
+
+  tracts : 2,333
+
+  fields : 56
+
+One warning worth keeping: comparing file sizes against a previous release and concluding something broke is the expected wrong turn here. A new NYSERDA release legitimately changes the size. Compare the counts and the field list, not the byte count.
+
+How long it should take
+
+Expected duration: about 1 second on this run's hardware. Times vary by machine, and a slower computer taking two or three times as long is normal. A run taking ten times as long is worth investigating rather than waiting out: check whether it is downloading something it should already have, and read what it printed.
+
+The notebook for this family prints a timing block at the end, with the start time, the finish time and the total elapsed. That block is the thing to screenshot.
+
+[SCREENSHOT: dac-indicators-05-timing]
+
+Upload it
+
+Nothing in this package contacts the dashboard. The file is produced on your machine and stays there until you upload it by hand. That is a deliberate boundary, not a missing feature.
+
+In the dashboard, open Map Layers, then Upload data file, choose Data/out/nyserda_dac_v1_0.json, and press Upload version.
+
+Paste the field block the run printed into the matching record fields. The run prints exactly the values the record expects, so copy them rather than retyping them.
+
+[SCREENSHOT: dac-indicators-06-upload]
+
+This guide stops here. What the dashboard does with the file after the upload is the dashboard's business, and is covered by the dashboard documentation, not by this package.
+
+===== GUIDE: electric-and-gas-figures.docx =====
+Electric and gas figures
+
+Operator guide. Con Edison DAC dashboard data tools.
+
+What you will do
+
+You will turn the two Con Edison spreadsheets into the per-tract operational figures: electric and gas account counts, and energy affordability program enrollment. One command, about one second, one output file.
+
+Before you start
+
+Three quick checks. If all three are true, this will go smoothly:
+
+-   The package is unzipped somewhere shallow (your Desktop is fine; a deeply nested folder is not, see README.txt).
+
+-   Your virtual environment is active: the prompt shows (.venv). If it does not, activate it first (the FIRST section of README.txt shows how).
+
+-   Your terminal is open at the package root: the folder holding Data, docs, notebooks and scripts.
+
+-   Step 1 has been run: Data/out/ contains tract_geometry_pure-2010.json. This step reads it for the tract list.
+
+Where this sits in the order
+
+There are three steps, always in this order. This guide is step 3. Nothing in this package is numbered by filename: the order lives here and in README.txt.
+
+  Step 1 Tract shapes and the territory overlay (one command, two outputs)
+
+  python scripts/update_map_data.py --vintage 2010
+
+  Step 2 DAC indicators
+
+  python scripts/convert_nyserda_raw.py --version 1.0 --geoid-vintage 2010 --raw-date 2023-03-27
+
+  Step 3 Electric and gas figures
+
+  python scripts/build_coned_dataset.py --vintage 2010
+
+Why this order: step 1 writes the list of tracts that steps 2 and 3 read. If you run step 2 or 3 first on a fresh package, it stops and asks for step 1's output. That stop is the ordering protecting you, not something broken.
+
+What goes in, what comes out
+
+Everything this family reads is in Data/electric-gas/:
+
+-   Electric.xlsx, the electric extract, sheet named Export
+
+-   Gas.xlsx, the gas extract
+
+Both spreadsheets are Con Edison internal data. They are listed in MANIFEST.txt under their own heading so that nobody forwards this package outside Con Edison by accident.
+
+This step also reads Data/out/tract_geometry_pure-2010.json, which is step 1's output, not an input you supply. It is the tract list, which is why the geometry is built first.
+
+What comes out:
+
+-   Data/out/coned_operational_v1_0-2010.json, the operational figures
+
+Run it
+
+This script has no no-write mode, so there is no dry run to offer. Said plainly rather than faked: the command below is the first thing that writes. It refuses rather than overwriting an existing output unless you pass --force.
+
+  python scripts/build_coned_dataset.py --vintage 2010
+
+[SCREENSHOT: electric-and-gas-figures-01-real-run]
+
+What you should see
+
+A per-field coverage table, then what it deliberately threw away. Both are worth reading: a field carried for far fewer tracts than the others is the signal that an extract came out wrong.
+
+  values carried, by field:
+
+  elec_dac 2283 of 2333 tracts
+
+  elec_accts 2283 of 2333 tracts
+
+  gas_dac 1036 of 2333 tracts
+
+  DELIBERATELY DROPPED
+
+  footer row elec 'Applied filters: ...'
+
+  outside the 2010 universe: 4
+
+Gas covering fewer tracts than electric is expected, not a fault: the gas service area is smaller than the electric one.
+
+[SCREENSHOT: electric-and-gas-figures-02-coverage]
+
+If it refuses
+
+You see: A missing geometry dataset.
+
+It means: The tract list comes from step 1's output, and on a fresh package it is not there yet.
+
+What to do: Run step 1 (the tract shapes guide) and come back.
+
+You see: The output already exists.
+
+It means: The tool will not silently replace a file that might be the copy live in Dataverse.
+
+What to do: If you mean to replace it, run the same command again with --force.
+
+[SCREENSHOT: electric-and-gas-figures-03-refusal]
+
+Check your file
+
+Check the file before you upload it. The run prints its own size and sha256; these are the values this guide was written against, measured on a clean run of this package:
+
+  file : Data/out/coned_operational_v1_0-2010.json
+
+  bytes : 176,215
+
+  sha256 : b9e7a4d6e971b2b3a85f1d135c70f7da317153664c04e3954984b04e6ada3365
+
+The fingerprint this run prints is taken over Electric.xlsx and Gas.xlsx, not over the shapefiles. It changes when a new extract arrives, which is what it is for.
+
+How long it should take
+
+Expected duration: about 1 second on this run's hardware. Times vary by machine, and a slower computer taking two or three times as long is normal. A run taking ten times as long is worth investigating rather than waiting out: check whether it is downloading something it should already have, and read what it printed.
+
+The notebook for this family prints a timing block at the end, with the start time, the finish time and the total elapsed. That block is the thing to screenshot.
+
+[SCREENSHOT: electric-and-gas-figures-04-timing]
+
+Upload it
+
+Nothing in this package contacts the dashboard. The file is produced on your machine and stays there until you upload it by hand. That is a deliberate boundary, not a missing feature.
+
+In the dashboard, open Map Layers, then Upload data file, choose Data/out/coned_operational_v1_0-2010.json, and press Upload version.
+
+Paste the field block the run printed into the matching record fields. The run prints exactly the values the record expects, so copy them rather than retyping them.
+
+[SCREENSHOT: electric-and-gas-figures-05-upload]
+
+This guide stops here. What the dashboard does with the file after the upload is the dashboard's business, and is covered by the dashboard documentation, not by this package.
+
