@@ -51,13 +51,19 @@ const EXPORTS = [
   'declaredYearFromFilename', 'importYearNotice', 'rowSumIsConsistent',
   'recomputeDerivableSums', 'ingestKeyColCount', 'normIngestKey',
   'parseNumericInput', 'adoptIngestReference', 'clone2D', 'DERIVED_COLS',
+  'addReportingYear', 'allYears', 'Storage', 'saveIngestDraft', 'ingestHeaderRowCount',
 ];
 
 function boot(opts) {
   const o = opts || {};
   const src = o.src || readApp(o.rev);
   const dom = makeDocument();
-  dom.root.innerHTML = '<div id="page-mount"></div>';
+  /* the app shell this page lives in: renderIngestPage writes into page-mount,
+   * and the YEAR SELECTOR is a sibling the app rebuilds whenever a year is
+   * added. Without it buildYearSelector() throws on a null element and the
+   * add-year path dies halfway, having already registered the year. */
+  dom.root.innerHTML = '<select id="year-select"></select>' +
+    '<div id="view-container"><div id="page-mount"></div></div>';
 
   const localStore = {};
   const sandbox = {
@@ -237,6 +243,34 @@ function boot(opts) {
     dialogHtml: () => {
       const m = doc.body.querySelector('.ingest-modal-overlay');
       return m ? m.innerHTML : null;
+    },
+
+    /* CREATE A USER-ADDED YEAR, through the app's own commit path.
+     *
+     * THIS IS THE PROVENANCE THAT MATTERED. payload.json holds only seed years,
+     * so every reproduction this harness has ever run was on a seed year --
+     * and both round-2 defects reproduce only on a user-added one. A year the
+     * operator adds is registered in the STORE and pushed onto meta.years; it
+     * has no stored rows at all until something is saved into it, so
+     * loadIngestDraft builds its draft by a different route.
+     *
+     * addReportingYear is the function the Add Year button calls: it registers
+     * the year, updates meta, points the editor at it and loads the draft. */
+    addYear: (y) => {
+      if (!api.addReportingYear) throw new Error('live_editor: addReportingYear not exposed');
+      const r = api.addReportingYear(String(y));
+      if (!r || !r.ok) throw new Error('live_editor: addReportingYear refused ' + y +
+        ' -- ' + ((r && r.error) || 'no reason given'));
+      H.repaintPage();
+      return H;
+    },
+    /** is this year the operator's, or one the published report shipped with? */
+    provenance: (y) => {
+      const seed = ((appState.payload.meta || {}).years || []).map(String);
+      const added = (api.Storage && api.Storage.getAddedYears)
+        ? api.Storage.getAddedYears().map(String) : [];
+      return added.indexOf(String(y)) >= 0 ? 'user-added'
+        : (seed.indexOf(String(y)) >= 0 ? 'seed' : 'unknown');
     },
 
     /** switch year the way the picker does: set it, reload, repaint */
