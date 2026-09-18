@@ -18465,13 +18465,10 @@ function wireHTooltips() {
     // CLCPA-85: a result describes ONE table-year. Cleared here because all
     // three picker handlers already call this, so it cannot be forgotten in one
     // of them and leave a panel describing a table the operator has left.
-    i.importResult = null;
-    /* CLCPA-273: and the typed-percent advisories with it, for the same
-     * reason and in the same place -- they name cells in the table-year being
-     * left, so carrying them across would describe a grid that is no longer on
-     * screen. Cleared beside importResult so a fourth picker handler cannot
-     * clear one and forget the other. */
-    i.typedUnitNotices = [];
+    /* CLCPA-273 put the typed advisories beside the receipt here; CLCPA-276
+     * moved both into one helper, because Reset and a successful save end the
+     * same draft and were not clearing either. */
+    clearIngestNotices(i);
 
     /* CLCPA-235: RECORD WHAT THIS LOAD WAS FOR, so a redraw can tell whether
      * anything moved. Set HERE rather than at the call sites because every
@@ -23773,6 +23770,8 @@ function wireHTooltips() {
          * one thing everywhere on this page. */
         confirmDiscardChanges(() => {
           state.ingest.draft = clone2D(state.ingest.baseline);
+          /* CLCPA-276: the draft these notices described is gone. */
+          clearIngestNotices(state.ingest);
           rerenderIngestEditor();
         });
       });
@@ -23935,6 +23934,11 @@ function wireHTooltips() {
       // successful save.
       i.baseline = clone2D(i.draft);
       adoptIngestReference();
+      /* CLCPA-276: the import that produced this draft is now history, so its
+       * receipt goes. The reconciliation advisory is NOT cleared: it is
+       * recomputed from the draft on the next paint, and a saved row that
+       * still does not add up is still worth saying so. */
+      clearIngestNotices(i);
 
       close();
       rerenderIngestEditor();
@@ -24128,6 +24132,35 @@ function wireHTooltips() {
         ? fmtDerivedCell(v, d)
         : ((v == null || v === '') ? '—' : formatIngestValue(v, currencyCol[c]));
     });
+  }
+
+  /* CLCPA-276: A NOTICE LIVES EXACTLY AS LONG AS THE DRAFT IT DESCRIBES.
+   *
+   * The post-load boxes outlived their draft four ways, all verified on the
+   * hosted build: the receipt survived Cancel and Reset ("Imported into the
+   * draft: 12 cells" over a table reading No Changes), it followed a YEAR
+   * SWITCH onto an empty year, it survived a successful save still saying
+   * "Nothing has been saved yet", and the CLCPA-272 reconciliation advisory
+   * survived Reset still listing a dead draft's discrepancies.
+   *
+   * They are all the same bug: the notices are state on `i`, and only the
+   * table-year picker was clearing them. So one helper, called wherever the
+   * draft a notice describes stops existing.
+   *
+   * The DRAFT-DERIVED advisory needs no clearing and must not get any: it is
+   * recomputed from i.draft on every paint, so once the receipt stops
+   * shadowing it, it follows the draft by construction. That is the
+   * "recomputed, not merely cleared" half of the ruling -- after a save the
+   * reconciliation of the SAVED rows is still true and still worth showing,
+   * while the receipt describing an import that is now history is not.
+   *
+   * Lifecycle only: the CLCPA-266 component and every notice text are
+   * untouched. */
+  function clearIngestNotices(i) {
+    const t = i || state.ingest;
+    if (!t) return;
+    t.importResult = null;
+    t.typedUnitNotices = [];
   }
 
   /* CLCPA-273: repaint the notice mount from current state, in place.
