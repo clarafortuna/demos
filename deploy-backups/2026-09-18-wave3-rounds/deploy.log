@@ -1,0 +1,63 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org:     https://org9076e69b.crm.dynamics.com
+slice:   the wave-3 rounds and the editor two-level header -- CLCPA-274, CLCPA-281, CLCPA-278
+files:   app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  self-check: helpers present, 3 declared tickets, 5 commits, 3 resources,
+              15 app symbols across 3 tickets + 0 stylesheet symbols across 0.
+              PROSE AUDIT: no undeclared build id, commit or ticket anywhere in this file.
+PRE-FLIGHT 1  branch = main, HEAD = 29c1c13
+              source folder clean, so the pushed bytes are exactly 29c1c13.
+              ancestor: 771e008  CLCPA-274 round 3: the sub-header belongs to the table, not the year
+              ancestor: 72f1591  CLCPA-281: the editor draws both header levels
+              ancestor: 6a3d6ed  CLCPA-278 round 3: bareNumber is the one reader for adding a row up
+              ancestor: 1bb8d5a  harness: the three round-3 mutation runners and the sweep remediation
+              ancestor: 29c1c13  records: the store measurement and its 2098/2099 residue entry
+              local main == remote main == 29c1c13.
+              HEAD is the merge commit the ids were derived from.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      fcc9fa30bd
+                 styles.css  2b9651445c
+              both match what DEPLOY declares for this wave.
+              ok  CLCPA-274
+              ok  CLCPA-281
+              ok  CLCPA-278
+PRE-FLIGHT 3b all 3 ticket groups verified in the COMMITTED BLOB (15 symbols), 0 NUL bytes.
+              and the STYLESHEET half: 0 symbols across 0 ticket group(s) verified in the committed styles.css.
+PRE-FLIGHT 3c all 63 suites green, 5683 assertions.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both present, no stale third stamp.
+              Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  FK4JRTTLF
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1258189B  local=1265466B
+unchanged  styles.css   deployed=285220B  local=285220B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PROVENANCE of the archive, read from the ORG:
+  app.js APP_BUILD stamp        : 3b20bdbd6d
+  app.js canonicalised + hashed : 3b20bdbd6d
+  expected previous app.js      : 3b20bdbd6d
+  styles.css LIVE (to replace)  : 2b9651445c   expected 2b9651445c
+  -> all agree. The archive holds 3b20bdbd6d + 2b9651445c.
+
+        2 of 3 will be replaced: app.js, ExecutiveDashboard.html
+
