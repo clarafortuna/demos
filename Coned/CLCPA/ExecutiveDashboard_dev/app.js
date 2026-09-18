@@ -16982,6 +16982,11 @@ function wireHTooltips() {
     const blankHeader = (schema || []).map(h =>
       h == null || String(h).trim() === '');
     const engineWrites = (c) => !blankHeader[c];
+    /* CLCPA-274: the derivable total COLUMNS, from the schema. Same derivation
+     * CLCPA-272 reconciles against, so the template's guidance and the
+     * advisory cannot disagree about which columns are derivable. */
+    const sumRel = {};
+    detectSumColumns(schema, rows, tableId).forEach((s) => { sumRel[s.column] = s; });
     return {
       totalRow: (r) => !!totals[r],
       derivedCol: (c) => !!derived[c],
@@ -16992,6 +16997,51 @@ function wireHTooltips() {
        * and the import skips a cell from it. */
       any: (r, c) => (!!totals[r] && (!!derived[c] || engineWrites(c))) ||
         (!!derived[c] && !isTotalOnlyDerived(derived[c])),
+
+      /* CLCPA-274: WHAT THE TEMPLATE MARKS, which is MORE than what the
+       * importer skips, and the two must stay separate accessors.
+       *
+       * H1's Grand Total column arrives blank on every body row, and a blank
+       * cell invites a figure. The total ROW already says "(calculated)"; the
+       * derivable COLUMN said nothing, so the one shape the preparer is most
+       * likely to fill in by hand was also the one with no guidance on it.
+       *
+       * It cannot be folded into `any`, and that is the whole care of this
+       * change: `any` is what the IMPORT consults to skip a cell, and CLCPA-272
+       * ruled that a provided value is accepted and reconciled, never rejected
+       * and never overwritten. Widening `any` would have made the importer
+       * start discarding figures preparers actually filed. So the marker is
+       * guidance in the workbook and nothing else: a preparer who types over
+       * it is imported exactly as before, and one who leaves it gets the
+       * marker skipped (it is already handled as a non-value) and the engine
+       * computes the cell.
+       *
+       * The relationship is detectSumColumns', read from the schema -- the
+       * same one CLCPA-272 reconciles against, so guidance and advisory cannot
+       * disagree about which columns are derivable. */
+      marksInTemplate: (r, c) => {
+        if ((!!totals[r] && (!!derived[c] || engineWrites(c))) ||
+            (!!derived[c] && !isTotalOnlyDerived(derived[c]))) return true;
+        const rel = sumRel[c];
+        if (!rel) return false;
+        /* NOT IN A HEADER ROW. A header has nothing to calculate, whatever the
+         * schema says about the column -- the same rule CLCPA-240 states for
+         * the group-header branch above, which does not reach a SECOND header
+         * row (header_levels 2). Caught by suite_240a's round trip: F6's
+         * sub-header reads ["", "", "Non- Excludable", "Excludable", ...] and
+         * was being handed "(calculated)" in its Grand Total cell, which
+         * changed the shape of the file the operator downloads.
+         *
+         * A header row is told from a blank body row by what its PARTS hold:
+         * text. A body row awaiting figures holds blanks, and that is exactly
+         * where the marker is wanted. */
+        const row = (rows && rows[r]) || [];
+        const partHasText = rel.parts.some((pc) => {
+          const v = row[pc];
+          return v != null && v !== '' && typeof v !== 'number';
+        });
+        return !partHasText;
+      },
     };
   }
 
@@ -17853,7 +17903,10 @@ function wireHTooltips() {
          * data. Checked BEFORE the calculated branch: a header has nothing to
          * calculate, whatever DERIVED_COLS says about the column. */
         if (isGroupHeader) return { style: style, text: INGEST_NOVALUE_MARKER };
-        if (computed.any(idx, c)) {
+        /* CLCPA-274: the TEMPLATE's accessor, which marks the derivable total
+         * columns as well. The import keeps consulting `any`, so behaviour is
+         * unchanged: a provided value is still accepted and reconciled. */
+        if (computed.marksInTemplate(idx, c)) {
           return { style: style, text: INGEST_CALC_MARKER };
         }
         /* EMPTY, and LOCKED like everything else: the workbook shows the
