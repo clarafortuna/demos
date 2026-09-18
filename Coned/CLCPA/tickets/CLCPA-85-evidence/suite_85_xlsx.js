@@ -78,6 +78,11 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
   'buildIngestWorkbook', 'ingestTemplateSource', 'ingestComputed', 'isTotalOnlyDerived',
   /* CLCPA-260: the template asks which columns are phantom spacers */
   'phantomSpacerCols',
+  /* CLCPA-274 round 2: and how many leading data[] rows are really header.
+   * A hand-listed dependency set cannot see a new one -- the documented limit
+   * of this harness, and it showed up as a ReferenceError from inside the
+   * assembled workbook writer rather than as a failed assertion. */
+  'ingestHeaderRowCount',
   'totalRowFlags', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'isSplitCell', 'cellText', 'cellCount',
   'cellPct', 'getTableSchema', 'getTableBody', 'rawNum', 'parseCsvRows',
   'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',

@@ -629,6 +629,8 @@ guard('X: the blast radius', () => {
 
     /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
 
+    ingestHeaderRowCount: 'CLCPA-274 round 2: how many leading data[] rows are really header, shared by the editor and the template writer (new)',
+    rerenderIngestEditor: 'CLCPA-276 round 2: the editor repaint now repaints the notice mount beside it',
     ingestRoleOpen: 'CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)',
     ingestRowRole: 'CLCPA-270: the row role, from its label (new)',
 
@@ -738,7 +740,9 @@ guard('X: the blast radius', () => {
   /* 28 -> 33: CLCPA-263 moved five, all named above. */
   /* 52 -> 60: the review follow-up package moved 8 more, every one of them named in the map above. The delta equals the number of entries added to that map, so nothing entered this count unattributed. */
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
-  ok(changed.length === 61, 'X8 exactly this many functions changed: ' + changed.length);
+  /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
+   * round 2 moved rerenderIngestEditor, both named in the map above. */
+  ok(changed.length === 63, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

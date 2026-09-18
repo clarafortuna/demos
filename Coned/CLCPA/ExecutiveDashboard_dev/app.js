@@ -23817,6 +23817,30 @@ function wireHTooltips() {
 
   /** Wire the editor's cell inputs, add-row, delete-row, save, reset. */
   function wireIngestEditor() {
+    /* CLCPA-278 round 2: THE ROW AS IT STOOD BEFORE THE EDITING EPISODE.
+     *
+     * Round 1 captured it at the top of the BLUR handler, which is one event
+     * too late: the INPUT handler commits on every keystroke, by design, so
+     * the focused cell is never rebuilt and multi-digit typing keeps focus. By
+     * the time blur ran, the components had already changed and
+     * rowSumIsConsistent(beforeRow) was false BY CONSTRUCTION -- so the
+     * recompute never fired for any edit at all.
+     *
+     * Measured on the live page, H1 2025 Manhattan (1309 + 491 = 1800, which
+     * reconciles exactly): typing 500 into DAC Repairs and leaving the cell
+     * left the total frozen at 1800 and raised the advisory instead. Driving
+     * blur ALONE -- which is what suite_278 did -- recomputed to 1809 and went
+     * green. That gap is the whole ticket.
+     *
+     * An episode is focus, one or more inputs, then blur. The snapshot is
+     * taken before the FIRST write of an episode and released at blur, so it
+     * does not depend on a focus event having fired and cannot leak into the
+     * next cell. It is deliberately NOT on state.ingest: it is transient UI
+     * bookkeeping, and nothing that gets stored may learn about it.
+     *
+     * Scoped to this wiring: every rerender re-wires, which ends any episode
+     * in flight -- and a rerender replaces the input the operator was in. */
+    let preEdit = null;
     // Cell inputs
     document.querySelectorAll('.ingest-cell').forEach(input => {
       // Commit the raw value on every keystroke — IN MEMORY ONLY, no re-render, so
@@ -23825,6 +23849,12 @@ function wireHTooltips() {
         const r = parseInt(e.target.dataset.row, 10);
         const c = parseInt(e.target.dataset.col, 10);
         if (isNaN(r) || isNaN(c)) return;
+        /* CLCPA-278 round 2: BEFORE the first write of this episode, which is
+         * the only moment the row still holds what the preparer found. */
+        if (!preEdit || preEdit.r !== r) {
+          preEdit = { r: r, row: Array.isArray(state.ingest.draft[r])
+            ? state.ingest.draft[r].slice() : null };
+        }
         state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
       });
       // Editing a formatted cell shows the raw number (no $/commas) for clean input.
@@ -23847,12 +23877,19 @@ function wireHTooltips() {
          * Advisory only -- the CLCPA-244 convention stands, the value is
          * committed either way, and nothing is rejected. */
         noteTypedPercent(r, c, e.target.value);
-        /* CLCPA-278: the row AS IT WAS, captured before the write. Whether
-         * the row's total is the engine's figure or the preparer's can only
-         * be read from the pre-edit row: after the write the components no
-         * longer match it by construction. */
-        const beforeRow = Array.isArray(state.ingest.draft[r])
-          ? state.ingest.draft[r].slice() : null;
+        /* CLCPA-278: the row AS IT WAS. Whether the row's total is the
+         * engine's figure or the preparer's can only be read from the pre-edit
+         * row: after the write the components no longer match it by
+         * construction.
+         *
+         * ROUND 2: taken from the snapshot the INPUT handler captured, because
+         * by the time this runs the input handler has already committed every
+         * keystroke. The fallback covers a blur with no preceding input -- the
+         * operator focused a cell and left it -- where the row is unchanged and
+         * reading it here is the same answer. */
+        const beforeRow = (preEdit && preEdit.r === r) ? preEdit.row
+          : (Array.isArray(state.ingest.draft[r]) ? state.ingest.draft[r].slice() : null);
+        preEdit = null;
         state.ingest.draft[r][c] = (c === 0) ? e.target.value : parseNumericInput(e.target.value);
         /* and bring a CONSISTENT row total with the edit. A total that already
          * disagreed with its parts is the preparer's and is left alone for

@@ -84,7 +84,7 @@ log('');
 log('B. THE DEFECT, ON THE BUILD THAT SHIPPED IT');
 guard('B: Reset', () => {
   const H = fresh(BASE_SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   ok(says(H), 'B1 typing a disagreement raises the advisory');
   H.clickReset();
   ok(JSON.stringify(H.draft()[0]) === ROW0,
@@ -94,7 +94,7 @@ guard('B: Reset', () => {
 });
 guard('B: year switch', () => {
   const H = fresh(BASE_SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   H.switchYear('2024');
   ok(says(H), 'B5 and it follows a year switch onto a year that reconciles cleanly');
   const rec = H.api.reconcileSumColumns(H.draft(), H.ingest().schema, 'H1');
@@ -106,7 +106,7 @@ log('');
 log('C. EVERY EXIT, ON THE LIVE PAGE');
 guard('C: Reset', () => {
   const H = fresh(SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   ok(says(H), 'C1 the advisory appears on the edit');
   H.clickReset();
   ok(JSON.stringify(H.draft()[0]) === ROW0, 'C2 Reset restores the draft');
@@ -115,14 +115,14 @@ guard('C: Reset', () => {
 });
 guard('C: year switch', () => {
   const H = fresh(SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   H.switchYear('2024');
   ok(!says(H), 'C4 a year switch leaves nothing behind');
   ok(H.draft()[0][1] === 1242, 'C5 and really did load 2024 -- ' + JSON.stringify(H.draft()[0]));
 });
 guard('C: add row', () => {
   const H = fresh(SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   const add = H.doc.getElementById('ingest-add-row');
   ok(!!add, 'C6 the add-row control is on the page');
   add.dispatchEvent({ type: 'click' });
@@ -134,12 +134,12 @@ guard('C: add row', () => {
 });
 guard('C: the discard guard is honoured', () => {
   const H = fresh(SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   const b = H.doc.getElementById('ingest-reset');
   b.dispatchEvent({ type: 'click' });
   ok(H.modalOpen(), 'C9 Reset opens the shared discard guard rather than acting at once');
   H.confirmModal('cancel');
-  ok(H.draft()[0][2] === 500,
+  ok(H.draft()[0][3] === 9999,
     'C10 and CANCELLING it changes nothing -- ' + JSON.stringify(H.draft()[0]));
   ok(says(H), 'C11 including the advisory, which still describes the live draft');
 });
@@ -173,12 +173,12 @@ guard('X-block', () => {
   /* Reset is TWO gestures. A driver that only pressed the button would measure
    * a Reset that never ran and "prove" a defect that was an unanswered modal. */
   const H = fresh(SRC);
-  H.typeInCell(0, 2, 500);
+  H.typeInCell(0, 3, 9999);
   H.doc.getElementById('ingest-reset').dispatchEvent({ type: 'click' });
-  ok(H.modalOpen() && H.draft()[0][2] === 500,
+  ok(H.modalOpen() && H.draft()[0][3] === 9999,
     'X2 pressing Reset alone does NOT reset: the guard is still open');
   H.confirmModal();
-  ok(H.draft()[0][2] === 491, 'X3 it takes answering the guard, which the driver does');
+  ok(H.draft()[0][3] === 1800, 'X3 it takes answering the guard, which the driver does');
 });
 
 log('');

@@ -1,0 +1,14 @@
+======================================================================
+CLCPA-276 round 2 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the editor repaint stops touching the notices
+       3 red, incl: C3 and the notice area is now empty -- "Does not add up: 2 rowsA total column do"
+  red  THE REPAINT becomes a BLANK, which erases a live discrepancy too
+       3 red, incl: C7 a repaint KEEPS a live discrepancy -- recomputed, not cleared
+  red  THE NOTICE MOUNT is repainted from stale state rather than recomputed
+       3 red, incl: C7 a repaint KEEPS a live discrepancy -- recomputed, not cleared
+  red  RESET stops restoring the draft, so the suite is not just reading paint
+       3 red, incl: C2 Reset restores the draft
+
+  4 caught, 0 not caught, of 4 applied
+  clean re-run against byte-restored source: PASSES -- 28 passed, 0 failed

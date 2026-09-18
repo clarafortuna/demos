@@ -1,0 +1,16 @@
+======================================================================
+CLCPA-277 round 2 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: target() loses its year again
+       5 red, incl: C1 staging a 2099 file into 2097 warns on the staged card
+  red  THE TARGET reads the validation year, which is empty before a keystroke
+       1 red, incl: G1 target() now carries the destination year
+  red  THE ADVISORY stops following the box
+       3 red, incl: D2 retyping the destination to 2099 removes it: the years now agree
+  red  IT FOLLOWS BY REDRAWING, which takes the focus out of the field
+       2 red, incl: G4 and that handler still does not redraw the dialog
+  red  THE ADVISORY is raised even when the years agree
+       2 red, incl: D2 retyping the destination to 2099 removes it: the years now agree
+
+  5 caught, 0 not caught, of 5 applied
+  clean re-run against byte-restored source: PASSES -- 31 passed, 0 failed

@@ -1,0 +1,56 @@
+======================================================================
+CLCPA-278 round 2 -- the pre-edit row, captured before the first write
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 590703c (predates this change)
+======================================================================
+
+A. THE DEFECT, ON THE BUILD THAT SHIPPED IT
+  ok   A1 Manhattan reconciles exactly to start
+  ok   A2 input THEN blur leaves the total FROZEN at 1800 -- ["Manhattan",1309,500,1800]
+  ok   A3 and raises the advisory instead, which is what the hosted pass saw
+  ok   A4 blur alone DID recompute on BASE -- ["Manhattan",1309,500,1809]  <- why the suite was green
+
+B. THE REAL GESTURE
+  ok   B1 input then blur now recomputes to 1809 -- ["Manhattan",1309,500,1809]
+  ok   B2 and raises no advisory: the row adds up again
+  ok   B3 the untouched component is untouched
+  ok   B4 the snapshot is the row before the FIRST keystroke, not the second -- ["Manhattan",1309,500,1809]
+  ok   B5 focusing a cell and leaving it changes nothing -- ["Manhattan",1309,491,1800]
+  ok   B6 the two drives now AGREE -- the permanent control on this class -- ["Manhattan",1309,500,1809]
+
+C. A TOTAL THAT ALREADY DISAGREED IS THE PREPARER'S
+  ok   C1 the preparer types a total that does not add up
+  ok   C2 editing a component KEEPS it -- nothing computed over it -- ["Manhattan",1309,600,9999]
+  ok   C3 while the component itself did change
+  ok   C4 and CLCPA-272 advises on it instead
+  ok   C5 row 0 recomputed
+  ok   C6 row 1 uses ITS OWN pre-edit row, not row 0's -- ["Queens",1563,300,1863]
+
+D. THE DRAFT ONLY
+  ok   D1 the stored row is untouched by an edit -- ["Manhattan",1309,491,1800]
+  ok   D2 and so is the baseline Reset restores
+
+E. THE SHARED PATH THIS TOUCHES
+  ok   E1 wireIngestEditor is the function that changed
+  ok   E2 the snapshot is scoped to ONE wiring, not to state.ingest
+  ok   E3 nothing transient was hung on the stored state
+  ok   E4 the INPUT handler captures, once per episode
+  ok   E5 the BLUR handler reads it
+  ok   E6 and releases it, so it cannot leak
+  ok   E7 CLCPA-276 round 2's repaint is still in rerenderIngestEditor
+  ok   E8 which re-wires, so a repaint ends any episode in flight -- the two agree
+  ok   E9 the focus handler is byte-identical to BASE
+
+F. THE RULE ITSELF DID NOT MOVE
+  ok   F1 rowSumIsConsistent is byte-identical to BASE
+  ok   F2 and recomputeDerivableSums: only WHEN it is asked changed, never what it does
+  ok   F3 and the relationship it reads
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha
+  ok   X2 typeInCell sends input AND blur, in that order
+  ok   X3 and input really is first
+
+======================================================================
+  33 passed, 0 failed
+======================================================================
