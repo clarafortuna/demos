@@ -61,3 +61,78 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as b0ee872
+          remote main = b0ee872  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1265466B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1265466B  sha256 ce304ea5a338ba92...  VERIFIED byte-identical
+READ-BACK styles.css  285220B  sha256 2b9651445cb2bce5...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 e16122e9fdb771ee...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : fcc9fa30bd  ok
+  app.js canonicalised + hashed : fcc9fa30bd  ok
+  styles.css hashed             : 2b9651445c  ok
+  HTML references app.js?v=     : fcc9fa30bd  ok
+  HTML references styles.css?v= : 2b9651445c  ok
+  all 3 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the wave-3 rounds and the editor two-level header -- CLCPA-274, CLCPA-281, CLCPA-278
+build id (app.js): fcc9fa30bd
+styles.css id    : 2b9651445c   (replaced 2b9651445c)
+previous build   : 3b20bdbd6d, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 29c1c13
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build fcc9fa30bd
+
+THE ACCEPTANCE PASS:
+  CLCPA-274  THE TEMPLATE CARRIES ITS SUB-HEADER ON ANY YEAR.
+     Download F6s template for a USER-ADDED year that already holds saved
+     rows -- that is the shape round 2 never tested. Row 2 must read the
+     four sub-labels, not the first data row. Check a seed year too, and
+     A9 and A10, which borrow their sub-header the same way.
+  CLCPA-281  THE EDITOR GRID SHOWS BOTH HEADER LEVELS.
+     Open F6 in Report Data. The grid must now have TWO header rows, the
+     group spans over the sub-labels, so the four value columns can be told
+     apart. A9 and A10 the same. Then EDIT A CELL and confirm the change
+     lands on the row you typed in: the header row left the body, and the
+     indices every handler uses must not have shifted. H1 and D1 must look
+     exactly as they did.
+  CLCPA-278  A TOTAL FOLLOWS ITS COMPONENTS EVEN FROM AN IMPORTED YEAR.
+     On a user-added year, find a row whose Grand Total equals its parts
+     and edit one part DIGIT BY DIGIT. The total must follow. This is the
+     gesture that failed twice: the cause was never the year, it was a
+     component stored as a numeric STRING, which the engine now reads.
+     Then take a row whose total already disagrees, or one holding a
+     percent like 33%, and edit a part: that total must be KEPT and the
+     advisory raised. Nothing computed over a figure the engine cannot
+     derive.
+
+STILL DISCLOSED, not defects in this build:
+  - THE 44 CELLS, accepted by ruling and named in the CLCPA-224 residue.
+  -    A3 and A4 for 2098 hold 44 numeric-looking STRINGS in column 1 --
+  -    parallel-audit scaffolding. Under the previous build the sum engine
+  -    could not see them; under this one it can, so totals, reconciliation
+  -    advisories and consistency judgements on those two table-years may
+  -    move. By how much is NOT measured. Read from the org on 2026-09-18,
+  -    every cell listed in tickets/org-reads-evidence.
+  - A TWO-LEVEL TABLE STILL CANNOT ROUND-TRIP THROUGH A SINGLE-ROW CSV
+  -    HEADER: A9s headings genuinely span two rows. Unchanged by this wave,
+  -    filed as CLCPA-282.
+  - THE REMOVE-YEAR CONTROL asks the composed payload whether a year holds
+  -    data, not the store. Unchanged by this wave, filed as CLCPA-283.
+  - PRE-EXISTING: on a fresh A8 the CLCPA-240 bootstrap would compute 283,852
+  -    into the grand total whose real figure is 336,599. Queued behind
+  -    Section Hs closure.
+  - The stylesheet does NOT move in this wave: app.js alone changes.
+
+=== log written by deploy_wave3_rounds.js ===
