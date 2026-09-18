@@ -69,3 +69,97 @@ PROVENANCE of the archive, read from the ORG:
 
         3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 5a75308
+          remote main = 5a75308  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1249966B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (285220B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1249966B  sha256 21e09397e753da02...  VERIFIED byte-identical
+READ-BACK styles.css  285220B  sha256 2b9651445cb2bce5...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 8966e3eb2ad8f728...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : b0c8c99ebf  ok
+  app.js canonicalised + hashed : b0c8c99ebf  ok
+  styles.css hashed             : 2b9651445c  ok
+  HTML references app.js?v=     : b0c8c99ebf  ok
+  HTML references styles.css?v= : 2b9651445c  ok
+  all 6 app ticket groups and 4 stylesheet symbols across 1 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the review follow-up wave -- CLCPA-270, CLCPA-274, CLCPA-278, CLCPA-269, CLCPA-276, CLCPA-277, CLCPA-275
+build id (app.js): b0c8c99ebf
+styles.css id    : 2b9651445c   (replaced 04471d05bf)
+previous build   : b09515e7d8, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ f1853ee
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build b0c8c99ebf
+
+THE ACCEPTANCE PASS:
+  CLCPA-270  PROTECTION COMES FROM THE LABEL, AND THE FIGURE FROM WHOEVER
+     CAN SUPPLY IT. Open A3 2023 in Report Data. Its Total row must have NO
+     editable label and NO delete control, and its 2,354,317 must still be
+     TYPEABLE -- that is the A8 ruling: the engine cannot derive that figure,
+     so it stays the preparers. Same shape on A8 2025 "Total CES Programs
+     Installations" (336,599). Then open B1: its Total row must be locked in
+     FULL, values included, because the engine does derive it. Every total
+     row on every table must still READ as a total row, shaded, whether or
+     not its cells are typeable.
+  CLCPA-274  THE TEMPLATE SAYS WHICH TOTAL COLUMNS IT COMPUTES.
+     Download H1s template. Its Grand Total column must read (calculated) on
+     the body rows, not sit blank inviting a figure. Then TYPE A NUMBER over
+     one and import: it must be ACCEPTED and reconciled, never discarded --
+     the marker is guidance, not a rejection. Open F6s template, which has a
+     second header row: that header row must NOT carry the marker.
+  CLCPA-278  A TOTAL THAT AGREES WITH ITS PARTS FOLLOWS AN EDIT.
+     In H1, edit a component cell of a row whose Grand Total currently EQUALS
+     its parts: the total must move with it. Then edit a component of a row
+     whose total already DISAGREES: that total must be KEPT untouched and the
+     advisory raised instead. Nothing stored may move until you save.
+  CLCPA-269  THE SAVE COUNT IS WHAT THE PREPARER BROUGHT.
+     Import a file into an EMPTY year and open the Save dialog. The count
+     must be the cells you actually filed -- not the label column, not the
+     rows the engine computes. On the shape this was filed against it read
+     20 and must now read 12.
+  CLCPA-276  A NOTICE LIVES EXACTLY AS LONG AS THE DRAFT IT DESCRIBES.
+     Raise any import notice, then press Reset: it must go. Raise one and
+     SAVE: it must go. Raise one, switch table or year and come back: it must
+     not be describing a draft that no longer exists.
+  CLCPA-277  A FILE NAMED FOR THE WRONG YEAR IS NAMED.
+     Rename a template to carry a different year and import it into another.
+     A RED box must say so, on the staged dialog AND after loading, and the
+     import must still go through -- it is advisory only. A filename with no
+     year, or two, must say nothing.
+  CLCPA-275  THE NOTICE STACK CLEARS THE CARD BELOW IT.
+     With one or more notices showing at the bottom of the panel, the gap
+     below the last one must match the spacing stacked cards already use
+     elsewhere. This one is your eye: no harness here can see a rendered gap.
+
+STILL DISCLOSED, not defects in this build:
+  - CLCPA-270 locks the LABEL and the delete control on 83 flat-table total
+  -    rows that were open before, across many tables. The values on those rows
+  -    are unaffected. FIVE rows keep typeable values under the A8 ruling:
+  -    A3 2023 r28, A3 2024 r26, A4 2023 r28, A8 2025 r25 and J8 2025 r2.
+  - CLCPA-270 gives back part of the year-to-year stability it bought: a total
+  -    rows VALUE lock now follows whether the engine derives it, which is a
+  -    property of that years data. Its label lock and delete guard do not.
+  - On a year with NO figures yet every total row still locks in full, because
+  -    the engine will compute it once data arrives. Only a stored year whose
+  -    figures fail to reconcile keeps its total typeable.
+  - PRE-EXISTING, not fixed here: on a fresh A8 the CLCPA-240 bootstrap would
+  -    compute 283,852 into the grand total whose real figure is 336,599. It
+  -    is unreachable while the row holds numbers. Needs its own ticket.
+  - payload.json stores 19 KPI entries that disagree with the derive engine,
+  -    and A5 2025 stores 27,833 where its parts give 27,834. Pre-existing,
+  -    pinned, under the payload freeze, and untouched by this wave.
+  - The stylesheet moves in this wave. Both halves of the pair change.
+
+=== log written by deploy_review_followup.js ===
