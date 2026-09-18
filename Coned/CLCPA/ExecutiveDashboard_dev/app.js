@@ -17561,6 +17561,55 @@ function wireHTooltips() {
     return Math.min(lv - 1, n);
   }
 
+  /* DOES THIS YEAR'S DATA ACTUALLY CARRY THE SUB-HEADER ROWS?
+   *
+   * header_levels 2 says data[0] IS the second header row -- of the stored
+   * shape the published report shipped. A year the OPERATOR added does not
+   * follow that shape: it is created by import, so its rows are data from the
+   * first one, and nothing ever prepends the sub-header.
+   *
+   * Round 2 applied the count to whatever rows came back, so on a user-added
+   * year with saved rows the template emitted the first DATA row into the
+   * sub-header position -- "Borough Hall", "Brooklyn", 607 ... where four
+   * column labels belong. Reproduced on F6 2099.
+   *
+   * THE TEST IS THE LABEL COLUMN, and it is a real structural property rather
+   * than a guess: measured across the whole declared family, every stored
+   * sub-header row has a BLANK label (F6 null, A9 and A10 ""), because a
+   * column-heading row names no row. Every data row carries a label, which is
+   * what the importer keys on. */
+  function ingestRowIsStoredHeader(row) {
+    if (!Array.isArray(row)) return false;
+    const label = row[0];
+    return label == null || String(label).trim() === '';
+  }
+
+  function ingestYearCarriesHeaderRows(rows, headerCount) {
+    if (!headerCount || !Array.isArray(rows) || rows.length < headerCount) return false;
+    for (let i = 0; i < headerCount; i++) {
+      if (!ingestRowIsStoredHeader(rows[i])) return false;
+    }
+    return true;
+  }
+
+  /* The table's sub-header rows, from a year that actually carries them.
+   *
+   * They belong to the TABLE, not to a year: the same four labels sit over
+   * F6's value columns in every year it has. So a year that lacks them --
+   * any user-added one -- borrows them, exactly as a schema is borrowed. */
+  function ingestStoredHeaderRows(table, headerCount) {
+    if (!headerCount || !table || !table.data) return [];
+    const years = Object.keys(table.data)
+      .sort((a, b) => parseInt(b, 10) - parseInt(a, 10));
+    for (let k = 0; k < years.length; k++) {
+      const rows = table.data[years[k]] || [];
+      if (ingestYearCarriesHeaderRows(rows, headerCount)) {
+        return rows.slice(0, headerCount).map(r => (Array.isArray(r) ? r.slice() : r));
+      }
+    }
+    return [];
+  }
+
   function ingestTemplateSource(table, year) {
     const own = getTableBody(table, year);
     if (own && own.length) return { year: year, rows: own, borrowed: false };
@@ -18022,15 +18071,23 @@ function wireHTooltips() {
      * offered for typing and it carries no (calculated) marker: a header has
      * nothing to calculate, which is the same rule the group-header branch and
      * marksInTemplate's own guard already state. */
-    const templateHeaderRows = ingestHeaderRowCount(table, src.rows.length);
-    src.rows.forEach((row, idx) => {
-      if (idx < templateHeaderRows) {
-        rows.push(visible(schema.map((h, c) => ({
-          style: XLSX_STYLE_HEADER,
-          text: row[c] == null || row[c] === '' ? null : String(row[c]),
-        }))));
-        return;
-      }
+    /* ROUND 3: the sub-header comes from the TABLE, and the year contributes
+     * only data. Applying the count to src.rows assumed every year follows the
+     * stored shape, which a user-added year does not -- it is created by
+     * import, so its first row is data, and the template emitted it as the
+     * header. The rows the source year does carry are skipped rather than
+     * emitted twice. */
+    const headerCount = ingestHeaderRowCount(table, Infinity);
+    const headerRows = ingestStoredHeaderRows(table, headerCount);
+    headerRows.forEach((row) => {
+      rows.push(visible(schema.map((h, c) => ({
+        style: XLSX_STYLE_HEADER,
+        text: row[c] == null || row[c] === '' ? null : String(row[c]),
+      }))));
+    });
+    const skip = ingestYearCarriesHeaderRows(src.rows, headerCount) ? headerCount : 0;
+    src.rows.slice(skip).forEach((row, i) => {
+      const idx = i + skip;
       // Round 6: a Total row carries the dashboard's total-row look, whole row.
       const isTotal = computed.totalRow(idx);
       /* CLCPA-240: A GROUP HEADER'S CELLS STAY GENUINELY BLANK.
