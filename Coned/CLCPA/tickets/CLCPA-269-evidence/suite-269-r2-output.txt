@@ -1,0 +1,62 @@
+======================================================================
+CLCPA-269 round 2 -- the count is the preparer's cells
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : e08bbad (predates this change)
+======================================================================
+
+A. THE LIVE EMPTY-YEAR PATH, reproduced before anything was changed
+  ok   A1 the baseline of an empty year is EMPTY
+  ok   A2 the import ADDS all five rows (5)
+  ok   A3 and populates exactly 12 cells -- what the preparer brought (12)
+  ok   A4 the draft holds 5 rows
+  ok   A5 on BASE the dialog said 20 -- the hosted build's exact number (got 20)
+  ok   A6 it now says 12 (got 12)
+
+B. THE TWENTY, CLASSIFIED
+     key/label cells : 5
+     engine cells    : 3
+     preparer cells  : 12
+  ok   B1 five label cells
+  ok   B2 three engine cells, the total row
+  ok   B3 twelve preparer cells
+  ok   B4 and they account for all 20
+
+C. THE POPULATED-BASELINE PATH
+     BASE 15  ->  12
+  ok   C1 BASE read 15 on this pair, as the ticket reports (got 15)
+  ok   C2 and it is now lower, the label and total-row cells removed
+  ok   C3 specifically 12: four boroughs x three value columns (got 12)
+  ok   C4a and the three cells removed are exactly the total row's (got 3)
+  ok   C4 an untouched draft still counts 0
+  ok   C5 and so does an empty one
+
+D. A RECOMPUTED ROW TOTAL, and the decision the ticket asked for
+  ok   D1 one edit moved two cells: the component and its row total
+     the dialog reports: 2
+  ok   D2 and the dialog counts BOTH -- the decision, stated: a body row's total is a figure in the table, and the value being saved has moved (got 2)
+     DECISION: the total ROW and the derived COLUMNS are the engine's and
+     are excluded on every path. A body row's total column is not: the
+     preparer files it in the template and CLCPA-278 may recompute it,
+     and either way the saved value moved. Excluding it would have
+     reported 8 for an import that plainly brought 12.
+
+E. THE EXCLUSIONS ARE DERIVED, NOT LISTED
+  ok   E1 the engine cells come from the shipped classifier
+  ok   E2 and the key columns from the shipped declaration
+  ok   E3 both exclusions are applied in the count
+  ok   E4 no added code line names a table
+  ok   E5 A3 declares two key columns (got 2)
+  ok   E6 and renaming BOTH of them counts 0 -- neither is a figure
+
+X. THE HARNESS
+  ok   X1 BASE is a literal sha -- e08bbad
+  ok   X2 and predates this change
+  ok   X3 the baseline of the year under test is empty
+  ok   X3b the draft under test IS the import plan's candidate, not a copy of stored data that happens to look like one
+  ok   X3c and the plan is a real buildIngestImport result
+  ok   X3d whose rows are the FILE's rows, in the file's order
+  ok   X4 the file's own arithmetic checks out
+
+======================================================================
+  31 passed, 0 failed
+======================================================================
