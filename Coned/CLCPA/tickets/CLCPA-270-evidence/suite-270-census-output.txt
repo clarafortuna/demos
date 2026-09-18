@@ -1,0 +1,146 @@
+======================================================================
+CLCPA-270 -- the census RE-RUN, diffed against the delivered census
+  BASE (delivered census): a444741
+======================================================================
+
+SCALE
+  table-years : 149
+  rows        : 1393
+  ok   both builds measured the same rows (1393)
+
+ROWS WHOSE PROTECTION CHANGED: 83
+  A1:2023   r24 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A1:2024   r27 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A1:2025   r22 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A2:2023   r28 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A2:2024   r25 L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  A2:2025   r22 L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  A3:2023   r28 L+ V+ D+  ->  L- V+ D-   [total]  "Total"
+  A3:2024   r26 L+ V+ D+  ->  L- V+ D-   [total]  "Total"
+  A3:2025   r22 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A4:2023   r28 L+ V+ D+  ->  L- V+ D-   [total]  "Total"
+  A4:2024   r26 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A4:2025   r22 L+ V- D-  ->  L- V- D-   [total]  "Total"
+  A8:2025   r25 L+ V+ D+  ->  L- V+ D-   [total]  "Total CES Programs Installations"
+  B1:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  B1:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  B1:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  B2:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  B2:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  B2:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C2:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C2:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C2:2025   r3  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C3:2023   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C3:2024   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C3:2025   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C4:2023   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C4:2024   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C4:2025   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C5:2023   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C5:2024   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  C5:2025   r5  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  E1:2023   r4  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  E1:2024   r4  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  E1:2025   r4  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F2:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F2:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F2:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F7:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F7:2023   r3  L+ V+ D+  ->  L- V- D-   [computed]  "% of Grand Total"
+  F7:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F7:2024   r3  L+ V+ D+  ->  L- V- D-   [computed]  "% of Grand Total"
+  F7:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F7:2025   r3  L+ V+ D+  ->  L- V- D-   [computed]  "% of Grand Total"
+  F8:2023   r6  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F8:2024   r6  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F8:2025   r6  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F9:2023   r6  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F9:2024   r6  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  F9:2025   r6  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  G1:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Systemwide Total"
+  G10:2023  r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  G10:2024  r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  G10:2025  r2  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  G2:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G2:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G2:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G3:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G3:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G4:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G4:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G4:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G5:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G5:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G6:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G6:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G6:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G7:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G7:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G8:2023   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G8:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G8:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G9:2024   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  G9:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "County Total"
+  H1:2023   r4  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  H1:2024   r4  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  H1:2025   r4  L+ V- D-  ->  L- V- D-   [total]  "Grand Total"
+  J3:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  J4:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  J6:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  J7:2025   r2  L+ V- D-  ->  L- V- D-   [total]  "Total"
+  J8:2025   r2  L+ V+ D+  ->  L- V+ D-   [total]  "Total"
+  J8:2025   r3  L+ V+ D+  ->  L- V- D-   [computed]  "% of total in DAC"
+  J8:2025   r4  L+ V+ D+  ->  L- V- D-   [computed]  "% of total in non-DAC"
+
+A. THE ONE-WAY RULE: protection may tighten, never loosen
+  ok   A1 NOT ONE row became more open -- 0
+
+B. THE RULED CONSEQUENCES
+   consequence 1, the fully-open total-labelled rows in A3, A4, J8:
+      A3:2023 r28  "Total"
+      A3:2024 r26  "Total"
+      A4:2023 r28  "Total"
+      J8:2025 r2  "Total"
+  ok   B1 exactly FOUR such rows locked -- found 4
+   beyond the enumeration, reached by the ruling's principle:
+      A8:2025 r25  "Total CES Programs Installations"
+  ok   B1b exactly ONE row beyond the enumeration, and it is A8 -- found 1 (A8)
+  ok   B2 the rows whose protection flapped between years are all in the changed set
+  ok   B3a the LABEL lock and the delete guard are identical on every total-role row in every year -- the arithmetic path is dead as an arbiter of structure
+   consequence 5, total rows the engine does NOT derive (L- V+ D-):
+      A3:2023 r28  "Total"
+      A3:2024 r26  "Total"
+      A4:2023 r28  "Total"
+      A8:2025 r25  "Total CES Programs Installations"
+      J8:2025 r2  "Total"
+  ok   B3b and EXACTLY these five rows keep typeable values -- got 5: A3|2023|28, A3|2024|26, A4|2023|28, A8|2025|25, J8|2025|2
+  ok   B3c four of the five are consequence 1's own rows, not an A8 exception
+  ok   B3d every one of them is a row the derive engine itself declines -- no row or table is named anywhere in the rule
+  ok   B4 the label lock reaches the flat tables: 83 rows gained a locked label (the census found 56 flat total rows open)
+   consequence 4, system-computed share rows:
+      F7  % of Grand Total
+      J8  % of total in DAC
+      J8  % of total in non-DAC
+  ok   B5 every computed-share row is locked in full, values and label (5 row-years)
+  ok   B6 and the rule reached an EQUIVALENT outside J8 -- F7 "% of Grand Total"
+  ok   B7 and it claimed NONE of D2/D3/D4's percentage rows, whose denominator is not in the table -- found 0
+
+C. AND NOTHING ELSE
+   changed rows not covered by a ruled consequence: 0
+  ok   C1 every changed row is covered by a ruled consequence -- 0 are not
+
+D. THE ARITHMETIC PATH IS NO LONGER AN ARBITER
+  ok   D1 the renderer derives ONE role per row
+  ok   D2 value locking follows the protections the accessor returned
+  ok   D2a and the value half is asked of the DERIVE ENGINE, per row
+  ok   D2b the renderer no longer reads the role table directly
+  ok   D2c while the row STYLING follows the role, not the value lock
+  ok   D3 label locking follows the role
+  ok   D4 deletability follows the role
+  ok   D5 the arithmetic-gated label lock is gone
+  ok   D6 totalRowFlags itself survives, where it belongs: the derive engine
+
+======================================================================
+  23 passed, 0 failed
+======================================================================

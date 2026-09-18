@@ -1,0 +1,38 @@
+======================================================================
+CLCPA-270 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the label lock is gated on arithmetic again
+       2 red, incl: D3 the label lock is the role's
+  red  ARITHMETIC creeps into the role itself
+       1 red, incl: C1 ingestRowRole takes exactly three arguments -- label, table, header (4)
+  red  THE VALUE LOCK goes back to the arithmetic flags
+       2 red, incl: D4 the value lock is the role's
+  red  THE DELETE BUTTON re-derives its own three-way test
+       1 red, incl: D5 the delete button is the role's
+  red  NARROWED to the strict classifier: 21 G-table rows UNLOCK
+       2 red, incl: A1 NOT ONE row became more open -- 21: G1|2025|2, G2|2023|2, G2|2024|2, G2|2025|2, G3|2024|2
+  red  THE DECLARED FAMILY is dropped, so 55 group totals UNLOCK
+       1 red, incl: A5 including one that carries the word in the MIDDLE, inside the declared family
+  red  WIDENED to an unanchored match: the CLCPA-200 data rows are claimed
+       3 red, incl: A11 J1's "Total amount of residential electric usage (kWh)" is DATA
+  red  THE LOOSE FORM escapes the declared family
+       2 red, incl: A11 J1's "Total amount of residential electric usage (kWh)" is DATA
+  red  THE SHARE RULE drops "of total", claiming the preparer's percentages
+       5 red, incl: A13.1 "Percentage of projects in DACs" stays DATA
+  red  THE SHARE RULE is hardcoded to J8's two labels
+       1 red, incl: A7 and the same rule reaches F7
+  red  A ROLE GOES HALF-OPEN: computed keeps an editable label
+       2 red, incl: B4 computed is not half-open -- [true,false,false]
+  red  TOTALS BECOME DELETABLE again
+       2 red, incl: B2 total is closed on all three
+  red  A HEADER stops winning over a total label
+       1 red, incl: A10b and a header whose caption reads like a computed share is still a HEADER
+  red  THE FOOTER NOTE goes back to the arithmetic flags
+       1 red, incl: D10 where BASE asked the arithmetic flags
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X1 BASE is pinned to a literal commit sha -- got none
+  red  HARNESS: the role is re-implemented instead of sliced
+       4 red, incl: A6 a percentage OF A TOTAL is computed, not a total
+
+  16 caught, 0 not caught, of 16 applied
+  clean re-run against byte-restored source: PASSES -- 49 passed, 0 failed  |  17 passed, 0 failed

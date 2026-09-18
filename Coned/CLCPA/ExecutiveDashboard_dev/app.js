@@ -2454,6 +2454,125 @@ function utf8ByteLength(str) {
     return v != null && /total/i.test(String(v));
   }
 
+  /* ===================================================================
+   * CLCPA-270: ONE LOCKING MODEL, KEYED ON THE ROW'S STRUCTURAL ROLE.
+   *
+   * Protection was decided three different ways, and one of them was
+   * ARITHMETIC: totalRowFlags confirms a row sums its segment, and that
+   * confirmation gated whether the row could be renamed, edited or deleted.
+   * Arithmetic is a property of this year's DATA, so protection moved as the
+   * data moved -- A3's "Total" was open in 2023 and 2024 and locked in 2025,
+   * and four total-labelled rows were open everywhere because their columns
+   * happened not to reconcile.
+   *
+   * RULED: the role comes from the LABEL and never from arithmetic. A row
+   * labelled Total is a total whether or not this year's figures add up;
+   * whether they add up is CLCPA-272's advisory to raise, and a stored
+   * discrepancy is a published figure for the CLCPA-211 review, not something
+   * a lock should be reacting to.
+   *
+   * WHICH LABEL PREDICATE, and this was measured rather than chosen. The
+   * strict classifier (CLCPA-200) alone would have UNLOCKED 55 rows that are
+   * locked today -- the hierarchical family's group totals carry the word
+   * inside a longer label, "Commercial Programs Total Installations" and its
+   * kin, and CLCPA-240 established that family as DECLARED rather than
+   * detected. So: strict anywhere, plus the loose form inside the declared
+   * family. Measured across all 149 table-years: unlocks nothing.
+   */
+  function isTotalRoleLabel(v, tableId) {
+    if (v == null) return false;
+    /* ANCHORED, not strict, and the census diff is what decided it. The strict
+     * form matches only a whole label -- "Total", "Grand Total" -- so it left
+     * the G family's "County Total" and "Systemwide Total" as data rows and
+     * UNLOCKED 21 rows that are protected today. The anchored form (CLCPA-245)
+     * matches a label ENDING in the word, which covers those and still cannot
+     * reach J1's "Total amount of residential electric usage (kWh)", the data
+     * row CLCPA-200 proved an unanchored match will claim: that one begins
+     * with the word and does not end with it. */
+    if (isAnchoredTotalRowLabel(v)) return true;
+    /* the loose form is confined to the DECLARED hierarchical family, which is
+     * what keeps it off J1's "Total amount of residential electric usage
+     * (kWh)" -- a data row CLCPA-200 proved an unanchored match will claim. */
+    return !!(tableId && HIERARCHICAL_TABLES[tableId]) && isHierarchicalTotalLabel(v);
+  }
+
+  /* A ROW THE SYSTEM COMPUTES, not one the preparer files: a percentage OF A
+   * TOTAL that the table itself carries.
+   *
+   * Generic by construction, and the qualifier "of total" is what makes it
+   * safe. Measured across every table: it matches J8's "% of total in DAC"
+   * and "% of total in non-DAC" and F7's "% of Grand Total", and it does NOT
+   * match D2/D3/D4's "Percentage of projects in DACs" and their eight kin,
+   * whose denominator is not in the table at all (CLCPA-206) and which the
+   * preparer therefore has to type. Locking those would have taken a figure
+   * away from the only person who can supply it. */
+  function isComputedShareLabel(v) {
+    if (v == null) return false;
+    return /(^|\s)(?:%|percent(?:age)?)\s+of\s+(?:the\s+)?(?:grand\s+)?total\b/i
+      .test(String(v));
+  }
+
+  /* THE ROLE, and the three protections that follow from it.
+   *
+   * Roles are ordered most-structural first: a group header that happens to
+   * carry the word "total" is a header, not a total. */
+  function ingestRowRole(label, tableId, isHeaderRow) {
+    if (isHeaderRow) return 'header';
+    if (isComputedShareLabel(label)) return 'computed';
+    if (isTotalRoleLabel(label, tableId)) return 'total';
+    return 'data';
+  }
+
+  /* Only 'data' is open. The three structural roles are identical in their
+   * protection today and are kept distinct because they are not the same
+   * thing: a header holds words, a total holds a sum, a computed share holds
+   * a figure derived from that sum, and a later ticket may well want to treat
+   * them differently in the grid without re-deriving what they are. */
+  const INGEST_ROLE_OPEN = {
+    header:   { label: false, values: false, deletable: false },
+    total:    { label: false, values: false, deletable: false },
+    computed: { label: false, values: false, deletable: false },
+    data:     { label: true,  values: true,  deletable: true },
+  };
+
+  /* CLCPA-270 AMENDMENT, ruled on the A8 finding the census surfaced:
+   * STRUCTURE BELONGS TO THE SYSTEM, THE FIGURE BELONGS TO WHOEVER CAN SUPPLY IT.
+   *
+   * The role decides the label lock and deletability, as ruled: a row labelled
+   * a total is structure, and renaming or deleting it breaks the group/total
+   * pairing the report and the importer both read. But locking its VALUES is
+   * only right when the engine will put something there. A8's
+   * "Total CES Programs Installations" is 336,599 against 283,852 of rows the
+   * table actually itemises -- the other 52,747 is CES programs A8 does not
+   * list -- so no arithmetic over this table can produce it. Locking it in full
+   * would have made a non-derivable published figure impossible to correct;
+   * leaving it fully open would have kept a grand total renameable and
+   * deletable. Neither is acceptable, so the two halves are decided separately.
+   *
+   * DERIVED, NEVER ENUMERATED. The test is whether the engine derives this
+   * row's value cells, which is exactly what totalRowFlags already answers for
+   * the derive engine -- the same flags, the same call, no second detector and
+   * no list of rows or tables. That is the CLCPA-259 lesson: a hardcoded
+   * exception for A8 would be a second source of truth about which rows the
+   * engine computes, and it would be wrong the first time a table changed.
+   *
+   * The same reasoning the census applied at B7 to leave D2/D3/D4's percentage
+   * rows open, and the same spirit as CLCPA-272 ruling (b): a figure the system
+   * cannot compute is the preparer's to provide, and the system's job is to
+   * advise on it rather than to refuse it.
+   *
+   * WHAT THIS DOES NOT REOPEN. The label lock and the delete guard do not
+   * consult arithmetic, so the protection that CLCPA-270 made stable stays
+   * stable: a row cannot be renamed into or out of its role, and cannot be
+   * removed, whatever this year's figures do. Only the value cells move, and
+   * they move with the engine that fills them. A 'computed' row is untouched:
+   * a percentage OF A TOTAL is derivable by construction. */
+  function ingestRoleOpen(role, engineDerivesValues) {
+    const base = INGEST_ROLE_OPEN[role] || INGEST_ROLE_OPEN.data;
+    if (role !== 'total' || engineDerivesValues) return base;
+    return { label: base.label, values: true, deletable: base.deletable };
+  }
+
   /* CLCPA-244: A DERIVED COLUMN THAT ONLY EXISTS ON THE TOTAL ROW.
    *
    * DERIVED_COLS is keyed by COLUMN, so a rule claims every row of it. That is
@@ -22337,8 +22456,27 @@ function wireHTooltips() {
       !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);
 
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
-      const isHeaderRow = rowIdx < headerRowCount || isGroupHeaderRow(row);
-      const isTotal = editorTotalFlags[rowIdx];
+      const structuralHeader = rowIdx < headerRowCount || isGroupHeaderRow(row);
+      /* CLCPA-270: ONE role, THREE protections derived from it. isHeaderRow
+       * and isTotal below are now the role's consequences rather than three
+       * independent tests, and editorTotalFlags no longer decides any of them:
+       * it survives only where it belongs, in the derive engine. */
+      const rowRole = ingestRowRole(row[0], i.tableId, structuralHeader);
+      /* the AMENDMENT: the value half of the protection asks the engine
+       * whether it derives this row, so a total the table cannot produce
+       * stays typeable. editorTotalFlags is the derive engine's own answer,
+       * already computed above for this draft -- not a second detector. */
+      const roleOpen = ingestRoleOpen(rowRole, !!editorTotalFlags[rowIdx]);
+      const isHeaderRow = rowRole === 'header';
+      /* TWO QUESTIONS THAT USED TO BE ONE. "Is this a total row" decides how it
+       * is STYLED and whether a total-only derived rule computes on it; "does
+       * the engine fill its cells" decides whether those cells are inputs.
+       * They were the same test until the amendment, and conflating them would
+       * have made a typeable total stop looking like a total. */
+      const isTotalRole = rowRole === 'total' || rowRole === 'computed';
+      /* the value cells the ENGINE writes are read-only and rendered as calc
+       * cells, which is what isTotal meant here before */
+      const isTotal = !roleOpen.values && !isHeaderRow;
       /* CLCPA-240 round 2, item 2: in the hierarchical family a total row's
        * LABEL is structure too. Its value cells were already read-only, but
        * the label column returned an editable input before the total branch
@@ -22362,8 +22500,12 @@ function wireHTooltips() {
        * "Building Shell" keeps its input and its delete button, as it had
        * before round 2; a real group total, whose label always says so, stays
        * locked. Measured: all 79 total rows in the family carry the word. */
-      const lockTotalRow = isTotal && isHierFamily && !isHeaderRow &&
-        isHierarchicalTotalLabel(row[0]);
+      /* CLCPA-270: the label lock is now the role's, and it reaches the FLAT
+       * tables too. It was confined to the hierarchical family, so 56 flat
+       * total rows carried an editable label -- and the label is the key this
+       * whole model is derived from, so an accidental rename silently changed
+       * a row's protection. */
+      const lockTotalRow = !roleOpen.label && !isHeaderRow;
       const cells = i.schema.map((_, colIdx) => {
         if (hiddenCols.indexOf(colIdx) >= 0) return '';
         const v = row[colIdx];
@@ -22411,7 +22553,9 @@ function wireHTooltips() {
          * the cell falls through to the ordinary editable input below. E1's
          * four category shares are source figures and the operator must be
          * able to type them; the Grand Total keeps the computed treatment. */
-        if (dDesc && !(isTotalOnlyDerived(dDesc) && !isTotal)) {
+        /* the ROLE, not the value lock: a weighted mean belongs on the total
+         * row whether or not the engine can sum that row's other columns */
+        if (dDesc && !(isTotalOnlyDerived(dDesc) && !isTotalRole)) {
           // Derived cell — computed (read-only), formatted as % / ratio.
           return `<td class="ingest-td-calc"><span class="ingest-cell-calc" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
         }
@@ -22463,8 +22607,10 @@ function wireHTooltips() {
        * operations is not styling: the button is simply not rendered, so the
        * delegated handler has nothing to bind and no path exists to remove the
        * table's second header row from the source. */
+      /* STYLED BY ROLE. A total whose figure the preparer must supply is still
+       * a total row and still reads as one; only its cells are typeable. */
       const rowCls = isHeaderRow ? ' class="ingest-row-subheader"'
-        : (isTotal ? ' class="ingest-row-total"' : '');
+        : (isTotalRole ? ' class="ingest-row-total"' : '');
       /* CLCPA-255: a RECOGNISED TOTAL ROW loses its delete control. The
        * CLCPA-205 exemption is UPHELD -- the label stays editable, so nothing
        * here reaches the 35 tables that carry an anchored total label. Only
@@ -22475,7 +22621,7 @@ function wireHTooltips() {
        * HTML comment it would ship into the DOM once per rendered row. */
       return `<tr${rowCls} data-row="${rowIdx}">
         ${cells}
-        <td class="ingest-td-actions">${(isHeaderRow || lockTotalRow || isTotal) ? ''
+        <td class="ingest-td-actions">${!roleOpen.deletable ? ''
           : `<button class="ingest-row-delete" type="button" data-row="${rowIdx}" data-tip="Delete row" aria-label="Delete row">×</button>`}
         </td>
       </tr>`;
@@ -22506,7 +22652,14 @@ function wireHTooltips() {
         </div>
         <div class="ingest-card-foot">
           <button id="ingest-add-row" class="btn btn-link" type="button">+ Add Row</button>
-          ${editorTotalFlags.some(Boolean)
+          ${(i.draft || []).some((r, idx) => {
+            /* CLCPA-270: the note explains why rows are grey, so it has to
+             * follow the SAME rule that greys them. It asked
+             * editorTotalFlags, so a row locked by its label in a year whose
+             * figures do not reconcile went grey with nothing saying why. */
+            const hdr = idx < headerRowCount || isGroupHeaderRow(r);
+            return !hdr && ingestRowRole(r[0], i.tableId, hdr) !== 'data';
+          })
             ? '<span class="ingest-foot-note">Rows labeled "Total" are auto-calculated from numeric rows above (read-only, shown in grey).</span>'
             : ''}
           ${unreconciledNote}
