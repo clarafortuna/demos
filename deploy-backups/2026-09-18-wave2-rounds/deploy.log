@@ -62,3 +62,87 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as bf4c82c
+          remote main = bf4c82c  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1258189B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1258189B  sha256 30b31c5c2e6041c5...  VERIFIED byte-identical
+READ-BACK styles.css  285220B  sha256 2b9651445cb2bce5...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 60b2e39dbb01f30b...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 3b20bdbd6d  ok
+  app.js canonicalised + hashed : 3b20bdbd6d  ok
+  styles.css hashed             : 2b9651445c  ok
+  HTML references app.js?v=     : 3b20bdbd6d  ok
+  HTML references styles.css?v= : 2b9651445c  ok
+  all 4 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the wave-2 rounds from the hosted pass -- CLCPA-274, CLCPA-276, CLCPA-277, CLCPA-278
+build id (app.js): 3b20bdbd6d
+styles.css id    : 2b9651445c   (replaced 2b9651445c)
+previous build   : b0c8c99ebf, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ b52f604
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 3b20bdbd6d
+
+THE ACCEPTANCE PASS:
+  CLCPA-274  THE TEMPLATE CARRIES ITS SECOND HEADER ROW.
+     Download F6s template. Row 2 must now read the four sub-labels --
+     Non- Excludable / Excludable under NON-NETWORK, and again under
+     NETWORK -- instead of being blank, so each of the four value columns
+     can be told apart. Check A9 and A10 too: they were blank the same way,
+     and A10 was worse, stamping (calculated) into its sub-header. No
+     header row may carry that marker. D1 must be unchanged: its first row
+     is genuine data and must still be fillable.
+  CLCPA-276  A NOTICE LIVES EXACTLY AS LONG AS THE DRAFT IT DESCRIBES.
+     Type a total that does not add up so the amber advisory appears. Press
+     Reset and confirm: the figures restore AND the advisory goes. Repeat
+     and switch YEAR instead: it must go, not follow you. Repeat and SAVE:
+     it must go. Then the other half, which matters just as much: with a
+     draft that still does not add up, add a row -- the advisory must STAY,
+     because it is recomputed from the draft rather than cleared.
+  CLCPA-277  THE STAGED CARD NAMES THE WRONG YEAR.
+     Open Add Data, stage a file whose name carries a different year from
+     the destination. The staged card must warn, in the same voice as the
+     wrong-table twin beside it, and the Add Year button must stay live --
+     advisory only. Then RETYPE the year to match the file: the warning must
+     disappear as you type, and reappear if you type a third year, WITHOUT
+     the year box losing focus. A filename with no year, or two, says
+     nothing. The post-load red box must behave exactly as it did.
+  CLCPA-278  A CONSISTENT TOTAL FOLLOWS THE EDIT.
+     In H1, find a row whose Grand Total EQUALS its two parts. Edit one part
+     and tab away: the total must move with it, and no advisory is raised.
+     Type the number digit by digit -- that is the case round 1 missed.
+     Then take a row whose total already DISAGREES and edit a part: the
+     total must be left exactly as filed, with the advisory naming it.
+
+STILL DISCLOSED, not defects in this build:
+  - A TWO-LEVEL TABLE CANNOT ROUND-TRIP THROUGH A SINGLE-ROW CSV HEADER.
+  -    Measured on this build: F6 2025 import rejections 1 -> 0, A9 2025
+  -    1 -> 3, A10 2025 unchanged. A9s headings genuinely span two rows, so
+  -    neither row alone is a unique heading set and the new rejections read
+  -    two columns with the same heading. The previous build rejected one
+  -    too; emitting the sub-header makes the ambiguity explicit rather than
+  -    hiding it behind a blank row. Needs its own ticket.
+  - THE REMOVE-YEAR CONTROL asks the PUBLISHED payload whether a year holds
+  -    data, not the store. That is why a year holding saves can still offer
+  -    Remove. Read from code, not yet filed.
+  - PRE-EXISTING, not fixed here: on a fresh A8 the CLCPA-240 bootstrap would
+  -    compute 283,852 into the grand total whose real figure is 336,599.
+  -    Unreachable while the row holds numbers.
+  - payload.json stores 19 KPI entries that disagree with the derive engine,
+  -    and A5 2025 stores 27,833 where its parts give 27,834. Pre-existing,
+  -    pinned, under the payload freeze, and untouched by this wave.
+  - The stylesheet does NOT move in this wave: app.js alone changes.
+
+=== log written by deploy_wave2_rounds.js ===
