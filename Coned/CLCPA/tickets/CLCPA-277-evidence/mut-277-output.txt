@@ -1,0 +1,34 @@
+======================================================================
+CLCPA-277 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the year advisory is never raised
+       2 red, incl: A2 importing it into 2097 raises an advisory
+  red  IT FIRES ON THE RIGHT YEAR TOO, so it says nothing useful
+       1 red, incl: A4 and importing it into 2099 says nothing
+  red  ONLY ONE YEAR is named, so the operator cannot compare
+       1 red, incl: A3 naming BOTH years -- the file's and the target's
+  red  THE \b TRAP: word boundaries instead of digit capture
+       1 red, incl: B2 a leading year is found
+  red  NO BOUNDARY AT ALL: any four digits count
+       2 red, incl: B5 a five-digit run is NOT a year -- the digit boundary holds
+  red  TWO DIFFERENT YEARS in a name now declare the first
+       1 red, incl: B7 a name carrying TWO different years declares neither
+  red  THE YEARS ARE LOOKED UP IN A LIST instead of derived
+       10 red, incl: B9 a year that is in no payload and no selector still resolves
+  red  THE STAGED SURFACE loses the advisory
+       1 red, incl: C2 with its own staged line
+  red  THE POST-LOAD SURFACE loses the advisory
+       4 red, incl: C4 the post-load box is RED -- the CLCPA-266 component
+  red  THE BOX IS AMBER, so it reads as advice rather than a mismatch
+       2 red, incl: C4 the post-load box is RED -- the CLCPA-266 component
+  red  THE STAGED SURFACE reads the wrong year (the table's, not the target's)
+       1 red, incl: C1 STAGED in the Add Data modal, from the dropdown the operator can change
+  red  CLCPA-264's own notice is "improved" alongside
+       1 red, incl: D3 importIdentityNotice is BYTE-IDENTICAL to BASE
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       1 red, incl: X1 BASE is a literal sha -- none
+  red  HARNESS: the derivation is re-implemented instead of sliced
+       3 red, incl: B5 a five-digit run is NOT a year -- the digit boundary holds
+
+  14 caught, 0 not caught, of 14 applied
+  clean re-run against byte-restored source: PASSES -- 32 passed, 0 failed

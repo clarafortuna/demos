@@ -1684,6 +1684,53 @@ function utf8ByteLength(str) {
   /* The advisory itself: a sentence, or null when there is nothing to say.
    * Null covers every silent case -- no name, an unrecognisable name, a name
    * declaring the destination itself. */
+  /* CLCPA-277: THE YEAR THE FILE IS NAMED FOR.
+   *
+   * CLCPA-264 catches the wrong TABLE. The wrong YEAR was silent:
+   * H1-2099-example.csv imported into 2097 raised nothing anywhere, and a
+   * year's figures are exactly as wrong in the wrong year as another table's.
+   *
+   * Generic by construction and digit-bounded. No list of years: any
+   * four-digit 19xx/20xx token counts, which is what lets it work on a
+   * reporting year nobody has added yet. The boundaries are checked by
+   * capture-and-restore rather than \b, because \b sits happily between a
+   * digit and a letter -- the defect CLCPA-252 round 3 shipped in the code
+   * AND in the assertion written to catch it -- so "H1-2099-example" yields
+   * 2099 while a version string like "v20991" yields nothing.
+   *
+   * NO TABLE-ID STRIP. I wrote one -- "H1" and "A10" carry digits of their own
+   * -- and then measured it: across every plausible template name it changed
+   * the answer for NONE of them, because a table id is a letter and one or two
+   * digits and cannot reach four. It is gone rather than left as a branch that
+   * cannot fire, which is the same call CLCPA-240 round 3 made about its own
+   * unreachable alternative.
+   */
+  function declaredYearFromFilename(name) {
+    const base = String(name == null ? '' : name)
+      .replace(/^.*[\\/]/, '')
+      .replace(/\.[A-Za-z0-9]+$/, '');
+    const out = [];
+    base.replace(/(\d?)((?:19|20)\d{2})(\d?)/g, (m, before, y, after) => {
+      if (!before && !after) out.push(y);
+      return m;
+    });
+    /* one unambiguous year, or nothing: a name carrying two different years
+     * declares neither. */
+    const uniq = out.filter((y, i, a) => a.indexOf(y) === i);
+    return uniq.length === 1 ? uniq[0] : null;
+  }
+
+  /* The year advisory: a sentence, or null when there is nothing to say.
+   * Advisory only, exactly like CLCPA-264 -- it never rejects. */
+  function importYearNotice(fileName, destYear) {
+    const declared = declaredYearFromFilename(fileName);
+    if (!declared || !destYear || declared === String(destYear)) return null;
+    return 'This file is named for ' + declared +
+      ', but it is being imported into ' + String(destYear) + '. ' +
+      'A year\'s figures are just as wrong in the wrong year. ' +
+      'Check before saving.';
+  }
+
   function importIdentityNotice(fileName, destTableId) {
     const declared = declaredTableFromFilename(fileName);
     if (!declared || !destTableId || declared === destTableId) return null;
@@ -22285,11 +22332,20 @@ function wireHTooltips() {
         '<h4>Check the table this file was for</h4>' +
         '<p>' + escapeHtml(r.identityNotice) + '</p></div>'
       : '';
+    /* CLCPA-277: the wrong YEAR, post-load, in the same RED box and the same
+     * voice as its sibling. A separate box rather than a second sentence in
+     * that one: they are different mistakes and either can occur alone. */
+    const yearAdvisory = r.yearNotice
+      ? '<div class="ingest-import-notice is-alert">' +
+        '<h4>Check the year this file was for</h4>' +
+        '<p>' + escapeHtml(r.yearNotice) + '</p></div>'
+      : '';
     return '<div class="ingest-import-result">' +
       '<h4>Imported into the draft: ' + r.populated.length + ' cell' +
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
       '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
-      '</div>' + notices + identity + renderReconcileNotice(r.reconcileNotices);
+      '</div>' + notices + identity + yearAdvisory +
+      renderReconcileNotice(r.reconcileNotices);
   }
 
   /* CLCPA-272: the reconciliation advisory, in CLCPA-266's amber box and in
@@ -23396,11 +23452,17 @@ function wireHTooltips() {
        * so the advisory follows the Table dropdown the operator can still
        * change after staging, which is the case that matters. */
       const idNote = importIdentityNotice(staged.name, target().tableId);
+      /* CLCPA-277: the wrong YEAR, staged in the same box and the same voice
+       * as CLCPA-264's wrong TABLE. Both can be true at once, and both are
+       * said: they are different mistakes. */
+      const yrNote = importYearNotice(staged.name, target().year);
       return '<div class="ingest-staged' + (bad ? ' is-bad' : '') + '" id="dlg-stagedbox">' +
         '<strong>' + escapeHtml(staged.name) + '</strong> ' +
         '<span>' + escapeHtml(ingestStagedSummary(staged)) + '</span>' +
         (idNote ? '<p class="ingest-staged-warn" id="dlg-identity-warn">' +
           escapeHtml(idNote) + '</p>' : '') +
+        (yrNote ? '<p class="ingest-staged-warn" id="dlg-year-warn">' +
+          escapeHtml(yrNote) + '</p>' : '') +
         '</div>';
     }
 
@@ -23641,6 +23703,8 @@ function wireHTooltips() {
                *
                * It never touches plan.ok. The import proceeds either way. */
               plan.identityNotice = importIdentityNotice(staged.name, i.tableId);
+              /* CLCPA-277: and the year, post-load, beside it. */
+              plan.yearNotice = importYearNotice(staged.name, i.year);
               i.importResult = plan;
               if (plan.ok) applyIngestImport(plan); else failed = true;
             }
