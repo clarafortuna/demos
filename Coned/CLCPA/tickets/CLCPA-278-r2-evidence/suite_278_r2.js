@@ -30,8 +30,17 @@ const { boot } = require('../_kit/live_editor.js');
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const BASE = process.env.DAC_BASE_COMMIT || '590703c';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const SRC = fs.readFileSync(APP, 'utf8');
+/* PINNED ON BOTH SIDES (CLAUDE.md). This suite asserts what CLCPA-278 round 2
+ * did to functions a LATER round has since changed, so its post-change side
+ * reads that build rather than live main. A blast-radius claim can only be
+ * true at the commit that made the change. DAC_APP_OVERRIDE still wins, so
+ * the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || 'd548acc';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(

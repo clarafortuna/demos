@@ -1,7 +1,8 @@
-/* Mutation controls for CLCPA-278-r3.
+/* Mutation controls for CLCPA-281.
  *
- * The controls that carry this round: ONE reader, consumed by all three,
- * and a reader that still refuses a unit and a split cell.
+ * The controls that carry this ticket: the header row must be DRAWN in the
+ * thead, must leave the body, and must not renumber the rows every handler
+ * addresses by data-row.
  *
  * The mutant is handed to the suite through DAC_APP_OVERRIDE, which is
  * mut_271's shape and the standing one. Ends with a CLEAN re-run against
@@ -16,51 +17,47 @@ const { execFileSync, execSync } = require('child_process');
 const CRLF = String.fromCharCode(13) + String.fromCharCode(10);
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
-const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-278-r3-evidence';
-const SUITE = 'suite_278_r3.js';
+const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-281-evidence';
+const SUITE = 'suite_281.js';
 const NEW_COMMIT = process.env.DAC_NEW_COMMIT || null;
-const APP = path.join(os.tmpdir(), 'clcpa-278-r3-app.js');
+const APP = path.join(os.tmpdir(), 'clcpa-281-app.js');
 fs.writeFileSync(APP, NEW_COMMIT
   ? execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
       { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, CRLF)
   : fs.readFileSync(path.join(REPO, REL), 'utf8'));
 
 const M = [
-  { name: "THE DEFECT RETURNS: rowSumIsConsistent reads its parts strictly again",
-    from: "      const n = bareNumber(row[c]);\n      if (n !== null) { sum += n; seen++; }",
-    to:   "      const n = (typeof row[c] === 'number') ? row[c] : null;\n      if (n !== null) { sum += n; seen++; }",
-    expect: "C1.seed the total now follows the edit",
-    alt: "C1.user-added the total now follows the edit" },
-  { name: "THE ADVISORY stops sharing the reader, so the two disagree again",
-    from: "          const n = bareNumber(row[c]);\n          if (n !== null) { sum += n; seen++; }",
-    to:   "          const n = (typeof row[c] === 'number') ? row[c] : null;\n          if (n !== null) { sum += n; seen++; }",
-    expect: "E4.reconcileSumColumns and carries no private copy of the test",
-    alt: "D2.seed and the advisory names it" },
-  { name: "THE ENGINE stops sharing it, so what it WRITES and what it JUDGES differ",
-    from: "      rows.forEach(r => { const v = bareNumber(r[c]); if (v !== null) { sum += v; any = true; } });",
-    to:   "      rows.forEach(r => { const v = r[c]; if (typeof v === 'number' && isFinite(v)) { sum += v; any = true; } });",
-    expect: "E3.columnGrandTotals consumes it" },
-  { name: "THE READER starts accepting a PERCENT, against CLCPA-244",
-    from: "    if (!/^[-+]?[\\d,]*\\.?\\d+$/.test(s)) return null;",
-    to:   "    if (!/^[-+]?[\\d,.]+%?$/.test(s)) return null;",
-    expect: "F2 refuses an explicit percent is a UNIT",
-    alt: "D1.seed a percent component leaves the filed total alone" },
-  { name: "THE READER starts salvaging a numeric PREFIX, which claims a split cell",
-    from: "    if (!/^[-+]?[\\d,]*\\.?\\d+$/.test(s)) return null;\n    const n = parseFloat(s.replace(/,/g, ''));",
-    to:   "    const n = parseFloat(s.replace(/,/g, ''));",
-    expect: "F3 and never salvages a prefix",
-    alt: "F2 refuses a SPLIT cell is published text" },
-  { name: "THE READER accepts any string parseFloat likes",
-    from: "    if (!/^[-+]?[\\d,]*\\.?\\d+$/.test(s)) return null;",
+  { name: "THE DEFECT RETURNS: no second header row is drawn",
+    from: "              ${subHeaderCells}",
     to:   "",
-    expect: "F3 and never salvages a prefix",
-    alt: "F2 refuses a SPLIT cell is published text" },
+    expect: "B1.F6 draws TWO header rows",
+    alt: "B3 the body has exactly one row fewer" },
+  { name: "THE HEADER ROW is drawn AND left in the body",
+    from: "      if (rowIdx < headerRowCount) return '';",
+    to:   "",
+    expect: "B3 the body has exactly one row fewer",
+    alt: "B4 and the first body row is no longer the sub-header" },
+  { name: "THE BODY is FILTERED instead of blanked, renumbering every row",
+    from: "    const bodyRowsHtml = i.draft.map((row, rowIdx) => {",
+    to:   "    const bodyRowsHtml = i.draft.slice(headerRowCount).map((row, __i) => {\n      const rowIdx = __i;",
+    expect: "B3 the body has exactly one row fewer",
+    alt: "E3 and an edit lands on draft row 1" },
+  { name: "THE SUB-HEADER is taken from the year only, never borrowed",
+    from: "      const rows = ingestYearCarriesHeaderRows(i.draft, count)\n        ? i.draft.slice(0, count)\n        : ingestStoredHeaderRows(table, count);",
+    to:   "      const rows = i.draft.slice(0, count);",
+    expect: "C2 borrowing the table's sub-header",
+    alt: "C1 a user-added year still gets both levels" },
+  { name: "EVERY TABLE is treated as two-level",
+    from: "    const lv = table && table.header_levels;",
+    to:   "    const lv = 2;",
+    expect: "D1.H1 still draws one header row",
+    alt: "D2.H1 and the same number of body rows" },
 ];
 
 const lines = [];
 const log = (...a) => { const s = a.join(' '); lines.push(s); console.log(s); };
 log('======================================================================');
-log('CLCPA-278-r3 -- mutation controls');
+log('CLCPA-281 -- mutation controls');
 log('======================================================================');
 
 let caught = 0, missed = 0, applied = 0;
@@ -112,5 +109,5 @@ try {
 const tally = (clean.match(/(\d+) passed, (\d+) failed/) || []);
 log('  clean re-run against byte-restored source: ' +
     (tally[2] === '0' ? 'PASSES' : 'FAILS') + ' -- ' + (tally[0] || 'no tally'));
-fs.writeFileSync(DIR + '/mut-278-r3-output.txt', lines.join('\n') + '\n');
+fs.writeFileSync(DIR + '/mut-281-output.txt', lines.join('\n') + '\n');
 process.exit(missed || tally[2] !== '0' ? 1 : 0);
