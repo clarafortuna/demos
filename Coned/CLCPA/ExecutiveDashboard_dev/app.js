@@ -23465,8 +23465,24 @@ function wireHTooltips() {
     const primaryLabel = () => (isExisting() ? 'Load Data' : 'Add Year');
     /* The staging and template target. The schema resolves even for a year that
      * does not exist: getTableSchema falls back to any year the table has. */
+    /* CLCPA-277 round 2: THE DESTINATION YEAR IS PART OF THE TARGET.
+     *
+     * The staged year advisory was built, wired and unreachable: stagedBlock()
+     * asked importYearNotice(staged.name, target().year) and target() returned
+     * only { tableId, schema }. target().year was undefined, and the notice
+     * returns null for a destination it does not know -- so the staged card
+     * could never show it, while the wrong-TABLE twin beside it worked,
+     * because tableId WAS there. Measured on the live dialog.
+     *
+     * drawYear(), not typedYear(), and for the same reason the consequence
+     * line uses it: this is DISPLAY. It is the year the field is showing,
+     * falling back to the page's year before the field exists, so the advisory
+     * and the sentence above it can never name different destinations.
+     * Validation keeps reading typedYear() with no fallback, which is
+     * CLCPA-226 finding B and is a different question. */
     const target = () => ({
       tableId: sel.tableId,
+      year: drawYear(),
       schema: getTableSchema(p.tables[sel.tableId], typedYear()),
     });
 
@@ -23507,6 +23523,32 @@ function wireHTooltips() {
           escapeHtml(yrNote) + '</p>' : '') +
         '</div>';
     }
+
+    /* CLCPA-277 round 2: THE YEAR ADVISORY FOLLOWS THE FIELD, IN PLACE.
+     *
+     * The wrong-TABLE twin follows its dropdown by redrawing the whole dialog
+     * -- the Table change handler calls restage() then draw(). The year cannot
+     * do that: its handler updates the consequence line and the button label
+     * in place precisely BECAUSE redrawing would take the focus out of the box
+     * the operator is still typing in (CLCPA-234).
+     *
+     * So this is the third thing that follows the box as it is typed, updated
+     * the same way and from the same source as the first draw, so the advisory
+     * and the sentence above it can never name different destinations. */
+    const syncStagedYearWarn = () => {
+      const box = modal.querySelector('#dlg-stagedbox');
+      if (!box) return;
+      const note = staged ? importYearNotice(staged.name, drawYear()) : null;
+      let el = modal.querySelector('#dlg-year-warn');
+      if (!note) { if (el) el.remove(); return; }
+      if (!el) {
+        el = document.createElement('p');
+        el.className = 'ingest-staged-warn';
+        el.id = 'dlg-year-warn';
+        box.appendChild(el);
+      }
+      el.textContent = note;
+    };
 
     function draw() {
       modal.innerHTML = '<div class="ingest-modal" role="dialog" aria-modal="true" ' +
@@ -23605,6 +23647,9 @@ function wireHTooltips() {
            * label cannot drift from what the button will actually do. */
           if (cons) cons.textContent = consequenceText();
           if (btn) btn.textContent = primaryLabel();
+          /* CLCPA-277 round 2: and the staged year advisory, which describes
+           * the same destination this line does. */
+          syncStagedYearWarn();
         });
       }
 
