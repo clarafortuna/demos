@@ -1,0 +1,28 @@
+======================================================================
+CLCPA-275 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the stack sits against the card again
+       7 red, incl: A2 it now resolves to 16px -- got null
+  red  A NEW NUMBER instead of the region's own
+       5 red, incl: A2 it now resolves to 16px -- got "10px"
+  red  EVERY BOX gets the gap, not just the last
+       4 red, incl: A3 while a box in the MIDDLE of the stack gets none -- got "16px"
+  red  ONLY THE NOTICE gets it, so a lone receipt sits tight
+       2 red, incl: A4 a lone receipt is the last box and carries the gap
+  red  IT WINS WITH !important instead of on the cascade
+       3 red, incl: E4 and it wins on the cascade, not with !important
+  red  THE RULE IS OUTRANKED by a later one and silently does nothing
+       3 red, incl: A2 it now resolves to 16px -- got "0"
+  red  THE 12px STACKING RHYTHM is changed while "fixing" the gap
+       3 red, incl: D1 .ingest-import-result keeps its 12px stacking rhythm -- got 16px
+  red  AN ACCENT is changed alongside
+       2 red, incl: D2 .is-warn keeps its accent: var(--dusk)
+  red  THE LAST CHILD INSIDE a box regains a trailing gap
+       1 red, incl: D3 the last child in a box still has an explicit zero trailing gap -- got null
+  red  HARNESS: the claim is grepped instead of resolved
+       5 red, incl: A1 on BASE the last box had NO bottom gap -- got "16px"
+  red  HARNESS: the baseline is repointed at a symbolic ref
+       5 red, incl: X1 BASE is a literal sha -- none
+
+  11 caught, 0 not caught, of 11 applied
+  clean re-run against byte-restored source: PASSES -- 22 passed, 0 failed

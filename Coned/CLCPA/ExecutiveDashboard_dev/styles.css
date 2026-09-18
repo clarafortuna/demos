@@ -8495,6 +8495,31 @@ a.nav-item { text-decoration: none; }
 .ingest-import-result > :last-child,
 .ingest-import-notice > :last-child { margin-bottom: 0; }
 
+/* CLCPA-275: AND THE STACK NEEDS THE SAME GAP FROM THE CARD BELOW IT.
+ *
+ * CLCPA-266 spaced the boxes among THEMSELVES -- margin-top: 12px, so they
+ * cannot touch each other -- and stopped there. The stack as a whole still
+ * sat hard against the editor card beneath it, so the last notice and the
+ * table read as one block.
+ *
+ * 16px, and it is the number this region already uses rather than a new one:
+ * .ingest-card carries margin-bottom: 16px and so does the picker bar above
+ * it, which is what separates every other stacked card on this page.
+ *
+ * THE GAP BELONGS TO THE LAST BOX, not to the mount. I first wrote
+ * `#ingest-import-mount:not(:empty)`, which is correct CSS and unverifiable
+ * here: the cascade kit implements :not(simple-compound), which is all CSS3
+ * allows it, and :empty is a pseudo-class it cannot evaluate -- so the claim
+ * could only have been grepped, and CLCPA-248 settled that a declaration's
+ * presence is not its effect.
+ *
+ * :last-child says the same thing, resolves, and is the rhythm this component
+ * already uses. It also needs no empty-state guard: with no boxes there is no
+ * last box, so an unnotified import adds nothing and the card sits where it
+ * always did. */
+.ingest-import-result:last-child,
+.ingest-import-notice:last-child { margin-bottom: 16px; }
+
 /* ---- CLCPA-223: the not-available view ---------------------------------
 
    Centred in the space below the page header, NOT by changing .content.

@@ -663,6 +663,25 @@ guard('X: app.js is byte-identical to BASE', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   const LATER = {
 
+    /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
+
+    ingestRoleOpen: 'CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)',
+    ingestRowRole: 'CLCPA-270: the row role, from its label (new)',
+
+    isTotalRoleLabel: 'CLCPA-270: the total-role label test (new)',
+
+    isComputedShareLabel: 'CLCPA-270: a percentage OF A TOTAL (new)',
+
+    rowSumIsConsistent: 'CLCPA-278: whose figure is this total (new)',
+
+    recomputeDerivableSums: 'CLCPA-278: a consistent total follows the edit (new)',
+
+    clearIngestNotices: 'CLCPA-276: one helper for every notice exit (new)',
+
+    declaredYearFromFilename: 'CLCPA-277: the year token in a filename (new)',
+
+    importYearNotice: 'CLCPA-277: the wrong-year advisory (new)',
+
     /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
 
     shiftSchemaYears: 'CLCPA-267: the borrowed-schema year shift (new)',
@@ -790,6 +809,10 @@ guard('X: the stylesheet changed, and only where it should', () => {
      * rather than excused, so this list stays an exact inventory of what the
      * stylesheet gained since BASE. */
     '.ingest-staged-warn',
+    /* CLCPA-275 added a FIFTH: the gap below a trailing notice stack, so it
+     * clears the card that follows it the way stacked cards already do.
+     * Named here rather than excused, for the same reason as the line above. */
+    '.ingest-import-result:last-child, .ingest-import-notice:last-child',
   ].sort();
   ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
      'X3 exactly these NINE rules were retired: ' + removed.length +

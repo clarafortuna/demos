@@ -326,8 +326,11 @@ guard('D: the advisory also rides on the plan at the import call site', () => {
 say('');
 say('=== C. the styling says WARNING, not rejection =====================');
 guard('C: the advisory is amber, not the red of a rejection', () => {
-  const css = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  /* DAC_CSS_PINNED: same pinned commit as app.js. A frozen suite must be
+   * frozen on BOTH files, or it fails on a stylesheet change it is not about
+   * -- which is what CLCPA-275 caused. */
+  const css = execSync('git show ' + NEWREV + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
+    { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');

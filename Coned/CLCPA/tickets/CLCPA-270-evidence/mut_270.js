@@ -11,12 +11,22 @@
  * Ends with a CLEAN re-run against byte-restored source and says so loudly.
  */
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-270-evidence';
-const APP = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree. The suite
+ * reads NEWREV unless DAC_APP_OVERRIDE says otherwise, so mutating the
+ * repo's own file would change something the suite never opens and every
+ * control would pass green. Same pattern as mut_271 and mut_244_r2. */
+const NEW_COMMIT = process.env.DAC_NEW_COMMIT || '83fd9c1';
+const APP = path.join(os.tmpdir(), 'clcpa-270-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 const SUITE = DIR + '/suite_270.js';
 const CENSUS = DIR + '/suite_270_census.js';
 
@@ -194,7 +204,7 @@ M.forEach((m) => {
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
   (m.suites || ['suite_270.js']).forEach((s) => {
-    try { out += execFileSync('node', [s], { cwd: DIR, encoding: 'utf8' }); }
+    try { out += execFileSync('node', [s], { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
     catch (e) { out += (e.stdout || '') + (e.stderr || ''); }
   });
   fs.writeFileSync(m.t, base);
@@ -219,7 +229,7 @@ log('');
 log('  ' + caught + ' caught, ' + missed + ' not caught, of ' + applied + ' applied');
 let clean = '';
 ['suite_270.js', 'suite_270_census.js'].forEach((s) => {
-  try { clean += execFileSync('node', [s], { cwd: DIR, encoding: 'utf8' }); }
+  try { clean += execFileSync('node', [s], { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { clean += (e.stdout || '') + (e.stderr || ''); }
 });
 const tallies = clean.match(/(\d+) passed, (\d+) failed/g) || [];

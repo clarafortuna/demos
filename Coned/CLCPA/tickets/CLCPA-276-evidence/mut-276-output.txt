@@ -18,7 +18,7 @@ CLCPA-276 -- mutation controls
   red  THE COMPONENT is restyled while "fixing" the lifecycle
        2 red, incl: D1 renderReconcileNotice is BYTE-IDENTICAL to BASE
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X1 BASE is a literal sha -- none
+       4 red, incl: X1 BASE is a literal sha -- none
   red  HARNESS: the mount is stubbed instead of driven
        5 red, incl: A2 the receipt is rendered
 

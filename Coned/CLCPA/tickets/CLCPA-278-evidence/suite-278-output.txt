@@ -1,7 +1,7 @@
 ======================================================================
 CLCPA-278 -- the engine's figure recomputes, the preparer's is kept
-  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
-  BASE   : f2c7137 (predates this change)
+  app.js : git show ed44cae:Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : 4de6a8c (predates this change)
 ======================================================================
 
 A. WHOSE FIGURE IS IT
@@ -45,7 +45,7 @@ F. STYLE OF CHANGE
   ok   F8 no stored data: a save still writes rows only
 
 X. THE HARNESS
-  ok   X1 BASE is a literal sha -- f2c7137
+  ok   X1 BASE is a literal sha -- 4de6a8c
   ok   X2 and predates this ticket
   ok   X3 the function under test is the one sliced from app.js
   ok   X4 the probe arithmetic checks out

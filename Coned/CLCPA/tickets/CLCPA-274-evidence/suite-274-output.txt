@@ -1,7 +1,7 @@
 ======================================================================
 CLCPA-274 -- the template marks derivable total columns (calculated)
-  app.js : git show f2c7137:Coned/CLCPA/ExecutiveDashboard_dev/app.js
-  BASE   : 050c1c1 (predates this change)
+  app.js : git show b902b0b:Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  BASE   : 83fd9c1 (predates this change)
 ======================================================================
 
 A. H1's GRAND TOTAL COLUMN, the shape the ticket names
@@ -24,19 +24,19 @@ C. THE ENUMERATED DERIVABLE-COLUMN TABLES
      F2    2 cells
      F4    8 cells
      F5   39 cells
-     F6   25 cells
-     F7    3 cells
+     F6   24 cells
+     F7    2 cells
      H1    4 cells
   ok   C1 exactly the seven enumerated tables change -- got B2, F2, F4, F5, F6, F7, H1
-  FAIL C2 and 81 cells in total -- got 83
+  ok   C2 and 81 cells in total -- got 81
   ok   C3 and they are exactly the tables detectSumColumns finds -- guidance and advisory cannot disagree about which columns are derivable
 
 C2b. THE MARKER MUST NOT REACH A STRUCTURAL HEADER ROW
   ok   C2b1 F6 really does carry header_levels 2
-  FAIL C2b2 its SECOND header row is NOT marked -- a header has nothing to calculate
+  ok   C2b2 its SECOND header row is NOT marked -- a header has nothing to calculate
   ok   C2b3 while the first body row below it IS
   ok   C2b4 and a body row whose figures are BLANK is still marked -- blanks are not text, and a fresh template is the case this ticket exists for
-  FAIL C2b5 and F7's "% of Grand Total" row is not marked either -- its parts hold percentage strings, so it is not a sum of anything
+  ok   C2b5 and F7's "% of Grand Total" row is not marked either -- its parts hold percentage strings, so it is not a sum of anything
 
 D. STYLE OF CHANGE
   ok   D1 the template has its own accessor
@@ -51,9 +51,9 @@ D. STYLE OF CHANGE
   ok   D10 and it is still checked BEFORE the calculated branch
 
 X. THE HARNESS
-  ok   X1 BASE is a literal sha -- 050c1c1
+  ok   X1 BASE is a literal sha -- 83fd9c1
   ok   X2 and predates this ticket
 
 ======================================================================
-  28 passed, 3 failed
+  31 passed, 0 failed
 ======================================================================

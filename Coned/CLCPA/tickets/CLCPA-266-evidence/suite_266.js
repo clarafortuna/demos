@@ -62,7 +62,13 @@ const SRC = process.env.DAC_APP_OVERRIDE
       { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
-const CSS_SRC = fs.readFileSync(CSS_PATH, 'utf8');
+/* DAC_CSS_PINNED: same pinned commit as app.js. A frozen suite must be frozen
+ * on BOTH files, or it fails on a stylesheet change it is not about -- which
+ * is what CLCPA-275 caused. */
+const CSS_SRC = process.env.DAC_CSS_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_CSS_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + CSS + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const CSS_BASE = execSync('git show ' + BASE + ':"' + CSS + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 

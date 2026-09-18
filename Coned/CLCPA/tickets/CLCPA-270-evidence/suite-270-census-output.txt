@@ -141,6 +141,11 @@ D. THE ARITHMETIC PATH IS NO LONGER AN ARBITER
   ok   D5 the arithmetic-gated label lock is gone
   ok   D6 totalRowFlags itself survives, where it belongs: the derive engine
 
+X. THE HARNESS ITSELF
+  ok   X2 the census reads the PINNED build, not the working tree
+  ok   X3 and NEWREV is a literal sha
+  ok   X4 as is the delivered-census BASE
+
 ======================================================================
-  23 passed, 0 failed
+  26 passed, 0 failed
 ======================================================================

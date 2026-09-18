@@ -7,12 +7,22 @@
  * Ends with a CLEAN re-run against byte-restored source and says so loudly.
  */
 const fs = require('fs');
+const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-278-evidence';
-const APP = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js';
+/* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree. The suite
+ * reads NEWREV unless DAC_APP_OVERRIDE says otherwise, so mutating the
+ * repo's own file would change something the suite never opens and every
+ * control would pass green. Same pattern as mut_271 and mut_244_r2. */
+const NEW_COMMIT = process.env.DAC_NEW_COMMIT || 'ed44cae';
+const APP = path.join(os.tmpdir(), 'clcpa-278-app-' + NEW_COMMIT + '.js');
+fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
+  { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
 const SUITE = DIR + '/suite_278.js';
 
 const M = [
@@ -73,7 +83,7 @@ const M = [
 
   /* ---- the harness -------------------------------------------------------- */
   { t: SUITE, name: 'HARNESS: the baseline is repointed at a symbolic ref',
-    from: "const BASE = process.env.DAC_BASE_COMMIT || 'f2c7137';",
+    from: "const BASE = process.env.DAC_BASE_COMMIT || '4de6a8c';",
     to:   "const BASE = process.env.DAC_BASE_COMMIT || 'HEAD';",
     expect: 'X1 BASE is a literal sha' },
   { t: SUITE, name: 'HARNESS: the mutation of state moves back INSIDE the retry loop',
@@ -103,7 +113,7 @@ M.forEach((m) => {
   applied++;
   fs.writeFileSync(m.t, base.replace(from, () => to));
   let out = '';
-  try { out = execFileSync('node', ['suite_278.js'], { cwd: DIR, encoding: 'utf8' }); }
+  try { out = execFileSync('node', ['suite_278.js'], { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
   catch (e) { out = (e.stdout || '') + (e.stderr || ''); }
   fs.writeFileSync(m.t, base);
   const back = crypto.createHash('sha256').update(fs.readFileSync(m.t, 'utf8')).digest('hex');
@@ -126,7 +136,7 @@ M.forEach((m) => {
 log('');
 log('  ' + caught + ' caught, ' + missed + ' not caught, of ' + applied + ' applied');
 let clean = '';
-try { clean = execFileSync('node', ['suite_278.js'], { cwd: DIR, encoding: 'utf8' }); }
+try { clean = execFileSync('node', ['suite_278.js'], { cwd: DIR, encoding: 'utf8', env: Object.assign({}, process.env, { DAC_APP_OVERRIDE: APP }) }); }
 catch (e) { clean = (e.stdout || '') + (e.stderr || ''); }
 const tally = (clean.match(/(\d+) passed, (\d+) failed/) || []);
 log('  clean re-run against byte-restored source: ' +

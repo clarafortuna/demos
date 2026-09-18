@@ -427,6 +427,35 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
 
+    /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
+
+    ingestRoleOpen: 'CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)',
+    ingestRowRole: 'CLCPA-270: the row role, from its label (new)',
+
+    isTotalRoleLabel: 'CLCPA-270: the total-role label test (new)',
+
+    isComputedShareLabel: 'CLCPA-270: a percentage OF A TOTAL (new)',
+
+    ingestComputed: 'CLCPA-274: the template gains its own accessor',
+
+    buildIngestWorkbook: 'CLCPA-274: the writer marks derivable total columns',
+
+    rowSumIsConsistent: 'CLCPA-278: whose figure is this total (new)',
+
+    recomputeDerivableSums: 'CLCPA-278: a consistent total follows the edit (new)',
+
+    clearIngestNotices: 'CLCPA-276: one helper for every notice exit (new)',
+
+    declaredYearFromFilename: 'CLCPA-277: the year token in a filename (new)',
+
+    importYearNotice: 'CLCPA-277: the wrong-year advisory (new)',
+
+    openAddYearDialog: 'CLCPA-277: the staged surface carries it too',
+
+    stagedBlock: 'CLCPA-277: nested in openAddYearDialog, it renders the line',
+
+    wire: 'CLCPA-277: nested in openAddYearDialog, it holds the call site',
+
     /* CLCPA-250, 267, 271, 272, 273 -- the eight-ticket wave of 2026-09-16. */
 
     renderIngestEditor: 'CLCPA-271 and CLCPA-272: the calc-cell format; the draft reconciliation',
@@ -490,7 +519,9 @@ guard('X: the blast radius', () => {
    * plus CLCPA-252 round 3's three and CLCPA-266's one, all named above. The
    * number was read from this suite's own sentinel run, which reported the
    * nine by name before it was written here. */
-  ok(changed.length === 30, 'X1 exactly this many functions changed: ' + changed.length);
+  /* 30 -> 43: the review follow-up package moved 13 more, every one of them named in the map above. The delta equals the number of entries added to that map, so nothing entered this count unattributed. */
+  /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
+  ok(changed.length === 44, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['applyDerivedCols', 'columnGrandTotals', 'recomputeTotals', 'totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {

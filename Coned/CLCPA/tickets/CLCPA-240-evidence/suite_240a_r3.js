@@ -792,8 +792,7 @@ guard('S: the fallback and the shared predicate', () => {
   ok(/if \(rowHasNumber\(rows\[k\]\)\) \{ out\[normIngestKey\(r\[0\]\)\] = true; return; \}/.test(ed),
      'S7 with a header required to be FOLLOWED by a value-bearing row, which ' +
      'is what keeps a just-typed row free');
-  const css = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  const css = /* DAC_CSS_PINNED: same pinned commit as app.js. A stylesheet claim about what THIS ticket did is history, and CLCPA-275 moved the stylesheet. */ execSync('git show ' + NEWREV + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');

@@ -1005,8 +1005,7 @@ guard('S: the declarations and the reuse', () => {
      'S7b and the group test takes a ROW, not an index, so rows moving cannot ' +
      'shift the lock');
   /* zero CSS: the band already existed */
-  const css = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  const css = /* DAC_CSS_PINNED: same pinned commit as app.js. A stylesheet claim about what THIS ticket did is history, and CLCPA-275 moved the stylesheet. */ execSync('git show ' + NEWREV + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');

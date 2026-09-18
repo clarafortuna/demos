@@ -542,8 +542,7 @@ guard('S: the veto is scoped and singular', () => {
      grab('confirms', SRC) === null,
      'S4 confirms() itself is byte-identical to BASE: the general correction ' +
      'is not in this round');
-  const css = fs.readFileSync(path.join(REPO,
-    'Coned/CLCPA/ExecutiveDashboard_dev/styles.css'), 'utf8');
+  const css = /* DAC_CSS_PINNED: same pinned commit as app.js. A stylesheet claim about what THIS ticket did is history, and CLCPA-275 moved the stylesheet. */ execSync('git show ' + NEWREV + ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"', { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
   const baseCss = execSync('git show ' + BASE +
     ':"Coned/CLCPA/ExecutiveDashboard_dev/styles.css"',
     { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');

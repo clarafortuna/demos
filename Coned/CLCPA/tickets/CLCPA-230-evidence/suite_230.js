@@ -545,6 +545,9 @@ function sitesDriver(over) {
     buildYearSelector: () => calls.push('buildYearSelector'),
     mostRecentYear: () => '2025',
     recomputeTotals: () => calls.push('recomputeTotals'),
+    /* CLCPA-276 dep: the Reset handler now routes its clearing through
+     * one helper, so this driver has to supply it or the site throws. */
+    clearIngestNotices: () => calls.push('clearIngestNotices'),
     clone2D: (m) => m.map(r => r.slice()),
     refreshIngestStatus: () => {}, parseNumericInput: (s) => s,
     /* CLCPA-245 round 2: wireIngestPage now calls the ingest label tooltip

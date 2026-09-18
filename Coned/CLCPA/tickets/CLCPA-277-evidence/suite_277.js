@@ -7,7 +7,7 @@
  * Generic and digit-bounded: no list of years, so it works on a reporting year
  * nobody has added yet, and "v20991" is not a year.
  *
- * BASE predates the change: cd7c7ed (CLCPA-276's tip).
+ * BASE predates the change: 22c96cc (CLCPA-276's tip).
  *
  * Run:  node suite_277.js
  */
@@ -17,9 +17,18 @@ const { execSync } = require('child_process');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
-const BASE = process.env.DAC_BASE_COMMIT || 'cd7c7ed';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const SRC = fs.readFileSync(APP, 'utf8');
+/* PINNED ON BOTH SIDES (CLAUDE.md), the standing model. The post-change
+ * side reads 7260063, this ticket's own commit, because a
+ * blast-radius claim can only be true at the commit that made the change
+ * -- never on a tip that also carries the tickets merged after it.
+ * DAC_APP_OVERRIDE still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '7260063';
+const BASE = process.env.DAC_BASE_COMMIT || '22c96cc';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 
