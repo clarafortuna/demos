@@ -2960,7 +2960,11 @@ function utf8ByteLength(str) {
     const colHasNum = new Array(len).fill(false);
     for (let c = 1; c < len; c++) {
       let sum = 0, any = false;
-      rows.forEach(r => { const v = r[c]; if (typeof v === 'number' && isFinite(v)) { sum += v; any = true; } });
+      /* CLCPA-278 round 3: the SHARED reader. This is the summing
+       * recomputeTotals does -- directly and through totalRowSums, which
+       * delegates here for every segment -- so the engine that WRITES a total
+       * and the two that judge one now read a cell the same way. */
+      rows.forEach(r => { const v = bareNumber(r[c]); if (v !== null) { sum += v; any = true; } });
       colSum[c] = any ? sum : null;
       colHasNum[c] = any;
     }
@@ -4036,13 +4040,37 @@ function utf8ByteLength(str) {
    * match by construction, so consistency can only be read from the pre-edit
    * row -- which is why this takes it.
    */
+  /* CLCPA-278 round 3: WHAT NUMBER DOES THIS CELL HOLD.
+   *
+   * bareNumber, which already exists and already means exactly this -- "what
+   * the operator typed, before anything decorated it" -- is now the ONE reader
+   * for every function that adds a row up: this one, reconcileSumColumns, and
+   * columnGrandTotals, which is how recomputeTotals sums. They were three
+   * separate `typeof v === 'number'` tests, identical by coincidence rather
+   * than by construction.
+   *
+   * My first cut of this round added a fourth helper of its own. That was the
+   * duplication the ruling forbids, in the very change made to remove it.
+   *
+   * THE CHANGE IS THAT A NUMERIC-LOOKING STRING IS THE NUMBER IT SPELLS. A
+   * cell reaches a draft as a string whenever parseNumericInput could not parse
+   * what was typed or imported -- it returns the original text by design -- and
+   * on the composed Dataverse path. One such component made a row unjudgeable,
+   * so the total was kept as the preparer's and the CLCPA-272 advisory then
+   * fired on the very figure the engine had just declined to maintain.
+   * Reproduced exactly: total frozen at 1098, "filed 1098 ... = 599".
+   *
+   * What bareNumber refuses is what this must keep refusing: an explicit
+   * percent is a UNIT (CLCPA-244) and a split cell is published text
+   * (CLCPA-216). It never salvages a prefix. */
   function rowSumIsConsistent(row, rel) {
     if (!Array.isArray(row)) return false;
-    const filed = row[rel.column];
-    if (typeof filed !== 'number') return false;
+    const filed = bareNumber(row[rel.column]);
+    if (filed === null) return false;
     let sum = 0, seen = 0;
     rel.parts.forEach((c) => {
-      if (typeof row[c] === 'number') { sum += row[c]; seen++; }
+      const n = bareNumber(row[c]);
+      if (n !== null) { sum += n; seen++; }
     });
     if (seen !== rel.parts.length) return false;
     return withinSourceRounding(filed, sum);
@@ -4089,11 +4117,15 @@ function utf8ByteLength(str) {
     rows.forEach((row, r) => {
       if (!Array.isArray(row)) return;
       rels.forEach((rel) => {
-        const filed = row[rel.column];
-        if (typeof filed !== 'number') return;
+        /* CLCPA-278 round 3: the SAME reader rowSumIsConsistent uses, so the
+         * advisory and the recompute can never disagree about whether a row
+         * adds up. They were two identical-by-coincidence typeof tests. */
+        const filed = bareNumber(row[rel.column]);
+        if (filed === null) return;
         let sum = 0, seen = 0;
         rel.parts.forEach((c) => {
-          if (typeof row[c] === 'number') { sum += row[c]; seen++; }
+          const n = bareNumber(row[c]);
+          if (n !== null) { sum += n; seen++; }
         });
         /* every part must be present, or the "sum" is of a partial row and
          * the disagreement would be the operator's unfinished typing */

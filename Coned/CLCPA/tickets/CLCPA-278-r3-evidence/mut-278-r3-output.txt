@@ -1,0 +1,19 @@
+======================================================================
+CLCPA-278-r3 -- mutation controls
+======================================================================
+  ???  THE DEFECT RETURNS: rowSumIsConsistent goes back to a private typeof test  -- 1 red, not the expected one
+       want: C1.seed the total now follows the edit OR E3.rowSumIsConsistent consumes it
+       got : E2 and it is consumed, not declared and ignored -- 5 references
+  ???  THE ADVISORY stops sharing the reader, so the two disagree again  -- 1 red, not the expected one
+       want: E3.reconcileSumColumns consumes it OR C2.seed and nothing is advised
+       got : E2 and it is consumed, not declared and ignored -- 5 references
+  red  THE ENGINE stops sharing it, so what it WRITES and what it JUDGES differ
+       3 red, incl: E3.columnGrandTotals consumes it
+  red  THE READER starts accepting a PERCENT, against CLCPA-244
+       3 red, incl: F2 refuses an explicit percent is a UNIT (CLCPA-244): "33%"
+  ???  THE READER starts salvaging a numeric PREFIX, which claims a split cell  -- ANCHOR 0, NOT APPLIED
+  red  THE READER accepts any string parseFloat likes
+       6 red, incl: F2 refuses a SPLIT cell is published text (CLCPA-216): "37,988 (33%)"
+
+  3 caught, 3 not caught, of 5 applied
+  clean re-run against byte-restored source: PASSES -- 62 passed, 0 failed

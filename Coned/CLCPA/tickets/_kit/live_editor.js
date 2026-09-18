@@ -52,6 +52,7 @@ const EXPORTS = [
   'recomputeDerivableSums', 'ingestKeyColCount', 'normIngestKey',
   'parseNumericInput', 'adoptIngestReference', 'clone2D', 'DERIVED_COLS',
   'addReportingYear', 'allYears', 'Storage', 'saveIngestDraft', 'ingestHeaderRowCount',
+  'ingestStoredHeaderRows', 'ingestYearCarriesHeaderRows', 'bareNumber', 'columnGrandTotals',
 ];
 
 function boot(opts) {
