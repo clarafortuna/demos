@@ -277,8 +277,12 @@ function makeDocument() {
       for (const c of document.body._walk()) if (c.id === id) return c;
       return null;
     },
-    querySelector: (s) => root.querySelector(s) || document.body.querySelector(s),
-    querySelectorAll: (s) => root.querySelectorAll(s).concat(document.body.querySelectorAll(s)),
+    /* BODY ONLY. root is appended INTO body, so querying both and
+     * concatenating returned every match twice -- a grid with 8 <th> reported
+     * 16, and any suite counting rendered elements would have been counting
+     * the same nodes over again. */
+    querySelector: (s) => document.body.querySelector(s),
+    querySelectorAll: (s) => document.body.querySelectorAll(s),
     addEventListener: (k, fn) => { (document._on[k] = document._on[k] || []).push(fn); },
     removeEventListener: () => {},
     _on: {},

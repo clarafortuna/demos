@@ -22556,6 +22556,46 @@ function wireHTooltips() {
       return out.join('');
     })();
 
+    /* CLCPA-281: THE SECOND HEADER ROW, IN THE HEADER.
+     *
+     * F6, A9 and A10 render two header levels on the section page -- group
+     * spans over sub-labels -- and the EDITOR showed only the top row. The
+     * sub-labels were rendered, but as the first BODY row: read-only since
+     * CLCPA-233, yet sitting in the data area with the figures. So F6's four
+     * value columns were indistinguishable in the grid, which is the whole
+     * complaint, and A9/A10's spans collapsed to one "2024" and one "2025".
+     *
+     * IT IS DISPLAY STRUCTURE, NOT DATA. The row stays exactly where it is in
+     * the store -- that is where the report reads it -- and nothing here
+     * writes. It simply renders above the line instead of below it.
+     *
+     * THE SAME ANATOMY THE WRITER USES, through the same helpers CLCPA-274
+     * round 3 extracted: how many header rows this table declares, and where
+     * they live when the open year does not carry them. A user-added year has
+     * no sub-header of its own, so it borrows the table's -- otherwise the
+     * grid would lose its column labels on exactly the years an operator is
+     * most likely to be filling in. */
+    const subHeaderCells = (() => {
+      if (!isTwoLevel) return '';
+      const count = ingestHeaderRowCount(table, Infinity);
+      if (!count) return '';
+      const rows = ingestYearCarriesHeaderRows(i.draft, count)
+        ? i.draft.slice(0, count)
+        : ingestStoredHeaderRows(table, count);
+      if (!rows.length) return '';
+      return rows.map((row) => {
+        const cells = i.schema.map((_, c) => {
+          if (hiddenCols.indexOf(c) >= 0) return '';
+          const v = row[c];
+          const text = (v == null || v === '') ? '' : String(v);
+          const cls = c === 0 ? ' class="ingest-th-label ingest-th-detail"'
+            : ' class="ingest-th-detail"';
+          return `<th${cls}>${escapeHtml(text)}</th>`;
+        }).join('');
+        return `<tr>${cells}<th></th></tr>`;
+      }).join('');
+    })();
+
     // Build body rows
     // CLCPA-88: derived (%/ratio) columns are computed, so they render as read-only
     // calc cells (like Total cells) — the user only edits the additive inputs.
@@ -22724,7 +22764,13 @@ function wireHTooltips() {
       !!groupHeaderLabels[normIngestKey(row[0])] && !rowHasNumber(row);
 
     const bodyRowsHtml = i.draft.map((row, rowIdx) => {
-      const structuralHeader = rowIdx < headerRowCount || isGroupHeaderRow(row);
+      /* CLCPA-281: a declared header row is drawn in the THEAD now, so it is
+       * not drawn again here. Mapped over the WHOLE draft and returned empty
+       * rather than filtered out, because every handler addresses a cell by
+       * data-row and those indices are the draft's -- re-numbering them would
+       * point every edit at the wrong row. */
+      if (rowIdx < headerRowCount) return '';
+      const structuralHeader = isGroupHeaderRow(row);
       /* CLCPA-270: ONE role, THREE protections derived from it. isHeaderRow
        * and isTotal below are now the role's consequences rather than three
        * independent tests, and editorTotalFlags no longer decides any of them:
@@ -22912,6 +22958,7 @@ function wireHTooltips() {
           <table class="ingest-grid${isTwoLevel ? ' ingest-grid-2level' : ''}">
             <thead>
               <tr>${headerCells}<th></th></tr>
+              ${subHeaderCells}
             </thead>
             <tbody>
               ${bodyRowsHtml}
