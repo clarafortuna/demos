@@ -51,6 +51,37 @@ Whether that gap is the WHOLE of the reported symptom is not settled here. It
 needs a hosted observation on a clean load (2097, Section H header), which is
 Emely's and is part of the 2026-09-17 pass.
 
+## 2026-09-18: `read_store_2098_2099.js`, the CLCPA-278 round 3 store measurement
+
+A fourth read, on a later GO and for a different ticket, kept here because it is
+the same shape: one filtered `GET`, nothing written.
+
+| script | what it read | outcome |
+|---|---|---|
+| `read_store_2098_2099.js` | the ingest override rows for 2098 and 2099 | 51 rows. 2,100 value cells, 112 string cells, **44 numeric-looking strings**, all in A3/A4 2098 column 1. Full per-cell listing in `store-read-2098-2099.txt`. |
+
+It settled condition 2 of the CLCPA-278 round 3 ruling, which required the
+zero-effect measurement to cover the ORG STORE and not only `payload.json`.
+The answer was NOT zero: those 44 cells change behaviour under the shared-reader
+change. Ruled audit scaffolding, accepted as disclosed, and named in the
+CLCPA-224 residue list. See `../CLCPA-278-store-measurement.md`.
+
+Two things in this script that the earlier three did not have, both worth
+copying:
+
+- **It audits its own text before requesting a device code**, and says plainly
+  that one non-`GET` exists -- the device-code exchange itself, which a `POST`
+  is the only way to make. An earlier draft of that audit built the forbidden
+  verbs out of concatenated characters so the file would not trip over its own
+  vocabulary, which is a gate written to pass rather than to catch. The audit
+  now excises one visible delimited region of itself and nothing else.
+- **The predicate is sliced from the shipped `app.js`**, not retyped, and
+  behaviour-checked before it counts anything. A retyped copy of the rule under
+  test is how a measurement comes back agreeing with itself.
+
+Its first attempt expired unentered (`AADSTS70020`) and read nothing, exactly as
+`read_org_build.js` did in September.
+
 ## Re-running
 
 Each script requests its own device code and prints it. They read and print;

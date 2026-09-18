@@ -1,0 +1,120 @@
+=== READ-ONLY store read: ingest overrides for 2098 and 2099 ===
+org: https://org9076e69b.crm.dynamics.com
+
+PRE-FLIGHT 0  self-audit: ONE request helper and it is GET; the only
+              non-GET is the device-code exchange to login.microsoftonline.com,
+              which carries no org data. Nothing can write to Dataverse.
+PRE-FLIGHT 1  bareNumber sliced from the shipped app.js, behaviour checked.
+              "1,098" -> 1098   "33%" -> null
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  A9E9AVJMQ
+#################################################
+
+Authorized.
+signed in, org user 44d1f3d9-8f03-f111-8408-00224831be5d
+
+READ  51 override row(s) for 2098/2099   (GET only, nothing written)
+
+PER YEAR AND TABLE
+  year  table   rows   value cells   string cells   numeric-looking
+  2098  A1        23            69              0                 0
+  2098  A2        23            69              0                 0
+  2098  A3        45           180             44                22
+  2098  A4        45           180             44                22
+  2098  A5        50           150              0                 0
+  2098  A6        33            99              0                 0
+  2098  A7         4            12              0                 0
+  2098  A8        26            78              0                 0
+  2098  B1         3             3              0                 0
+  2098  B2         3            12              0                 0
+  2098  C1         5            25             10                 0
+  2098  C2         4            28              0                 0
+  2098  C3         6            42              0                 0
+  2098  C4         6            42              0                 0
+  2098  C5         6            42              0                 0
+  2098  D1         3             3              0                 0
+  2098  D2         6            12              0                 0
+  2098  D3         5            10              0                 0
+  2098  D4        10            20              0                 0
+  2098  E1         5            10              0                 0
+  2098  F1        14            14              0                 0
+  2098  F2         3            15              0                 0
+  2098  F3         5             5              0                 0
+  2098  F4         8            32              0                 0
+  2098  F5        39           156              0                 0
+  2098  F6        25           150              0                 0
+  2098  F7         4            12              0                 0
+  2098  F8         7            28              0                 0
+  2098  F9         7            28              0                 0
+  2098  G1         3             6              0                 0
+  2098  G2         3             6              0                 0
+  2098  G5         3            18              0                 0
+  2098  G7         3             6              0                 0
+  2098  G9         3             6              0                 0
+  2098  H1         5            15              0                 0
+  2098  I1         9            18             10                 0
+  2098  J1         2             8              0                 0
+  2099  A1        23            69              0                 0
+  2099  A2        23            69              0                 0
+  2099  A5        50           150              0                 0
+  2099  B1         3             3              0                 0
+  2099  C1         5            25              0                 0
+  2099  C3         6            42              0                 0
+  2099  C4         6            42              0                 0
+  2099  C5         6            42              0                 0
+  2099  E1         5            10              0                 0
+  2099  G1         3             6              0                 0
+  2099  H1         5            15              0                 0
+  2099  I1         9            18              4                 0
+                TOTAL         2100            112                44
+
+EVERY NUMERIC-LOOKING STRING CELL
+  2098  A3     row "Residential"                       column "col 1"                         raw "333"
+  2098  A3     row "Residential"                       column "col 1"                         raw "111"
+  2098  A3     row "Residential"                       column "col 1"                         raw "888"
+  2098  A3     row "Residential"                       column "col 1"                         raw "666"
+  2098  A3     row "Residential"                       column "col 1"                         raw "444"
+  2098  A3     row "Residential"                       column "col 1"                         raw "222"
+  2098  A3     row "Residential"                       column "col 1"                         raw "999"
+  2098  A3     row "Multisector"                       column "col 1"                         raw "777"
+  2098  A3     row "Multisector"                       column "col 1"                         raw "555"
+  2098  A3     row "Multifamily"                       column "col 1"                         raw "333"
+  2098  A3     row "Multifamily"                       column "col 1"                         raw "111"
+  2098  A3     row "Multifamily"                       column "col 1"                         raw "888"
+  2098  A3     row "Multifamily"                       column "col 1"                         raw "666"
+  2098  A3     row "Multifamily"                       column "col 1"                         raw "444"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "222"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "999"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "777"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "555"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "333"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "111"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "888"
+  2098  A3     row "Commercial"                        column "col 1"                         raw "666"
+  2098  A4     row "Residential"                       column "col 1"                         raw "907"
+  2098  A4     row "Residential"                       column "col 1"                         raw "507"
+  2098  A4     row "Residential"                       column "col 1"                         raw "107"
+  2098  A4     row "Residential"                       column "col 1"                         raw "607"
+  2098  A4     row "Residential"                       column "col 1"                         raw "207"
+  2098  A4     row "Residential"                       column "col 1"                         raw "707"
+  2098  A4     row "Residential"                       column "col 1"                         raw "307"
+  2098  A4     row "Multisector"                       column "col 1"                         raw "807"
+  2098  A4     row "Multisector"                       column "col 1"                         raw "407"
+  2098  A4     row "Multifamily"                       column "col 1"                         raw "907"
+  2098  A4     row "Multifamily"                       column "col 1"                         raw "507"
+  2098  A4     row "Multifamily"                       column "col 1"                         raw "107"
+  2098  A4     row "Multifamily"                       column "col 1"                         raw "607"
+  2098  A4     row "Multifamily"                       column "col 1"                         raw "207"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "707"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "307"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "807"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "407"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "907"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "507"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "107"
+  2098  A4     row "Commercial"                        column "col 1"                         raw "607"
+
+=== READ COMPLETE === requests: GET only. Nothing written, nothing deleted.
