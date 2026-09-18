@@ -91,6 +91,16 @@ function boot(opts) {
     confirm: () => true,
     URL: { createObjectURL: () => 'blob:', revokeObjectURL: () => {} },
     navigator: { userAgent: 'live_editor' },
+    /* staging reads the picked file through a FileReader, so the dialog cannot
+     * be driven at all without one. Synchronous on purpose: the callbacks the
+     * app hangs off onload are the thing under test, not the scheduling. */
+    FileReader: function FileReader() {
+      this.result = null;
+      this.readAsText = (f) => {
+        this.result = (f && f.__text) || '';
+        if (this.onload) this.onload();
+      };
+    },
   };
 
   const KICK = '\r\n  // Kick off\r\n';
@@ -197,6 +207,38 @@ function boot(opts) {
       if (H.modalOpen()) H.confirmModal(answer || 'confirm');
       return H;
     },
+    /** open the Add Data dialog, the real one, on document.body */
+    openAddYear: () => {
+      if (!api.openAddYearDialog) throw new Error('live_editor: openAddYearDialog not exposed');
+      api.openAddYearDialog();
+      return H;
+    },
+    /** type a year into the dialog's own field, as the operator does */
+    setDialogYear: (y) => {
+      const f = doc.body.querySelector('#dlg-newyear');
+      if (!f) throw new Error('live_editor: the dialog has no year field (#dlg-newyear)');
+      f.value = String(y);
+      f.dispatchEvent({ type: 'input' });
+      return H;
+    },
+    /** pick a file: the real change handler, the real FileReader, the real dry run */
+    stageFile: (name, csvText) => {
+      const f = doc.body.querySelector('#ingest-file') || doc.getElementById('ingest-file');
+      if (!f) throw new Error('live_editor: no file input on screen');
+      f.files = [{ name: name, __text: csvText }];
+      f.dispatchEvent({ type: 'change' });
+      return H;
+    },
+    /** what the staged card is saying right now */
+    stagedText: () => {
+      const b = doc.body.querySelector('#dlg-stagedbox');
+      return b ? b.textContent.replace(/\s+/g, ' ').trim() : null;
+    },
+    dialogHtml: () => {
+      const m = doc.body.querySelector('.ingest-modal-overlay');
+      return m ? m.innerHTML : null;
+    },
+
     /** switch year the way the picker does: set it, reload, repaint */
     switchYear: (y) => {
       appState.ingest.year = y;
