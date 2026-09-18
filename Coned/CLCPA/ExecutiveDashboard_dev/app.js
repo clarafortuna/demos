@@ -24201,11 +24201,32 @@ function wireHTooltips() {
     document.addEventListener('mouseout', (e) => { if (labelOf(e)) hide(); });
   }
 
+  /* CLCPA-276 round 2: THE NOTICES ARE REPAINTED WITH THE GRID.
+   *
+   * The single-exit fix of round 1 cleared the right STATE and was wired to no
+   * live path, because the notices do not live in this mount. They are a
+   * SIBLING -- #ingest-import-mount and #ingest-editor-mount are two divs side
+   * by side in renderIngestPage -- so repainting the editor left whatever HTML
+   * was last painted beside it on screen. Measured on the live page: after
+   * Reset the draft is restored and importResult is null, and the amber
+   * advisory still names the dead draft's figures.
+   *
+   * ONE PLACE, because every exit already comes through here: the year picker,
+   * Reset, a successful save, delete-row and add-row. The section and table
+   * pickers go through rerenderIngestAll(), which rebuilds the whole page and
+   * was the only gesture that ever cleared anything.
+   *
+   * REPAINTED, NOT CLEARED, which is the ruling. renderIngestImport()
+   * recomputes the reconciliation advisory from the CURRENT draft every time
+   * it runs, so the steady state after any exit is the year's own stored
+   * discrepancies -- nothing at all when they reconcile, which is the case a
+   * clear-only fix could never produce. */
   function rerenderIngestEditor() {
     const mount = document.getElementById('ingest-editor-mount');
     if (!mount) return;
     mount.innerHTML = renderIngestEditor();
     wireIngestEditor();
+    refreshIngestNotices();
   }
 
   /**
