@@ -24059,13 +24059,35 @@ function wireHTooltips() {
         /* and bring a CONSISTENT row total with the edit. A total that already
          * disagreed with its parts is the preparer's and is left alone for
          * CLCPA-272 to advise on. */
-        recomputeDerivableSums(state.ingest.draft, state.ingest.schema,
+        /* CLCPA-278 round 4: THE CELL THE OPERATOR READS.
+         *
+         * recomputeDerivableSums returns the columns it rewrote, and that
+         * return was discarded. On a DATA row the derivable total is an
+         * ordinary <input> -- the row is not a total row, so it is not a calc
+         * span -- and refreshIngestCalcCells only repaints spans. So the draft
+         * held 599, the totals row consumed 599, and the row's own Grand Total
+         * input went on displaying 1098: two figures for the same row on one
+         * screen, which is what the hosted pass saw.
+         *
+         * Repainted from the SAME recompute that produced them, through the
+         * same formatter the cell uses at rest. No second source: this does
+         * not recompute anything, it shows what was just computed. */
+        const rewritten = recomputeDerivableSums(state.ingest.draft, state.ingest.schema,
                                state.ingest.tableId, r, beforeRow, c);
         recomputeTotals(state.ingest.draft, state.ingest.schema, state.ingest.tableId,
                         state.ingest.baseline);
         if (e.target.dataset.fmt) {
           e.target.value = formatIngestValue(state.ingest.draft[r][c], e.target.dataset.fmt === 'money');
         }
+        (rewritten || []).forEach((col) => {
+          if (col === c) return;   /* the edited cell is handled above */
+          const el = document.querySelector(
+            '.ingest-cell[data-row="' + r + '"][data-col="' + col + '"]');
+          if (!el) return;         /* a calc span: refreshIngestCalcCells has it */
+          el.value = el.dataset.fmt
+            ? formatIngestValue(state.ingest.draft[r][col], el.dataset.fmt === 'money')
+            : (state.ingest.draft[r][col] == null ? '' : String(state.ingest.draft[r][col]));
+        });
         refreshIngestCalcCells();
         refreshIngestStatus();
         /* CLCPA-273: repaint the notice area in place, the way the calc cells
