@@ -113,7 +113,7 @@ CLCPA-230 -- the native dialogs become the app s own modal
   ok   site 5 CONFIRM: removeYear called exactly once
   ok   site 5 CONFIRM: and the whole continuation ran, down to the year selector
   ok   site 6: the refusal raises exactly one toast
-  ok   site 6: with the same words the alert had: toast:2027 has data (or is a seed year) and cannot be removed.
+  ok   site 6: naming the only reason a refusal can now have: toast:2027 is a seed year and cannot be removed.
   ok   site 6: and the continuation STOPS there -- nothing else was touched
   ok   site 9: the delete-row button is wired
   ok   site 9: it asks through the modal
