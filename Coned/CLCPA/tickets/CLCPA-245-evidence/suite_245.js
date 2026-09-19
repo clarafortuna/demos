@@ -626,6 +626,8 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    /* CLCPA-281 round 3, named so the count stays exact */
+    storedHeaderRowsInYear: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)',
 
     /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
 
@@ -748,7 +750,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 67, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 68, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {
