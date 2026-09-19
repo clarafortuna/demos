@@ -18202,6 +18202,22 @@ function wireHTooltips() {
     if (text == null || text === '') {
       return '<c r="' + ref + '" s="' + styleIdx + '"/>';
     }
+    /* CLCPA-274 option (c): A NUMBER IS WRITTEN AS A NUMBER.
+     *
+     * Every cell used to be t="inlineStr", which was harmless while the
+     * template emitted nothing but labels and markers. Option (c) exports
+     * stored values, and a figure written as an inline string arrives in
+     * Excel as TEXT: left-aligned, not summable, and flagged by the
+     * spreadsheet as a number stored as text. The CSV round trip would still
+     * work, because the importer parses strings -- but the artefact handed to
+     * the operator would be visibly wrong.
+     *
+     * A cell with no t attribute is a numeric cell; the value goes in <v>
+     * unescaped, which is safe because it is a finite JS number. Strings keep
+     * exactly the branch they had. */
+    if (typeof text === 'number' && isFinite(text)) {
+      return '<c r="' + ref + '" s="' + styleIdx + '"><v>' + String(text) + '</v></c>';
+    }
     return '<c r="' + ref + '" s="' + styleIdx + '" t="inlineStr"><is><t xml:space="preserve">' +
       xmlEsc(text) + '</t></is></c>';
   }
@@ -18426,9 +18442,26 @@ function wireHTooltips() {
               ? INGEST_NOVALUE_MARKER : INGEST_CALC_MARKER,
           };
         }
-        /* EMPTY, and LOCKED like everything else: the workbook shows the
-         * format, it is not filled in. The operator types into their own CSV,
-         * saved from this sheet. */
+        /* CLCPA-274, OPTION (c) AS RULED: a year that HAS data exports it; a
+         * fresh year stays a blank format.
+         *
+         * The distinction is the one ingestTemplateSource already draws and
+         * the one CLCPA-274 round 3 introduced for the sub-header: src.borrowed
+         * is true when this year holds nothing and the labels were taken from
+         * another year. Exporting THOSE values would hand the operator last
+         * year's figures presented as this year's, which is the one outcome
+         * worse than a blank sheet.
+         *
+         * So the template is a blank form exactly when the year is empty, and
+         * an export exactly when it is not -- which is what makes a populated
+         * year round trip: download, re-import, get it back. */
+        if (!src.borrowed) {
+          const v = row[c];
+          if (v != null && String(v).trim() !== '') return { style: style, text: v };
+        }
+        /* EMPTY, and LOCKED like everything else: for a fresh year the
+         * workbook shows the format, it is not filled in. The operator types
+         * into their own CSV, saved from this sheet. */
         return { style: style, text: null };
       })));
     });

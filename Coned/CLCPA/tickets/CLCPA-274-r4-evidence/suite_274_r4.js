@@ -13,14 +13,23 @@
  * so the phantom row was read as anatomy by every consumer. The predicate now
  * requires a blank label AND at least one heading in the value positions.
  *
- * THE VALUE HALF OF THE REPORT IS NOT A DEFECT, and this round does not touch
- * it. The template emits row labels and blanks every value, for every table
- * and every year, by CLCPA-85's design -- H1/2025 renders "Manhattan" with no
- * figures exactly as F6/2099 renders "Test Row" with none. Turning the
- * template into an export of stored data is a product change, ruled to be
- * decided with CLCPA-292. The options and the recommendation are recorded in
- * CLCPA-274-template-as-export-options.md. Assertions below PIN the blank-value
- * behaviour so the deferred decision cannot be made by accident.
+ * THE VALUE HALF WAS DEFERRED BY ROUND 4 AND HAS NOW BEEN RULED: option (c).
+ *
+ * Round 4 found that the template emitted row labels and blanked every value,
+ * for every table and every year, by CLCPA-85's design -- H1/2025 rendered
+ * "Manhattan" with no figures exactly as F6/2099 rendered "Test Row" with
+ * none. That was not a defect, so round 4 did not change it; it PINNED it, so
+ * the deferred decision could not be taken by accident.
+ *
+ * The owner has now taken it. A year that HOLDS data exports it; a fresh year
+ * stays a blank form. Section C is re-pointed at that contract rather than
+ * deleted, and the mutation that used to turn the template into an export now
+ * turns it back into a blank form -- red either way, which is the point of
+ * keeping it. Section E is re-pointed too: seed-year templates DO move now,
+ * by design, and what must not move is the fresh-year form.
+ *
+ * The options record that carried the decision is
+ * CLCPA-274-template-as-export-options.md.
  *
  * BASE predates the change: c98ccb1, main at the deploy of fcc9fa30bd.
  *
@@ -30,7 +39,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 const { boot } = require('../_kit/live_editor.js');
-const { templateRows, dense } = require('../_kit/xlsx_read.js');
+const { templateRows, dense, worksheets } = require('../_kit/xlsx_read.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -95,25 +104,66 @@ guard('B-block', () => {
   ok(r.length === 4, 'B5 four rows in total: two header, two data -- ' + r.length);
 });
 
-/* ---- C. the value half: PINNED, not changed ----------------------------- */
+/* ---- C. the value half: RE-PINNED to option (c), as ruled --------------- */
 log('');
-log('C. THE TEMPLATE IS STILL A BLANK FORMAT (ruled: decided with CLCPA-292)');
+log('C. A POPULATED YEAR EXPORTS, A FRESH YEAR STAYS A BLANK FORM');
 guard('C-block', () => {
+  /* THE PIN IS NOT REMOVED, it is pointed at the contract that now holds.
+   * Round 4 pinned "the template carries no stored values" so the deferred
+   * decision could not be taken by accident. The owner has now taken it:
+   * option (c). The same assertions, inverted, keep it from drifting back. */
   const r = tmpl(owners2099(SRC), 'F6', '2099');
-  ok(r[3].indexOf('5677') < 0 && r[3].indexOf('88888') < 0,
-    'C1 Test Row carries NO stored values, as every template does');
+  ok(r[3].indexOf('5677') >= 0 && r[3].indexOf('88888') >= 0,
+    'C1 Test Row EXPORTS its stored values: 2099 holds data -- ' + JSON.stringify(r[3]));
   ok(r[3][r[3].length - 1] === '(calculated)',
-    'C2 while its derivable column still carries the marker');
+    'C2 while its derivable column still carries the marker, not a figure');
   /* the same shape on tables nobody reported, which is what makes it design */
   [['H1', 'Manhattan'], ['B2', 'DAC'], ['F5', 'Bay Ridge']].forEach(([id, label]) => {
     const t = tmpl(boot({ payload: P, tableId: id, year: '2025', src: SRC }), id, '2025');
     const stored = P.tables[id].data['2025'][0];
-    ok(t[1][0] === label && t[1].slice(1).every(v => v === '' || v === '(calculated)'),
-      'C3.' + id + ' label emitted, values blank -- stored ' +
-      JSON.stringify(stored).slice(0, 34) + ' -> ' + JSON.stringify(t[1]).slice(0, 40));
+    const storedVals = stored.slice(1)
+      .filter(v => v != null && String(v).trim() !== '').map(String);
+    const emitted = t[1].slice(1).map(String);
+    const carried = storedVals.filter(v => emitted.indexOf(v) >= 0).length;
+    ok(t[1][0] === label && carried > 0,
+      'C3.' + id + ' label AND stored values emitted -- stored ' +
+      JSON.stringify(stored).slice(0, 34) + ' -> ' + JSON.stringify(t[1]).slice(0, 44));
   });
-  ok(/the workbook shows the\s+\*\s+format, it is not filled in/.test(SRC),
-    'C4 and the code still says so, in the comment that decided it');
+  /* A FRESH YEAR IS STILL A BLANK FORM, which is the half of (c) that is
+   * easy to lose: exporting a borrowed row would hand the operator last
+   * year's figures presented as this year's. */
+  const fresh = JSON.parse(JSON.stringify(P));
+  fresh.meta.years = ['2094'].concat(fresh.meta.years);
+  const f = tmpl(boot({ payload: fresh, tableId: 'H1', year: '2094', src: SRC }), 'H1', '2094');
+  ok(f[1][0] === 'Manhattan' && f[1][1] === '' && f[1][2] === '',
+    'C4 a fresh year emits labels and NO values -- ' + JSON.stringify(f[1]));
+  ok(/a year that HAS data exports it; a\s+\*\s+fresh year stays a blank format/.test(SRC),
+    'C5 and the code says which contract it is following');
+  /* A NUMBER IS WRITTEN AS A NUMBER, and this is not cosmetic. Every cell was
+   * t="inlineStr", which was harmless while the template emitted only labels
+   * and markers. Under (c) a figure written as an inline string arrives in
+   * Excel as TEXT: left-aligned, not summable, flagged as a number stored as
+   * text. The CSV round trip would still work, so no assertion about the
+   * round trip would have caught it -- the artefact handed to the operator is
+   * what would have been wrong. */
+  const wb = boot({ payload: P, tableId: 'H1', year: '2025', src: SRC })
+    .api.buildIngestWorkbook('H1', '2025');
+  const sheets = worksheets(wb.bytes);
+  const xml = sheets[sheets.length - 1];
+  const numeric = (xml.match(/<c r="[A-Z]+[0-9]+" s="[0-9]+"><v>/g) || []).length;
+  ok(numeric === 8,
+    'C6 H1/2025 writes its 8 value cells as NUMERIC cells, not inline strings -- ' + numeric);
+  ok(/t="inlineStr"/.test(xml),
+    'C7 while labels and markers stay inline strings, as they were');
+  const freshWb = (function () {
+    const f = JSON.parse(JSON.stringify(P));
+    f.meta.years = ['2094'].concat(f.meta.years);
+    return boot({ payload: f, tableId: 'H1', year: '2094', src: SRC })
+      .api.buildIngestWorkbook('H1', '2094');
+  })();
+  const freshXml = worksheets(freshWb.bytes).slice(-1)[0];
+  ok((freshXml.match(/<c r="[A-Z]+[0-9]+" s="[0-9]+"><v>/g) || []).length === 0,
+    'C8 and a fresh year writes NO numeric cell at all');
 });
 
 /* ---- D. the other consumers of the same anatomy ------------------------- */
@@ -136,19 +186,33 @@ guard('D-block', () => {
     'D5 so that year does not "carry" a header row it never had');
 });
 
-/* ---- E. seed years unchanged -------------------------------------------- */
+/* ---- E. what did NOT move ----------------------------------------------- */
 log('');
-log('E. NOTHING ELSE MOVED');
+log('E. A FRESH YEAR IS UNCHANGED');
 guard('E-block', () => {
+  /* Seed-year templates DO move now, by design: that is option (c). What
+   * must not move is the fresh-year form, so the assertion is re-pointed
+   * rather than deleted. */
   let changed = [];
   ['F6', 'A9', 'A10', 'H1', 'B2', 'F2', 'F4', 'F5', 'F7', 'D1'].forEach((id) => {
-    const a = JSON.stringify(tmpl(boot({ payload: P, tableId: id, year: '2025', src: SRC }), id, '2025'));
-    const b = JSON.stringify(tmpl(boot({ payload: P, tableId: id, year: '2025', src: BASE_SRC }), id, '2025'));
+    const fresh = JSON.parse(JSON.stringify(P));
+    fresh.meta.years = ['2094'].concat(fresh.meta.years);
+    const a = JSON.stringify(tmpl(boot({ payload: fresh, tableId: id, year: '2094', src: SRC }), id, '2094'));
+    const b = JSON.stringify(tmpl(boot({ payload: fresh, tableId: id, year: '2094', src: BASE_SRC }), id, '2094'));
     if (a !== b) changed.push(id);
   });
   ok(changed.length === 0,
-    'E1 every SEED-year template is byte-identical to BASE -- ' +
+    'E1 every FRESH-year template is byte-identical to BASE -- ' +
     (changed.length ? changed.join(',') : 'all 10'));
+  /* and the seed years moved in exactly one way: they gained values */
+  let gained = 0;
+  ['H1', 'B2', 'F5'].forEach((id) => {
+    const a = tmpl(boot({ payload: P, tableId: id, year: '2025', src: SRC }), id, '2025');
+    const b = tmpl(boot({ payload: P, tableId: id, year: '2025', src: BASE_SRC }), id, '2025');
+    if (JSON.stringify(a) !== JSON.stringify(b)) gained++;
+  });
+  ok(gained === 3,
+    'E2 and every POPULATED seed year did move, which is the ruling -- ' + gained + ' of 3');
 });
 
 /* ---- X. the harness ------------------------------------------------------ */
