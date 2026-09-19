@@ -72,10 +72,11 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
+  ok   the change to boot is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to buildYearSelector is accounted for
@@ -106,6 +107,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to isPercentLiteral is accounted for
   ok   the change to isTotalRoleLabel is accounted for
+  ok   the change to isYearProtected is accounted for
   ok   the change to loadIngestDraft is accounted for
   ok   the change to noteTypedPercent is accounted for
   ok   the change to openAddYearDialog is accounted for
@@ -134,6 +136,10 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   the change to wireIngestPage is accounted for
+  ok   wireIngestPage changed as intended: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
+  ok   isYearProtected changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
+  ok   boot changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
   ok   applyIngestImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
   ok   fillDerivableSumsOnImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   compareColWidths changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
@@ -195,8 +201,8 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
-  ok   X1 exactly this many functions changed: 61
+  ok   X1 exactly this many functions changed: 64
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  186 passed, 0 failed
+  192 passed, 0 failed

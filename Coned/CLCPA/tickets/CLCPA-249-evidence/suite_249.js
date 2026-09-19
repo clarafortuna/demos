@@ -662,6 +662,10 @@ guard('X: app.js is byte-identical to BASE', () => {
   };
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   const LATER = {
+    wireIngestPage: 'NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast',
+    /* CLCPA-283, named so the count stays exact */
+    isYearProtected: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only',
+    boot: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)',
     /* CLCPA-301, named so the count stays exact */
     applyIngestImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank',
     fillDerivableSumsOnImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)',

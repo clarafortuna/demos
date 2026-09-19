@@ -393,6 +393,10 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    wireIngestPage: 'NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast',
+    /* CLCPA-283, named so the count stays exact */
+    isYearProtected: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only',
+    boot: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)',
     /* CLCPA-301, named so the count stays exact */
     applyIngestImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank',
     fillDerivableSumsOnImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)',
@@ -500,7 +504,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 60, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 63, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags',
    'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

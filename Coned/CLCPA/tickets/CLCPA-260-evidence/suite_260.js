@@ -413,6 +413,10 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    wireIngestPage: 'NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast',
+    /* CLCPA-283, named so the count stays exact */
+    isYearProtected: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only',
+    boot: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)',
     /* CLCPA-301, named so the count stays exact */
     applyIngestImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank',
     fillDerivableSumsOnImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)',
@@ -524,7 +528,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 61, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 64, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

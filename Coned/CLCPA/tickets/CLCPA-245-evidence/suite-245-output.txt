@@ -89,10 +89,11 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: applyCompositeShares, applyIngestImport, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCol, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isAnchoredTotalRowLabel, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isWhollyNumeric, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSectionC, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestEditor, wireIngestLabelTips, wireIngestPage
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCol, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isAnchoredTotalRowLabel, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isWhollyNumeric, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSectionC, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, totalRowFlags, wire, wireControlTips, wireIngestEditor, wireIngestLabelTips, wireIngestPage
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
+  ok   the change to boot is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to buildYearSelector is accounted for
@@ -126,6 +127,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to isPercentLiteral is accounted for
   ok   the change to isTotalRoleLabel is accounted for
   ok   the change to isWhollyNumeric is accounted for
+  ok   the change to isYearProtected is accounted for
   ok   the change to loadIngestDraft is accounted for
   ok   the change to noteTypedPercent is accounted for
   ok   the change to openAddYearDialog is accounted for
@@ -160,6 +162,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestLabelTips is accounted for
   ok   the change to wireIngestPage is accounted for
+  ok   isYearProtected changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
+  ok   boot changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
   ok   applyIngestImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
   ok   fillDerivableSumsOnImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   storedHeaderRowsInYear changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)
@@ -230,8 +234,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261: it collects the fraction notices
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261: the import summary announces them
-  ok   X8 exactly this many functions changed: 70
+  ok   X8 exactly this many functions changed: 72
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  216 passed, 0 failed
+  220 passed, 0 failed

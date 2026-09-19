@@ -1,0 +1,53 @@
+======================================================================
+CLCPA-283 -- one contract for removing a year
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 74458b2 (predates this change)
+======================================================================
+
+A. THE TWO READINGS, ON BASE
+  ok   A1 BASE carried yearHasData
+  ok   A2 and isYearProtected meant "seed year OR holds data"
+  ok   A3 at RENDER, before any save, 2094 is not protected -- the control shows
+  ok   A4 at CLICK, after one save, the SAME call says protected -- the guard refuses
+  ok   A5 (a seed year was protected throughout)
+
+B. ONE ANSWER, AT EITHER MOMENT
+  ok   B1 an added year is not protected when empty
+  ok   B2 and STILL not protected after a save -- the answer cannot flip underneath
+  ok   B3 a seed year is protected
+  ok   B4 whether it is given as a number or a string
+  ok   B5 a year nobody has heard of is not protected
+  ok   B6 with no seedYears it protects nothing, rather than throwing
+
+C. NO SECOND ANSWER LEFT LYING AROUND
+  ok   C1 yearHasData is GONE -- isYearProtected was its only caller
+  ok   C2 and nothing references it anywhere
+  ok   C3 isEmptyYearData stays: it has other callers and is not about removal
+  ok   C4 the toast no longer claims data is a reason to refuse
+  ok   C5 it names the only reason that remains
+
+D. WHAT MUST NOT CHANGE
+  ok   D1 the button still asks isYearProtected
+  ok   D2 and Storage.removeYear still refuses a protected year -- last line of defence
+  ok   D3 the dialog still warns that saved data goes with the year
+  ok   D4 and that it cannot be undone
+  ok   D5 the CLCPA-297 discard prompt is untouched (driven in the browser too)
+  ok   D6 removing a year really deletes its overrides -- data and all
+
+E. WHERE SEED YEARS COME FROM
+  ok   E1 seedYears is the published years, from the payload
+  ok   E2 minus the added-year table on the Dataverse path -- now the ONLY thing standing between an added year and permanence
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the defect is shown by calling ONE predicate at TWO moments
+  ok   X3 evidence committed: gesture_283.js
+  ok   X3 evidence committed: guard_297.js
+  ok   X3 evidence committed: guard-297-output.txt
+  ok   X3 evidence committed: repro_283_prefix.png
+  ok   X3 evidence committed: repro_283_postfix.png
+  ok   X4 and the CLCPA-297 guard was driven in a browser, not merely grepped
+
+======================================================================
+  32 passed, 0 failed
+======================================================================

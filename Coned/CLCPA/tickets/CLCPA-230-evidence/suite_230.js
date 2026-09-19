@@ -690,8 +690,16 @@ guard("SITE 5 and 6: Remove Year, and the refusal that is now a toast", () => {
   f.press('confirm');
   const toasts = f.calls.filter(c => c.indexOf('toast:') === 0);
   ok(toasts.length === 1, 'site 6: the refusal raises exactly one toast');
-  ok(/has data \(or is a seed year\) and cannot be removed/.test(toasts[0]),
-     'site 6: with the same words the alert had: ' + toasts[0]);
+  /* RE-PINNED BY CLCPA-283, not widened: still an exact message, a different
+   * one. This used to read "has data (or is a seed year) and cannot be
+   * removed" -- the words the alert had, which is what CLCPA-230 was migrating.
+   * Holding data is no longer a reason to refuse anything, so a toast still
+   * saying so would be a false statement kept alive by its own test. What
+   * CLCPA-230 actually guards -- a toast rather than an alert, exactly one of
+   * them, and the continuation stopping dead -- is unchanged and still
+   * asserted above and below this line. */
+  ok(/is a seed year and cannot be removed/.test(toasts[0]),
+     'site 6: naming the only reason a refusal can now have: ' + toasts[0]);
   ok(f.calls.indexOf('buildYearSelector') < 0,
      'site 6: and the continuation STOPS there -- nothing else was touched');
 });

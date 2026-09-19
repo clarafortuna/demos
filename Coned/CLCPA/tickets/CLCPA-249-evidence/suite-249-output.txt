@@ -168,6 +168,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function tableCaption moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function deriveTableCaptionInfo moved, and it is named by a later ticket: CLCPA-252 round 2: the three strategies (new)
   ok   X1 app.js function deriveTableCaption moved, and it is named by a later ticket: CLCPA-252 round 2: the derivation (new)
+  ok   X1 app.js function isYearProtected moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
   ok   X1 app.js function isDeclaredSummable moved, and it is named by a later ticket: CLCPA-254, Section C group E: the declared-summable column, new
   ok   X1 app.js function isTotalRoleLabel moved, and it is named by a later ticket: CLCPA-270: the total-role label test (new)
   ok   X1 app.js function isComputedShareLabel moved, and it is named by a later ticket: CLCPA-270: a percentage OF A TOTAL (new)
@@ -211,6 +212,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function renderIngestImportResult moved, and it is named by a later ticket: CLCPA-261, Section C group E: the summary announces them
   ok   X1 app.js function renderReconcileNotice moved, and it is named by a later ticket: CLCPA-272: the reconciliation advisory box (new)
   ok   X1 app.js function renderIngestEditor moved, and it is named by a later ticket: CLCPA-252, Section C group B; and CLCPA-255, group E
+  ok   X1 app.js function wireIngestPage moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
   ok   X1 app.js function openAddYearDialog moved, and it is named by a later ticket: CLCPA-262, Section C group A
   ok   X1 app.js function stagedBlock moved, and it is named by a later ticket: CLCPA-264: nested in openAddYearDialog, it renders the identity advisory
   ok   X1 app.js function wire moved, and it is named by a later ticket: CLCPA-262, nested inside openAddYearDialog
@@ -220,11 +222,12 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function refreshIngestCalcCells moved, and it is named by a later ticket: CLCPA-271: calc cells keep their column format on repaint
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (62) belongs to a later ticket
+  ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (65) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly THREE were added: centre, text-column left, and the first column scoped so it cannot catch a sub-header: 14
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  195 passed, 0 failed
+  198 passed, 0 failed

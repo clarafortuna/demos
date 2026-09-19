@@ -1,0 +1,3 @@
+draft is dirty, now switching year without saving...
+CLCPA-297 discard guard: {"guardPresent":true,"text":"Discard Unsaved Changes?×This table has changes that have not been saved. Continuing will discard them.Keep EditingDiscard Changes"}
+  -> STILL FIRES
