@@ -1,0 +1,45 @@
+======================================================================
+BLACK BUTTON -- mutation controls
+  suite  : suite_black_button.js
+  mutant : C:\Users\emely\AppData\Local\Temp\black-button-styles.css  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 28 passed, 0 failed
+
+--- mutation 1: the fix is reverted entirely
+  suite: 26 passed, 2 failed
+  failed ids: B1, B5
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 2: only :hover is held, so a HELD button still inverts
+  suite: 26 passed, 2 failed
+  failed ids: B1, B5
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 3: the background is held but with a hardcoded colour
+  suite: 26 passed, 2 failed
+  failed ids: B1, B5
+  expected to break: B5  ->  NOTICED on B5
+
+--- mutation 4: the shared rule is restyled instead, against the CLCPA-85 round 2 ruling
+  suite: 27 passed, 1 failed
+  failed ids: B3
+  expected to break: B3  ->  NOTICED on B3
+
+--- mutation 5: solid buttons stop darkening: .btn:hover loses its fill
+  suite: 27 passed, 1 failed
+  failed ids: B2
+  expected to break: B2  ->  NOTICED on B2
+
+--- mutation 6: the neighbour's per-id patch is dropped
+  suite: 27 passed, 1 failed
+  failed ids: B4
+  expected to break: B4  ->  NOTICED on B4
+
+======================================================================
+RESTORED: the mutant file is byte-identical to styles.css: true
+CLEAN RE-RUN: 28 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  6 of 6 mutations noticed, 0 missed
+======================================================================
