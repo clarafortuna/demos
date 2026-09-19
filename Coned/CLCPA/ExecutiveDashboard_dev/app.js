@@ -518,6 +518,21 @@ function utf8ByteLength(str) {
       const GET_HEADERS = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0' };
       const WRITE_HEADERS = { 'Accept': 'application/json', 'OData-MaxVersion': '4.0', 'OData-Version': '4.0', 'Content-Type': 'application/json' };
 
+      /* An OData string literal that is safe for BOTH parsers it meets.
+       *
+       * Quote-doubling gives OData literal safety; percent-encoding gives URL
+       * transport safety. BOTH are required and the ORDER matters: encoding
+       * first would encode the doubled quotes into something the literal rule
+       * never produced.
+       *
+       * Without the encoding half, a value containing & starts a new query
+       * parameter, # truncates the filter, + becomes a space, and %27 reaches
+       * the server as a quote the doubling never inspected -- which is a
+       * predicate injection, not a cosmetic defect, because these filters
+       * select the rows a retire then writes to. */
+      function odataLiteral(v) {
+        return encodeURIComponent(String(v == null ? '' : v).replace(/'/g, "''"));
+      }
       async function getAll(set, query) {
         let url = API + set + (query ? ('?' + query) : '');
         const out = [];
@@ -1090,7 +1105,7 @@ function utf8ByteLength(str) {
           // are out of scope for v1, so deactivate-then-re-upload is the story.
           const existing = await getAll(setMapLayer, '$select=cr2bf_layerkey&$filter=' +
             "cr2bf_isactive eq true and cr2bf_layerkey eq '" +
-            String(layer.layerKey).replace(/'/g, "''") + "'");
+            odataLiteral(layer.layerKey) + "'");
           if (existing.length) {
             throw new Error('A saved layer already uses the key "' + layer.layerKey +
               '". Deactivate it first, or rename the file before uploading.');
@@ -1283,9 +1298,9 @@ function utf8ByteLength(str) {
             const sibs = await getAll(setTractDataset,
               '$select=' + ID_TRACTDATASET + ',cr2bf_versionlabel' +
               "&$filter=cr2bf_isactive eq true and cr2bf_datasetkey eq '" +
-              String(rec.datasetKey).replace(/'/g, "''") + "'" +
+              odataLiteral(rec.datasetKey) + "'" +
               (byKeyOnly ? '' : " and cr2bf_geoidvintage eq '" +
-                String(rec.geoidVintage || '').replace(/'/g, "''") + "'"));
+                odataLiteral(rec.geoidVintage) + "'"));
             for (let i = 0; i < sibs.length; i++) {
               const sid = sibs[i][ID_TRACTDATASET];
               if (String(sid).toLowerCase() === String(id).toLowerCase()) continue;
@@ -1343,9 +1358,9 @@ function utf8ByteLength(str) {
             const byKeyOnly = !String(rec.geoidVintage || '');
             const siblings = await getAll(setTractDataset,
               '$select=' + ID_TRACTDATASET + ",cr2bf_versionlabel&$filter=cr2bf_isactive eq true and cr2bf_datasetkey eq '" +
-              String(rec.datasetKey).replace(/'/g, "''") + "'" +
+              odataLiteral(rec.datasetKey) + "'" +
               (byKeyOnly ? '' : " and cr2bf_geoidvintage eq '" +
-                String(rec.geoidVintage || '').replace(/'/g, "''") + "'"));
+                odataLiteral(rec.geoidVintage) + "'"));
             for (let i = 0; i < siblings.length; i++) {
               const sid = siblings[i][ID_TRACTDATASET];
               if (String(sid).toLowerCase() === String(dvId).toLowerCase()) continue;
@@ -4546,7 +4561,7 @@ function utf8ByteLength(str) {
           ? (isTextCell ? ' class="num num-text"' : ' class="num"')
           : (cv === 'Yes' && i > 0 ? ' class="dac-yes"' : '');
         if (cv == null || cv === '') return `<td${numCls}></td>`;
-        return `<td${numCls}>${formatCell(cv, i, row[0])}</td>`;
+        return `<td${numCls}>${escapeHtml(formatCell(cv, i, row[0]))}</td>`;
       }).join('');
       return `<tr${cls}>${cells}</tr>`;
     }).join('');
@@ -6789,6 +6804,15 @@ function utf8ByteLength(str) {
         ' and is being validated as an indicator dataset. Upload it from the ' +
         'card for its own family.');
     }
+
+    /* Refuse an out-of-charset dataset key here rather than neutralising it
+     * downstream: it becomes a stored identifier and a filter value, and a
+     * key that cannot round-trip is a data defect regardless of injection. */
+    const dsKey = (doc.dataset && doc.dataset.key) || '';
+    if (!/^[a-z0-9_]{1,100}$/.test(dsKey)) {
+      return fail('dataset.key ' + JSON.stringify(dsKey) + ' is not a valid key. Use lower-case letters, digits and underscore, 1 to 100 characters.');
+    }
+
 
     const t = doc.tracts;
     if (!t || !Array.isArray(t.geoids) || !t.fields || typeof t.fields !== 'object') {
@@ -12754,7 +12778,7 @@ function renderSectionC() {
         const totPrev = c5Prev.find(x => x.name === p.name) || null;
         return `
           <div class="c2-prog-info">
-            <div class="c2-prog-info-name">${p.name}</div>
+            <div class="c2-prog-info-name">${escapeHtml(p.name)}</div>
             <div class="c2-prog-info-cat">${category}</div>
           </div>
           ${renderC2Cell(p.name, p.dac,   dacPrev, dacPanelMax, 'c2-dac')}
@@ -13147,13 +13171,13 @@ function renderSectionE() {
 
         return `
           <div class="e-yoy-row"
-            data-name="${cat.name}"
+            data-name="${escapeHtml(cat.name)}"
             data-total24="${fmtBig(cat.total24)}"
             data-total23="${fmtBig(cat.total23)}"
             data-curr="${(cat.curr*100).toFixed(0)}%"
             data-prev="${cat.prev !== null ? (cat.prev*100).toFixed(0)+'%' : 'n/a'}"
             data-yoy="${yoyAmt !== null ? (yoyAmt >= 0 ? '+' : '') + yoyAmt + '%' : 'n/a'}">
-            <div class="e-yoy-label">${cat.name}</div>
+            <div class="e-yoy-label">${escapeHtml(cat.name)}</div>
             <div class="e-yoy-bars">
               <div class="e-yoy-bar-line">
                 <span class="e-yoy-yr">${yearLabel}</span>
@@ -13335,7 +13359,7 @@ function renderSectionF() {
         const nonYoy = yoyCalc(b.nondac, b.prevNon);
         return `
           <div class="f3-borough"
-            data-name="${b.name}"
+            data-name="${escapeHtml(b.name)}"
             data-curr-dac="${fmtCompact(b.dac)}"
             data-curr-non="${fmtCompact(b.nondac)}"
             data-curr-total="${fmtCompact(b.total)}"
@@ -13346,7 +13370,7 @@ function renderSectionF() {
             data-dac-yoy="${dacYoy !== null ? (dacYoy >= 0 ? '+' : '') + dacYoy + '%' : 'n/a'}"
             data-non-yoy="${nonYoy !== null ? (nonYoy >= 0 ? '+' : '') + nonYoy + '%' : 'n/a'}"
             data-source="${sourceLabel}">
-            <div class="f3-borough-name">${b.name}</div>
+            <div class="f3-borough-name">${escapeHtml(b.name)}</div>
             <div class="f3-borough-stacked">
               <div class="f3-borough-track">
                 <div class="f3-borough-fill f3-borough-fill-dac" style="width:${b.dacPct.toFixed(1)}%">
@@ -13876,7 +13900,7 @@ function renderSectionH() {
               : `<span class="h-yoy-pill h-yoy-up">↓ ${Math.abs(dacYoy)}%</span>`));
         return `
           <div class="f3-borough"
-            data-name="${b.name}"
+            data-name="${escapeHtml(b.name)}"
             data-curr-dac="${fmtCompact(b.dac)}"
             data-curr-non="${fmtCompact(b.nondac)}"
             data-curr-total="${fmtCompact(b.total)}"
@@ -13887,7 +13911,7 @@ function renderSectionH() {
             data-dac-yoy="${dacYoy !== null ? (dacYoy >= 0 ? '+' : '') + dacYoy + '%' : 'n/a'}"
             data-non-yoy="${nonYoy !== null ? (nonYoy >= 0 ? '+' : '') + nonYoy + '%' : 'n/a'}"
             data-source="H1 · Leak repairs">
-            <div class="f3-borough-name">${b.name}</div>
+            <div class="f3-borough-name">${escapeHtml(b.name)}</div>
             <div class="f3-borough-stacked">
               <div class="f3-borough-track">
                 <div class="f3-borough-fill f3-borough-fill-dac" style="width:${b.dacPct.toFixed(1)}%">
@@ -13947,7 +13971,7 @@ function renderSectionH() {
             stroke-dasharray="${dash.toFixed(2)} ${circumference.toFixed(2)}"
             stroke-dashoffset="${(-offset).toFixed(2)}"
             transform="rotate(-90 ${cx} ${cy})"
-            data-name="${b.name}"
+            data-name="${escapeHtml(b.name)}"
             data-value="${fmtCompact(b.value)}"
             data-prev-value="${b.prevValue != null ? fmtCompact(b.prevValue) : 'n/a'}"
             data-yoy="${b.yoy !== null ? (b.yoy >= 0 ? '+' : '') + b.yoy + '%' : 'n/a'}"
@@ -13984,7 +14008,7 @@ function renderSectionH() {
       // Legend = boroughs (top right of card head)
       const legendHtml = boroughRows.map(b => `
         <div class="legend-item">
-          <span class="legend-swatch" style="background:${boroughColors[b.name]}"></span>${b.name}
+          <span class="legend-swatch" style="background:${boroughColors[b.name]}"></span>${escapeHtml(b.name)}
         </div>`).join('');
 
       const card3 = `
@@ -14978,7 +15002,7 @@ function drawSectionEArc() {
           yoyColor = yoyVal.startsWith('-') ? 'var(--red)' : 'var(--green)';
         }
         tip.innerHTML =
-          '<div class="e-tt-name">' + row.dataset.name + '</div>' +
+          '<div class="e-tt-name">' + escapeHtml(row.dataset.name) + '</div>' +
           '<div class="e-tt-row"><span>' + yr + ' investment</span><span class="v">' + row.dataset.total24 + '</span></div>' +
           '<div class="e-tt-row"><span>' + window.__sectionE_prevYr + ' investment</span><span class="v">' + row.dataset.total23 + '</span></div>' +
           '<div class="e-tt-row"><span>DAC % ' + yr + '</span><span class="v">' + row.dataset.curr + '</span></div>' +
@@ -15258,7 +15282,7 @@ function wireFTooltips() {
         const source = b.dataset.source || 'F9 · Customers interrupted';
 
         tip.innerHTML =
-          '<div class="f-tt-name">' + b.dataset.name + '</div>' +
+          '<div class="f-tt-name">' + escapeHtml(b.dataset.name) + '</div>' +
           '<div class="f-tt-row"><span>Source</span><span class="v">' + source + '</span></div>' +
           '<div class="f-tt-row"><span>Total ' + yr + '</span><span class="v">' + b.dataset.currTotal + '</span></div>' +
           '<div class="f-tt-row" style="margin-top:4px;padding-top:4px;border-top:1px dashed var(--line)"><span>DAC ' + yr + '</span><span class="v">' + b.dataset.currDac + ' (' + b.dataset.dacPct + ')</span></div>' +
@@ -15294,7 +15318,7 @@ function wireHTooltips() {
           : (yoyNum > 0 ? 'var(--green)' : 'var(--red)');
 
         tip.innerHTML =
-          '<div class="h-pie-tt-name">' + slice.dataset.name + '</div>' +
+          '<div class="h-pie-tt-name">' + escapeHtml(slice.dataset.name) + '</div>' +
           '<div class="h-pie-tt-row"><span>Source</span><span class="v">H1 · Leak repairs</span></div>' +
           '<div class="h-pie-tt-row"><span>' + slice.dataset.label + ' ' + yr + '</span><span class="v">' + slice.dataset.value + '</span></div>' +
           '<div class="h-pie-tt-row"><span>' + slice.dataset.label + ' ' + prevYr + '</span><span class="v">' + slice.dataset.prevValue + '</span></div>' +
