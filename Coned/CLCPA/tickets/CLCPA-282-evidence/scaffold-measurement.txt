@@ -1,0 +1,16 @@
+Section A, year 2094 (user-added, nothing saved):
+  A1   rows=0    first=null   ○ No Changes
+  A2   rows=0    first=null   ○ No Changes
+  A3   rows=0    first=null   ○ No Changes
+  A4   rows=0    first=null   ○ No Changes
+  A5   rows=0    first=null   ○ No Changes
+  A6   rows=0    first=null   ○ No Changes
+  A7   rows=0    first=null   ○ No Changes
+  A8   rows=0    first=null   ○ No Changes
+  A9   rows=0    first=null   ○ No Changes
+  A10  rows=0    first=null   ○ No Changes
+
+and the same tables on the SEED year 2025, for contrast:
+  A1   rows=22
+  A9   rows=5
+  A10  rows=5
