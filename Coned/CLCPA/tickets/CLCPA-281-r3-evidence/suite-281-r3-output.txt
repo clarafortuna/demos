@@ -1,0 +1,58 @@
+======================================================================
+CLCPA-281 round 3 -- the read-only surfaces ask the same question
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 88e7923 (predates this change)
+======================================================================
+
+A. ONE HELPER, ASKED PER YEAR
+  ok   A0 storedHeaderRowsInYear is declared
+  ok   A1 and did NOT exist on BASE -- this is the new shared answer
+  ok   A2 a year that CARRIES the sub-header reports 1 stored header row
+  ok   A3 a USER-ADDED year reports 0 -- its first row is data
+  ok   A4 the seed year is unaffected
+  ok   A5 a year the table does not have reports 0, not a throw
+  ok   A6 D1 carries header_levels 0 and its first row is genuine data
+  ok   A7 a one-level table reports 0
+  ok   A8.A9 the other two-level tables still report 1
+  ok   A8.A10 the other two-level tables still report 1
+  ok   A9p an ALL-EMPTY first row is data, so the year still reports 0
+
+B. EVERY READ-ONLY SURFACE ASKS THE SAME QUESTION
+  ok   B1 the section table asks before it borrows
+  ok   B2 the has-data check asks PER YEAR, current and prior separately
+  ok   B3 the width vector asks inside its own per-year loop
+  ok   B4 (BASE really carried the unconditional form)
+  ok   B5 and it is GONE, not merely outnumbered
+  ok   B6 the width loop no longer subtracts a declared count
+  ok   B7 and compareColWidths keeps no second copy of it to disagree with
+
+C. compareColWidths, ASSEMBLED WITH ITS REAL DEPENDENCIES
+       NEW assembled and exercised, 15 real functions: compareColWidths, storedHeaderRowsInYear, ingestHeaderRowCount, ingestRowIsStoredHeader, ingestYearCarriesHeaderRows, getTableSchema, columnNumericMask, getTableBody, shiftSchemaYears, detectCurrencyColumns, detectPctColumns, DERIVED_COLS, isNumeric, cellText, isSplitCell
+  ok   C0 it assembles with its real dependency list
+  ok   C1 it returns a width per column -- 7
+       BASE assembled and exercised, 10 real functions: compareColWidths, getTableSchema, shiftSchemaYears, columnNumericMask, detectCurrencyColumns, detectPctColumns, DERIVED_COLS, isNumeric, cellText, isSplitCell
+  ok   C2 (BASE assembles too, so the comparison is like for like)
+  ok   C3 the long label now widens column 0 -- BASE never saw that row: 27.03 -> 40.66
+  ok   C4 a one-level table is measured EXACTLY as before
+  ok   C5 and so is F6 on its seed years alone
+
+D. WHAT A USER-ADDED YEAR BORROWS
+  ok   D1 exactly one sub-header row is borrowed
+  ok   D2 and it is the TABLE's own, not the year's first row -- [null,null,"Non- Excludable","Excludable","Non- Excludable",
+  ok   D3 returned as a CLONE, so rendering cannot mutate the payload
+
+E. THE SURFACES THAT WERE ALREADY RIGHT
+  ok   E1 the editor still asks its own question the way round 2 left it
+  ok   E2 and the template writer still asks the table
+  ok   E3 no stored data was touched by this change
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 at least one guard builds a real function with its real closure AND CALLS IT
+  ok   X3a dependencies are grabbed from app.js, never stubbed
+  ok   X3 the browser gesture evidence is committed beside this suite
+  ok   X4 codeOnly really strips a comment quoting the old form
+
+======================================================================
+  35 passed, 0 failed
+======================================================================
