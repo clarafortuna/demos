@@ -82,7 +82,7 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
    * A hand-listed dependency set cannot see a new one -- the documented limit
    * of this harness, and it showed up as a ReferenceError from inside the
    * assembled workbook writer rather than as a failed assertion. */
-  'ingestHeaderRowCount',
+  'ingestTextOnlyColumn', 'ingestHeaderRowCount',
   /* CLCPA-278 round 3 and CLCPA-274 round 3: a hand-listed dependency set
      cannot see a new one, and it fails as a ReferenceError from inside the
      assembled function rather than as an assertion. */
