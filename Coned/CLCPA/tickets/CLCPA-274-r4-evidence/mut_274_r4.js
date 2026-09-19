@@ -36,6 +36,14 @@ const M = [
    * the pinned contract. The export IS the contract now, so the control turns
    * it back into a blank form and has to go red for the opposite reason. The
    * behaviour stays pinned either way, which is the point of keeping it. */
+  /* Option (c) writes a figure as a NUMERIC cell. Reverting that gives Excel
+   * a number stored as text: the CSV round trip still works, so only a check
+   * on the real cell types can see it. C6 is that check. */
+  { name: "A NUMBER is written as an inline string again",
+    from: "    if (typeof text === 'number' && isFinite(text)) {",
+    to:   "    if (false) {",
+    expect: "C6 H1/2025 writes its 8 value cells as NUMERIC cells",
+    alt: "C8 and a fresh year writes NO numeric cell" },
   { name: "THE TEMPLATE stops emitting stored values -- option (c) reverted",
     from: "        if (!src.borrowed) {",
     to:   "        if (false) {",

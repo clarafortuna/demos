@@ -1,0 +1,30 @@
+======================================================================
+CLCPA-292 -- mutation controls
+  suite  : suite_292.js
+  mutant : C:\Users\emely\AppData\Local\Temp\clcpa-292-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 25 passed, 0 failed
+
+--- mutation 1: the fix is reverted: only the first column is a key
+  suite: 18 passed, 7 failed
+  failed ids: B1.A3, B2.A3, B1.A4, B2.A4, C3, D1, E2
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 2: the key branch swallows an EMPTY key, so the Total row loses (no value)
+  suite: 23 passed, 2 failed
+  failed ids: B4.A3, B4.A4
+  expected to break: B4  ->  NOTICED on B4
+
+--- mutation 3: the writer invents its own key count instead of the declared one
+  suite: 21 passed, 4 failed
+  failed ids: C1, C2, D1, D2
+  expected to break: C1, D1  ->  NOTICED on C1, D1
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 25 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  3 of 3 mutations noticed, 0 missed
+======================================================================

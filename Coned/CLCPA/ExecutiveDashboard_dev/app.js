@@ -18341,6 +18341,11 @@ function wireHTooltips() {
     if (!schema.length) return null;
     const src = ingestTemplateSource(table, year);
     const computed = ingestComputed(src.rows, tableId, schema);
+    /* CLCPA-292: the SAME key-column count the importer matches rows on, so
+     * the template writes the key that will be read back. Clamped exactly as
+     * buildIngestImport clamps it, because a declaration wider than the
+     * schema is a declaration about columns that are not there. */
+    const keyCols = Math.max(1, Math.min(ingestKeyColCount(tableId), schema.length));
     const code = tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
     const label = code + ' ' + (table.short_title || SHORT_TITLES[tableId] || '');
     const sheetName = xlsxSheetName(label);
@@ -18409,6 +18414,33 @@ function wireHTooltips() {
        * what makes A5's own template carry the key the matcher reads. */
       const isGroupHeader = ingestIsHeaderRow(row, [0]);
       rows.push(visible(schema.map((h, c) => {
+        /* CLCPA-292: EVERY KEY COLUMN IS PRE-FILLED, not just the first.
+         *
+         * A3 and A4 declare TWO key columns -- Participant Type and Program
+         * Name -- and column B was emitted blank in 22 of 23 rows while column
+         * A repeated the participant type. A preparer had no way to know which
+         * programme belonged on which line, so matching could only be
+         * positional, which is exactly what row-key matching exists to avoid.
+         *
+         * The count comes from ingestKeyColCount, the declaration CLCPA-240
+         * already uses to READ these files back. The template now writes the
+         * same key the importer matches on, which is the property that was
+         * missing: one declaration, both directions.
+         *
+         * Option (c) closed the POPULATED half of this on its own, since a
+         * year with data exports every column. This is the FRESH-year half,
+         * where the labels are borrowed and no value is exported.
+         *
+         * Only when the cell HAS a key. A total row's Program Name is empty
+         * and must fall through to CLCPA-291's (no value) marker rather than
+         * being emitted as a blank label. */
+        if (c < keyCols) {
+          const kv = row[c];
+          if (kv != null && String(kv).trim() !== '') {
+            return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
+                     text: kv };
+          }
+        }
         if (c === 0) {
           return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
                    text: row[0] };
