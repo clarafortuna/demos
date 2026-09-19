@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-19T19:16:02.402Z",
+  "generated": "2026-09-19T20:20:45.906Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -10,17 +10,20 @@
   "git": {
     "repo": "clarafortuna/demos",
     "branch": "clcpa-integration-candidate",
-    "head": "4bbde66ecb1218985e99ed4de66957f9f22917ab",
-    "baseline": "75e8eec"
+    "head": "c51bddc6000cd4cbd9f79ada0c952dfc4095f93c",
+    "pushed": true,
+    "integrationBase": "75e8eec",
+    "lastReconciledEngineerTip": "74458b2",
+    "originMain": "88e7923"
   },
   "build": {
-    "app.js": "318977b6d8",
+    "app.js": "a0c04d51be",
     "styles.css": "2b9651445c"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.0.0",
+    "version": "1.0.0.1",
     "managed": false
   },
   "publisher": {
@@ -42,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "5fdee11dc127cbc2",
+      "deployedSha256": "d44abcad1f7d3855",
       "stamped": true
     },
     {
@@ -61,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "318977b6d849eb37",
-      "deployedSha256": "8a844a486ce72fc0",
+      "repoSha256": "a0c04d51be214fb6",
+      "deployedSha256": "db5b1b7c5ad267b3",
       "stamped": true
     },
     {
@@ -103,5 +106,35 @@
     "appModuleId": "d94e39fc-dac7-469e-a985-aa714a6e4bfe",
     "deployedBuild": "342094b187",
     "sourceCommit": "b4583b7"
+  },
+  "reconciliation": {
+    "baseline": "74458b2 (origin/clcpa-301-import-row-totals)",
+    "outstanding": 0,
+    "absorbed": [
+      {
+        "ticket": "CLCPA-281 r3",
+        "commit": "2dc63da"
+      },
+      {
+        "ticket": "CLCPA-281 r3 harness re-pin",
+        "commit": "3614466"
+      },
+      {
+        "ticket": "CLCPA-301",
+        "commit": "2b0553a"
+      },
+      {
+        "ticket": "CLCPA-301 harness re-pin",
+        "commit": "74458b2"
+      }
+    ],
+    "mergedIntoIntegration": "c51bddc",
+    "note": "Her r4 stack (75e8eec and parents) merged to main via PRs #268-270; content delta from 75e8eec to main outside deploy-backups is empty."
+  },
+  "deployPolicy": {
+    "orgAssertion": "tools/deploy_guard.js assertOrganization -- REQUIRED before any write; fails closed",
+    "publish": "targeted PublishXml naming only clcpa_ web resource ids; PublishAllXml and --publish-changes are forbidden",
+    "pacEnvironmentPinning": "pass --environment explicitly on every pac call; the ambient selected org has been observed flipping between commands",
+    "knownCollision": "cr2bf_dactest web resource GUIDs are identical in at least three orgs: org9076e69b (Clara Fortuna Dev), orgc60845ae (Sustainability Design - Dev), orgbdb6dd88 (Customer Assistance - Dev)"
   }
 }

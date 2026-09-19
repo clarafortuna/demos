@@ -57,6 +57,12 @@ I. the recorded Con Edison environment matches what the org reported
   ok   I: the recorded url is the Con Edison org, not the vendor org
   ok   I: the vendor org is recorded too, so a wave can name it explicitly
 
+J. the third org -- the one the guard found by refusing a write
+  ok   J: Customer Assistance - Dev is recorded from the live reading that triggered the refusal
+  ok   J: a wave targeting Sustainability Design is REFUSED when pac has selected Customer Assistance
+  ok   J: and it still passes when a wave names that org deliberately
+  ok   J: the two Con Edison orgs are distinguishable by id -- the ONLY thing that distinguishes them
+
 ======================================================================
-  37 passed, 0 failed
+  41 passed, 0 failed
 ======================================================================

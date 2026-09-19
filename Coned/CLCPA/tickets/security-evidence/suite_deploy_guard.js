@@ -141,6 +141,18 @@ ok(G.ENVIRONMENTS['clara-fortuna-dev'].url.indexOf('org9076e69b') > 0,
   'I: the vendor org is recorded too, so a wave can name it explicitly');
 
 console.log('');
+console.log('J. the third org -- the one the guard found by refusing a write');
+const CUST = '0e48ff69-7fb6-f011-95c7-00224806e123';
+ok(G.ENVIRONMENTS['customer-assistance-dev'].organizationId === CUST,
+  'J: Customer Assistance - Dev is recorded from the live reading that triggered the refusal');
+throws(() => G.assertOrganization('coned-sustainability-dev', CUST), /WRONG ORGANIZATION/,
+  'J: a wave targeting Sustainability Design is REFUSED when pac has selected Customer Assistance');
+ok(G.assertOrganization('customer-assistance-dev', CUST).organizationId === CUST,
+  'J: and it still passes when a wave names that org deliberately');
+ok(G.ENVIRONMENTS['coned-sustainability-dev'].organizationId !== CUST,
+  'J: the two Con Edison orgs are distinguishable by id -- the ONLY thing that distinguishes them');
+
+console.log('');
 console.log('======================================================================');
 console.log('  ' + pass + ' passed, ' + fail + ' failed');
 console.log('======================================================================');

@@ -7,10 +7,11 @@
 | Environment | **Sustainability Design - Dev** — `https://orgc60845ae.crm.dynamics.com/` |
 | Environment id | `d491a3e9-379f-e433-8ccb-afb49607c31d` · Org `1dfebd7e-cd6f-f111-b27b-000d3a5cc314` |
 | App | **CLCPA Executive Dashboard - Integration** · `2c35b607-4161-4576-8ae8-9d9dae7bcc0e` |
-| Solution | `CLCPAExecutiveDashboardIntegration` 1.0.0.0, unmanaged |
+| Solution | `CLCPAExecutiveDashboardIntegration` 1.0.0.1, unmanaged |
 | Publisher | `CLCPAIntegration`, prefix **`clcpa`** (newly created — no `cr2bf` publisher exists here) |
-| Source | `clcpa-integration-candidate` · baseline `75e8eec` |
-| Build | `app.js` **318977b6d8** · `styles.css` **2b9651445c** |
+| Source | `clcpa-integration-candidate`, pushed · integration base `75e8eec` |
+| Reconciled through | **`74458b2`** (`origin/clcpa-301-import-row-totals`) · 0 outstanding |
+| Build | `app.js` **a0c04d51be** · `styles.css` **2b9651445c** |
 
 Open it at `main.aspx?appid=2c35b607-4161-4576-8ae8-9d9dae7bcc0e`.
 
@@ -35,22 +36,26 @@ these numbers in hand.
 
 ## B. Two things nobody asked about, that matter more than the above
 
-**1. The web resource GUIDs here are identical to Clara Fortuna Dev's.**
+**1. The web resource GUIDs are identical across at least THREE orgs.**
 
 ```
-app.js                  79151fe9-3c64-f111-ab0c-7c1e521c7110   <- same in BOTH orgs
+app.js                  79151fe9-3c64-f111-ab0c-7c1e521c7110   <- same in ALL THREE
 styles.css              7b151fe9-3c64-f111-ab0c-7c1e521c7110
 ExecutiveDashboard.html 77151fe9-3c64-f111-ab0c-7c1e521c7110
+
+org9076e69b   Clara Fortuna Dev            (vendor; all 102 deploy manifests)
+orgc60845ae   Sustainability Design - Dev  (this one)
+orgbdb6dd88   Customer Assistance - Dev    (found only because the guard fired — see F2)
 ```
 
-They are the same rows because this solution was **exported from `org9076e69b` and imported here** —
-which is also why its publisher still reads "Default Publisher for org9076e69b" and why the `cr2bf_`
-prefix exists here with no `cr2bf` publisher behind it.
+They are the same rows because the solution was **exported from `org9076e69b` and imported**
+elsewhere — which is also why its publisher still reads "Default Publisher for org9076e69b" and why
+the `cr2bf_` prefix exists here with no `cr2bf` publisher behind it.
 
 The engineer's deploy scripts `PATCH webresourceset(<guid>)` and gate on id-to-name. **Both the GUIDs
-and the names match in both orgs.** The only thing separating a Clara Fortuna deploy from a Con Edison
-deploy is the org URL in the script. That is a live misdirection risk on every wave, and it should be
-closed before anyone deploys again — an org-id assertion in pre-flight costs one line.
+and the names match in every one of those orgs.** The only thing separating a Clara Fortuna deploy
+from a Con Edison one is the org URL in a scratch script that is re-authored every wave. This is not
+a theoretical risk — see §F2, where it very nearly happened.
 
 **2. Someone is active here.** All seven legacy resources shared one `modifiedon`, and it included
 `index.html` and both logos — files `DEPLOYMENT.md` says are *never* deployed. A uniform timestamp
@@ -160,14 +165,79 @@ org. `node tools/deploy_guard.js lint <files...>` is the CLI form.
 The suite asserts the exact command used on 2026-09-19 is flagged, and that `deploy_guard.js` is the
 only file in `tools/` permitted to contain those shapes.
 
+## F2. The guard fired on its first live use, and it was right
+
+Redeploying after the CLCPA-301 reconciliation, `assertOrganization` **refused**:
+
+```
+Expected  1dfebd7e-cd6f-f111-b27b-000d3a5cc314  (Sustainability Design - Dev)
+Reported  0e48ff69-7fb6-f011-95c7-00224806e123  (Customer Assistance - Dev)
+```
+
+The `pac` CLI's active org had silently switched to **Customer Assistance - Dev** — a third Con Edison
+environment that no one had mentioned, and which turns out to carry the **same `cr2bf_dactest/*`
+resources under the same GUIDs**. Without the check, `pac solution import` would have written the
+CLCPA integration solution into it and reported success.
+
+Two consequences, both now standing policy:
+
+- **`pac`'s ambient selected org is not trustworthy.** It flipped twice in one session, unprompted —
+  once before the import and again a few commands later. Every `pac` call now passes `--environment`
+  explicitly rather than relying on the profile. Note the residual gap: the guard and the write are
+  separate processes, so the assertion narrows the window but does not close it. Pinning
+  `--environment` on the writing command is what actually closes it.
+- **The collision is three-way, not two-way** (§B.1). It was found only because the guard printed the
+  org it saw.
+
+The second safeguard was then proven directly. This deploy used `import` with no publish flag,
+followed by a targeted `PublishXml` naming only our six ids:
+
+```
+legacy cr2bf_dactest/*  before this deploy   modifiedon 2026-09-19 07:06 PM
+legacy cr2bf_dactest/*  after  this deploy   modifiedon 2026-09-19 07:06 PM   <- unchanged
+ours   clcpa_dashboard/*                     modifiedon 2026-09-19 08:16 PM
+```
+
+The org-wide publish moved all seven legacy timestamps. The targeted publish moved none.
+
+## F3. Reconciliation round 1 — CLCPA-281 r3 and CLCPA-301
+
+Her r4 stack merged to `main` via PRs #268–270 and the three branches were deleted. `75e8eec` is now
+an ancestor of `main`, and the content delta from it to `main` outside `deploy-backups` is **empty**.
+
+The live line is now `clcpa-301-import-row-totals` (it contains `clcpa-281-r3-section-header`).
+Absorbed into `c51bddc`:
+
+| Result | |
+|---|---|
+| `app.js` merge | **clean** — every conflict was a generated `*-output.txt`, resolved by re-running its suite |
+| Security review of her diff | no HTML sink, no interpolation, no control text added or removed |
+| Her suites against our escaped build | `suite_281_r3` 35/0, `mut_281_r3` 35/0, `suite_301` 32/0, `mut_301` 32/0 |
+| Drift suites | failure counts **identical** pre/post (10, 3, 0, 4, 4, 4, 0); passing counts rose |
+| Full gate | 8,719 assertions passed |
+| Build | `318977b6d8` → **`a0c04d51be`**; `styles.css` unchanged |
+
+**Nothing in the 55 failures or 14 non-reporting runners is attributable to the merge.** Twelve of
+those runners reference an undefined `REL` and were already dead at `75e8eec` — they have never
+validated anything. Two more (`mut_245`, `mut_composer`) are healthy and merely print a
+"N caught, M not caught" summary. `mut_274_r2`, `mut_274_r3` and `mut_278_r2` return byte-identical
+results before and after, verified against a pre-merge worktree.
+
+**A standing step in the loop:** her seven new test files hardcoded `c:/Users/emely/Desktop/Projects/demos`
+and errored outright on any other machine. `migrate_paths.js` fixed all seven (157 migrated, the two
+Chrome/Edge exceptions still detected rather than assumed, 0 unexpected). Expect this with every delta.
+
 ## G. What is still open
 
-1. ~~The org-id assertion in deploy pre-flight~~ — **done**, §F1. Wiring it into an actual deploy
-   path remains, because no permanent deploy script exists yet; every wave is a scratch artifact.
-2. **`clara-fortuna-dev` has no recorded OrganizationId.** The guard refuses that environment until
-   someone reads WhoAmI against `org9076e69b` and records it. That read needs the vendor credential,
-   so it is Randdy's to trigger.
-3. **Who imported the solution 15 hours ago, and why a Sep-2 build?** (B.2)
+1. ~~The org-id assertion in deploy pre-flight~~ — **done**, §F1, and it already paid for itself
+   (§F2). Wiring it into a permanent deploy script remains; every wave is still a scratch artifact.
+2. **`clara-fortuna-dev` has no recorded OrganizationId**, and now neither does
+   `customer-assistance-dev`. The guard refuses any environment it has not been told about. Both
+   reads need credentials for those orgs, so they are Randdy's to trigger.
+3. **Why does `Customer Assistance - Dev` hold the same `cr2bf_dactest/*` resources?** It was not
+   known to this engagement until the guard named it. Someone should establish which Con Edison
+   environments have received this solution, and which of them anyone still deploys to.
+4. **Who imported the solution 15 hours ago, and why a Sep-2 build?** (B.2)
 4. **The Dataverse path is parked by decision, not by defect.** The three CLCPA-238 definition tables
    are absent and all seven DAC tables are empty; file-backed operation is sufficient for the current
    objective. Creating or seeding those tables is not authorized.

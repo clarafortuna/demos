@@ -1,5 +1,5 @@
 {
-  "engineerTip": "75e8eec",
+  "engineerTip": "74458b2",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -23,6 +23,34 @@
       "integrationCommit": "(baseline)",
       "reconciledAt": "2026-09-19",
       "validation": "inherited unchanged; security set green on top of it (125 assertions, 30 mutants)"
+    },
+    {
+      "engineerCommit": "2dc63da88f3e47b7582c4113cd43335515d99e78",
+      "engineerSubject": "CLCPA-281 round 3: the read-only surfaces ask the same header question",
+      "integrationCommit": "c51bddc",
+      "reconciledAt": "2026-09-19",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "361446649ad665cdec79d0ff0254430de0ddc21b",
+      "engineerSubject": "harness: re-pin the five drift-accounting suites for CLCPA-281 round 3",
+      "integrationCommit": "c51bddc",
+      "reconciledAt": "2026-09-19",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "2b0553ae854622708180640368fcf5b6646a5bd6",
+      "engineerSubject": "CLCPA-301: the import path computes the row Grand Total",
+      "integrationCommit": "c51bddc",
+      "reconciledAt": "2026-09-19",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "74458b2d57cb92db225018d30336b63cf699a7e1",
+      "engineerSubject": "harness: re-pin the drift accounting for CLCPA-301",
+      "integrationCommit": "c51bddc",
+      "reconciledAt": "2026-09-19",
+      "validation": "tools/run_security.sh green"
     }
   ]
 }

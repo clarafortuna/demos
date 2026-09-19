@@ -50,6 +50,17 @@ const ENVIRONMENTS = {
     environmentId: 'd491a3e9-379f-e433-8ccb-afb49607c31d',
     organizationId: '1dfebd7e-cd6f-f111-b27b-000d3a5cc314'
   },
+  'customer-assistance-dev': {
+    label: 'Customer Assistance - Dev (Con Edison)',
+    url: 'https://orgbdb6dd88.crm.dynamics.com/',
+    environmentId: '8e72fb69-de68-ecee-8b2a-0ecd9bfd1b05',
+    /* READ FROM A LIVE CONNECTION on 2026-09-19, not guessed -- pac had silently
+     * selected this org, and the guard refused the write. It holds the same
+     * cr2bf_dactest/* resources under the SAME GUIDs, which is exactly why a
+     * name-and-id gate cannot tell these environments apart. Recorded so a wave
+     * can name it deliberately, never so it can be reached by accident. */
+    organizationId: '0e48ff69-7fb6-f011-95c7-00224806e123'
+  },
   'clara-fortuna-dev': {
     label: 'Clara Fortuna Dev (vendor)',
     url: 'https://org9076e69b.crm.dynamics.com/',
