@@ -1,0 +1,26 @@
+======================================================================
+RENDER EQUIVALENCE -- every real table-year in payload.json
+baseline: commit 75e8eec
+patched : app.js
+======================================================================
+
+  table-years rendered      : 149
+  HTML differs              : 24   (expected: only where a bare & < > was emitted)
+  VISIBLE TEXT differs      : 0   (expected: 0)
+
+  ok   the BASE revision resolved (75e8eec)
+  ok   a meaningful number of table-years were rendered (149)
+  ok   NO table-year changes what a reader sees
+
+  table-years whose HTML changed (encoding only):
+    A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025, A3:2023, A3:2024, A3:2025, A4:2023, A4:2024, A4:2025, A5:2023, A5:2024, A5:2025, A6:2023, A8:2023, D3:2023, D3:2024, D3:2025, F1:2023, F1:2024, F1:2025, F5:2023
+
+  controls:
+  ok   C1 the kit does NOT decode entities -- shown on the HEADER path
+  ok   C2 ...and decoding restores what a browser would report
+  ok   C3 a cell containing markup DOES render differently between the two
+  ok   C4 and the patched build shows it as literal text
+
+======================================================================
+  7 passed, 0 failed
+======================================================================

@@ -1,0 +1,46 @@
+======================================================================
+CLCPA security regression -- indicators dataset.key validation
+source: Coned/CLCPA/ExecutiveDashboard_dev/app.js
+======================================================================
+
+A. the guard exists in dsValidateDoc and is readable
+  ok   A1 a charset test on dsKey is present in the source
+  ok   A2 and it is a literal regular expression this suite can drive
+       rule as shipped: /^[a-z0-9_]{1,100}$/
+  ok   A3 the value tested is doc.dataset.key, the field the manifest carries
+  ok   A4 the guard is inside dsValidateDoc
+  ok   A5 and AFTER the kind refusal, so a file of another family is still refused for its own reason
+
+B. every real dataset key in the repository is accepted
+       keys found: coned_operational, nyserda_dac, tract_geometry
+  ok   B: the shipped key "coned_operational" is accepted
+  ok   B: the shipped key "nyserda_dac" is accepted
+  ok   B: the shipped key "tract_geometry" is accepted
+
+C. hostile and malformed keys are refused
+  ok   C: refused -- direct quote -- OData literal breakout attempt
+  ok   C: refused -- PERCENT-ENCODED quote -- survives quote-doubling
+  ok   C: refused -- ampersand -- would start a new query parameter
+  ok   C: refused -- hash -- would truncate the filter
+  ok   C: refused -- plus -- would decode to a space
+  ok   C: refused -- double-encoded percent
+  ok   C: refused -- space
+  ok   C: refused -- upper case -- outside the layer charset
+  ok   C: refused -- hyphen -- outside the layer charset
+  ok   C: refused -- empty
+  ok   C: refused -- 101 characters -- over the stored column slice
+
+D. boundaries
+  ok   D1 one character is accepted
+  ok   D2 exactly 100 characters is accepted
+  ok   D3 101 is not
+  ok   D4 digits and underscores are accepted
+
+E. the other three families pin their key to a constant
+  ok   E: the geometry family compares ds.key against DS_GEOMETRY_KEY
+  ok   E: the coned family compares ds.key against DS_CONED_KEY
+  ok   E: the territories family compares ds.key against DS_TERRITORY_KEY
+
+======================================================================
+  26 passed, 0 failed
+======================================================================

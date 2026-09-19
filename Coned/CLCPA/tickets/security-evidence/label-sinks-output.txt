@@ -1,0 +1,42 @@
+======================================================================
+CLCPA security regression -- payload-derived label sinks
+source: Coned/CLCPA/ExecutiveDashboard_dev/app.js
+======================================================================
+
+A. no payload-derived label is interpolated raw
+  ok   A: raw borough name, attribute (F3, H1 card, H1 pie) -- absent
+  ok   A: raw E1 category, attribute -- absent
+  ok   A: raw borough name, text -- absent
+  ok   A: raw E1 category, text -- absent
+  ok   A: raw C2 program name, text -- absent
+  ok   A: raw H1 legend, text -- absent
+
+B. each one is present in its escaped form
+  ok   B: borough name, attribute x3 -- found 3, want 3
+  ok   B: E1 category, attribute -- found 1, want 1
+  ok   B: borough name, text x2 -- found 2, want 2
+  ok   B: E1 category, text -- found 1, want 1
+  ok   B: C2 program name, text -- found 1, want 1
+  ok   B: H1 legend, text -- found 1, want 1
+
+C. the palette lookup key is deliberately NOT escaped
+  ok   C1 boroughColors[b.name] is still keyed on the raw name
+  ok   C2 and nothing escaped it into a lookup miss
+
+D. literal-only interpolations are left alone
+  ok   D: still present, correctly unescaped -- Section B/D funding + metric labels (literals)
+  ok   D: still present, correctly unescaped -- tornado metric (literal array)
+  ok   D: still present, correctly unescaped -- tornado source (literal array)
+  ok   D: still present, correctly unescaped -- Section G borough label (BOROUGHS literal)
+  ok   D: still present, correctly unescaped -- Section J row label (literals)
+
+E. the functions these sinks live in, and what provenance sees
+  ok   E: renderSectionC is declared at indent 0 -- grabFn returns null, so the census cannot see it
+  ok   E: renderSectionE is declared at indent 0 -- grabFn returns null, so the census cannot see it
+  ok   E: renderSectionF is declared at indent 0 -- grabFn returns null, so the census cannot see it
+  ok   E: renderSectionH is declared at indent 0 -- grabFn returns null, so the census cannot see it
+       (that is why this suite asserts the sinks directly)
+
+======================================================================
+  23 passed, 0 failed
+======================================================================

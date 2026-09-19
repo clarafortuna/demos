@@ -1,0 +1,48 @@
+======================================================================
+OData literal safety vs URL transport safety
+======================================================================
+
+A. legitimate keys survive the remediation unchanged
+  ok   A: plain -- shipped and fixed produce the same $filter
+  ok   A: versioned -- shipped and fixed produce the same $filter
+  ok   A: digits -- shipped and fixed produce the same $filter
+
+B. the shipped quote-doubling is correct for a direct quote
+  ok   B1 every quote is doubled
+  ok   B2 the value stays inside one literal -- no injected predicate
+
+C. hostile values -- shipped is unsafe, remediated is safe
+  ok   C: direct quote -- REMEDIATED: exactly 2 params, value intact as data
+  ok   C: PERCENT-ENCODED quote -- REMEDIATED: exactly 2 params, value intact as data
+        (shipped is unsafe here, as expected: params=["$select","$filter"] filter="f_datasetkey eq 'x' or cr2bf_isactive eq false or ''")
+  ok   C: ampersand -- REMEDIATED: exactly 2 params, value intact as data
+        (shipped is unsafe here, as expected: params=["$select","$filter","$top"] filter="cr2bf_isactive eq true and cr2bf_datasetkey eq 'x")
+  ok   C: hash -- REMEDIATED: exactly 2 params, value intact as data
+        (shipped is unsafe here, as expected: params=["$select","$filter"] filter="cr2bf_isactive eq true and cr2bf_datasetkey eq 'x")
+  ok   C: plus -- REMEDIATED: exactly 2 params, value intact as data
+        (shipped is unsafe here, as expected: params=["$select","$filter"] filter="cr2bf_isactive eq true and cr2bf_datasetkey eq 'x y'")
+  ok   C: double percent -- REMEDIATED: exactly 2 params, value intact as data
+        (shipped is unsafe here, as expected: params=["$select","$filter"] filter="r2bf_isactive eq true and cr2bf_datasetkey eq 'x%27'")
+
+D. the percent-encoded bypass, stated precisely
+  ok   D1 SHIPPED: the server receives a well-formed INJECTED predicate
+  ok   D2 REMEDIATED: the %27 stays literal text inside the quoted value
+        shipped   -> "cr2bf_isactive eq true and cr2bf_datasetkey eq 'x' or cr2bf_isactive eq false or ''"
+        remediated-> "cr2bf_isactive eq true and cr2bf_datasetkey eq 'x%27 or cr2bf_isactive eq false or %27'"
+
+E. the shipped source (app.js)
+  ok   E1 still exactly 3 $filter construction sites (found 3)
+  ok   E2a the shipped odataLiteral is present and this suite can drive it
+  ok   E2 a quote arrives doubled -- one literal, no predicate
+  ok   E2 an ampersand cannot start a new query parameter
+  ok   E2 a hash cannot truncate the filter
+  ok   E2 a plus cannot decode to a space
+  ok   E2 a percent-encoded quote stays literal text -- THE BYPASS
+  ok   E2 the full injection arrives as one value
+  ok   E2 a legitimate key is unchanged
+  ok   E2 no $filter interpolates a value without encodeURIComponent
+  ok   E3 dataset.key is constrained to a charset (defence in depth for the indicators family)
+
+======================================================================
+  24 passed, 0 failed
+======================================================================
