@@ -72,7 +72,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage, xlsxCell
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
@@ -140,6 +140,8 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestPage is accounted for
+  ok   the change to xlsxCell is accounted for
+  ok   xlsxCell changed as intended: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
   ok   ingestTextOnlyColumn changed as intended: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
   ok   ingestHeaderKeys changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
   ok   ingestHeaderName changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
@@ -207,8 +209,8 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
-  ok   X1 exactly this many functions changed: 67
+  ok   X1 exactly this many functions changed: 68
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  198 passed, 0 failed
+  200 passed, 0 failed

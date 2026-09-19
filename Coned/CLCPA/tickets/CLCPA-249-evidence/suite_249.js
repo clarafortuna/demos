@@ -662,6 +662,8 @@ guard('X: app.js is byte-identical to BASE', () => {
   };
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   const LATER = {
+    /* re-pinned, named so the count stays exact */
+    xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
     /* CLCPA-282, named so the count stays exact */
