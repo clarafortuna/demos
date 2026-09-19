@@ -56,8 +56,9 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor
+       changed: applyCompositeShares, applyIngestImport, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor
   ok   the change to applyCompositeShares is accounted for
+  ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
@@ -73,6 +74,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to detectSumColumns is accounted for
+  ok   the change to fillDerivableSumsOnImport is accounted for
   ok   the change to getTableSchema is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
@@ -115,6 +117,8 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   applyIngestImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
+  ok   fillDerivableSumsOnImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   compareColWidths changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
   ok   renderSourceTables changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (it holds resolveRows and the has-data check)
   ok   storedHeaderRowsInYear changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)
@@ -173,7 +177,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
-  ok   X1 exactly this many functions changed: 58
+  ok   X1 exactly this many functions changed: 60
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -181,4 +185,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  166 passed, 0 failed
+  170 passed, 0 failed
