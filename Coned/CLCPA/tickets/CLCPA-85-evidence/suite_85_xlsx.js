@@ -92,6 +92,11 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
   'normIngestKey', 'parseNumericInput', 'formatIngestValue', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
+  /* CLCPA-282: buildIngestImport now asks the shared header anatomy,
+     so the slice cannot be assembled without these. A hand-fed slice
+     cannot see a missing closure -- this suite threw before printing a
+     tally, and the sweep scored that as zero rather than red. */
+  'ingestHeaderRowCount', 'ingestRowIsStoredHeader', 'ingestYearCarriesHeaderRows', 'ingestStoredHeaderRows', 'ingestHeaderKeys', 'ingestHeaderName',
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
   'compareTableIds'];
 const missing = NAMES.filter(n => !grab(n));

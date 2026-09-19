@@ -56,7 +56,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
@@ -80,6 +80,8 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
   ok   the change to ingestComputed is accounted for
+  ok   the change to ingestHeaderKeys is accounted for
+  ok   the change to ingestHeaderName is accounted for
   ok   the change to ingestHeaderRowCount is accounted for
   ok   the change to ingestRoleOpen is accounted for
   ok   the change to ingestRowIsStoredHeader is accounted for
@@ -120,6 +122,8 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestPage is accounted for
+  ok   ingestHeaderKeys changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
+  ok   ingestHeaderName changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
   ok   wireIngestPage changed as intended: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
   ok   isYearProtected changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
   ok   boot changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
@@ -183,7 +187,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
-  ok   X1 exactly this many functions changed: 63
+  ok   X1 exactly this many functions changed: 65
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -191,4 +195,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  176 passed, 0 failed
+  180 passed, 0 failed
