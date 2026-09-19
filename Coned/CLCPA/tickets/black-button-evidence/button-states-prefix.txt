@@ -1,0 +1,55 @@
+======================================================================
+BLACK BUTTON PRE-FIX -- every button state on the editor surfaces
+======================================================================
+  Add Row (reported)   #ingest-add-row
+      rest    bg rgba(0, 0, 0, 0)       fg rgb(47, 84, 150)      
+      focus   bg rgba(0, 0, 0, 0)       fg rgb(47, 84, 150)      
+      hover   bg rgb(10, 36, 54)        fg rgb(47, 84, 150)      
+      active  bg rgb(10, 36, 54)        fg rgb(47, 84, 150)      
+
+  Save Changes   #ingest-save
+      rest    bg rgb(47, 84, 150)       fg rgb(255, 255, 255)    
+      focus   bg rgb(47, 84, 150)       fg rgb(255, 255, 255)    
+      hover   bg rgb(15, 74, 130)       fg rgb(255, 255, 255)    
+      active  bg rgb(15, 74, 130)       fg rgb(255, 255, 255)    
+
+  Reset   #ingest-reset
+      rest    bg rgb(255, 255, 255)     fg rgb(58, 77, 94)       
+      focus   bg rgb(255, 255, 255)     fg rgb(58, 77, 94)       
+      hover   bg rgb(255, 255, 255)     fg rgb(58, 77, 94)       
+      active  bg rgb(255, 255, 255)     fg rgb(58, 77, 94)       
+
+  Add Data   #ingest-addyear
+      rest    bg rgb(47, 84, 150)       fg rgb(255, 255, 255)    
+      focus   bg rgb(47, 84, 150)       fg rgb(255, 255, 255)    
+      hover   bg rgb(15, 74, 130)       fg rgb(255, 255, 255)    
+      active  bg rgb(15, 74, 130)       fg rgb(255, 255, 255)    
+
+  Remove Year   #ingest-remove-year
+      rest    bg rgb(255, 255, 255)     fg rgb(178, 59, 42)      
+      focus   bg rgb(255, 255, 255)     fg rgb(178, 59, 42)      
+      hover   bg rgb(255, 255, 255)     fg rgb(178, 59, 42)      
+      active  bg rgb(255, 255, 255)     fg rgb(178, 59, 42)      
+
+  row delete   .ingest-row-delete
+      rest    bg rgba(0, 0, 0, 0)       fg rgb(156, 168, 181)    
+      focus   bg rgba(0, 0, 0, 0)       fg rgb(156, 168, 181)    
+      hover   bg rgba(220, 53, 69, 0.08) fg rgb(178, 59, 42)      
+      active  bg rgba(220, 53, 69, 0.08) fg rgb(178, 59, 42)      
+
+  source tab   .src-tab
+      rest    bg rgb(47, 84, 150)       fg rgb(0, 0, 0)          
+      focus   bg rgb(47, 84, 150)       fg rgb(0, 0, 0)          
+      hover   bg rgb(47, 84, 150)       fg rgb(0, 0, 0)          
+      active  bg rgb(47, 84, 150)       fg rgb(0, 0, 0)          
+
+--- inside the Add Data dialog ---
+  dialog close           (not present)
+
+  Download Template   #ingest-template
+      rest    bg rgba(0, 0, 0, 0)       fg rgb(47, 84, 150)      
+      focus   bg rgba(0, 0, 0, 0)       fg rgb(47, 84, 150)      
+      hover   bg rgba(0, 0, 0, 0)       fg rgb(47, 84, 150)      
+      active  bg rgba(0, 0, 0, 0)       fg rgb(47, 84, 150)      
+
+page errors: none

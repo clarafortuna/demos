@@ -1,0 +1,47 @@
+======================================================================
+BLACK BUTTON -- + Add Row keeps its background on hover and active
+  styles.css : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\styles.css
+  BASE       : 6498c57 (predates this change)
+======================================================================
+
+A. THE DEFECT, ON BASE
+  ok   A1 .btn:hover fills with --ink-2 at 0-2-0
+  ok   A2 .btn-link rests transparent at 0-1-0, which loses to it
+  ok   A3 and .btn-link:hover set ONLY text-decoration, so nothing contested the fill
+  ok   A4 one control had a per-id patch; the reported one did not
+  ok   A5 nothing held the background for + Add Row
+
+B. A RULE SCOPED TO THE CONTROL
+  ok   B1 #ingest-add-row holds its background on hover AND active
+  ok   B2 .btn:hover itself is untouched -- solid buttons still darken
+  ok   B3 and .btn-link:hover is untouched, as CLCPA-85 round 2 requires
+  ok   B4 the neighbour's per-id patch is left in place
+  ok   B5 and no colour literal was introduced
+
+C. WHO CARRIES BOTH CLASSES
+  ok   C1 exactly two controls carry BOTH btn and btn-link -- ["btn btn-link","btn btn-link"]
+  ok   C2 and five carry btn-link alone (one has no id at all) -- 5
+  ok   C3.ingest-add-row is one of the two -- btn btn-link
+  ok   C3.ingest-template is one of the two -- btn btn-link
+  ok   C4.ingest-history-showall never carried .btn, so nothing about it changes
+  ok   C4.ingest-history-showless never carried .btn, so nothing about it changes
+  ok   C4.ml-breaks-reset never carried .btn, so nothing about it changes
+  ok   C4.ml-ramp-reset never carried .btn, so nothing about it changes
+
+D. THE RENDERED EVIDENCE IS COMMITTED
+  ok   D1 evidence committed: gesture_black_button.js
+  ok   D1 evidence committed: button-states-prefix.txt
+  ok   D1 evidence committed: button-states-postfix.txt
+  ok   D2 BEFORE: the browser measured a near-black hover fill
+  ok   D3 BEFORE: and a near-black active fill
+  ok   D4 AFTER: no near-black fill anywhere in the sweep
+  ok   D5 and FOCUS was clean before the fix -- the report named the wrong state
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the colours come from getComputedStyle in a real browser, not from CSS text
+  ok   X3 the comment stripper is CSS-only: // is not a comment in CSS
+
+======================================================================
+  28 passed, 0 failed
+======================================================================

@@ -829,13 +829,19 @@ guard('X: the stylesheet changed, and only where it should', () => {
      * clears the card that follows it the way stacked cards already do.
      * Named here rather than excused, for the same reason as the line above. */
     '.ingest-import-result:last-child, .ingest-import-notice:last-child',
+    /* The black-button ticket added a SIXTH: + Add Row keeps its resting
+     * background on hover and on active. Scoped to the control, like the
+     * #ingest-template patch beside it, because CLCPA-85 round 2 ruled that
+     * a shared rule is not restyled to fix individual controls. Named here
+     * rather than excused, for the same reason as the two lines above. */
+    '#ingest-add-row:hover, #ingest-add-row:active',
   ].sort();
   ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
      'X3 exactly these NINE rules were retired: ' + removed.length +
      (JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED) ? '' :
       '  GOT ' + JSON.stringify(removed)));
   ok(JSON.stringify(added) === JSON.stringify(EXPECT_ADDED),
-     'X3b and exactly THREE were added: centre, text-column left, and the ' +
+     'X3b and exactly these were added, each named above: ' +
      'first column scoped so it cannot catch a sub-header: ' + added.length);
 });
 guard('X: the baseline', () => {
