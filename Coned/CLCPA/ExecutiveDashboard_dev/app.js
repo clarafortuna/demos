@@ -17046,6 +17046,54 @@ function wireHTooltips() {
    * more thing that can be interpreted twice. */
   const INGEST_KEY_SEP = String.fromCharCode(31);
 
+  /* CLCPA-282: A COLUMN'S IDENTITY ON A TWO-LEVEL TABLE IS THE PAIR.
+   *
+   * A9, A10 and F6 carry their headings on two rows, and NEITHER ROW
+   * identifies a column on its own. A9's group row repeats each year and its
+   * sub row repeats Total and DAC three times each; F6's sub-labels appear
+   * twice under two different group spans. Only (group, sub) is unique.
+   *
+   * The importer read fileRows[0] and nothing else, so a CSV saved from the
+   * app's OWN template was refused with "the file has two columns with the
+   * same heading" -- which is true of that row, and says nothing about the
+   * file. A9 and A10 therefore had no working CSV ingestion on any year.
+   *
+   * The group row carries FORWARD across blanks, because a blank under a span
+   * means "same group as the cell to my left" -- that is what the span is.
+   *
+   * ONE LEVEL COLLAPSES TO EXACTLY TODAY'S BEHAVIOUR: with headerCount 1 the
+   * key is the single normalised heading, unchanged, which is what keeps the
+   * blast radius of this to the three tables that need it.
+   *
+   * The separator is the one the composite ROW key already uses: a control
+   * character a spreadsheet cell cannot carry, so a heading cannot forge a
+   * pair boundary and match a column it does not name.
+   */
+  function ingestHeaderKeys(rows, headerCount) {
+    const width = (rows || []).reduce((w, r) => Math.max(w, (r || []).length), 0);
+    const keys = [];
+    let carried = '';
+    for (let c = 0; c < width; c++) {
+      const top = normIngestKey((rows[0] || [])[c]);
+      if (top) carried = top;
+      if (headerCount < 2) { keys.push(top); continue; }
+      const group = carried;
+      const sub = normIngestKey((rows[1] || [])[c]);
+      keys.push(!group && !sub ? '' : group + INGEST_KEY_SEP + sub);
+    }
+    return keys;
+  }
+
+  /** What to CALL a column in a message: its cells, joined as the eye reads them. */
+  function ingestHeaderName(rows, headerCount, c) {
+    const parts = [];
+    for (let i = 0; i < headerCount; i++) {
+      const v = (rows[i] || [])[c];
+      if (v != null && String(v).trim() !== '') parts.push(String(v).trim());
+    }
+    return parts.join(' / ');
+  }
+
   /* The marker the TEMPLATE writes into cells the dashboard computes. One
    * constant rather than two literals, because the importer skips it and the
    * template writes it and a drift between the two is silent. */
@@ -17370,14 +17418,39 @@ function wireHTooltips() {
     }
 
     // ---- headers ----------------------------------------------------------
-    const header = fileRows[0].map(normIngestKey);
-    const schemaNorm = schema.map(normIngestKey);
+    /* CLCPA-282: HOW MANY OF THE FILE'S LEADING ROWS ARE HEADER.
+     *
+     * The table's declaration says how many it CAN have; the file says whether
+     * it does. Both questions, asked through the same shared predicate the
+     * editor, the template writer and the section page already use -- a file
+     * hand-built with a single header row still reads as one, and falls
+     * through to exactly today's behaviour rather than losing a data row. */
+    const iTable = state.payload && state.payload.tables && state.payload.tables[tableId];
+    const declaredSub = ingestHeaderRowCount(iTable, Infinity);
+    const fileCarriesSub = declaredSub > 0 &&
+      ingestYearCarriesHeaderRows(fileRows.slice(1), declaredSub);
+    const headerCount = fileCarriesSub ? 1 + declaredSub : 1;
+    const headerLines = fileRows.slice(0, headerCount);
+    if (fileRows.length < headerCount + 1) {
+      reject('The file needs a header row and at least one data row.', {});
+      return res;
+    }
+    const header = ingestHeaderKeys(headerLines, headerCount);
+    /* the schema side is composed the SAME way, from the table's own stored
+     * sub-header, so the two sides cannot disagree about what a column is */
+    const schemaNorm = ingestHeaderKeys(
+      [schema].concat(fileCarriesSub ? ingestStoredHeaderRows(iTable, declaredSub) : []),
+      headerCount);
+    res.headerRowsRead = headerCount;
     const dupHeader = {};
     header.forEach((h, idx) => {
       if (!h) return;
       if (dupHeader[h] !== undefined) {
+        /* PAIR-AWARE, per the ruling: two columns collide only when their
+         * whole identity collides. "2024 / Total" and "2025 / Total" are not
+         * the same column, and refusing them was the defect. */
         reject('The file has two columns with the same heading, so which one wins ' +
-          'is ambiguous.', { column: fileRows[0][idx] });
+          'is ambiguous.', { column: ingestHeaderName(headerLines, headerCount, idx) });
       }
       dupHeader[h] = idx;
     });
@@ -17389,7 +17462,9 @@ function wireHTooltips() {
      *
      * Without it there is nothing to match rows on, so its absence is a hard
      * rejection that names the heading the file needs. */
-    const labelCol = header.indexOf(normIngestKey(schema[0]));
+    /* CLCPA-282: matched on the COMPOSED key, like every other column, so the
+     * label column of a two-level table is found by the same question. */
+    const labelCol = header.indexOf(schemaNorm[0]);
     if (labelCol < 0) {
       reject('The file has no \u201c' + schema[0] + '\u201d column, which is the one ' +
         'that says which row each value belongs to. Download the template for this ' +
@@ -17408,7 +17483,7 @@ function wireHTooltips() {
     const grouped = !!(tableId && INGEST_GROUPED[tableId]);
     const labelCols = [labelCol];
     for (let s = 1; s < keyCols; s++) {
-      const fIdx = header.indexOf(normIngestKey(schema[s]));
+      const fIdx = header.indexOf(schemaNorm[s]);
       if (fIdx < 0) {
         reject('The file has no “' + schema[s] + '” column. This table has ' +
           'rows that repeat the same “' + schema[0] + '”, so that column on ' +
@@ -17429,7 +17504,7 @@ function wireHTooltips() {
       if (labelCols.indexOf(idx) >= 0 || !h) return;
       const sIdx = schemaNorm.indexOf(h);
       if (sIdx > 0) { colMap[idx] = sIdx; res.matchedColumns.push(schema[sIdx]); }
-      else res.notTouched.unmatchedColumns.push(fileRows[0][idx]);
+      else res.notTouched.unmatchedColumns.push(ingestHeaderName(headerLines, headerCount, idx));
     });
     if (!Object.keys(colMap).length) {
       reject('None of the file\u2019s column headings match this table. Download the ' +
@@ -17438,7 +17513,7 @@ function wireHTooltips() {
     }
 
     // ---- rows -------------------------------------------------------------
-    const body = fileRows.slice(1);
+    const body = fileRows.slice(headerCount);
     res.fileRowCount = body.length;
     /* CLCPA-240: duplicates are counted on the COMPOSITE key.
      *

@@ -76,7 +76,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
@@ -97,6 +97,8 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to getTableSchema is accounted for
   ok   the change to importYearNotice is accounted for
   ok   the change to ingestComputed is accounted for
+  ok   the change to ingestHeaderKeys is accounted for
+  ok   the change to ingestHeaderName is accounted for
   ok   the change to ingestHeaderRowCount is accounted for
   ok   the change to ingestRoleOpen is accounted for
   ok   the change to ingestRowIsStoredHeader is accounted for
@@ -135,6 +137,8 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestPage is accounted for
+  ok   ingestHeaderKeys changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
+  ok   ingestHeaderName changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
   ok   wireIngestPage changed as intended: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
   ok   isYearProtected changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
   ok   boot changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
@@ -193,7 +197,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 3, it stops carrying the year across
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 3, it strips on all three paths
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-266, the notice boxes gain their accent classes
-  ok   X1 exactly this many functions changed: 58
+  ok   X1 exactly this many functions changed: 60
   ok   X2 applyDerivedCols is byte-identical to BASE
   ok   X2 recomputeTotals is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -203,4 +207,4 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  185 passed, 0 failed
+  189 passed, 0 failed
