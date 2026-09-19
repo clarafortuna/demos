@@ -127,20 +127,53 @@ I verified the effect was confined to that timestamp:
 
 No content was altered. But a forensic signal was destroyed: the uniform 2:40 AM timestamp that
 revealed the recent import is now overwritten, and the **pre-import timestamps survive only in this
-document**. A future deploy here should publish only its own components.
+document**:
+
+```
+before my import   all 7 cr2bf_dactest/* resources   modifiedon 2026-09-19 02:40 AM
+after my import    all 7 cr2bf_dactest/* resources   modifiedon 2026-09-19 07:06 PM
+```
+
+This is now prevented rather than merely regretted — see §F1.
 
 The app is associated with the System Administrator and System Customizer role *templates*, the same
 two the legacy app uses. That grants visibility of the new app; it does not modify either role.
 
+## F1. The two deploy safeguards
+
+`tools/deploy_guard.js`, covered by `suite_deploy_guard.js` (37 assertions, 7 mutation controls).
+Both checks are pure functions over caller-supplied values — no I/O, no credentials — because a
+deploy-time check that can only run during a deploy never gets tested.
+
+**1. `assertOrganization(expected, actual)` — fails closed.** Compares the org id the platform
+reports against the one the wave declares. A mismatch, a missing expectation, an unreadable
+connection, or an environment whose org id was never recorded all **throw**. `ENVIRONMENTS` carries
+Con Edison's verified id and deliberately leaves `clara-fortuna-dev` as `null`, because no WhoAmI has
+been read against it — and a guessed constant would turn a fail-closed check into a confident green.
+
+**2. `buildPublishXml(ids)` + `assertOwned(names)` — targeted publish only.** Emits a `PublishXml`
+ParameterXml naming only the given web resource ids, and refuses any component outside the `clcpa_`
+prefix. `scanForPublishAll` / `assertNoPublishAll` lint deploy scripts as text for `PublishAllXml`,
+`--publish-changes` and `pac solution publish`, so the footgun is caught in review rather than in an
+org. `node tools/deploy_guard.js lint <files...>` is the CLI form.
+
+The suite asserts the exact command used on 2026-09-19 is flagged, and that `deploy_guard.js` is the
+only file in `tools/` permitted to contain those shapes.
+
 ## G. What is still open
 
-1. **The org-id assertion in deploy pre-flight** (B.1). Cheapest high-value fix in this report.
-2. **Who imported the solution 15 hours ago, and why a Sep-2 build?** (B.2)
-3. **Does Con Edison want the Dataverse path here at all?** If yes, the three CLCPA-238 definition
-   tables must be created and seeded; today the parallel app can only run file-backed.
-4. **The 332-commit gap is a decision, not a defect.** Someone must choose whether this environment
+1. ~~The org-id assertion in deploy pre-flight~~ — **done**, §F1. Wiring it into an actual deploy
+   path remains, because no permanent deploy script exists yet; every wave is a scratch artifact.
+2. **`clara-fortuna-dev` has no recorded OrganizationId.** The guard refuses that environment until
+   someone reads WhoAmI against `org9076e69b` and records it. That read needs the vendor credential,
+   so it is Randdy's to trigger.
+3. **Who imported the solution 15 hours ago, and why a Sep-2 build?** (B.2)
+4. **The Dataverse path is parked by decision, not by defect.** The three CLCPA-238 definition tables
+   are absent and all seven DAC tables are empty; file-backed operation is sufficient for the current
+   objective. Creating or seeding those tables is not authorized.
+5. **The 332-commit gap is a decision, not a defect.** Someone must choose whether this environment
    catches up to `75e8eec`, or stays a demonstration environment.
-5. Everything in `HANDOFF.md` §Questions remains open; none of it was answered by this phase.
+6. Everything in `HANDOFF.md` §Questions remains open; none of it was answered by this phase.
 
 Rollback for the parallel line is deleting solution `CLCPAExecutiveDashboardIntegration`. It shares no
 component with the legacy line, so removing it cannot affect `ExecutiveDashboard_test`.

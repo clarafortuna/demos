@@ -1,0 +1,62 @@
+======================================================================
+  CLCPA -- deploy guard
+======================================================================
+
+A. id normalization -- braces, case and space are not differences
+  ok   A: braces and upper case normalize to the canonical form
+  ok   A: surrounding space is ignored
+  ok   A: a non-GUID normalizes to null, never to itself
+  ok   A: null normalizes to null
+
+B. assertOrganization -- the check that stops a wrong-company write
+  ok   B: matching ids pass
+  ok   B: a known environment key resolves and passes
+  ok   B: a WhoAmI response object is accepted directly
+  ok   B: a different org THROWS
+  ok   B: a missing expectation THROWS (never defaults to allow)
+  ok   B: an unreadable connection THROWS
+  ok   B: a malformed reading THROWS
+
+C. fail-closed on an environment whose org id was never read
+  ok   C: clara-fortuna-dev has no recorded org id (it has never been read)
+  ok   C: an unrecorded environment THROWS rather than skipping the check
+
+D. the collision itself -- the reason B exists
+  ok   D: the app.js web resource id is a valid GUID in both orgs
+  ok   D: the refusal explains that the GUIDs are identical, so nothing downstream would notice
+
+E. assertOwned -- the legacy line is not ours to republish
+  ok   E: a clcpa_ component is accepted
+  ok   E: several clcpa_ components are accepted
+  ok   E: a cr2bf_ component is REFUSED
+  ok   E: one foreign component poisons the whole set, and is named in the error
+  ok   E: an empty publish set THROWS
+
+F. buildPublishXml -- targeted ParameterXml, ids only
+  ok   F: the payload opens with importexportxml/webresources
+  ok   F: ids are emitted normalized (lower case, unbraced)
+  ok   F: exactly the ids supplied are named, and no more
+  ok   F: no other component family is dragged in
+  ok   F: a NAME where an id belongs THROWS
+  ok   F: a duplicated id THROWS
+  ok   F: an empty id set THROWS
+
+G. the publish-all lint -- catching the exact command that was run
+  ok   G: the command actually used on 2026-09-19 is flagged
+  ok   G: a direct PublishAllXml call is flagged
+  ok   G: pac solution publish is flagged
+  ok   G: a targeted PublishXml is NOT flagged
+  ok   G: empty text is clean
+  ok   G: assertNoPublishAll names the offending file
+
+H. the guard is the only place these shapes may appear in tools/
+  ok   H: deploy_guard.js is the sole file in tools/ carrying publish-all shapes (found: deploy_guard.js)
+
+I. the recorded Con Edison environment matches what the org reported
+  ok   I: the recorded org id is the one WhoAmI returned on 2026-09-19
+  ok   I: the recorded url is the Con Edison org, not the vendor org
+  ok   I: the vendor org is recorded too, so a wave can name it explicitly
+
+======================================================================
+  37 passed, 0 failed
+======================================================================
