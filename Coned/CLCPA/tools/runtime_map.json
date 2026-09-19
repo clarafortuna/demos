@@ -1,0 +1,107 @@
+{
+  "generated": "2026-09-19T19:16:02.402Z",
+  "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
+  "environment": {
+    "name": "Sustainability Design - Dev",
+    "url": "https://orgc60845ae.crm.dynamics.com/",
+    "environmentId": "d491a3e9-379f-e433-8ccb-afb49607c31d",
+    "organizationId": "1dfebd7e-cd6f-f111-b27b-000d3a5cc314"
+  },
+  "git": {
+    "repo": "clarafortuna/demos",
+    "branch": "clcpa-integration-candidate",
+    "head": "4bbde66ecb1218985e99ed4de66957f9f22917ab",
+    "baseline": "75e8eec"
+  },
+  "build": {
+    "app.js": "318977b6d8",
+    "styles.css": "2b9651445c"
+  },
+  "solution": {
+    "uniqueName": "CLCPAExecutiveDashboardIntegration",
+    "displayName": "CLCPA Executive Dashboard - Integration",
+    "version": "1.0.0.0",
+    "managed": false
+  },
+  "publisher": {
+    "uniqueName": "CLCPAIntegration",
+    "prefix": "clcpa",
+    "publisherId": "a07dd787-a794-47a5-a663-f4ddd44b1458"
+  },
+  "app": {
+    "uniqueName": "clcpa_ExecutiveDashboard_integration",
+    "appModuleId": "2c35b607-4161-4576-8ae8-9d9dae7bcc0e",
+    "siteMap": "clcpa_ExecutiveDashboard_integration",
+    "url": "https://orgc60845ae.crm.dynamics.com/main.aspx?appid=2c35b607-4161-4576-8ae8-9d9dae7bcc0e"
+  },
+  "resources": [
+    {
+      "webResourceName": "clcpa_dashboard/ExecutiveDashboard.html",
+      "displayName": "CLCPA - ExecutiveDashboard.html",
+      "webResourceId": "d428c15d-a9bf-4529-a3d0-a9b8cab1195d",
+      "type": 1,
+      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
+      "repoSha256": "4ba1d6e7b5925ae6",
+      "deployedSha256": "5fdee11dc127cbc2",
+      "stamped": true
+    },
+    {
+      "webResourceName": "clcpa_dashboard/styles.css",
+      "displayName": "CLCPA - styles.css",
+      "webResourceId": "f6386636-3edd-4525-b1ad-595c8a38b86b",
+      "type": 2,
+      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/styles.css",
+      "repoSha256": "2b9651445cb2bce5",
+      "deployedSha256": "2b9651445cb2bce5",
+      "stamped": true
+    },
+    {
+      "webResourceName": "clcpa_dashboard/app.js",
+      "displayName": "CLCPA - app.js",
+      "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
+      "type": 3,
+      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
+      "repoSha256": "318977b6d849eb37",
+      "deployedSha256": "8a844a486ce72fc0",
+      "stamped": true
+    },
+    {
+      "webResourceName": "clcpa_dashboard/payload.json",
+      "displayName": "CLCPA - payload.json",
+      "webResourceId": "e8012153-16b9-42ec-a1b8-afa46d310085",
+      "type": 4,
+      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/payload.json",
+      "repoSha256": "4757f60e896850ca",
+      "deployedSha256": "4757f60e896850ca",
+      "stamped": false
+    },
+    {
+      "webResourceName": "clcpa_dashboard/logo/ConEd_Logo_fondo_blanco.jpeg",
+      "displayName": "CLCPA - logo ConEd_Logo_fondo_blanco.jpeg",
+      "webResourceId": "1fc8f07b-0a93-4f19-9abf-21484b21df51",
+      "type": 6,
+      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_fondo_blanco.jpeg",
+      "repoSha256": "bdf1c9a562961eb8",
+      "deployedSha256": "bdf1c9a562961eb8",
+      "stamped": false
+    },
+    {
+      "webResourceName": "clcpa_dashboard/logo/ConEd_Logo_completo.svg",
+      "displayName": "CLCPA - logo ConEd_Logo_completo.svg",
+      "webResourceId": "e6b31c2a-9d2f-4545-b175-0c10f4edb9c2",
+      "type": 11,
+      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_completo.svg",
+      "repoSha256": "fb2cde9d78316eab",
+      "deployedSha256": "fb2cde9d78316eab",
+      "stamped": false
+    }
+  ],
+  "legacyLine": {
+    "note": "Untouched. Byte-identical before and after the integration import; only modifiedon moved, from the org-wide publish.",
+    "solution": "CLCPADACDashboard",
+    "app": "cr2bf_ExecutiveDashboard_test",
+    "appModuleId": "d94e39fc-dac7-469e-a985-aa714a6e4bfe",
+    "deployedBuild": "342094b187",
+    "sourceCommit": "b4583b7"
+  }
+}
