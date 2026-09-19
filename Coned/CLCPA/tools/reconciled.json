@@ -1,0 +1,28 @@
+{
+  "engineerTip": "75e8eec",
+  "integrationBase": "75e8eec",
+  "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
+  "ledger": [
+    {
+      "engineerCommit": "13dad3b",
+      "engineerSubject": "CLCPA-281 round 2: an all-empty row is data, never header structure",
+      "integrationCommit": "(baseline)",
+      "reconciledAt": "2026-09-19",
+      "validation": "inherited unchanged - the integration branch was created AT this history, not re-applied on top of it"
+    },
+    {
+      "engineerCommit": "4e1491b",
+      "engineerSubject": "CLCPA-274 round 4: the template's sub-header survives a phantom empty row",
+      "integrationCommit": "(baseline)",
+      "reconciledAt": "2026-09-19",
+      "validation": "inherited unchanged"
+    },
+    {
+      "engineerCommit": "75e8eec",
+      "engineerSubject": "CLCPA-278 round 4: the row cell shows what was computed",
+      "integrationCommit": "(baseline)",
+      "reconciledAt": "2026-09-19",
+      "validation": "inherited unchanged; security set green on top of it (125 assertions, 30 mutants)"
+    }
+  ]
+}
