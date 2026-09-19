@@ -35,8 +35,18 @@ const { templateRows, dense } = require('../_kit/xlsx_read.js');
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const BASE = process.env.DAC_BASE_COMMIT || 'acbd12c';
-const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);
-const SRC = fs.readFileSync(APP, 'utf8');
+/* PINNED ON BOTH SIDES (CLAUDE.md). This suite asserts what ROUND 3 did to a
+ * predicate ROUND 4 has since changed: an all-empty row is no longer read as a
+ * header, because that is how the operator's first Add Row was consumed. Round
+ * 3's claim is history and is true at the commit that made it, so the
+ * post-change side reads that build rather than live main. DAC_APP_OVERRIDE
+ * still wins, so the mutation runner keeps working. */
+const NEWREV = process.env.DAC_NEW_COMMIT || '771e008';
+const APP = process.env.DAC_APP_OVERRIDE || ('git show ' + NEWREV + ':' + REL);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : execSync('git show ' + NEWREV + ':"' + REL + '"',
+      { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const BASE_SRC = execSync('git show ' + BASE + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n');
 const P = JSON.parse(fs.readFileSync(
