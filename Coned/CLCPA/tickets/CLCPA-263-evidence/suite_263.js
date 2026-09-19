@@ -139,8 +139,9 @@ guard('S: and the whole report page is unchanged too', () => {
     });
   });
   ok(checked === 149, 'S3 ' + checked + ' panels rendered on both sides');
-  ok(moved.length === 0, 'S4 and every panel is byte-identical' +
-     (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
+  /* RE-POINTED, not widened: an exact list of two, so a third still fails. */
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['G10:2024', 'J4:2025']),
+     'S4 the panels move on exactly two -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 and the old size guess rendered 1.0% for 100.0% -- got ' + JSON.stringify(moved.slice(0, 5)));
 });
 
 guard('S: C2s own composite cells are what the gate is about', () => {
@@ -427,6 +428,11 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
     /* re-pinned, named so the count stays exact */
+    derivedPctCols: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    fmtDerivedCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    formatCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    renderTable: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    /* re-pinned, named so the count stays exact */
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
@@ -547,7 +553,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 62, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 66, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['applyDerivedCols', 'recomputeTotals', 'totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {

@@ -371,10 +371,10 @@ guard('Z: the report page is untouched', () => {
   ok(derivedOnly.join(',') === 'A8:2023',
      'Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
      JSON.stringify(derivedOnly));
-  ok(moved.length === 0,
-     'Z2 and the REPORT page is byte-identical on every one: this ticket ' +
-     'changes the editor and the template, not the published tables' +
-     (moved.length ? ' -- MOVED ' + moved.slice(0, 6).join(', ') : ''));
+  /* RE-POINTED, not widened: an exact list of two, so a third still fails. */
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['G10:2024', 'J4:2025']),
+     'Z2 and the REPORT page moves on exactly two panels -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0% -- got ' +
+     JSON.stringify(moved.slice(0, 6)));
 });
 
 guard('Z: the stored schema and data are not rewritten', () => {
@@ -413,6 +413,11 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    /* re-pinned, named so the count stays exact */
+    derivedPctCols: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    fmtDerivedCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    formatCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    renderTable: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
     /* re-pinned, named so the count stays exact */
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
@@ -535,7 +540,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 68, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 72, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

@@ -353,8 +353,14 @@ guard('Z: the report page is byte-identical on all 149', () => {
   ok(derivedOnly.join(',') === 'A8:2023',
      'Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
      JSON.stringify(derivedOnly));
-  ok(moved.length === 0, 'Z2 and every one is byte-identical' +
-     (moved.length ? ': ' + moved.slice(0, 6).join(', ') : ''));
+  /* RE-POINTED BY CLCPA-294, not widened: an exact list of two, so a third
+   * panel moving still turns this red. Those two are where a computed total
+   * lands fractionally above 1 on floating point -- 1.0000327 and
+   * 1.0000000013 -- and the old size guess rendered them "1.0%" where 100.0%
+   * is meant. The correction is on the published report, deliberately. */
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['G10:2024', 'J4:2025']),
+     'Z2 and the panels move on exactly two, both corrected by CLCPA-294: ' +
+     JSON.stringify(moved.slice(0, 6)));
 });
 
 guard('Z: no stored total is rewritten by the declaration', () => {
@@ -393,6 +399,11 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    /* re-pinned, named so the count stays exact */
+    derivedPctCols: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    fmtDerivedCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    formatCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    renderTable: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
     /* re-pinned, named so the count stays exact */
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
@@ -511,7 +522,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 67, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 71, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags',
    'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
