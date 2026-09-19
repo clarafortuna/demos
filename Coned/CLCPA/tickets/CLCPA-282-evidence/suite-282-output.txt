@@ -1,0 +1,55 @@
+======================================================================
+CLCPA-282 / 285 -- a column is identified by its header PAIR
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 7dd0b90 (predates this change)
+======================================================================
+
+A. THE DEFECT, ON BASE
+  ok   A1 BASE had no notion of a composed header key
+  ok   A2 it read fileRows[0] and nothing else
+  ok   A3 and took every later row as data
+  ok   A4 A9 group row repeats on its own: ["2024","2025","% change"]
+  ok   A5 and so does its sub row: ["total","dac","total","dac"]
+  ok   A6 F6 too -- its sub-labels sit under two different spans: ["non- excludable","excludable"]
+
+B. THE PAIR IDENTIFIES THE COLUMN
+  ok   B1 A9 has no duplicate pair -- []
+  ok   B2 one key per column
+  ok   B3 F6 has none either
+  ok   B4 F6 columns 2 and 3 share a carried-forward group
+  ok   B5 but differ by their sub-label, which is the point
+  ok   B6 and columns 2 and 4 sit under DIFFERENT spans
+  ok   B7 a one-level table composes exactly the old single-row keys
+  ok   B8 with no separator in them at all
+  ok   B9 a column blank on both rows composes to blank
+
+C. HOW MANY OF THE FILE'S ROWS ARE HEADER
+  ok   C1 the TABLE says how many it can have
+  ok   C2 and the FILE says whether it does -- the same shared predicate
+  ok   C3 the body starts after however many header rows were read
+  ok   C4 the schema side is composed the SAME way, so the two cannot disagree
+  ok   C5 the label column is matched on the composed key like any other
+  ok   C6 and no column is matched on a raw single-row heading any more
+  ok   C7 a rejection names the column as the eye reads it, both rows joined
+
+D. WHAT MUST NOT CHANGE
+  ok   D1 a single-header-row A9 file still collides, exactly as before
+  ok   D2 the separator is a control character, so a heading cannot forge a pair
+  ok   D3 normIngestKey still trims, lowercases and collapses whitespace
+  ok   D4 D1 still declares 0 and is not swept into the two-level family
+  ok   D5 and no stored data was touched
+
+E. WHAT A REJECTION CALLS A COLUMN
+  ok   E1 both rows, joined -- 2024 / Total
+  ok   E2 and a one-level table names its single heading
+  ok   E3 a column blank on both rows has no name to give
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the header rows are read from the payload, never retyped
+  ok   X3 the browser gesture is committed beside this suite
+  ok   X4 and it drives the single-header-row case too, not only the happy one
+
+======================================================================
+  34 passed, 0 failed
+======================================================================
