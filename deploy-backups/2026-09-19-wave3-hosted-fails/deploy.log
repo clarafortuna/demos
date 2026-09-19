@@ -59,3 +59,88 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as cf355fb
+          remote main = cf355fb  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1268716B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1268716B  sha256 0e09b5947b13cc0f...  VERIFIED byte-identical
+READ-BACK styles.css  285220B  sha256 2b9651445cb2bce5...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 efadf91e9b1b27e1...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : abb8d99439  ok
+  app.js canonicalised + hashed : abb8d99439  ok
+  styles.css hashed             : 2b9651445c  ok
+  HTML references app.js?v=     : abb8d99439  ok
+  HTML references styles.css?v= : 2b9651445c  ok
+  all 3 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the rounds answering the wave-3 hosted FAILs -- CLCPA-281, CLCPA-274, CLCPA-278
+build id (app.js): abb8d99439
+styles.css id    : 2b9651445c   (replaced 2b9651445c)
+previous build   : fcc9fa30bd, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 2daa77c
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build abb8d99439
+
+THE ACCEPTANCE PASS:
+  CLCPA-281  EACH ADD ROW APPENDS EXACTLY ONE VISIBLE ROW.
+     F6 in Report Data on a USER-ADDED year. At zero rows both header
+     levels draw with their sub-labels. Click Add Row ONCE: one editable
+     row must appear AND the second header row must keep its sub-labels.
+     Under the previous build that one click blanked the sub-header and
+     produced no visible row at all. Click again: two rows. Then EDIT a
+     cell and confirm the value lands on the row typed in. A9 and A10 the
+     same. H1 and D1 must look exactly as they did.
+     F6/2099 also holds a phantom empty row from the old build: it must
+     now render as a visible EMPTY DATA ROW carrying a delete control, so
+     it can be removed.
+  CLCPA-274  THE TEMPLATE KEEPS ITS SUB-HEADER BESIDE A PHANTOM ROW.
+     Download F6s template for a user-added year holding saved rows. Row 2
+     must read the four sub-labels; the phantom empty row follows as an
+     empty data row, then Test Row.
+     THE VALUE CELLS STAY BLANK. That is the template as designed, not a
+     defect, and it is ruled unchanged for now -- see the disclosure.
+  CLCPA-278  THE ROW CELL SHOWS WHAT WAS COMPUTED.
+     H1 on a user-added year. Take a row whose Grand Total equals its
+     parts and edit one component DIGIT BY DIGIT. The rows OWN Grand Total
+     cell must move on screen, and must agree with the totals row beneath
+     it. Under the previous build the draft and the totals row moved while
+     that one cell went on displaying the old figure: two numbers for one
+     row on one screen.
+     Then a row whose total already disagrees, or one holding a percent
+     like 45%: the filed total must be KEPT and the advisory raised, and a
+     percent must still read as a fraction.
+
+STILL DISCLOSED, not defects in this build:
+  - THE SECTION PAGE WAS NOT DRIVEN IN A BROWSER THIS ROUND, and it is the
+  -    one surface of the header work left unproven. The read-only section
+  -    view slices its header rows without asking the shared predicate the
+  -    editor and the template now both ask, so a year whose stored rows do
+  -    not carry a sub-header may still collapse there. NOT MEASURED. It is
+  -    the first item of the next session, and it is worth a look on this
+  -    hosted pass: open F6s section view and check both header levels draw.
+  - THE TEMPLATE EMITS ROW LABELS AND NO VALUES, on every table and every
+  -    year, and always has. An operator downloading a populated year gets
+  -    an empty sheet. Ruled: leave it for now; the question of whether the
+  -    template becomes an export is decided in the next session alongside
+  -    the ticket that pre-fills its keys. The three options and a
+  -    recommendation are filed in the tickets folder.
+  - CARRIED FORWARD, unchanged by this wave: the 44 numeric-looking strings
+  -    in A3/A4 for 2098, accepted by ruling and named in the residue list;
+  -    a two-level table still cannot round-trip through a single-row CSV
+  -    header; the remove-year control still asks the composed payload
+  -    rather than the store; and on a fresh A8 the bootstrap would compute
+  -    283,852 into a grand total whose real figure is 336,599.
+  - The stylesheet does NOT move in this wave: app.js alone changes.
+
+=== log written by deploy_wave3_hosted_fails.js ===
