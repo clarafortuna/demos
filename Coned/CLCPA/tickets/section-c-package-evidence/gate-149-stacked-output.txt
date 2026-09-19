@@ -8,23 +8,23 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z0 nothing threw: 0
   ok   Z1 149 stored table-years rendered on both sides
   ok   Z1b and every one produced a <table>: 149
-  ok   Z2 every difference is claimed by a named ticket
-       moved: 62 of 149
-       CLCPA-252 r3: 61 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
-       CLCPA-252: 1 -- A8:2023
+  FAIL Z2 every difference is claimed by a named ticket: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
+       moved: 66 of 149
+       CLCPA-252 r3: 41 -- A6:2024, A6:2025, A7:2024, A7:2025, A8:2024, A8:2025
+       CLCPA-252: 0
 
 === Z. the compare panel, the second anatomy =======================
   ok   Z3 nothing threw in compare: 0
   ok   Z4 149 table-years rendered in COMPARE on both sides
   ok   Z4b and every one produced a <table>: 149
-  ok   Z5 every compare difference is claimed by a named ticket
-       moved: 62 of 149
-       CLCPA-252 r3: 61 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
-       CLCPA-252: 1 -- A8:2023
+  FAIL Z5 every compare difference is claimed by a named ticket: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
+       moved: 68 of 149
+       CLCPA-252 r3: 39 -- A6:2025, A7:2024, A7:2025, A8:2025, B1:2023, B1:2024
+       CLCPA-252: 0
 
 === C. each claim matched something, on at least one panel =========
-  ok   C1 CLCPA-252 r3 changed something on the stored years (122): no caption carries a year, on any surface: every stored caption with a year token loses it at render time
-  ok   C1 CLCPA-252 changed something on the stored years (2): the caption comes from the table definition, so a stored year with no title entry names itself instead of rendering bare
+  ok   C1 CLCPA-252 r3 changed something on the stored years (80): no caption carries a year, on any surface: every stored caption with a year token loses it at render time
+  FAIL C1 CLCPA-252 changed something on the stored years (0): the caption comes from the table definition, so a stored year with no title entry names itself instead of rendering bare
   ok   C2 the compare panel is a DIFFERENT render for 149 of 149, so this gate drove two anatomies and not one twice
 
 === D. the audit case, read off the rendered panel =================
@@ -46,4 +46,4 @@ Section C package -- THE FINAL STACKED GATE
   ok   X2 and HEAD descends from it, so it is the build this stack changed
   ok   X3 and the two sources genuinely differ
 
-  24 passed, 0 failed
+  21 passed, 3 failed

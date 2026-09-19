@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-230: the native dialogs become the app's own modal.
  *
  * The properties that matter here are BEHAVIOURAL, not textual, because the
@@ -23,7 +36,7 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const CSS_REL = 'Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 const BASE = process.env.DAC_BASE_COMMIT || '4875d48';   // pre-230, as deployed

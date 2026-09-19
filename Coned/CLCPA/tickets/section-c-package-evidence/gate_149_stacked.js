@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* THE FINAL STACKED GATE for the Section C fix package.
  *
  * Every group in this package proved itself against the group below it. That
@@ -28,7 +41,7 @@ const { execSync } = require('child_process');
 
 const kit = require('../_kit/caption_diff.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const OUT = path.join(REPO,
   'Coned/CLCPA/tickets/section-c-package-evidence/gate-149-stacked-output.txt');

@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-216: the C2 shape census. READ ONLY.
  *
  * Sweeps EVERY cell of every C2 row across all three years and classifies its
@@ -7,7 +20,7 @@
  */
 const fs = require('fs');
 const P = JSON.parse(fs.readFileSync(
-  'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard/payload.json', 'utf8'));
+  _dacRepo() + '/Coned/CLCPA/ExecutiveDashboard/payload.json', 'utf8'));
 
 const schemaOf = (t, y) => (P.tables[t].schema_by_year && P.tables[t].schema_by_year[y])
   || P.tables[t].schema;

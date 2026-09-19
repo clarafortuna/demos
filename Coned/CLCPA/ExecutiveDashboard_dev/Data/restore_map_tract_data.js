@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-191: restore cr2bf_dacmaptractdata from the pre-delete export.
  *
  * This exists because nothing in the repository writes that table. The CLCPA-115
@@ -46,7 +59,7 @@ const DEC_COLS = ['cr2bf_elecadj', 'cr2bf_gasadj'];
 // System columns present in the export that must NOT be sent on a create.
 const NOT_SETTABLE = ['createdon', 'modifiedon', '@odata.etag'];
 
-const EXPORT = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/Data/backups/cr2bf_dacmaptractdata_2026-08-24.json';
+const EXPORT = _dacRepo() + '/Coned/CLCPA/ExecutiveDashboard_dev/Data/backups/cr2bf_dacmaptractdata_2026-08-24.json';
 const CODE_FILE = path.join(__dirname, 'device_code_191r.txt');
 
 let pass = 0, fail = 0;

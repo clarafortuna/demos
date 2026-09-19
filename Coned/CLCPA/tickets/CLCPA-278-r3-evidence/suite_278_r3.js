@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-278 round 3: one shared reader for "what number is in this cell".
  *
  * THE REPRODUCTION, on BOTH provenances, digit by digit, on the shipped build:
@@ -39,7 +52,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { boot } = require('../_kit/live_editor.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const BASE = process.env.DAC_BASE_COMMIT || '72f1591';
 const APP = process.env.DAC_APP_OVERRIDE || path.join(REPO, REL);

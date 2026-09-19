@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* Mutation controls for CLCPA-274-r4.
  *
  * The template surface of the same fix, plus a guard on the value half:
@@ -14,7 +27,7 @@ const crypto = require('crypto');
 const { execFileSync, execSync } = require('child_process');
 
 const CRLF = String.fromCharCode(13) + String.fromCharCode(10);
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const DIR = REPO + '/Coned/CLCPA/tickets/CLCPA-274-r4-evidence';
 const SUITE = 'suite_274_r4.js';

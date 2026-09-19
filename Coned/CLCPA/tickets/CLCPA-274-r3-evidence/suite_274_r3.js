@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-274 round 3: the sub-header belongs to the TABLE, not to the year.
  *
  * BOTH PROVENANCES, REPRODUCED FIRST, which is the instruction this round was
@@ -32,7 +45,7 @@ const { execSync } = require('child_process');
 const { boot } = require('../_kit/live_editor.js');
 const { templateRows, dense } = require('../_kit/xlsx_read.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const BASE = process.env.DAC_BASE_COMMIT || 'acbd12c';
 /* PINNED ON BOTH SIDES (CLAUDE.md). This suite asserts what ROUND 3 did to a

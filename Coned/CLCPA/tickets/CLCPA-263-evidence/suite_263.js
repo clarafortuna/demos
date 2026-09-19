@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-263: the "value (pct)" composites, DERIVED at render.
  *
  * THE DEFECT: C2's stored 2024 and 2025 rows carry the composite INSIDE the
@@ -26,7 +39,7 @@ const { execSync } = require('child_process');
 /* CLCPA-252 round 3: the shared caption-difference judgement */
 const kit = require('../_kit/caption_diff.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 const OUT = path.join(REPO, 'Coned/CLCPA/tickets/CLCPA-263-evidence/suite-263-output.txt');
 

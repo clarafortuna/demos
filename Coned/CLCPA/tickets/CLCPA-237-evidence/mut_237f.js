@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* Mutation controls for CLCPA-237 item F.
  *
  * ONE LESSON APPLIED THROUGHOUT, adopted after the grid-cascade miss: a
@@ -14,7 +27,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { execFileSync, execSync } = require('child_process');
 
-const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-237-evidence';
+const DIR = _dacRepo() + '/Coned/CLCPA/tickets/CLCPA-237-evidence';
 /* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree.
  * suite_237f reads 2361a6a unless DAC_APP_OVERRIDE says
  * otherwise, so mutating the repo's app.js would change a file the suite
@@ -23,7 +36,7 @@ const NEW_COMMIT = process.env.DAC_NEW_COMMIT || '2361a6a';
 const APP = path.join(os.tmpdir(), 'clcpa-237f-app-' + NEW_COMMIT + '.js');
 fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT + ':"' + REL + '"',
   { cwd: REPO, maxBuffer: 1 << 28 }).toString('utf8').replace(/\r?\n/g, '\r\n'));
-const CSS = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
+const CSS = _dacRepo() + '/Coned/CLCPA/ExecutiveDashboard_dev/styles.css';
 
 const M = [
   /* ---- item 2, card 3: THE CRASH ------------------------------------- */

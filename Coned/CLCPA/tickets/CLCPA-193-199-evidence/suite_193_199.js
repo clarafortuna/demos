@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-193 + CLCPA-199 acceptance suite.
  *
  * THE BASELINE IS THE PRE-CHANGE COMMIT, not a second run of the new code. The
@@ -8,7 +21,7 @@
  */
 const fs = require('fs');
 const { execSync } = require('child_process');
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 // DAC_APP_OVERRIDE lets the control runner feed a deliberately broken copy in,
 // so every guard can be shown to FAIL when the fix it guards is reverted.

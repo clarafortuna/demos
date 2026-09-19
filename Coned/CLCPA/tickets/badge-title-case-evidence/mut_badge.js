@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* Mutation controls for the badge round.
  *
  * The one that matters most is the first: put the save handler back the way it
@@ -9,7 +22,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { execFileSync, execSync } = require('child_process');
 
-const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/badge-title-case-evidence';
+const DIR = _dacRepo() + '/Coned/CLCPA/tickets/badge-title-case-evidence';
 /* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree.
  * suite_badge reads 2361a6a unless DAC_APP_OVERRIDE says
  * otherwise, so mutating the repo's app.js would change a file the suite

@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* Mutation controls for CLCPA-244 round 4, the revert.
  *
  * A revert is the easiest change to get subtly wrong, because "mostly
@@ -21,7 +34,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 const { execFileSync } = require('child_process');
 
-const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-244-evidence';
+const DIR = _dacRepo() + '/Coned/CLCPA/tickets/CLCPA-244-evidence';
 const os = require('os');
 const path = require('path');
 const { execSync } = require('child_process');
@@ -32,7 +45,7 @@ const NEW_COMMIT = process.env.DAC_244R4_COMMIT || '6a3b0b7';
 const APP = path.join(os.tmpdir(), 'clcpa244r4-app-' + NEW_COMMIT + '.js');
 fs.writeFileSync(APP, execSync('git show ' + NEW_COMMIT +
   ':"Coned/CLCPA/ExecutiveDashboard_dev/app.js"',
-  { cwd: 'c:/Users/emely/Desktop/Projects/demos', maxBuffer: 1 << 28 })
+  { cwd: _dacRepo() + '', maxBuffer: 1 << 28 })
   .toString('utf8').replace(new RegExp(String.fromCharCode(92)+"r?"+String.fromCharCode(92)+"n",'g'), String.fromCharCode(13)+String.fromCharCode(10)));
 const SUITE = DIR + '/suite_244_r4.js';
 

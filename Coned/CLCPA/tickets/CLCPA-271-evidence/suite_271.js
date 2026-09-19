@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-271 -- computed cells in the Report Data editor render unformatted.
  *
  * E1's body rows showed "$111,000" while its computed Grand Total, one row
@@ -17,7 +30,7 @@
 const fs = require('fs');
 const { execFileSync } = require('child_process');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const PAYLOAD = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev/payload.json';
 const BASE = process.env.DAC_BASE_COMMIT || '2361a6a';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';

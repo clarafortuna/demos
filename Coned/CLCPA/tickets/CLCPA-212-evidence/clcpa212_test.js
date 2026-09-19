@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-212 slice A acceptance suite: the editor write path.
  *
  * EXPECTATIONS ARE INDEPENDENT OF THIS CODE. Every cell asserted below is copied
@@ -13,7 +26,7 @@ const fs = require('fs');
 const X = require('./app_extract.js');
 
 const P = JSON.parse(fs.readFileSync(
-  'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard/payload.json', 'utf8'));
+  _dacRepo() + '/Coned/CLCPA/ExecutiveDashboard/payload.json', 'utf8'));
 const BASE_REF = process.env.CLCPA212_BASE || 'a87e376';
 
 let pass = 0, fail = 0, ctl = 0;

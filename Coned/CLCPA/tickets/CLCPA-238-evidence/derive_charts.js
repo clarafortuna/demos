@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-238 step 2, the chart half: are the 12 charts DERIVABLE from table
  * data, and at what cost?
  *
@@ -31,7 +44,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const DEV = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev';
+const DEV = _dacRepo() + '/Coned/CLCPA/ExecutiveDashboard_dev';
 const P = JSON.parse(fs.readFileSync(path.join(DEV, 'payload.json'), 'utf8'));
 const SRC = fs.readFileSync(path.join(DEV, 'app.js'), 'utf8');
 

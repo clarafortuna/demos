@@ -1,0 +1,6 @@
+# Fixtures whose sha256 is recorded in a manifest must not be re-line-ended on
+# checkout. Four CLCPA-238 seed files are hashed as LF in seed_manifest.json;
+# with core.autocrlf=true they arrive as CRLF and suite_composer and
+# diag_shadow_baseline both fail on a file nobody edited. The hash is the
+# contract, so the bytes have to survive the checkout.
+tickets/CLCPA-238-evidence/seed_*.json   -text

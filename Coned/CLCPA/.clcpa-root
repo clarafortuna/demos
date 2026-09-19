@@ -1,0 +1,5 @@
+CLCPA project root marker.
+
+Resolvers walk up until they find this file, so the same code answers
+correctly whether the project lives at <demos>/Coned/CLCPA or at the root of
+its own repository. See tools/project_root.js.

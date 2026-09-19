@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-281 -- the editor draws both header levels
-  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  app.js : C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\ExecutiveDashboard_dev\app.js
   BASE   : 771e008 (predates this change)
 ======================================================================
 

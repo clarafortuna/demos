@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-238 STEP 4, part 1 of 3: GENERATE THE SEED. Entirely offline.
  *
  * No network, no org, no auth, no writes to Dataverse. Reads payload.json and
@@ -29,7 +42,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const DEV = REPO + '/Coned/CLCPA/ExecutiveDashboard_dev';
 const ART = REPO + '/deploy-backups/2026-09-02-clcpa142-cleanup/tabledata.json';
 const OUT = __dirname;

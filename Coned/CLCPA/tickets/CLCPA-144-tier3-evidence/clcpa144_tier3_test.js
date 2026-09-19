@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-144 Tier 3 acceptance suite: derived ROWS for the transposed tables.
  *
  * EXPECTATIONS ARE INDEPENDENT OF THIS CODE. The 49 candidate cells, their rules and
@@ -12,7 +25,7 @@
 const fs = require('fs');
 const X = require('./app_extract.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos/';
+const REPO = _dacRepo() + '/';
 const P = JSON.parse(fs.readFileSync(REPO + 'Coned/CLCPA/ExecutiveDashboard/payload.json', 'utf8'));
 const BASE_REF = process.env.TIER3_BASE || 'e8b056e';
 const nowSrc = fs.readFileSync(REPO + 'Coned/CLCPA/ExecutiveDashboard_dev/app.js', 'utf8');

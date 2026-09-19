@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* Mutation controls for CLCPA-240 first half, ROUND 3.
  *
  * Round 2 failed its hosted pass because the lock read a baseline that is
@@ -22,7 +35,7 @@ const os = require('os');
 const crypto = require('crypto');
 const { execFileSync, execSync } = require('child_process');
 
-const DIR = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/tickets/CLCPA-240-evidence';
+const DIR = _dacRepo() + '/Coned/CLCPA/tickets/CLCPA-240-evidence';
 /* THE MUTATION TARGET IS THE PINNED BUILD, not the working tree.
  * suite_240a_r3 reads 2361a6a unless DAC_APP_OVERRIDE says
  * otherwise, so mutating the repo's app.js would change a file the suite
@@ -131,7 +144,7 @@ const M = [
     expect: 'B3 not one of them has an input, with NOTHING saved yet' },
 
   /* ---- CSS must not move ---------------------------------------------- */
-  { t: 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/styles.css',
+  { t: _dacRepo() + '/Coned/CLCPA/ExecutiveDashboard_dev/styles.css',
     name: 'styles.css is touched, when the point is that it need not be',
     from: '.ingest-row-subheader td {',
     to:   '.ingest-row-subheader td { outline: 0;',

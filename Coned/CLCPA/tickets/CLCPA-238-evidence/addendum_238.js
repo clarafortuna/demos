@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-238 SEED ADDENDUM: store current_year in the meta row.
  *
  * ONE ROW, ONE FIELD. The composer now reads meta.current_year from the store
@@ -22,7 +35,7 @@ const ORG = 'https://org9076e69b.crm.dynamics.com';
 const API = ORG + '/api/data/v9.2/';
 const CLIENT_ID = '51f81489-12ee-4a9e-aaae-a2591f45987d';
 const TENANT = 'organizations';
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const EVID = REPO + '/Coned/CLCPA/tickets/CLCPA-238-evidence';
 const BACKDIR = REPO + '/deploy-backups/2026-09-08-clcpa238-pre-seed';
 const SET = 'cr2bf_dacreportmetrics';

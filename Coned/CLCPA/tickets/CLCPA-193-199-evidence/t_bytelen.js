@@ -1,7 +1,20 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* utf8ByteLength must equal new TextEncoder().encode(s).length for every input,
  * or the size gates it feeds would pass a file the column will refuse. */
 const fs = require('fs');
-const src = fs.readFileSync('c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/app.js', 'utf8');
+const src = fs.readFileSync(_dacRepo() + '/Coned/CLCPA/ExecutiveDashboard_dev/app.js', 'utf8');
 const m = src.match(/function utf8ByteLength\(str\) \{[\s\S]*?\n\}/);
 if (!m) { console.error('could not extract utf8ByteLength'); process.exit(1); }
 eval(m[0]);

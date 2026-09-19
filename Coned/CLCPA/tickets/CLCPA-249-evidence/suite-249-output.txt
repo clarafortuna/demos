@@ -183,7 +183,9 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function rowSumIsConsistent moved, and it is named by a later ticket: CLCPA-278: whose figure is this total (new)
   ok   X1 app.js function recomputeDerivableSums moved, and it is named by a later ticket: CLCPA-278: a consistent total follows the edit (new)
   ok   X1 app.js function reconcileSumColumns moved, and it is named by a later ticket: CLCPA-272: the reconciliation itself (new)
+  FAIL X1 app.js function renderTable moved, and it is named by a later ticket -- NO, it is unaccounted for
   ok   X1 app.js function renderSourceTables moved, and it is named by a later ticket: CLCPA-252, Section C group B
+  FAIL X1 app.js function dsValidateDoc moved, and it is named by a later ticket -- NO, it is unaccounted for
   ok   X1 app.js function dacCol moved, and it is named by a later ticket: NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback
   ok   X1 app.js function dacDerivedTablesForYear moved, and it is named by a later ticket: CLCPA-250: one year of display tables (new)
   ok   X1 app.js function recomputeYearDerived moved, and it is named by a later ticket: CLCPA-250: the composer KPI pass, re-runnable (new)
@@ -216,11 +218,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function refreshIngestCalcCells moved, and it is named by a later ticket: CLCPA-271: calc cells keep their column format on repaint
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (58) belongs to a later ticket
+  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (60) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly THREE were added: centre, text-column left, and the first column scoped so it cannot catch a sub-header: 14
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  191 passed, 0 failed
+  190 passed, 3 failed

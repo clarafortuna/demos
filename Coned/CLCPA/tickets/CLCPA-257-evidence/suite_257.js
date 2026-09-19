@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* GROUP C of the Section C fix package: CLCPA-257.
  *
  * dacCol resolved a column index against the FIRST key of schema_by_year,
@@ -28,7 +41,7 @@ const { execSync } = require('child_process');
 /* CLCPA-252 round 3: the shared caption-difference judgement */
 const kit = require('../_kit/caption_diff.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 /* PINNED ON BOTH SIDES (CLAUDE.md: "Pin both sides"). The post-change side
  * reads 2361a6a instead of the working tree --

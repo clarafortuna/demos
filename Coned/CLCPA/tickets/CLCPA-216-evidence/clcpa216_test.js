@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-216 acceptance suite: C2's split-shape migration.
  *
  * EXPECTATIONS ARE INDEPENDENT OF THIS CODE. The 21 cells and their target values
@@ -18,7 +31,7 @@ const fs = require('fs');
 const { execSync } = require('child_process');
 const X = require('./app_extract.js');
 
-const REPO = 'c:/Users/emely/Desktop/Projects/demos/';
+const REPO = _dacRepo() + '/';
 const CLIENT = 'Coned/CLCPA/ExecutiveDashboard/payload.json';
 const DEV = 'Coned/CLCPA/ExecutiveDashboard_dev/payload.json';
 const BASE_REF = process.env.CLCPA216_BASE || 'be0a4d9';

@@ -1,3 +1,16 @@
+const _dacRepo = () => {
+  const p = require('path'), f = require('fs');
+  if (process.env.DAC_REPO) return p.resolve(process.env.DAC_REPO);
+  let d = __dirname;
+  for (let i = 0; i < 16; i++) {
+    if (f.existsSync(p.join(d, '.clcpa-root'))) {
+      const two = p.resolve(d, '..', '..');
+      return f.existsSync(p.join(two, '.git')) ? two : d;
+    }
+    const u = p.dirname(d); if (u === d) break; d = u;
+  }
+  throw new Error('CLCPA project root not found above ' + __dirname + '; set DAC_REPO');
+};
 /* CLCPA-238 STEP 4, part 3 of 3: the schema addendum, the membership gate, and
  * THE SEED WRITE.
  *
@@ -50,7 +63,7 @@ const CLIENT_ID = '51f81489-12ee-4a9e-aaae-a2591f45987d';
 const TENANT = 'organizations';
 const SOLUTION = 'CLCPADACDashboard';
 const LANG = 1033;
-const REPO = 'c:/Users/emely/Desktop/Projects/demos';
+const REPO = _dacRepo() + '';
 const EVID = REPO + '/Coned/CLCPA/tickets/CLCPA-238-evidence';
 const TABLEDATA = 'cr2bf_dacingesttesttabledata1';
 
