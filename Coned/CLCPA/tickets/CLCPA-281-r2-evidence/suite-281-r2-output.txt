@@ -1,0 +1,61 @@
+======================================================================
+CLCPA-281 round 2 -- an all-empty row is data, not anatomy
+  app.js : C:\Users\emely\AppData\Local\Temp\clcpa-281-r2-app.js
+  BASE   : c98ccb1 (predates this change)
+======================================================================
+
+A. WHAT COUNTS AS A STORED HEADER ROW
+  ok   A0 the predicate is reachable
+  ok   A1 the real sub-header still qualifies -- [null,null,"Non- Excludable","Excludable","Non- Excl
+  ok   A2 an ALL-EMPTY row does NOT: it names no column
+  ok   A3 nor one whose headings are blank or whitespace
+  ok   A4 nor a data row, which has a label
+  ok   A5 ONE heading is enough -- a partial sub-header is still a sub-header
+  ok   A6 on BASE the same empty row WAS accepted as a header
+
+B. THE DEFECT, ON THE BUILD THAT SHIPPED IT
+  ok   B1 BASE still draws two header rows
+  ok   B2 but the second is BLANK -- the new row displaced it: ["","","","","","","",""]
+  ok   B3 and NO editable row is rendered: the click produced nothing visible
+
+C. EACH ADD ROW APPENDS EXACTLY ONE VISIBLE ROW
+  ok   C1 at zero rows both header levels are drawn, borrowed from the table
+  ok   C2 and no editable rows
+  ok   C3.1 after 1 added row(s) the sub-labels are still there
+  ok   C4.1 and exactly 1 editable row(s) render -- got 1
+  ok   C3.2 after 2 added row(s) the sub-labels are still there
+  ok   C4.2 and exactly 2 editable row(s) render -- got 2
+  ok   C3.3 after 3 added row(s) the sub-labels are still there
+  ok   C4.3 and exactly 3 editable row(s) render -- got 3
+
+D. THE PHANTOM ROW ALREADY IN F6/2099
+  ok   D1 the sub-header is the table's, not the empty row
+  ok   D2 both stored rows render as editable data rows
+  ok   D3 the empty row is a harmless visible EMPTY DATA ROW
+  ok   D4 carrying a delete control, so the owner can remove it -- 224 residue
+  ok   D5 and Test Row follows it -- ["Test Row",""]
+
+E. NOTHING ELSE MOVED
+  ok   E1.F6 a seed year still draws two header rows
+  ok   E2.F6 with the same body count -- 24
+  ok   E1.A9 a seed year still draws two header rows
+  ok   E2.A9 with the same body count -- 5
+  ok   E1.A10 a seed year still draws two header rows
+  ok   E2.A10 with the same body count -- 5
+  ok   E3.H1 a one-level table still draws one
+  ok   E3.B2 a one-level table still draws one
+  ok   E3.D1 a one-level table still draws one
+
+F. THE TWO READERS AGREE
+  ok   F1 the predicate requires a heading, not just a blank label
+  ok   F2 the editor asks what the TABLE declares
+  ok   F3 then asks whether THIS DRAFT carries them, which is the other question
+  ok   F4 and no longer measures the draft by its LENGTH
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha
+  ok   X2 the browser driver exists and the gesture evidence comes from it
+
+======================================================================
+  38 passed, 0 failed
+======================================================================

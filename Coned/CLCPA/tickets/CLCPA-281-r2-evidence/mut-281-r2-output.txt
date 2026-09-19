@@ -1,0 +1,16 @@
+======================================================================
+CLCPA-281-r2 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the predicate accepts any blank-label row
+       12 red, incl: A2 an ALL-EMPTY row does NOT: it names no column
+  red  THE BODY COUNT measures the draft by its LENGTH again
+       8 red, incl: C4.1 and exactly 1 editable row(s) render -- got 0
+  red  THE PREDICATE demands a heading in EVERY value position, not one
+       10 red, incl: A5 ONE heading is enough -- a partial sub-header is still a sub-header
+  red  THE PREDICATE stops requiring a blank label, so data rows become headers
+       1 red, incl: A4 nor a data row, which has a label
+  red  THE EMPTY ROW loses its delete control, so the residue cannot be removed
+       1 red, incl: D4 carrying a delete control, so the owner can remove it -- 224 residue
+
+  5 caught, 0 not caught, of 5 applied
+  clean re-run against byte-restored source: PASSES -- 38 passed, 0 failed

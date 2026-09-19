@@ -17610,10 +17610,25 @@ function wireHTooltips() {
    * sub-header row has a BLANK label (F6 null, A9 and A10 ""), because a
    * column-heading row names no row. Every data row carries a label, which is
    * what the importer keys on. */
+  /* ROUND 4: AN ALL-EMPTY ROW IS BODY DATA, NEVER HEADER STRUCTURE.
+   *
+   * Rounds 2 and 3 tested only the blank LABEL column, which every stored
+   * sub-header has -- and so does a row the operator has just added and not
+   * yet typed into. So the first Add Row was consumed as anatomy: the grid's
+   * second header row went blank, the click produced no visible row, and a
+   * phantom empty row was persisted into F6/2099, where every later consumer
+   * of that year's anatomy read it as the sub-header.
+   *
+   * A heading row names COLUMNS. It has no row label, and it must carry at
+   * least one heading in the value positions, or it is naming nothing. That
+   * second half is what was missing, and it is the whole fix: it distinguishes
+   * a real sub-header from an empty row without knowing anything about which
+   * table it belongs to. */
   function ingestRowIsStoredHeader(row) {
     if (!Array.isArray(row)) return false;
     const label = row[0];
-    return label == null || String(label).trim() === '';
+    if (!(label == null || String(label).trim() === '')) return false;
+    return row.slice(1).some(v => v != null && String(v).trim() !== '');
   }
 
   function ingestYearCarriesHeaderRows(rows, headerCount) {
@@ -22681,7 +22696,21 @@ function wireHTooltips() {
      * RENDER ONLY. The sub-header stays exactly where it is in the store,
      * because that is where the report reads it. Nothing about Dataverse
      * changes. */
-    const headerRowCount = ingestHeaderRowCount(table, i.draft.length);
+    /* ROUND 4: HOW MANY LEADING ROWS OF **THIS DRAFT** ARE HEADER, which is
+     * not the same question as how many the table declares.
+     *
+     * This read the declared count against the draft's LENGTH, so a draft of
+     * one empty row -- the operator's first Add Row on a fresh year -- counted
+     * that row as header and the body skipped it. The click appended a row and
+     * nothing appeared; a second click was needed before anything was visible,
+     * and the first row rode along as a phantom.
+     *
+     * The header renderer a few lines above already asks the right question,
+     * through ingestYearCarriesHeaderRows. Asking it in one place and not the
+     * other is what let the two disagree about the same draft. */
+    const declaredHeaderRows = ingestHeaderRowCount(table, Infinity);
+    const headerRowCount = ingestYearCarriesHeaderRows(i.draft, declaredHeaderRows)
+      ? declaredHeaderRows : 0;
 
     /* CLCPA-233 item B: columns the editor must NOT offer for typing.
      *
