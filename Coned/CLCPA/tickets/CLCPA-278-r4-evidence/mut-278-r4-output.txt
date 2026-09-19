@@ -1,0 +1,14 @@
+======================================================================
+CLCPA-278-r4 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the return value is discarded again
+       3 red, incl: B2.user-added and so does the cell -- 1,098
+  red  THE REPAINT recomputes instead of showing what was computed
+       3 red, incl: B2.user-added and so does the cell -- 0
+  red  THE REPAINT reaches the edited cell and fights it
+       1 red, incl: C5 and it does not fight the edited cell for its own value
+  red  THE REPAINT ignores the formatter, so the cell disagrees with its column
+       1 red, incl: C4 through the same formatter the cell uses at rest
+
+  4 caught, 0 not caught, of 4 applied
+  clean re-run against byte-restored source: PASSES -- 32 passed, 0 failed

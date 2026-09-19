@@ -1,0 +1,53 @@
+======================================================================
+CLCPA-278 round 4 -- the row cell shows what was computed
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 4e1491b (predates this change)
+======================================================================
+
+A. THE DEFECT, ON THE BUILD THAT SHIPPED IT
+  ok   A1.user-added Manhattan starts at 1,098
+  ok   A2.user-added the DRAFT is recomputed to 599 -- the engine half landed
+  ok   A3.user-added but the CELL still shows 1,098 -- 1,098
+  ok   A1.seed Manhattan starts at 1,098
+  ok   A2.seed the DRAFT is recomputed to 599 -- the engine half landed
+  ok   A3.seed but the CELL still shows 1,098 -- 1,098
+
+B. THE CELL FOLLOWS THE RECOMPUTE
+  ok   B1.user-added the draft says 599
+  ok   B2.user-added and so does the cell -- 599
+  ok   B3.user-added the edited cell keeps what was typed
+  ok   B1.seed the draft says 599
+  ok   B2.seed and so does the cell -- 599
+  ok   B3.seed the edited cell keeps what was typed
+
+C. SHOWN, NOT RECOMPUTED
+  ok   C1 the blur handler KEEPS what the recompute returned
+  ok   C2 and repaints exactly those columns
+  ok   C3 calling the engine ONCE: the repaint recomputes nothing
+  ok   C4 through the same formatter the cell uses at rest
+  ok   C5 and it does not fight the edited cell for its own value
+
+D. WHAT MUST NOT REGRESS
+  ok   D1.user-added Bronx keeps its filed 10,008 -- ["Bronx",200,10000,10008]
+  ok   D2.user-added and the cell still shows it, unrepainted
+  ok   D3.user-added while the advisory names it
+  ok   D1.seed Bronx keeps its filed 10,008 -- ["Bronx",200,10000,10008]
+  ok   D2.seed and the cell still shows it, unrepainted
+  ok   D3.seed while the advisory names it
+  ok   D4 "45%" lands as 0.45, the CLCPA-244 convention -- ["Queens",999,0.45,999.45]
+  ok   D5 and the advisory says so
+
+E. ONLY WHAT THE RECOMPUTE WROTE
+  ok   E1 editing the total keeps what was typed
+  ok   E2 and its components are untouched on screen
+  ok   E3 (the edit really happened)
+  ok   E4 and no stored year moved
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha
+  ok   X2 every assertion above reads what the CELL displays
+  ok   X3 and the gesture evidence comes from the browser driver
+
+======================================================================
+  32 passed, 0 failed
+======================================================================

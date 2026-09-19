@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-274 round 3 -- the sub-header is the table's, not the year's
-  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  app.js : git show 771e008:Coned/CLCPA/ExecutiveDashboard_dev/app.js
   BASE   : acbd12c (predates this change)
 ======================================================================
 
