@@ -23,14 +23,14 @@ Section C group A -- mutation controls
        1 red, incl: D2 a rejected plan sets it
   red  262 an unreadable file stops being recorded as a failure
        1 red, incl: D2b and so does a file that could not be read at all
-  red  THE STORED-YEAR GATE: a report cell changes on every table
-       4 red, incl: Z2 every one is byte-identical: MOVED A1:2025, A2:2025, A3:2023, A3:2024, A3:2025, A4:2023, A4:2024
-  red  HARNESS: the stored-year sweep stops rendering anything
-       2 red, incl: Z1b and every one of the 149 produced a <table>: 0
+  ???  THE STORED-YEAR GATE: a report cell changes on every table  -- 2 red, not the expected one
+       want: Z2 every one is byte-identical
+       got : the change to renderTable is accounted for
+  ???  HARNESS: the stored-year sweep stops rendering anything  -- ANCHOR 0, NOT APPLIED
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X3 BASE is a literal commit sha: HEAD
+       28 red, incl: X3 BASE is a literal commit sha: HEAD
   red  HARNESS: the counter slice is re-implemented instead of cut out
        8 red, incl: S1 at BASE C1 reported 30 changes for 10 typed values, exactly as the audit photographed: 15
 
-  15 caught, 0 not caught, of 15 guards
-  clean re-run against byte-restored source: PASSES -- 80 passed, 0 failed
+  13 caught, 2 not caught, of 15 guards
+  clean re-run against byte-restored source: PASSES -- 100 passed, 0 failed

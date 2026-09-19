@@ -141,6 +141,25 @@ async function open(opts) {
       if (has) { await B.click('[data-cfm="confirm"]'); await sleep(250); }
       return D;
     },
+    /** Save Changes, through the confirmation it really raises.
+     *
+     * The save modal confirms on #ingest-modal-confirm, NOT on the
+     * [data-cfm="confirm"] the discard prompt uses. A script that answers the
+     * wrong one reports "saved" over a dialog still sitting open, and the
+     * store never moves -- which is exactly how a save leg reads as a defect
+     * that was never driven. Returns whether a dialog was answered. */
+    clickSave: async () => {
+      await B.click('#ingest-save');
+      await sleep(600);
+      const has = await B.eval('!!document.querySelector("#ingest-modal-confirm")');
+      if (has) { await B.click('#ingest-modal-confirm'); await sleep(900); }
+      return has;
+    },
+    /** what localStorage actually holds for a table-year, after a save */
+    storedRows: (tableId, year) => B.eval(
+      '(function(){try{var o=JSON.parse(localStorage.getItem("dac:overrides")||"{}");' +
+      'return o[' + JSON.stringify(tableId) + '+":"+' + JSON.stringify(year) + '] || null;}' +
+      'catch(e){return null;}})()'),
     /** type digit by digit into a cell and leave it, exactly as a person does */
     typeCell: async (r, c, text) => {
       const sel = '#ingest-editor-mount input[data-row="' + r + '"][data-col="' + c + '"]';

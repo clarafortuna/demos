@@ -1,14 +1,13 @@
 ======================================================================
 CLCPA-252 round 2 -- mutation controls
 ======================================================================
-  red  THE GATE: the derivation runs even when a title is stored
-       2 red, incl: S2 every one is byte-identical to BASE: A1:2023  "Table A1. 2023Incentive Dollars Spent (Total and 
+  ???  THE GATE: the derivation runs even when a title is stored  -- ANCHOR 0, NOT APPLIED
   red  A STOPS REFUSING a donor that names TWO years
        6 red, incl: N5 a donor naming two years does not take strategy A: "A"
   red  A stops refusing a donor whose year recurs as a SUBSTRING
-       2 red, incl: N8 a donor whose year also appears as a substring is refused by A: "Table Z6. 2098 Cohort 2098A"
+       2 red, incl: N8 a donor whose year also appears as a substring is refused by A: "Table Z6. 2025 Cohort 2025A"
   red  B OVERREACHES onto a donor that already names a year
-       11 red, incl: D1 strategy A (substitute the year token): 0, measured 13
+       6 red, incl: D1 strategy A (substitute the year token): 0, measured 13
   red  B stops recognising Chart
        3 red, incl: N9 a Chart donor with no year takes strategy B: null
   red  THE TAIL TRAVELS into a derived caption
@@ -17,12 +16,11 @@ CLCPA-252 round 2 -- mutation controls
        9 red, incl: E1 the donor is 2025: 2023
   red  a BLANK title counts as a donor
        1 red, incl: E4 a blank title is not a donor: null
-  red  the derivation is switched off entirely
-       6 red, incl: D6 C1 renders the commissioned string: "Table C1. DR Programs"
+  ???  the derivation is switched off entirely  -- ANCHOR 0, NOT APPLIED
   red  HARNESS: the baseline is repointed at a symbolic ref
-       14 red, incl: X9 BASE is a literal commit sha: HEAD
+       34 red, incl: X9 BASE is a literal commit sha: HEAD
   red  HARNESS: the stored-panel sweep stops driving BASE
        1 red, incl: S5 the only panel that moves is A8:2023, the one stored year with data and no title: []
 
-  11 caught, 0 not caught, of 11 guards
-  clean re-run against byte-restored source: PASSES -- 86 passed, 0 failed
+  9 caught, 2 not caught, of 11 guards
+  clean re-run against byte-restored source: PASSES -- 88 passed, 0 failed

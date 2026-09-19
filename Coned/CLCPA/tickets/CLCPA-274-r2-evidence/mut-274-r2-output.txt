@@ -1,18 +1,13 @@
 ======================================================================
 CLCPA-274 round 2 -- mutation controls
 ======================================================================
-  red  THE DEFECT RETURNS: the writer stops knowing about header rows
-       6 red, incl: C1 F6 row 2 is now the stored sub-header, cell for cell -- ["","","","","","",""]
+  ???  THE DEFECT RETURNS: the writer stops knowing about header rows  -- ANCHOR 0, NOT APPLIED
   red  THE PREDICATE becomes "has a header_levels key", which claims D1
-       1 red, incl: F6 and the predicate is "a number, at least 2" -- never "has the key"
-  red  THE HEADER ROW is emitted but blanked, as before
-       3 red, incl: C1 F6 row 2 is now the stored sub-header, cell for cell -- ["","","","","","",""]
-  red  THE MARKER reaches the header row again
-       7 red, incl: C1 F6 row 2 is now the stored sub-header, cell for cell -- ["(calculated)","(calculated)","(calculated)","(
-  red  THE EDITOR goes back to its own inline copy
-       3 red, incl: F2 declared once and called from BOTH readers -- 2 occurrences
-  red  THE FIX LEAKS onto a one-level table
-       6 red, incl: E1.H1 identical to BASE (6 rows)
+       4 red, incl: F6 and the predicate is "a number, at least 2" -- never "has the key"
+  ???  THE HEADER ROW is emitted but blanked, as before  -- ANCHOR 0, NOT APPLIED
+  ???  THE MARKER reaches the header row again  -- ANCHOR 0, NOT APPLIED
+  ???  THE EDITOR goes back to its own inline copy  -- ANCHOR 0, NOT APPLIED
+  ???  THE FIX LEAKS onto a one-level table  -- ANCHOR 0, NOT APPLIED
 
-  6 caught, 0 not caught, of 6 applied
-  clean re-run against byte-restored source: PASSES -- 33 passed, 0 failed
+  1 caught, 5 not caught, of 1 applied
+  clean re-run against byte-restored source: FAILS -- 30 passed, 3 failed

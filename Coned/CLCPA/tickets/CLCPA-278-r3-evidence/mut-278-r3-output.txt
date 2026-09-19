@@ -3,8 +3,7 @@ CLCPA-278-r3 -- mutation controls
 ======================================================================
   red  THE DEFECT RETURNS: rowSumIsConsistent reads its parts strictly again
        6 red, incl: C1.seed the total now follows the edit -- ["Manhattan",99,500,1098]
-  red  THE ADVISORY stops sharing the reader, so the two disagree again
-       1 red, incl: E4.reconcileSumColumns and carries no private copy of the test
+  ???  THE ADVISORY stops sharing the reader, so the two disagree again  -- ANCHOR 2, NOT APPLIED
   red  THE ENGINE stops sharing it, so what it WRITES and what it JUDGES differ
        2 red, incl: E3.columnGrandTotals consumes it
   red  THE READER starts accepting a PERCENT, against CLCPA-244
@@ -14,5 +13,5 @@ CLCPA-278-r3 -- mutation controls
   red  THE READER accepts any string parseFloat likes
        6 red, incl: F2 refuses a SPLIT cell is published text (CLCPA-216): "37,988 (33%)"
 
-  6 caught, 0 not caught, of 6 applied
+  5 caught, 1 not caught, of 5 applied
   clean re-run against byte-restored source: PASSES -- 62 passed, 0 failed

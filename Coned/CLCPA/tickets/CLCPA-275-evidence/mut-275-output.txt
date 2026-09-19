@@ -22,7 +22,7 @@ CLCPA-275 -- mutation controls
   red  HARNESS: the claim is grepped instead of resolved
        5 red, incl: A1 on BASE the last box had NO bottom gap -- got "16px"
   red  HARNESS: the baseline is repointed at a symbolic ref
-       5 red, incl: X1 BASE is a literal sha -- none
+       6 red, incl: X1 BASE is a literal sha -- none
 
   11 caught, 0 not caught, of 11 applied
   clean re-run against byte-restored source: PASSES -- 22 passed, 0 failed

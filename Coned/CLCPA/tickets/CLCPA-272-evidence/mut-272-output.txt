@@ -13,16 +13,13 @@ CLCPA-272 -- mutation controls
        3 red, incl: C2 and "Borough / County" (column 1, text) is NOT one of its parts
   red  TRAP 2 RETURNS: the numeric mask is not consulted at all
        4 red, incl: C2 and "Borough / County" (column 1, text) is NOT one of its parts
-  red  A TEXT TOTAL ("n/a") is treated as a disagreement
-       1 red, incl: C11 a row whose total cell holds text is not flagged -- it is unfilled, not wrong. Found 1
+  ???  A TEXT TOTAL ("n/a") is treated as a disagreement  -- ANCHOR 0, NOT APPLIED
   red  A PERCENTAGE COLUMN is counted as an addend
        3 red, incl: B2 NOT ONE stored row is flagged -- 524 flagged: A1:2023 x21, A1:2024 x25, A1:2025 x19, A2:2023 x23, A2:202
   red  A SINGLE PART is treated as a sum (a copy, not an addition)
        3 red, incl: B2 NOT ONE stored row is flagged -- 355 flagged: A1:2023 x21, A1:2024 x25, A1:2025 x19, A2:2023 x23, A2:202
-  red  THE TOLERANCE is dropped, so rounding becomes a defect
-       1 red, incl: F6 the tolerance is the totals engine's own, so the two cannot contradict each other about the same numbers
-  red  A PARTIAL ROW is reconciled, so unfinished typing is flagged
-       1 red, incl: B2 NOT ONE stored row is flagged -- 1 flagged: F6:2023 x1
+  GREEN THE TOLERANCE is dropped, so rounding becomes a defect  -- NOT NOTICED. Not a guard.
+  ???  A PARTIAL ROW is reconciled, so unfinished typing is flagged  -- ANCHOR 2, NOT APPLIED
   red  THE TABLE IS HARDCODED to H1
        6 red, incl: D1 SEVEN tables carry a preparer-entered derivable column -- found 1
   red  THE WRONG ACCENT: the advisory turns red like a rejection
@@ -36,5 +33,5 @@ CLCPA-272 -- mutation controls
   red  HARNESS: the reconcile is re-implemented instead of sliced
        1 red, incl: X3 the function under test is the one sliced from app.js
 
-  17 caught, 0 not caught, of 17 applied
+  14 caught, 3 not caught, of 15 applied
   clean re-run against byte-restored source: PASSES -- 48 passed, 0 failed

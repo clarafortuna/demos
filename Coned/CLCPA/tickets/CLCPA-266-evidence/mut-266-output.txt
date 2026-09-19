@@ -1,28 +1,17 @@
 ======================================================================
 CLCPA-266 -- mutation controls
 ======================================================================
-  red  THE DEFECT RETURNS: .ingest-import-notice loses its box again
-       7 red, incl: B1 padding is the same on all four shapes: "14px 16px"
-  red  THE AMBER ACCENT is dropped, so the fraction notice looks like the info box
-       3 red, incl: B4 the fraction notice is AMBER
-  red  THE RED ACCENT is dropped from the identity notice
-       3 red, incl: B5 the identity notice is RED
-  red  THE TWO ADVISORIES SHARE ONE ACCENT, so the amber says nothing
-       3 red, incl: B7 the three post-load accents are three DIFFERENT colours
-  red  AN ACCENT IS A LITERAL COLOUR instead of a token
-       3 red, incl: B8 warn uses a token, not a literal colour: #B8860B
-  red  A VARIANT DECLARES MORE THAN THE ACCENT, becoming a second component
-       2 red, incl: B1 padding is the same on all four shapes: "14px 16px"
-  red  THE TYPOGRAPHY does not follow the box into a notice
-       2 red, incl: T1 h4 font-size matches in both: "12.5px"
-  red  THE BOXES TOUCH: the stacking margin is removed
-       2 red, incl: S6 every box carries margin-top: null
-  red  THE LAST CHILD keeps a trailing gap inside its box
-       2 red, incl: S8 and the last element inside a box has no trailing margin: null
-  red  THE MODAL TWIN diverges: the staged warning goes back to amber text
-       1 red, incl: M1 the staged warning resolves the SAME red accent as its twin: var(--amber)
-  red  THE MODAL LAYOUT is changed alongside the warning
-       2 red, incl: M7 and .ingest-staged itself is byte-identical: no row added, no layout moved
+  GREEN THE DEFECT RETURNS: .ingest-import-notice loses its box again  -- NOT NOTICED. Not a guard.
+  GREEN THE AMBER ACCENT is dropped, so the fraction notice looks like the info box  -- NOT NOTICED. Not a guard.
+  GREEN THE RED ACCENT is dropped from the identity notice  -- NOT NOTICED. Not a guard.
+  GREEN THE TWO ADVISORIES SHARE ONE ACCENT, so the amber says nothing  -- NOT NOTICED. Not a guard.
+  GREEN AN ACCENT IS A LITERAL COLOUR instead of a token  -- NOT NOTICED. Not a guard.
+  GREEN A VARIANT DECLARES MORE THAN THE ACCENT, becoming a second component  -- NOT NOTICED. Not a guard.
+  GREEN THE TYPOGRAPHY does not follow the box into a notice  -- NOT NOTICED. Not a guard.
+  GREEN THE BOXES TOUCH: the stacking margin is removed  -- NOT NOTICED. Not a guard.
+  GREEN THE LAST CHILD keeps a trailing gap inside its box  -- NOT NOTICED. Not a guard.
+  GREEN THE MODAL TWIN diverges: the staged warning goes back to amber text  -- NOT NOTICED. Not a guard.
+  GREEN THE MODAL LAYOUT is changed alongside the warning  -- NOT NOTICED. Not a guard.
   red  STYLE ONLY BREAKS: a notice is reworded
        3 red, incl: L1 with the two class attributes undone, app.js is BYTE-IDENTICAL to BASE
   red  STYLE ONLY BREAKS: the two notices are reordered
@@ -34,9 +23,9 @@ CLCPA-266 -- mutation controls
   red  A CLEAN IMPORT starts rendering empty notice boxes
        2 red, incl: L7 a clean import still renders exactly ONE box
   red  HARNESS: the baseline is repointed at a symbolic ref
-       8 red, incl: X5 BASE is a literal commit sha: HEAD
+       9 red, incl: X5 BASE is a literal commit sha: HEAD
   red  HARNESS: the style claims stop resolving and just grep the text
        9 red, incl: B3 info keeps the blue it always had
 
-  18 caught, 0 not caught, of 18 guards
+  7 caught, 11 not caught, of 18 guards
   clean re-run against byte-restored source: PASSES -- 66 passed, 0 failed

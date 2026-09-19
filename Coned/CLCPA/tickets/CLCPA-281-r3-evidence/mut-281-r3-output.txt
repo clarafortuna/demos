@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-281 r3 -- mutation controls
+  suite  : suite_281_r3.js
+  mutant : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-281-r3-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 35 passed, 0 failed
+
+--- mutation 1: the helper stops asking the year (round 2 regressed onto all three surfaces)
+  suite: 31 passed, 4 failed
+  failed ids: A3, A5, A9p, C3
+  expected to break: A3  ->  NOTICED on A3
+
+--- mutation 2: the section table no longer borrows the sub-header
+  suite: 34 passed, 1 failed
+  failed ids: B1
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 3: the has-data check goes back to one unconditional count
+  suite: 34 passed, 1 failed
+  failed ids: B2
+  expected to break: B2  ->  NOTICED on B2
+
+--- mutation 4: the width loop subtracts the declared count again
+  suite: 33 passed, 2 failed
+  failed ids: B3, C3
+  expected to break: B3, C3  ->  NOTICED on B3, C3
+
+--- mutation 5: an all-empty row counts as a stored header again (the round 2 defect)
+  suite: 34 passed, 1 failed
+  failed ids: A9p
+  expected to break: A9p  ->  NOTICED on A9p
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 35 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  5 of 5 mutations noticed, 0 missed
+======================================================================

@@ -2,31 +2,31 @@
 Section C group D -- mutation controls
 ======================================================================
   red  CONDITION 2 GOES: a blank-headed column that HOLDS data is hidden
-       3 red, incl: T3c condition 2: a blank-headed column holding "kept" is NOT hidden
+       7 red, incl: T3c condition 2: a blank-headed column holding "kept" is NOT hidden
   red  condition 2 asks only the year on screen, not its whole width
-       1 red, incl: T3e condition 2 spans the WIDTH, not the year: col1 is empty in 2096 but holds "live" in 2095, so i
+       5 red, incl: T3e condition 2 spans the WIDTH, not the year: col1 is empty in 2096 but holds "live" in 2095, so i
   red  CONDITION 3 GOES: the two-level families are filtered too
-       1 red, incl: T4c condition 3: the same shape marked two-level hides nothing
+       5 red, incl: T4c condition 3: the same shape marked two-level hides nothing
   red  the label column itself becomes eligible
-       1 red, incl: T3g the label column is never hidden, even when its header is blank and every cell is empty: [0]
+       5 red, incl: T3g the label column is never hidden, even when its header is blank and every cell is empty: [0]
   red  THE FIX SHIPS INERT: the predicate always returns nothing
-       11 red, incl: T1 C1:2025  6 stored -> 6 visible (ruled 3), hiding []
+       15 red, incl: T1 C1:2025  6 stored -> 6 visible (ruled 3), hiding []
   red  the EDITOR declares the filter and never applies it
-       1 red, incl: E9 and so do the body cells
+       5 red, incl: E9 and so do the body cells
   red  the TEMPLATE declares it and never applies it to the heading
-       2 red, incl: E3 the heading row is filtered
+       6 red, incl: E3 the heading row is filtered
   red  the widths keep the spacer columns, so the sheet is wrong
-       1 red, incl: E5 and so are the widths
+       5 red, incl: E5 and so are the widths
   red  MY FIRST CUT: blank in EVERY year rather than in THIS year
-       8 red, incl: T1 C1:2025  6 stored -> 5 visible (ruled 3), hiding [4]
+       12 red, incl: T1 C1:2025  6 stored -> 5 visible (ruled 3), hiding [4]
   red  THE HARNESS DEFECT, planted in the APP: filter BEFORE the map
-       1 red, incl: E4 the body maps over the FULL schema then filters, so c stays the REAL column index
+       5 red, incl: E4 the body maps over the FULL schema then filters, so c stays the REAL column index
   red  THE REPORT PAGE gets the filter too, which is out of scope
-       2 red, incl: the change to renderTable is accounted for
+       4 red, incl: the change to renderTable is accounted for
   red  HARNESS: the round trip compares a file with itself
-       4 red, incl: R0 the wide file has 8 headings and the narrow one 4: 8 vs 8
+       8 red, incl: R0 the wide file has 8 headings and the narrow one 4: 8 vs 8
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X3 BASE is a literal commit sha: HEAD
+       61 red, incl: X3 BASE is a literal commit sha: HEAD
 
   13 caught, 0 not caught, of 13 guards
-  clean re-run against byte-restored source: PASSES -- 74 passed, 0 failed
+  clean re-run against byte-restored source: FAILS -- 184 passed, 4 failed

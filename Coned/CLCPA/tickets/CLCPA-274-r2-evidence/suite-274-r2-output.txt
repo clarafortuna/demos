@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-274 round 2 -- the template carries its second header row
-  app.js : git show ec6d208:Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  app.js : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-274-r2-app.js
   BASE   : df6173f (predates this change)
 ======================================================================
 
@@ -41,9 +41,9 @@ E. EVERY OTHER ENUMERATED TEMPLATE IS BYTE-FOR-BYTE WHAT IT WAS
 
 F. THE RULE LIVES IN ONE PLACE
   ok   F1 the derivation is a named function
-  ok   F2 declared once and called from BOTH readers -- 3 occurrences
-  ok   F3 the editor reads it
-  ok   F4 and the template writer reads it
+  FAIL F2 declared once and called from BOTH readers -- 6 occurrences
+  FAIL F3 the editor reads it
+  FAIL F4 and the template writer reads it
   ok   F5 the editor no longer carries its own inline copy
   ok   F6 and the predicate is "a number, at least 2" -- never "has the key"
 
@@ -52,5 +52,5 @@ X. THE HARNESS ITSELF
   ok   X2 the xlsx reader keeps blank cells distinct -- {"A":"x","B":"","C":"","D":"y"}
 
 ======================================================================
-  33 passed, 0 failed
+  30 passed, 3 failed
 ======================================================================

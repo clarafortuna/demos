@@ -2,49 +2,49 @@
 CLCPA-245 -- mutation controls
 ======================================================================
   red  THE DEFECT: the general veto is removed entirely
-       10 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
+       20 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
   red  the veto loop never runs, because the else branch is dead
-       10 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
+       20 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
   red  the predicate always says yes, so nothing is vetoed
-       15 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
+       26 red, incl: M2 the shipped rule mis-flags NONE outside the family: 52 in A4,B1,B2,F2,G1,G10,G2,G3,G4,G5,G6,G7,G
   red  THE REJECTED RULE: back to the whole-label form
-       6 red, incl: G2 ZERO flags lost: G1:2025 r2 Systemwide Total | G2:2023 r2 County Total | G2:2024 r2 County Total
+       16 red, incl: G2 ZERO flags lost: G1:2025 r2 Systemwide Total | G2:2023 r2 County Total | G2:2024 r2 County Total
   red  THE ANCHOR DISSOLVES: a substring match
-       15 red, incl: C4 the SHIPPED predicate refuses it, because it anchors at the END
+       25 red, incl: C4 the SHIPPED predicate refuses it, because it anchors at the END
   red  the anchor moves to the START
-       19 red, incl: C4 the SHIPPED predicate refuses it, because it anchors at the END
+       29 red, incl: C4 the SHIPPED predicate refuses it, because it anchors at the END
   red  the word boundary goes, so "subtotals" inside a word matches
-       2 red, incl: C10 a label ending in the LETTERS but not the WORD is refused
+       12 red, incl: C10 a label ending in the LETTERS but not the WORD is refused
   red  THE LEAK: the family veto is replaced by this one
-       1 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
+       11 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
   red  the family branch is bypassed, so the family gets the general rule
-       1 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
+       11 red, incl: G2 ZERO flags lost: A5:2023 r49 Commercial Programs Total Installations | A6:2023 r30 Multifamily P
   red  THE NATIVE TITLE COMES BACK
-       5 red, incl: T1 the label cell emits NO native title any more
+       15 red, incl: T1 the label cell emits NO native title any more
   red  the tooltip text goes UNESCAPED onto the attribute
-       1 red, incl: T2 the full text rides on data-label-tip, ESCAPED
+       11 red, incl: T2 the full text rides on data-label-tip, ESCAPED
   red  the attribute is emitted even for a blank label
-       1 red, incl: T3 and it is absent for a blank label
+       11 red, incl: T3 and it is absent for a blank label
   red  A FIFTH POSITIONER: it places the box itself
-       1 red, incl: T8 it does NOT position the box itself: one clamp, not a fifth
+       11 red, incl: T8 it does NOT position the box itself: one clamp, not a fifth
   red  innerHTML instead of textContent, on operator text
-       1 red, incl: T9 textContent, never innerHTML: a label is operator-supplied text
+       11 red, incl: T9 textContent, never innerHTML: a label is operator-supplied text
   red  THE OWNERSHIP LESSON IS LOST: the label leaves OWNS_TIP
-       1 red, incl: T13 and the ingest label is IN it, so the control-tip handler does not
+       11 red, incl: T13 and the ingest label is IN it, so the control-tip handler does not
   red  THE LABEL BLANKET-HIDES: it calls the global hide
-       2 red, incl: T15 and the label hides the tip ONLY when the pointer leaves a label
+       12 red, incl: T15 and the label hides the tip ONLY when the pointer leaves a label
   red  the wiring stops being idempotent, so handlers stack
-       1 red, incl: T17 it is idempotent, like wireControlTips
+       11 red, incl: T17 it is idempotent, like wireControlTips
   red  the wiring is never called
-       1 red, incl: T19 and the page wiring calls it
+       11 red, incl: T19 and the page wiring calls it
   red  HARNESS: the gate stops comparing table-years
-       1 red, incl: G1 compared 0 stored table-years (expected 149)
+       11 red, incl: G1 compared 0 stored table-years (expected 149)
   red  HARNESS: the oracle borrows the shipped predicate
-       2 red, incl: O2 no flag outside the family lacks the anchored label: G1:2025 r2, G2:2023 r2, G2:2024 r2, G2:2025
+       12 red, incl: O2 no flag outside the family lacks the anchored label: G1:2025 r2, G2:2023 r2, G2:2024 r2, G2:2025
   red  HARNESS: the 21-row check stops finding any rows
-       1 red, incl: G4 found all 21 County/Systemwide Total rows: 0
+       11 red, incl: G4 found all 21 County/Systemwide Total rows: 0
   red  HARNESS: the baseline is repointed at a symbolic ref
-       6 red, incl: X9 BASE is a literal commit sha: HEAD
+       73 red, incl: X9 BASE is a literal commit sha: HEAD
 
   22 caught, 0 not caught, of 22 guards
-  clean re-run against byte-restored source: PASSES -- 87 passed, 0 failed
+  clean re-run against byte-restored source: FAILED

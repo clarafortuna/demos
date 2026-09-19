@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-301 -- mutation controls
+  suite  : suite_301.js
+  mutant : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-301-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 32 passed, 0 failed
+
+--- mutation 1: the import fill is never called (the defect exactly as it shipped)
+  suite: 31 passed, 1 failed
+  failed ids: C5
+  expected to break: C5  ->  NOTICED on C5
+
+--- mutation 2: a filed total is overwritten, trading away the CLCPA-278 guardian
+  suite: 28 passed, 4 failed
+  failed ids: B4, B5, C2, D3
+  expected to break: B4  ->  NOTICED on B4
+
+--- mutation 3: a partly numeric row is totalled anyway
+  suite: 31 passed, 1 failed
+  failed ids: D1
+  expected to break: D1  ->  NOTICED on D1
+
+--- mutation 4: a second reader replaces bareNumber on the components
+  suite: 30 passed, 2 failed
+  failed ids: C2, D2
+  expected to break: C2, D2  ->  NOTICED on C2, D2
+
+--- mutation 5: the fill runs AFTER recomputeTotals, over a draft already struck
+  suite: 31 passed, 1 failed
+  failed ids: C6
+  expected to break: C6  ->  NOTICED on C6
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 32 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  5 of 5 mutations noticed, 0 missed
+======================================================================

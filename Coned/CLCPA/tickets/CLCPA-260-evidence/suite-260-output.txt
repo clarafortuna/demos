@@ -72,14 +72,16 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, dsValidateDoc, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, stripCaptionYear, tableCaption, wire, wireIngestEditor
+       changed: applyCompositeShares, applyIngestImport, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, dsValidateDoc, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor
   ok   the change to applyCompositeShares is accounted for
+  ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to buildYearSelector is accounted for
   ok   the change to clearIngestNotices is accounted for
   ok   the change to columnGrandTotals is accounted for
+  ok   the change to compareColWidths is accounted for
   ok   the change to composePayloadFromRows is accounted for
   ok   the change to compositeValueText is accounted for
   ok   the change to dacDerivedTablesForYear is accounted for
@@ -89,6 +91,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to deriveTableCaptionInfo is accounted for
   ok   the change to detectSumColumns is accounted for
   FAIL the change to dsValidateDoc is accounted for
+  ok   the change to fillDerivableSumsOnImport is accounted for
   ok   the change to getTableSchema is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
@@ -120,6 +123,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to renderIngestImport is accounted for
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
+  ok   the change to renderSourceTables is accounted for
   FAIL the change to renderTable is accounted for
   ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rerenderIngestEditor is accounted for
@@ -127,10 +131,16 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to rowsForDisplay is accounted for
   ok   the change to shiftSchemaYears is accounted for
   ok   the change to stagedBlock is accounted for
+  ok   the change to storedHeaderRowsInYear is accounted for
   ok   the change to stripCaptionYear is accounted for
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   applyIngestImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
+  ok   fillDerivableSumsOnImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
+  ok   compareColWidths changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
+  ok   renderSourceTables changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (it holds resolveRows and the has-data check)
+  ok   storedHeaderRowsInYear changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)
   ok   ingestRowIsStoredHeader changed as intended: CLCPA-274 round 3: is this row a stored header, by its blank label (new)
   ok   ingestYearCarriesHeaderRows changed as intended: CLCPA-274 round 3: does THIS year carry them, or must it borrow (new)
   ok   ingestStoredHeaderRows changed as intended: CLCPA-274 round 3: the table's own header rows, from a year that has them (new)
@@ -187,9 +197,8 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
-  FAIL X1 exactly this many functions changed: 58
-  ok   X2 renderSourceTables is byte-identical to BASE
+  FAIL X1 exactly this many functions changed: 63
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  175 passed, 4 failed
+  184 passed, 4 failed

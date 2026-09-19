@@ -18,7 +18,7 @@ Section C group C -- mutation controls
   red  HARNESS: the gate stops probing any column
        1 red, incl: G3 0 of 1,192 table-year x probe combinations resolved identically (149 years x 8 probes)
   red  HARNESS: the baseline is repointed at a symbolic ref
-       18 red, incl: X3 BASE is a literal commit sha: HEAD
+       24 red, incl: X3 BASE is a literal commit sha: HEAD
 
   7 caught, 0 not caught, of 7 guards
   clean re-run against byte-restored source: PASSES -- 53 passed, 0 failed

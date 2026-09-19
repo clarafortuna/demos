@@ -4096,9 +4096,15 @@ function utf8ByteLength(str) {
    * total with it -- but only where that total was the engine's to begin
    * with. Mutates `rows` in place and returns the columns it rewrote.
    *
-   * EDITOR DRAFT PATH ONLY. Import is untouched: it computes when the column
-   * is blank, respects a provided value, and advises on a mismatch, all
-   * exactly as CLCPA-272 ruled.
+   * EDITOR DRAFT PATH ONLY. The import path has its own entry point below,
+   * fillDerivableSumsOnImport, over the same engine.
+   *
+   * This comment used to claim import already "computes when the column is
+   * blank, respects a provided value, and advises on a mismatch, exactly as
+   * CLCPA-272 ruled". Two of those three were true. The importer recognises a
+   * (calculated) marker and deliberately does NOT write that cell, recording
+   * it in notTouched.computed -- and nothing then filled it in, so a fully
+   * numeric imported row saved with no total at all. CLCPA-301.
    */
   function recomputeDerivableSums(rows, headerRow, tableId, rowIndex, beforeRow, editedCol) {
     const rels = detectSumColumns(headerRow, rows, tableId);
@@ -4119,6 +4125,54 @@ function utf8ByteLength(str) {
       done.push(rel.column);
     });
     return done;
+  }
+
+  /**
+   * CLCPA-301: fill a row's derivable total where the FILE filed none.
+   *
+   * The same engine as the editor path -- detectSumColumns for the
+   * relationships, bareNumber for "what number does this cell hold" -- so the
+   * two cannot drift. CLCPA-278 round 3 made bareNumber the one reader for
+   * exactly this reason, and a second spelling here would be a second source
+   * of truth.
+   *
+   * What differs is only WHICH rows qualify, and it has to. On the editor path
+   * the test is whether the total was the engine's to begin with, measured on
+   * the row BEFORE the edit. On import there is no before: the row arrives
+   * whole. The qualifying case is a total the file left BLANK, which is
+   * precisely what the importer produces from a (calculated) marker.
+   *
+   * A FILED TOTAL IS NEVER OVERWRITTEN, whether it agrees or not. That is the
+   * kept-figure guardian, and the reconciliation advisory already names a
+   * disagreement -- this must not trade one for the other.
+   *
+   * No row-label predicate, deliberately. The rule is derived from the cells:
+   * blank total, every component numeric. An unanchored /total/i match once
+   * blanked a real data row (CLCPA-200), and a label test here would invite
+   * the same class back in.
+   *
+   * Mutates `rows` in place and returns what it wrote, so a caller can say so.
+   */
+  function fillDerivableSumsOnImport(rows, headerRow, tableId) {
+    const written = [];
+    if (!Array.isArray(rows)) return written;
+    const rels = detectSumColumns(headerRow, rows, tableId);
+    if (!rels.length) return written;
+    rows.forEach((row, r) => {
+      if (!Array.isArray(row)) return;
+      rels.forEach((rel) => {
+        if (bareNumber(row[rel.column]) !== null) return;   /* filed: keep it */
+        let sum = 0, seen = 0;
+        rel.parts.forEach((c) => {
+          const n = bareNumber(row[c]);
+          if (n !== null) { sum += n; seen++; }
+        });
+        if (seen !== rel.parts.length) return;              /* not fully numeric */
+        row[rel.column] = sum;
+        written.push({ row: r, column: rel.column });
+      });
+    });
+    return written;
   }
 
   /**
@@ -4616,7 +4670,10 @@ function utf8ByteLength(str) {
    */
   function compareColWidths(table, opts) {
     if (!table || !table.data) return null;
-    const headerLevels = (opts && opts.headerLevels) || 1;
+    /* opts.headerLevels is deliberately NOT read: how many stored rows are
+     * header anatomy is a per-year question now, and storedHeaderRowsInYear
+     * asks the table itself. A second copy of the declared count sitting here
+     * would be a second answer waiting to disagree. */
     const tableId = opts && opts.tableId;
     /* EVERY year, so the answer cannot depend on which pair is displayed */
     const years = Object.keys(table.data).filter(y => (table.data[y] || []).length);
@@ -4625,8 +4682,11 @@ function utf8ByteLength(str) {
       (table.data[years[years.length - 1]] || [])[0];
     if (!header || !header.length) return null;
     const body = [];
+    /* CLCPA-281 round 3: asked PER YEAR through the shared helper. This runs
+     * over EVERY year, so a single unconditional subtraction dropped the first
+     * data row of each user-added one and sized the columns from a short body. */
     years.forEach(y => {
-      (table.data[y] || []).slice(Math.max(0, headerLevels - 1)).forEach(r => body.push(r));
+      (table.data[y] || []).slice(storedHeaderRowsInYear(table, y)).forEach(r => body.push(r));
     });
     const mask = columnNumericMask(header, body, tableId);
     const n = Math.max(header.length, ...body.map(r => (r || []).length));
@@ -4790,7 +4850,23 @@ function utf8ByteLength(str) {
       // CLCPA-88: derive %/ratio cells for display via the shared rule (clones raw;
       // never mutates payload/store). Deferred derived totals render "—".
       const body = rowsForDisplay(raw, hasSchema ? schema : undefined, t.id);
-      return hasSchema ? [schema, ...body] : body;
+      /* CLCPA-281 round 3: A YEAR THAT DOES NOT CARRY THE SUB-HEADER BORROWS IT.
+       *
+       * renderTable slices headerLevels rows off the top, so on a two-level
+       * table it consumes one of these rows as the second header line. For a
+       * seed year that row IS the sub-header. For a user-added year it is the
+       * first DATA row -- Bay Ridge's figures were rendered as column headings
+       * and its row vanished from the body.
+       *
+       * The sub-header belongs to the TABLE, not to a year, which is the same
+       * rule the editor and the template writer already follow. Borrowing it
+       * keeps both header levels drawn and hands renderTable the anatomy its
+       * slice assumes, so the slice stays correct rather than becoming a
+       * special case. */
+      const borrowed = storedHeaderRowsInYear(t, yr)
+        ? [] : ingestStoredHeaderRows(t, ingestHeaderRowCount(t, Infinity));
+      const withHeader = borrowed.length ? [...borrowed, ...body] : body;
+      return hasSchema ? [schema, ...withHeader] : withHeader;
     };
 
     const dataCurrent = resolveRows(year);
@@ -4804,10 +4880,13 @@ function utf8ByteLength(str) {
      * baseline present for a year that holds nothing but its own header. Not a
      * live case today -- every family year has body rows -- but the check is
      * about whether DATA exists, and a header is not data. */
-    const storedHeaderRows = Math.max(0, headerLevels - 1);
-    const bodyRowsCurrent = ((t.data || {})[year] || []).slice(storedHeaderRows);
+    /* CLCPA-281 round 3: PER YEAR, because a user-added year carries no stored
+     * header rows to skip. Subtracting the declared count from it dropped a
+     * real data row, so a year holding one row could report as holding none --
+     * which is what hasPrevData drives the prior panel and the chip on. */
+    const bodyRowsCurrent = ((t.data || {})[year] || []).slice(storedHeaderRowsInYear(t, year));
     const bodyRowsPrev = prevYear
-      ? ((t.data || {})[prevYear] || []).slice(storedHeaderRows) : [];
+      ? ((t.data || {})[prevYear] || []).slice(storedHeaderRowsInYear(t, prevYear)) : [];
     const hasPrevData = bodyRowsPrev.length > 0 && bodyRowsPrev.some(r => r && r.slice(1).some(v => v != null && v !== ''));
 
     // -- Body: either current-only or side-by-side
@@ -17575,6 +17654,13 @@ function wireHTooltips() {
     if (!res || !res.ok || !res.candidate) return false;
     const i = state.ingest;
     i.draft = res.candidate;
+    /* CLCPA-301: the cells the importer deliberately did not write. It leaves
+     * a (calculated) marker to the app and records it in notTouched.computed;
+     * until now nothing filled it, so a fully numeric row landed -- and saved
+     * -- with no total, while the grey column-totals row below it summed
+     * perfectly. Before recomputeTotals, so those column totals are struck
+     * over a draft that is already whole. */
+    res.derivedOnImport = fillDerivableSumsOnImport(i.draft, i.schema, i.tableId);
     recomputeTotals(i.draft, i.schema, i.tableId, i.baseline);
     recomputeDirty();
     return true;
@@ -17661,6 +17747,29 @@ function wireHTooltips() {
       if (!ingestRowIsStoredHeader(rows[i])) return false;
     }
     return true;
+  }
+
+  /* HOW MANY OF **THIS YEAR'S** STORED ROWS ARE HEADER ANATOMY?
+   *
+   * Two questions, and round 2 only taught the editor to ask the second one.
+   * What the TABLE declares is header_levels; whether a GIVEN YEAR carries
+   * those rows is the year's own question, because a user-added year is
+   * created by import and its first row is data.
+   *
+   * Three read-only surfaces asked only the first and subtracted the declared
+   * count unconditionally, so on a user-added year each of them ate a real
+   * data row:
+   *   - the section table itself, which promoted the row into the header band
+   *     AND then measured percent columns and numeric alignment off it;
+   *   - the comparison width vector, which sized columns from a short body;
+   *   - the has-data check behind the prior-year panel and the NO BASELINE
+   *     chip, which can report a year with one row as holding nothing.
+   *
+   * Asked here, once, so a fourth surface cannot answer it differently. */
+  function storedHeaderRowsInYear(table, year) {
+    const declared = ingestHeaderRowCount(table, Infinity);
+    const rows = (table && table.data && table.data[year]) || [];
+    return ingestYearCarriesHeaderRows(rows, declared) ? declared : 0;
   }
 
   /* The table's sub-header rows, from a year that actually carries them.

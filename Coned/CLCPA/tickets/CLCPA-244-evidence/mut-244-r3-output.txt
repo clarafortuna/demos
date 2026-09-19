@@ -37,8 +37,9 @@ CLCPA-244 round 3 -- mutation controls
        2 red, incl: R1 the shipped constants AND rowHeightFor were really read
   red  HARNESS: the sweep stops sweeping heights
        1 red, incl: S1 swept 72 width/height/count combinations
-  red  HARNESS: the baseline is repointed at a symbolic ref
-       8 red, incl: X7 BASE is a literal commit sha: HEAD
+  ???  HARNESS: the baseline is repointed at a symbolic ref  -- 1 red, not the expected one
+       want: X7 BASE is a literal commit sha
+       got : R2 and BASEs were too
 
-  19 caught, 0 not caught, of 19 guards
+  18 caught, 1 not caught, of 19 guards
   clean re-run against byte-restored source: PASSES -- 44 passed, 0 failed

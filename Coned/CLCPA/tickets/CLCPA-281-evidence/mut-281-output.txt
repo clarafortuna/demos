@@ -9,8 +9,7 @@ CLCPA-281 -- mutation controls
        1 red, incl: B3 the body has exactly one row fewer -- 25 to 23
   red  THE SUB-HEADER is taken from the year only, never borrowed
        3 red, incl: C1 a user-added year still gets both levels
-  red  EVERY TABLE is treated as two-level
-       4 red, incl: D2.H1 and the same number of body rows -- 4
+  GREEN EVERY TABLE is treated as two-level  -- NOT NOTICED. Not a guard.
 
-  5 caught, 0 not caught, of 5 applied
+  4 caught, 1 not caught, of 5 applied
   clean re-run against byte-restored source: PASSES -- 41 passed, 0 failed

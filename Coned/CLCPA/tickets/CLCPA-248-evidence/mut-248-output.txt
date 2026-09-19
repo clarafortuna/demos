@@ -8,11 +8,11 @@ CLCPA-248 -- mutation controls
   red  THE ROUND-1 DEFECT: the skeleton is measured per YEAR again
        1 red, incl: OS2 and from the TABLE, not from either years rows, so the skeleton cannot move with the pair
   red  THE ADVISORY COLGROUP: the compare table stays auto
-       1 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table.data-table-cmp" line 606
+       1 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table.data-table-cmp" line 617
   red  ROUND 3 UNDONE: the selector drops back to ONE class
-       3 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table" line 1516
+       3 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table" line 1529
   red  the shared rule takes !important, outranking specificity
-       3 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table" line 1516
+       3 red, incl: C1 a compare table RESOLVES to table-layout: fixed, from ".data-table" line 1529
   red  the compare class is never applied, so the CSS cannot bind
        1 red, incl: OS5 and the compare class is applied exactly when a colgroup is emitted
   red  THE LEAK: every table gets a colgroup, compare or not
@@ -70,7 +70,7 @@ CLCPA-248 -- mutation controls
   red  HARNESS: the single-panel sweep stops rendering anything
        1 red, incl: S1 rendered 0 single-panel table-years
   red  HARNESS: the baseline is repointed at a symbolic ref
-       9 red, incl: X4 BASE is a literal commit sha: HEAD
+       36 red, incl: X4 BASE is a literal commit sha: HEAD
 
   35 caught, 0 not caught, of 35 guards
-  clean re-run against byte-restored source: PASSES -- 133 passed, 0 failed
+  clean re-run against byte-restored source: PASSES -- 188 passed, 0 failed

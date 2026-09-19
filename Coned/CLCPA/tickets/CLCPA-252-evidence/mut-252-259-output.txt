@@ -2,15 +2,13 @@
 Section C group B -- mutation controls
 ======================================================================
   red  252 THE DEFECT: the bare caption comes back
-       9 red, incl: T2 bare captions on a fresh year: 52 of 52 -- A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,B1,B2,C1,C2,C3,C4,C5,D
-  red  252 the fallback OVERWRITES a stored title
-       2 red, incl: T5 and every one is returned unchanged: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024
+       2 red, incl: T2 bare captions on a fresh year: 1 of 52 -- D2
+  ???  252 the fallback OVERWRITES a stored title  -- ANCHOR 0, NOT APPLIED
   red  252 the report page keeps the old inline expression
-       4 red, incl: T6 the report page uses tableCaption
+       5 red, incl: T6 the report page uses tableCaption
   red  252 the EDITOR keeps the old inline expression
        2 red, incl: T7 and so does the Report Data editor
-  red  252 the caption loses the table id it names
-       8 red, incl: T3 C1 -> "DR Programs"
+  ???  252 the caption loses the table id it names  -- ANCHOR 0, NOT APPLIED
   red  259 THE DEFECT: the hard-coded map returns
        14 red, incl: C1 the hard-coded map is gone
   red  259 it reads the DESCRIPTION column instead of Category
@@ -21,12 +19,11 @@ Section C group B -- mutation controls
        1 red, incl: C8 a year with no C1 data yields an EMPTY map, not a fossil: {"CSRP":"Peak Shaving"}
   red  259 an empty Category cell is written as an empty caption
        1 red, incl: C11 and rows whose Category is empty or null are ABSENT, not present with an empty caption: ["Alpha
-  red  THE STORED-YEAR GATE: a SECOND table-year moves
-       2 red, incl: Z2 exactly ONE moved, and it is A8:2023: ["A8:2023","C1:2023","C1:2024","C1:2025"]
+  ???  THE STORED-YEAR GATE: a SECOND table-year moves  -- ANCHOR 0, NOT APPLIED
   red  HARNESS: the stored-year sweep stops rendering
        2 red, incl: Z1b and every one produced a <table>
   red  HARNESS: the baseline is repointed at a symbolic ref
-       1 red, incl: X3 BASE is a literal commit sha: HEAD
+       38 red, incl: X3 BASE is a literal commit sha: HEAD
 
-  13 caught, 0 not caught, of 13 guards
-  clean re-run against byte-restored source: PASSES -- 47 passed, 0 failed
+  10 caught, 3 not caught, of 13 guards
+  clean re-run against byte-restored source: PASSES -- 99 passed, 0 failed

@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-278 round 2 -- the pre-edit row, captured before the first write
-  app.js : git show d548acc:Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  app.js : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-278-r2-app.js
   BASE   : 590703c (predates this change)
 ======================================================================
 
@@ -42,7 +42,7 @@ E. THE SHARED PATH THIS TOUCHES
   ok   E9 the focus handler is byte-identical to BASE
 
 F. THE RULE ITSELF DID NOT MOVE
-  ok   F1 rowSumIsConsistent is byte-identical to BASE
+  FAIL F1 rowSumIsConsistent is byte-identical to BASE
   ok   F2 and recomputeDerivableSums: only WHEN it is asked changed, never what it does
   ok   F3 and the relationship it reads
 
@@ -52,5 +52,5 @@ X. THE HARNESS ITSELF
   ok   X3 and input really is first
 
 ======================================================================
-  33 passed, 0 failed
+  32 passed, 1 failed
 ======================================================================
