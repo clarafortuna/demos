@@ -413,6 +413,10 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    /* CLCPA-281 round 3, named so the count stays exact */
+    compareColWidths: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear',
+    renderSourceTables: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (it holds resolveRows and the has-data check)',
+    storedHeaderRowsInYear: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)',
 
     /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
 
@@ -517,7 +521,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 56, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 59, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a
@@ -526,7 +530,7 @@ guard('X: the blast radius', () => {
   /* ingestComputed LEFT this list under CLCPA-274, which gave the template
    * writer its own accessor. It is named in the map above instead, so the
    * change stays accounted for, just not as 'untouched'. */
-  ['renderSourceTables', 'dacCol'].forEach(n => {
+  ['dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
 });

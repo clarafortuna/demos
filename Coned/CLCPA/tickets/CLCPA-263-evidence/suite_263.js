@@ -426,6 +426,10 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    /* CLCPA-281 round 3, named so the count stays exact */
+    compareColWidths: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear',
+    renderSourceTables: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (it holds resolveRows and the has-data check)',
+    storedHeaderRowsInYear: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)',
 
     /* CLCPA-269 r2, 270, 274, 275, 276, 277, 278 -- the review follow-up package of 2026-09-17. */
 
@@ -529,7 +533,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 50, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 53, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['applyDerivedCols', 'recomputeTotals', 'totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {
