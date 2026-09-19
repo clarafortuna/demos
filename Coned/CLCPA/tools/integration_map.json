@@ -1,0 +1,109 @@
+{
+  "schema": "clcpa-integration-map/1",
+  "generatedAt": "2026-09-19",
+  "legacyLine": {
+    "repo": "clarafortuna/demos",
+    "path": "Coned/CLCPA/ExecutiveDashboard_dev",
+    "mainAtGeneration": "c98ccb1"
+  },
+  "engineerBaseline": {
+    "commit": "75e8eec8647a2e09c5e0a497d8baa5a34140dd7e",
+    "branch": "origin/clcpa-278-r4-row-cell-render",
+    "subject": "CLCPA-278 round 4: the row cell shows what was computed",
+    "rationale": "Tip of the only live stack: 3 ahead of origin/main, 0 behind. Every other branch ahead of main is also 159-702 commits behind and is abandoned divergence. Branching here rather than off main puts her three unmerged r4 commits INSIDE the candidate by construction."
+  },
+  "integrationBranch": {
+    "name": "clcpa-integration-candidate",
+    "head": "2136788d2bb666863add6413de43306f2a43cf2b",
+    "headShort": "2136788",
+    "pushed": false
+  },
+  "buildIds": {
+    "liveNow": "fcc9fa30bd",
+    "engineerBaseline": "abb8d99439",
+    "integrationCandidate": "318977b6d8",
+    "stylesCss": "2b9651445c (unchanged)"
+  },
+  "inherited": [
+    {
+      "engineerCommit": "13dad3b",
+      "subject": "CLCPA-281 round 2: an all-empty row is data, never header structure",
+      "integrationChange": "inherited - branch created AT this history, not re-applied",
+      "validation": "full gate 66/72 green on the candidate"
+    },
+    {
+      "engineerCommit": "4e1491b",
+      "subject": "CLCPA-274 round 4: the template sub-header survives a phantom empty row",
+      "integrationChange": "inherited",
+      "validation": "full gate 66/72 green"
+    },
+    {
+      "engineerCommit": "75e8eec",
+      "subject": "CLCPA-278 round 4: the row cell shows what was computed",
+      "integrationChange": "inherited",
+      "validation": "full gate 66/72 green; security set 125/125"
+    }
+  ],
+  "integrationChanges": [
+    {
+      "short": "ecffca4",
+      "subject": "security: escape payload-derived values and encode OData filter literals"
+    },
+    {
+      "short": "4ac9725",
+      "subject": "security: permanent regression suites for the XSS and OData controls"
+    },
+    {
+      "short": "2f71cc7",
+      "subject": "tools: delta reconciliation and a one-command security run"
+    },
+    {
+      "short": "684959d",
+      "subject": "portability: the test estate runs off one machine"
+    },
+    {
+      "short": "2136788",
+      "subject": "docs: architecture, security, development, deployment, migration, handoff"
+    }
+  ],
+  "validation": {
+    "securitySet": {
+      "suites": 7,
+      "assertions": 125,
+      "mutants": 9,
+      "result": "green"
+    },
+    "fullGate": {
+      "discovered": 72,
+      "green": 66,
+      "red": 6,
+      "errored": 0,
+      "assertions": 5858,
+      "note": "all 6 red are provenance/change-accounting"
+    },
+    "renderEquivalence": {
+      "tableYears": 149,
+      "htmlDiffer": 24,
+      "visibleTextDiffer": 0
+    },
+    "liveData": {
+      "records": 207,
+      "cells": 8873,
+      "stringCells": 2992,
+      "preEncodedEntities": 0,
+      "htmlTags": 0,
+      "parseFailures": 0,
+      "evidenceHash": "07a6b823c2298f75",
+      "gets": 9,
+      "writes": 0
+    }
+  },
+  "outstandingProvenance": [
+    "suite_245",
+    "suite_249",
+    "suite_254_255_261",
+    "suite_260",
+    "suite_263",
+    "gate_149_stacked"
+  ]
+}
