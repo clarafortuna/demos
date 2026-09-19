@@ -1,0 +1,22 @@
+======================================================================
+CLCPA-290 PRE-FIX -- the A3/A4 Total row on a live-calculated year
+======================================================================
+
+--- A3 / 2098, EDITOR --------------------------------
+  schema      : ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  TOTAL row   : ["Total","—","2,034,907","—","—",""]
+  calc spans  : []
+--- A3 / 2098, SECTION PAGE --------------------------
+  TOTAL row   : ["Total","","","",""]
+
+--- A4 / 2098, EDITOR --------------------------------
+  schema      : ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  TOTAL row   : ["Total","—","942,490","—","—",""]
+  calc spans  : []
+--- A4 / 2098, SECTION PAGE --------------------------
+  TOTAL row   : ["Total","","","",""]
+
+--- A3 / 2025 (seed year), SECTION PAGE, must not move -----
+  TOTAL row   : ["Total","","2,034,938","$3.8M","22,511"]
+
+  page errors : none

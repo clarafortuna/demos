@@ -1,0 +1,2 @@
+  A3/2025 CURRENT                Total row: ["Total",null,2034938,3761330,22511]
+  A3/2025 WITH wmean REGISTERED  Total row: ["Total",null,2034938,621.5620434097942,1.9352398990209236]
