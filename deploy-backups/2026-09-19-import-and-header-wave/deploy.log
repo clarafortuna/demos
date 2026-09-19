@@ -1,0 +1,65 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org:     https://org9076e69b.crm.dynamics.com
+slice:   the section page header, the import totals, the remove-year contract, the button and the two-level CSV -- CLCPA-281, CLCPA-301, CLCPA-283, CLCPA-282, BLACK-BUTTON
+files:   app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  self-check: helpers present, 5 declared tickets, 5 commits, 3 resources,
+              11 app symbols across 4 tickets + 2 stylesheet symbols across 1.
+              PROSE AUDIT: no undeclared build id, commit or ticket anywhere in this file.
+PRE-FLIGHT 1  branch = main, HEAD = 8d4a6d4
+              source folder clean, so the pushed bytes are exactly 8d4a6d4.
+              ancestor: 0fd068b  the read-only surfaces ask the same header question
+              ancestor: c0735ba  the import path computes the row Grand Total
+              ancestor: 18bd1e7  one contract for removing a year
+              ancestor: 9fd23de  Add Row keeps its background on hover and active
+              ancestor: 8d4a6d4  a two-level table round-trips, and the Section A triage
+              local main == remote main == 8d4a6d4.
+              HEAD is the merge commit the ids were derived from.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      c0f8f1a9e6
+                 styles.css  9039bfc509
+              both match what DEPLOY declares for this wave.
+              ok  CLCPA-281
+              ok  CLCPA-301
+              ok  CLCPA-283
+              ok  CLCPA-282
+PRE-FLIGHT 3b all 5 ticket groups verified in the COMMITTED BLOB (11 symbols), 0 NUL bytes.
+              ok  BLACK-BUTTON  (stylesheet)
+              and the STYLESHEET half: 2 symbols across 1 ticket group(s) verified in the committed styles.css.
+PRE-FLIGHT 3c all 71 suites green, 6016 assertions.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both present, no stale third stamp.
+              Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  ANS7AM4YC
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1268716B  local=1280648B
+WILL PUSH  styles.css   deployed=285220B  local=286866B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PROVENANCE of the archive, read from the ORG:
+  app.js APP_BUILD stamp        : abb8d99439
+  app.js canonicalised + hashed : abb8d99439
+  expected previous app.js      : abb8d99439
+  styles.css LIVE (to replace)  : 2b9651445c   expected 2b9651445c
+  -> all agree. The archive holds abb8d99439 + 2b9651445c.
+
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
