@@ -2167,24 +2167,41 @@ function utf8ByteLength(str) {
   }
 
   /** CLCPA-155: true if any table holds non-empty data for `year`. */
-  function yearHasData(year) {
-    const p = state.payload;
-    if (!p || !p.tables) return false;
-    const y = String(year);
-    return Object.values(p.tables).some(t => {
-      const rows = (t.data || {})[y];
-      return rows && !isEmptyYearData(rows);
-    });
-  }
-
   /**
-   * CLCPA-155: a year is protected from removal if it is a seed year (shipped in
-   * payload.meta.years) OR holds data. Only genuinely empty, user-added years are
-   * removable. Drives both the Remove-year button visibility and the removeYear guard.
+   * A year is protected from removal if, and only if, it is a SEED YEAR --
+   * one the published report shipped with. Drives both the Remove-year button
+   * visibility and the removeYear guard, which is the point: one question,
+   * one answer, asked by both.
+   *
+   * CLCPA-155 also protected any year HOLDING DATA, and CLCPA-283 is what that
+   * cost. The two readers took the same question at two different moments:
+   *
+   *   add a year   -> empty, so the Remove control is offered
+   *   save once    -> the year now holds data
+   *   click Remove -> the control is still on screen, because its visibility
+   *                   was decided at render and nothing re-decided it. The
+   *                   dialog promises "This will also delete any saved data
+   *                   for <year>. This cannot be undone."
+   *   confirm      -> the guard re-asks, NOW says protected, and refuses with
+   *                   a red toast
+   *
+   * So the dashboard promised a delete and then refused it, and no user-added
+   * year that had ever been saved could be removed at all. Measured in Chrome
+   * on a served build, and it is the shape the owner hit on 2096.
+   *
+   * The contract is now the one the dialog already states: a year the operator
+   * added is theirs to remove, data and all, behind that warning. A seed year
+   * is never removable and is never offered. Protection no longer depends on
+   * anything that can change between render and click, so the two readers
+   * cannot drift apart again.
+   *
+   * yearHasData went with it: isYearProtected was its only caller, and a
+   * dead predicate about "does this year hold data" sitting next to a
+   * removal guard is a second answer waiting to be picked up again.
    */
   function isYearProtected(year) {
     const y = String(year);
-    return (state.seedYears || []).map(String).includes(y) || yearHasData(y);
+    return (state.seedYears || []).map(String).includes(y);
   }
 
   // ============================================================
@@ -23430,7 +23447,12 @@ function wireHTooltips() {
                * there is nothing to decide, so it becomes a toast rather than
                * a modal with one button. Storage.toast, not showToast, for the
                * scope reason recorded at the template site. */
-              Storage.toast(yr + ' has data (or is a seed year) and cannot be removed.', 'error');
+              /* CLCPA-283: a seed year is the ONLY thing this can now be, and
+               * the control is not offered for one -- so this is a genuine
+               * last line of defence rather than a refusal the operator is
+               * routinely walked into. It no longer says "has data", because
+               * holding data is no longer a reason to refuse. */
+              Storage.toast(yr + ' is a seed year and cannot be removed.', 'error');
               return;
             }
 
@@ -24813,9 +24835,10 @@ function wireHTooltips() {
           state.payload = fromDv;
           /* SEED YEARS MINUS THE ADDED-YEAR TABLE, and the subtraction matters.
            *
-           * seedYears means "years the published report came with", and it is
-           * half of what protects a year from removal (isYearProtected: a seed
-           * year OR a year holding data). payload.meta.years carried exactly
+           * seedYears means "years the published report came with", and since
+           * CLCPA-283 it is the WHOLE of what protects a year from removal --
+           * which makes this subtraction load-bearing rather than merely
+           * tidy. payload.meta.years carried exactly
            * the published years, but the COMPOSED years are derived from the
            * rows, so they include years an operator added -- 2099 among them.
            *
@@ -24824,9 +24847,11 @@ function wireHTooltips() {
            * cr2bf_dacingesttestreportingyear is the record of what was added,
            * so subtracting it restores the original meaning precisely.
            *
-           * Note what this does NOT fix: 2099 is protected TODAY regardless,
-           * because yearHasData('2099') is true while A1:2099 exists. That is
-           * pre-existing and reported to Emely, not introduced here. */
+           * The note that used to sit here said 2099 was protected anyway,
+           * because it held data, and called that pre-existing and reported.
+           * CLCPA-283 is that report closed: holding data no longer protects
+           * anything, so subtracting the added-year table is now the only
+           * thing standing between an operator-added year and permanence. */
           const addedYears = ((Storage.getAddedYears && Storage.getAddedYears()) || [])
             .map(String);
           state.seedYears = ((fromDv.meta && fromDv.meta.years) || [])
