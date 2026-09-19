@@ -1,0 +1,42 @@
+======================================================================
+CLCPA-274 round 4 -- the sub-header survives a phantom empty row
+  app.js : C:\Users\emely\AppData\Local\Temp\clcpa-274-r4-app.js
+  BASE   : c98ccb1 (predates this change)
+======================================================================
+
+A. THE DEFECT, ON THE BUILD THAT SHIPPED IT
+  ok   A1 row 2 is BLANK on BASE -- ["","","","","","",""]
+  ok   A2 and the data row follows it at row 3 -- ["Test Row","","","","","","(calculated)"]
+
+B. THE SUB-LABELS ARE THERE
+  ok   B1 row 2 is the four sub-labels -- ["","","Non- Excludable","Excludable","Non- Excludable","Excludable",""]
+  ok   B2 with the group spans above them in row 1
+  ok   B3 the phantom empty row renders as an empty DATA row
+  ok   B4 and Test Row follows it -- "Test Row"
+  ok   B5 four rows in total: two header, two data -- 4
+
+C. THE TEMPLATE IS STILL A BLANK FORMAT (ruled: decided with CLCPA-292)
+  ok   C1 Test Row carries NO stored values, as every template does
+  ok   C2 while its derivable column still carries the marker
+  ok   C3.H1 label emitted, values blank -- stored ["Manhattan",1309,491,1800] -> ["Manhattan","","","(calculated)"]
+  ok   C3.B2 label emitted, values blank -- stored ["DAC",2966,170,2,3138] -> ["DAC","","","","(calculated)"]
+  ok   C3.F5 label emitted, values blank -- stored ["Bay Ridge","Brooklyn",23,0,23] -> ["Bay Ridge","","","","(calculated)"]
+  ok   C4 and the code still says so, in the comment that decided it
+
+D. EVERY CONSUMER OF THAT YEAR'S ANATOMY
+  ok   D1 editor grid: the sub-header is the table's
+  ok   D2 editor grid: both stored rows are body rows
+  ok   D3 template writer: same answer
+  ok   D4 because the ONE predicate they both consume refuses an empty row
+  ok   D5 so that year does not "carry" a header row it never had
+
+E. NOTHING ELSE MOVED
+  ok   E1 every SEED-year template is byte-identical to BASE -- all 10
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha
+  ok   X2 the deferred template-as-export decision is recorded, not lost
+
+======================================================================
+  21 passed, 0 failed
+======================================================================
