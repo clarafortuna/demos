@@ -4081,9 +4081,15 @@ function utf8ByteLength(str) {
    * total with it -- but only where that total was the engine's to begin
    * with. Mutates `rows` in place and returns the columns it rewrote.
    *
-   * EDITOR DRAFT PATH ONLY. Import is untouched: it computes when the column
-   * is blank, respects a provided value, and advises on a mismatch, all
-   * exactly as CLCPA-272 ruled.
+   * EDITOR DRAFT PATH ONLY. The import path has its own entry point below,
+   * fillDerivableSumsOnImport, over the same engine.
+   *
+   * This comment used to claim import already "computes when the column is
+   * blank, respects a provided value, and advises on a mismatch, exactly as
+   * CLCPA-272 ruled". Two of those three were true. The importer recognises a
+   * (calculated) marker and deliberately does NOT write that cell, recording
+   * it in notTouched.computed -- and nothing then filled it in, so a fully
+   * numeric imported row saved with no total at all. CLCPA-301.
    */
   function recomputeDerivableSums(rows, headerRow, tableId, rowIndex, beforeRow, editedCol) {
     const rels = detectSumColumns(headerRow, rows, tableId);
@@ -4104,6 +4110,54 @@ function utf8ByteLength(str) {
       done.push(rel.column);
     });
     return done;
+  }
+
+  /**
+   * CLCPA-301: fill a row's derivable total where the FILE filed none.
+   *
+   * The same engine as the editor path -- detectSumColumns for the
+   * relationships, bareNumber for "what number does this cell hold" -- so the
+   * two cannot drift. CLCPA-278 round 3 made bareNumber the one reader for
+   * exactly this reason, and a second spelling here would be a second source
+   * of truth.
+   *
+   * What differs is only WHICH rows qualify, and it has to. On the editor path
+   * the test is whether the total was the engine's to begin with, measured on
+   * the row BEFORE the edit. On import there is no before: the row arrives
+   * whole. The qualifying case is a total the file left BLANK, which is
+   * precisely what the importer produces from a (calculated) marker.
+   *
+   * A FILED TOTAL IS NEVER OVERWRITTEN, whether it agrees or not. That is the
+   * kept-figure guardian, and the reconciliation advisory already names a
+   * disagreement -- this must not trade one for the other.
+   *
+   * No row-label predicate, deliberately. The rule is derived from the cells:
+   * blank total, every component numeric. An unanchored /total/i match once
+   * blanked a real data row (CLCPA-200), and a label test here would invite
+   * the same class back in.
+   *
+   * Mutates `rows` in place and returns what it wrote, so a caller can say so.
+   */
+  function fillDerivableSumsOnImport(rows, headerRow, tableId) {
+    const written = [];
+    if (!Array.isArray(rows)) return written;
+    const rels = detectSumColumns(headerRow, rows, tableId);
+    if (!rels.length) return written;
+    rows.forEach((row, r) => {
+      if (!Array.isArray(row)) return;
+      rels.forEach((rel) => {
+        if (bareNumber(row[rel.column]) !== null) return;   /* filed: keep it */
+        let sum = 0, seen = 0;
+        rel.parts.forEach((c) => {
+          const n = bareNumber(row[c]);
+          if (n !== null) { sum += n; seen++; }
+        });
+        if (seen !== rel.parts.length) return;              /* not fully numeric */
+        row[rel.column] = sum;
+        written.push({ row: r, column: rel.column });
+      });
+    });
+    return written;
   }
 
   /**
@@ -17576,6 +17630,13 @@ function wireHTooltips() {
     if (!res || !res.ok || !res.candidate) return false;
     const i = state.ingest;
     i.draft = res.candidate;
+    /* CLCPA-301: the cells the importer deliberately did not write. It leaves
+     * a (calculated) marker to the app and records it in notTouched.computed;
+     * until now nothing filled it, so a fully numeric row landed -- and saved
+     * -- with no total, while the grey column-totals row below it summed
+     * perfectly. Before recomputeTotals, so those column totals are struck
+     * over a draft that is already whole. */
+    res.derivedOnImport = fillDerivableSumsOnImport(i.draft, i.schema, i.tableId);
     recomputeTotals(i.draft, i.schema, i.tableId, i.baseline);
     recomputeDirty();
     return true;

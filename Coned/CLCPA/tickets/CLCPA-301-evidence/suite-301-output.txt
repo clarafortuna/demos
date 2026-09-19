@@ -1,0 +1,54 @@
+======================================================================
+CLCPA-301 -- the import path computes the row Grand Total
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 3614466 (predates this change)
+======================================================================
+
+A. THE DEFECT, ON BASE
+  ok   A1 BASE has no import-side fill at all
+  ok   A2 and applyIngestImport never filled anything
+  ok   A3 it called recomputeTotals -- the COLUMN totals, which is why the grey row summed while every row total was blank
+  ok   A4 the importer already left a (calculated) cell to the app, on purpose
+
+B. WHAT THE IMPORT NOW COMPUTES
+       NEW assembled and exercised, 9 real functions: fillDerivableSumsOnImport, detectSumColumns, detectPctColumns, detectAvgColumns, columnNumericMask, detectCurrencyColumns, DERIVED_COLS, isNumeric, bareNumber
+  ok   B1 Manhattan 100 + 200 = 300  -- got 300
+  ok   B2 Queens 300 + 400 = 700  -- got 700
+  ok   B3 Bronx 50 + 25 = 75  -- got 75
+  ok   B4 Westchester KEEPS its filed 999 though its parts make 30 -- got 999
+  ok   B5 exactly three cells were written -- 3
+  ok   B6 all of them in the total column
+  ok   B7 and no component cell moved
+
+C. THE SAME ENGINE AS THE EDITOR PATH
+  ok   C1 the relationships come from detectSumColumns, as on the editor path
+  ok   C2 and every cell is read through bareNumber -- the one reader
+  ok   C3 with no second spelling of "what number does this cell hold"
+  ok   C4 and NO row-label predicate: the rule is derived from the cells (CLCPA-200)
+  ok   C5 applyIngestImport -- the single apply funnel -- calls it
+  ok   C6 BEFORE recomputeTotals, so the column totals are struck over a whole draft
+
+D. WHAT MUST NOT HAPPEN
+  ok   D0 (the complete row still computes, so the engine ran)
+  ok   D1 a row missing a component gets NO total -- ["Queens",300,null,null]
+  ok   D2 numeric strings sum, the bareNumber semantics -- ["Manhattan","100","200",300]
+  ok   D3 a filed total that agrees is left as filed, not rewritten
+  ok   D4 an empty-string total counts as blank -- ["Manhattan",100,200,300]
+
+E. CLCPA-278 DOES NOT REGRESS
+  ok   E1 recomputeDerivableSums is BYTE-IDENTICAL to BASE
+  ok   E2 and so is the kept-figure guardian it consults
+  ok   E3 and so is bareNumber, which both paths read through
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the assembled function is CALLED, not merely built
+  ok   X3 gesture evidence committed: gesture_301.js
+  ok   X3 gesture evidence committed: gesture_301_save.js
+  ok   X3 gesture evidence committed: repro_301_prefix_2097.png
+  ok   X3 gesture evidence committed: repro_301_postfix_2097.png
+  ok   X4 and the save leg is driven, not assumed
+
+======================================================================
+  32 passed, 0 failed
+======================================================================
