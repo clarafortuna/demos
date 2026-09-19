@@ -1,0 +1,14 @@
+======================================================================
+CLCPA-274-r4 -- mutation controls
+======================================================================
+  red  THE DEFECT RETURNS: the predicate accepts any blank-label row
+       9 red, incl: B1 row 2 is the four sub-labels -- ["","","","","","",""]
+  red  THE TEMPLATE starts emitting stored values -- the deferred decision, taken
+       5 red, incl: C1 Test Row carries NO stored values, as every template does
+  red  THE PHANTOM ROW is dropped instead of shown as data
+       3 red, incl: B3 the phantom empty row renders as an empty DATA row
+  red  THE HEADER ROWS stop being borrowed, so a year without them loses its labels
+       7 red, incl: B1 row 2 is the four sub-labels -- ["","","","","","","(calculated)"]
+
+  4 caught, 0 not caught, of 4 applied
+  clean re-run against byte-restored source: PASSES -- 21 passed, 0 failed
