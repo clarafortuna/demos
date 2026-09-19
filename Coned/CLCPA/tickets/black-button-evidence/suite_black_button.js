@@ -147,7 +147,13 @@ guard('D-block', () => {
     'D3 BEFORE: and a near-black active fill');
   ok(!/rgb\(10, 36, 54\)/.test(post) && !/rgba\(10, 36, 54/.test(post),
     'D4 AFTER: no near-black fill anywhere in the sweep');
-  const addRow = /Add Row \(reported\)[\s\S]*?\n\n/.exec(pre);
+  /* \r?\n\r?\n, NOT \n\n. The suite writes these outputs with LF, git stores
+   * them as LF, and the working tree gets CRLF back on checkout -- so this
+   * matched while the file was freshly written and returned NULL the moment
+   * the branch was merged and checked out again, taking the deploy's suite
+   * gate red on evidence that was perfectly correct. The repo's oldest
+   * line-ending trap, in an assertion rather than a baseline. */
+  const addRow = /Add Row \(reported\)[\s\S]*?\r?\n\r?\n/.exec(pre);
   ok(addRow && /focus\s+bg rgba\(0, 0, 0, 0\)/.test(addRow[0]),
     'D5 and FOCUS was clean before the fix -- the report named the wrong state');
 });
