@@ -662,6 +662,9 @@ guard('X: app.js is byte-identical to BASE', () => {
   };
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   const LATER = {
+    /* CLCPA-301, named so the count stays exact */
+    applyIngestImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank',
+    fillDerivableSumsOnImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)',
     /* CLCPA-281 round 3, named so the count stays exact */
     compareColWidths: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear',
     storedHeaderRowsInYear: 'NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)',
