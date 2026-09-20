@@ -18,10 +18,10 @@ B. WHAT THE ENGINE PRODUCES, AND WHAT IS SHOWN
 
 C. THE FORMATTER SCALES BY THE COLUMN, NOT THE VALUE
   ok   C1 a declared-percentage set is derived from DERIVED_COLS
-  ok   C1b and A1 column 3 really is in the declared set -- {"3":true}
+  ok   C1b and A1 column 3 really is in the declared set, at one decimal -- {"3":{"decimals":1}}
   ok   C1c while a table declaring no percentage has an empty set
   ok   C2 the editor calc cell always scales: its input IS the engine ratio
-  ok   C3 and the rendered table scales a DECLARED percentage column always
+  ok   C3 and the rendered table scales a DECLARED percentage column always, at its declared precision
   ok   C4 while an undeclared percent column keeps the previous rule
   ok   C5 the derived formatter contains no size guess at all
 
@@ -33,7 +33,7 @@ D. THE STORED YEARS, MEASURED
 E. THE SURFACES THIS MUST NOT DISTURB
   ok   E1 the KPI formatter is untouched: it takes an explicit kind, not a column
   ok   E2 rowsForDisplay matches BASE apart from the CLCPA-290 total-row block: this ticket changes no derivation
-  ok   E3 and so is recomputeTotals
+  ok   E3 and so is recomputeTotals, apart from CLCPA-241 passing the baseline
 
 X. THE HARNESS ITSELF
   ok   X1 BASE is a literal sha that predates the change

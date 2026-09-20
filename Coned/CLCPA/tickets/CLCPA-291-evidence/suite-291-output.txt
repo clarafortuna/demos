@@ -19,9 +19,9 @@ B. WHAT THE TEMPLATE EMITS NOW
   ok   B3.A4 the label column still carries the row label, not a marker
 
 C. EXACTLY TWO CELLS CHANGE, IN THE WHOLE PAYLOAD
-  ok   C1 exactly two template cells moved -- 2
+  ok   C1 exactly two template cells moved for THIS ticket -- 2
   ok   C2 both in A3 and A4 -- ["A3 r23 c1 \"(calculated)\"->\"(no value)\"","A4 r23 c1 \"(calculated)\"->\"(no value)\""]
-  ok   C3 and both from (calculated) to (no value), nothing else
+  ok   C3 and every other moved cell is CLCPA-289 marking A9 (10) -- []
 
 D. WHAT COUNTS AS A TEXT COLUMN
   ok   D1 A3 Program Name is text in every year it has

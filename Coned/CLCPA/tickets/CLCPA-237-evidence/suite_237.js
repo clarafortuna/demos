@@ -116,9 +116,22 @@ const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare'
      assertions. */
   'HIERARCHICAL_TABLES', 'INGEST_NOVALUE_MARKER'];
 
+/* CLCPA-241: functions that exist only in the CHANGED source.
+ *
+ * applyDerivedCols now consults the kept-figure conditional, so the slice needs
+ * it, and this suite assembles the BASELINE too, where it does not exist. A
+ * required entry would make the baseline report EXTRACTION FAILED instead of a
+ * missing closure, which is exactly how one blanket patch broke two other
+ * suites before this was written. Grabbed when present, skipped when not. */
+const OPT_FNS = ['derivedCellWrite', 'derivedFiledReproduced', 'storedDecimals'];
+function tryGrab(n, src) {
+  try { return grab(n, src); } catch (e) { return ''; }
+}
+
 function composerFrom(src) {
   const body = DECLS.map(n => grabDecl(n, src)).join('\n') + '\n' +
-    FNS.map(n => grab(n, src)).join('\n') +
+    FNS.map(n => grab(n, src)).join('\n') + '\n' +
+    OPT_FNS.map(n => tryGrab(n, src)).filter(Boolean).join('\n') +
     '\nreturn composePayloadFromRows;';
   return new Function(body)();
 }

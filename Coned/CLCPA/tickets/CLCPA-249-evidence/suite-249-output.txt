@@ -174,14 +174,19 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function isComputedShareLabel moved, and it is named by a later ticket: CLCPA-270: a percentage OF A TOTAL (new)
   ok   X1 app.js function ingestRowRole moved, and it is named by a later ticket: CLCPA-270: the row role, from its label (new)
   ok   X1 app.js function ingestRoleOpen moved, and it is named by a later ticket: CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)
+  ok   X1 app.js function derivedCellWrite moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
+  ok   X1 app.js function derivedFiledReproduced moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
+  ok   X1 app.js function unreconciledDerivedCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
   ok   X1 app.js function derivedPctCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function fmtDerivedCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function columnGrandTotals moved, and it is named by a later ticket: CLCPA-278 round 3: and the engine's own summing, which is how recomputeTotals adds
+  ok   X1 app.js function applyDerivedCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten
   ok   X1 app.js function rowsForDisplay moved, and it is named by a later ticket: CLCPA-263: it derives the value (pct) composites on its clone
   ok   X1 app.js function isCompositeShareCol moved, and it is named by a later ticket: CLCPA-263: the declaration predicate (new)
   ok   X1 app.js function bareNumber moved, and it is named by a later ticket: CLCPA-263: the bare-number test (new)
   ok   X1 app.js function compositeValueText moved, and it is named by a later ticket: CLCPA-263: the value formatting (new)
   ok   X1 app.js function applyCompositeShares moved, and it is named by a later ticket: CLCPA-263: the derivation (new)
+  ok   X1 app.js function stripDerivedForPersist moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (the strip refuses a kept cell)
   ok   X1 app.js function detectSumColumns moved, and it is named by a later ticket: CLCPA-272: the schema-derived sum relationship (new)
   ok   X1 app.js function rowSumIsConsistent moved, and it is named by a later ticket: CLCPA-278: whose figure is this total (new)
   ok   X1 app.js function recomputeDerivableSums moved, and it is named by a later ticket: CLCPA-278: a consistent total follows the edit (new)
@@ -223,6 +228,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function renderTypedUnitNotice moved, and it is named by a later ticket: CLCPA-273: the typed advisory, in the amber box (new)
   ok   X1 app.js function renderIngestImportResult moved, and it is named by a later ticket: CLCPA-261, Section C group E: the summary announces them
   ok   X1 app.js function renderReconcileNotice moved, and it is named by a later ticket: CLCPA-272: the reconciliation advisory box (new)
+  ok   X1 app.js function renderKeptFigureNotice moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)
   ok   X1 app.js function renderIngestEditor moved, and it is named by a later ticket: CLCPA-252, Section C group B; and CLCPA-255, group E
   ok   X1 app.js function wireIngestPage moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
   ok   X1 app.js function openAddYearDialog moved, and it is named by a later ticket: CLCPA-262, Section C group A
@@ -236,11 +242,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (78) belongs to a later ticket
+  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (84) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  209 passed, 2 failed
+  215 passed, 2 failed

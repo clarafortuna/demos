@@ -48,14 +48,36 @@ const REPO = process.env.DAC_REPO || findRepoRoot(__dirname);
 if (!REPO) { console.error('ABORT: repo root not found; set DAC_REPO'); process.exit(1); }
 /* THE BASELINE IS A PINNED COMMIT, as the house suites do it, not an env var.
  * Requiring DAC_BASE_APP meant a bare run compared the file against itself and
- * reported a vacuous green. BASE is the last commit BEFORE the security change,
- * so what this suite proves is exactly: the escaping moved HTML on the cells
+ * reported a vacuous green. BASE must be ENGINEER CODE WITHOUT OUR ESCAPING, so
+ * that what this suite proves is exactly: the escaping moved HTML on the cells
  * that hold a bare ampersand, and moved VISIBLE TEXT on none of the 149.
+ *
+ * IT MUST TRACK THE RECONCILED BASELINE, and that is not a detail. This was
+ * hard-pinned to 75e8eec, the engineer tip when the security change was written.
+ * That isolates our escaping only for as long as nothing else moves. By
+ * 2026-09-20 she had landed CLCPA-294 ("a computed percentage is always
+ * scaled"), and the suite began reporting VISIBLE TEXT REGRESSIONS shaped like
+ * 0.43 -> 43.0% -- her intended change, charged to our security patch. The
+ * security gate went red for a reason that had nothing to do with security,
+ * which is the fastest way to teach people to ignore a gate.
+ *
+ * So BASE is read from the reconciliation ledger: always the engineer commit we
+ * last reconciled, which is her code minus our escaping and nothing else.
+ * Re-pinned that way the same run is 7/0 with 0 visible-text differences. This
+ * NARROWS what the comparison contains; it relaxes no assertion.
  *
  * git is a hard dependency here. When it cannot resolve BASE the suite FAILS
  * loudly rather than skipping -- a silent skip is how a regression guard stops
- * guarding without anyone noticing. */
-const BASE = process.env.DAC_BASE_COMMIT || '75e8eec';
+ * guarding without anyone noticing. The ledger is treated the same way: if it
+ * cannot be read we fall back to the original pin, never to "compare against
+ * nothing". */
+function reconciledTip() {
+  try {
+    const led = path.join(REPO, 'Coned', 'CLCPA', 'tools', 'reconciled.json');
+    return JSON.parse(fs.readFileSync(led, 'utf8')).engineerTip || null;
+  } catch (e) { return null; }
+}
+const BASE = process.env.DAC_BASE_COMMIT || reconciledTip() || '75e8eec';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
 let BASE_SRC = null, baseErr = null;
 if (process.env.DAC_BASE_APP) {

@@ -124,6 +124,23 @@ say('======================================================================');
 
 /* ---- THE CLAIMS. Every difference must match one; every one must match
  * something. A ticket whose claim matches nothing did not land. -------- */
+/* CLCPA-241 IS DELIBERATELY NOT A CLAIM HERE, and the reason is the ticket's
+ * whole point. It was written as one and matched nothing, twice.
+ *
+ * A9's "% Change" pair now computes instead of rendering a stored string that
+ * never recomputed. But the ruling admits exactly the eighteen cells whose
+ * stored figures the derivation REPRODUCES, and keeps the two it does not. So
+ * on all 149 stored table-years the rendered panel is byte-identical: value
+ * identity is the condition on which those cells may be computed at all, and
+ * a claim here would be asserting a visible change the ticket exists to avoid.
+ *
+ * The first two attempts DID move A9, and both were defects this gate caught:
+ * the computed ratio rendered as "-0.26" because a two-level heading gave
+ * detectPctColumns nothing to detect, and then as "-25.8%" because the report
+ * renders declared percentages at one decimal while A9's figures are filed as
+ * whole percents. Z2 below is now the assertion: A9 moves NOTHING. What the
+ * ticket does change is what happens when an input is EDITED, which is
+ * suite_241_289's to prove, not this gate's. */
 const CLAIMS = [
   { id: 'CLCPA-252 r3',
     what: 'no caption carries a year, on any surface: every stored caption ' +

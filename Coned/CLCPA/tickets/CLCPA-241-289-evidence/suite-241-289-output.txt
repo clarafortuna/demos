@@ -1,0 +1,72 @@
+======================================================================
+CLCPA-241 + CLCPA-289 -- kept-figure semantics for A9s % Change
+  BASE : aca5faf (predates this change)
+======================================================================
+
+A. THE BASELINE CARRIES THE DEFECT
+  ok   A1 BASE: A9 had no derive rule at all
+  ok   A2 BASE: and nothing stopped applyDerivedCols overwriting a stored cell
+  ok   A3 BASE: editing Incentives left the % Change at its stored "45%" -- "45%"
+
+B. THE RULE, DECLARED AND MATCHING THE SCHEMA
+  ok   B1 A9 declares two rules
+  ok   B2 both of type percentChange
+  ok   B3.2024.5 column 5 is headed "% Change"
+  ok   B4.2024.5 current year 2024 is later than previous 2023
+  ok   B3.2024.6 column 6 is headed "% Change"
+  ok   B4.2024.6 current year 2024 is later than previous 2023
+  ok   B3.2025.5 column 5 is headed "% Change"
+  ok   B4.2025.5 current year 2025 is later than previous 2024
+  ok   B3.2025.6 column 6 is headed "% Change"
+  ok   B4.2025.6 current year 2025 is later than previous 2024
+  ok   B5 checked against every stored year (2)
+
+C. VALUE IDENTITY: THE EIGHTEEN COMPUTE AND LOOK UNCHANGED
+  ok   C1.2024 A9s rendered panel is byte-identical to BASE
+  ok   C1.2025 A9s rendered panel is byte-identical to BASE
+  ok   C2 eighteen cells are now COMPUTED numbers -- 18
+  ok   C3 and exactly two remain as filed strings -- 2
+
+D. THE TWO KEPT FIGURES, NAMED
+  ok   D1 exactly two kept figures in A9 -- 2
+  ok   D2 the 8% against a derived 33.362% -- ["2024|Energy Savings (MMBtu)|8%","2024|Average Incentive per Participant|62%"]
+  ok   D3 and the 62% against a derived 62.500%
+  ok   D4 and payload-wide the total is still two -- 2
+  ok   D5 the advisory names both
+  ok   D6 with the label and the filed figure
+  ok   D7 and what the rows actually give
+  ok   D8 while a table with none renders no box
+  ok   D9 the editor cell shows a KEPT figure as filed, not a dash -- "8%"
+  ok   D10 while a computed one is scaled at the declared precision -- "-26%"
+  ok   D11 and an empty cell is still a dash
+
+E. THE STRIP: EIGHTEEN GO, TWO ARE REFUSED
+  ok   E1 A9 is in PERSIST_STRIP_TABLES
+  ok   E2 eighteen derived cells are nulled for persistence -- 18
+  ok   E3 and the two kept figures SURVIVE the strip -- ["2024 Energy Savings (MMBtu) = \"8%\"","2024 Average Incentive per Participant = \"62%\""]
+  ok   E4 they are the filed 8% and 62%, so nothing can delete them -- ["2024 Energy Savings (MMBtu) = \"8%\"","2024 Average Incentive per Participant = \"62%\""]
+
+F. CLCPA-289: THE MARKER TELLS THE TRUTH
+  ok   F1 BASE marked none: the column was not computed
+  ok   F2 every data row now marks both % Change cells -- 5
+  ok   F3 while the four figure columns stay blank for the preparer
+
+H. AN EDIT RECOMPUTES, WHICH IS THE COMPLAINT
+  ok   H1 with no edit, a reproducing cell computes -- 0.44849377556807263
+  ok   H2 and the kept figure stays exactly as filed -- "8%"
+  ok   H3 editing an input recomputes it -- 2.8091621747407363
+  ok   H4 and the KEPT cell recomputes too once its own input is edited -- 1.48769189435269
+  ok   H5 it is NOT the stale filed figure
+
+X. THE CHANGE IS WHERE IT SAYS IT IS
+  ok   X1 the kept-figure conditional exists, and takes the edit signal
+  ok   X2 a rule OPTS IN, so the mechanism is general and the engagement declared
+  ok   X3 and an edit always wins
+  ok   X4 value identity is its own predicate, not derivedRowKeepsStored
+  ok   X5 every write in the engine goes through it, and the strip and advisory ask it too
+  ok   X6 recomputeTotals hands the baseline down
+  ok   X7 (BASE carries none of this)
+
+======================================================================
+  48 passed, 0 failed
+======================================================================

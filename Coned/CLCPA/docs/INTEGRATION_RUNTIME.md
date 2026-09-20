@@ -257,7 +257,15 @@ When a delta exists, in order:
 1. Review the delta only — behaviour, security, paths, test assumptions.
 2. Merge; resolve generated `*-output.txt` by **regenerating**, never by picking a side.
 3. `node tools/migrate_paths.js` — **always**; every round so far has needed it (7, then 34 files).
-4. `sh tools/run_security.sh` — must stay green. Red here is real.
+4. `DAC_BASE_COMMIT=<tip being merged> sh tools/run_security.sh` — must stay green. Red here is real.
+
+   **Pass the tip explicitly during a cycle.** `suite_render_equivalence` compares the working tree
+   against engineer code *without* our escaping, so its baseline must be the engineer commit whose
+   code is currently merged. It reads `tools/reconciled.json`, which step 14 has not advanced yet, so
+   mid-cycle a bare run compares against the *previous* tip and charges her new visible-text changes
+   to our security patch. On 2026-09-20 that produced 55 false "VISIBLE TEXT REGRESSIONS" of the form
+   `0.43 -> 43.0%`. Pinned to the tip being merged, the same run is 7/0 with 0 differences. After
+   step 14 the ledger matches and bare runs are correct again.
 5. Run her new suites against our escaped build.
 6. Compare to `tools/gate_baseline.json` **by category**, never by aggregate totals — the totals
    double-count, because every `mut_*` wrapper re-runs its suite and reports that suite's tally.

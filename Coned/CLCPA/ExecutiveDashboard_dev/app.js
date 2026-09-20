@@ -2716,6 +2716,22 @@ function utf8ByteLength(str) {
     const wmean = (column, weight, decimals) =>
       ({ column, type: 'weightedMean', weight, numerator: [column], denominator: [weight],
          denominatorScope: 'weightedMean', decimals });
+    /* CLCPA-241: PERCENT CHANGE, current against previous, within one row.
+     *
+     * pct() cannot express it: its numerator is a set of columns to add, and
+     * this numerator is a DIFFERENCE. Declared here rather than special-cased
+     * in applyDerivedCols, so A9 carries a rule like every other table and the
+     * engine keeps one shape.
+     *
+     * A9's columns, for both stored years:
+     *   0 label   1 prev Total   2 prev DAC   3 cur Total   4 cur DAC
+     *   5 % Change Total   6 % Change DAC
+     * The year headings move (2023/2024 then 2024/2025); the positions do not,
+     * and suite_241_289 asserts that against the schema of every stored year
+     * rather than trusting it. */
+    const pctChange = (column, current, previous, decimals) =>
+      ({ column, type: 'percentChange', current, previous, keepFiled: true, decimals,
+         numerator: [current], denominator: [previous], denominatorScope: 'row' });
     const gPct = [pct(2, [1], [1], 'total', 2)];           // G tables: feet/mT ÷ column total
     const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
 
@@ -2759,6 +2775,8 @@ function utf8ByteLength(str) {
       A6: [pct(3, [2], [1], 'row', 1)],
       A7: [pct(3, [2], [1], 'row', 1)],
       A8: [pct(3, [2], [1], 'row', 1)],
+      // CLCPA-241 + CLCPA-289: A9's "% Change" pair, computed at last.
+      A9: [pctChange(5, 3, 1, 0), pctChange(6, 4, 2, 0)],
       A10: [pct(3, [2], [1], 'row', 0), pct(6, [5], [4], 'row', 0)],
       F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4)],
       G1: gPct, G2: gPct, G3: gPct, G4: gPct, G5: gPct,
@@ -2859,6 +2877,147 @@ function utf8ByteLength(str) {
       return (rounds && near) ? { keep: true, value: stored } : { keep: false };
     }
     return { keep: false };
+  }
+
+  /**
+   * CLCPA-241 option (B): THE KEPT-FIGURE CONDITIONAL, on the DISPLAY path.
+   *
+   * applyDerivedCols wrote `row[col] = num / den` unconditionally, so a stored
+   * figure was replaced by the computation every time the report rendered.
+   * derivedRowKeepsStored already protected the EDITOR from exactly that, under
+   * CLCPA-144 Tier 3, and the render had no equivalent. This is that guard,
+   * moved to where the client actually reads the number.
+   *
+   * The test is Tier 3's, not a second one invented beside it:
+   *
+   *   keep === true   the filed figure IS this computation, rounded. Computing
+   *                   is safe, value identity holds, and the cell may be
+   *                   stripped on save because the engine can rebuild it.
+   *   keep === false  the source does not reproduce the filed figure. THAT is
+   *                   a data question, and recomputing would resolve it by
+   *                   accident. The filed figure is kept and named.
+   *
+   * Note the inversion: Tier 3 returns keep to mean "hold the stored value
+   * because it only adds precision"; here the same answer means the opposite
+   * action, because a figure that reconciles is one the engine is free to
+   * compute. One predicate, read for what it actually says.
+   *
+   * A cell with nothing filed computes, which is the ordinary case and the
+   * whole reason the engine exists.
+   */
+  function derivedCellWrite(stored, computed, rule, inputsChanged) {
+    /* A RULE OPTS IN, and the reason is a measurement rather than caution.
+     *
+     * Engaged for every rule in the engine, the conditional keeps 14 cells
+     * payload-wide, not the two this ticket is about: A1/2024, A2/2023, eight
+     * across A6/2023-2025 and two in G5/2024 would stop showing the computed
+     * figure and start showing the filed one. Those are genuine data questions
+     * and keeping them is arguably righter, but they sit in four tables this
+     * ruling does not name, and a published stored-year figure is the client's
+     * decision. Shipping them inside a A9 fix would be deciding it for them.
+     *
+     * So the mechanism is general and the engagement is declared. Adding
+     * keepFiled to a rule is the whole switch, and the twelve cells are
+     * measured and listed on the ticket, ready for a word either way. */
+    if (!rule || !rule.keepFiled) return { write: true };
+    if (typeof computed !== 'number' || !isFinite(computed)) return { write: false };
+    const filed = stored != null && String(stored).trim() !== '';
+    if (!filed) return { write: true };
+    /* AN EDIT ALWAYS WINS, and this line is the whole difference between
+     * fixing CLCPA-241 and reinstating it.
+     *
+     * Without it the conditional cannot tell "the source disagrees with its
+     * own rows" from "the operator just changed one of those rows", because
+     * after an edit the derivation stops reproducing the filed figure in
+     * exactly the same way. Measured before this was added: changing A9's
+     * Incentives figure to 999,999,999 made the cell fall back to the stored
+     * "-26%" instead of recomputing, which is the stale figure 241 exists to
+     * remove. CLCPA-144 Tier 3 names the rule: only the BASELINE can tell
+     * those two apart. */
+    if (inputsChanged) return { write: true };
+    return derivedFiledReproduced(stored, computed)
+      ? { write: true }
+      : { write: false, kept: true };
+  }
+
+  /**
+   * VALUE IDENTITY: does the derivation reproduce the filed figure as filed?
+   *
+   * This is deliberately NOT derivedRowKeepsStored, and the difference was
+   * measured rather than assumed. That predicate asks `rounds && near`, where
+   * near is a 2 per cent RELATIVE tolerance. On small percentages relative
+   * tolerance is savage: A9/2025 files "-3%" where the rows give -2.527%, which
+   * is 0.47 of a point and rounds to exactly "-3%", yet is 16 per cent adrift
+   * relatively and so fails `near`. Using it here kept ELEVEN of A9's twenty
+   * cells instead of two, and would have kept 80 cells payload-wide.
+   *
+   * The near gate belongs to the EDITOR, where a relative drift is evidence
+   * someone changed an input. On the DISPLAY path the only question the client
+   * can see is whether the number reads the same, so the test is the rounding
+   * half alone, at the precision the figure was filed to.
+   *
+   * That gives the split the ruling names: the 18 cells whose stored figures
+   * the derivation reproduces are computed, and the two it does not are kept.
+   */
+  function derivedFiledReproduced(stored, computed) {
+    if (typeof computed !== 'number' || !isFinite(computed)) return false;
+    if (typeof stored === 'number' && isFinite(stored)) {
+      const f = Math.pow(10, storedDecimals(stored));
+      return Math.round(computed * f) / f === Math.round(stored * f) / f;
+    }
+    if (typeof stored === 'string' && /%/.test(stored)) {
+      const asNum = Number(stored.replace(/[%,\s]/g, '')) / 100;
+      if (!isFinite(asNum)) return false;
+      // +2 because "34" is zero decimals OF A PERCENT, which is two of a fraction
+      const f = Math.pow(10, storedDecimals(asNum * 100) + 2);
+      return Math.round(computed * f) / f === Math.round(asNum * f) / f;
+    }
+    return false;
+  }
+
+  /**
+   * CLCPA-241: the derived-COLUMN cells the source does not reproduce.
+   *
+   * The DERIVED_COLS twin of unreconciledDerivedRows, and it feeds two callers
+   * that must never disagree: the amber advisory that names a kept figure, and
+   * stripDerivedForPersist, which must refuse to null one. If those two used
+   * different predicates a cell could be advertised as kept and deleted on save.
+   *
+   * The probe is BLANKED first for the same reason the strip blanks it: with
+   * the kept-figure conditional in place, leaving the stored value in the cell
+   * makes the engine keep it, and "it kept what was there" cannot be told from
+   * "it computed this" by looking at the result.
+   */
+  function unreconciledDerivedCols(rows, tableId, schema) {
+    const out = [];
+    const derived = (tableId && DERIVED_COLS[tableId]) || [];
+    if (!derived.length || !Array.isArray(rows) || !rows.length) return out;
+    const probe = rows.map(r => (Array.isArray(r) ? r.slice() : r));
+    derived.forEach((d) => probe.forEach((r) => {
+      if (Array.isArray(r) && d.column < r.length) r[d.column] = null;
+    }));
+    const flags = totalRowFlags(probe, tableId, schema);
+    const len = probe.reduce((m, r) => Math.max(m, (r || []).length), 0);
+    const { colSum } = columnGrandTotals(probe.filter((r, i) => !flags[i]), len);
+    applyDerivedCols(probe, tableId, colSum, schema);
+    derived.forEach((d) => rows.forEach((r, ri) => {
+      if (!Array.isArray(r)) return;
+      const filed = r[d.column];
+      if (filed == null || String(filed).trim() === '') return;
+      const computed = probe[ri] ? probe[ri][d.column] : null;
+      if (typeof computed !== 'number' || !isFinite(computed)) return;
+      /* THE SAME CALL the render and the strip make, not an equivalent one.
+       * These three were briefly two predicates, and the strip immediately
+       * disagreed with the advisory about A9/2024: eight stripped against
+       * eleven advertised as kept. One function, so they cannot drift. */
+      if (derivedCellWrite(filed, computed, d).write) return;
+      out.push({ rowIndex: ri,
+                 label: String(r[0] == null ? '' : r[0]),
+                 column: (schema && schema[d.column] != null && String(schema[d.column]).trim())
+                   ? String(schema[d.column]) : ('column ' + d.column),
+                 filed: filed, computed: computed });
+    }));
+    return out;
   }
 
   /**
@@ -2986,17 +3145,47 @@ function utf8ByteLength(str) {
   function derivedPctCols(tableId) {
     const out = {};
     ((tableId && DERIVED_COLS[tableId]) || []).forEach((d) => {
-      if (d.type === 'percentage' || d.type === 'weightedMean') out[d.column] = true;
+      /* CLCPA-241: percentChange too. A9 carries its headings on TWO rows,
+       * so the header row detectPctColumns reads is the second one, which
+       * says only Total and DAC: the column is a percentage by DECLARATION
+       * and there is nothing in the heading to detect. Without this the
+       * computed change rendered as the raw fraction -0.26 where the stored
+       * string had read -26%, which the 149-year gate caught.
+       *
+       * THE PRECISION TRAVELS WITH IT, and only for this type. The report
+       * renders every declared percentage at one decimal, and A9's filed
+       * figures are whole percents: at one decimal the eighteen cells the
+       * derivation reproduces would read "-25.8%" against a filed "-26%", so
+       * VALUE IDENTITY, which is the whole basis on which they may be
+       * computed at all, would not hold. The existing types keep the report's
+       * one-decimal convention deliberately: their declared decimals are the
+       * EDITOR's, and honouring them here would re-render G at two decimals
+       * and J at none, which is a published-figure change this ticket has no
+       * mandate for. */
+      if (d.type === 'percentage' || d.type === 'weightedMean') {
+        out[d.column] = { decimals: 1 };
+      } else if (d.type === 'percentChange') {
+        out[d.column] = { decimals: (typeof d.decimals === 'number' ? d.decimals : 0) };
+      }
     });
     return out;
   }
 
   /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
   function fmtDerivedCell(v, d) {
-    if (v == null || v === '' || typeof v !== 'number' || !isFinite(v)) return '—';
+    if (v == null || v === '') return '—';
+    /* CLCPA-241: A KEPT FILED FIGURE IS A STRING, and the engine left it there
+     * deliberately. Dashing it hid the very figure the advisory beneath the
+     * grid says is being kept: A9/2024's "Energy Savings (MMBtu)" read "8%" in
+     * the advisory and a dash in the cell, on the same screen. Caught in the
+     * browser, not by a suite, because both halves were individually right. */
+    if (typeof v === 'string') return v;
+    if (typeof v !== 'number' || !isFinite(v)) return '—';
     /* CLCPA-294: ALWAYS scaled. This function's input is by construction the
      * engine's own ratio, so there is nothing to guess about. */
-    if (d.type === 'percentage') return (v * 100).toFixed(d.decimals) + '%';
+    if (d.type === 'percentage' || d.type === 'percentChange') {
+      return (v * 100).toFixed(d.decimals || 0) + '%';
+    }
     return v.toFixed(d.decimals);
   }
 
@@ -3041,7 +3230,7 @@ function utf8ByteLength(str) {
    * over the non-total rows. Divide-by-zero / non-numeric inputs leave per-row cells
    * unchanged and blank the Total cell (renders as "—").
    */
-  function applyDerivedCols(rows, tableId, colSum, schema) {
+  function applyDerivedCols(rows, tableId, colSum, schema, baseline) {
     const derived = (tableId && DERIVED_COLS[tableId]) || [];
     if (!derived.length) return;
     // CLCPA-144 'totalRow' scope: the denominator is the sum over every row EXCEPT
@@ -3164,7 +3353,14 @@ function utf8ByteLength(str) {
 
     rows.forEach((row, rowIdx) => {
       const isTot = totalFlags[rowIdx];
+      const baseRow = baseline && baseline[rowIdx];
       derived.forEach(d => {
+        /* CLCPA-241: has any INPUT of this rule moved since the baseline? An
+         * edit must recompute even when the filed figure is one the engine
+         * would otherwise keep. Derived from the rule's own declared columns,
+         * so it needs no per-type knowledge. */
+        const inputsChanged = !!baseRow && (d.numerator || []).concat(d.denominator || [])
+          .some(ci => String(baseRow[ci]) !== String(row[ci]));
         let num, den;
         if (d.type === 'weightedMean') {
           // Total row only: sum(weight * pct) / sum(weight) over the body rows.
@@ -3180,7 +3376,30 @@ function utf8ByteLength(str) {
             wsum += w; psum += w * v; any = true;
           }
           if (!any || wsum === 0) { row[d.column] = null; return; }
-          row[d.column] = psum / wsum;
+          /* CLCPA-241: through the kept-figure conditional, like every other
+           * write in this function. */
+          const wv = psum / wsum;
+          if (derivedCellWrite(row[d.column], wv, d, inputsChanged).write) row[d.column] = wv;
+          return;
+        }
+        /* CLCPA-241 / CLCPA-289: PERCENT CHANGE between two columns of the same
+         * row, which is a ratio of a DIFFERENCE and so cannot be expressed by
+         * pct(): its numerator is (current - previous), not a column.
+         *
+         * A9 is the table: its "% Change" pair compares this year's Total and
+         * DAC against last year's, both present in the same row. The figures
+         * were stored strings that never recomputed, so editing an underlying
+         * count left the percentage stale. That is 241's actual complaint.
+         *
+         * Every row is eligible, total or not: A9 has no total row, and a
+         * percent change is a property of the row's own two figures rather
+         * than of any column sum. */
+        if (d.type === 'percentChange') {
+          const cur = bareNumber(row[d.current]);
+          const prev = bareNumber(row[d.previous]);
+          if (cur == null || prev == null || prev === 0) return;
+          const cv = (cur - prev) / prev;
+          if (derivedCellWrite(row[d.column], cv, d, inputsChanged).write) row[d.column] = cv;
           return;
         }
         if (d.denominatorScope === 'totalRow') {
@@ -3251,7 +3470,11 @@ function utf8ByteLength(str) {
           }
           return;                          // per-row and segment totals: keep stored
         }
-        row[d.column] = num / den;
+        /* CLCPA-241: the one write this engine is really about, and it is no
+         * longer unconditional. A filed figure the derivation reproduces is
+         * computed; one it does not is kept and named by the advisory. */
+        const v = num / den;
+        if (derivedCellWrite(row[d.column], v, d, inputsChanged).write) row[d.column] = v;
       });
     });
   }
@@ -3953,7 +4176,10 @@ function utf8ByteLength(str) {
   // is simply ignored on display, which is the same position as every other
   // unstripped table. Flagged for a decision rather than taken.
   const PERSIST_STRIP_TABLES = new Set([
-    'A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A10', 'F2',
+    /* CLCPA-241: A9 joins, now that its % Change pair has a rule. The strip is
+     * self-limiting and refuses the two cells the derivation does not
+     * reproduce, so joining cannot delete a filed figure. */
+    'A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'F2',
     'F8',
     'G1', 'G2', 'G3', 'G4', 'G5', 'G6', 'G7', 'G8', 'G9', 'G10',
     'J3', 'J4', 'J5', 'J6', 'J7', 'J9',
@@ -4014,10 +4240,25 @@ function utf8ByteLength(str) {
 
     return rows.map((r, i) => {
       const c = r.slice();
-      cols.forEach(ci => {
+      /* Iterating the RULES, not the bare column indices, because the
+       * kept-figure question is a property of the rule. Mapping to indices
+       * first threw that away and stripped A9's two kept cells. */
+      (DERIVED_COLS[tableId] || []).forEach(d => {
+        const ci = d.column;
         if (ci >= c.length) return;
         const rebuilt = probe[i] ? probe[i][ci] : null;
-        if (typeof rebuilt === 'number' && isFinite(rebuilt)) c[ci] = null;
+        if (typeof rebuilt !== 'number' || !isFinite(rebuilt)) return;
+        /* CLCPA-241: rebuildable is no longer sufficient. A cell whose FILED
+         * figure the derivation does not reproduce is kept on the display path
+         * and named by the advisory, so nulling it here would delete the very
+         * figure the render promises to show, and nothing could bring it back.
+         *
+         * The same predicate the render uses, deliberately: if these two ever
+         * disagreed a cell could be advertised as kept and stripped on save.
+         * A9/2024's "Energy Savings (MMBtu)" and "Average Incentive per
+         * Participant" are the two cells this protects today. */
+        if (!derivedCellWrite(r[ci], rebuilt, d).write) return;
+        c[ci] = null;
       });
       return c;
     });
@@ -4563,7 +4804,14 @@ function utf8ByteLength(str) {
       if (typeof c === 'string') return c;
       if (typeof c === 'number') {
         const isPctRow = rowLabel && /^percentage|^%/i.test(String(rowLabel).trim());
-        if (pctCols[colIdx] || isPctRow) {
+        /* CLCPA-241: a DECLARED percentage column is one whether or not the
+         * heading says so. declaredPct used to be consulted only INSIDE this
+         * branch, so a column the engine declares but the heading does not
+         * announce never reached it. A9 is exactly that column: it carries its
+         * headings on two rows, and the row this detection reads is the second
+         * one, which says only "Total" and "DAC". The computed change rendered
+         * as the raw fraction -0.26 where the stored string had read -26%. */
+        if (pctCols[colIdx] || declaredPct[colIdx] || isPctRow) {
           /* CLCPA-294: a column DECLARED as a derived percentage is always
            * scaled, never guessed. The guess reads a computed 2.333 as "a
            * percentage already" and renders 2.3%, hiding a DAC share over
@@ -4572,7 +4820,7 @@ function utf8ByteLength(str) {
            * Columns NOT so declared keep the guess: stored source data in a
            * percent column is not guaranteed to be a fraction, and this
            * ticket is about computed cells. */
-          if (declaredPct[colIdx]) return (c * 100).toFixed(1) + '%';
+          if (declaredPct[colIdx]) return (c * 100).toFixed(declaredPct[colIdx].decimals) + '%';
           return (Math.abs(c) <= 1 ? c * 100 : c).toFixed(1) + '%';
         }
         if (currCols[colIdx]) {
@@ -19044,7 +19292,9 @@ function wireHTooltips() {
     });
 
     // (b) Derived per-row + Total cells via the shared rule (same as the report).
-    applyDerivedCols(draft, tableId, colSum, schema);
+    /* CLCPA-241: the BASELINE travels with it, so an edited input recomputes
+     * while a figure the SOURCE never reproduced is kept. */
+    applyDerivedCols(draft, tableId, colSum, schema, baseline);
 
     /* (c) CLCPA-212 slice B item 5: a derived cell that merely gained precision goes
      * back to the value the source stored.
@@ -22908,9 +23158,17 @@ function wireHTooltips() {
      * file, and the advisory has to be on screen at the moment of Save. */
     const draftReconcile = (i && i.draft && i.schema)
       ? reconcileSumColumns(i.draft, i.schema, i.tableId) : [];
+    /* CLCPA-241: and the derived cells whose filed figures these rows do not
+     * reproduce, which the engine keeps rather than overwriting. Read off the
+     * DRAFT for the same reason the reconciliation is: a figure can stop
+     * reconciling because an input was just typed, and the advisory has to be
+     * on screen at the moment of Save, not only after an import. */
+    const keptFigures = (i && i.draft && i.schema)
+      ? unreconciledDerivedCols(i.draft, i.tableId, i.schema) : [];
     return (r ? renderIngestImportResult(r) : '') + renderTypedUnitNotice() +
       (r && r.reconcileNotices && r.reconcileNotices.length
-        ? '' : renderReconcileNotice(draftReconcile));
+        ? '' : renderReconcileNotice(draftReconcile)) +
+      renderKeptFigureNotice(keptFigures);
   }
 
   /* CLCPA-273: THE TYPED-PERCENT ADVISORY.
@@ -23052,6 +23310,34 @@ function wireHTooltips() {
         ', ' + x.parts.join(' + ') + ' = ' + x.computed)).join('') +
       '</ul></div>';
   }
+  /**
+   * CLCPA-241 option (B): THE KEPT FIGURE, NAMED.
+   *
+   * A derived cell whose filed figure the derivation does not reproduce is
+   * kept rather than republished, and a figure kept silently is just a stale
+   * figure with better manners. This says which cell, what the source filed,
+   * and what its own rows give, in the CLCPA-272 shape so the two advisories
+   * read alike.
+   *
+   * It does not reject and it does not rewrite: the cell keeps what Con Edison
+   * filed. The disagreement is a question for them, which is precisely why the
+   * app must not resolve it by recomputing.
+   */
+  function renderKeptFigureNotice(list) {
+    const n = list || [];
+    if (!n.length) return '';
+    const li = (s) => '<li>' + escapeHtml(s) + '</li>';
+    const pct = (v) => (v * 100).toFixed(1) + '%';
+    return '<div class="ingest-import-notice is-warn">' +
+      '<h4>Kept as filed: ' + n.length + ' figure' + (n.length === 1 ? '' : 's') + '</h4>' +
+      '<p>The rows in this table do not reproduce these filed figures, so they ' +
+      'are shown exactly as filed rather than recalculated. Check which is ' +
+      'right before changing anything.</p><ul>' +
+      n.map(x => li(x.label + ' / ' + x.column + ': filed ' + x.filed +
+        ', these rows give ' + pct(x.computed))).join('') +
+      '</ul></div>';
+  }
+
   /** The editor (status bar + grid + add-row button). */
   function renderIngestEditor() {
     const p = state.payload;

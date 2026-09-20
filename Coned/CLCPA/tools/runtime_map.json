@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T16:39:40.492Z",
+  "generated": "2026-09-20T18:12:23.288Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "aca5faf",
+    "lastReconciledEngineerTip": "72f31e9",
     "originMain": "fff9e47"
   },
   "build": {
-    "app.js": "538f071523",
+    "app.js": "798b40012a",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.0.4",
+    "version": "1.0.0.5",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "3509a0127c134457",
+      "deployedSha256": "389e06ce9b4589fa",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "538f0715230b23d7",
-      "deployedSha256": "65c464c215c31d2a",
+      "repoSha256": "798b40012a8ead44",
+      "deployedSha256": "90ce6f2bb841cdec",
       "stamped": true
     },
     {
@@ -108,16 +108,15 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 5,
-    "baseline": "aca5faf (origin/clcpa-330-stop)",
+    "round": 6,
+    "baseline": "72f31e9 (origin/clcpa-241-289-kept-figures)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 2,
+      "commits": 1,
       "tickets": [
-        "CLCPA-287 round 2",
-        "CLCPA-330 (stop, no code)"
+        "CLCPA-241 + CLCPA-289 kept-figure semantics for A9 % Change"
       ]
     },
     "previousRounds": [

@@ -130,6 +130,10 @@ guard('extract and run the shipped composer', () => {
     /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
      * its clone, so the closure needs the derivation and its three helpers. */
     'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
+    /* CLCPA-241: applyDerivedCols now asks whether it may overwrite a filed
+     * figure. Required rather than optional here, because this suite assembles
+     * only the changed source: the BASE_SRC below is read as text, never run. */
+    'derivedCellWrite', 'derivedFiledReproduced', 'storedDecimals',
     'sumDerivedCols', 'detectPctColumns'];
   const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
     'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', /* CLCPA-263: the composite-share declaration */ 'COMPOSITE_SHARE_COLS', 'NOT_RECONCILED_TABLES',

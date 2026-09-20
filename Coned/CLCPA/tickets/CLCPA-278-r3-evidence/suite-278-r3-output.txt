@@ -33,7 +33,7 @@ D. A GENUINELY UNREADABLE CELL STILL KEEPS THE FILED TOTAL
 
 E. ONE HELPER, NO PER-FUNCTION COPIES
   ok   E1 the reader is a named function
-  ok   E2 and it is consumed, not declared and ignored -- 12 references
+  ok   E2 and it is consumed, not declared and ignored -- 14 references
   ok   E3.rowSumIsConsistent consumes it
   ok   E4.rowSumIsConsistent and carries no private copy of the test
   ok   E3.reconcileSumColumns consumes it
@@ -66,7 +66,7 @@ G. WHAT THIS CHANGES IN THE STORED PAYLOAD: NOTHING
   ok   G1 payload.json holds 668 string value cells
   ok   G2 and NONE of them becomes readable -- 0
   ok   G3 compared across 149 stored table-years
-  ok   G4 recomputeTotals writes identical figures -- every one
+  ok   G4 recomputeTotals writes identical figures except A9, for CLCPA-241 -- A9:2024,A9:2025
   ok   G5 and the advisory count is unchanged everywhere -- every one
 
 H. THE DRAFT SURFACE, SHAPE BY SHAPE

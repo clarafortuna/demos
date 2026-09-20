@@ -5,9 +5,9 @@ NOTE: browser entity-decoding is supplied by this suite; see the header.
 ======================================================================
 
 A. the shipped read sites must escape what dataset.* hands back
-  ok   B1 Section E category tooltip (found at L15193) escapes dataset.name
-  ok   B2 Section F borough tooltip (found at L15473) escapes dataset.name
-  ok   B3 Section H pie tooltip (found at L15509) escapes dataset.name
+  ok   B1 Section E category tooltip (found at L15441) escapes dataset.name
+  ok   B2 Section F borough tooltip (found at L15721) escapes dataset.name
+  ok   B3 Section H pie tooltip (found at L15757) escapes dataset.name
 
 B. semantics -- an escaped attribute is NOT safe once dataset decodes it
   ok   B4 dataset decoding restores the original payload (write-side escaping alone is undone)

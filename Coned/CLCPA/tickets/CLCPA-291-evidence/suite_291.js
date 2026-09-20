@@ -159,11 +159,20 @@ guard('C-block', () => {
         JSON.stringify(v) + '->' + JSON.stringify(w));
     }));
   });
-  ok(diffs.length === 2, 'C1 exactly two template cells moved -- ' + diffs.length);
-  ok(diffs.every(d => /^A[34] /.test(d)),
-    'C2 both in A3 and A4 -- ' + JSON.stringify(diffs));
-  ok(diffs.every(d => /"\(calculated\)"->"\(no value\)"/.test(d)),
-    'C3 and both from (calculated) to (no value), nothing else');
+  /* RE-PINNED by PARTITION, not by relaxing the count.
+   *
+   * CLCPA-241 gave A9's "% Change" pair a rule and CLCPA-289 therefore marks
+   * it (calculated), which is ten more marker cells in the same sweep. This
+   * ticket's own radius is still exactly two, and saying so requires
+   * separating the two changes rather than widening the test to cover both. */
+  const mine = diffs.filter(d => /"\(calculated\)"->"\(no value\)"/.test(d));
+  const c289 = diffs.filter(d => /^A9 /.test(d) && /""->"\(calculated\)"/.test(d));
+  ok(mine.length === 2, 'C1 exactly two template cells moved for THIS ticket -- ' + mine.length);
+  ok(mine.every(d => /^A[34] /.test(d)),
+    'C2 both in A3 and A4 -- ' + JSON.stringify(mine));
+  ok(diffs.length === mine.length + c289.length,
+    'C3 and every other moved cell is CLCPA-289 marking A9 (' + c289.length + ') -- ' +
+    JSON.stringify(diffs.filter(d => mine.indexOf(d) < 0 && c289.indexOf(d) < 0)));
 });
 
 /* ---- D. the predicate, and the two ways it nearly went wrong ----------- */

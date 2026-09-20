@@ -1,5 +1,5 @@
 {
-  "engineerTip": "8551769",
+  "engineerTip": "aca5faf",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -140,6 +140,20 @@
       "engineerCommit": "855176981ba38b9153afe1c1d953637f66a26eff",
       "engineerSubject": "CLCPA-292 round 2: a fresh template borrows from a published year",
       "integrationCommit": "d93c2ec",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "6d902740cd894a6cb692033513dbd23f32a1e96c",
+      "engineerSubject": "CLCPA-287 round 2: one dismissal rule, and a rejection that names a column",
+      "integrationCommit": "3f76c47",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "aca5fafff72d1b1f3b05300c8006e3eb766d6421",
+      "engineerSubject": "CLCPA-330: reproduced, and stopped before it writes stored data",
+      "integrationCommit": "3f76c47",
       "reconciledAt": "2026-09-20",
       "validation": "tools/run_security.sh green"
     }

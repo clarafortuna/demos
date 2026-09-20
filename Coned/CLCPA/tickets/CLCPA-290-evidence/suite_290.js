@@ -159,9 +159,14 @@ guard('D-block', () => {
     });
   });
   ok(n === 149, 'D1 all 149 stored table-years rendered on both builds -- ' + n);
+  /* RE-PINNED, not widened. CLCPA-241 gave A9's "% Change" pair a rule, so
+   * A9's two stored years now render a computed percentage where they rendered
+   * a stale stored string. Named here rather than covered by a looser test:
+   * the point of this assertion is that the set is EXACTLY known. */
   ok(JSON.stringify(moved.sort()) ===
-     JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024']),
-    'D2 exactly four moved -- ' + JSON.stringify(moved));
+     JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024',
+                     /* CLCPA-241 */ 'A9:2024', 'A9:2025']),
+    'D2 exactly six moved, four for this ticket and A9 for CLCPA-241 -- ' + JSON.stringify(moved));
   /* AND NOT ONE STORED VALUE AMONG THEM: blank became dash, nothing else */
   let valueChanged = 0;
   moved.forEach((k) => {
