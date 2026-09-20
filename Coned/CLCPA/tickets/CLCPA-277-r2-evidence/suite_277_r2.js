@@ -31,6 +31,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const bii = require('../_kit/bii_deltas.js');
 const { boot } = require('../_kit/live_editor.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
@@ -161,8 +162,12 @@ guard('F-block', () => {
     const i = s.indexOf('function renderIngestImportResult(');
     return i < 0 ? null : s.slice(i, s.indexOf('\n  }', i));
   };
-  ok(grab(now) === grab(before),
-    'F1 renderIngestImportResult is byte-identical to BASE');
+  /* CLCPA-293 adds the accepted-totals advisory to this panel: a total the
+   * engine cannot derive is now taken from the preparer, and the panel says
+   * so. Reversed through the shared kit, extracted from app.js rather than
+   * retyped; every other byte still has to match. */
+  ok(bii.reverseRender293(grab(now)) === grab(before),
+    'F1 renderIngestImportResult is byte-identical to BASE apart from CLCPA-293');
   const gy = (s) => {
     const i = s.indexOf('function importYearNotice(');
     return i < 0 ? null : s.slice(i, s.indexOf('\n  }', i));

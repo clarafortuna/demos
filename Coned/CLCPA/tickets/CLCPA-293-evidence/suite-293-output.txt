@@ -1,0 +1,47 @@
+======================================================================
+CLCPA-293 / A-10 -- the grand total belongs to the preparer
+  BASE : 72f31e9 (predates this change)
+======================================================================
+
+A. THE DEFECT, ON THE BUILD THAT SHIPPED IT
+  ok   A1 the template offers the grand-total cells BLANK and fillable
+  ok   A2 BASE: filling 777 and 222 into them imports NOTHING -- populated 0
+  ok   A3 both were dropped as "this row is a calculated total"
+  ok   A4 and nothing on BASE recorded, let alone reported, that it had happened
+
+B. THE ENGINE NEVER COMPUTED IT, WHICH IS WHY REFUSING WAS WRONG
+  ok   B1 totalRowFlags does not flag the grand total at all
+  ok   B2 while it does flag the subtotal above it
+  ok   B3 the grand total (336599) exceeds what the rows itemise (283852), by 52747
+  ok   B4 blanked and recomputed, the engine returns nothing for it -- null
+  ok   B5 while the subtotal comes back at 283852, rebuilt
+
+C. THE FIX: THE PREPARER'S FIGURES ARE TAKEN
+  ok   C1 both cells import -- [777,222]
+  ok   C2 as the figures the preparer filed, unchanged
+  ok   C3 and both are RECORDED as taken from the preparer
+  ok   C4 carrying the value that was written, not a re-parse of the file
+
+D. A TOTAL THE ENGINE CAN REBUILD IS STILL REFUSED
+  ok   D1 A1s Total is NOT taken from the preparer
+  ok   D2 it is still refused as a calculated total
+  ok   D3 and the row keeps its own figure -- 282132686
+  ok   D4 and the grand rows own % in DACs stays computed: only the total-row half moved
+
+E. THE ADVISORY SAYS SO
+  ok   E1 the panel names how many
+  ok   E2 which row and what was filed
+  ok   E3 and what the rows itemise instead
+  ok   E4 saying plainly that a difference need not be a mistake
+  ok   E5 while an import that took nothing renders no box
+
+X. THE CHANGE IS WHERE IT SAYS IT IS
+  ok   X1 the engine is asked which totals it can rebuild
+  ok   X2 asked of the DRAFT, never of the candidate
+  ok   X3 and only the total-row half of the refusal is relaxed
+  ok   X4 a probe that throws marks the row rebuildable, so a broken check costs the fix, not the data
+  ok   X5 (BASE carries none of this)
+
+======================================================================
+  27 passed, 0 failed
+======================================================================

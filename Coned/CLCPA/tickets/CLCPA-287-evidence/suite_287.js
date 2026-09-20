@@ -34,6 +34,9 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-293's delta to the import path, extracted from app.js and shared,
+ * so the four suites that reverse it cannot drift from it or each other. */
+const bii = require('../_kit/bii_deltas.js');
 
 const REPO = 'c:/Users/emely/Desktop/Projects/demos';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -135,7 +138,10 @@ guard('C-block', () => {
   ok(/two columns with the same heading/.test(html), 'C4 and giving the reason');
   ok(/Non-DAC Repairs/.test(html), 'C5 naming the column it objected to');
   /* unchanged from BASE: this ticket draws the panel, it does not rewrite it */
-  ok(grab('renderIngestImportResult', SRC) === grab('renderIngestImportResult', BASE_SRC),
+  /* CLCPA-293 adds the accepted-totals advisory to this panel. Reversed
+   * through the shared kit; every other byte still has to match. */
+  ok(bii.reverseRender293(grab('renderIngestImportResult', SRC)) ===
+     grab('renderIngestImportResult', BASE_SRC),
     'C6 and the panel is BYTE-IDENTICAL to BASE: this ticket only draws it');
 });
 
