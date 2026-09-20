@@ -673,6 +673,10 @@ guard('X: the blast radius', () => {
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
     /* CLCPA-311 / D-04, named so the count stays exact */
     renderSectionD: 'NOT this ticket: CLCPA-311 / D-04: the LMI share is read from the figure D3 files instead of being computed out of a null, which printed 0.0% on every stored year',
+    /* CLCPA-304, named so the count stays exact */
+    parseB2Plugs: 'NOT this ticket: CLCPA-304: Section Bs plug counts read the shared schema reader, so a year created by import stops parsing every count as zero',
+    /* CLCPA-307 and CLCPA-310, named so the count stays exact */
+    unitNoticeValue: 'NOT this ticket: CLCPA-310: the fraction advisory formats the value it shows, so a floating point artifact stops reaching operator-facing text (new)',
     /* CLCPA-319, named so the count stays exact */
     isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
     /* CLCPA-293 / A-10, named so the count stays exact */
@@ -823,7 +827,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 93, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 95, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

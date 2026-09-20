@@ -3,7 +3,7 @@ CLCPA-85 rounds 4 to 6 -- the .xlsx example workbook
 ======================================================================
 
 === the archive itself ===
-  ok   a workbook is produced: 17844 bytes
+  ok   a workbook is produced: 17865 bytes
   ok   SEVEN parts, no logo: 7
   ok   part present: [Content_Types].xml
   ok   part present: _rels/.rels

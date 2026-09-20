@@ -1,0 +1,20 @@
+CLCPA-304: parseB2Plugs and the year with no schema of its own
+BASE d84c0d3   app.js working tree
+
+=== A. a year created by import ====================================
+  ok   A1 the imported year parses exactly as the year its rows came from: {"L2":7482,"DCFC":1399,"Micromobility":3,"Total":8884}
+  ok   A2 while BASE parsed every count as ZERO, which is the browser reproduction: {"L2":0,"DCFC":0,"Total":0}
+  ok   A3 and the Micromobility column, which only 2025 has, is read: {"L2":2966,"DCFC":170,"Micromobility":2,"Total":3138}
+
+=== B. every stored year is untouched ===============================
+  ok   B1 the three stored years parse identically on both builds: []
+  ok   B2 and a year with no rows at all still returns nothing
+
+=== X. one schema reader ============================================
+  ok   X1 parseB2Plugs reads getTableSchema
+  ok   X2 and has no second schema reader of its own left in it
+  ok   X3 BASE is a literal commit sha: d84c0d3
+  ok   X4 and HEAD descends from it
+  ok   X5 while BASE reads schema_by_year directly, so this suite cannot pass on it
+
+  10 passed, 0 failed

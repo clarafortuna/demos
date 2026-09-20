@@ -37,4 +37,22 @@ function reverseRender293(text) {
     .replace(RENDER_293_CODE, () => RENDER_BEFORE_293);
 }
 
-module.exports = { reverse293, reverseRender293 };
+/* CLCPA-310's delta to the SAME function, for the same reason: the suites
+ * that guard renderIngestImportResult against their own baselines are each
+ * asserting that THEIR ticket left the panel alone, and CLCPA-310
+ * legitimately changes one expression in it -- the value the fraction
+ * advisory shows is formatted instead of concatenated raw, because eight of
+ * twenty plausible percent inputs printed a floating-point artifact at an
+ * operator.
+ *
+ * Extracted here rather than retyped in each suite, so the reversal and the
+ * code cannot drift apart. */
+const RENDER_310 = "          cell(x) + ': ' + x.read + ' read as ' +\r\n          unitNoticeValue(x.read, x.landed))).join('') +";
+const RENDER_BEFORE_310 = "          cell(x) + ': ' + x.read + ' read as ' + x.landed)).join('') +";
+
+/** Turn a post-310 renderIngestImportResult back into its pre-310 self. */
+function reverseRender310(text) {
+  return String(text).replace(RENDER_310, () => RENDER_BEFORE_310);
+}
+
+module.exports = { reverse293, reverseRender293, reverseRender310 };

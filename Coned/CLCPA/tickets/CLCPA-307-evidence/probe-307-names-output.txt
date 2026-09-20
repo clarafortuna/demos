@@ -1,0 +1,22 @@
+CLCPA-307: does the generated workbook name the controls as they read?
+app.js: working tree
+
+  the controls step 4 sends the operator to, named as app.js names them:
+    the page button that opens the dialog     "Add Data"
+    the file control inside the dialog        "Import From File"
+    the button that commits the draft         "Save Changes"
+    the page itself                           "Report Data"
+
+  step 4 as generated:
+    "4. In the dashboard, open Report Data and press Add Data, choose this section and table, then use Import From File and pick your CSV. The values land as a draft for your review; nothing is stored until you press Save Changes."
+
+  does step 4 use each control's real name?
+    "Add Data"          used
+    "Import From File"  used
+    "Save Changes"      used
+    "Report Data"       used
+
+  step 4 still says "Add New Year": false
+
+--- summary -----------------------------------------------------------
+  controls step 4 names wrongly or not at all: 0

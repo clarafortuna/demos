@@ -1,0 +1,20 @@
+CLCPA-304: what the two schema readers say for a year with no schema
+app.js: working tree
+
+  the fresh year 2099 carries 3 rows copied from 2025, and no schema entry of its own.
+
+  2025
+      getTableSchema  -> ["Category","L2 Plugs","DCFC Plugs","Micromobility Power Cabinets","Total Plugs"]
+      parseB2Plugs's own read -> ["Category","L2 Plugs","DCFC Plugs","Micromobility Power Cabinets","Total Plugs"]
+      parseB2Plugs    -> {"DAC":{"L2":2966,"DCFC":170,"Micromobility":2,"Total":3138},"Non-DAC":{"L2":4516,"DCFC":1229,"Micromobility":1,"Total":5746},"Total":{"L2":7482,"DCFC":1399,"Micromobility":3,"Total":8884}}
+      Section B would show Total plugs = 8884, L2 = 7482, DCFC = 1399
+
+  2099
+      getTableSchema  -> ["Category","L2 Plugs","DCFC Plugs","Micromobility Power Cabinets","Total Plugs"]
+      parseB2Plugs's own read -> []
+      parseB2Plugs    -> {"DAC":{"L2":2966,"DCFC":170,"Micromobility":2,"Total":3138},"Non-DAC":{"L2":4516,"DCFC":1229,"Micromobility":1,"Total":5746},"Total":{"L2":7482,"DCFC":1399,"Micromobility":3,"Total":8884}}
+      Section B would show Total plugs = 8884, L2 = 7482, DCFC = 1399
+
+--- summary -----------------------------------------------------------
+  the fresh year parses every plug count as zero: false
+  while the very same rows, read through getTableSchema, carry the 5 columns they always had.
