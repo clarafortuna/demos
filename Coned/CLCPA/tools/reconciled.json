@@ -1,5 +1,5 @@
 {
-  "engineerTip": "72f31e9",
+  "engineerTip": "192cab0",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -161,6 +161,13 @@
       "engineerCommit": "72f31e9bee8ba396cdf582cf4f7cb773364fb877",
       "engineerSubject": "CLCPA-241 + CLCPA-289: kept-figure semantics for A9's % Change",
       "integrationCommit": "2728570",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "192cab076f6063905001eb28ddd8e64ae1b27bb4",
+      "engineerSubject": "CLCPA-293 / A-10: a total the engine cannot derive belongs to the preparer",
+      "integrationCommit": "839dfd6",
       "reconciledAt": "2026-09-20",
       "validation": "tools/run_security.sh green"
     }

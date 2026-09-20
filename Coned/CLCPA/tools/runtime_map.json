@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T18:43:58.135Z",
+  "generated": "2026-09-20T19:12:45.460Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,8 +13,8 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "192cab0",
-    "originMain": "fff9e47"
+    "lastReconciledEngineerTip": "34adc84",
+    "originMain": "34adc84"
   },
   "build": {
     "app.js": "bead10687f",
@@ -108,16 +108,14 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 7,
-    "baseline": "192cab0 (origin/clcpa-293-preparer-totals)",
+    "round": 8,
+    "baseline": "34adc84 (origin/main)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 1,
-      "tickets": [
-        "CLCPA-293 / A-10 preparer totals"
-      ]
+      "commits": 6,
+      "note": "six merge commits (clarafortuna/demos#284-#289) landing work already reconciled in rounds 3-7; zero content delta, deployed surface byte-identical, build unchanged so no deploy"
     },
     "previousRounds": [
       {
