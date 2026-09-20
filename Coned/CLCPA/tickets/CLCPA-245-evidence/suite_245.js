@@ -627,6 +627,8 @@ guard('X: the blast radius', () => {
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
     /* re-pinned, named so the count stays exact */
+    xlsxInstructionBlocks: 'NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has',
+    /* re-pinned, named so the count stays exact */
     ingestStagedSummary: 'NOT this ticket: CLCPA-300: the staged summary counts the columns that receive values',
     /* re-pinned, named so the count stays exact */
     derivedPctCols: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
@@ -769,7 +771,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 80, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 81, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

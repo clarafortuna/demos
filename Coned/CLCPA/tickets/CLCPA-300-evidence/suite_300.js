@@ -135,8 +135,20 @@ guard('C-block', () => {
 log('');
 log('D. THE IMPORT ITSELF');
 guard('D-block', () => {
-  ok(grab('buildIngestImport', SRC) === grab('buildIngestImport', BASE_SRC),
-    'D1 buildIngestImport is BYTE-IDENTICAL to BASE: only the sentence changed');
+  /* RE-POINTED, not widened: the CLCPA-282 operator-prose sweep lands later in
+   * the same stack and rewords one rejection message. That ONE message is
+   * normalised away; every other byte still has to match. */
+  const NEW_MSG = "reject(headerCount > 1\r\n" +
+    "        ? 'The file needs its ' + headerCount + ' heading rows and at least one ' +\r\n" +
+    "          'data row. This table carries its headings on ' + headerCount + ' rows: ' +\r\n" +
+    "          'a heading spanning several columns, then a row naming each one.'\r\n" +
+    "        : 'The file needs a header row and at least one data row.', {});";
+  const OLD_MSG = "reject('The file needs a header row and at least one data row.', {});";
+  const normalise = (t) => t.replace(NEW_MSG, () => OLD_MSG)
+    .replace(/      \/\* CLCPA-282: this message knows the count[\s\S]*?\*\/\r\n/, '');
+  ok(normalise(grab('buildIngestImport', SRC)) === grab('buildIngestImport', BASE_SRC),
+    'D1 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
+    'message: only the summary sentence changed here');
   ok(/res\.matchedColumns\.push\(schema\[sIdx\]\);/.test(codeOnly(SRC)),
     'D2 matchedColumns is still collected, for anything else that wants it');
   ok(/const cols = new Set\(d\.populated\.map\(x => x\.column\)\)\.size;/.test(codeOnly(SRC)),
