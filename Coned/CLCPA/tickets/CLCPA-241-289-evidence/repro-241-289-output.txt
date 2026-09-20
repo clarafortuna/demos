@@ -1,0 +1,33 @@
+======================================================================
+CLCPA-241 + CLCPA-289 -- the gestures, in a real browser
+======================================================================
+
+  1. THE REPORT PAGE, A9
+     [0] ["","2024","2025","% Change"]
+     [1] ["Total","DAC","Total","DAC","Total","DAC"]
+     [2] ["Incentives","$380.3M","$204.8M","$282.1M","$148.7M","-26%","-27%"]
+     [3] ["Energy Savings (MMBtu)","$4.4M","$2.5M","$4.0M","$2.1M","-7%","-15%"]
+     [4] ["Participation","$2.1M","$1.1M","$2.0M","$943K","-3%","-17%"]
+     [5] ["Average Incentive per Participant","$182","$181","$139","$158","-24%","-13%"]
+     [6] ["Average Energy Savings Per Participant","$2.09","$2.2","$1.99","$2.25","-5%","2%"]
+     whole-percent cells: 10   ["-26%","-27%","-7%","-15%","-3%","-17%","-24%","-13%","-5%","2%"]
+     any DECIMAL percent (value identity would be broken): false
+     any RAW fraction   (formatting would be broken)     : false
+
+  2. THE EDITOR, A9 / 2024: the advisory
+     "Kept as filed: 2 figuresThe rows in this table do not reproduce these filed figures, so they are shown exactly as filed rather than recalculated. Check which is right before changing anything.Energy Savings (MMBtu) / % Change: filed 8%, these rows give 33.4%Average Incentive per Participant / % Chan"
+     names both kept figures: true
+
+  3. THE EDITOR: typing a new figure
+     before [0] ["","2023","2024","% Change",""]
+     before [1] ["","Total","DAC","Total","DAC","Total","DAC",""]
+     before [2] ["[Incentives]","[262,524,921]","[129,680,235]","[380,265,714]","[204,785,586]","45%","58%","×"]
+     before [3] ["[Energy Savings (MMBtu)]","[4,019,790]","[1,659,904]","[5,360,879]","[2,486,965]","8%","50%","×"]
+     after  [0] ["","2023","2024","% Change",""]
+     after  [1] ["","Total","DAC","Total","DAC","Total","DAC",""]
+     after  [2] ["[Incentives]","[262,524,921]","[129,680,235]","[999,999,999]","[204,785,586]","281%","58%","×"]
+     after  [3] ["[Energy Savings (MMBtu)]","[4,019,790]","[1,659,904]","[5,360,879]","[2,486,965]","8%","50%","×"]
+
+     the grid changed after typing: true
+     page errors: []
+======================================================================

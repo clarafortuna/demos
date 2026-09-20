@@ -136,8 +136,12 @@ guard('D-block', () => {
     catch (e) { return; }
     if (a !== b) changed.push(id);
   });
-  ok(changed.length === 2 && changed.indexOf('A3') >= 0 && changed.indexOf('A4') >= 0,
-    'D1 exactly A3 and A4 move on a fresh year -- ' + JSON.stringify(changed));
+  /* RE-PINNED: CLCPA-289 marks A9's "% Change" pair (calculated) on a fresh
+   * year, because CLCPA-241 gave it a rule and the app now genuinely computes
+   * it. A9 is named rather than the count relaxed. */
+  ok(changed.length === 3 && changed.indexOf('A3') >= 0 && changed.indexOf('A4') >= 0 &&
+     changed.indexOf('A9') >= 0,
+    'D1 A3 and A4 move for this ticket, A9 for CLCPA-289 -- ' + JSON.stringify(changed));
   /* a one-key table is untouched, which is what keeps this narrow */
   const h = tmplFresh('H1', SRC);
   ok(h[1][0] === 'Manhattan' && h[1][1] === '',

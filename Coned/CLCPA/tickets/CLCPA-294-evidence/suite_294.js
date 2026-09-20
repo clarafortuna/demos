@@ -133,14 +133,21 @@ guard('C-block', () => {
     })() +
     '\nreturn { derivedPctCols: derivedPctCols };')();
   const a1 = H.derivedPctCols('A1');
-  ok(a1 && a1[3] === true,
-    'C1b and A1 column 3 really is in the declared set -- ' + JSON.stringify(a1));
+  /* RE-PINNED: CLCPA-241 made the entries carry their PRECISION rather than a
+   * bare true, because A9's percent-change column must render at the zero
+   * decimals its figures were filed with while A1 keeps the report's one.
+   * Still asserting membership, and now the precision it must keep. */
+  ok(a1 && a1[3] && a1[3].decimals === 1,
+    'C1b and A1 column 3 really is in the declared set, at one decimal -- ' + JSON.stringify(a1));
   ok(Object.keys(H.derivedPctCols('H1') || {}).length === 0,
     'C1c while a table declaring no percentage has an empty set');
-  ok(/if \(d\.type === 'percentage'\) return \(v \* 100\)\.toFixed\(d\.decimals\) \+ '%';/.test(code),
+  /* RE-PINNED for CLCPA-241, which added the percentChange type to both
+   * formatters. The ALWAYS-SCALED property this ticket exists to guarantee is
+   * still what is pinned; only the set of types it covers grew. */
+  ok(/if \(d\.type === 'percentage' \|\| d\.type === 'percentChange'\) \{\r?\n\s*return \(v \* 100\)\.toFixed\(d\.decimals \|\| 0\) \+ '%';/.test(code),
     'C2 the editor calc cell always scales: its input IS the engine ratio');
-  ok(/if \(declaredPct\[colIdx\]\) return \(c \* 100\)\.toFixed\(1\) \+ '%';/.test(code),
-    'C3 and the rendered table scales a DECLARED percentage column always');
+  ok(/if \(declaredPct\[colIdx\]\) return \(c \* 100\)\.toFixed\(declaredPct\[colIdx\]\.decimals\) \+ '%';/.test(code),
+    'C3 and the rendered table scales a DECLARED percentage column always, at its declared precision');
   /* a column NOT declared keeps the old behaviour: stored source data in a
    * percent column is not guaranteed to be a fraction */
   ok(/return \(Math\.abs\(c\) <= 1 \? c \* 100 : c\)\.toFixed\(1\) \+ '%';/.test(code),
@@ -198,8 +205,19 @@ guard('E-block', () => {
   ok(strip290(grab('rowsForDisplay', SRC)) === grab('rowsForDisplay', BASE_SRC),
     'E2 rowsForDisplay matches BASE apart from the CLCPA-290 total-row block: ' +
     'this ticket changes no derivation');
-  ok(grab('recomputeTotals', SRC) === grab('recomputeTotals', BASE_SRC),
-    'E3 and so is recomputeTotals');
+  /* CLCPA-241 moved recomputeTotals by exactly one line: it now hands the
+   * BASELINE to applyDerivedCols, which is what lets an edited input recompute
+   * while a figure the source never reproduced stays as filed. Named and
+   * REVERSED, the way the other deltas in this file are, so every other byte
+   * still has to match. */
+  const RT_NEW_241 =
+    '    /* CLCPA-241: the BASELINE travels with it, so an edited input recomputes\r\n' +
+    '     * while a figure the SOURCE never reproduced is kept. */\r\n' +
+    '    applyDerivedCols(draft, tableId, colSum, schema, baseline);';
+  const RT_OLD_241 = '    applyDerivedCols(draft, tableId, colSum, schema);';
+  ok(grab('recomputeTotals', SRC).replace(RT_NEW_241, () => RT_OLD_241) ===
+     grab('recomputeTotals', BASE_SRC),
+    'E3 and so is recomputeTotals, apart from CLCPA-241 passing the baseline');
 });
 
 /* ---- X. the harness ------------------------------------------------------ */

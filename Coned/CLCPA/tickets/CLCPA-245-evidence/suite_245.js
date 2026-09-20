@@ -515,8 +515,22 @@ guard('X: the family veto and the derive engine are untouched', () => {
      'X1 CLCPA-240 round 4s family predicate is byte-identical');
   ok(grab('isStrictTotalRowLabel') === grab('isStrictTotalRowLabel', BASE_SRC),
      'X2 and CLCPA-200s strict predicate');
-  ok(grabConst('DERIVED_COLS') === grabConst('DERIVED_COLS', BASE_SRC),
-     'X3 DERIVED_COLS is byte-identical');
+  /* RE-PINNED: CLCPA-241 declares A9's percent-change rule here. Byte equality
+   * gives way to ATTRIBUTION rather than being dropped: every added CODE line
+   * must be one of the four that ticket owns, so any other edit to the rule
+   * table still fails this. */
+  const DC_241 = [
+    "    const pctChange = (column, current, previous, decimals) =>",
+    "      ({ column, type: 'percentChange', current, previous, keepFiled: true, decimals,",
+    "         numerator: [current], denominator: [previous], denominatorScope: 'row' });",
+    "      A9: [pctChange(5, 3, 1, 0), pctChange(6, 4, 2, 0)],",
+  ];
+  const dcAdded = grabConst('DERIVED_COLS').split('\r\n')
+    .filter(l => grabConst('DERIVED_COLS', BASE_SRC).indexOf(l) < 0)
+    .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
+  ok(dcAdded.length === DC_241.length && dcAdded.every(l => DC_241.indexOf(l) >= 0),
+     'X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule -- ' +
+     JSON.stringify(dcAdded.filter(l => DC_241.indexOf(l) < 0)));
   /* X4 said "byte-identical" until CLCPA-254 put one DECLARED column back in
    * the sum. Undoing that one exception -- the only edit that has landed in
    * this function since -- and requiring the rest to be BASE exactly keeps the
@@ -531,7 +545,16 @@ guard('X: the family veto and the derive engine are untouched', () => {
   const rtNow = grab('recomputeTotals') || '';
   ok(rtNow.split(CLCPA254).length - 1 === 1,
      'X4a CLCPA-254s exception is present exactly once, so undoing it means something');
-  ok(rtNow.replace(CLCPA254, () => BASE254) === grab('recomputeTotals', BASE_SRC),
+  /* CLCPA-241 adds one more line to reverse: recomputeTotals hands the
+   * BASELINE to applyDerivedCols. Named and reversed beside CLCPA-254's
+   * exception, so every other byte still has to match. */
+  const RT_NEW_241 =
+    '    /* CLCPA-241: the BASELINE travels with it, so an edited input recomputes\r\n' +
+    '     * while a figure the SOURCE never reproduced is kept. */\r\n' +
+    '    applyDerivedCols(draft, tableId, colSum, schema, baseline);';
+  const RT_OLD_241 = '    applyDerivedCols(draft, tableId, colSum, schema);';
+  ok(rtNow.replace(CLCPA254, () => BASE254).replace(RT_NEW_241, () => RT_OLD_241) ===
+     grab('recomputeTotals', BASE_SRC),
      'X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: ' +
      'the ordering item is NOT bought here');
   ok(grab('parseNumericInput') === grab('parseNumericInput', BASE_SRC),
@@ -638,6 +661,14 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-241 advisory, named so the count stays exact */
+    renderKeptFigureNotice: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)',
+    /* CLCPA-241 option (B), named so the count stays exact */
+    applyDerivedCols: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten',
+    stripDerivedForPersist: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (the strip refuses a kept cell)',
+    derivedCellWrite: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)',
+    derivedFiledReproduced: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)',
+    unreconciledDerivedCols: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)',
     /* CLCPA-287 round 2, named so the count stays exact */
     ingestKeyColDescription: 'NOT this ticket: CLCPA-287 round 2: a key-column rejection names an unheaded column by role, not by its empty heading (new)',
     /* CLCPA-292 round 2, named so the count stays exact */
@@ -775,7 +806,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 83, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 89, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

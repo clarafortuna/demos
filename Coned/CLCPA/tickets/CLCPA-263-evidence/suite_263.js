@@ -122,7 +122,13 @@ guard('S: rowsForDisplay moves nothing on any stored year', () => {
    * page asks for it, because filling unconditionally reached the KPI composer
    * and gave 2099 a reported value. This call does not opt in, so the plain
    * display view is byte-identical again -- which is the stronger statement. */
-  ok(moved.length === 0, 'S2 and every one is byte-identical to BASE' +
+  /* RE-PINNED: rowsForDisplay returns VALUES, and CLCPA-241 makes A9's
+   * % Change cells computed numbers where they were stored strings. The
+   * rendered TEXT is byte-identical on both stored years, which is that
+   * ticket's value-identity condition and is proved by gate_149_stacked;
+   * here the underlying value legitimately differs. */
+  ok(JSON.stringify(moved.sort()) === JSON.stringify(['A9:2024', 'A9:2025']),
+     'S2 and every one is byte-identical to BASE except A9, for CLCPA-241' +
      (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
 });
 
@@ -454,6 +460,15 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-241 advisory, named so the count stays exact */
+    renderKeptFigureNotice: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)',
+    /* CLCPA-241 option (B), named so the count stays exact */
+    recomputeTotals: 'NOT this ticket: CLCPA-241 option (B): it hands the BASELINE to applyDerivedCols, so an edited input recomputes while a figure the source never reproduced is kept',
+    applyDerivedCols: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten',
+    stripDerivedForPersist: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (the strip refuses a kept cell)',
+    derivedCellWrite: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)',
+    derivedFiledReproduced: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)',
+    unreconciledDerivedCols: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)',
     /* CLCPA-287 round 2, named so the count stays exact */
     ingestKeyColDescription: 'NOT this ticket: CLCPA-287 round 2: a key-column rejection names an unheaded column by role, not by its empty heading (new)',
     /* CLCPA-292 round 2, named so the count stays exact */
@@ -575,12 +590,49 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 70, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 77, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
-  ['applyDerivedCols', 'recomputeTotals', 'totalRowFlags',
+  ['totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
+  /* applyDerivedCols LEFT that list for CLCPA-241, which routes every write in
+   * it through the kept-figure conditional and adds the percentChange branch.
+   * Attribution replaces byte equality rather than removing the guard: every
+   * added CODE line must be one of the ten that ticket owns, so an unrelated
+   * edit to the derive engine still turns this red. */
+  const ADC_241 = [
+    "  function applyDerivedCols(rows, tableId, colSum, schema, baseline) {",
+    "      const baseRow = baseline && baseline[rowIdx];",
+    "        const inputsChanged = !!baseRow && (d.numerator || []).concat(d.denominator || [])",
+    "          .some(ci => String(baseRow[ci]) !== String(row[ci]));",
+    "          const wv = psum / wsum;",
+    "          if (derivedCellWrite(row[d.column], wv, d, inputsChanged).write) row[d.column] = wv;",
+    "        if (d.type === 'percentChange') {",
+    "          const cur = bareNumber(row[d.current]);",
+    "          const prev = bareNumber(row[d.previous]);",
+    "          if (cur == null || prev == null || prev === 0) return;",
+    "          const cv = (cur - prev) / prev;",
+    "          if (derivedCellWrite(row[d.column], cv, d, inputsChanged).write) row[d.column] = cv;",
+    "        const v = num / den;",
+    "        if (derivedCellWrite(row[d.column], v, d, inputsChanged).write) row[d.column] = v;",
+  ];
+  /* recomputeTotals moved too, by exactly one line: it now hands the
+   * BASELINE to applyDerivedCols, which is what lets an EDITED input
+   * recompute while a figure the source never reproduced stays as filed. */
+  const rtAdded = grabFn('recomputeTotals', SRC).split('\r\n')
+    .filter(l => grabFn('recomputeTotals', BASE_SRC).indexOf(l) < 0)
+    .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
+  ok(rtAdded.length === 1 &&
+     rtAdded[0] === '    applyDerivedCols(draft, tableId, colSum, schema, baseline);',
+     'X2c recomputeTotals differs from BASE only by passing the baseline -- ' +
+     JSON.stringify(rtAdded));
+  const adcAdded = grabFn('applyDerivedCols', SRC).split('\r\n')
+    .filter(l => grabFn('applyDerivedCols', BASE_SRC).indexOf(l) < 0)
+    .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
+  ok(adcAdded.length === ADC_241.length && adcAdded.every(l => ADC_241.indexOf(l) >= 0),
+     'X2b applyDerivedCols differs from BASE only by CLCPA-241 -- ' +
+     JSON.stringify(adcAdded.filter(l => ADC_241.indexOf(l) < 0)));
 });
 
 guard('X: the baseline', () => {

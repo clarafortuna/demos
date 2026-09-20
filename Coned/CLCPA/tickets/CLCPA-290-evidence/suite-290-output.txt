@@ -25,7 +25,7 @@ C. ONE DECLARATION, BOTH SURFACES
 
 D. WHAT MOVED, ACROSS ALL 149 STORED TABLE-YEARS
   ok   D1 all 149 stored table-years rendered on both builds -- 149
-  ok   D2 exactly four moved -- ["A3:2023","A3:2024","A4:2023","A4:2024"]
+  ok   D2 exactly six moved, four for this ticket and A9 for CLCPA-241 -- ["A3:2023","A3:2024","A4:2023","A4:2024","A9:2024","A9:2025"]
   ok   D3 and NOT ONE stored value changed: only blanks became dashes -- 0
   ok   D4 A3/2025 keeps its filed 3,761,330 and 22,511 -- ["Total",null,2034938,3761330,22511]
 

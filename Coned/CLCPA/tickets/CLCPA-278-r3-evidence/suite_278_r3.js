@@ -242,8 +242,12 @@ guard('G-block', () => {
     });
   });
   ok(n === 149, 'G3 compared across ' + n + ' stored table-years');
-  ok(moved.length === 0,
-    'G4 recomputeTotals writes identical figures -- ' + (moved.length ? moved.join(',') : 'every one'));
+  /* RE-PINNED: CLCPA-241 gave A9 a DERIVED_COLS rule, so recomputeTotals now
+   * has derived columns to write there where it had none. A9's two stored
+   * years are named; every other table must still be identical. */
+  ok(JSON.stringify(moved.sort()) === JSON.stringify(['A9:2024', 'A9:2025']),
+    'G4 recomputeTotals writes identical figures except A9, for CLCPA-241 -- ' +
+    (moved.length ? moved.join(',') : 'every one'));
   ok(advMoved.length === 0,
     'G5 and the advisory count is unchanged everywhere -- ' +
     (advMoved.length ? advMoved.join(',') : 'every one'));
