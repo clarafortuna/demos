@@ -1,0 +1,15 @@
+A9 schema  : ["","2024","2024","2025","2025","% Change","% Change"]
+A9 sub row : [null,"Total","DAC","Total","DAC","Total","DAC"]
+A9 row 1   : ["Incentives",380265714,204785586,282132687,148672655,"-26%","-27%"]
+
+--- A9 / 2098 -----------------------------------
+  row 1 BEFORE : ["Incentives","380,265,714","204,785,586","282,132,687","148,672,655","-26%","-27%"]
+  row 1 AFTER  : ["Incentives","380,265,714","204,785,586","999,999,999","148,672,655","-26%","-27%"]
+  % Change recomputed? NO -- the stored string is STALE
+
+--- A9 / 2025 -----------------------------------
+  row 1 BEFORE : ["Incentives","380,265,714","204,785,586","282,132,687","148,672,655","-26%","-27%"]
+  row 1 AFTER  : ["Incentives","380,265,714","204,785,586","999,999,999","148,672,655","-26%","-27%"]
+  % Change recomputed? NO -- the stored string is STALE
+
+  page errors: none
