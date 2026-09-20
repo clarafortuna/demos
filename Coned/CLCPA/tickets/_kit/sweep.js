@@ -34,7 +34,12 @@ fs.readdirSync(TICKETS).forEach((d) => {
   try { st = fs.statSync(dir); } catch (e) { return; }
   if (!st.isDirectory()) return;
   fs.readdirSync(dir).forEach((f) => {
-    if (/^(suite|derive|diag)_.*\.js$/.test(f)) files.push({ dir, file: f });
+    /* gate_* TOO, and the omission was not harmless: gate_149_stacked.js sat
+     * outside this pattern, so the sweep called the tree green while the
+     * DEPLOY's own suite gate -- which scans more widely -- found it red and
+     * refused to run. A sweep that is narrower than the gate it stands in for
+     * is a sweep that lies about being ready to deploy. */
+    if (/^(suite|derive|diag|gate)_.*\.js$/.test(f)) files.push({ dir, file: f });
   });
 });
 files.sort((a, b) => (a.file < b.file ? -1 : 1));

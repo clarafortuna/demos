@@ -134,6 +134,44 @@ const CLAIMS = [
    * editor's path, not this one. So CLCPA-254 correctly moves nothing on 149
    * stored years, and section E below asserts that invisibility rather than
    * leaving it as an absence. The recompute itself is suite_254_255_261's. */
+  { id: 'CLCPA-290',
+    what: 'an average total ConEd filed nothing in renders the dash instead ' +
+          'of a blank: A3 and A4 for 2023 and 2024',
+    /* PRECISE, not permissive: strip the cells that NOW hold a dash and the
+     * remainder must be a shape already claimed -- identical, or differing
+     * only by CLCPA-252 r3's caption-year removal. A3:2023 carries BOTH
+     * changes at once, which is why neither single claim matched it and why
+     * this one has to name the composition rather than widen.
+     *
+     * A dash replacing a VALUE, or any other edit anywhere in the panel,
+     * survives the substitution and still falls through to unclaimed. */
+    hit: (id, y, a, b) => {
+      const undashed = b.split('>—<').join('><');
+      if (undashed === b) return false;          /* no dash appeared: not this */
+      return undashed === a || kit.onlyCaptionYearsChanged(undashed, a);
+    } },
+  { id: 'CLCPA-294',
+    what: 'a computed percentage that lost its x100 now shows it: a total ' +
+          'fractionally above 1 read 1.0% where 100.0% is meant',
+    /* The skeleton outside percentage cells must be identical, AND every
+     * percentage that moved must have moved by exactly a factor of 100. A
+     * percentage that changed any other way is NOT this ticket. */
+    hit: (id, y, a, b) => {
+      const PCT = />(-?[\d,]+\.?\d*)%</g;
+      if (a.replace(PCT, '>P%<') !== b.replace(PCT, '>P%<')) return false;
+      const A = a.match(PCT) || [], B = b.match(PCT) || [];
+      if (A.length !== B.length || !A.length) return false;
+      let movedOne = false;
+      for (let i = 0; i < A.length; i++) {
+        if (A[i] === B[i]) continue;
+        const na = parseFloat(A[i].replace(/[>%<,]/g, ''));
+        const nb = parseFloat(B[i].replace(/[>%<,]/g, ''));
+        if (!isFinite(na) || !isFinite(nb)) return false;
+        if (Math.abs(nb - na * 100) > Math.max(0.2, Math.abs(na))) return false;
+        movedOne = true;
+      }
+      return movedOne;
+    } },
 ];
 
 function classify(id, y, a, b) {

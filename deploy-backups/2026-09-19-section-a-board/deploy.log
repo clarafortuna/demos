@@ -69,3 +69,104 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 07b51a9
+          remote main = 07b51a9  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1296389B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1296389B  sha256 0f8a541f39d987bb...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 d50368ddb00ff217...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : caf0dbb2ee  ok
+  app.js canonicalised + hashed : caf0dbb2ee  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : caf0dbb2ee  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 8 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the Section A board: marker semantics, the template contract, key pre-fill, percent scaling, the import summary, the rejection report and the un-totalled averages -- CLCPA-291, CLCPA-274, CLCPA-292, CLCPA-294, CLCPA-300, CLCPA-287, CLCPA-290, CLCPA-282
+build id (app.js): caf0dbb2ee
+styles.css id    : 9039bfc509   (replaced 9039bfc509)
+previous build   : c0f8f1a9e6, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 6b8d63e
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build caf0dbb2ee
+
+THE ACCEPTANCE PASS:
+  CLCPA-290  THE A3/A4 TOTAL ROW, ON BOTH SURFACES.
+     A3 on a user-added year: the section page must now compute Total
+     Participants and show a DASH on the two average columns. The editor
+     already did and must be unchanged. A4 the same.
+     THE PUBLISHED YEARS: A3/2025 must still read 2,034,938, $3.8M and
+     22,511 exactly. A3 and A4 for 2023 and 2024 file nothing in their
+     average totals, so those cells now show a dash where they were blank.
+     AND THE ONE TO WATCH: a year with no data must still get its "no
+     data" banner and contribute NO KPI value. The total-row fill is
+     opt-in precisely so the KPI composer never sees it.
+  CLCPA-294  A COMPUTED PERCENTAGE IS ALWAYS SCALED.
+     Two PUBLISHED panels are corrected: G10/2024s Percentage total and
+     J4/2025s "% of Amount" total both read 1.0% on the live build and
+     must now read 100.0%. In J4s own total row one figure read 100.0%
+     and its neighbour 1.0%, on floating-point dust above 1.
+     On a user-added year, a share above 100% must read as such rather
+     than as a small number. A small share, 0.5%, must be unchanged.
+  CLCPA-274  A POPULATED YEAR EXPORTS, A FRESH YEAR STAYS BLANK.
+     Download H1s template for 2025: the figures are there, and they are
+     real NUMBERS in Excel, not text. Download it for a fresh year: labels
+     only. Re-import a downloaded populated template and the values come
+     back.
+  CLCPA-292 and CLCPA-291  THE A3/A4 TEMPLATE.
+     On a FRESH year every data row now carries its Program Name, and the
+     value columns stay blank. The Total rows Program Name reads
+     (no value), not (calculated): nothing can compute a programme name.
+     J6s percent columns must still read (calculated).
+  CLCPA-287  THE PAGE SAYS WHAT WAS REJECTED.
+     Offer H1 a file whose headings belong to another table, press Load
+     Data, then CLOSE the dialog: the page must show "Nothing was
+     imported" and the reason. Again with a file whose two columns share
+     one heading. The dialog stays open on Load Data in both.
+     Reset and Save after a rejection are on this pass: the driver could
+     not exercise them, and they are the one leg without machine evidence.
+  CLCPA-300  THE IMPORT SUMMARY.
+     Stage a CSV for H1 supplying all four columns: it must read "2
+     columns with values, 4 values", not "3 matching columns". The value
+     count is unchanged.
+  CLCPA-282  THE WORKBOOK INSTRUCTIONS.
+     The instruction sheet now says most tables have one heading row and a
+     few have two, and says "heading rows" where it said "the header row".
+
+STILL DISCLOSED, not defects in this build:
+  - CLCPA-241 IS ALIVE AND NOT FIXED HERE, by ruling. 122 stored
+  -    percent-change cells across ten tables, and editing an underlying
+  -    figure does not recompute them. The 289 + 241 fold-in is approved and
+  -    is the first item of the next session.
+  - CLCPA-289 SHIPS NOTHING HERE for the same reason: marking A9s % Change
+  -    pair (calculated) would promise a computation that does not happen
+  -    and make the importer skip a value the operator supplied.
+  - THE WEIGHTED MEAN FOR A3/A4 IS RECORDED, NOT BUILT. It would republish
+  -    A3/2025 as 621.56 against a filed 3,761,330, and changing a published
+  -    figure is the clients decision. The option stays on the ticket.
+  - CLCPA-295 AWAITS THE SCHEMA FREEZE LIFT: A6 and A7 headings carry a
+  -    stray " Total". Ruled as one data correction alongside G9s total-row
+  -    label and J2/J5/J9s truncated headings.
+  - RETIRED BY MEASUREMENT, no code: CLCPA-296, since no group header shares
+  -    a label with any other row in A5 to A8, and CLCPA-286, since no
+  -    Section A table scaffolds a fresh year, by design.
+  - CLCPA-282 STAYS OPEN: its prose half ships here, and F6s own round trip
+  -    in hosted waits for the section work.
+  - CARRIED FORWARD, unchanged: the 44 numeric-looking strings in A3/A4 for
+  -    2098, and on a fresh A8 the bootstrap would compute 283,852 into a
+  -    grand total whose real figure is 336,599.
+  - The stylesheet does NOT move in this wave: app.js alone changes.
+
+=== log written by deploy_section_a_board.js ===
