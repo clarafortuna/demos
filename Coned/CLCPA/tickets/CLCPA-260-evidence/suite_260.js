@@ -446,6 +446,10 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-304, named so the count stays exact */
+    parseB2Plugs: 'NOT this ticket: CLCPA-304: Section Bs plug counts read the shared schema reader, so a year created by import stops parsing every count as zero',
+    /* CLCPA-307 and CLCPA-310, named so the count stays exact */
+    unitNoticeValue: 'NOT this ticket: CLCPA-310: the fraction advisory formats the value it shows, so a floating point artifact stops reaching operator-facing text (new)',
     /* CLCPA-319, named so the count stays exact */
     isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
     totalRowFlags: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)',
@@ -582,7 +586,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 86, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 88, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

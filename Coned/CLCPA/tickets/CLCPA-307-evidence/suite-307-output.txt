@@ -1,0 +1,25 @@
+CLCPA-307: the workbook names the controls as they read
+BASE d84c0d3   app.js working tree
+
+=== N. every control step 4 sends the operator to ===================
+  ok   N1 all four control names were read out of app.js: {"addData":"Add Data","importFile":"Import From File","save":"Save Changes","page":"Report Data"}
+  ok   N2 step 4 names the page button as it reads, "Add Data"
+  ok   N3 and the file control, "Import From File"
+  ok   N4 and the button that commits the draft, "Save Changes"
+  ok   N5 and the page itself, "Report Data"
+  ok   N6 and the retired name is gone: "4. In the dashboard, open Report Data and press Add Data, choose this section and table, then use Import From File and pick your CSV. The values land as a draft for your review; nothing is stored until you press Save Changes."
+
+=== B. and BASE had it wrong, so this cannot pass by accident =======
+  ok   B1 BASE already called the button "Add Data", so the button and the workbook disagreed on the shipped build
+  ok   B2 while BASEs step 4 said "Add New Year"
+  ok   B3 and did not use "Save Changes" either
+  ok   B4 BASE is a literal commit sha: d84c0d3
+  ok   B5 and HEAD descends from it
+
+=== X. the rest of the workbook text is untouched ===================
+  ok   X1 the instruction sheet still has the same number of blocks: 13 and 13
+  ok   X2 and exactly ONE block changed: 1
+  ok   X3 and it is step 4: "4. In the dashboard, open Report Data and press Add Data, choose this
+  ok   X4 and no long dash entered the operator-facing text
+
+  15 passed, 0 failed

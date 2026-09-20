@@ -205,8 +205,10 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function recomposeYearIfComposed moved, and it is named by a later ticket: CLCPA-250: the composed-source gate (new)
   ok   X1 app.js function composePayloadFromRows moved, and it is named by a later ticket: CLCPA-250: it resolves a schema through getTableSchema
   ok   X1 app.js function buildYearSelector moved, and it is named by a later ticket: CLCPA-250: a year change re-derives that year
+  ok   X1 app.js function parseB2Plugs moved, and it is named by a later ticket: NOT this ticket: CLCPA-304: Section Bs plug counts read the shared schema reader, so a year created by import stops parsing every count as zero
   ok   X1 app.js function getTableSchema moved, and it is named by a later ticket: CLCPA-267: its fallback shifts the donor year
   ok   X1 app.js function isPercentLiteral moved, and it is named by a later ticket: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
+  ok   X1 app.js function unitNoticeValue moved, and it is named by a later ticket: NOT this ticket: CLCPA-310: the fraction advisory formats the value it shows, so a floating point artifact stops reaching operator-facing text (new)
   ok   X1 app.js function ingestHeaderKeys moved, and it is named by a later ticket: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
   ok   X1 app.js function ingestHeaderName moved, and it is named by a later ticket: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
   ok   X1 app.js function ingestKeyColDescription moved, and it is named by a later ticket: NOT this ticket: CLCPA-287 round 2: a key-column rejection names an unheaded column by role, not by its empty heading (new)
@@ -246,11 +248,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (88) belongs to a later ticket
+  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (90) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  219 passed, 2 failed
+  221 passed, 2 failed

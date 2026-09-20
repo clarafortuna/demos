@@ -1,0 +1,22 @@
+CLCPA-304 REPRODUCTION: Section B after a year is added at runtime
+shipped build pinned at d84c0d3, year used: 2099
+(2099 is this probe's own year, on a throwaway browser profile; the
+ live org is not touched and 2096 is not gone near.)
+
+=== base   (C:\Users\emely\AppData\Local\Temp\clcpa-304-base-d84c0d3)
+  seeded 1 override key(s), years ["2099"]
+  B2 keys now in the store: ["B2:2099"]
+  Section B, year shown: "current"
+      text: B EV Make-Ready Program Capital incentives and the resulting Level-2 and DC fast-charging plug counts.
+      text: 9$1 DAC vs Non-DAC · By Metric 2099 · Each row compares the two groups DAC Non-DAC $0 Funding $0 0 L2 plugs 0 0 DCFC 0 -100% $ growth -100% -100% plug growth -1
+      text: 2 Plugs Completed Table B1.
+  page errors: []
+
+=== fix   (C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev)
+  seeded 1 override key(s), years ["2099"]
+  B2 keys now in the store: ["B2:2099"]
+  Section B, year shown: "current"
+      text: B EV Make-Ready Program Capital incentives and the resulting Level-2 and DC fast-charging plug counts.
+      text: 9$1 DAC vs Non-DAC · By Metric 2099 · Each row compares the two groups DAC Non-DAC $0 Funding $0 2,966 L2 plugs 4,516 170 DCFC 1,229 -100% $ growth -100% +0% pl
+      text: 2 Plugs Completed Table B1.
+  page errors: []

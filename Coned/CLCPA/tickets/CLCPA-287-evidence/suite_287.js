@@ -153,7 +153,9 @@ guard('C-block', () => {
   /* unchanged from BASE: this ticket draws the panel, it does not rewrite it */
   /* CLCPA-293 adds the accepted-totals advisory to this panel. Reversed
    * through the shared kit; every other byte still has to match. */
-  ok(bii.reverseRender293(grab('renderIngestImportResult', SRC)) ===
+  /* CLCPA-310 formats the value the fraction advisory shows. Reversed through
+   * the shared kit as well, composed rather than widened. */
+  ok(bii.reverseRender310(bii.reverseRender293(grab('renderIngestImportResult', SRC))) ===
      grab('renderIngestImportResult', BASE_SRC),
     'C6 and the panel is BYTE-IDENTICAL to BASE: this ticket only draws it');
 });

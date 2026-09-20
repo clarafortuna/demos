@@ -1,0 +1,38 @@
+CLCPA-309 / CLCPA-310: the sentence the fraction advisory builds
+app.js: working tree
+
+  The advisory line is built as:
+      cell + ": " + x.read + " read as " + unitNoticeValue(x.read, x.landed)
+  with x.landed = parseNumericInput(raw), formatted for the sentence.
+
+  typed        lands as                      the operator reads
+  --------------------------------------------------------------------
+  10%         0.1                                     
+  45%         0.45                                    
+  5%          0.05                                    
+  9.3%        0.093                                   
+  3.7%        0.037                                   
+  5.9%        0.059                                   
+  32.4%       0.324                                   
+  0.7%        0.007                                   
+  1.1%        0.011                                   
+  2.9%        0.029                                   
+  7.3%        0.073                                   
+  8.2%        0.082                                   
+  29%         0.29                                    
+  33%         0.33                                    
+  58%         0.58                                    
+  62.5%       0.625                                   
+  100%        1                                       
+  0.05%       0.0005                                  
+  12.34%      0.1234                                  
+  99.99%      0.9999                                  
+
+--- summary -----------------------------------------------------------
+  percent strings tried: 20
+  of those, ones whose advisory line carries a floating-point artifact: 0
+
+  CLCPA-309 is the other half of the same line. "read as 0.093" reports
+  the CONVERSION RESULT -- the fraction the engine stored -- to an
+  operator who typed a percentage and thinks in percentages. The number
+  is correct and it answers a question nobody asked.
