@@ -1,0 +1,55 @@
+======================================================================
+CLCPA-282 / 285 -- mutation controls
+  suite  : suite_282.js
+  mutant : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-282-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 34 passed, 0 failed
+
+--- mutation 1: the group row stops carrying forward, so a spanned column loses its group
+  suite: 32 passed, 2 failed
+  failed ids: B3, B4
+  expected to break: B4  ->  NOTICED on B4
+
+--- mutation 2: the pair collapses to the sub-label alone (the ambiguity restored)
+  suite: 30 passed, 4 failed
+  failed ids: B1, B3, B4, B6
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 3: the pair collapses to the group alone
+  suite: 31 passed, 3 failed
+  failed ids: B1, B3, B5
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 4: a ONE-level table is composed as a pair too, changing what it was
+  suite: 32 passed, 2 failed
+  failed ids: B7, B8
+  expected to break: B7  ->  NOTICED on B7
+
+--- mutation 5: the importer stops asking whether the FILE carries a sub-header
+  suite: 33 passed, 1 failed
+  failed ids: C2
+  expected to break: C2  ->  NOTICED on C2
+
+--- mutation 6: the body is taken from row 1 again, so a header row becomes data
+  suite: 33 passed, 1 failed
+  failed ids: C3
+  expected to break: C3  ->  NOTICED on C3
+
+--- mutation 7: the schema side keeps the old single-row spelling, so the sides disagree
+  suite: 33 passed, 1 failed
+  failed ids: C5
+  expected to break: C5  ->  NOTICED on C5
+
+--- mutation 8: the separator becomes an ordinary character a heading could contain
+  suite: 32 passed, 2 failed
+  failed ids: B8, D2
+  expected to break: D2  ->  NOTICED on D2
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 34 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  8 of 8 mutations noticed, 0 missed
+======================================================================

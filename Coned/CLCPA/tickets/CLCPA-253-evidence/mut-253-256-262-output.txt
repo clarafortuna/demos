@@ -28,7 +28,7 @@ Section C group A -- mutation controls
        got : the change to renderTable is accounted for
   ???  HARNESS: the stored-year sweep stops rendering anything  -- ANCHOR 0, NOT APPLIED
   red  HARNESS: the baseline is repointed at a symbolic ref
-       28 red, incl: X3 BASE is a literal commit sha: HEAD
+       31 red, incl: X3 BASE is a literal commit sha: HEAD
   red  HARNESS: the counter slice is re-implemented instead of cut out
        8 red, incl: S1 at BASE C1 reported 30 changes for 10 typed values, exactly as the audit photographed: 15
 

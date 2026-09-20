@@ -88,6 +88,11 @@ function grabDecl(src, name) {
 const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', /* CLCPA-278 round 3: the one shared numeric reader */ 'bareNumber', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', 'parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnlyDerived', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
+  /* CLCPA-282: buildIngestImport now asks the shared header anatomy,
+     so the slice cannot be assembled without these. A hand-fed slice
+     cannot see a missing closure -- this suite threw before printing a
+     tally, and the sweep scored that as zero rather than red. */
+  'ingestTextOnlyColumn', 'ingestHeaderRowCount', 'ingestRowIsStoredHeader', 'ingestYearCarriesHeaderRows', 'ingestStoredHeaderRows', 'ingestHeaderKeys', 'ingestHeaderName',
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',

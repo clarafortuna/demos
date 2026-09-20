@@ -1,0 +1,53 @@
+======================================================================
+CLCPA-291 -- a text column in a structure row has NO VALUE
+  app.js : C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 91640bf (predates this change)
+======================================================================
+
+A. THE DEFECT, ON BASE
+  ok   A1 BASE had no notion of a text-only column
+  ok   A2.A3 its Total row marked the Program Name cell (calculated) -- ["Total","(calculated)","(calculated)","(calculated)","(calculated)"]
+  ok   A2.A4 its Total row marked the Program Name cell (calculated) -- ["Total","(calculated)","(calculated)","(calculated)","(calculated)"]
+  ok   A3 and the importer skips a (calculated) cell, so the promise had teeth
+
+B. WHAT THE TEMPLATE EMITS NOW
+  ok   B1.A3 the Program Name cell is (no value) -- ["Total","(no value)","(calculated)","(calculated)","(calculated)"]
+  ok   B2.A3 and every NUMERIC column of that row is still (calculated)
+  ok   B3.A3 the label column still carries the row label, not a marker
+  ok   B1.A4 the Program Name cell is (no value) -- ["Total","(no value)","(calculated)","(calculated)","(calculated)"]
+  ok   B2.A4 and every NUMERIC column of that row is still (calculated)
+  ok   B3.A4 the label column still carries the row label, not a marker
+
+C. EXACTLY TWO CELLS CHANGE, IN THE WHOLE PAYLOAD
+  ok   C1 exactly two template cells moved -- 2
+  ok   C2 both in A3 and A4 -- ["A3 r23 c1 \"(calculated)\"->\"(no value)\"","A4 r23 c1 \"(calculated)\"->\"(no value)\""]
+  ok   C3 and both from (calculated) to (no value), nothing else
+
+D. WHAT COUNTS AS A TEXT COLUMN
+  ok   D1 A3 Program Name is text in every year it has
+  ok   D2 A7 DAC Installations is NOT text (its 2025 column is blank, not textual)
+  ok   D2b a column with numbers in ANY year is not text, whatever the newest year holds
+  ok   D2c and a column textual in every year IS text
+  ok   D3 (bareNumber refuses a percent literal, by design)
+  ok   D4 and isPercentLiteral is what reads it
+  ok   D5.J3 its percent column is NOT text -- "% of Accounts"
+  ok   D5.J4 its percent column is NOT text -- "% of Accounts"
+  ok   D5.J6 its percent column is NOT text -- "% of Accounts"
+  ok   D5.J7 its percent column is NOT text -- "% of Accounts"
+  ok   D6 a plainly numeric column is not text
+  ok   D7 a column blank in every year is left exactly as it was
+
+E. WHAT THE IMPORTER DOES WITH THE NEW MARKER
+  ok   E1 the importer already skips a (no value) cell
+  ok   E2 as it skips a (calculated) one
+  ok   E3 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows message: this ticket leaves the import path alone
+  ok   E4 (no value) still counts as shape-blank, so the structure stays readable
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the blast radius is measured across every table, not the two named
+  ok   X3 the evidence is the REAL generated workbook, read back cell by cell
+
+======================================================================
+  32 passed, 0 failed
+======================================================================

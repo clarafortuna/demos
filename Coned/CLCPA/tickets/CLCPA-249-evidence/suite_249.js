@@ -675,6 +675,26 @@ guard('X: app.js is byte-identical to BASE', () => {
   };
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   const LATER = {
+    /* re-pinned, named so the count stays exact */
+    xlsxInstructionBlocks: 'NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has',
+    /* re-pinned, named so the count stays exact */
+    ingestStagedSummary: 'NOT this ticket: CLCPA-300: the staged summary counts the columns that receive values',
+    /* re-pinned, named so the count stays exact */
+    derivedPctCols: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    fmtDerivedCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    renderTable: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    formatCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    /* re-pinned, named so the count stays exact */
+    xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
+    /* CLCPA-291, named so the count stays exact */
+    ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-282, named so the count stays exact */
+    ingestHeaderKeys: 'NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)',
+    ingestHeaderName: 'NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)',
+    wireIngestPage: 'NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast',
+    /* CLCPA-283, named so the count stays exact */
+    isYearProtected: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only',
+    boot: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)',
     /* CLCPA-301, named so the count stays exact */
     applyIngestImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank',
     fillDerivableSumsOnImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)',
@@ -838,13 +858,19 @@ guard('X: the stylesheet changed, and only where it should', () => {
      * clears the card that follows it the way stacked cards already do.
      * Named here rather than excused, for the same reason as the line above. */
     '.ingest-import-result:last-child, .ingest-import-notice:last-child',
+    /* The black-button ticket added a SIXTH: + Add Row keeps its resting
+     * background on hover and on active. Scoped to the control, like the
+     * #ingest-template patch beside it, because CLCPA-85 round 2 ruled that
+     * a shared rule is not restyled to fix individual controls. Named here
+     * rather than excused, for the same reason as the two lines above. */
+    '#ingest-add-row:hover, #ingest-add-row:active',
   ].sort();
   ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
      'X3 exactly these NINE rules were retired: ' + removed.length +
      (JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED) ? '' :
       '  GOT ' + JSON.stringify(removed)));
   ok(JSON.stringify(added) === JSON.stringify(EXPECT_ADDED),
-     'X3b and exactly THREE were added: centre, text-column left, and the ' +
+     'X3b and exactly these were added, each named above: ' +
      'first column scoped so it cannot catch a sub-header: ' + added.length);
 });
 guard('X: the baseline', () => {

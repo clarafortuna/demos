@@ -32,19 +32,18 @@ CLCPA-240 first half -- mutation controls
   red  THE RE-IMPORT DIRECTION: the marker counts as blank for SHAPE again
        2 red, incl: M2 A5: it MATCHES all 50 rows instead of appending duplicates: 60
   red  the marker stops counting as an empty cell in a KEY
-       3 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 1 differ: r22 want null got "(c
+       3 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 1 differ: r22 want null got "(n
   red  THE OVER-WIDE DIRECTION: the duplicate rejection is removed
        3 red, incl: D1 two rows identical in group AND label are rejected
   red  duplicates are counted on the label again, not the composite key
        13 red, incl: R3 the importer ACCEPTS the file the template wrote: The file has 6 rows with this label inside the sam
   red  a key column falls through to colMap as a VALUE
        1 red, incl: C6 Program Name is NOT in matchedColumns, so it is never written as a value
-  red  a missing second key column is accepted silently
-       2 red, incl: M16b and it is the MISSING-COLUMN rejection, not the ambiguity one: "The file has 2 rows with this same
+  ???  a missing second key column is accepted silently  -- ANCHOR 0, NOT APPLIED
   red  only the label is carried into a created row
        2 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 22 differ: r0 want "Clean Heat 
   red  the marker is written into a created key column
-       1 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 1 differ: r22 want null got "(c
+       1 red, incl: C4 every Program Name survives as its own text, never numeric-parsed -- 1 differ: r22 want null got "(n
   red  THE ORIGINAL DEFECT: headers are stamped (calculated) again
        6 red, incl: R2 all 9 group headers carry NO "(calculated)": 0
   ???  THE OVER-WIDE DIRECTION: the marker is dropped from every row  -- ANCHOR 0, NOT APPLIED
@@ -61,5 +60,5 @@ CLCPA-240 first half -- mutation controls
   red  HARNESS: a declaration is deleted and left quoted in a comment
        10 red, incl: S2 INGEST_GROUPED declares exactly A5, A6, A8 (A7 excluded on purpose)
 
-  29 caught, 1 not caught, of 30
+  28 caught, 2 not caught, of 30
   clean re-run against byte-restored source: PASSES -- 90 passed, 0 failed

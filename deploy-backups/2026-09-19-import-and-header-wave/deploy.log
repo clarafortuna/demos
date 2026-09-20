@@ -1,0 +1,164 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org:     https://org9076e69b.crm.dynamics.com
+slice:   the section page header, the import totals, the remove-year contract, the button and the two-level CSV -- CLCPA-281, CLCPA-301, CLCPA-283, CLCPA-282, BLACK-BUTTON
+files:   app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  self-check: helpers present, 5 declared tickets, 5 commits, 3 resources,
+              11 app symbols across 4 tickets + 2 stylesheet symbols across 1.
+              PROSE AUDIT: no undeclared build id, commit or ticket anywhere in this file.
+PRE-FLIGHT 1  branch = main, HEAD = 8d4a6d4
+              source folder clean, so the pushed bytes are exactly 8d4a6d4.
+              ancestor: 0fd068b  the read-only surfaces ask the same header question
+              ancestor: c0735ba  the import path computes the row Grand Total
+              ancestor: 18bd1e7  one contract for removing a year
+              ancestor: 9fd23de  Add Row keeps its background on hover and active
+              ancestor: 8d4a6d4  a two-level table round-trips, and the Section A triage
+              local main == remote main == 8d4a6d4.
+              HEAD is the merge commit the ids were derived from.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      c0f8f1a9e6
+                 styles.css  9039bfc509
+              both match what DEPLOY declares for this wave.
+              ok  CLCPA-281
+              ok  CLCPA-301
+              ok  CLCPA-283
+              ok  CLCPA-282
+PRE-FLIGHT 3b all 5 ticket groups verified in the COMMITTED BLOB (11 symbols), 0 NUL bytes.
+              ok  BLACK-BUTTON  (stylesheet)
+              and the STYLESHEET half: 2 symbols across 1 ticket group(s) verified in the committed styles.css.
+PRE-FLIGHT 3c all 71 suites green, 6016 assertions.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both present, no stale third stamp.
+              Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  ANS7AM4YC
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1268716B  local=1280648B
+WILL PUSH  styles.css   deployed=285220B  local=286866B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PROVENANCE of the archive, read from the ORG:
+  app.js APP_BUILD stamp        : abb8d99439
+  app.js canonicalised + hashed : abb8d99439
+  expected previous app.js      : abb8d99439
+  styles.css LIVE (to replace)  : 2b9651445c   expected 2b9651445c
+  -> all agree. The archive holds abb8d99439 + 2b9651445c.
+
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
+ROLLBACK  snapshot committed as 2a339ae
+          remote main = 2a339ae  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1280648B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (286866B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1280648B  sha256 08f80d6875df8506...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 278024b63c027aee...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : c0f8f1a9e6  ok
+  app.js canonicalised + hashed : c0f8f1a9e6  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : c0f8f1a9e6  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 4 app ticket groups and 2 stylesheet symbols across 1 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the section page header, the import totals, the remove-year contract, the button and the two-level CSV -- CLCPA-281, CLCPA-301, CLCPA-283, CLCPA-282, BLACK-BUTTON
+build id (app.js): c0f8f1a9e6
+styles.css id    : 9039bfc509   (replaced 2b9651445c)
+previous build   : abb8d99439, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 8d4a6d4
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build c0f8f1a9e6
+
+THE ACCEPTANCE PASS:
+  CLCPA-281  THE SECTION PAGE DRAWS BOTH HEADER LEVELS.
+     Section F, table F6, on a USER-ADDED year. Both header levels must
+     draw, and the body must hold EVERY data row. Under the previous build
+     the first data row was promoted into the header band and vanished from
+     the body -- a lost row, not merely a missing heading. A9 and A10 the
+     same. A seed year must look exactly as it did.
+     Also worth a glance: a user-added year holding ONE row should still
+     offer its prior-year panel and show no false NO BASELINE chip.
+  CLCPA-301  AN IMPORTED ROW GETS ITS TOTAL.
+     Import a CSV into H1 on a user-added year with the total column left
+     as the template writes it, (calculated). Every fully numeric row must
+     show its own Grand Total. SAVE AND RELOAD: the totals must still be
+     there. A row that files a total which disagrees keeps the filed figure
+     and raises the advisory. Editing a component digit by digit must still
+     bring the row total with it.
+  CLCPA-283  A YEAR YOU ADDED IS YOURS TO REMOVE.
+     Add a year, save a value into it, then Remove it and confirm. The year
+     and its data must go, and it must leave the year selector everywhere.
+     Under the previous build the dialog promised exactly that and then
+     refused with a red toast, so no user-added year that had ever been
+     saved could be removed at all.
+     A SEED YEAR must still offer no Remove control. And a dirty draft must
+     still raise the discard prompt when the year is switched.
+  BLACK BUTTON  + ADD ROW KEEPS ITS BACKGROUND.
+     Hover + Add Row, and hold the mouse down on it. It must stay clear
+     with its blue label, not invert to near-black. Download Template the
+     same. Save Changes and Add Data must STILL darken on hover.
+  CLCPA-282  A TWO-LEVEL TABLE ROUND-TRIPS.
+     Download A9s template for a user-added year, save it as CSV, type
+     figures in and import it. It must land, and the values must reach the
+     RIGHT columns -- check that a 2024 DAC figure did not arrive in the
+     2025 DAC column. A10 the same, including its calculated columns. A
+     one-level table such as H1 must import exactly as before.
+     Use the template for the YEAR BEING FILLED: the group row names the
+     years, so a sheet built from a different years template will not match.
+
+STILL DISCLOSED, not defects in this build:
+  - CLCPA-290s SHAPE IS NOT SETTLED and no fix for it ships here. On the
+  -    display derivation none of A3/A4s three Total cells compute, where the
+  -    ticket reports one of three. Different surface, and the build starts
+  -    with a browser reproduction rather than a guess.
+  - CLCPA-295 AWAITS A RULING and is untouched: A6 and A7 headings carry a
+  -    stray " Total" that matches a total-row label character for character,
+  -    and those strings live in schema_by_year, which is frozen stored data.
+  - STILL OPEN, each measured and reproducing: 287 (a rejected import is
+  -    never reported on the page, only in the dialog that closes), 289 (A9s
+  -    template carries no calculated markers at all), 291, 292, 294 (a
+  -    computed ratio at or above 1 keeps the raw ratio, so 777 against 333
+  -    reads 2.3 where 233.3% is meant), 300.
+  - RETIRED BY MEASUREMENT, no code: CLCPA-296 -- no group header shares a
+  -    label with any other row in A5 to A8, so the C-01 collision stays
+  -    LATENT -- and CLCPA-286, since no Section A table scaffolds a fresh
+  -    year, by design.
+  - THE BLACK BUTTON IS FIXED SCOPED TO THE CONTROL, not on the shared rule.
+  -    The shared fix was written and backed out because CLCPA-85 round 2
+  -    ruled against restyling a shared rule for one control. The case for
+  -    changing that ruling is filed with the blast radius measured.
+  - CARRIED FORWARD, unchanged: the 44 numeric-looking strings in A3/A4 for
+  -    2098; the remove-year control still reads the composed payload rather
+  -    than the store; and on a fresh A8 the bootstrap would compute 283,852
+  -    into a grand total whose real figure is 336,599.
+  - BOTH HALVES MOVE in this wave: app.js and styles.css.
+
+=== log written by deploy_import_and_header_wave.js ===

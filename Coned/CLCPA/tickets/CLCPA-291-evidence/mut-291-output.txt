@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-291 -- mutation controls
+  suite  : suite_291.js
+  mutant : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-291-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 32 passed, 0 failed
+
+--- mutation 1: the fix is reverted: every named column of a total row is (calculated) again
+  suite: 29 passed, 3 failed
+  failed ids: B1.A3, B1.A4, C1
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 2: the predicate is scoped to ONE year, converting A7s numeric column
+  suite: 31 passed, 1 failed
+  failed ids: D2b
+  expected to break: D2b  ->  NOTICED on D2b
+
+--- mutation 3: bareNumber is asked alone, so every percent column becomes text
+  suite: 26 passed, 6 failed
+  failed ids: C1, C2, D5.J3, D5.J4, D5.J6, D5.J7
+  expected to break: D5, C1  ->  NOTICED on D5, C1
+
+--- mutation 4: a column blank everywhere is called text, converting empty columns
+  suite: 31 passed, 1 failed
+  failed ids: D7
+  expected to break: D7  ->  NOTICED on D7
+
+--- mutation 5: the marker is inverted: numeric columns get (no value)
+  suite: 26 passed, 6 failed
+  failed ids: B1.A3, B2.A3, B1.A4, B2.A4, C1, C2
+  expected to break: B1, B2  ->  NOTICED on B1, B2
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 32 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  5 of 5 mutations noticed, 0 missed
+======================================================================

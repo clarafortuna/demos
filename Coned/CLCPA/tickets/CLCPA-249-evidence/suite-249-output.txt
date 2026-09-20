@@ -168,11 +168,14 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function tableCaption moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function deriveTableCaptionInfo moved, and it is named by a later ticket: CLCPA-252 round 2: the three strategies (new)
   ok   X1 app.js function deriveTableCaption moved, and it is named by a later ticket: CLCPA-252 round 2: the derivation (new)
+  ok   X1 app.js function isYearProtected moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
   ok   X1 app.js function isDeclaredSummable moved, and it is named by a later ticket: CLCPA-254, Section C group E: the declared-summable column, new
   ok   X1 app.js function isTotalRoleLabel moved, and it is named by a later ticket: CLCPA-270: the total-role label test (new)
   ok   X1 app.js function isComputedShareLabel moved, and it is named by a later ticket: CLCPA-270: a percentage OF A TOTAL (new)
   ok   X1 app.js function ingestRowRole moved, and it is named by a later ticket: CLCPA-270: the row role, from its label (new)
   ok   X1 app.js function ingestRoleOpen moved, and it is named by a later ticket: CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)
+  ok   X1 app.js function derivedPctCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   X1 app.js function fmtDerivedCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function columnGrandTotals moved, and it is named by a later ticket: CLCPA-278 round 3: and the engine's own summing, which is how recomputeTotals adds
   ok   X1 app.js function rowsForDisplay moved, and it is named by a later ticket: CLCPA-263: it derives the value (pct) composites on its clone
   ok   X1 app.js function isCompositeShareCol moved, and it is named by a later ticket: CLCPA-263: the declaration predicate (new)
@@ -184,7 +187,8 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function recomputeDerivableSums moved, and it is named by a later ticket: CLCPA-278: a consistent total follows the edit (new)
   ok   X1 app.js function fillDerivableSumsOnImport moved, and it is named by a later ticket: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   X1 app.js function reconcileSumColumns moved, and it is named by a later ticket: CLCPA-272: the reconciliation itself (new)
-  FAIL X1 app.js function renderTable moved, and it is named by a later ticket -- NO, it is unaccounted for
+  ok   X1 app.js function renderTable moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   X1 app.js function formatCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function compareColWidths moved, and it is named by a later ticket: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
   ok   X1 app.js function renderSourceTables moved, and it is named by a later ticket: CLCPA-252, Section C group B
   FAIL X1 app.js function dsValidateDoc moved, and it is named by a later ticket -- NO, it is unaccounted for
@@ -196,6 +200,9 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function buildYearSelector moved, and it is named by a later ticket: CLCPA-250: a year change re-derives that year
   ok   X1 app.js function getTableSchema moved, and it is named by a later ticket: CLCPA-267: its fallback shifts the donor year
   ok   X1 app.js function isPercentLiteral moved, and it is named by a later ticket: CLCPA-273: the percent predicate, lifted out of buildIngestImport (new)
+  ok   X1 app.js function ingestHeaderKeys moved, and it is named by a later ticket: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
+  ok   X1 app.js function ingestHeaderName moved, and it is named by a later ticket: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
+  ok   X1 app.js function ingestTextOnlyColumn moved, and it is named by a later ticket: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
   ok   X1 app.js function ingestComputed moved, and it is named by a later ticket: CLCPA-253, Section C group A
   ok   X1 app.js function buildIngestImport moved, and it is named by a later ticket: CLCPA-261, Section C group E: it collects the fraction notices
   ok   X1 app.js function applyIngestImport moved, and it is named by a later ticket: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
@@ -204,6 +211,8 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function ingestYearCarriesHeaderRows moved, and it is named by a later ticket: CLCPA-274 round 3: does THIS year carry them, or must it borrow (new)
   ok   X1 app.js function storedHeaderRowsInYear moved, and it is named by a later ticket: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)
   ok   X1 app.js function ingestStoredHeaderRows moved, and it is named by a later ticket: CLCPA-274 round 3: the table's own header rows, from a year that has them (new)
+  ok   X1 app.js function xlsxCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
+  ok   X1 app.js function xlsxInstructionBlocks moved, and it is named by a later ticket: NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has
   ok   X1 app.js function buildIngestWorkbook moved, and it is named by a later ticket: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them
   ok   X1 app.js function recomputeTotals moved, and it is named by a later ticket: CLCPA-254, Section C group E: it consults that declaration
   ok   X1 app.js function loadIngestDraft moved, and it is named by a later ticket: CLCPA-273: clears the typed advisories on a table-year change
@@ -213,20 +222,23 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function renderIngestImportResult moved, and it is named by a later ticket: CLCPA-261, Section C group E: the summary announces them
   ok   X1 app.js function renderReconcileNotice moved, and it is named by a later ticket: CLCPA-272: the reconciliation advisory box (new)
   ok   X1 app.js function renderIngestEditor moved, and it is named by a later ticket: CLCPA-252, Section C group B; and CLCPA-255, group E
+  ok   X1 app.js function wireIngestPage moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
   ok   X1 app.js function openAddYearDialog moved, and it is named by a later ticket: CLCPA-262, Section C group A
   ok   X1 app.js function stagedBlock moved, and it is named by a later ticket: CLCPA-264: nested in openAddYearDialog, it renders the identity advisory
   ok   X1 app.js function wire moved, and it is named by a later ticket: CLCPA-262, nested inside openAddYearDialog
   ok   X1 app.js function wireIngestEditor moved, and it is named by a later ticket: CLCPA-273: the blur handler reads the text before the parse
   ok   X1 app.js function openSaveModal moved, and it is named by a later ticket: CLCPA-256, Section C group A
+  ok   X1 app.js function ingestStagedSummary moved, and it is named by a later ticket: NOT this ticket: CLCPA-300: the staged summary counts the columns that receive values
   ok   X1 app.js function rerenderIngestEditor moved, and it is named by a later ticket: CLCPA-276 round 2: the editor repaint now repaints the notice mount beside it
   ok   X1 app.js function refreshIngestCalcCells moved, and it is named by a later ticket: CLCPA-271: calc cells keep their column format on repaint
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
-  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (64) belongs to a later ticket
+  ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
+  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (76) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
-  ok   X3b and exactly THREE were added: centre, text-column left, and the first column scoped so it cannot catch a sub-header: 14
+  ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  194 passed, 3 failed
+  207 passed, 2 failed

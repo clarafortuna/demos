@@ -44,7 +44,7 @@ CLCPA-245 -- mutation controls
   red  HARNESS: the 21-row check stops finding any rows
        11 red, incl: G4 found all 21 County/Systemwide Total rows: 0
   red  HARNESS: the baseline is repointed at a symbolic ref
-       73 red, incl: X9 BASE is a literal commit sha: HEAD
+       70 red, incl: X9 BASE is a literal commit sha: HEAD
 
   22 caught, 0 not caught, of 22 guards
   clean re-run against byte-restored source: FAILED

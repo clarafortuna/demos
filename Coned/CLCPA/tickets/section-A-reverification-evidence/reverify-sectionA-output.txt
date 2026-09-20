@@ -1,0 +1,72 @@
+
+==================================================================
+CLCPA-289  A9 "% Change" columns are not marked (calculated)
+==================================================================
+  A9 template row 0 : ["","2024","2024","2025","2025","% Change","% Change"]
+  A9 template row 1 : ["","Total","DAC","Total","DAC","Total","DAC"]
+  A9 template row 2 : ["Incentives","","","","","",""]
+  (calculated) markers in the whole A9 template : 0
+  A10 template row 2 : ["Installations","","","(calculated)","","","(calculated)"]
+  (calculated) markers in the whole A10 template: 10
+  A9 stored rows (label, then the six values):
+    ["Incentives",380265714,204785586,282132687,148672655,"-26%","-27%"]
+    ["Energy Savings (MMBtu)",4360879,2486965,4043415,2121658,"-7%","-15%"]
+    ["Participation",2087688,1130930,2034938,942510,"-3%","-17%"]
+
+==================================================================
+CLCPA-291 / CLCPA-292  the A3 and A4 templates
+==================================================================
+  A3 schema      : ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  A3 template r0 : ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  A3 template r1 : ["Residential","","","",""]
+  A3 template r2 : ["Residential","","","",""]
+  A3 template TOTAL row : ["Total","(calculated)","(calculated)","(calculated)","(calculated)"]
+  A3 column B non-blank in template : 1 of 23  ["(calculated)"]
+  A4 schema      : ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  A4 template r0 : ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  A4 template r1 : ["Residential","","","",""]
+  A4 template r2 : ["Residential","","","",""]
+  A4 template TOTAL row : ["Total","(calculated)","(calculated)","(calculated)","(calculated)"]
+  A4 column B non-blank in template : 1 of 23  ["(calculated)"]
+
+==================================================================
+CLCPA-295  A6 / A7 first-column heading carries a stray "Total"
+==================================================================
+  A5 heading[0] : "Commercial Programs Installations"
+  A5 rows whose label ends in Total : ["Clean Heat – Commercial & Industrial Air Source Heat Pump Total","Clean Heat – Commercial & Industrial Ground Source Heat Pump Total"]
+  A6 heading[0] : "Multifamily Programs Installations Total"
+  A6 rows whose label ends in Total : ["Affordable Multifamily Energy Efficiency Program Total","Clean Heat – Multifamily Air Source Heat Pump Total"]
+    >>> the heading is CHARACTER-FOR-CHARACTER a total row label
+  A7 heading[0] : "Multisector Programs Installations Total"
+  A7 rows whose label ends in Total : ["Real Time Energy Management Total","Multisector Programs Installations Total"]
+    >>> the heading is CHARACTER-FOR-CHARACTER a total row label
+  A8 heading[0] : "Residential Programs Installations"
+  A8 rows whose label ends in Total : ["Clean Heat – Midstream Heat Pump Water Heater Total","Clean Heat – Residential Air Source Heat Pump Total"]
+
+==================================================================
+CLCPA-296  a group header and its subtotal share one row key
+==================================================================
+  A5 : 18 duplicate first-column keys
+      "HVAC"  rows [1,4]
+      "HVAC"  rows [1,8]
+      "Building Shell"  rows [7,12]
+  A6 : 14 duplicate first-column keys
+      "Building Shell"  rows [2,11]
+      "HVAC"  rows [5,12]
+      "Building Shell"  rows [2,15]
+  A7 : 0 duplicate first-column keys
+  A8 : 5 duplicate first-column keys
+      "HVAC"  rows [1,4]
+      "HVAC"  rows [1,7]
+      "HVAC"  rows [1,13]
+
+==================================================================
+CLCPA-294  a computed "% in DACs" loses the x100 when the ratio reaches 1
+==================================================================
+  A1 schema : ["Program Name","Total Funds Expended ($)","DAC Funding ($)","% in DACs"]
+    ["Below one",888,333,0.375]
+    ["Exactly one",333,333,1]
+    ["Above one",333,777,2.3333333333333335]
+    ["Far above",0.1,555,5550]
+
+done.

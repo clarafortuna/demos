@@ -1,0 +1,40 @@
+======================================================================
+CLCPA-281 r3 -- mutation controls
+  suite  : suite_283.js
+  mutant : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-283-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 32 passed, 0 failed
+
+--- mutation 1: holding data protects a year again (the contradiction restored)
+  suite: 31 passed, 1 failed
+  failed ids: B2
+  expected to break: B2  ->  NOTICED on B2
+
+--- mutation 2: seed years stop being protected, so the report years become removable
+  suite: 30 passed, 2 failed
+  failed ids: B3, B4
+  expected to break: B3  ->  NOTICED on B3
+
+--- mutation 3: the button stops asking the predicate, so it shows for seed years too
+  suite: 31 passed, 1 failed
+  failed ids: D1
+  expected to break: D1  ->  NOTICED on D1
+
+--- mutation 4: the last line of defence in Storage.removeYear is removed
+  suite: 31 passed, 1 failed
+  failed ids: D2
+  expected to break: D2  ->  NOTICED on D2
+
+--- mutation 5: removing a year keeps its saved data, breaking the dialog's promise
+  suite: 31 passed, 1 failed
+  failed ids: D6
+  expected to break: D6  ->  NOTICED on D6
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 32 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  5 of 5 mutations noticed, 0 missed
+======================================================================

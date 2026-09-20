@@ -2,31 +2,31 @@
 CLCPA-263 -- mutation controls
 ======================================================================
   red  THE GATE: it stops requiring a bare number and rewrites stored cells
-       9 red, incl: S2 and every one is byte-identical to BASE: C2:2023, C2:2025
+       8 red, incl: S2 and every one is byte-identical to BASE: C2:2023, C2:2025
   red  THE GATE: a percentage string is treated as a bare number
-       7 red, incl: S2 and every one is byte-identical to BASE: C2:2023
+       6 red, incl: S2 and every one is byte-identical to BASE: C2:2023
   red  IT IS STORED: the derivation runs on the input, not the clone
-       5 red, incl: R1 rowsForDisplay left its input untouched, so nothing derived can be saved
+       4 red, incl: R1 rowsForDisplay left its input untouched, so nothing derived can be saved
   red  THE DENOMINATOR: the total row shares in its own total
-       12 red, incl: D5 the total row column 3 is untouched: "116,581 (100%)"
+       11 red, incl: D5 the total row column 3 is untouched: "116,581 (100%)"
   red  THE DENOMINATOR: the total row is found by ARITHMETIC again
-       14 red, incl: D5 the total row column 3 is untouched: "116,581 (50%)"
+       13 red, incl: D5 the total row column 3 is untouched: "116,581 (50%)"
   red  THE DENOMINATOR: zero is accepted and produces Infinity
-       7 red, incl: N1g and neither does a value against a zero total: "5 (Infinity%)"
+       6 red, incl: N1g and neither does a value against a zero total: "5 (Infinity%)"
   red  THE FORMATTING REGRESSES: the raw value is concatenated
-       8 red, incl: F4 the derived cell keeps the separator: "37988 (33%)"
+       7 red, incl: F4 the derived cell keeps the separator: "37988 (33%)"
   red  THE FORMATTING: decimals are truncated to integers
-       10 red, incl: F6 and a small decimal: "3 (0%)"
+       9 red, incl: F6 and a small decimal: "3 (0%)"
   red  THE ROUNDING: the share is truncated instead of rounded
-       7 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
+       6 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
   red  IT SPREADS: the declaration reaches every table
-       5 red, incl: C5 and the same heading in another table is not, because it is per TABLE
+       4 red, incl: C5 and the same heading in another table is not, because it is per TABLE
   red  IT SPREADS: every column of C2 derives
-       5 red, incl: N2 the spacer column is untouched: "500 (50%)"
+       4 red, incl: N2 the spacer column is untouched: "500 (50%)"
   red  HARNESS: the baseline is repointed at a symbolic ref
-       60 red, incl: X3 BASE is a literal commit sha: HEAD
+       53 red, incl: X3 BASE is a literal commit sha: HEAD
   red  HARNESS: the fresh fixture stops using C2s own figures
-       10 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
+       9 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
 
   13 caught, 0 not caught, of 13 guards
-  clean re-run against byte-restored source: FAILS -- 177 passed, 4 failed
+  clean re-run against byte-restored source: FAILS -- 203 passed, 3 failed

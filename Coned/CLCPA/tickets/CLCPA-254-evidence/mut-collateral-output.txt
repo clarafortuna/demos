@@ -17,9 +17,9 @@ Section C group E -- COLLATERAL mutation controls
 
   0 caught, 7 not caught, of 7 mutations
   clean re-run suite_244.js: PASSES -- 42 passed, 0 failed
-  clean re-run suite_245.js: FAILS -- 215 passed, 10 failed
+  clean re-run suite_245.js: FAILS -- 237 passed, 10 failed
   clean re-run suite_badge.js: PASSES -- 120 passed, 0 failed
   clean re-run suite_240a_r2.js: PASSES -- 89 passed, 0 failed
   clean re-run suite_240a_r3.js: PASSES -- 61 passed, 0 failed
-  clean re-run suite_254_255_261.js: FAILS -- 168 passed, 4 failed
+  clean re-run suite_254_255_261.js: FAILS -- 194 passed, 3 failed
   clean re-run against byte-restored source: FAILS

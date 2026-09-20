@@ -2,16 +2,16 @@
 Section C package -- mutation controls for the final stacked gate
 ======================================================================
   red  AN UNCLAIMED CHANGE reaches the report page
-       3 red, incl: Z2 every difference is claimed by a named ticket: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2
+       4 red, incl: Z2 every difference is claimed by a named ticket: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2
   ???  CLCPA-252 is reverted, so its claim matches nothing  -- ANCHOR 0, NOT APPLIED
   red  HARNESS: the compare loop stops passing the view, so it runs one path twice
-       4 red, incl: C2 the compare panel is a DIFFERENT render for 0 of 149, so this gate drove two anatomies and not o
+       5 red, incl: C2 the compare panel is a DIFFERENT render for 0 of 149, so this gate drove two anatomies and not o
   red  CLCPA-254 is reverted: the declaration stops being consulted
-       4 red, incl: E4 and this build computes null, the sum of the three rows, which is C2:2025s own stored 736.73
+       5 red, incl: E4 and this build computes null, the sum of the three rows, which is C2:2025s own stored 736.73
   red  HARNESS: the baseline is repointed at a symbolic ref
-       5 red, incl: X1 BASE is a literal commit sha: HEAD
+       4 red, incl: X1 BASE is a literal commit sha: HEAD
   note HARNESS: a render that produced no table is counted anyway
        NOT RUN: it makes an assertion unconditionally true, which a run cannot see. Covered by Z2 catching the stub-render mutation above.
 
   4 caught, 1 not caught, of 4 run
-  clean re-run against byte-restored source: FAILS -- 21 passed, 3 failed
+  clean re-run against byte-restored source: FAILS -- 22 passed, 4 failed

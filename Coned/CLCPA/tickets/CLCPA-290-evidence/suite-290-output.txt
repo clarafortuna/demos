@@ -1,0 +1,51 @@
+======================================================================
+CLCPA-290 -- the average columns are un-totalled, on both surfaces
+  app.js : C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 461ea86 (predates this change)
+======================================================================
+
+A. THE TWO SURFACES DISAGREED
+  ok   A1 on BASE the report page computed NOTHING, not even Total Participants -- ["Total",null,null,null,null]
+  ok   A2 while the editor already refused the average columns by declaration
+
+B. WHAT THE REPORT PAGE SHOWS NOW
+  ok   B1.A3 Total Participants computes to 2034907 -- ["Total",null,2034907,"—","—"]
+  ok   B2.A3 and both average columns render an honest dash
+  ok   B3.A3 never a number: a sum of averages is not a quantity
+  ok   B1.A4 Total Participants computes to 942490 -- ["Total",null,942490,"—","—"]
+  ok   B2.A4 and both average columns render an honest dash
+  ok   B3.A4 never a number: a sum of averages is not a quantity
+
+C. ONE DECLARATION, BOTH SURFACES
+  ok   C1 the report path asks detectAvgColumns, and only when the fill is asked for
+  ok   C2 and the editor path asks the same predicate, unchanged
+  ok   C3 an un-totalled column gets the dash
+  ok   C4 and a summable one takes the sum columnGrandTotals ALREADY computed
+  ok   C5 nothing sums a column a second way
+
+D. WHAT MOVED, ACROSS ALL 149 STORED TABLE-YEARS
+  ok   D1 all 149 stored table-years rendered on both builds -- 149
+  ok   D2 exactly four moved -- ["A3:2023","A3:2024","A4:2023","A4:2024"]
+  ok   D3 and NOT ONE stored value changed: only blanks became dashes -- 0
+  ok   D4 A3/2025 keeps its filed 3,761,330 and 22,511 -- ["Total",null,2034938,3761330,22511]
+
+D2. ONLY THE SECTION PAGE ASKS FOR THE FILL
+  ok   D2a WITHOUT the flag nothing is filled, so the composer sees what it saw -- ["Total",null,null,null,null]
+  ok   D2b and WITH it the section page gets its total -- ["Total",null,2034907,"—","—"]
+  ok   D2c exactly one caller opts in
+  ok   D2d and only one -- 1
+
+E. THE WEIGHTED MEAN IS NOT REGISTERED
+  ok   E1 neither A3 nor A4 has a DERIVED_COLS entry
+  ok   E2 the weightedMean type still exists, for the tables that pass its own test
+  ok   E3 and is still used where three stored years verified it
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the published report is checked whole, not on the two tables named
+  ok   X3 and separately that no stored VALUE moved, not merely that few cells did
+  ok   X4 the browser gesture is committed beside this suite
+
+======================================================================
+  28 passed, 0 failed
+======================================================================

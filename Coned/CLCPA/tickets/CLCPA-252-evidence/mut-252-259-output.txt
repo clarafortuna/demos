@@ -23,7 +23,7 @@ Section C group B -- mutation controls
   red  HARNESS: the stored-year sweep stops rendering
        2 red, incl: Z1b and every one produced a <table>
   red  HARNESS: the baseline is repointed at a symbolic ref
-       38 red, incl: X3 BASE is a literal commit sha: HEAD
+       42 red, incl: X3 BASE is a literal commit sha: HEAD
 
   10 caught, 3 not caught, of 13 guards
   clean re-run against byte-restored source: PASSES -- 99 passed, 0 failed

@@ -8399,6 +8399,37 @@ a.nav-item { text-decoration: none; }
    .btn-link:hover s own hover, which already applies and is left alone. */
 #ingest-template:hover { background: transparent; }
 
+/* + Add Row keeps its resting background on hover and on active.
+
+   THE SAME CAUSE AS THE RULE ABOVE, on a second control. .btn:hover sets
+   background: var(--ink-2) at 0-2-0 and outranks .btn-link { background:
+   transparent } at 0-1-0; .btn-link:hover sets only text-decoration and never
+   contests the fill. So a control carrying BOTH classes inverts to near-black
+   while its label stays --dusk blue. Measured in Chrome, settled values:
+   hover and active both rgb(10, 36, 54).
+
+   The report named the FOCUS state. Focus was always clean -- a fix aimed at
+   :focus would have changed nothing and measured green.
+
+   SCOPED BY ID, like its neighbour, and deliberately not fixed on
+   .btn-link:hover. The shared rule is where the cause lives and fixing it
+   there would be one line instead of two, but CLCPA-85 round 2 ruled that a
+   shared rule is not to be restyled to fix individual controls, and
+   suite_85_ui pins .btn:hover, .btn-link and .btn-link:hover byte-identical.
+   That ruling stands until the owner changes it; the case for changing it is
+   written up in tickets/black-button-add-row.md.
+
+   :active as well as :hover, because a held button is a separate state and
+   the measurement showed both inverting.
+
+   transparent is .btn-link's own resting value, so no colour literal is
+   introduced here. The UNDERLINE is .btn-link:hover's own and is left alone.
+
+   PRE-EXISTING, measured: both ingredients have been in place unchanged since
+   333f183 on 2026-06-01, the commit that created this dev copy. */
+#ingest-add-row:hover,
+#ingest-add-row:active { background: transparent; }
+
 /* The staged file, in the Add New Year dialog.
 
    Revision 2 has no gating: every control is live and choosing a file STAGES

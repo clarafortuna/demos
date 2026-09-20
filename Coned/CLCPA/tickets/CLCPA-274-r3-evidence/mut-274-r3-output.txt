@@ -2,14 +2,14 @@
 CLCPA-274-r3 -- mutation controls
 ======================================================================
   red  THE DEFECT RETURNS: the count is applied to the source year again
-       3 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","Brooklyn","607","","307","","2728
+       4 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","Brooklyn","607","","307","","2728
   red  THE SOURCE YEAR stops skipping the rows it carries, so they double
-       3 red, incl: D1 every SEED-year template is byte-identical to BASE -- A9,A10,F6
+       3 red, incl: D1 every SEED-year template is byte-identical to BASE -- A9,A10,F6,H1,B2,F2,F4,F5,F7,D1
   ???  THE HEADER TEST stops looking at the label column  -- ANCHOR 0, NOT APPLIED
   red  THE TABLE stops lending its header rows to a year without them
-       6 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","","","","","","(calculated)"]
+       6 red, incl: C1 user-added WITH data: row 2 is the four sub-labels -- ["Borough Hall","Brooklyn","607","","307","","(cal
   red  EVERY TABLE is treated as two-level
-       2 red, incl: F3 and a one-level table has no header rows to borrow at all
+       3 red, incl: D1 every SEED-year template is byte-identical to BASE -- A9,A10,F6,H1,B2,F2,F4,F5,F7,D1
 
   4 caught, 1 not caught, of 4 applied
-  clean re-run against byte-restored source: FAILS -- 28 passed, 1 failed
+  clean re-run against byte-restored source: FAILS -- 27 passed, 2 failed

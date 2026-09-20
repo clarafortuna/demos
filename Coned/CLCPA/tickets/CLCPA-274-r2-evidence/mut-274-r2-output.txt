@@ -3,11 +3,11 @@ CLCPA-274 round 2 -- mutation controls
 ======================================================================
   ???  THE DEFECT RETURNS: the writer stops knowing about header rows  -- ANCHOR 0, NOT APPLIED
   red  THE PREDICATE becomes "has a header_levels key", which claims D1
-       4 red, incl: F6 and the predicate is "a number, at least 2" -- never "has the key"
+       10 red, incl: F6 and the predicate is "a number, at least 2" -- never "has the key"
   ???  THE HEADER ROW is emitted but blanked, as before  -- ANCHOR 0, NOT APPLIED
   ???  THE MARKER reaches the header row again  -- ANCHOR 0, NOT APPLIED
   ???  THE EDITOR goes back to its own inline copy  -- ANCHOR 0, NOT APPLIED
   ???  THE FIX LEAKS onto a one-level table  -- ANCHOR 0, NOT APPLIED
 
   1 caught, 5 not caught, of 1 applied
-  clean re-run against byte-restored source: FAILS -- 30 passed, 3 failed
+  clean re-run against byte-restored source: FAILS -- 24 passed, 9 failed

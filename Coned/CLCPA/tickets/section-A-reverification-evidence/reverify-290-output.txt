@@ -1,0 +1,12 @@
+=== A3 schema: ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  STORED 2025 Total row : ["Total",null,2034938,3761330,22511]
+  COMPUTED on 2094      : ["Total",null,null,null,null]
+    col 2  sum=2034907.0  n=22
+    col 3  sum=3761329.0  n=21
+    col 4  sum=22297.2  n=21
+=== A4 schema: ["Participant Type","Program Name","Total Participants","Avg. Incentives by Participant","Avg. Energy Savings by Participant (MMBtu)"]
+  STORED 2025 Total row : ["Total",null,942510,2026699,12372]
+  COMPUTED on 2094      : ["Total",null,null,null,null]
+    col 2  sum=942490.0  n=19
+    col 3  sum=2026699.0  n=17
+    col 4  sum=12153.2  n=18

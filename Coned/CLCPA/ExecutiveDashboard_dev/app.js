@@ -2182,24 +2182,41 @@ function utf8ByteLength(str) {
   }
 
   /** CLCPA-155: true if any table holds non-empty data for `year`. */
-  function yearHasData(year) {
-    const p = state.payload;
-    if (!p || !p.tables) return false;
-    const y = String(year);
-    return Object.values(p.tables).some(t => {
-      const rows = (t.data || {})[y];
-      return rows && !isEmptyYearData(rows);
-    });
-  }
-
   /**
-   * CLCPA-155: a year is protected from removal if it is a seed year (shipped in
-   * payload.meta.years) OR holds data. Only genuinely empty, user-added years are
-   * removable. Drives both the Remove-year button visibility and the removeYear guard.
+   * A year is protected from removal if, and only if, it is a SEED YEAR --
+   * one the published report shipped with. Drives both the Remove-year button
+   * visibility and the removeYear guard, which is the point: one question,
+   * one answer, asked by both.
+   *
+   * CLCPA-155 also protected any year HOLDING DATA, and CLCPA-283 is what that
+   * cost. The two readers took the same question at two different moments:
+   *
+   *   add a year   -> empty, so the Remove control is offered
+   *   save once    -> the year now holds data
+   *   click Remove -> the control is still on screen, because its visibility
+   *                   was decided at render and nothing re-decided it. The
+   *                   dialog promises "This will also delete any saved data
+   *                   for <year>. This cannot be undone."
+   *   confirm      -> the guard re-asks, NOW says protected, and refuses with
+   *                   a red toast
+   *
+   * So the dashboard promised a delete and then refused it, and no user-added
+   * year that had ever been saved could be removed at all. Measured in Chrome
+   * on a served build, and it is the shape the owner hit on 2096.
+   *
+   * The contract is now the one the dialog already states: a year the operator
+   * added is theirs to remove, data and all, behind that warning. A seed year
+   * is never removable and is never offered. Protection no longer depends on
+   * anything that can change between render and click, so the two readers
+   * cannot drift apart again.
+   *
+   * yearHasData went with it: isYearProtected was its only caller, and a
+   * dead predicate about "does this year hold data" sitting next to a
+   * removal guard is a second answer waiting to be picked up again.
    */
   function isYearProtected(year) {
     const y = String(year);
-    return (state.seedYears || []).map(String).includes(y) || yearHasData(y);
+    return (state.seedYears || []).map(String).includes(y);
   }
 
   // ============================================================
@@ -2947,10 +2964,39 @@ function utf8ByteLength(str) {
     });
   }
 
+  /* CLCPA-294: WHICH COLUMNS OF A TABLE ARE A DECLARED PERCENTAGE?
+   *
+   * The formatters used to guess, with `Math.abs(v) <= 1 ? v * 100 : v`: a
+   * value at or below 1 is a fraction and gets scaled, anything larger is
+   * assumed to be a percentage already. On a COMPUTED ratio that guess is
+   * simply wrong, because the engine always produces a fraction. 777 against
+   * 333 is 2.333, and the guess rendered it "2.3%" where 233.3% was meant --
+   * silently turning a value over 100% into a small one, which is precisely
+   * the anomaly those cells exist to expose.
+   *
+   * MEASURED, and this is what makes always-scaling safe: across A1, A2 and
+   * A8, all 227 stored values in these columns are fractions and NOT ONE is
+   * above 1. Stored and computed hold the same units, so the column can be
+   * scaled by its type rather than each value by its size.
+   *
+   * Note the boundary the ticket got slightly wrong: a ratio of EXACTLY 1
+   * rendered correctly as 100.0%, because `<= 1` includes it. Only a ratio
+   * strictly greater than 1 was mangled.
+   */
+  function derivedPctCols(tableId) {
+    const out = {};
+    ((tableId && DERIVED_COLS[tableId]) || []).forEach((d) => {
+      if (d.type === 'percentage' || d.type === 'weightedMean') out[d.column] = true;
+    });
+    return out;
+  }
+
   /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
   function fmtDerivedCell(v, d) {
     if (v == null || v === '' || typeof v !== 'number' || !isFinite(v)) return '—';
-    if (d.type === 'percentage') return (Math.abs(v) <= 1 ? v * 100 : v).toFixed(d.decimals) + '%';
+    /* CLCPA-294: ALWAYS scaled. This function's input is by construction the
+     * engine's own ratio, so there is nothing to guess about. */
+    if (d.type === 'percentage') return (v * 100).toFixed(d.decimals) + '%';
     return v.toFixed(d.decimals);
   }
 
@@ -3217,7 +3263,18 @@ function utf8ByteLength(str) {
    * cells are left exactly as stored. Percentage columns NOT covered by DERIVED_COLS
    * (deferred: J1/J2, Tier 3) render as "—" in the Total row rather than a wrong sum.
    */
-  function rowsForDisplay(rawRows, schema, tableId) {
+  /* CLCPA-290: opts.fillTotals is OPT-IN, and that is the whole care of it.
+   *
+   * rowsForDisplay feeds the rendered report AND the KPI composer. Filling a
+   * live-calculated total row unconditionally gave A1:2099 a computed total,
+   * which reached the composer and produced a reported KPI value for a year
+   * CLCPA-237 exists to keep out of them -- 2099 lost the "no data" banner it
+   * is supposed to get. suite_237 caught it.
+   *
+   * The ruling is about what the SECTION PAGE renders, so only that call site
+   * asks for the fill. Every other caller, the composer among them, sees
+   * exactly what it saw before. */
+  function rowsForDisplay(rawRows, schema, tableId, opts) {
     if (!rawRows || rawRows.length === 0) return rawRows;
     const clone = rawRows.map(r => r.slice());
     const len = schema ? schema.length : (clone[0] ? clone[0].length : 0);
@@ -3257,6 +3314,43 @@ function utf8ByteLength(str) {
       if (!isStrictTotalRowLabel(row[0])) return;
       for (let c = 1; c < row.length; c++) {
         if (pctCols[c] && !covered.has(c)) row[c] = '—';
+      }
+    });
+    /* CLCPA-290: THE TOTAL ROW OF A LIVE-CALCULATED YEAR, ON THE REPORT PAGE.
+     *
+     * The editor computed this row and the section page did not, so A3 on a
+     * user-added year read "Total | dash | 2,034,907 | dash | dash" in the
+     * editor and "Total | | | |" on the report -- two surfaces, two answers to
+     * one question. The ruling closes that divergence ON THE DASH SIDE.
+     *
+     * THE AVERAGE COLUMNS ARE UN-TOTALLED BY DECLARATION. detectAvgColumns is
+     * that declaration and it already exists: recomputeTotals consults exactly
+     * the same predicate to refuse them, because a sum of per-participant
+     * averages is not a quantity. CLCPA-212 measured what happens when it is
+     * summed anyway -- A3/2025 receiving 22,297.18 over a stored 22,511. So
+     * the cell gets an honest dash rather than a number nobody should read.
+     *
+     * The weighted mean that WOULD produce a figure there is recorded on the
+     * ticket and is not authorised: it republishes A3/2025 as 621.56 against a
+     * filed 3,761,330, and changing a published figure is the client's call.
+     *
+     * ONLY AN EMPTY CELL IS FILLED. A stored total is the reference and is
+     * never overwritten here, so no published year can move -- measured across
+     * every table-year, and that is the guard this needs most.
+     *
+     * colSum is the sum the shared columnGrandTotals already computed above
+     * for this very clone; nothing is summed a second way. */
+    const avgCols = (opts && opts.fillTotals && schema) ? detectAvgColumns(schema) : null;
+    if (avgCols) clone.forEach((row) => {
+      if (!isStrictTotalRowLabel(row[0])) return;
+      for (let c = 1; c < len; c++) {
+        if (covered.has(c)) continue;                  /* a rule owns this one */
+        if (pctCols[c]) continue;                      /* handled just above */
+        const filled = row[c] != null && String(row[c]).trim() !== '';
+        if (filled) continue;                          /* stored is the reference */
+        if (avgCols[c]) { row[c] = '—'; continue; }
+        const v = colSum ? colSum[c] : null;
+        if (typeof v === 'number' && isFinite(v)) row[c] = v;
       }
     });
     applyCompositeShares(clone, tableId, schema, colSum);
@@ -4461,6 +4555,8 @@ function utf8ByteLength(str) {
       ? (state.payload.tables[opts.tableId].currency_cols || [])
       : [];
     const currCols = detectCurrencyColumns(pctHeader).map((v, i) => v || tableCurrCols.includes(i));
+    /* CLCPA-294: the columns this table DECLARES as derived percentages */
+    const declaredPct = derivedPctCols(opts.tableId);
 
     function formatCell(c, colIdx, rowLabel) {
       if (c == null || c === '') return '';
@@ -4468,6 +4564,15 @@ function utf8ByteLength(str) {
       if (typeof c === 'number') {
         const isPctRow = rowLabel && /^percentage|^%/i.test(String(rowLabel).trim());
         if (pctCols[colIdx] || isPctRow) {
+          /* CLCPA-294: a column DECLARED as a derived percentage is always
+           * scaled, never guessed. The guess reads a computed 2.333 as "a
+           * percentage already" and renders 2.3%, hiding a DAC share over
+           * 100% -- the one thing those cells are read to catch.
+           *
+           * Columns NOT so declared keep the guess: stored source data in a
+           * percent column is not guaranteed to be a fraction, and this
+           * ticket is about computed cells. */
+          if (declaredPct[colIdx]) return (c * 100).toFixed(1) + '%';
           return (Math.abs(c) <= 1 ? c * 100 : c).toFixed(1) + '%';
         }
         if (currCols[colIdx]) {
@@ -4849,7 +4954,11 @@ function utf8ByteLength(str) {
       const hasSchema = schema && schema.length > 0;
       // CLCPA-88: derive %/ratio cells for display via the shared rule (clones raw;
       // never mutates payload/store). Deferred derived totals render "—".
-      const body = rowsForDisplay(raw, hasSchema ? schema : undefined, t.id);
+      /* CLCPA-290: THE SECTION PAGE asks for the total-row fill. This is the
+       * surface the ruling names, and the only caller that opts in -- the KPI
+       * composer must keep seeing what it saw. */
+      const body = rowsForDisplay(raw, hasSchema ? schema : undefined, t.id,
+        { fillTotals: true });
       /* CLCPA-281 round 3: A YEAR THAT DOES NOT CARRY THE SUB-HEADER BORROWS IT.
        *
        * renderTable slices headerLevels rows off the top, so on a two-level
@@ -17053,6 +17162,54 @@ function wireHTooltips() {
    * more thing that can be interpreted twice. */
   const INGEST_KEY_SEP = String.fromCharCode(31);
 
+  /* CLCPA-282: A COLUMN'S IDENTITY ON A TWO-LEVEL TABLE IS THE PAIR.
+   *
+   * A9, A10 and F6 carry their headings on two rows, and NEITHER ROW
+   * identifies a column on its own. A9's group row repeats each year and its
+   * sub row repeats Total and DAC three times each; F6's sub-labels appear
+   * twice under two different group spans. Only (group, sub) is unique.
+   *
+   * The importer read fileRows[0] and nothing else, so a CSV saved from the
+   * app's OWN template was refused with "the file has two columns with the
+   * same heading" -- which is true of that row, and says nothing about the
+   * file. A9 and A10 therefore had no working CSV ingestion on any year.
+   *
+   * The group row carries FORWARD across blanks, because a blank under a span
+   * means "same group as the cell to my left" -- that is what the span is.
+   *
+   * ONE LEVEL COLLAPSES TO EXACTLY TODAY'S BEHAVIOUR: with headerCount 1 the
+   * key is the single normalised heading, unchanged, which is what keeps the
+   * blast radius of this to the three tables that need it.
+   *
+   * The separator is the one the composite ROW key already uses: a control
+   * character a spreadsheet cell cannot carry, so a heading cannot forge a
+   * pair boundary and match a column it does not name.
+   */
+  function ingestHeaderKeys(rows, headerCount) {
+    const width = (rows || []).reduce((w, r) => Math.max(w, (r || []).length), 0);
+    const keys = [];
+    let carried = '';
+    for (let c = 0; c < width; c++) {
+      const top = normIngestKey((rows[0] || [])[c]);
+      if (top) carried = top;
+      if (headerCount < 2) { keys.push(top); continue; }
+      const group = carried;
+      const sub = normIngestKey((rows[1] || [])[c]);
+      keys.push(!group && !sub ? '' : group + INGEST_KEY_SEP + sub);
+    }
+    return keys;
+  }
+
+  /** What to CALL a column in a message: its cells, joined as the eye reads them. */
+  function ingestHeaderName(rows, headerCount, c) {
+    const parts = [];
+    for (let i = 0; i < headerCount; i++) {
+      const v = (rows[i] || [])[c];
+      if (v != null && String(v).trim() !== '') parts.push(String(v).trim());
+    }
+    return parts.join(' / ');
+  }
+
   /* The marker the TEMPLATE writes into cells the dashboard computes. One
    * constant rather than two literals, because the importer skips it and the
    * template writes it and a drift between the two is silent. */
@@ -17091,6 +17248,51 @@ function wireHTooltips() {
    *
    * Neither marker is ever parsed into a cell: the import skips both. */
   const INGEST_NOVALUE_MARKER = '(no value)';
+
+  /* CLCPA-291: IS THIS COLUMN TEXT, IN EVERY YEAR THE TABLE HAS?
+   *
+   * A3 and A4's Total row was marked (calculated) in its "Program Name" cell.
+   * That column is text: the engine cannot compute a programme name, and the
+   * marker told the preparer to leave blank a cell nothing would ever fill.
+   * The template's rule for a total row is "this column has a heading", which
+   * is true of a text column too.
+   *
+   * EVERY YEAR, and that is the whole difficulty. A7's "DAC Installations"
+   * holds numbers in 2024 and nothing at all in 2025, so a test scoped to the
+   * displayed year calls it text and would have converted a genuine numeric
+   * column to (no value) -- a worse defect than the one being fixed. Measured:
+   * all-years scope leaves exactly A3 and A4's Program Name, and nothing else
+   * in the payload.
+   *
+   * A PERCENT LITERAL IS A NUMBER HERE, and bareNumber alone does not say so:
+   * its pattern refuses a trailing "%", deliberately, because it answers "what
+   * number does this cell hold" for arithmetic. Asking it on its own turned
+   * J3, J4, J6 and J7's "% of Accounts" and "% of Amount" columns into text
+   * and stamped (no value) across them -- a far worse defect than the one
+   * being fixed, and measured before it reached a commit. isPercentLiteral is
+   * the existing reader for that shape, so the two are asked together rather
+   * than a third spelling being invented.
+   *
+   * Derived from the table's own data. No per-table literal, which is the
+   * CLCPA-259 lesson.
+   */
+  function ingestTextOnlyColumn(table, c) {
+    const data = (table && table.data) || {};
+    const years = Object.keys(data);
+    if (!years.length) return false;
+    let sawSomething = false;
+    for (let y = 0; y < years.length; y++) {
+      const rows = data[years[y]] || [];
+      for (let r = 0; r < rows.length; r++) {
+        const v = (rows[r] || [])[c];
+        if (v == null || String(v).trim() === '') continue;
+        sawSomething = true;
+        if (bareNumber(v) !== null || isPercentLiteral(v)) return false;
+      }
+    }
+    /* a column that is blank everywhere says nothing: leave it as it was */
+    return sawSomething;
+  }
 
   /* Not operator input. Both markers, so neither is keyed as literal text nor
    * carried into a created row. */
@@ -17377,14 +17579,47 @@ function wireHTooltips() {
     }
 
     // ---- headers ----------------------------------------------------------
-    const header = fileRows[0].map(normIngestKey);
-    const schemaNorm = schema.map(normIngestKey);
+    /* CLCPA-282: HOW MANY OF THE FILE'S LEADING ROWS ARE HEADER.
+     *
+     * The table's declaration says how many it CAN have; the file says whether
+     * it does. Both questions, asked through the same shared predicate the
+     * editor, the template writer and the section page already use -- a file
+     * hand-built with a single header row still reads as one, and falls
+     * through to exactly today's behaviour rather than losing a data row. */
+    const iTable = state.payload && state.payload.tables && state.payload.tables[tableId];
+    const declaredSub = ingestHeaderRowCount(iTable, Infinity);
+    const fileCarriesSub = declaredSub > 0 &&
+      ingestYearCarriesHeaderRows(fileRows.slice(1), declaredSub);
+    const headerCount = fileCarriesSub ? 1 + declaredSub : 1;
+    const headerLines = fileRows.slice(0, headerCount);
+    if (fileRows.length < headerCount + 1) {
+      /* CLCPA-282: this message knows the count, so it says it. A two-level
+       * table needs both heading rows, and telling the operator it needs "a
+       * header row" when it refused a file that has one is the kind of
+       * accurate-sounding wrongness prose sweeps exist to catch. */
+      reject(headerCount > 1
+        ? 'The file needs its ' + headerCount + ' heading rows and at least one ' +
+          'data row. This table carries its headings on ' + headerCount + ' rows: ' +
+          'a heading spanning several columns, then a row naming each one.'
+        : 'The file needs a header row and at least one data row.', {});
+      return res;
+    }
+    const header = ingestHeaderKeys(headerLines, headerCount);
+    /* the schema side is composed the SAME way, from the table's own stored
+     * sub-header, so the two sides cannot disagree about what a column is */
+    const schemaNorm = ingestHeaderKeys(
+      [schema].concat(fileCarriesSub ? ingestStoredHeaderRows(iTable, declaredSub) : []),
+      headerCount);
+    res.headerRowsRead = headerCount;
     const dupHeader = {};
     header.forEach((h, idx) => {
       if (!h) return;
       if (dupHeader[h] !== undefined) {
+        /* PAIR-AWARE, per the ruling: two columns collide only when their
+         * whole identity collides. "2024 / Total" and "2025 / Total" are not
+         * the same column, and refusing them was the defect. */
         reject('The file has two columns with the same heading, so which one wins ' +
-          'is ambiguous.', { column: fileRows[0][idx] });
+          'is ambiguous.', { column: ingestHeaderName(headerLines, headerCount, idx) });
       }
       dupHeader[h] = idx;
     });
@@ -17396,7 +17631,9 @@ function wireHTooltips() {
      *
      * Without it there is nothing to match rows on, so its absence is a hard
      * rejection that names the heading the file needs. */
-    const labelCol = header.indexOf(normIngestKey(schema[0]));
+    /* CLCPA-282: matched on the COMPOSED key, like every other column, so the
+     * label column of a two-level table is found by the same question. */
+    const labelCol = header.indexOf(schemaNorm[0]);
     if (labelCol < 0) {
       reject('The file has no \u201c' + schema[0] + '\u201d column, which is the one ' +
         'that says which row each value belongs to. Download the template for this ' +
@@ -17415,7 +17652,7 @@ function wireHTooltips() {
     const grouped = !!(tableId && INGEST_GROUPED[tableId]);
     const labelCols = [labelCol];
     for (let s = 1; s < keyCols; s++) {
-      const fIdx = header.indexOf(normIngestKey(schema[s]));
+      const fIdx = header.indexOf(schemaNorm[s]);
       if (fIdx < 0) {
         reject('The file has no “' + schema[s] + '” column. This table has ' +
           'rows that repeat the same “' + schema[0] + '”, so that column on ' +
@@ -17436,7 +17673,7 @@ function wireHTooltips() {
       if (labelCols.indexOf(idx) >= 0 || !h) return;
       const sIdx = schemaNorm.indexOf(h);
       if (sIdx > 0) { colMap[idx] = sIdx; res.matchedColumns.push(schema[sIdx]); }
-      else res.notTouched.unmatchedColumns.push(fileRows[0][idx]);
+      else res.notTouched.unmatchedColumns.push(ingestHeaderName(headerLines, headerCount, idx));
     });
     if (!Object.keys(colMap).length) {
       reject('None of the file\u2019s column headings match this table. Download the ' +
@@ -17445,7 +17682,7 @@ function wireHTooltips() {
     }
 
     // ---- rows -------------------------------------------------------------
-    const body = fileRows.slice(1);
+    const body = fileRows.slice(headerCount);
     res.fileRowCount = body.length;
     /* CLCPA-240: duplicates are counted on the COMPOSITE key.
      *
@@ -18089,6 +18326,22 @@ function wireHTooltips() {
     if (text == null || text === '') {
       return '<c r="' + ref + '" s="' + styleIdx + '"/>';
     }
+    /* CLCPA-274 option (c): A NUMBER IS WRITTEN AS A NUMBER.
+     *
+     * Every cell used to be t="inlineStr", which was harmless while the
+     * template emitted nothing but labels and markers. Option (c) exports
+     * stored values, and a figure written as an inline string arrives in
+     * Excel as TEXT: left-aligned, not summable, and flagged by the
+     * spreadsheet as a number stored as text. The CSV round trip would still
+     * work, because the importer parses strings -- but the artefact handed to
+     * the operator would be visibly wrong.
+     *
+     * A cell with no t attribute is a numeric cell; the value goes in <v>
+     * unescaped, which is safe because it is a finite JS number. Strings keep
+     * exactly the branch they had. */
+    if (typeof text === 'number' && isFinite(text)) {
+      return '<c r="' + ref + '" s="' + styleIdx + '"><v>' + String(text) + '</v></c>';
+    }
     return '<c r="' + ref + '" s="' + styleIdx + '" t="inlineStr"><is><t xml:space="preserve">' +
       xmlEsc(text) + '</t></is></c>';
   }
@@ -18160,10 +18413,20 @@ function wireHTooltips() {
       // Round 6: one blank row, so the two sections read as two sections.
       { style: XLSX_STYLE_BODY, text: null, ht: 10 },
       { style: XLSX_STYLE_SECTION, text: 'How to prepare your file', ht: 26 },
+      /* CLCPA-282: THE HEADER IS NOT ALWAYS ONE ROW, and this sheet is the
+       * first thing the operator reads. A9, A10 and F6 carry their headings on
+       * two rows, and the importer now matches a column on the PAIR -- so
+       * "the header row" was wrong for exactly the three tables whose import
+       * the (A) design restored. verify_handoff_package.py runs the guides'
+       * commands and cannot catch prose that is merely wrong, which is why
+       * this is a read-and-correct pass. */
       { style: XLSX_STYLE_BODY, ht: 46, text:
         '1. Go to the second sheet, named ' + sheetLabel + '. It shows the exact ' +
-        'layout the import expects: the header row, one row per program name, ' +
-        'and (calculated) marking the cells the dashboard computes after import.' },
+        'layout the import expects: the heading rows at the top, one row per ' +
+        'program name, and (calculated) marking the cells the dashboard ' +
+        'computes after import. Most tables have one heading row. A few have ' +
+        'TWO, where a heading spans several columns and a second row names ' +
+        'each one: keep both.' },
       { style: XLSX_STYLE_BODY, ht: 46, text:
         '2. Create your own file from it: with that sheet ACTIVE (selected), use ' +
         'File, Save As, and choose CSV UTF-8 (Comma delimited). Excel saves only ' +
@@ -18171,8 +18434,8 @@ function wireHTooltips() {
       { style: XLSX_STYLE_BODY, ht: 60, text:
         '3. Open the CSV you saved and fill in the values. Type values only in ' +
         'the positions the example shows empty; leave (calculated) and ' +
-        '(no value) positions exactly as they are; do not change the header ' +
-        'row or the program names. You MAY add new program rows at the ' +
+        '(no value) positions exactly as they are; do not change the heading ' +
+        'rows or the program names. You MAY add new program rows at the ' +
         'bottom: the import will create them.' },
       { style: XLSX_STYLE_BODY, ht: 46, text:
         'Some tables group their rows under a heading, and a heading row is ' +
@@ -18212,6 +18475,11 @@ function wireHTooltips() {
     if (!schema.length) return null;
     const src = ingestTemplateSource(table, year);
     const computed = ingestComputed(src.rows, tableId, schema);
+    /* CLCPA-292: the SAME key-column count the importer matches rows on, so
+     * the template writes the key that will be read back. Clamped exactly as
+     * buildIngestImport clamps it, because a declaration wider than the
+     * schema is a declaration about columns that are not there. */
+    const keyCols = Math.max(1, Math.min(ingestKeyColCount(tableId), schema.length));
     const code = tableId.replace(/^([A-Z])(\d+)$/, '$1.$2');
     const label = code + ' ' + (table.short_title || SHORT_TITLES[tableId] || '');
     const sheetName = xlsxSheetName(label);
@@ -18280,6 +18548,33 @@ function wireHTooltips() {
        * what makes A5's own template carry the key the matcher reads. */
       const isGroupHeader = ingestIsHeaderRow(row, [0]);
       rows.push(visible(schema.map((h, c) => {
+        /* CLCPA-292: EVERY KEY COLUMN IS PRE-FILLED, not just the first.
+         *
+         * A3 and A4 declare TWO key columns -- Participant Type and Program
+         * Name -- and column B was emitted blank in 22 of 23 rows while column
+         * A repeated the participant type. A preparer had no way to know which
+         * programme belonged on which line, so matching could only be
+         * positional, which is exactly what row-key matching exists to avoid.
+         *
+         * The count comes from ingestKeyColCount, the declaration CLCPA-240
+         * already uses to READ these files back. The template now writes the
+         * same key the importer matches on, which is the property that was
+         * missing: one declaration, both directions.
+         *
+         * Option (c) closed the POPULATED half of this on its own, since a
+         * year with data exports every column. This is the FRESH-year half,
+         * where the labels are borrowed and no value is exported.
+         *
+         * Only when the cell HAS a key. A total row's Program Name is empty
+         * and must fall through to CLCPA-291's (no value) marker rather than
+         * being emitted as a blank label. */
+        if (c < keyCols) {
+          const kv = row[c];
+          if (kv != null && String(kv).trim() !== '') {
+            return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
+                     text: kv };
+          }
+        }
         if (c === 0) {
           return { style: isTotal ? XLSX_STYLE_TOTAL_LABEL : XLSX_STYLE_LABEL,
                    text: row[0] };
@@ -18300,11 +18595,39 @@ function wireHTooltips() {
          * columns as well. The import keeps consulting `any`, so behaviour is
          * unchanged: a provided value is still accepted and reconciled. */
         if (computed.marksInTemplate(idx, c)) {
-          return { style: style, text: INGEST_CALC_MARKER };
+          /* CLCPA-291: a TEXT column in a structure row is not calculated, it
+           * has no value. (calculated) says "the dashboard fills this in";
+           * nothing can fill in a programme name. (no value) is the marker
+           * that already means "this cell takes nothing", it counts as
+           * shape-blank in ingestIsHeaderRow, and the importer already skips
+           * it -- so the file the operator downloads changes by two cells and
+           * the import path does not change at all. */
+          return {
+            style: style,
+            text: ingestTextOnlyColumn(table, c)
+              ? INGEST_NOVALUE_MARKER : INGEST_CALC_MARKER,
+          };
         }
-        /* EMPTY, and LOCKED like everything else: the workbook shows the
-         * format, it is not filled in. The operator types into their own CSV,
-         * saved from this sheet. */
+        /* CLCPA-274, OPTION (c) AS RULED: a year that HAS data exports it; a
+         * fresh year stays a blank format.
+         *
+         * The distinction is the one ingestTemplateSource already draws and
+         * the one CLCPA-274 round 3 introduced for the sub-header: src.borrowed
+         * is true when this year holds nothing and the labels were taken from
+         * another year. Exporting THOSE values would hand the operator last
+         * year's figures presented as this year's, which is the one outcome
+         * worse than a blank sheet.
+         *
+         * So the template is a blank form exactly when the year is empty, and
+         * an export exactly when it is not -- which is what makes a populated
+         * year round trip: download, re-import, get it back. */
+        if (!src.borrowed) {
+          const v = row[c];
+          if (v != null && String(v).trim() !== '') return { style: style, text: v };
+        }
+        /* EMPTY, and LOCKED like everything else: for a fresh year the
+         * workbook shows the format, it is not filled in. The operator types
+         * into their own CSV, saved from this sheet. */
         return { style: style, text: null };
       })));
     });
@@ -23454,7 +23777,12 @@ function wireHTooltips() {
                * there is nothing to decide, so it becomes a toast rather than
                * a modal with one button. Storage.toast, not showToast, for the
                * scope reason recorded at the template site. */
-              Storage.toast(yr + ' has data (or is a seed year) and cannot be removed.', 'error');
+              /* CLCPA-283: a seed year is the ONLY thing this can now be, and
+               * the control is not offered for one -- so this is a genuine
+               * last line of defence rather than a refusal the operator is
+               * routinely walked into. It no longer says "has data", because
+               * holding data is no longer a reason to refuse. */
+              Storage.toast(yr + ' is a seed year and cannot be removed.', 'error');
               return;
             }
 
@@ -24101,6 +24429,29 @@ function wireHTooltips() {
               err.textContent = why;
               err.style.display = 'block';
             }
+            /* CLCPA-287: THE PAGE KEEPS THE PROMISE THE DIALOG MAKES.
+             *
+             * The rejection text says, in as many words, "Add Year will still
+             * add the year, and the page will say what was rejected." The page
+             * said nothing. The only trace was the red note inside the dialog,
+             * which disappears with it -- so an operator who closed the dialog
+             * had no record of why their file was refused.
+             *
+             * Nothing needed writing to say it. i.importResult already holds
+             * the rejected plan, renderIngestImportResult already has its
+             * !r.ok branch -- "Nothing was imported", the reasons listed, in
+             * the CLCPA-266 box with the red accent -- and the mount is
+             * already in the editor markup. The report existed and was never
+             * drawn, because this path returns before anything repaints.
+             *
+             * refreshIngestNotices repaints THAT MOUNT ONLY, so the dialog
+             * stays open exactly as CLCPA-262 requires and the report is
+             * waiting underneath when it is closed.
+             *
+             * The CLCPA-276 lifecycle needs nothing either: the rejection
+             * lives in the same i.importResult that clearIngestNotices
+             * already empties on reset, switch and save. */
+            refreshIngestNotices();
             return;
           }
           close();
@@ -24523,10 +24874,29 @@ function wireHTooltips() {
     }
     const cells = d.populated.length;
     const rows = d.addedRows.length;
-    const cols = d.matchedColumns.length;
-    return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' matching column' +
-      (cols === 1 ? '' : 's') + ', ' + cells + ' value' + (cells === 1 ? '' : 's') +
-      ' ready to import.';
+    /* CLCPA-300: THE COLUMNS THAT ACTUALLY RECEIVE VALUES.
+     *
+     * This counted res.matchedColumns, which is every file column whose
+     * heading matched the schema -- including the calculated ones the importer
+     * then deliberately SKIPS. H1 reported "3 matching columns, 4 values" for
+     * a file whose values land in two: the third is the Grand Total, matched
+     * and never written.
+     *
+     * The owner's pre-ruling offered aligning the count or rewording it so it
+     * cannot be read as a check figure. ALIGNED, because the aligned number IS
+     * a check figure -- two columns across two rows is four values, and the
+     * operator can verify the summary against their own sheet. A reworded
+     * number they are told not to trust is worth less than a true one.
+     *
+     * Taken from res.populated, the record of cells actually written, so the
+     * two figures in this sentence cannot disagree: they are the same data
+     * counted two ways.
+     *
+     * The VALUE count is unchanged, as ruled. */
+    const cols = new Set(d.populated.map(x => x.column)).size;
+    return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' column' +
+      (cols === 1 ? '' : 's') + ' with values, ' + cells + ' value' +
+      (cells === 1 ? '' : 's') + ' ready to import.';
   }
 
   function rerenderIngestAll() {
@@ -24837,9 +25207,10 @@ function wireHTooltips() {
           state.payload = fromDv;
           /* SEED YEARS MINUS THE ADDED-YEAR TABLE, and the subtraction matters.
            *
-           * seedYears means "years the published report came with", and it is
-           * half of what protects a year from removal (isYearProtected: a seed
-           * year OR a year holding data). payload.meta.years carried exactly
+           * seedYears means "years the published report came with", and since
+           * CLCPA-283 it is the WHOLE of what protects a year from removal --
+           * which makes this subtraction load-bearing rather than merely
+           * tidy. payload.meta.years carried exactly
            * the published years, but the COMPOSED years are derived from the
            * rows, so they include years an operator added -- 2099 among them.
            *
@@ -24848,9 +25219,11 @@ function wireHTooltips() {
            * cr2bf_dacingesttestreportingyear is the record of what was added,
            * so subtracting it restores the original meaning precisely.
            *
-           * Note what this does NOT fix: 2099 is protected TODAY regardless,
-           * because yearHasData('2099') is true while A1:2099 exists. That is
-           * pre-existing and reported to Emely, not introduced here. */
+           * The note that used to sit here said 2099 was protected anyway,
+           * because it held data, and called that pre-existing and reported.
+           * CLCPA-283 is that report closed: holding data no longer protects
+           * anything, so subtracting the added-year table is now the only
+           * thing standing between an operator-added year and permanence. */
           const addedYears = ((Storage.getAddedYears && Storage.getAddedYears()) || [])
             .map(String);
           state.seedYears = ((fromDv.meta && fromDv.meta.years) || [])

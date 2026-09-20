@@ -2,28 +2,28 @@
 Section C group E -- mutation controls
 ======================================================================
   red  254 THE DEFECT: the declaration is never consulted
-       5 red, incl: S2 and it now computes null, the sum 333.25 + 0.1 + 999.25
+       4 red, incl: S2 and it now computes null, the sum 333.25 + 0.1 + 999.25
   red  254 THE REGEX IS LOOSENED instead, which re-breaks A3/A4
-       8 red, incl: S9 and detectAvgColumns is BYTE-IDENTICAL to BASE: the regex is not loosened
+       7 red, incl: S9 and detectAvgColumns is BYTE-IDENTICAL to BASE: the regex is not loosened
   red  254 the declaration is widened to every table
-       7 red, incl: S11 the declaration names A3 nowhere
+       6 red, incl: S11 the declaration names A3 nowhere
   red  254 it matches on the heading of ANY table
-       5 red, incl: S13 per TABLE, so the same heading elsewhere is untouched
+       4 red, incl: S13 per TABLE, so the same heading elsewhere is untouched
   ???  255 THE X COMES BACK on a recognised total row  -- ANCHOR 0, NOT APPLIED
   red  255 OVERSHOT: the total rows LABEL is locked too
-       5 red, incl: D3 the label input is byte-identical to BASE: it is still an input
+       4 red, incl: D3 the label input is byte-identical to BASE: it is still an input
   red  261 IT REJECTS instead of noticing
-       5 red, incl: N5b with NOTHING rejected: ["A percentage cannot be imported into this column.","A percentage canno
+       4 red, incl: N5b with NOTHING rejected: ["A percentage cannot be imported into this column.","A percentage canno
   ???  261 it notices nothing at all  -- ANCHOR 0, NOT APPLIED
   ???  261 it notices a percentage in a PERCENTAGE column too  -- ANCHOR 0, NOT APPLIED
   red  261 the panel stops rendering the notices
-       6 red, incl: N5c and the success panel announces them: NOTHING RENDERED
+       5 red, incl: N5c and the success panel announces them: NOTHING RENDERED
   red  THE STORED-YEAR GATE: a recompute rewrites a filed total
-       5 red, incl: Z3 C2/2025 is returned unchanged by a recompute of its stored rows
+       4 red, incl: Z3 C2/2025 is returned unchanged by a recompute of its stored rows
   red  HARNESS: the audit case stops being driven on BASE
-       5 red, incl: S3 while the other two totals are unchanged: 1332, 1666.5
+       4 red, incl: S3 while the other two totals are unchanged: 1332, 1666.5
   red  HARNESS: the baseline is repointed at a symbolic ref
-       67 red, incl: X3 BASE is a literal commit sha: HEAD
+       61 red, incl: X3 BASE is a literal commit sha: HEAD
 
   10 caught, 3 not caught, of 13 guards
-  clean re-run against byte-restored source: FAILS -- 168 passed, 4 failed
+  clean re-run against byte-restored source: FAILS -- 194 passed, 3 failed

@@ -70,7 +70,7 @@ CLCPA-248 -- mutation controls
   red  HARNESS: the single-panel sweep stops rendering anything
        1 red, incl: S1 rendered 0 single-panel table-years
   red  HARNESS: the baseline is repointed at a symbolic ref
-       36 red, incl: X4 BASE is a literal commit sha: HEAD
+       35 red, incl: X4 BASE is a literal commit sha: HEAD
 
   35 caught, 0 not caught, of 35 guards
   clean re-run against byte-restored source: PASSES -- 188 passed, 0 failed

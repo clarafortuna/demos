@@ -1,35 +1,36 @@
 {
-  "generated": "2026-09-20T05:09:15.529Z",
+  "generated": "2026-09-20T05:47:01.039Z",
+  "round": 2,
   "measuredAt": {
-    "integrationHead": "0b2387cda0e7d8514e125c601b21f26a2f82b2d0",
-    "engineerTip": "74458b2",
-    "build": "a0c04d51be",
-    "originMain": "88e7923"
+    "integrationHead": "(pending merge commit)",
+    "engineerTip": "fff9e47",
+    "build": "(pending)",
+    "originMain": "fff9e47"
   },
-  "note": "Baseline for judging future engineer deltas. Aggregates double-count: every mut_* wrapper re-runs its suite and reports that suite tally. Use perRunner, not the totals.",
+  "note": "Baseline for judging future engineer deltas. Aggregates double-count: every mut_* wrapper re-runs its suite and reports that suite tally. Use perRunner, not totals.",
   "aggregate": {
-    "runnersDiscovered": 129,
-    "assertionsPassedReported": 8719,
+    "runnersDiscovered": 147,
+    "assertionsPassedReported": 9448,
     "assertionsFailedReported": 55,
-    "distinctFailures": 33,
-    "doubleCountedFailures": 22,
+    "distinctFailures": 37,
+    "doubleCountedFailures": 18,
     "runnersNotReporting": 14
   },
   "categories": {
     "genuineApplicationFailures": 0,
-    "provenanceOrAttribution": 28,
-    "brokenTestInfrastructureFailures": 5,
+    "provenanceOrAttribution": 25,
+    "brokenTestInfrastructureFailures": 12,
     "brokenTestInfrastructureDeadRunners": 12,
     "expectedNonReporting": 2
   },
   "perRunner": {
     "provenance": {
       "suite_245": 10,
-      "suite_249": 3,
-      "suite_254_255_261": 4,
-      "suite_260": 4,
-      "suite_263": 4,
-      "gate_149_stacked": 3
+      "suite_249": 2,
+      "suite_254_255_261": 3,
+      "suite_260": 3,
+      "suite_263": 3,
+      "gate_149_stacked": 4
     },
     "echoWrappers": {
       "mut_249": "suite_249",
@@ -40,13 +41,14 @@
       "mut_gate_149": "gate_149_stacked"
     },
     "stalePinnedSource": {
-      "mut_274_r2": 3,
-      "mut_274_r3": 1,
+      "mut_274_r2": 9,
+      "mut_274_r3": 2,
       "mut_278_r2": 1
     },
     "underlyingSuitesGreenStandalone": {
       "suite_274_r2": "33/0",
       "suite_274_r3": "29/0",
+      "suite_274_r4": "26/0",
       "suite_278_r2": "33/0"
     },
     "deadUndefinedREL": [
@@ -65,7 +67,9 @@
     ],
     "healthyDifferentFormat": [
       "mut_245",
-      "mut_composer"
+      "mut_composer",
+      "reverify_290",
+      "reverify_sectionA"
     ]
   },
   "securitySet": {
@@ -73,11 +77,47 @@
     "assertions": 166,
     "status": "GREEN"
   },
-  "engineerSuites": {
-    "suite_281_r3": "35/0",
-    "mut_281_r3": "35/0",
-    "suite_301": "32/0",
-    "mut_301": "32/0"
+  "engineerSuitesThisRound": {
+    "suite_282": "34/0",
+    "suite_283": "32/0",
+    "suite_287": "25/0",
+    "suite_290": "28/0",
+    "suite_291": "32/0",
+    "suite_292": "25/0",
+    "suite_294": "24/0",
+    "suite_300": "17/0",
+    "suite_black_button": "28/0"
   },
-  "clearsWhen": "The 28 provenance/attribution failures clear when the security change is assigned a ticket number and declared. They must not be cleared by relaxing an assertion."
+  "deltaVsRound1": {
+    "provenance": "28 -> 25; suite_249 -1, suite_254_255_261 -1, suite_260 -1, suite_263 -1 (she declared tickets); gate_149_stacked +1 (new C1 naming HER CLCPA-290)",
+    "stalePinnedSource": "5 -> 12; mut_274_r2 3->9 and mut_274_r3 1->2, because HER CLCPA-274 option (c) (6b2cddd) moved code their pinned anchors point at -- 5 mutants report ANCHOR 0, NOT APPLIED",
+    "application": "0 -> 0"
+  },
+  "clearsWhen": "The provenance/attribution failures clear when the security change is assigned a ticket number and declared. They must not be cleared by relaxing an assertion.",
+  "history": [
+    {
+      "round": 1,
+      "measuredAt": {
+        "integrationHead": "0b2387cda0e7d8514e125c601b21f26a2f82b2d0",
+        "engineerTip": "74458b2",
+        "build": "a0c04d51be",
+        "originMain": "88e7923"
+      },
+      "aggregate": {
+        "runnersDiscovered": 129,
+        "assertionsPassedReported": 8719,
+        "assertionsFailedReported": 55,
+        "distinctFailures": 33,
+        "doubleCountedFailures": 22,
+        "runnersNotReporting": 14
+      },
+      "categories": {
+        "genuineApplicationFailures": 0,
+        "provenanceOrAttribution": 28,
+        "brokenTestInfrastructureFailures": 5,
+        "brokenTestInfrastructureDeadRunners": 12,
+        "expectedNonReporting": 2
+      }
+    }
+  ]
 }

@@ -130,6 +130,11 @@ guard('S: rowsForDisplay moves nothing on any stored year', () => {
     });
   });
   ok(checked === 149, 'S1 ' + checked + ' stored table-years put through the display view');
+  /* BACK TO ZERO, and deliberately so. CLCPA-290 briefly moved four years
+   * here, then was scoped: its total-row fill is OPT-IN and only the section
+   * page asks for it, because filling unconditionally reached the KPI composer
+   * and gave 2099 a reported value. This call does not opt in, so the plain
+   * display view is byte-identical again -- which is the stronger statement. */
   ok(moved.length === 0, 'S2 and every one is byte-identical to BASE' +
      (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
 });
@@ -152,8 +157,18 @@ guard('S: and the whole report page is unchanged too', () => {
     });
   });
   ok(checked === 149, 'S3 ' + checked + ' panels rendered on both sides');
-  ok(moved.length === 0, 'S4 and every panel is byte-identical' +
-     (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
+  /* RE-POINTED, still exact. Two causes, both named, and a panel outside this
+   * list still turns it red:
+   *   G10:2024 and J4:2025 -- CLCPA-294, a computed total fractionally above 1
+   *     on floating point, rendered 1.0% where 100.0% is meant.
+   *   A3/A4 2023 and 2024 -- CLCPA-290, average totals ConEd filed nothing in,
+   *     rendering the dash instead of a blank. No stored value moved.
+   * The message prints the WHOLE list: it used to slice(0, 5) and hid the
+   * sixth entry, so the assertion and its own message disagreed about why. */
+  ok(JSON.stringify(moved.slice().sort()) ===
+     JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
+     'S4 the panels move on exactly six, four CLCPA-290 dashes and two ' +
+     'CLCPA-294 corrections: ' + JSON.stringify(moved.slice().sort()));
 });
 
 guard('S: C2s own composite cells are what the gate is about', () => {
@@ -439,6 +454,26 @@ guard('X: the blast radius', () => {
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   say('       changed: ' + changed.sort().join(', '));
   const EXPECT = {
+    /* re-pinned, named so the count stays exact */
+    xlsxInstructionBlocks: 'NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has',
+    /* re-pinned, named so the count stays exact */
+    ingestStagedSummary: 'NOT this ticket: CLCPA-300: the staged summary counts the columns that receive values',
+    /* re-pinned, named so the count stays exact */
+    derivedPctCols: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    fmtDerivedCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    formatCell: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    renderTable: 'NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size',
+    /* re-pinned, named so the count stays exact */
+    xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
+    /* CLCPA-291, named so the count stays exact */
+    ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-282, named so the count stays exact */
+    ingestHeaderKeys: 'NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)',
+    ingestHeaderName: 'NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)',
+    wireIngestPage: 'NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast',
+    /* CLCPA-283, named so the count stays exact */
+    isYearProtected: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only',
+    boot: 'NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)',
     /* CLCPA-301, named so the count stays exact */
     applyIngestImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank',
     fillDerivableSumsOnImport: 'NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)',
@@ -549,7 +584,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 55, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 68, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['applyDerivedCols', 'recomputeTotals', 'totalRowFlags',
    'kpiDacPct', 'detectPctColumns'].forEach(n => {

@@ -66,16 +66,17 @@ Section C group D -- CLCPA-260, the phantom spacer columns
 === Z. the stored years, and what this ticket does NOT touch ========
   ok   Z1 all 149 stored table-years rendered, every one with a <table>
   ok   Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ["A8:2023"]
-  FAIL Z2 and the REPORT page is byte-identical on every one: this ticket changes the editor and the template, not the published tables -- MOVED A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
+  FAIL Z2 and the REPORT page moves on exactly two panels -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0% -- got ["A1:2023","A1:2024","A1:2025","A2:2023","A2:2024","A2:2025"]
   ok   Z3 the predicate was located
   ok   Z4 and it assigns to neither schema_by_year nor data: it only reads
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, dsValidateDoc, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedPctCols, detectSumColumns, dsValidateDoc, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
+  ok   the change to boot is accounted for
   ok   the change to buildIngestImport is accounted for
   ok   the change to buildIngestWorkbook is accounted for
   ok   the change to buildYearSelector is accounted for
@@ -89,24 +90,32 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to declaredYearFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to derivedPctCols is accounted for
   ok   the change to detectSumColumns is accounted for
   FAIL the change to dsValidateDoc is accounted for
   ok   the change to fillDerivableSumsOnImport is accounted for
+  ok   the change to fmtDerivedCell is accounted for
+  ok   the change to formatCell is accounted for
   ok   the change to getTableSchema is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
   ok   the change to ingestComputed is accounted for
+  ok   the change to ingestHeaderKeys is accounted for
+  ok   the change to ingestHeaderName is accounted for
   ok   the change to ingestHeaderRowCount is accounted for
   ok   the change to ingestRoleOpen is accounted for
   ok   the change to ingestRowIsStoredHeader is accounted for
   ok   the change to ingestRowRole is accounted for
+  ok   the change to ingestStagedSummary is accounted for
   ok   the change to ingestStoredHeaderRows is accounted for
+  ok   the change to ingestTextOnlyColumn is accounted for
   ok   the change to ingestYearCarriesHeaderRows is accounted for
   ok   the change to isCompositeShareCol is accounted for
   ok   the change to isComputedShareLabel is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to isPercentLiteral is accounted for
   ok   the change to isTotalRoleLabel is accounted for
+  ok   the change to isYearProtected is accounted for
   ok   the change to loadIngestDraft is accounted for
   ok   the change to noteTypedPercent is accounted for
   ok   the change to openAddYearDialog is accounted for
@@ -124,7 +133,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
   ok   the change to renderSourceTables is accounted for
-  FAIL the change to renderTable is accounted for
+  ok   the change to renderTable is accounted for
   ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rerenderIngestEditor is accounted for
   ok   the change to rowSumIsConsistent is accounted for
@@ -136,6 +145,22 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to tableCaption is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
+  ok   the change to wireIngestPage is accounted for
+  ok   the change to xlsxCell is accounted for
+  ok   the change to xlsxInstructionBlocks is accounted for
+  ok   xlsxInstructionBlocks changed as intended: NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has
+  ok   ingestStagedSummary changed as intended: NOT this ticket: CLCPA-300: the staged summary counts the columns that receive values
+  ok   derivedPctCols changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   fmtDerivedCell changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   formatCell changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   renderTable changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   xlsxCell changed as intended: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
+  ok   ingestTextOnlyColumn changed as intended: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
+  ok   ingestHeaderKeys changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
+  ok   ingestHeaderName changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
+  ok   wireIngestPage changed as intended: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
+  ok   isYearProtected changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only
+  ok   boot changed as intended: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
   ok   applyIngestImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
   ok   fillDerivableSumsOnImport changed as intended: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   compareColWidths changed as intended: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
@@ -197,8 +222,8 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
-  FAIL X1 exactly this many functions changed: 63
+  FAIL X1 exactly this many functions changed: 75
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  184 passed, 4 failed
+  210 passed, 3 failed

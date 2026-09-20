@@ -15,13 +15,17 @@ B. THE SUB-LABELS ARE THERE
   ok   B4 and Test Row follows it -- "Test Row"
   ok   B5 four rows in total: two header, two data -- 4
 
-C. THE TEMPLATE IS STILL A BLANK FORMAT (ruled: decided with CLCPA-292)
-  ok   C1 Test Row carries NO stored values, as every template does
-  ok   C2 while its derivable column still carries the marker
-  ok   C3.H1 label emitted, values blank -- stored ["Manhattan",1309,491,1800] -> ["Manhattan","","","(calculated)"]
-  ok   C3.B2 label emitted, values blank -- stored ["DAC",2966,170,2,3138] -> ["DAC","","","","(calculated)"]
-  ok   C3.F5 label emitted, values blank -- stored ["Bay Ridge","Brooklyn",23,0,23] -> ["Bay Ridge","","","","(calculated)"]
-  ok   C4 and the code still says so, in the comment that decided it
+C. A POPULATED YEAR EXPORTS, A FRESH YEAR STAYS A BLANK FORM
+  ok   C1 Test Row EXPORTS its stored values: 2099 holds data -- ["Test Row","","5677","","88888","","(calculated)"]
+  ok   C2 while its derivable column still carries the marker, not a figure
+  ok   C3.H1 label AND stored values emitted -- stored ["Manhattan",1309,491,1800] -> ["Manhattan","1309","491","(calculated)"]
+  ok   C3.B2 label AND stored values emitted -- stored ["DAC",2966,170,2,3138] -> ["DAC","2966","170","2","(calculated)"]
+  ok   C3.F5 label AND stored values emitted -- stored ["Bay Ridge","Brooklyn",23,0,23] -> ["Bay Ridge","Brooklyn","23","0","(calculate
+  ok   C4 a fresh year emits labels and NO values -- ["Manhattan","","","(calculated)"]
+  ok   C5 and the code says which contract it is following
+  ok   C6 H1/2025 writes its 8 value cells as NUMERIC cells, not inline strings -- 8
+  ok   C7 while labels and markers stay inline strings, as they were
+  ok   C8 and a fresh year writes NO numeric cell at all
 
 D. EVERY CONSUMER OF THAT YEAR'S ANATOMY
   ok   D1 editor grid: the sub-header is the table's
@@ -30,13 +34,14 @@ D. EVERY CONSUMER OF THAT YEAR'S ANATOMY
   ok   D4 because the ONE predicate they both consume refuses an empty row
   ok   D5 so that year does not "carry" a header row it never had
 
-E. NOTHING ELSE MOVED
-  ok   E1 every SEED-year template is byte-identical to BASE -- all 10
+E. A FRESH YEAR IS UNCHANGED
+  ok   E1 every FRESH-year template is byte-identical to BASE -- all 10
+  ok   E2 and every POPULATED seed year did move, which is the ruling -- 3 of 3
 
 X. THE HARNESS ITSELF
   ok   X1 BASE is a literal sha
   ok   X2 the deferred template-as-export decision is recorded, not lost
 
 ======================================================================
-  21 passed, 0 failed
+  26 passed, 0 failed
 ======================================================================

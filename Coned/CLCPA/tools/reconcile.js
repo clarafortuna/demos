@@ -105,6 +105,26 @@ const CONTROL_SHAPES = [
   'escapeHtml(slice.dataset.name)', 'odataLiteral(', 'test(dsKey)',
 ];
 
+/* WHERE THE NEXT DELTA ACTUALLY LIVES.
+ *
+ * The original model assumed her work sits on a long-lived branch ahead of
+ * main, so "no live branch" meant "nothing to do". On 2026-09-19 that stopped
+ * being true twice: she merged each stack into main via PR and deleted the
+ * branch immediately. The tool then reported "no live engineer branch" while
+ * 36 unreconciled commits sat on main -- a false all-clear, which is the worst
+ * failure mode a reconciliation tool can have.
+ *
+ * So the source is the live tip when one exists, and origin/main otherwise.
+ * Work that has landed on the trunk is still work we have not absorbed. */
+function reconcileSource(t) {
+  if (t.live.length) return { ref: t.live[0].branch, kind: 'branch' };
+  return { ref: 'origin/main', kind: 'main' };
+}
+
+function outstandingCount(from, ref) {
+  try { return git('rev-list --count ' + from + '..' + ref); } catch (e) { return '?'; }
+}
+
 const cmd = process.argv[2] || 'status';
 
 if (cmd === 'status') {
@@ -126,17 +146,24 @@ if (cmd === 'status') {
   console.log('  stale/abandoned (ahead but also behind -- not reconciliation input):');
   t.stale.slice(0, 8).forEach(b => console.log('    ' + String(b.ahead).padStart(3) + '/-' +
     String(b.behind).padEnd(4) + b.date + '  ' + b.branch));
-  if (state.engineerTip && t.live.length) {
-    const tip = t.live[0].branch;
-    let n = '?';
-    try { n = git('rev-list --count ' + state.engineerTip + '..' + tip); } catch (e) {}
+  if (state.engineerTip) {
+    const src = reconcileSource(t);
+    const n = outstandingCount(state.engineerTip, src.ref);
     console.log('');
-    console.log('  OUTSTANDING: ' + n + ' commit(s) on ' + tip + ' since ' + state.engineerTip);
+    if (src.kind === 'main') {
+      console.log('  no live branch -- reading the TRUNK instead, because merged-and-deleted');
+      console.log('  work is still work we have not absorbed.');
+    }
+    console.log('  OUTSTANDING: ' + n + ' commit(s) on ' + src.ref + ' since ' + state.engineerTip);
   }
 } else if (cmd === 'delta' || cmd === 'impact') {
   const t = liveTips();
-  if (!t.live.length) { console.log('no live engineer branch'); process.exit(0); }
-  const tip = t.live[0].branch;
+  const src = reconcileSource(t);
+  if (src.kind === 'main') {
+    console.log('(no live branch -- reading origin/main; her stacks are merged and deleted)');
+    console.log('');
+  }
+  const tip = src.ref;
   const from = process.env.DAC_FROM || state.engineerTip || 'origin/main';
   let shas = [];
   try { shas = git('rev-list --reverse ' + from + '..' + tip).split('\n').filter(Boolean); }

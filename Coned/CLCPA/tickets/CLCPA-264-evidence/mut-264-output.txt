@@ -27,7 +27,7 @@ CLCPA-264 -- mutation controls
        1 red, incl: R10 and a matching file renders no advisory block at all
   ???  the advisory is styled as a REJECTION, in red  -- ANCHOR 0, NOT APPLIED
   red  HARNESS: the baseline is repointed at a symbolic ref
-       35 red, incl: X3 BASE is a literal commit sha: HEAD
+       39 red, incl: X3 BASE is a literal commit sha: HEAD
   red  HARNESS: the families are hardcoded instead of measured
        3 red, incl: F1 1 header signatures are shared by more than one table
 

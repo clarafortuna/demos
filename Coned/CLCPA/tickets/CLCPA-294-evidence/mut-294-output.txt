@@ -1,0 +1,35 @@
+======================================================================
+CLCPA-294 -- mutation controls
+  suite  : suite_294.js
+  mutant : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-294-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 24 passed, 0 failed
+
+--- mutation 1: the editor calc cell guesses by size again
+  suite: 22 passed, 2 failed
+  failed ids: C2, C5
+  expected to break: C2, C5  ->  NOTICED on C2, C5
+
+--- mutation 2: the rendered table guesses by size again
+  suite: 23 passed, 1 failed
+  failed ids: C3
+  expected to break: C3  ->  NOTICED on C3
+
+--- mutation 3: the declared set is emptied, so no column is ever scaled by type
+  suite: 23 passed, 1 failed
+  failed ids: C1b
+  expected to break: C1b  ->  NOTICED on C1b
+
+--- mutation 4: an UNDECLARED percent column is force-scaled too, breaking stored data
+  suite: 23 passed, 1 failed
+  failed ids: C4
+  expected to break: C4  ->  NOTICED on C4
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 24 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  4 of 4 mutations noticed, 0 missed
+======================================================================

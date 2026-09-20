@@ -116,3 +116,51 @@ permanent, by accepting both summary formats.
 
 **Do not "fix" the 28 provenance failures by relaxing an assertion.** They are load-bearing: they are
 what would catch an unattributed change. They clear with a ticket number, not with an edit.
+
+---
+
+# Round 2 — after absorbing `origin/main` @ `fff9e47`
+
+36 commits, 10 touching `app.js`, 8 PRs (`clarafortuna/demos#276`–`#283`). `styles.css` moved for the
+first time. Machine-readable in `tools/gate_baseline.json`; round 1 retained under `history`.
+
+```
+runners discovered      147   (was 129)
+assertions passed     9,448   (upper bound, same double counting)
+assertions failed        55   -> 37 distinct  (was 33)
+runners not reporting    14
+```
+
+| Category | Round 1 | Round 2 | Why it moved |
+|---|---|---|---|
+| Genuine application failures | 0 | **0** | — |
+| Provenance / attribution | 28 | **25** | She declared tickets: `suite_249` −1, `suite_254_255_261` −1, `suite_260` −1, `suite_263` −1. `gate_149_stacked` **+1** — a new `C1` naming **her** CLCPA-290. |
+| Broken test infrastructure | 5 | **12** | `mut_274_r2` 3→9, `mut_274_r3` 1→2 |
+| Expected / non-reporting | 2 | **4** | `reverify_290`, `reverify_sectionA` added — diagnostics, not pass/fail |
+
+**The infrastructure jump is hers, and it is the same stale-pinned-source cause.** Her CLCPA-274
+option (c) (`6b2cddd`) moved the code those runners' pinned anchors point at; `mut_274_r2` now reports
+**5 mutants as `ANCHOR 0, NOT APPLIED`**. She re-pinned some harness in `e8942b6` but not these two.
+The baseline's decisive test still passes — every underlying suite is green standalone:
+
+```
+suite_274_r2 33/0    suite_274_r3 29/0    suite_274_r4 26/0    suite_278_r2 33/0
+```
+
+**The new `gate_149_stacked` failure is hers too:** `C1 CLCPA-290 … renders the dash instead of a
+blank: A3 and A4 for 2023 and 2024`. It fires against her unmodified `app.js`, and escaping `&`
+cannot produce a dash. Same attribution class as the existing CLCPA-252 `C1`.
+
+Her 18 new runners are **all green against our escaped build**: `suite_282` 34/0, `suite_283` 32/0,
+`suite_287` 25/0, `suite_290` 28/0, `suite_291` 32/0, `suite_292` 25/0, `suite_294` 24/0,
+`suite_300` 17/0, `suite_black_button` 28/0, and each paired `mut_*`.
+
+**34 more of her files** needed `migrate_paths.js` this round. This is not going away.
+
+## A tooling defect found this round
+
+`reconcile.js` reported **"no live engineer branch"** — a false all-clear — while 36 unreconciled
+commits sat on `main`. Her workflow changed to merge-PR-and-delete-branch, which the original model
+did not cover. Fixed: with no live branch the reconciler now reads the **trunk**, because
+merged-and-deleted work is still work we have not absorbed. A reconciliation tool that goes quiet is
+the worst failure mode it has.

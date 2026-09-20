@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-274 round 2 -- the template carries its second header row
-  app.js : git show ec6d208:Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  app.js : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-274-r2-app.js
   BASE   : df6173f (predates this change)
 ======================================================================
 
@@ -18,7 +18,7 @@ B. WHOSE DEFECT IT IS: NOT THIS WAVE'S
 C. THE SUB-HEADER IS EMITTED, VERBATIM
   ok   C1 F6 row 2 is now the stored sub-header, cell for cell -- ["","","Non- Excludable","Excludable","Non- Excludable","Excludable",""]
   ok   C2 and it is the same width as row 1: 7 and 7
-  ok   C3 the first DATA row still follows it -- ["Borough Hall",""]
+  ok   C3 the first DATA row still follows it -- ["Borough Hall","Brooklyn"]
   ok   C4 the header row carries NO (calculated) marker: a header has nothing to calculate
   ok   C5 while the body row below it still marks its derivable Grand Total
   ok   C6 F6 carries 24 marked cells, the follow-up's own number -- 24
@@ -32,18 +32,18 @@ D. THE WHOLE TWO-LEVEL FAMILY, AND NOBODY ELSE
   ok   D4 and D1 row 2 is still its DATA row, not treated as a header -- "Community Distributed Generation (CDG, or Commu
 
 E. EVERY OTHER ENUMERATED TEMPLATE IS BYTE-FOR-BYTE WHAT IT WAS
-  ok   E1.H1 identical to BASE (6 rows)
-  ok   E1.B2 identical to BASE (4 rows)
-  ok   E1.F2 identical to BASE (4 rows)
-  ok   E1.F4 identical to BASE (9 rows)
-  ok   E1.F5 identical to BASE (40 rows)
-  ok   E1.F7 identical to BASE (5 rows)
+  FAIL E1.H1 identical to BASE (6 rows)
+  FAIL E1.B2 identical to BASE (4 rows)
+  FAIL E1.F2 identical to BASE (4 rows)
+  FAIL E1.F4 identical to BASE (9 rows)
+  FAIL E1.F5 identical to BASE (40 rows)
+  FAIL E1.F7 identical to BASE (5 rows)
 
 F. THE RULE LIVES IN ONE PLACE
   ok   F1 the derivation is a named function
-  ok   F2 declared once and called from BOTH readers -- 3 occurrences
-  ok   F3 the editor reads it
-  ok   F4 and the template writer reads it
+  FAIL F2 declared once and called from BOTH readers -- 7 occurrences
+  FAIL F3 the editor reads it
+  FAIL F4 and the template writer reads it
   ok   F5 the editor no longer carries its own inline copy
   ok   F6 and the predicate is "a number, at least 2" -- never "has the key"
 
@@ -52,5 +52,5 @@ X. THE HARNESS ITSELF
   ok   X2 the xlsx reader keeps blank cells distinct -- {"A":"x","B":"","C":"","D":"y"}
 
 ======================================================================
-  33 passed, 0 failed
+  24 passed, 9 failed
 ======================================================================
