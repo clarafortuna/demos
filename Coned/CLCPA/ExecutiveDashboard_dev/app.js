@@ -2949,10 +2949,39 @@ function utf8ByteLength(str) {
     });
   }
 
+  /* CLCPA-294: WHICH COLUMNS OF A TABLE ARE A DECLARED PERCENTAGE?
+   *
+   * The formatters used to guess, with `Math.abs(v) <= 1 ? v * 100 : v`: a
+   * value at or below 1 is a fraction and gets scaled, anything larger is
+   * assumed to be a percentage already. On a COMPUTED ratio that guess is
+   * simply wrong, because the engine always produces a fraction. 777 against
+   * 333 is 2.333, and the guess rendered it "2.3%" where 233.3% was meant --
+   * silently turning a value over 100% into a small one, which is precisely
+   * the anomaly those cells exist to expose.
+   *
+   * MEASURED, and this is what makes always-scaling safe: across A1, A2 and
+   * A8, all 227 stored values in these columns are fractions and NOT ONE is
+   * above 1. Stored and computed hold the same units, so the column can be
+   * scaled by its type rather than each value by its size.
+   *
+   * Note the boundary the ticket got slightly wrong: a ratio of EXACTLY 1
+   * rendered correctly as 100.0%, because `<= 1` includes it. Only a ratio
+   * strictly greater than 1 was mangled.
+   */
+  function derivedPctCols(tableId) {
+    const out = {};
+    ((tableId && DERIVED_COLS[tableId]) || []).forEach((d) => {
+      if (d.type === 'percentage' || d.type === 'weightedMean') out[d.column] = true;
+    });
+    return out;
+  }
+
   /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
   function fmtDerivedCell(v, d) {
     if (v == null || v === '' || typeof v !== 'number' || !isFinite(v)) return '—';
-    if (d.type === 'percentage') return (Math.abs(v) <= 1 ? v * 100 : v).toFixed(d.decimals) + '%';
+    /* CLCPA-294: ALWAYS scaled. This function's input is by construction the
+     * engine's own ratio, so there is nothing to guess about. */
+    if (d.type === 'percentage') return (v * 100).toFixed(d.decimals) + '%';
     return v.toFixed(d.decimals);
   }
 
@@ -4463,6 +4492,8 @@ function utf8ByteLength(str) {
       ? (state.payload.tables[opts.tableId].currency_cols || [])
       : [];
     const currCols = detectCurrencyColumns(pctHeader).map((v, i) => v || tableCurrCols.includes(i));
+    /* CLCPA-294: the columns this table DECLARES as derived percentages */
+    const declaredPct = derivedPctCols(opts.tableId);
 
     function formatCell(c, colIdx, rowLabel) {
       if (c == null || c === '') return '';
@@ -4470,6 +4501,15 @@ function utf8ByteLength(str) {
       if (typeof c === 'number') {
         const isPctRow = rowLabel && /^percentage|^%/i.test(String(rowLabel).trim());
         if (pctCols[colIdx] || isPctRow) {
+          /* CLCPA-294: a column DECLARED as a derived percentage is always
+           * scaled, never guessed. The guess reads a computed 2.333 as "a
+           * percentage already" and renders 2.3%, hiding a DAC share over
+           * 100% -- the one thing those cells are read to catch.
+           *
+           * Columns NOT so declared keep the guess: stored source data in a
+           * percent column is not guaranteed to be a fraction, and this
+           * ticket is about computed cells. */
+          if (declaredPct[colIdx]) return (c * 100).toFixed(1) + '%';
           return (Math.abs(c) <= 1 ? c * 100 : c).toFixed(1) + '%';
         }
         if (currCols[colIdx]) {

@@ -1,0 +1,45 @@
+======================================================================
+CLCPA-294 -- a computed percentage is always scaled
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : c99be38 (predates this change)
+======================================================================
+
+A. THE GUESS, ON BASE
+  ok   A1 the editor calc cell guessed by size
+  ok   A2 and so did the rendered table
+  ok   A3 nothing asked what the COLUMN was declared to be
+
+B. WHAT THE ENGINE PRODUCES, AND WHAT IS SHOWN
+  ok   B1 the computed ratios themselves did NOT move -- [0.375,1,2.3333333333333335,5550,0.005]
+  ok   B2 333/888 is 0.375
+  ok   B3 333/333 is exactly 1
+  ok   B4 777/333 is 2.333...
+  ok   B5 500/100000 is 0.005
+
+C. THE FORMATTER SCALES BY THE COLUMN, NOT THE VALUE
+  ok   C1 a declared-percentage set is derived from DERIVED_COLS
+  ok   C1b and A1 column 3 really is in the declared set -- {"3":true}
+  ok   C1c while a table declaring no percentage has an empty set
+  ok   C2 the editor calc cell always scales: its input IS the engine ratio
+  ok   C3 and the rendered table scales a DECLARED percentage column always
+  ok   C4 while an undeclared percent column keeps the previous rule
+  ok   C5 the derived formatter contains no size guess at all
+
+D. THE STORED YEARS, MEASURED
+  ok   D1 227 stored values in these columns -- 227
+  ok   D2 every one of them is a number -- 0 were not
+  ok   D3 and NOT ONE is above 1, so stored and computed hold the same units -- 0
+
+E. THE SURFACES THIS MUST NOT DISTURB
+  ok   E1 the KPI formatter is untouched: it takes an explicit kind, not a column
+  ok   E2 rowsForDisplay is BYTE-IDENTICAL to BASE: no derivation changed
+  ok   E3 and so is recomputeTotals
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the computed ratios are compared across both builds, not assumed stable
+  ok   X3 the browser gesture is committed beside this suite
+
+======================================================================
+  24 passed, 0 failed
+======================================================================

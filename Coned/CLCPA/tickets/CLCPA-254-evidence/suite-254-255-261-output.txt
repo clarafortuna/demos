@@ -52,11 +52,11 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
 === Z. the stored years ===========================================
   ok   Z1 all 149 rendered, every one a <table>
   ok   Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ["A8:2023"]
-  ok   Z2 and every one is byte-identical
+  ok   Z2 and the panels move on exactly two, both corrected by CLCPA-294: ["G10:2024","J4:2025"]
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage, xlsxCell
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedPctCols, detectSumColumns, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage, xlsxCell
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
@@ -74,8 +74,11 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to declaredYearFromFilename is accounted for
   ok   the change to deriveTableCaption is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to derivedPctCols is accounted for
   ok   the change to detectSumColumns is accounted for
   ok   the change to fillDerivableSumsOnImport is accounted for
+  ok   the change to fmtDerivedCell is accounted for
+  ok   the change to formatCell is accounted for
   ok   the change to getTableSchema is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
@@ -111,6 +114,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
   ok   the change to renderSourceTables is accounted for
+  ok   the change to renderTable is accounted for
   ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rerenderIngestEditor is accounted for
   ok   the change to rowSumIsConsistent is accounted for
@@ -124,6 +128,10 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestPage is accounted for
   ok   the change to xlsxCell is accounted for
+  ok   derivedPctCols changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   fmtDerivedCell changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   formatCell changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   renderTable changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   xlsxCell changed as intended: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
   ok   ingestTextOnlyColumn changed as intended: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
   ok   ingestHeaderKeys changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
@@ -191,7 +199,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   recomputeTotals changed as intended: CLCPA-254: it consults the declaration
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
-  ok   X1 exactly this many functions changed: 67
+  ok   X1 exactly this many functions changed: 71
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -199,4 +207,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  184 passed, 0 failed
+  192 passed, 0 failed

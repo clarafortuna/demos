@@ -174,6 +174,8 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function isComputedShareLabel moved, and it is named by a later ticket: CLCPA-270: a percentage OF A TOTAL (new)
   ok   X1 app.js function ingestRowRole moved, and it is named by a later ticket: CLCPA-270: the row role, from its label (new)
   ok   X1 app.js function ingestRoleOpen moved, and it is named by a later ticket: CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)
+  ok   X1 app.js function derivedPctCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   X1 app.js function fmtDerivedCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function columnGrandTotals moved, and it is named by a later ticket: CLCPA-278 round 3: and the engine's own summing, which is how recomputeTotals adds
   ok   X1 app.js function rowsForDisplay moved, and it is named by a later ticket: CLCPA-263: it derives the value (pct) composites on its clone
   ok   X1 app.js function isCompositeShareCol moved, and it is named by a later ticket: CLCPA-263: the declaration predicate (new)
@@ -185,6 +187,8 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function recomputeDerivableSums moved, and it is named by a later ticket: CLCPA-278: a consistent total follows the edit (new)
   ok   X1 app.js function fillDerivableSumsOnImport moved, and it is named by a later ticket: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   X1 app.js function reconcileSumColumns moved, and it is named by a later ticket: CLCPA-272: the reconciliation itself (new)
+  ok   X1 app.js function renderTable moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   X1 app.js function formatCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function compareColWidths moved, and it is named by a later ticket: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
   ok   X1 app.js function renderSourceTables moved, and it is named by a later ticket: CLCPA-252, Section C group B
   ok   X1 app.js function dacCol moved, and it is named by a later ticket: NOT this ticket: CLCPA-257, Section C group C: dacCols newest-year fallback
@@ -227,11 +231,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (69) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (73) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  202 passed, 0 failed
+  206 passed, 0 failed

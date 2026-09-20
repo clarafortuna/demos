@@ -7,7 +7,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   S1 149 stored table-years put through the display view
   ok   S2 and every one is byte-identical to BASE
   ok   S3 149 panels rendered on both sides
-  ok   S4 and every panel is byte-identical
+  ok   S4 the panels move on exactly two -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 and the old size guess rendered 1.0% for 100.0% -- got ["G10:2024","J4:2025"]
   ok   S5 C2:2023 stores a bare PERCENTAGE: "31%"
   ok   S6 C2:2025 stores a COMPOSITE: "37,988 (33%)"
   ok   S7 C2:2023 is returned unchanged
@@ -76,7 +76,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, detectSumColumns, fillDerivableSumsOnImport, getTableSchema, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage, xlsxCell
+       changed: applyCompositeShares, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedPctCols, detectSumColumns, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStoredHeaderRows, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, tableCaption, wire, wireIngestEditor, wireIngestPage, xlsxCell
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyIngestImport is accounted for
   ok   the change to bareNumber is accounted for
@@ -92,8 +92,11 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to dacDerivedTablesForYear is accounted for
   ok   the change to declaredYearFromFilename is accounted for
   ok   the change to deriveTableCaptionInfo is accounted for
+  ok   the change to derivedPctCols is accounted for
   ok   the change to detectSumColumns is accounted for
   ok   the change to fillDerivableSumsOnImport is accounted for
+  ok   the change to fmtDerivedCell is accounted for
+  ok   the change to formatCell is accounted for
   ok   the change to getTableSchema is accounted for
   ok   the change to importYearNotice is accounted for
   ok   the change to ingestComputed is accounted for
@@ -126,6 +129,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to renderIngestImportResult is accounted for
   ok   the change to renderReconcileNotice is accounted for
   ok   the change to renderSourceTables is accounted for
+  ok   the change to renderTable is accounted for
   ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rerenderIngestEditor is accounted for
   ok   the change to rowSumIsConsistent is accounted for
@@ -139,6 +143,10 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestPage is accounted for
   ok   the change to xlsxCell is accounted for
+  ok   derivedPctCols changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   fmtDerivedCell changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   formatCell changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   renderTable changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   xlsxCell changed as intended: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
   ok   ingestTextOnlyColumn changed as intended: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
   ok   ingestHeaderKeys changed as intended: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)
@@ -201,7 +209,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 3, it stops carrying the year across
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 3, it strips on all three paths
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-266, the notice boxes gain their accent classes
-  ok   X1 exactly this many functions changed: 62
+  ok   X1 exactly this many functions changed: 66
   ok   X2 applyDerivedCols is byte-identical to BASE
   ok   X2 recomputeTotals is byte-identical to BASE
   ok   X2 totalRowFlags is byte-identical to BASE
@@ -211,4 +219,4 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  193 passed, 0 failed
+  201 passed, 0 failed
