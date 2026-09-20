@@ -229,6 +229,46 @@ results before and after, verified against a pre-merge worktree.
 and errored outright on any other machine. `migrate_paths.js` fixed all seven (157 migrated, the two
 Chrome/Edge exceptions still detected rather than assumed, 0 unexpected). Expect this with every delta.
 
+## F4. Reconciliation mode — the standing cycle
+
+Active as of 2026-09-20. Baseline `fff9e47`, integration tip `2c12f56`. **No new refactors or broad
+cleanup while the engineer is still changing the project.**
+
+Detection is scripted because it is mechanical and must not drift:
+
+```sh
+sh tools/reconcile_cycle.sh      # exit 0 = no delta, 10 = delta, 2 = cannot tell
+```
+
+It fetches `clarafortuna/demos`, refuses to run against any other remote, reads the baseline from
+`tools/reconciled.json`, and counts commits on `origin/main` **and** on any live branch — with
+`clcpa-integration-candidate` excluded, because our own branch is 0-behind after each merge and would
+otherwise be mistaken for the engineer's line.
+
+Both paths are verified, not assumed: rewound to `74458b2` it reports `36 commits` and exits **10**;
+at the current baseline it reports no delta and exits **0**; the ledger is byte-identical afterwards.
+
+Steps 4–14 are **deliberately not scripted**. Reviewing a diff, deciding what is legitimate, and
+deploying to a client environment are judgement, and a script that merges and deploys unattended is
+how an unreviewed change reaches Con Edison.
+
+When a delta exists, in order:
+
+1. Review the delta only — behaviour, security, paths, test assumptions.
+2. Merge; resolve generated `*-output.txt` by **regenerating**, never by picking a side.
+3. `node tools/migrate_paths.js` — **always**; every round so far has needed it (7, then 34 files).
+4. `sh tools/run_security.sh` — must stay green. Red here is real.
+5. Run her new suites against our escaped build.
+6. Compare to `tools/gate_baseline.json` **by category**, never by aggregate totals — the totals
+   double-count, because every `mut_*` wrapper re-runs its suite and reports that suite's tally.
+7. Stamp; deploy only `clcpa_*`; pin `--environment` on every write; assert the OrganizationId
+   immediately before the operation, in the same session that performs it; targeted `PublishXml` only.
+8. Smoke-test the app; confirm `cr2bf_dactest/*` timestamps are unchanged.
+9. Push; then advance the baseline with `reconcile.js mark`.
+
+Dataverse writes stay parked. No merge to `main`, no standalone repository, no deploy outside
+`Sustainability Design - Dev`, no legacy modification without Randdy's explicit approval.
+
 ## G. What is still open
 
 1. ~~The org-id assertion in deploy pre-flight~~ — **done**, §F1, and it already paid for itself
