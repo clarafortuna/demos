@@ -252,6 +252,14 @@ guard('F-block', () => {
    * this guard exists to forbid. Excluded by its exact text, so the guard
    * still catches a real one. */
   const KNOWN_DECL_LINES = [
+    /* and the call site that hands the share over: it named D3 before this
+     * ticket touched it, and changed only by gaining the argument. */
+    "            ${dBarMetric('LMI subscribers (EAP)', fmtCompact, d3Lmi.upTo, null,           d3Lmi.prevCum,  null,             'D3', true,",
+    /* CLCPA-311 reads the share D3 files, beside the line that already
+     * reads the count: renderSectionD names D2, D3 and D4 throughout, so a
+     * sibling of an existing getDRow call is not the per-table special case
+     * in code this guard forbids. Excluded by its exact text. */
+    "      const d3LmiPct  = getDRow('D3', ['percentage', 'low-income', 'energy affordability']);",
     "    'A1', 'A2', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10', 'F2',",
   ];
   const codeAdded = added.filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()))
