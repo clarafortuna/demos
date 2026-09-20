@@ -24757,10 +24757,29 @@ function wireHTooltips() {
     }
     const cells = d.populated.length;
     const rows = d.addedRows.length;
-    const cols = d.matchedColumns.length;
-    return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' matching column' +
-      (cols === 1 ? '' : 's') + ', ' + cells + ' value' + (cells === 1 ? '' : 's') +
-      ' ready to import.';
+    /* CLCPA-300: THE COLUMNS THAT ACTUALLY RECEIVE VALUES.
+     *
+     * This counted res.matchedColumns, which is every file column whose
+     * heading matched the schema -- including the calculated ones the importer
+     * then deliberately SKIPS. H1 reported "3 matching columns, 4 values" for
+     * a file whose values land in two: the third is the Grand Total, matched
+     * and never written.
+     *
+     * The owner's pre-ruling offered aligning the count or rewording it so it
+     * cannot be read as a check figure. ALIGNED, because the aligned number IS
+     * a check figure -- two columns across two rows is four values, and the
+     * operator can verify the summary against their own sheet. A reworded
+     * number they are told not to trust is worth less than a true one.
+     *
+     * Taken from res.populated, the record of cells actually written, so the
+     * two figures in this sentence cannot disagree: they are the same data
+     * counted two ways.
+     *
+     * The VALUE count is unchanged, as ruled. */
+    const cols = new Set(d.populated.map(x => x.column)).size;
+    return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' column' +
+      (cols === 1 ? '' : 's') + ' with values, ' + cells + ' value' +
+      (cells === 1 ? '' : 's') + ' ready to import.';
   }
 
   function rerenderIngestAll() {
