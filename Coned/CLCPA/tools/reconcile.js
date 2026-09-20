@@ -45,9 +45,18 @@ const state = fs.existsSync(STATE)
 
 /* The engineer's live line. Determined from the GRAPH, never from branch names:
  * a branch is live only if it is ahead of main and not behind it. */
+/* OUR OWN BRANCH IS NOT ENGINEER INPUT.
+ *
+ * Once the integration branch merges origin/main it is ahead of main and 0
+ * behind -- exactly the shape used to recognise a live engineer tip. It was
+ * then reported as the reconciliation source, claiming our own commits as
+ * outstanding work to absorb. Reconciling against ourselves is meaningless, so
+ * the branch is excluded by name wherever it appears. */
+const OUR_BRANCH = /(^|\/)clcpa-integration-candidate$/;
+
 function liveTips() {
   const branches = git('branch -r --format=%(refname:short)').split('\n')
-    .map(s => s.trim()).filter(b => b && !/HEAD/.test(b));
+    .map(s => s.trim()).filter(b => b && !/HEAD/.test(b) && !OUR_BRANCH.test(b));
   const out = [];
   for (const b of branches) {
     let counts;
