@@ -1,6 +1,6 @@
 ======================================================================
   MUTATION CONTROLS: CLCPA-292 round 2
-  app.js sha256[0:12] before: b74bb9f86216
+  app.js sha256[0:12] before: d8ce85490dc1
 ======================================================================
 
   [1] the donor is the NEWEST year again, published or not (the defect itself)
@@ -29,7 +29,7 @@
       ok
 
 ======================================================================
-  app.js sha256[0:12] after : b74bb9f86216
+  app.js sha256[0:12] after : d8ce85490dc1
   app.js is byte-for-byte unchanged: every mutation went to a temp copy.
 
   CLEAN RE-RUN against the restored source:

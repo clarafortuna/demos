@@ -1,0 +1,26 @@
+======================================================================
+CLCPA-287 round 2 -- the owner's gesture, in a real browser
+  gesture : Report Data -> A9 -> 2025 -> Add Data -> stage a CSV with
+            headings A9 does not have -> Load Data
+  BASE    : 8551769
+======================================================================
+
+  --- BEFORE, served from 8551769 ---
+    button read            : "Load Data"
+    dialog still open      : true
+    dialog error line      : "The file has no “” column, which is the one that says which row each value belongs to. Download "
+    the page says          : "Nothing was importedThe draft below is untouched. Fix the file and import again.The file has no “” column, which is the one that says which row each v"
+    page errors            : []
+
+  --- AFTER, served from the working tree ---
+    button read            : "Load Data"
+    dialog still open      : false
+    dialog error line      : "(dialog gone)"
+    the page says          : "Nothing was importedThe draft below is untouched. Fix the file and import again.The file has no first column, unheaded in this table, which is the one"
+    page errors            : []
+
+======================================================================
+  HALF 1  the dialog dismisses on a rejected Load : FIXED (was open, now closes)
+  HALF 2  the rejection names a column by role    : FIXED (was “”, now "first column, unheaded in this table")
+  page errors either side                         : 0
+======================================================================
