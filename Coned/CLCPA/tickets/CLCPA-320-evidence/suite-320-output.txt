@@ -1,0 +1,31 @@
+CLCPA-320: the total-row marker is the same in every year
+BASE d84c0d3   app.js working tree
+
+=== A. A3s Total row, the case captured in the browser ==============
+  ok   A1 A3s Total row is marked in all four value columns in EVERY year: {"2023":[1,2,3,4],"2024":[1,2,3,4],"2025":[1,2,3,4]}
+  ok   A2 while BASE marked nothing at all in 2023 and 2024: {"2023":[],"2024":[],"2025":[1,2,3,4]}
+
+=== B. the rule, across the whole payload ===========================
+  ok   B1 exactly 25 total rows gain a marker, and they are the rows this ticket names: 25
+  ok   B2 and NOT ONE other row moves, in either direction: []
+  ok   B3 "Total amount of...", "Total # of projects" and "Total in DAC" are DATA rows and stay data rows: []
+  ok   B4 while a label that ENDS at a total is one
+
+=== C. the import skip does not move ================================
+  ok   C1 rows compared on both builds: 2786
+  ok   C2 and the WHOLE TREE moves the import skip on NOT ONE row: []
+
+=== D. what the marker promises, on the board this ticket is about ==
+  ok   D1 G-board cells the workbook marks, on both builds: 100 and 100
+  ok   D2 exactly four G cells are marked and not filled, all of them G1s percentage in a year with no quantities: ["G1:2023 r0c2","G1:2023 r1c2","G1:2024 r0c2","G1:2024 r1c2"]
+  ok   D3 and BASE produces the very same four, so CLCPA-320 adds none: ["G1:2023 r0c2","G1:2023 r1c2","G1:2024 r0c2","G1:2024 r1c2"]
+
+=== X. the shape of the change ======================================
+  ok   X1 the role set is built from the anchored predicate
+  ok   X2 and the marker takes role OR arithmetic, so a total row whose label does not end in "total" keeps the marker it always had
+  ok   X3 while `any`, which gates the IMPORT, does not consult the role at all
+  ok   X4 BASE is a literal commit sha: d84c0d3
+  ok   X5 and HEAD descends from it
+  ok   X6 while BASE has no role set at all, so this suite cannot pass on it
+
+  17 passed, 0 failed

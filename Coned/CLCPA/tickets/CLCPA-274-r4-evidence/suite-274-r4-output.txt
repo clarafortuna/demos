@@ -35,7 +35,7 @@ D. EVERY CONSUMER OF THAT YEAR'S ANATOMY
   ok   D5 so that year does not "carry" a header row it never had
 
 E. A FRESH YEAR IS UNCHANGED
-  ok   E1 every FRESH-year template is byte-identical to BASE except A9, for CLCPA-289 -- A9
+  ok   E1 every FRESH-year template is byte-identical to BASE except A9 (CLCPA-289) and F7 (CLCPA-308) -- A9,F7
   ok   E2 and every POPULATED seed year did move, which is the ruling -- 3 of 3
 
 X. THE HARNESS ITSELF

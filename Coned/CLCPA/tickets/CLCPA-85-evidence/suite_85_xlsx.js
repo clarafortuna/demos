@@ -138,7 +138,12 @@ try {
     ' seedYears: ((PAYLOAD.meta && PAYLOAD.meta.years) || []).map(String) };\n' +
     'const console = { warn: () => {}, info: () => {} };\n' +
     grabDecl('CRC_TABLE') + '\n' + grabDecl('SHORT_TITLES') + '\n' +
-    grabDecl('DERIVED_COLS') + '\n' + consts.join('\n') + '\n' +
+    grabDecl('DERIVED_COLS') + '\n' +
+    /* CLCPA-308: ingestComputed asks DERIVED_ROWS as well now, because a
+     * table whose metric runs down the rows was invisible to it. A hand-fed
+     * declaration list cannot see a new one: this threw from inside the
+     * assembled workbook writer rather than failing an assertion. */
+    grabDecl('DERIVED_ROWS') + '\n' + consts.join('\n') + '\n' +
     NAMES.map(grab).join('\n') + '\n' +
     'return { buildIngestWorkbook, zipStored, crc32, xlsxSheetName, xlsxCol,' +
     ' xlsxInstructionBlocks, buildIngestImport, parseCsvRows, getTableSchema,' +

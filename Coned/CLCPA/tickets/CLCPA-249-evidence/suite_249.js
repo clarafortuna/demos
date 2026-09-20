@@ -474,15 +474,21 @@ guard('P: every table and year, one render each', () => {
   CENSUS = c;
   ok(c.th === 798, 'P1 header cells, left -> centre (first column excepted): ' + c.th);
   ok(c.label === 1386, 'P2 row labels, LEFT and untouched: ' + c.label);
-  ok(c.num === 3765, 'P3 .num values, right -> centre: ' + c.num);
+  /* +4 for CLCPA-319: G1 files no feet figure in 2023 or 2024, so declaring
+   * that column gives four EMPTY cells the numeric alignment class. P6 below
+   * loses the same four, which is what proves nothing gained content. */
+  ok(c.num === 3769, 'P3 .num values, right -> centre: ' + c.num);
   ok(c.numText === 261, 'P4 text in a numeric column, follows its column: ' + c.numText);
   ok(JSON.stringify(numTextBy) ===
      '{"A3":7,"A4":7,"A5":81,"A6":45,"A7":5,"A8":69,"C2":15,"I1":28,"J1":2,"J2":2}',
      'P5 and they are in these ten tables: ' + JSON.stringify(numTextBy));
-  ok(c.plain === 674, 'P6 text cells in the 20 TEXT columns, LEFT and unmoved ' +
+  /* -4, the same four P3 gained */
+  ok(c.plain === 670, 'P6 text cells in the 20 TEXT columns, LEFT and unmoved ' +
      'after round 2: ' + c.plain);
-  ok(Object.keys(plainBy).length === 14,
-     'P7 across fourteen tables: ' + Object.keys(plainBy).sort().join(','));
+  /* THIRTEEN now: G1's quantity column is declared, so it leaves the plain
+   * text census entirely rather than contributing two empty cells to it. */
+  ok(Object.keys(plainBy).length === 13,
+     'P7 across thirteen tables: ' + Object.keys(plainBy).sort().join(','));
   ok(c.dacYes === 0, 'P8 and .dac-yes is emitted on zero cells, so its retired ' +
      'centring rule never centred anything');
   /* the editor population, from the SAME mask, must match cell for cell */
@@ -675,6 +681,9 @@ guard('X: app.js is byte-identical to BASE', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-319, named so the count stays exact */
+    isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
+    totalRowFlags: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)',
     /* CLCPA-293 / A-10, named so the count stays exact */
     ingestRebuildableTotals: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)',
     renderPreparerTotalsNotice: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)',

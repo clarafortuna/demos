@@ -157,12 +157,22 @@ guard('C-block', () => {
    * separating the two changes rather than widening the test to cover both. */
   const mine = diffs.filter(d => /"\(calculated\)"->"\(no value\)"/.test(d));
   const c289 = diffs.filter(d => /^A9 /.test(d) && /""->"\(calculated\)"/.test(d));
+  /* CLCPA-308 marks the DERIVED ROWS of D2, D3, D4 and F7 the same way. A
+   * separate bucket, so this ticket's own radius stays exactly two. */
+  const c308 = diffs.filter(d => /^(D2|D3|D4|F7) /.test(d) && /""->"\(calculated\)"/.test(d));
+  /* CLCPA-320 marks a total row by its ROLE, so J8's "Total" is marked in
+   * every year rather than only where the arithmetic happened to confirm
+   * it. Its own bucket: this ticket's radius stays exactly two. */
+  const c320 = diffs.filter(d => /^J8 /.test(d) && /""->"\(calculated\)"/.test(d));
   ok(mine.length === 2, 'C1 exactly two template cells moved for THIS ticket -- ' + mine.length);
   ok(mine.every(d => /^A[34] /.test(d)),
     'C2 both in A3 and A4 -- ' + JSON.stringify(mine));
-  ok(diffs.length === mine.length + c289.length,
-    'C3 and every other moved cell is CLCPA-289 marking A9 (' + c289.length + ') -- ' +
-    JSON.stringify(diffs.filter(d => mine.indexOf(d) < 0 && c289.indexOf(d) < 0)));
+  ok(diffs.length === mine.length + c289.length + c308.length + c320.length,
+    'C3 every other moved cell is CLCPA-289 marking A9 (' + c289.length +
+    '), CLCPA-308 marking a derived row (' + c308.length +
+    ') or CLCPA-320 marking J8s Total by role (' + c320.length + ') -- ' +
+    JSON.stringify(diffs.filter(d => mine.indexOf(d) < 0 && c289.indexOf(d) < 0 &&
+      c308.indexOf(d) < 0 && c320.indexOf(d) < 0)));
 });
 
 /* ---- D. the predicate, and the two ways it nearly went wrong ----------- */

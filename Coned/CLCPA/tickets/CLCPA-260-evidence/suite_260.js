@@ -372,9 +372,16 @@ guard('Z: the report page is untouched', () => {
      'Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
      JSON.stringify(derivedOnly));
   /* RE-POINTED, not widened: an exact list of two, so a third still fails. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
-     'Z2 and the REPORT page moves on exactly two panels -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0% -- got ' +
-     JSON.stringify(moved.slice(0, 6)));
+  /* +2 for CLCPA-319, NAMED so a ninth still fails: G1 files no feet figure
+   * for 2023 or 2024, so declaring that column gives an EMPTY cell its
+   * numeric alignment class. Measured on this suite's own harness against
+   * its own BASE: nothing else in those two panels moves, and G3, which
+   * does file that figure, is untouched. Sorted, to match the comparison.
+   * The message now prints the WHOLE list rather than a slice that could
+   * hide the entry that broke it. */
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'G1:2023', 'G1:2024', 'J4:2025']),
+     'Z2 and the REPORT page moves on exactly eight panels -- CLCPA-294 corrects two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0%; CLCPA-290 four; CLCPA-319 aligns two empty cells -- got ' +
+     JSON.stringify(moved.slice().sort()));
 });
 
 guard('Z: the stored schema and data are not rewritten', () => {
@@ -426,6 +433,9 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-319, named so the count stays exact */
+    isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
+    totalRowFlags: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)',
     /* CLCPA-293 / A-10, named so the count stays exact */
     ingestRebuildableTotals: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)',
     renderPreparerTotalsNotice: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)',
@@ -559,7 +569,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 84, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 86, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

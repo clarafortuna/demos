@@ -98,6 +98,11 @@ WANT_FN.forEach(n => {
 });
 const DC = grabDecl(SRC, 'DERIVED_COLS');
 if (!DC) missing.push('DERIVED_COLS');
+/* CLCPA-308: ingestComputed asks DERIVED_ROWS too, because a table whose
+ * metric runs down the rows was invisible to it. A hand-fed declaration list
+ * cannot see a new one, and this threw rather than answering wrongly. */
+const DR = grabDecl(SRC, 'DERIVED_ROWS');
+if (!DR) missing.push('DERIVED_ROWS');
 if (missing.length) {
   console.error('EXTRACTION FAILED, missing: ' + missing.join(', '));
   process.exit(1);
@@ -113,7 +118,7 @@ try {
   const body = '"use strict";\n' +
     'const state = { payload: PAYLOAD, ingest: {} };\n' +
     'const console = { warn: () => {}, info: () => {}, error: () => {} };\n' +
-    DC + '\n' +
+    DC + '\n' + DR + '\n' +
     /* CLCPA-240 dependencies. Single-line consts, so a bounded one-line match
      * rather than grabDecl, which scans to the next dedented `};`. Read from
      * the SOURCE, never retyped. */
