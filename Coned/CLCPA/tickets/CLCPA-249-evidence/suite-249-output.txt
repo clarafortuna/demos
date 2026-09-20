@@ -210,6 +210,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function ingestYearCarriesHeaderRows moved, and it is named by a later ticket: CLCPA-274 round 3: does THIS year carry them, or must it borrow (new)
   ok   X1 app.js function storedHeaderRowsInYear moved, and it is named by a later ticket: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear (new)
   ok   X1 app.js function ingestStoredHeaderRows moved, and it is named by a later ticket: CLCPA-274 round 3: the table's own header rows, from a year that has them (new)
+  ok   X1 app.js function ingestTemplateSource moved, and it is named by a later ticket: NOT this ticket: CLCPA-292 round 2: a fresh-year template borrows its structure from a PUBLISHED year, never from a scratch one
   ok   X1 app.js function xlsxCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
   ok   X1 app.js function xlsxInstructionBlocks moved, and it is named by a later ticket: NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has
   ok   X1 app.js function buildIngestWorkbook moved, and it is named by a later ticket: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, the template stops emitting them
@@ -233,11 +234,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (75) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (76) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  208 passed, 0 failed
+  209 passed, 0 failed

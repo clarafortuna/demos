@@ -1,0 +1,28 @@
+  ok   A1 BASE: A3/2094 emits 46 rows, the scratch year copied whole (46)
+  ok   A2 BASE: 22 keys are "Test Program N"
+  ok   A3 BASE: 22 keys are pattern FIGURES, from the rows below the Total
+  ok   A4 BASE: 22 rows sit BELOW the Total
+  ok   A5 BASE: and not one marker anywhere in the sheet
+  ok   B1 A3/2094 emits the published structure, 24 rows with the heading (24)
+  ok   B2 no "Test Program" key survives
+  ok   B3 no pattern FIGURE is keyed as a programme name
+  ok   B4 the Total is the last row: nothing sits below it
+  ok   B5 and every data key matches the published year exactly, in order
+  ok   C1 the Total row Program Name is (no value): nothing can compute a name
+  ok   C2 and every numeric column on that row is (calculated)
+  ok   C3 BASE did not, which is why 291 could not be signed off on a download
+  ok   D1 A1/2094 is byte-for-byte what it was
+  ok   D2 (24 rows, Total last -- the shape that passed round 1)
+  ok   E1 the rule is measured over every table with a published year (52)
+  ok   E2 and every one of them emits its published structure
+  ok   F1 with no published year known, a template still has rows (46)
+  ok   F2 and it degrades to exactly the previous behaviour
+  ok   X1 ingestTemplateSource filters its donors by isYearProtected
+  ok   X2 and prefers a published donor rather than requiring one
+  ok   X3 ingestTextOnlyColumn judges on the published years too
+  ok   X4 and neither place restates what a published year is
+  ok   X5 (the baseline carries none of this)
+
+======================================================================
+  24 passed, 0 failed
+======================================================================

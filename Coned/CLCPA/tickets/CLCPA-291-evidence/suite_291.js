@@ -65,6 +65,16 @@ const assemble = (names, src) =>
   new Function(names.map(n => grab(n, src)).join('\n') +
     '\nreturn {' + names.map(n => n + ':' + n).join(',') + '};')();
 
+/* CLCPA-292 round 2 scoped this predicate to the PUBLISHED years, so the
+ * slice now needs isYearProtected AND the state it reads. A hand-fed slice
+ * cannot see a missing closure -- it threw here rather than answering wrongly,
+ * which is the good failure -- so the state is fed explicitly and by name. */
+const assembleSeeded = (names, src, seedYears) =>
+  new Function('__seed',
+    'const state = { seedYears: __seed.map(String) };\n' +
+    names.map(n => grab(n, src)).join('\n') +
+    '\nreturn {' + names.map(n => n + ':' + n).join(',') + '};')(seedYears);
+
 /** the REAL workbook for a table's newest year, read back cell by cell */
 const tmpl = (id, src) => {
   const ys = Object.keys(P.tables[id].data || {});
@@ -147,7 +157,13 @@ guard('C-block', () => {
 log('');
 log('D. WHAT COUNTS AS A TEXT COLUMN');
 guard('D-block', () => {
-  const H = assemble(['ingestTextOnlyColumn', 'bareNumber', 'isPercentLiteral'], SRC);
+  /* Every year named in this block is a PUBLISHED year, so scoping the
+   * predicate to the published set leaves each assertion below saying exactly
+   * what it said before -- D2b included, which is why it still exercises the
+   * across-years contract it was written for. */
+  const H = assembleSeeded(
+    ['ingestTextOnlyColumn', 'isYearProtected', 'bareNumber', 'isPercentLiteral'],
+    SRC, (P.meta && P.meta.years) || []);
   ok(H.ingestTextOnlyColumn(P.tables.A3, 1) === true,
     'D1 A3 Program Name is text in every year it has');
   /* A7's column holds numbers in 2024 and NOTHING in 2025. Worth keeping, but
@@ -167,6 +183,18 @@ guard('D-block', () => {
   const allText = { data: { '2024': [[null, 'a']], '2025': [[null, 'b']] } };
   ok(H.ingestTextOnlyColumn(allText, 1) === true,
     'D2c and a column textual in every year IS text');
+  /* CLCPA-292 round 2: A SCRATCH YEAR CANNOT DECIDE STRUCTURE. This is the
+   * A3/2098 shape exactly -- phantom rows below the Total put the pattern
+   * figures into the Program Name column, the all-years scope read them as
+   * evidence the column was numeric, and the Total row lost its (no value)
+   * marker as a result. 2098 is not published, so it no longer votes. */
+  const poisoned = { data: { '2025': [[null, 'Clean Heat']], '2098': [[null, 333]] } };
+  ok(H.ingestTextOnlyColumn(poisoned, 1) === true,
+    'D2d a scratch year holding numbers does not make a name column numeric');
+  /* and the scope is PUBLISHED, not newest-only: 2024 still votes */
+  const oldNumeric = { data: { '2024': [[null, 5]], '2025': [[null, 'n/a']] } };
+  ok(H.ingestTextOnlyColumn(oldNumeric, 1) === false,
+    'D2e while an older PUBLISHED year holding numbers still disqualifies it');
   /* a percent column is stored as a STRING and bareNumber refuses it */
   ok(H.bareNumber('63%') === null,
     'D3 (bareNumber refuses a percent literal, by design)');

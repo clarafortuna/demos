@@ -1,0 +1,40 @@
+======================================================================
+  MUTATION CONTROLS: CLCPA-292 round 2
+  app.js sha256[0:12] before: b74bb9f86216
+======================================================================
+
+  [1] the donor is the NEWEST year again, published or not (the defect itself)
+      expected red : B1, B2, B3, B4, B5
+      actually red : B1, B2, B3, B4, B5, C1, C2, E2, X1
+      ok
+
+  [2] the donor requires a published year rather than preferring one
+      expected red : F1, F2
+      actually red : F1, F2, X2
+      ok
+
+  [3] the text-column predicate judges on ALL years again
+      expected red : C1
+      actually red : C1, X3
+      ok
+
+  [4] the donor takes the OLDEST published year instead of the newest
+      expected red : B5
+      actually red : B1, B5, C1, C2, D1, D2, E2, X2
+      ok
+
+  [5] the published filter is inverted: only scratch years may donate
+      expected red : B1, B2, B3, B4, B5
+      actually red : B1, B2, B3, B4, B5, C1, C2, E2, X1
+      ok
+
+======================================================================
+  app.js sha256[0:12] after : b74bb9f86216
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    24 passed, 0 failed   exit 0
+======================================================================
+  all 5 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+======================================================================
