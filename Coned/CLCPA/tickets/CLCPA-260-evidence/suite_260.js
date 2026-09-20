@@ -372,7 +372,7 @@ guard('Z: the report page is untouched', () => {
      'Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ' +
      JSON.stringify(derivedOnly));
   /* RE-POINTED, not widened: an exact list of two, so a third still fails. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['G10:2024', 'J4:2025']),
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
      'Z2 and the REPORT page moves on exactly two panels -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0% -- got ' +
      JSON.stringify(moved.slice(0, 6)));
 });

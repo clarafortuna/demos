@@ -186,8 +186,18 @@ guard('E-block', () => {
   ok(/if \(kind === 'pct'\) return \(Math\.abs\(v\) <= 1 \? v \* 100 : v\)\.toFixed\(1\) \+ '%';/.test(code),
     'E1 the KPI formatter is untouched: it takes an explicit kind, not a column');
   /* the engine itself did not move */
-  ok(grab('rowsForDisplay', SRC) === grab('rowsForDisplay', BASE_SRC),
-    'E2 rowsForDisplay is BYTE-IDENTICAL to BASE: no derivation changed');
+  /* RE-POINTED, not widened. This ticket changes FORMATTING and still changes
+   * no derivation. What does touch rowsForDisplay, later in the same stack, is
+   * CLCPA-290's un-totalled contract, which fills a live-calculated total row
+   * and dashes the average columns. That ONE block is normalised away; every
+   * other byte of the function still has to match. */
+  const strip290 = (t) => t
+    .replace(/\r\n    \/\* CLCPA-290: THE TOTAL ROW OF A LIVE-CALCULATED YEAR[\s\S]*?\r\n    \}\);/, '')
+    .replace('function rowsForDisplay(rawRows, schema, tableId, opts) {',
+      'function rowsForDisplay(rawRows, schema, tableId) {');
+  ok(strip290(grab('rowsForDisplay', SRC)) === grab('rowsForDisplay', BASE_SRC),
+    'E2 rowsForDisplay matches BASE apart from the CLCPA-290 total-row block: ' +
+    'this ticket changes no derivation');
   ok(grab('recomputeTotals', SRC) === grab('recomputeTotals', BASE_SRC),
     'E3 and so is recomputeTotals');
 });
