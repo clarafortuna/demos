@@ -17686,6 +17686,66 @@ function wireHTooltips() {
    * decide which cells render as read-only calc spans. Reimplementing the rule
    * here would let the import and the editor disagree about what is typeable.
    */
+  /**
+   * CLCPA-293 / A-10: WHICH TOTAL CELLS CAN THE ENGINE ACTUALLY REBUILD?
+   *
+   * The importer refused a preparer's value for any row its classifier called
+   * a total. A8's "Total CES Programs Installations" is the case that shows
+   * why that is wrong: totalRowFlags does NOT flag it on the stored rows, so
+   * the engine never computes it, and blanking it and recomputing returns
+   * null. Nothing computes the cell and nothing may fill it. The audit filed
+   * 777 and 222 there and both were discarded, silently, with the import count
+   * excluding them.
+   *
+   * Worse, the classification is not stable: it reads the VALUES, so supplying
+   * a figure is part of what makes the row look like a computed total, which
+   * is then the reason for refusing the figure.
+   *
+   * B7 governs: a total the engine cannot fully derive belongs to the
+   * preparer. This answers that question the way stripDerivedForPersist
+   * answers it for columns, by asking the engine rather than by a rule about
+   * labels: blank the whole total row, recompute, and see what comes back. A
+   * cell that returns was genuinely rebuilt; one that stays empty is the
+   * preparer's.
+   *
+   * The whole row is blanked, and the BASELINE is passed, deliberately:
+   * blanking one cell while handing over the original lets CLCPA-144 item 3
+   * restore it, so "it kept what was there" reads exactly like "it computed
+   * this". Measured on A8/2025: row 24 returns 283,852 and row 25 returns
+   * nothing, which is the distinction the ticket turns on.
+   *
+   * Nothing stored and no keys are consulted. The answer is derived from the
+   * rows in hand.
+   */
+  function ingestRebuildableTotals(rows, schema, tableId, totals) {
+    const out = new Set();
+    if (!Array.isArray(rows) || !rows.length || !schema || !schema.length) return out;
+    rows.forEach((row, ri) => {
+      if (!totals(ri) || !Array.isArray(row)) return;
+      const probe = rows.map(r => (Array.isArray(r) ? r.slice() : r));
+      for (let c = 1; c < schema.length; c++) probe[ri][c] = null;
+      try {
+        recomputeTotals(probe, schema, tableId, rows.map(r => (Array.isArray(r) ? r.slice() : r)));
+      } catch (e) {
+        /* IF THE PROBE CANNOT RUN, KEEP THE OLD BEHAVIOUR. Answering "not
+         * rebuildable" on a throw is the permissive direction: it would hand
+         * the row to the preparer because the check failed, which is the
+         * opposite of what a failed check should do. Marking the row
+         * rebuildable means the importer refuses exactly as it did before 293,
+         * so a broken probe costs the fix rather than the data. Found when a
+         * suite assembling this without recomputeTotals started accepting
+         * values into A1's Total, which the engine derives perfectly well. */
+        for (let c = 1; c < schema.length; c++) out.add(ri + ',' + c);
+        return;
+      }
+      for (let c = 1; c < schema.length; c++) {
+        const back = probe[ri] ? probe[ri][c] : null;
+        if (back != null && String(back).trim() !== '') out.add(ri + ',' + c);
+      }
+    });
+    return out;
+  }
+
   function ingestComputed(rows, tableId, schema) {
     const totals = totalRowFlags(rows, tableId, schema) || [];
     /* the DESCRIPTOR, not a boolean: a total-row-only rule has to be told apart
@@ -17802,6 +17862,9 @@ function wireHTooltips() {
       ok: false, rejections: [], candidate: null,
       populated: [], addedRows: [], blankSkipped: [],
       notTouched: { computed: [], unmatchedColumns: [], unmatchedRows: [] },
+      /* CLCPA-293: total cells the engine cannot derive, accepted from the
+       * preparer rather than discarded, and named on the panel. */
+      preparerTotals: [],
       /* CLCPA-261: percent strings that entered a non-percent column */
       unitNotices: [],
       matchedColumns: [], fileRowCount: 0,
@@ -18071,6 +18134,39 @@ function wireHTooltips() {
 
     // Classify on the CANDIDATE, so rows the file adds are classified too.
     const computed = ingestComputed(candidate, tableId, schema);
+    /* CLCPA-293: asked ONCE per import, not per cell: each answer costs a
+     * full recompute of the table.
+     *
+     * AND ASKED OF THE DRAFT, deliberately, though not because the two differ
+     * today. candidate is a copy of draft at this point and a mutation
+     * swapping one for the other moves nothing, which is stated here rather
+     * than left as an implied claim.
+     *
+     * The reason is the classifier: it reads VALUES, not just structure. Once
+     * the file's figures reach candidate -- which happens in the write loop
+     * below, and would happen here too if this were ever moved or re-ordered
+     * -- a row can start looking like a computed total BECAUSE a figure was
+     * supplied for it, and that would become the reason for refusing the
+     * figure. Naming the draft makes the rule independent of where this sits:
+     * the file's values must never decide whether the file's values are
+     * accepted. */
+    const baseRows = (draft || []).map(row => (row || []).slice());
+    const baseComputed = ingestComputed(baseRows, tableId, schema);
+    const rebuildableTotals = ingestRebuildableTotals(baseRows, schema, tableId,
+      (r) => baseComputed.totalRow(r));
+    /* CLCPA-293: what the ITEMISED rows come to, so an accepted total can be
+     * reconciled against them and the disagreement named. Taken over the rows
+     * that are NOT totals, which is the same set every other total in this
+     * engine is built from. A8's grand total is the case: the file may say
+     * 336,599 while the rows itemise 283,852, and the 52,747 difference is
+     * real, not an error. The operator is the only one who can say so, which
+     * is why this advises and never rejects. */
+    const itemisedSum = (function () {
+      const body = baseRows.filter((r, i) => !baseComputed.totalRow(i));
+      if (!body.length) return null;
+      const len = baseRows.reduce((m, r) => Math.max(m, (r || []).length), 0);
+      try { return columnGrandTotals(body, len).colSum; } catch (e) { return null; }
+    })();
 
     // Rows the table has that the file never mentioned.
     const mentioned = {};
@@ -18093,12 +18189,29 @@ function wireHTooltips() {
         const raw = t.fileRow[fIdx];
         const where = { label: candidate[t.rowIdx][0], column: schema[cIdx] };
         if (computed.any(t.rowIdx, cIdx)) {
-          res.notTouched.computed.push(Object.assign({
-            why: computed.derivedCol(cIdx)
-              ? 'this column is calculated from the other columns'
-              : 'this row is a calculated total',
-          }, where));
-          return;
+          /* CLCPA-293 / A-10: B7. A TOTAL THE ENGINE CANNOT DERIVE BELONGS TO
+           * THE PREPARER, so it is accepted rather than discarded.
+           *
+           * Only the total-row half of the refusal is relaxed. A derived
+           * COLUMN stays computed: "% in DACs" is a quotient of two columns
+           * present in the row, the engine can always rebuild it, and letting
+           * a file overwrite it would be the CLCPA-88 defect coming back.
+           *
+           * The value still goes through the same parse and the same write as
+           * any other cell. What changes is that it is no longer dropped in
+           * silence: it is recorded so the panel can say it was accepted and
+           * what the itemised rows give instead. */
+          if (!computed.derivedCol(cIdx) && !rebuildableTotals.has(t.rowIdx + ',' + cIdx)) {
+            res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx,
+              itemised: (itemisedSum ? itemisedSum[cIdx] : null) }, where));
+          } else {
+            res.notTouched.computed.push(Object.assign({
+              why: computed.derivedCol(cIdx)
+                ? 'this column is calculated from the other columns'
+                : 'this row is a calculated total',
+            }, where));
+            return;
+          }
         }
         /* CLCPA-85 round 4: the template's own marker is never a value.
          *
@@ -18169,6 +18282,17 @@ function wireHTooltips() {
      * candidate the operator is about to accept. Advisory: res.ok is untouched
      * and the candidate is untouched, so the preparer's figure is what lands. */
     res.reconcileNotices = reconcileSumColumns(candidate, schema, tableId);
+
+    /* CLCPA-293: the accepted totals carry the value that was written, taken
+     * from the write itself rather than re-parsed, so the advisory and the
+     * draft can never quote different numbers. A cell recorded as accepted
+     * but not written is dropped: it means a later guard refused it after
+     * all, and advertising it would be a lie about what is in the table. */
+    res.preparerTotals = (res.preparerTotals || []).map((p) => {
+      const hit = (res.populated || []).find(
+        (q) => q.label === p.label && q.column === p.column);
+      return hit ? Object.assign({ value: hit.value }, p) : null;
+    }).filter(Boolean);
 
     res.candidate = candidate;
     res.ok = true;
@@ -23290,7 +23414,12 @@ function wireHTooltips() {
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
       '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
       '</div>' + notices + identity + yearAdvisory +
-      renderReconcileNotice(r.reconcileNotices);
+      renderReconcileNotice(r.reconcileNotices) +
+      /* CLCPA-293: and the totals this import took from the preparer because
+       * the engine cannot derive them. Beside the reconciliation advisory,
+       * in the same amber box and the same voice: both are cases where the
+       * app has done something the operator alone can judge. */
+      renderPreparerTotalsNotice(r.preparerTotals);
   }
 
   /* CLCPA-272: the reconciliation advisory, in CLCPA-266's amber box and in
@@ -23323,6 +23452,35 @@ function wireHTooltips() {
    * filed. The disagreement is a question for them, which is precisely why the
    * app must not resolve it by recomputing.
    */
+  /**
+   * CLCPA-293 / A-10: THE TOTALS TAKEN FROM THE PREPARER, NAMED.
+   *
+   * B7's third clause. The first two are accept and reconcile; this is advise,
+   * and without it the fix would only have changed one silence for another.
+   * The panel says which total cells were taken as filed and what the itemised
+   * rows come to, so an operator can see the difference and judge it.
+   *
+   * A difference is NOT an error. A8's grand total legitimately exceeds the
+   * rows itemised beneath it, because not all of its components appear in the
+   * table. That is exactly why the engine must not compute it and why this
+   * advises instead of rejecting.
+   */
+  function renderPreparerTotalsNotice(list) {
+    const n = list || [];
+    if (!n.length) return '';
+    const li = (s) => '<li>' + escapeHtml(s) + '</li>';
+    const num = (v) => (typeof v === 'number' && isFinite(v)) ? v.toLocaleString() : String(v);
+    return '<div class="ingest-import-notice is-warn">' +
+      '<h4>Taken as filed: ' + n.length + ' total cell' + (n.length === 1 ? '' : 's') + '</h4>' +
+      '<p>These totals are not calculated from the rows in this table, so the ' +
+      'figures in your file were used. Where the rows itemise a different ' +
+      'amount it is shown beside it; a difference is not necessarily an error.</p><ul>' +
+      n.map(x => li(x.label + ' / ' + x.column + ': filed ' + num(x.value) +
+        (typeof x.itemised === 'number' && isFinite(x.itemised)
+          ? ', the rows itemise ' + num(x.itemised) : ''))).join('') +
+      '</ul></div>';
+  }
+
   function renderKeptFigureNotice(list) {
     const n = list || [];
     if (!n.length) return '';

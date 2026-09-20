@@ -100,6 +100,9 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
    * now ask whether a year was published. Same documented limit, same
    * ReferenceError-from-inside signature. */
   'isYearProtected',
+  /* CLCPA-293: buildIngestImport now asks whether the engine can actually
+   * rebuild a total before refusing the preparer's value for it. */
+  'ingestRebuildableTotals',
   /* CLCPA-278 round 3 and CLCPA-274 round 3: a hand-listed dependency set
      cannot see a new one, and it fails as a ReferenceError from inside the
      assembled function rather than as an assertion. */

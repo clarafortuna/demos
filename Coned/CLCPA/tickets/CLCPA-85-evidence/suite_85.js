@@ -85,7 +85,7 @@ function grabDecl(src, name) {
  * payload freeze: the payload holds ZERO split cells today (measured, not
  * assumed). They are extracted because totalRowFlags and rawNum call them, so
  * leaving them out makes the shared functions throw rather than run. */
-const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', /* CLCPA-278 round 3: the one shared numeric reader */ 'bareNumber', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', 'parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnlyDerived', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
+const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', /* CLCPA-278 round 3: the one shared numeric reader */ 'bareNumber', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', 'parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnlyDerived', /* CLCPA-293: the importer now asks whether the engine can rebuild a total before refusing the preparer's value */ 'ingestRebuildableTotals', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
   /* CLCPA-282: buildIngestImport now asks the shared header anatomy,

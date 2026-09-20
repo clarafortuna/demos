@@ -41,6 +41,9 @@ const _dacRepo = () => {
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+/* CLCPA-293's delta to the import path, extracted from app.js and shared,
+ * so the four suites that reverse it cannot drift from it or each other. */
+const bii = require('../_kit/bii_deltas.js');
 
 const REPO = _dacRepo() + '';
 const REL = 'Coned/CLCPA/ExecutiveDashboard_dev/app.js';
@@ -168,7 +171,14 @@ guard('D-block', () => {
      * table-years said: the file has no “” column. Named and reversed
      * here, exactly as the CLCPA-282 message above is. */
     .replace(K_NEW1, () => K_OLD1).replace(K_NEW2, () => K_OLD2);
-  ok(normalise(grab('buildIngestImport', SRC)) === grab('buildIngestImport', BASE_SRC),
+  /* CLCPA-293 legitimately changes this path: a total the engine cannot
+   * derive is now accepted from the preparer instead of being discarded in
+   * silence. Its delta is reversed through the SHARED kit, extracted from
+   * app.js rather than retyped, so the four suites that reverse it cannot
+   * drift from the code or from each other. Every other byte still has to
+   * match. */
+  ok(bii.reverse293(normalise(grab('buildIngestImport', SRC))) ===
+     grab('buildIngestImport', BASE_SRC),
     'D1 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
     'message: only the summary sentence changed here');
   ok(/res\.matchedColumns\.push\(schema\[sIdx\]\);/.test(codeOnly(SRC)),
