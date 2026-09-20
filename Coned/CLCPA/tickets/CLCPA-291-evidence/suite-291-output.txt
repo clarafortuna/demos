@@ -28,6 +28,8 @@ D. WHAT COUNTS AS A TEXT COLUMN
   ok   D2 A7 DAC Installations is NOT text (its 2025 column is blank, not textual)
   ok   D2b a column with numbers in ANY year is not text, whatever the newest year holds
   ok   D2c and a column textual in every year IS text
+  ok   D2d a scratch year holding numbers does not make a name column numeric
+  ok   D2e while an older PUBLISHED year holding numbers still disqualifies it
   ok   D3 (bareNumber refuses a percent literal, by design)
   ok   D4 and isPercentLiteral is what reads it
   ok   D5.J3 its percent column is NOT text -- "% of Accounts"
@@ -49,5 +51,5 @@ X. THE HARNESS ITSELF
   ok   X3 the evidence is the REAL generated workbook, read back cell by cell
 
 ======================================================================
-  32 passed, 0 failed
+  34 passed, 0 failed
 ======================================================================

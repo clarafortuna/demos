@@ -96,6 +96,10 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
    * of this harness, and it showed up as a ReferenceError from inside the
    * assembled workbook writer rather than as a failed assertion. */
   'ingestTextOnlyColumn', 'ingestHeaderRowCount',
+  /* CLCPA-292 round 2: both the donor choice and the text-column predicate
+   * now ask whether a year was published. Same documented limit, same
+   * ReferenceError-from-inside signature. */
+  'isYearProtected',
   /* CLCPA-278 round 3 and CLCPA-274 round 3: a hand-listed dependency set
      cannot see a new one, and it fails as a ReferenceError from inside the
      assembled function rather than as an assertion. */
@@ -135,7 +139,13 @@ const consts = STYLE_CONSTS.concat([
 let api;
 try {
   api = new Function('PAYLOAD', 'TextEncoder',
-    '"use strict";\nconst state = { payload: PAYLOAD };\n' +
+    /* CLCPA-292 round 2: seedYears is fed, and feeding it is not cosmetic.
+     * ingestTemplateSource now borrows from a PUBLISHED year, and with an
+     * empty seedYears it degrades to the old newest-year rule -- so a state
+     * without this line would quietly go on testing the behaviour the ticket
+     * replaced, and pass while doing it. */
+    '"use strict";\nconst state = { payload: PAYLOAD,' +
+    ' seedYears: ((PAYLOAD.meta && PAYLOAD.meta.years) || []).map(String) };\n' +
     'const console = { warn: () => {}, info: () => {} };\n' +
     grabDecl('CRC_TABLE') + '\n' + grabDecl('SHORT_TITLES') + '\n' +
     grabDecl('DERIVED_COLS') + '\n' + consts.join('\n') + '\n' +

@@ -17278,7 +17278,18 @@ function wireHTooltips() {
    */
   function ingestTextOnlyColumn(table, c) {
     const data = (table && table.data) || {};
-    const years = Object.keys(data);
+    /* CLCPA-292 round 2: judged on the PUBLISHED years, for the same reason
+     * the template borrows from one. This predicate spans years because a
+     * column can hold numbers in one year and none in another -- A7's does,
+     * in 2024 and 2025 -- and BOTH of those are published, so scoping here
+     * costs that nothing. What it excludes is a scratch year: A3/2098's
+     * phantom rows carry 333/111/888 in the Program Name column, and taking
+     * those as evidence made a column of programme names look numeric and
+     * cost the Total row its "(no value)" marker. Structure is decided by the
+     * published report, never by a year somebody is working in. */
+    const all = Object.keys(data);
+    const published = all.filter(y => isYearProtected(y));
+    const years = published.length ? published : all;
     if (!years.length) return false;
     let sawSomething = false;
     for (let y = 0; y < years.length; y++) {
@@ -18027,14 +18038,51 @@ function wireHTooltips() {
     return [];
   }
 
+  /* CLCPA-292 round 2 / CLCPA-320: a BORROWED template takes its structure
+   * from a PUBLISHED year, never from whichever year happens to be newest.
+   *
+   * The old rule sorted every year holding rows and took the highest. When a
+   * table's newest year was user-added, the "fresh" template became a
+   * photocopy of somebody's working data: A3's 2094 template emitted 46 rows
+   * against a real structure of 23, keyed by "Test Program 1" and by pattern
+   * figures, with 22 phantom rows sitting after the Total and a Total row
+   * carrying no markers at all. A1 passed the identical test only because its
+   * newest year happened to be clean, which is why round 1 measured green --
+   * it was measured against payload.json, where every donor is clean, instead
+   * of against the store, where one is not.
+   *
+   * Published years ARE this table's definition: the payload carries no
+   * separate row manifest, and published years are the only years the app
+   * refuses to let anyone edit, so they cannot drift the way a donor did.
+   * isYearProtected is that same definition, reused rather than restated.
+   *
+   * Measured on the tip: every table has a published year holding rows, so
+   * the fallback below never fires on real data. It exists so that a table
+   * with no published rows degrades to a labels-only template rather than to
+   * somebody's scratch year -- an empty template is recoverable, a template
+   * full of another year's junk keys is not.
+   *
+   * This is the same donor mechanism as CLCPA-320 in Section G. One root, and
+   * both tickets are answered by it.
+   */
   function ingestTemplateSource(table, year) {
     const own = getTableBody(table, year);
     if (own && own.length) return { year: year, rows: own, borrowed: false };
-    const years = Object.keys((table && table.data) || {})
+    const withRows = Object.keys((table && table.data) || {})
       .filter(y => (table.data[y] || []).length)
       .sort((x, y2) => parseInt(y2, 10) - parseInt(x, 10));
-    if (!years.length) return { year: null, rows: [], borrowed: false };
-    return { year: years[0], rows: table.data[years[0]], borrowed: true };
+    const published = withRows.filter(y => isYearProtected(y));
+    /* PREFER a published year, but do not make the template depend on there
+     * being one. Measured: with seedYears empty, a published-ONLY rule emits
+     * a header row and nothing else for every table in the app -- the whole
+     * template feature gone, on a table whose structure was never in doubt.
+     * Degrading to the previous behaviour for that case is the smaller
+     * failure: it is wrong only where the old code was already wrong, and it
+     * cannot be wrong at all while a published year exists. On the tip, every
+     * table has one, so this line does not fire on real data. */
+    const donor = published.length ? published[0] : withRows[0];
+    if (!donor) return { year: null, rows: [], borrowed: false };
+    return { year: donor, rows: table.data[donor], borrowed: true };
   }
 
   /* ==========================================================================

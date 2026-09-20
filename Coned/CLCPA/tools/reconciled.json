@@ -1,5 +1,5 @@
 {
-  "engineerTip": "fff9e47",
+  "engineerTip": "2201ce2",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -126,6 +126,13 @@
       "engineerCommit": "fff9e4766305d69d56dfc4c6fda2e6e5dad3e495",
       "engineerSubject": "deploy-backups: the deploy tail for the Section A board",
       "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "2201ce25f5d3529fefc349f9bb50937141b0cb5b",
+      "engineerSubject": "CLCPA-241 + 289: measured, and stopped before two filed figures move",
+      "integrationCommit": "36a2171",
       "reconciledAt": "2026-09-20",
       "validation": "tools/run_security.sh green"
     }
