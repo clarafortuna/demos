@@ -64,3 +64,130 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 1cc754c
+          remote main = 1cc754c  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1327944B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1327944B  sha256 e12e29e1a2006ea6...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 8cfc7da27c1dd30a...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 16eda8c41e  ok
+  app.js canonicalised + hashed : 16eda8c41e  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : 16eda8c41e  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 5 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : kept-figure semantics for A9s % Change, the published-year template donor, one dismissal rule with a rejection that names its column, and a total the engine cannot derive handed back to the preparer -- CLCPA-292, CLCPA-287, CLCPA-241, CLCPA-289, CLCPA-293
+build id (app.js): 16eda8c41e
+styles.css id    : 9039bfc509   (replaced 9039bfc509)
+previous build   : caf0dbb2ee, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 34adc84
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 16eda8c41e
+
+THE ACCEPTANCE PASS:
+  CLCPA-241 + CLCPA-289  A9s % CHANGE, AND THE TWO KEPT FIGURES.
+     THE REPORT PAGE MUST NOT MOVE. A9 for 2024 and 2025 should read
+     exactly as it does today, to the digit: -26%, -27%, -7%, -15% and so
+     on, at ZERO decimals. A decimal point anywhere in that column is a
+     regression, and so is a bare 0.26.
+     THE EDITOR IS WHERE THE CHANGE SHOWS. Open Report Data, A9, 2024.
+     Beneath the grid an amber box should read "Kept as filed: 2 figures"
+     and name Energy Savings (MMBtu), filed 8%, and Average Incentive per
+     Participant, filed 62%. Those two cells must still SHOW 8% and 62% in
+     the grid, not a dash.
+     NOW EDIT ONE. Change Incentives 2024 Total to any large number: its
+     % Change must move immediately. That is the whole ticket. Then change
+     Energy Savings 2024 Total: the kept 8% must ALSO move, because an edit
+     always wins over a filed figure.
+  CLCPA-292 round 2  THE FRESH-YEAR TEMPLATE.
+     Add a scratch year on A3 and download its template. Every data row
+     must carry a REAL programme name from the published report. No row may
+     read "Test Program N" and none may be keyed on a bare figure. Nothing
+     may sit below the Total row.
+     AND THE CLCPA-291 GATE RIDES THE SAME DOWNLOAD: the Total rows
+     Program Name must read (no value) and its three numeric cells
+     (calculated).
+  CLCPA-287 round 2  THE DIALOG, AND THE MESSAGE.
+     Offer A9 a file whose headings it does not have and press Load Data.
+     The dialog must CLOSE, exactly as it does on a good file, and the page
+     beneath must say "Nothing was imported" with the reason. The reason
+     must name "first column, unheaded in this table" and must NOT contain
+     an empty pair of quotes.
+     A table whose key column HAS a heading must read exactly as before.
+  CLCPA-293  THE A8 GRAND TOTAL.
+     Add a scratch year on A8, download the template, and fill a figure
+     into "Total CES Programs Installations" only. Import it.
+     The figure must ARRIVE, and the panel must say "Taken as filed: 1
+     total cell" naming that row. Before this it vanished in silence.
+     AND THE CONTROL: fill a figure into a group subtotal such as
+     "EmPower+ Total" instead. That one must still be refused, because the
+     engine computes it from the rows above.
+
+STILL DISCLOSED, not defects in this build:
+  - THE TWELVE KEPT-CANDIDATE CELLS ARE NOT SHIPPED, by ruling. Engaged for
+  -    every rule, the kept-figure conditional would hold 14 cells rather
+  -    than 2: A1/2024, A2/2023, eight across A6/2023-2025 and two in
+  -    G5/2024. Those four tables keep todays published behaviour. The rule
+  -    OPTS IN and only percent_change engages it; the twelve are recorded as
+  -    data questions for the freeze-lift and the client conversation.
+  - A9/2024s TWO FILED FIGURES ARE KEPT, NOT CORRECTED: Energy Savings
+  -    (MMBtu) files 8% where its own rows give 33.362%, and Average
+  -    Incentive per Participant files 62% where they give 62.500%. Both are
+  -    data questions for Con Edison. The app names them and refuses to
+  -    resolve them by recomputing.
+  - CLCPA-330 SHIPS NOTHING: A9s section page formats three of five rows as
+  -    currency, and the row type belongs in the table definition, which is
+  -    frozen. Gated to the freeze-lift pass alongside 295, 321 and 323.
+  - CLCPA-325 DID NOT REPRODUCE: a percent value in a currency column occurs
+  -    zero times payload-wide, and J8 renders its percent rows clean. If it
+  -    is real in the org the mechanism is a J8 year holding those cells
+  -    numerically, which needs the orgs values to confirm.
+  - THE TEMPLATE DONOR FALLBACK is untested on real data by construction:
+  -    every table has a published year holding rows, so the degrade path
+  -    never fires. It exists so a table with none gives a labels-only
+  -    template rather than somebody elses scratch year.
+  - The stylesheet and the HTML do NOT move in this wave: app.js alone
+  -    changes, and the byte comparison in PRE-FLIGHT 3b is what decides
+  -    that, not this note.
+
+CORRECTION, recorded after the run and authorised by the owner.
+
+  The disclosed line above is WRONG about the HTML, and the differential
+  in this same log is what proves it:
+
+      WILL PUSH  app.js                   deployed=1296389B  local=1327944B
+      unchanged  styles.css               deployed=286866B   local=286866B
+      WILL PUSH  ExecutiveDashboard.html  deployed=4080B     local=4080B
+                                          (same length, different bytes)
+
+  TWO of three moved, not one. ExecutiveDashboard.html carries the ?v=
+  cache-busting stamps, which follow app.js's build id, so it moves
+  whenever app.js does. Its length did not change at all, which is the
+  exact case this repo's rule exists for: a push decision is made on
+  bytes, never on length.
+
+  The stylesheet half of the note is correct: styles.css did not move,
+  and 9039bfc509 was re-verified by a byte-identical read-back rather
+  than skipped.
+
+  The line was written by me in the script's DEPLOY.disclosed block
+  before the live read, from my own report rather than from the org.
+  The script as archived beside this log still carries the original
+  wording: it is the artifact that RAN, and rewriting it would make the
+  archive describe a script that never existed. The record is corrected
+  here; the artifact is left as it was.
+
+=== log written by deploy_kept_figures_and_preparer_totals.js ===
