@@ -1,0 +1,50 @@
+======================================================================
+  MUTATION CONTROLS: CLCPA-241 + CLCPA-289
+  app.js sha256[0:12] before: 95b87e29bcfb
+======================================================================
+
+  [1] the edit signal is ignored, so an edited input keeps the stale figure
+      expected red : H4, H5
+      actually red : H3, H4, H5, X3
+      ok
+
+  [2] the conditional never keeps: every filed figure is overwritten
+      expected red : C3, D1, D2, D3, D4, E2, E3, E4, H2
+      actually red : C1.2024, C2, C3, D1, D2, D3, D4, D5, D6, D7, E2, E3, E4, H2, X2
+      ok
+
+  [3] value identity gives way to derivedRowKeepsStored, whose relative gate over-keeps
+      expected red : C2, C3, D1, D4
+      actually red : C2, C3, D1, D4, D5, E2, E3, E4
+      ok
+
+  [4] the strip stops asking, and nulls a kept figure
+      expected red : E2, E3, E4
+      actually red : E2, E3, E4, X5
+      ok
+
+  [5] percentChange is no longer a declared percentage column
+      expected red : C1.2024, C1.2025
+      actually red : C1.2024, C1.2025
+      ok
+
+  [6] the declared precision moves to one decimal, and value identity breaks
+      expected red : C1.2024, C1.2025
+      actually red : C1.2024, C1.2025, D10
+      ok
+
+  [7] A9 loses its rule entirely
+      expected red : B1, C2, C3, D1, E2, F2
+      actually red : B1, C2, C3, D1, D2, D3, D4, D5, D6, D7, FAIL D-block THREW: Cannot read properties of , E2, E3, E4, F2, H1, H3, H4, H5
+      ok
+
+======================================================================
+  app.js sha256[0:12] after : 95b87e29bcfb
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    48 passed, 0 failed   exit 0
+======================================================================
+  all 7 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+======================================================================
