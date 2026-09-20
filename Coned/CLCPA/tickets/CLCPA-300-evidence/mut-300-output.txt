@@ -1,0 +1,30 @@
+======================================================================
+CLCPA-300 -- mutation controls
+  suite  : suite_300.js
+  mutant : C:\Users\emely\AppData\Local\Temp\clcpa-300-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 17 passed, 0 failed
+
+--- mutation 1: the count goes back to the matched columns
+  suite: 10 passed, 4 failed
+  failed ids: B1, B4, C-block, D3
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 2: the count stops being DISTINCT, so it counts cells not columns
+  suite: 13 passed, 4 failed
+  failed ids: B1, B4, C3, D3
+  expected to break: B1, B4  ->  NOTICED on B1, B4
+
+--- mutation 3: the value count is changed too, which the ruling forbids
+  suite: 14 passed, 3 failed
+  failed ids: B2, B4, C3
+  expected to break: B2  ->  NOTICED on B2
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 17 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  3 of 3 mutations noticed, 0 missed
+======================================================================

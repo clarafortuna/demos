@@ -1,0 +1,6 @@
+=== CLCPA-300 POST-FIX ===
+H1 has 4 columns; the file supplies all 4; Grand Total is calculated and skipped.
+So TWO columns carry values. The value count (4) is right either way.
+
+  STAGED SUMMARY : H1_2094.csv 2 rows, 2 columns with values, 4 values ready to import.
+  A3 STAGED : A3_2094.csv 2 rows, 3 columns with values, 6 values ready to import.

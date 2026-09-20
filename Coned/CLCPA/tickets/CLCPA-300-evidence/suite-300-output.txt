@@ -1,0 +1,36 @@
+======================================================================
+CLCPA-300 -- the summary counts the columns that receive values
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : 5cd167b (predates this change)
+======================================================================
+
+A. THE COUNT, ON BASE
+  ok   A1 BASE counted the MATCHED columns -- 2 rows, 3 matching columns, 4 values ready to import.
+  ok   A2 while the value count was already right
+  ok   A3 three matched, two written: the third is the calculated column
+
+B. WHAT IT SAYS NOW
+  ok   B1 two columns with values -- 2 rows, 2 columns with values, 4 values ready to import.
+  ok   B2 and the value count is unchanged, as ruled
+  ok   B3 the phrase that read as a match count is gone
+  ok   B4 and 2 columns across 2 rows is 4 values: the number checks out
+
+C. SINGULARS, EMPTIES AND KEY COLUMNS
+  ok   C1 one column is singular
+  ok   C2 nothing imported reads as zero, not as a crash
+  ok   C3 A3 reads three value columns and six values -- 2 rows, 3 columns with values, 6 values ready to import.
+  ok   C4 a rejected file still reports its reason
+
+D. THE IMPORT ITSELF
+  ok   D1 buildIngestImport is BYTE-IDENTICAL to BASE: only the sentence changed
+  ok   D2 matchedColumns is still collected, for anything else that wants it
+  ok   D3 and the summary counts distinct columns in the WRITTEN record
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the sentence is produced by both builds, not asserted from source text
+  ok   X3 and the browser gesture is committed beside it
+
+======================================================================
+  17 passed, 0 failed
+======================================================================
