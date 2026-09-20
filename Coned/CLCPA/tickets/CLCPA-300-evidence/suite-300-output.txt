@@ -22,7 +22,7 @@ C. SINGULARS, EMPTIES AND KEY COLUMNS
   ok   C4 a rejected file still reports its reason
 
 D. THE IMPORT ITSELF
-  ok   D1 buildIngestImport is BYTE-IDENTICAL to BASE: only the sentence changed
+  ok   D1 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows message: only the summary sentence changed here
   ok   D2 matchedColumns is still collected, for anything else that wants it
   ok   D3 and the summary counts distinct columns in the WRITTEN record
 

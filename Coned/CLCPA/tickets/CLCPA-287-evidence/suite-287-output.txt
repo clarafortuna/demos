@@ -1,0 +1,44 @@
+======================================================================
+CLCPA-287 -- the page says what was rejected
+  app.js : c:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+  BASE   : c24892d (predates this change)
+======================================================================
+
+A. THE PROMISE, AND THE SILENCE
+  ok   A1 the dialog promised the page would say what was rejected
+  ok   A2 and the failure path returned straight after the dialog note
+  ok   A3 repainting nothing on the page first
+  ok   A4 while the rejection panel was already written, and never drawn
+
+B. THE PAGE IS REPAINTED
+  ok   B1 the failure path repaints the notice mount before returning
+  ok   B2 and that helper repaints THAT MOUNT ONLY, not the page
+  ok   B3 nothing rebuilds the view, so the dialog stays open as CLCPA-262 requires
+
+C. THE REPORT ITSELF, BUILT AND CALLED
+  ok   C1 it is the CLCPA-266 box with the red accent
+  ok   C2 headed "Nothing was imported"
+  ok   C3 saying the draft is untouched, which is the operator's real question
+  ok   C4 and giving the reason
+  ok   C5 naming the column it objected to
+  ok   C6 and the panel is BYTE-IDENTICAL to BASE: this ticket only draws it
+
+D. THE LIFECYCLE IT INHERITS
+  ok   D1 a rejected plan is stored in i.importResult, like a successful one
+  ok   D2 and clearIngestNotices empties that field
+  ok   D3 which the reset, switch and save paths already call
+  ok   D4 and the editor rerender repaints the mount, so a clear reaches the screen
+  ok   D5 (live) the report is on the page after a rejected import
+  ok   D6 (live) and a rejected import leaves the draft untouched: No Changes
+
+X. THE HARNESS ITSELF
+  ok   X1 BASE is a literal sha that predates the change
+  ok   X2 the panel is BUILT AND CALLED, not asserted from source text
+  ok   X3 evidence committed: gesture_287.js
+  ok   X3 evidence committed: gesture-287-output.txt
+  ok   X3 evidence committed: lifecycle-287-output.txt
+  ok   X4 and the un-driven Reset leg is recorded in the evidence, not hidden
+
+======================================================================
+  25 passed, 0 failed
+======================================================================

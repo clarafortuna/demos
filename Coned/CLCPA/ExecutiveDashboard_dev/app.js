@@ -17517,7 +17517,15 @@ function wireHTooltips() {
     const headerCount = fileCarriesSub ? 1 + declaredSub : 1;
     const headerLines = fileRows.slice(0, headerCount);
     if (fileRows.length < headerCount + 1) {
-      reject('The file needs a header row and at least one data row.', {});
+      /* CLCPA-282: this message knows the count, so it says it. A two-level
+       * table needs both heading rows, and telling the operator it needs "a
+       * header row" when it refused a file that has one is the kind of
+       * accurate-sounding wrongness prose sweeps exist to catch. */
+      reject(headerCount > 1
+        ? 'The file needs its ' + headerCount + ' heading rows and at least one ' +
+          'data row. This table carries its headings on ' + headerCount + ' rows: ' +
+          'a heading spanning several columns, then a row naming each one.'
+        : 'The file needs a header row and at least one data row.', {});
       return res;
     }
     const header = ingestHeaderKeys(headerLines, headerCount);
@@ -18329,10 +18337,20 @@ function wireHTooltips() {
       // Round 6: one blank row, so the two sections read as two sections.
       { style: XLSX_STYLE_BODY, text: null, ht: 10 },
       { style: XLSX_STYLE_SECTION, text: 'How to prepare your file', ht: 26 },
+      /* CLCPA-282: THE HEADER IS NOT ALWAYS ONE ROW, and this sheet is the
+       * first thing the operator reads. A9, A10 and F6 carry their headings on
+       * two rows, and the importer now matches a column on the PAIR -- so
+       * "the header row" was wrong for exactly the three tables whose import
+       * the (A) design restored. verify_handoff_package.py runs the guides'
+       * commands and cannot catch prose that is merely wrong, which is why
+       * this is a read-and-correct pass. */
       { style: XLSX_STYLE_BODY, ht: 46, text:
         '1. Go to the second sheet, named ' + sheetLabel + '. It shows the exact ' +
-        'layout the import expects: the header row, one row per program name, ' +
-        'and (calculated) marking the cells the dashboard computes after import.' },
+        'layout the import expects: the heading rows at the top, one row per ' +
+        'program name, and (calculated) marking the cells the dashboard ' +
+        'computes after import. Most tables have one heading row. A few have ' +
+        'TWO, where a heading spans several columns and a second row names ' +
+        'each one: keep both.' },
       { style: XLSX_STYLE_BODY, ht: 46, text:
         '2. Create your own file from it: with that sheet ACTIVE (selected), use ' +
         'File, Save As, and choose CSV UTF-8 (Comma delimited). Excel saves only ' +
@@ -18340,8 +18358,8 @@ function wireHTooltips() {
       { style: XLSX_STYLE_BODY, ht: 60, text:
         '3. Open the CSV you saved and fill in the values. Type values only in ' +
         'the positions the example shows empty; leave (calculated) and ' +
-        '(no value) positions exactly as they are; do not change the header ' +
-        'row or the program names. You MAY add new program rows at the ' +
+        '(no value) positions exactly as they are; do not change the heading ' +
+        'rows or the program names. You MAY add new program rows at the ' +
         'bottom: the import will create them.' },
       { style: XLSX_STYLE_BODY, ht: 46, text:
         'Some tables group their rows under a heading, and a heading row is ' +
@@ -24335,6 +24353,29 @@ function wireHTooltips() {
               err.textContent = why;
               err.style.display = 'block';
             }
+            /* CLCPA-287: THE PAGE KEEPS THE PROMISE THE DIALOG MAKES.
+             *
+             * The rejection text says, in as many words, "Add Year will still
+             * add the year, and the page will say what was rejected." The page
+             * said nothing. The only trace was the red note inside the dialog,
+             * which disappears with it -- so an operator who closed the dialog
+             * had no record of why their file was refused.
+             *
+             * Nothing needed writing to say it. i.importResult already holds
+             * the rejected plan, renderIngestImportResult already has its
+             * !r.ok branch -- "Nothing was imported", the reasons listed, in
+             * the CLCPA-266 box with the red accent -- and the mount is
+             * already in the editor markup. The report existed and was never
+             * drawn, because this path returns before anything repaints.
+             *
+             * refreshIngestNotices repaints THAT MOUNT ONLY, so the dialog
+             * stays open exactly as CLCPA-262 requires and the report is
+             * waiting underneath when it is closed.
+             *
+             * The CLCPA-276 lifecycle needs nothing either: the rejection
+             * lives in the same i.importResult that clearIngestNotices
+             * already empties on reset, switch and save. */
+            refreshIngestNotices();
             return;
           }
           close();

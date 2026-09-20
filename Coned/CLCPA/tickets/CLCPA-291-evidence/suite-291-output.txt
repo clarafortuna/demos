@@ -40,7 +40,7 @@ D. WHAT COUNTS AS A TEXT COLUMN
 E. WHAT THE IMPORTER DOES WITH THE NEW MARKER
   ok   E1 the importer already skips a (no value) cell
   ok   E2 as it skips a (calculated) one
-  ok   E3 and buildIngestImport is BYTE-IDENTICAL to BASE: the import path is untouched
+  ok   E3 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows message: this ticket leaves the import path alone
   ok   E4 (no value) still counts as shape-blank, so the structure stays readable
 
 X. THE HARNESS ITSELF
