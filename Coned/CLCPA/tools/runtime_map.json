@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T19:12:45.460Z",
+  "generated": "2026-09-20T19:41:19.254Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,8 +13,8 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "34adc84",
-    "originMain": "34adc84"
+    "lastReconciledEngineerTip": "d84c0d3",
+    "originMain": "d84c0d3"
   },
   "build": {
     "app.js": "bead10687f",
@@ -108,14 +108,14 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 8,
-    "baseline": "34adc84 (origin/main)",
+    "round": 9,
+    "baseline": "d84c0d3 (origin/main)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 6,
-      "note": "six merge commits (clarafortuna/demos#284-#289) landing work already reconciled in rounds 3-7; zero content delta, deployed surface byte-identical, build unchanged so no deploy"
+      "commits": 3,
+      "note": "deploy-backups and a session record; zero deployed-surface change, build unchanged, no deploy"
     },
     "previousRounds": [
       {
@@ -149,5 +149,10 @@
       },
       "blockedBy": "no per-row type key exists in any table definition; fixing it would either write stored data into a frozen payload.json or hardcode dashboard data in app.js"
     }
-  ]
+  ],
+  "engineerLine": {
+    "deployedBuild": "16eda8c41e",
+    "org": "org9076e69b (Clara Fortuna Dev)",
+    "note": "her line and ours diverge by the security escaping alone; different build ids are expected, not drift"
+  }
 }
