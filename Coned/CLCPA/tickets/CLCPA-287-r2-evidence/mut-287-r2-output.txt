@@ -1,0 +1,45 @@
+======================================================================
+  MUTATION CONTROLS: CLCPA-287 round 2
+  app.js sha256[0:12] before: d8ce85490dc1
+======================================================================
+
+  [1] the failure path returns again, holding the dialog open (the defect itself)
+      expected red : B1, B2
+      actually red : B1, B2
+      ok
+
+  [2] the label-column rejection interpolates schema[0] raw again
+      expected red : C1, C2, D2, X3, X4
+      actually red : C1, C2, C3, D2, D3, X3, X4
+      ok
+
+  [3] the unheaded branch describes nothing: an empty phrase
+      expected red : C1, C2, D2
+      actually red : C1, C2, C3, D2
+      ok
+
+  [4] a NAMED column is described by position too, losing its heading
+      expected red : C4, C5
+      actually red : C4, C5
+      ok
+
+  [5] the unreachable dialog error painting comes back
+      expected red : B4
+      actually red : B4
+      ok
+
+  [6] the failure branch gets its OWN close(), so the two paths can drift apart
+      expected red : B3
+      actually red : B2, B3
+      ok
+
+======================================================================
+  app.js sha256[0:12] after : d8ce85490dc1
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    23 passed, 0 failed   exit 0
+======================================================================
+  all 6 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+======================================================================

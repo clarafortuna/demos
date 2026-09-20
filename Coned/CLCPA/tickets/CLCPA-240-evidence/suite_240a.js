@@ -123,7 +123,11 @@ const OPTIONAL = [/* CLCPA-254: exists only in the changed source, so it belongs
    * in OPTIONAL rather than ENTRY -- BASE reports null for it and the BASE
    * side keeps assembling. */ 'isDeclaredSummable',
   'ingestRowKey', 'ingestIsHeaderRow', 'ingestGroupOf',
-  'ingestKeyColCount', 'ingestIsBlankCell'];
+  'ingestKeyColCount', 'ingestIsBlankCell',
+  /* CLCPA-287 round 2: new, so it belongs in OPTIONAL -- BASE reports null
+   * for it and that side keeps assembling. It is reached only on a REJECTING
+   * import, which is why the resolver had not met it. */
+  'ingestKeyColDescription'];
 
 function buildEnv(src, tag) {
   const fns = ENTRY.concat(OPTIONAL.filter(n => grabFn(n, src)));

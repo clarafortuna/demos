@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T16:07:33.305Z",
+  "generated": "2026-09-20T16:39:40.492Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "8551769",
+    "lastReconciledEngineerTip": "aca5faf",
     "originMain": "fff9e47"
   },
   "build": {
-    "app.js": "b419d2e0b8",
+    "app.js": "538f071523",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.0.3",
+    "version": "1.0.0.4",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "e7ab4b5f8e4b0648",
+      "deployedSha256": "3509a0127c134457",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "b419d2e0b8ebb6be",
-      "deployedSha256": "00d752d5f03f106b",
+      "repoSha256": "538f0715230b23d7",
+      "deployedSha256": "65c464c215c31d2a",
       "stamped": true
     },
     {
@@ -108,17 +108,17 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 4,
-    "baseline": "8551769 (origin/clcpa-292-r2-published-donor)",
+    "round": 5,
+    "baseline": "aca5faf (origin/clcpa-330-stop)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 1,
+      "commits": 2,
       "tickets": [
-        "CLCPA-292 round 2"
-      ],
-      "note": "a fresh template borrows from a published year"
+        "CLCPA-287 round 2",
+        "CLCPA-330 (stop, no code)"
+      ]
     },
     "previousRounds": [
       {
@@ -139,5 +139,18 @@
     "repo": "clarafortuna/demos",
     "remoteUrl": "https://github.com/clarafortuna/demos.git",
     "note": "The ONLY repository this project has ever lived in. ProjectRepos-UnifiedCSRPortal is an unrelated project that merely happens to be this session working directory; it holds zero CLCPA commits and no clcpa-* branch. Always qualify PR references as owner/repo#N."
-  }
+  },
+  "knownDefects": [
+    {
+      "id": "CLCPA-330",
+      "status": "OPEN, reproduced in the deployed integration build 538f071523",
+      "summary": "A9 renders 3 of 5 data rows with a currency prefix on non-currency quantities, because currency_cols is declared per COLUMN while the unit belongs to the ROW.",
+      "observed": {
+        "Energy Savings (MMBtu)": "$4.4M / $2.5M / $4.0M / $2.1M",
+        "Participation": "$2.1M / $1.1M / $2.0M / $943K",
+        "Average Energy Savings Per Participant": "$2.09 / $2.2 / $1.99 / $2.25"
+      },
+      "blockedBy": "no per-row type key exists in any table definition; fixing it would either write stored data into a frozen payload.json or hardcode dashboard data in app.js"
+    }
+  ]
 }

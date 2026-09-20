@@ -93,6 +93,11 @@ const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'sh
      cannot see a missing closure -- this suite threw before printing a
      tally, and the sweep scored that as zero rather than red. */
   'ingestTextOnlyColumn', 'ingestHeaderRowCount', 'ingestRowIsStoredHeader', 'ingestYearCarriesHeaderRows', 'ingestStoredHeaderRows', 'ingestHeaderKeys', 'ingestHeaderName',
+  /* CLCPA-287 round 2: the key-column rejections now describe a column
+   * instead of interpolating its heading. Same documented limit: a hand-fed
+   * list cannot see a new closure, and it threw from inside the assembled
+   * importer rather than failing an assertion. */
+  'ingestKeyColDescription',
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',

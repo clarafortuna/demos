@@ -11,9 +11,9 @@ A. THE PROMISE, AND THE SILENCE
   ok   A4 while the rejection panel was already written, and never drawn
 
 B. THE PAGE IS REPAINTED
-  ok   B1 the failure path repaints the notice mount before returning
+  ok   B1 the failure path repaints the notice mount and then closes, as an accepted load does
   ok   B2 and that helper repaints THAT MOUNT ONLY, not the page
-  ok   B3 nothing rebuilds the view, so the dialog stays open as CLCPA-262 requires
+  ok   B3 nothing rebuilds the view: the repaint touches one mount, and close() alone dismisses
 
 C. THE REPORT ITSELF, BUILT AND CALLED
   ok   C1 it is the CLCPA-266 box with the red accent
