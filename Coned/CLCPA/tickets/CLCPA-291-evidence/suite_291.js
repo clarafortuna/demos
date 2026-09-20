@@ -123,8 +123,15 @@ guard('C-block', () => {
     if (!ys.length) return;
     let a, b;
     try { a = tmpl(id, BASE_SRC); b = tmpl(id, SRC); } catch (e) { return; }
+    /* MARKER CELLS ONLY. This ticket changes which MARKER a cell carries, and
+     * the blast radius that matters is the set of marker cells that moved.
+     * Diffing every cell also catches CLCPA-274 option (c), which lands later
+     * in the same stack and legitimately changes hundreds of value cells --
+     * that took this assertion red on a change it has no opinion about. */
+    const isMarker = (x) => x === '(calculated)' || x === '(no value)';
     a.forEach((r, ri) => (r || []).forEach((v, c) => {
       const w = (b[ri] || [])[c];
+      if (!isMarker(String(v).trim()) && !isMarker(String(w).trim())) return;
       if (String(v) !== String(w)) diffs.push(id + ' r' + ri + ' c' + c + ' ' +
         JSON.stringify(v) + '->' + JSON.stringify(w));
     }));

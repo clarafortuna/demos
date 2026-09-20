@@ -31,11 +31,16 @@ const M = [
     to:   "    return label == null || String(label).trim() === '';",
     expect: "B1 row 2 is the four sub-labels",
     alt: "D4 because the ONE predicate they both consume" },
-  { name: "THE TEMPLATE starts emitting stored values -- the deferred decision, taken",
-    from: "        return { style: style, text: null };",
-    to:   "        return { style: style, text: row[c] == null ? null : String(row[c]) };",
-    expect: "C1 Test Row carries NO stored values",
-    alt: "C3.H1 label emitted, values blank" },
+  /* INVERTED BY THE OPTION (c) RULING, not deleted. This control used to turn
+   * the template into an export and had to go red, because the blank form was
+   * the pinned contract. The export IS the contract now, so the control turns
+   * it back into a blank form and has to go red for the opposite reason. The
+   * behaviour stays pinned either way, which is the point of keeping it. */
+  { name: "THE TEMPLATE stops emitting stored values -- option (c) reverted",
+    from: "        if (!src.borrowed) {",
+    to:   "        if (false) {",
+    expect: "C1 Test Row EXPORTS its stored values",
+    alt: "C3.H1 label AND stored values emitted" },
   { name: "THE PHANTOM ROW is dropped instead of shown as data",
     from: "    const skip = ingestYearCarriesHeaderRows(src.rows, headerCount) ? headerCount : 0;",
     to:   "    const skip = headerCount;",
