@@ -1,0 +1,8 @@
+rows in editor: 1
+row 0 cells   : ["Manhattan","1","2","3"]
+report present : true
+buttons        : {"reset":true,"save":true,"status":"○ No Changes"}
+after typing   : {"reset":false,"save":false,"status":"● Unsaved Changes"}
+report present : true
+discard prompt : false
+after Reset    : report present = true, buttons = {"reset":false,"save":false,"status":"● Unsaved Changes"}

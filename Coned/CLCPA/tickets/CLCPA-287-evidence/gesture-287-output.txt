@@ -1,0 +1,16 @@
+=== CLCPA-287 POST-FIX ===
+The dialog promises: "Add Year will still add the year, and the page will say what was rejected."
+
+--- WRONG TABLE: an A3 file offered to H1 ---------------------------------
+  DIALOG says   : A3_wrong_table.csv This file cannot be imported: The file has no “Borough / County” column, which is the one that says which row each value belongs to. Download the template for this table a
+  dialog still open after Load Data: true
+  PAGE says     : Nothing was importedThe draft below is untouched. Fix the file and import again.The file has no “Borough / County” column, which is the one that says which row each value belongs to. Downloa
+  year added?   : ["2094"]
+
+--- MALFORMED: two columns share one heading ---------------------------------
+  DIALOG says   : H1_malformed.csv This file cannot be imported: The file has two columns with the same heading, so which one wins is ambiguous. Add Year will still add the year, and the page will say what wa
+  dialog still open after Load Data: true
+  PAGE says     : Nothing was importedThe draft below is untouched. Fix the file and import again.(no label), column “Non-DAC Repairs”: The file has two columns with the same heading, so which one wins is amb
+  year added?   : ["2094"]
+
+  page errors: none

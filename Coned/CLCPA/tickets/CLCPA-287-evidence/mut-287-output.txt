@@ -1,0 +1,35 @@
+======================================================================
+CLCPA-287 -- mutation controls
+  suite  : suite_287.js
+  mutant : C:\Users\emely\AppData\Local\Temp\clcpa-287-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 25 passed, 0 failed
+
+--- mutation 1: the repaint is removed: the page goes silent again
+  suite: 24 passed, 1 failed
+  failed ids: B1
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 2: the whole view is rebuilt instead, which would destroy the dialog
+  suite: 23 passed, 2 failed
+  failed ids: B1, B3
+  expected to break: B3  ->  NOTICED on B3
+
+--- mutation 3: the rejected plan is no longer stored, so there is nothing to draw
+  suite: 24 passed, 1 failed
+  failed ids: D1
+  expected to break: D1  ->  NOTICED on D1
+
+--- mutation 4: clearIngestNotices stops emptying the field, breaking the 276 lifecycle
+  suite: 24 passed, 1 failed
+  failed ids: D2
+  expected to break: D2  ->  NOTICED on D2
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 25 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  4 of 4 mutations noticed, 0 missed
+======================================================================

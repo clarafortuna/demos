@@ -24335,6 +24335,29 @@ function wireHTooltips() {
               err.textContent = why;
               err.style.display = 'block';
             }
+            /* CLCPA-287: THE PAGE KEEPS THE PROMISE THE DIALOG MAKES.
+             *
+             * The rejection text says, in as many words, "Add Year will still
+             * add the year, and the page will say what was rejected." The page
+             * said nothing. The only trace was the red note inside the dialog,
+             * which disappears with it -- so an operator who closed the dialog
+             * had no record of why their file was refused.
+             *
+             * Nothing needed writing to say it. i.importResult already holds
+             * the rejected plan, renderIngestImportResult already has its
+             * !r.ok branch -- "Nothing was imported", the reasons listed, in
+             * the CLCPA-266 box with the red accent -- and the mount is
+             * already in the editor markup. The report existed and was never
+             * drawn, because this path returns before anything repaints.
+             *
+             * refreshIngestNotices repaints THAT MOUNT ONLY, so the dialog
+             * stays open exactly as CLCPA-262 requires and the report is
+             * waiting underneath when it is closed.
+             *
+             * The CLCPA-276 lifecycle needs nothing either: the rejection
+             * lives in the same i.importResult that clearIngestNotices
+             * already empties on reset, switch and save. */
+            refreshIngestNotices();
             return;
           }
           close();
