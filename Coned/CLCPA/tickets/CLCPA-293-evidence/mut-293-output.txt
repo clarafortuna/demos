@@ -1,0 +1,45 @@
+======================================================================
+  MUTATION CONTROLS: CLCPA-293 / A-10
+  app.js sha256[0:12] before: 16eda8c41ee1
+======================================================================
+
+  [1] the total row is refused again, as before the ticket (the defect itself)
+      expected red : C1, C2, C3
+      actually red : C1, C2, C3, X3
+      ok
+
+  [2] the probe asks the CANDIDATE instead of the draft
+      expected red : X2
+      actually red : X2
+      ok
+
+  [3] a derived COLUMN is handed over too, which is the CLCPA-88 defect returning
+      expected red : D4
+      actually red : D4, X3
+      ok
+
+  [4] every flagged total is called rebuildable (a NEGATIVE control)
+      NEGATIVE control: expected to move nothing
+      actually red : (none)
+      ok
+
+  [5] a probe that throws hands the row to the preparer, the permissive default
+      expected red : X4
+      actually red : X4
+      ok
+
+  [6] the advisory stops naming what was taken
+      expected red : E1
+      actually red : E1
+      ok
+
+======================================================================
+  app.js sha256[0:12] after : 16eda8c41ee1
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    27 passed, 0 failed   exit 0
+======================================================================
+  all 6 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+======================================================================

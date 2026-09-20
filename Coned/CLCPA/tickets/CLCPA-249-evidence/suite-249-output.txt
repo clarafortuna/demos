@@ -208,6 +208,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function ingestHeaderName moved, and it is named by a later ticket: NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)
   ok   X1 app.js function ingestKeyColDescription moved, and it is named by a later ticket: NOT this ticket: CLCPA-287 round 2: a key-column rejection names an unheaded column by role, not by its empty heading (new)
   ok   X1 app.js function ingestTextOnlyColumn moved, and it is named by a later ticket: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
+  ok   X1 app.js function ingestRebuildableTotals moved, and it is named by a later ticket: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)
   ok   X1 app.js function ingestComputed moved, and it is named by a later ticket: CLCPA-253, Section C group A
   ok   X1 app.js function buildIngestImport moved, and it is named by a later ticket: CLCPA-261, Section C group E: it collects the fraction notices
   ok   X1 app.js function applyIngestImport moved, and it is named by a later ticket: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank
@@ -227,6 +228,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function renderTypedUnitNotice moved, and it is named by a later ticket: CLCPA-273: the typed advisory, in the amber box (new)
   ok   X1 app.js function renderIngestImportResult moved, and it is named by a later ticket: CLCPA-261, Section C group E: the summary announces them
   ok   X1 app.js function renderReconcileNotice moved, and it is named by a later ticket: CLCPA-272: the reconciliation advisory box (new)
+  ok   X1 app.js function renderPreparerTotalsNotice moved, and it is named by a later ticket: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)
   ok   X1 app.js function renderKeptFigureNotice moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)
   ok   X1 app.js function renderIngestEditor moved, and it is named by a later ticket: CLCPA-252, Section C group B; and CLCPA-255, group E
   ok   X1 app.js function wireIngestPage moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: the remove-year handler it wires, and its refusal toast
@@ -241,11 +243,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (83) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (85) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  216 passed, 0 failed
+  218 passed, 0 failed

@@ -661,6 +661,9 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-293 / A-10, named so the count stays exact */
+    ingestRebuildableTotals: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)',
+    renderPreparerTotalsNotice: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)',
     /* CLCPA-241 advisory, named so the count stays exact */
     renderKeptFigureNotice: 'NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)',
     /* CLCPA-241 option (B), named so the count stays exact */
@@ -806,7 +809,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 89, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 91, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {
