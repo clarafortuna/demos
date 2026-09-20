@@ -1,0 +1,89 @@
+CLCPA-303 MEASUREMENT: what each surface says about B2s "Total Plugs"
+app.js: working tree
+
+B2 IS TWO TOTALS CROSSING. "Total Plugs" is a COLUMN, summing the plug
+types across a row. "Total" is a ROW, summing the categories down a
+column. The cell where they meet is both at once, and it is the cell the
+headline KPI reads.
+
+=======================================================================
+SURFACE 1: the stored table, which is what the report page publishes
+=======================================================================
+  2023  schema ["Category","L2 Plugs","DCFC Plugs","Total Plugs"]
+      r0 ["DAC",817,82,899]
+      r1 ["Non-DAC",2081,29,2110]
+      r2 ["Total",2898,111,3009]
+  2024  schema ["Category","L2 Plugs","DCFC Plugs","Total Plugs"]
+      r0 ["DAC",1732,118,1850]
+      r1 ["Non-DAC",2386,76,2462]
+      r2 ["Total",4118,194,4312]
+  2025  schema ["Category","L2 Plugs","DCFC Plugs","Micromobility Power Cabinets","Total Plugs"]
+      r0 ["DAC",2966,170,2,3138]
+      r1 ["Non-DAC",4516,1229,1,5746]
+      r2 ["Total",7482,1399,3,8884]
+
+=======================================================================
+SURFACE 2: detectSumColumns, which decides what the workbook MARKS and
+what the import advisory RECONCILES against
+=======================================================================
+  2023  sum columns: [{"column":3,"head":"Total Plugs","parts":[1,2],"partHeads":["L2 Plugs","DCFC Plugs"]}]
+      r0 "DAC"  workbook marks columns [3]  import skips the Total Plugs cell: false
+      r1 "Non-DAC"  workbook marks columns [3]  import skips the Total Plugs cell: false
+      r2 "Total"  workbook marks columns [1,2,3]  import skips the Total Plugs cell: true
+  2024  sum columns: [{"column":3,"head":"Total Plugs","parts":[1,2],"partHeads":["L2 Plugs","DCFC Plugs"]}]
+      r0 "DAC"  workbook marks columns [3]  import skips the Total Plugs cell: false
+      r1 "Non-DAC"  workbook marks columns [3]  import skips the Total Plugs cell: false
+      r2 "Total"  workbook marks columns [1,2,3]  import skips the Total Plugs cell: true
+  2025  sum columns: [{"column":4,"head":"Total Plugs","parts":[1,2,3],"partHeads":["L2 Plugs","DCFC Plugs","Micromobility Power Cabinets"]}]
+      r0 "DAC"  workbook marks columns [4]  import skips the Total Plugs cell: false
+      r1 "Non-DAC"  workbook marks columns [4]  import skips the Total Plugs cell: false
+      r2 "Total"  workbook marks columns [1,2,3,4]  import skips the Total Plugs cell: true
+
+=======================================================================
+SURFACE 3: the ev_plugs KPI, which reads the corner cell as a STORED
+figure and never asks whether it reproduces
+=======================================================================
+  2023  ev_plugs: {"total":3009,"dac":899}   DAC share 29.9%
+  2024  ev_plugs: {"total":4312,"dac":1850}   DAC share 42.9%
+  2025  ev_plugs: {"total":8884,"dac":3138}   DAC share 35.3%
+
+  and parseB2Plugs, which Section B's chart and tornado read:
+  2023  {"DAC":{"L2":817,"DCFC":82,"Total":899},"Non-DAC":{"L2":2081,"DCFC":29,"Total":2110},"Total":{"L2":2898,"DCFC":111,"Total":3009}}
+  2024  {"DAC":{"L2":1732,"DCFC":118,"Total":1850},"Non-DAC":{"L2":2386,"DCFC":76,"Total":2462},"Total":{"L2":4118,"DCFC":194,"Total":4312}}
+  2025  {"DAC":{"L2":2966,"DCFC":170,"Micromobility":2,"Total":3138},"Non-DAC":{"L2":4516,"DCFC":1229,"Micromobility":1,"Total":5746},"Total":{"L2":7482,"DCFC":1399,"Micromobility":3,"Total":8884}}
+
+=======================================================================
+AND THE SURFACE THAT DECIDES WHAT THE CLIENT SEES: the report page.
+B2 has no entry in DERIVED_COLS, so the question is whether anything
+computes this column at render, or whether the stored figure is simply
+printed.
+=======================================================================
+  DERIVED_COLS.B2 = null
+  2023  cells the render changes: none, the stored figure is printed as filed
+  2024  cells the render changes: none, the stored figure is printed as filed
+  2025  cells the render changes: none, the stored figure is printed as filed
+
+=======================================================================
+THE QUESTION THAT DECIDES IT: would a derived Total Plugs differ from
+the filed one, anywhere?
+=======================================================================
+  2023 r0 "DAC"  filed 899  row-sum 899  AGREE
+  2023 r1 "Non-DAC"  filed 2110  row-sum 2110  AGREE
+  2023 r2 "Total"  filed 3009  row-sum 3009  AGREE
+  2023 the Total ROW read DOWN the Total Plugs column: filed 3009  column-sum 3009  AGREE
+  2024 r0 "DAC"  filed 1850  row-sum 1850  AGREE
+  2024 r1 "Non-DAC"  filed 2462  row-sum 2462  AGREE
+  2024 r2 "Total"  filed 4312  row-sum 4312  AGREE
+  2024 the Total ROW read DOWN the Total Plugs column: filed 4312  column-sum 4312  AGREE
+  2025 r0 "DAC"  filed 3138  row-sum 3138  AGREE
+  2025 r1 "Non-DAC"  filed 5746  row-sum 5746  AGREE
+  2025 r2 "Total"  filed 8884  row-sum 8884  AGREE
+  2025 the Total ROW read DOWN the Total Plugs column: filed 8884  column-sum 8884  AGREE
+
+--- summary -----------------------------------------------------------
+  Total Plugs cells checked, both directions: 12
+  cells where the filed figure and the derivation DISAGREE: 0
+
+  So no published figure moves. Whatever is ruled here is a question of
+  which surface OWNS the number, not of correcting one: on every stored
+  year the three descriptions agree to the digit.

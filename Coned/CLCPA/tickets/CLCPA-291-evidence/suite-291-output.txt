@@ -21,7 +21,7 @@ B. WHAT THE TEMPLATE EMITS NOW
 C. EXACTLY TWO CELLS CHANGE, IN THE WHOLE PAYLOAD
   ok   C1 exactly two template cells moved for THIS ticket -- 2
   ok   C2 both in A3 and A4 -- ["A3 r23 c1 \"(calculated)\"->\"(no value)\"","A4 r23 c1 \"(calculated)\"->\"(no value)\""]
-  ok   C3 and every other moved cell is CLCPA-289 marking A9 (10) -- []
+  ok   C3 every other moved cell is CLCPA-289 marking A9 (10), CLCPA-308 marking a derived row (19) or CLCPA-320 marking J8s Total by role (3) -- []
 
 D. WHAT COUNTS AS A TEXT COLUMN
   ok   D1 A3 Program Name is text in every year it has

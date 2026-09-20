@@ -1,5 +1,5 @@
 {
-  "engineerTip": "d84c0d3",
+  "engineerTip": "5a3b11a",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -182,6 +182,13 @@
       "engineerCommit": "d84c0d3f67a3f83f7c1f21c6cbade95a3e4b434b",
       "engineerSubject": "records: the 2026-09-20 session stamps, and the two strays decided",
       "integrationCommit": "d9644ee",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "5a3b11abc68fb49e67a3251d48e85865ecc2a76d",
+      "engineerSubject": "CLCPA-311 / D-04: the LMI share is read, not invented",
+      "integrationCommit": "69a22db",
       "reconciledAt": "2026-09-20",
       "validation": "tools/run_security.sh green"
     }

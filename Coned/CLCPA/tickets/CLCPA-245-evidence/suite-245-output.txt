@@ -83,13 +83,13 @@ CLCPA-245 -- the general label veto, and the label tooltip
 === X. what this ticket did NOT touch ================================
   ok   X1 CLCPA-240 round 4s family predicate is byte-identical
   ok   X2 and CLCPA-200s strict predicate
-  ok   X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule -- []
+  ok   X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule and CLCPA-319s G total rows -- []
   ok   X4a CLCPA-254s exception is present exactly once, so undoing it means something
   ok   X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: the ordering item is NOT bought here
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
   ok   X7 recompute-before-flags costs ZERO flags on stored data  -- which is why the proper fix is not bought
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCol, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, drawSectionEArc, dsValidateDoc, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isAnchoredTotalRowLabel, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalRoleLabel, isWhollyNumeric, isYearProtected, loadIngestDraft, noteTypedPercent, odataLiteral, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSectionC, renderSectionD, renderSectionE, renderSectionF, renderSectionH, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, resolveTablePrivileges, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unreconciledDerivedCols, wire, wireControlTips, wireFTooltips, wireHTooltips, wireIngestEditor, wireIngestLabelTips, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCol, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, drawSectionEArc, dsValidateDoc, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isAnchoredTotalRowLabel, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isWhollyNumeric, isYearProtected, loadIngestDraft, noteTypedPercent, odataLiteral, openAddYearDialog, openSaveModal, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSectionC, renderSectionD, renderSectionE, renderSectionF, renderSectionH, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, resolveTablePrivileges, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unreconciledDerivedCols, wire, wireControlTips, wireFTooltips, wireHTooltips, wireIngestEditor, wireIngestLabelTips, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -140,6 +140,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   the change to isComputedShareLabel is accounted for
   ok   the change to isDeclaredSummable is accounted for
   ok   the change to isPercentLiteral is accounted for
+  ok   the change to isTotalOnlyDerived is accounted for
   ok   the change to isTotalRoleLabel is accounted for
   ok   the change to isWhollyNumeric is accounted for
   ok   the change to isYearProtected is accounted for
@@ -199,6 +200,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   xlsxCell changed as intended: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
   ok   ingestTextOnlyColumn changed as intended: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
   ok   renderSectionD changed as intended: NOT this ticket: CLCPA-311 / D-04: the LMI share is read from the figure D3 files instead of being computed out of a null, which printed 0.0% on every stored year
+  ok   isTotalOnlyDerived changed as intended: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)
   ok   ingestRebuildableTotals changed as intended: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)
   ok   renderPreparerTotalsNotice changed as intended: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)
   ok   renderKeptFigureNotice changed as intended: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)
@@ -283,8 +285,8 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   recomputeTotals changed as intended: NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE
   ok   buildIngestImport changed as intended: NOT this ticket: CLCPA-261: it collects the fraction notices
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-261: the import summary announces them
-  FAIL X8 exactly this many functions changed: 101
+  FAIL X8 exactly this many functions changed: 102
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  259 passed, 10 failed
+  261 passed, 10 failed

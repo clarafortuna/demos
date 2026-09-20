@@ -371,9 +371,15 @@ guard('Z: the report page is byte-identical on all 149', () => {
    * lands fractionally above 1 on floating point -- 1.0000327 and
    * 1.0000000013 -- and the old size guess rendered them "1.0%" where 100.0%
    * is meant. The correction is on the published report, deliberately. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
-     'Z2 and the panels move on exactly two, both corrected by CLCPA-294: ' +
-     JSON.stringify(moved.slice(0, 6)));
+  /* +2 for CLCPA-319, NAMED so a ninth still fails: G1 files no feet figure
+   * for 2023 or 2024, so declaring that column gives an EMPTY cell its
+   * numeric alignment class. This suite's own probe, on its own BASE,
+   * confirmed every remaining difference is that class on an empty cell.
+   * The list is SORTED because it is compared against a sorted copy. */
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'G1:2023', 'G1:2024', 'J4:2025']),
+     'Z2 and the panels move on exactly eight, six corrected by CLCPA-294 ' +
+     'and CLCPA-290, two empty cells aligned by CLCPA-319: ' +
+     JSON.stringify(moved.slice().sort()));
 });
 
 guard('Z: no stored total is rewritten by the declaration', () => {
@@ -425,6 +431,9 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-319, named so the count stays exact */
+    isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
+    totalRowFlags: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)',
     /* CLCPA-293 / A-10, named so the count stays exact */
     ingestRebuildableTotals: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)',
     renderPreparerTotalsNotice: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)',
@@ -554,11 +563,28 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 83, 'X1 exactly this many functions changed: ' + changed.length);
-  ['detectAvgColumns', 'detectPctColumns', 'totalRowFlags',
+  ok(changed.length === 85, 'X1 exactly this many functions changed: ' + changed.length);
+  ['detectAvgColumns', 'detectPctColumns',
    'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
+  /* totalRowFlags LEFT that list for CLCPA-319. A columnTotal is the one
+   * derived-column type that BELONGS in the arithmetic confirmation: the
+   * total row's own column total is the figure that confirms the row, so
+   * skipping it left nothing to confirm and the row re-entered the sum.
+   * Attribution replaces byte equality rather than removing the guard --
+   * any other edit to the confirmer still turns this red. */
+  const TRF_319 = [
+    "      .filter(d => d.type !== 'columnTotal')",
+    "      .forEach(d => skip.add(d.column));",
+  ];
+  const trfAdded = grabFn('totalRowFlags', SRC).split('\r\n')
+    .filter(l => grabFn('totalRowFlags', BASE_SRC).indexOf(l) < 0)
+    .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
+  ok(trfAdded.length === TRF_319.length && trfAdded.every(l => TRF_319.indexOf(l) >= 0),
+     'X2b totalRowFlags differs from BASE only by CLCPA-319 letting a ' +
+     'column total confirm its own row -- ' +
+     JSON.stringify(trfAdded.filter(l => TRF_319.indexOf(l) < 0)));
 });
 guard('X: the baseline', () => {
   ok(/^[0-9a-f]{7,40}$/.test(BASE), 'X3 BASE is a literal commit sha: ' + BASE);

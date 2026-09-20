@@ -1,0 +1,31 @@
+CLCPA-308 REPRODUCTION: what the workbook tells a preparer about a
+percentage row the dashboard computes for them
+shipped build pinned at d84c0d3
+
+=== base   (C:\Users\emely\AppData\Local\Temp\clcpa-308-base-d84c0d3)
+  D3 workbook for 2025   opened; section=D; table=D3; clicked on D3/2025
+      bytes: 13042
+      r3 ["Percentage of subscribers in DACs","0.348","0.513"]
+      r5 ["Percentage of subscribers who are low-income customers participatingâ¯in the Company&apos;s Energy Affordability Program","0.09300000000000001","0.381"]
+  D2 workbook for 2025   opened; section=D; table=D2; clicked on D2/2025
+      bytes: 13055
+      r3 ["Percentage of projects in DACs","0.324","0.327"]
+      r6 ["Percentage of MW installed in DACs (All DERs)","0.364","0.313"]
+  F7 workbook for 2025   opened; section=F; table=F7; clicked on F7/2025
+      bytes: 13293
+      r4 ["% of Grand Total","32%","68%","100%"]
+  page errors: []
+
+=== fix   (C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev)
+  D3 workbook for 2025   opened; section=D; table=D3; clicked on D3/2025
+      bytes: 13232
+      r3 ["Percentage of subscribers in DACs","(calculated)","(calculated)"]
+      r5 ["Percentage of subscribers who are low-income customers participatingâ¯in the Company&apos;s Energy Affordability Program","(calculated)","(calculated)"]
+  D2 workbook for 2025   opened; section=D; table=D2; clicked on D2/2025
+      bytes: 13259
+      r3 ["Percentage of projects in DACs","(calculated)","(calculated)"]
+      r6 ["Percentage of MW installed in DACs (All DERs)","(calculated)","(calculated)"]
+  F7 workbook for 2025   opened; section=F; table=F7; clicked on F7/2025
+      bytes: 13319
+      r4 ["% of Grand Total","(calculated)","(calculated)","(calculated)"]
+  page errors: []

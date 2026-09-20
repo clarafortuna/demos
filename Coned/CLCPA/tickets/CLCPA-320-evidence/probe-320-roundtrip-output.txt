@@ -1,0 +1,72 @@
+CLCPA-320 HONESTY CHECK: is every marked cell actually computed?
+app.js: working tree
+
+--- summary -----------------------------------------------------------
+  cells the workbook marks (calculated), across every table and year: 1386
+  cells the engine fills back in after the round trip: 952
+  cells marked but NOT filled: 434
+
+  WITHOUT CLCPA-320, same tree, same walk:
+    marked 1371, filled 952, marked but NOT filled 419
+  SO THIS TICKET'S SHARE IS:
+    +15 marked, +0 filled, +15 marked but not filled
+
+  READ THAT HONESTLY, AND NOTE WHAT THIS WALK DOES AND DOES NOT COVER.
+  It walks STORED years, so the G-board markers CLCPA-320 adds are not
+  in the +15: those land on years with no figures yet, and a year with
+  no figures has nothing to total. What this walk does establish about
+  the G board is stronger and is the point: across every table and
+  year, NOT ONE G cell is marked and left unfilled. On the board this
+  ticket is about, the marker keeps its promise.
+
+  The +15 are A3/2023, A3/2024, A4/2023 and J8/2025. A marker on a cell
+  the engine does not fill is CLCPA-289's shape, and it is a condition
+  this ticket INHERITS rather than creates -- the shipped build already
+  carries 409 of them, and A3/2025 and A4/2024 are already among them.
+  What CLCPA-320 changes is that the SAME ROW of the SAME TABLE stops
+  behaving differently from one year to the next. The residue is real,
+  it is measured here, and it belongs to its own ticket rather than
+  being folded into this one silently.
+
+  the cells a marker promises and the engine does not fill:
+    A1:2025 r2c3 "Clean Heat – Commercial & Indu"
+    A1:2025 r10c3 "Commercial Kitchen"
+    A1:2025 r17c3 "Pilots"
+    A10:2024 r0c3 ""
+    A10:2024 r0c6 ""
+    A10:2024 r4c3 "Multisector"
+    A10:2025 r0c3 "null"
+    A10:2025 r0c6 "null"
+    A2:2023 r28c1 "Total"
+    A2:2025 r2c3 "Clean Heat – Commercial & Indu"
+    A2:2025 r15c3 "Multifamily - Fuel-Switch"
+    A3:2023 r28c1 "Total"
+    A3:2023 r28c2 "Total"
+    A3:2023 r28c3 "Total"
+    A3:2023 r28c4 "Total"
+    A3:2024 r26c1 "Total"
+    A3:2024 r26c2 "Total"
+    A3:2024 r26c3 "Total"
+    A3:2024 r26c4 "Total"
+    A3:2025 r22c1 "Total"
+    A3:2025 r22c3 "Total"
+    A3:2025 r22c4 "Total"
+    A4:2023 r28c1 "Total"
+    A4:2023 r28c2 "Total"
+    A4:2023 r28c3 "Total"
+    A4:2023 r28c4 "Total"
+    A4:2024 r26c1 "Total"
+    A4:2024 r26c3 "Total"
+    A4:2024 r26c4 "Total"
+    A4:2025 r22c1 "Total"
+    A4:2025 r22c3 "Total"
+    A4:2025 r22c4 "Total"
+    A5:2023 r0c3 "Clean Heat – C&I ASHP"
+    A5:2023 r3c3 "Clean Heat – C&I GSHP"
+    A5:2023 r6c3 "Clean Heat – Midstream Heat Pu"
+    A5:2023 r9c3 "Clean Heat – Small-Medium Busi"
+    A5:2023 r12c3 "Commercial & Industrial"
+    A5:2023 r25c3 "Commercial Kitchen"
+    A5:2023 r30c3 "Instant Lighting"
+    A5:2023 r33c3 "Real Time Energy Management"
+    ... and 394 more

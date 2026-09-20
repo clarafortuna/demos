@@ -2671,7 +2671,12 @@ function utf8ByteLength(str) {
    * Measured across all 52 tables: weightedMean is used exactly once, by E1.
    * Every other rule is a pct that genuinely owns its column. */
   function isTotalOnlyDerived(d) {
-    return !!d && d.type === 'weightedMean';
+    /* CLCPA-319: a columnTotal is total-only by definition. The column holds
+     * SOURCE DATA on every other row -- the DAC and non-DAC quantities an
+     * operator types -- and is computed on the total row alone. Saying so here
+     * is what keeps the editor, the template and the strip from treating the
+     * whole column as the engine's. */
+    return !!d && (d.type === 'weightedMean' || d.type === 'columnTotal');
   }
 
   // CLCPA-88: explicit per-table descriptors for derived columns (percentages /
@@ -2732,7 +2737,42 @@ function utf8ByteLength(str) {
     const pctChange = (column, current, previous, decimals) =>
       ({ column, type: 'percentChange', current, previous, keepFiled: true, decimals,
          numerator: [current], denominator: [previous], denominatorScope: 'row' });
-    const gPct = [pct(2, [1], [1], 'total', 2)];           // G tables: feet/mT ÷ column total
+    /* CLCPA-319: THE TOTAL ROW'S OWN QUANTITY, which the engine already knows.
+     *
+     * G1 to G9 are three rows: a DAC quantity, a non-DAC quantity, and a total.
+     * The percentage rule beside this one already divides by the sum of those
+     * two -- that sum IS the total row's figure, computed on every render and
+     * then thrown away, while the row itself rendered whatever was stored.
+     *
+     * WHAT THIS DOES AND DOES NOT CHANGE, reproduced in a browser on both
+     * builds before and after (repro_319.js, repro-319-output.txt). An earlier
+     * draft of this comment claimed the report page "showed the stored figure
+     * and never followed its own rows". THAT IS FALSE and the browser said so:
+     * correct a G1 quantity and save, and the shipped build's report page
+     * prints the new total perfectly well.
+     *
+     * It prints it because the editor recomputes the total and SAVES IT INTO
+     * THE DATA. The figure is not a derivation; it is a stored copy that one
+     * surface happens to keep in step. The shipped build persisted
+     * ["Systemwide Total", 530538, null]; with this rule it persists
+     * ["Systemwide Total", null, null] and the page computes it on render.
+     *
+     * So this ticket is the repo's central rule, not a wrong figure on a page:
+     * no stored copy of anything computable, because a copy is a second source
+     * of truth and only the surface that maintains it can keep it honest.
+     * G10/2024 is what that costs when it goes unnoticed -- it files 241.2279
+     * against rows summing 241.22, and the page publishes the filed figure.
+     *
+     * keepFiled is ON, so a filed total the rows do not reproduce is kept and
+     * named rather than silently republished. Measured: for every G1 to G9
+     * year the filed figure equals the sum, so value identity holds and no
+     * published figure moves. G10/2024 files 241.2279 against a row sum of
+     * 241.22 and is NOT in this ticket's scope; the guardian is what makes
+     * that safe to leave alone. */
+    const colTotal = (column) =>
+      ({ column, type: 'columnTotal', keepFiled: true,
+         numerator: [column], denominator: [column], denominatorScope: 'row' });
+    const gPct = [colTotal(1), pct(2, [1], [1], 'total', 2)];  // G tables: the total row's own feet/mT, and feet/mT ÷ column total
     const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
 
     /* CLCPA-144: 'totalRow' scope, for tables where EVERY row is a total.
@@ -3172,7 +3212,7 @@ function utf8ByteLength(str) {
   }
 
   /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
-  function fmtDerivedCell(v, d) {
+  function fmtDerivedCell(v, d, isMoney) {
     if (v == null || v === '') return '—';
     /* CLCPA-241: A KEPT FILED FIGURE IS A STRING, and the engine left it there
      * deliberately. Dashing it hid the very figure the advisory beneath the
@@ -3181,6 +3221,20 @@ function utf8ByteLength(str) {
      * browser, not by a suite, because both halves were individually right. */
     if (typeof v === 'string') return v;
     if (typeof v !== 'number' || !isFinite(v)) return '—';
+    /* CLCPA-319: A COLUMN TOTAL IS A QUANTITY, NOT A RATIO, so it takes the
+     * COLUMN's own formatter -- the same one the editable cells above it use.
+     *
+     * Caught in a browser, not by a suite. The rule carries no `decimals`, so
+     * the ratio path below ran toFixed(undefined) and G1's total rendered a
+     * bare 430538 directly beneath its own rows rendering 202,384. That is
+     * CLCPA-271's defect one rule type later: a computed cell and a typed cell
+     * in the same column disagreeing about what the column is.
+     *
+     * It is fixed HERE rather than at the two call sites because 271 is also
+     * the ticket that proves why: the renderer and refreshIngestCalcCells each
+     * formatted for themselves, so the money total was right on first paint
+     * and wrong the moment any cell was blurred. One function, both surfaces. */
+    if (d.type === 'columnTotal') return formatIngestValue(v, isMoney);
     /* CLCPA-294: ALWAYS scaled. This function's input is by construction the
      * engine's own ratio, so there is nothing to guess about. */
     if (d.type === 'percentage' || d.type === 'percentChange') {
@@ -3394,6 +3448,76 @@ function utf8ByteLength(str) {
          * Every row is eligible, total or not: A9 has no total row, and a
          * percent change is a property of the row's own two figures rather
          * than of any column sum. */
+        /* CLCPA-319: a TOTAL ROW's own quantity, from the rows it totals.
+         *
+         * The value is the one the percentage rules already build: the column
+         * sum over the non-total rows of this total's own segment. Only the
+         * total row is touched; the rows being summed are source data and are
+         * never written.
+         *
+         * inputsChanged is asked of the COLUMN here, not of two cells in this
+         * row, because that is where this rule's inputs live. Without it, an
+         * operator correcting a DAC figure would see the total hold its filed
+         * value, which is the stale cell CLCPA-241 exists to remove. */
+        if (d.type === 'columnTotal') {
+          /* THE CLASSIFIER CANNOT BE THE GATE HERE, and finding that out cost
+           * a wrong first cut.
+           *
+           * totalRowFlags confirms a total by ARITHMETIC: structure proposes,
+           * arithmetic confirms, which is CLCPA-245's rule and right for its
+           * own job. But it makes the answer depend on the very figure this
+           * rule exists to compute. Measured: doubling G1's DAC row made
+           * 430,538 stop matching its rows, so the row stopped being a total,
+           * so nothing recomputed it -- and the column sum then swallowed the
+           * total row itself, giving 1,063,460. The gate and the inputs were
+           * both poisoned by the edit they were meant to react to.
+           *
+           * So this rule identifies its own row and its own inputs by LABEL,
+           * which no edit can move. Same lesson as CLCPA-293: a classifier
+           * that reads values must not decide what happens to those values. */
+          if (!isAnchoredTotalRowLabel(row[0])) return;
+          /* SEGMENTED, by label. The rows a total owns are the ones between it
+           * and the total row above it -- the same segment the percentage rule
+           * beside this one takes from segmentSums, read off labels instead of
+           * the value-dependent flags. An EMPTY segment falls back to every
+           * non-total row ABOVE this one and never to the whole table, which
+           * is the CLCPA-209 rule: A8/2025 r24 is a roll-up with a data row
+           * BENEATH it, and taking the whole table swept that row into r24's
+           * own total.
+           *
+           * MEASURED on all 26 G table-years: none has more than one total
+           * row, so today this is identical to a flat sum, and derive_319_
+           * gboard.js reports the segment and flat figures side by side to
+           * show it. It is written this way because the Section F sibling
+           * (CLCPA-312) is not guaranteed flat, and because a comment that
+           * says "segmented" must describe code that segments. */
+          let from = 0;
+          for (let ri = rowIdx - 1; ri >= 0; ri--) {
+            if (rows[ri] && isAnchoredTotalRowLabel(rows[ri][0])) { from = ri + 1; break; }
+          }
+          const own = [];
+          for (let ri = from; ri < rowIdx; ri++) {
+            if (rows[ri] && !isAnchoredTotalRowLabel(rows[ri][0])) own.push(ri);
+          }
+          let src = own;
+          if (!src.length) {
+            src = [];
+            for (let ri = 0; ri < rowIdx; ri++) {
+              if (rows[ri] && !isAnchoredTotalRowLabel(rows[ri][0])) src.push(ri);
+            }
+          }
+          let sum = 0, seen = 0, changed = false;
+          src.forEach((ri) => {
+            const n = bareNumber(rows[ri][d.column]);
+            if (n === null) return;
+            sum += n; seen++;
+            const b = baseline && baseline[ri];
+            if (b && String(b[d.column]) !== String(rows[ri][d.column])) changed = true;
+          });
+          if (!seen) return;
+          if (derivedCellWrite(row[d.column], sum, d, changed).write) row[d.column] = sum;
+          return;
+        }
         if (d.type === 'percentChange') {
           const cur = bareNumber(row[d.current]);
           const prev = bareNumber(row[d.previous]);
@@ -3892,7 +4016,24 @@ function utf8ByteLength(str) {
         if (i && typeof h === 'string' && /%|percent/i.test(h)) skip.add(i);
       });
     }
-    ((tableId && DERIVED_COLS[tableId]) || []).forEach(d => skip.add(d.column));
+    /* CLCPA-319: a columnTotal column is NOT skipped, and the distinction is
+     * the whole reason this classifier survives the rule.
+     *
+     * Derived columns are skipped because they are computed FROM THE ROW, so
+     * they cannot confirm that the row is a total: they would agree with
+     * themselves. A columnTotal column is the opposite -- it is computed from
+     * the OTHER ROWS, and its agreement with them is exactly the arithmetic
+     * this predicate is looking for.
+     *
+     * Skipping it was measured and it was bad: G has only two value columns,
+     * so making the quantity derived left nothing to confirm with, the total
+     * row stopped being flagged, it re-entered colSum, the denominator
+     * doubled and every G percentage halved from 100% to 50% across 21
+     * table-years. The comment in applyDerivedCols predicted that outcome for
+     * a different route to the same place. */
+    ((tableId && DERIVED_COLS[tableId]) || [])
+      .filter(d => d.type !== 'columnTotal')
+      .forEach(d => skip.add(d.column));
 
     const isHeader = r => Array.isArray(r) && r.length > 1 &&
       !isEmpty(r[0]) && r.slice(1).every(isEmpty);
@@ -4223,9 +4364,31 @@ function utf8ByteLength(str) {
     // tell "the engine computed this" from "the engine left it alone" -- which is
     // precisely the case that must not be stripped. Blank first, and anything that
     // comes back as a number was genuinely rebuilt.
-    const probe = rows.map(r => {
+    /* CLCPA-319: a TOTAL-ONLY column is blanked on the total rows ALONE.
+     *
+     * Blanking a whole column is right for a column the engine owns outright.
+     * A columnTotal column is not that: its other rows are the DAC and non-DAC
+     * quantities an operator types, and the total is computed FROM them.
+     * Blanking all of them left the rule summing an empty column, so nothing
+     * was rebuilt, so nothing was stripped -- the probe quietly answered "the
+     * engine cannot rebuild this" about a figure it rebuilds perfectly well. */
+    const totalOnly = {};
+    (DERIVED_COLS[tableId] || []).forEach((d) => {
+      if (isTotalOnlyDerived(d)) totalOnly[d.column] = true;
+    });
+    /* BY LABEL, the same identification the rule itself uses. The probe, the
+     * strip and applyDerivedCols must agree about which row is the total: if
+     * one of them read the arithmetic instead, a cell could be computed by one
+     * and stripped by another, and the disagreement would be invisible until
+     * an operator's edit made the figures stop matching. */
+    const totalRole = rows.map(r => !!(r && isAnchoredTotalRowLabel(r[0])));
+    const probe = rows.map((r, ri) => {
       const c = r.slice();
-      cols.forEach(ci => { if (ci < c.length) c[ci] = null; });
+      cols.forEach(ci => {
+        if (ci >= c.length) return;
+        if (totalOnly[ci] && !totalRole[ri]) return;   /* source data, left alone */
+        c[ci] = null;
+      });
       return c;
     });
     /* CLCPA-209: classify the PROBE, not the original. The probe has its derived
@@ -4246,6 +4409,19 @@ function utf8ByteLength(str) {
       (DERIVED_COLS[tableId] || []).forEach(d => {
         const ci = d.column;
         if (ci >= c.length) return;
+        /* CLCPA-319: A TOTAL-ONLY RULE STRIPS ITS TOTAL ROW AND NOTHING ELSE,
+         * and leaving this out destroyed operator data on save.
+         *
+         * The probe deliberately leaves a columnTotal's source rows populated,
+         * because the rule needs something to sum. So on those rows `rebuilt`
+         * is the operator's own figure, byte for byte, and it looks perfectly
+         * rebuilt -- the loop nulled it. Measured in a browser: G1/2025 saved
+         * after an edit came back [null,null] on all three rows and the typed
+         * 302,384 was gone. Every suite was green.
+         *
+         * The probe answers "can the engine rebuild this cell". On a source
+         * row the honest answer is that the engine never wrote it at all. */
+        if (totalOnly[ci] && !totalRole[i]) return;
         const rebuilt = probe[i] ? probe[i][ci] : null;
         if (typeof rebuilt !== 'number' || !isFinite(rebuilt)) return;
         /* CLCPA-241: rebuildable is no longer sufficient. A cell whose FILED
@@ -17813,14 +17989,84 @@ function wireHTooltips() {
      * advisory cannot disagree about which columns are derivable. */
     const sumRel = {};
     detectSumColumns(schema, rows, tableId).forEach((s) => { sumRel[s.column] = s; });
+    /* CLCPA-308 (the D-01 family): A DERIVED ROW IS COMPUTED TOO.
+     *
+     * This function read DERIVED_COLS and nothing else, so a table whose
+     * metric runs down the ROWS was invisible to it. Section D is exactly
+     * that shape: a count row, another count row, then a percentage row that
+     * is the quotient of the two, declared in DERIVED_ROWS and recomputed by
+     * the engine on every edit.
+     *
+     * Measured on the tip: for all eight declared percentage rows across D2,
+     * D3 and D4, ingestComputed answered false on every column, so the fresh
+     * template offered those cells blank and fillable. That is CLCPA-289
+     * inverted -- there a marker promised a computation that never happened,
+     * here a computation happens and nothing tells the preparer, who is
+     * invited to type a figure the next recompute overwrites.
+     *
+     * A derived row is derived across ALL of its value columns: the rule is a
+     * property of the row, and the numerator and denominator travel with the
+     * column being asked about. */
+    const derivedRowSet = {};
+    ((tableId && DERIVED_ROWS[tableId]) || []).forEach((d) => { derivedRowSet[d.row] = d; });
+    /* CLCPA-320: THE WORKBOOK MARKER FOLLOWS THE ROW'S ROLE, NOT ITS ARITHMETIC.
+     *
+     * `totals` above is totalRowFlags, where structure proposes and ARITHMETIC
+     * confirms. That is right for the import skip below, which must never
+     * refuse a preparer's figure on a guess. It is wrong for the workbook
+     * marker, which is a statement about what the TABLE IS: a table does not
+     * stop having a total row in the year before anyone has typed into it.
+     *
+     * MEASURED, and identical on the shipped build, so this is not something
+     * CLCPA-319 introduced. Eleven total rows disagree:
+     *
+     *   A3's "Total" is marked (calculated) in 2025 and left blank and
+     *   fillable in 2023 and 2024 -- the same row of the same table, three
+     *   different workbooks. A4 and J8 are the same shape;
+     *   every G1 to G9 total row loses its QUANTITY marker as soon as the row
+     *   set holds no figures, because there is then no arithmetic to confirm.
+     *
+     * BE PRECISE ABOUT THAT SECOND ONE. It is NOT the fresh-download path: a
+     * fresh year BORROWS a populated donor year's rows, so the arithmetic has
+     * figures to work with and the marker was there all along. suite_292's
+     * fresh-template census confirms it -- not one G table moves. The blank
+     * row set is the state after an import or an Add Year, and it is real,
+     * but it is not what a preparer sees in the workbook they download.
+     *
+     * The predicate is the one the CLCPA-319 rule itself computes by, so the
+     * cell the workbook calls calculated and the cell the engine computes are
+     * settled by ONE rule rather than by two that can drift apart. It is
+     * anchored (CLCPA-200), so it ends at a total: J1's "Total amount of
+     * residential electric usage" and D2's "Total # of projects" are data
+     * rows and stay data rows, which is what keeps CLCPA-209 shut. */
+    const totalRole = rows.map(r => Array.isArray(r) && isAnchoredTotalRowLabel(r[0]));
     return {
       totalRow: (r) => !!totals[r],
       derivedCol: (c) => !!derived[c],
+      derivedRow: (r) => !!derivedRowSet[r],
       /* CLCPA-244: a weighted-mean column is the dashboard's OUTPUT on the
        * total row and the operator's INPUT everywhere else, so it is only
        * "calculated" where totals[r] already says so. This one accessor gates
        * both surfaces that matter: the template writes (calculated) from it,
        * and the import skips a cell from it. */
+      /* CLCPA-308 DELIBERATELY DOES NOT APPEAR HERE, and the first cut of it
+       * did. Adding the derived ROW to this accessor marks the workbook AND
+       * makes the importer skip the cell, and skipping it is data loss:
+       *
+       * MEASURED across the payload -- 49 derived-row cells hold a stored
+       * figure, and the engine KEEPS 47 of them as filed, because
+       * derivedRowKeepsStored honours a figure that merely adds precision to
+       * the computed one. D2/2023 publishes the filed 0.321, not the raw
+       * 0.32057920404599916 the quotient produces. Had the importer skipped
+       * those cells, a preparer re-importing their own workbook would have
+       * lost all 47 filed figures and got raw quotients in their place.
+       *
+       * That is CLCPA-272's ruling exactly -- a provided value is accepted
+       * and reconciled, never rejected -- and the kept-figure rail of
+       * CLCPA-241 on top of it. The marker belongs in marksInTemplate alone,
+       * which is where CLCPA-274 put the same kind of guidance for H1's
+       * derivable column, and the importer already treats the marker text as
+       * a non-value, so nothing needs this accessor to widen. */
       any: (r, c) => (!!totals[r] && (!!derived[c] || engineWrites(c))) ||
         (!!derived[c] && !isTotalOnlyDerived(derived[c])),
 
@@ -17846,7 +18092,13 @@ function wireHTooltips() {
        * same one CLCPA-272 reconciles against, so guidance and advisory cannot
        * disagree about which columns are derivable. */
       marksInTemplate: (r, c) => {
-        if ((!!totals[r] && (!!derived[c] || engineWrites(c))) ||
+        if (!!derivedRowSet[r] && c >= 1 && engineWrites(c)) return true;
+        /* CLCPA-320: role OR arithmetic. The arithmetic term is kept rather
+         * than replaced, because it recognises total rows whose label does
+         * not end in "total" at all -- A5's "Commercial Programs Total
+         * Installations" among them -- and dropping it would have taken the
+         * marker off rows that have always carried it. */
+        if (((!!totals[r] || !!totalRole[r]) && (!!derived[c] || engineWrites(c))) ||
             (!!derived[c] && !isTotalOnlyDerived(derived[c]))) return true;
         const rel = sumRel[c];
         if (!rel) return false;
@@ -23941,7 +24193,7 @@ function wireHTooltips() {
          * row whether or not the engine can sum that row's other columns */
         if (dDesc && !(isTotalOnlyDerived(dDesc) && !isTotalRole)) {
           // Derived cell — computed (read-only), formatted as % / ratio.
-          return `<td class="ingest-td-calc"><span class="ingest-cell-calc" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(fmtDerivedCell(v, dDesc))}</span></td>`;
+          return `<td class="ingest-td-calc"><span class="ingest-cell-calc" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(fmtDerivedCell(v, dDesc, currencyCol[colIdx]))}</span></td>`;
         }
         /* CLCPA-233 item B: read-only but NOT computed. Shown as the source
          * published it, with no input to type into. Placed after the derived
@@ -25591,7 +25843,7 @@ function wireHTooltips() {
       const v = i.draft[r][c];
       const d = derivedByCol[c];
       span.textContent = d
-        ? fmtDerivedCell(v, d)
+        ? fmtDerivedCell(v, d, currencyCol[c])
         : ((v == null || v === '') ? '—' : formatIngestValue(v, currencyCol[c]));
     });
   }

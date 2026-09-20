@@ -172,9 +172,17 @@ guard('S: and the whole report page is unchanged too', () => {
    * The message prints the WHOLE list: it used to slice(0, 5) and hid the
    * sixth entry, so the assertion and its own message disagreed about why. */
   ok(JSON.stringify(moved.slice().sort()) ===
-     JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
-     'S4 the panels move on exactly six, four CLCPA-290 dashes and two ' +
-     'CLCPA-294 corrections: ' + JSON.stringify(moved.slice().sort()));
+     /* CLCPA-319: G1 files no feet figure for these two years, so declaring
+      * the column gives an EMPTY cell its numeric alignment class. No
+      * content moves; the cell is empty on both sides, which this suite's
+      * own probe confirmed against its own BASE. The two entries sit in
+      * SORTED position because the comparison is against a sorted copy --
+      * appended at the end they never matched. */
+     JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024',
+     'G1:2023', 'G1:2024', 'J4:2025']),
+     'S4 the panels move on exactly eight, four CLCPA-290 dashes, two ' +
+     'CLCPA-294 corrections and two CLCPA-319 alignment classes: ' +
+     JSON.stringify(moved.slice().sort()));
 });
 
 guard('S: C2s own composite cells are what the gate is about', () => {
@@ -473,6 +481,9 @@ guard('X: the blast radius', () => {
     xlsxCell: 'NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number',
     /* CLCPA-291, named so the count stays exact */
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
+    /* CLCPA-319, named so the count stays exact */
+    isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
+    totalRowFlags: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)',
     /* CLCPA-293 / A-10, named so the count stays exact */
     ingestRebuildableTotals: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)',
     renderPreparerTotalsNotice: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)',
@@ -606,12 +617,28 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 79, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 81, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
-  ['totalRowFlags',
-   'kpiDacPct', 'detectPctColumns'].forEach(n => {
+  ['kpiDacPct', 'detectPctColumns'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
   });
+  /* totalRowFlags LEFT that list for CLCPA-319. A columnTotal is the one
+   * derived-column type that BELONGS in the arithmetic confirmation: the
+   * total row's own column total is the figure that confirms the row, so
+   * skipping it left nothing to confirm and the row re-entered the sum.
+   * Attribution replaces byte equality rather than removing the guard --
+   * any other edit to the confirmer still turns this red. */
+  const TRF_319 = [
+    "      .filter(d => d.type !== 'columnTotal')",
+    "      .forEach(d => skip.add(d.column));",
+  ];
+  const trfAdded = grabFn('totalRowFlags', SRC).split('\r\n')
+    .filter(l => grabFn('totalRowFlags', BASE_SRC).indexOf(l) < 0)
+    .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
+  ok(trfAdded.length === TRF_319.length && trfAdded.every(l => TRF_319.indexOf(l) >= 0),
+     'X2d totalRowFlags differs from BASE only by CLCPA-319 letting a ' +
+     'column total confirm its own row -- ' +
+     JSON.stringify(trfAdded.filter(l => TRF_319.indexOf(l) < 0)));
   /* applyDerivedCols LEFT that list for CLCPA-241, which routes every write in
    * it through the kept-figure conditional and adds the percentChange branch.
    * Attribution replaces byte equality rather than removing the guard: every
@@ -633,6 +660,35 @@ guard('X: the blast radius', () => {
     "        const v = num / den;",
     "        if (derivedCellWrite(row[d.column], v, d, inputsChanged).write) row[d.column] = v;",
   ];
+  /* CLCPA-319 adds the columnTotal branch. Kept as its OWN array so the
+   * two tickets stay separable: a line belonging to neither still fails. */
+  const ADC_319 = [
+    "        if (d.type === 'columnTotal') {",
+    "          if (!isAnchoredTotalRowLabel(row[0])) return;",
+    "          let from = 0;",
+    "          for (let ri = rowIdx - 1; ri >= 0; ri--) {",
+    "            if (rows[ri] && isAnchoredTotalRowLabel(rows[ri][0])) { from = ri + 1; break; }",
+    "          const own = [];",
+    "          for (let ri = from; ri < rowIdx; ri++) {",
+    "            if (rows[ri] && !isAnchoredTotalRowLabel(rows[ri][0])) own.push(ri);",
+    "          let src = own;",
+    "          if (!src.length) {",
+    "            src = [];",
+    "            for (let ri = 0; ri < rowIdx; ri++) {",
+    "              if (rows[ri] && !isAnchoredTotalRowLabel(rows[ri][0])) src.push(ri);",
+    "            }",
+    "          let sum = 0, seen = 0, changed = false;",
+    "          src.forEach((ri) => {",
+    "            const n = bareNumber(rows[ri][d.column]);",
+    "            if (n === null) return;",
+    "            sum += n; seen++;",
+    "            const b = baseline && baseline[ri];",
+    "            if (b && String(b[d.column]) !== String(rows[ri][d.column])) changed = true;",
+    "          });",
+    "          if (!seen) return;",
+    "          if (derivedCellWrite(row[d.column], sum, d, changed).write) row[d.column] = sum;",
+  ];
+  const ADC_OK = ADC_241.concat(ADC_319);
   /* recomputeTotals moved too, by exactly one line: it now hands the
    * BASELINE to applyDerivedCols, which is what lets an EDITED input
    * recompute while a figure the source never reproduced stays as filed. */
@@ -646,9 +702,9 @@ guard('X: the blast radius', () => {
   const adcAdded = grabFn('applyDerivedCols', SRC).split('\r\n')
     .filter(l => grabFn('applyDerivedCols', BASE_SRC).indexOf(l) < 0)
     .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
-  ok(adcAdded.length === ADC_241.length && adcAdded.every(l => ADC_241.indexOf(l) >= 0),
-     'X2b applyDerivedCols differs from BASE only by CLCPA-241 -- ' +
-     JSON.stringify(adcAdded.filter(l => ADC_241.indexOf(l) < 0)));
+  ok(adcAdded.length === ADC_OK.length && adcAdded.every(l => ADC_OK.indexOf(l) >= 0),
+     'X2b applyDerivedCols differs from BASE only by CLCPA-241 and CLCPA-319 -- ' +
+     JSON.stringify(adcAdded.filter(l => ADC_OK.indexOf(l) < 0)));
 });
 
 guard('X: the baseline', () => {
