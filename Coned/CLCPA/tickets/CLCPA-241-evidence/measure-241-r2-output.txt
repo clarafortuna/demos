@@ -1,0 +1,30 @@
+=== every stored percent-string cell, classified ===
+  A10 col3   10  ruled=YES  stripped=YES  "2023"
+  A10 col6   10  ruled=YES  stripped=YES  "2024"
+  A9 col5    10  ruled=no   stripped=no   "% Change"
+  A9 col6    10  ruled=no   stripped=no   "% Change"
+  C2 col1     2  ruled=no   stripped=no   "Participants"
+  C2 col2     2  ruled=no   stripped=no   "Committed Load Relief (MW)"
+  C2 col3     2  ruled=no   stripped=no   "Average Event Reductions (MW)"
+  F7 col1     2  ruled=no   stripped=no   "DAC Customers Interrupted"
+  F7 col2     2  ruled=no   stripped=no   "Non-DAC Customers Interrupted"
+  F7 col3     2  ruled=no   stripped=no   "Total Customers Interrupted"
+  J1 col2     5  ruled=no   stripped=no   "DAC % of Total"
+  J1 col4     5  ruled=no   stripped=no   "Non-DAC % of Total"
+  J3 col2     7  ruled=YES  stripped=YES  "% of Accounts"
+  J3 col4     7  ruled=YES  stripped=YES  "% of Amount"
+  J4 col2     7  ruled=YES  stripped=YES  "% of Accounts"
+  J4 col4     7  ruled=YES  stripped=YES  "% of Amount"
+  J6 col2     7  ruled=YES  stripped=YES  "% of Accounts"
+  J6 col4     7  ruled=YES  stripped=YES  "% of Amount"
+  J7 col4     7  ruled=YES  stripped=YES  "% of Accounts"
+  J8 col1     2  ruled=no   stripped=no   "Electric"
+  J8 col2     2  ruled=no   stripped=no   "Gas"
+  J8 col3     7  ruled=no   stripped=no   "% of Amount"
+  TOTAL 122;  A9 percent-CHANGE target 20;  unruled and NOT rebuildable 33
+
+=== the rule against every filed A9 figure ===
+  18 reproduce the filed figure exactly
+  2 do NOT:
+     2024 row2 col5 filed 8% computed 33% (33.362)
+     2024 row4 col5 filed 62% computed 63% (62.500)
