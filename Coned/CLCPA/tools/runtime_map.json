@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-19T20:20:45.906Z",
+  "generated": "2026-09-20T05:52:16.051Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -10,20 +10,20 @@
   "git": {
     "repo": "clarafortuna/demos",
     "branch": "clcpa-integration-candidate",
-    "head": "c51bddc6000cd4cbd9f79ada0c952dfc4095f93c",
+    "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "74458b2",
-    "originMain": "88e7923"
+    "lastReconciledEngineerTip": "fff9e47",
+    "originMain": "fff9e47"
   },
   "build": {
-    "app.js": "a0c04d51be",
-    "styles.css": "2b9651445c"
+    "app.js": "8ff294bd16",
+    "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.0.1",
+    "version": "1.0.0.2",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "d44abcad1f7d3855",
+      "deployedSha256": "43e667b7cda4cfee",
       "stamped": true
     },
     {
@@ -54,8 +54,8 @@
       "webResourceId": "f6386636-3edd-4525-b1ad-595c8a38b86b",
       "type": 2,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/styles.css",
-      "repoSha256": "2b9651445cb2bce5",
-      "deployedSha256": "2b9651445cb2bce5",
+      "repoSha256": "9039bfc5093de9cc",
+      "deployedSha256": "9039bfc5093de9cc",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "a0c04d51be214fb6",
-      "deployedSha256": "db5b1b7c5ad267b3",
+      "repoSha256": "8ff294bd16d514ac",
+      "deployedSha256": "46be371e81cb2da1",
       "stamped": true
     },
     {
@@ -108,28 +108,39 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "baseline": "74458b2 (origin/clcpa-301-import-row-totals)",
+    "round": 2,
+    "baseline": "fff9e47 (origin/main)",
     "outstanding": 0,
-    "absorbed": [
+    "mergedIntoIntegration": "74958bd",
+    "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
+    "absorbedThisRound": {
+      "commits": 36,
+      "appJsCommits": 10,
+      "prs": "clarafortuna/demos#276-#283",
+      "tickets": [
+        "CLCPA-241",
+        "CLCPA-274 option (c)",
+        "CLCPA-282",
+        "CLCPA-283",
+        "CLCPA-285",
+        "CLCPA-287",
+        "CLCPA-289",
+        "CLCPA-290",
+        "CLCPA-291",
+        "CLCPA-292",
+        "CLCPA-294",
+        "CLCPA-300",
+        "black-button"
+      ]
+    },
+    "previousRounds": [
       {
-        "ticket": "CLCPA-281 r3",
-        "commit": "2dc63da"
-      },
-      {
-        "ticket": "CLCPA-281 r3 harness re-pin",
-        "commit": "3614466"
-      },
-      {
-        "ticket": "CLCPA-301",
-        "commit": "2b0553a"
-      },
-      {
-        "ticket": "CLCPA-301 harness re-pin",
-        "commit": "74458b2"
+        "round": 1,
+        "baseline": "74458b2",
+        "mergedIntoIntegration": "c51bddc",
+        "build": "a0c04d51be"
       }
-    ],
-    "mergedIntoIntegration": "c51bddc",
-    "note": "Her r4 stack (75e8eec and parents) merged to main via clarafortuna/demos#268, #269, #270; content delta from 75e8eec to main outside deploy-backups is empty."
+    ]
   },
   "deployPolicy": {
     "orgAssertion": "tools/deploy_guard.js assertOrganization -- REQUIRED before any write; fails closed",

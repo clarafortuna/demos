@@ -7,11 +7,11 @@
 | Environment | **Sustainability Design - Dev** — `https://orgc60845ae.crm.dynamics.com/` |
 | Environment id | `d491a3e9-379f-e433-8ccb-afb49607c31d` · Org `1dfebd7e-cd6f-f111-b27b-000d3a5cc314` |
 | App | **CLCPA Executive Dashboard - Integration** · `2c35b607-4161-4576-8ae8-9d9dae7bcc0e` |
-| Solution | `CLCPAExecutiveDashboardIntegration` 1.0.0.1, unmanaged |
+| Solution | `CLCPAExecutiveDashboardIntegration` 1.0.0.2, unmanaged |
 | Publisher | `CLCPAIntegration`, prefix **`clcpa`** (newly created — no `cr2bf` publisher exists here) |
-| Source | `clcpa-integration-candidate`, pushed · integration base `75e8eec` |
-| Reconciled through | **`74458b2`** (`origin/clcpa-301-import-row-totals`) · 0 outstanding |
-| Build | `app.js` **a0c04d51be** · `styles.css` **2b9651445c** |
+| Source | `clcpa-integration-candidate`, pushed to **`clarafortuna/demos`** · integration base `75e8eec` |
+| Reconciled through | **`fff9e47`** (`origin/main` — round 2) · 0 outstanding |
+| Build | `app.js` **8ff294bd16** · `styles.css` **9039bfc509** |
 
 Open it at `main.aspx?appid=2c35b607-4161-4576-8ae8-9d9dae7bcc0e`.
 

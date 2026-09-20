@@ -1,5 +1,5 @@
 {
-  "engineerTip": "74458b2",
+  "engineerTip": "fff9e47",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -50,6 +50,83 @@
       "engineerSubject": "harness: re-pin the drift accounting for CLCPA-301",
       "integrationCommit": "c51bddc",
       "reconciledAt": "2026-09-19",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "fdc8c1358616ff311229b12c87deeaef3d8fb0ff",
+      "engineerSubject": "CLCPA-283: one contract for removing a year",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "037e50cac6677099b63896c501594866ebd2ad79",
+      "engineerSubject": "CLCPA-282 (option A) and CLCPA-285: a two-level table round-trips",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "93c1c750c71d96eacaae7ff4cc7c90980db1262e",
+      "engineerSubject": "CLCPA-291: a text column in a structure row has no value",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "6b2cddddca6c0b3a9270a7cbb25ce6ca1b52995d",
+      "engineerSubject": "CLCPA-274 option (c): a populated year exports, a fresh year stays blank",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "c99be386123a1e024a41f49cd6d879be53210ac0",
+      "engineerSubject": "CLCPA-292: the template pre-fills every key column, not just the first",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "131bfd6d7e5e1d33af6f821a76a60896615b27f2",
+      "engineerSubject": "CLCPA-294: a computed percentage is always scaled, never guessed",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "c24892def5ee12b3d1a45fa585eb62e394d9f2e1",
+      "engineerSubject": "CLCPA-300: the staged summary counts the columns that receive values",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "5fb840bc29f741cb18d2dccd3b07dcc68c611da7",
+      "engineerSubject": "CLCPA-287: the page says what was rejected",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "461ea86667cb4e01e953c545f48e57b22064f161",
+      "engineerSubject": "CLCPA-282: the operator prose says how many heading rows a table has",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "aaf2d3955c68dcfd43b662a5da134865f3cb95ba",
+      "engineerSubject": "CLCPA-290: the average columns are un-totalled, on both surfaces",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "fff9e4766305d69d56dfc4c6fda2e6e5dad3e495",
+      "engineerSubject": "deploy-backups: the deploy tail for the Section A board",
+      "integrationCommit": "74958bd",
+      "reconciledAt": "2026-09-20",
       "validation": "tools/run_security.sh green"
     }
   ]
