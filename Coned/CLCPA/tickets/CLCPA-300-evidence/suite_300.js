@@ -144,8 +144,17 @@ guard('D-block', () => {
     "          'a heading spanning several columns, then a row naming each one.'\r\n" +
     "        : 'The file needs a header row and at least one data row.', {});";
   const OLD_MSG = "reject('The file needs a header row and at least one data row.', {});";
+  const K_NEW1 = "      reject('The file has no ' + ingestKeyColDescription(schema, 0).phrase +\r\n        ', which is the one that says which row each value belongs to. Download ' +\r\n        'the template for this table and year to see the headings it expects.', {});";
+  const K_OLD1 = "      reject('The file has no \\u201c' + schema[0] + '\\u201d column, which is the one ' +\r\n        'that says which row each value belongs to. Download the template for this ' +\r\n        'table and year to see the headings it expects.', {});";
+  const K_NEW2 = "        reject('The file has no ' + ingestKeyColDescription(schema, s).phrase +\r\n          '. This table has rows that repeat the same ' +\r\n          ingestKeyColDescription(schema, 0).short + ', so that column on ' +\r\n          'its own cannot say which row a value belongs to. Download the template ' +\r\n          'for this table and year to see the headings it expects.', {});";
+  const K_OLD2 = "        reject('The file has no “' + schema[s] + '” column. This table has ' +\r\n          'rows that repeat the same “' + schema[0] + '”, so that column on ' +\r\n          'its own cannot say which row a value belongs to. Download the template ' +\r\n          'for this table and year to see the headings it expects.', {});";
   const normalise = (t) => t.replace(NEW_MSG, () => OLD_MSG)
-    .replace(/      \/\* CLCPA-282: this message knows the count[\s\S]*?\*\/\r\n/, '');
+    .replace(/      \/\* CLCPA-282: this message knows the count[\s\S]*?\*\/\r\n/, '')
+    /* CLCPA-287 round 2: the two KEY-COLUMN rejections now describe a
+     * column by role when it has no heading, because six published
+     * table-years said: the file has no “” column. Named and reversed
+     * here, exactly as the CLCPA-282 message above is. */
+    .replace(K_NEW1, () => K_OLD1).replace(K_NEW2, () => K_OLD2);
   ok(normalise(grab('buildIngestImport', SRC)) === grab('buildIngestImport', BASE_SRC),
     'D1 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
     'message: only the summary sentence changed here');

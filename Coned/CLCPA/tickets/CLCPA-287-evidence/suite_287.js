@@ -102,14 +102,24 @@ log('');
 log('B. THE PAGE IS REPAINTED');
 guard('B-block', () => {
   const nowPath = codeOnly(grab('openAddYearDialog', SRC));
-  ok(/refreshIngestNotices\(\);\s*\r?\n\s*return;/.test(nowPath),
-    'B1 the failure path repaints the notice mount before returning');
+  /* RE-PINNED IN ROUND 2, not widened. Round 1 asserted the path repaints and
+   * then RETURNS, holding the dialog open. The owner ruled in round 2 that a
+   * rejected Load dismisses exactly as an accepted one does, so the return is
+   * gone and the path falls through to the same close(). The assertion moves
+   * to the new contract rather than relaxing to cover both. */
+  ok(/refreshIngestNotices\(\);\s*\r?\n\s*\}\s*\r?\n\s*close\(\);/.test(nowPath),
+    'B1 the failure path repaints the notice mount and then closes, as an accepted load does');
   ok(/const mount = document\.getElementById\('ingest-import-mount'\);/.test(
       codeOnly(grab('refreshIngestNotices', SRC))),
     'B2 and that helper repaints THAT MOUNT ONLY, not the page');
-  /* so the dialog cannot be destroyed by the repaint -- CLCPA-262 */
+  /* The repaint still touches ONE mount and nothing else. In round 1 that
+   * mattered because it kept the dialog alive; in round 2 the dialog closes
+   * anyway, and it matters because a full rebuild would discard the draft the
+   * report is describing as untouched. The label said "so the dialog stays
+   * open", which stopped being true the moment close() moved: a passing
+   * assertion whose words are wrong is the kind that gets believed later. */
   ok(!/rerenderIngestAll\(\);\s*\r?\n\s*return;/.test(nowPath),
-    'B3 nothing rebuilds the view, so the dialog stays open as CLCPA-262 requires');
+    'B3 nothing rebuilds the view: the repaint touches one mount, and close() alone dismisses');
 });
 
 /* ---- C. what the panel says -------------------------------------------- */

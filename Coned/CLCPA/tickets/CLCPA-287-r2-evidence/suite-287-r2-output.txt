@@ -1,0 +1,42 @@
+======================================================================
+CLCPA-287 round 2 -- the dialog dismisses either way, and a rejection
+                     names a column the operator can find
+  BASE : 8551769 (predates this change)
+======================================================================
+
+A. THE BASELINE CARRIES BOTH DEFECTS
+  ok   A0 both sources assemble, resolving 23 / 22 functions by following ReferenceErrors
+  ok   A1 BASE: the failure path RETURNS, so the dialog survives a rejection
+  ok   A2 BASE: A9 is told the file has no "" column  ->  "The file has no “” column, which is the one that"
+  ok   A3 BASE: and F7 is told the word "null"  ->  "The file has no “null” column, which is the "
+
+B. THE DIALOG DISMISSES THE SAME WAY, EITHER WAY
+  ok   B1 the early return is gone from the failure path
+  ok   B2 the path repaints the report and falls through to the same close()
+  ok   B3 and there is exactly ONE close() in the handler, so the two outcomes cannot drift apart
+  ok   B4 the unreachable dialog error painting is gone
+  ok   B5 while year validation still writes it and still holds the dialog open
+
+C. A REJECTION NAMES A COLUMN THE OPERATOR CAN FIND
+  ok   C1 A9 is no longer told about a "" column
+  ok   C2 it is described by position and role  ->  "The file has no first column, unheaded in this table, wh"
+  ok   C3 and F7 is never told the word "null"
+  ok   C4 a NAMED key column keeps its message byte-for-byte: "The file has no “Program Name” column, w"
+  ok   C5 (and it still names the heading it wants)
+
+D. EVERY TABLE, NOT THE THREE THAT WERE LOOKED AT
+  ok   D1 measured over 149 published table-years
+  ok   D2 not one rejection anywhere names an EMPTY heading
+  ok   D3 nor the words null or undefined
+  ok   D4 and BASE named an unusable heading on exactly 6 table-years (6)
+
+X. THE CHANGE IS WHERE IT SAYS IT IS
+  ok   X1 one helper describes a key column
+  ok   X2 with the ordinals named once
+  ok   X3 and neither rejection interpolates a raw schema entry any more
+  ok   X4 both key-column rejections call it, at 3 call sites
+  ok   X5 (the baseline carries none of this)
+
+======================================================================
+  23 passed, 0 failed
+======================================================================

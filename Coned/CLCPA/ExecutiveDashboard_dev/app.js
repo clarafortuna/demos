@@ -17191,6 +17191,38 @@ function wireHTooltips() {
    * template writes it and a drift between the two is silent. */
   const INGEST_CALC_MARKER = '(calculated)';
 
+  /* CLCPA-287 round 2: A REJECTION HAS TO NAME A COLUMN THE OPERATOR CAN FIND.
+   *
+   * The two key-column rejections interpolated schema[s] straight into their
+   * text, and SIX published table-years have no heading in a key column at
+   * all. Measured: A9:2024, A9:2025, A10:2024 and A10:2025 carry "" there,
+   * and F7:2024 and F7:2025 carry null, which rendered as the word "null".
+   * So offering A9 a file with the wrong headings said, in a browser, before
+   * any of this was written:
+   *
+   *     The file has no "" column, which is the one that says which row each
+   *     value belongs to.
+   *
+   * There is nothing to recover, either: A9 and A10 declare header_levels 2,
+   * and their SECOND heading row is null in that column too. The column
+   * genuinely has no name anywhere in the table, which is why naming it by
+   * role and position is the honest answer rather than a fallback.
+   *
+   * A column that HAS a heading keeps the wording it has today, to the byte.
+   * Only the unheaded branch is new.
+   */
+  const INGEST_COL_ORDINALS = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
+  function ingestKeyColDescription(schema, s) {
+    const raw = (schema && schema[s] != null) ? String(schema[s]).trim() : '';
+    if (raw !== '') {
+      return { named: true, phrase: '“' + raw + '” column',
+               short: '“' + raw + '”' };
+    }
+    const ord = INGEST_COL_ORDINALS[s] || ('column ' + (s + 1));
+    return { named: false, phrase: ord + ' column, unheaded in this table',
+             short: 'value in that ' + ord + ' column' };
+  }
+
   /* How many LEADING schema columns form this table's row key. 1 unless the
    * table is declared in INGEST_KEY_COLS, which is today's behaviour for the
    * 50 tables that are not. */
@@ -17622,9 +17654,9 @@ function wireHTooltips() {
      * label column of a two-level table is found by the same question. */
     const labelCol = header.indexOf(schemaNorm[0]);
     if (labelCol < 0) {
-      reject('The file has no \u201c' + schema[0] + '\u201d column, which is the one ' +
-        'that says which row each value belongs to. Download the template for this ' +
-        'table and year to see the headings it expects.', {});
+      reject('The file has no ' + ingestKeyColDescription(schema, 0).phrase +
+        ', which is the one that says which row each value belongs to. Download ' +
+        'the template for this table and year to see the headings it expects.', {});
       return res;
     }
     res.labelColumn = schema[0];
@@ -17641,8 +17673,9 @@ function wireHTooltips() {
     for (let s = 1; s < keyCols; s++) {
       const fIdx = header.indexOf(schemaNorm[s]);
       if (fIdx < 0) {
-        reject('The file has no “' + schema[s] + '” column. This table has ' +
-          'rows that repeat the same “' + schema[0] + '”, so that column on ' +
+        reject('The file has no ' + ingestKeyColDescription(schema, s).phrase +
+          '. This table has rows that repeat the same ' +
+          ingestKeyColDescription(schema, 0).short + ', so that column on ' +
           'its own cannot say which row a value belongs to. Download the template ' +
           'for this table and year to see the headings it expects.', {});
         return res;
@@ -24447,12 +24480,6 @@ function wireHTooltips() {
             }
           }
           if (failed) {
-            if (err) {
-              const why = (state.ingest.importResult.rejections || [])
-                .map(x => x.why).filter(Boolean)[0] || 'The file could not be imported.';
-              err.textContent = why;
-              err.style.display = 'block';
-            }
             /* CLCPA-287: THE PAGE KEEPS THE PROMISE THE DIALOG MAKES.
              *
              * The rejection text says, in as many words, "Add Year will still
@@ -24466,17 +24493,33 @@ function wireHTooltips() {
              * !r.ok branch -- "Nothing was imported", the reasons listed, in
              * the CLCPA-266 box with the red accent -- and the mount is
              * already in the editor markup. The report existed and was never
-             * drawn, because this path returns before anything repaints.
-             *
-             * refreshIngestNotices repaints THAT MOUNT ONLY, so the dialog
-             * stays open exactly as CLCPA-262 requires and the report is
-             * waiting underneath when it is closed.
+             * drawn, because this path returned before anything repainted.
              *
              * The CLCPA-276 lifecycle needs nothing either: the rejection
              * lives in the same i.importResult that clearIngestNotices
-             * already empties on reset, switch and save. */
+             * already empties on reset, switch and save.
+             *
+             * ROUND 2: AND THE DIALOG NOW CLOSES, exactly as it does on an
+             * accepted load.
+             *
+             * CLCPA-262 deliberately kept it open, and its reason was sound at
+             * the time: closing "put the reason on the page behind a dialog
+             * the operator had just been dismissed from, with nothing on
+             * screen to act on where the dialog was". Round 1 removed that
+             * premise. The page now carries "Nothing was imported" and every
+             * reason, in the mount repainted just above, so closing no longer
+             * hides anything: it reveals the report.
+             *
+             * What does NOT survive 262 is its second reason, that the file
+             * input goes with the dialog. It does, and a retry means reopening
+             * Add Data. That is the cost of one consistent dismissal rule, and
+             * it is the rule the owner ruled for.
+             *
+             * The dialog's own error line is gone with the wait: it painted an
+             * element destroyed microseconds later. The year-validation paths
+             * still use #dlg-error and still hold the dialog open, which is
+             * why that element and its other two writers stay. */
             refreshIngestNotices();
-            return;
           }
           close();
         };
