@@ -1,0 +1,21 @@
+
+  === A9 as the section page renders it (tab: clicked) ===
+    [0] ["","2024","2025","% Change"]
+    [1] ["Total","DAC","Total","DAC","Total","DAC"]
+    [2] ["Incentives","$380.3M","$204.8M","$282.1M","$148.7M","-26%","-27%"]
+    [3] ["Energy Savings (MMBtu)","$4.4M","$2.5M","$4.0M","$2.1M","-7%","-15%"]
+    [4] ["Participation","$2.1M","$1.1M","$2.0M","$943K","-3%","-17%"]
+    [5] ["Average Incentive per Participant","$182","$181","$139","$158","-24%","-13%"]
+    [6] ["Average Energy Savings Per Participant","$2.09","$2.2","$1.99","$2.25","-5%","2%"]
+    rows carrying a $ prefix : 5
+
+  === J8 as the section page renders it (tab: clicked) ===
+    [0] ["Category","Electric","Gas","% of Total"]
+    [1] ["Total in DAC","$129.0M","$22.9M","62%"]
+    [2] ["Total in Non-DAC","$63.4M","$15.7M","38%"]
+    [3] ["Total","$192.6M","$38.7M","100%"]
+    [4] ["% of total in DAC","67%","59%",""]
+    [5] ["% of total in non-DAC","33%","41%",""]
+    rows carrying a $ prefix : 3
+
+  page errors: []

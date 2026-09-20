@@ -1,0 +1,17 @@
+  resolved: detectCurrencyColumns, isPercentLiteral, bareNumber
+
+  CLCPA-325  a PERCENT value sitting in a CURRENCY column:
+    occurrences in payload.json : 0
+
+  CLCPA-330  A9, the table whose ROWS differ in unit while its
+             currency declaration is per COLUMN:
+    currency_cols : [1,2,3,4]   (a COLUMN declaration)
+      row 1  "Incentives"
+      row 2  "Energy Savings (MMBtu)"
+      row 3  "Participation"
+      row 4  "Average Incentive per Participant"
+      row 5  "Average Energy Savings Per Participant"
+
+  Is there ANY per-row type available to derive from?
+    table-definition keys, all tables : currency_cols, data, header_levels, id, mapping, number, schema_by_year, section, short_title, title_by_year
+    a per-row type key                : NONE
