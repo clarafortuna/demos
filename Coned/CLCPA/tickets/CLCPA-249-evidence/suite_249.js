@@ -662,6 +662,8 @@ guard('X: app.js is byte-identical to BASE', () => {
   };
   const changed = names.filter(n => grabFn(n, SRC) !== grabFn(n, BASE_SRC));
   const LATER = {
+    /* CLCPA-291, named so the count stays exact */
+    ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
     /* CLCPA-282, named so the count stays exact */
     ingestHeaderKeys: 'NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR (new)',
     ingestHeaderName: 'NOT this ticket: CLCPA-282: a column on a two-level table is identified by its header PAIR, and this names one for a message (new)',

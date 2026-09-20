@@ -17133,6 +17133,51 @@ function wireHTooltips() {
    * Neither marker is ever parsed into a cell: the import skips both. */
   const INGEST_NOVALUE_MARKER = '(no value)';
 
+  /* CLCPA-291: IS THIS COLUMN TEXT, IN EVERY YEAR THE TABLE HAS?
+   *
+   * A3 and A4's Total row was marked (calculated) in its "Program Name" cell.
+   * That column is text: the engine cannot compute a programme name, and the
+   * marker told the preparer to leave blank a cell nothing would ever fill.
+   * The template's rule for a total row is "this column has a heading", which
+   * is true of a text column too.
+   *
+   * EVERY YEAR, and that is the whole difficulty. A7's "DAC Installations"
+   * holds numbers in 2024 and nothing at all in 2025, so a test scoped to the
+   * displayed year calls it text and would have converted a genuine numeric
+   * column to (no value) -- a worse defect than the one being fixed. Measured:
+   * all-years scope leaves exactly A3 and A4's Program Name, and nothing else
+   * in the payload.
+   *
+   * A PERCENT LITERAL IS A NUMBER HERE, and bareNumber alone does not say so:
+   * its pattern refuses a trailing "%", deliberately, because it answers "what
+   * number does this cell hold" for arithmetic. Asking it on its own turned
+   * J3, J4, J6 and J7's "% of Accounts" and "% of Amount" columns into text
+   * and stamped (no value) across them -- a far worse defect than the one
+   * being fixed, and measured before it reached a commit. isPercentLiteral is
+   * the existing reader for that shape, so the two are asked together rather
+   * than a third spelling being invented.
+   *
+   * Derived from the table's own data. No per-table literal, which is the
+   * CLCPA-259 lesson.
+   */
+  function ingestTextOnlyColumn(table, c) {
+    const data = (table && table.data) || {};
+    const years = Object.keys(data);
+    if (!years.length) return false;
+    let sawSomething = false;
+    for (let y = 0; y < years.length; y++) {
+      const rows = data[years[y]] || [];
+      for (let r = 0; r < rows.length; r++) {
+        const v = (rows[r] || [])[c];
+        if (v == null || String(v).trim() === '') continue;
+        sawSomething = true;
+        if (bareNumber(v) !== null || isPercentLiteral(v)) return false;
+      }
+    }
+    /* a column that is blank everywhere says nothing: leave it as it was */
+    return sawSomething;
+  }
+
   /* Not operator input. Both markers, so neither is keyed as literal text nor
    * carried into a created row. */
   function ingestIsBlankCell(v) {
@@ -18368,7 +18413,18 @@ function wireHTooltips() {
          * columns as well. The import keeps consulting `any`, so behaviour is
          * unchanged: a provided value is still accepted and reconciled. */
         if (computed.marksInTemplate(idx, c)) {
-          return { style: style, text: INGEST_CALC_MARKER };
+          /* CLCPA-291: a TEXT column in a structure row is not calculated, it
+           * has no value. (calculated) says "the dashboard fills this in";
+           * nothing can fill in a programme name. (no value) is the marker
+           * that already means "this cell takes nothing", it counts as
+           * shape-blank in ingestIsHeaderRow, and the importer already skips
+           * it -- so the file the operator downloads changes by two cells and
+           * the import path does not change at all. */
+          return {
+            style: style,
+            text: ingestTextOnlyColumn(table, c)
+              ? INGEST_NOVALUE_MARKER : INGEST_CALC_MARKER,
+          };
         }
         /* EMPTY, and LOCKED like everything else: the workbook shows the
          * format, it is not filled in. The operator types into their own CSV,

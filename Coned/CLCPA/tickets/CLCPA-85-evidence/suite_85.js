@@ -79,7 +79,7 @@ const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'sh
      so the slice cannot be assembled without these. A hand-fed slice
      cannot see a missing closure -- this suite threw before printing a
      tally, and the sweep scored that as zero rather than red. */
-  'ingestHeaderRowCount', 'ingestRowIsStoredHeader', 'ingestYearCarriesHeaderRows', 'ingestStoredHeaderRows', 'ingestHeaderKeys', 'ingestHeaderName',
+  'ingestTextOnlyColumn', 'ingestHeaderRowCount', 'ingestRowIsStoredHeader', 'ingestYearCarriesHeaderRows', 'ingestStoredHeaderRows', 'ingestHeaderKeys', 'ingestHeaderName',
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',
