@@ -1,0 +1,44 @@
+========================================================================
+CLCPA-311 / D-04 -- the LMI share is read, not invented
+  BASE : d84c0d3 (predates this change)
+========================================================================
+
+A. WHAT D3 ACTUALLY FILES
+  ok   A1 D3/2025 files the LMI share as 0.093 cumulative -- 0.09300000000000001
+  ok   A2 D3/2024 files it as 0.063
+  ok   A3 and the COUNT row beside it is 1917, which is what the bar already read
+  ok   A4 1917/20679 = 0.0927, so the filed 0.093 is that share rounded
+
+B. THE BASELINE FABRICATES IT
+  ok   B1 BASE computes dac/total with no guard on dac
+  ok   B2 and gates the slot on TOTAL, so a null dac never reaches the dash
+  ok   B3 null/1917 === 0 in JavaScript, which is the whole defect
+  ok   B4 BASE share maths, driven: dac=null gives 0, not null
+
+C. THE FIX: ABSENT MEANS ABSENT
+  ok   C1 dac=null now yields null, not 0 -- {"curr":null,"prev":null}
+  ok   C2 while two real counts still compute their own share -- 0.3237
+  ok   C3 and a STORED share is used when the table files one
+  ok   C4 the filed figure wins over the computable one
+  ok   C5 a filed ZERO is still a figure, not treated as missing
+
+D. THE SLOT SHOWS THE DASH WHEN THERE IS NOTHING TO SHOW
+  ok   D1 the LMI slot gates on the SHARE, not on the total
+  ok   D2 and so does the previous-year slot
+  ok   D3 the old gate is gone
+
+E. THE CALL SITE READS THE TABLE
+  ok   E1 the share is read from D3 by its own wording
+  ok   E2 and handed to the bar
+  ok   E3 without "percentage" the match is the COUNT, 1917
+  ok   E4 with it, the match is the SHARE, 0.093 -- the two rows are otherwise worded alike
+
+F. NOTHING ELSE IN SECTION D MOVED
+  ok   F1 every added code line in renderSectionD belongs to this ticket -- []
+  ok   F2 the non-LMI slot still shows the total COUNT, exactly as on BASE
+  ok   F3 and its tooltip share keeps the n/a it already had, never a zero
+  ok   F4 and all three non-LMI metrics are still drawn by the same call
+
+========================================================================
+  24 passed, 0 failed
+========================================================================

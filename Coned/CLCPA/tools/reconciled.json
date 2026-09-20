@@ -1,5 +1,5 @@
 {
-  "engineerTip": "34adc84",
+  "engineerTip": "d84c0d3",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -175,6 +175,13 @@
       "engineerCommit": "34adc84a8e25b6bfbadcf9260c720d86f40e5b86",
       "engineerSubject": "Merge pull request #289 from clarafortuna/clcpa-293-preparer-totals",
       "integrationCommit": "5cb7480",
+      "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "d84c0d3f67a3f83f7c1f21c6cbade95a3e4b434b",
+      "engineerSubject": "records: the 2026-09-20 session stamps, and the two strays decided",
+      "integrationCommit": "d9644ee",
       "reconciledAt": "2026-09-20",
       "validation": "tools/run_security.sh green"
     }

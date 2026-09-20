@@ -42,7 +42,38 @@ function getJson(port, route) {
 function serve(dir, port) {
   const py = spawn('python', ['-m', 'http.server', String(port), '--bind', '127.0.0.1'],
     { cwd: dir, stdio: 'ignore', detached: false });
-  return { proc: py, stop: () => { try { py.kill(); } catch (e) {} } };
+  /* WAIT FOR IT TO ANSWER, and do not make the caller guess.
+   *
+   * This used to return the moment python was spawned. Chrome's debugging
+   * endpoint IS waited for below, so the race looked handled, but the HTTP
+   * server was not: on a cold machine python loses that race, the first goto
+   * lands on about:blank, and the failure surfaces much later as
+   * "SecurityError: Access is denied for this document" from a sessionStorage
+   * write -- a message that says nothing about a server not being up. Cost an
+   * afternoon's confusion after a restart.
+   *
+   * ready resolves when the port answers and rejects with a sentence naming
+   * the real cause if it never does. */
+  const ready = (async () => {
+    const deadline = Date.now() + 20000;
+    for (;;) {
+      const up = await new Promise((resolve) => {
+        const req = http.get(
+          { host: '127.0.0.1', port: port, path: '/', timeout: 1000 },
+          (res) => { res.resume(); resolve(true); });
+        req.on('error', () => resolve(false));
+        req.on('timeout', () => { req.destroy(); resolve(false); });
+      });
+      if (up) return true;
+      if (Date.now() > deadline) {
+        throw new Error('cdp.serve: nothing answered on 127.0.0.1:' + port +
+          ' within 20s. The static server never came up, so any page opened ' +
+          'against it would be about:blank.');
+      }
+      await new Promise(r => setTimeout(r, 100));
+    }
+  })();
+  return { proc: py, ready: ready, stop: () => { try { py.kill(); } catch (e) {} } };
 }
 
 async function launch(opts) {

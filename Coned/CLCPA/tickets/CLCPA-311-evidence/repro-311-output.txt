@@ -1,0 +1,27 @@
+  === Section D, the bar metrics as the page renders them ===
+
+        Projects                 (D2)
+           2025    28.5k      share: 88.2k
+           2024    24.9k      share: 77.0k
+        MW installed             (D2)
+           2025    449        share: 1234
+           2024    406        share: 1096
+        Subscribers              (D3)
+           2025    7.2k       share: 20.7k
+           2024    6.2k       share: 18.8k
+  [LMI] LMI subscribers (EAP)    (D3)
+           2025    1.9k       share: 9.3%
+           2024    1.2k       share: 6.3%
+        Projects                 (D4)
+           2025    27.6k      share: 86.2k
+           2024    24.1k      share: 75.2k
+        MW installed             (D4)
+           2025    229        share: 776
+           2024    201        share: 688
+
+  THE DEFECT: the LMI bar prints ["9.3%","6.3%"]
+  D3 stores 0.093 cumulative for 2025 and 0.063 for 2024,
+  so the honest figures are 9.3% and 6.3%.
+  prints a fabricated 0.0%: false
+
+  page errors: []

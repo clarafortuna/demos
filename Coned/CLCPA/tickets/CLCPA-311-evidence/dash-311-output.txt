@@ -1,0 +1,5 @@
+  removed 3 stored percentage row(s) from D3, across every year
+  the LMI share slots now read: ["—","—"]
+  all dashes            : true
+  any fabricated 0.0%   : false
+  page errors: []

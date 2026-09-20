@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T19:41:19.254Z",
+  "generated": "2026-09-20T21:30:02.741Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "d84c0d3",
+    "lastReconciledEngineerTip": "5a3b11a",
     "originMain": "d84c0d3"
   },
   "build": {
-    "app.js": "bead10687f",
+    "app.js": "cc07ebe1f1",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.0.6",
+    "version": "1.0.0.7",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "d6c58d79e4aa6e2f",
+      "deployedSha256": "ff54978e56db0109",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "bead10687f82ab16",
-      "deployedSha256": "0d0cabdecdbf5170",
+      "repoSha256": "cc07ebe1f11ab039",
+      "deployedSha256": "940134d0798d3084",
       "stamped": true
     },
     {
@@ -108,14 +108,16 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 9,
-    "baseline": "d84c0d3 (origin/main)",
+    "round": 10,
+    "baseline": "5a3b11a (origin/clcpa-311-lmi-share)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 3,
-      "note": "deploy-backups and a session record; zero deployed-surface change, build unchanged, no deploy"
+      "commits": 1,
+      "tickets": [
+        "CLCPA-311 / D-04 the LMI share is read, not invented"
+      ]
     },
     "previousRounds": [
       {
