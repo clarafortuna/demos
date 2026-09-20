@@ -1,6 +1,6 @@
 ======================================================================
 CLCPA-274 round 3 -- the sub-header is the table's, not the year's
-  app.js : C:\Users\rrfeliz\AppData\Local\Temp\clcpa-274-r3-app.js
+  app.js : git show 771e008:Coned/CLCPA/ExecutiveDashboard_dev/app.js
   BASE   : acbd12c (predates this change)
 ======================================================================
 
@@ -32,7 +32,7 @@ E. THE RULE, AND WHERE IT LIVES
   ok   E1 "is this row a stored header" is a named function
   ok   E2 so is "does this year carry them"
   ok   E3 and "where do the table's own header rows live"
-  FAIL E4 the test is the blank label column
+  ok   E4 the test is the blank label column
   ok   E5 and no table is named anywhere in it
   ok   E6 the writer emits the TABLE's header rows
   ok   E7 and skips them in the source year rather than emitting them twice
@@ -48,5 +48,5 @@ X. THE HARNESS ITSELF
   ok   X3 and it really holds saved rows, which is the shape that breaks
 
 ======================================================================
-  28 passed, 1 failed
+  29 passed, 0 failed
 ======================================================================

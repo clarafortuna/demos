@@ -202,7 +202,9 @@ The org-wide publish moved all seven legacy timestamps. The targeted publish mov
 
 ## F3. Reconciliation round 1 — CLCPA-281 r3 and CLCPA-301
 
-Her r4 stack merged to `main` via PRs #268–270 and the three branches were deleted. `75e8eec` is now
+Her r4 stack merged to `main` via `clarafortuna/demos#268`, `#269` and `#270` — all three in
+**`clarafortuna/demos`**, the only repository this project has ever lived in — and the three branches
+were deleted. `75e8eec` is now
 an ancestor of `main`, and the content delta from it to `main` outside `deploy-backups` is **empty**.
 
 The live line is now `clcpa-301-import-row-totals` (it contains `clcpa-281-r3-section-header`).

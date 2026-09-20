@@ -1,0 +1,83 @@
+{
+  "generated": "2026-09-20T05:09:15.529Z",
+  "measuredAt": {
+    "integrationHead": "0b2387cda0e7d8514e125c601b21f26a2f82b2d0",
+    "engineerTip": "74458b2",
+    "build": "a0c04d51be",
+    "originMain": "88e7923"
+  },
+  "note": "Baseline for judging future engineer deltas. Aggregates double-count: every mut_* wrapper re-runs its suite and reports that suite tally. Use perRunner, not the totals.",
+  "aggregate": {
+    "runnersDiscovered": 129,
+    "assertionsPassedReported": 8719,
+    "assertionsFailedReported": 55,
+    "distinctFailures": 33,
+    "doubleCountedFailures": 22,
+    "runnersNotReporting": 14
+  },
+  "categories": {
+    "genuineApplicationFailures": 0,
+    "provenanceOrAttribution": 28,
+    "brokenTestInfrastructureFailures": 5,
+    "brokenTestInfrastructureDeadRunners": 12,
+    "expectedNonReporting": 2
+  },
+  "perRunner": {
+    "provenance": {
+      "suite_245": 10,
+      "suite_249": 3,
+      "suite_254_255_261": 4,
+      "suite_260": 4,
+      "suite_263": 4,
+      "gate_149_stacked": 3
+    },
+    "echoWrappers": {
+      "mut_249": "suite_249",
+      "mut_254_255_261": "suite_254_255_261",
+      "mut_collateral": "suite_254_255_261",
+      "mut_260": "suite_260",
+      "mut_263": "suite_263",
+      "mut_gate_149": "gate_149_stacked"
+    },
+    "stalePinnedSource": {
+      "mut_274_r2": 3,
+      "mut_274_r3": 1,
+      "mut_278_r2": 1
+    },
+    "underlyingSuitesGreenStandalone": {
+      "suite_274_r2": "33/0",
+      "suite_274_r3": "29/0",
+      "suite_278_r2": "33/0"
+    },
+    "deadUndefinedREL": [
+      "mut_233_237",
+      "mut_237f",
+      "mut_240a_r2",
+      "mut_240a_r3",
+      "mut_240a_r4",
+      "mut_240b",
+      "mut_242",
+      "mut_242_r2",
+      "mut_244",
+      "mut_badge",
+      "mut_daccol",
+      "mut_prewalk"
+    ],
+    "healthyDifferentFormat": [
+      "mut_245",
+      "mut_composer"
+    ]
+  },
+  "securitySet": {
+    "suites": 8,
+    "assertions": 166,
+    "status": "GREEN"
+  },
+  "engineerSuites": {
+    "suite_281_r3": "35/0",
+    "mut_281_r3": "35/0",
+    "suite_301": "32/0",
+    "mut_301": "32/0"
+  },
+  "clearsWhen": "The 28 provenance/attribution failures clear when the security change is assigned a ticket number and declared. They must not be cleared by relaxing an assertion."
+}

@@ -24,7 +24,7 @@ CLCPA-263 -- mutation controls
   red  IT SPREADS: every column of C2 derives
        5 red, incl: N2 the spacer column is untouched: "500 (50%)"
   red  HARNESS: the baseline is repointed at a symbolic ref
-       54 red, incl: X3 BASE is a literal commit sha: HEAD
+       60 red, incl: X3 BASE is a literal commit sha: HEAD
   red  HARNESS: the fresh fixture stops using C2s own figures
        10 red, incl: D1 EIGHT of the nine match the stored string exactly: 5
 

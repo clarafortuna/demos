@@ -129,12 +129,17 @@
       }
     ],
     "mergedIntoIntegration": "c51bddc",
-    "note": "Her r4 stack (75e8eec and parents) merged to main via PRs #268-270; content delta from 75e8eec to main outside deploy-backups is empty."
+    "note": "Her r4 stack (75e8eec and parents) merged to main via clarafortuna/demos#268, #269, #270; content delta from 75e8eec to main outside deploy-backups is empty."
   },
   "deployPolicy": {
     "orgAssertion": "tools/deploy_guard.js assertOrganization -- REQUIRED before any write; fails closed",
     "publish": "targeted PublishXml naming only clcpa_ web resource ids; PublishAllXml and --publish-changes are forbidden",
     "pacEnvironmentPinning": "pass --environment explicitly on every pac call; the ambient selected org has been observed flipping between commands",
     "knownCollision": "cr2bf_dactest web resource GUIDs are identical in at least three orgs: org9076e69b (Clara Fortuna Dev), orgc60845ae (Sustainability Design - Dev), orgbdb6dd88 (Customer Assistance - Dev)"
+  },
+  "repositoryIdentity": {
+    "repo": "clarafortuna/demos",
+    "remoteUrl": "https://github.com/clarafortuna/demos.git",
+    "note": "The ONLY repository this project has ever lived in. ProjectRepos-UnifiedCSRPortal is an unrelated project that merely happens to be this session working directory; it holds zero CLCPA commits and no clcpa-* branch. Always qualify PR references as owner/repo#N."
   }
 }

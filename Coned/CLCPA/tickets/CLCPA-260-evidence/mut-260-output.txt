@@ -26,7 +26,7 @@ Section C group D -- mutation controls
   red  HARNESS: the round trip compares a file with itself
        8 red, incl: R0 the wide file has 8 headings and the narrow one 4: 8 vs 8
   red  HARNESS: the baseline is repointed at a symbolic ref
-       61 red, incl: X3 BASE is a literal commit sha: HEAD
+       66 red, incl: X3 BASE is a literal commit sha: HEAD
 
   13 caught, 0 not caught, of 13 guards
   clean re-run against byte-restored source: FAILS -- 184 passed, 4 failed

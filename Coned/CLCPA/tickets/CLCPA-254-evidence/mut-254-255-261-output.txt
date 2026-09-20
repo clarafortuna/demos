@@ -23,7 +23,7 @@ Section C group E -- mutation controls
   red  HARNESS: the audit case stops being driven on BASE
        5 red, incl: S3 while the other two totals are unchanged: 1332, 1666.5
   red  HARNESS: the baseline is repointed at a symbolic ref
-       62 red, incl: X3 BASE is a literal commit sha: HEAD
+       67 red, incl: X3 BASE is a literal commit sha: HEAD
 
   10 caught, 3 not caught, of 13 guards
   clean re-run against byte-restored source: FAILS -- 168 passed, 4 failed
