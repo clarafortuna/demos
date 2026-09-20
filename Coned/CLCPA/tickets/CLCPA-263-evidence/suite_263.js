@@ -117,6 +117,11 @@ guard('S: rowsForDisplay moves nothing on any stored year', () => {
     });
   });
   ok(checked === 149, 'S1 ' + checked + ' stored table-years put through the display view');
+  /* BACK TO ZERO, and deliberately so. CLCPA-290 briefly moved four years
+   * here, then was scoped: its total-row fill is OPT-IN and only the section
+   * page asks for it, because filling unconditionally reached the KPI composer
+   * and gave 2099 a reported value. This call does not opt in, so the plain
+   * display view is byte-identical again -- which is the stronger statement. */
   ok(moved.length === 0, 'S2 and every one is byte-identical to BASE' +
      (moved.length ? ': ' + moved.slice(0, 5).join(', ') : ''));
 });
@@ -139,9 +144,18 @@ guard('S: and the whole report page is unchanged too', () => {
     });
   });
   ok(checked === 149, 'S3 ' + checked + ' panels rendered on both sides');
-  /* RE-POINTED, not widened: an exact list of two, so a third still fails. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['G10:2024', 'J4:2025']),
-     'S4 the panels move on exactly two -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 and the old size guess rendered 1.0% for 100.0% -- got ' + JSON.stringify(moved.slice(0, 5)));
+  /* RE-POINTED, still exact. Two causes, both named, and a panel outside this
+   * list still turns it red:
+   *   G10:2024 and J4:2025 -- CLCPA-294, a computed total fractionally above 1
+   *     on floating point, rendered 1.0% where 100.0% is meant.
+   *   A3/A4 2023 and 2024 -- CLCPA-290, average totals ConEd filed nothing in,
+   *     rendering the dash instead of a blank. No stored value moved.
+   * The message prints the WHOLE list: it used to slice(0, 5) and hid the
+   * sixth entry, so the assertion and its own message disagreed about why. */
+  ok(JSON.stringify(moved.slice().sort()) ===
+     JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
+     'S4 the panels move on exactly six, four CLCPA-290 dashes and two ' +
+     'CLCPA-294 corrections: ' + JSON.stringify(moved.slice().sort()));
 });
 
 guard('S: C2s own composite cells are what the gate is about', () => {

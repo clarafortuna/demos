@@ -358,7 +358,7 @@ guard('Z: the report page is byte-identical on all 149', () => {
    * lands fractionally above 1 on floating point -- 1.0000327 and
    * 1.0000000013 -- and the old size guess rendered them "1.0%" where 100.0%
    * is meant. The correction is on the published report, deliberately. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['G10:2024', 'J4:2025']),
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'J4:2025']),
      'Z2 and the panels move on exactly two, both corrected by CLCPA-294: ' +
      JSON.stringify(moved.slice(0, 6)));
 });

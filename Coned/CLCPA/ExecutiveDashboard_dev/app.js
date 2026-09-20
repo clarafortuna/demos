@@ -3248,7 +3248,18 @@ function utf8ByteLength(str) {
    * cells are left exactly as stored. Percentage columns NOT covered by DERIVED_COLS
    * (deferred: J1/J2, Tier 3) render as "—" in the Total row rather than a wrong sum.
    */
-  function rowsForDisplay(rawRows, schema, tableId) {
+  /* CLCPA-290: opts.fillTotals is OPT-IN, and that is the whole care of it.
+   *
+   * rowsForDisplay feeds the rendered report AND the KPI composer. Filling a
+   * live-calculated total row unconditionally gave A1:2099 a computed total,
+   * which reached the composer and produced a reported KPI value for a year
+   * CLCPA-237 exists to keep out of them -- 2099 lost the "no data" banner it
+   * is supposed to get. suite_237 caught it.
+   *
+   * The ruling is about what the SECTION PAGE renders, so only that call site
+   * asks for the fill. Every other caller, the composer among them, sees
+   * exactly what it saw before. */
+  function rowsForDisplay(rawRows, schema, tableId, opts) {
     if (!rawRows || rawRows.length === 0) return rawRows;
     const clone = rawRows.map(r => r.slice());
     const len = schema ? schema.length : (clone[0] ? clone[0].length : 0);
@@ -3288,6 +3299,43 @@ function utf8ByteLength(str) {
       if (!isStrictTotalRowLabel(row[0])) return;
       for (let c = 1; c < row.length; c++) {
         if (pctCols[c] && !covered.has(c)) row[c] = '—';
+      }
+    });
+    /* CLCPA-290: THE TOTAL ROW OF A LIVE-CALCULATED YEAR, ON THE REPORT PAGE.
+     *
+     * The editor computed this row and the section page did not, so A3 on a
+     * user-added year read "Total | dash | 2,034,907 | dash | dash" in the
+     * editor and "Total | | | |" on the report -- two surfaces, two answers to
+     * one question. The ruling closes that divergence ON THE DASH SIDE.
+     *
+     * THE AVERAGE COLUMNS ARE UN-TOTALLED BY DECLARATION. detectAvgColumns is
+     * that declaration and it already exists: recomputeTotals consults exactly
+     * the same predicate to refuse them, because a sum of per-participant
+     * averages is not a quantity. CLCPA-212 measured what happens when it is
+     * summed anyway -- A3/2025 receiving 22,297.18 over a stored 22,511. So
+     * the cell gets an honest dash rather than a number nobody should read.
+     *
+     * The weighted mean that WOULD produce a figure there is recorded on the
+     * ticket and is not authorised: it republishes A3/2025 as 621.56 against a
+     * filed 3,761,330, and changing a published figure is the client's call.
+     *
+     * ONLY AN EMPTY CELL IS FILLED. A stored total is the reference and is
+     * never overwritten here, so no published year can move -- measured across
+     * every table-year, and that is the guard this needs most.
+     *
+     * colSum is the sum the shared columnGrandTotals already computed above
+     * for this very clone; nothing is summed a second way. */
+    const avgCols = (opts && opts.fillTotals && schema) ? detectAvgColumns(schema) : null;
+    if (avgCols) clone.forEach((row) => {
+      if (!isStrictTotalRowLabel(row[0])) return;
+      for (let c = 1; c < len; c++) {
+        if (covered.has(c)) continue;                  /* a rule owns this one */
+        if (pctCols[c]) continue;                      /* handled just above */
+        const filled = row[c] != null && String(row[c]).trim() !== '';
+        if (filled) continue;                          /* stored is the reference */
+        if (avgCols[c]) { row[c] = '—'; continue; }
+        const v = colSum ? colSum[c] : null;
+        if (typeof v === 'number' && isFinite(v)) row[c] = v;
       }
     });
     applyCompositeShares(clone, tableId, schema, colSum);
@@ -4891,7 +4939,11 @@ function utf8ByteLength(str) {
       const hasSchema = schema && schema.length > 0;
       // CLCPA-88: derive %/ratio cells for display via the shared rule (clones raw;
       // never mutates payload/store). Deferred derived totals render "—".
-      const body = rowsForDisplay(raw, hasSchema ? schema : undefined, t.id);
+      /* CLCPA-290: THE SECTION PAGE asks for the total-row fill. This is the
+       * surface the ruling names, and the only caller that opts in -- the KPI
+       * composer must keep seeing what it saw. */
+      const body = rowsForDisplay(raw, hasSchema ? schema : undefined, t.id,
+        { fillTotals: true });
       /* CLCPA-281 round 3: A YEAR THAT DOES NOT CARRY THE SUB-HEADER BORROWS IT.
        *
        * renderTable slices headerLevels rows off the top, so on a two-level

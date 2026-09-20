@@ -52,7 +52,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
 === Z. the stored years ===========================================
   ok   Z1 all 149 rendered, every one a <table>
   ok   Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ["A8:2023"]
-  ok   Z2 and the panels move on exactly two, both corrected by CLCPA-294: ["G10:2024","J4:2025"]
+  ok   Z2 and the panels move on exactly two, both corrected by CLCPA-294: ["A3:2023","A3:2024","A4:2023","A4:2024","G10:2024","J4:2025"]
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================

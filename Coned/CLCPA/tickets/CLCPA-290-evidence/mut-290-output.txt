@@ -1,0 +1,30 @@
+======================================================================
+CLCPA-290 -- mutation controls
+  suite  : suite_290.js
+  mutant : C:\Users\emely\AppData\Local\Temp\clcpa-290-app.js  (the working tree is never written)
+======================================================================
+
+BASELINE (unmutated): 28 passed, 0 failed
+
+--- mutation 1: the report page stops computing the total row again
+  suite: 25 passed, 3 failed
+  failed ids: B1.A3, B1.A4, D2b
+  expected to break: B1  ->  NOTICED on B1
+
+--- mutation 2: the average columns are SUMMED instead of dashed (the CLCPA-212 defect)
+  suite: 23 passed, 5 failed
+  failed ids: B2.A3, B3.A3, B2.A4, B3.A4, C3
+  expected to break: B2  ->  NOTICED on B2
+
+--- mutation 3: a FILLED cell is overwritten, so a published figure can move
+  suite: 26 passed, 2 failed
+  failed ids: D2, D3
+  expected to break: D2, D3, D4  ->  NOTICED on D2, D3
+
+======================================================================
+RESTORED: the mutant file is byte-identical to app.js: true
+CLEAN RE-RUN: 28 passed, 0 failed
+THE WORKING TREE WAS NEVER WRITTEN: true
+
+  3 of 3 mutations noticed, 0 missed
+======================================================================

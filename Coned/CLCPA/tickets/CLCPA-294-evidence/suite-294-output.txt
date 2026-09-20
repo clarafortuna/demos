@@ -32,7 +32,7 @@ D. THE STORED YEARS, MEASURED
 
 E. THE SURFACES THIS MUST NOT DISTURB
   ok   E1 the KPI formatter is untouched: it takes an explicit kind, not a column
-  ok   E2 rowsForDisplay is BYTE-IDENTICAL to BASE: no derivation changed
+  ok   E2 rowsForDisplay matches BASE apart from the CLCPA-290 total-row block: this ticket changes no derivation
   ok   E3 and so is recomputeTotals
 
 X. THE HARNESS ITSELF

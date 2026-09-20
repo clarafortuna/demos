@@ -7,7 +7,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   S1 149 stored table-years put through the display view
   ok   S2 and every one is byte-identical to BASE
   ok   S3 149 panels rendered on both sides
-  ok   S4 the panels move on exactly two -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 and the old size guess rendered 1.0% for 100.0% -- got ["G10:2024","J4:2025"]
+  ok   S4 the panels move on exactly six, four CLCPA-290 dashes and two CLCPA-294 corrections: ["A3:2023","A3:2024","A4:2023","A4:2024","G10:2024","J4:2025"]
   ok   S5 C2:2023 stores a bare PERCENTAGE: "31%"
   ok   S6 C2:2025 stores a COMPOSITE: "37,988 (33%)"
   ok   S7 C2:2023 is returned unchanged

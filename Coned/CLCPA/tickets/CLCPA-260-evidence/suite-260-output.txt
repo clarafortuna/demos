@@ -66,7 +66,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
 === Z. the stored years, and what this ticket does NOT touch ========
   ok   Z1 all 149 stored table-years rendered, every one with a <table>
   ok   Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ["A8:2023"]
-  ok   Z2 and the REPORT page moves on exactly two panels -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0% -- got ["G10:2024","J4:2025"]
+  ok   Z2 and the REPORT page moves on exactly two panels -- CLCPA-294 corrects exactly two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0% -- got ["A3:2023","A3:2024","A4:2023","A4:2024","G10:2024","J4:2025"]
   ok   Z3 the predicate was located
   ok   Z4 and it assigns to neither schema_by_year nor data: it only reads
   ok   Z5 which the source says in as many words
