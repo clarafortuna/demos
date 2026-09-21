@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T23:57:41.165Z",
+  "generated": "2026-09-21T00:34:08.447Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "4094c0a",
+    "lastReconciledEngineerTip": "24c1642",
     "originMain": "d84c0d3"
   },
   "build": {
-    "app.js": "4d4597bc50",
+    "app.js": "fd467629dc",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.0.9",
+    "version": "1.0.1.0",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "d206814845d9c62b",
+      "deployedSha256": "970eb5b1a03a3587",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "4d4597bc50185b46",
-      "deployedSha256": "81180c3250b364c3",
+      "repoSha256": "fd467629dcf1ea71",
+      "deployedSha256": "2dd41f5f954c95a2",
       "stamped": true
     },
     {
@@ -108,17 +108,15 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 12,
-    "baseline": "4094c0a (origin/clcpa-b-d-small-304-307-309-310)",
+    "round": 13,
+    "baseline": "24c1642 (origin/clcpa-reconcile-305-306)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
       "commits": 1,
       "tickets": [
-        "CLCPA-304",
-        "CLCPA-307",
-        "CLCPA-309/310 small B and D board tickets"
+        "CLCPA-305 + CLCPA-306 the reconciliation advisory"
       ]
     },
     "previousRounds": [

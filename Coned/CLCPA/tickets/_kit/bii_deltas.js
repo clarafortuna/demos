@@ -55,4 +55,36 @@ function reverseRender310(text) {
   return String(text).replace(RENDER_310, () => RENDER_BEFORE_310);
 }
 
-module.exports = { reverse293, reverseRender293, reverseRender310 };
+/* CLCPA-305's delta to the same function: the reconciliation advisory is no
+ * longer rendered from the panel at all.
+ *
+ * It was built from r.reconcileNotices, a snapshot of the candidate taken at
+ * import time and then carried for as long as the panel lived, while the
+ * Confirm-save dialog reconciled the DRAFT fresh on every open. Measured: a
+ * file with one row that does not add up, the operator corrects that very
+ * cell, and the page still says 1 row while the dialog says 0 at the moment
+ * of saving. The list now comes from the draft in one place.
+ *
+ * THIS REVERSAL MUST RUN BEFORE reverseRender293, because the CLCPA-293
+ * delta's own anchor includes the line CLCPA-305 removed. */
+const RECONCILE_LINE = '      renderReconcileNotice(r.reconcileNotices) +\r\n';
+const STRIPPED_305 = "yearAdvisory +\r\n      \r\n      \r\n      renderPreparerTotalsNotice";
+const STRIPPED_BEFORE_305 = "yearAdvisory +\r\n" + RECONCILE_LINE +
+  "      \r\n      renderPreparerTotalsNotice";
+
+/** Turn a post-305 renderIngestImportResult back into its pre-305 self. */
+function reverseRender305(text) {
+  let s = String(text);
+  /* already pre-305: the line is there and this ticket's note is not */
+  if (s.indexOf('renderReconcileNotice(r.reconcileNotices)') >= 0 &&
+      s.indexOf('CLCPA-305: THE RECONCILIATION ADVISORY') < 0) return s;
+  /* the RAW form, as a comment-preserving grab() hands it over */
+  s = s.replace(/[ ]*\/\* CLCPA-305: THE RECONCILIATION ADVISORY[\s\S]*?\*\/\r\n/,
+    () => RECONCILE_LINE);
+  /* and the COMMENT-STRIPPED form, where codeOnly has left the blank
+   * continuation lines the removed comment and line used to occupy */
+  s = s.replace(STRIPPED_305, () => STRIPPED_BEFORE_305);
+  return s;
+}
+
+module.exports = { reverse293, reverseRender293, reverseRender310, reverseRender305 };

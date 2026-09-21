@@ -36,7 +36,7 @@ E. WHAT IT DOES NOT SAY
   ok   E4 a four-digit token inside a longer run is not a year
 
 F. THE POST-LOAD HALF IS UNTOUCHED
-  ok   F1 renderIngestImportResult is byte-identical to BASE apart from CLCPA-293 and CLCPA-310
+  ok   F1 renderIngestImportResult is byte-identical to BASE apart from CLCPA-293, CLCPA-305 and CLCPA-310
   ok   F2 and so is importYearNotice itself
   ok   F3 and declaredYearFromFilename
 

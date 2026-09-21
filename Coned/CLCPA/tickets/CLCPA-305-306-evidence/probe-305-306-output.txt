@@ -1,0 +1,70 @@
+CLCPA-305 / CLCPA-306: the reconciliation advisory
+app.js: working tree
+
+=======================================================================
+CLCPA-306: whose figure is the advisory counting?
+=======================================================================
+
+  The advisory says "the filed value is kept; check which figure is
+  right", which is a sentence about a figure a PERSON filed. It walks
+  every row, and a TOTAL ROW is a row the engine computes.
+
+  table-years with a derivable total COLUMN, which is what this advisory
+  reconciles: 21
+    ["B2:2023","B2:2024","B2:2025","F2:2023","F2:2024","F2:2025","F4:2023","F4:2024","F4:2025","F5:2023"]
+
+  reconciliation notices on the payload AS FILED: 0
+  of those, ones landing on a row the app treats as a TOTAL: 0
+
+  Zero is the right answer for stored data and it is not the interesting
+  case: this advisory exists for a DRAFT. The question is what it says
+  when a row stops adding up, so the draft below is the one an operator
+  actually has in front of them.
+
+  B2:2023   total column "Total Plugs", parts ["L2 Plugs","DCFC Plugs"]
+      the operator types a wrong "Total Plugs" on r0 "DAC": 899 -> 1399
+      the editor recomputes, and the TOTAL row now reads ["Total",2898,111,3509]
+
+      the advisory raises 1 notice(s):
+        OPERATOR  "DAC" / Total Plugs: filed 1399, L2 Plugs + DCFC Plugs = 899
+
+      ONE WRONG FIGURE, ONE NOTICE, and it names the row the operator
+      actually typed into. The total row's cell is the engine's own
+      column sum and is no longer counted as a figure someone filed.
+
+      on the total row: 0, on operator rows: 1
+
+=======================================================================
+CLCPA-305: the page and the dialog, counted side by side
+=======================================================================
+
+  The two surfaces do NOT ask the same question:
+
+    the page    renders r.reconcileNotices when an import produced any,
+                and those were computed from the CANDIDATE at import
+                time and stored on the result object.
+    the dialog  calls reconcileSumColumns(i.draft, ...) fresh, every
+                time it opens.
+
+  So they agree only while the draft has not been touched since the
+  import. This walks that sequence on a real table.
+
+  B2:2023  the imported file has one row that does not add
+      up, so the candidate raises 1 notice(s), and the
+      page stores that list on the result object.
+      the operator corrects that cell in the draft.
+
+      THE PAGE still shows the import-time list : 1 row(s)
+      THE DIALOG recomputes from the draft      : 0 row(s)
+
+      the two agree: false
+
+      So the operator fixes the figure the advisory complained about,
+      the page goes on reporting it, and the Confirm-save dialog says
+      something different at the moment they commit.
+
+--- summary -----------------------------------------------------------
+  CLCPA-306: 0 of 0 notices are raised against a row the
+             app itself computes, under a sentence that says the figure
+             was filed and asks the operator which one is right.
+  CLCPA-305: page 1, dialog 0 on the same table after one edit.

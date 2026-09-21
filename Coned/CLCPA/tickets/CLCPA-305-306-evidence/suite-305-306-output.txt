@@ -1,0 +1,38 @@
+CLCPA-305 / CLCPA-306: the reconciliation advisory
+BASE d84c0d3   app.js working tree
+
+=== A. the page and the dialog read the same thing ==================
+  ok   A1 the import PANEL no longer renders the reconciliation advisory
+  ok   A2 the PAGE renders it, from the draft
+  ok   A3 and no longer stands aside when an import produced a list of its own
+  ok   A4 that list is reconcileSumColumns over i.draft
+  ok   A5 and the Confirm-save dialog still reads the draft, unchanged: 1
+  ok   A6 while BASE rendered the IMPORT-TIME list from the panel
+
+=== B. what the two surfaces said, before and after ==================
+  ok   B1 B2 has a derivable total column: "Total Plugs"
+  ok   B2 the candidate raises exactly one notice at import: 1
+  ok   B3 and after the correction the DRAFT raises none: 0
+  ok   B4 so the import-time list and the draft genuinely disagree, which is what the page used to show against what the dialog showed
+
+=== C. one wrong figure, one notice =================================
+  ok   C1 the editor carries the mistake into the total row: ["Total",2898,111,3509]
+  ok   C2 BASE reported TWO rows for one wrong figure: ["DAC 1399","Total 3509"]
+  ok   C3 and this build reports one: ["DAC 1399"]
+  ok   C4 the one it reports is the row the operator typed into, not the engines: r0
+
+=== D. the payload as filed ========================================
+  ok   D1 every stored table-year reconciles identically on both builds: []
+
+=== F. a KEPT FILED total is still named ===========================
+  ok   F1 the frozen total on the "Grand Total" row is STILL reported: ["Grand Total 1098 vs 1041"]
+  ok   F2 naming the filed figure the engine could not reproduce: 1098
+  ok   F3 and nothing below it was reported, which is exactly why it survives the CLCPA-306 filter: 1
+
+=== X. the baseline =================================================
+  ok   X1 BASE is a literal commit sha: d84c0d3
+  ok   X2 and HEAD descends from it
+  ok   X3 while BASE had no such filter at all, so this suite cannot pass on it
+  ok   X4 and the new code carries no private copy of "is this a number"
+
+  22 passed, 0 failed
