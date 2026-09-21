@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T14:44:37.834Z",
+  "generated": "2026-09-21T15:22:49.227Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "40a6f3e",
+    "lastReconciledEngineerTip": "b5aa994",
     "originMain": "40a6f3e"
   },
   "build": {
-    "app.js": "c2554b3841",
+    "app.js": "3eb3c5397c",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.1.3",
+    "version": "1.0.1.4",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "9011f4db60b01e39",
+      "deployedSha256": "9062f4493d240c47",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "c2554b38411e5091",
-      "deployedSha256": "cb17086018fdd6ee",
+      "repoSha256": "3eb3c5397c45c74b",
+      "deployedSha256": "d45d7ed35c00bbae",
       "stamped": true
     },
     {
@@ -108,14 +108,16 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 17,
-    "baseline": "40a6f3e (origin/main)",
+    "round": 18,
+    "baseline": "b5aa994 (origin/clcpa-293-r4-b7-registry)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 10,
-      "note": "eight merge commits (clarafortuna/demos#290-#297) landing work already reconciled in rounds 10-16, plus two deploy-backups; zero content delta, deployed surface byte-identical, build unchanged at c2554b3841 so no deploy"
+      "commits": 1,
+      "tickets": [
+        "CLCPA-293 round 4: the B7 registry and the second surface"
+      ]
     },
     "previousRounds": [
       {
@@ -158,11 +160,13 @@
   "openRulings": [
     {
       "id": "CLCPA-293",
-      "status": "OPEN — decision memo delivered, awaiting a ruling on ownership. No implementation proposed.",
+      "status": "IMPLEMENTED BY HER in round 4 and reconciled; the ruling is now whether to ACCEPT the form, not which form to choose",
       "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row. Round 2 wrongly argued the refusal was correct; round 3 reproduced it; the ruled fix (ingestRebuildableTotals refusing only where a DECLARED rule derives the cell) met every condition -- 5 anatomies, 40 staged / 40 landed / 0 excluded, 6,135 cells with 0 table-years and 0 KPI figures moving, 48 assertions 0 failed -- and was still withdrawn.",
-      "needs": "a ruling on ONE question: is a total cell engine-owned unless declared preparer-owned (default refuse), or preparer-owned unless declared derivable (default accept)? The memo recommends the former as an invariant, on measured evidence that the latter exposes 262 of 432 total-row cells and reproduces the CLCPA-88 defect on A1.",
+      "needs": "a ruling on WHICH totals are B7-class. That is domain knowledge only the owner and ConEd hold; the mechanism no longer constrains it.",
       "memo": "docs/CLCPA-293-DECISION-MEMO.md",
-      "alsoCovers": "CLCPA-303/B2, which shows ownership and persistence are different questions the current design conflates. B2 unchanged."
+      "alsoCovers": "CLCPA-303/B2, which shows ownership and persistence are different questions the current design conflates. B2 unchanged.",
+      "round4": "B7_PREPARER_TOTALS: an explicit registry keyed by table + row LABEL + column HEADING, never index. Default stays refuse, so CLCPA-88 holds by construction. A declared-summable column is the engine s whatever the registry says.",
+      "evidence": "suite_293_r4 54/0 and mut_293_r4 54/0. The round-1 guard that killed rounds 2 and 3 passes: D1 A1 s Total is NOT taken from the preparer. The second surface is closed: the accepted figure SURVIVES the recompute, [777,222], on every anatomy."
     }
   ],
   "ownerRulings": [

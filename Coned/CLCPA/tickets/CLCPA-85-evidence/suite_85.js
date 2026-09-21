@@ -85,7 +85,7 @@ function grabDecl(src, name) {
  * payload freeze: the payload holds ZERO split cells today (measured, not
  * assumed). They are extracted because totalRowFlags and rawNum call them, so
  * leaving them out makes the shared functions throw rather than run. */
-const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', /* CLCPA-278 round 3: the one shared numeric reader */ 'bareNumber', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', 'parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnlyDerived', /* CLCPA-293: the importer now asks whether the engine can rebuild a total before refusing the preparer's value */ 'ingestRebuildableTotals', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
+const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', /* CLCPA-278 round 3: the one shared numeric reader */ 'bareNumber', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'getTableSchema', 'parseCsvRows', 'normIngestKey', 'ingestComputed', 'isTotalOnlyDerived', /* CLCPA-293: the importer now asks whether the engine can rebuild a total before refusing the preparer's value */ 'ingestRebuildableTotals', /* CLCPA-293 round 4: the B7 registry the import guard and the marker both consult */ 'isB7PreparerTotal', 'buildIngestImport', /* CLCPA-261 dep */ 'detectPctColumns',
   /* CLCPA-240 dependencies: buildIngestImport and buildIngestWorkbook read
      these, so the functions cannot be assembled without them. */
   /* CLCPA-282: buildIngestImport now asks the shared header anatomy,
@@ -116,6 +116,13 @@ if (!DC) missing.push('DERIVED_COLS');
  * cannot see a new one, and this threw rather than answering wrongly. */
 const DR = grabDecl(SRC, 'DERIVED_ROWS');
 if (!DR) missing.push('DERIVED_ROWS');
+/* CLCPA-293 round 4: the B7 registry of totals that belong to the preparer,
+ * which both the import guard and the workbook marker consult. Same
+ * documented limit as the two above -- a hand-fed declaration list cannot
+ * see a new one, and this threw from inside the assembled importer rather
+ * than failing an assertion. */
+const B7 = grabDecl(SRC, 'B7_PREPARER_TOTALS');
+if (!B7) missing.push('B7_PREPARER_TOTALS');
 if (missing.length) {
   console.error('EXTRACTION FAILED, missing: ' + missing.join(', '));
   process.exit(1);
@@ -131,7 +138,7 @@ try {
   const body = '"use strict";\n' +
     'const state = { payload: PAYLOAD, ingest: {} };\n' +
     'const console = { warn: () => {}, info: () => {}, error: () => {} };\n' +
-    DC + '\n' + DR + '\n' +
+    DC + '\n' + DR + '\n' + B7 + '\n' +
     /* CLCPA-240 dependencies. Single-line consts, so a bounded one-line match
      * rather than grabDecl, which scans to the next dedented `};`. Read from
      * the SOURCE, never retyped. */

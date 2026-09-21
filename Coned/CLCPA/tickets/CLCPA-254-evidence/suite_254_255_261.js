@@ -560,6 +560,8 @@ guard('X: the blast radius', () => {
     renderIngestEditor: 'CLCPA-255: a total row loses its delete control',
     buildIngestImport: 'CLCPA-261: the unit notice is collected',
     renderIngestImportResult: 'CLCPA-261: and rendered',
+    /* CLCPA-293 round 4, named so the count stays exact */
+    isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -571,7 +573,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 89, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 90, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns',
    'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

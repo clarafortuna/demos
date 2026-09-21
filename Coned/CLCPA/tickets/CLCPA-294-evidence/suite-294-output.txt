@@ -33,7 +33,8 @@ D. THE STORED YEARS, MEASURED
 E. THE SURFACES THIS MUST NOT DISTURB
   ok   E1 the KPI formatter is untouched: it takes an explicit kind, not a column
   ok   E2 rowsForDisplay matches BASE apart from the CLCPA-290 total-row block: this ticket changes no derivation
-  ok   E3 and so is recomputeTotals, apart from CLCPA-241 passing the baseline
+  ok   E3a the CLCPA-293 round 4 line is present exactly once, so reversing it tests something
+  ok   E3 and so is recomputeTotals, apart from CLCPA-241 passing the baseline and CLCPA-293 round 4 standing off a registry total
 
 X. THE HARNESS ITSELF
   ok   X1 BASE is a literal sha that predates the change
@@ -41,5 +42,5 @@ X. THE HARNESS ITSELF
   ok   X3 the browser gesture is committed beside this suite
 
 ======================================================================
-  24 passed, 0 failed
+  25 passed, 0 failed
 ======================================================================

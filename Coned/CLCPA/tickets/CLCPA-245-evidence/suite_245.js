@@ -582,7 +582,17 @@ guard('X: the family veto and the derive engine are untouched', () => {
     '     * while a figure the SOURCE never reproduced is kept. */\r\n' +
     '    applyDerivedCols(draft, tableId, colSum, schema, baseline);';
   const RT_OLD_241 = '    applyDerivedCols(draft, tableId, colSum, schema);';
-  ok(rtNow.replace(CLCPA254, () => BASE254).replace(RT_NEW_241, () => RT_OLD_241) ===
+  /* CLCPA-293 round 4 adds one more line to reverse: a total the registry
+   * says belongs to the preparer is skipped by the additive write, so the
+   * figure an import accepted survives to the save. Named and reversed
+   * beside the two above, so every other byte still has to match. */
+  const RT_NEW_B7 = '        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;\r\n';
+  ok(rtNow.split(RT_NEW_B7).length - 1 === 1,
+     'X4c the CLCPA-293 round 4 line is present exactly once, so reversing ' +
+     'it tests something');
+  ok(rtNow.replace(CLCPA254, () => BASE254).replace(RT_NEW_241, () => RT_OLD_241)
+       .replace(RT_NEW_B7, () => '')
+       .replace(/[ ]*\/\* CLCPA-293 round 4: THE SECOND SURFACE\.[\s\S]*?\*\/\r\n/, '') ===
      grab('recomputeTotals', BASE_SRC),
      'X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: ' +
      'the ordering item is NOT bought here');
@@ -835,6 +845,8 @@ guard('X: the blast radius', () => {
     recomputeTotals: 'NOT this ticket: CLCPA-254: it consults that declaration, and X4 above pins the rest of it to BASE',
     buildIngestImport: 'NOT this ticket: CLCPA-261: it collects the fraction notices',
     renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces them',
+    /* CLCPA-293 round 4, named so the count stays exact */
+    isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -851,7 +863,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 98, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 99, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

@@ -289,10 +289,27 @@ guard('E-block', () => {
    * firing on cells the engine recomputes, because it was telling operators
    * their figure had landed when the next recompute overwrote it. Reversed
    * through the same kit, by name, for the same reason. */
-  ok(bii.reverse309(bii.reverse293(normalise(grab('buildIngestImport', SRC)))) ===
-     grab('buildIngestImport', BASE_SRC),
-    'E3 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
-    'message: this ticket leaves the import path alone');
+  {
+    /* WHERE it differs, not merely THAT it differs. A byte-equality guard
+     * over a 900-line function that reports only "not equal" costs an hour
+     * to act on, every time a later ticket touches the import path. */
+    /* NEWEST DELTA FIRST. reverse293's anchor is the accept clause that
+     * CLCPA-293 round 4 rewrote, so running it before round 4's reversal
+     * matches nothing and leaves round 1's delta in place -- which is what
+     * the FIRST DIFFERENCE line reported until this order was fixed. */
+    const got = bii.reverse293(bii.reverse309(bii.reverse293r4(
+      normalise(grab('buildIngestImport', SRC)))));
+    const want = grab('buildIngestImport', BASE_SRC);
+    const ga = got.split('\r\n'), wa = want.split('\r\n');
+    let d = 0;
+    while (d < ga.length && d < wa.length && ga[d] === wa[d]) d++;
+    const at = got === want ? '' : '  FIRST DIFFERENCE line ' + d +
+      ': got ' + JSON.stringify((ga[d] || '').slice(0, 64)) +
+      '  want ' + JSON.stringify((wa[d] || '').slice(0, 64));
+    ok(got === want,
+      'E3 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
+      'message: this ticket leaves the import path alone' + at);
+  }
   ok(/s === '' \|\| s === INGEST_NOVALUE_MARKER;/.test(code),
     'E4 (no value) still counts as shape-blank, so the structure stays readable');
 });

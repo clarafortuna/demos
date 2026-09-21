@@ -5,7 +5,7 @@ CLCPA-287 round 2 -- the dialog dismisses either way, and a rejection
 ======================================================================
 
 A. THE BASELINE CARRIES BOTH DEFECTS
-  ok   A0 both sources assemble, resolving 25 / 22 functions by following ReferenceErrors
+  ok   A0 both sources assemble, resolving 26 / 22 functions by following ReferenceErrors
   ok   A1 BASE: the failure path RETURNS, so the dialog survives a rejection
   ok   A2 BASE: A9 is told the file has no "" column  ->  "The file has no “” column, which is the one that"
   ok   A3 BASE: and F7 is told the word "null"  ->  "The file has no “null” column, which is the "

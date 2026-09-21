@@ -126,5 +126,37 @@ function reverse309(text) {
     .replace(COND_309, () => COND_BEFORE_309);
 }
 
+/* CLCPA-293 round 4's delta to buildIngestImport: a total the B7 registry
+ * says belongs to the preparer is accepted, kept and named even where the
+ * value probe would have called it rebuildable. Reversed by name, through
+ * the shared kit, for the same reason as the three above -- the suites that
+ * pin this function each assert that THEIR ticket left the import path
+ * alone, and this one legitimately changes one condition in it. */
+const R4_NEW = '          const b7 = isB7PreparerTotal(tableId, candidate[t.rowIdx][0], schema[cIdx]);\r\n' +
+  '          if (b7 || (!computed.derivedCol(cIdx) &&\r\n' +
+  "                     !rebuildableTotals.has(t.rowIdx + ',' + cIdx))) {\r\n" +
+  '            res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx,\r\n' +
+  '              b7: !!b7,\r\n';
+const R4_OLD = "          if (!computed.derivedCol(cIdx) && !rebuildableTotals.has(t.rowIdx + ',' + cIdx)) {\r\n" +
+  '            res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx,\r\n';
+
+/** Turn a post-round-4 buildIngestImport back into its pre-round-4 self.
+ *
+ * ARMED, like reverse309: a reversal that silently matches nothing turns
+ * its suite green on an equality it never tested. */
+function reverse293r4(text) {
+  const s = String(text);
+  if (s.indexOf(R4_NEW) < 0) {
+    if (s.indexOf(R4_OLD) >= 0) return s;            /* already pre-round-4 */
+    throw new Error('reverse293r4: neither the post-round-4 accept clause nor ' +
+      'the pre-round-4 one is present in buildIngestImport. The reversal ' +
+      'would have passed the text through untouched and the guard would ' +
+      'have gone green without testing anything.');
+  }
+  return s
+    .replace(/[ ]*\/\* CLCPA-293 round 4: THE B7 REGISTRY[\s\S]*?\*\/\r\n/, () => '')
+    .replace(R4_NEW, () => R4_OLD);
+}
+
 module.exports = { reverse293, reverseRender293, reverseRender310, reverseRender305,
-  reverse309 };
+  reverse309, reverse293r4 };

@@ -1,0 +1,99 @@
+CLCPA-293 round 3: every anatomy, in a real browser, before and after
+before = the deployed build; after = this build, with the B7 registry
+A8/2098, filed grand total 777 / 222, itemised rows come to 283852 / 162105
+(2098 is this probe's own year on a throwaway profile; the live org is
+ not touched and 2096 is not gone near.)
+
+=======================================================================
+ BEFORE (the deployed build 8bf5ea7)   C:\Users\emely\AppData\Local\Temp\dac-base-1znPyK
+=======================================================================
+    1 rowless
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    2 the row exists with no figures in it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[899,145]","[513,450]","57.1%"]
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 2 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a diff
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[899,145]","[513,450]","57.1%"]
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    3 it holds a figure its rows do NOT come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: (none naming a total)
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    4 it holds the figure its rows DO come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+        advisory: (none naming a total)
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+
+    5 an ordinary stored row, as an import-and-save left it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+        advisory: (none naming a total)
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+
+  page errors: []
+
+=======================================================================
+ AFTER (this build)   C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev
+=======================================================================
+    1 rowless
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    2 the row exists with no figures in it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[]","[]","57.1%"]
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 2 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a diff
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[]","[]","57.1%"]
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    3 it holds a figure its rows do NOT come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: (none naming a total)
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    4 it holds the figure its rows DO come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 2 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a diff
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+    5 an ordinary stored row, as an import-and-save left it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 2 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a diff
+        AFTER SAVE AND RELOAD     : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+
+  page errors: []

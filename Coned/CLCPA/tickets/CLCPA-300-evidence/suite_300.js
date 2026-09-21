@@ -179,7 +179,7 @@ guard('D-block', () => {
    * match. */
   /* CLCPA-309 does too, later in the same stack: the fraction advisory stops
    * firing on cells the engine recomputes. Reversed through the same kit. */
-  ok(bii.reverse309(bii.reverse293(normalise(grab('buildIngestImport', SRC)))) ===
+  ok(bii.reverse293(bii.reverse309(bii.reverse293r4(normalise(grab('buildIngestImport', SRC))))) ===
      grab('buildIngestImport', BASE_SRC),
     'D1 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
     'message: only the summary sentence changed here');

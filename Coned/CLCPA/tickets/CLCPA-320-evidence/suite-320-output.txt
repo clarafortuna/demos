@@ -9,6 +9,7 @@ BASE d84c0d3   app.js working tree
 === B. the rule, across the whole payload ===========================
   ok   B1 exactly 21 total rows gain a marker, and they are the rows this ticket names: 21
   ok   B1b and CLCPA-303 moves exactly six more, every one a B2 body row in a BLANK template gaining the row-wise total marker: 6 ["blank B2:2023 r0 \"DAC\" gained","blank B2:2023 r1 \"Non-DAC\" gained"]
+  ok   B1c and the B7 registry rows LOSE their marker, never gain one, which is the J8 ruling applied to a total the engine cannot derive: 2 ["blank A8:2025 r25 \"Total CES Programs Installat\" LOST [1,2]","blank J8:2025 r2 \"Total\" LOST [1,2,3]"]
   ok   B2 and NOT ONE other row moves, in either direction: []
   ok   B3 "Total amount of...", "Total # of projects" and "Total in DAC" are DATA rows and stay data rows: []
   ok   B4 while a label that ENDS at a total is one
@@ -37,4 +38,4 @@ BASE d84c0d3   app.js working tree
   ok   X5 and HEAD descends from it
   ok   X6 while BASE has no role set at all, so this suite cannot pass on it
 
-  24 passed, 0 failed
+  25 passed, 0 failed

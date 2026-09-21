@@ -228,9 +228,22 @@ guard('E-block', () => {
     '     * while a figure the SOURCE never reproduced is kept. */\r\n' +
     '    applyDerivedCols(draft, tableId, colSum, schema, baseline);';
   const RT_OLD_241 = '    applyDerivedCols(draft, tableId, colSum, schema);';
-  ok(grab('recomputeTotals', SRC).replace(RT_NEW_241, () => RT_OLD_241) ===
+  /* CLCPA-293 round 4 adds one more, for the same kind of reason: a total
+   * the B7 registry says belongs to the preparer is skipped by the additive
+   * write, so a figure an import accepted survives the recompute and the
+   * save instead of being overwritten an instant later. Named and reversed
+   * beside CLCPA-241's line; every other byte still has to match. */
+  const RT_NEW_B7 = '        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;\r\n';
+  const rtNow = grab('recomputeTotals', SRC);
+  ok(rtNow.split(RT_NEW_B7).length - 1 === 1,
+    'E3a the CLCPA-293 round 4 line is present exactly once, so reversing it ' +
+    'tests something');
+  ok(rtNow.replace(RT_NEW_241, () => RT_OLD_241)
+       .replace(RT_NEW_B7, () => '')
+       .replace(/[ ]*\/\* CLCPA-293 round 4: THE SECOND SURFACE\.[\s\S]*?\*\/\r\n/, '') ===
      grab('recomputeTotals', BASE_SRC),
-    'E3 and so is recomputeTotals, apart from CLCPA-241 passing the baseline');
+    'E3 and so is recomputeTotals, apart from CLCPA-241 passing the baseline ' +
+    'and CLCPA-293 round 4 standing off a registry total');
 });
 
 /* ---- X. the harness ------------------------------------------------------ */
