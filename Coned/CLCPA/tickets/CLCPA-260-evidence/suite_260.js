@@ -587,6 +587,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-320 round 3, named so the count stays exact */
     ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
+    /* CLCPA-280, named so the count stays exact */
+    renderDsDictView: 'NOT this ticket: CLCPA-280: the Data Sources origin block lost its placeholder branch, because a bracketed to-do is a prompt to us and an unfinished page to the client (the nested ternary is now two arms, not three)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -600,7 +602,8 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 103, 'X1 exactly this many functions changed: ' + changed.length);
+  /* 103 -> 104: CLCPA-280 moved renderDsDictView, named in the map above. */
+  ok(changed.length === 104, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

@@ -1,0 +1,81 @@
+CLCPA-280: the Data Sources family tabs, painted in Chrome
+BEFORE = fcf4587   AFTER = working tree
+
+BEFORE
+  BEFORE Map Layers
+      (no rows; the block falls back to: "Any source you choose; overlays are yours. Record the origin i")
+      block 44px, gap to next section 18px, gap pills 0, TO BE FILLED 0
+  BEFORE DAC Indicators
+      Published by             NY Department of State Geographic Information Gateway
+      Obtained from            https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc
+      Update cadence           [Update cadence: TO BE FILLED]
+      block 156px, gap to next section 18px, gap pills 1, TO BE FILLED 1
+  BEFORE Tract Shapes
+      Published by             U.S. Census Bureau
+      Obtained from            https://www.census.gov/geographies/mapping-files/time-series/geo/cartograp
+      Neighborhood crosswalks  NYC Open Data, 8ius-dhrr (2010) and hm78-6dwm (2020)
+      Update cadence           [Update cadence: TO BE FILLED]
+      block 203px, gap to next section 18px, gap pills 1, TO BE FILLED 1
+  BEFORE Electric and Gas Figures
+      Published by             Con Edison, internal. Not public.
+      Delivered by             [Con Edison contact: TO BE FILLED]
+      Update cadence           [Update cadence: TO BE FILLED]
+      block 156px, gap to next section 18px, gap pills 2, TO BE FILLED 2
+  BEFORE Territory Overlays
+      Published by             Con Edison internal GIS, CECONY and ORU. Not public.
+      Delivered by             [Con Edison contact: TO BE FILLED]
+      Update cadence           [Update cadence: TO BE FILLED]
+      block 156px, gap to next section 18px, gap pills 2, TO BE FILLED 2
+
+AFTER
+  AFTER  Map Layers
+      (no rows; the block falls back to: "Any source you choose; overlays are yours. Record the origin i")
+      block 44px, gap to next section 18px, gap pills 0, TO BE FILLED 0
+  AFTER  DAC Indicators
+      Published by             NY Department of State Geographic Information Gateway
+      Obtained from            https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc
+      block 109px, gap to next section 18px, gap pills 0, TO BE FILLED 0
+  AFTER  Tract Shapes
+      Published by             U.S. Census Bureau
+      Obtained from            https://www.census.gov/geographies/mapping-files/time-series/geo/cartograp
+      Neighborhood crosswalks  NYC Open Data, 8ius-dhrr (2010) and hm78-6dwm (2020)
+      block 156px, gap to next section 18px, gap pills 0, TO BE FILLED 0
+  AFTER  Electric and Gas Figures
+      Published by             Con Edison, internal. Not public.
+      block 62px, gap to next section 18px, gap pills 0, TO BE FILLED 0
+  AFTER  Territory Overlays
+      Published by             Con Edison internal GIS, CECONY and ORU. Not public.
+      block 62px, gap to next section 18px, gap pills 0, TO BE FILLED 0
+
+ASSERTIONS
+  PASS  BEFORE the five tabs carried 6 TO BE FILLED strings: 6
+  PASS  BEFORE each was painted as an amber gap pill: 6
+  PASS  AFTER not one remains: 0
+  PASS  AFTER no gap pill is painted anywhere: 0
+  PASS  Map Layers: the rows left are exactly BEFORE minus the two fields -> []
+  PASS  Map Layers: the block is still the source sentence, as it was
+  PASS  Map Layers: every other word on the tab is unchanged
+  PASS  Map Layers: the block closed up rather than leaving a hole: 44px -> 44px
+  PASS  Map Layers: the gap to the next section is unchanged at 18px
+  PASS  DAC Indicators: the rows left are exactly BEFORE minus the two fields -> ["Published by","Obtained from"]
+  PASS  DAC Indicators: the block is still a list of rows
+  PASS  DAC Indicators: every other word on the tab is unchanged
+  PASS  DAC Indicators: the block closed up rather than leaving a hole: 156px -> 109px
+  PASS  DAC Indicators: the gap to the next section is unchanged at 18px
+  PASS  Tract Shapes: the rows left are exactly BEFORE minus the two fields -> ["Published by","Obtained from","Neighborhood crosswalks"]
+  PASS  Tract Shapes: the block is still a list of rows
+  PASS  Tract Shapes: every other word on the tab is unchanged
+  PASS  Tract Shapes: the block closed up rather than leaving a hole: 203px -> 156px
+  PASS  Tract Shapes: the gap to the next section is unchanged at 18px
+  PASS  Electric and Gas Figures: the rows left are exactly BEFORE minus the two fields -> ["Published by"]
+  PASS  Electric and Gas Figures: the block is still a list of rows
+  PASS  Electric and Gas Figures: every other word on the tab is unchanged
+  PASS  Electric and Gas Figures: the block closed up rather than leaving a hole: 156px -> 62px
+  PASS  Electric and Gas Figures: the gap to the next section is unchanged at 18px
+  PASS  Territory Overlays: the rows left are exactly BEFORE minus the two fields -> ["Published by"]
+  PASS  Territory Overlays: the block is still a list of rows
+  PASS  Territory Overlays: every other word on the tab is unchanged
+  PASS  Territory Overlays: the block closed up rather than leaving a hole: 156px -> 62px
+  PASS  Territory Overlays: the gap to the next section is unchanged at 18px
+
+29 passed, 0 failed

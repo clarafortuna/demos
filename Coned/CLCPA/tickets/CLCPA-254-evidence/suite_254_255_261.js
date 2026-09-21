@@ -570,6 +570,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-320 round 3, named so the count stays exact */
     ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
+    /* CLCPA-280, named so the count stays exact */
+    renderDsDictView: 'NOT this ticket: CLCPA-280: the Data Sources origin block lost its placeholder branch, because a bracketed to-do is a prompt to us and an unfinished page to the client (the nested ternary is now two arms, not three)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -581,7 +583,8 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 102, 'X1 exactly this many functions changed: ' + changed.length);
+  /* 102 -> 103: CLCPA-280 moved renderDsDictView, named in the map above. */
+  ok(changed.length === 103, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns',
    'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

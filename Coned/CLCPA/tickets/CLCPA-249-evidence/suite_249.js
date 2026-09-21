@@ -834,6 +834,8 @@ guard('X: app.js is byte-identical to BASE', () => {
     /* CLCPA-320 round 3, named so the count stays exact */
     ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
+    /* CLCPA-280, named so the count stays exact */
+    renderDsDictView: 'NOT this ticket: CLCPA-280: the Data Sources origin block lost its placeholder branch, because a bracketed to-do is a prompt to us and an unfinished page to the client (the nested ternary is now two arms, not three)',
   };
   changed.forEach(n => ok(n in LATER,
      'X1 app.js function ' + n + ' moved, and it is named by a later ticket' +
@@ -882,6 +884,12 @@ guard('X: the stylesheet changed, and only where it should', () => {
      * replacement, so they appear here and NOT in EXPECT_ADDED below. */
     '.dac-kpi-card-placeholder',
     '.dac-kpi-label-placeholder',
+    /* CLCPA-280: .ds-dict-gap painted the bracketed "to be filled" origin
+     * rows as conspicuous amber pills, and there are no such rows left to
+     * paint. Retired with no replacement, so it appears here and NOT in
+     * EXPECT_ADDED below. Nothing else asked for the class, which suite_280
+     * asserts separately. */
+    '.ds-dict-gap',
   ].sort();
   const EXPECT_ADDED = [
     /* CLCPA-266: the shared notice-box component and its two accents */

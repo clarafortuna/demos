@@ -1025,13 +1025,25 @@ lines.push('=== 221: the approved texts, verbatim ===');
 }
 
 lines.push('');
-lines.push('=== 221: the gaps are VISIBLE, not omitted ===');
+lines.push('=== 221: the gaps, RETIRED by CLCPA-280 ===');
 {
+  /* THIS PIN IS SPENT, and inverted rather than deleted.
+   *
+   * CLCPA-221 asserted here that an origin the repository does not record is
+   * carried as a VISIBLE bracketed placeholder rather than quietly omitted.
+   * That was right while the page was ours to fill in and wrong once it went
+   * client-facing, and CLCPA-280 removed the two placeholder fields and the
+   * styling that made them conspicuous. Widening these three to tolerate
+   * either answer would have deleted the guard; they now assert the current
+   * rule with the same force, so a placeholder coming back is still a
+   * failure. The BEFORE side of that removal is pinned in
+   * CLCPA-280-evidence/suite_280.js, which is where the story is told. */
   after.api.dict('coned', 'layers');
   const h = after.api.page();
-  ok(h.indexOf('[Con Edison contact: TO BE FILLED]') >= 0, 'the contact gap is on the page');
-  ok(h.indexOf('[Update cadence: TO BE FILLED]') >= 0, 'the cadence gap is on the page');
-  ok(/ds-dict-gap/.test(h), 'and both are styled as gaps, not as content');
+  ok(h.indexOf('TO BE FILLED') < 0, 'no bracketed placeholder is on the page');
+  ok(!/ds-dict-gap/.test(h), 'and nothing is painted as a gap');
+  ok(h.indexOf('Published by') >= 0,
+    'while the origin rows that DO carry a fact are still drawn');
   after.api.undict();
 }
 

@@ -8332,14 +8332,9 @@ a.nav-item { text-decoration: none; }
 .ds-dict-origin dt:first-child { margin-top: 0; }
 .ds-dict-origin dd { margin: 2px 0 0; color: var(--text-2); word-break: break-word; }
 
-/* A gap the repository does not record. Deliberately conspicuous: this is a
-   to-do the page carries in public, not a blank someone has to notice. */
-.ds-dict-gap {
-  display: inline-block; font-family: var(--font-mono); font-size: 11px;
-  background: rgba(184, 134, 11, 0.10); color: var(--amber);
-  border: 1px dashed rgba(184, 134, 11, 0.45); border-radius: 4px;
-  padding: 2px 7px;
-}
+/* CLCPA-280: .ds-dict-gap is retired. It painted the bracketed origin
+   placeholders as conspicuous amber pills, and there are no placeholders left
+   to paint: an origin the repository does not record is now omitted. */
 
 .ds-dict-actions { display: flex; align-items: center; gap: 10px; }
 .ds-dict-x {

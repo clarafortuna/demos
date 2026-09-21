@@ -20817,10 +20817,21 @@ function wireHTooltips() {
    *
    * EVERY FACT HERE IS EXTRACTED, NOT WRITTEN. The origins come from
    * OPERATOR_SCRIPT_FACTS.md and data-sources.html; the requirements come from
-   * the validators in this file. Where the repository does not record an
-   * origin, the entry carries a VISIBLE bracketed placeholder rather than a
-   * plausible sentence: a placeholder is a to-do the page itself carries,
-   * while a quietly omitted line reads as completeness.
+   * the validators in this file.
+   *
+   * CLCPA-280: an origin the repository does not record is now OMITTED, not
+   * carried as a visible bracketed placeholder. The placeholder was the right
+   * answer while this page was ours to fill in -- a to-do the page holds in
+   * public beats a blank nobody notices -- and it is the wrong answer now the
+   * page is client-facing, because a bracketed to-do naming a Con Edison
+   * contact reads as an unfinished page to the very reader it was meant to
+   * prompt. A row appears here only when there is a fact to put in it. The
+   * rule that no origin may be INVENTED is unchanged, and is what this
+   * removal obeys.
+   *
+   * Deliberately, this comment does not quote the retired strings: the
+   * acceptance gate is that they appear NOWHERE in the shipped bytes, and a
+   * comment quoting one would make that check a matter of which filter ran.
    *
    * `what` is the approved long text from CLCPA-220 round 3, used as approved.
    * Drift from it is a defect, and the harness pins each one.
@@ -20857,7 +20868,6 @@ function wireHTooltips() {
       origin: [
         ['Published by', 'NY Department of State Geographic Information Gateway'],
         ['Obtained from', 'https://opdgig.dos.ny.gov/datasets/2579112b69b04b4c9a09f4cf013983dc'],
-        ['Update cadence', '[Update cadence: TO BE FILLED]'],
       ],
       reqs: [
         'A .json dataset file with schema 1.',
@@ -20883,7 +20893,6 @@ function wireHTooltips() {
         ['Published by', 'U.S. Census Bureau'],
         ['Obtained from', 'https://www.census.gov/geographies/mapping-files/time-series/geo/cartographic-boundary.2020.html'],
         ['Neighborhood crosswalks', 'NYC Open Data, 8ius-dhrr (2010) and hm78-6dwm (2020)'],
-        ['Update cadence', '[Update cadence: TO BE FILLED]'],
       ],
       reqs: [
         'A .json dataset file with schema 1.',
@@ -20906,8 +20915,6 @@ function wireHTooltips() {
       source: 'Con Edison per tract extracts, Electric.xlsx and Gas.xlsx, sheet Export.',
       origin: [
         ['Published by', 'Con Edison, internal. Not public.'],
-        ['Delivered by', '[Con Edison contact: TO BE FILLED]'],
-        ['Update cadence', '[Update cadence: TO BE FILLED]'],
       ],
       reqs: [
         'A .json dataset file with schema 1.',
@@ -20930,8 +20937,6 @@ function wireHTooltips() {
         'to WGS84.',
       origin: [
         ['Published by', 'Con Edison internal GIS, CECONY and ORU. Not public.'],
-        ['Delivered by', '[Con Edison contact: TO BE FILLED]'],
-        ['Update cadence', '[Update cadence: TO BE FILLED]'],
       ],
       reqs: [
         'A .json or .geojson overlay file with schema 1.',
@@ -21050,15 +21055,17 @@ function wireHTooltips() {
     const nav = renderMlTabs({
       current: cur, attr: 'data-ds-dict-go', label: 'Data source entries',
     });
+    // CLCPA-280: two branches, not three. The third painted a bracketed
+    // placeholder as an amber gap pill, and both the placeholders and the
+    // styling that made them conspicuous are retired with it -- see the
+    // DS_DICT header for why an unrecorded origin is now omitted instead.
     const originRows = (entry.origin || []).length
       ? '<dl class="ds-dict-origin">' + entry.origin.map(([k, v]) =>
           '<dt>' + escapeHtml(k) + '</dt><dd>' +
           (/^https?:/.test(v)
             ? '<a href="' + escapeHtml(v) + '" target="_blank" rel="noopener">' +
               escapeHtml(v) + '</a>'
-            : (/TO BE FILLED/.test(v)
-              ? '<span class="ds-dict-gap">' + escapeHtml(v) + '</span>'
-              : escapeHtml(v))) + '</dd>').join('') + '</dl>'
+            : escapeHtml(v)) + '</dd>').join('') + '</dl>'
       : '';
     const howMade = entry.script
       ? '<p><strong>How the file is made.</strong> ' + escapeHtml(entry.script) + '</p>'

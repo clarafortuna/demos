@@ -1,0 +1,68 @@
+CLCPA-280 mutation controls
+Each mutant must turn suite_280 red ON THE ASSERTION IT TARGETS.
+
+CLEAN, before any mutation: exit 0  64 passed, 0 failed
+  PASS  the suite is green on the shipped build before mutating
+
+MUTATION 1: one Update cadence placeholder row is put back on Electric and Gas Figures
+   exit 1   58 passed, 6 failed
+   failed: ["A3","A4.coned","B3","B5","D1"]
+  PASS  M1 turns the suite red
+  PASS  M1 reddens A3, which is the assertion that watches it
+  PASS  M1 reddens A4.coned, which is the assertion that watches it
+  PASS  M1 reddens B5, which is the assertion that watches it
+  PASS  M1 reddens D1, which is the assertion that watches it
+
+MUTATION 2: the placeholder branch is restored in renderDsDictView
+   exit 1   61 passed, 3 failed
+   failed: ["B2","B3","D1"]
+  PASS  M2 turns the suite red
+  PASS  M2 reddens B2, which is the assertion that watches it
+  PASS  M2 reddens B3, which is the assertion that watches it
+
+MUTATION 3: a KEPT row is removed too: Obtained from goes off DAC Indicators
+   exit 1   63 passed, 1 failed
+   failed: ["A4.indicators"]
+  PASS  M3 turns the suite red
+  PASS  M3 reddens A4.indicators, which is the assertion that watches it
+
+MUTATION 4: a KEPT value is altered: Territory Overlays Published by
+   exit 1   63 passed, 1 failed
+   failed: ["A4.territory"]
+  PASS  M4 turns the suite red
+  PASS  M4 reddens A4.territory, which is the assertion that watches it
+
+MUTATION 5: the whole origin list is emptied on Electric and Gas Figures, so the block falls through to the source sentence
+   exit 1   61 passed, 3 failed
+   failed: ["A4.coned","B7.coned","B8.coned"]
+  PASS  M5 turns the suite red
+  PASS  M5 reddens A4.coned, which is the assertion that watches it
+  PASS  M5 reddens B7.coned, which is the assertion that watches it
+
+MUTATION 6: a field that is none of this ticket's business changes: the Tract Shapes description
+   exit 1   63 passed, 1 failed
+   failed: ["A5.shapes"]
+  PASS  M6 turns the suite red
+  PASS  M6 reddens A5.shapes, which is the assertion that watches it
+
+MUTATION 7: the gap pill rule is restored in the stylesheet
+   exit 1   62 passed, 2 failed
+   failed: ["C2","D2"]
+  PASS  M7 turns the suite red
+  PASS  M7 reddens C2, which is the assertion that watches it
+  PASS  M7 reddens D2, which is the assertion that watches it
+
+MUTATION 8: a rule the REMAINING rows depend on is deleted: .ds-dict-origin dd
+   exit 1   63 passed, 1 failed
+   failed: ["C3.2"]
+  PASS  M8 turns the suite red
+  PASS  M8 reddens C3.2, which is the assertion that watches it
+
+================================================================
+  PASS  app.js on disk is byte-identical to the file this runner started with
+  PASS  styles.css on disk is byte-identical to the file this runner started with
+  PASS  AND THE SUITE IS GREEN AGAIN ON THE SHIPPED BUILD: 64 passed, 0 failed
+suite-280-output.txt now describes the shipped build, not a mutant.
+================================================================
+
+26 passed, 0 failed
