@@ -1,0 +1,148 @@
+CLCPA-293 round 2: the two paths, side by side
+app.js: working tree
+
+=======================================================================
+A8:2025, which is the anatomy the hosted pass imported into
+=======================================================================
+  rows: 26, rows the app calls a TOTAL: [2,5,8,17,20,23,24]
+      r2 "Clean Heat – Midstream Heat Pump Water Heate"  [853,415,0.49]
+      r5 "Clean Heat – Residential Air Source Heat Pum"  [21154,11568,0.55]
+      r8 "Clean Heat – Residential Ground Source Heat "  [180,23,0.13]
+      r17 "EmPower+ Total"  [1527,1527,1]
+      r20 "Retail Products Total"  [253424,147092,0.58]
+      r23 "Weather Ready Total"  [6714,1480,0.22]
+      r24 "Residential Programs Installations Total"  [283852,162105,0.57]
+
+  For each total cell: what is FILED, what the engine puts back when the
+  row is blanked, and whether the engine reproduces the filed figure.
+
+    r2c1  filed 853  engine gives 853   reproduces
+    r2c2  filed 415  engine gives 415   reproduces
+    r2c3  filed 0.49  engine gives 0.49   reproduces
+    r5c1  filed 21154  engine gives 21154   reproduces
+    r5c2  filed 11568  engine gives 11568   reproduces
+    r5c3  filed 0.55  engine gives 0.55   reproduces
+    r8c1  filed 180  engine gives 180   reproduces
+    r8c2  filed 23  engine gives 23   reproduces
+    r8c3  filed 0.13  engine gives 0.13   reproduces
+    r17c1  filed 1527  engine gives 1527   reproduces
+    r17c2  filed 1527  engine gives 1527   reproduces
+    r17c3  filed 1  engine gives 1   reproduces
+    r20c1  filed 253424  engine gives 253424   reproduces
+    r20c2  filed 147092  engine gives 147092   reproduces
+    r20c3  filed 0.58  engine gives 0.58   reproduces
+    r23c1  filed 6714  engine gives 6714   reproduces
+    r23c2  filed 1480  engine gives 1480   reproduces
+    r23c3  filed 0.22  engine gives 0.22   reproduces
+    r24c1  filed 283852  engine gives 283852   reproduces
+    r24c2  filed 162105  engine gives 162105   reproduces
+    r24c3  filed 0.57  engine gives 0.57   reproduces
+
+  What ingestRebuildableTotals says about those cells, which is what
+  decides whether a preparer figure is taken or dropped:
+    rebuildable cells: 21
+      2,1
+      2,2
+      2,3
+      5,1
+      5,2
+      5,3
+      8,1
+      8,2
+      8,3
+      17,1
+      17,2
+      17,3
+
+  The same question on a ROWLESS year, which is the path the hosted pass
+  found whole:
+    rebuildable cells: 0   so every figure in the file is taken and named
+
+=======================================================================
+THE IMPORT, run on both paths with the same file
+=======================================================================
+
+  The file carries the table as a preparer would file it, with a GRAND
+  TOTAL the itemised rows do not come to. That is not an error: A8s
+  grand total legitimately exceeds the rows beneath it, because not all
+  of its components appear in the table. It is the whole case round 1
+  was built for.
+
+  1. ROWLESS: the year has no rows at all
+      ok=true   cells landed: 40   cells dropped as computed: 26
+      totals taken from the preparer and NAMED: 16
+      the filed grand total (999999) landed: true
+        "Clean Heat – Midstream Heat Pump Water H" / Total Installations: value 853, itemised null
+        "Clean Heat – Midstream Heat Pump Water H" / DAC Installations: value 415, itemised null
+        "Clean Heat – Residential Air Source Heat" / Total Installations: value 21154, itemised null
+        "Clean Heat – Residential Air Source Heat" / DAC Installations: value 11568, itemised null
+
+  2. STRUCTURAL: the grand-total row exists, with no figures in it
+      ok=true   cells landed: 28   cells dropped as computed: 38
+      totals taken from the preparer and NAMED: 4
+      the filed grand total (999999) landed: true
+        "Residential Programs Installations Total" / Total Installations: value 999999, itemised 620451
+        "Residential Programs Installations Total" / DAC Installations: value 162105, itemised 352285
+        "Total CES Programs Installations" / Total Installations: value 336599, itemised 620451
+        "Total CES Programs Installations" / DAC Installations: value 190180, itemised 352285
+
+  3. PREPARER FIGURE ALREADY THERE: the row holds 999999, which its own rows do not come to
+      ok=true   cells landed: 27   cells dropped as computed: 39
+      totals taken from the preparer and NAMED: 1
+      the filed grand total (999999) landed: true
+        "Residential Programs Installations Total" / Total Installations: value 999999, itemised 620451
+
+  4. DERIVABLE: the row holds the figure its own rows DO come to
+      ok=true   cells landed: 26   cells dropped as computed: 40
+      totals taken from the preparer and NAMED: 0
+      the filed grand total (999999) landed: false
+
+=======================================================================
+A1s TOTAL, which the engine derives from rows that are ALL in the table
+=======================================================================
+
+  A1:2025  total row r22 "Total"  [282132686,148672653,0.53]
+  a file offering A1s OWN figures:
+      totals taken from the preparer on that row: 0   (0 is the requirement: the engine derives it, so it refuses)
+  the same file with A1s total altered by 12,345:
+      totals taken from the preparer on that row: 0
+
+      AND IT REFUSES FOR A REASON THIS CHANGE DOES NOT TOUCH. A1s
+      total columns are declared DERIVED COLUMNS, and the guard reads
+      `!computed.derivedCol(cIdx) && !reproduced` -- a derived column
+      is refused whatever the file offers, which is CLCPA-88s rule and
+      predates both rounds of this ticket. So clause 3 holds
+      structurally rather than by arithmetic luck.
+
+=======================================================================
+STAGED AGAINST LANDED: is anything the preparer typed being dropped?
+=======================================================================
+
+  The dropped cells are not all equal. A cell the workbook marked
+  (calculated) is one the preparer was told to leave alone, and dropping
+  it is the contract working. A cell they were invited to fill and which
+  then vanished is the thing clause 2 is about.
+
+  cells dropped in total: 40
+  of those, ones the workbook MARKED (calculated): 40
+  of those, ones it invited the preparer to fill: 0
+
+--- summary -----------------------------------------------------------
+  1 rowless                         landed 40  named 16  grand total kept true
+  2 structural, no figures          landed 28  named 4   grand total kept true
+  3 preparer figure already there   landed 27  named 1   grand total kept true
+  4 derivable (row holds the sum)   landed 26  named 0   grand total kept false
+
+  THE REPORTED DISCARD DOES NOT REPRODUCE ON ANY ANATOMY I COULD BUILD.
+  Three of the four take the filed grand total and name it. The fourth
+  refuses, and refusing is correct there: the row holds the figure its
+  own rows come to, so the engine derives it and CLCPA-88 forbids a file
+  overwriting it. suite_293s D block pins exactly that for A1.
+
+  The other two clauses, measured on the shipped build:
+    nothing the preparer was invited to fill is dropped: 0 such cells
+    A1s derivable Total refuses: 0 taken from it, in either file
+
+  NO CODE WAS SHIPPED FOR THIS TICKET. What is missing is the anatomy
+  A8/2098 actually had when the hosted pass saw 24 of 26, which decides
+  which of these four rows it was. CLCPA-293-r2-stop.md states the ask.

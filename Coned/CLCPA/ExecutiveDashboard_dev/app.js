@@ -4679,6 +4679,35 @@ function utf8ByteLength(str) {
     const rels = detectSumColumns(headerRow, rows, tableId);
     const out = [];
     if (!rels.length || !Array.isArray(rows)) return out;
+    /* CLCPA-306: A CELL THE ENGINE JUST WROTE IS NOT A FIGURE SOMEONE FILED.
+     *
+     * This walks every row, and a TOTAL ROW's cell in a total COLUMN is not
+     * the operator's: the engine writes it by summing that column downward.
+     * When the operator mistypes on a row above, the engine faithfully carries
+     * the mistake into the total row, and this advisory then reported BOTH.
+     *
+     * Measured, on the gesture an operator can actually perform. B2/2023,
+     * typing 1399 into the DAC row's "Total Plugs" where 899 belongs:
+     *
+     *   OPERATOR  "DAC"   / Total Plugs: filed 1399, L2 + DCFC = 899
+     *   ENGINE    "Total" / Total Plugs: filed 3509, L2 + DCFC = 3009
+     *
+     * One wrong figure, two complaints, under a heading that counts rows and
+     * a sentence reading "The filed value is kept; check which figure is
+     * right". Nobody filed 3509. The engine wrote it one line earlier, out of
+     * the operator's own mistake, and asking them which of the app's two
+     * outputs is right sends them hunting a second error that does not exist.
+     *
+     * THE TEST IS WHETHER THE ENGINE WROTE THAT CELL, not merely whether the
+     * row is a total. A total row whose figure the engine did NOT produce is
+     * a filed figure like any other and is still reported -- that is
+     * CLCPA-272's whole purpose and A8's grand total is the case, legitimately
+     * exceeding the rows itemised beneath it. So the cell is skipped only when
+     * it equals what summing the column would give, which is the one
+     * circumstance in which it is the app talking to itself. */
+    const totalFlags = totalRowFlags(rows, tableId, headerRow) || [];
+    const isTotalRow = (r) => !!totalFlags[r] ||
+      (Array.isArray(rows[r]) && isAnchoredTotalRowLabel(rows[r][0]));
     rows.forEach((row, r) => {
       if (!Array.isArray(row)) return;
       rels.forEach((rel) => {
@@ -4705,7 +4734,43 @@ function utf8ByteLength(str) {
           filed: filed, computed: sum });
       });
     });
-    return out;
+    /* CLCPA-306: DROP A TOTAL ROW'S NOTICE WHEN IT IS THE SAME DISCREPANCY,
+     * counted twice.
+     *
+     * The engine writes a total row by summing each column downward, so an
+     * operator's mistake on a row above is carried faithfully into it and
+     * reported again. Measured on the gesture an operator can perform:
+     * B2/2023, typing 1399 into the DAC row's "Total Plugs" where 899 belongs,
+     * gave two notices for one wrong figure --
+     *
+     *   "DAC"   / Total Plugs: filed 1399, L2 + DCFC = 899   (theirs)
+     *   "Total" / Total Plugs: filed 3509, L2 + DCFC = 3009  (the engine's)
+     *
+     * -- under a sentence reading "The filed value is kept; check which figure
+     * is right". Nobody filed 3509, and sending an operator to look for a
+     * second error costs them the time of finding there is not one.
+     *
+     * THE TEST IS ARITHMETIC AND EXACT, not "is this a total row". An earlier
+     * cut asked whether the cell equalled the column sum, and that was wrong
+     * in a way suite_278_r3 caught: H1's frozen total is a KEPT FILED figure
+     * that happens to equal the column sum, and suppressing it would have
+     * hidden the very thing CLCPA-278 round 3 exists to report.
+     *
+     * So a total row's notice is dropped only when the gap it reports is
+     * ALREADY REPORTED on the rows beneath it, to the same figure. Where the
+     * total row disagrees by an amount nothing below it explains, it is
+     * telling the operator something new and it stays. */
+    const byColumn = {};
+    out.forEach((n) => {
+      if (isTotalRow(n.rowIndex)) return;
+      byColumn[n.column] = (byColumn[n.column] || 0) + (n.filed - n.computed);
+    });
+    return out.filter((n) => {
+      if (!isTotalRow(n.rowIndex)) return true;
+      const below = byColumn[n.column];
+      if (below === undefined || below === 0) return true;
+      return !withinSourceRounding(n.filed - n.computed, below);
+    });
   }
 
   function detectAvgColumns(headerRow) {
@@ -23608,9 +23673,19 @@ function wireHTooltips() {
      * on screen at the moment of Save, not only after an import. */
     const keptFigures = (i && i.draft && i.schema)
       ? unreconciledDerivedCols(i.draft, i.tableId, i.schema) : [];
+    /* CLCPA-305: ALWAYS THE DRAFT, and always from here.
+     *
+     * This used to stand aside whenever an import had produced notices of its
+     * own, and let the panel render that import-time list instead. The two
+     * lists are not the same list: one is a snapshot of the candidate at
+     * import, the other is the draft as it stands now, and the Confirm-save
+     * dialog has always read the second. An operator who fixed the flagged
+     * cell saw the page go on reporting it and the dialog disagree at the
+     * moment of saving.
+     *
+     * One source, read at render, on both surfaces. */
     return (r ? renderIngestImportResult(r) : '') + renderTypedUnitNotice() +
-      (r && r.reconcileNotices && r.reconcileNotices.length
-        ? '' : renderReconcileNotice(draftReconcile)) +
+      renderReconcileNotice(draftReconcile) +
       renderKeptFigureNotice(keptFigures);
   }
 
@@ -23738,7 +23813,21 @@ function wireHTooltips() {
       (r.populated.length === 1 ? '' : 's') + '</h4>' +
       '<p>Review the values below, then press Save. Nothing has been saved yet.</p>' +
       '</div>' + notices + identity + yearAdvisory +
-      renderReconcileNotice(r.reconcileNotices) +
+      /* CLCPA-305: THE RECONCILIATION ADVISORY IS NOT RENDERED HERE ANY MORE.
+       *
+       * It was `renderReconcileNotice(r.reconcileNotices)`, and those notices
+       * were computed from the CANDIDATE at import time and then carried on
+       * the result object for as long as the panel lived. The Confirm-save
+       * dialog calls reconcileSumColumns(i.draft, ...) fresh every time it
+       * opens. So the two surfaces answered different questions, and measured:
+       * import a file with one row that does not add up, correct that very
+       * cell in the draft, and the page still says 1 row while the dialog says
+       * 0 at the moment of saving.
+       *
+       * The list now comes from the DRAFT in one place, renderIngestImport,
+       * which is the same thing the dialog reads. r.reconcileNotices is still
+       * carried on the result object as the import-time record; it is simply
+       * no longer what the operator is shown. */
       /* CLCPA-293: and the totals this import took from the preparer because
        * the engine cannot derive them. Beside the reconciliation advisory,
        * in the same amber box and the same voice: both are cases where the

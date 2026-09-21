@@ -170,9 +170,9 @@ guard('F-block', () => {
    * advisory FORMATS the value it shows instead of concatenating it raw.
    * Reversed through the shared kit as well, composed rather than widened, so
    * every byte outside those two named deltas still has to match. */
-  ok(bii.reverseRender310(bii.reverseRender293(grab(now))) === grab(before),
+  ok(bii.reverseRender310(bii.reverseRender293(bii.reverseRender305(grab(now)))) === grab(before),
     'F1 renderIngestImportResult is byte-identical to BASE apart from ' +
-    'CLCPA-293 and CLCPA-310');
+    'CLCPA-293, CLCPA-305 and CLCPA-310');
   const gy = (s) => {
     const i = s.indexOf('function importYearNotice(');
     return i < 0 ? null : s.slice(i, s.indexOf('\n  }', i));

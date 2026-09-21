@@ -142,7 +142,8 @@ guard('C-block', () => {
    * through the shared kit; every other byte still has to match. */
   /* CLCPA-310 formats the value the fraction advisory shows. Reversed through
    * the shared kit as well, composed rather than widened. */
-  ok(bii.reverseRender310(bii.reverseRender293(grab('renderIngestImportResult', SRC))) ===
+  ok(bii.reverseRender310(bii.reverseRender293(bii.reverseRender305(
+       grab('renderIngestImportResult', SRC)))) ===
      grab('renderIngestImportResult', BASE_SRC),
     'C6 and the panel is BYTE-IDENTICAL to BASE: this ticket only draws it');
 });
