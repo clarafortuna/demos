@@ -2,17 +2,17 @@
 CLCPA-278 round 2 -- mutation controls
 ======================================================================
   red  THE DEFECT RETURNS: the capture goes back into the blur handler
-       7 red, incl: B1 input then blur now recomputes to 1809 -- ["Manhattan",1309,500,1800]
-  red  THE CAPTURE happens on EVERY keystroke, not the first
-       3 red, incl: B4 the snapshot is the row before the FIRST keystroke, not the second -- ["Manhattan",1309,500,1800]
-  red  THE SNAPSHOT is never released, so a second episode reads a stale row
-       4 red, incl: E6 and releases it, so it cannot leak
-  red  THE SNAPSHOT stops being keyed by row
-       2 red, incl: E4 the INPUT handler captures, once per episode
-  red  A DISAGREEING TOTAL starts being overwritten, against the ruling
        8 red, incl: B1 input then blur now recomputes to 1809 -- ["Manhattan",1309,500,1800]
+  red  THE CAPTURE happens on EVERY keystroke, not the first
+       4 red, incl: B4 the snapshot is the row before the FIRST keystroke, not the second -- ["Manhattan",1309,500,1800]
+  red  THE SNAPSHOT is never released, so a second episode reads a stale row
+       5 red, incl: E6 and releases it, so it cannot leak
+  red  THE SNAPSHOT stops being keyed by row
+       3 red, incl: E4 the INPUT handler captures, once per episode
+  red  A DISAGREEING TOTAL starts being overwritten, against the ruling
+       9 red, incl: B1 input then blur now recomputes to 1809 -- ["Manhattan",1309,500,1800]
   red  THE SNAPSHOT is hung on the stored state
-       3 red, incl: E3 nothing transient was hung on the stored state
+       4 red, incl: E3 nothing transient was hung on the stored state
 
   6 caught, 0 not caught, of 6 applied
-  clean re-run against byte-restored source: FAILS -- 32 passed, 1 failed
+  clean re-run against byte-restored source: FAILS -- 31 passed, 2 failed

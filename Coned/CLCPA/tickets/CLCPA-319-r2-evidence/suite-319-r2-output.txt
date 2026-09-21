@@ -1,0 +1,49 @@
+CLCPA-319 round 2: one denominator for load, blur and save
+BASE 8bf5ea7 (the deployed build)   app.js C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+
+A. LOAD, BLUR AND SAVE DIVIDE BY THE SAME DENOMINATOR
+    load [0.9092,0.0908,1]
+    blur [0.3336,0.6664,1]
+    save [0.3336,0.6664,1]
+  ok   A1 blur computes 500/1499 and 999/1499 and a whole 1: [0.3336,0.6664,1]
+  ok   A2 and save agrees with it to the digit
+  ok   A3 and the total row itself reads 1,499 on both: [1499,1499]
+  ok   A4 and load, on the unedited rows, reads 9,999/10,998 and 999/10,998
+
+B. THE DEFECT, ON THE BUILD IT WAS REPORTED AGAINST
+    8bf5ea7 blur [0.1668,0.3332,0.5]
+    8bf5ea7 save [0.3336,0.6664,1]
+  ok   B1 on 8bf5ea7 blur and save DISAGREE, which is the ticket
+  ok   B2 and every one of them is EXACTLY HALF, which is the doubled denominator: [0.1668,0.3332,0.5] against [0.3336,0.6664,1]
+  ok   B3 while this build agrees, so this block cannot pass on either build by accident
+
+C. THE CAUSE IS THE CLASSIFIER, AND THE FIX IS ONE SHARED SIGNAL
+  ok   C1 the scratch baseline's total row is NOT confirmed by arithmetic, because it holds no figure: [false,false,false]
+  ok   C2 so on 8bf5ea7 the DAC share is 500 over 1,499 + 1,499, the total row counted as though it were data: 0.1668
+  ok   C3a and the total row itself is correct while its percentage is not, which is what makes the defect easy to miss: 1499
+  ok   C3 this build flags a declared total row by LABEL
+  ok   C4 and only where the table DECLARES a columnTotal
+  ok   C5 while 8bf5ea7 has no such clause
+
+D. THE IMPORT PATH THE TICKET CALLS CLEAN IS UNTOUCHED
+    8bf5ea7 [0.6667,0.3333,1]
+    now      [0.6667,0.3333,1]
+  ok   D1 an import into a year whose total row holds a figure is IDENTICAL on both builds, which is the path the ticket says not to touch
+  ok   D2 and it reads 66.67 / 33.33 / 100, the figures the hosted pass saw: [0.6667,0.3333,1]
+    scratch-year import: 8bf5ea7 [0.3333,0.1667,0.5]   now [0.6667,0.3333,1]
+  ok   D3 while an import into a SCRATCH year did carry the same halving, and this build corrects it too
+  ok   D4 so both import states now agree with each other
+
+E. AND NOTHING ELSE MOVES
+  ok   E1 not one published table-year moves: []
+  ok   E2 and the editor recompute on stored data is identical: []
+  ok   E3 and no KPI figure moves
+  ok   E4 the clause is gated to declared tables, which is a minority of them: 26 declared table-years against 123
+  ok   E5 and it can only add a flag, never clear one
+
+X. THE BASELINE
+  ok   X1 BASE is a literal commit sha: 8bf5ea7
+  ok   X2 and HEAD descends from it
+  ok   X3 and it is the DEPLOYED build, which is what the org is serving
+
+  25 passed, 0 failed

@@ -1,0 +1,38 @@
+Mutation controls for suite_319_r2
+  app.js sha256[0:12] before: c65abf98a817
+
+  [1] THE DEFECT ITSELF: the clause is removed, so the classifier falls back to arithmetic on a total row that has no figure to confirm
+      expected red : A1, A2, B3, D3
+      actually red : A1, A2, B3, C3, D3, D4
+      ok
+
+  [2] THE FLAG IS CLEARED RATHER THAN SET, so a declared total row is forced INTO the denominator instead of out of it
+      expected red : A1, A2
+      actually red : A1, A2, B3, C3, D1, D2, D3, D4, E2
+      ok
+
+  [3] THE GATE IS DROPPED: every anchored total row in every table is flagged, which fixes G1 and changes the classifier everywhere else
+      expected red : E2
+      actually red : E2
+      ok
+
+  [4] THE LABEL TEST IS REPLACED BY THE VALUE TEST it was brought in to escape, so the clause reasserts exactly what was already there
+      expected red : A1, A2, B3, D3
+      actually red : A1, A2, B3, C3, D3, D4
+      ok
+
+  [5] THE CLAUSE READS THE BASELINE instead of the draft, so a scratch year with no aligned baseline is left exactly as it was
+      expected red : (none)
+      actually red : (none)
+      UNREACHED, deliberately: EQUIVALENT ON THIS GESTURE, and measured so rather than assumed. The defect is not that the baseline is misaligned -- it is aligned here -- but that its total row holds no figure for the arithmetic to confirm. Both arrays carry the same labels, so flagging from either finds the same row. The two diverge only where the draft has rows the baseline does not, which is Add Row and Delete Row, and neither is this ticket gesture. The shipped clause reads the DRAFT because the draft is what gets summed: a flag keyed to rows that are not the ones being added up is the CLCPA-212 index-drift trap waiting to happen.
+
+========================================================================
+  app.js sha256[0:12] after : c65abf98a817
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    25 passed, 0 failed   exit 0
+========================================================================
+  all 5 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+========================================================================

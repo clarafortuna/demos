@@ -590,9 +590,22 @@ guard('X: the family veto and the derive engine are untouched', () => {
   ok(rtNow.split(RT_NEW_B7).length - 1 === 1,
      'X4c the CLCPA-293 round 4 line is present exactly once, so reversing ' +
      'it tests something');
+  /* CLCPA-319 round 2 adds one more clause: a declared total row is flagged
+   * by LABEL, so load, blur and save divide by the same denominator. Named
+   * and reversed beside the others; every other byte still has to match. */
+  const RT_NEW_R2 = "    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {\r\n" +
+    '      draft.forEach((row, idx) => {\r\n' +
+    '        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;\r\n' +
+    '      });\r\n' +
+    '    }\r\n';
+  ok(rtNow.split(RT_NEW_R2).length - 1 === 1,
+     'X4d the CLCPA-319 round 2 clause is present exactly once, so reversing ' +
+     'it tests something');
   ok(rtNow.replace(CLCPA254, () => BASE254).replace(RT_NEW_241, () => RT_OLD_241)
        .replace(RT_NEW_B7, () => '')
-       .replace(/[ ]*\/\* CLCPA-293 round 4: THE SECOND SURFACE\.[\s\S]*?\*\/\r\n/, '') ===
+       .replace(RT_NEW_R2, () => '')
+       .replace(/[ ]*\/\* CLCPA-293 round 4: THE SECOND SURFACE\.[\s\S]*?\*\/\r\n/, '')
+       .replace(/[ ]*\/\* CLCPA-319 round 2: A DECLARED TOTAL ROW[\s\S]*?\*\/\r\n/, '') ===
      grab('recomputeTotals', BASE_SRC),
      'X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: ' +
      'the ordering item is NOT bought here');
@@ -847,6 +860,9 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces them',
     /* CLCPA-293 round 4, named so the count stays exact */
     isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
+    /* CLCPA-320 round 3, named so the count stays exact */
+    ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -863,7 +879,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 99, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 100, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

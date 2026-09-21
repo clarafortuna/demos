@@ -100,6 +100,8 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
    * now ask whether a year was published. Same documented limit, same
    * ReferenceError-from-inside signature. */
   'isYearProtected',
+  /* CLCPA-320 round 3: the marker source the populated path now consults */
+  'ingestMarkerSource',
   /* CLCPA-293: buildIngestImport now asks whether the engine can actually
    * rebuild a total before refusing the preparer's value for it. */
   'ingestRebuildableTotals',

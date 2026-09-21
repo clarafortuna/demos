@@ -1,0 +1,31 @@
+CLCPA-320 round 3: the populated-year workbook marker
+BASE 8bf5ea7   app.js working tree
+
+  G3 POPULATED 2098, County Total (data rows filled, total empty)
+      BASE 8bf5ea7  ["County Total","(no value)","(no value)"]
+      now         ["County Total","(calculated)","(calculated)"]
+  G3 FRESH 2094, County Total (the year holds nothing)
+      BASE 8bf5ea7  ["County Total","(calculated)","(calculated)"]
+      now         ["County Total","(calculated)","(calculated)"]
+
+  J8 POPULATED 2098, Total (a B7 registry member: fill-in)
+      BASE 8bf5ea7  ["Total","(no value)","(no value)","(no value)"]
+      now         ["Total","","",""]
+  J8 FRESH 2094, Total
+      BASE 8bf5ea7  ["Total","","",""]
+      now         ["Total","","",""]
+
+  A3 FRESH 2094, Total (the control that must not move)
+      BASE 8bf5ea7  ["Total","(no value)","(calculated)","(calculated)"]
+      now         ["Total","(no value)","(calculated)","(calculated)"]
+
+  THE CLCPA-320 AMENDMENT COST, re-measured on this emission path.
+  The amendment withheld the marker from A3/2023, A3/2024 and A4/2023,
+  which is what made A3 year-dependent again. Those are STORED years,
+  so this reads their workbooks as they are, with no mutation.
+      A3/2023  BASE ["","2354317","",""]   now ["(no value)","2354317","(calculated)","(calculated)"]
+      A3/2024  BASE ["","2009280","",""]   now ["(no value)","2009280","(calculated)","(calculated)"]
+      A3/2025  BASE ["(no value)","(calculated)","(calculated)","(calculated)"]   now ["(no value)","(calculated)","(calculated)","(calculated)"]
+      A4/2023  BASE ["","1218703","",""]   now ["(no value)","1218703","(calculated)","(calculated)"]
+      A4/2024  BASE ["(no value)","(calculated)","(calculated)","(calculated)"]   now ["(no value)","(calculated)","(calculated)","(calculated)"]
+      A4/2025  BASE ["(no value)","(calculated)","(calculated)","(calculated)"]   now ["(no value)","(calculated)","(calculated)","(calculated)"]

@@ -1,0 +1,46 @@
+CLCPA-320 round 3: the populated-year workbook marker
+BASE 8bf5ea7   app.js C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\ExecutiveDashboard_dev\app.js
+
+A. THE G3 PAIR READS THE SAME ON BOTH YEARS
+    populated ["County Total","(calculated)","(calculated)"]
+    fresh     ["County Total","(calculated)","(calculated)"]
+  ok   A1 the two workbooks agree cell for cell
+  ok   A2 and both figure columns read (calculated), because the app does compute them: ["(calculated)","(calculated)"]
+    8bf5ea7 populated ["County Total","(no value)","(no value)"]
+  ok   A3 while on 8bf5ea7 the two DISAGREE, which is the ticket
+  ok   A4 the populated one saying (no value) about a cell the app computes: ["(no value)","(no value)"]
+
+B. THE J8 PAIR STAYS FILL-IN ON BOTH
+    populated ["Total","","",""]
+    fresh     ["Total","","",""]
+  ok   B1 the two workbooks agree cell for cell
+  ok   B2 and every figure column is FILL-IN, carrying no marker at all, because J8s Total is a B7 registry member and belongs to the preparer: ["","",""]
+  ok   B3 while on 8bf5ea7 the populated year said (no value), telling the preparer not to fill in the one cell that is theirs: ["(no value)","(no value)","(no value)"]
+
+C. A3s FRESH CONTROL DOES NOT MOVE
+    8bf5ea7 ["Total","(no value)","(calculated)","(calculated)","(calculated)"]
+    now       ["Total","(no value)","(calculated)","(calculated)","(calculated)"]
+  ok   C1 A3s fresh template is byte-identical to 8bf5ea7
+
+D. THE CLCPA-320 AMENDMENT COST, RE-MEASURED ON THIS PATH
+    A3/2023  8bf5ea7 ["","2354317","",""]   now ["(no value)","2354317","(calculated)","(calculated)"]
+    A3/2024  8bf5ea7 ["","2009280","",""]   now ["(no value)","2009280","(calculated)","(calculated)"]
+    A3/2025  8bf5ea7 ["(no value)","(calculated)","(calculated)","(calculated)"]   now ["(no value)","(calculated)","(calculated)","(calculated)"]
+    A4/2023  8bf5ea7 ["","1218703","",""]   now ["(no value)","1218703","(calculated)","(calculated)"]
+    A4/2024  8bf5ea7 ["(no value)","(calculated)","(calculated)","(calculated)"]   now ["(no value)","(calculated)","(calculated)","(calculated)"]
+    A4/2025  8bf5ea7 ["(no value)","(calculated)","(calculated)","(calculated)"]   now ["(no value)","(calculated)","(calculated)","(calculated)"]
+  ok   D1 A3/2023: the label column regains its marker, blank to (no value)
+  ok   D2 A3/2023: and the two average columns read (calculated) again
+  ok   D1 A3/2024: the label column regains its marker, blank to (no value)
+  ok   D2 A3/2024: and the two average columns read (calculated) again
+  ok   D1 A4/2023: the label column regains its marker, blank to (no value)
+  ok   D2 A4/2023: and the two average columns read (calculated) again
+  ok   D3 so A3s three stored years now carry the SAME marker shape, and the table stops being year-dependent: ["(no value)","(calculated)","(calculated)"]
+  ok   D4 while on 8bf5ea7 they differ, which is the cost the amendment declared
+
+E. AND A REAL GROUP HEADER KEEPS ITS CAPTION MARKER
+  ok   E1 A8 still emits group-header captions marked (no value): 6  e.g. ["Clean Heat – Midstream Heat Pump Water Heater","(no value)","(no value)","(no value)"]
+  ok   E2 including "Clean Heat – Midstream Heat Pu": ["(no value)","(no value)","(no value)"]
+  ok   E1 A5 still emits group-header captions marked (no value): 9  e.g. ["Clean Heat – Commercial &amp; Industrial Air Source Heat Pump","(no value)","(no value)","(no value)"]
+
+  19 passed, 0 failed

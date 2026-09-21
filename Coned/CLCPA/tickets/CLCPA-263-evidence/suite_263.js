@@ -615,6 +615,9 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-266, the notice boxes gain their accent classes',
     /* CLCPA-293 round 4, named so the count stays exact */
     isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
+    /* CLCPA-320 round 3, named so the count stays exact */
+    ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
+    buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -627,7 +630,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 86, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 87, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['kpiDacPct', 'detectPctColumns'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
@@ -710,10 +713,19 @@ guard('X: the blast radius', () => {
    * an import accepted survives the recompute and the save. Named here so
    * the inventory stays exact rather than widened. */
   const RT_B7 = '        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;';
-  const RT_OK = ['    applyDerivedCols(draft, tableId, colSum, schema, baseline);', RT_B7];
-  ok(rtAdded.length === 2 && rtAdded.every(l => RT_OK.indexOf(l) >= 0),
-     'X2c recomputeTotals differs from BASE only by passing the baseline and ' +
-     'by standing off a registry total -- ' +
+  /* and CLCPA-319 round 2's three lines: a declared total row is flagged by
+   * LABEL, so load, blur and save divide by the same denominator. Each line
+   * named, so the inventory stays exact rather than widened to a count. */
+  const RT_R2 = [
+    "    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {",
+    '      draft.forEach((row, idx) => {',
+    '        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;',
+  ];
+  const RT_OK = ['    applyDerivedCols(draft, tableId, colSum, schema, baseline);', RT_B7]
+    .concat(RT_R2);
+  ok(rtAdded.length === RT_OK.length && rtAdded.every(l => RT_OK.indexOf(l) >= 0),
+     'X2c recomputeTotals differs from BASE only by passing the baseline, ' +
+     'standing off a registry total, and flagging a declared total row -- ' +
      JSON.stringify(rtAdded));
   const adcAdded = grabFn('applyDerivedCols', SRC).split('\r\n')
     .filter(l => grabFn('applyDerivedCols', BASE_SRC).indexOf(l) < 0)

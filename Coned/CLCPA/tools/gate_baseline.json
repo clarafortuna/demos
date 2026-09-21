@@ -1,154 +1,165 @@
 {
-  "generated": "2026-09-21T05:27:58.177Z",
-  "round": 2,
-  "measuredAt": {
-    "integrationHead": "(pending merge commit)",
-    "engineerTip": "fff9e47",
-    "build": "(pending)",
-    "originMain": "fff9e47"
+ "generated": "2026-09-21T05:27:58.177Z",
+ "round": 2,
+ "measuredAt": {
+  "integrationHead": "(pending merge commit)",
+  "engineerTip": "fff9e47",
+  "build": "(pending)",
+  "originMain": "fff9e47"
+ },
+ "note": "Baseline for judging future engineer deltas. Aggregates double-count: every mut_* wrapper re-runs its suite and reports that suite tally. Use perRunner, not totals.",
+ "aggregate": {
+  "runnersDiscovered": 147,
+  "assertionsPassedReported": 9448,
+  "assertionsFailedReported": 55,
+  "distinctFailures": 41,
+  "doubleCountedFailures": 18,
+  "runnersNotReporting": 14
+ },
+ "categories": {
+  "genuineApplicationFailures": 0,
+  "provenanceOrAttribution": 29,
+  "brokenTestInfrastructureFailures": 12,
+  "brokenTestInfrastructureDeadRunners": 12,
+  "expectedNonReporting": 2
+ },
+ "perRunner": {
+  "provenance": {
+   "suite_245": 10,
+   "suite_249": 3,
+   "suite_254_255_261": 4,
+   "suite_260": 4,
+   "suite_263": 4,
+   "gate_149_stacked": 4
   },
-  "note": "Baseline for judging future engineer deltas. Aggregates double-count: every mut_* wrapper re-runs its suite and reports that suite tally. Use perRunner, not totals.",
-  "aggregate": {
-    "runnersDiscovered": 147,
-    "assertionsPassedReported": 9448,
+  "echoWrappers": {
+   "mut_249": "suite_249",
+   "mut_254_255_261": "suite_254_255_261",
+   "mut_collateral": "suite_254_255_261",
+   "mut_260": "suite_260",
+   "mut_263": "suite_263",
+   "mut_gate_149": "gate_149_stacked"
+  },
+  "stalePinnedSource": {
+   "mut_274_r2": 9,
+   "mut_274_r3": 2,
+   "mut_278_r2": 2
+  },
+  "underlyingSuitesGreenStandalone": {
+   "suite_274_r2": "33/0",
+   "suite_274_r3": "29/0",
+   "suite_274_r4": "26/0",
+   "suite_278_r2": "33/0"
+  },
+  "deadUndefinedREL": [
+   "mut_233_237",
+   "mut_237f",
+   "mut_240a_r2",
+   "mut_240a_r3",
+   "mut_240a_r4",
+   "mut_240b",
+   "mut_242",
+   "mut_242_r2",
+   "mut_244",
+   "mut_badge",
+   "mut_daccol",
+   "mut_prewalk"
+  ],
+  "healthyDifferentFormat": [
+   "mut_245",
+   "mut_composer",
+   "reverify_290",
+   "reverify_sectionA"
+  ]
+ },
+ "securitySet": {
+  "suites": 8,
+  "assertions": 166,
+  "status": "GREEN"
+ },
+ "engineerSuitesThisRound": {
+  "suite_282": "34/0",
+  "suite_283": "32/0",
+  "suite_287": "25/0",
+  "suite_290": "28/0",
+  "suite_291": "32/0",
+  "suite_292": "25/0",
+  "suite_294": "24/0",
+  "suite_300": "17/0",
+  "suite_black_button": "28/0"
+ },
+ "deltaVsRound1": {
+  "provenance": "28 -> 25; suite_249 -1, suite_254_255_261 -1, suite_260 -1, suite_263 -1 (she declared tickets); gate_149_stacked +1 (new C1 naming HER CLCPA-290)",
+  "stalePinnedSource": "5 -> 12; mut_274_r2 3->9 and mut_274_r3 1->2, because HER CLCPA-274 option (c) (6b2cddd) moved code their pinned anchors point at -- 5 mutants report ANCHOR 0, NOT APPLIED",
+  "application": "0 -> 0"
+ },
+ "clearsWhen": "The provenance/attribution failures clear when the security change is assigned a ticket number and declared. They must not be cleared by relaxing an assertion.",
+ "history": [
+  {
+   "round": 1,
+   "measuredAt": {
+    "integrationHead": "0b2387cda0e7d8514e125c601b21f26a2f82b2d0",
+    "engineerTip": "74458b2",
+    "build": "a0c04d51be",
+    "originMain": "88e7923"
+   },
+   "aggregate": {
+    "runnersDiscovered": 129,
+    "assertionsPassedReported": 8719,
     "assertionsFailedReported": 55,
-    "distinctFailures": 41,
-    "doubleCountedFailures": 18,
+    "distinctFailures": 33,
+    "doubleCountedFailures": 22,
     "runnersNotReporting": 14
-  },
-  "categories": {
+   },
+   "categories": {
     "genuineApplicationFailures": 0,
-    "provenanceOrAttribution": 29,
-    "brokenTestInfrastructureFailures": 12,
+    "provenanceOrAttribution": 28,
+    "brokenTestInfrastructureFailures": 5,
     "brokenTestInfrastructureDeadRunners": 12,
     "expectedNonReporting": 2
-  },
-  "perRunner": {
-    "provenance": {
-      "suite_245": 10,
-      "suite_249": 3,
-      "suite_254_255_261": 4,
-      "suite_260": 4,
-      "suite_263": 4,
-      "gate_149_stacked": 4
-    },
-    "echoWrappers": {
-      "mut_249": "suite_249",
-      "mut_254_255_261": "suite_254_255_261",
-      "mut_collateral": "suite_254_255_261",
-      "mut_260": "suite_260",
-      "mut_263": "suite_263",
-      "mut_gate_149": "gate_149_stacked"
-    },
-    "stalePinnedSource": {
-      "mut_274_r2": 9,
-      "mut_274_r3": 2,
-      "mut_278_r2": 1
-    },
-    "underlyingSuitesGreenStandalone": {
-      "suite_274_r2": "33/0",
-      "suite_274_r3": "29/0",
-      "suite_274_r4": "26/0",
-      "suite_278_r2": "33/0"
-    },
-    "deadUndefinedREL": [
-      "mut_233_237",
-      "mut_237f",
-      "mut_240a_r2",
-      "mut_240a_r3",
-      "mut_240a_r4",
-      "mut_240b",
-      "mut_242",
-      "mut_242_r2",
-      "mut_244",
-      "mut_badge",
-      "mut_daccol",
-      "mut_prewalk"
-    ],
-    "healthyDifferentFormat": [
-      "mut_245",
-      "mut_composer",
-      "reverify_290",
-      "reverify_sectionA"
-    ]
-  },
-  "securitySet": {
-    "suites": 8,
-    "assertions": 166,
-    "status": "GREEN"
-  },
-  "engineerSuitesThisRound": {
-    "suite_282": "34/0",
-    "suite_283": "32/0",
-    "suite_287": "25/0",
-    "suite_290": "28/0",
-    "suite_291": "32/0",
-    "suite_292": "25/0",
-    "suite_294": "24/0",
-    "suite_300": "17/0",
-    "suite_black_button": "28/0"
-  },
-  "deltaVsRound1": {
-    "provenance": "28 -> 25; suite_249 -1, suite_254_255_261 -1, suite_260 -1, suite_263 -1 (she declared tickets); gate_149_stacked +1 (new C1 naming HER CLCPA-290)",
-    "stalePinnedSource": "5 -> 12; mut_274_r2 3->9 and mut_274_r3 1->2, because HER CLCPA-274 option (c) (6b2cddd) moved code their pinned anchors point at -- 5 mutants report ANCHOR 0, NOT APPLIED",
-    "application": "0 -> 0"
-  },
-  "clearsWhen": "The provenance/attribution failures clear when the security change is assigned a ticket number and declared. They must not be cleared by relaxing an assertion.",
-  "history": [
-    {
-      "round": 1,
-      "measuredAt": {
-        "integrationHead": "0b2387cda0e7d8514e125c601b21f26a2f82b2d0",
-        "engineerTip": "74458b2",
-        "build": "a0c04d51be",
-        "originMain": "88e7923"
-      },
-      "aggregate": {
-        "runnersDiscovered": 129,
-        "assertionsPassedReported": 8719,
-        "assertionsFailedReported": 55,
-        "distinctFailures": 33,
-        "doubleCountedFailures": 22,
-        "runnersNotReporting": 14
-      },
-      "categories": {
-        "genuineApplicationFailures": 0,
-        "provenanceOrAttribution": 28,
-        "brokenTestInfrastructureFailures": 5,
-        "brokenTestInfrastructureDeadRunners": 12,
-        "expectedNonReporting": 2
-      }
-    }
-  ],
-  "baselineMovements": [
-    {
-      "when": "2026-09-21",
-      "runner": "suite_245",
-      "from": 10,
-      "to": 9,
-      "direction": "improved",
-      "cause": "she DECLARED resolveTablePrivileges in her own suite as an extractor artifact, not a real change: grabFn over-reads it by 42kB and its slice swallows the dvBackend saveTable whose diffRows call now passes tableId; she measured the function itself byte-identical at 2376 bytes on both builds. She also raised X8 95 -> 97 for her two new functions.",
-      "verified": "her suite source diff read before accepting the drop; the 8 remaining failures are all OUR security-changed functions and stay correctly unaccounted while the change has no ticket",
-      "legitimate": true
-    },
-    {
-      "when": "2026-09-21",
-      "runners": [
-        "suite_245",
-        "suite_249",
-        "suite_254_255_261",
-        "suite_260",
-        "suite_263"
-      ],
-      "each": "+1",
-      "direction": "worsened",
-      "cause": "OUR CLCPA-330 change, authorised by the owner ruling. It adds one function, rowIsCurrency, and the drift accounting names it by that name: \"the change to rowIsCurrency is accounted for\" and \"rowIsCurrency moved, and it is named by a later ticket -- NO\". The census count X8 rises 105 -> 107.",
-      "verified": "the new failing assertion in every one of the five names rowIsCurrency specifically; no assertion about any OTHER function changed, and gate_149_stacked is unmoved at 4",
-      "legitimate": true,
-      "clearsWhen": "CLCPA-330 is declared in the ticket maps, exactly as the security change will be. This is our work correctly refusing to pass unattributed -- not a defect."
-    }
-  ],
-  "notes": {
-    "renderEquivalenceBlindSpot": "suite_render_equivalence seeds state.payload.tables EMPTY, so its 149 table-years render with no table definition. Definition-driven formatting -- currency_cols and the new currency_rows -- is therefore NOT covered there, and its green must not be read as validating CLCPA-330. suite_330 covers that path directly, with 28 assertions and 6 mutants."
+   }
   }
+ ],
+ "baselineMovements": [
+  {
+   "when": "2026-09-21",
+   "runner": "suite_245",
+   "from": 10,
+   "to": 9,
+   "direction": "improved",
+   "cause": "she DECLARED resolveTablePrivileges in her own suite as an extractor artifact, not a real change: grabFn over-reads it by 42kB and its slice swallows the dvBackend saveTable whose diffRows call now passes tableId; she measured the function itself byte-identical at 2376 bytes on both builds. She also raised X8 95 -> 97 for her two new functions.",
+   "verified": "her suite source diff read before accepting the drop; the 8 remaining failures are all OUR security-changed functions and stay correctly unaccounted while the change has no ticket",
+   "legitimate": true
+  },
+  {
+   "when": "2026-09-21",
+   "runners": [
+    "suite_245",
+    "suite_249",
+    "suite_254_255_261",
+    "suite_260",
+    "suite_263"
+   ],
+   "each": "+1",
+   "direction": "worsened",
+   "cause": "OUR CLCPA-330 change, authorised by the owner ruling. It adds one function, rowIsCurrency, and the drift accounting names it by that name: \"the change to rowIsCurrency is accounted for\" and \"rowIsCurrency moved, and it is named by a later ticket -- NO\". The census count X8 rises 105 -> 107.",
+   "verified": "the new failing assertion in every one of the five names rowIsCurrency specifically; no assertion about any OTHER function changed, and gate_149_stacked is unmoved at 4",
+   "legitimate": true,
+   "clearsWhen": "CLCPA-330 is declared in the ticket maps, exactly as the security change will be. This is our work correctly refusing to pass unattributed -- not a defect."
+  },
+  {
+   "at": "2026-09-21T16:40:05.519Z",
+   "runner": "mut_278_r2",
+   "from": 1,
+   "to": 2,
+   "category": "provenanceOrAttribution",
+   "assertion": "F2 and recomputeDerivableSums: only WHEN it is asked changed, never what it does",
+   "cause": "suite_278_r2 F-block asserts the engine is byte-identical to BASE 590703c (pre-CLCPA-303). The engineer legitimately changed recomputeDerivableSums in a331392 (CLCPA-303 option C): it now stands off an anchored total row whose table declares a columnTotal rule. F1 had already moved for the same reason when rowSumIsConsistent adopted bareNumber coercion. Verified NOT caused by this delta: 31/2 is identical at baseline 0893352, at engineer tip 93ccbd3 and at the merge. Stale pin against a deliberately-changed engine, not an application defect.",
+   "notADefect": true,
+   "detectedDuring": "reconciliation of 0893352..93ccbd3"
+  }
+ ],
+ "notes": {
+  "renderEquivalenceBlindSpot": "suite_render_equivalence seeds state.payload.tables EMPTY, so its 149 table-years render with no table definition. Definition-driven formatting -- currency_cols and the new currency_rows -- is therefore NOT covered there, and its green must not be read as validating CLCPA-330. suite_330 covers that path directly, with 28 assertions and 6 mutants."
+ }
 }

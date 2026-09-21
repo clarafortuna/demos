@@ -1,5 +1,5 @@
 {
-  "engineerTip": "b5aa994",
+  "engineerTip": "0893352",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -245,6 +245,13 @@
       "engineerCommit": "b5aa994ddcb1cf709b1879503a96054499c15382",
       "engineerSubject": "CLCPA-293 round 4: the B7 registry, and the second surface",
       "integrationCommit": "774fac7",
+      "reconciledAt": "2026-09-21",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "089335296fff7c87e1ba6f82b1d3ddeeb8bc2310",
+      "engineerSubject": "CLCPA-293: the B7 registry document, and the ruling on the eleven nominees",
+      "integrationCommit": "49e59f4",
       "reconciledAt": "2026-09-21",
       "validation": "tools/run_security.sh green"
     }

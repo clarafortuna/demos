@@ -1,0 +1,14 @@
+CLCPA-319 round 2: the blur-path denominator, in a real browser
+the gesture: 500 into "Feet Replaced within DAC" on G1/2098, then BLUR, read before saving
+(2098 is this probe's own year on a throwaway profile; the live org
+ is not touched and 2096 is not gone near.)
+
+=======================================================================
+ BEFORE (the deployed build 8bf5ea7)
+=======================================================================
+REPRO THREW: Error: cdp.serve: nothing answered on 127.0.0.1:8823 within 20s. The static server never came up, so any page opened against it would be about:blank.
+    at C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\tickets\_kit\cdp.js:69:15
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async open (C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\tickets\_kit\live_browser.js:50:25)
+    at async run (C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\tickets\CLCPA-319-r2-evidence\repro_319_r2.js:103:13)
+    at async C:\Users\rrfeliz\AppData\Local\Temp\claude\C--workspace-ProjectRepos-UnifiedCSRPortal\4fc82695-a062-4e09-993a-fcf5086b4079\scratchpad\ic\Coned\CLCPA\tickets\CLCPA-319-r2-evidence\repro_319_r2.js:250:45
