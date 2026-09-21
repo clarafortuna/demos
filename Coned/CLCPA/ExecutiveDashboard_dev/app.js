@@ -4003,7 +4003,14 @@ function utf8ByteLength(str) {
    * exactly that question for them.
    *
    * The failure mode makes waiting cheap: a total left out behaves as it
-   * does today, so the nominees lose nothing by being confirmed later. */
+   * does today, so the nominees lose nothing by being confirmed later.
+   *
+   * CONFIRMED 2026-09-21: these two rows and nothing else. The C2 nominees
+   * were REJECTED -- their silence is data-shaped and one axis is declared
+   * summable by CLCPA-254 -- and A2, A3, A4 and F9 were DEFERRED as data
+   * questions for the client conversation. Each nominee's evidence, and
+   * what it would take to add one, is in tickets/CLCPA-293-b7-registry.md.
+   * Read that before editing this list. */
   const B7_PREPARER_TOTALS = {
     /* the grand total covers programmes that are not rows of this table:
      * 336,599 against 283,852 itemised, and the 52,747 difference is real */
