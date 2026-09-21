@@ -1,6 +1,6 @@
 ======================================================================
 RENDER EQUIVALENCE -- every real table-year in payload.json
-baseline: commit 95a6f01
+baseline: commit 700f6e9
 patched : app.js
 ======================================================================
 
@@ -8,7 +8,7 @@ patched : app.js
   HTML differs              : 24   (expected: only where a bare & < > was emitted)
   VISIBLE TEXT differs      : 0   (expected: 0)
 
-  ok   the BASE revision resolved (95a6f01)
+  ok   the BASE revision resolved (700f6e9)
   ok   a meaningful number of table-years were rendered (149)
   ok   NO table-year changes what a reader sees
 

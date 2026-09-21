@@ -1,5 +1,5 @@
 {
-  "engineerTip": "40b74e2",
+  "engineerTip": "95a6f01",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -217,6 +217,13 @@
       "engineerCommit": "40b74e293c2c76e2e8a0a8f790b37116c26df1cc",
       "engineerSubject": "CLCPA-302: the history counts operator changes only",
       "integrationCommit": "5a8b81f",
+      "reconciledAt": "2026-09-21",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "95a6f017f3f8c27933a7253d6ad6377f3c1a044c",
+      "engineerSubject": "CLCPA-293 round 3: the discard reproduces, and round 2's verdict was wrong",
+      "integrationCommit": "17f9c2e",
       "reconciledAt": "2026-09-21",
       "validation": "tools/run_security.sh green"
     }

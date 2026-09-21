@@ -1,0 +1,87 @@
+CLCPA-293 round 3: every anatomy, in a real browser, before and after
+before = the shipped build; after = the candidate, which is NOT in app.js
+A8/2098, filed grand total 777 / 222, itemised rows come to 283852 / 162105
+(2098 is this probe's own year on a throwaway profile; the live org is
+ not touched and 2096 is not gone near.)
+
+=======================================================================
+ BEFORE (the shipped build)   C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev
+=======================================================================
+    1 rowless
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+
+    2 the row exists with no figures in it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[899,145]","[513,450]","57.1%"]
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 2 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a diff
+
+    3 it holds a figure its rows do NOT come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: (none naming a total)
+
+    4 it holds the figure its rows DO come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+        advisory: (none naming a total)
+
+    5 an ordinary stored row, as an import-and-save left it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+        advisory: (none naming a total)
+
+  page errors: []
+
+=======================================================================
+ AFTER (the candidate, NOT in app.js)   C:\Users\emely\AppData\Local\Temp\dac-cand-pPNKOG
+=======================================================================
+    1 rowless
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+
+    2 the row exists with no figures in it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[283,859]","[162,108]","57.1%"]
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+
+    3 it holds a figure its rows do NOT come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","[777]","[222]","28.6%"]
+        advisory: Taken as filed: 14 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+
+    4 it holds the figure its rows DO come to
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+
+    5 an ordinary stored row, as an import-and-save left it
+        the file stages          : 40 values
+        the page's staged summary: A8_2098.csv 26 rows, 2 columns with values, 40 values ready to import.
+        the draft banner         : (none)
+        the grand-total row now  : ["Total CES Programs Installations","283,936","162,141","57.1%"]
+        advisory: Taken as filed: 16 total cellsThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a dif
+
+  page errors: []

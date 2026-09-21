@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T02:25:07.648Z",
+  "generated": "2026-09-21T03:34:28.452Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,7 +13,7 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "95a6f01",
+    "lastReconciledEngineerTip": "700f6e9",
     "originMain": "d84c0d3"
   },
   "build": {
@@ -108,20 +108,14 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 15,
-    "baseline": "95a6f01 (origin/clcpa-293-r3)",
+    "round": 16,
+    "baseline": "700f6e9 (origin/clcpa-293-r3-build)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
       "commits": 2,
-      "tickets": [
-        "CLCPA-303 option (C)",
-        "CLCPA-320 pre-merge amendment",
-        "CLCPA-309",
-        "CLCPA-246",
-        "CLCPA-293 round 3 (correction, no code)"
-      ]
+      "note": "two documentation commits; zero deployed-surface change, build unchanged at 2a60af5a4b, no deploy"
     },
     "previousRounds": [
       {
@@ -170,9 +164,9 @@
     },
     {
       "id": "CLCPA-293",
-      "status": "OPEN — round 3 reproduced and diagnosed; round 2 verdict withdrawn by her",
-      "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row; round 2 wrongly argued the refusal was correct by conflating \"the engine can reproduce this number\" with \"this number is the engines\".",
-      "needs": "a ruling; she has sized the fix but shipped no app.js change"
+      "status": "OPEN and ESCALATED — the fix was BUILT and measured green, then withdrawn before merge",
+      "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row. Round 2 wrongly argued the refusal was correct; round 3 reproduced it; the ruled fix (ingestRebuildableTotals refusing only where a DECLARED rule derives the cell) met every condition -- 5 anatomies, 40 staged / 40 landed / 0 excluded, 6,135 cells with 0 table-years and 0 KPI figures moving, 48 assertions 0 failed -- and was still withdrawn.",
+      "needs": "a ruling on the CORRECTED wording. The ruling as worded (registry-derivability governs the import guard) COLLIDES WITH CLCPA-88. This is the third fix this ticket has withdrawn and the first withdrawn before merge, so the cost of leaving the wording unresolved is now measurable."
     }
   ]
 }
