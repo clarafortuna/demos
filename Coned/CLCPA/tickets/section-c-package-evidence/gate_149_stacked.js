@@ -212,8 +212,35 @@ const CLAIMS = [
     } },
 ];
 
+/* CLCPA-308 r2: A ROW CLASS THAT COMPOSES WITH THE CLAIMS BELOW IT.
+ *
+ * That ticket gives a row the table definition declares computed the same
+ * total-row treatment on the report page that it already had in the editor,
+ * which adds ` class="is-subtotal"` or ` class="is-total"` to a <tr>. On the
+ * 2024 and 2025 panels that is the ONLY difference and a claim of its own
+ * would match. On 2023 it lands on top of differences this package's own
+ * tickets already claim -- CLCPA-290's blank-to-dash among them -- and a
+ * claim that demands the rest be byte-identical cannot match a table-year
+ * that two tickets both touched.
+ *
+ * So the class is normalised away and the existing claims are asked again.
+ * Each one stays exactly as precise as it was: this widens nothing, it only
+ * stops one presentational attribute from hiding a claim that is already
+ * correct. A table-year whose CELLS moved still reaches the unclaimed list.
+ *
+ * The attribute is not waved through either: section Y below asserts it
+ * appears on exactly the rows DERIVED_ROWS declares, so "normalised for
+ * classification" is not "unchecked".
+ */
+const stripRowClass = (s) => String(s).replace(/ class="is-(?:sub)?total"/g, '');
+
 function classify(id, y, a, b) {
   for (const c of CLAIMS) if (c.hit(id, y, a, b)) return c.id;
+  const na = stripRowClass(a), nb = stripRowClass(b);
+  if (na !== a || nb !== b) {
+    if (na === nb) return 'CLCPA-308 r2';
+    for (const c of CLAIMS) if (c.hit(id, y, na, nb)) return c.id + ' + CLCPA-308 r2';
+  }
   return null;
 }
 
@@ -307,6 +334,63 @@ guard('Z: the compare panel renders too, and every difference is claimed', () =>
 
 /* =============== the claims are REAL, not decorative ================== */
 say('');
+/* =========== Y: the row class lands where the DECLARATION says ========= */
+say('');
+say('=== Y. CLCPA-308 r2: the row class, on exactly the declared rows ===');
+guard('Y: the normalised attribute is checked, not waved through', () => {
+  /* classify() normalises this attribute away so it cannot hide another
+   * ticket's claim. That is only honest if something asserts where it
+   * actually lands, which is this. Read from the shipped DERIVED_ROWS, so
+   * the count comes from the declaration and not from a number typed here. */
+  const CRLF = String.fromCharCode(13) + String.fromCharCode(10);
+  const i = SRC.indexOf('const DERIVED_ROWS');
+  const blk = i < 0 ? '' : SRC.slice(i, SRC.indexOf(CRLF + '  };', i));
+  const declared = {};
+  (blk.match(/^\s*([A-Z]\d*): \[[^\]]*\]/gm) || []).forEach((l) => {
+    const rows = (l.match(/rowPct\((\d+)/g) || []).map(t => Number(/\d+/.exec(t)[0]));
+    if (rows.length) declared[/([A-Z]\d*):/.exec(l)[1]] = rows;
+  });
+  const ids = Object.keys(declared);
+  ok(ids.length >= 4, 'Y1 the declaration names ' + ids.length + ' table(s): ' + ids.join(', '));
+  let checked = 0, wrong = [];
+  ids.forEach((id) => {
+    const t = P.tables[id];
+    if (!t) return;
+    Object.keys(t.data || {}).sort().forEach((y) => {
+      if (!(t.data[y] || []).length) return;
+      let a2, b2;
+      try {
+        a2 = String(OLD.attempt(api => api.renderSourceTables([t], y, {}, id)));
+        b2 = String(NEW.attempt(api => api.renderSourceTables([t], y, {}, id)));
+      } catch (e) { wrong.push(id + ':' + y + ' THREW'); return; }
+      checked++;
+      const cnt = (x) => (x.match(/ class="is-(?:sub)?total"/g) || []).length;
+      const added = cnt(b2) - cnt(a2);
+      const want = declared[id].length;
+      /* PRESENCE, NOT DELTA, and F7 is why. Its declared row is labelled
+       * "% of Grand Total", which isTotalRow already matched, so it CARRIED
+       * the treatment before this ticket and gains nothing now -- added 0
+       * against 1 declared. A delta assertion called that a defect when it is
+       * the correct outcome: the ticket exists to cover the rows a label does
+       * NOT catch, and it must not double-decorate the ones it does.
+       *
+       * So two bounds, which together catch both failure directions: the
+       * table-year must end up with at least as many decorated rows as it
+       * declares, and must not gain more than it declares. */
+      if (cnt(b2) < want) {
+        wrong.push(id + ':' + y + ' ends with ' + cnt(b2) + ' decorated, declares ' + want);
+      } else if (added > want) {
+        wrong.push(id + ':' + y + ' gained ' + added + ', declares only ' + want);
+      }
+    });
+  });
+  wrong.slice(0, 4).forEach(w => say('      ' + w));
+  ok(checked >= 12, 'Y2 every declared table-year is rendered on both sides: ' + checked);
+  ok(wrong.length === 0,
+    'Y3 each ends up decorated on its declared rows and gains no more: ' +
+    wrong.length + ' mismatch(es)');
+});
+
 say('=== C. each claim matched something, on at least one panel =========');
 guard('C: a claim that matches nothing is a fix that did not land', () => {
   CLAIMS.forEach(c => {

@@ -363,7 +363,7 @@ guard('Z: the report page is byte-identical on all 149', () => {
    * numeric alignment class. This suite's own probe, on its own BASE,
    * confirmed every remaining difference is that class on an empty cell.
    * The list is SORTED because it is compared against a sorted copy. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'G1:2023', 'G1:2024', 'J4:2025']),
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'D2:2023', 'D2:2024', 'D2:2025', 'D3:2023', 'D3:2024', 'D3:2025', 'D4:2023', 'D4:2024', 'D4:2025', 'G10:2024', 'G1:2023', 'G1:2024', 'J4:2025']),
      'Z2 and the panels move on exactly eight, six corrected by CLCPA-294 ' +
      'and CLCPA-290, two empty cells aligned by CLCPA-319: ' +
      JSON.stringify(moved.slice().sort()));
@@ -552,6 +552,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
     draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
     renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* CLCPA-308 round 2, named so the count stays exact */
+    isDeclaredComputedRow: 'NOT this ticket: CLCPA-308 round 2: a row the TABLE DEFINITION declares computed takes the computed role, so the editor and the section page stop disagreeing about what the row is; asked of DERIVED_ROWS, never of a label or a per-row list (new)',
     /* CLCPA-307 round 2, named so the count stays exact */
     ingestPrimaryLabel: 'NOT this ticket: CLCPA-307 round 2: the ONE place the confirm button is named, because that button is contextual -- Add Year for a fresh year, Load Data for one that exists -- so a literal is wrong on one of the two paths every time (new)',
     ingestRejectedStillDoes: 'NOT this ticket: CLCPA-307 round 2: and what that button will still do to a rejected file, which is not the same thing on the two paths: on an existing year nothing is created, so the promise is dropped rather than reworded (new)',
@@ -575,7 +577,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 99, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 100, 'X1 exactly this many functions changed: ' + changed.length);
   ['detectAvgColumns', 'detectPctColumns',
    'phantomSpacerCols', 'dacCol'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

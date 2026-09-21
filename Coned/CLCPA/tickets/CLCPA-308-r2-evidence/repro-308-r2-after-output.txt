@@ -1,0 +1,48 @@
+CLCPA-308 round 2: a declared computed row, on both surfaces
+base 2a45a7e (PR #305 head)   tip 2a45a7e
+serving: the working tree
+
+DERIVED_ROWS declares D3 rows: [2,4]
+  those are the rows that must look computed; every other row must not.
+
+SURFACE 1  the editor, Report Data / D3 / 2098
+  the grid renders 5 body row(s)
+           row 0: ["INPUT:Total # of subscribers","INPUT:20,679","INPUT:1,917","TEXT:×"]
+           row 1: ["INPUT:Total # of subscribers in DACs","INPUT:7,198","INPUT:983","TEXT:×"]
+  DECLARED row 2: ["CALC:Percentage of subscribers in DACs","CALC:0.348","CALC:0.513","TEXT:"]
+           row 3: ["INPUT:Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program","INPUT:1,917","INPUT:731","TE
+  DECLARED row 4: ["CALC:Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program","CALC:0.093","CALC:0.381","
+
+  PASS  a declared computed row offers NO typeable value cell (row 2): ["CALC:0.348","CALC:0.513","TEXT:"]
+  PASS  a declared computed row offers NO typeable value cell (row 4): ["CALC:0.093","CALC:0.381","TEXT:"]
+  PASS  a DATA row is still typeable (row 0)
+
+SURFACE 2  the section page, #/section/D, D3 tab
+  PASS  the D3 source tab opened
+  row 0  class=""  "Total # of subscribers"
+  row 1  class=""  "Total # of subscribers in DACs"
+  row 2  class="is-subtotal"  "Percentage of subscribers in DACs"
+  row 3  class=""  "Total # of subscribers who are low-income customers "
+  row 4  class="is-total"  "Percentage of subscribers who are low-income custome"
+
+  PASS  the page gives it the total-row treatment: "Percentage of subscribers in DACs" class="is-subtotal"
+  PASS  the page gives it the total-row treatment: "Percentage of subscribers who are low-in" class="is-total"
+  PASS  the page shows 2 percentage row(s)
+
+NON-REGRESSION  a count edit still recomputes the row, and the save
+                still bills only the operator own cell (CLCPA-302)
+  the declared row before the edit: ["CALC:0.348","CALC:0.513"]
+  PASS  the count cell the percentage divides by is typeable
+  the declared row after the edit : ["CALC:0.484","CALC:0.513"]
+  PASS  the declared row RECOMPUTED from the count edit
+  PASS  and stayed read-only while doing it: ["CALC:0.484","CALC:0.513"]
+  the confirm says: 1 cell change(s)
+  PASS  the confirm bills ONE cell, the operator own: 1
+  the history records: ["Total # of subscribers in DACs / Up to 2098"]
+  PASS  the history records one cell: 1
+  PASS  and it is NOT the computed row: ["Total # of subscribers in DACs / Up to 2098"]
+
+
+  PASS  no page errors: []
+
+14 passed, 0 failed

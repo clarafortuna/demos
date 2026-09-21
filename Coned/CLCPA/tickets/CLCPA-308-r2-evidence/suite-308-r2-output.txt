@@ -1,0 +1,34 @@
+CLCPA-308 round 2: a declared computed row, read-only on both surfaces
+BASE 2a45a7e   app.js working tree
+
+A. THE READER, ASKED OF THE TABLE DEFINITION
+  PASS  A1 isDeclaredComputedRow is declared
+  PASS  A2 and reads DERIVED_ROWS, the table definition
+  PASS  A3 with no label pattern and no per-row list inside it
+  PASS  A4 the row role consults it
+  PASS  A5 which is why the role now takes the row index
+  PASS  A6 isComputedShareLabel is byte-identical to BASE: J8 and F7 are untouched
+
+B. BOTH SURFACES, ONE READER
+  PASS  B1 the role is declared once and called from the editor: 3 occurrence(s)
+  PASS  B2 no editor call site was left without the index
+  PASS  B3 the SECTION PAGE asks the same reader, index-translated
+  PASS  B4 and gives it the total-row treatment
+  PASS  B5 BASE 2a45a7e has no such reader at all
+
+C. WHAT THE READER SAYS, ROW BY ROW
+    declared rows: 9 (missed 0)   data rows: 16 (wrongly claimed 0)
+  PASS  C1 every one of the 9 declared rows is recognised: missed 0
+  PASS  C2 and none of the 16 data rows is claimed: claimed 0
+  PASS  C3 the declared row takes the computed role: computed
+  PASS  C4 whose value cells are not open
+  PASS  C5 nor is its label, which is structure
+  PASS  C6 and a data row keeps the data role: data
+  PASS  C7 the label alone does not lock a row in an undeclared table: data
+
+D. WHAT THE ENGINE COMPUTES DOES NOT MOVE
+    table-years compared: 12
+  PASS  D1 every declared table-year is compared: 12
+  PASS  D2 and not one displayed row changes: this is presentation only (0 moved)
+
+20 passed, 0 failed
