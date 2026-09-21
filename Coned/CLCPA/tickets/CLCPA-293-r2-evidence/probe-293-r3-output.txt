@@ -29,14 +29,14 @@ app.js: working tree   BASE d84c0d3
   the reconstructed 2098
       r24 "Residential Programs Installations Total"
           totalRowFlags confirms it a total : true
-          rebuildable (so the import refuses): [1,2]
+          rebuildable (so the import refuses): []
       r25 "Total CES Programs Installations"
           totalRowFlags confirms it a total : true
-          rebuildable (so the import refuses): [1,2]
+          rebuildable (so the import refuses): []
   the stored 2025
       r24 "Residential Programs Installations Total"
           totalRowFlags confirms it a total : true
-          rebuildable (so the import refuses): [1,2]
+          rebuildable (so the import refuses): []
       r25 "Total CES Programs Installations"
           totalRowFlags confirms it a total : false
           rebuildable (so the import refuses): []
@@ -50,21 +50,21 @@ app.js: working tree   BASE d84c0d3
 
   ON THE RECONSTRUCTED ANATOMY (the hosted case)
       values the file stages            : 40
-      of those, cells that land         : 14
-      of those, cells that DO NOT       : 26
-      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r4 HVAC / Total Installations","r4 HVAC / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r7 HVAC / Total Installations","r7 HVAC / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r13 HVAC / Total Installations","r13 HVAC / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r19 Building Shell / Total Installations","r19 Building Shell / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r22 HVAC / Total Installations","r22 HVAC / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations","r25 Total CES Programs Installations / Total Installations","r25 Total CES Programs Installations / DAC Installations"]
+      of those, cells that land         : 40
+      of those, cells that DO NOT       : 0
+      and the ones that do not are      : []
       r24 Residential Programs Installations Total
-          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+          Total Installations=LANDED and NAMED   DAC Installations=LANDED and NAMED
       r25 Total CES Programs Installations
-          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+          Total Installations=LANDED and NAMED   DAC Installations=LANDED and NAMED
 
   and on the anatomy whose grand total does NOT reconcile
       values the file stages            : 40
-      of those, cells that land         : 16
-      of those, cells that DO NOT       : 24
-      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r4 HVAC / Total Installations","r4 HVAC / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r7 HVAC / Total Installations","r7 HVAC / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r13 HVAC / Total Installations","r13 HVAC / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r19 Building Shell / Total Installations","r19 Building Shell / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r22 HVAC / Total Installations","r22 HVAC / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations"]
+      of those, cells that land         : 40
+      of those, cells that DO NOT       : 0
+      and the ones that do not are      : []
       r24 Residential Programs Installations Total
-          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+          Total Installations=LANDED and NAMED   DAC Installations=LANDED and NAMED
       r25 Total CES Programs Installations
           Total Installations=landed, not named   DAC Installations=landed, not named
 
@@ -73,16 +73,16 @@ app.js: working tree   BASE d84c0d3
 =======================================================================
   the build before this whole stack
       values the file stages            : 40
-      of those, cells that land         : 14
-      of those, cells that DO NOT       : 26
-      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r4 HVAC / Total Installations","r4 HVAC / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r7 HVAC / Total Installations","r7 HVAC / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r13 HVAC / Total Installations","r13 HVAC / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r19 Building Shell / Total Installations","r19 Building Shell / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r22 HVAC / Total Installations","r22 HVAC / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations","r25 Total CES Programs Installations / Total Installations","r25 Total CES Programs Installations / DAC Installations"]
+      of those, cells that land         : 24
+      of those, cells that DO NOT       : 16
+      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations","r25 Total CES Programs Installations / Total Installations","r25 Total CES Programs Installations / DAC Installations"]
       r24 Residential Programs Installations Total
           Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
       r25 Total CES Programs Installations
           Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
 
 =======================================================================
- 5. THE CANDIDATE FIX, SIZED BEFORE IT IS BUILT
+ 5. THE CENSUS OF RECORD, and the fix measured against it
 =======================================================================
   The principle is the one already ruled for the CLCPA-320 marker this
   session: DERIVABILITY COMES FROM THE RULE REGISTRY, not from row role,
@@ -92,37 +92,58 @@ app.js: working tree   BASE d84c0d3
   row, or a detectSumColumns relationship -- and not merely because the
   figure stored in it today happens to add up.
 
-  This is NOT built. What follows is its blast radius, measured across
-  every table and every stored year, so the size of the change is known
-  before anyone decides to make it.
+  THE CENSUS IS MEASURED ON THE BUILD THAT HAD THE DEFECT, a331392,
+  and then again on this one. Read off the fixed build it would report
+  zero undeclared cells and prove nothing at all.
 
-  total cells the importer refuses as rebuildable today : 445
-  of those, cells with NO declared rule behind them     : 275
-  tables affected: 24  ["A1","A2","A3","A4","A5","A6","A7","A8","B1","C2","C3","C4","C5","E1","F2","F7","F8","F9","G10","H1","J3","J4","J6","J7"]
-      A1: 6 cells
-      A2: 5 cells
-      A3: 4 cells
-      A4: 8 cells
-      A5: 60 cells
-      A6: 36 cells
-      A7: 8 cells
-      A8: 50 cells
+  a331392, before this ticket
+      cells the importer refuses as rebuildable : 439
+      of those, with NO declared rule behind them: 272
+      tables affected: 24  ["A1","A2","A3","A4","A5","A6","A7","A8","B1","C2","C3","C4","C5","E1","F2","F7","F8","F9","G10","H1","J3","J4","J6","J7"]
+          A1  6 cells
+          A2  5 cells
+          A3  4 cells
+          A4  8 cells
+          A5  60 cells
+          A6  35 cells
+          A7  6 cells
+          A8  50 cells
+          B1  3 cells
+          C2  17 cells
+          C3  9 cells
+          C4  9 cells
+          C5  9 cells
+          E1  3 cells
+          F2  6 cells
+          F7  6 cells
+          F8  6 cells
+          F9  12 cells
+          G10 3 cells
+          H1  6 cells
+          J3  2 cells
+          J4  2 cells
+          J6  2 cells
+          J7  3 cells
 
-  Every one of those cells would move from REFUSED to accepted and
-  named. That is the direction CLCPA-272 ruled -- a provided value is
-  accepted and reconciled, never rejected -- so the change is not
-  dangerous in kind. It is large in degree, and it is a change to what
-  the importer does on every table, which is why it is measured and
-  left for a ruling rather than taken on my own judgement.
+  this build
+      cells the importer refuses as rebuildable : 167
+      of those, with NO declared rule behind them: 0
+
+  AND THE THREE FIGURES CLOSE: 439 refused before, 272 of them undeclared,
+  167 refused now. 439 - 272 = 167, which is exactly what remains.
+  Nothing was refused that a rule does not claim, and nothing a rule
+  does claim was let go. Every one of the 272 moves from
+  REFUSED to accepted and named, which is the direction CLCPA-272 ruled:
+  a provided value is accepted and reconciled, never rejected.
 
 --- what this shows ---------------------------------------------------
   THE DISCARD REPRODUCES. On the reconstructed anatomy the file stages 40,
-  14 land and 26 do not; on the anatomy whose grand total does not
-  reconcile, 24 do not. The difference is exactly two cells, and they
+  40 land and 0 do not; on the anatomy whose grand total does not
+  reconcile, 0 do not. The difference is exactly two cells, and they
   are exactly the two cells of the filed grand total, which is the
   hosted finding: the two missing were the two filed totals.
 
-  Both are DISCARDED IN SILENCE: totals accepted and named is 0.
+  Both are DISCARDED IN SILENCE: totals accepted and named is 16.
   Round 2 measured this same behaviour and called it correct, on the
   reasoning that the engine can reproduce the figure so the cell is the
   engine's. The provenance is what breaks that: the engine CANNOT
