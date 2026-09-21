@@ -13296,7 +13296,11 @@ function renderSectionD() {
       };
 
       // ===== Build a horizontal bar metric (Total / DAC + Non-DAC split, both years) =====
-      const dBarMetric = (label, fmtFn, total, dac, prevTotal, prevDac, tableId, isLmi) => {
+      /* CLCPA-311 / D-04: `share` carries a STORED percentage for a bar whose
+       * share the app cannot compute from the two counts it is given. The LMI
+       * bar is that bar: it has no DAC split, so it was handed dac = null and
+       * the slot fabricated a figure out of it. See the share maths below. */
+      const dBarMetric = (label, fmtFn, total, dac, prevTotal, prevDac, tableId, isLmi, share) => {
         const yoy = yoyCalc(total, prevTotal);
         const nonDac = (total != null && dac != null) ? total - dac : null;
         const prevNonDac = (prevTotal != null && prevDac != null) ? prevTotal - prevDac : null;
@@ -13309,8 +13313,23 @@ function renderSectionD() {
         const currBarW    = total      ? (total    / maxTotal)  * 100 : 0;
         const prevBarW    = prevTotal  ? (prevTotal/ maxTotal)  * 100 : 0;
 
-        const dacShare   = total     ? (dac     / total)     : null;
-        const prevDacShare = prevTotal ? (prevDac / prevTotal) : null;
+        /* CLCPA-311 / D-04: A SHARE THE APP CANNOT JUSTIFY IS NOT PRINTED.
+         *
+         * This read `total ? (dac / total) : null`, and the LMI bar is handed
+         * dac = null because it has no DAC split. `null / 1917` is 0 in
+         * JavaScript, not null, so the guard below never reached its dash and
+         * Section D published "0.0%" on every stored year. D3 files the real
+         * figure two rows down: 0.093 cumulative for 2025, 0.063 for 2024.
+         *
+         * So: a stored share is used when the table files one, the computed
+         * share is used when both counts are present, and when neither holds
+         * the value is NULL and the slot shows a dash. Nothing coerces to
+         * zero. The bar WIDTHS keep their numeric fallback just above, where a
+         * missing count legitimately means a zero-width segment. */
+        const dacShare = (share && share.curr != null) ? share.curr
+          : ((total && dac != null) ? (dac / total) : null);
+        const prevDacShare = (share && share.prev != null) ? share.prev
+          : ((prevTotal && prevDac != null) ? (prevDac / prevTotal) : null);
 
         if (isLmi) {
           // LMI: single-color bar (no Non-DAC split), green
@@ -13335,7 +13354,7 @@ function renderSectionD() {
                     <span class="d-bar-num">${fmtFn(total)}</span>
                   </div>
                 </div>
-                <span class="d-bar-total">${total != null ? fmtPct(dacShare) : '—'}</span>
+                <span class="d-bar-total">${dacShare != null ? fmtPct(dacShare) : '—'}</span>
                 <span class="d-bar-yoy-slot">${yoyPill(yoy)}</span>
               </div>
               <div class="d-bar-row d-bar-row-prev">
@@ -13345,7 +13364,7 @@ function renderSectionD() {
                     <span class="d-bar-num">${prevTotal != null ? fmtFn(prevTotal) : '—'}</span>
                   </div>
                 </div>
-                <span class="d-bar-total">${prevTotal != null ? fmtPct(prevDacShare) : '—'}</span>
+                <span class="d-bar-total">${prevDacShare != null ? fmtPct(prevDacShare) : '—'}</span>
                 <span class="d-bar-yoy-slot"></span>
               </div>
             </div>`;
@@ -13407,6 +13426,14 @@ function renderSectionD() {
       const d3Subs    = getDRow('D3', ['total', '# of subscribers']);
       const d3SubsDac = getDRow('D3', ['# of subscribers in dac']);
       const d3Lmi     = getDRow('D3', ['low-income', 'energy affordability']);
+      /* CLCPA-311 / D-04: D3 FILES THIS SHARE, so it is read rather than
+       * invented. getDRow takes the first row whose label contains every
+       * term, and D3 carries the count and the percentage as two rows with
+       * otherwise identical wording -- adding "percentage" is what walks past
+       * the count above it to the figure itself. Measured on the tip: 0.093
+       * cumulative for 2025, 0.063 for 2024. A year that files no such row
+       * yields null here and the slot shows a dash. */
+      const d3LmiPct  = getDRow('D3', ['percentage', 'low-income', 'energy affordability']);
 
       const d4Proj    = getDRow('D4', ['total', '# of projects']);
       const d4ProjDac = getDRow('D4', ['# of projects in dac']);
@@ -13448,7 +13475,8 @@ function renderSectionD() {
           </div>
           <div class="d-card-body">
             ${dBarMetric('Subscribers',         fmtCompact, d3Subs.upTo, d3SubsDac.upTo, d3Subs.prevCum, d3SubsDac.prevCum, 'D3', false)}
-            ${dBarMetric('LMI subscribers (EAP)', fmtCompact, d3Lmi.upTo, null,           d3Lmi.prevCum,  null,             'D3', true)}
+            ${dBarMetric('LMI subscribers (EAP)', fmtCompact, d3Lmi.upTo, null,           d3Lmi.prevCum,  null,             'D3', true,
+                                   { curr: d3LmiPct.upTo, prev: d3LmiPct.prevCum })}
           </div>
         </div>`;
 

@@ -1,0 +1,40 @@
+========================================================================
+  MUTATION CONTROLS: CLCPA-311 / D-04
+  app.js sha256[0:12] before: 29401dcd6759
+========================================================================
+
+  [1] the share is computed from a null again (the defect itself)
+      expected red : C1, C3, C4, F1
+      actually red : C1, C3, C4, F1
+      ok
+
+  [2] the slot gates on the total again, so the dash is unreachable
+      expected red : D1, D3
+      actually red : D1, D3
+      ok
+
+  [3] the stored share is dropped: honest, and useless
+      expected red : E2, F1
+      actually red : E2, F1
+      ok
+
+  [4] the call reads the COUNT row instead of the share (the "percentage" term goes)
+      expected red : E1, F1
+      actually red : E1, F1
+      ok
+
+  [5] a filed share of zero is treated as missing
+      expected red : C5, F1
+      actually red : C5, F1
+      ok
+
+========================================================================
+  app.js sha256[0:12] after : 29401dcd6759
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    24 passed, 0 failed   exit 0
+========================================================================
+  all 5 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+========================================================================

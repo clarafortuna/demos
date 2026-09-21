@@ -28,6 +28,14 @@ async function open(opts) {
   const B = await launch({ port: cdpPort });
   const base = 'http://127.0.0.1:' + httpPort + '/';
 
+  /* THE SERVER MUST ANSWER BEFORE THE FIRST NAVIGATION. Launching Chrome
+   * takes long enough that python is usually listening by now, which is why
+   * this was missing and worked for weeks. On a cold machine it is not, the
+   * goto lands on about:blank, and the first symptom is a SecurityError from
+   * the sessionStorage write two lines down -- a message that names neither
+   * the server nor the navigation. */
+  if (srv && srv.ready) await srv.ready;
+
   await B.goto(base + 'index.html', 'body');
   await B.run('sessionStorage.setItem("dac_authenticated","true");');
   if (o.seedStorage) await B.run(o.seedStorage);
