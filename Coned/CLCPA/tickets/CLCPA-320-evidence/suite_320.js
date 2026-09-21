@@ -1,5 +1,5 @@
-/* CLCPA-320: the workbook's total-row marker follows the row's ROLE, so it is
- * the same in every year.
+/* CLCPA-320: the workbook's total-row marker follows the row's ROLE, and then
+ * only where the engine can DERIVE the cell.
  *
  * REPRODUCED IN A BROWSER FIRST, real downloads captured off the real button
  * (repro_320.js). A3's Total row, same table, two years, shipped build:
@@ -7,14 +7,26 @@
  *   2098 (fresh)  ["Total", "(no value)", "(calculated)", "(calculated)", "(calculated)"]
  *   2023 (stored) ["Total", "",           2354317,        "",             ""]
  *
- * Three empty cells in a total row is an invitation to type into them. After
- * this change the two agree.
+ * Three empty cells in a total row is an invitation to type into them.
  *
  * THE CAUSE. ingestComputed built its total-row set from totalRowFlags, where
  * structure proposes and ARITHMETIC confirms. A3/2023's stored Total does not
  * reproduce its own rows, so nothing confirmed it, so the workbook treated it
- * as an ordinary row. The marker is a statement about what the TABLE IS and
- * cannot depend on whether a particular year's figures happen to add up.
+ * as an ordinary row.
+ *
+ * AMENDED BEFORE MERGE, on the owner's ruling, and the amendment narrows this
+ * ticket. Role alone marked J8's Total, whose dollar figures are B7-class and
+ * belong to the preparer -- telling them to leave blank the one figure only
+ * they can supply. So the marker now consults DERIVABILITY from the
+ * registries as well as role, and block J asserts that no marked total row is
+ * underivable by any of them.
+ *
+ * THE COST, STATED: A3/2023, A3/2024 and A4/2023 lose the marker they gained
+ * here, because no registry signal reaches them either. A3 is therefore
+ * marked in 2025 and not in 2023, which is the year-dependence this ticket
+ * set out to remove. The root cause underneath is the payload data question:
+ * those years' stored totals do not equal their own rows. Raised in the
+ * report rather than resolved by bending the rule.
  *
  * WHAT IS DELIBERATELY NOT CHANGED: the IMPORT SKIP. CLCPA-272 ruled that a
  * provided value is accepted and reconciled, never rejected, so widening what
@@ -90,7 +102,9 @@ function harness(src, want) {
 }
 
 const WANT = ['ingestComputed', 'getTableSchema', 'totalRowFlags',
-  'isAnchoredTotalRowLabel', 'recomputeTotals'];
+  'isAnchoredTotalRowLabel', 'recomputeTotals',
+  /* the derivability registries the pre-merge ruling names */
+  'detectSumColumns', 'DERIVED_COLS', 'DERIVED_ROWS'];
 const NEW = harness(SRC, WANT), OLD = harness(BASE_SRC, WANT);
 
 /* EVERY accessor call inside attempt: the object ingestComputed returns is a
@@ -127,11 +141,26 @@ guard('A: A3 across its three years', () => {
     const i = rows.findIndex(r => NEW.attempt(api => api.isAnchoredTotalRowLabel(r[0])));
     seen[y] = i < 0 ? null : v[i].marks;
   });
-  ok(JSON.stringify(seen['2023']) === JSON.stringify([1, 2, 3, 4]) &&
-     JSON.stringify(seen['2024']) === JSON.stringify([1, 2, 3, 4]) &&
-     JSON.stringify(seen['2025']) === JSON.stringify([1, 2, 3, 4]),
-     'A1 A3s Total row is marked in all four value columns in EVERY year: ' +
-     JSON.stringify(seen));
+  /* AMENDED BEFORE MERGE, and the amendment costs this case.
+   *
+   * Round 1 of this ticket marked A3's Total in every year, which is what it
+   * was for. The J8 ruling then requires that a total the engine cannot
+   * DERIVE is never marked, and A3/2023 and A3/2024 carry no derivability
+   * signal at all: no declared row, no declared column, no derivable total
+   * column, and an arithmetic confirmation that fails because the stored
+   * figure does not reconcile with its own rows.
+   *
+   * So A3 is marked in 2025 and not in 2023 or 2024, which is year-dependent
+   * again. That is the ruling applied honestly rather than a rule bent to
+   * keep a number: the root cause is the payload data question -- those two
+   * years' stored totals do not equal their rows -- and it is raised in the
+   * report, not papered over here. */
+  ok(JSON.stringify(seen['2025']) === JSON.stringify([1, 2, 3, 4]),
+     'A1 A3s Total is marked where the engine derives it, 2025: ' +
+     JSON.stringify(seen['2025']));
+  ok(seen['2023'].length === 0 && seen['2024'].length === 0,
+     'A1b and NOT marked in 2023 or 2024, where no derivability signal holds: ' +
+     JSON.stringify([seen['2023'], seen['2024']]));
 
   /* and the same question on BASE, so this suite cannot pass by accident */
   const was = {};
@@ -161,7 +190,7 @@ guard('B: role decides, in every year', () => {
    *
    * Comparing the two builds cell by cell has no such blind spot: whatever
    * the app decides, the difference from BASE is what it is. */
-  const moved = [], strays = [];
+  const moved = [], strays = [], b2 = [];
   const walk = (getRows, label) => {
     Object.keys(P.tables).sort().forEach((id) => {
       const t = P.tables[id];
@@ -178,6 +207,12 @@ guard('B: role decides, in every year', () => {
           /* CLCPA-308 is in the same tree and marks the DERIVED ROWS of D2,
            * D3, D4 and F7. Named, so this ticket's own set stays exact. */
           if (/^(D2|D3|D4|F7)$/.test(id)) return;
+          /* CLCPA-303 is in the same tree too, and declares B2's column-wise
+           * total row. Its own bucket rather than a skip of the whole table,
+           * so the rows it moves are counted and named and any OTHER B2 row
+           * still lands in strays. */
+          if (id === 'B2') { b2.push(where + ' ' + JSON.stringify(String(r[0]).slice(0, 20)) +
+            (lost.length ? ' LOST ' + JSON.stringify(lost) : ' gained')); return; }
           if (NEW.attempt(api => api.isAnchoredTotalRowLabel(r[0])) && !lost.length) {
             moved.push(where);
           } else {
@@ -194,9 +229,23 @@ guard('B: role decides, in every year', () => {
   /* MEASURED, not guessed: the first cut of the old B1 said 93 from memory
    * and was wrong by 62. A count written from recollection is a fabricated
    * figure with an assertion wrapped round it. */
-  ok(moved.length === 25,
-     'B1 exactly 25 total rows gain a marker, and they are the rows this ' +
+  /* 21, not 25: the pre-merge amendment withholds the marker from the four
+   * total rows no derivability signal reaches. */
+  ok(moved.length === 21,
+     'B1 exactly 21 total rows gain a marker, and they are the rows this ' +
      'ticket names: ' + moved.length);
+  /* CLCPA-303's rows, counted and named rather than skipped. All six are
+   * BODY rows of B2 in the BLANK anatomy, gaining the marker on the
+   * row-wise total column. A fresh B2 template used to invite the preparer
+   * to fill a cell the engine computes: detectSumColumns needs values to
+   * confirm the relationship and an empty template has none, so the marker
+   * depended on whether the template happened to carry data. A declaration
+   * does not. The stored anatomy is untouched, which is why no stored-year
+   * row appears in this list. */
+  ok(b2.length === 6 && b2.every(x => /^blank/.test(x) && / gained$/.test(x)),
+     'B1b and CLCPA-303 moves exactly six more, every one a B2 body row in ' +
+     'a BLANK template gaining the row-wise total marker: ' + b2.length +
+     ' ' + JSON.stringify(b2.slice(0, 2)));
   ok(strays.length === 0,
      'B2 and NOT ONE other row moves, in either direction: ' +
      JSON.stringify(strays.slice(0, 6)));
@@ -218,6 +267,68 @@ guard('B: a data row that merely mentions a total is untouched', () => {
   ok(NEW.attempt(api => api.isAnchoredTotalRowLabel('County Total')) === true &&
      NEW.attempt(api => api.isAnchoredTotalRowLabel('Total')) === true,
      'B4 while a label that ENDS at a total is one');
+});
+
+/* ===================== J: the pre-merge ruling ======================== */
+say('');
+say('=== J. a total the engine cannot derive is NEVER marked =============');
+guard('J: derivability, not role alone', () => {
+  /* THE RULING: "A total row that is NOT derivable from its own rows must
+   * never be marked (calculated): the marker derivation consults
+   * DERIVABILITY (DERIVED_ROWS membership or the rule registry), not row
+   * role alone." Checked across every total row in the payload, and the
+   * derivability signals are read from the app's own registries. */
+  let markedRows = 0, unmarked = [], violations = [];
+  Object.keys(P.tables).sort().forEach((id) => {
+    const t = P.tables[id];
+    Object.keys(t.data || {}).sort().forEach((y) => {
+      const rows = t.data[y];
+      if (!rows || !rows.length) return;
+      const schema = NEW.attempt(api => api.getTableSchema(t, y));
+      const signals = NEW.attempt((api) => {
+        const c = api.ingestComputed(rows, id, schema);
+        const flags = api.totalRowFlags(rows, id, schema) || [];
+        const sums = api.detectSumColumns(schema, rows, id).map(s => s.column);
+        const dcols = (api.DERIVED_COLS[id] || []).map(d => d.column);
+        const drows = (api.DERIVED_ROWS[id] || []).map(d => d.row);
+        return rows.map((r, i) => {
+          if (!api.isAnchoredTotalRowLabel(r[0])) return null;
+          const m = [];
+          for (let col = 1; col < schema.length; col++) {
+            if (c.marksInTemplate(i, col)) m.push(col);
+          }
+          return { i: i, label: String(r[0]), marks: m, arith: !!flags[i],
+                   sums: sums, dcols: dcols, drows: drows };
+        });
+      });
+      signals.forEach((s) => {
+        if (!s) return;
+        const derivable = s.arith || s.drows.indexOf(s.i) >= 0 ||
+          s.dcols.length > 0 || s.sums.length > 0;
+        if (s.marks.length) {
+          markedRows++;
+          if (!derivable) violations.push(id + ':' + y + ' r' + s.i + ' ' + s.label);
+        } else {
+          unmarked.push(id + ':' + y + ' r' + s.i + ' ' + JSON.stringify(s.label));
+        }
+      });
+    });
+  });
+  ok(violations.length === 0,
+     'J1 NOT ONE marked total row is underivable by every registry signal: ' +
+     JSON.stringify(violations.slice(0, 6)));
+  ok(markedRows === 151,
+     'J2 total rows the workbook marks: ' + markedRows);
+  ok(unmarked.length === 4,
+     'J3 and exactly four are withheld, every one of them with no signal at ' +
+     'all: ' + JSON.stringify(unmarked));
+  ok(unmarked.some(u => /^J8:2025/.test(u)),
+     'J4 including J8s Total, which the ruling names: its dollar figures ' +
+     'belong to the preparer and 192,638,756 is not what its rows come to');
+  /* and the structural form of the rule, so it cannot be reverted quietly */
+  ok(/const engineDerives = \(rr, cc\) => !!totals\[rr\] \|\| !!derivedRowSet\[rr\] \|\|/
+     .test(codeOnly(SRC)),
+     'J5 the marker consults derivability from the registries, in one place');
 });
 
 /* ===================== C: the import is not touched ==================== */

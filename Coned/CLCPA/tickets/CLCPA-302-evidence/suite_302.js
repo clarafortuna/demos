@@ -224,13 +224,23 @@ guard('B: named, not guessed', () => {
     });
   });
   /* THE UNIFYING PROPERTY IS "THE STRIP LEFT IT IN PLACE", not "the column
-   * is undeclared". 28 of the 29 are a total row's cell in a column that is
-   * not declared derived, so the strip never looks at it. The 29th is E1's
-   * "Percentage Affecting DACs" on its Grand Total, which IS declared: the
-   * strip refuses to null it because CLCPA-241's kept-figure guard protects a
-   * filed figure the derivation does not reproduce (0.45 filed against
-   * 0.4527932766160754 computed). Two routes, one shape -- an engine cell
-   * that survives into the saved rows. */
+   * is undeclared". 27 of the 29 are a total row's cell in a column that is
+   * not declared derived, so the strip never looks at it. The other two ARE
+   * declared and survive for two different reasons, which is the point:
+   *
+   *   E1's "Percentage Affecting DACs" on its Grand Total. Declared, and the
+   *   strip refuses to null it because CLCPA-241's kept-figure guard protects
+   *   a filed figure the derivation does not reproduce (0.45 filed against
+   *   0.4527932766160754 computed).
+   *
+   *   B2's Total row, newly declared by CLCPA-303. The strip never reaches
+   *   it at all: B2 is not in PERSIST_STRIP_TABLES, and CLCPA-303
+   *   deliberately did not add it, declaring the derivation without changing
+   *   what is stored.
+   *
+   * The POPULATION is unchanged at 29 -- this ticket's finding is untouched.
+   * What moved is one cell's route into it, from "undeclared" to "declared
+   * but not stripped", which is why the count below is 2 and not 1. */
   ok(extra === 29, 'B1 extra cells the old accounting counted: ' + extra);
   ok(engineTotalUnstripped === extra,
      'B2 and EVERY one is an ENGINE cell, on a TOTAL ROW, which the strip ' +
@@ -238,8 +248,9 @@ guard('B: named, not guessed', () => {
   ok(anyStripped === 0,
      'B3 not one had been stripped away before saving, which is what put it ' +
      'in the saved rows to be counted: ' + anyStripped);
-  ok(anyDerivedCol === 1,
-     'B4 and exactly one is a DECLARED derived column, E1s kept figure, so ' +
+  ok(anyDerivedCol === 2,
+     'B4 and exactly two are a DECLARED derived column, E1s kept figure and ' +
+     'B2s CLCPA-303 total row, so ' +
      '"the column is undeclared" is the common route and not the rule: ' +
      anyDerivedCol);
 });

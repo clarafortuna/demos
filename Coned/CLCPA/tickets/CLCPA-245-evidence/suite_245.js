@@ -533,13 +533,19 @@ guard('X: the family veto and the derive engine are untouched', () => {
     '         numerator: [column], denominator: [column], denominatorScope: \'row\' });',
     "    const gPct = [colTotal(1), pct(2, [1], [1], 'total', 2)];  // G tables: the total row's own feet/mT, and feet/mT \u00f7 column total",
   ];
-  const DC_OK = DC_241.concat(DC_319);
+  /* CLCPA-303 declares B2's column-wise total row, reusing CLCPA-319's
+   * colTotal factory unchanged. Its own array again, one line, so the
+   * attribution stays exact. */
+  const DC_303 = [
+    '      B2: [colTotal(1), colTotal(2), colTotal(3), colTotal(4)],',
+  ];
+  const DC_OK = DC_241.concat(DC_319).concat(DC_303);
   const dcAdded = grabConst('DERIVED_COLS').split('\r\n')
     .filter(l => grabConst('DERIVED_COLS', BASE_SRC).indexOf(l) < 0)
     .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
   ok(dcAdded.length === DC_OK.length && dcAdded.every(l => DC_OK.indexOf(l) >= 0),
-     'X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule and ' +
-     'CLCPA-319s G total rows -- ' +
+     'X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule, CLCPA-319s ' +
+     'G total rows and CLCPA-303s B2 pair -- ' +
      JSON.stringify(dcAdded.filter(l => DC_OK.indexOf(l) < 0)));
   /* X4 said "byte-identical" until CLCPA-254 put one DECLARED column back in
    * the sum. Undoing that one exception -- the only edit that has landed in
@@ -680,6 +686,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-302, named so the count stays exact */
     diffRows: 'NOT this ticket: CLCPA-302: the history counts operator changes only, applying the same two exclusions the Confirm-save dialog applies, so the record and the sentence the operator approved cannot disagree',
     resolveTablePrivileges: 'NOT this ticket: CLCPA-302, and the NAME is the extractors doing rather than mine: grabFn over-reads this function by 42kB and its slice swallows the dvBackend saveTable whose diffRows call now passes tableId. The function itself is byte-identical, 2376 bytes on both builds',
+    /* CLCPA-246, named so the count stays exact */
+    dacCell: 'NOT this ticket: CLCPA-246: COMMENT ONLY. A fallback to the display view was written here, measured to change nothing on the path the app actually uses, and removed. The note records why, so the next reader does not rebuild it',
     /* CLCPA-319, named so the count stays exact */
     isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
     /* CLCPA-293 / A-10, named so the count stays exact */
@@ -830,7 +838,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 97, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 98, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {
