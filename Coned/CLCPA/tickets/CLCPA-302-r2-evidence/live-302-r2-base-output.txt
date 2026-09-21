@@ -1,0 +1,29 @@
+CLCPA-302 round 2, in Chrome: the ruling's gesture on B2/2098
+build: BASE 8bf5ea7 (pinned copy)
+served from: C:\Users\emely\AppData\Local\Temp\clcpa302r2-base-8bf5ea7
+
+the header the grid renders  : ["Category","L2 Plugs","DCFC Plugs","Micromobility Power Cabinets","Total Plugs",""]
+  PASS  column 4 is Total Plugs, as this seed assumes
+  PASS  column 1 is L2 Plugs, the cell the operator edits
+the Non-DAC row as it renders: ["input:Non-DAC","input:97","input:40","input:0","input:137","×"]
+  PASS  the seeded 97 is on screen before the edit
+after the edit and blur         : ["input:Non-DAC","input:100","input:40","input:0","input:140","×"]
+  PASS  the engine recomputed Total Plugs to 140 on blur
+  PASS  the confirm modal opened
+
+THE CONFIRM SAYS: "You are about to save 2 cell changes"
+screenshot: live-302-r2-base-confirm.png
+  PASS  the confirm count is 2 (expected 2 on the pre-change build)
+
+THE HISTORY ENTRY the save wrote:
+  [ { "kind": "cell", "rowIdx": 1, "colIdx": 1, "rowLabel": "Non-DAC", "colLabel": "L2 Plugs", "oldVal": 97, "newVal": 100 }, { "kind": "cell", "rowIdx": 1, "colIdx": 4, "rowLabel": "Non-DAC", "colLabel": "Total Plugs", "oldVal": 137, "newVal": 140 } ]
+  PASS  a history entry was written
+  PASS  it records 2 cell change(s)
+  PASS  the operator's own cell is recorded: ["Non-DAC / L2 Plugs","Non-DAC / Total Plugs"]
+  PASS  and BASE also bills them for the recompute, which is the defect
+
+what the store holds after the save: [["DAC",50,10,0,60],["Non-DAC",100,40,0,140],["Total",150,50,0,200]]
+  PASS  the saved figures are the recomputed ones, unchanged by this round
+  PASS  no page errors: []
+
+12 passed, 0 failed

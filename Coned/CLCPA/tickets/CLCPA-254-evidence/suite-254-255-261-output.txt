@@ -56,7 +56,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   Z3 C2/2025 is returned unchanged by a recompute of its stored rows
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -92,6 +92,8 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   the change to ingestHeaderName is accounted for
   ok   the change to ingestHeaderRowCount is accounted for
   ok   the change to ingestKeyColDescription is accounted for
+  ok   the change to ingestMarkerSource is accounted for
+  ok   the change to ingestOperatorCell is accounted for
   ok   the change to ingestRebuildableTotals is accounted for
   ok   the change to ingestRoleOpen is accounted for
   ok   the change to ingestRowIsStoredHeader is accounted for
@@ -192,7 +194,7 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   isTotalRoleLabel changed as intended: CLCPA-270: the total-role label test (new)
   ok   isComputedShareLabel changed as intended: CLCPA-270: a percentage OF A TOTAL (new)
   ok   ingestComputed changed as intended: CLCPA-274: the template gains its own accessor
-  ok   buildIngestWorkbook changed as intended: CLCPA-274: the writer marks derivable total columns
+  ok   buildIngestWorkbook changed as intended: NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)
   ok   rowSumIsConsistent changed as intended: CLCPA-278: whose figure is this total (new)
   ok   recomputeDerivableSums changed as intended: CLCPA-278: a consistent total follows the edit (new)
   ok   clearIngestNotices changed as intended: CLCPA-276: one helper for every notice exit (new)
@@ -237,7 +239,9 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   renderIngestEditor changed as intended: CLCPA-255: a total row loses its delete control
   ok   buildIngestImport changed as intended: CLCPA-261: the unit notice is collected
   ok   isB7PreparerTotal changed as intended: NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)
-  ok   X1 exactly this many functions changed: 90
+  ok   ingestOperatorCell changed as intended: NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)
+  ok   ingestMarkerSource changed as intended: NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)
+  ok   X1 exactly this many functions changed: 92
   ok   X2 detectAvgColumns is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2 phantomSpacerCols is byte-identical to BASE
@@ -245,4 +249,4 @@ Section C group E -- CLCPA-254, CLCPA-255, CLCPA-261
   ok   X2b totalRowFlags differs from BASE only by CLCPA-319 letting a column total confirm its own row -- []
   ok   X3 BASE is a literal commit sha: 8eaa2ac
   ok   X4 and an ancestor of HEAD, so this group stacks on Group D
-  230 passed, 0 failed
+  234 passed, 0 failed

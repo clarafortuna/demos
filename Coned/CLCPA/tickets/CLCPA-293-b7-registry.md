@@ -107,18 +107,20 @@ For A3 and A4 the engine is silent because CLCPA-212 refuses to sum an
 average column. For F9 the denominator is genuinely unreproduced, which is
 why that table already sits in `NOT_RECONCILED_TABLES` for rendering.
 
-### One nominee the ruling did not name
+### The eleventh nominee: RATIFIED as deferred
 
 | table | row | column | year | stored | engine |
 |---|---|---|---|---|---|
 | A8 | Residential Programs Total Installations | Total | 2023 | 47,350 | nothing |
 
-The census proposed sixteen cells; five ship and the ruling addressed ten of
-the remaining eleven, as three rejected and seven deferred. This is the
-eleventh. It is **recorded as deferred** with the others, because that is
-the safe direction and it belongs to the same family of questions, but the
-classification is mine rather than ruled and should be confirmed or
-corrected.
+The census proposed sixteen cells; five ship and the first ruling addressed
+ten of the remaining eleven, as three rejected and seven deferred. This was
+the eleventh, and it was recorded as deferred on my own classification with
+that fact flagged.
+
+**Ratified 2026-09-21:** same family, same client question as its sibling.
+The classification stands as ruled, and it joins the deferred set in section
+4 rather than remaining an open item.
 
 Note that it sits in A8's **2023** schema, whose figure column is headed
 `Total`, not the `Total Installations` of 2025. That is why it appears as a

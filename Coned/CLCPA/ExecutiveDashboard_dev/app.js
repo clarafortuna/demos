@@ -410,11 +410,9 @@ function utf8ByteLength(str) {
           keyCols = Math.max(1, ingestKeyColCount(tableId));
         }
       } catch (e) { computed = null; keyCols = 1; }
-      const operatorCell = (r, c) => {
-        if (!computed) return true;
-        if (c < keyCols) return false;
-        return !computed.any(r, c);
-      };
+      /* CLCPA-302 round 2: the SHARED rule, not a copy of it. See
+       * ingestOperatorCell for why a copied rule was the defect. */
+      const operatorCell = (r, c) => ingestOperatorCell(computed, keyCols, r, c);
       const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
       const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
       const oldByLabel = {}; oldLabels.forEach((lbl, i) => { if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i); });
@@ -18249,6 +18247,53 @@ function wireHTooltips() {
     return out;
   }
 
+  /**
+   * CLCPA-302 round 2: IS THIS CELL THE OPERATOR'S?
+   *
+   * ONE rule, asked by both surfaces that count a save. Round 1 made the
+   * history apply the dialog's two exclusions so the record and the
+   * sentence the operator approved could not disagree; it did that by
+   * copying the rule into diffRows, and a copied rule is a rule that can
+   * drift. This is the single reader, and both call it.
+   *
+   * THE HEIR ROUND 1 DID NOT CATCH. `any` excludes a total row's cells and
+   * a declared derived column. It does NOT exclude a derived column on a
+   * BODY row when the rule is total-only, and B2 is exactly that shape:
+   * "Total Plugs" is a columnTotal for the Total row AND a detectSumColumns
+   * relationship on every row above it. So the engine recomputes Non-DAC's
+   * Total Plugs, and because B2 sits OUTSIDE PERSIST_STRIP_TABLES by the
+   * CLCPA-303 ruling, that recompute reaches the store and the history
+   * reads it back as something a person did.
+   *
+   * Measured on the ruling's own gesture, B2/2098 Non-DAC L2 Plugs 97 to
+   * 100: the confirm said 2 cell changes and the history attributed
+   * "Non-DAC / Total Plugs 137 -> 140" to the operator by name.
+   *
+   * marksInTemplate is the accessor that already answers "the engine
+   * computes this cell", and it is the same one the workbook uses to decide
+   * what to mark (calculated). Asking it here means the file the operator
+   * is told not to fill in and the cells they are not billed for are the
+   * same set, by construction rather than by agreement.
+   *
+   * CONSISTENT ACROSS STORED AND STRIPPED, which is the ruling's test: G's
+   * totals are stripped before they are stored, so they never produced an
+   * entry; B2's are stored, and now they do not masquerade as one either.
+   * It holds wherever a derived stored column remains, so it does not have
+   * to be revisited when the B2 persist-strip follow-up is taken up.
+   */
+  function ingestOperatorCell(computed, keyCols, r, c) {
+    /* no classifier means every cell counts, which is what this replaced
+     * and therefore the safe direction for a failure */
+    if (!computed) return true;
+    if (c < keyCols) return false;
+    if (computed.any(r, c)) return false;
+    try {
+      if (typeof computed.marksInTemplate === 'function' &&
+          computed.marksInTemplate(r, c)) return false;
+    } catch (e) { /* an accessor that cannot answer does not exclude */ }
+    return true;
+  }
+
   function ingestComputed(rows, tableId, schema) {
     const totals = totalRowFlags(rows, tableId, schema) || [];
     /* the DESCRIPTOR, not a boolean: a total-row-only rule has to be told apart
@@ -19145,6 +19190,39 @@ function wireHTooltips() {
     return { year: donor, rows: table.data[donor], borrowed: true };
   }
 
+  /**
+   * CLCPA-320 round 3: the rows a MARKER should be derived from.
+   *
+   * The template's marker asks ingestComputed, and ingestComputed reads
+   * VALUES: totalRowFlags confirms a total by arithmetic. So the same cell
+   * gets a different marker depending on which year's figures happen to be
+   * in front of it, and that is the asymmetry this ticket is about. A FRESH
+   * year borrows a published year's rows, so its markers are derived from a
+   * table that is whole. A POPULATED year is judged on its own rows, and a
+   * year whose total row has not been filled in yet is not whole.
+   *
+   * G3 is the reported case: the populated year downloaded County Total as
+   * (no value) while the fresh year downloaded (calculated) -- and with
+   * CLCPA-319 shipped the app does compute that cell, so (no value) is a
+   * false statement about it.
+   *
+   * This returns the PUBLISHED donor wherever one exists, so both paths
+   * derive their markers from the same anatomy. It never decides what a
+   * cell CONTAINS: a populated value is still exported from the year's own
+   * rows, untouched.
+   */
+  function ingestMarkerSource(table, year) {
+    const data = (table && table.data) || {};
+    const withRows = Object.keys(data)
+      .filter(y => (data[y] || []).length)
+      .sort((x, y2) => parseInt(y2, 10) - parseInt(x, 10));
+    const published = withRows.filter(y => isYearProtected(y));
+    if (published.length) return data[published[0]] || [];
+    /* no published year to judge from: the year's own rows are all there
+     * is, which is the state the fresh path already degrades to */
+    return getTableBody(table, year) || (withRows.length ? data[withRows[0]] : []) || [];
+  }
+
   /* ==========================================================================
    * CLCPA-85 round 4: a ZIP writer, so the template can be a real .xlsx.
    *
@@ -19598,6 +19676,23 @@ function wireHTooltips() {
     if (!schema.length) return null;
     const src = ingestTemplateSource(table, year);
     const computed = ingestComputed(src.rows, tableId, schema);
+    /* CLCPA-320 round 3: the marker for an EMPTY cell in a POPULATED year
+     * is derived from the same anatomy the fresh path uses, so the two
+     * cannot disagree about a cell neither of them has a figure for.
+     * Matched by LABEL, never by index: the donor year need not have the
+     * same rows in the same order, and an index-keyed lookup would put one
+     * row's marker on another. */
+    const markRows = ingestMarkerSource(table, year);
+    const markComputed = ingestComputed(markRows, tableId, schema);
+    const markIdxOf = (label) => {
+      const want = String(label == null ? '' : label).trim().toLowerCase();
+      if (!want) return -1;
+      for (let i = 0; i < markRows.length; i++) {
+        if (String((markRows[i] || [])[0] == null ? '' : markRows[i][0])
+            .trim().toLowerCase() === want) return i;
+      }
+      return -1;
+    };
     /* CLCPA-292: the SAME key-column count the importer matches rows on, so
      * the template writes the key that will be read back. Clamped exactly as
      * buildIngestImport clamps it, because a declaration wider than the
@@ -19669,7 +19764,24 @@ function wireHTooltips() {
        * importer could not tell which group a row belonged to. A header has
        * nothing to calculate: it is a caption for the rows beneath it. This is
        * what makes A5's own template carry the key the matcher reads. */
-      const isGroupHeader = ingestIsHeaderRow(row, [0]);
+      /* CLCPA-320 round 3: A TOTAL ROW IS NOT A CAPTION, even when it is
+       * empty.
+       *
+       * ingestIsHeaderRow says a row with a label and no values is a group
+       * header, which is right for a caption and wrong for a total nobody
+       * has filled in yet. That is the reported defect: G3's populated
+       * 2098 downloaded County Total as (no value) while the fresh 2094
+       * downloaded (calculated), for the same cell -- and with CLCPA-319
+       * shipped the app computes it, so (no value) is a false statement.
+       *
+       * Told apart by LABEL, the same signal CLCPA-319's own rule uses and
+       * the one no edit can move. A caption is not labelled "County Total".
+       * Restricting it to the label matters: a group header in a table with
+       * a derived column would otherwise look derivable and lose its
+       * marker, which is A5, A6, A7 and A8 and the whole reason this
+       * branch exists. */
+      const isGroupHeader = ingestIsHeaderRow(row, [0]) &&
+        !isAnchoredTotalRowLabel(row[0]);
       rows.push(visible(schema.map((h, c) => {
         /* CLCPA-292: EVERY KEY COLUMN IS PRE-FILLED, not just the first.
          *
@@ -19747,6 +19859,26 @@ function wireHTooltips() {
         if (!src.borrowed) {
           const v = row[c];
           if (v != null && String(v).trim() !== '') return { style: style, text: v };
+          /* CLCPA-320 round 3: EMPTY IN A POPULATED YEAR, so there is no
+           * value to export and the cell needs a marker like any other.
+           * Until now it fell through to a blank, which tells the operator
+           * nothing, or carried a marker derived from this year's own
+           * half-filled rows -- G3's County Total downloaded (no value)
+           * from the populated year and (calculated) from the fresh one,
+           * for the same cell.
+           *
+           * Asked of the SAME derivability the fresh path consults. A
+           * registry member answers false here, by CLCPA-293 round 4, and
+           * so falls through to a fill-in blank, which is what a total that
+           * belongs to the preparer should look like. */
+          const mi = markIdxOf(row[0]);
+          if (mi >= 0 && markComputed.marksInTemplate(mi, c)) {
+            return {
+              style: style,
+              text: ingestTextOnlyColumn(table, c)
+                ? INGEST_NOVALUE_MARKER : INGEST_CALC_MARKER,
+            };
+          }
         }
         /* EMPTY, and LOCKED like everything else: for a fresh year the
          * workbook shows the format, it is not filled in. The operator types
@@ -19978,6 +20110,45 @@ function wireHTooltips() {
      * of which rows are totals comes from the baseline. */
     const classifySrc = aligned ? baseline : draft;
     const editorFlags = totalRowFlags(classifySrc, tableId, schema);
+    /* CLCPA-319 round 2: A DECLARED TOTAL ROW IS A TOTAL ROW, whatever the
+     * figures in it say at this instant.
+     *
+     * THE DEFECT. Editing a G table and blurring computed its percentages
+     * against a DOUBLED denominator: on G1/2098, 500 into the DAC row and
+     * blur gave 49.33 / 1.34 / 50.67, each about half of what load and save
+     * produce. The cause is the classifier, not the rule. totalRowFlags
+     * confirms a total by ARITHMETIC, so the moment an edit breaks the
+     * total's sum the row stops being confirmed, falls out of totalRowIdxs,
+     * and is swept into nonTotalRows -- where its own stale figure is added
+     * to the column sum that every percentage divides by. Measured on a
+     * scratch G1: with the total row unconfirmed the denominator became
+     * 500 + 999 + 10,998 and the DAC share read 4.0% instead of 33.4%.
+     *
+     * CLCPA-212 built the baseline mechanism for exactly this, and it
+     * covers the case it was written for. It cannot cover this one: a
+     * scratch or freshly imported year has no aligned baseline to classify
+     * from, so classifySrc falls back to the mid-edit draft and the
+     * protection lapses precisely when it is needed.
+     *
+     * THE FIX IS THE DERIVATION CLCPA-319 ALREADY USES. Where a table
+     * DECLARES a columnTotal, applyDerivedCols identifies that rule's own
+     * row by LABEL, "which no edit can move", for this same reason. The
+     * classifier now reads the same signal, so the denominator is the same
+     * one on all three paths -- load, blur and save -- and no longer
+     * depends on whether the figures happen to reconcile at the moment of
+     * the blur.
+     *
+     * ONLY WIDENS, and only for declared tables. A row already confirmed
+     * stays confirmed; this can add a flag, never remove one. Tables that
+     * declare no columnTotal are untouched, which is every table but the G
+     * board and B2. The import path is untouched in effect as well: an
+     * imported draft is internally consistent, so its total row was
+     * confirmed already and this changes nothing there. */
+    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {
+      draft.forEach((row, idx) => {
+        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;
+      });
+    }
     const sums209 = totalRowSums(draft, schema, tableId, editorFlags);
     const totalRowIdxs = [];
     const nonTotalRows = [];
@@ -25985,8 +26156,11 @@ function wireHTooltips() {
         const ar = a[r] || [], br = (b || [])[r] || [];
         const cols = Math.max(ar.length, br.length);
         for (let c = 0; c < cols; c++) {
-          if (c < keyCols) continue;
-          if (computed.any(r, c)) continue;
+          /* CLCPA-302 round 2: the SAME reader the history uses, so the
+           * sentence the operator approves and the record of what they did
+           * cannot disagree. This site used to carry its own copy of the
+           * two exclusions. */
+          if (!ingestOperatorCell(computed, keyCols, r, c)) continue;
           if (!same(ar[c], br[c])) count++;
         }
       }
