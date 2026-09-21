@@ -57,7 +57,7 @@ E. ADVISORY ONLY
   ok   E9 and a clean table renders no box at all
 
 F. STYLE OF CHANGE
-     added code lines: 720
+     added code lines: 728
   ok   F1 no added code line names a table id
   ok   F2 no added code line names a borough
   ok   F3 no added code line names a data column

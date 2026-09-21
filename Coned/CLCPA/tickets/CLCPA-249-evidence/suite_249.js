@@ -816,6 +816,8 @@ guard('X: app.js is byte-identical to BASE', () => {
     /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
     draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
     renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* CLCPA-308 round 2, named so the count stays exact */
+    isDeclaredComputedRow: 'NOT this ticket: CLCPA-308 round 2: a row the TABLE DEFINITION declares computed takes the computed role, so the editor and the section page stop disagreeing about what the row is; asked of DERIVED_ROWS, never of a label or a per-row list (new)',
     /* CLCPA-307 round 2, named so the count stays exact */
     ingestPrimaryLabel: 'NOT this ticket: CLCPA-307 round 2: the ONE place the confirm button is named, because that button is contextual -- Add Year for a fresh year, Load Data for one that exists -- so a literal is wrong on one of the two paths every time (new)',
     ingestRejectedStillDoes: 'NOT this ticket: CLCPA-307 round 2: and what that button will still do to a rejected file, which is not the same thing on the two paths: on an existing year nothing is created, so the promise is dropped rather than reworded (new)',

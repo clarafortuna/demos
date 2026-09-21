@@ -9,8 +9,8 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z1 149 stored table-years rendered on both sides
   ok   Z1b and every one produced a <table>: 149
   ok   Z2 every difference is claimed by a named ticket
-       moved: 65 of 149
-       CLCPA-252 r3: 56 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
+       moved: 71 of 149
+       CLCPA-252 r3: 53 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
        CLCPA-252: 1 -- A8:2023
        CLCPA-290: 4 -- A3:2023, A3:2024, A4:2023, A4:2024
        CLCPA-294: 2 -- G10:2024, J4:2025
@@ -21,15 +21,20 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z4 149 table-years rendered in COMPARE on both sides
   ok   Z4b and every one produced a <table>: 149
   ok   Z5 every compare difference is claimed by a named ticket
-       moved: 67 of 149
-       CLCPA-252 r3: 54 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
+       moved: 73 of 149
+       CLCPA-252 r3: 51 -- A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
        CLCPA-252: 1 -- A8:2023
        CLCPA-290: 6 -- A3:2023, A3:2024, A3:2025, A4:2023, A4:2024, A4:2025
        CLCPA-294: 3 -- G10:2024, G10:2025, J4:2025
        CLCPA-319: 3 -- G1:2023, G1:2024, G1:2025
 
+
+=== Y. CLCPA-308 r2: the row class, on exactly the declared rows ===
+  ok   Y1 the declaration names 4 table(s): D2, D3, D4, F7
+  ok   Y2 every declared table-year is rendered on both sides: 12
+  ok   Y3 each ends up decorated on its declared rows and gains no more: 0 mismatch(es)
 === C. each claim matched something, on at least one panel =========
-  ok   C1 CLCPA-252 r3 changed something on the stored years (110): no caption carries a year, on any surface: every stored caption with a year token loses it at render time
+  ok   C1 CLCPA-252 r3 changed something on the stored years (104): no caption carries a year, on any surface: every stored caption with a year token loses it at render time
   ok   C1 CLCPA-252 changed something on the stored years (2): the caption comes from the table definition, so a stored year with no title entry names itself instead of rendering bare
   ok   C1 CLCPA-290 changed something on the stored years (10): an average total ConEd filed nothing in renders the dash instead of a blank: A3 and A4 for 2023 and 2024
   ok   C1 CLCPA-294 changed something on the stored years (5): a computed percentage that lost its x100 now shows it: a total fractionally above 1 read 1.0% where 100.0% is meant
@@ -55,4 +60,4 @@ Section C package -- THE FINAL STACKED GATE
   ok   X2 and HEAD descends from it, so it is the build this stack changed
   ok   X3 and the two sources genuinely differ
 
-  27 passed, 0 failed
+  30 passed, 0 failed

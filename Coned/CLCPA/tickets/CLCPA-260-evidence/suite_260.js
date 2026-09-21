@@ -379,8 +379,8 @@ guard('Z: the report page is untouched', () => {
    * does file that figure, is untouched. Sorted, to match the comparison.
    * The message now prints the WHOLE list rather than a slice that could
    * hide the entry that broke it. */
-  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'G10:2024', 'G1:2023', 'G1:2024', 'J4:2025']),
-     'Z2 and the REPORT page moves on exactly eight panels -- CLCPA-294 corrects two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0%; CLCPA-290 four; CLCPA-319 aligns two empty cells -- got ' +
+  ok(JSON.stringify(moved.slice().sort()) === JSON.stringify(['A3:2023', 'A3:2024', 'A4:2023', 'A4:2024', 'D2:2023', 'D2:2024', 'D2:2025', 'D3:2023', 'D3:2024', 'D3:2025', 'D4:2023', 'D4:2024', 'D4:2025', 'G10:2024', 'G1:2023', 'G1:2024', 'J4:2025']),
+     'Z2 and the REPORT page moves on exactly seventeen panels -- CLCPA-294 corrects two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0%; CLCPA-290 four; CLCPA-319 aligns two empty cells; CLCPA-308 r2 decorates nine, the D2/D3/D4 panels whose declared rows now carry on the page the row class they already carried in the editor -- got ' +
      JSON.stringify(moved.slice().sort()));
 });
 
@@ -569,6 +569,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
     draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
     renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* CLCPA-308 round 2, named so the count stays exact */
+    isDeclaredComputedRow: 'NOT this ticket: CLCPA-308 round 2: a row the TABLE DEFINITION declares computed takes the computed role, so the editor and the section page stop disagreeing about what the row is; asked of DERIVED_ROWS, never of a label or a per-row list (new)',
     /* CLCPA-307 round 2, named so the count stays exact */
     ingestPrimaryLabel: 'NOT this ticket: CLCPA-307 round 2: the ONE place the confirm button is named, because that button is contextual -- Add Year for a fresh year, Load Data for one that exists -- so a literal is wrong on one of the two paths every time (new)',
     ingestRejectedStillDoes: 'NOT this ticket: CLCPA-307 round 2: and what that button will still do to a rejected file, which is not the same thing on the two paths: on an existing year nothing is created, so the promise is dropped rather than reworded (new)',
@@ -594,7 +596,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 100, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 101, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

@@ -2621,12 +2621,44 @@ function utf8ByteLength(str) {
       .test(String(v));
   }
 
+  /**
+   * CLCPA-308 round 2: A ROW THE TABLE DEFINITION DECLARES COMPUTED.
+   *
+   * THE DECISION THIS SUPERSEDES, stated rather than quietly reversed. The
+   * comment above isComputedShareLabel records why CLCPA-270 left
+   * D2/D3/D4's percentage rows typeable: their denominator "is not in the
+   * table at all (CLCPA-206) and ... the preparer therefore has to type"
+   * them, so locking them would have taken a figure away from the only
+   * person who could supply it. That was correct when it was written.
+   *
+   * CLCPA-308 then DECLARED those rows in DERIVED_ROWS, and the render fix
+   * on this stack computes them on the section page as well as in the
+   * editor. So the premise changed, not the judgement: the engine now fills
+   * these cells from rows that ARE in the table, and a cell the engine
+   * fills must not invite a figure, because anything typed there is
+   * discarded on the next recompute.
+   *
+   * ASKED OF THE DECLARATION, never of the label. isComputedShareLabel is
+   * untouched and still answers for J8 and F7 by their wording; this answers
+   * for whatever DERIVED_ROWS declares, so registering a row in one place
+   * gives it the computed treatment on every surface at once. No per-row
+   * list and no second predicate to keep in step.
+   */
+  function isDeclaredComputedRow(tableId, rowIndex) {
+    if (typeof rowIndex !== 'number' || rowIndex < 0) return false;
+    return ((tableId && DERIVED_ROWS[tableId]) || [])
+      .some(d => d && d.row === rowIndex);
+  }
+
   /* THE ROLE, and the three protections that follow from it.
    *
    * Roles are ordered most-structural first: a group header that happens to
    * carry the word "total" is a header, not a total. */
-  function ingestRowRole(label, tableId, isHeaderRow) {
+  function ingestRowRole(label, tableId, isHeaderRow, rowIndex) {
     if (isHeaderRow) return 'header';
+    /* CLCPA-308 round 2: the DECLARATION first. A row the table definition
+     * says the engine computes is computed, whatever its label reads like. */
+    if (isDeclaredComputedRow(tableId, rowIndex)) return 'computed';
     if (isComputedShareLabel(label)) return 'computed';
     if (isTotalRoleLabel(label, tableId)) return 'total';
     return 'data';
@@ -5429,7 +5461,29 @@ function utf8ByteLength(str) {
     const numericCol = columnNumericMask(pctHeader, body, opts.tableId);
     const bodyRows = body.map((row, idx) => {
       let cls = '';
-      if (isTotalRow(row)) {
+      /* CLCPA-308 round 2: A DECLARED COMPUTED ROW GETS THE SAME TREATMENT
+       * HERE AS IN THE EDITOR, from the same reader.
+       *
+       * The editor greys these rows and refuses a figure because the engine
+       * fills them; the page rendered them as ordinary data, so the two
+       * surfaces disagreed about what the row IS.
+       *
+       * THE INDEX HAS TO BE TRANSLATED, and getting it wrong decorates the
+       * neighbouring row -- which the first cut did, greying D3's two count
+       * rows instead of its two percentage rows. `rows` here is the schema
+       * row followed by the data rows and headerLevels DEFAULTS TO 1, so
+       * body = rows.slice(headerLevels) is data.slice(headerLevels - 1).
+       * DERIVED_ROWS indexes the data rows, so the data index is
+       * idx + headerLevels - 1: plain idx for an ordinary table, and shifted
+       * by one for a header_levels:2 table whose first data row is really a
+       * second header.
+       *
+       * is-subtotal rather than is-total unless it is genuinely the last
+       * row: a percentage row in the middle of a table is not the table's
+       * closing total, and the two classes are what tell them apart. */
+      if (isDeclaredComputedRow(opts.tableId, idx + headerLevels - 1)) {
+        cls = (idx === body.length - 1) ? ' class="is-total"' : ' class="is-subtotal"';
+      } else if (isTotalRow(row)) {
         const isLastRow = idx === body.length - 1;
         cls = isLastRow ? ' class="is-total"' : ' class="is-subtotal"';
       } else if (isSubheaderRow(row)) {
@@ -24871,7 +24925,7 @@ function wireHTooltips() {
        * and isTotal below are now the role's consequences rather than three
        * independent tests, and editorTotalFlags no longer decides any of them:
        * it survives only where it belongs, in the derive engine. */
-      const rowRole = ingestRowRole(row[0], i.tableId, structuralHeader);
+      const rowRole = ingestRowRole(row[0], i.tableId, structuralHeader, rowIdx);
       /* the AMENDMENT: the value half of the protection asks the engine
        * whether it derives this row, so a total the table cannot produce
        * stays typeable. editorTotalFlags is the derive engine's own answer,
@@ -25069,7 +25123,7 @@ function wireHTooltips() {
              * editorTotalFlags, so a row locked by its label in a year whose
              * figures do not reconcile went grey with nothing saying why. */
             const hdr = idx < headerRowCount || isGroupHeaderRow(r);
-            return !hdr && ingestRowRole(r[0], i.tableId, hdr) !== 'data';
+            return !hdr && ingestRowRole(r[0], i.tableId, hdr, idx) !== 'data';
           })
             ? '<span class="ingest-foot-note">Rows labeled "Total" are auto-calculated from numeric rows above (read-only, shown in grey).</span>'
             : ''}
