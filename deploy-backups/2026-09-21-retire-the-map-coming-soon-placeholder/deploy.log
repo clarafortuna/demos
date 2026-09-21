@@ -1,0 +1,67 @@
+=== ExecutiveDashboard_dev -> cr2bf_dactest deploy ===
+org:     https://org9076e69b.crm.dynamics.com
+slice:   the DAC Tracts map Customer Counts panel retires its Coming soon placeholder card, and the panel closes up without it -- CLCPA-332
+files:   app.js, styles.css, ExecutiveDashboard.html
+
+PRE-FLIGHT 0  self-check: helpers present, 1 declared tickets, 1 commits, 3 resources,
+              2 app symbols across 1 tickets + 1 stylesheet symbols across 1.
+              PROSE AUDIT: no undeclared build id, commit or ticket anywhere in this file.
+PRE-FLIGHT 1  branch = main, HEAD = ae28677
+              source folder clean, so the pushed bytes are exactly ae28677.
+              ancestor: 8dff81c  the Coming soon placeholder card, retired with its two CSS rules
+              local main == remote main == ae28677.
+              HEAD is the merge commit the ids were derived from.
+PRE-FLIGHT 2  app.js parses.
+PRE-FLIGHT 3  BUILD IDS (content hashes; the client must report the app.js one):
+                 app.js      0067415e4f
+                 styles.css  e6de22bc37
+              both match what DEPLOY declares for this wave.
+              ok  CLCPA-332
+PRE-FLIGHT 3b all 1 ticket groups verified in the COMMITTED BLOB (2 symbols), 0 NUL bytes.
+              ok  CLCPA-332  (stylesheet)
+              and the STYLESHEET half: 1 symbols across 1 ticket group(s) verified in the committed styles.css.
+PRE-FLIGHT 3c all 102 suites green, 7165 assertions.
+PRE-FLIGHT 3d snapshot directory is absent, so the archive will be created.
+PRE-FLIGHT 4  stamps applied in memory, both present, no stale third stamp.
+              Nothing on disk is modified.
+
+Nothing above touched the network. Requesting the device code now.
+
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  AGHSPGLCR
+#################################################
+
+Waiting for authorization (up to 15 min)...
+Authorized.
+
+signed in as: Emely Gabriela Rodriguez Severino <Emely@clarafortuna.com>
+
+id 79151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/app.js
+id 7b151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/styles.css
+id 77151fe9-3c64-f111-ab0c-7c1e521c7110 resolves to: cr2bf_dactest/ExecutiveDashboard.html
+GATE  all three ids resolve to the expected names.
+
+WILL PUSH  app.js   deployed=1403595B  local=1403976B
+WILL PUSH  styles.css   deployed=286866B  local=286482B
+WILL PUSH  ExecutiveDashboard.html   deployed=4080B  local=4080B  (same length, different bytes)
+
+PRE-FLIGHT 3b DIFFERENTIAL, live org bytes against the merged tree:
+  app.js                    MOVES  1403595B -> 1403976B
+      live 83ecfbeab6d18d51   new 0ac991b50337a8fc
+  styles.css                MOVES  286866B -> 286482B
+      live 9039bfc5093de9cc   new e6de22bc37f1fa3b
+  ExecutiveDashboard.html   MOVES  4080B -> 4080B
+      live 35b4af3de810f64e   new b7f60ffd3d5ea30b
+  what moves: app.js, styles.css, ExecutiveDashboard.html
+
+PROVENANCE of the archive, read from the ORG:
+  app.js APP_BUILD stamp        : 4206a149a9
+  app.js canonicalised + hashed : 4206a149a9
+  expected previous app.js      : 4206a149a9
+  styles.css LIVE (to replace)  : 9039bfc509   expected 9039bfc509
+  -> all agree. The archive holds 4206a149a9 + 9039bfc509.
+
+        3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
+
