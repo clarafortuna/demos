@@ -82,3 +82,103 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 9512bff
+          remote main = 9512bff  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1365288B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1365288B  sha256 f19d81fcb14376fc...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 8d3299a63f07d60b...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : bf2b92af29  ok
+  app.js canonicalised + hashed : bf2b92af29  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : bf2b92af29  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 12 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the derive engine declares what it computes and the advisories tell the truth: column totals on the G board and B2s crossing pair, the workbook marker gated on derivability, percentage rows registered as computed, the reconciliation advisory read from the draft, and the history counting operator changes only -- CLCPA-311, CLCPA-319, CLCPA-320, CLCPA-308, CLCPA-304, CLCPA-307, CLCPA-310, CLCPA-309, CLCPA-305, CLCPA-306, CLCPA-302, CLCPA-303
+build id (app.js): bf2b92af29
+styles.css id    : 9039bfc509   (replaced 9039bfc509)
+previous build   : 16eda8c41e, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 8bf5ea7
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build bf2b92af29
+
+THE ACCEPTANCE PASS:
+  THE HEADLINE GATE, AND IT IS A NEGATIVE ONE: NOTHING PUBLISHED MOVES.
+     Every figure on every section page should read exactly as it does
+     today, to the digit. This wave declares what the engine already
+     computed; it was measured at 0 moved table-years and 0 moved KPI
+     figures. Any changed published number is a regression, not a fix.
+  
+  THE G BOARD, ON AN IMPORTED YEAR. Add a scratch year on G1, download
+     the template, and fill ONLY the two category rows: 9,999 feet in a
+     DAC and 999 not. Leave the Systemwide Total alone. Import and look
+     at the section page: the total must read 10,998 and 100.0%, not
+     blank. Before this it rendered flagged and EMPTY.
+  
+  B2, THE TWO TOTALS CROSSING. Open Report Data, B2, 2025. The Total row
+     and the Total Plugs column must read as they do today: 7,482 /
+     1,399 / 3 / 8,884.
+     NOW TYPE OVER ONE. Put any wrong number into the Total row under
+     L2 Plugs. It must be KEPT, and an amber advisory beneath the grid
+     must name it. Before this the engine silently overwrote it.
+     AND THE OTHER AXIS still behaves: a wrong number typed into a
+     category rows Total Plugs is kept and named exactly as before.
+  
+  THE WORKBOOK MARKER. Download J8s template. Its Total row must read
+     fill-in, NOT (calculated): those dollar figures belong to the
+     preparer and the engine cannot derive them. Then download A5s: its
+     Total row must still read (calculated), because that one it can.
+  
+  THE FRACTION ADVISORY. Open Report Data, D3, and type 22.4% into
+     "Percentage of subscribers in DACs". NO advisory may appear saying
+     "22.4% read as 0.224": the engine recomputes that cell and the
+     number would never survive. Now type 22.4% into a COUNT row
+     instead: there the advisory must still appear, because there it is
+     true.
+  
+  THE SAVE COUNT. Open any table, change ONE cell an operator can type
+     into, and press Save Changes. The dialog and the history must agree
+     on the number of changes. Before this the history counted engine
+     cells the dialog had excluded.
+
+STILL DISCLOSED, not defects in this build:
+  - B2 IS NOT IN THE PERSIST STRIP, by ruling. Its total row is now
+  -    derivable, so the stored copy is a copy of something computable. A
+  -    strip change needs its own round-trip proof and its own turn, and
+  -    the declaration reconciles and advises on divergence meanwhile, so
+  -    the copy cannot drift silently. Recorded as a follow-up.
+  - THE IMPORT GUARD STILL USES A VALUE CLASSIFIER. A filed grand total on
+  -    a table whose stored figure happens to reconcile is still refused in
+  -    silence. A fix was built under ruling, measured, and WITHDRAWN before
+  -    merge: read literally it hands 262 of 432 total-row cells to the
+  -    preparer, which would undo the protection against a file overwriting
+  -    a figure the engine derives. The corrected form is an explicit
+  -    registry of totals that belong to the preparer, and it is the next
+  -    round. Nothing in this build regressed; the defect is unchanged.
+  - THE SECOND SURFACE, MEASURED AND UNFIXED: an accepted preparer total
+  -    does not survive the editors recompute. It is not reachable in this
+  -    build because the import refuses those cells first, and it is why
+  -    the next round has to cover both surfaces together.
+  - A3s WORKBOOK MARKER IS YEAR-DEPENDENT AGAIN, as the cost of gating the
+  -    marker on derivability: A3/2023, A3/2024 and A4/2023 lose it. Every
+  -    other moved row is a BLANK template, so no workbook a preparer can
+  -    download today changes.
+  - THE STYLESHEET AND THE HTML DO NOT MOVE in this wave. app.js alone
+  -    changes; the HTML follows it through its ?v= stamp, and the byte
+  -    comparison against the live copy is what decides what is pushed,
+  -    not this note.
+
+=== log written by deploy_derive_declarations.js ===
