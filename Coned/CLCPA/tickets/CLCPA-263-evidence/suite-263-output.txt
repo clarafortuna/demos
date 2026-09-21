@@ -76,7 +76,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, draw, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestDeclaredTotalCell, ingestFiledTotalReason, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestPrimaryLabel, ingestRebuildableTotals, ingestRejectedStillDoes, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredComputedRow, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, nearZeroPctText, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportBar, renderIngestImportResult, renderKeptFigureNotice, renderMapKPI, renderPreparerTotalsNotice, renderReconcileNotice, renderRefusedFiledNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, draw, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestDeclaredTotalCell, ingestFiledTotalReason, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestPrimaryLabel, ingestRebuildableTotals, ingestRejectedStillDoes, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredComputedRow, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, nearZeroPctText, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderDsDictView, renderIngestEditor, renderIngestImport, renderIngestImportBar, renderIngestImportResult, renderKeptFigureNotice, renderMapKPI, renderPreparerTotalsNotice, renderReconcileNotice, renderRefusedFiledNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -146,6 +146,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to reconcileSumColumns is accounted for
   ok   the change to refreshIngestCalcCells is accounted for
   ok   the change to refreshIngestNotices is accounted for
+  ok   the change to renderDsDictView is accounted for
   ok   the change to renderIngestEditor is accounted for
   ok   the change to renderIngestImport is accounted for
   ok   the change to renderIngestImportBar is accounted for
@@ -273,7 +274,8 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   renderRefusedFiledNotice changed as intended: NOT this ticket: CLCPA-303 round 2: a figure the import would not take is NAMED, in the result box as well as the staging count, because a refusal the operator cannot see is indistinguishable from a bug (new)
   ok   ingestOperatorCell changed as intended: NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)
   ok   ingestMarkerSource changed as intended: NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)
-  ok   X1 exactly this many functions changed: 98
+  ok   renderDsDictView changed as intended: NOT this ticket: CLCPA-280: the Data Sources origin block lost its placeholder branch, because a bracketed to-do is a prompt to us and an unfinished page to the client (the nested ternary is now two arms, not three)
+  ok   X1 exactly this many functions changed: 99
   ok   X2 kpiDacPct is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2d totalRowFlags differs from BASE only by CLCPA-319 letting a column total confirm its own row -- []
@@ -283,4 +285,4 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  265 passed, 0 failed
+  267 passed, 0 failed

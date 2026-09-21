@@ -1,0 +1,90 @@
+CLCPA-280: the placeholder origin fields are retired from Data Sources
+BASE fcf4587   app.js working tree   styles.css working tree
+
+A. THE DICTIONARY
+  PASS  A1 both builds carry five family entries: 5 -> 5
+    Map Layers                []
+                              -> []
+    DAC Indicators            ["Published by","Obtained from","Update cadence"]
+                              -> ["Published by","Obtained from"]
+    Tract Shapes              ["Published by","Obtained from","Neighborhood crosswalks","Update cadence"]
+                              -> ["Published by","Obtained from","Neighborhood crosswalks"]
+    Electric and Gas Figures  ["Published by","Delivered by","Update cadence"]
+                              -> ["Published by"]
+    Territory Overlays        ["Published by","Delivered by","Update cadence"]
+                              -> ["Published by"]
+  PASS  A2 BASE fcf4587 carried six placeholder rows: 6
+  PASS  A3 the shipped build carries none: 0
+  PASS  A4.layers Map Layers: the rows left are BASE minus those two, same values, same order
+  PASS  A4.indicators DAC Indicators: the rows left are BASE minus those two, same values, same order
+  PASS  A4.shapes Tract Shapes: the rows left are BASE minus those two, same values, same order
+  PASS  A4.coned Electric and Gas Figures: the rows left are BASE minus those two, same values, same order
+  PASS  A4.territory Territory Overlays: the rows left are BASE minus those two, same values, same order
+  PASS  A5.layers Map Layers: title, text, source, requirements, update and script are untouched
+  PASS  A5.indicators DAC Indicators: title, text, source, requirements, update and script are untouched
+  PASS  A5.shapes Tract Shapes: title, text, source, requirements, update and script are untouched
+  PASS  A5.coned Electric and Gas Figures: title, text, source, requirements, update and script are untouched
+  PASS  A5.territory Territory Overlays: title, text, source, requirements, update and script are untouched
+
+B. THE RENDERER
+  PASS  B1 BASE emitted a <span class="ds-dict-gap"> for an unrecorded origin
+  PASS  B2 no code path emits that class any more
+  PASS  B3 and no code path tests for, or writes, the placeholder string
+  PASS  B4 BASE rendered six placeholders across the five tabs: 6
+  PASS  B5 the shipped renderer emits none: 0
+  PASS  B6.layers Map Layers: no gap pill in the rendered markup
+  PASS  B6.indicators DAC Indicators: no gap pill in the rendered markup
+  PASS  B6.shapes Tract Shapes: no gap pill in the rendered markup
+  PASS  B6.coned Electric and Gas Figures: no gap pill in the rendered markup
+  PASS  B6.territory Territory Overlays: no gap pill in the rendered markup
+  PASS  B7.indicators DAC Indicators: "Where the data comes from" is still a row list
+  PASS  B8.indicators DAC Indicators: and it still carries Published by
+  PASS  B7.shapes Tract Shapes: "Where the data comes from" is still a row list
+  PASS  B8.shapes Tract Shapes: and it still carries Published by
+  PASS  B7.coned Electric and Gas Figures: "Where the data comes from" is still a row list
+  PASS  B8.coned Electric and Gas Figures: and it still carries Published by
+  PASS  B7.territory Territory Overlays: "Where the data comes from" is still a row list
+  PASS  B8.territory Territory Overlays: and it still carries Published by
+  PASS  B9 Map Layers still has no row list, as it never had one
+  PASS  B10 and still falls back to its source sentence
+
+C. THE STYLESHEET
+  PASS  C1 BASE styled the gap pill
+  PASS  C2 the rule is gone from the shipped stylesheet
+  PASS  C3.0 .ds-dict-origin is still styled
+  PASS  C3.1 .ds-dict-origin dt is still styled
+  PASS  C3.2 .ds-dict-origin dd is still styled
+
+D. THE SWEEP
+  PASS  D1 app.js                     carries no "TO BE FILLED": 0
+  PASS  D1 app.js                     carries no "Delivered by": 0
+  PASS  D1 app.js                     carries no "Update cadence": 0
+  PASS  D1 styles.css                 carries no "TO BE FILLED": 0
+  PASS  D1 styles.css                 carries no "Delivered by": 0
+  PASS  D1 styles.css                 carries no "Update cadence": 0
+  PASS  D1 ExecutiveDashboard.html    carries no "TO BE FILLED": 0
+  PASS  D1 ExecutiveDashboard.html    carries no "Delivered by": 0
+  PASS  D1 ExecutiveDashboard.html    carries no "Update cadence": 0
+  PASS  D1 index.html                 carries no "TO BE FILLED": 0
+  PASS  D1 index.html                 carries no "Delivered by": 0
+  PASS  D1 index.html                 carries no "Update cadence": 0
+  PASS  D1 data-sources.html          carries no "TO BE FILLED": 0
+  PASS  D1 data-sources.html          carries no "Delivered by": 0
+  PASS  D1 data-sources.html          carries no "Update cadence": 0
+  PASS  D1 sources-update-guide.html  carries no "TO BE FILLED": 0
+  PASS  D1 sources-update-guide.html  carries no "Delivered by": 0
+  PASS  D1 sources-update-guide.html  carries no "Update cadence": 0
+  PASS  D2 ds-dict-gap survives only as the retirement comment: 1 mention(s), 0 in live CSS
+
+E. WHAT ELSE MOVED
+    changed since fcf4587: ["Coned/CLCPA/ExecutiveDashboard_dev/app.js","Coned/CLCPA/ExecutiveDashboard_dev/styles.css","Coned/CLCPA/tickets/CLCPA-221-evidence/render_221.js","Coned/CLCPA/tickets/CLCPA-245-evidence/suite-245-output.txt","Coned/CLCPA/tickets/CLCPA-245-evidence/suite_245.js","Coned/CLCPA/tickets/CLCPA-249-evidence/suite-249-output.txt","Coned/CLCPA/tickets/CLCPA-249-evidence/suite_249.js","Coned/CLCPA/tickets/CLCPA-250-evidence/suite-250-output.txt","Coned/CLCPA/tickets/CLCPA-254-evidence/suite-254-255-261-output.txt","Coned/CLCPA/tickets/CLCPA-254-evidence/suite_254_255_261.js","Coned/CLCPA/tickets/CLCPA-260-evidence/suite-260-output.txt","Coned/CLCPA/tickets/CLCPA-260-evidence/suite_260.js","Coned/CLCPA/tickets/CLCPA-263-evidence/suite-263-output.txt","Coned/CLCPA/tickets/CLCPA-263-evidence/suite_263.js","Coned/CLCPA/tickets/CLCPA-272-evidence/suite-272-output.txt","Coned/CLCPA/tickets/CLCPA-307-r2-evidence/suite-307-r2-output.txt"]
+  PASS  E1 only the two web resources, this evidence directory, the one spent CLCPA-221 pin, the five ledgers and committed run outputs changed: []
+  PASS  E1b and CLCPA-221's captured renders are untouched
+  PASS  E2 the handoff package lane is untouched
+    added non-comment lines: [": escapeHtml(v)) + '</dd>').join('') + '</dl>'"]
+  PASS  E3 exactly one added line of code, the collapsed branch tail: 1
+  PASS  E3b and it is that tail: ": escapeHtml(v)) + '</dd>').join('') + '</dl>'"
+  PASS  E4 and not one of them reintroduces a placeholder
+  PASS  E5 nothing added carries a long dash
+
+64 passed, 0 failed

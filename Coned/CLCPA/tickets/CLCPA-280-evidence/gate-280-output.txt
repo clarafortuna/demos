@@ -1,0 +1,48 @@
+CLCPA-280 gate: where the retired strings still appear
+swept 1826 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
+
+SHIPPED: 0 hit(s)
+UNPLACED: 0 hit(s)
+FROZEN: 11 hit(s)
+    Coned/CLCPA/tickets/CLCPA-221-evidence/render_221.js  "TO BE FILLED" x1
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-coned.html  "TO BE FILLED" x2
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-coned.html  "Delivered by" x1
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-coned.html  "Update cadence" x2
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-indicators.html  "TO BE FILLED" x1
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-indicators.html  "Update cadence" x2
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-shapes.html  "TO BE FILLED" x1
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-shapes.html  "Update cadence" x2
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-territory.html  "TO BE FILLED" x2
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-territory.html  "Delivered by" x1
+    Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-territory.html  "Update cadence" x2
+ARCHIVE: 162 hit(s)
+    deploy-backups/2026-09-05-clcpa-221-round2-one-nav/app.js  "TO BE FILLED" x7
+    deploy-backups/2026-09-05-clcpa-221-round2-one-nav/app.js  "Delivered by" x2
+    deploy-backups/2026-09-05-clcpa-221-round2-one-nav/app.js  "Update cadence" x8
+    deploy-backups/2026-09-05-clcpa-221-round3-panel-text-only/app.js  "TO BE FILLED" x7
+    deploy-backups/2026-09-05-clcpa-221-round3-panel-text-only/app.js  "Delivered by" x2
+    deploy-backups/2026-09-05-clcpa-221-round3-panel-text-only/app.js  "Update cadence" x8
+    deploy-backups/2026-09-05-clcpa-223-operator-gate/app.js  "TO BE FILLED" x7
+    deploy-backups/2026-09-05-clcpa-223-operator-gate/app.js  "Delivered by" x2
+    deploy-backups/2026-09-05-clcpa-223-operator-gate/app.js  "Update cadence" x8
+    deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "TO BE FILLED" x7
+    deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "Delivered by" x2
+    deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "Update cadence" x8
+    ... and 150 more
+THIS TICKET: 0 hit(s)
+
+ASSERTIONS
+  PASS  the sweep found something somewhere, so it is reading files at all: 173 hit(s)
+  PASS  the shipped web resources carry none of the three strings: 0
+  PASS  every remaining hit is in a declared class, none unplaced: []
+  PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/app.js
+  PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/styles.css
+  PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html
+  PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/index.html
+  PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/data-sources.html
+  PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/sources-update-guide.html
+  PASS  the handoff package lane is clean and was not edited: []
+  PASS  no shipped code path emits the ds-dict-gap class
+  PASS  no shipped rule styles it
+
+12 passed, 0 failed
