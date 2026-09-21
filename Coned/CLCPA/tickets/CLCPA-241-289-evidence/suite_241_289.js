@@ -404,7 +404,9 @@ guard('X-block', () => {
    * refusal, and unreconciledDerivedCols asking the same question. Counted off
    * the source rather than reasoned about, because the number is the point:
    * a write added later that skips the conditional moves it. */
-  ok((code.match(/derivedCellWrite\(/g) || []).length === 6,
+  /* SEVEN now: CLCPA-319's columnTotal branch asks the same question before
+   * writing a total it computed from the rows beneath it. */
+  ok((code.match(/derivedCellWrite\(/g) || []).length === 7,
     'X5 every write in the engine goes through it, and the strip and advisory ask it too');
   ok(/applyDerivedCols\(draft, tableId, colSum, schema, baseline\);/.test(code),
     'X6 recomputeTotals hands the baseline down');

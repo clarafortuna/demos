@@ -1,0 +1,46 @@
+CLCPA-319 REPRODUCTION: an operator corrects a G1 quantity
+shipped build pinned at d84c0d3
+
+=== base   (C:\Users\emely\AppData\Local\Temp\clcpa-319-base-d84c0d3)
+  the editor as opened:
+      ["Category","Feet Replaced","Percentage",""]
+      ["[Feet Replaced within DAC]","[202,384]","47.00%","×"]
+      ["[Feet Replaced not in a DAC]","[228,154]","53.00%","×"]
+      ["Systemwide Total","430,538","100.00%",""]
+  after typing 302384 into "Feet Replaced within DAC":
+      ["Category","Feet Replaced","Percentage",""]
+      ["[Feet Replaced within DAC]","[302,384]","57.00%","×"]
+      ["[Feet Replaced not in a DAC]","[228,154]","43.00%","×"]
+      ["Systemwide Total","530,538","100.00%",""]
+  save button: clicked
+  confirm dialog: confirmed
+  what was PERSISTED: G1:2025 = [["Feet Replaced within DAC",302384,null],["Feet Replaced not in a DAC",228154,null],["Systemwide Total",530538,null]]
+  the REPORT PAGE after saving:
+      Table G1. Total Leak-Prone Pipe Retired and Replaced
+      ["Category","Feet Replaced","Percentage"]
+      ["Feet Replaced within DAC","302,384","57.0%"]
+      ["Feet Replaced not in a DAC","228,154","43.0%"]
+      ["Systemwide Total","530,538","100.0%"]
+  page errors: []
+
+=== fix   (C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev)
+  the editor as opened:
+      ["Category","Feet Replaced","Percentage",""]
+      ["[Feet Replaced within DAC]","[202,384]","47.00%","×"]
+      ["[Feet Replaced not in a DAC]","[228,154]","53.00%","×"]
+      ["Systemwide Total","430,538","100.00%",""]
+  after typing 302384 into "Feet Replaced within DAC":
+      ["Category","Feet Replaced","Percentage",""]
+      ["[Feet Replaced within DAC]","[302,384]","57.00%","×"]
+      ["[Feet Replaced not in a DAC]","[228,154]","43.00%","×"]
+      ["Systemwide Total","530,538","100.00%",""]
+  save button: clicked
+  confirm dialog: confirmed
+  what was PERSISTED: G1:2025 = [["Feet Replaced within DAC",302384,null],["Feet Replaced not in a DAC",228154,null],["Systemwide Total",null,null]]
+  the REPORT PAGE after saving:
+      Table G1. Total Leak-Prone Pipe Retired and Replaced
+      ["Category","Feet Replaced","Percentage"]
+      ["Feet Replaced within DAC","302,384","57.0%"]
+      ["Feet Replaced not in a DAC","228,154","43.0%"]
+      ["Systemwide Total","530,538","100.0%"]
+  page errors: []

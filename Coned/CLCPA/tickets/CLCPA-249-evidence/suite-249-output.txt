@@ -112,15 +112,15 @@ CLCPA-249 -- headers and values centred, the row label stays left
 === P. what moves, counted through the real renderer =================
   ok   P1 header cells, left -> centre (first column excepted): 798
   ok   P2 row labels, LEFT and untouched: 1386
-  ok   P3 .num values, right -> centre: 3765
+  ok   P3 .num values, right -> centre: 3769
   ok   P4 text in a numeric column, follows its column: 261
   ok   P5 and they are in these ten tables: {"A3":7,"A4":7,"A5":81,"A6":45,"A7":5,"A8":69,"C2":15,"I1":28,"J1":2,"J2":2}
-  ok   P6 text cells in the 20 TEXT columns, LEFT and unmoved after round 2: 674
-  ok   P7 across fourteen tables: A3,A4,A7,C1,C2,C3,C4,C5,D1,F1,F4,F5,F6,G1
+  ok   P6 text cells in the 20 TEXT columns, LEFT and unmoved after round 2: 670
+  ok   P7 across thirteen tables: A3,A4,A7,C1,C2,C3,C4,C5,D1,F1,F4,F5,F6
   ok   P8 and .dac-yes is emitted on zero cells, so its retired centring rule never centred anything
   ok   P9 the editor has the same 1,386 label cells: 1386
-  ok   P10 and the same numeric population, 3,765 + 261 = 4026
-  ok   P11 and the same 674 text cells: 674
+  ok   P10 and the same numeric population, 3,765 + 261 = 4030
+  ok   P11 and the same 674 text cells: 670
   ok   P12 the CLCPA-216 "value (pct)" composites: 15 in C2
   ok   P13 the two-level bands: A9,A10,F6
   ok   P14 and 42 band cells past column 1 move with them: 42
@@ -174,6 +174,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function isComputedShareLabel moved, and it is named by a later ticket: CLCPA-270: a percentage OF A TOTAL (new)
   ok   X1 app.js function ingestRowRole moved, and it is named by a later ticket: CLCPA-270: the row role, from its label (new)
   ok   X1 app.js function ingestRoleOpen moved, and it is named by a later ticket: CLCPA-270 amendment (the A8 ruling): the value half of the protection follows derivability (new)
+  ok   X1 app.js function isTotalOnlyDerived moved, and it is named by a later ticket: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)
   ok   X1 app.js function derivedCellWrite moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
   ok   X1 app.js function derivedFiledReproduced moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
   ok   X1 app.js function unreconciledDerivedCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
@@ -186,6 +187,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function bareNumber moved, and it is named by a later ticket: CLCPA-263: the bare-number test (new)
   ok   X1 app.js function compositeValueText moved, and it is named by a later ticket: CLCPA-263: the value formatting (new)
   ok   X1 app.js function applyCompositeShares moved, and it is named by a later ticket: CLCPA-263: the derivation (new)
+  ok   X1 app.js function totalRowFlags moved, and it is named by a later ticket: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)
   ok   X1 app.js function stripDerivedForPersist moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (the strip refuses a kept cell)
   ok   X1 app.js function detectSumColumns moved, and it is named by a later ticket: CLCPA-272: the schema-derived sum relationship (new)
   ok   X1 app.js function rowSumIsConsistent moved, and it is named by a later ticket: CLCPA-278: whose figure is this total (new)
@@ -243,11 +245,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (85) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (87) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  218 passed, 0 failed
+  220 passed, 0 failed

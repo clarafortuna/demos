@@ -1,0 +1,38 @@
+CLCPA-320 REPRODUCTION: the workbook a preparer downloads
+shipped build pinned at d84c0d3
+
+=== base   (C:\Users\emely\AppData\Local\Temp\clcpa-320-base-d84c0d3)
+  G3 workbook for 2025   opened; section=G; table=G3 year=2025; clicked on G3/2025
+      bytes: 12740
+      total row: {"found":true,"at":3,"cells":["County Total","(calculated)","(calculated)"]}
+  G3 workbook for 2098   opened; section=G; table=G3 year=2098; clicked on G3/2098
+      bytes: 12715
+      total row: {"found":true,"at":3,"cells":["County Total","(calculated)","(calculated)"]}
+  A3 workbook for 2098   opened; section=A; table=A3 year=2098; clicked on A3/2098
+      bytes: 18502
+      total row: {"found":true,"at":23,"cells":["Total","(no value)","(calculated)","(calculated)","(calculated)"]}
+  A3 workbook for 2023   opened; section=A; table=A3 year=2023; clicked on A3/2023
+      bytes: 20903
+      total row: {"found":true,"at":29,"cells":["Total","","2354317","",""]}
+  J8 workbook for 2025   opened; section=J; table=J8 year=2025; clicked on J8/2025
+      bytes: 13402
+      total row: {"found":true,"at":3,"cells":["Total","192638756","38743914","100%"]}
+  page errors: []
+
+=== fix   (C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev)
+  G3 workbook for 2025   opened; section=G; table=G3 year=2025; clicked on G3/2025
+      bytes: 12740
+      total row: {"found":true,"at":3,"cells":["County Total","(calculated)","(calculated)"]}
+  G3 workbook for 2098   opened; section=G; table=G3 year=2098; clicked on G3/2098
+      bytes: 12715
+      total row: {"found":true,"at":3,"cells":["County Total","(calculated)","(calculated)"]}
+  A3 workbook for 2098   opened; section=A; table=A3 year=2098; clicked on A3/2098
+      bytes: 18502
+      total row: {"found":true,"at":23,"cells":["Total","(no value)","(calculated)","(calculated)","(calculated)"]}
+  A3 workbook for 2023   opened; section=A; table=A3 year=2023; clicked on A3/2023
+      bytes: 21148
+      total row: {"found":true,"at":29,"cells":["Total","(no value)","(calculated)","(calculated)","(calculated)"]}
+  J8 workbook for 2025   opened; section=J; table=J8 year=2025; clicked on J8/2025
+      bytes: 13505
+      total row: {"found":true,"at":3,"cells":["Total","(calculated)","(calculated)","(calculated)"]}
+  page errors: []

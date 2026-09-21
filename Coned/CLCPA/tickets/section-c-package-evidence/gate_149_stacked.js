@@ -189,6 +189,27 @@ const CLAIMS = [
       }
       return movedOne;
     } },
+  { id: 'CLCPA-319',
+    what: "G1's 2023 and 2024 hold percentages with NO feet figure at all, so " +
+          'their quantity cells are EMPTY. Declaring that column gives an empty ' +
+          'cell the numeric alignment class it would have had with a figure in ' +
+          'it. Nothing visible moves: the cell is empty on both sides.',
+    /* Confined to G1 AND to the class attribute of an EMPTY cell. A cell that
+     * gained or lost CONTENT still falls through to the unclaimed list.
+     *
+     * COMPOSED WITH THE CAPTION KIT, because a panel can carry two ticket's
+     * changes at once and classify() returns only the first claim that fits.
+     * G1:2023 has both: CLCPA-252 round 3 took the year out of its caption and
+     * this ticket gave an empty cell its alignment class. Checking either
+     * alone said "not mine" and the panel went to the unclaimed list. */
+    hit: (id, y, a, b) => {
+      if (id !== 'G1') return false;
+      const norm = (h) => String(h)
+        .replace(/<td><\/td>/g, 'EMPTY')
+        .replace(/<td class="num"><\/td>/g, 'EMPTY');
+      const na = norm(a), nb = norm(b);
+      return na === nb || kit.onlyCaptionYearsChanged(nb, na);
+    } },
 ];
 
 function classify(id, y, a, b) {

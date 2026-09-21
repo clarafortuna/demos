@@ -525,12 +525,22 @@ guard('X: the family veto and the derive engine are untouched', () => {
     "         numerator: [current], denominator: [previous], denominatorScope: 'row' });",
     "      A9: [pctChange(5, 3, 1, 0), pctChange(6, 4, 2, 0)],",
   ];
+  /* CLCPA-319 declares the G total rows. Its OWN array, so the two tickets
+   * stay separable and a line belonging to neither still fails. */
+  const DC_319 = [
+    '    const colTotal = (column) =>',
+    "      ({ column, type: 'columnTotal', keepFiled: true,",
+    '         numerator: [column], denominator: [column], denominatorScope: \'row\' });',
+    "    const gPct = [colTotal(1), pct(2, [1], [1], 'total', 2)];  // G tables: the total row's own feet/mT, and feet/mT \u00f7 column total",
+  ];
+  const DC_OK = DC_241.concat(DC_319);
   const dcAdded = grabConst('DERIVED_COLS').split('\r\n')
     .filter(l => grabConst('DERIVED_COLS', BASE_SRC).indexOf(l) < 0)
     .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
-  ok(dcAdded.length === DC_241.length && dcAdded.every(l => DC_241.indexOf(l) >= 0),
-     'X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule -- ' +
-     JSON.stringify(dcAdded.filter(l => DC_241.indexOf(l) < 0)));
+  ok(dcAdded.length === DC_OK.length && dcAdded.every(l => DC_OK.indexOf(l) >= 0),
+     'X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule and ' +
+     'CLCPA-319s G total rows -- ' +
+     JSON.stringify(dcAdded.filter(l => DC_OK.indexOf(l) < 0)));
   /* X4 said "byte-identical" until CLCPA-254 put one DECLARED column back in
    * the sum. Undoing that one exception -- the only edit that has landed in
    * this function since -- and requiring the rest to be BASE exactly keeps the
@@ -663,6 +673,8 @@ guard('X: the blast radius', () => {
     ingestTextOnlyColumn: 'NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)',
     /* CLCPA-311 / D-04, named so the count stays exact */
     renderSectionD: 'NOT this ticket: CLCPA-311 / D-04: the LMI share is read from the figure D3 files instead of being computed out of a null, which printed 0.0% on every stored year',
+    /* CLCPA-319, named so the count stays exact */
+    isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
     /* CLCPA-293 / A-10, named so the count stays exact */
     ingestRebuildableTotals: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)',
     renderPreparerTotalsNotice: 'NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)',
@@ -811,7 +823,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 92, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 93, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

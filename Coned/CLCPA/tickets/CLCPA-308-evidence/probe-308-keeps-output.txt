@@ -1,0 +1,53 @@
+CLCPA-308: how many derived-row cells hold a figure the engine KEEPS?
+app.js: working tree
+
+tables with declared derived rows: ["D2","D3","D4","F7"]
+
+--- summary -----------------------------------------------------------
+  derived-row cells holding a stored figure: 49
+  of those, cells the engine KEEPS as filed: 47
+  of those, cells this build would have the IMPORT skip: 0
+
+  THE KEPT ONES, which are figures the report publishes as filed and
+  which an import would therefore have to carry, not discard:
+    D2:2023 r2c1 filed=0.321 computed=0.32057920404599916
+    D2:2023 r5c1 filed=0.373 computed=0.37345442608600504
+    D2:2024 r2c1 filed=0.323 computed=0.3231806315023834
+    D2:2024 r2c2 filed=0.34 computed=0.3395547134059687
+    D2:2024 r5c1 filed=0.37 computed=0.3702163365072416
+    D2:2024 r5c2 filed=0.354 computed=0.35400460173112747
+    D2:2025 r2c1 filed=0.324 computed=0.32372093023255816
+    D2:2025 r2c2 filed=0.327 computed=0.327448696119724
+    D2:2025 r5c1 filed=0.364 computed=0.363797657047491
+    D2:2025 r5c2 filed=0.313 computed=0.3127628716461204
+    D3:2023 r2c1 filed=0.311 computed=0.3111677479147359
+    D3:2023 r4c1 filed=0.049 computed=0.049351251158480075
+    D3:2024 r2c1 filed=0.331 computed=0.33125466368191026
+    D3:2024 r2c2 filed=0.563 computed=0.5627503337783711
+    D3:2024 r4c1 filed=0.063 computed=0.06321287709199445
+    D3:2024 r4c2 filed=0.223 computed=0.22296395193591456
+    D3:2025 r2c1 filed=0.348 computed=0.3480825958702065
+    D3:2025 r2c2 filed=0.513 computed=0.5127803860198227
+    D3:2025 r4c1 filed=0.09300000000000001 computed=0.09270274191208472
+    D3:2025 r4c2 filed=0.381 computed=0.3813249869587898
+    D4:2023 r2c1 filed=0.057 computed=0.057443915703602993
+    D4:2023 r4c1 filed=0.317 computed=0.3169921512885483
+    D4:2023 r7c1 filed=0.037 computed=0.03731343283582089
+    D4:2023 r9c1 filed=0.335 computed=0.33486414083429006
+    D4:2024 r2c1 filed=0.059 computed=0.05947312400212879
+    D4:2024 r2c2 filed=0.072 computed=0.07205825986968187
+    D4:2024 r4c1 filed=0.32 computed=0.3201436934539649
+    D4:2024 r7c1 filed=0.033 computed=0.03327037628940869
+    D4:2024 r9c1 filed=0.292 computed=0.2917623129449368
+    D4:2024 r9c2 filed=0.156 computed=0.15582377791188898
+    D4:2025 r2c1 filed=0.059000000000000004 computed=0.058942287610516786
+    D4:2025 r2c2 filed=0.055 computed=0.05532378015599492
+    D4:2025 r4c1 filed=0.321 computed=0.3208177662265333
+    D4:2025 r4c2 filed=0.325 computed=0.32541266098313076
+    D4:2025 r7c1 filed=0.034 computed=0.033900489816963135
+    D4:2025 r7c2 filed=0.039 computed=0.038857142857142854
+    D4:2025 r9c1 filed=0.295 computed=0.2952178396493942
+    D4:2025 r9c2 filed=0.3224 computed=0.3224
+    F7:2023 r3c1 filed=0.3754 computed=0.37538637955708243
+    F7:2023 r3c2 filed=0.6246 computed=0.6246136204429176
+    ... and 7 more

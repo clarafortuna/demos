@@ -33,7 +33,7 @@ D. A GENUINELY UNREADABLE CELL STILL KEEPS THE FILED TOTAL
 
 E. ONE HELPER, NO PER-FUNCTION COPIES
   ok   E1 the reader is a named function
-  ok   E2 and it is consumed, not declared and ignored -- 14 references
+  ok   E2 and it is consumed, not declared and ignored -- 15 references
   ok   E3.rowSumIsConsistent consumes it
   ok   E4.rowSumIsConsistent and carries no private copy of the test
   ok   E3.reconcileSumColumns consumes it

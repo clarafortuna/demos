@@ -7,7 +7,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   S1 149 stored table-years put through the display view
   ok   S2 and every one is byte-identical to BASE except A9, for CLCPA-241: A9:2024, A9:2025
   ok   S3 149 panels rendered on both sides
-  ok   S4 the panels move on exactly six, four CLCPA-290 dashes and two CLCPA-294 corrections: ["A3:2023","A3:2024","A4:2023","A4:2024","G10:2024","J4:2025"]
+  ok   S4 the panels move on exactly eight, four CLCPA-290 dashes, two CLCPA-294 corrections and two CLCPA-319 alignment classes: ["A3:2023","A3:2024","A4:2023","A4:2024","G10:2024","G1:2023","G1:2024","J4:2025"]
   ok   S5 C2:2023 stores a bare PERCENTAGE: "31%"
   ok   S6 C2:2025 stores a COMPOSITE: "37,988 (33%)"
   ok   S7 C2:2023 is returned unchanged
@@ -76,7 +76,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isPercentLiteral, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -119,6 +119,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to isCompositeShareCol is accounted for
   ok   the change to isComputedShareLabel is accounted for
   ok   the change to isPercentLiteral is accounted for
+  ok   the change to isTotalOnlyDerived is accounted for
   ok   the change to isTotalRoleLabel is accounted for
   ok   the change to isYearProtected is accounted for
   ok   the change to loadIngestDraft is accounted for
@@ -150,6 +151,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to stripCaptionYear is accounted for
   ok   the change to stripDerivedForPersist is accounted for
   ok   the change to tableCaption is accounted for
+  ok   the change to totalRowFlags is accounted for
   ok   the change to unreconciledDerivedCols is accounted for
   ok   the change to wire is accounted for
   ok   the change to wireIngestEditor is accounted for
@@ -164,6 +166,8 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   renderTable changed as intended: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   xlsxCell changed as intended: NOT this ticket: CLCPA-274 option (c): a populated year exports its values, and a number is written as a number
   ok   ingestTextOnlyColumn changed as intended: NOT this ticket: CLCPA-291: a text column in a structure row is (no value), not (calculated) (new)
+  ok   isTotalOnlyDerived changed as intended: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)
+  ok   totalRowFlags changed as intended: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)
   ok   ingestRebuildableTotals changed as intended: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: it asks the engine which totals it can rebuild)
   ok   renderPreparerTotalsNotice changed as intended: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)
   ok   renderKeptFigureNotice changed as intended: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)
@@ -235,14 +239,14 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   deriveTableCaptionInfo changed as intended: NOT this ticket: CLCPA-252 round 3, it stops carrying the year across
   ok   tableCaption changed as intended: NOT this ticket: CLCPA-252 round 3, it strips on all three paths
   ok   renderIngestImportResult changed as intended: NOT this ticket: CLCPA-266, the notice boxes gain their accent classes
-  ok   X1 exactly this many functions changed: 79
-  ok   X2 totalRowFlags is byte-identical to BASE
+  ok   X1 exactly this many functions changed: 81
   ok   X2 kpiDacPct is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
+  ok   X2d totalRowFlags differs from BASE only by CLCPA-319 letting a column total confirm its own row -- []
   ok   X2c recomputeTotals differs from BASE only by passing the baseline -- ["    applyDerivedCols(draft, tableId, colSum, schema, baseline);"]
-  ok   X2b applyDerivedCols differs from BASE only by CLCPA-241 -- []
+  ok   X2b applyDerivedCols differs from BASE only by CLCPA-241 and CLCPA-319 -- []
   ok   X3 BASE is a literal commit sha: c6d0453
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  227 passed, 0 failed
+  231 passed, 0 failed

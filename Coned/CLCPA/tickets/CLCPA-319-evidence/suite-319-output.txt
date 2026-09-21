@@ -1,0 +1,50 @@
+CLCPA-319: the G total row computes
+BASE d84c0d3   app.js working tree
+
+=== R. the rule, and what it is declared as =========================
+  ok   R1 G1 to G9 each declare a columnTotal beside the percentage: {"G1":"columnTotal+percentage","G2":"columnTotal+percentage","G3":"columnTotal+percentage","G4":"columnTotal+percentage","G5":"columnTotal+percentage","G6":"columnTotal+percentage","G7":"columnTotal+percentage","G8":"columnTotal+percentage","G9":"columnTotal+percentage","G10":"percentage"}
+  ok   R2 and G10 does NOT, which is the counter-example the ticket names: percentage
+  ok   R3 it is declared on the QUANTITY column, not the percentage
+  ok   R4 with keepFiled ON, so a filed total the rows do not reproduce is kept and named
+  ok   R5 a columnTotal is TOTAL-ONLY: the column is source data on every other row
+  ok   R6 while a percentage is not, so the two are not conflated
+
+=== V. value identity, every stored G year ==========================
+  ok   V1 the G1 to G9 quantity column rendered: 67 cells
+  ok   V2 and NOT ONE of them moves: []
+  ok   V3 and all 21 in-scope total-row quantities are produced BY the engine: 21 of 21
+
+=== S. the three defects a green sweep did not see ==================
+  ok   S-STRIP-1 the typed 302,384 SURVIVES the save: 302384
+  ok   S-STRIP-2 and so does the untouched non-DAC figure: 228154
+  ok   S-STRIP-3 while the TOTAL is nulled, so no stored copy is kept: null
+  ok   S-STRIP-4 the percentage column is still stripped on every row, as before
+  ok   S-STRIP-5 and the stripped rows RENDER the total back: 530538
+  ok   S-FMT-1 430538 renders as 430,538, the way the cells above it render: "430,538"
+  ok   S-FMT-2 and it follows the COLUMN when the column is money: "$430,538"
+  ok   S-FMT-3 while a percentage is untouched, so the branch is narrow
+  ok   S-FMT-4 and BOTH call sites pass the column money flag: ["fmtDerivedCell(v, dDesc, currencyCol[colIdx])","fmtDerivedCell(v, d, currencyCol[c])"]
+  ok   S-PCT-1 every G total row still shows 100%, not 50%: []
+  ok   S-PCT-2 because totalRowFlags excludes columnTotal from its skip set
+
+=== C. the classifier may not gate the value it reads ===============
+  ok   C1 the total recomputes to 632922 after an edit its own filed figure no longer matches: 632922
+  ok   C2 and the total row is NOT swallowed into its own sum (1,063,460 was the first cut)
+  ok   C3 while the arithmetic confirmation calls NONE of those rows a total, which is exactly why the rule does not ask it: [false,false,false]
+
+=== G. the kept-figure guardian, intact =============================
+  ok   G1 an unreproduced filed total is KEPT, not quietly republished: 999999
+  ok   G2 and the save REFUSES to strip it, so it cannot be deleted: 999999
+  ok   G3 but an operator EDIT recomputes it on the editor path, or CLCPA-241s stale cell comes straight back: 530538
+  ok   G4 while the REPORT path, which has no baseline, still publishes the filed figure: 999999
+
+=== X. the exclusions ================================================
+  ok   X1 G10/2024 still publishes its filed 241.2279 against rows summing 241.22: 241.2279
+  ok   X2 the persist strip covers the G board as it already did
+  ok   X3 the rule is built in ONE place and handed to the G tables only
+  ok   X4 BASE is a literal commit sha: d84c0d3
+  ok   X5 and HEAD descends from it
+  ok   X6 and the two sources genuinely differ
+  ok   X7 while BASE has no columnTotal at all, so this suite cannot pass on it
+
+  34 passed, 0 failed

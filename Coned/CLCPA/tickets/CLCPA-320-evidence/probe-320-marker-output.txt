@@ -1,0 +1,59 @@
+CLCPA-320 MEASUREMENT: is the total-row marker the same in every year?
+app.js: working tree
+
+=== G1
+    2025            r2 "Systemwide Total"  role=true  flagged=true  marks=[1,2]
+=== G2
+    2023            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G3
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G4
+    2023            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G5
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G6
+    2023            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G7
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G8
+    2023            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G9
+    2024            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "County Total"  role=true  flagged=true  marks=[1,2]
+=== G10
+    2023            r2 "Grand Total"  role=true  flagged=true  marks=[1,2]
+    2024            r2 "Grand Total"  role=true  flagged=true  marks=[1,2]
+    2025            r2 "Grand Total"  role=true  flagged=true  marks=[1,2]
+=== A3
+    2023            r28 "Total"  role=true  flagged=false  marks=[1,2,3,4]   <-- DISAGREE
+    2024            r26 "Total"  role=true  flagged=false  marks=[1,2,3,4]   <-- DISAGREE
+    2025            r22 "Total"  role=true  flagged=true  marks=[1,2,3,4]
+
+--- the same total rows, with the figures not yet filled in ------------
+    G1 blank  r2 "Systemwide Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G2 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G3 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G4 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G5 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G6 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G7 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G8 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G9 blank  r2 "County Total"  role=true  flagged=false  marks=[1,2]   <-- DISAGREE
+    G10 blank  r2 "Grand Total"  role=true  flagged=true  marks=[1,2]
+    A3 blank  r22 "Total"  role=true  flagged=true  marks=[1,2,3,4]
+
+--- summary -----------------------------------------------------------
+  total rows examined: 38
+  rows whose ROLE says total but whose ARITHMETIC does not: 11
+  ["A3:2023 r28","A3:2024 r26","G1:BLANK r2","G2:BLANK r2","G3:BLANK r2","G4:BLANK r2","G5:BLANK r2","G6:BLANK r2","G7:BLANK r2","G8:BLANK r2","G9:BLANK r2"]

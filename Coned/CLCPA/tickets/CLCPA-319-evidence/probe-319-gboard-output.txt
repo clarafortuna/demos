@@ -1,0 +1,69 @@
+CLCPA-319 MEASUREMENT: the G board, every stored year
+app.js: working tree
+
+=== G1
+    rules declared: columnTotal@1, percentage@2
+    2023  totalRows(label)=[] (flag)=[]  filed=null  rowsSum=null  segSum=null  shown=null  NO TOTAL ROW
+    2024  totalRows(label)=[] (flag)=[]  filed=null  rowsSum=null  segSum=null  shown=null  NO TOTAL ROW
+    2025  totalRows(label)=[2] (flag)=[2]  filed=430538  rowsSum=430538  segSum=430538  shown=430538  identical
+
+=== G2
+    rules declared: columnTotal@1, percentage@2
+    2023  totalRows(label)=[2] (flag)=[2]  filed=86952  rowsSum=86952  segSum=86952  shown=86952  identical
+    2024  totalRows(label)=[2] (flag)=[2]  filed=87495  rowsSum=87495  segSum=87495  shown=87495  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=83812  rowsSum=83812  segSum=83812  shown=83812  identical
+
+=== G3
+    rules declared: columnTotal@1, percentage@2
+    2024  totalRows(label)=[2] (flag)=[2]  filed=3688  rowsSum=3688  segSum=3688  shown=3688  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=3276  rowsSum=3276  segSum=3276  shown=3276  identical
+
+=== G4
+    rules declared: columnTotal@1, percentage@2
+    2023  totalRows(label)=[2] (flag)=[2]  filed=43665  rowsSum=43665  segSum=43665  shown=43665  identical
+    2024  totalRows(label)=[2] (flag)=[2]  filed=40535  rowsSum=40535  segSum=40535  shown=40535  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=36765  rowsSum=36765  segSum=36765  shown=36765  identical
+
+=== G5
+    rules declared: columnTotal@1, percentage@2
+    2024  totalRows(label)=[2] (flag)=[2]  filed=1075  rowsSum=1075  segSum=1075  shown=1075  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=930  rowsSum=930  segSum=930  shown=930  identical
+
+=== G6
+    rules declared: columnTotal@1, percentage@2
+    2023  totalRows(label)=[2] (flag)=[2]  filed=81406  rowsSum=81406  segSum=81406  shown=81406  identical
+    2024  totalRows(label)=[2] (flag)=[2]  filed=81034  rowsSum=81034  segSum=81034  shown=81034  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=92591  rowsSum=92591  segSum=92591  shown=92591  identical
+
+=== G7
+    rules declared: columnTotal@1, percentage@2
+    2024  totalRows(label)=[2] (flag)=[2]  filed=1793  rowsSum=1793  segSum=1793  shown=1793  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=2825  rowsSum=2825  segSum=2825  shown=2825  identical
+
+=== G8
+    rules declared: columnTotal@1, percentage@2
+    2023  totalRows(label)=[2] (flag)=[2]  filed=210405  rowsSum=210405  segSum=210405  shown=210405  identical
+    2024  totalRows(label)=[2] (flag)=[2]  filed=202211  rowsSum=202211  segSum=202211  shown=202211  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=203549  rowsSum=203549  segSum=203549  shown=203549  identical
+
+=== G9
+    rules declared: columnTotal@1, percentage@2
+    2024  totalRows(label)=[2] (flag)=[2]  filed=3891  rowsSum=3891  segSum=3891  shown=3891  identical
+    2025  totalRows(label)=[2] (flag)=[2]  filed=6790  rowsSum=6790  segSum=6790  shown=6790  identical
+
+=== G10   (G10: the declared counter-example, NOT in scope)
+    rules declared: percentage@2
+    2023  totalRows(label)=[2] (flag)=[2]  filed=238.89  rowsSum=238.89000000000001  segSum=238.89000000000001  shown=238.89  identical
+    2024  totalRows(label)=[2] (flag)=[2]  filed=241.2279  rowsSum=241.22  segSum=241.22  shown=241.2279  DISAGREE
+    2025  totalRows(label)=[2] (flag)=[2]  filed=257.86  rowsSum=257.86  segSum=257.86  shown=257.86  identical
+
+--- summary -----------------------------------------------------------
+  G tables with stored years: 10, table-years: 26
+  table-years with MORE THAN ONE total row by label: 0
+  table-years with NO total row or no figure filed in it: 2
+  in-scope (G1 to G9) table-years where a filed figure and its row sum
+  DISAGREE: 0
+
+  Read this with the rule: where they disagree the kept-figure guardian
+  holds the FILED value, so a disagreement is a disclosed data question,
+  never a republished figure.

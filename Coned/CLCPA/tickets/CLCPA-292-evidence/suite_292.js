@@ -139,9 +139,19 @@ guard('D-block', () => {
   /* RE-PINNED: CLCPA-289 marks A9's "% Change" pair (calculated) on a fresh
    * year, because CLCPA-241 gave it a rule and the app now genuinely computes
    * it. A9 is named rather than the count relaxed. */
-  ok(changed.length === 3 && changed.indexOf('A3') >= 0 && changed.indexOf('A4') >= 0 &&
-     changed.indexOf('A9') >= 0,
-    'D1 A3 and A4 move for this ticket, A9 for CLCPA-289 -- ' + JSON.stringify(changed));
+  /* RE-PINNED again: CLCPA-308 marks the derived ROWS of D2, D3, D4 and F7,
+   * so the fresh-year set grows by four. Every mover is named; an unnamed one
+   * still fails this. */
+  /* RE-PINNED again: CLCPA-320 marks a total row by its ROLE rather than by
+   * arithmetic confirmation, and J8's "Total" does not sum its own rows --
+   * 192,638,756 filed against 192,401,325 from the two rows above it -- so
+   * it was the one total row the confirmation refused. NAMED, not counted:
+   * a ninth table moving still fails this. */
+  ok(JSON.stringify(changed.slice().sort()) ===
+     JSON.stringify(['A3', 'A4', 'A9', 'D2', 'D3', 'D4', 'F7', 'J8']),
+    'D1 A3 and A4 for this ticket, A9 for CLCPA-289, D2/D3/D4/F7 for ' +
+    'CLCPA-308, J8 for CLCPA-320 -- ' +
+    JSON.stringify(changed));
   /* a one-key table is untouched, which is what keeps this narrow */
   const h = tmplFresh('H1', SRC);
   ok(h[1][0] === 'Manhattan' && h[1][1] === '',

@@ -204,8 +204,10 @@ guard('E-block', () => {
   /* RE-PINNED: A9 moves for CLCPA-289, which marks its "% Change" pair
    * (calculated) now that CLCPA-241 gave the column a rule. Named, so the
    * assertion still says exactly which templates may move and why. */
-  ok(changed.length === 1 && changed[0] === 'A9',
-    'E1 every FRESH-year template is byte-identical to BASE except A9, for CLCPA-289 -- ' +
+  /* RE-PINNED: CLCPA-308 marks a DERIVED ROW (calculated) too, and F7 declares
+   * one. Named alongside A9 rather than the count relaxed. */
+  ok(JSON.stringify(changed.slice().sort()) === JSON.stringify(['A9', 'F7']),
+    'E1 every FRESH-year template is byte-identical to BASE except A9 (CLCPA-289) and F7 (CLCPA-308) -- ' +
     (changed.length ? changed.join(',') : 'all 10'));
   /* and the seed years moved in exactly one way: they gained values */
   let gained = 0;
