@@ -82,7 +82,11 @@ const WANT = ['ingestComputed', 'getTableSchema', 'isAnchoredTotalRowLabel'];
  * The revert is a string replacement on this ticket's own line, and it is
  * asserted to hit exactly once -- a silent miss would make CLCPA-320 look
  * like it changed nothing at all. */
-const C320_NEW = '((!!totals[r] || !!totalRole[r]) && (!!derived[c] || engineWrites(c)))';
+/* the clause as it stands after the pre-merge amendment: role AND
+ * derivability. Reverting it to the arithmetic term alone is what isolates
+ * this ticket from everything else in the tree. */
+const C320_NEW = '((!!totals[r] || !!totalRole[r]) && engineDerives(r, c) &&\r\n' +
+  '             (!!derived[c] || engineWrites(c)))';
 const C320_OLD = '(!!totals[r] && (!!derived[c] || engineWrites(c)))';
 const hits = SRC.split(C320_NEW).length - 1;
 if (hits !== 1) {

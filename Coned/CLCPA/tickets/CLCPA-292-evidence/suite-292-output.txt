@@ -28,7 +28,7 @@ C. THE SAME COUNT THE IMPORTER MATCHES ON
   ok   C5 H1 declares one
 
 D. EVERY OTHER TABLE
-  ok   D1 A3 and A4 for this ticket, A9 for CLCPA-289, D2/D3/D4/F7 for CLCPA-308, J8 for CLCPA-320 -- ["A3","A4","A9","D2","D3","D4","F7","J8"]
+  ok   D1 A3 and A4 for this ticket, A9 for CLCPA-289, D2/D3/D4/F7 for CLCPA-308. J8 was here until the pre-merge amendment to CLCPA-320 withheld its marker: its Total is not derivable from its own rows -- ["A3","A4","A9","D2","D3","D4","F7"]
   ok   D2 H1 declares one key column and is unchanged -- ["Manhattan","","","(calculated)"]
   ok   D3 the populated year already carried the key on BASE: option (c) closed that half
 

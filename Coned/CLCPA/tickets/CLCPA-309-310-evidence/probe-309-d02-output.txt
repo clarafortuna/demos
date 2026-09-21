@@ -1,0 +1,34 @@
+CLCPA-309 / D-02: what the advisory says against what the cell holds
+app.js: working tree
+
+=== D2:2025  percentage row r2 "Percentage of projects in DACs"
+    stored: ["Percentage of projects in DACs",0.324,0.327]
+    the workbook MARKS that cell (calculated): true
+    the import SKIPS it: false
+    fraction advisory raised on it: 0
+    the draft holds, straight after the import : 0.22399999999999998
+    and after the recompute                    : 0.32372093023255816
+    and what the REPORT PAGE would show        : 0.32372093023255816
+
+=== D3:2025  percentage row r2 "Percentage of subscribers in DACs"
+    stored: ["Percentage of subscribers in DACs",0.348,0.513]
+    the workbook MARKS that cell (calculated): true
+    the import SKIPS it: false
+    fraction advisory raised on it: 0
+    the draft holds, straight after the import : 0.22399999999999998
+    and after the recompute                    : 0.3480825958702065
+    and what the REPORT PAGE would show        : 0.3480825958702065
+
+=== D4:2025  percentage row r2 "Percentage of projects installed for low"
+    stored: ["Percentage of projects installed for low-income customers",0.059000000000000004,0.055]
+    the workbook MARKS that cell (calculated): true
+    the import SKIPS it: false
+    fraction advisory raised on it: 0
+    the draft holds, straight after the import : 0.22399999999999998
+    and after the recompute                    : 0.058942287610516786
+    and what the REPORT PAGE would show        : 0.058942287610516786
+
+--- the gate ----------------------------------------------------------
+  The ticket accepts EITHER: no fraction advisory on these cells, OR an
+  advisory that truthfully describes the computed outcome. The three
+  numbers above are what decides which of those the build delivers.

@@ -2865,6 +2865,47 @@ function utf8ByteLength(str) {
       // CLCPA-241 + CLCPA-289: A9's "% Change" pair, computed at last.
       A9: [pctChange(5, 3, 1, 0), pctChange(6, 4, 2, 0)],
       A10: [pct(3, [2], [1], 'row', 0), pct(6, [5], [4], 'row', 0)],
+      /* CLCPA-303, option (C): B2 IS TWO TOTALS CROSSING, and both directions
+       * are declared here so neither is left implicit.
+       *
+       * "Total Plugs" is a COLUMN summing plug types across a row. "Total" is
+       * a ROW summing categories down a column. The row-wise direction needs
+       * nothing declared: detectSumColumns reads it off the heading and
+       * CLCPA-272 already rules what happens there -- reconcile and advise,
+       * never compute over the preparer's figure. The column-wise direction
+       * had no rule at all, and the difference was measurable:
+       *
+       *   file a divergent ROW total     kept, and the amber advisory names it
+       *   file a divergent COLUMN total  silently overwritten
+       *   blank a ROW total              rebuilt, on import and on render
+       *   blank the whole TOTAL ROW      stayed blank on both
+       *
+       * That last line is the CLCPA-246 shape again: a value-less total row no
+       * classifier can confirm, because totalRowFlags confirms by arithmetic
+       * and there is no arithmetic left in an empty row. colTotal identifies
+       * its row by LABEL for exactly that reason.
+       *
+       * FOUR COLUMNS, because B2's schema is not the same in every year: 2025
+       * inserts "Micromobility Power Cabinets" and pushes "Total Plugs" from
+       * index 3 to index 4. A rule for a column a year does not have is inert,
+       * so declaring 1 to 4 covers every stored year without a year-keyed
+       * registry. suite_303 asserts the coverage per year rather than trusting
+       * that sentence.
+       *
+       * THE CORNER, where the two axes cross, BELONGS TO THE COLUMN RULE. It
+       * is the only cell two rules could write, and one cell with two writers
+       * is the second source of truth this engine exists to prevent. The
+       * choice is not arbitrary: CLCPA-306 already ceded that cell to the
+       * column direction for the advisory, holding that a total row's cell in
+       * a total column is the engine's and not the operator's. The write now
+       * follows the advisory rather than contradicting it, and
+       * recomputeDerivableSums stands off the rows this rule owns.
+       *
+       * keepFiled is ON, as it is for the G board: a filed total the rows do
+       * not reproduce is kept and named, never silently republished. Measured
+       * across all three stored years, 12 of 12 cells agree in both
+       * directions, so value identity holds and no published figure moves. */
+      B2: [colTotal(1), colTotal(2), colTotal(3), colTotal(4)],
       F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4)],
       G1: gPct, G2: gPct, G3: gPct, G4: gPct, G5: gPct,
       G6: gPct, G7: gPct, G8: gPct, G9: gPct,
@@ -4668,6 +4709,22 @@ function utf8ByteLength(str) {
     const rels = detectSumColumns(headerRow, rows, tableId);
     const done = [];
     if (!rels.length || !Array.isArray(rows) || !Array.isArray(rows[rowIndex])) return done;
+    /* CLCPA-303: ONE WRITER PER CELL, where two totals cross.
+     *
+     * B2 is the first table with both a row-wise total column and a declared
+     * column-wise total row, and their cells meet. Without this, editing the
+     * Total row's "L2 Plugs" would have this function write the corner as a
+     * ROW sum while applyDerivedCols writes it as a COLUMN sum moments later.
+     * On a consistent table the two agree and the duplication is invisible,
+     * which is precisely how a second source of truth survives to cause
+     * CLCPA-88.
+     *
+     * The corner is the column rule's, per CLCPA-306, so this one stands off
+     * every row that rule owns. Asked of the DECLARATION rather than of the
+     * label alone: a table with no columnTotal rule is untouched, which is
+     * every table but B2 today. */
+    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal') &&
+        isAnchoredTotalRowLabel((rows[rowIndex] || [])[0])) return done;
     rels.forEach((rel) => {
       /* the edited cell has to BE a component of this relationship: editing
        * the total itself is the preparer filing one, not a trigger to
@@ -16298,6 +16355,23 @@ function wireHTooltips() {
   function dacCell(T, id, y, labelRe, nameRe) {
     const r = dacRow(T, id, y, labelRe), c = dacCol(T, id, y, nameRe);
     if (!r || c < 0) return undefined;
+    /* CLCPA-246: NOTHING IS NEEDED HERE, and a fallback was written and then
+     * taken out again rather than shipped.
+     *
+     * The worry was real in shape: CLCPA-319 makes G's total derived and
+     * strips it on persist, so the stored cell is null by design, and
+     * main_replacement falls back to summing G2/G4/G6/G8 when it does not
+     * find a number. What made it look live was my own measurement calling
+     * the KPI rule with the RAW tables. The app never does that:
+     * recomputeYearDerived feeds every rule dacDerivedTablesForYear, which
+     * has always passed the rows through rowsForDisplay, and the columnTotal
+     * write is not gated by the fillTotals opt-in. Measured with the fallback
+     * and without it, on the stripped year and on a value-less imported one:
+     * identical, 430,538 / 202,384 and 10,998 / 9,999.
+     *
+     * So this accessor stays as it was. The note is here because the next
+     * person to see a stripped cell feeding a KPI will have the same worry,
+     * and the answer is one function up. */
     return r[c];
   }
   function dacPct(v) {
@@ -18258,7 +18332,28 @@ function wireHTooltips() {
          * not end in "total" at all -- A5's "Commercial Programs Total
          * Installations" among them -- and dropping it would have taken the
          * marker off rows that have always carried it. */
-        if (((!!totals[r] || !!totalRole[r]) && (!!derived[c] || engineWrites(c))) ||
+        /* CLCPA-320, AMENDED BEFORE MERGE: ROLE IS NOT ENOUGH. A total row
+         * that the engine cannot derive from its own rows must never be
+         * marked (calculated), because the marker is a promise that the
+         * dashboard fills the cell in.
+         *
+         * J8 is the case that forced this. Its "Total" is B7-class by
+         * standing ruling -- the dollar figures belong to the preparer, and
+         * 192,638,756 is not what its two rows come to -- so its workbook
+         * cell is a fill-in, not a computed one. Marking it would have told
+         * a preparer to leave blank the one figure only they can supply.
+         *
+         * DERIVABILITY IS READ FROM THE REGISTRIES, not guessed: a declared
+         * derived ROW, a declared derived COLUMN, a derivable total COLUMN
+         * as detectSumColumns finds it, or the arithmetic confirmation that
+         * the engine already sums this row. A3 keeps its marker in every
+         * year through the third of those -- "Total Participants" is a
+         * derivable total column -- which is what makes the year-to-year
+         * consistency this ticket is about survive the amendment. */
+        const engineDerives = (rr, cc) => !!totals[rr] || !!derivedRowSet[rr] ||
+          !!derived[cc] || !!sumRel[cc];
+        if (((!!totals[r] || !!totalRole[r]) && engineDerives(r, c) &&
+             (!!derived[c] || engineWrites(c))) ||
             (!!derived[c] && !isTotalOnlyDerived(derived[c]))) return true;
         const rel = sumRel[c];
         if (!rel) return false;
@@ -18709,7 +18804,28 @@ function wireHTooltips() {
         /* CLCPA-273: the same predicate the editor now calls. The test is
          * unchanged -- it was lifted out verbatim, not rewritten -- so the
          * import path this ticket must not regress behaves identically. */
-        if (isPercentLiteral(raw) && !pctCols[cIdx]) {
+        /* CLCPA-309 / D-02: NOT ON A CELL THE ENGINE RECOMPUTES.
+         *
+         * This advisory's whole claim is "what was read is what the cell
+         * holds". On a declared derived ROW that is false: the value lands,
+         * the next recompute replaces it with the quotient, and the number
+         * the advisory named never survives. Measured on D3/2025, importing
+         * "22.4%" into "Percentage of subscribers in DACs":
+         *
+         *     the advisory said   22.4% read as 0.224
+         *     the draft held      0.22399999999999998   (for an instant)
+         *     and then            0.3480825958702065    (1,647 / 4,732)
+         *
+         * The operator's only feedback on these cells was actively telling
+         * them their figure had been accepted. CLCPA-308 marks the cell
+         * (calculated) in the workbook, so they are told beforehand; saying
+         * nothing afterwards is silence, and silence beats a false receipt.
+         *
+         * A derived COLUMN cannot reach here: the import already skips it, so
+         * no value is written and no notice is raised. Rows are the live case
+         * because CLCPA-308 deliberately left the import accepting them. */
+        if (isPercentLiteral(raw) && !pctCols[cIdx] &&
+            !(typeof computed.derivedRow === 'function' && computed.derivedRow(t.rowIdx))) {
           res.unitNotices.push(Object.assign({
             read: String(raw).trim(),
             landed: candidate[t.rowIdx][cIdx],
@@ -23778,7 +23894,17 @@ function wireHTooltips() {
     const key = r + ':' + c;
     const at = i.typedUnitNotices.findIndex(x => x.key === key);
     const pctCols = detectPctColumns(i.schema || []);
-    if (!isPercentLiteral(raw) || pctCols[c]) {
+    /* CLCPA-309 / D-02: the same exclusion as the import panel's, on the
+     * second surface. A cell on a declared derived ROW is recomputed the
+     * moment it is typed, so "read as X" is false here too, and CLCPA-271 is
+     * the standing lesson that a message living on two surfaces gets fixed on
+     * both or drifts. */
+    let onDerivedRow = false;
+    try {
+      const c2 = ingestComputed(i.draft || [], i.tableId, i.schema || []);
+      onDerivedRow = typeof c2.derivedRow === 'function' && !!c2.derivedRow(r);
+    } catch (e) { onDerivedRow = false; }
+    if (!isPercentLiteral(raw) || pctCols[c] || onDerivedRow) {
       if (at >= 0) i.typedUnitNotices.splice(at, 1);
       return;
     }

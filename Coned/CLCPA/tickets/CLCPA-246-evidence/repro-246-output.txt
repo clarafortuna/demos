@@ -1,0 +1,62 @@
+CLCPA-246 REPRODUCTION: G1s total, and the Mains KPI that reads it
+shipped build pinned at d84c0d3
+(2098 is this probes own year, on a throwaway browser profile; the live
+ org is not touched and 2096 is not gone near.)
+
+=== base   (C:\Users\emely\AppData\Local\Temp\clcpa-246-base-d84c0d3)
+  A  imported year, total value-less
+      seeded G1:2098
+      text: per section 2025 2098 Clean Energy — EV Ready — Demand Resp — DER — Strategic — Outages — Mains — Leaks — Jobs — Cust Ops — 0% 25% 50% 75% 100% DAC Im
+      text: Ready — N/A — — Demand Resp — N/A — — DER — N/A — — Strategic — N/A — — Outages — N/A — — Mains — N/A — — Leaks — N/A — — Jobs — N/A — — Cust Ops — N/
+      G1 row: ["Category","Feet Replaced","Percentage"]
+      G1 row: ["Feet Replaced within DAC","9,999","90.9%"]
+      G1 row: ["Feet Replaced not in a DAC","999","9.1%"]
+      G1 row: ["Systemwide Total","",""]
+      editor: ["Category","Feet Replaced","Percentage",""]
+      editor: ["[Feet Replaced within DAC]","[9,999]","90.92%","×"]
+      editor: ["[Feet Replaced not in a DAC]","[999]","9.08%","×"]
+      editor: ["Systemwide Total","[]","—",""]
+
+  B  saved year, total stripped     
+      seeded G1:2025
+      text: per section 2025 2098 Clean Energy — EV Ready — Demand Resp — DER — Strategic — Outages — Mains — Leaks — Jobs — Cust Ops — 0% 25% 50% 75% 100% DAC Im
+      text: Ready — N/A — — Demand Resp — N/A — — DER — N/A — — Strategic — N/A — — Outages — N/A — — Mains — N/A — — Leaks — N/A — — Jobs — N/A — — Cust Ops — N/
+      G1 row: ["Category","Feet Replaced","Percentage"]
+      G1 row: ["Feet Replaced within DAC","9,999","90.9%"]
+      G1 row: ["Feet Replaced not in a DAC","999","9.1%"]
+      G1 row: ["Systemwide Total","",""]
+      editor: ["Category","Feet Replaced","Percentage",""]
+      editor: ["[Feet Replaced within DAC]","[202,384]","47.01%","×"]
+      editor: ["[Feet Replaced not in a DAC]","[228,154]","52.99%","×"]
+      editor: ["Systemwide Total","[]","—",""]
+
+  page errors: []
+
+=== fix   (C:\Users\emely\Desktop\Projects\demos\Coned\CLCPA\ExecutiveDashboard_dev)
+  A  imported year, total value-less
+      seeded G1:2098
+      text: per section 2025 2098 Clean Energy — EV Ready — Demand Resp — DER — Strategic — Outages — Mains — Leaks — Jobs — Cust Ops — 0% 25% 50% 75% 100% DAC Im
+      text: Ready — N/A — — Demand Resp — N/A — — DER — N/A — — Strategic — N/A — — Outages — N/A — — Mains — N/A — — Leaks — N/A — — Jobs — N/A — — Cust Ops — N/
+      G1 row: ["Category","Feet Replaced","Percentage"]
+      G1 row: ["Feet Replaced within DAC","9,999","90.9%"]
+      G1 row: ["Feet Replaced not in a DAC","999","9.1%"]
+      G1 row: ["Systemwide Total","10,998","100.0%"]
+      editor: ["Category","Feet Replaced","Percentage",""]
+      editor: ["[Feet Replaced within DAC]","[9,999]","90.92%","×"]
+      editor: ["[Feet Replaced not in a DAC]","[999]","9.08%","×"]
+      editor: ["Systemwide Total","10,998","100.00%",""]
+
+  B  saved year, total stripped     
+      seeded G1:2025
+      text: per section 2025 2098 Clean Energy — EV Ready — Demand Resp — DER — Strategic — Outages — Mains — Leaks — Jobs — Cust Ops — 0% 25% 50% 75% 100% DAC Im
+      text: Ready — N/A — — Demand Resp — N/A — — DER — N/A — — Strategic — N/A — — Outages — N/A — — Mains — N/A — — Leaks — N/A — — Jobs — N/A — — Cust Ops — N/
+      G1 row: ["Category","Feet Replaced","Percentage"]
+      G1 row: ["Feet Replaced within DAC","9,999","90.9%"]
+      G1 row: ["Feet Replaced not in a DAC","999","9.1%"]
+      G1 row: ["Systemwide Total","10,998","100.0%"]
+      editor: ["Category","Feet Replaced","Percentage",""]
+      editor: ["[Feet Replaced within DAC]","[202,384]","47.01%","×"]
+      editor: ["[Feet Replaced not in a DAC]","[228,154]","52.99%","×"]
+      editor: ["Systemwide Total","430,538","100.00%",""]
+
+  page errors: []

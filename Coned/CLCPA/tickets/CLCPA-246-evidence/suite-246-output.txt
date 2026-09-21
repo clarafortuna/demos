@@ -1,0 +1,39 @@
+CLCPA-246: G1s Systemwide Total on an imported year
+BASE d84c0d3   app.js working tree
+
+A. THE DEFECT, ON THE BUILD IT WAS FILED AGAINST
+    d84c0d3 renders: ["Systemwide Total",null,null]
+  ok   A1 the shipped build leaves the total cell empty, which is the ticket
+  ok   A2 and its percentage with it
+  ok   A3 while the rows it should be the total of are both there
+
+B. AND ON THIS BUILD
+    working tree renders: ["Systemwide Total",10998,1]
+  ok   B1 the total is filled from its own rows: 10998
+  ok   B2 and the percentage column comes to a whole 1, which the page renders as 100.0%: 1
+  ok   B3 without touching either row it was computed from
+  ok   B4 and the stored row is untouched: the engine fills the VIEW, it does not write a second source of truth into storage
+
+C. AND NOT BY WIDENING A LABEL PREDICATE
+  ok   C1 BASE: "Systemwide Total" is not a strict total label
+  ok   C2 and this build has not changed that, so the bootstrap the audit named still does not reach this row
+  ok   C3 the ANCHORED predicate does match it, which is the one CLCPA-245 R2 flagged it with: flagging was never the missing half
+  ok   C4 and a data row is still not caught by it
+
+D. THE MAINS KPI, ON THE PATH THE APP ACTUALLY TAKES
+  ok   D1 every KPI against every year is measured, not just the one named: 12 rules x 3 years = 36 KPI-years
+  ok   D2 and not one published KPI figure moves across the two builds on that path: []
+  ok   D3 including main_replacement, the KPI the ticket says does not render
+  ok   D4 and it has a figure rather than being equally absent on both: {"total":430538,"dac":202384}
+
+E. THE VERDICT: NOTHING IN THIS BUILD IS A CLCPA-246 FIX
+  ok   E1 dacCell is found on both builds
+  ok   E2 and its CODE is byte-identical to BASE: the fallback that was written for this ticket was measured, found to change nothing on the real path, and removed
+  ok   E3 while the file records why, so the next reader does not write it again
+
+X. THE BASELINE
+  ok   X1 BASE is a literal commit sha: d84c0d3
+  ok   X2 and HEAD descends from it
+  ok   X3 the browser half seeds 2098, this half needs no year at all, and neither goes near 2096: that is CLCPA-301s reproduction
+
+  21 passed, 0 failed

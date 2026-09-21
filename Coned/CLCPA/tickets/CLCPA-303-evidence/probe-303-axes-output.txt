@@ -1,0 +1,91 @@
+CLCPA-303 OPTION (C): what each axis does, measured before anything is built
+app.js: working tree
+
+=======================================================================
+ 1. EDIT A BODY CELL: which totals follow?
+=======================================================================
+  2023  DAC / L2 Plugs: 817 -> 917
+      row total   DAC / Total Plugs: 899 -> 999   FOLLOWED
+      column total  Total / L2 Plugs: 2898 -> 2998   FOLLOWED
+      THE CORNER    Total / Total Plugs: 3009 -> 3109   FOLLOWED
+  2024  DAC / L2 Plugs: 1732 -> 1832
+      row total   DAC / Total Plugs: 1850 -> 1950   FOLLOWED
+      column total  Total / L2 Plugs: 4118 -> 4218   FOLLOWED
+      THE CORNER    Total / Total Plugs: 4312 -> 4412   FOLLOWED
+  2025  DAC / L2 Plugs: 2966 -> 3066
+      row total   DAC / Total Plugs: 3138 -> 3238   FOLLOWED
+      column total  Total / L2 Plugs: 7482 -> 7582   FOLLOWED
+      THE CORNER    Total / Total Plugs: 8884 -> 8984   FOLLOWED
+
+=======================================================================
+ 2. FILE A DIVERGENT ROW TOTAL (the operator types it themselves)
+=======================================================================
+  2023  DAC / Total Plugs filed as 1399 (row sums to 899)
+      after the recompute the cell holds: 1399   KEPT
+      reconciliation advisory rows: 1   ["DAC/Total Plugs"]
+  2024  DAC / Total Plugs filed as 2350 (row sums to 1850)
+      after the recompute the cell holds: 2350   KEPT
+      reconciliation advisory rows: 1   ["DAC/Total Plugs"]
+  2025  DAC / Total Plugs filed as 3638 (row sums to 3138)
+      after the recompute the cell holds: 3638   KEPT
+      reconciliation advisory rows: 1   ["DAC/Total Plugs"]
+
+=======================================================================
+ 3. FILE A DIVERGENT COLUMN TOTAL (the Total row, in a plain column)
+=======================================================================
+  2023  Total / L2 Plugs filed as 3398 (column sums to 2898)
+      after the recompute the cell holds: 3398   KEPT
+      reconciliation advisory rows: 1
+      unreconciledTotals on the STORED table: []
+  2024  Total / L2 Plugs filed as 4618 (column sums to 4118)
+      after the recompute the cell holds: 4618   KEPT
+      reconciliation advisory rows: 1
+      unreconciledTotals on the STORED table: []
+  2025  Total / L2 Plugs filed as 7982 (column sums to 7482)
+      after the recompute the cell holds: 7982   KEPT
+      reconciliation advisory rows: 1
+      unreconciledTotals on the STORED table: []
+
+=======================================================================
+ 4. THE CORNER: file a value the two axes disagree about
+=======================================================================
+  2023  the corner filed as 3509 (both axes say 3009)
+      after the recompute : 3509   KEPT
+      through the display : 3509
+      advisory rows       : 1
+  2024  the corner filed as 4812 (both axes say 4312)
+      after the recompute : 4812   KEPT
+      through the display : 4812
+      advisory rows       : 1
+  2025  the corner filed as 9384 (both axes say 8884)
+      after the recompute : 9384   KEPT
+      through the display : 9384
+      advisory rows       : 1
+
+=======================================================================
+ 5. BLANK CELLS: which axis fills them back?
+=======================================================================
+  2023
+      DAC row total blanked -> import fill 899, display 899
+      Total row blanked     -> import fill [null,null,null]
+                               display     [2898,111,3009]
+  2024
+      DAC row total blanked -> import fill 1850, display 1850
+      Total row blanked     -> import fill [null,null,null]
+                               display     [4118,194,4312]
+  2025
+      DAC row total blanked -> import fill 3138, display 3138
+      Total row blanked     -> import fill [null,null,null,null]
+                               display     [7482,1399,3,8884]
+
+=======================================================================
+ 6. WHAT IS DECLARED TODAY
+=======================================================================
+  DERIVED_COLS.B2 = [{"column":1,"type":"columnTotal","keepFiled":true,"numerator":[1],"denominator":[1],"denominatorScope":"row"},{"column":2,"type":"columnTotal","keepFiled":true,"numerator":[2],"denominator":[2],"denominatorScope":"row"},{"column":3,"type":"columnTotal","keepFiled":true,"numerator":[3],"denominator":[3],"denominatorScope":"row"},{"column":4,"type":"columnTotal","keepFiled":true,"numerator":[4],"denominator":[4],"denominatorScope":"row"}]
+  DERIVED_ROWS.B2 = null
+  2023  detectSumColumns finds: {"column":3,"parts":[1,2]}
+        stripDerivedForPersist keeps: [["DAC",817,82,899],["Non-DAC",2081,29,2110],["Total",2898,111,3009]]
+  2024  detectSumColumns finds: {"column":3,"parts":[1,2]}
+        stripDerivedForPersist keeps: [["DAC",1732,118,1850],["Non-DAC",2386,76,2462],["Total",4118,194,4312]]
+  2025  detectSumColumns finds: {"column":4,"parts":[1,2,3]}
+        stripDerivedForPersist keeps: [["DAC",2966,170,2,3138],["Non-DAC",4516,1229,1,5746],["Total",7482,1399,3,8884]]

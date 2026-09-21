@@ -1,0 +1,43 @@
+Mutation controls for suite_303
+  app.js sha256[0:12] before: 2a60af5a4b66
+
+  [1] THE DECLARATION IS DROPPED: B2 goes back to one axis engined and the other silently overwriting
+      expected red : B3, B4
+      actually red : B1, B2, B3, B4, C1, D1, G1, G2, G3, X4
+      ok
+
+  [2] ONLY THE YEARS THAT SHARE A SHAPE: columns 1 to 3 are declared and column 4 is not, so 2025s "Total Plugs" loses its rule while 2023 and 2024 keep theirs
+      expected red : G1
+      actually red : B1, B2, C1, G1, G2, G3, X4
+      ok
+
+  [3] THE WRONG COLUMNS: the rule is declared on the label column, which no year sums
+      expected red : B3, B4, G1
+      actually red : B1, B2, B3, B4, C1, G1, G2, G3, X4
+      ok
+
+  [4] THE CORNER LOSES ITS OWNER: the row rule writes the Total row too, so one cell has two writers and they agree on all present data
+      expected red : D1
+      actually red : B1, B2, B4, C1, D1, D3, G3
+      ok
+
+  [5] THE OWNERSHIP IS KEYED TO THE LABEL INSTEAD OF THE DECLARATION, so every table with a total row loses its row-wise recompute
+      expected red : D3
+      actually red : B1, B2, C1, D3, G3
+      ok
+
+  [6] keepFiled OFF: a divergent total is silently recomputed again, which is invisible on data that reconciles everywhere
+      expected red : B3
+      actually red : B3, B4
+      ok
+
+========================================================================
+  app.js sha256[0:12] after : 2a60af5a4b66
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    35 passed, 0 failed   exit 0
+========================================================================
+  all 6 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+========================================================================

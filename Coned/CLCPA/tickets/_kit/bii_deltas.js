@@ -87,4 +87,44 @@ function reverseRender305(text) {
   return s;
 }
 
-module.exports = { reverse293, reverseRender293, reverseRender310, reverseRender305 };
+/* CLCPA-309's delta to buildIngestImport, for the third time the same
+ * reason: two suites guard that function against their own baselines,
+ * asserting that THEIR ticket left the import path alone, and CLCPA-309
+ * legitimately changes one condition in it.
+ *
+ * The fraction advisory claims "what was read is what the cell holds". On a
+ * declared derived ROW that claim is false -- the value lands and the next
+ * recompute replaces it with the quotient -- so the advisory no longer fires
+ * there. Reversing the delta by name keeps every other byte under the
+ * original guard.
+ *
+ * Two forms again, because a comment-stripped caller cannot match a delta
+ * carrying its comment. The condition replacement is written to serve both:
+ * it names only the code. */
+const COND_309 = "        if (isPercentLiteral(raw) && !pctCols[cIdx] &&\r\n" +
+  "            !(typeof computed.derivedRow === 'function' && computed.derivedRow(t.rowIdx))) {";
+const COND_BEFORE_309 = "        if (isPercentLiteral(raw) && !pctCols[cIdx]) {";
+
+/** Turn a post-309 buildIngestImport back into its pre-309 self.
+ *
+ * ARMED, because a reversal that silently matches nothing is a deleted
+ * guard: the suite goes green on an equality it never really tested. If the
+ * text is neither post-309 nor already pre-309, that is a drift this kit
+ * must not paper over, and it throws into the caller's guard() by name. */
+function reverse309(text) {
+  const s = String(text);
+  if (s.indexOf(COND_309) < 0) {
+    if (s.indexOf(COND_BEFORE_309) >= 0) return s;   /* already pre-309 */
+    throw new Error('reverse309: neither the post-309 condition nor the ' +
+      'pre-309 one is present in buildIngestImport. The reversal would ' +
+      'have passed the text through untouched and the guard would have ' +
+      'gone green without testing anything.');
+  }
+  return s
+    .replace(/[ ]*\/\* CLCPA-309 \/ D-02: NOT ON A CELL THE ENGINE RECOMPUTES\.[\s\S]*?\*\/\r\n/,
+      () => '')
+    .replace(COND_309, () => COND_BEFORE_309);
+}
+
+module.exports = { reverse293, reverseRender293, reverseRender310, reverseRender305,
+  reverse309 };

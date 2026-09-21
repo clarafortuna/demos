@@ -1,0 +1,60 @@
+CLCPA-303 option (C): both directions declared on B2
+BASE d84c0d3   app.js working tree
+
+A. VALUE IDENTITY PER STORED YEAR, which the ruling requires
+  ok   A1 every cell of every stored year is compared: 39
+  ok   A2 and not one of them moves, nor differs from the filed figure: []
+    2023: filed 3009 rowwise 3009 colwise 3009  |  2024: filed 4312 rowwise 4312 colwise 4312  |  2025: filed 8884 rowwise 8884 colwise 8884
+  ok   A3 and the corner reproduces from BOTH axes on every stored year, which is what makes declaring both safe
+
+B. THE COLUMN AXIS NOW BEHAVES LIKE THE ROW AXIS
+  ok   B1 without this ticket the engine silently overwrote a divergent column total on every year, so this block cannot pass on the tree with the declaration removed
+  ok   B2 and said nothing about it: advisory count [0,0,0]
+  ok   B3 this build KEEPS the filed figure on every year: [true,true,true]
+  ok   B4 and raises the amber advisory on it: [1,1,1]
+
+C. AND THE ROW AXIS IS EXACTLY AS IT WAS
+  ok   C1 a divergent ROW total is kept and advised exactly as before this ticket: []
+  ok   C1b while against d84c0d3 it reads [2,2,2] rather than 1, which is CLCPA-306 earlier in this stack no longer reporting the cell the engine itself wrote, and is named here rather than absorbed into this ticket
+  ok   C2 and editing a component still carries along the row: [true,true,true]
+
+D. ONE WRITER FOR THE CELL WHERE THEY CROSS
+  ok   D1 the row rule writes nothing into the Total row: [[],[],[]]
+  ok   D2 while it still owns the body rows: [[3],[3],[4]]
+  ok   D3 and it stands off only where a columnTotal rule is DECLARED, so a table without one is untouched
+
+E. EVERY OTHER TABLE, AND EVERY OTHER SURFACE
+  ok   E1 not one published table-year moves, B2 included: []
+  ok   E2 and no KPI figure moves either: []
+  ok   E3 including ev_plugs, which reads the corner: {"total":8884,"dac":3138}
+  ok   E4 B2 still persists its own total row: this ticket declares the derivation, it does not change what is stored
+  ok   E5 and a save writes byte-identical rows to what it wrote before
+
+F. WHAT THE PREPARER DOWNLOADS
+    marker changes: none
+  ok   F1 2023: the Total row is marked as computed, and it is genuinely derivable from its own rows: columns [1,2,3]
+  ok   F1 2024: the Total row is marked as computed, and it is genuinely derivable from its own rows: columns [1,2,3]
+  ok   F1 2025: the Total row is marked as computed, and it is genuinely derivable from its own rows: columns [1,2,3,4]
+  ok   F2 2023: a body row component is still the preparer's to fill in
+  ok   F2 2024: a body row component is still the preparer's to fill in
+  ok   F2 2025: a body row component is still the preparer's to fill in
+
+G. A VALUE-LESS TOTAL ROW IS REBUILT, WHICH IT WAS NOT
+    2023  without this ticket [null,null,null]   with it [2898,111,3009]
+  ok   G1 2023: every numeric column of the Total row is rebuilt from its own column, including the corner: [2898,111,3009]
+  ok   G2 2023: and to the filed figure exactly, not merely to a number
+    2024  without this ticket [null,null,null]   with it [4118,194,4312]
+  ok   G1 2024: every numeric column of the Total row is rebuilt from its own column, including the corner: [4118,194,4312]
+  ok   G2 2024: and to the filed figure exactly, not merely to a number
+    2025  without this ticket [null,null,null,null]   with it [7482,1399,3,8884]
+  ok   G1 2025: every numeric column of the Total row is rebuilt from its own column, including the corner: [7482,1399,3,8884]
+  ok   G2 2025: and to the filed figure exactly, not merely to a number
+  ok   G3 while without this ticket the row came back empty on every year: [true,true,true]
+
+X. THE BASELINE
+  ok   X1 BASE is a literal commit sha: d84c0d3
+  ok   X2 and HEAD descends from it
+  ok   X3 and B2 had no declared rule at all on it
+  ok   X4 while this build declares four, one per numeric column across every stored year, since 2025 shifts Total Plugs from index 3 to index 4
+
+  35 passed, 0 failed

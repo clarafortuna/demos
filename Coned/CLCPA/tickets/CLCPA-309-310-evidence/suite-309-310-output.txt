@@ -20,9 +20,21 @@ BASE d84c0d3   app.js working tree
   ok   D2 and neither of them concatenates the raw value any more
   ok   D3 while BASE concatenated it raw on both, so this suite cannot pass on it
 
+=== E. the advisory does not fire on cells the engine recomputes ====
+  ok   E0 all three D-board percentage rows are registered and reachable: D2 D3 D4
+  ok   E1 BASE raised the fraction advisory on every one of them, so this block cannot pass on the build the ticket was filed against
+  ok   E2 and this build raises none: D2=0 D3=0 D4=0
+  ok   E3 the number BASE named is not the number the cell ends up holding, on any of the three: D2 said 0.22399999999999998 holds 0.32372093023255816; D3 said 0.22399999999999998 holds 0.3480825958702065; D4 said 0.22399999999999998 holds 0.058942287610516786
+  ok   E4 and the figure the preparer filed is still written to the draft, parsed to 0.22399999999999998: the notice is silenced, the import is not. Got [0.22399999999999998,0.22399999999999998,0.22399999999999998]
+  ok   E5 D2 has a row the engine does not recompute
+  ok   E6 and a percentage typed there still raises the advisory: 1 on r0 "Total # of projects"
+  ok   E7 the editor surface consults the derived-row registry too
+  ok   E8 and drops the typed notice on those cells rather than adding one
+  ok   E9 while BASE has no such exclusion on either surface
+
 === X. the baseline =================================================
   ok   X1 BASE is a literal commit sha: d84c0d3
   ok   X2 and HEAD descends from it
   ok   X3 while BASE has no such formatter at all
 
-  14 passed, 0 failed
+  24 passed, 0 failed

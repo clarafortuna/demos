@@ -285,7 +285,11 @@ guard('E-block', () => {
    * app.js rather than retyped, so the four suites that reverse it cannot
    * drift from the code or from each other. Every other byte still has to
    * match. */
-  ok(bii.reverse293(normalise(grab('buildIngestImport', SRC))) ===
+  /* CLCPA-309 does too, later in the same stack: the fraction advisory stops
+   * firing on cells the engine recomputes, because it was telling operators
+   * their figure had landed when the next recompute overwrote it. Reversed
+   * through the same kit, by name, for the same reason. */
+  ok(bii.reverse309(bii.reverse293(normalise(grab('buildIngestImport', SRC)))) ===
      grab('buildIngestImport', BASE_SRC),
     'E3 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
     'message: this ticket leaves the import path alone');

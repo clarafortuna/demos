@@ -2,14 +2,23 @@ CLCPA-320: the total-row marker is the same in every year
 BASE d84c0d3   app.js working tree
 
 === A. A3s Total row, the case captured in the browser ==============
-  ok   A1 A3s Total row is marked in all four value columns in EVERY year: {"2023":[1,2,3,4],"2024":[1,2,3,4],"2025":[1,2,3,4]}
+  ok   A1 A3s Total is marked where the engine derives it, 2025: [1,2,3,4]
+  ok   A1b and NOT marked in 2023 or 2024, where no derivability signal holds: [[],[]]
   ok   A2 while BASE marked nothing at all in 2023 and 2024: {"2023":[],"2024":[],"2025":[1,2,3,4]}
 
 === B. the rule, across the whole payload ===========================
-  ok   B1 exactly 25 total rows gain a marker, and they are the rows this ticket names: 25
+  ok   B1 exactly 21 total rows gain a marker, and they are the rows this ticket names: 21
+  ok   B1b and CLCPA-303 moves exactly six more, every one a B2 body row in a BLANK template gaining the row-wise total marker: 6 ["blank B2:2023 r0 \"DAC\" gained","blank B2:2023 r1 \"Non-DAC\" gained"]
   ok   B2 and NOT ONE other row moves, in either direction: []
   ok   B3 "Total amount of...", "Total # of projects" and "Total in DAC" are DATA rows and stay data rows: []
   ok   B4 while a label that ENDS at a total is one
+
+=== J. a total the engine cannot derive is NEVER marked =============
+  ok   J1 NOT ONE marked total row is underivable by every registry signal: []
+  ok   J2 total rows the workbook marks: 151
+  ok   J3 and exactly four are withheld, every one of them with no signal at all: ["A3:2023 r28 \"Total\"","A3:2024 r26 \"Total\"","A4:2023 r28 \"Total\"","J8:2025 r2 \"Total\""]
+  ok   J4 including J8s Total, which the ruling names: its dollar figures belong to the preparer and 192,638,756 is not what its rows come to
+  ok   J5 the marker consults derivability from the registries, in one place
 
 === C. the import skip does not move ================================
   ok   C1 rows compared on both builds: 2786
@@ -28,4 +37,4 @@ BASE d84c0d3   app.js working tree
   ok   X5 and HEAD descends from it
   ok   X6 while BASE has no role set at all, so this suite cannot pass on it
 
-  17 passed, 0 failed
+  24 passed, 0 failed

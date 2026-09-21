@@ -47,6 +47,48 @@ const MUTATIONS = [
     to:   "    return places ? fixed.replace(/0+$/, '') : fixed;",
     expect: ['B1'],
   },
+  /* --- CLCPA-309 / D-02 ------------------------------------------------ */
+  {
+    name: 'D-02 ITSELF: the import panel stops consulting the derived-row ' +
+          'registry, so the advisory names a number the recompute overwrites',
+    from: "        if (isPercentLiteral(raw) && !pctCols[cIdx] &&\r\n" +
+          "            !(typeof computed.derivedRow === 'function' && computed.derivedRow(t.rowIdx))) {",
+    to:   "        if (isPercentLiteral(raw) && !pctCols[cIdx]) {",
+    expect: ['E2'],
+  },
+  {
+    /* The control that matters most. Deleting the advisory outright makes
+     * E2 green -- no advisory fires on the D board, which is literally what
+     * the gate asks for -- while costing every operator the warning on
+     * every other cell. Only E6 stands between the fix and that. */
+    name: 'BLANKET DELETION: the fraction advisory is switched off for all ' +
+          'cells, which satisfies the gate on the D board and guts the rest',
+    from: "        if (isPercentLiteral(raw) && !pctCols[cIdx] &&\r\n" +
+          "            !(typeof computed.derivedRow === 'function' && computed.derivedRow(t.rowIdx))) {",
+    to:   "        if (false && isPercentLiteral(raw) && !pctCols[cIdx]) {",
+    expect: ['E6'],
+  },
+  {
+    name: 'ONE SURFACE ONLY again: the editor keeps telling the operator ' +
+          'their typed percentage landed, while the import panel stays quiet',
+    from: "    if (!isPercentLiteral(raw) || pctCols[c] || onDerivedRow) {",
+    to:   "    if (!isPercentLiteral(raw) || pctCols[c]) {",
+    expect: ['E8'],
+  },
+  {
+    /* Suppressing the NOTICE must never suppress the WRITE. CLCPA-272 ruled
+     * that a provided value is accepted and reconciled, never rejected. */
+    name: 'THE WORSE DEFECT: the cell is skipped instead of merely unnoticed, ' +
+          'so the figure the preparer filed is discarded in silence',
+    /* AND IT HAS TO GO BEFORE THE WRITE. The first cut of this mutation put
+     * the early return next to the notice, which sits in the same loop body
+     * but AFTER the assignment, so it discarded nothing and E4 stayed green
+     * for the honest reason. Anchored on the write itself now. */
+    from: "        candidate[t.rowIdx][cIdx] = parseNumericInput(raw);",
+    to:   "        if (typeof computed.derivedRow === 'function' && computed.derivedRow(t.rowIdx)) return;\r\n" +
+          "        candidate[t.rowIdx][cIdx] = parseNumericInput(raw);",
+    expect: ['E4'],
+  },
 ];
 
 const runSuite = (srcPath) => {

@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T01:11:20.863Z",
+  "generated": "2026-09-21T02:25:07.648Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "40b74e2",
+    "lastReconciledEngineerTip": "95a6f01",
     "originMain": "d84c0d3"
   },
   "build": {
-    "app.js": "a463a3682b",
+    "app.js": "2a60af5a4b",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.1.1",
+    "version": "1.0.1.2",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "adb7f1da29dbab92",
+      "deployedSha256": "8fd9c30e57bebbff",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "a463a3682b4cc257",
-      "deployedSha256": "4f0a46ad129ff5de",
+      "repoSha256": "2a60af5a4b66254f",
+      "deployedSha256": "a0956917f9e1c97f",
       "stamped": true
     },
     {
@@ -108,16 +108,19 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 14,
-    "baseline": "40b74e2 (origin/clcpa-302-history)",
+    "round": 15,
+    "baseline": "95a6f01 (origin/clcpa-293-r3)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
       "commits": 2,
       "tickets": [
-        "CLCPA-302 history counts operator changes only",
-        "CLCPA-293 round 2 (stop, no code)"
+        "CLCPA-303 option (C)",
+        "CLCPA-320 pre-merge amendment",
+        "CLCPA-309",
+        "CLCPA-246",
+        "CLCPA-293 round 3 (correction, no code)"
       ]
     },
     "previousRounds": [
@@ -157,5 +160,19 @@
     "deployedBuild": "16eda8c41e",
     "org": "org9076e69b (Clara Fortuna Dev)",
     "note": "her line and ours diverge by the security escaping alone; different build ids are expected, not drift"
-  }
+  },
+  "openRulings": [
+    {
+      "id": "CLCPA-330",
+      "status": "OPEN — reproduced in the deployed integration build",
+      "summary": "A9 renders 3 of 5 data rows with a currency prefix on non-currency quantities; currency_cols is per COLUMN while the unit belongs to the ROW.",
+      "needs": "a ruling: add a per-row type key, or accept an exception to the no-stored-data / no-hardcoding rules"
+    },
+    {
+      "id": "CLCPA-293",
+      "status": "OPEN — round 3 reproduced and diagnosed; round 2 verdict withdrawn by her",
+      "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row; round 2 wrongly argued the refusal was correct by conflating \"the engine can reproduce this number\" with \"this number is the engines\".",
+      "needs": "a ruling; she has sized the fix but shipped no app.js change"
+    }
+  ]
 }

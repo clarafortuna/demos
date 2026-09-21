@@ -231,8 +231,24 @@ guard('D-block', () => {
 log('');
 log('E. CLCPA-278 DOES NOT REGRESS');
 guard('E-block', () => {
-  ok(grab('recomputeDerivableSums', SRC) === grab('recomputeDerivableSums', BASE_SRC),
-    'E1 recomputeDerivableSums is BYTE-IDENTICAL to BASE');
+  /* RE-POINTED, not widened. This ticket still does not touch the editor
+   * path. CLCPA-303 does, by exactly one guard: where a table declares a
+   * column-wise total row, the row-wise recompute stands off the rows that
+   * rule owns, so the cell where the two totals cross has one writer instead
+   * of two. That clause is named and reversed here; every other byte still
+   * has to match, and the reversal is armed so it cannot silently no-op. */
+  const C303_OWN = "    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal') &&\r\n" +
+    '        isAnchoredTotalRowLabel((rows[rowIndex] || [])[0])) return done;\r\n';
+  const now = grab('recomputeDerivableSums', SRC);
+  const hits = String(now).split(C303_OWN).length - 1;
+  ok(hits === 1,
+    'E0 the CLCPA-303 corner-ownership guard is present exactly once, so the ' +
+    'reversal below tests something: ' + hits);
+  ok(String(now).replace(C303_OWN, () => '')
+       .replace(/[ ]*\/\* CLCPA-303: ONE WRITER PER CELL[\s\S]*?\*\/\r\n/, '') ===
+     grab('recomputeDerivableSums', BASE_SRC),
+    'E1 recomputeDerivableSums is BYTE-IDENTICAL to BASE apart from that ' +
+    'one guard: this ticket leaves the editor path alone');
   ok(grab('rowSumIsConsistent', SRC) === grab('rowSumIsConsistent', BASE_SRC),
     'E2 and so is the kept-figure guardian it consults');
   ok(grab('bareNumber', SRC) === grab('bareNumber', BASE_SRC),
