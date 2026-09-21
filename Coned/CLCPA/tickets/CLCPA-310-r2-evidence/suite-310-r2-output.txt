@@ -1,0 +1,47 @@
+CLCPA-310 round 2: a small share reads as small, not as absent
+BASE 9dabbf6   app.js working tree
+
+A. THE RULE, STATED ONCE
+  PASS  A1 nearZeroPctText is declared
+  PASS  A2 the threshold is 10^-decimals, derived from the precision
+  PASS  A3 with no hardcoded threshold constant in it
+  PASS  A4 and it asks the RENDERED output, not a second rounding rule
+  PASS  A5 a negative near-zero mirrors rather than claiming the opposite
+  PASS  A6 BASE 9dabbf6 has no such rule
+
+B. BOTH SURFACES ASK THAT ONE RULE
+  PASS  B1 the derived-cell formatter asks it
+  PASS  B2 the section page asks it on the declared-precision branch
+  PASS  B3 and on the report default branch
+  PASS  B4 the editor routes a declared derived ROW through the same formatter
+  PASS  B5 declared once and called three times, nowhere else: 4 occurrence(s)
+
+C. WHAT THE RULE ANSWERS
+  PASS  C1 the proof case: one in 7,400: 0.0135@1 -> "<0.1%"
+  PASS  C2 and its negative: -0.0135@1 -> ">-0.1%"
+  PASS  C3 at two decimals the threshold follows the precision: 0.001@2 -> "<0.01%"
+  PASS  C4 and a value that renders at two decimals is left alone: 0.0135@2 -> null
+  PASS  C5 as is one that renders at four: 0.0135@4 -> null
+  PASS  C6 the boundary: 0.05 rounds to 0.1, so it renders: 0.05@1 -> null
+  PASS  C7 just below it does not: 0.04999@1 -> "<0.1%"
+  PASS  C8 a true zero is left alone: it IS absent: 0@1 -> null
+  PASS  C9 an ordinary share is untouched: 12.5@1 -> null
+  PASS  C10 a non-number is not a percentage: null@1 -> null
+
+D. THROUGH THE REAL FORMATTER
+    now : "<0.1%"
+    BASE: "0.0%"
+  PASS  D1 the shared formatter renders the near-zero share: <0.1%
+  PASS  D2 and BASE 9dabbf6 rendered it as absent: 0.0%
+    clean cases now : ["34.8%","51.3%","100.0%","5.1%"]
+    clean cases BASE: ["34.8%","51.3%","100.0%","5.1%"]
+  PASS  D3 every case that already rendered is byte-identical to BASE
+
+E. THE ROUND 1 FLOAT BEHAVIOUR IS UNTOUCHED
+    declared derived-row cells formatted: 49
+  PASS  E1 every declared cell in the payload is formatted: 49
+  PASS  E2 and not one already-rendering cell changes: 0 moved
+  PASS  E3 no 17-digit float tails: []
+  PASS  E4 one precision across every declared percentage cell: [1]
+
+28 passed, 0 failed

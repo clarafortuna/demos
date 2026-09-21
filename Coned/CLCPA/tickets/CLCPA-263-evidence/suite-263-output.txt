@@ -76,7 +76,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   R4 buildIngestImport does not touch it
 
 === X. what else moved =============================================
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, draw, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestDeclaredTotalCell, ingestFiledTotalReason, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestPrimaryLabel, ingestRebuildableTotals, ingestRejectedStillDoes, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredComputedRow, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportBar, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderRefusedFiledNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredYearFromFilename, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, draw, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importYearNotice, ingestComputed, ingestDeclaredTotalCell, ingestFiledTotalReason, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestPrimaryLabel, ingestRebuildableTotals, ingestRejectedStillDoes, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredComputedRow, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, nearZeroPctText, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportBar, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderRefusedFiledNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -134,6 +134,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   the change to isTotalRoleLabel is accounted for
   ok   the change to isYearProtected is accounted for
   ok   the change to loadIngestDraft is accounted for
+  ok   the change to nearZeroPctText is accounted for
   ok   the change to noteTypedPercent is accounted for
   ok   the change to openAddYearDialog is accounted for
   ok   the change to openSaveModal is accounted for
@@ -261,6 +262,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   isB7PreparerTotal changed as intended: NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)
   ok   draw changed as intended: NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself
   ok   renderIngestImportBar changed as intended: NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes
+  ok   nearZeroPctText changed as intended: NOT this ticket: CLCPA-310 round 2: a non-zero percentage that would round to all zeros renders as less-than the smallest magnitude its precision can show, so a small share stops reading as an absent one; the threshold is 10^-decimals, derived from the declared precision (new)
   ok   isDeclaredComputedRow changed as intended: NOT this ticket: CLCPA-308 round 2: a row the TABLE DEFINITION declares computed takes the computed role, so the editor and the section page stop disagreeing about what the row is; asked of DERIVED_ROWS, never of a label or a per-row list (new)
   ok   ingestPrimaryLabel changed as intended: NOT this ticket: CLCPA-307 round 2: the ONE place the confirm button is named, because that button is contextual -- Add Year for a fresh year, Load Data for one that exists -- so a literal is wrong on one of the two paths every time (new)
   ok   ingestRejectedStillDoes changed as intended: NOT this ticket: CLCPA-307 round 2: and what that button will still do to a rejected file, which is not the same thing on the two paths: on an existing year nothing is created, so the promise is dropped rather than reworded (new)
@@ -269,7 +271,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   renderRefusedFiledNotice changed as intended: NOT this ticket: CLCPA-303 round 2: a figure the import would not take is NAMED, in the result box as well as the staging count, because a refusal the operator cannot see is indistinguishable from a bug (new)
   ok   ingestOperatorCell changed as intended: NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)
   ok   ingestMarkerSource changed as intended: NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)
-  ok   X1 exactly this many functions changed: 96
+  ok   X1 exactly this many functions changed: 97
   ok   X2 kpiDacPct is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2d totalRowFlags differs from BASE only by CLCPA-319 letting a column total confirm its own row -- []
@@ -279,4 +281,4 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X4 and HEAD descends from it
   ok   X5 and the two sources genuinely differ
 
-  261 passed, 0 failed
+  263 passed, 0 failed

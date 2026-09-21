@@ -3315,6 +3315,41 @@ function utf8ByteLength(str) {
   }
 
   /** CLCPA-88: format a computed derived value for the ingest editor calc cell. */
+  /**
+   * CLCPA-310 round 2: A SHARE THAT IS SMALL IS NOT A SHARE THAT IS ABSENT.
+   *
+   * THE RULE, stated once: a non-zero percentage that would render as all
+   * zeros at the precision in force renders instead as "<" followed by the
+   * smallest magnitude that precision can show. At one decimal that is
+   * "<0.1%"; at two it is "<0.01%". A negative near-zero mirrors to
+   * ">-0.1%", because "<-0.1%" would claim the opposite.
+   *
+   * THE THRESHOLD IS DERIVED, NOT CHOSEN. It is 10^-decimals, read from the
+   * precision the rule already declares, so a column that gains a decimal
+   * gains a finer threshold with it and there is no constant here to drift
+   * out of step with the formatter beside it.
+   *
+   * THE TEST IS THE RENDERED OUTPUT, not a re-derived cutoff. Asking whether
+   * toFixed(d) produces zeros is the same question the operator is looking
+   * at; computing "is it below half of 10^-d" is a second implementation of
+   * rounding, and the two would disagree at the boundary.
+   *
+   * Measured on the proof case: one subscriber in DACs out of 7,400 is
+   * 0.0135%, and both surfaces rendered it as nothing -- "0" in the editor,
+   * because formatIngestValue hands a fraction to toLocaleString, and "0.0%"
+   * on the section page. A reader cannot tell either from a true zero, and
+   * the difference is whether anybody at all is covered.
+   *
+   * Returns null when the value renders as something, so every caller keeps
+   * its own formatting for the cases that were already right.
+   */
+  function nearZeroPctText(pct, decimals) {
+    if (typeof pct !== 'number' || !isFinite(pct) || pct === 0) return null;
+    const d = (typeof decimals === 'number' && decimals >= 0) ? Math.floor(decimals) : 1;
+    if (Number(Math.abs(pct).toFixed(d)) !== 0) return null;
+    return (pct < 0 ? '>-' : '<') + Math.pow(10, -d).toFixed(d) + '%';
+  }
+
   function fmtDerivedCell(v, d, isMoney) {
     if (v == null || v === '') return '—';
     /* CLCPA-241: A KEPT FILED FIGURE IS A STRING, and the engine left it there
@@ -3341,6 +3376,10 @@ function utf8ByteLength(str) {
     /* CLCPA-294: ALWAYS scaled. This function's input is by construction the
      * engine's own ratio, so there is nothing to guess about. */
     if (d.type === 'percentage' || d.type === 'percentChange') {
+      /* CLCPA-310 round 2: the shared near-zero rule, before the rounding
+       * that would otherwise print a zero over a real share. */
+      const near = nearZeroPctText(v * 100, d.decimals || 0);
+      if (near !== null) return near;
       return (v * 100).toFixed(d.decimals || 0) + '%';
     }
     return v.toFixed(d.decimals);
@@ -5364,8 +5403,20 @@ function utf8ByteLength(str) {
            * Columns NOT so declared keep the guess: stored source data in a
            * percent column is not guaranteed to be a fraction, and this
            * ticket is about computed cells. */
-          if (declaredPct[colIdx]) return (c * 100).toFixed(declaredPct[colIdx].decimals) + '%';
-          return (Math.abs(c) <= 1 ? c * 100 : c).toFixed(1) + '%';
+          /* CLCPA-310 round 2: the SAME shared rule the editor's formatter
+           * asks, so the two surfaces cannot disagree about whether a share
+           * is small or absent. Both branches go through it, each with the
+           * precision it was already using -- the declared one where there
+           * is a declaration, and the report's own one decimal otherwise. */
+          if (declaredPct[colIdx]) {
+            const nearD = nearZeroPctText(c * 100, declaredPct[colIdx].decimals);
+            if (nearD !== null) return nearD;
+            return (c * 100).toFixed(declaredPct[colIdx].decimals) + '%';
+          }
+          const scaled = (Math.abs(c) <= 1 ? c * 100 : c);
+          const near1 = nearZeroPctText(scaled, 1);
+          if (near1 !== null) return near1;
+          return scaled.toFixed(1) + '%';
         }
         if (currCols[colIdx]) {
           if (Math.abs(c) >= 1e9) return '$' + (c / 1e9).toFixed(2) + 'B';
@@ -25051,8 +25102,25 @@ function wireHTooltips() {
            * marker follows the COLUMN, exactly as it does for an editable
            * cell, so a computed cell and a typed cell in the same column can
            * no longer disagree about what the column is. */
+          /* CLCPA-310 round 2: A DECLARED DERIVED ROW'S CELL IS A PERCENTAGE,
+           * and this branch did not know it.
+           *
+           * CLCPA-308 round 2 made these cells read-only, which sent them
+           * here -- and here formats by COLUMN, which is right for a total
+           * row and wrong for a row whose rule carries its own type and
+           * precision. D3's share rendered as "0", a bare number with no
+           * percent sign at all, where the section page rendered "0.0%": two
+           * surfaces disagreeing about what the cell even is.
+           *
+           * The row's own descriptor goes to the SAME formatter the derived
+           * columns use, which is where the near-zero rule lives, so both
+           * surfaces now answer from one place. A row with no declaration
+           * falls through to the column formatter exactly as before. */
+          const rowDesc = ((i.tableId && DERIVED_ROWS[i.tableId]) || [])
+            .filter(x => x && x.row === rowIdx)[0];
           const display = (v == null || v === '') ? '—'
-            : formatIngestValue(v, currencyCol[colIdx]);
+            : (rowDesc ? fmtDerivedCell(v, rowDesc, currencyCol[colIdx])
+              : formatIngestValue(v, currencyCol[colIdx]));
           const calcCls = numericCol[colIdx] ? 'ingest-cell-calc' : 'ingest-cell-calc ingest-cell-calc-text';
           return `<td class="ingest-td-calc"><span class="${calcCls}" data-row="${rowIdx}" data-col="${colIdx}">${escapeHtml(display)}</span></td>`;
         }

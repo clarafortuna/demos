@@ -33,8 +33,8 @@ D. BASE cb93541, WHICH HAD THE DEFECT
   PASS  D4 and the help text is a literal there
 
 E. THE SWEEP: NO OPERATOR-FACING LITERAL LEFT
-    19698: /press (Add Year|Load Data)\./, 'press ' + primaryLabel() + '.');
-    20084: return yearAlreadyExists ? 'Load Data' : 'Add Year';
+    19721: /press (Add Year|Load Data)\./, 'press ' + primaryLabel() + '.');
+    20107: return yearAlreadyExists ? 'Load Data' : 'Add Year';
   PASS  E1 exactly two lines carry the words: 2
   PASS  E2 and both are the source and its live refresh, not a message
   PASS  E3 the rejection sentence is no longer a literal

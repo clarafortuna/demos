@@ -1,0 +1,51 @@
+CLCPA-310 round 2: mutation controls
+app.js 1403588 bytes, mutants via DAC_APP_OVERRIDE
+
+CLEAN, before any mutation: 28 passed, 0 failed
+
+MUTATION 1: the rule never fires, so a near-zero share reads as absent again
+  the suite says: 22 passed, 6 failed
+  targeted red  : C1, C2, C3, C7, D1
+  the control holds.
+  also red (collateral): A4
+
+MUTATION 2: the threshold is hardcoded at one decimal instead of following the precision
+  the suite says: 25 passed, 3 failed
+  targeted red  : A2, C3
+  the control holds.
+  also red (collateral): A3
+
+MUTATION 3: a negative near-zero claims the wrong direction
+  the suite says: 26 passed, 2 failed
+  targeted red  : A5, C2
+  the control holds.
+
+MUTATION 4: a TRUE zero is dressed up as a near-zero, which is a lie the other way
+  the suite says: 27 passed, 1 failed
+  targeted red  : C8
+  the control holds.
+
+MUTATION 5: the section page stops asking the rule, so the two surfaces disagree
+  the suite says: 26 passed, 2 failed
+  targeted red  : B2
+  the control holds.
+  also red (collateral): B5
+
+MUTATION 6: the editor stops routing a declared row through the shared formatter
+  the suite says: 27 passed, 1 failed
+  targeted red  : B4
+  the control holds.
+
+MUTATION 7: the boundary moves, so a value that should render is suppressed
+  the suite says: 26 passed, 2 failed
+  targeted red  : C6
+  the control holds.
+  also red (collateral): A4
+
+--- RESTORED -------------------------------------------------------
+app.js untouched on disk: true  (1403588 bytes)
+mutant file removed     : true
+clean re-run            : 28 passed, 0 failed, exit 0
+
+7 controls held, 0 broken
+EVERY MUTATION TURNED ITS OWN ASSERTION RED AND THE SOURCE IS CLEAN.

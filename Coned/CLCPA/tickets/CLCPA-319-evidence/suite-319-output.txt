@@ -23,7 +23,7 @@ BASE d84c0d3   app.js working tree
   ok   S-FMT-1 430538 renders as 430,538, the way the cells above it render: "430,538"
   ok   S-FMT-2 and it follows the COLUMN when the column is money: "$430,538"
   ok   S-FMT-3 while a percentage is untouched, so the branch is narrow
-  ok   S-FMT-4 and BOTH call sites pass the column money flag: ["fmtDerivedCell(v, dDesc, currencyCol[colIdx])","fmtDerivedCell(v, d, currencyCol[c])"]
+  ok   S-FMT-4 and EVERY call site passes the column money flag: ["fmtDerivedCell(v, dDesc, currencyCol[colIdx])","fmtDerivedCell(v, rowDesc, currencyCol[colIdx])","fmtDerivedCell(v, d, currencyCol[c])"]
   ok   S-PCT-1 every G total row still shows 100%, not 50%: []
   ok   S-PCT-2 because totalRowFlags excludes columnTotal from its skip set
 
