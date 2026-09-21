@@ -158,9 +158,11 @@
   "openRulings": [
     {
       "id": "CLCPA-293",
-      "status": "OPEN and ESCALATED — the fix was BUILT and measured green, then withdrawn before merge",
+      "status": "OPEN — decision memo delivered, awaiting a ruling on ownership. No implementation proposed.",
       "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row. Round 2 wrongly argued the refusal was correct; round 3 reproduced it; the ruled fix (ingestRebuildableTotals refusing only where a DECLARED rule derives the cell) met every condition -- 5 anatomies, 40 staged / 40 landed / 0 excluded, 6,135 cells with 0 table-years and 0 KPI figures moving, 48 assertions 0 failed -- and was still withdrawn.",
-      "needs": "a ruling on the CORRECTED wording. The ruling as worded (registry-derivability governs the import guard) COLLIDES WITH CLCPA-88. This is the third fix this ticket has withdrawn and the first withdrawn before merge, so the cost of leaving the wording unresolved is now measurable."
+      "needs": "a ruling on ONE question: is a total cell engine-owned unless declared preparer-owned (default refuse), or preparer-owned unless declared derivable (default accept)? The memo recommends the former as an invariant, on measured evidence that the latter exposes 262 of 432 total-row cells and reproduces the CLCPA-88 defect on A1.",
+      "memo": "docs/CLCPA-293-DECISION-MEMO.md",
+      "alsoCovers": "CLCPA-303/B2, which shows ownership and persistence are different questions the current design conflates. B2 unchanged."
     }
   ],
   "ownerRulings": [
