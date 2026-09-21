@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T05:35:29.787Z",
+  "generated": "2026-09-21T14:44:37.834Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,8 +13,8 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "700f6e9",
-    "originMain": "d84c0d3"
+    "lastReconciledEngineerTip": "40a6f3e",
+    "originMain": "40a6f3e"
   },
   "build": {
     "app.js": "c2554b3841",
@@ -108,14 +108,14 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 16,
-    "baseline": "700f6e9 (origin/clcpa-293-r3-build)",
+    "round": 17,
+    "baseline": "40a6f3e (origin/main)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 2,
-      "note": "two documentation commits; zero deployed-surface change, build unchanged at 2a60af5a4b, no deploy"
+      "commits": 10,
+      "note": "eight merge commits (clarafortuna/demos#290-#297) landing work already reconciled in rounds 10-16, plus two deploy-backups; zero content delta, deployed surface byte-identical, build unchanged at c2554b3841 so no deploy"
     },
     "previousRounds": [
       {
@@ -151,9 +151,9 @@
     }
   ],
   "engineerLine": {
-    "deployedBuild": "16eda8c41e",
+    "deployedBuild": "bf2b92af29",
     "org": "org9076e69b (Clara Fortuna Dev)",
-    "note": "her line and ours diverge by the security escaping alone; different build ids are expected, not drift"
+    "note": "her line and ours diverge by the security escaping and CLCPA-330 alone; different build ids are expected, not drift"
   },
   "openRulings": [
     {
