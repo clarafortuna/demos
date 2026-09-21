@@ -1,0 +1,46 @@
+CLCPA-307 round 2: two fossil strings, and a button that changes name
+re-reproduced against the current tip: main @ 74938f5, build ec57405193
+  (a repo-served build reports its stamp as dev by design; the derived
+   id above is what ties this run to the wave)
+
+THE LITERALS IN THE SERVED BUNDLE, comments stripped
+  19684: /press (Add Year|Load Data)\./, 'press ' + primaryLabel() + '.');
+  20070: return yearAlreadyExists ? 'Load Data' : 'Add Year';
+  2 line(s) carry the literal outside comments.
+
+SURFACE 3  the template Instructions sheet, which round 1 FIXED
+  3. Open the CSV you saved and fill in the values. Type values only in the positions the example shows empty; leave (calculated) and (no value) positions exactly as they are; do not change the heading rows or the program names. You MAY add new program rows at the bottom: the import will create them.
+  4. In the dashboard, open Report Data and press Add Data, choose this section and table, then use Import From File and pick your CSV. The values land as a draft for your review; nothing is stored until you press Save Changes.
+  any "Add Year" left on the Instructions sheet? no, still fixed
+
+THE EXISTING-YEAR PATH  (2098 is seeded, so nothing is added)
+  the confirm button reads : "Load Data"
+  the consequence line says: "2098 already exists. Values will load into the editor as a draft. Nothing is created."
+  the import help text says: "CSV only. Save Excel files as CSV first. Values land in the draft on the page for you to review, then you press Save. Download Template gives you a read-only Excel example of the format. Save As CSV UTF-8 from its table sheet, fill the values in that CSV, then import it here. Choosing a file stages it; it is imported when you press Load Data."
+  does the help name a button that is NOT on screen? false
+  a rejected file stages as: "rejected.csv This file cannot be imported: This cell holds a formula rather than a value. Save the file as CSV with values, not formulas. Load Data will still load the table-year, and the page will say what was rejected."
+  does the rejection name a button that is NOT on screen? false
+  does it promise a year addition that will NOT happen? false
+  screenshot: repro-307-r2-existing-year.png
+
+THE FRESH-YEAR PATH  (2099 does not exist, so a year IS added)
+  the confirm button reads : "Add Year"
+  the consequence line says: "2099 is new. It will be created and added to the year selector everywhere."
+  the import help text says: "CSV only. Save Excel files as CSV first. Values land in the draft on the page for you to review, then you press Save. Download Template gives you a read-only Excel example of the format. Save As CSV UTF-8 from its table sheet, fill the values in that CSV, then import it here. Choosing a file stages it; it is imported when you press Add Year."
+  a rejected file stages as: "rejected.csv This file cannot be imported: This cell holds a formula rather than a value. Save the file as CSV with values, not formulas. Add Year will still add the year, and the page will say what was rejected."
+  on THIS path the same two strings happen to be right: true
+
+LIVE TYPING  the operator retypes the year without closing the dialog
+  typed 2099: button "Add Year", help ends "when you press Add Year."
+  then 2098: button "Load Data", help ends "hen you press Load Data."
+  the help text followed the button? true
+  the rejection notice followed it too? true
+  and it no longer promises a year addition? true
+
+WHAT THIS MEASURES
+  The two strings are literals. On the fresh path they agree with the
+  button by coincidence; on the existing path the button reads "Load Data",
+  the help still says Add Year, and the rejection notice both names
+  that absent button and promises a year addition that cannot happen.
+
+page errors: none

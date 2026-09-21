@@ -1,0 +1,49 @@
+CLCPA-307 round 2: one source for the button name, read by both strings
+BASE cb93541   app.js working tree
+
+A. THE ONE SOURCE
+  PASS  A1 ingestPrimaryLabel is declared
+  PASS  A2 ingestRejectedStillDoes is declared
+  PASS  A3 the dialogs button label reads it
+  PASS  A4 and no longer carries the words itself
+  PASS  A5 the help text derives the word from the same place
+  PASS  A6 both sites tell the summary which path it is on: 2 of 2
+
+B. WHAT A REJECTED FILE SAYS, PER PATH
+    existing: "This file cannot be imported: A reason. Load Data will still load the table-year, and the page will say what was rejected."
+    fresh   : "This file cannot be imported: A reason. Add Year will still add the year, and the page will say what was rejected."
+  PASS  B1 the existing path names the button that IS on screen
+  PASS  B2 and drops the promise to add a year, because nothing is added
+  PASS  B3 the fresh path is unchanged, where the words were already right
+  PASS  B4 and does not name the other button
+  PASS  B5 with no context the reason still shows
+  PASS  B6 and no button is named at all: "This file cannot be imported: A reason."
+
+C. THE WORD ITSELF
+  PASS  C1 an existing year gives Load Data
+  PASS  C2 a fresh one gives Add Year
+  PASS  C3 and what the button will still do differs with it
+  PASS  C4 on the other path
+
+D. BASE cb93541, WHICH HAD THE DEFECT
+    BASE, existing path: "This file cannot be imported: A reason. Add Year will still add the year, and the page will say what was rejected."
+  PASS  D1 BASE names Add Year on the existing path, where the button reads Load Data
+  PASS  D2 and never names the button that is on screen
+  PASS  D3 BASE has no single source for the word
+  PASS  D4 and the help text is a literal there
+
+E. THE SWEEP: NO OPERATOR-FACING LITERAL LEFT
+    19684: /press (Add Year|Load Data)\./, 'press ' + primaryLabel() + '.');
+    20070: return yearAlreadyExists ? 'Load Data' : 'Add Year';
+  PASS  E1 exactly two lines carry the words: 2
+  PASS  E2 and both are the source and its live refresh, not a message
+  PASS  E3 the rejection sentence is no longer a literal
+  PASS  E4 nor is the help sentence
+
+F. THE STRINGS FOLLOW THE BOX AS IT IS TYPED
+  PASS  F1 the button is refreshed, as it already was
+  PASS  F2 the help text is refreshed with it
+  PASS  F3 and so is the staged summary, which carries the rejection sentence
+  PASS  F4 through the same context the first draw used
+
+28 passed, 0 failed

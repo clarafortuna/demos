@@ -813,6 +813,12 @@ guard('X: app.js is byte-identical to BASE', () => {
     /* CLCPA-293 round 4, named so the count stays exact */
     isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
     B7_PREPARER_TOTALS: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the registry itself)',
+    /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
+    draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
+    renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* CLCPA-307 round 2, named so the count stays exact */
+    ingestPrimaryLabel: 'NOT this ticket: CLCPA-307 round 2: the ONE place the confirm button is named, because that button is contextual -- Add Year for a fresh year, Load Data for one that exists -- so a literal is wrong on one of the two paths every time (new)',
+    ingestRejectedStillDoes: 'NOT this ticket: CLCPA-307 round 2: and what that button will still do to a rejected file, which is not the same thing on the two paths: on an existing year nothing is created, so the promise is dropped rather than reworded (new)',
     /* CLCPA-303 round 2, named so the count stays exact */
     ingestDeclaredTotalCell: 'NOT this ticket: CLCPA-303 round 2: the COLUMN axis of the option (C) declaration, seen from the import path: a declared columnTotal cell on a total row is the preparers claim, not a column the engine rebuilds from its neighbours (new)',
     ingestFiledTotalReason: 'NOT this ticket: CLCPA-303 round 2: ONE reader for a filed value in a computed cell, returning WHICH rule claimed it, shared with the CLCPA-293 registry rather than bolted beside it (new)',

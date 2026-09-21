@@ -1,0 +1,51 @@
+CLCPA-307 round 2: mutation controls
+app.js 1394593 bytes, mutants via DAC_APP_OVERRIDE
+
+CLEAN, before any mutation: 28 passed, 0 failed
+
+MUTATION 1: the help text goes back to a literal Add Year
+  the suite says: 24 passed, 4 failed
+  targeted red  : A5, E4
+  the control holds.
+  also red (collateral): E1, E2
+
+MUTATION 2: the rejection sentence names Add Year on both paths again
+  the suite says: 24 passed, 4 failed
+  targeted red  : B1, B2
+  the control holds.
+  also red (collateral): E1, E2
+
+MUTATION 3: the existing path promises a year addition again
+  the suite says: 25 passed, 3 failed
+  targeted red  : B2
+  the control holds.
+  also red (collateral): B1, C3
+
+MUTATION 4: the two labels are swapped, so every screen names the wrong button
+  the suite says: 22 passed, 6 failed
+  targeted red  : C1, C2, B1, B3
+  the control holds.
+  also red (collateral): B4, E2
+
+MUTATION 5: a caller with no context gets a button invented for it
+  the suite says: 27 passed, 1 failed
+  targeted red  : B6
+  the control holds.
+
+MUTATION 6: the dialog stops telling the summary which path it is on
+  the suite says: 27 passed, 1 failed
+  targeted red  : A6
+  the control holds.
+
+MUTATION 7: the help text stops following the year box as it is typed
+  the suite says: 27 passed, 1 failed
+  targeted red  : F2
+  the control holds.
+
+--- RESTORED -------------------------------------------------------
+app.js untouched on disk: true  (1394593 bytes)
+mutant file removed     : true
+clean re-run            : 28 passed, 0 failed, exit 0
+
+7 controls held, 0 broken
+EVERY MUTATION TURNED ITS OWN ASSERTION RED AND THE SOURCE IS CLEAN.
