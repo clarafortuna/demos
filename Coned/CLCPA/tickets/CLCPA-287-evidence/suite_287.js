@@ -142,8 +142,11 @@ guard('C-block', () => {
    * through the shared kit; every other byte still has to match. */
   /* CLCPA-310 formats the value the fraction advisory shows. Reversed through
    * the shared kit as well, composed rather than widened. */
+  /* CLCPA-303 round 2 appends the refused-figures notice to the same panel.
+   * Newest delta, so reversed FIRST: reverseRender305s anchor ends at the
+   * call this one appends to. */
   ok(bii.reverseRender310(bii.reverseRender293(bii.reverseRender305(
-       grab('renderIngestImportResult', SRC)))) ===
+       bii.reverseRender303r2(grab('renderIngestImportResult', SRC))))) ===
      grab('renderIngestImportResult', BASE_SRC),
     'C6 and the panel is BYTE-IDENTICAL to BASE: this ticket only draws it');
 });

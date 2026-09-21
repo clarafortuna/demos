@@ -109,6 +109,10 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
      cannot see a missing closure -- this suite threw before printing a
      tally, and the sweep scored that as zero rather than red. */
   'ingestHeaderRowCount', 'ingestRowIsStoredHeader', 'ingestYearCarriesHeaderRows', 'ingestStoredHeaderRows', 'ingestHeaderKeys', 'ingestHeaderName',
+  /* CLCPA-303 round 2: the accept clause asks one reader now, and a hand-fed
+   * list cannot see it until a fixture reaches that branch. */
+  'ingestFiledTotalReason', 'ingestDeclaredTotalCell', 'isB7PreparerTotal',
+  'isDeclaredSummable',
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
   'compareTableIds'];
 const missing = NAMES.filter(n => !grab(n));

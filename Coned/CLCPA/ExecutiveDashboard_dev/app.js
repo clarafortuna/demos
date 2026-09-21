@@ -4040,6 +4040,71 @@ function utf8ByteLength(str) {
     return list.some(m => norm(m.row) === r && norm(m.column) === c);
   }
 
+  /**
+   * CLCPA-303 round 2: A FILED TOTAL IN A DECLARED COLUMN-TOTAL CELL.
+   *
+   * The COLUMN axis of the option (C) declaration, seen from the import path.
+   *
+   * B2 declares colTotal on all four of its value columns, so on the Total
+   * row every one of them is the engine's output. The import's refusal asked
+   * `derivedCol` alone, and a declared column total answers true to it -- so
+   * a filed figure in that cell was dropped at parse, while the very same
+   * claim filed one axis over (a row's own total) was kept and named. The
+   * kept-figure contract was unreachable through import on this axis.
+   *
+   * WHY THIS IS NOT CLCPA-88 COMING BACK, and the distinction is the whole
+   * care of it. CLCPA-88 protects a column the engine rebuilds from the
+   * OTHER COLUMNS OF THE SAME ROW: a percentage is a quotient of two cells
+   * sitting beside it, and letting a file overwrite it publishes a figure
+   * that contradicts its own row. isTotalOnlyDerived already draws the line:
+   * a columnTotal holds SOURCE DATA on every row and is computed on the
+   * total row alone, so its inputs are other ROWS, which is exactly the
+   * shape of a filed row total. Accepting it is symmetry with the row axis,
+   * not a hole in the column one -- and `any` is false for such a column on
+   * every non-total row, so this can only ever speak about a total row.
+   *
+   * DECLARED, NOT PROBED. It reads DERIVED_COLS, so the answer cannot depend
+   * on which year is open -- the flaw CLCPA-293 round 4 named when a stored
+   * figure that happened to reconcile made a cell look rebuildable.
+   */
+  function ingestDeclaredTotalCell(tableId, colIndex) {
+    const d = ((tableId && DERIVED_COLS[tableId]) || [])
+      .filter(x => x && x.column === colIndex)[0];
+    return !!d && d.type === 'columnTotal';
+  }
+
+  /**
+   * CLCPA-303 round 2: ONE READER for a filed value in a computed cell, and
+   * it returns WHY rather than a boolean.
+   *
+   * CLCPA-293 round 4 widened the import to accept a registry member; this
+   * round widens it to accept a declared column total. Those are the same
+   * family and the owner asked whether they share a reader: they do, here,
+   * rather than as two conditions bolted onto one `if` that nobody can read.
+   * The reason travels because the advisory and the suites both need to say
+   * which rule claimed the cell -- a single true/false made the registry and
+   * the value probe indistinguishable in evidence.
+   *
+   *   'registry'      the B7 list, by standing ruling
+   *   'declared'      a declared columnTotal cell on a total row
+   *   'unrebuildable' the value probe: the engine produces nothing here
+   *
+   * null means the cell stays the engine's and the filed value is refused --
+   * and a refusal is now NAMED rather than silent, which is the other half
+   * of this round.
+   */
+  function ingestFiledTotalReason(computed, tableId, schema, rowLabel, r, c, rebuildable) {
+    if (isB7PreparerTotal(tableId, rowLabel, (schema || [])[c])) return 'registry';
+    if (computed && computed.totalRow(r) && ingestDeclaredTotalCell(tableId, c)) {
+      return 'declared';
+    }
+    if (computed && !computed.derivedCol(c) &&
+        !(rebuildable && rebuildable.has(r + ',' + c))) {
+      return 'unrebuildable';
+    }
+    return null;
+  }
+
   const NOT_RECONCILED_TABLES = new Set(['F9', 'J8']);
   /* There is deliberately no note string to go with this set. The client-facing
    * banner was removed in Block 3 phase 2: the report is read by Con Edison
@@ -18877,18 +18942,35 @@ function wireHTooltips() {
            * That is the safe direction: this clause can only move a cell
            * from refused to accepted-and-named, never the reverse, so an
            * omission from the registry is never a CLCPA-88 regression. */
-          const b7 = isB7PreparerTotal(tableId, candidate[t.rowIdx][0], schema[cIdx]);
-          if (b7 || (!computed.derivedCol(cIdx) &&
-                     !rebuildableTotals.has(t.rowIdx + ',' + cIdx))) {
+          /* CLCPA-303 round 2: ONE READER, and it names the rule that
+           * claimed the cell. See ingestFiledTotalReason. */
+          const reason = ingestFiledTotalReason(computed, tableId, schema,
+            candidate[t.rowIdx][0], t.rowIdx, cIdx, rebuildableTotals);
+          if (reason) {
             res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx,
-              b7: !!b7,
+              b7: reason === 'registry', reason: reason,
               itemised: (itemisedSum ? itemisedSum[cIdx] : null) }, where));
           } else {
-            res.notTouched.computed.push(Object.assign({
+            const refused = Object.assign({
               why: computed.derivedCol(cIdx)
                 ? 'this column is calculated from the other columns'
                 : 'this row is a calculated total',
-            }, where));
+            }, where);
+            /* CLCPA-303 round 2: A REFUSAL CARRIES WHAT IT REFUSED.
+             *
+             * The count the operator reads is built from res.populated, so a
+             * dropped figure was invisible by construction: B2/2098 staged
+             * "6 values ready to import" for a file holding seven, and the
+             * seventh was the one the operator had gone out of their way to
+             * type. The marker and a blank are NOT filed values -- leaving
+             * them alone is the template working as designed -- so only a
+             * real value is recorded here, and only that is announced. */
+            const rawTxt = raw == null ? '' : String(raw).trim();
+            if (rawTxt !== '' && rawTxt !== INGEST_CALC_MARKER &&
+                rawTxt !== INGEST_NOVALUE_MARKER) {
+              refused.filed = rawTxt;
+            }
+            res.notTouched.computed.push(refused);
             return;
           }
         }
@@ -24326,7 +24408,41 @@ function wireHTooltips() {
        * the engine cannot derive them. Beside the reconciliation advisory,
        * in the same amber box and the same voice: both are cases where the
        * app has done something the operator alone can judge. */
-      renderPreparerTotalsNotice(r.preparerTotals);
+      renderPreparerTotalsNotice(r.preparerTotals) +
+      /* CLCPA-303 round 2: and the filed figures this import REFUSED. The
+       * staging screen warned they were coming; this is where they are
+       * named, in the same box as everything else the operator has to judge. */
+      renderRefusedFiledNotice(r.notTouched && r.notTouched.computed);
+  }
+
+  /**
+   * CLCPA-303 round 2: THE FIGURES THE IMPORT WOULD NOT TAKE, NAMED.
+   *
+   * Everything this round widened is now kept. What remains refused is a
+   * column the engine rebuilds from the other columns of the same row --
+   * CLCPA-88's protection, which stays. But a refusal the operator cannot
+   * see is indistinguishable from a bug, and B2/2098 proved it: a figure
+   * typed over "(calculated)" left no trace in the count, the result box or
+   * the draft, and the page read No Changes afterwards.
+   *
+   * RED, not amber. The amber boxes beside it are "we did something only you
+   * can judge"; this one is "your file said something and we did not take
+   * it", which the operator has to act on if the figure mattered.
+   */
+  function renderRefusedFiledNotice(list) {
+    const n = (list || []).filter(x => x && x.filed != null);
+    if (!n.length) return '';
+    const li = (s) => '<li>' + escapeHtml(s) + '</li>';
+    return '<div class="ingest-import-notice is-alert">' +
+      '<h4>Not imported: ' + n.length + ' filed figure' +
+      (n.length === 1 ? '' : 's') + '</h4>' +
+      '<p>Your file gave a value for ' + (n.length === 1 ? 'a cell' : 'cells') +
+      ' the dashboard calculates, so ' + (n.length === 1 ? 'it was' : 'they were') +
+      ' not used. The calculated ' + (n.length === 1 ? 'figure' : 'figures') +
+      ' ' + (n.length === 1 ? 'is' : 'are') + ' shown in the draft instead.</p><ul>' +
+      n.map(x => li(x.label + ' / ' + x.column + ': filed ' + x.filed +
+        ', not imported because ' + x.why)).join('') +
+      '</ul></div>';
   }
 
   /* CLCPA-272: the reconciliation advisory, in CLCPA-266's amber box and in
@@ -26339,9 +26455,25 @@ function wireHTooltips() {
      *
      * The VALUE count is unchanged, as ruled. */
     const cols = new Set(d.populated.map(x => x.column)).size;
+    /* CLCPA-303 round 2: AND WHAT WILL NOT BE IMPORTED, SAID HERE.
+     *
+     * CLCPA-300 aligned the count above to the cells actually written, which
+     * made it a true check figure and, on its own, made a dropped figure
+     * unmentionable: the operator sees a number that is correct and smaller
+     * than their file, with nothing saying why. Whatever this round does not
+     * widen is still refused, so the refusal is announced on the same screen
+     * the count is read from, before anything is imported. */
+    const refused = (d.notTouched && d.notTouched.computed || [])
+      .filter(x => x && x.filed != null);
+    const tail = refused.length
+      ? ' ' + refused.length + ' filed value' + (refused.length === 1 ? '' : 's') +
+        ' in calculated cell' + (refused.length === 1 ? '' : 's') +
+        ' will not be imported; the page will name ' +
+        (refused.length === 1 ? 'it' : 'them') + '.'
+      : '';
     return rows + ' row' + (rows === 1 ? '' : 's') + ', ' + cols + ' column' +
       (cols === 1 ? '' : 's') + ' with values, ' + cells + ' value' +
-      (cells === 1 ? '' : 's') + ' ready to import.';
+      (cells === 1 ? '' : 's') + ' ready to import.' + tail;
   }
 
   function rerenderIngestAll() {

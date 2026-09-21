@@ -213,12 +213,26 @@ guard('X-block', () => {
    * is accepted even where the value probe would have claimed it -- so
    * the derivedCol half is pinned separately here rather than as part of
    * one long line that a later ticket cannot extend without rewriting. */
-  ok(/!computed\.derivedCol\(cIdx\) &&\s*\r?\n?\s*!rebuildableTotals\.has\(t\.rowIdx \+ ',' \+ cIdx\)/.test(code),
-    'X3 and only the total-row half of the refusal is relaxed: a derived ' +
-    'COLUMN is still refused');
-  ok(/if \(b7 \|\| \(!computed\.derivedCol\(cIdx\) &&/.test(code),
-    'X3b with CLCPA-293 round 4s registry term in front of it, which only ' +
-    'ever WIDENS what is accepted');
+  /* RE-POINTED BY CLCPA-303 round 2, AND THE CLAIM HAS NARROWED. This used
+   * to read "a derived COLUMN is still refused", full stop. That is no
+   * longer true and must not be asserted as if it were: a DECLARED COLUMN
+   * TOTAL is now accepted, because its inputs are other ROWS and a figure
+   * filed there is the same claim as a filed row total. What survives is
+   * CLCPA-88's actual protection, which is narrower and is what these two
+   * lines now pin: a column the engine rebuilds from the other columns of
+   * the SAME row stays refused. Both terms moved into one reader,
+   * ingestFiledTotalReason, so they are pinned there. */
+  const reader = code.slice(code.indexOf('function ingestFiledTotalReason'),
+    code.indexOf('function ingestFiledTotalReason') + 800);
+  ok(/!computed\.derivedCol\(c\) &&\s*\r?\n?\s*!\(rebuildable && rebuildable\.has\(r \+ ',' \+ c\)\)/
+    .test(reader),
+  'X3 a derived column the engine rebuilds from its own row is still refused');
+  ok(/isB7PreparerTotal\(tableId, rowLabel, \(schema \|\| \[\]\)\[c\]\)\) return 'registry'/
+    .test(reader),
+  'X3b with CLCPA-293 round 4s registry ahead of it, which only ever WIDENS ' +
+  'what is accepted');
+  ok(/const reason = ingestFiledTotalReason\(computed, tableId, schema,/.test(code),
+    'X3c and the import path asks that one reader rather than either term');
   /* the conservative default: a probe that cannot run keeps the old refusal */
   ok(/for \(let c = 1; c < schema\.length; c\+\+\) out\.add\(ri \+ ',' \+ c\);/.test(code),
     'X4 a probe that throws marks the row rebuildable, so a broken check costs the fix, not the data');

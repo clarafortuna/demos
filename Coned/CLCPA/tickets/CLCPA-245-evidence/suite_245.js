@@ -847,6 +847,10 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces them',
     /* CLCPA-293 round 4, named so the count stays exact */
     isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
+    /* CLCPA-303 round 2, named so the count stays exact */
+    ingestDeclaredTotalCell: 'NOT this ticket: CLCPA-303 round 2: the COLUMN axis of the option (C) declaration, seen from the import path: a declared columnTotal cell on a total row is the preparers claim, not a column the engine rebuilds from its neighbours (new)',
+    ingestFiledTotalReason: 'NOT this ticket: CLCPA-303 round 2: ONE reader for a filed value in a computed cell, returning WHICH rule claimed it, shared with the CLCPA-293 registry rather than bolted beside it (new)',
+    renderRefusedFiledNotice: 'NOT this ticket: CLCPA-303 round 2: a figure the import would not take is NAMED, in the result box as well as the staging count, because a refusal the operator cannot see is indistinguishable from a bug (new)',
     /* CLCPA-302 round 2, named so the count stays exact */
     ingestOperatorCell: 'NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)',
     /* CLCPA-320 round 3, named so the count stays exact */
@@ -868,7 +872,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 101, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 104, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {

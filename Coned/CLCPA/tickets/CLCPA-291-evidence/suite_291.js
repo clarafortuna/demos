@@ -284,8 +284,12 @@ guard('E-block', () => {
      * CLCPA-293 round 4 rewrote, so running it before round 4's reversal
      * matches nothing and leaves round 1's delta in place -- which is what
      * the FIRST DIFFERENCE line reported until this order was fixed. */
+    /* CLCPA-303 round 2 rewrote the accept clause again, folding round 4s
+     * registry and this rounds declared column total into ONE reader. It is
+     * the newest delta, so it is reversed FIRST: reverse293r4s anchor is the
+     * clause this one replaced, and the other order matches nothing. */
     const got = bii.reverse293(bii.reverse309(bii.reverse293r4(
-      normalise(grab('buildIngestImport', SRC)))));
+      bii.reverse303r2(normalise(grab('buildIngestImport', SRC))))));
     const want = grab('buildIngestImport', BASE_SRC);
     const ga = got.split('\r\n'), wa = want.split('\r\n');
     let d = 0;

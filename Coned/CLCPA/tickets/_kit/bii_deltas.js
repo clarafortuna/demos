@@ -17,6 +17,10 @@ const RENDER_293 = "      renderReconcileNotice(r.reconcileNotices) +\r\n      /
 const RENDER_BEFORE_293 = "      renderReconcileNotice(r.reconcileNotices);";
 const RENDER_293_CODE = "      renderReconcileNotice(r.reconcileNotices) +\r\n      \r\n      renderPreparerTotalsNotice(r.preparerTotals);";
 
+/* the working tree is CRLF; a delta written with bare newlines would
+ * never match the file it is reversing. */
+const CRLF = String.fromCharCode(13) + String.fromCharCode(10);
+
 /** Turn a post-293 buildIngestImport back into its pre-293 self. */
 function reverse293(text) {
   return String(text)
@@ -158,5 +162,177 @@ function reverse293r4(text) {
     .replace(R4_NEW, () => R4_OLD);
 }
 
+/* CLCPA-303 round 2 adds ONE line to renderIngestImportResult: the panel
+ * now names the filed figures the import refused.
+ *
+ * Until this round a figure typed over "(calculated)" was dropped at parse
+ * with no trace in the staging count, the result box or the draft, and
+ * B2/2098 read "No Changes" afterwards. Everything the round widened is
+ * kept; what stays refused is CLCPA-88s protection, and it is now said out
+ * loud instead of being silent.
+ *
+ * ARMED, like its siblings: an absent anchor throws rather than passing the
+ * text through, because a reversal that silently does nothing turns a
+ * byte-identical guard into a guard of nothing.
+ *
+ * IT MUST RUN BEFORE reverseRender305, whose own anchor ends at the
+ * renderPreparerTotalsNotice call this delta appends to.
+ */
+/* ONE PATTERN, BOTH READINGS. Some suites grab this panel RAW and some
+ * strip comments first, and a literal taken from one form does not appear in
+ * the other: built from the stripped text, this threw on suite_287, which
+ * grabs raw. Matching from the call it appends to through the call it adds
+ * covers the comment either way, and it stays armed -- an absent pattern
+ * throws rather than passing the text through. */
+const R303_RE =
+  /renderPreparerTotalsNotice\(r\.preparerTotals\) \+[\s\S]*?renderRefusedFiledNotice\(r\.notTouched && r\.notTouched\.computed\);/;
+const R303_OLD = 'renderPreparerTotalsNotice(r.preparerTotals);';
+
+/** Turn a post-303-round-2 renderIngestImportResult back into its pre self. */
+function reverseRender303r2(text) {
+  const s = String(text);
+  if (!R303_RE.test(s)) {
+    if (s.indexOf(R303_OLD) >= 0) return s;          /* already pre-303-round-2 */
+    throw new Error(
+      'bii_deltas.reverseRender303r2: the CLCPA-303 round 2 delta is not ' +
+      'in this text. Its anchor has moved, and reversing nothing ' +
+      'would have passed the text through untouched and the guard would ' +
+      'have gone green without testing anything.');
+  }
+  return s.replace(R303_RE, () => R303_OLD);
+}
+
+/* CLCPA-303 round 2 rewrites the ACCEPT CLAUSE of buildIngestImport.
+ *
+ * The two widenings of that clause -- CLCPA-293 round 4's registry and this
+ * round's declared column total -- now share one reader, ingestFiledTotalReason,
+ * which returns WHICH rule claimed the cell. The else branch also records the
+ * value it refused, so a drop can be named instead of being silent.
+ *
+ * IT MUST RUN BEFORE reverse293r4, whose anchor is the clause this delta
+ * replaced: reversing in the other order matches nothing and leaves round 4's
+ * delta in place. Both sides of this pair were EXTRACTED from the two real
+ * sources rather than retyped.
+ */
+const I303_NEW = "          /* CLCPA-293 / A-10: B7. A TOTAL THE ENGINE CANNOT DERIVE BELONGS TO" + CRLF +
+  "           * THE PREPARER, so it is accepted rather than discarded." + CRLF +
+  "           *" + CRLF +
+  "           * Only the total-row half of the refusal is relaxed. A derived" + CRLF +
+  "           * COLUMN stays computed: \"% in DACs\" is a quotient of two columns" + CRLF +
+  "           * present in the row, the engine can always rebuild it, and letting" + CRLF +
+  "           * a file overwrite it would be the CLCPA-88 defect coming back." + CRLF +
+  "           *" + CRLF +
+  "           * The value still goes through the same parse and the same write as" + CRLF +
+  "           * any other cell. What changes is that it is no longer dropped in" + CRLF +
+  "           * silence: it is recorded so the panel can say it was accepted and" + CRLF +
+  "           * what the itemised rows give instead. */" + CRLF +
+  "          /* CLCPA-293 round 4: THE B7 REGISTRY, and it only ever WIDENS what" + CRLF +
+  "           * is accepted." + CRLF +
+  "           *" + CRLF +
+  "           * A registry member is accepted, kept and named even when the" + CRLF +
+  "           * value probe says the engine could rebuild it -- because that" + CRLF +
+  "           * probe reads the figure currently stored in the cell, and a" + CRLF +
+  "           * stored copy that happens to reconcile is exactly how ownership" + CRLF +
+  "           * came to depend on which year was open. A8's grand total is the" + CRLF +
+  "           * case: the engine produces NOTHING for it in every stored year," + CRLF +
+  "           * so the number can only have come from the preparer, and the" + CRLF +
+  "           * probe still called it rebuildable once an earlier import had" + CRLF +
+  "           * written a reconciling figure there." + CRLF +
+  "           *" + CRLF +
+  "           * Everything NOT in the registry keeps today's behaviour exactly." + CRLF +
+  "           * That is the safe direction: this clause can only move a cell" + CRLF +
+  "           * from refused to accepted-and-named, never the reverse, so an" + CRLF +
+  "           * omission from the registry is never a CLCPA-88 regression. */" + CRLF +
+  "          /* CLCPA-303 round 2: ONE READER, and it names the rule that" + CRLF +
+  "           * claimed the cell. See ingestFiledTotalReason. */" + CRLF +
+  "          const reason = ingestFiledTotalReason(computed, tableId, schema," + CRLF +
+  "            candidate[t.rowIdx][0], t.rowIdx, cIdx, rebuildableTotals);" + CRLF +
+  "          if (reason) {" + CRLF +
+  "            res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx," + CRLF +
+  "              b7: reason === 'registry', reason: reason," + CRLF +
+  "              itemised: (itemisedSum ? itemisedSum[cIdx] : null) }, where));" + CRLF +
+  "          } else {" + CRLF +
+  "            const refused = Object.assign({" + CRLF +
+  "              why: computed.derivedCol(cIdx)" + CRLF +
+  "                ? 'this column is calculated from the other columns'" + CRLF +
+  "                : 'this row is a calculated total'," + CRLF +
+  "            }, where);" + CRLF +
+  "            /* CLCPA-303 round 2: A REFUSAL CARRIES WHAT IT REFUSED." + CRLF +
+  "             *" + CRLF +
+  "             * The count the operator reads is built from res.populated, so a" + CRLF +
+  "             * dropped figure was invisible by construction: B2/2098 staged" + CRLF +
+  "             * \"6 values ready to import\" for a file holding seven, and the" + CRLF +
+  "             * seventh was the one the operator had gone out of their way to" + CRLF +
+  "             * type. The marker and a blank are NOT filed values -- leaving" + CRLF +
+  "             * them alone is the template working as designed -- so only a" + CRLF +
+  "             * real value is recorded here, and only that is announced. */" + CRLF +
+  "            const rawTxt = raw == null ? '' : String(raw).trim();" + CRLF +
+  "            if (rawTxt !== '' && rawTxt !== INGEST_CALC_MARKER &&" + CRLF +
+  "                rawTxt !== INGEST_NOVALUE_MARKER) {" + CRLF +
+  "              refused.filed = rawTxt;" + CRLF +
+  "            }" + CRLF +
+  "            res.notTouched.computed.push(refused);" + CRLF +
+  "            return;" + CRLF +
+  "          }" + CRLF +
+  "        }" + CRLF +
+  "";
+const I303_OLD = "          /* CLCPA-293 / A-10: B7. A TOTAL THE ENGINE CANNOT DERIVE BELONGS TO" + CRLF +
+  "           * THE PREPARER, so it is accepted rather than discarded." + CRLF +
+  "           *" + CRLF +
+  "           * Only the total-row half of the refusal is relaxed. A derived" + CRLF +
+  "           * COLUMN stays computed: \"% in DACs\" is a quotient of two columns" + CRLF +
+  "           * present in the row, the engine can always rebuild it, and letting" + CRLF +
+  "           * a file overwrite it would be the CLCPA-88 defect coming back." + CRLF +
+  "           *" + CRLF +
+  "           * The value still goes through the same parse and the same write as" + CRLF +
+  "           * any other cell. What changes is that it is no longer dropped in" + CRLF +
+  "           * silence: it is recorded so the panel can say it was accepted and" + CRLF +
+  "           * what the itemised rows give instead. */" + CRLF +
+  "          /* CLCPA-293 round 4: THE B7 REGISTRY, and it only ever WIDENS what" + CRLF +
+  "           * is accepted." + CRLF +
+  "           *" + CRLF +
+  "           * A registry member is accepted, kept and named even when the" + CRLF +
+  "           * value probe says the engine could rebuild it -- because that" + CRLF +
+  "           * probe reads the figure currently stored in the cell, and a" + CRLF +
+  "           * stored copy that happens to reconcile is exactly how ownership" + CRLF +
+  "           * came to depend on which year was open. A8's grand total is the" + CRLF +
+  "           * case: the engine produces NOTHING for it in every stored year," + CRLF +
+  "           * so the number can only have come from the preparer, and the" + CRLF +
+  "           * probe still called it rebuildable once an earlier import had" + CRLF +
+  "           * written a reconciling figure there." + CRLF +
+  "           *" + CRLF +
+  "           * Everything NOT in the registry keeps today's behaviour exactly." + CRLF +
+  "           * That is the safe direction: this clause can only move a cell" + CRLF +
+  "           * from refused to accepted-and-named, never the reverse, so an" + CRLF +
+  "           * omission from the registry is never a CLCPA-88 regression. */" + CRLF +
+  "          const b7 = isB7PreparerTotal(tableId, candidate[t.rowIdx][0], schema[cIdx]);" + CRLF +
+  "          if (b7 || (!computed.derivedCol(cIdx) &&" + CRLF +
+  "                     !rebuildableTotals.has(t.rowIdx + ',' + cIdx))) {" + CRLF +
+  "            res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx," + CRLF +
+  "              b7: !!b7," + CRLF +
+  "              itemised: (itemisedSum ? itemisedSum[cIdx] : null) }, where));" + CRLF +
+  "          } else {" + CRLF +
+  "            res.notTouched.computed.push(Object.assign({" + CRLF +
+  "              why: computed.derivedCol(cIdx)" + CRLF +
+  "                ? 'this column is calculated from the other columns'" + CRLF +
+  "                : 'this row is a calculated total'," + CRLF +
+  "            }, where));" + CRLF +
+  "            return;" + CRLF +
+  "          }" + CRLF +
+  "        }" + CRLF +
+  "";
+
+/** Turn a post-303-round-2 buildIngestImport back into its pre self. */
+function reverse303r2(text) {
+  const s = String(text);
+  if (s.indexOf(I303_NEW) < 0) {
+    if (s.indexOf(I303_OLD) >= 0) return s;          /* already pre-303-round-2 */
+    throw new Error('reverse303r2: neither the post-round-2 accept clause nor ' +
+      'the pre-round-2 one is present in buildIngestImport. The reversal ' +
+      'would have passed the text through untouched and the guard would ' +
+      'have gone green without testing anything.');
+  }
+  return s.replace(I303_NEW, () => I303_OLD);
+}
 module.exports = { reverse293, reverseRender293, reverseRender310, reverseRender305,
-  reverse309, reverse293r4 };
+  reverse309, reverse293r4, reverseRender303r2, reverse303r2 };

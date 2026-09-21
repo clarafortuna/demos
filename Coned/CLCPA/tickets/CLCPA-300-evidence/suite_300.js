@@ -166,7 +166,12 @@ guard('D-block', () => {
    * match. */
   /* CLCPA-309 does too, later in the same stack: the fraction advisory stops
    * firing on cells the engine recomputes. Reversed through the same kit. */
-  ok(bii.reverse293(bii.reverse309(bii.reverse293r4(normalise(grab('buildIngestImport', SRC))))) ===
+  /* CLCPA-303 round 2 rewrote the accept clause again, folding round 4s
+   * registry and this rounds declared column total into ONE reader. It is
+   * the newest delta, so it is reversed FIRST: reverse293r4s anchor is the
+   * clause this one replaced, and the other order matches nothing. */
+  ok(bii.reverse293(bii.reverse309(bii.reverse293r4(
+    bii.reverse303r2(normalise(grab('buildIngestImport', SRC)))))) ===
      grab('buildIngestImport', BASE_SRC),
     'D1 buildIngestImport matches BASE apart from the CLCPA-282 heading-rows ' +
     'message: only the summary sentence changed here');
