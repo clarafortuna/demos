@@ -600,6 +600,8 @@ guard('X: the blast radius', () => {
     deriveTableCaptionInfo: 'NOT this ticket: CLCPA-252 round 3, it stops carrying the year across',
     tableCaption: 'NOT this ticket: CLCPA-252 round 3, it strips on all three paths',
     renderIngestImportResult: 'NOT this ticket: CLCPA-266, the notice boxes gain their accent classes',
+    /* CLCPA-293 round 4, named so the count stays exact */
+    isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
   };
   changed.forEach(n => ok(n in EXPECT, 'the change to ' + n + ' is accounted for'));
   Object.keys(EXPECT).forEach(n => ok(changed.indexOf(n) >= 0,
@@ -612,7 +614,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 85, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 86, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['kpiDacPct', 'detectPctColumns'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');
@@ -690,9 +692,15 @@ guard('X: the blast radius', () => {
   const rtAdded = grabFn('recomputeTotals', SRC).split('\r\n')
     .filter(l => grabFn('recomputeTotals', BASE_SRC).indexOf(l) < 0)
     .filter(l => l.trim() && !/^\s*[*/]/.test(l.trim()));
-  ok(rtAdded.length === 1 &&
-     rtAdded[0] === '    applyDerivedCols(draft, tableId, colSum, schema, baseline);',
-     'X2c recomputeTotals differs from BASE only by passing the baseline -- ' +
+  /* AND BY ONE MORE LINE, from CLCPA-293 round 4: a total the registry says
+   * belongs to the preparer is skipped by the additive write, so a figure
+   * an import accepted survives the recompute and the save. Named here so
+   * the inventory stays exact rather than widened. */
+  const RT_B7 = '        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;';
+  const RT_OK = ['    applyDerivedCols(draft, tableId, colSum, schema, baseline);', RT_B7];
+  ok(rtAdded.length === 2 && rtAdded.every(l => RT_OK.indexOf(l) >= 0),
+     'X2c recomputeTotals differs from BASE only by passing the baseline and ' +
+     'by standing off a registry total -- ' +
      JSON.stringify(rtAdded));
   const adcAdded = grabFn('applyDerivedCols', SRC).split('\r\n')
     .filter(l => grabFn('applyDerivedCols', BASE_SRC).indexOf(l) < 0)

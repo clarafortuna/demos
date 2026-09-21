@@ -810,6 +810,9 @@ guard('X: app.js is byte-identical to BASE', () => {
     recomputeTotals: 'CLCPA-254, Section C group E: it consults that declaration',
     buildIngestImport: 'CLCPA-261, Section C group E: it collects the fraction notices',
     renderIngestImportResult: 'CLCPA-261, Section C group E: the summary announces them',
+    /* CLCPA-293 round 4, named so the count stays exact */
+    isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
+    B7_PREPARER_TOTALS: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the registry itself)',
   };
   changed.forEach(n => ok(n in LATER,
      'X1 app.js function ' + n + ' moved, and it is named by a later ticket' +

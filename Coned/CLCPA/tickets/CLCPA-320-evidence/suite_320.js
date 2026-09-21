@@ -190,7 +190,14 @@ guard('B: role decides, in every year', () => {
    *
    * Comparing the two builds cell by cell has no such blind spot: whatever
    * the app decides, the difference from BASE is what it is. */
-  const moved = [], strays = [], b2 = [];
+  const moved = [], strays = [], b2 = [], b7lost = [];
+  /* the two rows CLCPA-293 round 4's registry names, written here rather
+   * than read from the app: a suite that asks the code under test which of
+   * its own changes are allowed cannot fail on a widened registry */
+  const B7_ROWS = [
+    { table: 'A8', row: 'total ces programs installations' },
+    { table: 'J8', row: 'total' },
+  ];
   const walk = (getRows, label) => {
     Object.keys(P.tables).sort().forEach((id) => {
       const t = P.tables[id];
@@ -213,6 +220,19 @@ guard('B: role decides, in every year', () => {
            * still lands in strays. */
           if (id === 'B2') { b2.push(where + ' ' + JSON.stringify(String(r[0]).slice(0, 20)) +
             (lost.length ? ' LOST ' + JSON.stringify(lost) : ' gained')); return; }
+          /* CLCPA-293 round 4 is in the same tree as well, and it WITHHOLDS
+           * the marker from the two rows its B7 registry names. That is this
+           * ticket's own J8 ruling carried one step further: a total the
+           * engine cannot derive from its own rows must never be marked
+           * (calculated), and a registry member is exactly such a total. So
+           * these belong with J8's withheld markers rather than in strays,
+           * and they are counted and named here for the same reason. */
+          if (B7_ROWS.some(b => b.table === id &&
+              String(r[0]).trim().toLowerCase() === b.row)) {
+            b7lost.push(where + ' ' + JSON.stringify(String(r[0]).slice(0, 28)) +
+              (lost.length ? ' LOST ' + JSON.stringify(lost) : ' gained'));
+            return;
+          }
           if (NEW.attempt(api => api.isAnchoredTotalRowLabel(r[0])) && !lost.length) {
             moved.push(where);
           } else {
@@ -246,6 +266,12 @@ guard('B: role decides, in every year', () => {
      'B1b and CLCPA-303 moves exactly six more, every one a B2 body row in ' +
      'a BLANK template gaining the row-wise total marker: ' + b2.length +
      ' ' + JSON.stringify(b2.slice(0, 2)));
+  /* and CLCPA-293 round 4's two, every one a marker WITHHELD rather than
+   * gained, which is this ticket's J8 ruling reaching the registry */
+  ok(b7lost.length > 0 && b7lost.every(x => / LOST /.test(x)),
+     'B1c and the B7 registry rows LOSE their marker, never gain one, ' +
+     'which is the J8 ruling applied to a total the engine cannot derive: ' +
+     b7lost.length + ' ' + JSON.stringify(b7lost.slice(0, 2)));
   ok(strays.length === 0,
      'B2 and NOT ONE other row moves, in either direction: ' +
      JSON.stringify(strays.slice(0, 6)));

@@ -38,10 +38,11 @@ E. THE ADVISORY SAYS SO
 X. THE CHANGE IS WHERE IT SAYS IT IS
   ok   X1 the engine is asked which totals it can rebuild
   ok   X2 asked of the DRAFT, never of the candidate
-  ok   X3 and only the total-row half of the refusal is relaxed
+  ok   X3 and only the total-row half of the refusal is relaxed: a derived COLUMN is still refused
+  ok   X3b with CLCPA-293 round 4s registry term in front of it, which only ever WIDENS what is accepted
   ok   X4 a probe that throws marks the row rebuildable, so a broken check costs the fix, not the data
   ok   X5 (BASE carries none of this)
 
 ======================================================================
-  27 passed, 0 failed
+  28 passed, 0 failed
 ======================================================================

@@ -1,0 +1,1078 @@
+CLCPA-293 round 4: THE B7 CENSUS
+app.js: working tree
+
+HARNESS  recomputeTotals runs on all 149 stored table-years.
+         so the engine attempts below are the engine, not the harness.
+
+=======================================================================
+ TOTAL CELLS MEASURED
+=======================================================================
+  total-labelled rows, cells with a stored figure : 335
+  the engine reproduces in every stored year      : 162   (OWNED, must stay refused)
+  the engine fails in at least one year           : 173   (CANDIDATES)
+
+=======================================================================
+ THE NOMINEES: candidates the table itself treats as a total
+=======================================================================
+  candidates                          : 173
+  of those NOMINATED for the registry : 65
+  set aside: a DATA row whose label mentions a total, where the engine
+  writing nothing means only that it is not a total at all: 108
+
+  A2
+    "Total"  /  "Total Energy Savings (MM"   [strict, anchored, flagged, last row 28 of 29]
+        2023  stored 4019790  engine null  SILENT
+    "Total"  /  "% in DACs"   [strict, anchored, flagged, last row 28 of 29]
+        2023  stored 0.41  engine 0.44643835465381637  DIVERGENT
+  A3
+    "Total"  /  "Total Participants"   [strict, anchored, flagged, last row 28 of 29]
+        2023  stored 2354317  engine null  SILENT
+        2024  stored 2009280  engine null  SILENT
+        2025  stored 2034938  engine 2034907  OWNED
+    "Total"  /  "Avg. Incentives by Parti"   [strict, anchored, flagged, last row 22 of 23]
+        2025  stored 3761330  engine null  SILENT
+    "Total"  /  "Avg. Energy Savings by P"   [strict, anchored, flagged, last row 22 of 23]
+        2025  stored 22511  engine null  SILENT
+  A4
+    "Total"  /  "Total Participants"   [strict, anchored, flagged, last row 28 of 29]
+        2023  stored 1218703  engine null  SILENT
+        2024  stored 1130931  engine 1130931  OWNED
+        2025  stored 942510  engine 942490  OWNED
+    "Total"  /  "Avg. Incentives by Parti"   [strict, anchored, flagged, last row 22 of 23]
+        2025  stored 2026699  engine null  SILENT
+    "Total"  /  "Avg. Energy Savings by P"   [strict, anchored, flagged, last row 22 of 23]
+        2025  stored 12372  engine null  SILENT
+  A6
+    "Multifamily - Fuel-Switch Total"  /  "% in DACs"   [anchored, flagged]
+        2024  stored 0.11  engine 0.11  OWNED
+        2025  stored 0  engine null  SILENT
+  A7
+    "Real Time Energy Management Total"  /  "% in DACs"   [anchored, flagged]
+        2024  stored 0.5  engine 0.5  OWNED
+        2025  stored 0  engine null  SILENT
+    "Multisector Programs Installations Total"  /  "% in DACs"   [anchored, flagged, last row 3 of 4]
+        2024  stored 0.5  engine 0.5  OWNED
+        2025  stored 0  engine null  SILENT
+  A8
+    "Residential Programs Total Installations"  /  "Total"   [flagged, last row 32 of 33]
+        2023  stored 47350  engine null  SILENT
+    "Total CES Programs Installations"  /  "Total Installations"   [last row 25 of 26]
+        2025  stored 336599  engine null  SILENT
+    "Total CES Programs Installations"  /  "DAC Installations"   [last row 25 of 26]
+        2025  stored 190180  engine null  SILENT
+  C2
+    "Total"  /  "Participants"   [strict, anchored, flagged, last row 2 of 3]
+        2023  stored 93187  engine null  SILENT
+        2024  stored 104025  engine null  SILENT
+        2025  stored 116581  engine null  SILENT
+    "Total"  /  "Committed Load Relief (M"   [strict, anchored, flagged, last row 2 of 3]
+        2023  stored 991.6  engine null  SILENT
+        2024  stored 998.11  engine null  SILENT
+        2025  stored 955.06  engine null  SILENT
+    "Total"  /  "Average Event Reductions"   [strict, anchored, flagged, last row 2 of 3]
+        2023  stored 766.6  engine null  SILENT
+        2024  stored 766.94  engine null  SILENT
+        2025  stored 736.73  engine null  SILENT
+  F7
+    "% of Grand Total"  /  "DAC Customers Interrupte"   [anchored, last row 3 of 4]
+        2023  stored 0.3754  engine 0.37538637955708243  OWNED
+        2024  stored "34%"  engine 0.3428248526424456  DIVERGENT
+        2025  stored "32%"  engine 0.3159333166556004  DIVERGENT
+    "% of Grand Total"  /  "Non-DAC Customers Interr"   [anchored, last row 3 of 4]
+        2023  stored 0.6246  engine 0.6246136204429176  OWNED
+        2024  stored "66%"  engine 0.6571751473575543  DIVERGENT
+        2025  stored "68%"  engine 0.6840666833443996  DIVERGENT
+    "% of Grand Total"  /  "Total Customers Interrup"   [anchored, last row 3 of 4]
+        2023  stored 1  engine 1  OWNED
+        2024  stored "100%"  engine 1  DIVERGENT
+        2025  stored "100%"  engine 1  DIVERGENT
+  F9
+    "Grand Total"  /  "DAC % of System Total"   [strict, anchored, flagged, last row 6 of 7]
+        2023  stored 0.04  engine null  SILENT
+        2024  stored 0.043  engine null  SILENT
+        2025  stored 0.1  engine null  SILENT
+    "Grand Total"  /  "Non-DAC % of System Tota"   [strict, anchored, flagged, last row 6 of 7]
+        2023  stored 0.07  engine null  SILENT
+        2024  stored 0.083  engine null  SILENT
+        2025  stored 0.17  engine null  SILENT
+  I1
+    "Total number of hires at Con Edison from ["  /  "Unique"   [last row 8 of 9]
+        2023  stored 1  engine null  SILENT
+        2024  stored 0  engine null  SILENT
+        2025  stored 0  engine null  SILENT
+    "Total number of hires at Con Edison from ["  /  "Non-Unique"   [last row 8 of 9]
+        2023  stored 1  engine null  SILENT
+        2024  stored 0  engine null  SILENT
+        2025  stored 0  engine null  SILENT
+  J3
+    "Total in Non-DAC"  /  "Total Accounts"   [last row 1 of 2]
+        2023  stored 196006  engine null  SILENT
+        2024  stored 178175  engine null  SILENT
+        2025  stored 129138  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"   [last row 1 of 2]
+        2023  stored "40%"  engine null  SILENT
+        2024  stored "36%"  engine null  SILENT
+        2025  stored "34%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount ($)"   [last row 1 of 2]
+        2023  stored 83042485.19  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"   [last row 1 of 2]
+        2023  stored "43%"  engine null  SILENT
+        2024  stored "37%"  engine null  SILENT
+        2025  stored "35%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount"   [last row 1 of 2]
+        2024  stored 32362554  engine null  SILENT
+        2025  stored 26519485  engine null  SILENT
+    "Total"  /  "% of Accounts"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+    "Total"  /  "% of Amount"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+  J4
+    "Total in Non-DAC"  /  "Total Accounts"   [last row 1 of 2]
+        2023  stored 107055  engine null  SILENT
+        2024  stored 144161  engine null  SILENT
+        2025  stored 107484  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"   [last row 1 of 2]
+        2023  stored "37%"  engine null  SILENT
+        2024  stored "35%"  engine null  SILENT
+        2025  stored "32%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount ($)"   [last row 1 of 2]
+        2023  stored 157680308.42  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"   [last row 1 of 2]
+        2023  stored "34%"  engine null  SILENT
+        2024  stored "34%"  engine null  SILENT
+        2025  stored "31%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount"   [last row 1 of 2]
+        2024  stored 292120672  engine null  SILENT
+        2025  stored 249080630  engine null  SILENT
+    "Total"  /  "% of Accounts"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+    "Total"  /  "% of Amount"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+  J6
+    "Total in Non-DAC"  /  "Total Accounts"   [last row 1 of 2]
+        2023  stored 61406  engine null  SILENT
+        2024  stored 81767  engine null  SILENT
+        2025  stored 78589  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"   [last row 1 of 2]
+        2023  stored "39%"  engine null  SILENT
+        2024  stored "40%"  engine null  SILENT
+        2025  stored "37%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount ($)"   [last row 1 of 2]
+        2023  stored 100223119.9  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"   [last row 1 of 2]
+        2023  stored "44%"  engine null  SILENT
+        2024  stored "41%"  engine null  SILENT
+        2025  stored "36%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount"   [last row 1 of 2]
+        2024  stored 97352921  engine null  SILENT
+        2025  stored 122335146  engine null  SILENT
+    "Total"  /  "% of Accounts"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+    "Total"  /  "% of Amount"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+  J7
+    "Total in Non-DAC"  /  "Electric-only"   [last row 1 of 2]
+        2023  stored 134567  engine null  SILENT
+        2024  stored 127593  engine null  SILENT
+        2025  stored 117813  engine null  SILENT
+    "Total in Non-DAC"  /  "Gas-only"   [last row 1 of 2]
+        2023  stored 722  engine null  SILENT
+        2024  stored 577  engine null  SILENT
+        2025  stored 406  engine null  SILENT
+    "Total in Non-DAC"  /  "Dual Service"   [last row 1 of 2]
+        2023  stored 27764  engine null  SILENT
+        2024  stored 25299  engine null  SILENT
+        2025  stored 22386  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"   [last row 1 of 2]
+        2023  stored "34%"  engine null  SILENT
+        2024  stored "34%"  engine null  SILENT
+        2025  stored "34%"  engine null  SILENT
+    "Total"  /  "% of Accounts"   [strict, anchored, flagged, last row 2 of 3]
+        2025  stored "100%"  engine 1  DIVERGENT
+  J8
+    "Total in Non-DAC"  /  "Electric ($)"   [last row 1 of 2]
+        2023  stored 55712765.65  engine null  SILENT
+    "Total in Non-DAC"  /  "Gas ($)"   [last row 1 of 2]
+        2023  stored 13525084.95  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"   [last row 1 of 2]
+        2023  stored "34%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Electric"   [last row 1 of 2]
+        2024  stored 95845105  engine null  SILENT
+        2025  stored 63415143  engine null  SILENT
+    "Total in Non-DAC"  /  "Gas"   [last row 1 of 2]
+        2024  stored 22786170  engine null  SILENT
+        2025  stored 15691183  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Total"   [last row 1 of 2]
+        2024  stored "38%"  engine null  SILENT
+        2025  stored "38%"  engine null  SILENT
+    "Total"  /  "Electric"   [strict, anchored]
+        2025  stored 192638756  engine null  SILENT
+    "Total"  /  "Gas"   [strict, anchored]
+        2025  stored 38743914  engine null  SILENT
+    "Total"  /  "% of Total"   [strict, anchored]
+        2025  stored "100%"  engine null  SILENT
+    "% of total in non-DAC"  /  "Electric"   [last row 4 of 5]
+        2025  stored "33%"  engine null  SILENT
+    "% of total in non-DAC"  /  "Gas"   [last row 4 of 5]
+        2025  stored "41%"  engine null  SILENT
+  J9
+    "Total Number of Residential Customers"  /  "Total in DAC"   [last row 0 of 1]
+        2023  stored 1344495  engine null  SILENT
+    "Total Number of Residential Customers"  /  "DAC % of Total"   [last row 0 of 1]
+        2023  stored 0.43  engine null  SILENT
+    "Total Number of Residential Customers"  /  "Total in Non-DAC"   [last row 0 of 1]
+        2023  stored 1760050  engine null  SILENT
+    "Total Number of Residential Customers"  /  "Non-DAC % of Total"   [last row 0 of 1]
+        2023  stored 0.57  engine null  SILENT
+
+=======================================================================
+ THE PROPOSED MEMBERSHIP, for confirmation
+=======================================================================
+  nominees                 : 65
+  PROPOSED as members      : 16
+  held back for a decision : 49
+
+  A2  (1)
+    "Total"  /  "Total Energy Savings (MMBt"
+        engine silent in all 1 stored year(s); stored 2023=4019790
+  A3  (2)
+    "Total"  /  "Avg. Incentives by Partici"
+        engine silent in all 1 stored year(s); stored 2025=3761330
+    "Total"  /  "Avg. Energy Savings by Par"
+        engine silent in all 1 stored year(s); stored 2025=22511
+  A4  (2)
+    "Total"  /  "Avg. Incentives by Partici"
+        engine silent in all 1 stored year(s); stored 2025=2026699
+    "Total"  /  "Avg. Energy Savings by Par"
+        engine silent in all 1 stored year(s); stored 2025=12372
+  A8  (3)
+    "Residential Programs Total Installations"  /  "Total"
+        engine silent in all 1 stored year(s); stored 2023=47350
+    "Total CES Programs Installations"  /  "Total Installations"   [NAMED BY RULING]
+        engine silent in all 1 stored year(s); stored 2025=336599
+    "Total CES Programs Installations"  /  "DAC Installations"   [NAMED BY RULING]
+        engine silent in all 1 stored year(s); stored 2025=190180
+  C2  (3)
+    "Total"  /  "Participants"
+        engine silent in all 3 stored year(s); stored 2023=93187 2024=104025 2025=116581
+    "Total"  /  "Committed Load Relief (MW)"
+        engine silent in all 3 stored year(s); stored 2023=991.6 2024=998.11 2025=955.06
+    "Total"  /  "Average Event Reductions ("
+        engine silent in all 3 stored year(s); stored 2023=766.6 2024=766.94 2025=736.73
+  F9  (2)
+    "Grand Total"  /  "DAC % of System Total"
+        engine silent in all 3 stored year(s); stored 2023=0.04 2024=0.043 2025=0.1
+    "Grand Total"  /  "Non-DAC % of System Total"
+        engine silent in all 3 stored year(s); stored 2023=0.07 2024=0.083 2025=0.17
+  J8  (3)
+    "Total"  /  "Electric"   [NAMED BY RULING]
+        engine silent in all 1 stored year(s); stored 2025=192638756
+    "Total"  /  "Gas"   [NAMED BY RULING]
+        engine silent in all 1 stored year(s); stored 2025=38743914
+    "Total"  /  "% of Total"   [NAMED BY RULING]
+        engine silent in all 1 stored year(s); stored 2025="100%"
+
+  HELD BACK, each with the reason it is not proposed:
+    A2  "Total"  /  "% in DACs"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    A3  "Total"  /  "Total Participants"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    A4  "Total"  /  "Total Participants"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    A6  "Multifamily - Fuel-Switch Total"  /  "% in DACs"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    A7  "Real Time Energy Management Total"  /  "% in DACs"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    A7  "Multisector Programs Installations Total"  /  "% in DACs"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    F7  "% of Grand Total"  /  "DAC Customers Interrup"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    F7  "% of Grand Total"  /  "Non-DAC Customers Inte"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    F7  "% of Grand Total"  /  "Total Customers Interr"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    I1  "Total number of hires at Con Edison from"  /  "Unique"
+        no app total signal: nominated only by being the last row of its table
+    I1  "Total number of hires at Con Edison from"  /  "Non-Unique"
+        no app total signal: nominated only by being the last row of its table
+    J3  "Total in Non-DAC"  /  "Total Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J3  "Total in Non-DAC"  /  "% of Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J3  "Total in Non-DAC"  /  "Total Amount ($)"
+        no app total signal: nominated only by being the last row of its table
+    J3  "Total in Non-DAC"  /  "% of Amount"
+        no app total signal: nominated only by being the last row of its table
+    J3  "Total in Non-DAC"  /  "Total Amount"
+        no app total signal: nominated only by being the last row of its table
+    J3  "Total"  /  "% of Accounts"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J3  "Total"  /  "% of Amount"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J4  "Total in Non-DAC"  /  "Total Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J4  "Total in Non-DAC"  /  "% of Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J4  "Total in Non-DAC"  /  "Total Amount ($)"
+        no app total signal: nominated only by being the last row of its table
+    J4  "Total in Non-DAC"  /  "% of Amount"
+        no app total signal: nominated only by being the last row of its table
+    J4  "Total in Non-DAC"  /  "Total Amount"
+        no app total signal: nominated only by being the last row of its table
+    J4  "Total"  /  "% of Accounts"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J4  "Total"  /  "% of Amount"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J6  "Total in Non-DAC"  /  "Total Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J6  "Total in Non-DAC"  /  "% of Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J6  "Total in Non-DAC"  /  "Total Amount ($)"
+        no app total signal: nominated only by being the last row of its table
+    J6  "Total in Non-DAC"  /  "% of Amount"
+        no app total signal: nominated only by being the last row of its table
+    J6  "Total in Non-DAC"  /  "Total Amount"
+        no app total signal: nominated only by being the last row of its table
+    J6  "Total"  /  "% of Accounts"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J6  "Total"  /  "% of Amount"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J7  "Total in Non-DAC"  /  "Electric-only"
+        no app total signal: nominated only by being the last row of its table
+    J7  "Total in Non-DAC"  /  "Gas-only"
+        no app total signal: nominated only by being the last row of its table
+    J7  "Total in Non-DAC"  /  "Dual Service"
+        no app total signal: nominated only by being the last row of its table
+    J7  "Total in Non-DAC"  /  "% of Accounts"
+        no app total signal: nominated only by being the last row of its table
+    J7  "Total"  /  "% of Accounts"
+        the engine reproduces or diverges in at least one year, so silence is not the whole story
+    J8  "Total in Non-DAC"  /  "Electric ($)"
+        no app total signal: nominated only by being the last row of its table
+    J8  "Total in Non-DAC"  /  "Gas ($)"
+        no app total signal: nominated only by being the last row of its table
+    J8  "Total in Non-DAC"  /  "% of Amount"
+        no app total signal: nominated only by being the last row of its table
+    J8  "Total in Non-DAC"  /  "Electric"
+        no app total signal: nominated only by being the last row of its table
+    J8  "Total in Non-DAC"  /  "Gas"
+        no app total signal: nominated only by being the last row of its table
+    J8  "Total in Non-DAC"  /  "% of Total"
+        no app total signal: nominated only by being the last row of its table
+    J8  "% of total in non-DAC"  /  "Electric"
+        no app total signal: nominated only by being the last row of its table
+    J8  "% of total in non-DAC"  /  "Gas"
+        no app total signal: nominated only by being the last row of its table
+    J9  "Total Number of Residential Customers"  /  "Total in DAC"
+        no app total signal: nominated only by being the last row of its table
+    J9  "Total Number of Residential Customers"  /  "DAC % of Total"
+        no app total signal: nominated only by being the last row of its table
+    J9  "Total Number of Residential Customers"  /  "Total in Non-DAC"
+        no app total signal: nominated only by being the last row of its table
+    J9  "Total Number of Residential Customers"  /  "Non-DAC % of Total"
+        no app total signal: nominated only by being the last row of its table
+
+=======================================================================
+ EVERY CANDIDATE, INCLUDING THE ONES SET ASIDE
+ stored = what the source filed; engine = what the engine produces when
+ the row is blanked and the rest of the table recomputed
+=======================================================================
+
+  A2
+    "Total"  /  "Total Energy Savings (MMBtu)"
+        SILENT in every year
+        2023  stored 4019790  engine null  SILENT
+    "Total"  /  "% in DACs"
+        DIVERGENT in every year
+        2023  stored 0.41  engine 0.44643835465381637  DIVERGENT
+
+  A3
+    "Total"  /  "Total Participants"
+        mixed (2 silent, 0 divergent, 1 reproduced)
+        2023  stored 2354317  engine null  SILENT
+        2024  stored 2009280  engine null  SILENT
+        2025  stored 2034938  engine 2034907  OWNED
+    "Total"  /  "Avg. Incentives by Participant"
+        SILENT in every year
+        2025  stored 3761330  engine null  SILENT
+    "Total"  /  "Avg. Energy Savings by Partici"
+        SILENT in every year
+        2025  stored 22511  engine null  SILENT
+
+  A4
+    "Total"  /  "Total Participants"
+        mixed (1 silent, 0 divergent, 2 reproduced)
+        2023  stored 1218703  engine null  SILENT
+        2024  stored 1130931  engine 1130931  OWNED
+        2025  stored 942510  engine 942490  OWNED
+    "Total"  /  "Avg. Incentives by Participant"
+        SILENT in every year
+        2025  stored 2026699  engine null  SILENT
+    "Total"  /  "Avg. Energy Savings by Partici"
+        SILENT in every year
+        2025  stored 12372  engine null  SILENT
+
+  A6
+    "Multifamily - Fuel-Switch Total"  /  "% in DACs"
+        mixed (1 silent, 0 divergent, 1 reproduced)
+        2024  stored 0.11  engine 0.11  OWNED
+        2025  stored 0  engine null  SILENT
+
+  A7
+    "Real Time Energy Management Total"  /  "% in DACs"
+        mixed (1 silent, 0 divergent, 1 reproduced)
+        2024  stored 0.5  engine 0.5  OWNED
+        2025  stored 0  engine null  SILENT
+    "Multisector Programs Installations Total"  /  "% in DACs"
+        mixed (1 silent, 0 divergent, 1 reproduced)
+        2024  stored 0.5  engine 0.5  OWNED
+        2025  stored 0  engine null  SILENT
+
+  A8
+    "Residential Programs Total Installations"  /  "Total"
+        SILENT in every year
+        2023  stored 47350  engine null  SILENT
+    "Total CES Programs Installations"  /  "Total Installations"
+        SILENT in every year
+        2025  stored 336599  engine null  SILENT
+    "Total CES Programs Installations"  /  "DAC Installations"
+        SILENT in every year
+        2025  stored 190180  engine null  SILENT
+
+  C2
+    "Total"  /  "Participants"
+        SILENT in every year
+        2023  stored 93187  engine null  SILENT
+        2024  stored 104025  engine null  SILENT
+        2025  stored 116581  engine null  SILENT
+    "Total"  /  "Committed Load Relief (MW)"
+        SILENT in every year
+        2023  stored 991.6  engine null  SILENT
+        2024  stored 998.11  engine null  SILENT
+        2025  stored 955.06  engine null  SILENT
+    "Total"  /  "Average Event Reductions (MW)"
+        SILENT in every year
+        2023  stored 766.6  engine null  SILENT
+        2024  stored 766.94  engine null  SILENT
+        2025  stored 736.73  engine null  SILENT
+
+  D2
+    "Total # of projects"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 66436  engine null  SILENT
+    "Total # of projects in DACs"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 21298  engine null  SILENT
+    "Total MW installed (All DERs)"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 913.9  engine null  SILENT
+    "Total MW installed in DACs (All DERs)"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 341.3  engine null  SILENT
+    "Total # of projects"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 76991  engine null  SILENT
+    "Total # of projects"  /  "2024"
+        SILENT in every year
+        2024  stored 10555  engine null  SILENT
+    "Total # of projects in DACs"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 24882  engine null  SILENT
+    "Total # of projects in DACs"  /  "2024"
+        SILENT in every year
+        2024  stored 3584  engine null  SILENT
+    "Total MW installed (All DERs)"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 1096.44  engine null  SILENT
+    "Total MW installed (All DERs)"  /  "2024"
+        SILENT in every year
+        2024  stored 182.54  engine null  SILENT
+    "Total MW installed in DACs (All DERs)"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 405.92  engine null  SILENT
+    "Total MW installed in DACs (All DERs)"  /  "2024"
+        SILENT in every year
+        2024  stored 64.62  engine null  SILENT
+    "Total # of projects"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 88150  engine null  SILENT
+    "Total # of projects"  /  "2025"
+        SILENT in every year
+        2025  stored 11159  engine null  SILENT
+    "Total # of projects in DACs"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 28536  engine null  SILENT
+    "Total # of projects in DACs"  /  "2025"
+        SILENT in every year
+        2025  stored 3654  engine null  SILENT
+    "Total MW installed (All DERs)"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 1234.34  engine null  SILENT
+    "Total MW installed (All DERs)"  /  "2025"
+        SILENT in every year
+        2025  stored 137.9  engine null  SILENT
+    "Total MW installed in DACs (All DERs)"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 449.05  engine null  SILENT
+    "Total MW installed in DACs (All DERs)"  /  "2025"
+        SILENT in every year
+        2025  stored 43.13  engine null  SILENT
+
+  D3
+    "Total # of subscribers"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 17264  engine null  SILENT
+    "Total # of subscribers in DACs"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 5372  engine null  SILENT
+    "Total # of subscribers who are low-income cu"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 852  engine null  SILENT
+    "Total # of subscribers"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 18762  engine null  SILENT
+    "Total # of subscribers"  /  "2024"
+        SILENT in every year
+        2024  stored 1498  engine null  SILENT
+    "Total # of subscribers in DACs"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 6215  engine null  SILENT
+    "Total # of subscribers in DACs"  /  "2024"
+        SILENT in every year
+        2024  stored 843  engine null  SILENT
+    "Total # of subscribers who are low-income cu"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 1186  engine null  SILENT
+    "Total # of subscribers who are low-income cu"  /  "2024"
+        SILENT in every year
+        2024  stored 334  engine null  SILENT
+    "Total # of subscribers"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 20679  engine null  SILENT
+    "Total # of subscribers"  /  "2025"
+        SILENT in every year
+        2025  stored 1917  engine null  SILENT
+    "Total # of subscribers in DACs"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 7198  engine null  SILENT
+    "Total # of subscribers in DACs"  /  "2025"
+        SILENT in every year
+        2025  stored 983  engine null  SILENT
+    "Total # of subscribers who are low-income cu"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 1917  engine null  SILENT
+    "Total # of subscribers who are low-income cu"  /  "2025"
+        SILENT in every year
+        2025  stored 731  engine null  SILENT
+
+  D4
+    "Total # of projects"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 64724  engine null  SILENT
+    "Total # of projects installed for low-income"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 3718  engine null  SILENT
+    "Total # of projects in DACs"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 20517  engine null  SILENT
+    "Total MW installed"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 522.6  engine null  SILENT
+    "Total MW installed for low-income customers"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 19.5  engine null  SILENT
+    "Total MW installed in DACs"  /  "Cumulative through 2023"
+        SILENT in every year
+        2023  stored 175  engine null  SILENT
+    "Total # of projects"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 75160  engine null  SILENT
+    "Total # of projects"  /  "2024"
+        SILENT in every year
+        2024  stored 10436  engine null  SILENT
+    "Total # of projects installed for low-income"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 4470  engine null  SILENT
+    "Total # of projects installed for low-income"  /  "2024"
+        SILENT in every year
+        2024  stored 752  engine null  SILENT
+    "Total # of projects in DACs"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 24062  engine null  SILENT
+    "Total # of projects in DACs"  /  "2024"
+        SILENT in every year
+        2024  stored 3545  engine null  SILENT
+    "Total MW installed"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 688.3  engine null  SILENT
+    "Total MW installed"  /  "2024"
+        SILENT in every year
+        2024  stored 165.7  engine null  SILENT
+    "Total MW installed for low-income customers"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 22.9  engine null  SILENT
+    "Total MW installed for low-income customers"  /  "2024"
+        SILENT in every year
+        2024  stored 3.4  engine null  SILENT
+    "Total MW installed in DACs"  /  "Up to 2024"
+        SILENT in every year
+        2024  stored 200.82  engine null  SILENT
+    "Total MW installed in DACs"  /  "2024"
+        SILENT in every year
+        2024  stored 25.82  engine null  SILENT
+    "Total # of projects"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 86186  engine null  SILENT
+    "Total # of projects"  /  "2025"
+        SILENT in every year
+        2025  stored 11026  engine null  SILENT
+    "Total # of projects installed for low-income"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 5080  engine null  SILENT
+    "Total # of projects installed for low-income"  /  "2025"
+        SILENT in every year
+        2025  stored 610  engine null  SILENT
+    "Total # of projects in DACs"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 27650  engine null  SILENT
+    "Total # of projects in DACs"  /  "2025"
+        SILENT in every year
+        2025  stored 3588  engine null  SILENT
+    "Total MW installed"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 775.8  engine null  SILENT
+    "Total MW installed"  /  "2025"
+        SILENT in every year
+        2025  stored 87.5  engine null  SILENT
+    "Total MW installed for low-income customers"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 26.3  engine null  SILENT
+    "Total MW installed for low-income customers"  /  "2025"
+        SILENT in every year
+        2025  stored 3.4  engine null  SILENT
+    "Total MW installed in DACs"  /  "Up to 2025"
+        SILENT in every year
+        2025  stored 229.03  engine null  SILENT
+    "Total MW installed in DACs"  /  "2025"
+        SILENT in every year
+        2025  stored 28.21  engine null  SILENT
+
+  F7
+    "% of Grand Total"  /  "DAC Customers Interrupted"
+        mixed (0 silent, 2 divergent, 1 reproduced)
+        2023  stored 0.3754  engine 0.37538637955708243  OWNED
+        2024  stored "34%"  engine 0.3428248526424456  DIVERGENT
+        2025  stored "32%"  engine 0.3159333166556004  DIVERGENT
+    "% of Grand Total"  /  "Non-DAC Customers Interrupted"
+        mixed (0 silent, 2 divergent, 1 reproduced)
+        2023  stored 0.6246  engine 0.6246136204429176  OWNED
+        2024  stored "66%"  engine 0.6571751473575543  DIVERGENT
+        2025  stored "68%"  engine 0.6840666833443996  DIVERGENT
+    "% of Grand Total"  /  "Total Customers Interrupted"
+        mixed (0 silent, 2 divergent, 1 reproduced)
+        2023  stored 1  engine 1  OWNED
+        2024  stored "100%"  engine 1  DIVERGENT
+        2025  stored "100%"  engine 1  DIVERGENT
+
+  F9
+    "Grand Total"  /  "DAC % of System Total"
+        SILENT in every year
+        2023  stored 0.04  engine null  SILENT
+        2024  stored 0.043  engine null  SILENT
+        2025  stored 0.1  engine null  SILENT
+    "Grand Total"  /  "Non-DAC % of System Total"
+        SILENT in every year
+        2023  stored 0.07  engine null  SILENT
+        2024  stored 0.083  engine null  SILENT
+        2025  stored 0.17  engine null  SILENT
+
+  G10
+    "Total mT CH4 in Non-DACs"  /  "mT CH4"
+        SILENT in every year
+        2023  stored 129.3  engine null  SILENT
+        2024  stored 116.03  engine null  SILENT
+        2025  stored 117.5  engine null  SILENT
+    "Total mT CH4 in Non-DACs"  /  "Percentage"
+        SILENT in every year
+        2023  stored 0.54  engine null  SILENT
+        2024  stored 0.48  engine null  SILENT
+        2025  stored 0.46  engine null  SILENT
+    "Total mT CH4 in DACs"  /  "mT CH4"
+        SILENT in every year
+        2023  stored 109.59  engine null  SILENT
+        2024  stored 125.19  engine null  SILENT
+        2025  stored 140.36  engine null  SILENT
+    "Total mT CH4 in DACs"  /  "Percentage"
+        SILENT in every year
+        2023  stored 0.46  engine null  SILENT
+        2024  stored 0.52  engine null  SILENT
+        2025  stored 0.54  engine null  SILENT
+
+  I1
+    "Total number of hires at Con Edison from [th"  /  "Unique"
+        SILENT in every year
+        2023  stored 1  engine null  SILENT
+        2024  stored 0  engine null  SILENT
+        2025  stored 0  engine null  SILENT
+    "Total number of hires at Con Edison from [th"  /  "Non-Unique"
+        SILENT in every year
+        2023  stored 1  engine null  SILENT
+        2024  stored 0  engine null  SILENT
+        2025  stored 0  engine null  SILENT
+
+  J1
+    "Total amount of residential electric usage ("  /  "Total in DAC"
+        SILENT in every year
+        2023  stored 4026175751.88  engine null  SILENT
+    "Total amount of residential electric usage ("  /  "DAC % of Total"
+        SILENT in every year
+        2023  stored "39%"  engine null  SILENT
+        2024  stored "40%"  engine null  SILENT
+        2025  stored "40%"  engine null  SILENT
+    "Total amount of residential electric usage ("  /  "Total in Non-DAC"
+        SILENT in every year
+        2023  stored 6265657893.74  engine null  SILENT
+    "Total amount of residential electric usage ("  /  "Non-DAC % of Total"
+        SILENT in every year
+        2023  stored "61%"  engine null  SILENT
+        2024  stored "60%"  engine null  SILENT
+        2025  stored "60%"  engine null  SILENT
+    "Total amount of residential electric usage ("  /  "DAC"
+        SILENT in every year
+        2024  stored 5455330732  engine null  SILENT
+        2025  stored 5223783448  engine null  SILENT
+    "Total amount of residential electric usage ("  /  "Non-DAC"
+        SILENT in every year
+        2024  stored 8331039856  engine null  SILENT
+        2025  stored 7980741755  engine null  SILENT
+
+  J2
+    "Total amount of residential gas usage (ccf)"  /  "Total in DAC"
+        SILENT in every year
+        2023  stored 200019526  engine null  SILENT
+    "Total amount of residential gas usage (ccf)"  /  "DAC % of Total"
+        SILENT in every year
+        2023  stored 0.46  engine null  SILENT
+        2024  stored 0.41  engine null  SILENT
+        2025  stored 0.4  engine null  SILENT
+    "Total amount of residential gas usage (ccf)"  /  "Total in Non-DAC"
+        SILENT in every year
+        2023  stored 238748629  engine null  SILENT
+    "Total amount of residential gas usage (ccf)"  /  "Non-DAC % of Total"
+        SILENT in every year
+        2023  stored 0.54  engine null  SILENT
+        2024  stored 0.59  engine null  SILENT
+        2025  stored 0.6  engine null  SILENT
+    "Total amount of residential gas usage (ccf)"  /  "DAC"
+        SILENT in every year
+        2024  stored 264936296  engine null  SILENT
+        2025  stored 274398088  engine null  SILENT
+    "Total amount of residential gas usage (ccf)"  /  "Non-DAC"
+        SILENT in every year
+        2024  stored 381682391  engine null  SILENT
+        2025  stored 407249123  engine null  SILENT
+
+  J3
+    "Total in DAC"  /  "Total Accounts"
+        SILENT in every year
+        2023  stored 289487  engine null  SILENT
+        2024  stored 312470  engine null  SILENT
+        2025  stored 252171  engine null  SILENT
+    "Total in DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "60%"  engine null  SILENT
+        2024  stored "64%"  engine null  SILENT
+        2025  stored "66%"  engine null  SILENT
+    "Total in DAC"  /  "Total Amount ($)"
+        SILENT in every year
+        2023  stored 109831317.74  engine null  SILENT
+    "Total in DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "57%"  engine null  SILENT
+        2024  stored "63%"  engine null  SILENT
+        2025  stored "65%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Accounts"
+        SILENT in every year
+        2023  stored 196006  engine null  SILENT
+        2024  stored 178175  engine null  SILENT
+        2025  stored 129138  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "40%"  engine null  SILENT
+        2024  stored "36%"  engine null  SILENT
+        2025  stored "34%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount ($)"
+        SILENT in every year
+        2023  stored 83042485.19  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "43%"  engine null  SILENT
+        2024  stored "37%"  engine null  SILENT
+        2025  stored "35%"  engine null  SILENT
+    "Total in DAC"  /  "Total Amount"
+        SILENT in every year
+        2024  stored 55040891  engine null  SILENT
+        2025  stored 49573352  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount"
+        SILENT in every year
+        2024  stored 32362554  engine null  SILENT
+        2025  stored 26519485  engine null  SILENT
+    "Total"  /  "% of Accounts"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+    "Total"  /  "% of Amount"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+
+  J4
+    "Total in DAC"  /  "Total Accounts"
+        SILENT in every year
+        2023  stored 179249  engine null  SILENT
+        2024  stored 264398  engine null  SILENT
+        2025  stored 227566  engine null  SILENT
+    "Total in DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "63%"  engine null  SILENT
+        2024  stored "65%"  engine null  SILENT
+        2025  stored "68%"  engine null  SILENT
+    "Total in DAC"  /  "Total Amount ($)"
+        SILENT in every year
+        2023  stored 302122726.3  engine null  SILENT
+    "Total in DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "66%"  engine null  SILENT
+        2024  stored "66%"  engine null  SILENT
+        2025  stored "69%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Accounts"
+        SILENT in every year
+        2023  stored 107055  engine null  SILENT
+        2024  stored 144161  engine null  SILENT
+        2025  stored 107484  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "37%"  engine null  SILENT
+        2024  stored "35%"  engine null  SILENT
+        2025  stored "32%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount ($)"
+        SILENT in every year
+        2023  stored 157680308.42  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "34%"  engine null  SILENT
+        2024  stored "34%"  engine null  SILENT
+        2025  stored "31%"  engine null  SILENT
+    "Total in DAC"  /  "Total Amount"
+        SILENT in every year
+        2024  stored 563924629  engine null  SILENT
+        2025  stored 545824316  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount"
+        SILENT in every year
+        2024  stored 292120672  engine null  SILENT
+        2025  stored 249080630  engine null  SILENT
+    "Total"  /  "% of Accounts"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+    "Total"  /  "% of Amount"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+
+  J6
+    "Total in DAC"  /  "Total Accounts"
+        SILENT in every year
+        2023  stored 95627  engine null  SILENT
+        2024  stored 121203  engine null  SILENT
+        2025  stored 135253  engine null  SILENT
+    "Total in DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "61%"  engine null  SILENT
+        2024  stored "60%"  engine null  SILENT
+        2025  stored "63%"  engine null  SILENT
+    "Total in DAC"  /  "Total Amount ($)"
+        SILENT in every year
+        2023  stored 126681405.76  engine null  SILENT
+    "Total in DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "56%"  engine null  SILENT
+        2024  stored "59%"  engine null  SILENT
+        2025  stored "64%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Accounts"
+        SILENT in every year
+        2023  stored 61406  engine null  SILENT
+        2024  stored 81767  engine null  SILENT
+        2025  stored 78589  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "39%"  engine null  SILENT
+        2024  stored "40%"  engine null  SILENT
+        2025  stored "37%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount ($)"
+        SILENT in every year
+        2023  stored 100223119.9  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "44%"  engine null  SILENT
+        2024  stored "41%"  engine null  SILENT
+        2025  stored "36%"  engine null  SILENT
+    "Total in DAC"  /  "Total Amount"
+        SILENT in every year
+        2024  stored 139350179  engine null  SILENT
+        2025  stored 220968214  engine null  SILENT
+    "Total in Non-DAC"  /  "Total Amount"
+        SILENT in every year
+        2024  stored 97352921  engine null  SILENT
+        2025  stored 122335146  engine null  SILENT
+    "Total"  /  "% of Accounts"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+    "Total"  /  "% of Amount"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+
+  J7
+    "Total in DAC"  /  "Electric-only"
+        SILENT in every year
+        2023  stored 201727  engine null  SILENT
+        2024  stored 193281  engine null  SILENT
+        2025  stored 184532  engine null  SILENT
+    "Total in DAC"  /  "Gas-only"
+        SILENT in every year
+        2023  stored 1260  engine null  SILENT
+        2024  stored 1304  engine null  SILENT
+        2025  stored 1114  engine null  SILENT
+    "Total in DAC"  /  "Dual Service"
+        SILENT in every year
+        2023  stored 114965  engine null  SILENT
+        2024  stored 101784  engine null  SILENT
+        2025  stored 93210  engine null  SILENT
+    "Total in DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "66%"  engine null  SILENT
+        2024  stored "66%"  engine null  SILENT
+        2025  stored "66%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Electric-only"
+        SILENT in every year
+        2023  stored 134567  engine null  SILENT
+        2024  stored 127593  engine null  SILENT
+        2025  stored 117813  engine null  SILENT
+    "Total in Non-DAC"  /  "Gas-only"
+        SILENT in every year
+        2023  stored 722  engine null  SILENT
+        2024  stored 577  engine null  SILENT
+        2025  stored 406  engine null  SILENT
+    "Total in Non-DAC"  /  "Dual Service"
+        SILENT in every year
+        2023  stored 27764  engine null  SILENT
+        2024  stored 25299  engine null  SILENT
+        2025  stored 22386  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Accounts"
+        SILENT in every year
+        2023  stored "34%"  engine null  SILENT
+        2024  stored "34%"  engine null  SILENT
+        2025  stored "34%"  engine null  SILENT
+    "Total"  /  "% of Accounts"
+        DIVERGENT in every year
+        2025  stored "100%"  engine 1  DIVERGENT
+
+  J8
+    "Total in DAC"  /  "Electric ($)"
+        SILENT in every year
+        2023  stored 109754510.35  engine null  SILENT
+    "Total in DAC"  /  "Gas ($)"
+        SILENT in every year
+        2023  stored 21993626.6  engine null  SILENT
+    "Total in DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "66%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Electric ($)"
+        SILENT in every year
+        2023  stored 55712765.65  engine null  SILENT
+    "Total in Non-DAC"  /  "Gas ($)"
+        SILENT in every year
+        2023  stored 13525084.95  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Amount"
+        SILENT in every year
+        2023  stored "34%"  engine null  SILENT
+    "Total in DAC"  /  "Electric"
+        SILENT in every year
+        2024  stored 162532290  engine null  SILENT
+        2025  stored 128986182  engine null  SILENT
+    "Total in DAC"  /  "Gas"
+        SILENT in every year
+        2024  stored 28964404  engine null  SILENT
+        2025  stored 22904198  engine null  SILENT
+    "Total in DAC"  /  "% of Total"
+        SILENT in every year
+        2024  stored "62%"  engine null  SILENT
+        2025  stored "62%"  engine null  SILENT
+    "Total in Non-DAC"  /  "Electric"
+        SILENT in every year
+        2024  stored 95845105  engine null  SILENT
+        2025  stored 63415143  engine null  SILENT
+    "Total in Non-DAC"  /  "Gas"
+        SILENT in every year
+        2024  stored 22786170  engine null  SILENT
+        2025  stored 15691183  engine null  SILENT
+    "Total in Non-DAC"  /  "% of Total"
+        SILENT in every year
+        2024  stored "38%"  engine null  SILENT
+        2025  stored "38%"  engine null  SILENT
+    "Total"  /  "Electric"
+        SILENT in every year
+        2025  stored 192638756  engine null  SILENT
+    "Total"  /  "Gas"
+        SILENT in every year
+        2025  stored 38743914  engine null  SILENT
+    "Total"  /  "% of Total"
+        SILENT in every year
+        2025  stored "100%"  engine null  SILENT
+    "% of total in DAC"  /  "Electric"
+        SILENT in every year
+        2025  stored "67%"  engine null  SILENT
+    "% of total in DAC"  /  "Gas"
+        SILENT in every year
+        2025  stored "59%"  engine null  SILENT
+    "% of total in non-DAC"  /  "Electric"
+        SILENT in every year
+        2025  stored "33%"  engine null  SILENT
+    "% of total in non-DAC"  /  "Gas"
+        SILENT in every year
+        2025  stored "41%"  engine null  SILENT
+
+  J9
+    "Total Number of Residential Customers"  /  "Total in DAC"
+        SILENT in every year
+        2023  stored 1344495  engine null  SILENT
+    "Total Number of Residential Customers"  /  "DAC % of Total"
+        SILENT in every year
+        2023  stored 0.43  engine null  SILENT
+    "Total Number of Residential Customers"  /  "Total in Non-DAC"
+        SILENT in every year
+        2023  stored 1760050  engine null  SILENT
+    "Total Number of Residential Customers"  /  "Non-DAC % of Total"
+        SILENT in every year
+        2023  stored 0.57  engine null  SILENT
+
+=======================================================================
+ SHAPE OF THE CANDIDATE SET
+=======================================================================
+  SILENT in every stored year    : 157   the engine has no way to produce these at all
+  DIVERGENT in every stored year : 8   the engine produces a different number every time
+  MIXED                          : 8   reproduced in some years and not others
+  tables involved                : ["A2","A3","A4","A6","A7","A8","C2","D2","D3","D4","F7","F9","G10","I1","J1","J2","J3","J4","J6","J7","J8","J9"]
+
+  THE MIXED SET IS THE ONE THAT MATTERS MOST. A cell reproduced in one
+  year and not another is precisely the cell whose ownership the old
+  guard decided from the stored value, so it belonged to the preparer
+  or to the engine depending on which year was open.
+
+=======================================================================
+ THE TWO NAMED MEMBERS, CHECKED BY MEASUREMENT
+=======================================================================
+  A8: 2 candidate cell(s) on that row, and 1 the engine reproduces
+      "Total Installations"  2025:SILENT
+      "DAC Installations"  2025:SILENT
+      "% in DACs"  OWNED in every year -- NOT a member
+  J8: 3 candidate cell(s) on that row
+      "Electric"  2025:SILENT
+      "Gas"  2025:SILENT
+      "% of Total"  2025:SILENT

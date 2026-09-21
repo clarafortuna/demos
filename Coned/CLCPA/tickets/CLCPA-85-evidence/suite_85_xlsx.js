@@ -90,6 +90,9 @@ const NAMES = [/* CLCPA-267 dep */ 'shiftSchemaYears', /* CLCPA-272 deps */ 'rec
   /* CLCPA-293: buildIngestImport now asks whether the engine can actually
    * rebuild a total before refusing the preparer's value for it. */
   'ingestRebuildableTotals',
+  /* CLCPA-293 round 4: and whether the B7 registry says the total belongs
+   * to the preparer, which the workbook marker asks as well. */
+  'isB7PreparerTotal', /* which consults the declared-summable list */ 'isDeclaredSummable',
   /* CLCPA-278 round 3 and CLCPA-274 round 3: a hand-listed dependency set
      cannot see a new one, and it fails as a ReferenceError from inside the
      assembled function rather than as an assertion. */
@@ -118,6 +121,8 @@ const consts = STYLE_CONSTS.concat([
   'INGEST_KEY_COLS', 'INGEST_GROUPED', 'INGEST_KEY_SEP', 'INGEST_CALC_MARKER',
   /* CLCPA-240 round 2 */
   'INGEST_NOVALUE_MARKER', 'HIERARCHICAL_TABLES',
+  /* CLCPA-293 round 4: isB7PreparerTotal reads the declared-summable list */
+  'SUMMABLE_COLS',
   'XLSX_INK', 'XLSX_DUSK', 'XLSX_DUSK_TINT',
   'XLSX_TEXT2', 'XLSX_TEXT3', 'XLSX_WHITE', 'XLSX_PALE',
   'XLSX_SMOKE', 'XLSX_TEXT']).map(n => {
@@ -143,7 +148,10 @@ try {
      * table whose metric runs down the rows was invisible to it. A hand-fed
      * declaration list cannot see a new one: this threw from inside the
      * assembled workbook writer rather than failing an assertion. */
-    grabDecl('DERIVED_ROWS') + '\n' + consts.join('\n') + '\n' +
+    /* CLCPA-293 round 4: the B7 registry, read by the import guard and by
+     * the workbook marker, so this slice cannot be assembled without it. */
+    grabDecl('DERIVED_ROWS') + '\n' + grabDecl('B7_PREPARER_TOTALS') + '\n' +
+    consts.join('\n') + '\n' +
     NAMES.map(grab).join('\n') + '\n' +
     'return { buildIngestWorkbook, zipStored, crc32, xlsxSheetName, xlsxCol,' +
     ' xlsxInstructionBlocks, buildIngestImport, parseCsvRows, getTableSchema,' +

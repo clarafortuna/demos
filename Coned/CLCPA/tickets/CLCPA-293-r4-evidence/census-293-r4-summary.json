@@ -1,0 +1,3741 @@
+{
+  "measuredAt": "census only, no code changed",
+  "cells": 335,
+  "owned": 162,
+  "candidates": 173,
+  "silentEveryYear": 157,
+  "divergentEveryYear": 8,
+  "mixed": 8,
+  "tables": [
+    "A2",
+    "A3",
+    "A4",
+    "A6",
+    "A7",
+    "A8",
+    "C2",
+    "D2",
+    "D3",
+    "D4",
+    "F7",
+    "F9",
+    "G10",
+    "I1",
+    "J1",
+    "J2",
+    "J3",
+    "J4",
+    "J6",
+    "J7",
+    "J8",
+    "J9"
+  ],
+  "nominated": 65,
+  "proposed": [
+    {
+      "table": "A2",
+      "row": "Total",
+      "column": "Total Energy Savings (MMBtu)",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 4019790,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A3",
+      "row": "Total",
+      "column": "Avg. Incentives by Participant",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 3761330,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A3",
+      "row": "Total",
+      "column": "Avg. Energy Savings by Participant (MMBtu)",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 22511,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A4",
+      "row": "Total",
+      "column": "Avg. Incentives by Participant",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 2026699,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A4",
+      "row": "Total",
+      "column": "Avg. Energy Savings by Participant (MMBtu)",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 12372,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A8",
+      "row": "Residential Programs Total Installations",
+      "column": "Total",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 47350,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A8",
+      "row": "Total CES Programs Installations",
+      "column": "Total Installations",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 336599,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A8",
+      "row": "Total CES Programs Installations",
+      "column": "DAC Installations",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 190180,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "C2",
+      "row": "Total",
+      "column": "Participants",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 93187,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 104025,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 116581,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "C2",
+      "row": "Total",
+      "column": "Committed Load Relief (MW)",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 991.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 998.11,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 955.06,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "C2",
+      "row": "Total",
+      "column": "Average Event Reductions (MW)",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 766.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 766.94,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 736.73,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "F9",
+      "row": "Grand Total",
+      "column": "DAC % of System Total",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.04,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.043,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.1,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "F9",
+      "row": "Grand Total",
+      "column": "Non-DAC % of System Total",
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.07,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.083,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.17,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total",
+      "column": "Electric",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 192638756,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total",
+      "column": "Gas",
+      "years": [
+        {
+          "year": "2025",
+          "stored": 38743914,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total",
+      "column": "% of Total",
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    }
+  ],
+  "heldBack": 49,
+  "members": [
+    {
+      "table": "A2",
+      "row": "Total",
+      "column": "Total Energy Savings (MMBtu)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 4019790,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A2",
+      "row": "Total",
+      "column": "% in DACs",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.41,
+          "attempt": 0.44643835465381637,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "A3",
+      "row": "Total",
+      "column": "Total Participants",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 2354317,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 2009280,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 2034938,
+          "attempt": 2034907,
+          "verdict": "OWNED"
+        }
+      ]
+    },
+    {
+      "table": "A3",
+      "row": "Total",
+      "column": "Avg. Incentives by Participant",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 3761330,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A3",
+      "row": "Total",
+      "column": "Avg. Energy Savings by Participant (MMBtu)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 22511,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A4",
+      "row": "Total",
+      "column": "Total Participants",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 2,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1218703,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 1130931,
+          "attempt": 1130931,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2025",
+          "stored": 942510,
+          "attempt": 942490,
+          "verdict": "OWNED"
+        }
+      ]
+    },
+    {
+      "table": "A4",
+      "row": "Total",
+      "column": "Avg. Incentives by Participant",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 2026699,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A4",
+      "row": "Total",
+      "column": "Avg. Energy Savings by Participant (MMBtu)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 12372,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A6",
+      "row": "Multifamily - Fuel-Switch Total",
+      "column": "% in DACs",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 0.11,
+          "attempt": 0.11,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2025",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A7",
+      "row": "Real Time Energy Management Total",
+      "column": "% in DACs",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 0.5,
+          "attempt": 0.5,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2025",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A7",
+      "row": "Multisector Programs Installations Total",
+      "column": "% in DACs",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 0.5,
+          "attempt": 0.5,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2025",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A8",
+      "row": "Residential Programs Total Installations",
+      "column": "Total",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 47350,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A8",
+      "row": "Total CES Programs Installations",
+      "column": "Total Installations",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 336599,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "A8",
+      "row": "Total CES Programs Installations",
+      "column": "DAC Installations",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 190180,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "C2",
+      "row": "Total",
+      "column": "Participants",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 93187,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 104025,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 116581,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "C2",
+      "row": "Total",
+      "column": "Committed Load Relief (MW)",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 991.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 998.11,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 955.06,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "C2",
+      "row": "Total",
+      "column": "Average Event Reductions (MW)",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 766.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 766.94,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 736.73,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 66436,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects in DACs",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 21298,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed (All DERs)",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 913.9,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed in DACs (All DERs)",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 341.3,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 76991,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 10555,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects in DACs",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 24882,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects in DACs",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 3584,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed (All DERs)",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 1096.44,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed (All DERs)",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 182.54,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed in DACs (All DERs)",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 405.92,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed in DACs (All DERs)",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 64.62,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 88150,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 11159,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects in DACs",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 28536,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total # of projects in DACs",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 3654,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed (All DERs)",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 1234.34,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed (All DERs)",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 137.9,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed in DACs (All DERs)",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 449.05,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D2",
+      "row": "Total MW installed in DACs (All DERs)",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 43.13,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 17264,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers in DACs",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 5372,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 852,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 18762,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 1498,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers in DACs",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 6215,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers in DACs",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 843,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 1186,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 334,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 20679,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 1917,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers in DACs",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 7198,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers in DACs",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 983,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 1917,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D3",
+      "row": "Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 731,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 64724,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects installed for low-income customers",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 3718,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects in DACs",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 20517,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 522.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed for low-income customers",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 19.5,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed in DACs",
+      "column": "Cumulative through 2023",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 175,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 75160,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 10436,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects installed for low-income customers",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 4470,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects installed for low-income customers",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 752,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects in DACs",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 24062,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects in DACs",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 3545,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 688.3,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 165.7,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed for low-income customers",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 22.9,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed for low-income customers",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 3.4,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed in DACs",
+      "column": "Up to 2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 200.82,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed in DACs",
+      "column": "2024",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 25.82,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 86186,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 11026,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects installed for low-income customers",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 5080,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects installed for low-income customers",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 610,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects in DACs",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 27650,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total # of projects in DACs",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 3588,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 775.8,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 87.5,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed for low-income customers",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 26.3,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed for low-income customers",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 3.4,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed in DACs",
+      "column": "Up to 2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 229.03,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "D4",
+      "row": "Total MW installed in DACs",
+      "column": "2025",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 28.21,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "F7",
+      "row": "% of Grand Total",
+      "column": "DAC Customers Interrupted",
+      "silent": 0,
+      "divergent": 2,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.3754,
+          "attempt": 0.37538637955708243,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2024",
+          "stored": "34%",
+          "attempt": 0.3428248526424456,
+          "verdict": "DIVERGENT"
+        },
+        {
+          "year": "2025",
+          "stored": "32%",
+          "attempt": 0.3159333166556004,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "F7",
+      "row": "% of Grand Total",
+      "column": "Non-DAC Customers Interrupted",
+      "silent": 0,
+      "divergent": 2,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.6246,
+          "attempt": 0.6246136204429176,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2024",
+          "stored": "66%",
+          "attempt": 0.6571751473575543,
+          "verdict": "DIVERGENT"
+        },
+        {
+          "year": "2025",
+          "stored": "68%",
+          "attempt": 0.6840666833443996,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "F7",
+      "row": "% of Grand Total",
+      "column": "Total Customers Interrupted",
+      "silent": 0,
+      "divergent": 2,
+      "owned": 1,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1,
+          "attempt": 1,
+          "verdict": "OWNED"
+        },
+        {
+          "year": "2024",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        },
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "F9",
+      "row": "Grand Total",
+      "column": "DAC % of System Total",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.04,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.043,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.1,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "F9",
+      "row": "Grand Total",
+      "column": "Non-DAC % of System Total",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.07,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.083,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.17,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "G10",
+      "row": "Total mT CH4 in Non-DACs",
+      "column": "mT CH4",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 129.3,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 116.03,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 117.5,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "G10",
+      "row": "Total mT CH4 in Non-DACs",
+      "column": "Percentage",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.54,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.48,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.46,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "G10",
+      "row": "Total mT CH4 in DACs",
+      "column": "mT CH4",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 109.59,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 125.19,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 140.36,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "G10",
+      "row": "Total mT CH4 in DACs",
+      "column": "Percentage",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.46,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.52,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.54,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "I1",
+      "row": "Total number of hires at Con Edison from [the Academy] who resided in a disadvantaged community at the time of enrollment in the program",
+      "column": "Unique",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "I1",
+      "row": "Total number of hires at Con Edison from [the Academy] who resided in a disadvantaged community at the time of enrollment in the program",
+      "column": "Non-Unique",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J1",
+      "row": "Total amount of residential electric usage (kWh)",
+      "column": "Total in DAC",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 4026175751.88,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J1",
+      "row": "Total amount of residential electric usage (kWh)",
+      "column": "DAC % of Total",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "39%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "40%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "40%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J1",
+      "row": "Total amount of residential electric usage (kWh)",
+      "column": "Total in Non-DAC",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 6265657893.74,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J1",
+      "row": "Total amount of residential electric usage (kWh)",
+      "column": "Non-DAC % of Total",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "61%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "60%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "60%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J1",
+      "row": "Total amount of residential electric usage (kWh)",
+      "column": "DAC",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 5455330732,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 5223783448,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J1",
+      "row": "Total amount of residential electric usage (kWh)",
+      "column": "Non-DAC",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 8331039856,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 7980741755,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J2",
+      "row": "Total amount of residential gas usage (ccf)",
+      "column": "Total in DAC",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 200019526,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J2",
+      "row": "Total amount of residential gas usage (ccf)",
+      "column": "DAC % of Total",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.46,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.41,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.4,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J2",
+      "row": "Total amount of residential gas usage (ccf)",
+      "column": "Total in Non-DAC",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 238748629,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J2",
+      "row": "Total amount of residential gas usage (ccf)",
+      "column": "Non-DAC % of Total",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.54,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 0.59,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 0.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J2",
+      "row": "Total amount of residential gas usage (ccf)",
+      "column": "DAC",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 264936296,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 274398088,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J2",
+      "row": "Total amount of residential gas usage (ccf)",
+      "column": "Non-DAC",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 381682391,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 407249123,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in DAC",
+      "column": "Total Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 289487,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 312470,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 252171,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "60%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "64%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in DAC",
+      "column": "Total Amount ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 109831317.74,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in DAC",
+      "column": "% of Amount",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "57%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "63%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "65%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in Non-DAC",
+      "column": "Total Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 196006,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 178175,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 129138,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in Non-DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "40%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "36%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in Non-DAC",
+      "column": "Total Amount ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 83042485.19,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in Non-DAC",
+      "column": "% of Amount",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "43%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "37%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "35%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in DAC",
+      "column": "Total Amount",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 55040891,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 49573352,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total in Non-DAC",
+      "column": "Total Amount",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 32362554,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 26519485,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total",
+      "column": "% of Accounts",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J3",
+      "row": "Total",
+      "column": "% of Amount",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in DAC",
+      "column": "Total Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 179249,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 264398,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 227566,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "63%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "65%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "68%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in DAC",
+      "column": "Total Amount ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 302122726.3,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in DAC",
+      "column": "% of Amount",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "69%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in Non-DAC",
+      "column": "Total Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 107055,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 144161,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 107484,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in Non-DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "37%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "35%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "32%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in Non-DAC",
+      "column": "Total Amount ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 157680308.42,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in Non-DAC",
+      "column": "% of Amount",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "31%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in DAC",
+      "column": "Total Amount",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 563924629,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 545824316,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total in Non-DAC",
+      "column": "Total Amount",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 292120672,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 249080630,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total",
+      "column": "% of Accounts",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J4",
+      "row": "Total",
+      "column": "% of Amount",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in DAC",
+      "column": "Total Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 95627,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 121203,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 135253,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "61%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "60%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "63%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in DAC",
+      "column": "Total Amount ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 126681405.76,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in DAC",
+      "column": "% of Amount",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "56%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "59%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "64%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in Non-DAC",
+      "column": "Total Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 61406,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 81767,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 78589,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in Non-DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "39%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "40%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "37%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in Non-DAC",
+      "column": "Total Amount ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 100223119.9,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in Non-DAC",
+      "column": "% of Amount",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "44%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "41%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "36%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in DAC",
+      "column": "Total Amount",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 139350179,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 220968214,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total in Non-DAC",
+      "column": "Total Amount",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 97352921,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 122335146,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total",
+      "column": "% of Accounts",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J6",
+      "row": "Total",
+      "column": "% of Amount",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in DAC",
+      "column": "Electric-only",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 201727,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 193281,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 184532,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in DAC",
+      "column": "Gas-only",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1260,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 1304,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 1114,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in DAC",
+      "column": "Dual Service",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 114965,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 101784,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 93210,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in Non-DAC",
+      "column": "Electric-only",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 134567,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 127593,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 117813,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in Non-DAC",
+      "column": "Gas-only",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 722,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 577,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 406,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in Non-DAC",
+      "column": "Dual Service",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 27764,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": 25299,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 22386,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total in Non-DAC",
+      "column": "% of Accounts",
+      "silent": 3,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2024",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J7",
+      "row": "Total",
+      "column": "% of Accounts",
+      "silent": 0,
+      "divergent": 1,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": 1,
+          "verdict": "DIVERGENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in DAC",
+      "column": "Electric ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 109754510.35,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in DAC",
+      "column": "Gas ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 21993626.6,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in DAC",
+      "column": "% of Amount",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "66%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in Non-DAC",
+      "column": "Electric ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 55712765.65,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in Non-DAC",
+      "column": "Gas ($)",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 13525084.95,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in Non-DAC",
+      "column": "% of Amount",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": "34%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in DAC",
+      "column": "Electric",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 162532290,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 128986182,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in DAC",
+      "column": "Gas",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 28964404,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 22904198,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in DAC",
+      "column": "% of Total",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": "62%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "62%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in Non-DAC",
+      "column": "Electric",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 95845105,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 63415143,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in Non-DAC",
+      "column": "Gas",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": 22786170,
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": 15691183,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total in Non-DAC",
+      "column": "% of Total",
+      "silent": 2,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2024",
+          "stored": "38%",
+          "attempt": null,
+          "verdict": "SILENT"
+        },
+        {
+          "year": "2025",
+          "stored": "38%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total",
+      "column": "Electric",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 192638756,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total",
+      "column": "Gas",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": 38743914,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "Total",
+      "column": "% of Total",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "100%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "% of total in DAC",
+      "column": "Electric",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "67%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "% of total in DAC",
+      "column": "Gas",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "59%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "% of total in non-DAC",
+      "column": "Electric",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "33%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J8",
+      "row": "% of total in non-DAC",
+      "column": "Gas",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2025",
+          "stored": "41%",
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J9",
+      "row": "Total Number of Residential Customers",
+      "column": "Total in DAC",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1344495,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J9",
+      "row": "Total Number of Residential Customers",
+      "column": "DAC % of Total",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.43,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J9",
+      "row": "Total Number of Residential Customers",
+      "column": "Total in Non-DAC",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 1760050,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    },
+    {
+      "table": "J9",
+      "row": "Total Number of Residential Customers",
+      "column": "Non-DAC % of Total",
+      "silent": 1,
+      "divergent": 0,
+      "owned": 0,
+      "years": [
+        {
+          "year": "2023",
+          "stored": 0.57,
+          "attempt": null,
+          "verdict": "SILENT"
+        }
+      ]
+    }
+  ]
+}
