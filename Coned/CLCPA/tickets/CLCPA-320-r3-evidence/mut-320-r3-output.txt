@@ -1,0 +1,33 @@
+Mutation controls for suite_320_r3
+  app.js sha256[0:12] before: a2fd54fc785d
+
+  [1] THE DEFECT ITSELF: an empty total row is a group header again, so the populated workbook says (no value) about a computed cell
+      expected red : A1, A2, B1, B2
+      actually red : A1, A2, B1, B2
+      ok
+
+  [2] THE LABEL RESTRICTION IS DROPPED: nothing is a group header, which fixes G3 and strips the caption marker from A5 to A8
+      expected red : E1, E2
+      actually red : E1, E2
+      ok
+
+  [3] THE TEST IS INVERTED: only a TOTAL row is treated as a caption, which is the defect with the sign flipped
+      expected red : A1, A2, E1, E2
+      actually red : A1, A2, B1, B2, E1, E2
+      ok
+
+  [4] THE STRICT PREDICATE is used instead of the anchored one, so G3s "County Total" stops being recognised as a total at all
+      expected red : A1, A2
+      actually red : A1, A2
+      ok
+
+========================================================================
+  app.js sha256[0:12] after : a2fd54fc785d
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    19 passed, 0 failed   exit 0
+========================================================================
+  all 4 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+========================================================================

@@ -19145,6 +19145,38 @@ function wireHTooltips() {
     return { year: donor, rows: table.data[donor], borrowed: true };
   }
 
+  /**
+   * CLCPA-320 round 3: the rows a MARKER should be derived from.
+   *
+   * The template's marker asks ingestComputed, and ingestComputed reads
+   * VALUES: totalRowFlags confirms a total by arithmetic. So the same cell
+   * gets a different marker depending on which year's figures happen to be
+   * in front of it, and that is the asymmetry this ticket is about. A FRESH
+   * year borrows a published year's rows, so its markers are derived from a
+   * table that is whole. A POPULATED year is judged on its own rows, and a
+   * year whose total row has not been filled in yet is not whole.
+   *
+   * G3 is the reported case: the populated year downloaded County Total as
+   * (no value) while the fresh year downloaded (calculated) -- and with
+   * CLCPA-319 shipped the app does compute that cell, so (no value) is a
+   * false statement about it.
+   *
+   * This returns the PUBLISHED donor wherever one exists, so both paths
+   * derive their markers from the same anatomy. It never decides what a
+   * cell CONTAINS: a populated value is still exported from the year's own
+   * rows, untouched.
+   */
+  function ingestMarkerSource(table, year) {
+    const data = (table && table.data) || {};
+    const withRows = Object.keys(data)
+      .filter(y => (data[y] || []).length)
+      .sort((x, y2) => parseInt(y2, 10) - parseInt(x, 10));
+    const published = withRows.filter(y => isYearProtected(y));
+    if (published.length) return data[published[0]] || [];
+    /* no published year to judge from: the year's own rows are all there
+     * is, which is the state the fresh path already degrades to */
+    return getTableBody(table, year) || (withRows.length ? data[withRows[0]] : []) || [];
+  }
 
   /* ==========================================================================
    * CLCPA-85 round 4: a ZIP writer, so the template can be a real .xlsx.
@@ -19599,6 +19631,23 @@ function wireHTooltips() {
     if (!schema.length) return null;
     const src = ingestTemplateSource(table, year);
     const computed = ingestComputed(src.rows, tableId, schema);
+    /* CLCPA-320 round 3: the marker for an EMPTY cell in a POPULATED year
+     * is derived from the same anatomy the fresh path uses, so the two
+     * cannot disagree about a cell neither of them has a figure for.
+     * Matched by LABEL, never by index: the donor year need not have the
+     * same rows in the same order, and an index-keyed lookup would put one
+     * row's marker on another. */
+    const markRows = ingestMarkerSource(table, year);
+    const markComputed = ingestComputed(markRows, tableId, schema);
+    const markIdxOf = (label) => {
+      const want = String(label == null ? '' : label).trim().toLowerCase();
+      if (!want) return -1;
+      for (let i = 0; i < markRows.length; i++) {
+        if (String((markRows[i] || [])[0] == null ? '' : markRows[i][0])
+            .trim().toLowerCase() === want) return i;
+      }
+      return -1;
+    };
     /* CLCPA-292: the SAME key-column count the importer matches rows on, so
      * the template writes the key that will be read back. Clamped exactly as
      * buildIngestImport clamps it, because a declaration wider than the
@@ -19670,7 +19719,24 @@ function wireHTooltips() {
        * importer could not tell which group a row belonged to. A header has
        * nothing to calculate: it is a caption for the rows beneath it. This is
        * what makes A5's own template carry the key the matcher reads. */
-      const isGroupHeader = ingestIsHeaderRow(row, [0]);
+      /* CLCPA-320 round 3: A TOTAL ROW IS NOT A CAPTION, even when it is
+       * empty.
+       *
+       * ingestIsHeaderRow says a row with a label and no values is a group
+       * header, which is right for a caption and wrong for a total nobody
+       * has filled in yet. That is the reported defect: G3's populated
+       * 2098 downloaded County Total as (no value) while the fresh 2094
+       * downloaded (calculated), for the same cell -- and with CLCPA-319
+       * shipped the app computes it, so (no value) is a false statement.
+       *
+       * Told apart by LABEL, the same signal CLCPA-319's own rule uses and
+       * the one no edit can move. A caption is not labelled "County Total".
+       * Restricting it to the label matters: a group header in a table with
+       * a derived column would otherwise look derivable and lose its
+       * marker, which is A5, A6, A7 and A8 and the whole reason this
+       * branch exists. */
+      const isGroupHeader = ingestIsHeaderRow(row, [0]) &&
+        !isAnchoredTotalRowLabel(row[0]);
       rows.push(visible(schema.map((h, c) => {
         /* CLCPA-292: EVERY KEY COLUMN IS PRE-FILLED, not just the first.
          *
@@ -19748,6 +19814,26 @@ function wireHTooltips() {
         if (!src.borrowed) {
           const v = row[c];
           if (v != null && String(v).trim() !== '') return { style: style, text: v };
+          /* CLCPA-320 round 3: EMPTY IN A POPULATED YEAR, so there is no
+           * value to export and the cell needs a marker like any other.
+           * Until now it fell through to a blank, which tells the operator
+           * nothing, or carried a marker derived from this year's own
+           * half-filled rows -- G3's County Total downloaded (no value)
+           * from the populated year and (calculated) from the fresh one,
+           * for the same cell.
+           *
+           * Asked of the SAME derivability the fresh path consults. A
+           * registry member answers false here, by CLCPA-293 round 4, and
+           * so falls through to a fill-in blank, which is what a total that
+           * belongs to the preparer should look like. */
+          const mi = markIdxOf(row[0]);
+          if (mi >= 0 && markComputed.marksInTemplate(mi, c)) {
+            return {
+              style: style,
+              text: ingestTextOnlyColumn(table, c)
+                ? INGEST_NOVALUE_MARKER : INGEST_CALC_MARKER,
+            };
+          }
         }
         /* EMPTY, and LOCKED like everything else: for a fresh year the
          * workbook shows the format, it is not filled in. The operator types

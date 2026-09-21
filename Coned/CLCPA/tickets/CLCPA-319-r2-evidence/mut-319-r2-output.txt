@@ -1,5 +1,5 @@
 Mutation controls for suite_319_r2
-  app.js sha256[0:12] before: 2969d998103d
+  app.js sha256[0:12] before: a2fd54fc785d
 
   [1] THE DEFECT ITSELF: the clause is removed, so the classifier falls back to arithmetic on a total row that has no figure to confirm
       expected red : A1, A2, B3, D3
@@ -27,7 +27,7 @@ Mutation controls for suite_319_r2
       UNREACHED, deliberately: EQUIVALENT ON THIS GESTURE, and measured so rather than assumed. The defect is not that the baseline is misaligned -- it is aligned here -- but that its total row holds no figure for the arithmetic to confirm. Both arrays carry the same labels, so flagging from either finds the same row. The two diverge only where the draft has rows the baseline does not, which is Add Row and Delete Row, and neither is this ticket gesture. The shipped clause reads the DRAFT because the draft is what gets summed: a flag keyed to rows that are not the ones being added up is the CLCPA-212 index-drift trap waiting to happen.
 
 ========================================================================
-  app.js sha256[0:12] after : 2969d998103d
+  app.js sha256[0:12] after : a2fd54fc785d
   app.js is byte-for-byte unchanged: every mutation went to a temp copy.
 
   CLEAN RE-RUN against the restored source:
