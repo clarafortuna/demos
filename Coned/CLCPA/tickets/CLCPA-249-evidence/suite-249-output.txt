@@ -196,6 +196,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function fillDerivableSumsOnImport moved, and it is named by a later ticket: NOT this ticket: CLCPA-301: the import path computes the row total the importer deliberately left blank (new)
   ok   X1 app.js function reconcileSumColumns moved, and it is named by a later ticket: CLCPA-272: the reconciliation itself (new)
   ok   X1 app.js function renderTable moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  FAIL X1 app.js function rowIsCurrency moved, and it is named by a later ticket -- NO, it is unaccounted for
   ok   X1 app.js function formatCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function compareColWidths moved, and it is named by a later ticket: NOT this ticket: CLCPA-281 round 3: the read-only surfaces ask the per-year header question through storedHeaderRowsInYear
   ok   X1 app.js function renderSourceTables moved, and it is named by a later ticket: CLCPA-252, Section C group B
@@ -250,11 +251,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (92) belongs to a later ticket
+  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (93) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  223 passed, 2 failed
+  223 passed, 3 failed

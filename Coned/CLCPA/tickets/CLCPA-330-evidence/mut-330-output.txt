@@ -1,0 +1,19 @@
+======================================================================
+  CLCPA-330 -- mutation controls
+======================================================================
+
+  baseline, unmutated : 28 passed, 0 failed
+  red   THE NARROWING IS REMOVED from the money branch  (18 passed, 10 failed)
+  red   EVERY ROW is currency, so the declaration decides nothing  (18 passed, 10 failed)
+  red   NO ROW is currency, so declared money rows lose their $  (20 passed, 8 failed)
+  red   THE DECLARATION IS NEVER READ off the table definition  (18 passed, 10 failed)
+  red   MATCHING BECOMES CASE-SENSITIVE  (23 passed, 5 failed)
+  red   DECLARED-BUT-EMPTY is treated as absent  (27 passed, 1 failed)
+
+  6 caught, 0 not caught, of 6 applied
+  app.js untouched by this run: YES
+  clean re-run against the repository file: PASSES
+
+======================================================================
+  8 passed, 0 failed
+======================================================================

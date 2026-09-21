@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T01:08:17.117Z",
+  "generated": "2026-09-21T05:27:58.177Z",
   "round": 2,
   "measuredAt": {
     "integrationHead": "(pending merge commit)",
@@ -12,24 +12,24 @@
     "runnersDiscovered": 147,
     "assertionsPassedReported": 9448,
     "assertionsFailedReported": 55,
-    "distinctFailures": 36,
+    "distinctFailures": 41,
     "doubleCountedFailures": 18,
     "runnersNotReporting": 14
   },
   "categories": {
     "genuineApplicationFailures": 0,
-    "provenanceOrAttribution": 24,
+    "provenanceOrAttribution": 29,
     "brokenTestInfrastructureFailures": 12,
     "brokenTestInfrastructureDeadRunners": 12,
     "expectedNonReporting": 2
   },
   "perRunner": {
     "provenance": {
-      "suite_245": 9,
-      "suite_249": 2,
-      "suite_254_255_261": 3,
-      "suite_260": 3,
-      "suite_263": 3,
+      "suite_245": 10,
+      "suite_249": 3,
+      "suite_254_255_261": 4,
+      "suite_260": 4,
+      "suite_263": 4,
       "gate_149_stacked": 4
     },
     "echoWrappers": {
@@ -130,6 +130,25 @@
       "cause": "she DECLARED resolveTablePrivileges in her own suite as an extractor artifact, not a real change: grabFn over-reads it by 42kB and its slice swallows the dvBackend saveTable whose diffRows call now passes tableId; she measured the function itself byte-identical at 2376 bytes on both builds. She also raised X8 95 -> 97 for her two new functions.",
       "verified": "her suite source diff read before accepting the drop; the 8 remaining failures are all OUR security-changed functions and stay correctly unaccounted while the change has no ticket",
       "legitimate": true
+    },
+    {
+      "when": "2026-09-21",
+      "runners": [
+        "suite_245",
+        "suite_249",
+        "suite_254_255_261",
+        "suite_260",
+        "suite_263"
+      ],
+      "each": "+1",
+      "direction": "worsened",
+      "cause": "OUR CLCPA-330 change, authorised by the owner ruling. It adds one function, rowIsCurrency, and the drift accounting names it by that name: \"the change to rowIsCurrency is accounted for\" and \"rowIsCurrency moved, and it is named by a later ticket -- NO\". The census count X8 rises 105 -> 107.",
+      "verified": "the new failing assertion in every one of the five names rowIsCurrency specifically; no assertion about any OTHER function changed, and gate_149_stacked is unmoved at 4",
+      "legitimate": true,
+      "clearsWhen": "CLCPA-330 is declared in the ticket maps, exactly as the security change will be. This is our work correctly refusing to pass unattributed -- not a defect."
     }
-  ]
+  ],
+  "notes": {
+    "renderEquivalenceBlindSpot": "suite_render_equivalence seeds state.payload.tables EMPTY, so its 149 table-years render with no table definition. Definition-driven formatting -- currency_cols and the new currency_rows -- is therefore NOT covered there, and its green must not be read as validating CLCPA-330. suite_330 covers that path directly, with 28 assertions and 6 mutants."
+  }
 }

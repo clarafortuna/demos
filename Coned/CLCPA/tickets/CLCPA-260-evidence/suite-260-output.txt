@@ -66,13 +66,13 @@ Section C group D -- CLCPA-260, the phantom spacer columns
 === Z. the stored years, and what this ticket does NOT touch ========
   ok   Z1 all 149 stored table-years rendered, every one with a <table>
   ok   Z1b the only untitled year is A8:2023, and CLCPA-252 round 2 derives it: ["A8:2023"]
-  FAIL Z2 and the REPORT page moves on exactly eight panels -- CLCPA-294 corrects two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0%; CLCPA-290 four; CLCPA-319 aligns two empty cells -- got ["A1:2023","A1:2024","A1:2025","A2:2023","A2:2024","A2:2025","A3:2023","A3:2024","A3:2025","A4:2023","A4:2024","A4:2025","A5:2023","A5:2024","A5:2025","A6:2023","D1:2023","D3:2023","D3:2024","D3:2025","F1:2023","F1:2024","F1:2025","F5:2023","G10:2024","G1:2023","G1:2024","J4:2025"]
+  FAIL Z2 and the REPORT page moves on exactly eight panels -- CLCPA-294 corrects two, where a computed total lands fractionally above 1 (1.0000327 and 1.0000000013) and the old size guess rendered 1.0% for 100.0%; CLCPA-290 four; CLCPA-319 aligns two empty cells -- got ["A1:2023","A1:2024","A1:2025","A2:2023","A2:2024","A2:2025","A3:2023","A3:2024","A3:2025","A4:2023","A4:2024","A4:2025","A5:2023","A5:2024","A5:2025","A6:2023","A9:2024","A9:2025","D1:2023","D3:2023","D3:2024","D3:2025","F1:2023","F1:2024","F1:2025","F5:2023","G10:2024","G1:2023","G1:2024","J4:2025"]
   ok   Z3 the predicate was located
   ok   Z4 and it assigns to neither schema_by_year nor data: it only reads
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, dsValidateDoc, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, dsValidateDoc, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestRebuildableTotals, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isCompositeShareCol, isComputedShareLabel, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderIngestEditor, renderIngestImport, renderIngestImportResult, renderKeptFigureNotice, renderPreparerTotalsNotice, renderReconcileNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowIsCurrency, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -148,6 +148,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to renderTable is accounted for
   ok   the change to renderTypedUnitNotice is accounted for
   ok   the change to rerenderIngestEditor is accounted for
+  FAIL the change to rowIsCurrency is accounted for
   ok   the change to rowSumIsConsistent is accounted for
   ok   the change to rowsForDisplay is accounted for
   ok   the change to shiftSchemaYears is accounted for
@@ -254,8 +255,8 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   openAddYearDialog changed as intended: CLCPA-264: it attaches the advisory to the plan
   ok   stagedBlock changed as intended: CLCPA-264: nested in openAddYearDialog, it renders the advisory
   ok   wire changed as intended: CLCPA-264: nested in openAddYearDialog, it holds the call site
-  FAIL X1 exactly this many functions changed: 91
+  FAIL X1 exactly this many functions changed: 92
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  242 passed, 3 failed
+  242 passed, 4 failed

@@ -1,0 +1,48 @@
+======================================================================
+  CLCPA-330 -- the unit belongs to the row
+  app.js: app.js   payload year: 2024
+======================================================================
+
+A. all five A9 rows render with the correct unit
+  ok   A: Incentives has figures to check (4)
+  ok   A: Incentives is MONEY and every figure carries $  ["$262.5M","$129.7M","$380.3M","$204.8M"]
+  ok   A: Energy Savings (MMBtu) has figures to check (4)
+  ok   A: Energy Savings (MMBtu) is NOT money and no figure carries $  ["4,019,790","1,659,904","5,360,879","2,486,965"]
+  ok   A: Participation has figures to check (4)
+  ok   A: Participation is NOT money and no figure carries $  ["2,338,666","1,205,001","2,087,688","1,130,930"]
+  ok   A: Average Incentive per Participant has figures to check (4)
+  ok   A: Average Incentive per Participant is MONEY and every figure carries $  ["$112","$108","$182","$181"]
+  ok   A: Average Energy Savings Per Participant has figures to check (4)
+  ok   A: Average Energy Savings Per Participant is NOT money and no figure carries $  ["1.72","1.38","2.09","2.2"]
+
+B. the same assertions FAIL against the old declaration
+  ok   B: without currency_rows exactly the three non-money rows are wrongly $-prefixed: ["Energy Savings (MMBtu)","Participation","Average Energy Savings Per Participant"]
+  ok   B: and the fix actually changes that row, so section A is not passing vacuously
+
+C. values and calculations are untouched
+  ok   C: Incentives -- every rendered figure still reads back to its stored value (4/4)
+  ok   C: Energy Savings (MMBtu) -- every rendered figure still reads back to its stored value (4/4)
+  ok   C: Participation -- every rendered figure still reads back to its stored value (4/4)
+  ok   C: Average Incentive per Participant -- every rendered figure still reads back to its stored value (4/4)
+  ok   C: Average Energy Savings Per Participant -- every rendered figure still reads back to its stored value (4/4)
+  ok   C: rendering mutated no stored row
+
+D. reusable by another mixed-unit table, with NO code change
+  ok   D: a declared money row in an unknown table is $-prefixed  ["$1.5M","$1.4M"]
+  ok   D: the second declared money row too  ["$250K","$262K"]
+  ok   D: an undeclared row in a currency column is NOT money  ["48,000","51,200"]
+  ok   D: nor the second undeclared row  ["12,400","13,100"]
+  ok   D: and app.js names neither that table nor its rows -- no code change was needed
+
+E. a table that does not declare currency_rows is unaffected
+  ok   E: every figure in a currency column is money when no rows are declared
+  ok   E: ...and the narrowing is present in the shipped source, so E is not green by its absence
+
+F. the matching rules
+  ok   F: matching ignores case and surrounding space
+  ok   F: and a row no longer declared stops being money
+  ok   F: declared-but-empty means NO row is money -- it is not treated as absent
+
+======================================================================
+  28 passed, 0 failed
+======================================================================

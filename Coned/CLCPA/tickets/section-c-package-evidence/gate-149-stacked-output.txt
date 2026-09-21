@@ -9,7 +9,7 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z1 149 stored table-years rendered on both sides
   ok   Z1b and every one produced a <table>: 149
   FAIL Z2 every difference is claimed by a named ticket: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
-       moved: 69 of 149
+       moved: 71 of 149
        CLCPA-252 r3: 40 -- A6:2024, A6:2025, A7:2024, A7:2025, A8:2024, A8:2025
        CLCPA-252: 0
        CLCPA-290: 0
@@ -21,7 +21,7 @@ Section C package -- THE FINAL STACKED GATE
   ok   Z4 149 table-years rendered in COMPARE on both sides
   ok   Z4b and every one produced a <table>: 149
   FAIL Z5 every compare difference is claimed by a named ticket: A1:2023, A1:2024, A1:2025, A2:2023, A2:2024, A2:2025
-       moved: 73 of 149
+       moved: 75 of 149
        CLCPA-252 r3: 38 -- A6:2025, A7:2024, A7:2025, A8:2025, B1:2023, B1:2024
        CLCPA-252: 0
        CLCPA-290: 0

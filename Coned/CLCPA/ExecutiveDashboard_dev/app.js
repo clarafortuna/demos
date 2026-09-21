@@ -5137,10 +5137,37 @@ function utf8ByteLength(str) {
 
     const pctHeader = rows[headerLevels - 1] || rows[0];
     const pctCols = detectPctColumns(pctHeader);
-    const tableCurrCols = opts.tableId && state.payload && state.payload.tables[opts.tableId]
-      ? (state.payload.tables[opts.tableId].currency_cols || [])
-      : [];
+    const tableDef = (opts.tableId && state.payload && state.payload.tables)
+      ? state.payload.tables[opts.tableId] : null;
+    const tableCurrCols = tableDef ? (tableDef.currency_cols || []) : [];
     const currCols = detectCurrencyColumns(pctHeader).map((v, i) => v || tableCurrCols.includes(i));
+    /* CLCPA-330: THE UNIT CAN BELONG TO THE ROW, NOT THE COLUMN.
+     *
+     * currency_cols is a statement about columns, and for most tables that is
+     * the whole truth. A9 is not most tables: its columns are Total and DAC for
+     * two years, and every one of them holds money on one row and MMBtu or a
+     * participant count on the next. Declaring the columns currency put a $ on
+     * three of five data rows.
+     *
+     * currency_rows NARROWS currency_cols by row, and only where a table says
+     * so. It names the rows that ARE money; a table that declares it gets money
+     * only where a currency column and a currency row intersect. Absent -- 51
+     * of the 52 tables -- nothing changes, which is why this is additive rather
+     * than a reinterpretation of every table existing declaration.
+     *
+     * BY LABEL, not by index. formatCell is already given the row label and
+     * nothing else identifies a row here, so matching on it costs no new
+     * plumbing; and a label survives rows being reordered or inserted, which an
+     * index does not. The labels live in the table DEFINITION beside
+     * currency_cols, never in the imported numeric data, so no presentation
+     * type is stored in business data and the renderer names no table. */
+    const tableCurrRows = tableDef && Array.isArray(tableDef.currency_rows)
+      ? tableDef.currency_rows.map(s => String(s == null ? '' : s).trim().toLowerCase())
+      : null;
+    function rowIsCurrency(rowLabel) {
+      if (!tableCurrRows) return true;   /* undeclared: the column decides, as before */
+      return tableCurrRows.indexOf(String(rowLabel == null ? '' : rowLabel).trim().toLowerCase()) >= 0;
+    }
     /* CLCPA-294: the columns this table DECLARES as derived percentages */
     const declaredPct = derivedPctCols(opts.tableId);
 
@@ -5168,7 +5195,7 @@ function utf8ByteLength(str) {
           if (declaredPct[colIdx]) return (c * 100).toFixed(declaredPct[colIdx].decimals) + '%';
           return (Math.abs(c) <= 1 ? c * 100 : c).toFixed(1) + '%';
         }
-        if (currCols[colIdx]) {
+        if (currCols[colIdx] && rowIsCurrency(rowLabel)) {
           if (Math.abs(c) >= 1e9) return '$' + (c / 1e9).toFixed(2) + 'B';
           if (Math.abs(c) >= 1e6) return '$' + (c / 1e6).toFixed(1) + 'M';
           if (Math.abs(c) >= 1e3) return '$' + (c / 1e3).toFixed(0) + 'K';
@@ -16637,6 +16664,9 @@ function wireHTooltips() {
       if (t.mapping !== undefined) d.mapping = t.mapping;
       if (t.header_levels !== undefined) d.header_levels = t.header_levels;
       if (t.currency_cols !== undefined) d.currency_cols = t.currency_cols;
+      /* CLCPA-330: the row-level narrowing travels with the column-level
+       * declaration it narrows, at every site currency_cols is carried. */
+      if (t.currency_rows !== undefined) d.currency_rows = t.currency_rows;
       const rows = (t.data || {})[year];
       /* the same display view the composer built, through the same schema
        * resolution -- a recompute that saw different rows from the compose
@@ -16746,6 +16776,8 @@ function wireHTooltips() {
           const p = JSON.parse(x.cr2bf_presentation);
           if (p.header_levels !== undefined) t.header_levels = p.header_levels;
           if (p.currency_cols !== undefined) t.currency_cols = p.currency_cols;
+          /* CLCPA-330: read from the same registry blob as currency_cols. */
+          if (p.currency_rows !== undefined) t.currency_rows = p.currency_rows;
         } catch (e) {}
       }
       tables[x.cr2bf_tablekey] = t;
@@ -16874,6 +16906,9 @@ function wireHTooltips() {
       if (t.mapping !== undefined) d.mapping = t.mapping;
       if (t.header_levels !== undefined) d.header_levels = t.header_levels;
       if (t.currency_cols !== undefined) d.currency_cols = t.currency_cols;
+      /* CLCPA-330: the row-level narrowing travels with the column-level
+       * declaration it narrows, at every site currency_cols is carried. */
+      if (t.currency_rows !== undefined) d.currency_rows = t.currency_rows;
       Object.keys(t.data).forEach(y => {
         /* CLCPA-250: THE THIRD LIFE OF THE 244/257 PATTERN, and it dies here.
          *

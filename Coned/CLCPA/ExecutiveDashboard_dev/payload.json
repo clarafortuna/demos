@@ -4689,6 +4689,7 @@
       },
       "header_levels": 2,
       "currency_cols": [1, 2, 3, 4],
+      "currency_rows": ["Incentives", "Average Incentive per Participant"],
       "schema_by_year": {
         "2025": [
           "",
