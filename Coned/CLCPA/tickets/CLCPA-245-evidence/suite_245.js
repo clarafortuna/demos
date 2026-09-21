@@ -677,6 +677,9 @@ guard('X: the blast radius', () => {
     parseB2Plugs: 'NOT this ticket: CLCPA-304: Section Bs plug counts read the shared schema reader, so a year created by import stops parsing every count as zero',
     /* CLCPA-307 and CLCPA-310, named so the count stays exact */
     unitNoticeValue: 'NOT this ticket: CLCPA-310: the fraction advisory formats the value it shows, so a floating point artifact stops reaching operator-facing text (new)',
+    /* CLCPA-302, named so the count stays exact */
+    diffRows: 'NOT this ticket: CLCPA-302: the history counts operator changes only, applying the same two exclusions the Confirm-save dialog applies, so the record and the sentence the operator approved cannot disagree',
+    resolveTablePrivileges: 'NOT this ticket: CLCPA-302, and the NAME is the extractors doing rather than mine: grabFn over-reads this function by 42kB and its slice swallows the dvBackend saveTable whose diffRows call now passes tableId. The function itself is byte-identical, 2376 bytes on both builds',
     /* CLCPA-319, named so the count stays exact */
     isTotalOnlyDerived: 'NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal is derived on the total row alone)',
     /* CLCPA-293 / A-10, named so the count stays exact */
@@ -827,7 +830,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 95, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 97, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {
