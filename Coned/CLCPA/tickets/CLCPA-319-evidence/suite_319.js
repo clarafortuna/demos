@@ -218,8 +218,15 @@ guard('S-FMT: a column total is a quantity, not a ratio', () => {
   /* the DECLARATION is not a call site, and the first cut of this counted it */
   const calls = (code.match(/(?:function\s+)?fmtDerivedCell\([^)]*\)/g) || [])
     .filter(s => !/^function/.test(s));
-  ok(calls.length === 2 && calls.every(s => /,\s*currencyCol\[/.test(s)),
-     'S-FMT-4 and BOTH call sites pass the column money flag: ' + JSON.stringify(calls));
+  /* RE-PINNED 2 -> 3 for CLCPA-310 round 2, which sends a DECLARED DERIVED
+   * ROW's cell through this same formatter: that row's rule carries its own
+   * type and precision, and formatting it by column rendered D3's share as a
+   * bare "0" with no percent sign. The property asserted is unchanged and is
+   * the CLCPA-271 lesson itself -- EVERY call site passes the column money
+   * flag, so no two of them can disagree about what the column is. A new call
+   * site that forgot it still turns this red. */
+  ok(calls.length === 3 && calls.every(s => /,\s*currencyCol\[/.test(s)),
+     'S-FMT-4 and EVERY call site passes the column money flag: ' + JSON.stringify(calls));
 });
 
 guard('S-PCT: the percentages did not halve', () => {

@@ -144,13 +144,20 @@ guard('C-block', () => {
   /* RE-PINNED for CLCPA-241, which added the percentChange type to both
    * formatters. The ALWAYS-SCALED property this ticket exists to guarantee is
    * still what is pinned; only the set of types it covers grew. */
-  ok(/if \(d\.type === 'percentage' \|\| d\.type === 'percentChange'\) \{\r?\n\s*return \(v \* 100\)\.toFixed\(d\.decimals \|\| 0\) \+ '%';/.test(code),
+  /* RE-POINTED for CLCPA-310 round 2, which inserts the shared near-zero rule
+   * ahead of each of these three returns. The ALWAYS-SCALED property is still
+   * exactly what is pinned -- every branch multiplies by 100 and every branch
+   * uses the precision it was already using. What changed is that a value
+   * which would round to all zeros is answered before the rounding happens,
+   * and nearZeroPctText takes `v * 100`, so the scaling is inside the new
+   * call too. A branch that stopped scaling would still fail these. */
+  ok(/if \(d\.type === 'percentage' \|\| d\.type === 'percentChange'\) \{[\s\S]*?nearZeroPctText\(v \* 100, d\.decimals \|\| 0\)[\s\S]*?return \(v \* 100\)\.toFixed\(d\.decimals \|\| 0\) \+ '%';/.test(code),
     'C2 the editor calc cell always scales: its input IS the engine ratio');
-  ok(/if \(declaredPct\[colIdx\]\) return \(c \* 100\)\.toFixed\(declaredPct\[colIdx\]\.decimals\) \+ '%';/.test(code),
+  ok(/nearZeroPctText\(c \* 100, declaredPct\[colIdx\]\.decimals\)[\s\S]*?return \(c \* 100\)\.toFixed\(declaredPct\[colIdx\]\.decimals\) \+ '%';/.test(code),
     'C3 and the rendered table scales a DECLARED percentage column always, at its declared precision');
   /* a column NOT declared keeps the old behaviour: stored source data in a
    * percent column is not guaranteed to be a fraction */
-  ok(/return \(Math\.abs\(c\) <= 1 \? c \* 100 : c\)\.toFixed\(1\) \+ '%';/.test(code),
+  ok(/const scaled = \(Math\.abs\(c\) <= 1 \? c \* 100 : c\);[\s\S]*?return scaled\.toFixed\(1\) \+ '%';/.test(code),
     'C4 while an undeclared percent column keeps the previous rule');
   /* fmtDerivedCell no longer guesses at all */
   ok(!/Math\.abs\(v\) <= 1 \? v \* 100 : v/.test(codeOnly(grab('fmtDerivedCell', SRC))),

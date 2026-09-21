@@ -569,6 +569,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
     draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
     renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* CLCPA-310 round 2, named so the count stays exact */
+    nearZeroPctText: 'NOT this ticket: CLCPA-310 round 2: a non-zero percentage that would round to all zeros renders as less-than the smallest magnitude its precision can show, so a small share stops reading as an absent one; the threshold is 10^-decimals, derived from the declared precision (new)',
     /* CLCPA-308 round 2, named so the count stays exact */
     isDeclaredComputedRow: 'NOT this ticket: CLCPA-308 round 2: a row the TABLE DEFINITION declares computed takes the computed role, so the editor and the section page stop disagreeing about what the row is; asked of DERIVED_ROWS, never of a label or a per-row list (new)',
     /* CLCPA-307 round 2, named so the count stays exact */
@@ -596,7 +598,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 52 -> 56: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 101, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 102, 'X1 exactly this many functions changed: ' + changed.length);
   /* buildIngestImport and recomputeTotals left this list when group E moved
    * them; both are named in EXPECT above. */
   /* tableCaption LEFT this list under CLCPA-252 round 2, which gave it a

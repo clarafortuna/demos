@@ -181,6 +181,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function derivedFiledReproduced moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
   ok   X1 app.js function unreconciledDerivedCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new)
   ok   X1 app.js function derivedPctCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
+  ok   X1 app.js function nearZeroPctText moved, and it is named by a later ticket: NOT this ticket: CLCPA-310 round 2: a non-zero percentage that would round to all zeros renders as less-than the smallest magnitude its precision can show, so a small share stops reading as an absent one; the threshold is 10^-decimals, derived from the declared precision (new)
   ok   X1 app.js function fmtDerivedCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-294: a declared percentage column is always scaled, never guessed by value size
   ok   X1 app.js function columnGrandTotals moved, and it is named by a later ticket: CLCPA-278 round 3: and the engine's own summing, which is how recomputeTotals adds
   ok   X1 app.js function applyDerivedCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten
@@ -260,11 +261,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (102) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (103) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  235 passed, 0 failed
+  236 passed, 0 failed

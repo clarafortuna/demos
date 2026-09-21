@@ -87,7 +87,12 @@ const ENTRY = ['applyDerivedCols', 'recomputeTotals', 'rowsForDisplay',
  * assemble at all, which reads as a broken suite rather than as the absence
  * block A is asserting. */
 const OPTIONAL = ['derivedCellWrite', 'derivedFiledReproduced', 'derivedPctCols',
-  'unreconciledDerivedCols', 'renderKeptFigureNotice'];
+  'unreconciledDerivedCols', 'renderKeptFigureNotice',
+  /* CLCPA-310 round 2: fmtDerivedCell now asks the shared near-zero rule.
+   * OPTIONAL is the right list because it does not exist on BASE -- a name
+   * required on both sides makes the baseline unresolvable, which is what
+   * "BASE cannot resolve nearZeroPctText" was telling me. */
+  'nearZeroPctText'];
 function buildEnv(src, tag) {
   const fns = ENTRY.concat(OPTIONAL.filter(n => grabFn(n, src)));
   const consts = [];

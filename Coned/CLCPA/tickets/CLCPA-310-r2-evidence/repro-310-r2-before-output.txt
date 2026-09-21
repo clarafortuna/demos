@@ -1,0 +1,34 @@
+CLCPA-310 round 2: a near-zero percentage, on both surfaces
+base 9dabbf6 (PR #306 head)   tip 9dabbf6
+serving: BASE 9dabbf6 (pinned copy)
+
+the rule under test: {"row":2,"numerator":1,"denominator":0}
+  seeded so the engine derives it: row 1 = 1 out of row 0 = 7,400
+  the true share: 0.00013513513513513514  =  0.0135%
+
+SURFACE 1  the editor, Report Data / D3 / 2098
+  the declared row reads: ["Percentage of subscribers in DACs","0","0.513",""]
+  the cell under test   : "0"
+  FAIL  the editor does not render a near-zero share as a bare zero: "0"
+  FAIL  and it renders as a percentage at all: "0"
+
+SURFACE 2  the section page, #/section/D, the D3 tab
+  PASS  the D3 source tab opened
+  row 0: ["Total # of subscribers","7,400","1,917"]
+  row 1: ["Total # of subscribers in DACs","1","983"]
+  row 2: ["Percentage of subscribers in DACs","0.0%","51.3%"]
+  row 3: ["Total # of subscribers who are low-income customers participating in the Company's Energy Affordability Program","1,91
+  row 4: ["Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program","2
+  the cell under test: "0.0%"
+  FAIL  the page does not render it as an absent zero: "0.0%"
+
+NON-REGRESSION  the float-formatting half of CLCPA-310 round 1
+  ["Percentage of subscribers in DACs","0.0%","51.3%"]
+  ["Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program","25.9%","38.
+  PASS  no 17-digit float tails anywhere on the panel: []
+  decimals per percentage row: [[1,1],[1,1]]
+  PASS  one precision per row is preserved: [[1,1],[1,1]]
+
+  PASS  no page errors: []
+
+4 passed, 3 failed
