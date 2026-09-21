@@ -1,0 +1,39 @@
+The DAC map Customer Counts panel: the placeholder is retired
+BASE facc1bc   app.js working tree
+
+A. THE SOURCE
+  PASS  A1 BASE facc1bc carried the placeholder card
+  PASS  A2 and it read "Coming soon" inside renderMapKPI
+  PASS  A3 the card is gone from the shipped code
+  PASS  A4 and renderMapKPI carries no "Coming soon" anywhere
+  PASS  A5 nor any other placeholder in that panel
+
+B. THE DEAD STYLE WENT WITH IT
+  PASS  B1 BASE styled the placeholder card
+  PASS  B2 and its label
+  PASS  B3 the card rule is gone
+  PASS  B4 and the label rule is gone
+  PASS  B5 and no markup anywhere still asks for those classes
+
+C. THE PANEL, RENDERED FROM THE REAL MAP PAYLOAD
+    cards  before 6  after 5
+    values before ["1.82M","2.15M","383K","170K","102.2"]
+    values after  ["1.82M","2.15M","383K","170K","102.2"]
+  PASS  C1 exactly one card fewer: 6 -> 5
+  PASS  C2 and it is the placeholder that went
+  PASS  C3 every value cell is identical
+  PASS  C4 the panel still reads 1.82M
+  PASS  C5 the panel still reads 2.15M
+  PASS  C6 the panel still reads 383K
+  PASS  C7 the panel still reads 170K
+  PASS  C8 and the rest of the panel is byte-identical to BASE with the card removed
+
+D. THE SWEEP
+    10911: <div class="f-empty-text">Coming soon</div>
+  PASS  D1 exactly one "Coming soon" remains in the bundle: 1
+  PASS  D2 it is the Section D `const placeholder`, assigned to a variable
+  PASS  D3 which is never interpolated, so it reaches no operator: 0 use(s)
+    -> reported to the owner rather than removed: it is dead code, not
+       an operator-facing placeholder, and removing it is its own change.
+
+21 passed, 0 failed
