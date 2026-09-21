@@ -602,6 +602,8 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-266, the notice boxes gain their accent classes',
     /* CLCPA-293 round 4, named so the count stays exact */
     isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
+    /* CLCPA-302 round 2, named so the count stays exact */
+    ingestOperatorCell: 'NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)',
     /* CLCPA-320 round 3, named so the count stays exact */
     ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
@@ -617,7 +619,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 87, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 88, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['kpiDacPct', 'detectPctColumns'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

@@ -1,0 +1,59 @@
+CLCPA-302 round 2: a recompute billed to the operator
+BASE 8bf5ea7   app.js working tree
+
+HARNESS  a change to A1s Total row counts 1 without a tableId and 0 with one.
+         and marksInTemplate answers on a B2 body row: true
+         so the classifier is real, and so is everything below.
+
+B2/2098, the ruling's gesture: Non-DAC L2 Plugs 97 -> 100
+  B2 is NOT in PERSIST_STRIP_TABLES, by the CLCPA-303 ruling, so its
+  derived Total Plugs column is written to the store on every save.
+  in the strip: false
+
+  BASE 8bf5ea7
+      the draft after the edit : [[50,10,0,60],[100,40,0,140],[150,50,0,200]]
+      the confirm dialog says  : 2 cell change(s)
+      the history records      : 2 entr(y/ies)
+          "Non-DAC" / "L2 Plugs"  97 -> 100   kind=cell
+          "Non-DAC" / "Total Plugs"  137 -> 140   kind=cell
+  now        
+      the draft after the edit : [[50,10,0,60],[100,40,0,140],[150,50,0,200]]
+      the confirm dialog says  : 1 cell change(s)
+      the history records      : 1 entr(y/ies)
+          "Non-DAC" / "L2 Plugs"  97 -> 100   kind=cell
+
+G1, the same shape but STRIPPED on save, so nothing derived persists
+  in the strip: true
+  BASE 8bf5ea7  dialog 1   history 1  ["Feet Replaced"]
+  now          dialog 1   history 1  ["Feet Replaced"]
+
+what reaches the store, per build (this change is about who a write is
+billed to, so no figure may move):
+  B2  identical: true   [["DAC",50,10,0,60],["Non-DAC",100,40,0,140],["Total",150,50,0,200]]
+  G1  identical: true   [["Feet Replaced within DAC",500,null],["Feet Replaced not in a DAC",999,null],["Systemwide Total",null,null]]
+
+--- what this shows --------------------------------------------------
+  Round 1 killed the TOTAL ROW over-count. The heir this round names
+  lived on a DERIVED COLUMN of a BODY row: on B2 the engine recomputes
+  "Total Plugs", and because B2 sits outside the persist strip by the
+  CLCPA-303 ruling, that recompute reaches the store and the history
+  read it back as something a person did. BASE bills the operator for
+  2 cells on a one-cell edit and names the recompute as their EDIT.
+
+  Now: the confirm says 1 and the history holds the operator's own
+  cell alone. The two surfaces agree because they now ask the same
+  reader, ingestOperatorCell, instead of each carrying a copy of the
+  rule -- which is how they came to disagree in the first place.
+
+  G1 is the control on the other side of the strip: same engine write,
+  stripped before it is stored, 1 and 1 on both builds. Unchanged, as
+  the ruling requires of a table that never had the defect.
+
+  STATED PLAINLY, because it is the cost of the option taken: the
+  ruling allowed the engine write to be excluded OR recorded
+  distinctly, and this takes exclusion. B2's stored "Total Plugs"
+  still changes in the store; no history entry now claims it. Nothing
+  is attributed to the wrong person, and nothing records the engine.
+  The distinct-entry option stays open and needs its own turn, as does
+  the recorded B2 PERSIST_STRIP follow-up that would remove the stored
+  copy altogether and make the question moot.

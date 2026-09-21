@@ -103,31 +103,51 @@ function harness(src, want) {
   return { attempt };
 }
 
+/* ingestOperatorCell is named here, not left to the assembler's
+ * ReferenceError retry: that retry puts a dependency in SCOPE but does not
+ * put it on the returned object, and the extracted change-count block reads
+ * its names off that object. It is absent from the BASE build, where the
+ * filter below simply drops it. */
 const WANT = ['diffRows', 'ingestComputed', 'ingestKeyColCount', 'getTableSchema',
-  'recomputeTotals', 'stripDerivedForPersist', 'isAnchoredTotalRowLabel'];
+  'recomputeTotals', 'stripDerivedForPersist', 'isAnchoredTotalRowLabel',
+  'ingestOperatorCell'];
 const NEW = harness(SRC, WANT), OLD = harness(BASE_SRC, WANT);
 
-/* the DIALOG's rule, exactly as openSaveDialog states it */
-function dialogCount(api, draft, baseline, tableId, schema) {
-  const same = (x, y) => {
-    const nx = (x == null || x === '') ? '' : x;
-    const ny = (y == null || y === '') ? '' : y;
-    return nx === ny;
-  };
-  const computed = api.ingestComputed(draft, tableId, schema);
-  const keyCols = Math.max(1, api.ingestKeyColCount(tableId));
-  let n = 0;
-  const rows = Math.max(draft.length, (baseline || []).length);
-  for (let r = 0; r < rows; r++) {
-    const ar = draft[r] || [], br = (baseline || [])[r] || [];
-    for (let c = 0, cols = Math.max(ar.length, br.length); c < cols; c++) {
-      if (c < keyCols) continue;
-      if (computed.any(r, c)) continue;
-      if (!same(ar[c], br[c])) n++;
-    }
+/* THE DIALOG'S RULE, CUT OUT OF openSaveDialog RATHER THAN RETYPED.
+ *
+ * This was a hand copy of the two exclusions, and CLCPA-302 round 2 moved
+ * the real rule into a shared reader (ingestOperatorCell) that both the
+ * confirm count and the change history now ask. The copy stayed behind at
+ * the old rule, so A3 reported the two surfaces disagreeing on D2, D3, D4
+ * and F7 when what actually disagreed was this function and the shipped
+ * one. Measured on the shipped code, all four agree at 1 and 1.
+ *
+ * The count is an inline IIFE with no name to call, so it is sliced out of
+ * the source and evaluated against the assembled API. A rule that moves
+ * again now moves here with it. */
+function dialogCounter(src) {
+  const ANCHOR = 'const changeCount = (() => {';
+  const at = src.indexOf(ANCHOR);
+  if (at < 0) throw new Error('openSaveDialog change count: anchor not found');
+  if (src.indexOf(ANCHOR, at + 1) >= 0) {
+    throw new Error('openSaveDialog change count: anchor is not unique');
   }
-  return n;
+  let depth = 0, end = -1;
+  for (let k = src.indexOf('{', at); k < src.length; k++) {
+    if (src[k] === '{') depth++;
+    else if (src[k] === '}') { depth--; if (!depth) { end = k; break; } }
+  }
+  if (end < 0) throw new Error('openSaveDialog change count: unbalanced');
+  const slice = src.slice(at, src.indexOf(';', end) + 1);
+  const run = new Function('API', 'i',
+    'with (API) {\n' + slice + '\nreturn changeCount;\n}');
+  return (api, draft, baseline, tableId, schema) =>
+    run(api, { draft, baseline, tableId, schema });
 }
+const dialogNow = dialogCounter(SRC);
+const dialogWas = dialogCounter(BASE_SRC);
+const dialogCount = (api, draft, baseline, tableId, schema) =>
+  dialogNow(api, draft, baseline, tableId, schema);
 
 /* ONE operator edit per table, the first cell an operator can type into */
 function oneEdit(H, id, year, withTableId) {
@@ -193,8 +213,14 @@ guard('A: agreement', () => {
     if (b.history !== b.dialog) nowGaps.push(id + ' +' + (b.history - b.dialog));
   });
   ok(checked === 48, 'A1 tables measured, one operator edit each: ' + checked);
-  ok(wasGaps.length === 24,
-     'A2 the old accounting disagreed on 24 of them: ' + wasGaps.length +
+  /* 24 -> 27: the dialog side of this comparison is now the SHIPPED count
+   * rather than this file's copy of it, and CLCPA-302 round 2 made the
+   * shipped rule stricter -- it excludes an engine recompute on a body
+   * row. Three more tables therefore differ from the old accounting, which
+   * counted every cell. Re-pinned, not widened: A3 still requires the two
+   * live surfaces to agree on all 48. */
+  ok(wasGaps.length === 27,
+     'A2 the old accounting disagreed on 27 of them: ' + wasGaps.length +
      '  ' + JSON.stringify(wasGaps.slice(0, 6)));
   ok(nowGaps.length === 0,
      'A3 and this build disagrees on NONE: ' + JSON.stringify(nowGaps));

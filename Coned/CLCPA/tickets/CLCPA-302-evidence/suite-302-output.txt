@@ -3,7 +3,7 @@ BASE d84c0d3   app.js working tree
 
 === A. the two counts, on every table ==============================
   ok   A1 tables measured, one operator edit each: 48
-  ok   A2 the old accounting disagreed on 24 of them: 24  ["A1 +1","A2 +1","A3 +1","A4 +1","A5 +2","A6 +2"]
+  ok   A2 the old accounting disagreed on 27 of them: 27  ["A1 +1","A2 +1","A3 +1","A4 +1","A5 +2","A6 +2"]
   ok   A3 and this build disagrees on NONE: []
 
 === B. what those extra cells were =================================

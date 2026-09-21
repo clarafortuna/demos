@@ -410,11 +410,9 @@ function utf8ByteLength(str) {
           keyCols = Math.max(1, ingestKeyColCount(tableId));
         }
       } catch (e) { computed = null; keyCols = 1; }
-      const operatorCell = (r, c) => {
-        if (!computed) return true;
-        if (c < keyCols) return false;
-        return !computed.any(r, c);
-      };
+      /* CLCPA-302 round 2: the SHARED rule, not a copy of it. See
+       * ingestOperatorCell for why a copied rule was the defect. */
+      const operatorCell = (r, c) => ingestOperatorCell(computed, keyCols, r, c);
       const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
       const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
       const oldByLabel = {}; oldLabels.forEach((lbl, i) => { if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i); });
@@ -18249,6 +18247,53 @@ function wireHTooltips() {
     return out;
   }
 
+  /**
+   * CLCPA-302 round 2: IS THIS CELL THE OPERATOR'S?
+   *
+   * ONE rule, asked by both surfaces that count a save. Round 1 made the
+   * history apply the dialog's two exclusions so the record and the
+   * sentence the operator approved could not disagree; it did that by
+   * copying the rule into diffRows, and a copied rule is a rule that can
+   * drift. This is the single reader, and both call it.
+   *
+   * THE HEIR ROUND 1 DID NOT CATCH. `any` excludes a total row's cells and
+   * a declared derived column. It does NOT exclude a derived column on a
+   * BODY row when the rule is total-only, and B2 is exactly that shape:
+   * "Total Plugs" is a columnTotal for the Total row AND a detectSumColumns
+   * relationship on every row above it. So the engine recomputes Non-DAC's
+   * Total Plugs, and because B2 sits OUTSIDE PERSIST_STRIP_TABLES by the
+   * CLCPA-303 ruling, that recompute reaches the store and the history
+   * reads it back as something a person did.
+   *
+   * Measured on the ruling's own gesture, B2/2098 Non-DAC L2 Plugs 97 to
+   * 100: the confirm said 2 cell changes and the history attributed
+   * "Non-DAC / Total Plugs 137 -> 140" to the operator by name.
+   *
+   * marksInTemplate is the accessor that already answers "the engine
+   * computes this cell", and it is the same one the workbook uses to decide
+   * what to mark (calculated). Asking it here means the file the operator
+   * is told not to fill in and the cells they are not billed for are the
+   * same set, by construction rather than by agreement.
+   *
+   * CONSISTENT ACROSS STORED AND STRIPPED, which is the ruling's test: G's
+   * totals are stripped before they are stored, so they never produced an
+   * entry; B2's are stored, and now they do not masquerade as one either.
+   * It holds wherever a derived stored column remains, so it does not have
+   * to be revisited when the B2 persist-strip follow-up is taken up.
+   */
+  function ingestOperatorCell(computed, keyCols, r, c) {
+    /* no classifier means every cell counts, which is what this replaced
+     * and therefore the safe direction for a failure */
+    if (!computed) return true;
+    if (c < keyCols) return false;
+    if (computed.any(r, c)) return false;
+    try {
+      if (typeof computed.marksInTemplate === 'function' &&
+          computed.marksInTemplate(r, c)) return false;
+    } catch (e) { /* an accessor that cannot answer does not exclude */ }
+    return true;
+  }
+
   function ingestComputed(rows, tableId, schema) {
     const totals = totalRowFlags(rows, tableId, schema) || [];
     /* the DESCRIPTOR, not a boolean: a total-row-only rule has to be told apart
@@ -26111,8 +26156,11 @@ function wireHTooltips() {
         const ar = a[r] || [], br = (b || [])[r] || [];
         const cols = Math.max(ar.length, br.length);
         for (let c = 0; c < cols; c++) {
-          if (c < keyCols) continue;
-          if (computed.any(r, c)) continue;
+          /* CLCPA-302 round 2: the SAME reader the history uses, so the
+           * sentence the operator approves and the record of what they did
+           * cannot disagree. This site used to carry its own copy of the
+           * two exclusions. */
+          if (!ingestOperatorCell(computed, keyCols, r, c)) continue;
           if (!same(ar[c], br[c])) count++;
         }
       }

@@ -1,0 +1,47 @@
+CLCPA-302 round 2: a recompute is not the operator's edit
+BASE 8bf5ea7   app.js working tree
+
+  PASS  X1 openSaveDialog's change count extracted from both builds
+
+A. THE HARNESS IS RUNNING THE REAL CLASSIFIER
+  PASS  A1 without a tableId the total row counts: 1
+  PASS  A2 with one it does not: 0
+  PASS  A3 marksInTemplate answers on a B2 body row: true
+
+B. ONE READER, ASKED BY BOTH SURFACES
+  PASS  B1 ingestOperatorCell is declared
+  PASS  B2 diffRows delegates to it
+  PASS  B3 the confirm count asks it too
+  PASS  B4 and keeps no copy of the rule of its own
+  PASS  B5 the key-cell exclusion lives in the reader
+  PASS  B6 so does the engine-cell exclusion
+  PASS  B7 and the derivability exclusion this round adds
+  PASS  B8 no classifier still means every cell counts, the safe direction
+
+C. THE RULING'S GESTURE: B2/2098 Non-DAC L2 Plugs 97 -> 100
+  PASS  C1 the confirm says 1 cell change: 1
+  PASS  C2 the history records one entry: 1
+  PASS  C3 and it is the operator's own cell, alone: ["Non-DAC / L2 Plugs"]
+  PASS  C4 the recompute is not billed to them
+  PASS  D1 BASE 8bf5ea7 confirms 2 cell changes: 2
+  PASS  D2 BASE records two entries: 2
+  PASS  D3 BASE bills the recompute to the operator: ["Non-DAC / L2 Plugs","Non-DAC / Total Plugs"]
+
+E. CONSISTENT ACROSS STORED AND STRIPPED TABLES
+  PASS  E1 G1 is in PERSIST_STRIP_TABLES
+  PASS  E2 B2 is not, by the CLCPA-303 ruling
+  PASS  E3 G1 now: dialog 1, history 1
+  PASS  E4 G1 on BASE: dialog 1, history 1
+  PASS  E5 a stripped table is untouched by this change
+
+F. THE COUNT MATCHES THE OPERATOR'S OWN CELLS, NO MORE AND NO LESS
+  PASS  F1 two operator edits confirm as 2: 2
+  PASS  F2 and record two entries: 2
+  PASS  F3 with neither recompute among them: ["DAC / DCFC Plugs","Non-DAC / L2 Plugs"]
+  PASS  F4 BASE billed the same two edits as 4: 4 / 4
+
+G. NO FIGURE MOVES: THIS CHANGES WHO A WRITE IS BILLED TO
+  PASS  G1 B2 persists identical rows on both builds
+  PASS  G2 G1 persists identical rows on both builds
+
+30 passed, 0 failed
