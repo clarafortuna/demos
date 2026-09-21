@@ -611,6 +611,8 @@ guard('X: the blast radius', () => {
     /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
     draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
     renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* the DAC map placeholder, named so the count stays exact */
+    renderMapKPI: 'NOT this ticket: the DAC map Customer Counts panel retires its Coming soon placeholder card, which was a literal in this markup carrying no data; the section is a flex column with a gap, so the remaining cards close up on their own',
     /* CLCPA-310 round 2, named so the count stays exact */
     nearZeroPctText: 'NOT this ticket: CLCPA-310 round 2: a non-zero percentage that would round to all zeros renders as less-than the smallest magnitude its precision can show, so a small share stops reading as an absent one; the threshold is 10^-decimals, derived from the declared precision (new)',
     /* CLCPA-308 round 2, named so the count stays exact */
@@ -639,7 +641,7 @@ guard('X: the blast radius', () => {
   /* +1: the A8 ruling added ingestRoleOpen, named in the map above. */
   /* +2: CLCPA-274 round 2 added ingestHeaderRowCount and CLCPA-276
    * round 2 moved rerenderIngestEditor, both named in the map above. */
-  ok(changed.length === 97, 'X1 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 98, 'X1 exactly this many functions changed: ' + changed.length);
   /* the derive engine itself is untouched */
   ['kpiDacPct', 'detectPctColumns'].forEach(n => {
     ok(grabFn(n, SRC) === grabFn(n, BASE_SRC), 'X2 ' + n + ' is byte-identical to BASE');

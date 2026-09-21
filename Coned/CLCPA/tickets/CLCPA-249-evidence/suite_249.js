@@ -816,6 +816,8 @@ guard('X: app.js is byte-identical to BASE', () => {
     /* CLCPA-307 round 2 (functions it changed), named so the count stays exact */
     draw: 'NOT this ticket: CLCPA-307 round 2: the dialog draws the help text and the staged summary from the button label source, and refreshes both in place as the year is typed, as it already did for the button itself',
     renderIngestImportBar: 'NOT this ticket: CLCPA-307 round 2: the import note carries an id so the dialog can keep it current when the button it names changes',
+    /* the DAC map placeholder, named so the count stays exact */
+    renderMapKPI: 'NOT this ticket: the DAC map Customer Counts panel retires its Coming soon placeholder card, which was a literal in this markup carrying no data; the section is a flex column with a gap, so the remaining cards close up on their own',
     /* CLCPA-310 round 2, named so the count stays exact */
     nearZeroPctText: 'NOT this ticket: CLCPA-310 round 2: a non-zero percentage that would round to all zeros renders as less-than the smallest magnitude its precision can show, so a small share stops reading as an absent one; the threshold is 10^-decimals, derived from the declared precision (new)',
     /* CLCPA-308 round 2, named so the count stays exact */
@@ -873,6 +875,13 @@ guard('X: the stylesheet changed, and only where it should', () => {
     '.data-table-2level thead th',
     '.data-table-2level thead th:first-child',
     '.data-table-2level thead tr:nth-child(2) th',
+    /* The DAC map's "Coming soon" placeholder card is retired, and its two
+     * rules go with it rather than lingering as dead style. Both selectors
+     * existed only for that slot: nothing else in the bundle asks for them,
+     * which the placeholder suite asserts separately. Retired with no
+     * replacement, so they appear here and NOT in EXPECT_ADDED below. */
+    '.dac-kpi-card-placeholder',
+    '.dac-kpi-label-placeholder',
   ].sort();
   const EXPECT_ADDED = [
     /* CLCPA-266: the shared notice-box component and its two accents */
@@ -908,7 +917,7 @@ guard('X: the stylesheet changed, and only where it should', () => {
     '#ingest-add-row:hover, #ingest-add-row:active',
   ].sort();
   ok(JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED),
-     'X3 exactly these NINE rules were retired: ' + removed.length +
+     'X3 exactly these SEVENTEEN rules were retired: ' + removed.length +
      (JSON.stringify(removed) === JSON.stringify(EXPECT_REMOVED) ? '' :
       '  GOT ' + JSON.stringify(removed)));
   ok(JSON.stringify(added) === JSON.stringify(EXPECT_ADDED),

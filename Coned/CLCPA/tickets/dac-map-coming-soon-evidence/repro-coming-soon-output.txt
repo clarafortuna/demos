@@ -1,0 +1,37 @@
+The Customer Counts panel, painted under the app stylesheet
+(the map itself cannot load here: Leaflet and Turf come from unpkg.com
+ and this sandbox has no network -- see the header of this script)
+
+BEFORE:  4 card(s), section height 222px, gaps [8,8]
+   0  "DAC AccountsConEd customer accounts located in areas designa"   h=50
+   1  "Non-DAC AccountsConEd customer accounts located in areas NOT"   h=50
+   2  "Coming soon"   h=32
+   3  "EAP Enrolled · All boroughsCustomers enrolled in the Energy "   h=68
+   screenshot: panel-before.png
+
+AFTER:  3 card(s), section height 183px, gaps [8]
+   0  "DAC AccountsConEd customer accounts located in areas designa"   h=50
+   1  "Non-DAC AccountsConEd customer accounts located in areas NOT"   h=50
+   2  "EAP Enrolled · All boroughsCustomers enrolled in the Energy "   h=68
+   screenshot: panel-after.png
+
+  PASS  BEFORE the panel carries the "Coming soon" card
+  PASS  AFTER it is gone
+  PASS  exactly one card was removed: 4 -> 3
+  remaining cards, before: ["dac-kpi-card dac-kpi-card-dac|DAC AccountsConEd customer accounts located in areas designa","dac-kpi-card dac-kpi-card-ndac|Non-DAC AccountsConEd cu
+  remaining cards, after : ["dac-kpi-card dac-kpi-card-dac|DAC AccountsConEd customer accounts located in areas designa","dac-kpi-card dac-kpi-card-ndac|Non-DAC AccountsConEd cu
+  PASS  every other card is identical in class, text and order
+  gaps before: [8,8]   after: [8]
+  PASS  one fewer gap, because the card took its own gap with it
+  PASS  and the remaining gaps are unchanged: [8]
+  PASS  the section closed up rather than leaving a hole: 222px -> 183px
+  figures before: ["1.82M","2.15M","383K","170K"]
+  figures after : ["1.82M","2.15M","383K","170K"]
+  PASS  the panel still reads 1.82M
+  PASS  the panel still reads 2.15M
+  PASS  the panel still reads 383K
+  PASS  the panel still reads 170K
+
+  PASS  no page errors: []
+
+12 passed, 0 failed

@@ -7777,23 +7777,6 @@ a.nav-item { text-decoration: none; }
 /* Accounts row: DAC + Non-DAC cards side by side */
 .dac-kpi-row { display: flex; gap: 8px; }
 .dac-kpi-row > .dac-kpi-card { flex: 1; min-width: 0; }
-/* Reserved/placeholder card — quiet accent, empty of data */
-.dac-kpi-card-placeholder {
-  border-left: 3px solid var(--line);
-  cursor: default;
-  display: flex;
-  align-items: center;
-  min-height: 32px;
-}
-.dac-kpi-label-placeholder {
-  margin: 0;
-  text-transform: none;
-  letter-spacing: 0;
-  font-style: italic;
-  font-weight: 500;
-  color: var(--text-4);
-}
-
 /* Component burden averages (Environmental / Population) in the KPI panel */
 .dac-kpi-burden { border-left: 3px solid #185FA5; }
 .dac-kpi-burden-row { display: flex; gap: 12px; }

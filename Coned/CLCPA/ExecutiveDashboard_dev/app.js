@@ -9785,10 +9785,15 @@ function utf8ByteLength(str) {
             '</div>' +
           '</div>' +
         '</div>' +
-        // Placeholder card (reserved for a future feature; no data)
-        '<div class="dac-kpi-card dac-kpi-card-placeholder">' +
-          '<p class="dac-kpi-label dac-kpi-label-placeholder">Coming soon</p>' +
-        '</div>' +
+        /* The "Coming soon" placeholder card that used to sit here is
+         * RETIRED. It was a literal in this markup, carried no data and
+         * never had any: nothing in the code, the commit that introduced it
+         * or its CSS records which metric the slot was reserved for.
+         *
+         * The section is a flex column with a gap, so removing the card
+         * removes its gap with it and the remaining cards close up on their
+         * own -- no count is hardcoded anywhere and nothing is left behind.
+         * Its two CSS rules go with it rather than lingering as dead style. */
         eapCard +
       '</div>' +
       // ===== Burden scores section (its own box) =====
