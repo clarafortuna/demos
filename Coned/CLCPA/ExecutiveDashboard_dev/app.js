@@ -24212,7 +24212,8 @@ function wireHTooltips() {
       ' /></label>' +
       '<button type="button" class="btn btn-link" id="ingest-template"' + dis + '>' +
       'Download Template</button>' +
-      '<span class="ingest-import-note">CSV only. Save Excel files as CSV ' +
+      '<span class="ingest-import-note" id="ingest-import-note">CSV only. ' +
+      'Save Excel files as CSV ' +
       'first. Values land in the draft on the page for you to review, then you ' +
       'press Save.' + (noteExtra ? ' ' + noteExtra : '') + '</span>' +
       '</div></div>';
@@ -25636,7 +25637,9 @@ function wireHTooltips() {
         : y + ' is new. It will be created and added to the year selector ' +
           'everywhere.';
     };
-    const primaryLabel = () => (isExisting() ? 'Load Data' : 'Add Year');
+    /* CLCPA-307 round 2: read from the ONE source, which the help text and
+     * the rejection notice now read too. */
+    const primaryLabel = () => ingestPrimaryLabel(isExisting());
     /* The staging and template target. The schema resolves even for a year that
      * does not exist: getTableSchema falls back to any year the table has. */
     /* CLCPA-277 round 2: THE DESTINATION YEAR IS PART OF THE TARGET.
@@ -25690,7 +25693,9 @@ function wireHTooltips() {
       const yrNote = importYearNotice(staged.name, target().year);
       return '<div class="ingest-staged' + (bad ? ' is-bad' : '') + '" id="dlg-stagedbox">' +
         '<strong>' + escapeHtml(staged.name) + '</strong> ' +
-        '<span>' + escapeHtml(ingestStagedSummary(staged)) + '</span>' +
+        '<span id="dlg-staged-summary">' +
+        escapeHtml(ingestStagedSummary(staged, { existing: isExisting() })) +
+        '</span>' +
         (idNote ? '<p class="ingest-staged-warn" id="dlg-identity-warn">' +
           escapeHtml(idNote) + '</p>' : '') +
         (yrNote ? '<p class="ingest-staged-warn" id="dlg-year-warn">' +
@@ -25753,7 +25758,7 @@ function wireHTooltips() {
         renderIngestImportBar('Download Template gives you a read-only Excel ' +
           'example of the format. Save As CSV UTF-8 from its table sheet, fill ' +
           'the values in that CSV, then import it here. Choosing a file stages ' +
-          'it; it is imported when you press Add Year.') +
+          'it; it is imported when you press ' + primaryLabel() + '.') +
         stagedBlock() +
         '</div>' +
         '<div class="ingest-modal-foot">' +
@@ -25821,6 +25826,20 @@ function wireHTooltips() {
            * label cannot drift from what the button will actually do. */
           if (cons) cons.textContent = consequenceText();
           if (btn) btn.textContent = primaryLabel();
+          /* CLCPA-307 round 2: THE TWO STRINGS THAT NAME THE BUTTON FOLLOW
+           * IT. Deriving them from one source fixes the first draw; the
+           * operator can still type 2098 over 2099 without a redraw, and a
+           * sentence that was right when the dialog opened would go wrong
+           * mid-typing while the button beside it updated. */
+          const note = modal.querySelector('#ingest-import-note');
+          if (note) {
+            note.textContent = note.textContent.replace(
+              /press (Add Year|Load Data)\./, 'press ' + primaryLabel() + '.');
+          }
+          const sum = modal.querySelector('#dlg-staged-summary');
+          if (sum && staged) {
+            sum.textContent = ingestStagedSummary(staged, { existing: isExisting() });
+          }
           /* CLCPA-277 round 2: and the staged year advisory, which describes
            * the same destination this line does. */
           syncStagedYearWarn();
@@ -26421,17 +26440,57 @@ function wireHTooltips() {
     });
   }
 
+  /**
+   * CLCPA-307 round 2: THE ONE PLACE THE CONFIRM BUTTON IS NAMED.
+   *
+   * CLCPA-226's rule was "one string, one source". Round 1 applied it to the
+   * template's Instructions sheet and left two surfaces holding the literal
+   * "Add Year", and the round 1 gestures then exposed why a literal cannot
+   * work here at all: this button is CONTEXTUAL. It reads Add Year for a year
+   * that does not exist yet and Load Data for one that does, so a literal is
+   * not merely stale, it is wrong on one of the two paths every time.
+   *
+   * Measured on the existing-year path before this change: the button read
+   * Load Data while the help text said "imported when you press Add Year" and
+   * the rejection notice said "Add Year will still add the year" -- naming a
+   * button not on screen and promising a year addition that cannot happen,
+   * since the consequence line one element above already said "Nothing is
+   * created."
+   *
+   * Everything that says the word now derives it from here.
+   */
+  function ingestPrimaryLabel(yearAlreadyExists) {
+    return yearAlreadyExists ? 'Load Data' : 'Add Year';
+  }
+
+  /**
+   * CLCPA-307 round 2: and what that button will still do to a rejected file,
+   * which is NOT the same thing on the two paths.
+   *
+   * On a fresh year it adds the year. On an existing one nothing is created,
+   * so the promise is dropped rather than reworded around.
+   */
+  function ingestRejectedStillDoes(yearAlreadyExists) {
+    return yearAlreadyExists ? 'load the table-year' : 'add the year';
+  }
+
   /** One line describing a staged file, for the dialog. */
-  function ingestStagedSummary(st) {
+  function ingestStagedSummary(st, ctx) {
     if (!st) return '';
     if (st.error) return st.error;
     const d = st.dry;
     if (!d) return 'Ready.';
     if (!d.ok) {
       const first = (d.rejections || [])[0];
-      return 'This file cannot be imported: ' + ((first && first.why) || 'unknown reason') +
-        ' Add Year will still add the year, and the page will say what was ' +
-        'rejected.';
+      const why = 'This file cannot be imported: ' +
+        ((first && first.why) || 'unknown reason');
+      /* NO CONTEXT, NO CLAIM. A caller that cannot say which path it is on
+       * gets the reason alone rather than a sentence naming a button that
+       * may not be on screen -- the invented half of this defect. */
+      if (!ctx || typeof ctx.existing !== 'boolean') return why;
+      return why + ' ' + ingestPrimaryLabel(ctx.existing) + ' will still ' +
+        ingestRejectedStillDoes(ctx.existing) +
+        ', and the page will say what was rejected.';
     }
     const cells = d.populated.length;
     const rows = d.addedRows.length;
