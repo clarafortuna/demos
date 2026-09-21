@@ -2802,6 +2802,35 @@ function utf8ByteLength(str) {
     const colTotal = (column) =>
       ({ column, type: 'columnTotal', keepFiled: true,
          numerator: [column], denominator: [column], denominatorScope: 'row' });
+    /* CLCPA-312: THE OTHER AXIS. A ROW's own total, across its own columns.
+     *
+     * colTotal above runs DOWN a column and writes the total row. Section F's
+     * "Grand Total" column runs ACROSS each row and writes every row,
+     * including the total row -- the corner where the two meet. No rule type
+     * expressed it, so the workbook marked those cells (calculated) and the
+     * shared engine never computed one: measured on the tip, 0 of 8 on F4,
+     * 0 of 39 on F5, 0 of 24 on F6, and on F7 the dead column nulled the
+     * "% of Grand Total" row that divides by it and handed the
+     * customer_outages KPI total=null, which is what blanked the card and
+     * the Executive Summary tile.
+     *
+     * THE PARTS ARE NOT NAMED HERE, and that is deliberate. detectSumColumns
+     * already reads both the total column and the columns that feed it out
+     * of the SCHEMA -- it is what stamps the template marker and what the
+     * editor's edit-time recompute consults. Naming them again in this
+     * declaration would be a second source of truth for the same fact, and
+     * the one thing this board must not have. The declaration says only
+     * WHICH column is a row total; the engine asks the schema what feeds it.
+     *
+     * keepFiled, like its sibling: a filed figure the sum does not reproduce
+     * is KEPT and named by the advisory, never republished. Measured across
+     * all 15 F table-years before declaring anything: every stored total
+     * already equals the sum of its own parts, 0 divergent, so nothing
+     * published moves by this registration alone.
+     */
+    const rowTotal = (column) =>
+      ({ column, type: 'rowTotal', keepFiled: true,
+         numerator: [column], denominator: [column], denominatorScope: 'row' });
     const gPct = [colTotal(1), pct(2, [1], [1], 'total', 2)];  // G tables: the total row's own feet/mT, and feet/mT ÷ column total
     const jShare = [pct(2, [1], [1], 'total', 0), pct(4, [3], [3], 'total', 0)]; // J3/J4/J6
 
@@ -2889,7 +2918,14 @@ function utf8ByteLength(str) {
        * across all three stored years, 12 of 12 cells agree in both
        * directions, so value identity holds and no published figure moves. */
       B2: [colTotal(1), colTotal(2), colTotal(3), colTotal(4)],
-      F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4)],
+      /* CLCPA-312: the Grand Total COLUMN, registered on the five F tables
+       * whose workbook marks it (calculated). F2 already declared its two
+       * percentage columns; the total beside them had no rule at all. */
+      F2: [pct(2, [1], [5], 'row', 4), pct(4, [3], [5], 'row', 4), rowTotal(5)],
+      F4: [rowTotal(4)],
+      F5: [rowTotal(4)],
+      F6: [rowTotal(6)],
+      F7: [rowTotal(3)],
       G1: gPct, G2: gPct, G3: gPct, G4: gPct, G5: gPct,
       G6: gPct, G7: gPct, G8: gPct, G9: gPct,
       // G10 is the odd one out: its data rows are "Total mT CH4 in DACs" /
@@ -3318,6 +3354,52 @@ function utf8ByteLength(str) {
   // percentage/ratio rule, used by both the ingest editor (recomputeTotals) and
   // the report view (rowsForDisplay). No stored derived total is ever trusted.
 
+  /**
+   * CLCPA-312: WHICH COLUMNS FEED A ROW'S TOTAL, decided without reading the
+   * rows the rule is about to write.
+   *
+   * The first cut asked detectSumColumns, and that was the defect the
+   * columnTotal rule above already warns about in as many words: it settles
+   * the text-versus-number question with columnNumericMask over the rows it
+   * is handed, so a draft being edited decides what the engine may write into
+   * it. On a half-filled import that answer changes under the operator.
+   *
+   * Everything consulted here is either the SCHEMA, a DECLARATION, or the
+   * PUBLISHED report:
+   *
+   *   detectPctColumns / detectAvgColumns  read the headings, nothing else
+   *   DERIVED_COLS                         a column another rule owns is not
+   *                                        an addend, by declaration
+   *   ingestTextOnlyColumn                 judges a column's structure on the
+   *                                        published years, which is the rule
+   *                                        CLCPA-292 round 2 established: a
+   *                                        scratch year never decides shape
+   *
+   * F6 is why a blank heading cannot be the test: its leaf sub-columns sit
+   * under a spanned group and carry null headings, while F4/F5/F6's second
+   * TEXT column carries a perfectly good one ("Borough / County"). Heading
+   * text alone cannot separate those two; published structure can.
+   */
+  function rowTotalParts(tableId, schema, column) {
+    const head = Array.isArray(schema) ? schema : [];
+    if (!head.length) return [];
+    const pctCols = detectPctColumns(head) || [];
+    const avgCols = detectAvgColumns(head) || [];
+    const owned = new Set(((tableId && DERIVED_COLS[tableId]) || [])
+      .filter(d => d && d.column !== column).map(d => d.column));
+    const table = (state && state.payload && state.payload.tables &&
+      state.payload.tables[tableId]) || null;
+    const out = [];
+    for (let c = 1; c < head.length; c++) {
+      if (c === column) continue;
+      if (pctCols[c] || avgCols[c]) continue;
+      if (owned.has(c)) continue;
+      if (table && ingestTextOnlyColumn(table, c)) continue;
+      out.push(c);
+    }
+    return out;
+  }
+
   /** Sum a set of columns from a source row/array; null if any cell is non-numeric. */
   function sumDerivedCols(src, cols) {
     let s = 0;
@@ -3355,8 +3437,30 @@ function utf8ByteLength(str) {
    * over the non-total rows. Divide-by-zero / non-numeric inputs leave per-row cells
    * unchanged and blank the Total cell (renders as "—").
    */
-  function applyDerivedCols(rows, tableId, colSum, schema, baseline) {
-    const derived = (tableId && DERIVED_COLS[tableId]) || [];
+  function applyDerivedCols(rows, tableId, colSum, schema, baseline, onlyType) {
+    const declared = (tableId && DERIVED_COLS[tableId]) || [];
+    if (!declared.length) return;
+    /* CLCPA-312: A ROW TOTAL IS AN INPUT TO ITS NEIGHBOURS, so it is applied
+     * first.
+     *
+     * F2's two percentage columns divide by its Grand Total column, and
+     * declaration order had them running before it: on a year where the total
+     * was not stored, both percentages computed against an empty denominator
+     * and rendered blank, which looked like a second defect and was this one.
+     * Ordering here rather than reordering the declaration, because the
+     * dependency is a property of the rule TYPE, not of how somebody happened
+     * to write the list -- the next table registered would have inherited the
+     * same trap silently. */
+    /* onlyType lets a caller run the row totals AS A PRE-PASS. rowsForDisplay
+     * builds colSum before any rule has run, so on a year whose total column
+     * is not stored the percentages beside it divided by a null: F2's Grand
+     * Total row rendered two blank shares over a total that had just been
+     * computed correctly one column along. Filling the row totals first and
+     * rebuilding colSum from them is what makes the two agree. */
+    const derived = declared.slice()
+      .filter(d => !onlyType || (d && d.type === onlyType))
+      .sort((a, b) =>
+        (a && a.type === 'rowTotal' ? 0 : 1) - (b && b.type === 'rowTotal' ? 0 : 1));
     if (!derived.length) return;
     // CLCPA-144 'totalRow' scope: the denominator is the sum over every row EXCEPT
     // the table's own total row, identified by the STRICT whole-label predicate.
@@ -3589,6 +3693,84 @@ function utf8ByteLength(str) {
           if (derivedCellWrite(row[d.column], sum, d, changed).write) row[d.column] = sum;
           return;
         }
+        if (d.type === 'rowTotal') {
+          /* CLCPA-312: the row's own total, and its inputs come from the
+           * SCHEMA rather than from this declaration.
+           *
+           * detectSumColumns is the reader that already answers "which column
+           * is this row's total, and which columns feed it" -- the template
+           * marker and the editor's recompute both ask it, so asking it here
+           * is what makes the marker honest instead of aspirational. A second
+           * hand-written parts list would be a second source of truth for one
+           * schema fact, on the board whose whole defect was a marker that
+           * promised a computation nobody performed.
+           *
+           * NO LABEL GATE, unlike columnTotal. That rule had to identify its
+           * own row by label because its inputs are OTHER rows, so an edit
+           * could poison both the gate and the inputs. This rule's inputs are
+           * in the SAME row, so there is nothing an edit elsewhere can move:
+           * every row owns its own total, the total row included, and that
+           * corner cell is simply this rule and columnTotal agreeing.
+           */
+          /* A ROW ANOTHER RULE OWNS IS NOT A ROW TO TOTAL, and leaving this
+           * out put a sum where a share belongs.
+           *
+           * F7's "% of Grand Total" row is declared in DERIVED_ROWS: each
+           * cell is that column's share of the row total, and the row reads
+           * 32% / 68% / 100%. Its LABEL ends in "Total", so the anchored
+           * predicate that gates the fallback below said yes, the parts fell
+           * back to the column sums, and the share row was handed 531647 --
+           * the grand total, presented as a percentage.
+           *
+           * Asked of the DECLARATION, not of the label. CLCPA-315 is about
+           * how badly a label predicate reads this very board; a rule that
+           * knows which rows are already owned does not have to guess. */
+          const ownedRow = ((tableId && DERIVED_ROWS[tableId]) || [])
+            .some(x => x && x.row === rowIdx);
+          if (ownedRow) return;
+          const cols = rowTotalParts(tableId, schema, d.column);
+          if (!cols.length) return;
+          /* THE TOTAL ROW'S OWN INPUTS MAY NOT EXIST YET, and that is what the
+           * first cut of this got wrong.
+           *
+           * On a fresh or imported year the total row arrives empty and is
+           * filled from the column sums LATER in rowsForDisplay -- by a loop
+           * that skips any column a rule owns, which is now this one. So this
+           * rule ran before its inputs existed, declined, and nothing filled
+           * the cell afterwards: F7's Grand Total kept a dead
+           * "Total Customers Interrupted", which is the whole defect.
+           *
+           * So on a total row an empty part falls back to that column's sum
+           * over the body rows -- the same colSum every other rule here
+           * takes. The two readings agree by construction: summing the column
+           * totals across a row and summing the row totals down the column
+           * are the same corner.
+           *
+           * GATED BY LABEL, never by totalRowFlags. That classifier confirms a
+           * total by ARITHMETIC, so it is poisoned by the very edit it would
+           * be reacting to -- the lesson written into columnTotal above. A
+           * label cannot be moved by an edit, and if the label is wrong the
+           * fallback simply does not apply and the cell stays empty, which is
+           * the safe direction. */
+          const totalRow = isAnchoredTotalRowLabel(row[0]);
+          let sum = 0, seen = 0, changed = false;
+          for (const c of cols) {
+            let n = bareNumber(row[c]);
+            if (n === null && totalRow && colSum) n = bareNumber(colSum[c]);
+            /* a part that is still not a number means this row has no total to
+             * compute -- a blank stays blank rather than becoming a partial
+             * sum presented as a total */
+            if (n === null) return;
+            sum += n; seen++;
+            const b = baseline && baseline[rowIdx];
+            if (b && String(b[c]) !== String(row[c])) changed = true;
+          }
+          if (!seen) return;
+          if (derivedCellWrite(row[d.column], sum, d, changed).write) {
+            row[d.column] = sum;
+          }
+          return;
+        }
         if (d.type === 'percentChange') {
           const cur = bareNumber(row[d.current]);
           const prev = bareNumber(row[d.previous]);
@@ -3698,7 +3880,16 @@ function utf8ByteLength(str) {
     const len = schema ? schema.length : (clone[0] ? clone[0].length : 0);
     const totalFlags = totalRowFlags(clone, tableId, schema);
     const nonTotal = clone.filter((r, i) => !totalFlags[i]);
-    const { colSum } = columnGrandTotals(nonTotal, len);
+    let { colSum } = columnGrandTotals(nonTotal, len);
+    /* CLCPA-312: THE ROW TOTALS ARE AN INPUT TO colSum, so they go first.
+     *
+     * Narrow by construction: the pre-pass runs only where a rowTotal rule is
+     * declared, which is the five Section F tables, so no other board can
+     * change behaviour through this line. */
+    if (((DERIVED_COLS[tableId]) || []).some(d => d && d.type === 'rowTotal')) {
+      applyDerivedCols(clone, tableId, colSum, schema, null, 'rowTotal');
+      colSum = columnGrandTotals(clone.filter((r, i) => !totalFlags[i]), len).colSum;
+    }
     applyDerivedCols(clone, tableId, colSum, schema);
     // Deferred derived totals -> "—" (never render a summed percentage).
     const covered = new Set(((DERIVED_COLS[tableId]) || []).map(d => d.column));
