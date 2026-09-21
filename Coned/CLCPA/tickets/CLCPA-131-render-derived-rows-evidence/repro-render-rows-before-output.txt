@@ -1,0 +1,27 @@
+CLCPA-131: a declared derived row, rendered on the section page
+tip: main @ ea0300d, derived build 473773a108
+serving: BASE ea0300d (pinned copy)
+  (a repo-served build reports its stamp as dev by design)
+
+DERIVED_ROWS declares: {"D2":[2,5],"D3":[2,4],"D4":[2,4,7,9],"F7":[3],"C2":[]}
+  no J table appears, so the rendered proof is taken on Section D;
+  J depends on this the moment CLCPA-322 registers its rows.
+
+  PASS  Section D declares derived rows on: D2, D3, D4
+
+THE DECLARED PERCENTAGE ROWS, as the SECTION PAGE renders them
+  PASS  D2 renders 7 row(s)
+  D2 declared row 2; percentage rows on screen: [["Percentage of projects in DACs","32.4%","32.7%"],["Percentage of MW installed in DACs (All DERs)","36.4%","31.3%"]]
+  D2 declared row 5; percentage rows on screen: [["Percentage of projects in DACs","32.4%","32.7%"],["Percentage of MW installed in DACs (All DERs)","36.4%","31.3%"]]
+  PASS  D3 renders 6 row(s)
+  D3 declared row 2; percentage rows on screen: [["Percentage of subscribers in DACs","34.8%","51.3%"],["Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program","9.3%","38.1%"]]
+  D3 declared row 4; percentage rows on screen: [["Percentage of subscribers in DACs","34.8%","51.3%"],["Percentage of subscribers who are low-income customers participating in the Company's Energy Affordability Program","9.3%","38.1%"]]
+  PASS  D4 renders 11 row(s)
+  D4 declared row 2; percentage rows on screen: [["Percentage of projects installed for low-income customers","5.9%","5.5%"],["Percentage of projects in DACs","32.1%","32.5%"],["Percentage MW installed for low-income customers","3.4%","3.9%"],["Percentage MW installed in DACs","29.5%","32.2%"]]
+  D4 declared row 4; percentage rows on screen: [["Percentage of projects installed for low-income customers","5.9%","5.5%"],["Percentage of projects in DACs","32.1%","32.5%"],["Percentage MW installed for low-income customers","3.4%","3.9%"],["Percentage MW installed in DACs","29.5%","32.2%"]]
+  D4 declared row 7; percentage rows on screen: [["Percentage of projects installed for low-income customers","5.9%","5.5%"],["Percentage of projects in DACs","32.1%","32.5%"],["Percentage MW installed for low-income customers","3.4%","3.9%"],["Percentage MW installed in DACs","29.5%","32.2%"]]
+  D4 declared row 9; percentage rows on screen: [["Percentage of projects installed for low-income customers","5.9%","5.5%"],["Percentage of projects in DACs","32.1%","32.5%"],["Percentage MW installed for low-income customers","3.4%","3.9%"],["Percentage MW installed in DACs","29.5%","32.2%"]]
+
+  PASS  no page errors: []
+
+5 passed, 0 failed

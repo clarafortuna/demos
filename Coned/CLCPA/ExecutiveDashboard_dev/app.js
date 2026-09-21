@@ -3700,6 +3700,36 @@ function utf8ByteLength(str) {
     const nonTotal = clone.filter((r, i) => !totalFlags[i]);
     const { colSum } = columnGrandTotals(nonTotal, len);
     applyDerivedCols(clone, tableId, colSum, schema);
+    /* CLCPA-131 / the J block's shared dependency: A DECLARED DERIVED ROW IS
+     * COMPUTED ON THE PAGE TOO, not only in the editor.
+     *
+     * applyDerivedRows was called from exactly one place, recomputeTotals,
+     * which is the editor's write path. So a row declared in DERIVED_ROWS was
+     * derived while somebody had the table open and never when the section
+     * page rendered it: the page showed whatever was stored and the editor
+     * showed the engine's answer, and nothing reconciled the two. Section D
+     * declares seven such rows and Section F one; the J board needs it the
+     * moment a rule is registered there, and CLCPA-326's chart reads the
+     * published page rather than the editor.
+     *
+     * THE STORED ROWS ARE THE BASELINE, and that is the whole safety of it.
+     * On this path "what was filed" is precisely the rows we were handed, so
+     * derivedRowKeepsStored honours a filed figure that merely adds precision
+     * and keeps one that genuinely diverges, exactly as it does for the
+     * editor. Measured across all 49 declared derived-row cells in the
+     * payload: with the baseline passed, 0 move. Called WITHOUT it, 47 of 49
+     * move -- D2/2023 would republish 0.32057920404599916 over the filed
+     * 0.321 and D4/2024 would overwrite a filed 0.4 with 0.3397 -- which is
+     * the CLCPA-241 kept-figure rail being driven straight through, and is
+     * why this argument is not optional.
+     *
+     * SURFACES THIS TOUCHES, enumerated: every section-page table, the KPI
+     * composer and the Executive Summary tiles it feeds, the shadow
+     * comparison, and any chart built from the displayed rows. All four read
+     * this one function, which is why the fix belongs here and not in four
+     * places.
+     */
+    applyDerivedRows(clone, tableId, schema, rawRows);
     // Deferred derived totals -> "—" (never render a summed percentage).
     const covered = new Set(((DERIVED_COLS[tableId]) || []).map(d => d.column));
     const pctCols = schema ? detectPctColumns(schema) : [];

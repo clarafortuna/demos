@@ -198,7 +198,23 @@ guard('E-block', () => {
    * CLCPA-290's un-totalled contract, which fills a live-calculated total row
    * and dashes the average columns. That ONE block is normalised away; every
    * other byte of the function still has to match. */
-  const strip290 = (t) => t
+  /* CLCPA-131 adds ONE call to the same function: the declared derived ROWS
+   * are now applied on the display path as well as in the editor, with the
+   * stored rows as the kept-figure baseline so nothing filed is republished.
+   * Normalised away here like CLCPA-290's block, and ARMED -- reversing
+   * nothing would leave this guard passing text through untouched, which is
+   * how a byte-identical assertion becomes an assertion of nothing. */
+  const strip131 = (t) => {
+    const re = /\r\n    \/\* CLCPA-131 \/ the J block's shared dependency[\s\S]*?\r\n    applyDerivedRows\(clone, tableId, schema, rawRows\);/;
+    if (!re.test(t)) {
+      throw new Error('strip131: the CLCPA-131 delta is not in rowsForDisplay. ' +
+        'Its anchor has moved, and reversing nothing would have passed the ' +
+        'text through untouched and this guard would have gone green without ' +
+        'testing anything.');
+    }
+    return t.replace(re, '');
+  };
+  const strip290 = (t) => strip131(t)
     .replace(/\r\n    \/\* CLCPA-290: THE TOTAL ROW OF A LIVE-CALCULATED YEAR[\s\S]*?\r\n    \}\);/, '')
     .replace('function rowsForDisplay(rawRows, schema, tableId, opts) {',
       'function rowsForDisplay(rawRows, schema, tableId) {');
