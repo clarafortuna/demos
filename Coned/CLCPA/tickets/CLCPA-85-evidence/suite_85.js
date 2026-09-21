@@ -85,6 +85,13 @@ const WANT_FN = [/* CLCPA-273 dep */ 'isPercentLiteral', /* CLCPA-267 dep */ 'sh
    * list cannot see a new closure, and it threw from inside the assembled
    * importer rather than failing an assertion. */
   'ingestKeyColDescription',
+  /* CLCPA-303 round 2: the accept clause now asks ONE reader, and the
+   * reader asks a declaration. Same documented limit again: the list is
+   * hand-fed, the fixture that reaches the branch is a1-2023-with-totals,
+   * and it threw from inside the assembled importer rather than failing an
+   * assertion. */
+  'ingestFiledTotalReason', 'ingestDeclaredTotalCell', 'isB7PreparerTotal',
+  'isDeclaredSummable',
   'ingestKeyColCount', 'ingestIsBlankCell', 'ingestIsShapeBlank', 'ingestIsHeaderRow', 'ingestGroupOf', 'ingestRowKey',
                  'parseNumericInput', 'totalRowFlags', 'rawNum',
                  'ingestTemplateSource', 'getTableSchema', 'getTableBody',

@@ -168,6 +168,21 @@ function buildEnv(src, tag) {
       candidate.buildIngestImport(
         [PAYLOAD.tables.A5.schema_by_year['2025'], ['HVAC', 1, 1, null]],
         PAYLOAD.tables.A5.schema_by_year['2025'], [], 'A5');
+      /* CLCPA-303 round 2: AND A FILE THAT REACHES THE COMPUTED-CELL READER.
+       *
+       * Same shape as the CLCPA-245 note above. A5's import never has a
+       * filed value in a computed cell, so the branch that asks
+       * ingestFiledTotalReason never runs, the resolver never learns the
+       * dependency, and four blocks further down threw
+       * "ingestDeclaredTotalCell is not defined" at call time. B2 declares a
+       * columnTotal and has a real Total row, so a figure filed there walks
+       * straight into it. */
+      candidate.buildIngestImport(
+        [['Category', 'L2 Plugs', 'DCFC Plugs', 'Total Plugs'],
+          ['DAC', 1, 1, '(calculated)'],
+          ['Total', '9', '(calculated)', '(calculated)']],
+        ['Category', 'L2 Plugs', 'DCFC Plugs', 'Total Plugs'],
+        [['DAC', 1, 1, 2], ['Total', 1, 1, 2]], 'B2');
       const d = PAYLOAD.tables.A5.data['2025'].map(r => r.slice());
       candidate.recomputeTotals(d, PAYLOAD.tables.A5.schema_by_year['2025'], 'A5', null);
       api = candidate;

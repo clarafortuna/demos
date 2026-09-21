@@ -170,9 +170,15 @@ guard('F-block', () => {
    * advisory FORMATS the value it shows instead of concatenating it raw.
    * Reversed through the shared kit as well, composed rather than widened, so
    * every byte outside those two named deltas still has to match. */
-  ok(bii.reverseRender310(bii.reverseRender293(bii.reverseRender305(grab(now)))) === grab(before),
+  /* CLCPA-303 round 2 appends one line to the same panel: the filed figures
+   * the import refused are now named. Reversed FIRST, because it is the
+   * newest delta and reverseRender305s anchor ends at the call it appends
+   * to. Extracted from the shared kit and armed, so a moved anchor throws
+   * rather than passing the text through. */
+  ok(bii.reverseRender310(bii.reverseRender293(bii.reverseRender305(
+    bii.reverseRender303r2(grab(now))))) === grab(before),
     'F1 renderIngestImportResult is byte-identical to BASE apart from ' +
-    'CLCPA-293, CLCPA-305 and CLCPA-310');
+    'CLCPA-293, CLCPA-305, CLCPA-310 and CLCPA-303 round 2');
   const gy = (s) => {
     const i = s.indexOf('function importYearNotice(');
     return i < 0 ? null : s.slice(i, s.indexOf('\n  }', i));

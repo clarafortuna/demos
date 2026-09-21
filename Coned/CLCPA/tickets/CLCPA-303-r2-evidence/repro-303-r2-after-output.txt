@@ -1,0 +1,68 @@
+CLCPA-303 round 2: a filed COLUMN total, through the import path
+re-reproduced against the current tip: main @ cb93541, build 109b09e902
+
+seeded B2/2098 = [["DAC",143,10,0,153],["Non-DAC",100,40,0,140],["Total",243,50,0,293]]
+  L2 Plugs across the two category rows: 143 + 100 = 243
+
+serving: the working tree
+
+the console stamp in this browser: dev (unstamped: served from the repo, not a deploy)   (a repo-served build is unstamped by design)
+the derived id of the bytes served: 109b09e902   (the hosted build for this tip)
+
+STEP 1  Download Template, pressed inside the Add Data dialog
+  downloaded: B2-2098-example.xlsx  13268 bytes
+  the table sheet, as the workbook writes it:
+      ["Category","L2 Plugs","DCFC Plugs","Micromobility Power Cabinets","Total Plugs"]
+      ["DAC","143","10","0","(calculated)"]
+      ["Non-DAC","100","40","0","(calculated)"]
+      ["Total","(calculated)","(calculated)","(calculated)","(calculated)"]
+  L2 Plugs is column 1, Total Plugs is column 4
+  the Total row exports        : ["Total","(calculated)","(calculated)","(calculated)","(calculated)"]
+  the Total Plugs column exports: ["(calculated)","(calculated)","(calculated)"]
+
+STEP 2  the operator replaces the Total rows L2 Plugs marker with 999
+  Total row / L2 Plugs: "(calculated)" -> 999
+  the CSV the operator saves, one row per line:
+      Category,L2 Plugs,DCFC Plugs,Micromobility Power Cabinets,Total Plugs
+      DAC,143,10,0,(calculated)
+      Non-DAC,100,40,0,(calculated)
+      Total,999,(calculated),(calculated),(calculated)
+
+STEP 3  the file staged in the Add Data dialog
+  the stager says   : B2_2098.csv 3 rows, 3 columns with values, 7 values ready to import.
+  the confirm button: Load Data
+  does anything on this screen mention the filed 999? false
+  screenshot: repro-303-r2-after-import.png
+
+STEP 4  Load Data
+  the result box says : Imported into the draft: 7 cellsReview the values below, then press Save. Nothing has been saved yet.Taken as filed: 1 total cellThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a difference is not necessarily an error.Total / L2 Plugs: filed 999, the rows itemise 243Does not add up: 1 rowA total column does not equal the sum of its own columns. The filed value is kept; check which figure is right.Total / Total Plugs: filed 293, L2 Plugs + DCFC Plugs + Micromobility Power Cabinets = 1049
+  the drafts Total row: ["Total","999","50","0","293",""]
+  notices in the box  : 
+      - Taken as filed: 1 total cellThese totals are not calculated from the rows in this table, so the figures in your file were used. Where the rows itemise a different amount it is shown beside it; a difference is not necessarily an error.Total / L2 Plugs: filed 999, the rows itemise 243
+      - Does not add up: 1 rowA total column does not equal the sum of its own columns. The filed value is kept; check which figure is right.Total / Total Plugs: filed 293, L2 Plugs + DCFC Plugs + Micromobility Power Cabinets = 1049
+  any notice naming 999? true
+  the state reads     : ● Unsaved Changes
+
+CONTRAST  the same gesture on the ROW axis, which the owner reports works
+  DAC / Total Plugs: "(calculated)" -> 900   (its own components give 153)
+  the stager says   : B2_2098_row.csv 3 rows, 4 columns with values, 7 values ready to import.
+  the result box says : (none)
+  notices in the box  : 
+      - Does not add up: 1 rowA total column does not equal the sum of its own columns. The filed value is kept; check which figure is right.DAC / Total Plugs: filed 900, L2 Plugs + DCFC Plugs + Micromobility Power Cabinets = 153
+  any notice naming 900? true
+  the drafts DAC row  : ["[DAC]","[143]","[10]","[0]","[900]","×"]
+
+REFUSAL  a percentage column is the engine's on every row, so a
+         filed figure there is still refused -- CLCPA-88. The point
+         of this leg is that the refusal is NAMED, not silent.
+  A1 header            : ["Program Name","Total Funds Expended ($)","DAC Funding ($)","% in DACs"]
+  the percentage column: 3 "% in DACs"
+  Total row / that column: "(calculated)" -> 88
+  the stager says   : A1_2098.csv 23 rows, 2 columns with values, 41 values ready to import. 1 filed value in calculated cell will not be imported; the page will name it.
+  does the staging screen warn the figure will be dropped? true
+  notices in the box  : 
+      - Not imported: 1 filed figureYour file gave a value for a cell the dashboard calculates, so it was not used. The calculated figure is shown in the draft instead.Total / % in DACs: filed 88, not imported because this column is calculated from the other columns
+  any notice naming the refused 88? true
+  the drafts Total row: ["Total","[$282,132,686]","[$148,672,653]","52.7%",""]
+
+page errors: none

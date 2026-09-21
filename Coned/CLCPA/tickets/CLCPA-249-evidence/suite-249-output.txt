@@ -189,6 +189,8 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function compositeValueText moved, and it is named by a later ticket: CLCPA-263: the value formatting (new)
   ok   X1 app.js function applyCompositeShares moved, and it is named by a later ticket: CLCPA-263: the derivation (new)
   ok   X1 app.js function isB7PreparerTotal moved, and it is named by a later ticket: NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)
+  ok   X1 app.js function ingestDeclaredTotalCell moved, and it is named by a later ticket: NOT this ticket: CLCPA-303 round 2: the COLUMN axis of the option (C) declaration, seen from the import path: a declared columnTotal cell on a total row is the preparers claim, not a column the engine rebuilds from its neighbours (new)
+  ok   X1 app.js function ingestFiledTotalReason moved, and it is named by a later ticket: NOT this ticket: CLCPA-303 round 2: ONE reader for a filed value in a computed cell, returning WHICH rule claimed it, shared with the CLCPA-293 registry rather than bolted beside it (new)
   ok   X1 app.js function totalRowFlags moved, and it is named by a later ticket: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)
   ok   X1 app.js function stripDerivedForPersist moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (the strip refuses a kept cell)
   ok   X1 app.js function detectSumColumns moved, and it is named by a later ticket: CLCPA-272: the schema-derived sum relationship (new)
@@ -236,6 +238,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function noteTypedPercent moved, and it is named by a later ticket: CLCPA-273: records a percent typed into a cell (new)
   ok   X1 app.js function renderTypedUnitNotice moved, and it is named by a later ticket: CLCPA-273: the typed advisory, in the amber box (new)
   ok   X1 app.js function renderIngestImportResult moved, and it is named by a later ticket: CLCPA-261, Section C group E: the summary announces them
+  ok   X1 app.js function renderRefusedFiledNotice moved, and it is named by a later ticket: NOT this ticket: CLCPA-303 round 2: a figure the import would not take is NAMED, in the result box as well as the staging count, because a refusal the operator cannot see is indistinguishable from a bug (new)
   ok   X1 app.js function renderReconcileNotice moved, and it is named by a later ticket: CLCPA-272: the reconciliation advisory box (new)
   ok   X1 app.js function renderPreparerTotalsNotice moved, and it is named by a later ticket: NOT this ticket: CLCPA-293 / A-10: a total the engine cannot derive is accepted from the preparer instead of being discarded in silence (new: the advisory that names one)
   ok   X1 app.js function renderKeptFigureNotice moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (new: the amber advisory that names a kept figure)
@@ -252,11 +255,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (94) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (97) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  227 passed, 0 failed
+  230 passed, 0 failed

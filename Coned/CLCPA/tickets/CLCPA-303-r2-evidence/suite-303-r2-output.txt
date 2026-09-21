@@ -1,0 +1,51 @@
+CLCPA-303 round 2: a filed column total, kept and named
+BASE cb93541   app.js working tree
+
+A. ONE READER, NAMING THE RULE THAT CLAIMED THE CELL
+  PASS  A1 ingestFiledTotalReason is declared
+  PASS  A2 ingestDeclaredTotalCell is declared
+  PASS  A3 it returns the three reasons rather than a boolean
+  PASS  A4 the import path asks it
+  PASS  A5 and no longer carries the registry test inline
+  PASS  A6 the CLCPA-293 registry is consulted inside it
+  PASS  A7 and so is this rounds declared column total
+  PASS  A8 the declared test reads the RULE TYPE, not a value probe
+
+B. WHAT THE READER SAYS ABOUT EACH CELL
+  PASS  B1 B2 Total row / L2 Plugs is a DECLARED column total: declared
+  PASS  B2 so is the corner where both axes cross
+  PASS  B3 A1 Total row / % in DACs is claimed by NOBODY, so it stays refused: null
+  PASS  B4 because a percentage is not a columnTotal
+  PASS  B5 while B2s L2 Plugs is one
+  PASS  B6 a BODY row is never claimed by the declared rule
+
+C. THE REAL PARSE, DRIVEN ON BOTH BUILDS
+  PASS  C1 the filed 999 is taken as filed: 1 cell
+  PASS  C2 at its filed value: 999
+  PASS  C3 and the advisory carries what the rows itemise: 243
+  PASS  C4 claimed by the declared rule, not by the registry: declared
+  PASS  C5 the draft carries it: 999
+  PASS  C6 seven values land where six did: 7
+  PASS  D1 BASE takes nothing as filed: 0
+  PASS  D2 BASE leaves the computed figure in the draft: 243
+  PASS  D3 BASE lands six values: 6
+  PASS  D4 and records nothing about what it dropped, which is the defect: 0
+
+E. A REFUSAL IS NAMED, IN BOTH PLACES THE RULING NAMES
+  PASS  E1 the refused figure is recorded: 1
+  PASS  E2 with the value the file gave: 88
+  PASS  E3 and why it was refused
+  PASS  E4 the markers left in the file are not announced as refusals
+  PASS  E5 the staging count announces it: "s ready to import. 1 filed value in calculated cell will not be imported; the page will name it."
+  PASS  E6 counted, singular, and named
+  PASS  E7 and says nothing when nothing is refused: "0 rows, 3 columns with values, 7 values ready to import."
+  PASS  F1 renderRefusedFiledNotice is declared
+  PASS  F2 the result box renders it
+  PASS  F3 in the alert box, not the amber one: a refusal is not an advisory
+  PASS  F4 listing only cells that carried a filed value
+
+G. THE ROW AXIS, WHICH ALREADY WORKED, IS UNCHANGED
+  PASS  G1 a filed row total is kept on both builds
+  PASS  G2 and reconciles identically: 1 vs 1
+
+37 passed, 0 failed
