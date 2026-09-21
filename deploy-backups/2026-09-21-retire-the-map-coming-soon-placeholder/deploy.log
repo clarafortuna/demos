@@ -65,3 +65,76 @@ PROVENANCE of the archive, read from the ORG:
 
         3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 677430c
+          remote main = 677430c  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1403976B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (286482B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1403976B  sha256 0ac991b50337a8fc...  VERIFIED byte-identical
+READ-BACK styles.css  286482B  sha256 e6de22bc37f1fa3b...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 b7f60ffd3d5ea30b...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 0067415e4f  ok
+  app.js canonicalised + hashed : 0067415e4f  ok
+  styles.css hashed             : e6de22bc37  ok
+  HTML references app.js?v=     : 0067415e4f  ok
+  HTML references styles.css?v= : e6de22bc37  ok
+  all 1 app ticket groups and 1 stylesheet symbols across 1 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the DAC Tracts map Customer Counts panel retires its Coming soon placeholder card, and the panel closes up without it -- CLCPA-332
+build id (app.js): 0067415e4f
+styles.css id    : e6de22bc37   (replaced 9039bfc509)
+previous build   : 4206a149a9, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ ae28677
+requests: GET 11, PATCH 3, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 0067415e4f
+
+THE ACCEPTANCE PASS:
+  THE CARD IS GONE. Open the Executive Summary and look at the DAC Tracts
+     map, Customer Counts panel. The DAC and Non-DAC account cards must be
+     followed DIRECTLY by the EAP Enrolled block, with no empty card
+     between them and no gap where one used to be.
+  
+  AND NOTHING ELSE MOVED. The same panel must still read DAC 1.82M,
+     Non-DAC 2.15M, and EAP Enrolled 383K DAC / 170K Non-DAC. Scope the
+     panel by borough, by neighbourhood and by clicking a tract: each
+     scope must behave exactly as it does today, minus the empty card.
+  
+  THE REST OF THE MAP PAGE IS UNTOUCHED. The Burden scores section below
+     it, the map itself, the legend and the tract detail must all read and
+     lay out as they do now. Measured off the rendered panel before the
+     deploy: the section closes from 222px to 183px and the gap between
+     the remaining cards is unchanged at 8px.
+
+STILL DISCLOSED, not defects in this build:
+  - WHICH METRIC THE SLOT WAS RESERVED FOR IS MISSING, and was not guessed.
+  -    The code comment, the CSS comment and the commit that introduced the
+  -    card all describe it as reserved without saying what for. The ticket
+  -    records the one measured candidate -- the per-tract adjustment figures
+  -    are the only Con Edison overlay pair the panel never renders -- as an
+  -    observation about the data, not as a statement of intent.
+  - A SECOND "Coming soon" REMAINS IN THE BUNDLE, in Section D, and is
+  -    deliberately untouched: it is assigned to a variable that is never
+  -    interpolated, so it reaches no operator. It is dead code rather than a
+  -    placeholder anybody sees, and removing it is its own change.
+  - THE MAP COULD NOT BE PAINTED IN THE BUILD ENVIRONMENT, so the rendered
+  -    check is the owner hosted pass. Leaflet and Turf load from unpkg.com
+  -    and the build sandbox has no network, so the map never initialises
+  -    there and renderMapKPI never runs. The panel was instead produced by
+  -    the shipped function against the real map payload and painted under
+  -    the real stylesheet, which is where the measurements above come from.
+  - THE HTML DOES NOT CHANGE in this wave beyond its cache-busting stamps,
+  -    and the byte comparison against the live copy is what decides what is
+  -    pushed, not this note.
+
+=== log written by deploy_retire_map_placeholder.js ===
