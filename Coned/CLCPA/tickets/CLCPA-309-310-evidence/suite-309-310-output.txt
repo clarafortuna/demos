@@ -1,0 +1,28 @@
+CLCPA-310: the fraction advisory formats the value it shows
+BASE d84c0d3   app.js working tree
+
+=== A. what the operator reads =====================================
+  ok   A1 not one of the 20 percent strings shows an artifact: []
+  ok   A2 while BASE showed one on eight of them, which is the measurement this ticket comes from: 8
+  ok   A3 including "9.3%", the value D3 actually files: ["9.3% -> 0.09300000000000001"]
+
+=== B. the number shown is the number that landed ===================
+  ok   B1 a percentage written to N decimals reads back as a fraction to N+2, exactly: []
+  ok   B2 and it never differs from the stored figure by more than rounding: []
+  ok   B3 a value that is not a finite number is shown as it is
+
+=== C. this formats the sentence, not the figure ====================
+  ok   C1 parseNumericInput is byte-identical to BASE: the value that LANDS is not changed by this ticket
+  ok   C2 and every one of them parses to the same number: []
+
+=== D. both surfaces that render this sentence ======================
+  ok   D1 the formatter is called on BOTH surfaces, the typed-cell notice and the import panel: 2
+  ok   D2 and neither of them concatenates the raw value any more
+  ok   D3 while BASE concatenated it raw on both, so this suite cannot pass on it
+
+=== X. the baseline =================================================
+  ok   X1 BASE is a literal commit sha: d84c0d3
+  ok   X2 and HEAD descends from it
+  ok   X3 while BASE has no such formatter at all
+
+  14 passed, 0 failed

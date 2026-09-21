@@ -166,8 +166,13 @@ guard('F-block', () => {
    * engine cannot derive is now taken from the preparer, and the panel says
    * so. Reversed through the shared kit, extracted from app.js rather than
    * retyped; every other byte still has to match. */
-  ok(bii.reverseRender293(grab(now)) === grab(before),
-    'F1 renderIngestImportResult is byte-identical to BASE apart from CLCPA-293');
+  /* CLCPA-310 changes one expression in the same panel: the fraction
+   * advisory FORMATS the value it shows instead of concatenating it raw.
+   * Reversed through the shared kit as well, composed rather than widened, so
+   * every byte outside those two named deltas still has to match. */
+  ok(bii.reverseRender310(bii.reverseRender293(grab(now))) === grab(before),
+    'F1 renderIngestImportResult is byte-identical to BASE apart from ' +
+    'CLCPA-293 and CLCPA-310');
   const gy = (s) => {
     const i = s.indexOf('function importYearNotice(');
     return i < 0 ? null : s.slice(i, s.indexOf('\n  }', i));
