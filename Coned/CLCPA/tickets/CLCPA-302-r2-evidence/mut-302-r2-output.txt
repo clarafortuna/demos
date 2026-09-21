@@ -1,0 +1,52 @@
+CLCPA-302 round 2: mutation controls
+app.js 1384305 bytes, mutants via DAC_APP_OVERRIDE
+
+CLEAN, before any mutation: 30 passed, 0 failed
+
+MUTATION 1: ingestOperatorCell drops the derivability exclusion this round adds
+  the suite says: 22 passed, 8 failed
+  targeted red  : B7, C1, C2, C4
+  the control holds.
+  also red (collateral): C3, F1, F2, F3
+
+MUTATION 2: the confirm count keeps its own copy of the rule again
+  the suite says: 26 passed, 4 failed
+  targeted red  : B3, B4, C1
+  the control holds.
+  also red (collateral): F1
+
+MUTATION 3: diffRows keeps its own copy instead of delegating
+  the suite says: 24 passed, 6 failed
+  targeted red  : B2, C2, C3
+  the control holds.
+  also red (collateral): C4, F2, F3
+
+MUTATION 4: a missing classifier excludes instead of counting (unsafe direction)
+  the suite says: 28 passed, 2 failed
+  targeted red  : A1, B8
+  the control holds.
+
+MUTATION 5: the key-cell exclusion is removed from the reader
+  the suite says: 29 passed, 1 failed
+  targeted red  : B5
+  the control holds.
+
+MUTATION 6: the engine-cell exclusion is removed from the reader
+  the suite says: 28 passed, 2 failed
+  targeted red  : B6
+  the control holds.
+  also red (collateral): A2
+
+MUTATION 7: the exclusion is widened so the operator is billed for nothing
+  the suite says: 22 passed, 8 failed
+  targeted red  : C1, C2, F1, F2
+  the control holds.
+  also red (collateral): B5, C3, E3, E5
+
+--- RESTORED -------------------------------------------------------
+app.js untouched on disk: true  (1384305 bytes, was 1384305)
+mutant file removed     : true
+clean re-run            : 30 passed, 0 failed, exit 0
+
+7 controls held, 0 broken
+EVERY MUTATION TURNED ITS OWN ASSERTION RED AND THE SOURCE IS CLEAN.

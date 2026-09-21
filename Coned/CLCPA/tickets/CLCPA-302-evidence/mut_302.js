@@ -21,17 +21,37 @@ const ORIGINAL = fs.readFileSync(APP, 'utf8');
 const SHA = (s) => require('crypto').createHash('sha256').update(s).digest('hex').slice(0, 12);
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'mut302-'));
 
+/* RE-ANCHORED FOR CLCPA-302 ROUND 2. The rule these mutations break used to
+ * be written inline inside diffRows at eight spaces. Round 2 moved it into
+ * the shared reader ingestOperatorCell, which the confirm count now asks as
+ * well, so the old anchors matched nothing and three controls reported
+ * themselves broken. Same breaks, same expected red assertions, aimed at
+ * where the rule actually lives. */
 const MUTATIONS = [
   {
     name: 'THE DEFECT ITSELF: the history counts every cell again',
-    from: '        if (!computed) return true;\r\n        if (c < keyCols) return false;\r\n        return !computed.any(r, c);',
-    to:   '        return true;',
+    from: '    if (!computed) return true;\r\n    if (c < keyCols) return false;\r\n    if (computed.any(r, c)) return false;',
+    to:   '    return true;',
     expect: ['A3'],
   },
   {
-    name: 'KEY CELLS ONLY are excluded, so the engine cells come back',
-    from: '        if (c < keyCols) return false;\r\n        return !computed.any(r, c);',
-    to:   '        return c >= keyCols;',
+    /* WHAT A3 CAN STILL SEE, and what it no longer can.
+     *
+     * This control used to drop the engine-cell exclusion. Round 2 gave the
+     * two surfaces ONE reader, so that break now moves both of them by the
+     * same amount and they still agree: A3 stayed green, which is the
+     * control reporting itself useless rather than the suite being wrong.
+     * That break is controlled where it can be seen, in suite_302_r2 as
+     * mutation 6 against B6.
+     *
+     * A3 asserts the two surfaces AGREE, so its control has to make them
+     * disagree. This makes the confirm count stop consulting the shared
+     * reader while the history keeps doing so -- exactly the divergence
+     * CLCPA-302 exists to prevent. */
+    name: 'THE TWO SURFACES DIVERGE: the confirm count stops asking the ' +
+          'shared reader while the history keeps asking it',
+    from: '          if (!ingestOperatorCell(computed, keyCols, r, c)) continue;',
+    to:   '          if (false) continue;',
     expect: ['A3'],
   },
   {
@@ -49,8 +69,8 @@ const MUTATIONS = [
   {
     name: 'THE FAILURE DIRECTION IS INVERTED: a classifier that cannot run ' +
           'makes the history count nothing instead of everything',
-    from: '        if (!computed) return true;',
-    to:   '        if (!computed) return false;',
+    from: '    if (!computed) return true;',
+    to:   '    if (!computed) return false;',
     expect: ['E1'],
   },
 ];

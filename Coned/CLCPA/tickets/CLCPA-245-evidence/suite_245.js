@@ -847,6 +847,8 @@ guard('X: the blast radius', () => {
     renderIngestImportResult: 'NOT this ticket: CLCPA-261: the import summary announces them',
     /* CLCPA-293 round 4, named so the count stays exact */
     isB7PreparerTotal: 'NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)',
+    /* CLCPA-302 round 2, named so the count stays exact */
+    ingestOperatorCell: 'NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)',
     /* CLCPA-320 round 3, named so the count stays exact */
     ingestMarkerSource: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)',
     buildIngestWorkbook: 'NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (it consults that source for an empty cell)',
@@ -866,7 +868,7 @@ guard('X: the blast radius', () => {
    * round 2 moved rerenderIngestEditor, both named in the map above. */
   /* 63 -> 67: CLCPA-274 round 3, CLCPA-281 and CLCPA-278 round 3,
    * every one named in the map above. */
-  ok(changed.length === 100, 'X8 exactly this many functions changed: ' + changed.length);
+  ok(changed.length === 101, 'X8 exactly this many functions changed: ' + changed.length);
 });
 
 guard('X: the baseline', () => {
