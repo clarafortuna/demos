@@ -86,6 +86,7 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X3 DERIVED_COLS differs from BASE only by CLCPA-241s A9 rule, CLCPA-319s G total rows and CLCPA-303s B2 pair -- []
   ok   X4a CLCPA-254s exception is present exactly once, so undoing it means something
   ok   X4c the CLCPA-293 round 4 line is present exactly once, so reversing it tests something
+  ok   X4d the CLCPA-319 round 2 clause is present exactly once, so reversing it tests something
   ok   X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: the ordering item is NOT bought here
   ok   X5 and CLCPA-244s percent rule
   ok   X6 styles.css differs only by CLCPA-248s rules: the tooltip added none
@@ -293,4 +294,4 @@ CLCPA-245 -- the general label veto, and the label tooltip
   ok   X9 BASE is a literal commit sha: 00d6dd3
   ok   X10 and an ancestor of HEAD
 
-  275 passed, 0 failed
+  276 passed, 0 failed

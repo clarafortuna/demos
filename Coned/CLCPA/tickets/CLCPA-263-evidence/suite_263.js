@@ -697,10 +697,19 @@ guard('X: the blast radius', () => {
    * an import accepted survives the recompute and the save. Named here so
    * the inventory stays exact rather than widened. */
   const RT_B7 = '        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;';
-  const RT_OK = ['    applyDerivedCols(draft, tableId, colSum, schema, baseline);', RT_B7];
-  ok(rtAdded.length === 2 && rtAdded.every(l => RT_OK.indexOf(l) >= 0),
-     'X2c recomputeTotals differs from BASE only by passing the baseline and ' +
-     'by standing off a registry total -- ' +
+  /* and CLCPA-319 round 2's three lines: a declared total row is flagged by
+   * LABEL, so load, blur and save divide by the same denominator. Each line
+   * named, so the inventory stays exact rather than widened to a count. */
+  const RT_R2 = [
+    "    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {",
+    '      draft.forEach((row, idx) => {',
+    '        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;',
+  ];
+  const RT_OK = ['    applyDerivedCols(draft, tableId, colSum, schema, baseline);', RT_B7]
+    .concat(RT_R2);
+  ok(rtAdded.length === RT_OK.length && rtAdded.every(l => RT_OK.indexOf(l) >= 0),
+     'X2c recomputeTotals differs from BASE only by passing the baseline, ' +
+     'standing off a registry total, and flagging a declared total row -- ' +
      JSON.stringify(rtAdded));
   const adcAdded = grabFn('applyDerivedCols', SRC).split('\r\n')
     .filter(l => grabFn('applyDerivedCols', BASE_SRC).indexOf(l) < 0)

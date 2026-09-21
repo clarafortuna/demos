@@ -253,7 +253,7 @@ CLCPA-263 -- the value (pct) composites, derived at render
   ok   X2 kpiDacPct is byte-identical to BASE
   ok   X2 detectPctColumns is byte-identical to BASE
   ok   X2d totalRowFlags differs from BASE only by CLCPA-319 letting a column total confirm its own row -- []
-  ok   X2c recomputeTotals differs from BASE only by passing the baseline and by standing off a registry total -- ["        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;","    applyDerivedCols(draft, tableId, colSum, schema, baseline);"]
+  ok   X2c recomputeTotals differs from BASE only by passing the baseline, standing off a registry total, and flagging a declared total row -- ["    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {","      draft.forEach((row, idx) => {","        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;","        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;","    applyDerivedCols(draft, tableId, colSum, schema, baseline);"]
   ok   X2b applyDerivedCols differs from BASE only by CLCPA-241 and CLCPA-319 -- []
   ok   X3 BASE is a literal commit sha: c6d0453
   ok   X4 and HEAD descends from it

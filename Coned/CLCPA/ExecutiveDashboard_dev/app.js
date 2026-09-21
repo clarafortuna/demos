@@ -19145,6 +19145,7 @@ function wireHTooltips() {
     return { year: donor, rows: table.data[donor], borrowed: true };
   }
 
+
   /* ==========================================================================
    * CLCPA-85 round 4: a ZIP writer, so the template can be a real .xlsx.
    *
@@ -19978,6 +19979,45 @@ function wireHTooltips() {
      * of which rows are totals comes from the baseline. */
     const classifySrc = aligned ? baseline : draft;
     const editorFlags = totalRowFlags(classifySrc, tableId, schema);
+    /* CLCPA-319 round 2: A DECLARED TOTAL ROW IS A TOTAL ROW, whatever the
+     * figures in it say at this instant.
+     *
+     * THE DEFECT. Editing a G table and blurring computed its percentages
+     * against a DOUBLED denominator: on G1/2098, 500 into the DAC row and
+     * blur gave 49.33 / 1.34 / 50.67, each about half of what load and save
+     * produce. The cause is the classifier, not the rule. totalRowFlags
+     * confirms a total by ARITHMETIC, so the moment an edit breaks the
+     * total's sum the row stops being confirmed, falls out of totalRowIdxs,
+     * and is swept into nonTotalRows -- where its own stale figure is added
+     * to the column sum that every percentage divides by. Measured on a
+     * scratch G1: with the total row unconfirmed the denominator became
+     * 500 + 999 + 10,998 and the DAC share read 4.0% instead of 33.4%.
+     *
+     * CLCPA-212 built the baseline mechanism for exactly this, and it
+     * covers the case it was written for. It cannot cover this one: a
+     * scratch or freshly imported year has no aligned baseline to classify
+     * from, so classifySrc falls back to the mid-edit draft and the
+     * protection lapses precisely when it is needed.
+     *
+     * THE FIX IS THE DERIVATION CLCPA-319 ALREADY USES. Where a table
+     * DECLARES a columnTotal, applyDerivedCols identifies that rule's own
+     * row by LABEL, "which no edit can move", for this same reason. The
+     * classifier now reads the same signal, so the denominator is the same
+     * one on all three paths -- load, blur and save -- and no longer
+     * depends on whether the figures happen to reconcile at the moment of
+     * the blur.
+     *
+     * ONLY WIDENS, and only for declared tables. A row already confirmed
+     * stays confirmed; this can add a flag, never remove one. Tables that
+     * declare no columnTotal are untouched, which is every table but the G
+     * board and B2. The import path is untouched in effect as well: an
+     * imported draft is internally consistent, so its total row was
+     * confirmed already and this changes nothing there. */
+    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {
+      draft.forEach((row, idx) => {
+        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;
+      });
+    }
     const sums209 = totalRowSums(draft, schema, tableId, editorFlags);
     const totalRowIdxs = [];
     const nonTotalRows = [];

@@ -577,9 +577,22 @@ guard('X: the family veto and the derive engine are untouched', () => {
   ok(rtNow.split(RT_NEW_B7).length - 1 === 1,
      'X4c the CLCPA-293 round 4 line is present exactly once, so reversing ' +
      'it tests something');
+  /* CLCPA-319 round 2 adds one more clause: a declared total row is flagged
+   * by LABEL, so load, blur and save divide by the same denominator. Named
+   * and reversed beside the others; every other byte still has to match. */
+  const RT_NEW_R2 = "    if (((tableId && DERIVED_COLS[tableId]) || []).some(d => d.type === 'columnTotal')) {\r\n" +
+    '      draft.forEach((row, idx) => {\r\n' +
+    '        if (isAnchoredTotalRowLabel((row || [])[0])) editorFlags[idx] = true;\r\n' +
+    '      });\r\n' +
+    '    }\r\n';
+  ok(rtNow.split(RT_NEW_R2).length - 1 === 1,
+     'X4d the CLCPA-319 round 2 clause is present exactly once, so reversing ' +
+     'it tests something');
   ok(rtNow.replace(CLCPA254, () => BASE254).replace(RT_NEW_241, () => RT_OLD_241)
        .replace(RT_NEW_B7, () => '')
-       .replace(/[ ]*\/\* CLCPA-293 round 4: THE SECOND SURFACE\.[\s\S]*?\*\/\r\n/, '') ===
+       .replace(RT_NEW_R2, () => '')
+       .replace(/[ ]*\/\* CLCPA-293 round 4: THE SECOND SURFACE\.[\s\S]*?\*\/\r\n/, '')
+       .replace(/[ ]*\/\* CLCPA-319 round 2: A DECLARED TOTAL ROW[\s\S]*?\*\/\r\n/, '') ===
      grab('recomputeTotals', BASE_SRC),
      'X4 recomputeTotals is byte-identical once CLCPA-254s exception is undone: ' +
      'the ordering item is NOT bought here');
