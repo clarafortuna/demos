@@ -68,3 +68,99 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 9a0c6db
+          remote main = 9a0c6db  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1403595B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1403595B  sha256 83ecfbeab6d18d51...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 35b4af3de810f64e...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 4206a149a9  ok
+  app.js canonicalised + hashed : 4206a149a9  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : 4206a149a9  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 3 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the Section D riders: a declared derived row is computed on the section page and not only in the editor, it renders read-only on both surfaces, and a near-zero percentage reads as small rather than absent -- CLCPA-131, CLCPA-308, CLCPA-310
+build id (app.js): 4206a149a9
+styles.css id    : 9039bfc509   (replaced 9039bfc509)
+previous build   : ec57405193, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 292cc9d
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 4206a149a9
+
+THE ACCEPTANCE PASS:
+  THE HEADLINE GATE IS AGAIN A NEGATIVE ONE: NOTHING PUBLISHED MOVES.
+     Every figure on every section page should read exactly as it does
+     today, to the digit. Measured before the code: of the 49 declared
+     derived-row cells in the payload, 0 move. What changes is what the
+     page does with a cell the preparer left EMPTY, what those rows look
+     like, and how a share too small to round is written.
+  
+  THE RENDER FIX, on a Section D page. Open Section D and walk the D.2,
+     D.3 and D.4 source tabs. Every percentage row must read exactly as
+     it does today: D2 32.4% / 32.7%, D3 34.8% / 51.3%, D4 5.9% / 5.5%
+     and the rest. A moved figure is a regression, not a fix.
+  
+  THE READ-ONLY PRESENTATION, both surfaces. Report Data, D3, any year:
+     the two Percentage rows must be grey calculated cells with no input
+     to type into, while the count rows above them stay typeable. On the
+     section page the same two rows must carry the total-row treatment.
+     AND THE MECHANISM MUST NOT REGRESS, which is the real test: change
+     a COUNT the percentage divides and the percentage must recompute
+     while staying read-only; press Save Changes and the dialog must say
+     ONE cell change, with the history recording your own cell and NOT
+     the computed row.
+  
+  THE NEAR-ZERO RULE, both surfaces. On a scratch year of D3 set
+     "Total # of subscribers" to 7,400 and "Total # of subscribers in
+     DACs" to 1, and leave the Percentage rows alone. The share is a true
+     0.0135%. Both the editor and the section page must read <0.1% --
+     the same string on both. Before this the editor read a bare 0 with
+     no percent sign and the page read 0.0%, and neither can be told
+     from nobody at all.
+     AND THE CLEAN CASES MUST BE UNTOUCHED: every other percentage on
+     those panels reads exactly as it does today, at one decimal, with
+     no long float tails.
+
+STILL DISCLOSED, not defects in this build:
+  - THE RULE AND ITS THRESHOLD, stated: a non-zero percentage that would
+  -    render as all zeros at the precision in force renders as less-than
+  -    the smallest magnitude that precision can show -- <0.1% at one
+  -    decimal, <0.01% at two -- and a negative mirrors to >-0.1%. The
+  -    threshold is 10 to the minus decimals, derived from the precision
+  -    the rule already declares, so it is not a constant that can drift.
+  -    A TRUE zero is left alone, because it really is absent.
+  - THE RENDER FIX IS SAFE ONLY BECAUSE OF ITS BASELINE. Applying the row
+  -    rules on the page without the kept-figure baseline republishes 47 of
+  -    the payload 49 declared cells -- D2/2023 would put
+  -    0.32057920404599916 over a filed 0.321 and D4/2024 would overwrite a
+  -    filed 0.4 with 0.3397. The stored rows are passed as that baseline
+  -    and 0 move. The suite drives both callings and requires the
+  -    difference.
+  - A RECORDED DECISION WAS SUPERSEDED, not quietly reversed. CLCPA-270
+  -    deliberately left these rows typeable because their denominator was
+  -    not in the table and the preparer had to file them. CLCPA-308 then
+  -    declared them, so the engine fills them from rows that ARE in the
+  -    table: the premise changed, not the judgement.
+  - WHAT THIS WAVE DOES NOT TOUCH: the Section F board. CLCPA-312 is parked
+  -    unfinished on its own branch, outside this order, and nothing from it
+  -    is in these bytes.
+  - THE STYLESHEET AND THE HTML DO NOT MOVE in this wave. app.js alone
+  -    changes; the HTML follows it through its ?v= stamp, and the byte
+  -    comparison against the live copy is what decides what is pushed,
+  -    not this note.
+
+=== log written by deploy_section_d_derived_rows.js ===
