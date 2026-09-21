@@ -1,187 +1,206 @@
 {
-  "generated": "2026-09-21T15:59:22.721Z",
-  "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
-  "environment": {
-    "name": "Sustainability Design - Dev",
-    "url": "https://orgc60845ae.crm.dynamics.com/",
-    "environmentId": "d491a3e9-379f-e433-8ccb-afb49607c31d",
-    "organizationId": "1dfebd7e-cd6f-f111-b27b-000d3a5cc314"
+ "generated": "2026-09-21T15:59:22.721Z",
+ "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
+ "environment": {
+  "name": "Sustainability Design - Dev",
+  "url": "https://orgc60845ae.crm.dynamics.com/",
+  "environmentId": "d491a3e9-379f-e433-8ccb-afb49607c31d",
+  "organizationId": "1dfebd7e-cd6f-f111-b27b-000d3a5cc314"
+ },
+ "git": {
+  "repo": "clarafortuna/demos",
+  "branch": "clcpa-integration-candidate",
+  "head": "74958bd54f2d64fab707862961f387d61604c302",
+  "pushed": true,
+  "integrationBase": "75e8eec",
+  "lastReconciledEngineerTip": "0893352",
+  "originMain": "40a6f3e"
+ },
+ "build": {
+  "app.js": "880d355622",
+  "styles.css": "9039bfc509"
+ },
+ "solution": {
+  "uniqueName": "CLCPAExecutiveDashboardIntegration",
+  "displayName": "CLCPA Executive Dashboard - Integration",
+  "version": "1.0.1.6",
+  "managed": false
+ },
+ "publisher": {
+  "uniqueName": "CLCPAIntegration",
+  "prefix": "clcpa",
+  "publisherId": "a07dd787-a794-47a5-a663-f4ddd44b1458"
+ },
+ "app": {
+  "uniqueName": "clcpa_ExecutiveDashboard_integration",
+  "appModuleId": "2c35b607-4161-4576-8ae8-9d9dae7bcc0e",
+  "siteMap": "clcpa_ExecutiveDashboard_integration",
+  "url": "https://orgc60845ae.crm.dynamics.com/main.aspx?appid=2c35b607-4161-4576-8ae8-9d9dae7bcc0e"
+ },
+ "resources": [
+  {
+   "webResourceName": "clcpa_dashboard/ExecutiveDashboard.html",
+   "displayName": "CLCPA - ExecutiveDashboard.html",
+   "webResourceId": "d428c15d-a9bf-4529-a3d0-a9b8cab1195d",
+   "type": 1,
+   "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
+   "repoSha256": "4ba1d6e7b5925ae6",
+   "deployedSha256": "4304e8119a4d9cc1",
+   "stamped": true
   },
-  "git": {
-    "repo": "clarafortuna/demos",
-    "branch": "clcpa-integration-candidate",
-    "head": "74958bd54f2d64fab707862961f387d61604c302",
-    "pushed": true,
-    "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "0893352",
-    "originMain": "40a6f3e"
+  {
+   "webResourceName": "clcpa_dashboard/styles.css",
+   "displayName": "CLCPA - styles.css",
+   "webResourceId": "f6386636-3edd-4525-b1ad-595c8a38b86b",
+   "type": 2,
+   "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/styles.css",
+   "repoSha256": "9039bfc5093de9cc",
+   "deployedSha256": "9039bfc5093de9cc",
+   "stamped": true
   },
-  "build": {
-    "app.js": "880d355622",
-    "styles.css": "9039bfc509"
+  {
+   "webResourceName": "clcpa_dashboard/app.js",
+   "displayName": "CLCPA - app.js",
+   "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
+   "type": 3,
+   "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
+   "repoSha256": "c65abf98a81758a8",
+   "deployedSha256": "df51239db59b8b1c",
+   "stamped": true
   },
-  "solution": {
-    "uniqueName": "CLCPAExecutiveDashboardIntegration",
-    "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.1.5",
-    "managed": false
+  {
+   "webResourceName": "clcpa_dashboard/payload.json",
+   "displayName": "CLCPA - payload.json",
+   "webResourceId": "e8012153-16b9-42ec-a1b8-afa46d310085",
+   "type": 4,
+   "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/payload.json",
+   "repoSha256": "9f4fd7ac27e397c2",
+   "deployedSha256": "9f4fd7ac27e397c2",
+   "stamped": false
   },
-  "publisher": {
-    "uniqueName": "CLCPAIntegration",
-    "prefix": "clcpa",
-    "publisherId": "a07dd787-a794-47a5-a663-f4ddd44b1458"
+  {
+   "webResourceName": "clcpa_dashboard/logo/ConEd_Logo_fondo_blanco.jpeg",
+   "displayName": "CLCPA - logo ConEd_Logo_fondo_blanco.jpeg",
+   "webResourceId": "1fc8f07b-0a93-4f19-9abf-21484b21df51",
+   "type": 6,
+   "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_fondo_blanco.jpeg",
+   "repoSha256": "bdf1c9a562961eb8",
+   "deployedSha256": "bdf1c9a562961eb8",
+   "stamped": false
   },
-  "app": {
-    "uniqueName": "clcpa_ExecutiveDashboard_integration",
-    "appModuleId": "2c35b607-4161-4576-8ae8-9d9dae7bcc0e",
-    "siteMap": "clcpa_ExecutiveDashboard_integration",
-    "url": "https://orgc60845ae.crm.dynamics.com/main.aspx?appid=2c35b607-4161-4576-8ae8-9d9dae7bcc0e"
+  {
+   "webResourceName": "clcpa_dashboard/logo/ConEd_Logo_completo.svg",
+   "displayName": "CLCPA - logo ConEd_Logo_completo.svg",
+   "webResourceId": "e6b31c2a-9d2f-4545-b175-0c10f4edb9c2",
+   "type": 11,
+   "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_completo.svg",
+   "repoSha256": "fb2cde9d78316eab",
+   "deployedSha256": "fb2cde9d78316eab",
+   "stamped": false
+  }
+ ],
+ "legacyLine": {
+  "note": "Untouched. Byte-identical before and after the integration import; only modifiedon moved, from the org-wide publish.",
+  "solution": "CLCPADACDashboard",
+  "app": "cr2bf_ExecutiveDashboard_test",
+  "appModuleId": "d94e39fc-dac7-469e-a985-aa714a6e4bfe",
+  "deployedBuild": "342094b187",
+  "sourceCommit": "b4583b7"
+ },
+ "reconciliation": {
+  "round": 19,
+  "baseline": "0893352 (origin/clcpa-293-r4-b7-registry)",
+  "outstanding": 0,
+  "mergedIntoIntegration": "74958bd",
+  "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
+  "absorbedThisRound": {
+   "commits": 1,
+   "tickets": [
+    "CLCPA-293: the B7 registry document and the ruling on the eleven nominees"
+   ]
   },
-  "resources": [
-    {
-      "webResourceName": "clcpa_dashboard/ExecutiveDashboard.html",
-      "displayName": "CLCPA - ExecutiveDashboard.html",
-      "webResourceId": "d428c15d-a9bf-4529-a3d0-a9b8cab1195d",
-      "type": 1,
-      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
-      "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "4304e8119a4d9cc1",
-      "stamped": true
-    },
-    {
-      "webResourceName": "clcpa_dashboard/styles.css",
-      "displayName": "CLCPA - styles.css",
-      "webResourceId": "f6386636-3edd-4525-b1ad-595c8a38b86b",
-      "type": 2,
-      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/styles.css",
-      "repoSha256": "9039bfc5093de9cc",
-      "deployedSha256": "9039bfc5093de9cc",
-      "stamped": true
-    },
-    {
-      "webResourceName": "clcpa_dashboard/app.js",
-      "displayName": "CLCPA - app.js",
-      "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
-      "type": 3,
-      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "880d3556229e13ed",
-      "deployedSha256": "df51239db59b8b1c",
-      "stamped": true
-    },
-    {
-      "webResourceName": "clcpa_dashboard/payload.json",
-      "displayName": "CLCPA - payload.json",
-      "webResourceId": "e8012153-16b9-42ec-a1b8-afa46d310085",
-      "type": 4,
-      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/payload.json",
-      "repoSha256": "9f4fd7ac27e397c2",
-      "deployedSha256": "9f4fd7ac27e397c2",
-      "stamped": false
-    },
-    {
-      "webResourceName": "clcpa_dashboard/logo/ConEd_Logo_fondo_blanco.jpeg",
-      "displayName": "CLCPA - logo ConEd_Logo_fondo_blanco.jpeg",
-      "webResourceId": "1fc8f07b-0a93-4f19-9abf-21484b21df51",
-      "type": 6,
-      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_fondo_blanco.jpeg",
-      "repoSha256": "bdf1c9a562961eb8",
-      "deployedSha256": "bdf1c9a562961eb8",
-      "stamped": false
-    },
-    {
-      "webResourceName": "clcpa_dashboard/logo/ConEd_Logo_completo.svg",
-      "displayName": "CLCPA - logo ConEd_Logo_completo.svg",
-      "webResourceId": "e6b31c2a-9d2f-4545-b175-0c10f4edb9c2",
-      "type": 11,
-      "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/logo/ConEd_Logo_completo.svg",
-      "repoSha256": "fb2cde9d78316eab",
-      "deployedSha256": "fb2cde9d78316eab",
-      "stamped": false
-    }
-  ],
-  "legacyLine": {
-    "note": "Untouched. Byte-identical before and after the integration import; only modifiedon moved, from the org-wide publish.",
-    "solution": "CLCPADACDashboard",
-    "app": "cr2bf_ExecutiveDashboard_test",
-    "appModuleId": "d94e39fc-dac7-469e-a985-aa714a6e4bfe",
-    "deployedBuild": "342094b187",
-    "sourceCommit": "b4583b7"
-  },
-  "reconciliation": {
-    "round": 19,
-    "baseline": "0893352 (origin/clcpa-293-r4-b7-registry)",
-    "outstanding": 0,
-    "mergedIntoIntegration": "74958bd",
-    "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
-    "absorbedThisRound": {
-      "commits": 1,
-      "tickets": [
-        "CLCPA-293: the B7 registry document and the ruling on the eleven nominees"
-      ]
-    },
-    "previousRounds": [
-      {
-        "round": 1,
-        "baseline": "74458b2",
-        "mergedIntoIntegration": "c51bddc",
-        "build": "a0c04d51be"
-      }
-    ]
-  },
-  "deployPolicy": {
-    "orgAssertion": "tools/deploy_guard.js assertOrganization -- REQUIRED before any write; fails closed",
-    "publish": "targeted PublishXml naming only clcpa_ web resource ids; PublishAllXml and --publish-changes are forbidden",
-    "pacEnvironmentPinning": "pass --environment explicitly on every pac call; the ambient selected org has been observed flipping between commands",
-    "knownCollision": "cr2bf_dactest web resource GUIDs are identical in at least three orgs: org9076e69b (Clara Fortuna Dev), orgc60845ae (Sustainability Design - Dev), orgbdb6dd88 (Customer Assistance - Dev)"
-  },
-  "repositoryIdentity": {
-    "repo": "clarafortuna/demos",
-    "remoteUrl": "https://github.com/clarafortuna/demos.git",
-    "note": "The ONLY repository this project has ever lived in. ProjectRepos-UnifiedCSRPortal is an unrelated project that merely happens to be this session working directory; it holds zero CLCPA commits and no clcpa-* branch. Always qualify PR references as owner/repo#N."
-  },
-  "knownDefects": [
-    {
-      "id": "CLCPA-330",
-      "status": "OPEN, reproduced in the deployed integration build 538f071523",
-      "summary": "A9 renders 3 of 5 data rows with a currency prefix on non-currency quantities, because currency_cols is declared per COLUMN while the unit belongs to the ROW.",
-      "observed": {
-        "Energy Savings (MMBtu)": "$4.4M / $2.5M / $4.0M / $2.1M",
-        "Participation": "$2.1M / $1.1M / $2.0M / $943K",
-        "Average Energy Savings Per Participant": "$2.09 / $2.2 / $1.99 / $2.25"
-      },
-      "blockedBy": "no per-row type key exists in any table definition; fixing it would either write stored data into a frozen payload.json or hardcode dashboard data in app.js"
-    }
-  ],
-  "engineerLine": {
-    "deployedBuild": "bf2b92af29",
-    "org": "org9076e69b (Clara Fortuna Dev)",
-    "note": "her line and ours diverge by the security escaping and CLCPA-330 alone; different build ids are expected, not drift"
-  },
-  "openRulings": [
-    {
-      "id": "CLCPA-293",
-      "status": "NARROWED — mechanism shipped and proven; membership confirmed for 2 rows / 5 cells; FOUR nominees deferred to the client conversation",
-      "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row. Round 2 wrongly argued the refusal was correct; round 3 reproduced it; the ruled fix (ingestRebuildableTotals refusing only where a DECLARED rule derives the cell) met every condition -- 5 anatomies, 40 staged / 40 landed / 0 excluded, 6,135 cells with 0 table-years and 0 KPI figures moving, 48 assertions 0 failed -- and was still withdrawn.",
-      "needs": "Randdy and ConEd to rule on the four deferred nominees. Nothing else blocks. Omission is safe by construction: a total left out behaves exactly as today, so the only way to do harm is a WRONG INCLUSION, which suite_293_r4 block E asserts against across every total cell of every stored table-year.",
-      "memo": "docs/CLCPA-293-DECISION-MEMO.md",
-      "alsoCovers": "CLCPA-303/B2, which shows ownership and persistence are different questions the current design conflates. B2 unchanged.",
-      "round4": "B7_PREPARER_TOTALS: an explicit registry keyed by table + row LABEL + column HEADING, never index. Default stays refuse, so CLCPA-88 holds by construction. A declared-summable column is the engine s whatever the registry says.",
-      "evidence": "suite_293_r4 54/0 and mut_293_r4 54/0. The round-1 guard that killed rounds 2 and 3 passes: D1 A1 s Total is NOT taken from the preparer. The second surface is closed: the accepted figure SURVIVES the recompute, [777,222], on every anatomy.",
-      "confirmed": "2 rows, 5 cells, each by a standing ruling AND measurement",
-      "rejected": "the C2 nominees — their silence is data-shaped and one axis is declared summable by CLCPA-254",
-      "deferred": "A2, A3, A4 and F9 — data questions she explicitly left for the client conversation",
-      "doc": "tickets/CLCPA-293-b7-registry.md"
-    }
-  ],
-  "ownerRulings": [
-    {
-      "id": "CLCPA-330",
-      "ruled": "2026-09-21",
-      "decision": "per-row declarative type/format metadata; the type belongs to the row/schema/registry definition",
-      "implemented": "currency_rows on the table definition narrows currency_cols by row label; one optional key, one predicate (rowIsCurrency)",
-      "build": "c2554b3841",
-      "coverage": "suite_330 28 assertions, mut_330 6 mutants all caught",
-      "verifiedLive": "A9 renders Incentives 80.3M and Average Incentive per Participant 82 as money; Energy Savings (MMBtu) 4,360,879, Participation 2,087,688 and Average Energy Savings Per Participant 2.09 without a currency prefix"
-    }
+  "previousRounds": [
+   {
+    "round": 1,
+    "baseline": "74458b2",
+    "mergedIntoIntegration": "c51bddc",
+    "build": "a0c04d51be"
+   }
   ]
+ },
+ "deployPolicy": {
+  "orgAssertion": "tools/deploy_guard.js assertOrganization -- REQUIRED before any write; fails closed",
+  "publish": "targeted PublishXml naming only clcpa_ web resource ids; PublishAllXml and --publish-changes are forbidden",
+  "pacEnvironmentPinning": "pass --environment explicitly on every pac call; the ambient selected org has been observed flipping between commands",
+  "knownCollision": "cr2bf_dactest web resource GUIDs are identical in at least three orgs: org9076e69b (Clara Fortuna Dev), orgc60845ae (Sustainability Design - Dev), orgbdb6dd88 (Customer Assistance - Dev)"
+ },
+ "repositoryIdentity": {
+  "repo": "clarafortuna/demos",
+  "remoteUrl": "https://github.com/clarafortuna/demos.git",
+  "note": "The ONLY repository this project has ever lived in. ProjectRepos-UnifiedCSRPortal is an unrelated project that merely happens to be this session working directory; it holds zero CLCPA commits and no clcpa-* branch. Always qualify PR references as owner/repo#N."
+ },
+ "knownDefects": [
+  {
+   "id": "CLCPA-330",
+   "status": "OPEN, reproduced in the deployed integration build 538f071523",
+   "summary": "A9 renders 3 of 5 data rows with a currency prefix on non-currency quantities, because currency_cols is declared per COLUMN while the unit belongs to the ROW.",
+   "observed": {
+    "Energy Savings (MMBtu)": "$4.4M / $2.5M / $4.0M / $2.1M",
+    "Participation": "$2.1M / $1.1M / $2.0M / $943K",
+    "Average Energy Savings Per Participant": "$2.09 / $2.2 / $1.99 / $2.25"
+   },
+   "blockedBy": "no per-row type key exists in any table definition; fixing it would either write stored data into a frozen payload.json or hardcode dashboard data in app.js"
+  }
+ ],
+ "engineerLine": {
+  "deployedBuild": "bf2b92af29",
+  "org": "org9076e69b (Clara Fortuna Dev)",
+  "note": "her line and ours diverge by the security escaping and CLCPA-330 alone; different build ids are expected, not drift"
+ },
+ "openRulings": [
+  {
+   "id": "CLCPA-293",
+   "status": "NARROWED — mechanism shipped and proven; membership confirmed for 2 rows / 5 cells; FOUR nominees deferred to the client conversation",
+   "summary": "the import discards a preparer grand total when the target year already holds one as a stored structural row. Round 2 wrongly argued the refusal was correct; round 3 reproduced it; the ruled fix (ingestRebuildableTotals refusing only where a DECLARED rule derives the cell) met every condition -- 5 anatomies, 40 staged / 40 landed / 0 excluded, 6,135 cells with 0 table-years and 0 KPI figures moving, 48 assertions 0 failed -- and was still withdrawn.",
+   "needs": "Randdy and ConEd to rule on the four deferred nominees. Nothing else blocks. Omission is safe by construction: a total left out behaves exactly as today, so the only way to do harm is a WRONG INCLUSION, which suite_293_r4 block E asserts against across every total cell of every stored table-year.",
+   "memo": "docs/CLCPA-293-DECISION-MEMO.md",
+   "alsoCovers": "CLCPA-303/B2, which shows ownership and persistence are different questions the current design conflates. B2 unchanged.",
+   "round4": "B7_PREPARER_TOTALS: an explicit registry keyed by table + row LABEL + column HEADING, never index. Default stays refuse, so CLCPA-88 holds by construction. A declared-summable column is the engine s whatever the registry says.",
+   "evidence": "suite_293_r4 54/0 and mut_293_r4 54/0. The round-1 guard that killed rounds 2 and 3 passes: D1 A1 s Total is NOT taken from the preparer. The second surface is closed: the accepted figure SURVIVES the recompute, [777,222], on every anatomy.",
+   "confirmed": "2 rows, 5 cells, each by a standing ruling AND measurement",
+   "rejected": "the C2 nominees — their silence is data-shaped and one axis is declared summable by CLCPA-254",
+   "deferred": "A2, A3, A4 and F9 — data questions she explicitly left for the client conversation",
+   "doc": "tickets/CLCPA-293-b7-registry.md"
+  },
+  {
+   "id": "DEPLOY-BLOCKER-2026-09-21",
+   "opened": "2026-09-21T17:06:27.510Z",
+   "kind": "deployment tooling",
+   "summary": "pac solution import reports success and does not update web resource content",
+   "detail": "Build 17 (solution 1.0.1.6) carries app.js c65abf98a81758a8 / 1,385,323 B, verified inside the zip. Three imports into Sustainability Design - Dev, environment pinned, org 1dfebd7e asserted before each: with --force-overwrite (x2) and without (x1, the exact shape that landed build 16). All three printed \"Solution Imported successfully\". The solution version moved 1.0.1.5 -> 1.0.1.6 and modifiedon moved on all six clcpa_ resources, but the content did not: solution export and a direct FetchXML read of webresourceset both return df51239db59b8b1c / 1,378,239 B, byte-identical to build 16, and neither carries the delta-unique marker ingestMarkerSource.",
+   "ruledOut": [
+    "artifact -- the zip unpacks to the correct bytes and is structurally identical to build 16s, entry for entry",
+    "line endings -- 26,753 CRLF pairs, no CR CR, no lone CR, no lone LF, no NUL, no BOM",
+    "size -- maxuploadfilesize is 5,242,880 and the file is 1,385,323",
+    "solution layering -- the resource belongs only to our unmanaged solution plus Default and Active",
+    "stale export -- an independent FetchXML content read agrees with the export",
+    "--force-overwrite -- the failure reproduces with and without it"
+   ],
+   "safeguardsHeld": true,
+   "legacyUnchanged": "cr2bf_dactest/* all seven still read 2026-09-19 07:06 PM",
+   "blocks": "step 9 of the reconciliation cycle; baseline NOT advanced",
+   "needsOwner": "a decision on whether to move our line to the PATCH webresourceset + targeted PublishXml path, which needs interactive device-code auth as Randdy"
+  }
+ ],
+ "ownerRulings": [
+  {
+   "id": "CLCPA-330",
+   "ruled": "2026-09-21",
+   "decision": "per-row declarative type/format metadata; the type belongs to the row/schema/registry definition",
+   "implemented": "currency_rows on the table definition narrows currency_cols by row label; one optional key, one predicate (rowIsCurrency)",
+   "build": "c2554b3841",
+   "coverage": "suite_330 28 assertions, mut_330 6 mutants all caught",
+   "verifiedLive": "A9 renders Incentives 80.3M and Average Incentive per Participant 82 as money; Energy Savings (MMBtu) 4,360,879, Participation 2,087,688 and Average Energy Savings Per Participant 2.09 without a currency prefix"
+  }
+ ]
 }
