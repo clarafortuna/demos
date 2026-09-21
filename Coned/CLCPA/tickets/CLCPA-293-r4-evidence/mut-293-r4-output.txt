@@ -1,0 +1,48 @@
+Mutation controls for suite_293_r4
+  app.js sha256[0:12] before: d3d9d1e654c1
+
+  [1] THE REGISTRY NEVER MATCHES: isB7PreparerTotal always says no, so the import refuses the preparers grand total again
+      expected red : A1, A2, A3
+      actually red : A4, A1, A2, A3, B3, C1, C2
+      ok
+
+  [2] THE SECOND SURFACE IS REMOVED: the import accepts the figure and the editors next recompute writes over it, so the advisory lies
+      expected red : A2, A3
+      actually red : A2, A3
+      ok
+
+  [3] THE MARKER EXCLUSION IS REMOVED: the workbook says (calculated) on a cell the import then accepts from the preparer
+      expected red : B3
+      actually red : B3
+      ok
+
+  [4] THE IMPORT CLAUSE DROPS THE REGISTRY TERM, leaving the value probe to decide ownership exactly as it did before
+      expected red : (none)
+      actually red : (none)
+      UNREACHED, deliberately: UNREACHED on every stored anatomy, and MEASURED so rather than assumed. The second surface subsumes it: a registry member is skipped by recomputeTotals, so the probe inside ingestRebuildableTotals writes nothing for it and never reports it rebuildable, which means the accept condition is already true without the registry term. The term still guards the one path that bypasses the probe -- the exception branch, which refuses every column when recomputeTotals throws -- so it is kept rather than deleted, and recorded here as unreached rather than left looking like a guard that fires.
+
+  [5] THE REGISTRY IS PADDED with A1s Total, which the engine really does derive, so a file overwrites it: CLCPA-88 coming back
+      expected red : C4, C5, C6, C7
+      actually red : C4, C5, C6, C7, E1, E2, E3
+      ok
+
+  [6] MEMBERSHIP MATCHES ON THE ROW ALONE, ignoring the column, so every column of a member row is handed over
+      expected red : (none)
+      actually red : (none)
+      UNREACHED, deliberately: INERT AT THIS REGISTRY SIZE, and measured so rather than assumed. The confirmed registry is two rows, and the columns row-only matching would add are already refused or already silent on stored data, so no accept/refuse decision moves. The control is kept because it stops being inert the moment a member row with a derivable sibling column is confirmed -- which is exactly what the eleven held-back nominees would do -- and control 7 below proves the E block can still fail.
+
+  [7] MEMBERSHIP MATCHES ON THE COLUMN ALONE, ignoring the row, so a data row in a member column is handed over
+      expected red : E1
+      actually red : A6, E1
+      ok
+
+========================================================================
+  app.js sha256[0:12] after : d3d9d1e654c1
+  app.js is byte-for-byte unchanged: every mutation went to a temp copy.
+
+  CLEAN RE-RUN against the restored source:
+    54 passed, 0 failed   exit 0
+========================================================================
+  all 7 controls turned the suite red on the assertions they target, and the
+  clean re-run is green against byte-restored source.
+========================================================================

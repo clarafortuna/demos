@@ -3953,6 +3953,95 @@ function utf8ByteLength(str) {
    * own fallback, and quietly move that KPI from the stored 62% to a computed
    * 65.6% while the table showed 62%.
    */
+  /* CLCPA-293 round 4: B7 -- TOTALS THAT BELONG TO THE PREPARER.
+   *
+   * An EXPLICIT registry, and the explicitness is the whole design. Round 3
+   * built the inverse of this -- refuse only where a registry rule derives
+   * the cell -- and it was withdrawn before merge because, read literally,
+   * it handed 262 of 432 total-row cells to the preparer: a plain additive
+   * total is a RULE the engine runs but not a REGISTRY ENTRY, so A1's Total
+   * accepted 111,111 from a file. That is the defect CLCPA-88 exists to
+   * prevent.
+   *
+   * THE FAILURE MODE IS SAFE BY CONSTRUCTION, which is why this shape was
+   * ruled. A total that is NOT in this registry behaves exactly as it does
+   * today: the engine owns it and a file cannot overwrite it. So an
+   * omission here costs nothing that is not already the case, while a wrong
+   * INCLUSION is the only way to do harm -- and that asymmetry is why the
+   * list below is deliberately conservative and confirmed by the owner
+   * rather than inferred.
+   *
+   * MEMBERSHIP DERIVES FROM MEASUREMENT, never from memory. Every entry was
+   * produced by census_293_r4.js, which asks the engine itself -- blank the
+   * row, recompute the rest, read back what it wrote -- across every stored
+   * table-year. Each member below is a cell the engine produced NOTHING for
+   * in every year the source has filed, and which the table itself agrees
+   * is a total. A8's grand total and J8's Total are members by standing
+   * ruling as well as by measurement.
+   *
+   * KEYED BY LABEL AND COLUMN HEADING, not by index. B2 is the lesson: its
+   * schema gains a column in 2025 and every index after it shifts, so an
+   * index-keyed registry would silently point at the wrong column in one
+   * year. Labels and headings are what the source actually fixes.
+   */
+  /* WHAT SHIPS HERE IS THE CONFIRMED SET, and it is two rows rather than the
+   * census's sixteen cells. The rest are nominated in the report and wait
+   * for a ruling, for a reason worth keeping:
+   *
+   * THE CENSUS CANNOT TELL STRUCTURAL SILENCE FROM DATA-SHAPED SILENCE, and
+   * C2 is the proof. Its Total measures SILENT in all three stored years,
+   * which looks like strong evidence -- until you notice its body rows store
+   * "37,988 (33%)" as text. Given plain numbers the engine sums that column
+   * perfectly well, which suite_254 has asserted since the C-05 audit, and
+   * one of those columns is DECLARED summable by CLCPA-254. So three of the
+   * census's nominees would have contradicted a standing ruling.
+   *
+   * The same doubt applies to A2, A3, A4 and F9, and it cannot be settled by
+   * measurement: whether a total legitimately covers more than its rows is a
+   * fact about Con Edison's reporting, not about the table. A8's grand total
+   * and J8's Total are members because standing rulings already decided
+   * exactly that question for them.
+   *
+   * The failure mode makes waiting cheap: a total left out behaves as it
+   * does today, so the nominees lose nothing by being confirmed later.
+   *
+   * CONFIRMED 2026-09-21: these two rows and nothing else. The C2 nominees
+   * were REJECTED -- their silence is data-shaped and one axis is declared
+   * summable by CLCPA-254 -- and A2, A3, A4 and F9 were DEFERRED as data
+   * questions for the client conversation. Each nominee's evidence, and
+   * what it would take to add one, is in tickets/CLCPA-293-b7-registry.md.
+   * Read that before editing this list. */
+  const B7_PREPARER_TOTALS = {
+    /* the grand total covers programmes that are not rows of this table:
+     * 336,599 against 283,852 itemised, and the 52,747 difference is real */
+    A8: [{ row: 'Total CES Programs Installations', column: 'Total Installations' },
+         { row: 'Total CES Programs Installations', column: 'DAC Installations' }],
+    /* B7-class by standing ruling: the dollar figures are the preparer's */
+    J8: [{ row: 'Total', column: 'Electric' },
+         { row: 'Total', column: 'Gas' },
+         { row: 'Total', column: '% of Total' }],
+  };
+
+  /** Is this cell a total the PREPARER owns? Label and heading, trimmed and
+   * case-insensitive, because a source that re-types a heading with
+   * different capitalisation has not changed which column it is. */
+  function isB7PreparerTotal(tableId, rowLabel, columnHead) {
+    const list = (tableId && B7_PREPARER_TOTALS[tableId]) || null;
+    if (!list) return false;
+    /* A DECLARED-SUMMABLE COLUMN IS THE ENGINE'S, whatever this registry
+     * says. CLCPA-254 declared C2's "Average Event Reductions (MW)"
+     * summable after the C-05 audit found its total sitting empty, and that
+     * is a standing ruling that the engine computes it. Refusing it here
+     * rather than only leaving it out of the list means the two
+     * declarations cannot contradict each other even if the list above is
+     * edited without reading this. */
+    if (isDeclaredSummable(tableId, columnHead)) return false;
+    const norm = (v) => String(v == null ? '' : v).trim().toLowerCase();
+    const r = norm(rowLabel), c = norm(columnHead);
+    if (!r || !c) return false;
+    return list.some(m => norm(m.row) === r && norm(m.column) === c);
+  }
+
   const NOT_RECONCILED_TABLES = new Set(['F9', 'J8']);
   /* There is deliberately no note string to go with this set. The client-facing
    * banner was removed in Block 3 phase 2: the report is read by Con Edison
@@ -18302,6 +18391,20 @@ function wireHTooltips() {
        * same one CLCPA-272 reconciles against, so guidance and advisory cannot
        * disagree about which columns are derivable. */
       marksInTemplate: (r, c) => {
+        /* CLCPA-293 round 4: A REGISTRY MEMBER IS NEVER MARKED.
+         *
+         * The standing J8 ruling, applied to the rest of the registry: a
+         * total row the engine cannot derive from its own rows must never
+         * carry (calculated), because that tells the preparer to leave
+         * blank a cell only they can fill. Every registry member is a cell
+         * the engine produces NOTHING for in every stored year, so the
+         * marker and the import have to agree about whose cell it is.
+         *
+         * Without this the two surfaces contradicted each other on the
+         * measured anatomy: the workbook said (calculated), and the import
+         * accepted the figure and named it as the preparer's. The suite
+         * caught it in the same round the registry was built. */
+        if (isB7PreparerTotal(tableId, (rows[r] || [])[0], schema[c])) return false;
         if (!!derivedRowSet[r] && c >= 1 && engineWrites(c)) return true;
         /* CLCPA-320: role OR arithmetic. The arithmetic term is kept rather
          * than replaced, because it recognises total rows whose label does
@@ -18712,8 +18815,28 @@ function wireHTooltips() {
            * any other cell. What changes is that it is no longer dropped in
            * silence: it is recorded so the panel can say it was accepted and
            * what the itemised rows give instead. */
-          if (!computed.derivedCol(cIdx) && !rebuildableTotals.has(t.rowIdx + ',' + cIdx)) {
+          /* CLCPA-293 round 4: THE B7 REGISTRY, and it only ever WIDENS what
+           * is accepted.
+           *
+           * A registry member is accepted, kept and named even when the
+           * value probe says the engine could rebuild it -- because that
+           * probe reads the figure currently stored in the cell, and a
+           * stored copy that happens to reconcile is exactly how ownership
+           * came to depend on which year was open. A8's grand total is the
+           * case: the engine produces NOTHING for it in every stored year,
+           * so the number can only have come from the preparer, and the
+           * probe still called it rebuildable once an earlier import had
+           * written a reconciling figure there.
+           *
+           * Everything NOT in the registry keeps today's behaviour exactly.
+           * That is the safe direction: this clause can only move a cell
+           * from refused to accepted-and-named, never the reverse, so an
+           * omission from the registry is never a CLCPA-88 regression. */
+          const b7 = isB7PreparerTotal(tableId, candidate[t.rowIdx][0], schema[cIdx]);
+          if (b7 || (!computed.derivedCol(cIdx) &&
+                     !rebuildableTotals.has(t.rowIdx + ',' + cIdx))) {
             res.preparerTotals.push(Object.assign({ rowIndex: t.rowIdx, colIndex: cIdx,
+              b7: !!b7,
               itemised: (itemisedSum ? itemisedSum[cIdx] : null) }, where));
           } else {
             res.notTouched.computed.push(Object.assign({
@@ -19940,6 +20063,33 @@ function wireHTooltips() {
          * input to this total, so it shows the sum -- past the source-disagreement
          * protection and past the rounding tolerance alike. Both of those exist for
          * a total sitting IDLE. */
+        /* CLCPA-293 round 4: THE SECOND SURFACE. A B7 total is the
+         * preparer's, and it has to survive this write or the advisory that
+         * says so is a lie.
+         *
+         * Measured before this clause existed: an import accepted the
+         * preparer's 777 into A8's grand total, the panel said "taken as
+         * filed", and the very next recompute wrote 283,936 over it -- so
+         * that is what a save stored and what the report published. The
+         * figure the operator was told had been accepted existed for one
+         * instant and never reached the table.
+         *
+         * PLACED BEFORE bodyTouched, deliberately, and that is the whole
+         * difference from the CLCPA-212 protection below. Editing an
+         * itemised row must NOT replace a B7 total with the column sum:
+         * A8's grand total covers programmes that are not rows of this
+         * table, so the sum of the rows is not a better answer than the
+         * figure the preparer filed. The CLCPA-212 protection deliberately
+         * yields to bodyTouched because there the total IS its rows' sum
+         * and an edited input means the operator wants the arithmetic.
+         *
+         * AND AN OPERATOR EDIT OF THE CELL ITSELF WINS, by construction:
+         * this skips the write entirely, so whatever the operator typed
+         * into the cell is what stays there. The baseline is what separates
+         * the two cases -- a source disagreement sits in the baseline and
+         * is left alone, while an edit is in the draft and is never
+         * overwritten. */
+        if (isB7PreparerTotal(tableId, draft[idx][0], schema[c])) continue;
         if (bodyTouched[c]) { draft[idx][c] = sums.colSum[c]; continue; }
         // CLCPA-212: the source's own total does not reconcile here. Leave it; the
         // editor surfaces a note instead. See unreconciledTotals.

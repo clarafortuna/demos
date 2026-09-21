@@ -206,8 +206,19 @@ guard('X-block', () => {
     'X1 the engine is asked which totals it can rebuild');
   ok(/const baseRows = \(draft \|\| \[\]\)\.map\(row => \(row \|\| \[\]\)\.slice\(\)\);/.test(code),
     'X2 asked of the DRAFT, never of the candidate');
-  ok(/if \(!computed\.derivedCol\(cIdx\) && !rebuildableTotals\.has\(t\.rowIdx \+ ',' \+ cIdx\)\) \{/.test(code),
-    'X3 and only the total-row half of the refusal is relaxed');
+  /* RE-POINTED, not widened. Round 1's claim is unchanged: only the
+   * total-row half of the refusal is relaxed, and a derived COLUMN is
+   * still refused whatever the file offers. Round 4 adds ONE term in
+   * front of it -- a total the B7 registry says belongs to the preparer
+   * is accepted even where the value probe would have claimed it -- so
+   * the derivedCol half is pinned separately here rather than as part of
+   * one long line that a later ticket cannot extend without rewriting. */
+  ok(/!computed\.derivedCol\(cIdx\) &&\s*\r?\n?\s*!rebuildableTotals\.has\(t\.rowIdx \+ ',' \+ cIdx\)/.test(code),
+    'X3 and only the total-row half of the refusal is relaxed: a derived ' +
+    'COLUMN is still refused');
+  ok(/if \(b7 \|\| \(!computed\.derivedCol\(cIdx\) &&/.test(code),
+    'X3b with CLCPA-293 round 4s registry term in front of it, which only ' +
+    'ever WIDENS what is accepted');
   /* the conservative default: a probe that cannot run keeps the old refusal */
   ok(/for \(let c = 1; c < schema\.length; c\+\+\) out\.add\(ri \+ ',' \+ c\);/.test(code),
     'X4 a probe that throws marks the row rebuildable, so a broken check costs the fix, not the data');

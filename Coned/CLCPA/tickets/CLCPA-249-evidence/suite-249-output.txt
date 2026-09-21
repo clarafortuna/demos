@@ -188,6 +188,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function bareNumber moved, and it is named by a later ticket: CLCPA-263: the bare-number test (new)
   ok   X1 app.js function compositeValueText moved, and it is named by a later ticket: CLCPA-263: the value formatting (new)
   ok   X1 app.js function applyCompositeShares moved, and it is named by a later ticket: CLCPA-263: the derivation (new)
+  ok   X1 app.js function isB7PreparerTotal moved, and it is named by a later ticket: NOT this ticket: CLCPA-293 round 4: an explicit registry of totals that BELONG TO THE PREPARER because the engine cannot honestly derive them (new: the membership test)
   ok   X1 app.js function totalRowFlags moved, and it is named by a later ticket: NOT this ticket: CLCPA-319: G1 to G9s total row is computed from the rows beneath it, so the report follows its own figures instead of showing a stored copy (a columnTotal column CONFIRMS a total, so it is not skipped)
   ok   X1 app.js function stripDerivedForPersist moved, and it is named by a later ticket: NOT this ticket: CLCPA-241 option (B): A9 % Change computes, and a filed figure the derivation does not reproduce is KEPT rather than overwritten (the strip refuses a kept cell)
   ok   X1 app.js function detectSumColumns moved, and it is named by a later ticket: CLCPA-272: the schema-derived sum relationship (new)
@@ -249,11 +250,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (91) belongs to a later ticket
+  ok   X1b CLCPA-249 itself touched no JavaScript: every moved function (92) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  224 passed, 0 failed
+  225 passed, 0 failed

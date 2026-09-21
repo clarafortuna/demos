@@ -1,0 +1,87 @@
+CLCPA-293 round 4: the B7 registry and the second surface
+BASE 8bf5ea7 (the deployed build)   app.js working tree
+
+H. THE HARNESS IS RUNNING THE REAL FUNCTION
+  ok   H0 every stored table-year is exercised: 149
+  ok   H1 recomputeTotals runs on both builds without throwing, so the probe inside the guard is the real one: []
+
+A. EVERY ANATOMY, AND THE FIGURE SURVIVES TO A SAVE
+  ok   A0 1 rowless: nothing to file into, on either build
+    2 structural, no figures in the row
+        8bf5ea7: import [777,222]  recompute [777,222]  save [777,222]  named 2
+        now:      import [777,222]  recompute [777,222]  save [777,222]  named 2
+  ok   A1 2 structural, no figures in the row: the import accepts the preparer's figure
+  ok   A2 2 structural, no figures in the row: and it SURVIVES the recompute: [777,222]
+  ok   A3 2 structural, no figures in the row: and a SAVE writes it: [777,222]
+  ok   A4 2 structural, no figures in the row: the engine claims this cell, so the advisory names it as the preparer's: 2 named, 2 as registry members
+    3 holding a figure its rows do NOT come to
+        8bf5ea7: import [777,222]  recompute [777,222]  save [777,222]  named 0
+        now:      import [777,222]  recompute [777,222]  save [777,222]  named 0
+  ok   A1 3 holding a figure its rows do NOT come to: the import accepts the preparer's figure
+  ok   A2 3 holding a figure its rows do NOT come to: and it SURVIVES the recompute: [777,222]
+  ok   A3 3 holding a figure its rows do NOT come to: and a SAVE writes it: [777,222]
+  ok   A4 3 holding a figure its rows do NOT come to: the engine does not claim this cell at all, so the figure lands as an ordinary operator value with no advisory, which is what it is
+    4 holding the figure its rows DO come to
+        8bf5ea7: import null  recompute null  save null  named 0
+        now:      import [777,222]  recompute [777,222]  save [777,222]  named 2
+  ok   A1 4 holding the figure its rows DO come to: the import accepts the preparer's figure
+  ok   A2 4 holding the figure its rows DO come to: and it SURVIVES the recompute: [777,222]
+  ok   A3 4 holding the figure its rows DO come to: and a SAVE writes it: [777,222]
+  ok   A4 4 holding the figure its rows DO come to: the engine claims this cell, so the advisory names it as the preparer's: 2 named, 2 as registry members
+    5 ordinary stored row, replayed (the hosted anatomy)
+        8bf5ea7: import null  recompute null  save null  named 0
+        now:      import [777,222]  recompute [777,222]  save [777,222]  named 2
+  ok   A1 5 ordinary stored row, replayed (the hosted anatomy): the import accepts the preparer's figure
+  ok   A2 5 ordinary stored row, replayed (the hosted anatomy): and it SURVIVES the recompute: [777,222]
+  ok   A3 5 ordinary stored row, replayed (the hosted anatomy): and a SAVE writes it: [777,222]
+  ok   A4 5 ordinary stored row, replayed (the hosted anatomy): the engine claims this cell, so the advisory names it as the preparer's: 2 named, 2 as registry members
+  ok   A5 four row-bearing anatomies exercised: 4
+  ok   A6 while on 8bf5ea7 the figure does not reach a save on either anatomy 4 or 5: [null,null]
+
+B. THE STAGED COUNT AND THE LANDED COUNT AGREE
+  ok   B1 2 structural, no figures in the row: every cell the workbook INVITES the preparer to fill lands: 26 of 26
+  ok   B2 2 structural, no figures in the row: and every cell that does NOT land is one the workbook marks (calculated), so nothing the preparer was invited to fill goes missing: 14 excluded, all marked true
+  ok   B1 3 holding a figure its rows do NOT come to: every cell the workbook INVITES the preparer to fill lands: 26 of 26
+  ok   B2 3 holding a figure its rows do NOT come to: and every cell that does NOT land is one the workbook marks (calculated), so nothing the preparer was invited to fill goes missing: 14 excluded, all marked true
+  ok   B1 4 holding the figure its rows DO come to: every cell the workbook INVITES the preparer to fill lands: 26 of 26
+  ok   B2 4 holding the figure its rows DO come to: and every cell that does NOT land is one the workbook marks (calculated), so nothing the preparer was invited to fill goes missing: 14 excluded, all marked true
+  ok   B1 5 ordinary stored row, replayed (the hosted anatomy): every cell the workbook INVITES the preparer to fill lands: 26 of 26
+  ok   B2 5 ordinary stored row, replayed (the hosted anatomy): and every cell that does NOT land is one the workbook marks (calculated), so nothing the preparer was invited to fill goes missing: 14 excluded, all marked true
+  ok   B3 and the workbook does NOT mark the registry member (calculated), so the contract and the import agree about whose cell it is
+
+C. BOTH SIDES, IN THE SAME EVIDENCE
+  ok   C1 A8s grand total is a registry member
+  ok   C2 and so is J8s Total, the other member named by standing ruling
+  ok   C3 A1 has a Total row: r22
+  ok   C4 and it is NOT a registry member, in any of its columns
+  ok   C5 the import still REFUSES 111,111 into A1s Total: [282132686,148672653]
+  ok   C6 and takes nothing from the preparer there: 0
+  ok   C7 byte for byte the same answer as 8bf5ea7, so this ticket did not touch it: [282132686,148672653]
+
+D. NO PUBLISHED FIGURE MOVES
+  ok   D1 every stored table-year compared: 6135 cells
+  ok   D2 and not one published table-year moves: []
+  ok   D3 and no KPI figure moves: []
+  ok   D4 and the editor recompute on stored data is identical: []
+
+E. A TOTAL NOT IN THE REGISTRY BEHAVES EXACTLY AS BEFORE
+  ok   E1 not one NON-member total cell decides differently from 8bf5ea7: []
+    registry-member cells whose decision moves: 0
+  ok   E2 the registry holds the five CONFIRMED cells rather than the census sixteen nominees: 5
+  ok   E3 on the two rows standing rulings already settled: A8,J8
+  ok   E4 and the engine produces NOTHING for every member, in every stored year that holds a figure: []
+
+F. THE MEASUREMENTS OF RECORD ARE COMMITTED
+  ok   F1 this round's B7 census is committed beside this suite
+  ok   F2 and it reads 335 total cells, 162 the engine reproduces, 173 candidates: 335/162/173
+  ok   F3 nominating 16 cells, of which five are shipped and eleven wait for a ruling: 16
+  ok   F4 round 3's census is committed in its own evidence
+  ok   F5 and still reads 407 refused, 240 of them undeclared, with block H proving the probe ran on all 149 table-years
+
+X. THE BASELINE
+  ok   X1 BASE is a literal commit sha: 8bf5ea7
+  ok   X2 and HEAD descends from it
+  ok   X3 while the deployed build has no registry at all
+  ok   X4 and this build does, so the two really differ
+
+  54 passed, 0 failed
