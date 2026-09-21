@@ -71,3 +71,99 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 39cced1
+          remote main = 39cced1  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1384312B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1384312B  sha256 841a5015df8a59d9...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 592a072bd18657cd...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 33f7d69a27  ok
+  app.js canonicalised + hashed : 33f7d69a27  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : 33f7d69a27  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 4 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the registry of totals that belong to the preparer, one denominator for the G percentages on load, blur and save, the populated-year workbook marker read from derivability, and a recompute that is no longer billed to the operator -- CLCPA-293, CLCPA-319, CLCPA-320, CLCPA-302
+build id (app.js): 33f7d69a27
+styles.css id    : 9039bfc509   (replaced 9039bfc509)
+previous build   : bf2b92af29, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 3b443c3
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 33f7d69a27
+
+THE ACCEPTANCE PASS:
+  THE HEADLINE GATE IS AGAIN A NEGATIVE ONE: NOTHING PUBLISHED MOVES.
+     Every figure on every section page should read exactly as it does
+     today, to the digit. This wave changes what the editor accepts, what
+     a template marks, and who a write is attributed to. A changed
+     published number is a regression, not a fix.
+  
+  THE ATTRIBUTION, ON ITS EXACT GESTURE. Open Report Data, B2, on a
+     scratch year holding 50/10/0/60 and 97/40/0/137. Change Non-DAC L2
+     Plugs from 97 to 100 and leave the cell. Total Plugs recomputes to
+     140, as before. Press Save Changes: the dialog must say ONE cell
+     change, not two, and the change history must record the L2 Plugs
+     cell alone. Before this it said two and named Total Plugs 137 to 140
+     as an edit under your own name.
+     AND THE COUNT MUST NOT UNDER-REPORT: change two cells a person can
+     type into and the dialog must say two.
+  
+  THE G PERCENTAGES ON BLUR. Open G1 on a scratch year, type 500 into a
+     category row and leave the cell WITHOUT saving. Read the percentages
+     in the draft: they must read as they do after a save, not half of
+     it. Before this the blur recompute used a doubled denominator and
+     showed 49.33 / 1.34 / 50.67 where load and save both showed 97.36 /
+     2.64 / 100.00.
+     THE IMPORT PATH WAS NEVER WRONG and must stay right: import a filled
+     template into G1 and the imported draft must still read exactly.
+  
+  THE WORKBOOK MARKER ON A POPULATED YEAR. Download G3s template for a
+     year that already holds data and for a fresh one. Both must mark the
+     empty total cells (calculated). Before this the populated year read
+     County Total and (no value) while the fresh one read (calculated).
+     J8 MUST STAY fill-in on both, because those figures belong to the
+     preparer and the engine cannot derive them.
+  
+  THE PREPARER REGISTRY, ON BOTH SURFACES. Import a file carrying a
+     filed figure for A8s grand total: it must be ACCEPTED and kept, and
+     it must SURVIVE the editors recompute rather than being overwritten
+     a moment later. A1s Total, which the engine can derive, must still
+     be refused exactly as before.
+
+STILL DISCLOSED, not defects in this build:
+  - THE RECOMPUTE IS EXCLUDED, NOT RECORDED. The ruling allowed either. B2
+  -    sits outside the persist strip, so its recomputed total still
+  -    reaches the store; no history entry now claims a person did it, and
+  -    none records that the engine did. The distinct-entry option stays
+  -    open and needs its own turn.
+  - B2 IS STILL NOT IN THE PERSIST STRIP, by ruling. Removing the stored
+  -    copy would make the question above moot, and it needs its own
+  -    round-trip proof. Recorded as a follow-up, unchanged this wave.
+  - THE REGISTRY HOLDS TWO MEMBERS, A8s grand total and J8s Total, both by
+  -    standing ruling. Nine further nominees were measured: three were
+  -    rejected because their silence is data-shaped rather than a refusal,
+  -    and six are deferred as data questions for the client conversation.
+  -    A total NOT in the registry behaves exactly as it does today, so an
+  -    omission is not a regression.
+  - THE WORKBOOK MARKER MOVES ON A3 AND A4, and this wave REVERSES the
+  -    cost the previous one declared: A3/2023, A3/2024 and A4/2023 regain
+  -    the marker they lost, and A3 stops being year-dependent.
+  - THE STYLESHEET AND THE HTML DO NOT MOVE in this wave. app.js alone
+  -    changes; the HTML follows it through its ?v= stamp, and the byte
+  -    comparison against the live copy is what decides what is pushed,
+  -    not this note.
+
+=== log written by deploy_registry_and_attribution.js ===
