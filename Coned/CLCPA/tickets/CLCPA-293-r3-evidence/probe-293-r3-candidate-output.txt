@@ -1,0 +1,91 @@
+CLCPA-293 round 3: registry-derivability on the import guard
+BASE d84c0d3   MID a331392   app.js working tree
+
+H. THE HARNESS CAN ACTUALLY RUN THE FUNCTION UNDER TEST
+  ok   H0 every stored table-year is exercised: 149
+  ok   H1 recomputeTotals runs in this harness on every one of them, so the probe inside ingestRebuildableTotals is the real one everywhere: []
+  ok   H2 and on a331392 too, so the two sides of every comparison below are running the same path
+A. EVERY ANATOMY, BEFORE AND AFTER
+    1 rowless: no rows, nothing to file into
+  ok   A0 1 rowless stages nothing on either build, as it must
+    2 structural, no figures in the row
+        a331392: staged 40 landed 26   grand total kept, named yes
+        this build: staged 40 landed 40   grand total kept, named yes
+  ok   A1 2 structural, no figures in the row: the preparer's grand total survives the import
+  ok   A2 2 structural, no figures in the row: and the draft holds their figures, 777 and 222: [777,222]
+    3 holding a figure its rows do NOT come to
+        a331392: staged 40 landed 26   grand total kept, named no
+        this build: staged 40 landed 40   grand total kept, named no
+  ok   A1 3 holding a figure its rows do NOT come to: the preparer's grand total survives the import
+  ok   A2 3 holding a figure its rows do NOT come to: and the draft holds their figures, 777 and 222: [777,222]
+    4 holding the figure its rows DO come to
+        a331392: staged 40 landed 24   grand total DISCARDED, named no
+        this build: staged 40 landed 40   grand total kept, named yes
+  ok   A1 4 holding the figure its rows DO come to: the preparer's grand total survives the import
+  ok   A2 4 holding the figure its rows DO come to: and the draft holds their figures, 777 and 222: [777,222]
+    5 ordinary stored row, replayed (the hosted anatomy)
+        a331392: staged 40 landed 24   grand total DISCARDED, named no
+        this build: staged 40 landed 40   grand total kept, named yes
+  ok   A1 5 ordinary stored row, replayed (the hosted anatomy): the preparer's grand total survives the import
+  ok   A2 5 ordinary stored row, replayed (the hosted anatomy): and the draft holds their figures, 777 and 222: [777,222]
+  ok   A3 four row-bearing anatomies were exercised, the rowless one having nothing to file into: 4
+  ok   A4 while on a331392 anatomies 4 and 5 DISCARD it, so this block cannot pass on the build the ruling was written against
+  ok   A5 and named nothing when they did: the discard was silent
+
+B. THE STAGED COUNT AND THE LANDED COUNT AGREE
+  ok   B1 2 structural, no figures in the row: staged 40, landed 40, excluded 0
+  ok   B1 3 holding a figure its rows do NOT come to: staged 40, landed 40, excluded 0
+  ok   B1 4 holding the figure its rows DO come to: staged 40, landed 40, excluded 0
+  ok   B1 5 ordinary stored row, replayed (the hosted anatomy): staged 40, landed 40, excluded 0
+  ok   B2 A8 really does repeat row labels, which is why a bare label lookup cannot be used: ["HVAC","Building Shell"]
+  ok   B3 the structural anatomy lands its grand total on an APPENDED row (26), and addedRows discloses it: 1
+  ok   B4 and that is unchanged from a331392, so it is not this ticket: added 1 before, 1 after
+
+C. BOTH SIDES, IN THE SAME EVIDENCE
+  ok   C1 A8 grand total: both filed cells are NAMED by the kept-figure advisory, not merely kept in silence
+  ok   C2 and it is accepted for the stated REASON: no declared rule derives either column
+  ok   C3 A1 has a Total row: r22
+  ok   C4 A1s Total sits in DECLARED derived columns: [3]
+  ok   C5 and the import still REFUSES 111111 into every one of them: [0.53]
+  ok   C6 asserted at the guard as well as observed at the import: the cell is in the refused set ["22,3"]
+
+D. NO PUBLISHED FIGURE MOVES FROM THIS CHANGE ALONE
+  ok   D1 every stored table-year is compared: 6135 cells
+  ok   D2 and not one published table-year moves: []
+  ok   D3 and no KPI figure moves: []
+  ok   D4 the change is a new predicate on the import path and nothing else
+
+E. THE CENSUS OF RECORD
+    a331392: refused 407, of them undeclared 240, tables 23
+    this build: refused 167, of them undeclared 0
+  ok   E1 the census of record, measured on a331392 with the probe proven to run on all 149 table-years: 407 refused, 240 of them with no declared rule -- got 407/240
+  ok   E2 across 23 tables: 23
+  ok   E3 and this build refuses no undeclared cell at all: 0
+  ok   E4 and the three close: 407 - 240 = 167, measured independently as 167
+
+F. THE SECOND SURFACE, WHICH THIS TICKET DOES NOT FIX
+    after the import      : [777,222]
+    after the recompute   : [283936,162141]
+    what a SAVE writes    : [283936,162141]
+  ok   F1 the import accepts the preparer's figure, which is what this ticket fixes: [777,222]
+  ok   F2 and the editor's recompute then overwrites it, which this ticket does NOT fix: [283936,162141]
+  ok   F3 so the figure the advisory calls "taken as filed" is not what a save writes: [283936,162141]
+    total-row cells the editor maintains : 432
+    of those, no declared rule claims    : 262
+  ok   F4 and applying the same doctrine to the editor is NOT the answer: it would stop the editor maintaining 262 of 432 total cells, and keeping a total in step with its rows is a feature. The narrow fix is to protect the cells an import just accepted, and that is a second surface and a second ruling.
+
+G. THE COLLISION WITH CLCPA-88, WHICH IS WHY THIS DOES NOT SHIP
+  ok   G1 A1 has a Total row: r22
+    shipped   : taken from the preparer 0, the row holds [282132686,148672653]
+    candidate : taken from the preparer 2, the row holds [111111,222222]
+  ok   G2 the SHIPPED build refuses 111111 into A1s Total, which is the protection CLCPA-88 exists for
+  ok   G3 and THE CANDIDATE ACCEPTS IT: 2 cells taken from the preparer, the row now holding [111111,222222]. That is the defect coming back, and it is why this is not shipped
+  ok   G4 and it is not one table: 262 of 432 total-row cells the engine rebuilds today would be handed to the preparer, because a generic additive total is not a registry entry
+
+X. THE BASELINE
+  ok   X1 MID is a literal commit sha: a331392
+  ok   X2 and HEAD descends from it
+  ok   X3 the SHIPPED build has no such predicate: this change is not in it
+  ok   X4 while the candidate does, so the two sides really differ
+
+  48 passed, 0 failed

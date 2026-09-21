@@ -92,8 +92,28 @@ function harness(src, want) {
 const WANT = ['buildIngestImport', 'getTableSchema', 'ingestComputed',
   'recomputeTotals', 'ingestRebuildableTotals', 'stripDerivedForPersist',
   'totalRowFlags', 'isAnchoredTotalRowLabel', 'DERIVED_COLS',
-  'detectSumColumns', 'reconcileSumColumns'];
-const NEW = harness(SRC, WANT), OLD = harness(BASE_SRC, WANT);
+  'detectSumColumns', 'reconcileSumColumns',
+  /* ELEVEN NAMES THE ASSEMBLER CANNOT FIND ON ITS OWN. ingestRebuildableTotals
+   * wraps recomputeTotals in a production try/catch, and that catch swallows
+   * the ReferenceError this harness follows -- so an unresolved dependency
+   * silently becomes "the probe cannot run" and every figure describes the
+   * fallback branch instead of the app. The census in section 5 was reported
+   * twice from that branch before this list existed. suite_293_r3's block H
+   * is the standing guard. */
+  'unreconciledTotals', 'totalRowSums', 'columnGrandTotals', 'bareNumber',
+  'withinSourceRounding', 'applyDerivedCols', 'sumDerivedCols',
+  'derivedCellWrite', 'applyDerivedRows', 'addsOnlyPrecision', 'storedDecimals'];
+/* MID: the stack tip immediately BEFORE this ticket. The census of record
+ * counts what the importer refused before registry-derivability, so it has
+ * to be measured on the build that had it, and reading the census off the
+ * fixed build would report zero and prove nothing. This ticket is the only
+ * commit after MID_REF, so MID is "the tree with this ticket reverted"
+ * without a string replacement that could silently miss. */
+const MID_REF = process.env.DAC_MID_COMMIT || 'a331392';
+const MID_SRC = execSync('git show ' + MID_REF + ':"' + REL + '"', { maxBuffer: 1e9 })
+  .toString('utf8').replace(/\r?\n/g, '\r\n');
+const NEW = harness(SRC, WANT), OLD = harness(BASE_SRC, WANT),
+      MID = harness(MID_SRC, WANT);
 
 const T = P.tables.A8;
 const SCHEMA = NEW.attempt(api => api.getTableSchema(T, '2025'));
@@ -225,14 +245,29 @@ function runImport(H, rows, label) {
    * everything the importer looked at is not a count of what the preparer
    * filed, and the first cut of this probe conflated the two: it reported
    * 40 cells "dropped as computed" for a file that staged 40 values, which
-   * is arithmetic about two different sets. */
+   * is arithmetic about two different sets.
+   *
+   * AND COUNTED BY INDEX, against the draft the import produced, not by
+   * matching res.populated back through its label. That was the second
+   * mistake and it is worth naming, because it invented ten exclusions that
+   * do not exist. A8 repeats row labels -- "HVAC" appears four times,
+   * "Building Shell" twice -- so a label lookup resolves every one of them
+   * to the FIRST row with that label, and the other three were scored as
+   * never having landed. They had. The guard never touched them: those rows
+   * are not totals and no rule declares their columns, which section 2
+   * shows directly. Comparing the candidate cell by cell asks the only
+   * question that matters -- is the preparer's figure in the draft -- and
+   * it cannot be confused by a repeated label. */
   const stagedSet = new Set(staged);
+  const cand = res.candidate || [];
+  const landedSet = new Set(staged.filter((k) => {
+    const [r, c] = k.split(',').map(Number);
+    return cand[r] && String(cand[r][c]) === String(file[r + 1][c]);
+  }));
   const cellOf = (e) => {
-    const ri = rows.findIndex(r => String(r[0]) === String(e.label));
-    const ci = SCHEMA.indexOf(e.column);
-    return ri + ',' + ci;
+    const ri = rows.findIndex(x => String(x[0]) === String(e.label));
+    return ri + ',' + SCHEMA.indexOf(e.column);
   };
-  const landedSet = new Set((res.populated || []).map(cellOf));
   const namedSet = new Set((res.preparerTotals || []).map(cellOf));
   const stagedLanded = staged.filter(k => landedSet.has(k));
   const stagedLost = staged.filter(k => !landedSet.has(k));
@@ -275,7 +310,7 @@ const c = runImport(OLD, stored, 'the build before this whole stack');
 /* ---- step 5: what the registry-derivability fix would cost ------------ */
 log('');
 log('=======================================================================');
-log(' 5. THE CANDIDATE FIX, SIZED BEFORE IT IS BUILT');
+log(' 5. THE CENSUS OF RECORD, and the fix measured against it');
 log('=======================================================================');
 log('  The principle is the one already ruled for the CLCPA-320 marker this');
 log('  session: DERIVABILITY COMES FROM THE RULE REGISTRY, not from row role,');
@@ -285,51 +320,63 @@ log('  DECLARED rule that produces it -- a derived column, a declared derived');
 log('  row, or a detectSumColumns relationship -- and not merely because the');
 log('  figure stored in it today happens to add up.');
 log('');
-log('  This is NOT built. What follows is its blast radius, measured across');
-log('  every table and every stored year, so the size of the change is known');
-log('  before anyone decides to make it.');
+log('  THE CENSUS IS MEASURED ON THE BUILD THAT HAD THE DEFECT, ' + MID_REF + ',');
+log('  and then again on this one. Read off the fixed build it would report');
+log('  zero undeclared cells and prove nothing at all.');
 log('');
-const moved = { cells: 0, byTable: {} };
-let totalRebuildable = 0;
-Object.keys(P.tables).sort().forEach((id) => {
-  const t = P.tables[id];
-  Object.keys(t.data || {}).sort().forEach((y) => {
-    const rows = t.data[y];
-    if (!rows || !rows.length) return;
-    NEW.attempt((api) => {
-      const schema = api.getTableSchema(t, y);
-      if (!schema || !schema.length) return null;
-      const c = api.ingestComputed(rows, id, schema);
-      const reb = api.ingestRebuildableTotals(rows, schema, id, r => c.totalRow(r));
-      const declaredCols = new Set(((api.DERIVED_COLS[id]) || []).map(d => d.column));
-      (api.detectSumColumns(schema, rows, id) || [])
-        .forEach(s => declaredCols.add(s.column));
-      reb.forEach((k) => {
-        totalRebuildable++;
-        const col = Number(k.split(',')[1]);
-        if (!declaredCols.has(col)) {
-          moved.cells++;
-          (moved.byTable[id] = moved.byTable[id] || []).push(y + ' ' + k);
-        }
+/* the same walk on both builds: what each REFUSES, and how much of that a
+ * declared rule actually accounts for */
+function census(H) {
+  return H.attempt((api) => {
+    const acc = { refused: 0, undeclared: 0, byTable: {} };
+    Object.keys(P.tables).sort().forEach((id) => {
+      const t = P.tables[id];
+      Object.keys(t.data || {}).sort().forEach((y) => {
+        const rows = t.data[y];
+        if (!rows || !rows.length) return;
+        const schema = api.getTableSchema(t, y);
+        if (!schema || !schema.length) return;
+        const c = api.ingestComputed(rows, id, schema);
+        const reb = api.ingestRebuildableTotals(rows, schema, id, r => c.totalRow(r));
+        const declaredCols = new Set(((api.DERIVED_COLS[id]) || []).map(d => d.column));
+        (api.detectSumColumns(schema, rows, id) || [])
+          .forEach(s => declaredCols.add(s.column));
+        reb.forEach((k) => {
+          acc.refused++;
+          if (!declaredCols.has(Number(k.split(',')[1]))) {
+            acc.undeclared++;
+            (acc.byTable[id] = acc.byTable[id] || []).push(y + ' ' + k);
+          }
+        });
       });
-      return null;
     });
+    return acc;
   });
-});
-log('  total cells the importer refuses as rebuildable today : ' + totalRebuildable);
-log('  of those, cells with NO declared rule behind them     : ' + moved.cells);
-log('  tables affected: ' + Object.keys(moved.byTable).length + '  ' +
-    JSON.stringify(Object.keys(moved.byTable).sort()));
-Object.keys(moved.byTable).sort().slice(0, 8).forEach((id) => {
-  log('      ' + id + ': ' + moved.byTable[id].length + ' cells');
+}
+const was = census(MID), now = census(NEW);
+log('  ' + MID_REF + ', before this ticket');
+log('      cells the importer refuses as rebuildable : ' + was.refused);
+log('      of those, with NO declared rule behind them: ' + was.undeclared);
+log('      tables affected: ' + Object.keys(was.byTable).length + '  ' +
+    JSON.stringify(Object.keys(was.byTable).sort()));
+Object.keys(was.byTable).sort().forEach((id) => {
+  log('          ' + id.padEnd(4) + was.byTable[id].length + ' cells');
 });
 log('');
-log('  Every one of those cells would move from REFUSED to accepted and');
-log('  named. That is the direction CLCPA-272 ruled -- a provided value is');
-log('  accepted and reconciled, never rejected -- so the change is not');
-log('  dangerous in kind. It is large in degree, and it is a change to what');
-log('  the importer does on every table, which is why it is measured and');
-log('  left for a ruling rather than taken on my own judgement.');
+log('  this build');
+log('      cells the importer refuses as rebuildable : ' + now.refused);
+log('      of those, with NO declared rule behind them: ' + now.undeclared);
+log('');
+log('  AND THE THREE FIGURES CLOSE: ' + was.refused + ' refused before, ' +
+    was.undeclared + ' of them undeclared,');
+log('  ' + now.refused + ' refused now. ' + was.refused + ' - ' + was.undeclared +
+    ' = ' + (was.refused - was.undeclared) + ', which is ' +
+    ((was.refused - was.undeclared) === now.refused ? 'exactly' : 'NOT') +
+    ' what remains.');
+log('  Nothing was refused that a rule does not claim, and nothing a rule');
+log('  does claim was let go. Every one of the ' + was.undeclared + ' moves from');
+log('  REFUSED to accepted and named, which is the direction CLCPA-272 ruled:');
+log('  a provided value is accepted and reconciled, never rejected.');
 
 log('');
 log('--- what this shows ---------------------------------------------------');
