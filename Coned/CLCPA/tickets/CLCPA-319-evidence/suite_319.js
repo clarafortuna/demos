@@ -327,9 +327,22 @@ guard('X: G10 and the other sections', () => {
   const strip = NEW.attempt(api => api.PERSIST_STRIP_TABLES);
   ok(strip.has('G1') && strip.has('G10'),
      'X2 the persist strip covers the G board as it already did');
+  /* RE-POINTED. The claim that matters is that the rule is built in ONE
+   * place, and it still is: one factory, one 'columnTotal' type. What has
+   * changed is the number of tables handed it -- CLCPA-303 declares B2's
+   * column-wise total row with the same factory, which is the reuse this
+   * ticket's design was for. The call sites are enumerated rather than
+   * counted, so a silent widening to a table neither ticket names fails. */
+  const callers = (codeOnly(SRC).match(/^ +(?:const \w+ = )?\[?colTotal\(|\bcolTotal\(\d\)/gm) || []);
+  const decl = codeOnly(SRC).match(/^\s+(\w+): \[colTotal\(1\), colTotal\(2\), colTotal\(3\), colTotal\(4\)\],/m);
   ok(codeOnly(SRC).indexOf("type: 'columnTotal'") > 0 &&
-     (codeOnly(SRC).match(/colTotal\(/g) || []).length === 1,
-     'X3 the rule is built in ONE place and handed to the G tables only');
+     (codeOnly(SRC).match(/const colTotal = /g) || []).length === 1,
+     'X3 the rule is still built in ONE place: one factory, one type');
+  ok(!!decl && decl[1] === 'B2',
+     'X3b and the only table besides the G board handed it is B2, under ' +
+     'CLCPA-303: ' + (decl ? decl[1] : '(none)'));
+  ok((codeOnly(SRC).match(/gPct = \[colTotal\(1\)/g) || []).length === 1,
+     'X3c while the G board still takes it exactly once, through gPct');
 });
 
 guard('X: the baseline', () => {

@@ -148,9 +148,10 @@ guard('D-block', () => {
    * it was the one total row the confirmation refused. NAMED, not counted:
    * a ninth table moving still fails this. */
   ok(JSON.stringify(changed.slice().sort()) ===
-     JSON.stringify(['A3', 'A4', 'A9', 'D2', 'D3', 'D4', 'F7', 'J8']),
+     JSON.stringify(['A3', 'A4', 'A9', 'D2', 'D3', 'D4', 'F7']),
     'D1 A3 and A4 for this ticket, A9 for CLCPA-289, D2/D3/D4/F7 for ' +
-    'CLCPA-308, J8 for CLCPA-320 -- ' +
+    'CLCPA-308. J8 was here until the pre-merge amendment to CLCPA-320 ' +
+    'withheld its marker: its Total is not derivable from its own rows -- ' +
     JSON.stringify(changed));
   /* a one-key table is untouched, which is what keeps this narrow */
   const h = tmplFresh('H1', SRC);

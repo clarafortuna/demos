@@ -1,0 +1,58 @@
+CLCPA-246: G1s Systemwide Total on an imported, value-less year
+app.js: working tree
+
+  schema: ["Category","Feet Replaced","Percentage"]
+    r0 ["Feet Replaced within DAC",9999,null]
+    r1 ["Feet Replaced not in a DAC",999,null]
+    r2 ["Systemwide Total",null,null]
+
+=== the predicates, on "Systemwide Total" ==========================
+  isStrictTotalRowLabel   : false   <- why CLCPA-240s value-less bootstrap never reaches it
+  isAnchoredTotalRowLabel : true   <- why CLCPA-245 R2 flags it
+  G1 in HIERARCHICAL_TABLES: false   <- why the positional branch does not reach it either
+  hierarchical tables: []
+
+=== flagged, and computed? ========================================
+  totalRowFlags: [false,false,false]   (r2 flagged = false)
+  DERIVED_COLS.G1: ["columnTotal@1","percentage@2"]
+
+  the REPORT PAGE renders:
+    r0 ["Feet Replaced within DAC",9999,0.9091653027823241]
+    r1 ["Feet Replaced not in a DAC",999,0.09083469721767594]
+    r2 ["Systemwide Total",10998,1]
+
+  Systemwide Total, Feet Replaced: 10998   (the rows come to 10998)
+  recomputeTotals called in ISOLATION gives: ["Systemwide Total",10998,0.5]
+    (the percentage here is NOT what the editor shows. Driven in a real
+     browser the grid reads 100.00%; calling recomputeTotals on its own,
+     outside the editor flow, is not the editor. repro_246.js is the
+     authority and it reads the grid.)
+
+=== the Executive Summary, which the ticket asks to attribute ======
+  KPI keys: ["clean_energy_spend","energy_savings","ev_funding","ev_plugs","dr_participation","der_mw","strategic_capital","customer_outages","main_replacement","leak_repairs","clean_energy_jobs","residential_customers"]
+  the one this ticket names (Mains / main_replacement): ["main_replacement","leak_repairs"]
+    the two cells the KPI reads, on the imported year:
+      total (Systemwide Total / Feet Replaced): null
+      dac   (within DAC / Feet Replaced)      : 9999
+    main_replacement(2098, imported) -> {}
+    main_replacement(2025, stored)   -> {"total":430538,"dac":202384}
+    leak_repairs(2098, imported) -> {}
+    leak_repairs(2025, stored)   -> {"total":7476,"dac":2555}
+
+=== what the KPI sees AFTER a save, with CLCPA-319 stripping ========
+  G1/2025 as it persists after a save: [["Feet Replaced within DAC",202384,null],["Feet Replaced not in a DAC",228154,null],["Systemwide Total",null,null]]
+    main_replacement(2025, after a save) -> {"total":416717,"dac":193384}
+
+  AND THROUGH THE COMPOSED LAYER, which is what the hosted app reads:
+  composePayloadFromRows rebuilds the payload from stored rows, and the
+  report page renders through rowsForDisplay. The question is whether the
+  KPI is fed the stored rows or the displayed ones.
+    main_replacement reads: "main_replacement: (T, y) => {\r\n      const t = dacCell(T, 'G1', y, /^Systemwide Total$/i, /^Feet Replaced$/i);\r\n      const d = dacCell(T, 'G1', y, /within DAC/i, /^Feet Replaced$/i);\r\n      if (typeof t === 'number' && typeof d === 'number') return { total: t, dac: d };\r\n      const B = ['
+
+--- verdict ------------------------------------------------------------
+  THE TOTAL COMPUTES: 10998, which is 9,999 + 999.
+  The ticket DIES with the CLCPA-319 build, and for exactly the reason
+  its own audit note predicted: the gap was the recompute path for a
+  FLAT NON-STRICT total on a value-less import, and the columnTotal
+  rule identifies its row by the SAME anchored suffix that flags it,
+  so it reaches the row the strict-label bootstrap cannot.

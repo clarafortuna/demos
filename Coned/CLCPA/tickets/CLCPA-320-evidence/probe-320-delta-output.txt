@@ -5,11 +5,6 @@ BASE d84c0d3  vs the working tree
   CLCPA-320 ALONE  (the working tree against itself with this ticket
   reverted, so nothing else in the tree can be credited to it)
 =======================================================================
-=== A3
-    stored 2023 r28 "Total"  +[1,2,3,4] -[]
-    stored 2024 r26 "Total"  +[1,2,3,4] -[]
-=== A4
-    stored 2023 r28 "Total"  +[1,2,3,4] -[]
 === G1
     BLANK 2025 r2 "Systemwide Total"  +[1] -[]
 === G2
@@ -40,13 +35,16 @@ BASE d84c0d3  vs the working tree
 === G9
     BLANK 2024 r2 "County Total"  +[1] -[]
     BLANK 2025 r2 "County Total"  +[1] -[]
-=== J8
-    stored 2025 r2 "Total"  +[1,2,3] -[]
 
 =======================================================================
   EVERYTHING ELSE IN THE TREE  (CLCPA-308 and CLCPA-319), separated so
   that no moved cell in this report is left unattributed
 =======================================================================
+=== B2   (6 rows)
+    BLANK 2023 r0 "DAC"  +[3] -[]
+    BLANK 2023 r1 "Non-DAC"  +[3] -[]
+    BLANK 2024 r0 "DAC"  +[3] -[]
+    ... and 3 more
 === D2   (12 rows)
     stored 2023 r2 "Percentage of projects in DACs"  +[1] -[]
     stored 2023 r5 "Percentage of MW installed in "  +[1] -[]
@@ -69,10 +67,10 @@ BASE d84c0d3  vs the working tree
     ... and 3 more
 
 --- summary -----------------------------------------------------------
-  marker cells compared (stored years and blank years): 2519
-  CLCPA-320: rows whose MARKER set moves: 25
+  marker cells compared (stored years and blank years): 2510
+  CLCPA-320: rows whose MARKER set moves: 21
   CLCPA-320: rows whose IMPORT SKIP moves: 0
-  the rest of the tree: marker rows 54, import-skip rows 0
+  the rest of the tree: marker rows 60, import-skip rows 0
 
   CLCPA-320s import-skip figure must be ZERO. CLCPA-272 ruled that a
   provided value is accepted and reconciled, never rejected, so widening

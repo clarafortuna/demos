@@ -41,10 +41,12 @@ BASE d84c0d3   app.js working tree
 === X. the exclusions ================================================
   ok   X1 G10/2024 still publishes its filed 241.2279 against rows summing 241.22: 241.2279
   ok   X2 the persist strip covers the G board as it already did
-  ok   X3 the rule is built in ONE place and handed to the G tables only
+  ok   X3 the rule is still built in ONE place: one factory, one type
+  ok   X3b and the only table besides the G board handed it is B2, under CLCPA-303: B2
+  ok   X3c while the G board still takes it exactly once, through gPct
   ok   X4 BASE is a literal commit sha: d84c0d3
   ok   X5 and HEAD descends from it
   ok   X6 and the two sources genuinely differ
   ok   X7 while BASE has no columnTotal at all, so this suite cannot pass on it
 
-  34 passed, 0 failed
+  36 passed, 0 failed

@@ -10,7 +10,7 @@ BASE d84c0d3   app.js working tree
   ok   B1 extra cells the old accounting counted: 29
   ok   B2 and EVERY one is an ENGINE cell, on a TOTAL ROW, which the strip left in place: 29 of 29
   ok   B3 not one had been stripped away before saving, which is what put it in the saved rows to be counted: 0
-  ok   B4 and exactly one is a DECLARED derived column, E1s kept figure, so "the column is undeclared" is the common route and not the rule: 1
+  ok   B4 and exactly two are a DECLARED derived column, E1s kept figure and B2s CLCPA-303 total row, so "the column is undeclared" is the common route and not the rule: 2
 
 === C. it is NOT "any computed total row" ==========================
   ok   C1 G1 to G9 have computed total rows: 9 of 14

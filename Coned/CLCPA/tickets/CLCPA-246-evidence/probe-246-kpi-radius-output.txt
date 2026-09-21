@@ -1,0 +1,47 @@
+CLCPA-246 second half: the KPI layer against the derive engine
+app.js: working tree
+
+=== every KPI, every year: payload, after a save, and displayed =====
+
+  KPI-years measured: 36
+
+  BROKEN BY THE SAVE (the stored cell is gone, the KPI reads storage): 1
+    main_replacement:2025  payload {"total":430538,"dac":202384}  after a save {"total":416717,"dac":193384}
+
+  of those, HEALED by reading the display view instead: 1 of 1
+
+  KPI-years the display view would MOVE that the save does not break: 3
+    strategic_capital:2023  payload {"total":1298253000,"dac":519301200}  displayed {"total":1298253000,"dac":518087500}
+    strategic_capital:2024  payload {"total":976591848,"dac":488295924}  displayed {"total":976591848,"dac":486994217.24}
+    strategic_capital:2025  payload {"total":1188983989,"dac":535042795.05}  displayed {"total":1188983989,"dac":538363957.62}
+
+  THE FIGURE THAT DECIDES THIS TICKET. Each build saved with its own
+  strip and read through its own dacDerivedTablesForYear, which is how
+  both KPI call sites feed the rules. KPI-years that move, d84c0d3
+  against the working tree: 0
+
+--- summary -----------------------------------------------------------
+  A RETRACTION, kept in the file that made the claim.
+
+  The 1 line above is real but it is NOT a regression, and an
+  earlier run of this probe said it was. It is measured by calling the
+  KPI rule with the RAW stored tables. Nothing in the app does that:
+  recomputeYearDerived and composePayloadFromRows both call the rules
+  with dacDerivedTablesForYear, which has always passed the rows through
+  rowsForDisplay. The line measures a caller that does not exist.
+
+  The figure that decides it is the one directly above: 0 KPI-years move
+  on the real path, this build against d84c0d3. CLCPA-319 strips the
+  cell from storage and the display view puts it back before any rule
+  sees it, so the Executive Summary publishes what it published before.
+
+  The three strategic_capital lines in the MOVE count above are not
+  this stack moving anything. They are payload.kpis disagreeing with
+  its own tables, which is CLCPA-238s stored-copy finding, and they sit
+  identically on both builds -- which is why they do not appear here.
+
+  The other two counts are kept because they cost something to learn.
+  Reading the display view heals 1 of the 1 and moves 3 others,
+  and those 3 are why a general display-view route through the
+  accessor was written, measured, and then REMOVED: it would move
+  published figures to fix a path no caller takes.

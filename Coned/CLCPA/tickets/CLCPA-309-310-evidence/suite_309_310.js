@@ -10,12 +10,20 @@
  *     0.7%   read as 0.006999999999999999
  *     99.99% read as 0.9998999999999999
  *
- * WHAT THIS DOES NOT SETTLE. CLCPA-309 is described as "the fraction advisory
- * reporting a conversion result". This build makes that result READABLE; it
- * does not stop the advisory reporting the fraction, because whether it should
- * report the fraction at all is a question the ticket body would answer and
- * the body is not in this repo. Stated here rather than quietly treated as
- * done, and raised in the combined report with the other open questions.
+ * AND CLCPA-309 IN FULL, block E. An earlier round of this suite recorded
+ * that CLCPA-310 made the advisory's number READABLE without settling whether
+ * it should be shown at all, because the ticket body was not in the repo. The
+ * body has since been supplied. It sets a gate:
+ *
+ *     after the D-01 fix, importing a percentage into a percentage row
+ *     produces either no fraction advisory, or an advisory that truthfully
+ *     describes the computed outcome.
+ *
+ * D-01 is CLCPA-308, which registers those rows as computed. Block E takes
+ * the first option and proves it by execution on both builds: BASE raises the
+ * advisory and names a number the cell never holds, this build raises none,
+ * the figure is still written, and a percentage typed into a row the engine
+ * does NOT recompute still raises it.
  *
  * Pins: DAC_BASE_COMMIT, DAC_APP_OVERRIDE.
  */
@@ -187,6 +195,119 @@ guard('D: the CLCPA-271 lesson', () => {
   const oldCode = codeOnly(BASE_SRC);
   ok((oldCode.match(/read as ' \+ x\.landed/g) || []).length === 2,
      'D3 while BASE concatenated it raw on both, so this suite cannot pass on it');
+});
+
+/* ===================== E: CLCPA-309 / D-02 ============================ */
+say('');
+say('=== E. the advisory does not fire on cells the engine recomputes ====');
+
+/* The import path, on both builds. A separate harness from the one above:
+ * this one drives buildIngestImport for real rather than the formatter. */
+const IWANT = ['buildIngestImport', 'getTableSchema', 'ingestComputed',
+  'recomputeTotals', 'DERIVED_ROWS', 'derivedRowValue', 'derivedRowKeepsStored',
+  'parseNumericInput', 'unitNoticeValue', 'detectPctColumns', 'rowsForDisplay'];
+const INEW = harness(SRC, IWANT), IOLD = harness(BASE_SRC, IWANT);
+
+/* import ONE typed value into one cell and report what came back */
+function fileOne(H, id, year, rows, schema, rowIdx, colIdx, typed) {
+  const file = [schema.slice()].concat(rows.map(r => r.slice()));
+  file[rowIdx + 1] = file[rowIdx + 1].slice();
+  file[rowIdx + 1][colIdx] = typed;
+  return H.attempt(api => api.buildIngestImport(file, schema,
+    rows.map(r => r.slice()), id));
+}
+
+guard('E: the D board', () => {
+  const TYPED = '22.4%';
+  const seen = [];
+  ['D2', 'D3', 'D4'].forEach((id) => {
+    const t = P.tables[id];
+    if (!t) return;
+    const year = Object.keys(t.data || {}).sort().pop();
+    const rows = t.data[year];
+    const schema = INEW.attempt(api => api.getTableSchema(t, year));
+    const drows = INEW.attempt(api => (api.DERIVED_ROWS[id] || []).map(d => d.row));
+    if (!drows.length) return;
+    const pr = drows[0];
+
+    const now = fileOne(INEW, id, year, rows, schema, pr, 1, TYPED);
+    const was = fileOne(IOLD, id, year, rows, schema, pr, 1, TYPED);
+    const mine = (res) => (res.unitNotices || []).filter(n => n.rowIndex === pr ||
+      String(n.label || '') === String(rows[pr][0]));
+
+    /* THE NUMBER THE ADVISORY NAMED NEVER SURVIVES: measured, not asserted
+     * from the ticket text. What the base build's advisory says against what
+     * the cell holds once the editor's recompute has run. */
+    const after = (now.candidate || []).map(r => r.slice());
+    INEW.attempt(api => api.recomputeTotals(after, schema, id,
+      rows.map(r => r.slice())));
+    const named = mine(was).map(n => n.landed);
+    const held = after[pr] ? after[pr][1] : null;
+
+    seen.push({ id: id, year: year, pr: pr, nNow: mine(now).length,
+      nWas: mine(was).length, named: named[0], held: held,
+      landed: (now.candidate || [])[pr] ? now.candidate[pr][1] : null });
+  });
+
+  ok(seen.length === 3, 'E0 all three D-board percentage rows are registered ' +
+     'and reachable: ' + seen.map(s => s.id).join(' '));
+  ok(seen.every(s => s.nWas > 0),
+     'E1 BASE raised the fraction advisory on every one of them, so this ' +
+     'block cannot pass on the build the ticket was filed against');
+  ok(seen.every(s => s.nNow === 0),
+     'E2 and this build raises none: ' +
+     seen.map(s => s.id + '=' + s.nNow).join(' '));
+  ok(seen.every(s => s.named !== undefined && s.held !== null &&
+     Number(s.named) !== Number(s.held)),
+     'E3 the number BASE named is not the number the cell ends up holding, ' +
+     'on any of the three: ' +
+     seen.map(s => s.id + ' said ' + s.named + ' holds ' + s.held).join('; '));
+
+  /* CLCPA-272 stands: suppressing the NOTICE must not suppress the WRITE.
+   * A silenced advisory that also started discarding the figure would be a
+   * far worse defect than the one this ticket fixes. */
+  /* NAMED, because the first cut of this assertion could not fail. It
+   * checked that the cell was not null, and a skipped write leaves the
+   * STORED value sitting there, which is not null either. It has to be the
+   * filed figure, parsed, or the guard is decorative. */
+  const filed = INEW.attempt(api => api.parseNumericInput(TYPED));
+  ok(seen.every(s => Number(s.landed) === Number(filed)),
+     'E4 and the figure the preparer filed is still written to the draft, ' +
+     'parsed to ' + filed + ': the notice is silenced, the import is not. ' +
+     'Got ' + JSON.stringify(seen.map(s => s.landed)));
+});
+
+guard('E: the control', () => {
+  /* Targeted, not a blanket deletion. The same percentage typed into a row
+   * the engine does NOT recompute still raises the advisory, because there
+   * the sentence is true: what was read is what the cell holds. */
+  const id = 'D2', t = P.tables[id];
+  const year = Object.keys(t.data || {}).sort().pop();
+  const rows = t.data[year];
+  const schema = INEW.attempt(api => api.getTableSchema(t, year));
+  const drows = INEW.attempt(api => (api.DERIVED_ROWS[id] || []).map(d => d.row));
+  const plain = rows.map((r, i) => i).filter(i => drows.indexOf(i) < 0);
+  ok(plain.length > 0, 'E5 D2 has a row the engine does not recompute');
+  const res = fileOne(INEW, id, year, rows, schema, plain[0], 1, '22.4%');
+  const here = (res.unitNotices || []).filter(n => n.rowIndex === plain[0] ||
+    String(n.label || '') === String(rows[plain[0]][0]));
+  ok(here.length === 1,
+     'E6 and a percentage typed there still raises the advisory: ' +
+     here.length + ' on r' + plain[0] + ' ' +
+     JSON.stringify(String(rows[plain[0]][0]).slice(0, 30)));
+});
+
+guard('E: both surfaces', () => {
+  /* The CLCPA-271 lesson again: this sentence has two producers. The import
+   * panel is tested above by execution; the editor's typed-cell notice is
+   * the second, and it must carry the same exclusion. */
+  const code = codeOnly(SRC);
+  ok(/onDerivedRow/.test(code),
+     'E7 the editor surface consults the derived-row registry too');
+  ok(/!isPercentLiteral\(raw\) \|\| pctCols\[c\] \|\| onDerivedRow/.test(code),
+     'E8 and drops the typed notice on those cells rather than adding one');
+  ok(codeOnly(BASE_SRC).indexOf('onDerivedRow') < 0,
+     'E9 while BASE has no such exclusion on either surface');
 });
 
 /* ===================== X: the baseline ================================ */

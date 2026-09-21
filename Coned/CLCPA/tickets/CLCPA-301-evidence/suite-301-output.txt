@@ -36,7 +36,8 @@ D. WHAT MUST NOT HAPPEN
   ok   D4 an empty-string total counts as blank -- ["Manhattan",100,200,300]
 
 E. CLCPA-278 DOES NOT REGRESS
-  ok   E1 recomputeDerivableSums is BYTE-IDENTICAL to BASE
+  ok   E0 the CLCPA-303 corner-ownership guard is present exactly once, so the reversal below tests something: 1
+  ok   E1 recomputeDerivableSums is BYTE-IDENTICAL to BASE apart from that one guard: this ticket leaves the editor path alone
   ok   E2 and so is the kept-figure guardian it consults
   ok   E3 and so is bareNumber, which both paths read through
 
@@ -50,5 +51,5 @@ X. THE HARNESS ITSELF
   ok   X4 and the save leg is driven, not assumed
 
 ======================================================================
-  32 passed, 0 failed
+  33 passed, 0 failed
 ======================================================================
