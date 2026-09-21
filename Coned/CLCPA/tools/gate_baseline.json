@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-20T05:47:01.039Z",
+  "generated": "2026-09-21T01:08:17.117Z",
   "round": 2,
   "measuredAt": {
     "integrationHead": "(pending merge commit)",
@@ -12,20 +12,20 @@
     "runnersDiscovered": 147,
     "assertionsPassedReported": 9448,
     "assertionsFailedReported": 55,
-    "distinctFailures": 37,
+    "distinctFailures": 36,
     "doubleCountedFailures": 18,
     "runnersNotReporting": 14
   },
   "categories": {
     "genuineApplicationFailures": 0,
-    "provenanceOrAttribution": 25,
+    "provenanceOrAttribution": 24,
     "brokenTestInfrastructureFailures": 12,
     "brokenTestInfrastructureDeadRunners": 12,
     "expectedNonReporting": 2
   },
   "perRunner": {
     "provenance": {
-      "suite_245": 10,
+      "suite_245": 9,
       "suite_249": 2,
       "suite_254_255_261": 3,
       "suite_260": 3,
@@ -118,6 +118,18 @@
         "brokenTestInfrastructureDeadRunners": 12,
         "expectedNonReporting": 2
       }
+    }
+  ],
+  "baselineMovements": [
+    {
+      "when": "2026-09-21",
+      "runner": "suite_245",
+      "from": 10,
+      "to": 9,
+      "direction": "improved",
+      "cause": "she DECLARED resolveTablePrivileges in her own suite as an extractor artifact, not a real change: grabFn over-reads it by 42kB and its slice swallows the dvBackend saveTable whose diffRows call now passes tableId; she measured the function itself byte-identical at 2376 bytes on both builds. She also raised X8 95 -> 97 for her two new functions.",
+      "verified": "her suite source diff read before accepting the drop; the 8 remaining failures are all OUR security-changed functions and stay correctly unaccounted while the change has no ticket",
+      "legitimate": true
     }
   ]
 }

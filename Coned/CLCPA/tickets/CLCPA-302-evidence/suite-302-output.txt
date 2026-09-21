@@ -1,0 +1,35 @@
+CLCPA-302: the history and the dialog count the same save
+BASE d84c0d3   app.js working tree
+
+=== A. the two counts, on every table ==============================
+  ok   A1 tables measured, one operator edit each: 48
+  ok   A2 the old accounting disagreed on 24 of them: 24  ["A1 +1","A2 +1","A3 +1","A4 +1","A5 +2","A6 +2"]
+  ok   A3 and this build disagrees on NONE: []
+
+=== B. what those extra cells were =================================
+  ok   B1 extra cells the old accounting counted: 29
+  ok   B2 and EVERY one is an ENGINE cell, on a TOTAL ROW, which the strip left in place: 29 of 29
+  ok   B3 not one had been stripped away before saving, which is what put it in the saved rows to be counted: 0
+  ok   B4 and exactly one is a DECLARED derived column, E1s kept figure, so "the column is undeclared" is the common route and not the rule: 1
+
+=== C. it is NOT "any computed total row" ==========================
+  ok   C1 G1 to G9 have computed total rows: 9 of 14
+  ok   C2 and NONE of them over-counted, even on BASE: []
+  ok   C3 so a computed total row is not on its own the trigger, which is what the control was set to establish
+
+=== D. an operator change is still recorded ========================
+  ok   D1 every one of the 48 edits is still recorded in the history: []
+  ok   D2 on all 48 tables: 48
+
+=== E. what happens when the classifier cannot run =================
+  ok   E1 called without a tableId, diffRows counts every cell exactly as it did before: 2 against 1
+  ok   E2 and the classifier is built inside a try, so a table it cannot read falls back to counting everything rather than counting nothing
+
+=== X. the baseline =================================================
+  ok   X1 diffRows takes the tableId it needs
+  ok   X2 and BOTH backends pass it
+  ok   X3 while BASE does not, so this suite cannot pass on it
+  ok   X4 BASE is a literal commit sha: d84c0d3
+  ok   X5 and HEAD descends from it
+
+  19 passed, 0 failed

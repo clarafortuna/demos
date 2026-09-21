@@ -158,6 +158,7 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   T9 F5 "Grand Total" stays NUMERIC and centred
 
 === X. CSS only, and the baseline ===================================
+  ok   X1 app.js function diffRows moved, and it is named by a later ticket: NOT this ticket: CLCPA-302: the history counts operator changes only, applying the same two exclusions the Confirm-save dialog applies, so the record and the sentence the operator approved cannot disagree
   ok   X1 app.js function phantomSpacerCols moved, and it is named by a later ticket: NOT this ticket: CLCPA-260, Section C group D: the phantom spacer columns, new
   ok   X1 app.js function declaredTableFromFilename moved, and it is named by a later ticket: CLCPA-264: the filename extractor (new)
   ok   X1 app.js function declaredYearFromFilename moved, and it is named by a later ticket: CLCPA-277: the year token in a filename (new)
@@ -248,11 +249,11 @@ CLCPA-249 -- headers and values centred, the row label stays left
   ok   X1 app.js function clearIngestNotices moved, and it is named by a later ticket: CLCPA-276: one helper for every notice exit (new)
   ok   X1 app.js function refreshIngestNotices moved, and it is named by a later ticket: CLCPA-273: repaints the notice mount in place (new)
   ok   X1 app.js function boot moved, and it is named by a later ticket: NOT this ticket: CLCPA-283: a year the operator added is removable, data and all; protection is seed-year only (the seedYears note it carries)
-  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (90) belongs to a later ticket
+  FAIL X1b CLCPA-249 itself touched no JavaScript: every moved function (91) belongs to a later ticket
   ok   X2 styles.css did change
   ok   X2b and not only in its comments
   ok   X3 exactly these NINE rules were retired: 15
   ok   X3b and exactly these were added, each named above: first column scoped so it cannot catch a sub-header: 15
   ok   X4 BASE is a literal commit sha: eef4d6f
   ok   X5 and an ancestor of HEAD
-  221 passed, 2 failed
+  222 passed, 2 failed

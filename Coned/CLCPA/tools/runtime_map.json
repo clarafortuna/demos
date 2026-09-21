@@ -1,5 +1,5 @@
 {
-  "generated": "2026-09-21T00:34:08.447Z",
+  "generated": "2026-09-21T01:11:20.863Z",
   "note": "Git source -> Dataverse web resource mapping for the CLCPA integration line. Deployed bytes are the stamped form; repo bytes are deliberately unstamped.",
   "environment": {
     "name": "Sustainability Design - Dev",
@@ -13,17 +13,17 @@
     "head": "74958bd54f2d64fab707862961f387d61604c302",
     "pushed": true,
     "integrationBase": "75e8eec",
-    "lastReconciledEngineerTip": "24c1642",
+    "lastReconciledEngineerTip": "40b74e2",
     "originMain": "d84c0d3"
   },
   "build": {
-    "app.js": "fd467629dc",
+    "app.js": "a463a3682b",
     "styles.css": "9039bfc509"
   },
   "solution": {
     "uniqueName": "CLCPAExecutiveDashboardIntegration",
     "displayName": "CLCPA Executive Dashboard - Integration",
-    "version": "1.0.1.0",
+    "version": "1.0.1.1",
     "managed": false
   },
   "publisher": {
@@ -45,7 +45,7 @@
       "type": 1,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/ExecutiveDashboard.html",
       "repoSha256": "4ba1d6e7b5925ae6",
-      "deployedSha256": "970eb5b1a03a3587",
+      "deployedSha256": "adb7f1da29dbab92",
       "stamped": true
     },
     {
@@ -64,8 +64,8 @@
       "webResourceId": "bd88b33c-b8f8-4457-b387-6a8b8c0d00a6",
       "type": 3,
       "gitPath": "Coned/CLCPA/ExecutiveDashboard_dev/app.js",
-      "repoSha256": "fd467629dcf1ea71",
-      "deployedSha256": "2dd41f5f954c95a2",
+      "repoSha256": "a463a3682b4cc257",
+      "deployedSha256": "4f0a46ad129ff5de",
       "stamped": true
     },
     {
@@ -108,15 +108,16 @@
     "sourceCommit": "b4583b7"
   },
   "reconciliation": {
-    "round": 13,
-    "baseline": "24c1642 (origin/clcpa-reconcile-305-306)",
+    "round": 14,
+    "baseline": "40b74e2 (origin/clcpa-302-history)",
     "outstanding": 0,
     "mergedIntoIntegration": "74958bd",
     "sourceKind": "trunk — she merges by PR and deletes the branch, so origin/main IS the delta source",
     "absorbedThisRound": {
-      "commits": 1,
+      "commits": 2,
       "tickets": [
-        "CLCPA-305 + CLCPA-306 the reconciliation advisory"
+        "CLCPA-302 history counts operator changes only",
+        "CLCPA-293 round 2 (stop, no code)"
       ]
     },
     "previousRounds": [

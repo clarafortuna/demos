@@ -1,5 +1,5 @@
 {
-  "engineerTip": "4094c0a",
+  "engineerTip": "24c1642",
   "integrationBase": "75e8eec",
   "note": "75e8eec is the tip of the only live engineer stack (clcpa-278-r4-row-cell-render, 3 ahead of main, 0 behind). Every other branch ahead of main is also 159-702 commits behind it and is abandoned divergence, not reconciliation input. The integration line starts here rather than at origin/main so the engineer's unmerged r4 work is already inside it.",
   "ledger": [
@@ -204,6 +204,13 @@
       "engineerSubject": "CLCPA-304 + CLCPA-307 + CLCPA-309/310: the small B and D board tickets",
       "integrationCommit": "2a915a7",
       "reconciledAt": "2026-09-20",
+      "validation": "tools/run_security.sh green"
+    },
+    {
+      "engineerCommit": "24c1642c6e272b2fc7fa52458dbf9073cf027a2d",
+      "engineerSubject": "CLCPA-305 + CLCPA-306: the reconciliation advisory",
+      "integrationCommit": "de50b5c",
+      "reconciledAt": "2026-09-21",
       "validation": "tools/run_security.sh green"
     }
   ]
