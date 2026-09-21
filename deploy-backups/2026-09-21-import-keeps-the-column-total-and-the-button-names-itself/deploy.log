@@ -66,3 +66,101 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as d2f41d0
+          remote main = d2f41d0  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1394600B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1394600B  sha256 0aca97d75b3d08eb...  VERIFIED byte-identical
+READ-BACK styles.css  286866B  sha256 9039bfc5093de9cc...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 58cdf17acf282714...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : ec57405193  ok
+  app.js canonicalised + hashed : ec57405193  ok
+  styles.css hashed             : 9039bfc509  ok
+  HTML references app.js?v=     : ec57405193  ok
+  HTML references styles.css?v= : 9039bfc509  ok
+  all 2 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : a filed column total reaches the kept-figure contract through the import path and a refusal is never silent, and the confirm buttons name is derived once instead of written out twice -- CLCPA-303, CLCPA-307
+build id (app.js): ec57405193
+styles.css id    : 9039bfc509   (replaced 9039bfc509)
+previous build   : 33f7d69a27, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ db895b6
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build ec57405193
+
+THE ACCEPTANCE PASS:
+  THE HEADLINE GATE IS AGAIN A NEGATIVE ONE: NOTHING PUBLISHED MOVES.
+     Every figure on every section page should read exactly as it does
+     today, to the digit. This wave changes what an IMPORT accepts and
+     what two sentences say. A changed published number is a regression.
+  
+  THE IMPORT GESTURE, ON ITS OWN FOUR STEPS. Report Data, B2, on a
+     scratch year. Download Template: the whole Total row and the whole
+     Total Plugs column must read (calculated). Save As CSV, type 999
+     over the Total rows L2 Plugs marker, leave everything else, and
+     import it.
+     THE STAGING LINE must count the 999: seven values where it used to
+     say six, on a file that has not changed.
+     AFTER LOAD DATA the drafts Total row must hold 999, NOT the
+     computed figure, and the amber box must name it: "Total / L2 Plugs:
+     filed 999, the rows itemise 243" or your own numbers in that shape.
+     THE STATE must read Unsaved Changes. Before this it read No
+     Changes, because nothing had reached the draft at all.
+  
+  THE DEFERRED CORNER, which is the CLCPA-306 question this gesture now
+     reaches: with the filed 999 in place, the Total rows own columns no
+     longer add up to its Total Plugs, and the reconciliation advisory
+     says so as well. Two advisories on one screen. The mechanics are
+     ruled to stand; whether the second one reads as noise is yours to
+     sentence on this gesture.
+  
+  AND WHAT MUST STILL BE REFUSED. Import a value into A1s Total row
+     under "% in DACs". It must NOT be imported: that column is a
+     quotient of the two beside it and the engine owns it. The staging
+     line must warn before you import ("1 filed value in calculated cell
+     will not be imported; the page will name it") and the result box
+     must name it in RED afterwards. Before this it vanished in silence.
+     The markers you left untouched must NOT be listed: only a figure
+     somebody actually typed.
+  
+  THE BUTTON AND ITS TWO SENTENCES, on BOTH paths. Open Add Data and
+     type a year that ALREADY EXISTS: the button reads Load Data, the
+     help text must end "press Load Data", and a rejected file must say
+     "Load Data will still load the table-year" -- with no promise to add
+     a year, because nothing is created. Now type a year that does NOT
+     exist without closing the dialog: the button becomes Add Year and
+     BOTH sentences must follow it in place.
+     THE THIRD SURFACE: the template Instructions sheet still reads
+     "open Report Data and press Add Data", as round 1 left it.
+
+STILL DISCLOSED, not defects in this build:
+  - THE SECOND ADVISORY IS A DECLARED CONSEQUENCE, not a request. Keeping
+  -    the filed column total makes the corner disagree with its own row,
+  -    and the reconciliation advisory names that too. Ruled: proceed as
+  -    built, the mechanics stand, and it becomes a style rider later if it
+  -    reads as noise on screen.
+  - WEIGHTED-MEAN AND PERCENTAGE TOTALS ARE STILL REFUSED. This round
+  -    widened the import to a DECLARED COLUMN TOTAL only, whose inputs are
+  -    other rows. A column the engine rebuilds from the other columns of
+  -    the same row stays the engines, which is CLCPA-88s protection. Every
+  -    such refusal is now named rather than silent.
+  - B2 IS STILL NOT IN THE PERSIST STRIP, and the recompute billed to
+  -    nobody is still excluded rather than recorded. Both follow-ups are
+  -    recorded and unchanged by this wave.
+  - THE STYLESHEET AND THE HTML DO NOT MOVE in this wave. app.js alone
+  -    changes; the HTML follows it through its ?v= stamp, and the byte
+  -    comparison against the live copy is what decides what is pushed,
+  -    not this note.
+
+=== log written by deploy_import_keeps_and_button_names.js ===
