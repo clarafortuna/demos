@@ -1,0 +1,142 @@
+CLCPA-293 round 3: the stored anatomy, replayed rather than hand-built
+app.js: working tree   BASE d84c0d3
+
+=======================================================================
+ 1. THE ANATOMY, built the way the real one was built
+=======================================================================
+  An import lands the itemised rows, the engine writes the total rows
+  from them, and the save stores the lot as ordinary rows. That is the
+  CLCPA-240 finding 2 mechanism, and it is replayed here rather than
+  guessed at: no figure below is typed into this file.
+
+  the engine, asked to write both total rows from the itemised ones:
+      r24 -> [283852,162105]
+      r25 -> [null,null]   <- it cannot derive this row at all
+
+  so the figure in the real r25 came from a FILE, not from the engine,
+  and the replay files both totals the way that era of the importer did.
+
+  RECONSTRUCTED: a prior file whose totals reconciled with its own rows
+      r24 ["Residential Programs Installations Total",283852,162105,null]
+      r25 ["Total CES Programs Installations",283852,162105,null]
+  CONTRAST: the anatomy A8/2025 is in today
+      r24 ["Residential Programs Installations Total",283852,162105,null]
+      r25 ["Total CES Programs Installations",336599,190180,null]
+
+=======================================================================
+ 2. WHO OWNS THOSE TWO CELLS, on the reconstructed anatomy
+=======================================================================
+  the reconstructed 2098
+      r24 "Residential Programs Installations Total"
+          totalRowFlags confirms it a total : true
+          rebuildable (so the import refuses): [1,2]
+      r25 "Total CES Programs Installations"
+          totalRowFlags confirms it a total : true
+          rebuildable (so the import refuses): [1,2]
+  the stored 2025
+      r24 "Residential Programs Installations Total"
+          totalRowFlags confirms it a total : true
+          rebuildable (so the import refuses): [1,2]
+      r25 "Total CES Programs Installations"
+          totalRowFlags confirms it a total : false
+          rebuildable (so the import refuses): []
+
+=======================================================================
+ 3. THE IMPORT: what the file stages, and what the draft ends up with
+=======================================================================
+  The file fills the two figure columns on every itemised row and files
+  both totals itself, which is what a preparer working from the
+  workbook does. Percentages are left to the engine.
+
+  ON THE RECONSTRUCTED ANATOMY (the hosted case)
+      values the file stages            : 40
+      of those, cells that land         : 14
+      of those, cells that DO NOT       : 26
+      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r4 HVAC / Total Installations","r4 HVAC / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r7 HVAC / Total Installations","r7 HVAC / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r13 HVAC / Total Installations","r13 HVAC / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r19 Building Shell / Total Installations","r19 Building Shell / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r22 HVAC / Total Installations","r22 HVAC / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations","r25 Total CES Programs Installations / Total Installations","r25 Total CES Programs Installations / DAC Installations"]
+      r24 Residential Programs Installations Total
+          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+      r25 Total CES Programs Installations
+          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+
+  and on the anatomy whose grand total does NOT reconcile
+      values the file stages            : 40
+      of those, cells that land         : 16
+      of those, cells that DO NOT       : 24
+      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r4 HVAC / Total Installations","r4 HVAC / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r7 HVAC / Total Installations","r7 HVAC / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r13 HVAC / Total Installations","r13 HVAC / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r19 Building Shell / Total Installations","r19 Building Shell / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r22 HVAC / Total Installations","r22 HVAC / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations"]
+      r24 Residential Programs Installations Total
+          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+      r25 Total CES Programs Installations
+          Total Installations=landed, not named   DAC Installations=landed, not named
+
+=======================================================================
+ 4. THE SAME IMPORT ON d84c0d3
+=======================================================================
+  the build before this whole stack
+      values the file stages            : 40
+      of those, cells that land         : 14
+      of those, cells that DO NOT       : 26
+      and the ones that do not are      : ["r2 Clean Heat – Midstream Heat Pump Wat / Total Installations","r2 Clean Heat – Midstream Heat Pump Wat / DAC Installations","r4 HVAC / Total Installations","r4 HVAC / DAC Installations","r5 Clean Heat – Residential Air Source  / Total Installations","r5 Clean Heat – Residential Air Source  / DAC Installations","r7 HVAC / Total Installations","r7 HVAC / DAC Installations","r8 Clean Heat – Residential Ground Sour / Total Installations","r8 Clean Heat – Residential Ground Sour / DAC Installations","r13 HVAC / Total Installations","r13 HVAC / DAC Installations","r17 EmPower+ Total / Total Installations","r17 EmPower+ Total / DAC Installations","r19 Building Shell / Total Installations","r19 Building Shell / DAC Installations","r20 Retail Products Total / Total Installations","r20 Retail Products Total / DAC Installations","r22 HVAC / Total Installations","r22 HVAC / DAC Installations","r23 Weather Ready Total / Total Installations","r23 Weather Ready Total / DAC Installations","r24 Residential Programs Installations T / Total Installations","r24 Residential Programs Installations T / DAC Installations","r25 Total CES Programs Installations / Total Installations","r25 Total CES Programs Installations / DAC Installations"]
+      r24 Residential Programs Installations Total
+          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+      r25 Total CES Programs Installations
+          Total Installations=DISCARDED IN SILENCE   DAC Installations=DISCARDED IN SILENCE
+
+=======================================================================
+ 5. THE CANDIDATE FIX, SIZED BEFORE IT IS BUILT
+=======================================================================
+  The principle is the one already ruled for the CLCPA-320 marker this
+  session: DERIVABILITY COMES FROM THE RULE REGISTRY, not from row role,
+  and by the same reasoning not from the value in the cell. Applied here,
+  a total cell would be the engine's only where the engine has a
+  DECLARED rule that produces it -- a derived column, a declared derived
+  row, or a detectSumColumns relationship -- and not merely because the
+  figure stored in it today happens to add up.
+
+  This is NOT built. What follows is its blast radius, measured across
+  every table and every stored year, so the size of the change is known
+  before anyone decides to make it.
+
+  total cells the importer refuses as rebuildable today : 445
+  of those, cells with NO declared rule behind them     : 275
+  tables affected: 24  ["A1","A2","A3","A4","A5","A6","A7","A8","B1","C2","C3","C4","C5","E1","F2","F7","F8","F9","G10","H1","J3","J4","J6","J7"]
+      A1: 6 cells
+      A2: 5 cells
+      A3: 4 cells
+      A4: 8 cells
+      A5: 60 cells
+      A6: 36 cells
+      A7: 8 cells
+      A8: 50 cells
+
+  Every one of those cells would move from REFUSED to accepted and
+  named. That is the direction CLCPA-272 ruled -- a provided value is
+  accepted and reconciled, never rejected -- so the change is not
+  dangerous in kind. It is large in degree, and it is a change to what
+  the importer does on every table, which is why it is measured and
+  left for a ruling rather than taken on my own judgement.
+
+--- what this shows ---------------------------------------------------
+  THE DISCARD REPRODUCES. On the reconstructed anatomy the file stages 40,
+  14 land and 26 do not; on the anatomy whose grand total does not
+  reconcile, 24 do not. The difference is exactly two cells, and they
+  are exactly the two cells of the filed grand total, which is the
+  hosted finding: the two missing were the two filed totals.
+
+  Both are DISCARDED IN SILENCE: totals accepted and named is 0.
+  Round 2 measured this same behaviour and called it correct, on the
+  reasoning that the engine can reproduce the figure so the cell is the
+  engine's. The provenance is what breaks that: the engine CANNOT
+  derive r25 -- section 1 shows it writing null -- so the figure it
+  reproduces is one an earlier FILE put there. The engine is claiming a
+  cell on the strength of a number it did not write.
+
+  The reason it is not correct is in section 2. The SAME two cells of
+  the SAME table belong to the preparer or to the engine depending on
+  whether the figures stored in them happen to add up: on the 2025
+  anatomy r25 is not confirmed and its filed figure is kept and named,
+  and on the reconstructed one it is confirmed and the filed figure is
+  dropped in silence. Ownership of a cell is being decided by the value
+  currently sitting in it, which is the classifier trap this engine has
+  now ruled against three times: CLCPA-293s own comment, CLCPA-319s
+  columnTotal, and the CLCPA-320 marker ruling that derivability comes
+  from the rule registry and not from row role.
