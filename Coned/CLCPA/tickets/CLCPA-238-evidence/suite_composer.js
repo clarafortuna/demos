@@ -113,7 +113,13 @@ guard('extract and run the shipped composer', () => {
   'getTableSchema', 'shiftSchemaYears', 'isPercentLiteral', 'reconcileSumColumns', 'detectSumColumns', 'withinSourceRounding', 'detectAvgColumns', 'columnNumericMask', 'detectCurrencyColumns', 'isNumeric', 'dacFirstDiff', 'dacRow', 'dacCol', 'dacCell', 'dacPct',
     'dacBody', 'dacPick', 'dacGBoroughs', 'dacCPrograms', 'dacJAverage',
     'composePayloadFromRows', 'isStrictTotalRowLabel', /* CLCPA-245 dep */ 'isAnchoredTotalRowLabel', 'isHierarchicalTotalLabel', 'kpiDacPct',
+    /* CLCPA-131: rowsForDisplay now applies the declared derived ROWS as well,
+     * so the page and the editor agree. A hand-fed list cannot see a new
+     * closure until the path runs, and this one threw instead of failing. */
     'rowsForDisplay',
+    'applyDerivedRows',
+    'derivedRowValue', 'derivedRowKeepsStored', 'unreconciledDerivedRows',
+    'addsOnlyPrecision', 'storedDecimals',
     /* CLCPA-263 deps: rowsForDisplay derives the value (pct) composites on
      * its clone, so the closure needs the derivation and its three helpers. */
     'applyCompositeShares', 'isCompositeShareCol', 'compositeValueText', 'bareNumber', 'totalRowFlags', 'columnGrandTotals', 'applyDerivedCols',
@@ -123,7 +129,7 @@ guard('extract and run the shipped composer', () => {
     'derivedCellWrite', 'derivedFiledReproduced', 'storedDecimals',
     'sumDerivedCols', 'detectPctColumns'];
   const DECLS = ['DAC_TOTAL_RE', 'DAC_CHART_RULES', 'DAC_KPI_REPORTED', 'dacShare',
-    'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', /* CLCPA-263: the composite-share declaration */ 'COMPOSITE_SHARE_COLS', 'NOT_RECONCILED_TABLES',
+    'dacJ9Share', 'DAC_KPI_ANALYTICAL', 'DERIVED_COLS', /* CLCPA-131: the row twin, now read by rowsForDisplay */ 'DERIVED_ROWS', /* CLCPA-263: the composite-share declaration */ 'COMPOSITE_SHARE_COLS', 'NOT_RECONCILED_TABLES',
   /* CLCPA-240 round 2: totalRowFlags and the ingest predicates read these, so
      the functions cannot be assembled without them. Dependencies, not
      assertions. */

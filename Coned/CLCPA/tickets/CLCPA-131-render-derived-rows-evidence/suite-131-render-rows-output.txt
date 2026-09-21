@@ -1,0 +1,27 @@
+CLCPA-131: declared derived rows on the page, with nothing republished
+BASE ea0300d   app.js working tree
+
+A. THE CALL, AND THE ARGUMENT THAT MAKES IT SAFE
+  PASS  A1 rowsForDisplay applies the declared derived rows
+  PASS  A2 and passes the STORED rows as the kept-figure baseline, never null
+  PASS  A3 after the column rules, whose output it divides
+  PASS  A4 BASE ea0300d did not call it from rowsForDisplay at all
+
+B. NOT ONE PUBLISHED FIGURE MOVES, ACROSS EVERY DECLARED CELL
+    declared derived-row cells examined: 89
+  PASS  B1 every declared cell in the payload is examined: 89
+  PASS  B2 and NOT ONE stored published figure moves: 0 moved
+
+C. THE UNSAFE CALLING, WHICH IS WHAT B EXISTS TO REFUSE
+      D2/2023 r2 c1: filed 0.321 -> 0.32057920404599916
+      D2/2023 r5 c1: filed 0.373 -> 0.37345442608600504
+      D2/2024 r2 c1: filed 0.323 -> 0.3231806315023834
+  PASS  C1 without the baseline it republishes 47 of 49 filed figures, so B is guarding something real
+
+D. AN EMPTY DECLARED ROW IS COMPUTED, WHICH IS THE POINT
+    now : [0.3480825958702065,0.09270274191208472]
+    BASE: [null,null]
+  PASS  D1 every declared percentage row computes on the page: [0.3480825958702065,0.09270274191208472]
+  PASS  D2 and on BASE ea0300d every one of them was blank: [null,null]
+
+9 passed, 0 failed
