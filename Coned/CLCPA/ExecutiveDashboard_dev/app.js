@@ -366,8 +366,55 @@ function utf8ByteLength(str) {
 
     // ---- shared row-diff (identical change-detection used by both backends) ----
     // Returns the `changes` array for a history entry.
-    function diffRows(oldRows, newRows, schema) {
+    /* CLCPA-302: THE HISTORY COUNTS OPERATOR CHANGES ONLY.
+     *
+     * The Confirm-save dialog and the history counted the same save two
+     * different ways. The dialog excludes KEY cells (ingestKeyColCount) and
+     * ENGINE cells (ingestComputed.any) and says "You are about to save N
+     * cell changes"; this counted every cell that differed, with no
+     * exclusions, so the record disagreed with the sentence the operator
+     * had just read and approved.
+     *
+     * THE TRIGGER, NAMED. It is NOT "any computed total row", and the owner's
+     * control proves that: Section J has those and several of its tables
+     * matched exactly. Measured across all 48 tables, one operator edit each,
+     * the extra cells the history counted were every one of them:
+     *
+     *     engineCell = true     the dialog excludes it
+     *     totalRow   = true     it is on a total row
+     *     derivedCol = false    but its column is NOT declared derived
+     *     strippedAway = false  so stripDerivedForPersist leaves it in place
+     *
+     * That is the gap between two different ideas of "the engine's cell". The
+     * strip nulls DECLARED derived columns; the dialog excludes the whole
+     * total row. A total row's cell in an ordinary sum column falls between
+     * them: it survives into the saved rows, it moves when an input moves,
+     * and it was counted as though a person had typed it. G1 to G9 show a gap
+     * of zero for the same reason in reverse -- CLCPA-319 gave that column a
+     * declared rule, so the strip now nulls it.
+     *
+     * So this applies the dialog's own two exclusions, from the same two
+     * classifiers, rather than inventing a third idea of what an operator
+     * change is. tableId is threaded in for it; both backends already have it.
+     */
+    function diffRows(oldRows, newRows, schema, tableId) {
       oldRows = oldRows || []; newRows = newRows || []; schema = schema || [];
+      /* the engine's own view of the rows being SAVED. If it cannot be built
+       * -- no tableId, or a table the classifier cannot read -- every cell
+       * counts, which is exactly the behaviour this replaces and therefore
+       * the safe direction for a failure. */
+      let computed = null, keyCols = 1;
+      try {
+        if (tableId) {
+          computed = ingestComputed(newRows, tableId, schema);
+          keyCols = Math.max(1, ingestKeyColCount(tableId));
+        }
+      } catch (e) { computed = null; keyCols = 1; }
+      const operatorCell = (r, c) => {
+        if (!computed) return true;
+        if (c < keyCols) return false;
+        return !computed.any(r, c);
+      };
       const oldLabels = oldRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
       const newLabels = newRows.map(r => (r && r[0] != null) ? String(r[0]) : '');
       const oldByLabel = {}; oldLabels.forEach((lbl, i) => { if (lbl) (oldByLabel[lbl] = oldByLabel[lbl] || []).push(i); });
@@ -393,7 +440,7 @@ function utf8ByteLength(str) {
           const oRow = oldRows[oi] || [], nRow = newRows[ni] || [];
           const colCount = Math.max(oRow.length, nRow.length);
           for (let c = 1; c < colCount; c++) {   // skip col 0 (label) — covered by pairing
-            if (oRow[c] !== nRow[c]) changes.push({ kind: 'cell', rowIdx: ni, colIdx: c, rowLabel: lbl, colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
+            if (oRow[c] !== nRow[c] && operatorCell(ni, c)) changes.push({ kind: 'cell', rowIdx: ni, colIdx: c, rowLabel: lbl, colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
           }
         }
       });
@@ -404,7 +451,7 @@ function utf8ByteLength(str) {
         if (!oRow[0] && !nRow[0]) {
           const colCount = Math.max(oRow.length, nRow.length);
           for (let c = 0; c < colCount; c++) {
-            if (oRow[c] !== nRow[c]) changes.push({ kind: 'cell', rowIdx: r, colIdx: c, rowLabel: '(unlabeled)', colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
+            if (oRow[c] !== nRow[c] && operatorCell(r, c)) changes.push({ kind: 'cell', rowIdx: r, colIdx: c, rowLabel: '(unlabeled)', colLabel: schema[c] != null ? String(schema[c]) : '', oldVal: oRow[c], newVal: nRow[c] });
           }
         }
       }
@@ -443,7 +490,7 @@ function utf8ByteLength(str) {
           ctx = ctx || {};
           const overrides = readJSON(OVERRIDES_KEY, {});
           const oldRows = ctx.oldRows || overrides[overrideKey(tableId, year)] || [];
-          const changes = diffRows(oldRows, newRows, ctx.schema || []);
+          const changes = diffRows(oldRows, newRows, ctx.schema || [], tableId);
           overrides[overrideKey(tableId, year)] = newRows;
           writeJSON(OVERRIDES_KEY, overrides);
           const entry = { ts: Date.now(), user: ctx.name || 'anonymous', email: ctx.email || '', tableId, year, changes };
@@ -876,7 +923,7 @@ function utf8ByteLength(str) {
           const key = overrideKey(tableId, year);
           const existing = cOverrides[key];
           const oldRows = ctx.oldRows || (existing ? existing.rows : []) || [];
-          const changes = diffRows(oldRows, newRows, ctx.schema || []);
+          const changes = diffRows(oldRows, newRows, ctx.schema || [], tableId);
 
           // --- synchronous cache update (instant UI) ---
           cOverrides[key] = { id: existing ? existing.id : null, section: existing ? existing.section : sectionOf(tableId), tableId: tableId, year: String(year), rows: newRows };
