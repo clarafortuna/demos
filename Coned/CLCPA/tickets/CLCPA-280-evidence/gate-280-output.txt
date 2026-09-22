@@ -1,5 +1,5 @@
 CLCPA-280 gate: where the retired strings still appear
-swept 1852 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
+swept 1883 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
 
 SHIPPED: 0 hit(s)
 UNPLACED: 0 hit(s)

@@ -64,3 +64,89 @@ PROVENANCE of the archive, read from the ORG:
 
         2 of 3 will be replaced: app.js, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as d9724c5
+          remote main = d9724c5  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1406872B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 2 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1406872B  sha256 8805e47b81de6fe6...  VERIFIED byte-identical
+READ-BACK styles.css  286310B  sha256 4993f5eee9add026...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 e7a06592242299ad...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 670da36609  ok
+  app.js canonicalised + hashed : 670da36609  ok
+  styles.css hashed             : 4993f5eee9  ok
+  HTML references app.js?v=     : 670da36609  ok
+  HTML references styles.css?v= : 4993f5eee9  ok
+  all 1 app ticket groups and 0 stylesheet symbols across 0 group(s) present in the SERVER copy.
+
+=== DEPLOY COMPLETE ===
+slice            : the fourteen section-page chart tooltips stop hiding as the pointer travels inside a row, stay on screen at the viewport edge, and none of them outlives the rows it describes -- CLCPA-247
+build id (app.js): 670da36609
+styles.css id    : 4993f5eee9   (replaced 4993f5eee9)
+previous build   : 22d065d93a, archived and pushed before any write
+source           : ExecutiveDashboard_dev/ at main @ 4d10429
+requests: GET 11, PATCH 2, POST 1
+
+CLIENT CHECK, and it is not optional: server-verified is not client-running.
+Hard-refresh the app and confirm the console prints
+   [DAC dashboard] build 670da36609
+
+THE ACCEPTANCE PASS:
+  TRAVEL INSIDE A CHART ROW, which is the gesture this is about. On each
+     section page, hover a chart row and then MOVE the pointer across it,
+     label to bar to pill. The tooltip must stay up for the whole travel.
+     Before this build it vanished on the first move inside the row on
+     seven of the fourteen surfaces: the F3 tiles, the G borough rows, the
+     G methane blocks, the G methane donut, the I funnel stages, the A
+     stacked rows and the B funding rows.
+  
+  AT THE EDGE OF THE SCREEN. Hover the right-most and the lowest instance
+     of each chart surface. The box must flip to the other side of the
+     cursor, or slide up, rather than running off screen. Five went off
+     screen before: the G methane blocks, the F boroughs, the E
+     year-on-year rows, the D bar metrics and the H pie slices.
+  
+  NOTHING LEFT BEHIND. Open a tooltip, change the reporting year, and
+     then move to another section WITHOUT moving the pointer first.
+     Nothing may be left showing, and no box may reappear later holding
+     the previous page figures.
+  
+  AND THE CONTROLS ARE UNCHANGED. A control tooltip must still open on
+     hover and on keyboard focus, and Escape must still close it. The
+     early-out added here declines to hide over the chart surfaces only,
+     so a control tip must still close when the pointer leaves it for
+     ordinary page background.
+
+STILL DISCLOSED, not defects in this build:
+  - THE FOURTEEN WERE WALKED BY A REAL POINTER IN THE BUILD ENVIRONMENT,
+  -    so unlike the map work this one was reproduced and verified here
+  -    before it shipped: fourteen of fourteen open, survive the travel
+  -    and leave nothing behind, and no box goes off screen at the worst
+  -    case the page offers. The hosted pass is confirmation on the real
+  -    data rather than the only measurement.
+  - ONLY EIGHT OF THE FOURTEEN COULD EVER HAVE SHOWN THE HIDING DEFECT,
+  -    and that is measured, not assumed: eight write to the one shared
+  -    tooltip div that the delegated handler blanket-hid, and six create a
+  -    div of their own that handler never touches. Seven of the eight were
+  -    seen to hide; the eighth is an SVG circle with no child element for
+  -    the pointer to cross into. All fourteen were registered anyway, so
+  -    the inventory is the surfaces that manage a tooltip themselves and
+  -    not the subset that happened to be visibly broken.
+  - FIVE TIPS NOW SIT TWO PIXELS HIGHER. Those five placed themselves ten
+  -    pixels above the cursor while the shared positioner places eight,
+  -    and unifying them is the point of routing every one through it.
+  - ONE OWNER FOR THE SHARED DIV IS NOT IN THIS BUILD. Claim and release
+  -    across every wiring remains its own ticket by ruling, and nothing
+  -    was filed for it here. Its absence is asserted by the suite rather
+  -    than remembered.
+  - THE STYLESHEET DOES NOT MOVE in this wave, and neither does the HTML
+  -    beyond its cache-busting stamps. The byte comparison against the
+  -    live copy is what decides what is pushed, not this note.
+
+=== log written by deploy_section_tooltips.js ===

@@ -29,7 +29,7 @@ C. THE PANEL, RENDERED FROM THE REAL MAP PAYLOAD
   PASS  C8 and the rest of the panel is byte-identical to BASE with the card removed
 
 D. THE SWEEP
-    10911: <div class="f-empty-text">Coming soon</div>
+    10935: <div class="f-empty-text">Coming soon</div>
   PASS  D1 exactly one "Coming soon" remains in the bundle: 1
   PASS  D2 it is the Section D `const placeholder`, assigned to a variable
   PASS  D3 which is never interpolated, so it reaches no operator: 0 use(s)
