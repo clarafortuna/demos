@@ -313,7 +313,7 @@ def load_indicator_catalog(path=None):
         sys.exit("REFUSED: %s is missing.\n"
                  "  It carries the indicator groups the dataset manifest is built from.\n"
                  "  Generate it once with:\n"
-                 "    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js > app_pre5d.js\n"
+                 "    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js   # demos coordinates: see HANDOVER_INVENTORY.md, fetch the legacy history first > app_pre5d.js\n"
                  "    python Data/build_indicator_catalog.py --app-js app_pre5d.js"
                  % os.path.relpath(p, ROOT))
     with open(p, encoding="utf-8") as fh:

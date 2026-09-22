@@ -28,7 +28,7 @@ WHAT IT IS GENERATED FROM
 An app.js from BEFORE slice 5d, since that is the last build containing the
 literal. Extract one and point this script at it:
 
-    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js > /tmp/app_pre5d.js
+    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js   # demos coordinates: see HANDOVER_INVENTORY.md, fetch the legacy history first > /tmp/app_pre5d.js
     python Data/build_indicator_catalog.py --app-js /tmp/app_pre5d.js
 
 `1d4a5f9` is the slice-7b merge, the last commit before 5d. Any commit before
@@ -99,7 +99,7 @@ def main():
         sys.exit("REFUSED: %s does not contain `const MAP_INDICATOR_GROUPS`.\n"
                  "  Slice 5d removed it, so this must be an app.js from before that\n"
                  "  slice. Extract one with:\n"
-                 "    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js > app_pre5d.js"
+                 "    git show 1d4a5f9:Coned/CLCPA/ExecutiveDashboard_dev/app.js   # demos coordinates: see HANDOVER_INVENTORY.md, fetch the legacy history first > app_pre5d.js"
                  % a.app_js)
 
     src_sha = sha256(a.app_js)

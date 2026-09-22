@@ -46,7 +46,18 @@ const DEC_COLS = ['cr2bf_elecadj', 'cr2bf_gasadj'];
 // System columns present in the export that must NOT be sent on a create.
 const NOT_SETTABLE = ['createdon', 'modifiedon', '@odata.etag'];
 
-const EXPORT = 'c:/Users/emely/Desktop/Projects/demos/Coned/CLCPA/ExecutiveDashboard_dev/Data/backups/cr2bf_dacmaptractdata_2026-08-24.json';
+/* RELATIVE TO THIS FILE, not to one machine's home directory.
+ *
+ * This was an absolute path into c:/Users/emely/Desktop/Projects/demos, which
+ * resolves on exactly one computer. The folder is leaving the demos repository
+ * to become its own, and a restore script that cannot find its own export on
+ * the next owner's machine is not a restore script. The export sits in
+ * Data/backups beside this file, so __dirname is the whole answer.
+ *
+ * Overridable, because a restore may need a different snapshot than the one
+ * this script was written against. */
+const EXPORT = process.env.DAC_MAP_EXPORT ||
+  path.join(__dirname, 'backups', 'cr2bf_dacmaptractdata_2026-08-24.json');
 const CODE_FILE = path.join(__dirname, 'device_code_191r.txt');
 
 let pass = 0, fail = 0;
