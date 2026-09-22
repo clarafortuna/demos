@@ -469,34 +469,4 @@ requests: GET 103, DELETE 196. No PATCH, no POST to the org.
 
 PHASE 2 ENDS HERE. Nothing else tonight.
 
-======================================================================
-CORRECTION, written after the run. THE DELETE WAS COMPLETE; THE LINE
-THAT SAID OTHERWISE WAS A STALE EXPECTATION IN MY OWN CHECKER.
-======================================================================
-
-The read-back printed:
-
-  2098/2099 absent from every store: NO
-
-That is wrong. Every one of the six stores read ZERO for both years, which
-the per-store lines directly above it state:
-
-  cr2bf_dacingesttestchangehistories   186 -> 0
-  cr2bf_dacingesttestreportingyears      0 -> 0
-  cr2bf_dacingesttesttabledata1s        10 -> 0
-  cr2bf_dacmapchangehistories            0 -> 0
-  cr2bf_dacmaplayers                     0 -> 0
-  cr2bf_dactractdatasets                 0 -> 0
-
-WHY IT SAID NO. The read-back compared the change-history store against
-orphans.length -- 163 -- because an earlier version of this script held the
-orphan rows back from the delete under a fifth gate condition. The owner
-corrected the rule: every 2098 and 2099 history row goes, orphaned or not. I
-changed the delete and did not follow the change into the checker, so it
-expected 163 survivors, found none, and reported the clean result as unclear.
-
-The script has been corrected to expect zero in every store, with the defect
-recorded at the line where it happened. The org state is unaffected: 196 of
-196 rows were deleted and both years are gone from all six stores.
-
-=== correction ends ===
+[exited with code 0]
