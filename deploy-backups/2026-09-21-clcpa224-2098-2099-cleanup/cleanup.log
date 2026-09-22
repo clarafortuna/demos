@@ -1,0 +1,27 @@
+=== CLCPA-224: the 2098/2099 cleanup ===
+org: https://org9076e69b.crm.dynamics.com
+Phase 1 reads. A gate decides. Phase 2 deletes only if every condition holds.
+
+PRE-FLIGHT 0  self-audit: one POST (the identity endpoint, no org data),
+              one DELETE helper with one call site, downstream of the gate.
+              No PATCH anywhere. No POST to the org.
+PRE-FLIGHT 1  isYearProtected sliced from the shipped app.js and driven both ways.
+              visibility rule: const show = yr != null && Storage.getAddedYears().includes(yr) && !isYearProtected(yr);
+              seedYears rule:  .map(String).filter(y => addedYears.indexOf(y) < 0);
+PRE-FLIGHT 2  the write list, derived from the shipped app.js:
+                cr2bf_dacingesttestchangehistories      Create
+                cr2bf_dacingesttestreportingyears       Create, Delete
+                cr2bf_dacingesttesttabledata1s          Create, Delete, Update
+                cr2bf_dacmapchangehistories             Create
+                cr2bf_dacmaplayers                      Create, Delete, Update
+                cr2bf_dactractdatasets                  Create, Delete, Update
+PRE-FLIGHT 3  the CLCPA-335 report expectations, transcribed:
+              2099: 34 tables  A1 A2 A3 A4 A5 A6 A7 A8 A9 A10 B1 B2 C1 C2 C3 C4 C5 D1 D2 D3 D4 E1 G1 G2 G3 G4 G5 G6 G7 G8 G9 G10 H1 I1
+              2098: G5 only (3 rows)
+              F and J were never given a 2099, per the same report.
+
+################  ACTION NEEDED  ################
+  Open:  https://login.microsoft.com/device
+  Code:  ASV6J4X8Z
+#################################################
+
