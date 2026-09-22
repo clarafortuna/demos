@@ -1,5 +1,5 @@
 CLCPA-280 gate: where the retired strings still appear
-swept 1826 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
+swept 1846 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
 
 SHIPPED: 0 hit(s)
 UNPLACED: 0 hit(s)
@@ -29,10 +29,23 @@ ARCHIVE: 162 hit(s)
     deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "Delivered by" x2
     deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "Update cadence" x8
     ... and 150 more
-THIS TICKET: 0 hit(s)
+THIS TICKET: 24 hit(s)
+    Coned/CLCPA/tickets/CLCPA-280-evidence/gate-280-output.txt  "TO BE FILLED" x14
+    Coned/CLCPA/tickets/CLCPA-280-evidence/gate-280-output.txt  "Delivered by" x10
+    Coned/CLCPA/tickets/CLCPA-280-evidence/gate-280-output.txt  "Update cadence" x14
+    Coned/CLCPA/tickets/CLCPA-280-evidence/gate_280.js  "TO BE FILLED" x1
+    Coned/CLCPA/tickets/CLCPA-280-evidence/gate_280.js  "Delivered by" x1
+    Coned/CLCPA/tickets/CLCPA-280-evidence/gate_280.js  "Update cadence" x1
+    Coned/CLCPA/tickets/CLCPA-280-evidence/mut-280-output.txt  "Update cadence" x1
+    Coned/CLCPA/tickets/CLCPA-280-evidence/mut_280.js  "TO BE FILLED" x2
+    Coned/CLCPA/tickets/CLCPA-280-evidence/mut_280.js  "Update cadence" x3
+    Coned/CLCPA/tickets/CLCPA-280-evidence/repro-280-output.txt  "TO BE FILLED" x17
+    Coned/CLCPA/tickets/CLCPA-280-evidence/repro-280-output.txt  "Delivered by" x2
+    Coned/CLCPA/tickets/CLCPA-280-evidence/repro-280-output.txt  "Update cadence" x8
+    ... and 12 more
 
 ASSERTIONS
-  PASS  the sweep found something somewhere, so it is reading files at all: 173 hit(s)
+  PASS  the sweep found something somewhere, so it is reading files at all: 197 hit(s)
   PASS  the shipped web resources carry none of the three strings: 0
   PASS  every remaining hit is in a declared class, none unplaced: []
   PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/app.js

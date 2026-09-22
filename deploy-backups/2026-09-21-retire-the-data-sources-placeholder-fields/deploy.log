@@ -65,3 +65,82 @@ PROVENANCE of the archive, read from the ORG:
 
         3 of 3 will be replaced: app.js, styles.css, ExecutiveDashboard.html
 
+ROLLBACK  snapshot committed as 7d3778e
+          remote main = 7d3778e  VERIFIED
+          the rollback is durable off this machine. Proceeding to write.
+
+PATCH webresourceset(79151fe9-3c64-f111-ab0c-7c1e521c7110)  <- app.js (1404406B)
+PATCH webresourceset(7b151fe9-3c64-f111-ab0c-7c1e521c7110)  <- styles.css (286310B)
+PATCH webresourceset(77151fe9-3c64-f111-ab0c-7c1e521c7110)  <- ExecutiveDashboard.html (4080B)
+POST PublishXml for 3 resource(s)  (one call, all of them)
+published.
+
+READ-BACK app.js  1404406B  sha256 9355d8b0e2cd6472...  VERIFIED byte-identical
+READ-BACK styles.css  286310B  sha256 4993f5eee9add026...  VERIFIED byte-identical
+READ-BACK ExecutiveDashboard.html  4080B  sha256 39d00097a49fec6a...  VERIFIED byte-identical
+
+SERVER-SIDE STAMPS:
+  app.js APP_BUILD              : 22d065d93a  ok
+  app.js canonicalised + hashed : 22d065d93a  ok
+  styles.css hashed             : 4993f5eee9  ok
+  HTML references app.js?v=     : 22d065d93a  ok
+  HTML references styles.css?v= : 4993f5eee9  ok
+
+ABORTED: the SERVER copy is missing this wave:
+  CLCPA-280:         ['Published by', 'Con Edison, internal. Not public.'],
+      ],
+
+======================================================================
+CORRECTION, written after the run. THE DEPLOY SUCCEEDED; THE GATE THAT
+STOPPED THE SCRIPT WAS WRONG, AND IT WAS MY INPUT THAT WAS WRONG.
+======================================================================
+
+WHAT ACTUALLY HAPPENED. All three resources were PATCHed, one PublishXml
+covered all three, and all three read back byte-identical. The server
+stamps were then read and all five agreed: app.js APP_BUILD 22d065d93a,
+app.js canonicalised and hashed 22d065d93a, styles.css 4993f5eee9, and the
+HTML referencing both. The build on the org is the intended one.
+
+The script then re-counted this wave's fingerprints in the SERVER copy and
+exited on one of the three app symbols. That symbol is multi-line and I
+joined it with LF.
+
+WHY THAT IS WRONG, and it is the exact mirror of the defect the previous
+wave hit in the stylesheet half. The app half of PRE-FLIGHT 3b counts the
+raw `git show` blob, which git hands back with LF endings. The SAME symbol
+map is counted again after the push against the SERVER copy, which is the
+working tree's bytes and is CRLF. One spelling cannot satisfy both. An
+LF-joined symbol passes 3b and then fails the server re-check on a build
+that is perfectly correct.
+
+MEASURED, against the stamped local app.js whose sha256 the read-back
+already proved identical to the org copy (9355d8b0e2cd6472):
+
+  the failing symbol, joined LF    0   <- what the gate asked for
+  the same symbol,   joined CRLF   1   <- what the bytes actually carry
+
+  and in those same shipped bytes:
+    TO BE FILLED     0
+    Delivered by     0
+    Update cadence   0
+    ds-dict-gap      0
+
+So the server copy carries this wave. The other two app symbols and the
+stylesheet symbol passed the server re-check unaided; only the multi-line
+one failed, and only on its line endings.
+
+THE SCRIPT IS ARCHIVED EXACTLY AS IT RAN. It is the record of what was
+done, so it is not edited after the fact. The correction belongs here.
+
+FOR THE NEXT COPY OF THIS SCRIPT, and this is the part that must not be
+lost: the comment above TICKET_SYMBOLS in the archived file says an
+LF-joined symbol is correct for the app half. It is correct for 3b and
+wrong for the server re-check. Either normalise both sides to CRLF, or
+keep every app symbol single-line, which is what every wave before this
+one did and why the trap had not surfaced.
+
+NOTHING WAS ROLLED BACK AND NOTHING NEEDED TO BE. The snapshot of the
+previous build was committed and pushed as 7d3778e before the first PATCH,
+and it remains the rollback for 0067415e4f + e6de22bc37.
+
+=== correction ends ===
