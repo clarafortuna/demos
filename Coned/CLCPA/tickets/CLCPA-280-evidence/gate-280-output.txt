@@ -1,5 +1,5 @@
 CLCPA-280 gate: where the retired strings still appear
-swept 1846 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
+swept 1852 tracked files for ["TO BE FILLED","Delivered by","Update cadence"]
 
 SHIPPED: 0 hit(s)
 UNPLACED: 0 hit(s)
@@ -15,7 +15,7 @@ FROZEN: 11 hit(s)
     Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-territory.html  "TO BE FILLED" x2
     Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-territory.html  "Delivered by" x1
     Coned/CLCPA/tickets/CLCPA-221-evidence/renders/after-dict-territory.html  "Update cadence" x2
-ARCHIVE: 162 hit(s)
+ARCHIVE: 168 hit(s)
     deploy-backups/2026-09-05-clcpa-221-round2-one-nav/app.js  "TO BE FILLED" x7
     deploy-backups/2026-09-05-clcpa-221-round2-one-nav/app.js  "Delivered by" x2
     deploy-backups/2026-09-05-clcpa-221-round2-one-nav/app.js  "Update cadence" x8
@@ -28,7 +28,7 @@ ARCHIVE: 162 hit(s)
     deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "TO BE FILLED" x7
     deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "Delivered by" x2
     deploy-backups/2026-09-05-clcpa-223-round2-centre-expose/app.js  "Update cadence" x8
-    ... and 150 more
+    ... and 156 more
 THIS TICKET: 24 hit(s)
     Coned/CLCPA/tickets/CLCPA-280-evidence/gate-280-output.txt  "TO BE FILLED" x14
     Coned/CLCPA/tickets/CLCPA-280-evidence/gate-280-output.txt  "Delivered by" x10
@@ -45,7 +45,7 @@ THIS TICKET: 24 hit(s)
     ... and 12 more
 
 ASSERTIONS
-  PASS  the sweep found something somewhere, so it is reading files at all: 197 hit(s)
+  PASS  the sweep found something somewhere, so it is reading files at all: 203 hit(s)
   PASS  the shipped web resources carry none of the three strings: 0
   PASS  every remaining hit is in a declared class, none unplaced: []
   PASS  the gate still covers Coned/CLCPA/ExecutiveDashboard_dev/app.js

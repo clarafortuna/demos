@@ -1,0 +1,188 @@
+CLCPA-247: the fourteen section-page tooltip surfaces join CLCPA-242
+BASE d880c0b   app.js working tree
+
+0. THE EXTRACTOR
+  PASS  0.1 every block parses and none over-reads: 0 problem(s)
+  PASS  0.2 and a name that is not in the file returns nothing
+
+A. THE POSITIONERS
+  PASS  A1 BASE d880c0b carried exactly fourteen raw positioners: 14
+  PASS  A2 the shipped build carries none: 0
+    placeTooltipAtPointer(tip, e) call sites: 7 -> 21
+  PASS  A3 fourteen call sites were added, one per retired positioner: +14
+  PASS  A4.wireFSectionTooltips is still in the bundle
+  PASS  A5.wireFSectionTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireFSectionTooltips has no raw positioner left
+  PASS  A4.wireGSectionTooltips is still in the bundle
+  PASS  A5.wireGSectionTooltips calls the shared positioner 3 time(s), one per site it owns: 3
+  PASS  A6.wireGSectionTooltips has no raw positioner left
+  PASS  A4.wireISectionTooltips is still in the bundle
+  PASS  A5.wireISectionTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireISectionTooltips has no raw positioner left
+  PASS  A4.wireSectionATooltips is still in the bundle
+  PASS  A5.wireSectionATooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireSectionATooltips has no raw positioner left
+  PASS  A4.wireQuadrantTooltip is still in the bundle
+  PASS  A5.wireQuadrantTooltip calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireQuadrantTooltip has no raw positioner left
+  PASS  A4.wireBTooltips is still in the bundle
+  PASS  A5.wireBTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireBTooltips has no raw positioner left
+  PASS  A4.drawSectionEArc is still in the bundle
+  PASS  A5.drawSectionEArc calls the shared positioner 2 time(s), one per site it owns: 2
+  PASS  A6.drawSectionEArc has no raw positioner left
+  PASS  A4.wireJTooltips is still in the bundle
+  PASS  A5.wireJTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireJTooltips has no raw positioner left
+  PASS  A4.wireDTooltips is still in the bundle
+  PASS  A5.wireDTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireDTooltips has no raw positioner left
+  PASS  A4.wireFTooltips is still in the bundle
+  PASS  A5.wireFTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireFTooltips has no raw positioner left
+  PASS  A4.wireHTooltips is still in the bundle
+  PASS  A5.wireHTooltips calls the shared positioner 1 time(s), one per site it owns: 1
+  PASS  A6.wireHTooltips has no raw positioner left
+
+B. WHAT THIS TICKET DID NOT TOUCH
+  PASS  B1 placeTooltipAtPointer is byte-identical to d880c0b: the clamp, the horizontal flip, the vertical slide and fix B are the shipped ones
+  PASS  B2 ensureTooltip is byte-identical: the shared div is still shared
+  PASS  B3 no claim/release mechanism was smuggled in: fix C is still its own ticket
+  PASS  B4 the shared div still has all its callers: 11
+
+C. FIX A, EXTENDED TO THE FOURTEEN
+  PASS  C1 wireControlTips is present in both builds
+  PASS  C2 both builds declare OWNS_TIP
+    OWNS_TIP: 5 selectors -> 24
+  PASS  C3.0 the pre-existing surface .dumb-row is still registered
+  PASS  C3.1 the pre-existing surface .strip-row is still registered
+  PASS  C3.2 the pre-existing surface .ai-header-card is still registered
+  PASS  C3.3 the pre-existing surface .radar-dot is still registered
+  PASS  C3.4 the pre-existing surface .ingest-cell-label[data-label-tip] is still registered
+  PASS  C4.0 .f3-tile[data-tt-label] is registered as a tip-owning surface
+  PASS  C4.1 .g-row[data-tt-label] is registered as a tip-owning surface
+  PASS  C4.2 .g-methane-block[data-tt-label] is registered as a tip-owning surface
+  PASS  C4.3 .g-methane-donut is registered as a tip-owning surface
+  PASS  C4.4 .i-funnel-stage[data-tt-label] is registered as a tip-owning surface
+  PASS  C4.5 .i-rate-bar-row[data-tt-label] is registered as a tip-owning surface
+  PASS  C4.6 .a-stacked-row is registered as a tip-owning surface
+  PASS  C4.7 .scatter-svg circle[data-name] is registered as a tip-owning surface
+  PASS  C4.8 .b-fund-row is registered as a tip-owning surface
+  PASS  C4.9 .b-torn-row is registered as a tip-owning surface
+  PASS  C4.10 #e-arc-canvas-section is registered as a tip-owning surface
+  PASS  C4.11 .e-yoy-row is registered as a tip-owning surface
+  PASS  C4.12 .j-burden-html-row is registered as a tip-owning surface
+  PASS  C4.13 .j-aff-block is registered as a tip-owning surface
+  PASS  C4.14 .j-flow-stage is registered as a tip-owning surface
+  PASS  C4.15 .j-dpa-group is registered as a tip-owning surface
+  PASS  C4.16 .d-bar-metric is registered as a tip-owning surface
+  PASS  C4.17 .f3-borough is registered as a tip-owning surface
+  PASS  C4.18 .h-pie-slice is registered as a tip-owning surface
+  PASS  C5 the list is exactly the old one plus this ticket's 19: 24
+  PASS  C6 the selector list is well formed: no empty term, no trailing comma
+  PASS  C7a the delegated mouseover handler is still there
+  PASS  C7 the order inside that handler is unchanged: control first, then the early-out, then hide  [show 84, ownsTip 129, hide 160]
+  PASS  C8 ownsTip still reads the list through closest()
+
+D. NOTHING SHOWING WHEN THE VIEW RE-RENDERS
+  PASS  D1 the build declares one list of pointer-following tips
+    POINTER_TIP_SELECTORS: [".exec-tooltip",".e-tt",".j-tt",".d-tt",".f-tt",".h-pie-tt"]
+    tip divs the bundle creates: [".exec-tooltip",".e-tt",".j-tt",".d-tt",".f-tt",".h-pie-tt"]
+  PASS  D2.0 .exec-tooltip is on the hide list
+  PASS  D2.1 .e-tt is on the hide list
+  PASS  D2.2 .j-tt is on the hide list
+  PASS  D2.3 .d-tt is on the hide list
+  PASS  D2.4 .f-tt is on the hide list
+  PASS  D2.5 .h-pie-tt is on the hide list
+  PASS  D3.0 .exec-tooltip is a div the bundle really creates
+  PASS  D3.1 .e-tt is a div the bundle really creates
+  PASS  D3.2 .j-tt is a div the bundle really creates
+  PASS  D3.3 .d-tt is a div the bundle really creates
+  PASS  D3.4 .f-tt is a div the bundle really creates
+  PASS  D3.5 .h-pie-tt is a div the bundle really creates
+  PASS  D4 and the shared div is on it, which ensureTooltip creates by another route
+  PASS  D5 BASE cleared exactly one box: [".exec-tooltip"]
+  PASS  D6 the shipped build clears every tip div the bundle creates (6): [".exec-tooltip",".e-tt",".j-tt",".d-tt",".f-tt",".h-pie-tt"]
+  PASS  D7.0 .exec-tooltip is hidden AND its content cleared
+  PASS  D7.1 .e-tt is hidden AND its content cleared
+  PASS  D7.2 .j-tt is hidden AND its content cleared
+  PASS  D7.3 .d-tt is hidden AND its content cleared
+  PASS  D7.4 .f-tt is hidden AND its content cleared
+  PASS  D7.5 .h-pie-tt is hidden AND its content cleared
+  PASS  D8 the SECTION render path calls it, which is what this ticket adds
+  PASS  D9 and the executive render path still does
+  PASS  D10 and on the section path it runs BEFORE anything is wired
+  PASS  D11 BASE d880c0b did not call it from the section path
+
+E. THE INVENTORY IS OF THINGS THAT EXIST
+  PASS  E1 fourteen sites are named: 14
+  PASS  E2.0 .f3-tile[data-tt-label] names something the bundle renders
+  PASS  E2.1 .g-row[data-tt-label] names something the bundle renders
+  PASS  E2.2 .g-methane-block[data-tt-label] names something the bundle renders
+  PASS  E2.3 .g-methane-donut names something the bundle renders
+  PASS  E2.4 .i-funnel-stage[data-tt-label] names something the bundle renders
+  PASS  E2.5 .i-rate-bar-row[data-tt-label] names something the bundle renders
+  PASS  E2.6 .a-stacked-row names something the bundle renders
+  PASS  E2.7 .scatter-svg circle[data-name] names something the bundle renders
+  PASS  E2.8 .b-fund-row names something the bundle renders
+  PASS  E2.9 .b-torn-row names something the bundle renders
+  PASS  E2.10 #e-arc-canvas-section names something the bundle renders
+  PASS  E2.11 .e-yoy-row names something the bundle renders
+  PASS  E2.12 .j-burden-html-row names something the bundle renders
+  PASS  E2.13 .j-aff-block names something the bundle renders
+  PASS  E2.14 .j-flow-stage names something the bundle renders
+  PASS  E2.15 .j-dpa-group names something the bundle renders
+  PASS  E2.16 .d-bar-metric names something the bundle renders
+  PASS  E2.17 .f3-borough names something the bundle renders
+  PASS  E2.18 .h-pie-slice names something the bundle renders
+    wiring functions: wireFSectionTooltips, wireGSectionTooltips, wireISectionTooltips, wireSectionATooltips, wireQuadrantTooltip, wireBTooltips, drawSectionEArc, wireJTooltips, wireDTooltips, wireFTooltips, wireHTooltips
+  PASS  E3 across eleven wiring functions: 11
+
+F. WHAT THE BROWSER SAW
+  PASS  F1 both runs of repro_247 left their verdicts
+  PASS  F2 both walked all fourteen: 14 / 14
+    hides mid-travel  before [1,2,3,4,5,6,8]  after []
+    off screen        before [13,3,10,12,14]  after []
+  PASS  F3 BEFORE, seven surfaces hid mid-travel: [1,2,3,4,5,6,8]
+  PASS  F4 AFTER, none does: []
+  PASS  F5 BEFORE, five went off screen at their worst case: [13,3,10,12,14]
+  PASS  F6 AFTER, none does: []
+  PASS  F7 and every one of the fourteen still opens
+  PASS  F8 and every one of them writes to the SHARED div: [1,2,3,4,5,6,7,8]
+
+G. WHAT ELSE MOVED
+    changed functions: drawSectionEArc, hideExecTooltip, wireBTooltips, wireControlTips, wireDTooltips, wireFSectionTooltips, wireFTooltips, wireGSectionTooltips, wireHTooltips, wireISectionTooltips, wireJTooltips, wireQuadrantTooltip, wireSectionATooltips, wireSectionInteractions
+  PASS  G1 the change to drawSectionEArc is accounted for
+  PASS  G1 the change to hideExecTooltip is accounted for
+  PASS  G1 the change to wireBTooltips is accounted for
+  PASS  G1 the change to wireControlTips is accounted for
+  PASS  G1 the change to wireDTooltips is accounted for
+  PASS  G1 the change to wireFSectionTooltips is accounted for
+  PASS  G1 the change to wireFTooltips is accounted for
+  PASS  G1 the change to wireGSectionTooltips is accounted for
+  PASS  G1 the change to wireHTooltips is accounted for
+  PASS  G1 the change to wireISectionTooltips is accounted for
+  PASS  G1 the change to wireJTooltips is accounted for
+  PASS  G1 the change to wireQuadrantTooltip is accounted for
+  PASS  G1 the change to wireSectionATooltips is accounted for
+  PASS  G1 the change to wireSectionInteractions is accounted for
+  PASS  G2 wireControlTips changed as intended: fix A extended: the fourteen join OWNS_TIP
+  PASS  G2 hideExecTooltip changed as intended: the hide now covers every pointer-following tip, not only the shared one
+  PASS  G2 wireSectionInteractions changed as intended: the section render path calls the hide, as the executive one already did
+  PASS  G2 wireFSectionTooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireGSectionTooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireISectionTooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireSectionATooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireQuadrantTooltip changed as intended: routed through the shared positioner
+  PASS  G2 wireBTooltips changed as intended: routed through the shared positioner
+  PASS  G2 drawSectionEArc changed as intended: routed through the shared positioner
+  PASS  G2 wireJTooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireDTooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireFTooltips changed as intended: routed through the shared positioner
+  PASS  G2 wireHTooltips changed as intended: routed through the shared positioner
+  PASS  G3 exactly this many functions changed: 14 against 14
+  PASS  G4 styles.css is byte-identical to d880c0b
+  PASS  G5 nothing added carries a long dash
+  PASS  G6 nothing added touches the payload or the derive engine
+
+160 passed, 0 failed

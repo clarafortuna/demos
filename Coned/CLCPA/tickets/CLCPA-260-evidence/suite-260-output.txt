@@ -72,7 +72,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   Z5 which the source says in as many words
 
 === X. what else moved ============================================
-       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, draw, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, importIdentityNotice, importYearNotice, ingestComputed, ingestDeclaredTotalCell, ingestFiledTotalReason, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestPrimaryLabel, ingestRebuildableTotals, ingestRejectedStillDoes, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredComputedRow, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, nearZeroPctText, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderDsDictView, renderIngestEditor, renderIngestImport, renderIngestImportBar, renderIngestImportResult, renderKeptFigureNotice, renderMapKPI, renderPreparerTotalsNotice, renderReconcileNotice, renderRefusedFiledNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireIngestEditor, wireIngestPage, xlsxCell, xlsxInstructionBlocks
+       changed: applyCompositeShares, applyDerivedCols, applyIngestImport, bareNumber, boot, buildIngestImport, buildIngestWorkbook, buildYearSelector, clearIngestNotices, columnGrandTotals, compareColWidths, composePayloadFromRows, compositeValueText, dacCell, dacDerivedTablesForYear, declaredTableFromFilename, declaredYearFromFilename, deriveTableCaption, deriveTableCaptionInfo, derivedCellWrite, derivedFiledReproduced, derivedPctCols, detectSumColumns, diffRows, draw, fillDerivableSumsOnImport, fmtDerivedCell, formatCell, getTableSchema, hideExecTooltip, importIdentityNotice, importYearNotice, ingestComputed, ingestDeclaredTotalCell, ingestFiledTotalReason, ingestHeaderKeys, ingestHeaderName, ingestHeaderRowCount, ingestKeyColDescription, ingestMarkerSource, ingestOperatorCell, ingestPrimaryLabel, ingestRebuildableTotals, ingestRejectedStillDoes, ingestRoleOpen, ingestRowIsStoredHeader, ingestRowRole, ingestStagedSummary, ingestStoredHeaderRows, ingestTemplateSource, ingestTextOnlyColumn, ingestYearCarriesHeaderRows, isB7PreparerTotal, isCompositeShareCol, isComputedShareLabel, isDeclaredComputedRow, isDeclaredSummable, isPercentLiteral, isTotalOnlyDerived, isTotalRoleLabel, isYearProtected, loadIngestDraft, nearZeroPctText, noteTypedPercent, openAddYearDialog, openSaveModal, parseB2Plugs, phantomSpacerCols, recomposeYearIfComposed, recomputeDerivableSums, recomputeTotals, recomputeYearDerived, reconcileSumColumns, refreshIngestCalcCells, refreshIngestNotices, renderDsDictView, renderIngestEditor, renderIngestImport, renderIngestImportBar, renderIngestImportResult, renderKeptFigureNotice, renderMapKPI, renderPreparerTotalsNotice, renderReconcileNotice, renderRefusedFiledNotice, renderSourceTables, renderTable, renderTypedUnitNotice, rerenderIngestEditor, rowSumIsConsistent, rowsForDisplay, shiftSchemaYears, stagedBlock, storedHeaderRowsInYear, stripCaptionYear, stripDerivedForPersist, tableCaption, totalRowFlags, unitNoticeValue, unreconciledDerivedCols, wire, wireControlTips, wireFSectionTooltips, wireGSectionTooltips, wireISectionTooltips, wireIngestEditor, wireIngestPage, wireSectionATooltips, wireSectionInteractions, xlsxCell, xlsxInstructionBlocks
   ok   the change to applyCompositeShares is accounted for
   ok   the change to applyDerivedCols is accounted for
   ok   the change to applyIngestImport is accounted for
@@ -102,6 +102,7 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to fmtDerivedCell is accounted for
   ok   the change to formatCell is accounted for
   ok   the change to getTableSchema is accounted for
+  ok   the change to hideExecTooltip is accounted for
   ok   the change to importIdentityNotice is accounted for
   ok   the change to importYearNotice is accounted for
   ok   the change to ingestComputed is accounted for
@@ -173,8 +174,14 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   the change to unitNoticeValue is accounted for
   ok   the change to unreconciledDerivedCols is accounted for
   ok   the change to wire is accounted for
+  ok   the change to wireControlTips is accounted for
+  ok   the change to wireFSectionTooltips is accounted for
+  ok   the change to wireGSectionTooltips is accounted for
+  ok   the change to wireISectionTooltips is accounted for
   ok   the change to wireIngestEditor is accounted for
   ok   the change to wireIngestPage is accounted for
+  ok   the change to wireSectionATooltips is accounted for
+  ok   the change to wireSectionInteractions is accounted for
   ok   the change to xlsxCell is accounted for
   ok   the change to xlsxInstructionBlocks is accounted for
   ok   xlsxInstructionBlocks changed as intended: NOT this ticket: CLCPA-282 operator-prose sweep: the workbook instructions and one rejection message say how many heading rows a table has
@@ -281,8 +288,15 @@ Section C group D -- CLCPA-260, the phantom spacer columns
   ok   ingestOperatorCell changed as intended: NOT this ticket: CLCPA-302 round 2: one shared reader for which cells BELONG TO THE OPERATOR, so the confirm count and the change history cannot disagree about an engine recompute (new)
   ok   ingestMarkerSource changed as intended: NOT this ticket: CLCPA-320 round 3: an EMPTY cell in a POPULATED year takes its marker from the same derivability the fresh path consults, so the two workbooks cannot disagree about a cell neither has a figure for (new)
   ok   renderDsDictView changed as intended: NOT this ticket: CLCPA-280: the Data Sources origin block lost its placeholder branch, because a bracketed to-do is a prompt to us and an unfinished page to the client (the nested ternary is now two arms, not three)
-  ok   X1 exactly this many functions changed: 104
+  ok   hideExecTooltip changed as intended: NOT this ticket: CLCPA-247: the hide covers every pointer-following tip div rather than the shared one alone, so none of them can outlive the rows it describes
+  ok   wireControlTips changed as intended: NOT this ticket: CLCPA-247: the fourteen section-page surfaces join OWNS_TIP, so the delegated handler stops hiding a tooltip the row itself has just opened on the first move inside that row
+  ok   wireFSectionTooltips changed as intended: NOT this ticket: CLCPA-247: this section-page tooltip is placed by the shared clamp now, so it gains the viewport flip, the vertical slide and the rule that an unmeasured box is never pinned to an edge
+  ok   wireGSectionTooltips changed as intended: NOT this ticket: CLCPA-247: this section-page tooltip is placed by the shared clamp now, so it gains the viewport flip, the vertical slide and the rule that an unmeasured box is never pinned to an edge
+  ok   wireISectionTooltips changed as intended: NOT this ticket: CLCPA-247: this section-page tooltip is placed by the shared clamp now, so it gains the viewport flip, the vertical slide and the rule that an unmeasured box is never pinned to an edge
+  ok   wireSectionATooltips changed as intended: NOT this ticket: CLCPA-247: this section-page tooltip is placed by the shared clamp now, so it gains the viewport flip, the vertical slide and the rule that an unmeasured box is never pinned to an edge
+  ok   wireSectionInteractions changed as intended: NOT this ticket: CLCPA-247: the SECTION render path hides everything before it wires anything, which is the rule the executive render path already had
+  ok   X1 exactly this many functions changed: 111
   ok   X2 dacCol is byte-identical to BASE
   ok   X3 BASE is a literal commit sha: 0076083
   ok   X4 and an ancestor of HEAD, so this group stacks on Group C
-  272 passed, 0 failed
+  286 passed, 0 failed

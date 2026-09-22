@@ -1,0 +1,177 @@
+CLCPA-247: the fourteen section-page tooltip surfaces, travelled in Chrome
+label: before   HEAD d880c0b + uncommitted app.js   serving: app.js and styles.css from d880c0b
+
+SECTION F
+   1  .f3-tile[data-tt-label]   (5 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 392   box 172x124 at 370,262   on "f3-tile-label"
+       stop 2    opacity 0     html 392   box 172x124 at 370,286   on "f3-tile-value"
+       stop 3    opacity 0     html 392   box 172x124 at 429,293   on "f3-tile-yoy"
+       left     opacity 0   html 392
+       edge     hovered at 634,475 of 1582x1104   box 172x124 at 648,465   offscreen: no
+  13  .f3-borough   (12 on page, 2 child element(s), 2 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 910   box 220x217 at 759,248   on "f3-borough-name"
+       stop 2    opacity 1     html 910   box 220x217 at 958,248   on "f3-borough-stacked"
+       left     opacity 0   html 910
+       edge     hovered at 1508,494 of 1582x1104   box 220x217 at 1522,486   offscreen: right
+
+SECTION G
+   2  .g-row[data-tt-label]   (8 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 538   box 164x164 at 322,249   on "g-row-label"
+       stop 2    opacity 0     html 538   box 164x164 at 486,249   on "g-row-bar"
+       stop 3    opacity 0     html 538   box 164x164 at 634,249   on "g-row-pill"
+       left     opacity 0   html 538
+       edge     hovered at 1071,372 of 1582x1104   box 170x164 at 1085,362   offscreen: no
+   3  .g-methane-block[data-tt-label]   (2 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 556   box 160x227 at 1438,258   on "g-methane-row"
+       stop 2    opacity 0     html 556   box 160x227 at 1438,281   on "g-methane-num"
+       stop 3    opacity 0     html 556   box 160x227 at 1438,300   on "g-methane-sub"
+       left     opacity 0   html 556
+       edge     hovered at 1517,402 of 1582x1104   box 160x227 at 1531,392   offscreen: right
+   4  .g-methane-donut   (1 on page, 5 child element(s), 4 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 1156  box 222x261 at 1232,320   on ""
+       stop 2    opacity 1     html 1156  box 222x261 at 1232,320   on ""
+       stop 3    opacity 1     html 1156  box 222x261 at 1232,320   on ""
+       stop 4    opacity 0     html 1156  box 222x261 at 1232,306   on ""
+       left     opacity 0   html 1156
+       edge     hovered at 1295,398 of 1582x1104   box 222x261 at 1309,388   offscreen: no
+
+SECTION I
+   5  .i-funnel-stage[data-tt-label]   (3 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 428   box 168x124 at 313,264   on "i-funnel-label"
+       stop 2    opacity 0     html 428   box 168x124 at 576,264   on "i-funnel-bar-wrap"
+       stop 3    opacity 0     html 428   box 168x124 at 843,264   on "i-funnel-pill-col"
+       left     opacity 0   html 428
+       edge     hovered at 842,410 of 1582x1104   box 168x124 at 856,400   offscreen: no
+
+SECTION A
+   6  .a-stacked-row   (16 on page, 4 child element(s), 4 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 1199  box 240x281 at 373,251   on "bar-label"
+       stop 2    opacity 0     html 1199  box 240x281 at 504,251   on "bar-track"
+       stop 3    opacity 0     html 1199  box 240x281 at 564,251   on "bar-value"
+       stop 4    opacity 0     html 1199  box 240x281 at 633,251   on "bar-yoy"
+       left     opacity 0   html 1199
+       edge     hovered at 1071,531 of 1582x1104   box 190x264 at 1085,523   offscreen: no
+   7  .scatter-svg circle[data-name]   (21 on page, 0 child element(s), 4 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 599   box 240x163 at 1315,245   on "self"
+       stop 2    opacity 1     html 599   box 240x163 at 1318,245   on "self"
+       stop 3    opacity 1     html 599   box 240x163 at 1314,246   on "self"
+       stop 4    opacity 1     html 599   box 240x163 at 1317,246   on "self"
+       left     opacity 0   html 599
+       edge     hovered at 1310,376 of 1582x1104   box 240x146 at 1324,368   offscreen: no
+
+SECTION B
+   8  .b-fund-row   (3 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 715   box 240x186 at 313,252   on "b-bar-label"
+       stop 2    opacity 0     html 715   box 240x186 at 585,252   on "b-bar-track"
+       stop 3    opacity 0     html 715   box 240x186 at 856,252   on "b-bar-yoy-pill up"
+       left     opacity 0   html 715
+       edge     hovered at 842,355 of 1582x1104   box 229x172 at 856,347   offscreen: no
+
+SECTION E
+   9  #e-arc-canvas-section   (1 on page, 0 child element(s), 4 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 388   box 220x124 at 304,249   on "self"
+       stop 2    opacity 1     html 390   box 220x124 at 487,249   on "self"
+       stop 3    opacity 1     html 394   box 220x124 at 670,249   on "self"
+       stop 4    opacity 1     html 388   box 220x124 at 456,266   on "self"
+       left     opacity 0   html 388
+       edge     hovered at 839,391 of 1582x1104   box 220x124 at 456,266   offscreen: no
+  10  .e-yoy-row   (4 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 486   box 220x144 at 994,254   on "e-yoy-label"
+       stop 2    opacity 1     html 486   box 220x144 at 1265,254   on "e-yoy-bars"
+       stop 3    opacity 1     html 486   box 220x144 at 1507,254   on "e-yoy-change"
+       left     opacity 0   html 486
+       edge     hovered at 1497,410 of 1582x1104   box 220x144 at 1511,402   offscreen: right
+
+SECTION J
+  11  .j-burden-html-row   (7 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 592   box 335x170 at 317,273   on "j-bhr-label"
+       stop 2    opacity 1     html 592   box 335x170 at 481,273   on "j-bhr-track"
+       stop 3    opacity 1     html 592   box 335x170 at 634,273   on "j-bhr-pill"
+       left     opacity 0   html 592
+       edge     hovered at 634,487 of 1582x1104   box 384x190 at 648,479   offscreen: no
+
+SECTION D
+  12  .d-bar-metric   (6 on page, 3 child element(s), 3 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 1089  box 240x257 at 471,241   on "d-bar-head"
+       stop 2    opacity 1     html 1089  box 240x257 at 471,265   on "d-bar-row"
+       stop 3    opacity 1     html 1089  box 240x257 at 471,286   on "d-bar-row d-bar-row-pr"
+       left     opacity 0   html 1089
+       edge     hovered at 1508,374 of 1582x1104   box 240x257 at 1522,366   offscreen: right
+
+SECTION H
+  14  .h-pie-slice   (8 on page, 0 child element(s), 4 stops)
+       parked   opacity 0
+       stop 1    opacity 1     html 586   box 180x151 at 1176,318   on "self"
+       stop 2    opacity 1     html 586   box 180x151 at 1213,318   on "self"
+       stop 3    opacity 1     html 586   box 180x151 at 1207,331   on "self"
+       stop 4    opacity 1     html 586   box 180x151 at 1220,343   on "self"
+       left     opacity 0   html 586
+       edge     hovered at 1468,427 of 1582x1104   box 180x151 at 1482,419   offscreen: right
+
+RESIDUE ON RE-RENDER
+  CASE 1  year change with the pointer still on the row
+    before : opacity 1  "BronxSourceG · Pipe replacedFeet 202583.8k f"
+    year   : switched to 2024
+    after  : opacity 1  "BronxSourceG · Pipe replacedFeet 202487.5k f"
+    -> refreshed: a new row is under the pointer and its own tooltip opened
+  PASS  a year change does not leave the PREVIOUS year's text on screen
+  CASE 2  the rows are removed from under a stationary pointer
+    tooltip up before  : opacity 1  "BronxSourceG · Pipe replacedFeet 202487.5k f"
+    after the route change, every tip div:
+      .exec-tooltip opacity 1     html 426   "Enrolled SourceI1 · Year Totals Enrolled 202"
+      .e-tt         opacity 0     html 485   "Safety and Security2025 investment$17.6M2024"
+      .j-tt         opacity 0     html 705   "EAP $SourceJ8 · EAP Discount Dollars Deliver"
+      .d-tt         opacity 0     html 1069  "MW installedSourceD4 · Net MeteringTotal 202"
+      .f-tt         opacity 0     html 924   "WestchesterSourceF9 · Customers interruptedT"
+      .h-pie-tt     opacity 0     html 598   "QueensSourceH1 · Leak repairsNon-DAC Repairs"
+    -> no stale box   (re-opened for the new page: .exec-tooltip)   (hidden but still holding text: .e-tt, .j-tt, .d-tt, .f-tt, .h-pie-tt)
+  PASS  no tip is left showing the text of rows that were re-rendered away
+  FAIL  and every hidden tip has had its content cleared: [".e-tt",".j-tt",".d-tt",".f-tt",".h-pie-tt"]
+
+CONTROL TIP, ESCAPE AND KEYBOARD FOCUS:
+  found one on #/ingest
+  hovered         : opacity 1, text "Delete row"
+  after Escape    : opacity 0
+  PASS  a control tip still opens on hover
+  PASS  and Escape still closes it
+  keyboard focus  : opacity 1 -> blur 0
+  PASS  keyboard focus still opens it and blur still closes it
+
+PAGE ERRORS: []
+  PASS  no page errors during the whole walk
+
+THE FOURTEEN, BEFORE
+  #  sec  surface                              tip           opens  survives  clean / worst-case edge
+   1  F   .f3-tile[data-tt-label]              .exec-tooltip yes    NO        yes   on screen
+  13  F   .f3-borough                          .f-tt         yes    yes       yes   OFFSCREEN
+   2  G   .g-row[data-tt-label]                .exec-tooltip yes    NO        yes   on screen
+   3  G   .g-methane-block[data-tt-label]      .exec-tooltip yes    NO        yes   OFFSCREEN
+   4  G   .g-methane-donut                     .exec-tooltip yes    NO        yes   on screen
+   5  I   .i-funnel-stage[data-tt-label]       .exec-tooltip yes    NO        yes   on screen
+   6  A   .a-stacked-row                       .exec-tooltip yes    NO        yes   on screen
+   7  A   .scatter-svg circle[data-name]       .exec-tooltip yes    yes       yes   on screen
+   8  B   .b-fund-row                          .exec-tooltip yes    NO        yes   on screen
+   9  E   #e-arc-canvas-section                .e-tt         yes    yes       yes   on screen
+  10  E   .e-yoy-row                           .e-tt         yes    yes       yes   OFFSCREEN
+  11  J   .j-burden-html-row                   .j-tt         yes    yes       yes   on screen
+  12  D   .d-bar-metric                        .d-tt         yes    yes       yes   OFFSCREEN
+  14  H   .h-pie-slice                         .h-pie-tt     yes    yes       yes   OFFSCREEN
+
+walked 14/14   opens 14   survives the travel 7   clean on leave 14
+hides mid-travel: 1, 2, 3, 4, 5, 6, 8
+goes off screen at its worst case: 13, 3, 10, 12, 14   (edge case available on 14/14)
+
+6 passed, 1 failed

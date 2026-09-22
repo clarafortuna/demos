@@ -30,13 +30,34 @@ const CRLF = String.fromCharCode(13) + String.fromCharCode(10);
 const LF = new RegExp(String.fromCharCode(92) + 'r?' + String.fromCharCode(92) + 'n', 'g');
 
 const BASE = process.env.DAC_BASE_COMMIT || 'fcf4587';
-const SRC = fs.readFileSync(process.env.DAC_APP_OVERRIDE || path.join(DEV, 'app.js'), 'utf8');
-const CSS = fs.readFileSync(process.env.DAC_CSS_OVERRIDE || path.join(DEV, 'styles.css'), 'utf8');
+/* BOTH SIDES PINNED, and the post-change side was not, which is the rot
+ * CLAUDE.md warns about and which this suite duly grew the day after it was
+ * written. It read the working tree, so CLCPA-247 -- a ticket about chart
+ * tooltips, with no opinion whatever about the Data Sources dictionary --
+ * turned block E red for changing files that block had never heard of.
+ *
+ * NEW is the commit that merged this ticket. Fixing both sides makes the suite
+ * permanent evidence of what CLCPA-280 shipped and it can no longer be
+ * falsified by later work. NOT ONE ASSERTION WAS CHANGED to achieve that: the
+ * claims are the claims, and only the build they are asked about is now named.
+ *
+ * DAC_APP_OVERRIDE and DAC_CSS_OVERRIDE still win, so the mutation runner keeps
+ * working -- and it builds its mutants from this same pinned blob, because a
+ * runner that mutates the working tree while the suite reads a commit is
+ * testing nothing. */
+const NEW = process.env.DAC_NEW_COMMIT || 'ca60e4e';
 /* git blobs are LF, the working tree is CRLF, and the extractor anchors on
  * CRLF: an un-normalised baseline resolves nothing and renders an empty page
  * that would read as "the placeholders were never there" */
-const show = (rel) => execSync('git show ' + BASE + ':"' + rel + '"',
+const showAt = (rev, rel) => execSync('git show ' + rev + ':"' + rel + '"',
   { cwd: ROOT, maxBuffer: 1 << 29 }).toString('utf8').replace(LF, CRLF);
+const show = (rel) => showAt(BASE, rel);
+const SRC = process.env.DAC_APP_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_APP_OVERRIDE, 'utf8')
+  : showAt(NEW, REL);
+const CSS = process.env.DAC_CSS_OVERRIDE
+  ? fs.readFileSync(process.env.DAC_CSS_OVERRIDE, 'utf8')
+  : showAt(NEW, CSSREL);
 const BASE_SRC = show(REL), BASE_CSS = show(CSSREL);
 
 /* the three strings the ticket names, spelled once */
@@ -58,8 +79,8 @@ const codeOnly = (s) => s.replace(/\/\*[\s\S]*?\*\//g, '')
 const count = (s, needle) => s.split(needle).length - 1;
 
 log('CLCPA-280: the placeholder origin fields are retired from Data Sources');
-log('BASE ' + BASE + '   app.js ' + (process.env.DAC_APP_OVERRIDE || 'working tree') +
-  '   styles.css ' + (process.env.DAC_CSS_OVERRIDE || 'working tree'));
+log('BASE ' + BASE + '   NEW ' + NEW + '   app.js ' + (process.env.DAC_APP_OVERRIDE || NEW) +
+  '   styles.css ' + (process.env.DAC_CSS_OVERRIDE || NEW));
 log('');
 
 /* ---- A. THE DATA: the six rows are gone, and BASE had them ----------- */
@@ -184,7 +205,7 @@ guard('D  sweep', () => {
   FILES.forEach((f) => {
     const text = f === 'app.js' ? SRC
       : f === 'styles.css' ? CSS
-        : fs.readFileSync(path.join(DEV, f), 'utf8');
+        : showAt(NEW, 'Coned/CLCPA/ExecutiveDashboard_dev/' + f);
     GONE.forEach((needle) => {
       const n = count(text, needle);
       if (n) log('    ' + f + ': "' + needle + '" x' + n);
@@ -205,7 +226,7 @@ log('E. WHAT ELSE MOVED');
 guard('E  scope', () => {
   /* APP CODE ONLY. The handoff package is CLCPA-279's lane and is named in
    * the ticket as untouched, so this is asserted rather than remembered. */
-  const changed = execSync('git diff --name-only ' + BASE, { cwd: ROOT })
+  const changed = execSync('git diff --name-only ' + BASE + ' ' + NEW, { cwd: ROOT })
     .toString().trim().split(/\r?\n/).filter(Boolean);
   /* AN ALLOW-LIST, NAMED, not a pattern loose enough to swallow whatever
    * turns up. render_221.js is on it because CLCPA-280 spends one of its
@@ -235,7 +256,7 @@ guard('E  scope', () => {
     /^Coned\/CLCPA\/tickets\/[^/]+\/[^/]*-output\.txt$/,
   ];
   const outside = changed.filter(f => !ALLOWED.some(re => re.test(f)));
-  log('    changed since ' + BASE + ': ' + JSON.stringify(changed));
+  log('    changed between ' + BASE + ' and ' + NEW + ': ' + JSON.stringify(changed));
   ok(outside.length === 0,
     'E1 only the two web resources, this evidence directory, the one spent ' +
     'CLCPA-221 pin, the five ledgers and committed run outputs changed: ' +
@@ -249,7 +270,7 @@ guard('E  scope', () => {
 
   /* the app.js diff is the six rows, the one branch and the comments that
    * explain them, and nothing else */
-  const diff = execSync('git diff -U0 ' + BASE + ' -- "' + REL + '"',
+  const diff = execSync('git diff -U0 ' + BASE + ' ' + NEW + ' -- "' + REL + '"',
     { cwd: ROOT, maxBuffer: 1 << 28 }).toString();
   const added = diff.split(/\r?\n/).filter(l => /^\+/.test(l) && !/^\+\+\+/.test(l));
   const nonComment = added.map(l => l.slice(1))

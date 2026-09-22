@@ -374,11 +374,40 @@ guard('fix C is not smuggled in', () => {
      (CODE.match(/ensureTooltip\(\)/g) || []).length + ' call sites');
 });
 
-guard('the fourteen section-page tooltips stay out of scope', () => {
+guard('the fourteen section-page tooltips were out of scope HERE, and are now CLCPA-247', () => {
+  /* THIS TRIPWIRE IS RETIRED, and named rather than deleted.
+   *
+   * It existed to say two things: that CLCPA-242 left the fourteen
+   * section-page positioners alone, and that anyone who touched them
+   * afterwards had to notice. Both jobs are done. CLCPA-247 took them on
+   * deliberately -- fix A extended to their surfaces, fix B and the viewport
+   * clamp by routing every one of them through placeTooltipAtPointer, and the
+   * hide-on-re-render given to the section render path -- so the count this
+   * asserted is zero in the shipped build by design.
+   *
+   * THE SUCCESSOR IS NAMED, because a retired guard with no replacement is a
+   * deleted guard: CLCPA-247-evidence/suite_247.js, assertions A1 and A2.
+   * A1 pins that fourteen raw positioners existed at the commit before that
+   * ticket, and A2 that none remains; A3 pins that fourteen calls to the
+   * shared positioner arrived in their place, and A5 that they landed in the
+   * fourteen functions rather than merely somewhere. That is a stronger claim
+   * than this one made, and it is the claim this file no longer owns.
+   *
+   * The counts below still read the PINNED builds this suite is evidence
+   * about, so they remain true statements about CLCPA-242 and say nothing
+   * about any later build. */
   const raw = (CODE.match(/tip\.style\.left = \(e\.pageX \+ 14\) \+ 'px';/g) || []).length;
-  ok(raw === 14, 'still exactly 14 raw positioners, unchanged by this round: ' + raw);
+  ok(raw === 14, 'at ' + NEWREV + ', this round left all 14 raw positioners alone: ' + raw);
   const baseRaw = (codeOnly(BASE_SRC).match(/tip\.style\.left = \(e\.pageX \+ 14\) \+ 'px';/g) || []).length;
-  ok(baseRaw === raw, 'the same count as the deployed build: ' + baseRaw);
+  ok(baseRaw === raw, 'the same count as the deployed build it was measured against: ' + baseRaw);
+  /* and the handover is checked, not asserted in prose: the successor suite
+   * must exist and must make the claim this one has stopped making */
+  const heir = require('path').join(__dirname, '..', 'CLCPA-247-evidence', 'suite_247.js');
+  const heirSrc = require('fs').existsSync(heir)
+    ? require('fs').readFileSync(heir, 'utf8') : '';
+  ok(!!heirSrc, 'the successor suite exists: CLCPA-247-evidence/suite_247.js');
+  ok(/A1 BASE/.test(heirSrc) && /carried exactly fourteen raw positioners/.test(heirSrc),
+    'and it is the one that now pins the fourteen');
 });
 
 /* ==================================================================== */
