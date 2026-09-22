@@ -1,0 +1,51 @@
+# CRLF IS LOAD-BEARING IN THIS FOLDER, AND NOTHING USED TO DECLARE IT.
+#
+# The working tree is CRLF and the whole verification apparatus depends on it:
+# 311 harness files anchor on CRLF, either as String.fromCharCode(13) or as a
+# literal \r\n, because they locate a function by searching for '\r\n' plus an
+# indent. A `git show` blob comes back LF, which is why every suite normalises
+# its baselines; the WORKING TREE is the side that has to already be CRLF.
+#
+# The repository declared none of this. It worked because one machine's
+# core.autocrlf happened to produce CRLF on checkout. On a clone with different
+# settings -- a Linux machine, a CI runner, or simply another laptop -- the
+# checkout would be LF, every CRLF-anchored search would resolve nothing, and
+# the failure mode is the quiet one: indexOf returns -1, a slice runs from the
+# end, and a suite reports on a block that is not there. That is the single
+# largest day-one risk in handing this folder over, and it is fixed by
+# declaring the convention rather than inheriting it.
+#
+# eol=crlf, not `text`: `text` normalises to LF in the repository and converts
+# on checkout by platform, which is exactly the platform dependence this is
+# removing. These files are checked out CRLF everywhere.
+
+*.js    text eol=crlf
+*.css   text eol=crlf
+*.html  text eol=crlf
+*.json  text eol=crlf
+*.md    text eol=crlf
+*.txt   text eol=crlf
+*.py    text eol=crlf
+*.csv   text eol=crlf
+
+# Binary, and must never be line-ending converted.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.mp4   binary
+*.zip   binary
+*.xlsx  binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+
+# Shapefile components: binary, and the set travels together.
+*.shp   binary
+*.shx   binary
+*.dbf   binary
+*.sbn   binary
+*.sbx   binary
+*.prj   text eol=crlf
