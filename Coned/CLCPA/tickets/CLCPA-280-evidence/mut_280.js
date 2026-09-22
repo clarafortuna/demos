@@ -19,7 +19,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { execFileSync } = require('child_process');
+const { execFileSync, execSync } = require('child_process');
 
 const DEV = path.join(__dirname, '../../ExecutiveDashboard_dev');
 const APP = path.join(DEV, 'app.js');
@@ -27,8 +27,26 @@ const CSSF = path.join(DEV, 'styles.css');
 const OUT = path.join(__dirname, 'mut-280-output.txt');
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'clcpa280-'));
 
-const APP_SRC = fs.readFileSync(APP, 'utf8');
-const CSS_SRC = fs.readFileSync(CSSF, 'utf8');
+/* MUTATE THE BUILD THE SUITE READS, which is now a commit and not the working
+ * tree. suite_280 was re-pinned on both sides after a later ticket turned its
+ * scope block red; a runner that goes on mutating the working tree while the
+ * suite reads a commit is mutating something nothing looks at, and every
+ * control would come back green for the wrong reason. Both blobs are
+ * normalised to CRLF, because git hands them back as LF and every anchor in
+ * the mutations below is CRLF. */
+const NEW = process.env.DAC_NEW_COMMIT || 'ca60e4e';
+const CRLF = String.fromCharCode(13) + String.fromCharCode(10);
+const LFRE = new RegExp(String.fromCharCode(92) + 'r?' + String.fromCharCode(92) + 'n', 'g');
+const showAt = (rel) => execSync(
+  'git show ' + NEW + ':"Coned/CLCPA/ExecutiveDashboard_dev/' + rel + '"',
+  { cwd: path.join(__dirname, '../../../..'), maxBuffer: 1 << 29 })
+  .toString('utf8').replace(LFRE, CRLF);
+const APP_SRC = showAt('app.js');
+const CSS_SRC = showAt('styles.css');
+/* and the working tree is still read, separately, for the byte-restore check
+ * at the end: this runner must leave the repository exactly as it found it */
+const APP_DISK = fs.readFileSync(APP, 'utf8');
+const CSS_DISK = fs.readFileSync(CSSF, 'utf8');
 
 const lines = [];
 const log = (...a) => { const s = a.join(' '); lines.push(s); console.log(s); };
@@ -174,9 +192,9 @@ MUTANTS.forEach((m) => {
 log('='.repeat(64));
 const clean = runSuite({});
 const tally = (clean.stdout.match(/\d+ passed, \d+ failed/) || ['?'])[0];
-ok(fs.readFileSync(APP, 'utf8') === APP_SRC,
+ok(fs.readFileSync(APP, 'utf8') === APP_DISK,
   'app.js on disk is byte-identical to the file this runner started with');
-ok(fs.readFileSync(CSSF, 'utf8') === CSS_SRC,
+ok(fs.readFileSync(CSSF, 'utf8') === CSS_DISK,
   'styles.css on disk is byte-identical to the file this runner started with');
 ok(clean.code === 0, 'AND THE SUITE IS GREEN AGAIN ON THE SHIPPED BUILD: ' + tally);
 log('suite-280-output.txt now describes the shipped build, not a mutant.');

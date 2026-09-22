@@ -12793,8 +12793,40 @@ function utf8ByteLength(str) {
      * handler's mouseover sees a non-control under the pointer and hides the
      * box the label has just opened -- the flicker CLCPA-242 was filed about,
      * one surface further on. */
+    /* CLCPA-247 extends this list to the FOURTEEN SECTION-PAGE SURFACES that
+     * CLCPA-242 pinned out of scope. Eight of them write to this same shared
+     * div and were losing their tooltip to the hide below on the first move
+     * inside the row; the other six own a div of their own, which this handler
+     * never touches, and are listed anyway so the inventory is the surfaces
+     * that manage the tip themselves rather than the subset that happened to
+     * be visibly broken. Measured before the change, by travelling a real
+     * pointer through every child of each surface: seven of the eight shared
+     * ones hid mid-travel, and the eighth is an SVG circle with no children
+     * for the pointer to cross into.
+     *
+     * Several sites serve more than one target list through a shared
+     * bindMove(el) closure, so this is nineteen selectors for fourteen sites.
+     * The inventory is of SELECTORS, because that is what closest() reads. */
     const OWNS_TIP = '.dumb-row, .strip-row, .ai-header-card, .radar-dot, ' +
-      '.ingest-cell-label[data-label-tip]';
+      '.ingest-cell-label[data-label-tip], ' +
+      // section F
+      '.f3-tile[data-tt-label], .f3-borough, ' +
+      // section G
+      '.g-row[data-tt-label], .g-methane-block[data-tt-label], .g-methane-donut, ' +
+      // section I
+      '.i-funnel-stage[data-tt-label], .i-rate-bar-row[data-tt-label], ' +
+      // section A, including the equity quadrant
+      '.a-stacked-row, .scatter-svg circle[data-name], ' +
+      // section B
+      '.b-fund-row, .b-torn-row, ' +
+      // section E
+      '#e-arc-canvas-section, .e-yoy-row, ' +
+      // section J
+      '.j-burden-html-row, .j-aff-block, .j-flow-stage, .j-dpa-group, ' +
+      // section D, and the D bars section F borrows
+      '.d-bar-metric, ' +
+      // section H
+      '.h-pie-slice';
     const ownsTip = (e) => {
       const t = e.target;
       return !!(t && t.closest && t.closest(OWNS_TIP));
@@ -12910,11 +12942,31 @@ function utf8ByteLength(str) {
    * longer has the row it came from, or reappear stale on the next hover
    * before the new content is written. Called from the render path, so every
    * re-render starts with nothing showing. */
+  /* CLCPA-247: EVERY pointer-following tip, not only the shared one.
+   *
+   * The section pages do not all draw into .exec-tooltip. Six of the fourteen
+   * section surfaces create a div of their own -- one per section, appended to
+   * document.body and never removed -- so clearing the shared div left five
+   * other boxes able to outlive the rows they describe. Measured before the
+   * change: hovering a section G row and then changing the year left the
+   * tooltip at opacity 1 still holding the previous year's figures.
+   *
+   * One list, because the hide and the re-render hook must not be able to
+   * disagree about which boxes exist.
+   *
+   * THE NAME IS CLCPA-242'S and is now narrower than the behaviour. It was
+   * left alone deliberately: this ticket extends that fix rather than
+   * redesigning it, and a rename would move a function that two frozen
+   * suites identify by name. */
+  const POINTER_TIP_SELECTORS = ['.exec-tooltip', '.e-tt', '.j-tt', '.d-tt',
+    '.f-tt', '.h-pie-tt'];
   function hideExecTooltip() {
-    const tip = document.querySelector('.exec-tooltip');
-    if (!tip) return;
-    tip.style.opacity = '0';
-    tip.innerHTML = '';
+    POINTER_TIP_SELECTORS.forEach((sel) => {
+      const tip = document.querySelector(sel);
+      if (!tip) return;
+      tip.style.opacity = '0';
+      tip.innerHTML = '';
+    });
   }
 
   /** Wire hover tooltips for the three equity charts. */
@@ -14831,8 +14883,7 @@ function renderSectionG() {
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 10) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
@@ -14867,8 +14918,7 @@ function renderSectionG() {
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 10) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
@@ -14888,8 +14938,7 @@ function renderSectionG() {
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 10) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
@@ -14913,8 +14962,7 @@ function renderSectionG() {
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 10) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
@@ -15367,8 +15415,7 @@ function renderSectionI() {
         tip.style.opacity = '1';
       });
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 10) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => {
         tip.style.opacity = '0';
@@ -15781,8 +15828,7 @@ function wireRankToggle() {
     const tip = ensureTooltip();
     const bindMove = (el) => {
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     };
@@ -15840,8 +15886,7 @@ function wireQuadrantTooltip() {
         tip.style.opacity = '1';
       });
       c.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8)  + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       c.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
@@ -15901,8 +15946,7 @@ function wireBTooltips() {
 
     const bindMove = (el) => {
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     };
@@ -16063,8 +16107,7 @@ function drawSectionEArc() {
           '<div class="e-tt-row"><span>Prior year</span><span class="v">' + prevStr + '</span></div>' +
           '<div class="e-tt-row"><span>Change</span><span class="v" style="color:' + dColor + '">' + dStr + '</span></div>';
         tip.style.opacity = '1';
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       } else {
         tip.style.opacity = '0';
       }
@@ -16088,8 +16131,7 @@ function drawSectionEArc() {
         tip.style.opacity = '1';
       };
       row.onmousemove = function(e) {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       };
       row.onmouseleave = function() { tip.style.opacity = '0'; };
     });
@@ -16107,8 +16149,7 @@ function wireJTooltips() {
 
     const bindMove = (el) => {
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     };
@@ -16246,8 +16287,7 @@ function wireDTooltips() {
 
     const bindMove = (el) => {
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     };
@@ -16313,8 +16353,7 @@ function wireFTooltips() {
 
     const bindMove = (el) => {
       el.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       el.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     };
@@ -16404,8 +16443,7 @@ function wireHTooltips() {
         tip.style.opacity = '1';
       });
       slice.addEventListener('mousemove', e => {
-        tip.style.left = (e.pageX + 14) + 'px';
-        tip.style.top  = (e.pageY - 8) + 'px';
+        placeTooltipAtPointer(tip, e);
       });
       slice.addEventListener('mouseleave', () => { tip.style.opacity = '0'; });
     });
@@ -17601,6 +17639,13 @@ function wireHTooltips() {
 
   /** Wire all interactive parts of a section view (charts, tooltips, tables). */
   function wireSectionInteractions(letter) {
+    /* CLCPA-247: nothing may be showing when a section view re-renders, which
+     * is the rule CLCPA-242 gave the executive view and the section pages
+     * never had. The year selector re-renders the whole section underneath an
+     * open tooltip: measured before the change, hovering a section G row and
+     * switching the year left the box at opacity 1 holding the previous
+     * year's figures over rows that no longer existed. */
+    hideExecTooltip();
     const tables = Object.values(state.payload.tables)
       .filter(t => t.section === letter);
 

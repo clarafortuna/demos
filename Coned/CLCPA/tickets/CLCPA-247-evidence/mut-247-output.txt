@@ -1,0 +1,87 @@
+CLCPA-247 mutation controls
+Each mutant must turn suite_247 red ON THE ASSERTION IT TARGETS.
+
+CLEAN, before any mutation: exit 0  160 passed, 0 failed
+  PASS  the suite is green on the shipped build before mutating
+
+MUTATION 1: one of the fourteen keeps its raw positioner: section H goes back
+   exit 1   153 passed, 6 failed
+   failed: ["A2","A3","A5.wireHTooltips","A6.wireHTooltips","G2","G3"]
+  PASS  M1 turns the suite red
+  PASS  M1 reddens A2, which is the assertion that watches it
+  PASS  M1 reddens A5.wireHTooltips, which is the assertion that watches it
+  PASS  M1 reddens A6.wireHTooltips, which is the assertion that watches it
+
+MUTATION 2: a section surface is dropped from OWNS_TIP: the J rows
+   exit 1   158 passed, 2 failed
+   failed: ["C4.12","C5"]
+  PASS  M2 turns the suite red
+  PASS  M2 reddens C4.12, which is the assertion that watches it
+  PASS  M2 reddens C5, which is the assertion that watches it
+
+MUTATION 3: the list is REPLACED rather than extended: the five pre-existing surfaces are dropped
+   exit 1   154 passed, 6 failed
+   failed: ["C3.0","C3.1","C3.2","C3.3","C3.4","C5"]
+  PASS  M3 turns the suite red
+  PASS  M3 reddens C3.0, which is the assertion that watches it
+  PASS  M3 reddens C5, which is the assertion that watches it
+
+MUTATION 4: the early-out is moved AFTER the hide, so it stops being one
+   exit 1   159 passed, 1 failed
+   failed: ["C7"]
+  PASS  M4 turns the suite red
+  PASS  M4 reddens C7, which is the assertion that watches it
+
+MUTATION 5: the hide clears the box but not its content
+   exit 1   154 passed, 6 failed
+   failed: ["D7.0","D7.1","D7.2","D7.3","D7.4","D7.5"]
+  PASS  M5 turns the suite red
+  PASS  M5 reddens D7.0, which is the assertion that watches it
+
+MUTATION 6: the hide list loses a section div, so one box can outlive its rows
+   exit 1   156 passed, 2 failed
+   failed: ["D2.2","D6"]
+  PASS  M6 turns the suite red
+  PASS  M6 reddens D2.2, which is the assertion that watches it
+  PASS  M6 reddens D6, which is the assertion that watches it
+
+MUTATION 7: the section render path stops hiding on re-render
+   exit 1   158 passed, 2 failed
+   failed: ["D8","D10"]
+  PASS  M7 turns the suite red
+  PASS  M7 reddens D8, which is the assertion that watches it
+  PASS  M7 reddens D10, which is the assertion that watches it
+
+MUTATION 8: the shared positioner itself is edited, which this ticket must not do
+   exit 1   158 passed, 3 failed
+   failed: ["B1","G1","G3"]
+  PASS  M8 turns the suite red
+  PASS  M8 reddens B1, which is the assertion that watches it
+
+MUTATION 9: EXTRACTOR CONTROL: a column-0 wiring function is given a stray unbalanced brace, which an indentation anchor would not notice
+   exit 1   159 passed, 1 failed
+   failed: ["0.1"]
+  PASS  M9 turns the suite red
+  PASS  M9 reddens 0.1, which is the assertion that watches it
+
+MUTATION 10: EXTRACTOR CONTROL: a wiring function is renamed, so the extractor must return nothing rather than somebody else's block
+   exit 1   155 passed, 4 failed
+   failed: ["0.1","A4.wireDTooltips","G1","G3"]
+  PASS  M10 turns the suite red
+  PASS  M10 reddens 0.1, which is the assertion that watches it
+  PASS  M10 reddens A4.wireDTooltips, which is the assertion that watches it
+
+MUTATION 11: the AFTER verdicts claim a surface still hides mid-travel
+   exit 1   159 passed, 1 failed
+   failed: ["F4"]
+  PASS  M11 turns the suite red
+  PASS  M11 reddens F4, which is the assertion that watches it
+  PASS  and verdicts-after.json is byte-restored: it is the record of a real run
+
+================================================================
+  PASS  app.js on disk is byte-identical to the file this runner started with
+  PASS  AND THE SUITE IS GREEN AGAIN ON THE SHIPPED BUILD: 160 passed, 0 failed
+suite-247-output.txt now describes the shipped build, not a mutant.
+================================================================
+
+33 passed, 0 failed

@@ -1,0 +1,35 @@
+CLCPA-247 gate: every pointer-following tooltip in the bundle, found by reading it
+app.js working tree   531 top-level functions read
+
+1. RAW POINTER POSITIONERS
+    BASE  wireFSectionTooltips    1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireGSectionTooltips    3 site(s), 6 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireISectionTooltips    1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireSectionATooltips    1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireQuadrantTooltip     1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireBTooltips           1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  drawSectionEArc         2 site(s), 4 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireJTooltips           1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireDTooltips           1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireFTooltips           1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+    BASE  wireHTooltips           1 site(s), 2 line(s)   .style.left = (e.pageX + 14)
+  PASS  1.1 the sweep finds all fourteen sites in BASE d880c0b, so it works: 14 sites / 28 lines in 11 function(s)
+  PASS  1.2 and not one line of it survives in the shipped build: 0 []
+
+2. THE SHARED DIV AND ITS SURFACES
+  PASS  2.1 OWNS_TIP is declared
+    OWNS_TIP carries 24 selectors
+    functions that open the shared div: wireHeaderCardsTooltips, wireExecutiveTooltips, wireFSectionTooltips, wireGSectionTooltips, wireISectionTooltips, wireSectionATooltips, wireQuadrantTooltip, wireBTooltips, wireIngestLabelTips
+  PASS  2.2 the sweep found some, so it is reading the file
+  PASS  2.3 every target of every shared-div consumer is registered in OWNS_TIP: 0 unregistered
+
+3. THE HIDE LIST
+  PASS  3.1 the build declares one hide list
+    tip divs created by the bundle: [".exec-tooltip",".e-tt",".j-tt",".d-tt",".f-tt",".h-pie-tt"]
+    hide list:                      [".exec-tooltip",".e-tt",".j-tt",".d-tt",".f-tt",".h-pie-tt"]
+  PASS  3.2 every one of them is on the hide list: []
+  PASS  3.3 and the list names nothing the bundle does not create: []
+  PASS  3.4.0 wireExecutiveInteractions hides everything before it wires anything
+  PASS  3.4.1 wireSectionInteractions hides everything before it wires anything
+
+10 passed, 0 failed
