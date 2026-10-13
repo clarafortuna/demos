@@ -72468,6 +72468,256 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
 .oru-page-head { margin: 0 8px; border-radius: var(--oru-img-radius); }
 .oru-page-head { margin: 8px 8px 0; }
 
+
+/*============================================================================================
+  Title Case instead of capitals everywhere except the hero headline.
+==============================================================================================*/
+.vertical-text, .section-head .sm-title, .header-nav-menu li a, .header-nav-menu li .sub-menu li a,
+.h-social-rotate .social-list li a, .oru-logo .wm small, .oru-eyebrow, .oru-opps h4,
+.oru-ini-focus, .oru-story-block h4 { text-transform: none; }
+.oru-logo .wm small { letter-spacing: .3px; font-size: 12.5px; }
+.oru-eyebrow { letter-spacing: .4px; font-size: 16px; }
+.oru-opps h4 { letter-spacing: 0; }
+.oru-ini-focus { letter-spacing: .2px; font-size: 13px; }
+.oru-story-block h4 { letter-spacing: .2px; font-size: 16px; }
+
+/* Share an Idea form: brighter hint text on the dark band, and typed text in
+   white so it is never dimmer than the hint it replaces. */
+.contact-form .form-group input::placeholder,
+.contact-form .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.82); opacity: 1; }
+.contact-form .form-group input,
+.contact-form .form-group textarea { color: #ffffff; }
+
+
+/*============================================================================================
+  AI Initiatives page header: the animated "AI at work" illustration replaces
+  the photo. Light banner, dark text, illustration as a 16px rounded card.
+==============================================================================================*/
+.oru-page-head { background: transparent; padding: 90px 0 70px; margin: 0; border-radius: 0; overflow: visible; isolation: auto; }
+.oru-page-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; }
+.oru-page-text { text-align: left; }
+.oru-page-head .breadcrumb-content .title { color: var(--title-color); margin: 8px 0 16px; }
+.oru-page-head .oru-page-sub { margin: 0 0 26px; color: var(--paragraph-color); max-width: 520px; }
+.oru-page-head .bredcrumb-menu.style2 li a, .oru-page-head .bredcrumb-menu.style2 li::before { color: var(--title-color); }
+.oru-page-head .bredcrumb-menu.style2 li.active a { color: var(--primary-color); }
+.oru-art {
+  position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 1000 / 563;
+  border-radius: var(--oru-img-radius, 16px); background: #efeae7;
+  box-shadow: 0 24px 50px -30px rgba(126, 101, 84, 0.45);
+}
+.oru-art svg { display: block; width: 100%; height: 100%; }
+@media (max-width: 991.98px) {
+  .oru-page-head { padding: 56px 0 40px; }
+  .oru-page-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+
+/* The illustration's own motion, scoped so no template class is touched. */
+.oru-art .float-a { animation: oruFloatA 12s ease-in-out infinite; }
+.oru-art .float-b { animation: oruFloatB 16s ease-in-out infinite; }
+.oru-art .float-c { animation: oruFloatC 14s ease-in-out infinite; }
+.oru-art .node-a { animation: oruBlinkNode 8s ease-in-out infinite; }
+.oru-art .node-b { animation: oruBlinkNode 9.5s ease-in-out -3s infinite; }
+.oru-art .node-c { animation: oruBlinkNode 11s ease-in-out -5s infinite; }
+.oru-art .node-d { animation: oruBlinkNode 13s ease-in-out -7s infinite; }
+.oru-art .signal { fill: none; stroke: #ee7c37; stroke-width: 1.8; stroke-linecap: round; stroke-dasharray: 3 20; opacity: .62; animation: oruSignalMove 28s linear infinite; }
+.oru-art .signal.alt { animation-duration: 37s; animation-direction: reverse; opacity: .4; }
+.oru-art .link { fill: none; stroke: #dfc8b6; stroke-width: 1.7; opacity: .65; }
+.oru-art .pulse-core { transform-box: fill-box; transform-origin: center; animation: oruCoreBreath 9s ease-in-out infinite; }
+.oru-art .orbit { transform-origin: 695px 194px; animation: oruOrbit 95s linear infinite; }
+.oru-art .screen-bars rect { transform-box: fill-box; transform-origin: bottom; animation: oruBarChange 12s ease-in-out infinite; }
+.oru-art .screen-bars rect:nth-child(2) { animation-delay: -2s; }
+.oru-art .screen-bars rect:nth-child(3) { animation-delay: -4s; }
+.oru-art .screen-bars rect:nth-child(4) { animation-delay: -7s; }
+.oru-art .gesture { transform-origin: 545px 345px; animation: oruGesture 9s ease-in-out infinite; }
+.oru-art .face-bob { animation: oruHeadBob 11s ease-in-out infinite; }
+.oru-art .glint { animation: oruGlint 14s ease-in-out infinite; }
+.oru-art .ambient { animation: oruAmbient 13s ease-in-out infinite; }
+@keyframes oruFloatA { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -7px); } }
+@keyframes oruFloatB { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(3px, 6px); } }
+@keyframes oruFloatC { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-4px, -5px); } }
+@keyframes oruBlinkNode { 0%, 25%, 100% { opacity: .24; } 45% { opacity: 1; } 65% { opacity: .42; } }
+@keyframes oruSignalMove { to { stroke-dashoffset: -368; } }
+@keyframes oruCoreBreath { 0%, 100% { transform: scale(.97); opacity: .75; } 50% { transform: scale(1.04); opacity: 1; } }
+@keyframes oruOrbit { to { transform: rotate(360deg); } }
+@keyframes oruBarChange { 0%, 100% { transform: scaleY(.95); } 50% { transform: scaleY(1.07); } }
+@keyframes oruGesture { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-2.5deg); } }
+@keyframes oruHeadBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes oruGlint { 0%, 78%, 100% { opacity: 0; } 84% { opacity: .6; } 90% { opacity: 0; } }
+@keyframes oruAmbient { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .oru-art * { animation: none !important; transition: none !important; } }
+
+/* Initiative cards in a grid, three by two, with no sideways scroll. */
+.oru-ini-row { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; scroll-snap-type: none; padding: 6px 0 0; gap: 24px; }
+.oru-ini-card { scroll-snap-align: none; min-height: 300px; }
+@media (max-width: 991.98px) { .oru-ini-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575.98px) { .oru-ini-row { grid-template-columns: minmax(0, 1fr); } }
+.oru-ini-sec.section-gap { padding-top: 40px; }
+.oru-page-head .bredcrumb-menu.style2 { text-align: left; }
+
+
+/*============================================================================================
+  Initiative pop-up, in the homepage design: white card, 16px corners, Outfit,
+  orange labels, story blocks on the paper colour.
+==============================================================================================*/
+html.oru-modal-open { overflow: hidden; }
+.oru-modal { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; }
+.oru-modal[hidden] { display: none; }
+.oru-modal-scrim { position: absolute; inset: 0; background: rgba(20, 20, 20, 0.62); backdrop-filter: blur(4px); opacity: 0; transition: opacity .26s ease; }
+.oru-modal-card {
+  position: relative; width: min(920px, 100%); max-height: calc(100vh - 48px); overflow-y: auto;
+  background: var(--white-color); border-radius: var(--oru-img-radius, 16px);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.55);
+  opacity: 0; transform: translateY(18px) scale(.98); transition: opacity .3s ease, transform .4s cubic-bezier(.22, 1, .36, 1);
+}
+.oru-modal.on .oru-modal-scrim { opacity: 1; }
+.oru-modal.on .oru-modal-card { opacity: 1; transform: none; }
+.oru-modal-close {
+  position: absolute; top: 18px; right: 18px; z-index: 2; display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--white-color);
+  color: var(--title-color); font-size: 14px; transition: background .3s ease, color .3s ease, border-color .3s ease;
+}
+.oru-modal-close:hover { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.oru-modal-close i { line-height: 0; }
+.oru-modal-body { padding: 40px 44px 8px; }
+.oru-modal-body .oru-story-head .oru-ini-num { display: block; margin-bottom: 4px; }
+.oru-modal-body .oru-story-head h3 { margin: 6px 64px 14px 0; font-family: var(--font-family); font-size: 40px; font-weight: 600; line-height: 46px; color: var(--title-color); }
+.oru-modal-body .oru-story-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 26px; }
+.oru-modal-body .oru-story-block { background: #efeae7; border: 0; border-radius: 12px; padding: 22px 20px; }
+.oru-modal-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  margin: 26px 44px 0; padding: 24px 0 34px; border-top: 1px solid var(--border-color);
+}
+.oru-modal-foot p { margin: 0; max-width: 380px; font-size: 15px; line-height: 23px; color: var(--paragraph-color); }
+.oru-modal-actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.oru-modal-link { font-size: 15px; font-weight: 600; color: var(--title-color); text-decoration: underline; text-underline-offset: 4px; }
+.oru-modal-link:hover { color: var(--primary-color); }
+.oru-modal .theme-btn { padding: 15px 24px; }
+@media (max-width: 767.98px) {
+  .oru-modal { padding: 12px; }
+  .oru-modal-body { padding: 30px 22px 4px; }
+  .oru-modal-body .oru-story-head h3 { font-size: 30px; line-height: 36px; }
+  .oru-modal-body .oru-story-body { grid-template-columns: minmax(0, 1fr); }
+  .oru-modal-foot { margin: 22px 22px 0; padding-bottom: 26px; }
+}
+@media (prefers-reduced-motion: reduce) { .oru-modal-card, .oru-modal-scrim { transition: none; } }
+
+
+/*============================================================================================
+  Share an Idea page.
+==============================================================================================*/
+.oru-page-actions { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; margin: 0 0 30px; }
+.oru-share-photo { position: relative; overflow: hidden; aspect-ratio: 1000 / 600; border-radius: var(--oru-img-radius, 16px); box-shadow: 0 24px 50px -30px rgba(126, 101, 84, 0.45); }
+.oru-share-photo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: var(--oru-img-radius, 16px); }
+.oru-how-sec.section-gap { padding-top: 40px; padding-bottom: 90px; }
+.oru-step { cursor: default; min-height: 260px; }
+.oru-step p a { color: var(--primary-color); font-weight: 600; }
+
+.oru-kinds-sec { padding-bottom: 110px; }
+.oru-kinds { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; }
+.oru-kinds-text h3 { margin: 10px 0 18px; font-size: 40px; line-height: 48px; font-weight: 600; color: var(--title-color); }
+.oru-kinds-text p { font-size: 17px; line-height: 28px; color: var(--paragraph-color); margin: 0 0 18px; }
+.oru-kinds-note { border-left: 3px solid var(--primary-color); padding-left: 16px; color: var(--title-color) !important; }
+.oru-kinds-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.oru-kinds-list li { display: flex; gap: 16px; background: var(--white-color); border-radius: 14px; padding: 26px 24px; }
+.oru-kinds-list i { flex: 0 0 48px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: #efeae7; color: var(--primary-color); font-size: 20px; line-height: 0; }
+.oru-kinds-list h4 { margin: 2px 0 8px; font-size: 19px; line-height: 26px; font-weight: 600; color: var(--title-color); }
+.oru-kinds-list p { margin: 0; font-size: 15px; line-height: 24px; color: var(--paragraph-color); }
+
+.oru-routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-bottom: 100px; }
+.oru-route { background: var(--white-color); border-radius: var(--oru-img-radius, 16px); padding: 36px 34px; border-top: 4px solid #efeae7; }
+.oru-route.is-idea { border-top-color: var(--primary-color); }
+.oru-route h4 { margin: 8px 0 12px; font-size: 26px; line-height: 34px; font-weight: 600; color: var(--title-color); }
+.oru-route p { margin: 0 0 22px; font-size: 16px; line-height: 26px; color: var(--paragraph-color); }
+.oru-faq { max-width: 860px; margin: 0 auto; }
+.oru-faq .oru-ini-head { text-align: center; }
+.oru-faq .faq-accordion-item .accordion-button { text-transform: none; }
+
+@media (max-width: 991.98px) {
+  .oru-kinds { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .oru-kinds-text h3 { font-size: 32px; line-height: 40px; }
+  .oru-routes { grid-template-columns: minmax(0, 1fr); margin-bottom: 70px; }
+}
+@media (max-width: 575.98px) { .oru-kinds-list { grid-template-columns: minmax(0, 1fr); } }
+
+
+/*============================================================================================
+  Share an Idea form: the animated "spark of an idea" illustration replaces the photo.
+==============================================================================================*/
+.oru-idea-scene {
+  position: absolute; inset: 0; overflow: hidden; isolation: isolate; border-radius: var(--oru-img-radius, 16px);
+  background: radial-gradient(ellipse at 50% 48%, #2b211b 0%, #1d1c1a 35%, #151515 82%);
+}
+.oru-idea-scene::after {
+  content: ""; pointer-events: none; position: absolute; inset: 0; border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, .055); box-shadow: inset 0 0 110px rgba(0, 0, 0, .22);
+}
+.oru-idea-scene svg { display: block; width: 100%; height: 100%; }
+.oru-idea-scene svg * { transform-box: fill-box; }
+.oru-idea-scene .ois-breathe { animation:oruIdea_breathe 9s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-breathe-two { animation:oruIdea_breatheAlt 12s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-float { animation:oruIdea_float 10s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-float-reverse { animation:oruIdea_float-reverse 13s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-spark-group { animation:oruIdea_soft-float 9s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-ambient-halo { animation:oruIdea_halo 11s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-ambient-halo-2 { animation:oruIdea_halo 14s ease-in-out infinite -5s; transform-origin:center; }
+.oru-idea-scene .ois-filament { animation:oruIdea_filament 7s ease-in-out infinite; }
+.oru-idea-scene .ois-filament-delay { animation-delay:-3.5s; }
+.oru-idea-scene .ois-breathing-dot { animation:oruIdea_nodePulse 6s ease-in-out infinite; }
+.oru-idea-scene .ois-breathing-dot.ois-alt { animation-delay:-3s; }
+.oru-idea-scene .ois-breathing-dot.ois-alt2 { animation-delay:-1.8s; }
+.oru-idea-scene .ois-draw-line { stroke-dasharray:8 12; animation:oruIdea_flow 31s linear infinite; }
+.oru-idea-scene .ois-draw-line-reverse { stroke-dasharray:2 17; animation:oruIdea_flowReverse 44s linear infinite; }
+.oru-idea-scene .ois-reveal { animation:oruIdea_lineAppear 13s ease-in-out infinite; }
+.oru-idea-scene .ois-mist { animation:oruIdea_mist 14s ease-in-out infinite alternate; }
+.oru-idea-scene .ois-icon-pulse { animation:oruIdea_iconPulse 8s ease-in-out infinite; }
+.oru-idea-scene .ois-subtle-rotate { transform-origin:center; animation:oruIdea_rotateSlow 70s linear infinite; }
+.oru-idea-scene .ois-subtle-rotate-rev { transform-origin:center; animation:oruIdea_rotateSlowReverse 90s linear infinite; }
+@keyframes oruIdea_float {0%,100%{transform:translateY(0px)}50%{transform:translateY(-7px)}}
+@keyframes oruIdea_float-reverse {0%,100%{transform:translateY(0px)}50%{transform:translateY(6px)}}
+@keyframes oruIdea_soft-float {0%,100%{transform:translateY(0px)}50%{transform:translateY(-5px)}}
+@keyframes oruIdea_breathe {0%,100%{opacity:.6;transform:scale(.98)}50%{opacity:.97;transform:scale(1.035)}}
+@keyframes oruIdea_breatheAlt {0%,100%{opacity:.3;transform:scale(1.03)}50%{opacity:.65;transform:scale(.98)}}
+@keyframes oruIdea_halo {0%,100%{opacity:.35;transform:scale(.95)}50%{opacity:.74;transform:scale(1.05)}}
+@keyframes oruIdea_filament {0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes oruIdea_nodePulse {0%,100%{opacity:.35}52%{opacity:1}}
+@keyframes oruIdea_flow {to{stroke-dashoffset:-320}}
+@keyframes oruIdea_flowReverse {to{stroke-dashoffset:320}}
+@keyframes oruIdea_lineAppear {0%,100%{opacity:.2}45%,60%{opacity:.65}}
+@keyframes oruIdea_mist {from{opacity:.45}to{opacity:.9}}
+@keyframes oruIdea_iconPulse {0%,100%{opacity:.42}50%{opacity:.83}}
+@keyframes oruIdea_rotateSlow {to{transform:rotate(360deg)}}
+@keyframes oruIdea_rotateSlowReverse {to{transform:rotate(-360deg)}}
+@media (prefers-reduced-motion: reduce) { .oru-idea-scene * { animation: none !important; } }
+.oru-faq .oru-ini-head { justify-content: center; }
+.oru-faq .oru-ini-head .section-head { text-align: center; }
+
+/* AI in Action (homepage): the animated "AI at work" illustration in place of the photo. */
+.service-img.oru-art-wrap { overflow: visible; border-radius: 0; align-self: flex-end; }
+.service-img.oru-art-wrap .oru-art { width: 100%; }
+/* Share an Idea header: text only, no photo. */
+.oru-page-solo { grid-template-columns: minmax(0, 1fr); }
+.oru-page-solo .oru-page-sub { max-width: 640px; }
+.oru-page-head:has(.oru-page-solo) { padding: 80px 0 40px; }
+
+/*============================================================================================
+  AI Training placeholder page.
+==============================================================================================*/
+.oru-soon-sec { padding: 10px 0 120px; }
+.oru-soon {
+  max-width: 760px; margin: 0 auto; text-align: center; background: var(--white-color);
+  border: 2px dashed #e2d6cd; border-radius: var(--oru-img-radius, 16px); padding: 56px 40px;
+}
+.oru-soon-icon { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%; background: #efeae7; color: var(--primary-color); font-size: 30px; line-height: 0; }
+.oru-soon h3 { margin: 16px 0 12px; font-size: 34px; line-height: 42px; font-weight: 600; color: var(--title-color); }
+.oru-soon p { margin: 0 auto 24px; max-width: 520px; font-size: 17px; line-height: 28px; color: var(--paragraph-color); }
+.oru-soon .oru-status { display: table; margin: 0 auto; }
+
+/* Header logo centred in its cell, both ways: the cell reaches the page edge
+   and has the same space on each side of the logo. */
+@media (min-width: 1200px) {
+  .header .header-logo { display: flex; align-items: center; justify-content: center; line-height: normal; margin-left: -24px; padding: 0 32px; }
+}
+
 </style>
   </head>
 
@@ -72520,8 +72770,9 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
               <ul id="nav mobile-nav" class="list-none offcanvas-men-list">
                 <li><a href="index.html">Home</a></li>
                 <li><a class="menu-active" href="initiatives.html">AI Initiatives</a></li>
-                <li><a href="index.html#to-share">Share an Idea</a></li>
-                <li><a href="ORU_AI_Portal.html#intake">IT Requests</a></li>
+                <li><a href="training.html">AI Training</a></li>
+                <li><a href="share.html">Share an Idea</a></li>
+                <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
                 <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
               </ul>
             </nav>
@@ -72548,8 +72799,9 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
             <ul class="header-nav-menu style-2">
               <li><a href="index.html">Home</a></li>
               <li class="active"><a href="initiatives.html">AI Initiatives</a></li>
-              <li><a href="index.html#to-share">Share an Idea</a></li>
-              <li><a href="ORU_AI_Portal.html#intake">IT Requests</a></li>
+              <li><a href="training.html">AI Training</a></li>
+              <li><a href="share.html">Share an Idea</a></li>
+              <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
               <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
             </ul>
           </nav>
@@ -72575,25 +72827,239 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
     <div id="smooth-wrapper">
       <div id="smooth-content">
         <main class="mg-top-100">
-          <!-- Start Page Header: the template's inner page banner, on a real O&R photo -->
+          <!-- Start Page Header: title on the left, the animated "AI at work"
+               illustration on the right (people first, AI as their tool) -->
           <div class="bredcrumbs style2 oru-page-head">
-            <div class="oru-page-bg" aria-hidden="true"></div>
             <div class="container">
-              <div class="row justify-content-center">
-                <div class="col-lg-9 col-12">
-                  <div class="breadcrumb-content text-center">
-                    <span class="oru-eyebrow light has_fade_anim" data-fade-from="bottom" data-delay="0.2">AI in Action</span>
-                    <h1 class="title has_word_anim" data-delay="0.3">AI Initiatives</h1>
-                    <p class="oru-page-sub has_fade_anim" data-fade-from="bottom" data-delay="0.5">
-                      How teams across Orange &amp; Rockland are using AI to take
-                      on everyday challenges, so people can focus on the work
-                      that matters most.
-                    </p>
-                    <ul class="bredcrumb-menu style2">
-                      <li><a href="index.html">Home</a></li>
-                      <li class="active"><a href="initiatives.html">AI Initiatives</a></li>
-                    </ul>
-                  </div>
+              <div class="oru-page-grid">
+                <div class="breadcrumb-content oru-page-text">
+                  <span class="oru-eyebrow left has_fade_anim" data-fade-from="bottom" data-delay="0.2">AI in Action</span>
+                  <h1 class="title has_word_anim" data-delay="0.3">AI Initiatives</h1>
+                  <p class="oru-page-sub has_fade_anim" data-fade-from="bottom" data-delay="0.5">
+                    How teams across Orange &amp; Rockland are using AI to take
+                    on everyday challenges, so people can focus on the work
+                    that matters most.
+                  </p>
+                  <ul class="bredcrumb-menu style2">
+                    <li><a href="index.html">Home</a></li>
+                    <li class="active"><a href="initiatives.html">AI Initiatives</a></li>
+                  </ul>
+                </div>
+                <div class="oru-art wow fadeInUp" role="img" aria-label="Animated illustration of three colleagues working together around laptops, with gentle connecting lines, simple charts and an AI network display.">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" aria-hidden="true">
+<defs>
+  <linearGradient id="oruart-bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#F4EFEC"/><stop offset="1" stop-color="#EFEAE7"/></linearGradient>
+  <linearGradient id="oruart-halo" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".94"/><stop offset="1" stop-color="#FFFAF5" stop-opacity=".24"/></linearGradient>
+  <linearGradient id="oruart-sun" x1="0" x2="1"><stop stop-color="#FED9B7" stop-opacity=".35"/><stop offset="1" stop-color="#F4F0ED" stop-opacity="0"/></linearGradient>
+  <linearGradient id="oruart-panel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".96"/><stop offset="1" stop-color="#FFF9F5" stop-opacity=".77"/></linearGradient>
+  <linearGradient id="oruart-orange" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FF9A55"/><stop offset="1" stop-color="#DF5A17"/></linearGradient>
+  <linearGradient id="oruart-jacket" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#51545B"/><stop offset="1" stop-color="#33363D"/></linearGradient>
+  <linearGradient id="oruart-window" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".67"/><stop offset="1" stop-color="#F4DED0" stop-opacity=".18"/></linearGradient>
+  <radialGradient id="oruart-orb"><stop stop-color="#FFFDFC"/><stop offset=".5" stop-color="#FFE2CB" stop-opacity=".63"/><stop offset="1" stop-color="#FBE8DA" stop-opacity=".05"/></radialGradient>
+  <filter id="oruart-shadow" x="-40%" y="-60%" width="180%" height="240%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#7E6554" flood-opacity=".09"/></filter>
+  <filter id="oruart-softShadow" x="-40%" y="-60%" width="180%" height="240%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6B5549" flood-opacity=".12"/></filter>
+  <filter id="oruart-glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="4"/></filter>
+  <clipPath id="oruart-clip"><rect width="1000" height="563" rx="0"/></clipPath>
+</defs>
+<g clip-path="url(#oruart-clip)">
+ <!-- Paper, ambient light and architectural geometry -->
+ <rect width="1000" height="563" fill="url(#oruart-bg)"/>
+ <circle cx="535" cy="290" r="310" fill="url(#oruart-halo)" class="ambient"/>
+ <circle cx="855" cy="100" r="220" fill="url(#oruart-sun)"/>
+ <path d="M0 443 Q248 395 440 439 T1000 420 V563 H0Z" fill="#E9E1DC" opacity=".6"/>
+ <g opacity=".5" fill="none" stroke="#DED5D0" stroke-width="1">
+  <path d="M65 60 V420 M81 60 V420 M97 60 V420" opacity=".22"/>
+  <path d="M0 447 H1000 M0 473 H1000" opacity=".35"/>
+ </g>
+ <!-- Left window -->
+ <g opacity=".95">
+   <rect x="64" y="69" width="332" height="273" rx="18" fill="url(#oruart-window)" stroke="#DFD4CE" stroke-opacity=".64"/>
+   <path d="M177 69V342 M285 69V342 M64 196H396" stroke="#E5DAD3" stroke-width="5" opacity=".56"/>
+   <circle cx="270" cy="146" r="63" fill="#FFDEC4" opacity=".16"/>
+   <path d="M72 318V247h30v71M115 318v-86h35v86M165 318V257h35v61M299 318v-77h23v77M333 318V271h35v47" fill="#D9D3CF" opacity=".27"/>
+   <path d="M74 320H389" stroke="#D6C6BA" stroke-width="2" opacity=".5"/>
+ </g>
+ <!-- Ambient dotted field -->
+ <g fill="#CAADA0" opacity=".3">
+  <circle cx="115" cy="92" r="2"/><circle cx="129" cy="92" r="2"/><circle cx="143" cy="92" r="2"/>
+  <circle cx="865" cy="67" r="2"/><circle cx="878" cy="67" r="2"/><circle cx="891" cy="67" r="2"/>
+  <circle cx="865" cy="81" r="2"/><circle cx="878" cy="81" r="2"/><circle cx="891" cy="81" r="2"/>
+ </g>
+ <!-- Networking background paths -->
+ <path class="link" d="M186 196C285 122 368 108 466 159S622 226 704 188S819 140 880 177"/>
+ <path class="link" d="M120 338C258 291 365 318 455 281S610 154 704 188S844 250 906 324"/>
+ <path class="signal" d="M186 196C285 122 368 108 466 159S622 226 704 188S819 140 880 177"/>
+ <path class="signal alt" d="M120 338C258 291 365 318 455 281S610 154 704 188S844 250 906 324"/>
+ <!-- AI screen, main conceptual backdrop -->
+ <g filter="url(#oruart-shadow)">
+   <rect x="572" y="72" width="359" height="292" rx="23" fill="url(#oruart-panel)" stroke="#E8DCD5" stroke-width="1.6"/>
+   <rect x="592" y="92" width="320" height="250" rx="14" fill="#FAF7F5" stroke="#F1E6DF"/>
+ </g>
+ <circle cx="696" cy="193" r="116" fill="url(#oruart-orb)"/>
+ <g opacity=".6" stroke="#E9B58E" fill="none">
+  <circle cx="696" cy="193" r="77" stroke-dasharray="3 8"/>
+  <circle cx="696" cy="193" r="55" stroke="#EBC4AA"/>
+  <ellipse cx="696" cy="193" rx="32" ry="77"/>
+  <ellipse cx="696" cy="193" rx="77" ry="30" transform="rotate(-24 696 193)"/>
+ </g>
+ <g class="orbit" stroke="#D88F64" opacity=".48" fill="none">
+  <ellipse cx="696" cy="193" rx="90" ry="40" transform="rotate(38 696 193)"/>
+  <ellipse cx="696" cy="193" rx="90" ry="40" transform="rotate(-41 696 193)"/>
+ </g>
+ <!-- Neuron connections -->
+ <g stroke="#DDA77F" stroke-opacity=".66" stroke-width="1.8" stroke-linecap="round" fill="none">
+   <path d="M635 170L674 146L705 171L748 145L772 188L731 211L750 243L707 267L666 237L624 226L635 170Z"/>
+   <path d="M674 146L666 237L705 171L707 267M635 170L731 211L748 145M772 188L705 171M666 237L731 211L750 243"/>
+ </g>
+ <g class="pulse-core"><circle cx="700" cy="199" r="36" fill="#F6BA8F" opacity=".11"/></g>
+ <g>
+  <circle cx="635" cy="170" r="5.4" fill="#E8884B" class="node-a"/>
+  <circle cx="674" cy="146" r="5.8" fill="#E8884B" class="node-b"/>
+  <circle cx="705" cy="171" r="7" fill="#EC6C29" class="node-c"/>
+  <circle cx="748" cy="145" r="5" fill="#E8884B" class="node-d"/>
+  <circle cx="772" cy="188" r="6.3" fill="#EF8F53" class="node-b"/>
+  <circle cx="731" cy="211" r="6" fill="#E66C2B" class="node-a"/>
+  <circle cx="750" cy="243" r="5.4" fill="#E8884B" class="node-d"/>
+  <circle cx="707" cy="267" r="5.4" fill="#E8884B" class="node-b"/>
+  <circle cx="666" cy="237" r="6" fill="#E8884B" class="node-c"/>
+  <circle cx="624" cy="226" r="5" fill="#E8884B" class="node-a"/>
+ </g>
+ <g stroke="#E3D8D1" stroke-width="3" stroke-linecap="round">
+  <path d="M815 143h65M815 158h41M813 267h70M813 280h47"/>
+ </g>
+ <g class="screen-bars" fill="#F3B383"><rect x="817" y="219" width="11" height="19" rx="3"/><rect x="836" y="208" width="11" height="30" rx="3"/><rect x="855" y="197" width="11" height="41" rx="3" fill="#E98342"/><rect x="874" y="183" width="11" height="55" rx="3" fill="#EE6B24"/></g>
+ <rect x="611" y="308" width="283" height="3" rx="1.5" fill="#DCD4CF"/>
+ <!-- floating icon: ideas spark -->
+ <g class="float-a" filter="url(#oruart-softShadow)">
+  <rect x="100" y="102" width="112" height="93" rx="18" fill="#FFFCFA" fill-opacity=".94" stroke="#EEE1D9"/>
+  <g transform="translate(130 122)" fill="none" stroke="#E97632" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M27 2a21 21 0 0 0-12 39v7h24v-7A21 21 0 0 0 27 2Z"/>
+    <path d="M21 55h12M20 48h14M27-5v-4M1 13l-6-5M53 13l6-5"/>
+  </g>
+ </g>
+ <!-- floating icon: documents and automation -->
+ <g class="float-b" filter="url(#oruart-softShadow)">
+  <rect x="812" y="282" width="112" height="89" rx="17" fill="#FFFDFB" fill-opacity=".95" stroke="#EEE1D9"/>
+  <g transform="translate(843 306)" fill="none" stroke="#D76C30" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <rect width="49" height="39" rx="8"/>
+    <path d="M11 14h28M11 24h18"/>
+    <path d="M44 43l9 0 -5 -5m5 5-5 5" stroke-width="2"/>
+  </g>
+ </g>
+ <!-- floating mini chart card -->
+ <g class="float-c" filter="url(#oruart-softShadow)">
+  <rect x="86" y="296" width="137" height="86" rx="17" fill="#FFFDFB" fill-opacity=".91" stroke="#EEE1D9"/>
+  <g transform="translate(109 320)">
+   <path d="M2 43h91" stroke="#E4DAD3" stroke-width="2"/>
+   <rect x="8" y="20" width="13" height="23" rx="3" fill="#E9D9CE"/>
+   <rect x="32" y="27" width="13" height="16" rx="3" fill="#DEBAA2"/>
+   <rect x="56" y="10" width="13" height="33" rx="3" fill="#F4A875"/>
+   <rect x="80" y="2" width="13" height="41" rx="3" fill="#E77834"/>
+  </g>
+ </g>
+ <!-- glowing points on workflows -->
+ <g><circle cx="225" cy="172" r="7" fill="#FBE2D1" filter="url(#oruart-glow)"/><circle cx="225" cy="172" r="3.5" fill="#E37C3C" class="node-a"/>
+  <circle cx="464" cy="159" r="4" fill="#E88D56" class="node-c"/><circle cx="880" cy="177" r="4" fill="#E88D56" class="node-d"/></g>
+ <!-- Plant and book decor -->
+ <g transform="translate(908 386)">
+  <path d="M0 43V11M0 24Q-35 8-32-16Q-3-18 0 24M0 22Q35 0 40-20Q7-22 0 22M0 28Q-24 26-37 12Q-13 0 0 28" fill="#91A48E" opacity=".65" stroke="#7E9784" stroke-width="2"/>
+  <path d="M-21 41h44l-6 43h-31Z" fill="#D9CBC2"/>
+  <path d="M-22 41h46" stroke="#C6AFA0" stroke-width="6" stroke-linecap="round"/>
+ </g>
+ <!-- Human figure 1, left collaborator -->
+ <g>
+  <!-- Hair behind head -->
+  <path d="M269 231C250 218 237 223 230 236C219 256 219 289 229 310Q259 324 291 303C299 281 297 245 282 234Z" fill="#333137"/>
+  <g class="face-bob">
+   <path d="M249 287h26v32h-26z" fill="#C98B65"/>
+   <ellipse cx="261" cy="263" rx="26" ry="32" fill="#DDA178"/>
+   <path d="M235 257c-2-27 11-35 28-33 15 1 27 16 26 35-11-3-19-13-26-20-7 10-18 17-28 18" fill="#333137"/>
+   <circle cx="252" cy="266" r="1.9" fill="#393039"/><circle cx="272" cy="266" r="1.9" fill="#393039"/>
+   <path d="M257 279q6 6 12-1" stroke="#925B4E" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- Jacket and sleeves -->
+  <path d="M241 308Q213 306 200 341L196 419h132l-13-80q-7-31-36-31l-18 13Z" fill="#D67948"/>
+  <path d="M243 309q15 14 36 1l-11 32h-13Z" fill="#F4B78E"/>
+  <path d="M208 338Q191 364 204 392l57 25 15-20-45-26 7-25" fill="#DB8857"/>
+  <path d="M313 339q9 24 7 43l-45 34-15-17 34-33" fill="#C66C3D"/>
+  <ellipse cx="273" cy="403" rx="13" ry="8" fill="#DDA178" transform="rotate(-22 273 403)"/>
+ </g>
+ <!-- Human figure 2, center facilitator -->
+ <g>
+  <path d="M468 254c-31 4-53 22-60 59l-15 98h156l-17-102c-5-35-21-50-51-55Z" fill="url(#oruart-jacket)"/>
+  <path d="M465 254h31l4 35-21 19-19-18Z" fill="#C98C65"/>
+  <path d="M465 280l15 21 18-21-5 78h-23Z" fill="#F5EFE8"/>
+  <path d="M477 301l7 0 5 58h-18Z" fill="#E77834" opacity=".87"/>
+  <g class="face-bob">
+   <ellipse cx="477" cy="217" rx="30" ry="38" fill="#D0A079"/>
+   <path d="M446 214c-3-20 2-36 19-42 13-5 30-1 38 7 12 9 13 23 6 40-11-3-17-11-23-19-11 8-26 13-40 14Z" fill="#414148"/>
+   <path d="M452 235c4 20 13 32 27 33 17-1 26-15 30-33-10 8-18 10-29 10-11 0-18-2-28-10Z" fill="#B38163" opacity=".27"/>
+   <circle cx="465" cy="224" r="2.2" fill="#484047"/><circle cx="491" cy="224" r="2.2" fill="#484047"/>
+   <path d="M468 243q12 7 22-1" fill="none" stroke="#9F6657" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <!-- Left arm at work -->
+  <path d="M418 304q-13 28-25 65l-20 38 29 6 36-65" fill="#46494F"/>
+  <path d="M374 402q-9-3-15 4l-9 11q-3 5 1 9 9 4 18-1l22-14Z" fill="#D0A079"/>
+  <!-- Right arm, subtle talking gesture -->
+  <g class="gesture">
+   <path d="M527 306q16 24 25 44l29-29 16 14-38 46q-12 10-22-1l-30-34Z" fill="#3B3D45"/>
+   <path d="M577 322q-5-15 0-27l6-10q5-7 9-4l-2 19q7-14 13-14 6 0 2 8l-8 17q-8 14-18 24Z" fill="#D0A079"/>
+  </g>
+ </g>
+ <!-- Person 3, colleague with curls -->
+ <g>
+  <!-- curls of hair -->
+  <g fill="#352E34"><circle cx="759" cy="231" r="27"/><circle cx="734" cy="236" r="20"/><circle cx="782" cy="246" r="22"/><circle cx="729" cy="258" r="19"/><circle cx="784" cy="272" r="22"/><circle cx="750" cy="210" r="16"/><circle cx="774" cy="220" r="19"/><circle cx="746" cy="282" r="25"/></g>
+  <g class="face-bob">
+   <ellipse cx="757" cy="258" rx="27" ry="33" fill="#A56C4D"/>
+   <path d="M731 250q-4-22 13-31c12-7 31-2 40 12l2 22q-6-4-11-13-21 7-44 10Z" fill="#352E34"/>
+   <circle cx="747" cy="258" r="2.1" fill="#342E35"/><circle cx="770" cy="258" r="2.1" fill="#342E35"/>
+   <path d="M752 271q7 5 15-2" stroke="#754337" stroke-width="2" stroke-linecap="round" fill="none"/>
+   <circle cx="781" cy="267" r="5.2" stroke="#DC9D6B" stroke-width="2" fill="none"/>
+  </g>
+  <path d="M746 284h24v29h-24Z" fill="#A56C4D"/>
+  <path d="M732 303Q697 308 688 343l-12 75h162l-13-78q-8-32-41-36l-26 15Z" fill="#E2D4CB"/>
+  <path d="M748 306l13 18 19-19-7 81h-36Z" fill="#FCF8F3"/>
+  <path d="M700 336q-17 28-13 55l-41 19 10 20 65-20q14-7 16-21l-5-42" fill="#D4C4B9"/>
+  <path d="M816 340q13 33 3 57l-57 19-11-19 44-25-6-27" fill="#D8C9C0"/>
+  <path d="M656 411q-16-7-27 0l-7 7q-6 9 6 11l32-1 9-11" fill="#A56C4D"/>
+ </g>
+ <!-- Work table and laptops, foreground -->
+ <ellipse cx="506" cy="474" rx="398" ry="36" fill="#BEB0A9" opacity=".12"/>
+ <path d="M103 426 892 423 921 460 92 462Z" fill="#D4B8A7"/>
+ <path d="M92 462h829v18H92Z" fill="#BA9A85"/>
+ <path d="M128 480h21l-10 83h-21ZM863 480h20l10 83h-20Z" fill="#B3A69C" opacity=".7"/>
+ <!-- Left laptop -->
+ <g filter="url(#oruart-softShadow)">
+  <path d="M281 353h147q9 0 7 9l-10 81H292l-17-81q-2-9 6-9Z" fill="#71777B"/>
+  <path d="M289 361h136l-9 76H300Z" fill="#5E6469"/>
+  <circle cx="358" cy="400" r="12" fill="#8E9599" opacity=".35"/>
+  <path d="M277 442h151l22 13q3 3-5 5H269q-9 0-5-5Z" fill="#A1A4A5"/>
+  <path d="M325 451h67" stroke="#727678" stroke-linecap="round" stroke-width="3"/>
+ </g>
+ <!-- Center tablet with AI assistance cue -->
+ <g filter="url(#oruart-softShadow)">
+  <path d="M487 383h94a9 9 0 0 1 9 9v51H477v-51a9 9 0 0 1 10-9Z" fill="#565D62"/>
+  <path d="M484 390h99v48h-99Z" fill="#F8F5F2"/>
+  <g stroke="#EF8D4E" fill="none" stroke-width="2" opacity=".83"><path d="M516 417h15l7-13 10 21 7-12h12"/></g>
+  <circle cx="490" cy="395" r="2" fill="#D5CFC9"/>
+ </g>
+ <!-- Right laptop -->
+ <g filter="url(#oruart-softShadow)">
+  <path d="M652 358h140a8 8 0 0 1 8 9l-13 79H662l-16-79a8 8 0 0 1 6-9Z" fill="#848A8D"/>
+  <path d="M657 367h134l-12 72H670Z" fill="#72797C"/>
+  <circle cx="723" cy="401" r="13" fill="#BCC1C2" opacity=".27"/>
+  <path d="M647 444h147l20 11q4 5-4 6H637q-8-1-4-6Z" fill="#ADB0B1"/>
+ </g>
+ <!-- Small coffee mug -->
+ <g><ellipse cx="607" cy="452" rx="16" ry="5" fill="#EDE3DC"/><path d="M593 429h27v23q-13 6-27 0Z" fill="#FFFBF8" stroke="#E5D9D1" stroke-width="1.4"/><path d="M619 435q20-6 14 7-4 9-14 6" fill="none" stroke="#E5D9D1" stroke-width="4"/></g>
+ <!-- Foreground soft glints -->
+ <path d="M56 520H330" stroke="#FFF8F0" stroke-width="2" opacity=".6"/>
+ <path d="M801 518H940" stroke="#FFF8F0" stroke-width="2" opacity=".55"/>
+ <circle cx="177" cy="415" r="3" fill="#EC8446" class="node-b"/>
+ <path d="M882 124q4-5 8 0-4 5-8 0" fill="#F7B68F" class="glint"/>
+</g>
+</svg>
                 </div>
               </div>
             </div>
@@ -72605,7 +73071,7 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
             <div class="container">
               <div class="oru-ini-head">
                 <div class="section-head m-0 has_word_anim">
-                  <span class="sm-title">Every Initiative Starts With People</span>
+                  <span class="sm-title">Every Initiative Starts with People</span>
                   <h3 class="title">Six ways AI is helping our teams work smarter.</h3>
                   <p class="oru-intro">
                     Each initiative is about giving people better tools: less
@@ -72613,19 +73079,15 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
                     communities and good decisions. Select one to read its story.
                   </p>
                 </div>
-                <div class="oru-row-nav" aria-label="Scroll the initiatives">
-                  <button type="button" class="oru-row-btn" data-row="-1" aria-label="Previous initiatives"><i class="fi fi-rr-arrow-small-right"></i></button>
-                  <button type="button" class="oru-row-btn" data-row="1" aria-label="More initiatives"><i class="fi fi-rr-arrow-small-right"></i></button>
-                </div>
               </div>
 
               <div class="oru-ini-row" id="oru-ini-row">
                 <a href="#story-clean-energy" class="oru-ini-card wow fadeInUp" data-wow-delay=".1s">
                   <span class="oru-ini-num">01</span>
-                  <span class="oru-ini-focus">Energy programs</span>
+                  <span class="oru-ini-focus">Energy Programs</span>
                   <h4>Clean Energy Genie</h4>
                   <p>Helping teams find the customers who could benefit from energy programs.</p>
-                  <span class="oru-ini-foot"><span class="oru-status live">In progress</span><span class="oru-ini-more">Read the story <i class="fi fi-rr-arrow-small-right"></i></span></span>
+                  <span class="oru-ini-foot"><span class="oru-status live">In Progress</span><span class="oru-ini-more">Read the story <i class="fi fi-rr-arrow-small-right"></i></span></span>
                 </a>
                 <a href="#story-metering" class="oru-ini-card wow fadeInUp" data-wow-delay=".2s">
                   <span class="oru-ini-num">02</span>
@@ -72636,14 +73098,14 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
                 </a>
                 <a href="#story-revenue-protection" class="oru-ini-card wow fadeInUp" data-wow-delay=".3s">
                   <span class="oru-ini-num">03</span>
-                  <span class="oru-ini-focus">Revenue protection</span>
+                  <span class="oru-ini-focus">Revenue Protection</span>
                   <h4>Revenue Protection Model</h4>
                   <p>Less repetitive casework, more time for the cases that need expertise.</p>
                   <span class="oru-ini-foot"><span class="oru-status">Proposed</span><span class="oru-ini-more">Read the story <i class="fi fi-rr-arrow-small-right"></i></span></span>
                 </a>
                 <a href="#story-customer-assistance" class="oru-ini-card wow fadeInUp" data-wow-delay=".4s">
                   <span class="oru-ini-num">04</span>
-                  <span class="oru-ini-focus">Customer assistance</span>
+                  <span class="oru-ini-focus">Customer Assistance</span>
                   <h4>Customer Assistance Genie</h4>
                   <p>Quicker answers on assistance program data for the teams who support customers.</p>
                   <span class="oru-ini-foot"><span class="oru-status">Proposed</span><span class="oru-ini-more">Read the story <i class="fi fi-rr-arrow-small-right"></i></span></span>
@@ -72657,7 +73119,7 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
                 </a>
                 <a href="#story-clean-heat" class="oru-ini-card wow fadeInUp" data-wow-delay=".6s">
                   <span class="oru-ini-num">06</span>
-                  <span class="oru-ini-focus">Clean heat</span>
+                  <span class="oru-ini-focus">Clean Heat</span>
                   <h4>Clean Heat Release 2.0</h4>
                   <p>The next chapter of the clean heat work, still taking shape.</p>
                   <span class="oru-ini-foot"><span class="oru-status">Proposed</span><span class="oru-ini-more">Read the story <i class="fi fi-rr-arrow-small-right"></i></span></span>
@@ -72667,141 +73129,133 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
           </section>
           <!-- End Initiatives Row -->
 
-          <!-- Start Stories: one per initiative, told from the people's side -->
-          <section class="bg-color-1 z-index2 oru-stories">
-            <div class="container">
-
-              <article class="oru-story" id="story-clean-energy">
-                <header class="oru-story-head wow fadeInUp">
+          <!-- Initiative stories: shown one at a time in the pop-up below -->
+          <div class="oru-story-src" hidden>
+<article class="oru-story" id="story-clean-energy">
+                <header class="oru-story-head">
                   <span class="oru-ini-num">01</span>
                   <h3>Clean Energy Genie</h3>
-                  <div class="oru-story-meta"><span class="oru-status live">In progress</span><span class="oru-ini-focus">Energy programs</span></div>
+                  <div class="oru-story-meta"><span class="oru-status live">In Progress</span><span class="oru-ini-focus">Energy Programs</span></div>
                 </header>
                 <div class="oru-story-body">
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>The challenge</h4>
+                  <div class="oru-story-block">
+                    <h4>The Challenge</h4>
                     <p>Matching customers with the energy programs that could help them means digging through data by hand, and that takes time away from the customers themselves.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>How AI helps</h4>
+                  <div class="oru-story-block">
+                    <h4>How AI Helps</h4>
                     <p>The team can ask questions in plain language and get analysis and recommendations back, so their time goes into the conversation with the customer instead of the search.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>What&rsquo;s next</h4>
+                  <div class="oru-story-block">
+                    <h4>What&rsquo;s Next</h4>
                     <p>The work is under way. It could also support the CARE program that is rolling out at O&amp;R.</p>
                   </div>
                 </div>
               </article>
-
-              <article class="oru-story" id="story-metering">
-                <header class="oru-story-head wow fadeInUp">
+<article class="oru-story" id="story-metering">
+                <header class="oru-story-head">
                   <span class="oru-ini-num">02</span>
                   <h3>Metering Genie</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Metering</span></div>
                 </header>
                 <div class="oru-story-body">
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>The challenge</h4>
+                  <div class="oru-story-block">
+                    <h4>The Challenge</h4>
                     <p>Answers about service points, meter data and field activities sit in dashboards that people need to know how to navigate.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>How AI helps</h4>
+                  <div class="oru-story-block">
+                    <h4>How AI Helps</h4>
                     <p>People could simply ask their question and get the answer, drawn from the same data the dashboards already hold.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>Why it matters</h4>
+                  <div class="oru-story-block">
+                    <h4>Why It Matters</h4>
                     <p>These are already among the most steadily used dashboards in the area, so a simpler way in would help the people who rely on them every day.</p>
                   </div>
                 </div>
               </article>
-
-              <article class="oru-story" id="story-revenue-protection">
-                <header class="oru-story-head wow fadeInUp">
+<article class="oru-story" id="story-revenue-protection">
+                <header class="oru-story-head">
                   <span class="oru-ini-num">03</span>
                   <h3>Revenue Protection Model</h3>
-                  <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Revenue protection</span></div>
+                  <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Revenue Protection</span></div>
                 </header>
                 <div class="oru-story-body">
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>The challenge</h4>
+                  <div class="oru-story-block">
+                    <h4>The Challenge</h4>
                     <p>Preparing and opening revenue protection cases involves a lot of repetitive, step by step work.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>How AI helps</h4>
+                  <div class="oru-story-block">
+                    <h4>How AI Helps</h4>
                     <p>The model would take on the routine preparation of selected cases and open them on the account, so specialists can put their time and judgement where it counts.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>What&rsquo;s next</h4>
+                  <div class="oru-story-block">
+                    <h4>What&rsquo;s Next</h4>
                     <p>Its benefits are straightforward to measure, which will make the results easy to see once it moves forward.</p>
                   </div>
                 </div>
               </article>
-
-              <article class="oru-story" id="story-customer-assistance">
-                <header class="oru-story-head wow fadeInUp">
+<article class="oru-story" id="story-customer-assistance">
+                <header class="oru-story-head">
                   <span class="oru-ini-num">04</span>
                   <h3>Customer Assistance Genie</h3>
-                  <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Customer assistance</span></div>
+                  <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Customer Assistance</span></div>
                 </header>
                 <div class="oru-story-body">
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>The challenge</h4>
+                  <div class="oru-story-block">
+                    <h4>The Challenge</h4>
                     <p>The teams who support customer assistance programs rely on dashboards to answer questions about program data.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>How AI helps</h4>
+                  <div class="oru-story-block">
+                    <h4>How AI Helps</h4>
                     <p>A conversational assistant could answer those questions directly, alongside the dashboards people already use.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>What&rsquo;s next</h4>
+                  <div class="oru-story-block">
+                    <h4>What&rsquo;s Next</h4>
                     <p>Today&rsquo;s dashboards are well used and well liked, so the next step is to listen to the team and confirm where an assistant would help most.</p>
                   </div>
                 </div>
               </article>
-
-              <article class="oru-story" id="story-root-cause">
-                <header class="oru-story-head wow fadeInUp">
+<article class="oru-story" id="story-root-cause">
+                <header class="oru-story-head">
                   <span class="oru-ini-num">05</span>
                   <h3>Root Cause, Unbilled</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Billing</span></div>
                 </header>
                 <div class="oru-story-body">
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>The challenge</h4>
+                  <div class="oru-story-block">
+                    <h4>The Challenge</h4>
                     <p>When an account goes unbilled, finding out why takes careful investigation.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>How AI helps</h4>
+                  <div class="oru-story-block">
+                    <h4>How AI Helps</h4>
                     <p>Root cause analytics would help the team see the patterns behind unbilled accounts and fix the source, not just the symptom.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>What&rsquo;s next</h4>
+                  <div class="oru-story-block">
+                    <h4>What&rsquo;s Next</h4>
                     <p>It builds on the customer record improvements already in progress, and follows once that work is complete.</p>
                   </div>
                 </div>
               </article>
-
-              <article class="oru-story" id="story-clean-heat">
-                <header class="oru-story-head wow fadeInUp">
+<article class="oru-story" id="story-clean-heat">
+                <header class="oru-story-head">
                   <span class="oru-ini-num">06</span>
                   <h3>Clean Heat Release 2.0</h3>
-                  <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Clean heat</span></div>
+                  <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Clean Heat</span></div>
                 </header>
                 <div class="oru-story-body">
-                  <div class="oru-story-block wow fadeInUp">
+                  <div class="oru-story-block">
                     <h4>About</h4>
                     <p>The next release of the clean heat work with Customer Energy Services.</p>
                   </div>
-                  <div class="oru-story-block wow fadeInUp">
-                    <h4>What&rsquo;s next</h4>
+                  <div class="oru-story-block">
+                    <h4>What&rsquo;s Next</h4>
                     <p>The details are still being shaped with the team. Check back as the story develops.</p>
                   </div>
                 </div>
               </article>
+          </div>
 
-            </div>
-          </section>
-          <!-- End Stories -->
+
 
           <!-- Start Closing Call to Action -->
           <section class="bg-color-1 z-index2 oru-ini-cta-sec">
@@ -72812,7 +73266,7 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
                   <h3>Have an idea for the next initiative?</h3>
                   <p>No technical expertise required. Just an idea and the challenge you see every day.</p>
                 </div>
-                <a href="index.html#to-share" class="theme-btn">Share an Idea<i class="fi fi-rr-arrow-small-right"></i></a>
+                <a href="share.html" class="theme-btn">Share an Idea<i class="fi fi-rr-arrow-small-right"></i></a>
               </div>
             </div>
           </section>
@@ -72843,7 +73297,8 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
                   <ul class="list-links">
                     <li><a href="index.html">Home</a></li>
                     <li><a href="initiatives.html">AI Initiatives</a></li>
-                    <li><a href="index.html#to-share">Share an Idea</a></li>
+                    <li><a href="training.html">AI Training</a></li>
+                    <li><a href="share.html">Share an Idea</a></li>
                   </ul>
                 </div>
 
@@ -72851,7 +73306,7 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
                 <div class="footer-widget feature">
                   <h4 class="widget-title">Support</h4>
                   <ul class="list-links">
-                    <li><a href="ORU_AI_Portal.html#intake">IT Requests</a></li>
+                    <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
                   </ul>
                 </div>
               </div>
@@ -72868,6 +73323,22 @@ html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
         <!-- End Footer Area -->
       </div>
     </div>
+
+        <!-- Initiative pop-up -->
+        <div class="oru-modal" id="oru-modal" role="dialog" aria-modal="true" aria-labelledby="oru-modal-title" hidden>
+          <div class="oru-modal-scrim" data-close></div>
+          <div class="oru-modal-card" role="document">
+            <button type="button" class="oru-modal-close" data-close aria-label="Close"><i class="fi fi-ss-cross"></i></button>
+            <div class="oru-modal-body" id="oru-modal-body"></div>
+            <div class="oru-modal-foot">
+              <p>Have an idea that builds on this? Your perspective could shape what comes next.</p>
+              <div class="oru-modal-actions">
+                <a href="ORU_AI_Portal.html#portfolio" class="oru-modal-link">View in the Portal</a>
+                <a href="share.html" class="theme-btn">Share an Idea<i class="fi fi-rr-arrow-small-right"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
 
     <!-- Start Back To Top  -->
     <div class="progress-wrap">
@@ -78898,7 +79369,7 @@ if (fadeArray_items.length > 0) {
         window.addEventListener("load", function () {
           var m = location.hash.match(/^#to-([a-z-]+)$/);
           var t = m && document.getElementById(m[1]);
-          if (!t) return;
+          if (!t || t.closest(".oru-story-src")) return;
           var smoother = window.ScrollSmoother && ScrollSmoother.get && ScrollSmoother.get();
           function go() {
             if (smoother) smoother.scrollTo(t, false, "top 90px");
@@ -78944,15 +79415,64 @@ if (fadeArray_items.length > 0) {
           check();
         })();
 
-        // The initiative row scrolls sideways one card at a time.
-        var row = document.getElementById("oru-ini-row");
-        document.querySelectorAll("[data-row]").forEach(function (btn) {
-          btn.addEventListener("click", function () {
-            var card = row && row.querySelector(".oru-ini-card");
-            if (!card) return;
-            row.scrollBy({ left: Number(btn.getAttribute("data-row")) * (card.offsetWidth + 20), behavior: "smooth" });
+        // Initiative pop-up.
+        (function () {
+          var modal = document.getElementById("oru-modal");
+          if (!modal) return;
+          var body = document.getElementById("oru-modal-body");
+          var lastFocus = null;
+          function smoother() { return window.ScrollSmoother && ScrollSmoother.get && ScrollSmoother.get(); }
+          function open(id) {
+            var src = document.getElementById(id);
+            if (!src) return false;
+            body.innerHTML = src.innerHTML;
+            var title = body.querySelector("h3");
+            if (title) title.id = "oru-modal-title";
+            lastFocus = document.activeElement;
+            modal.hidden = false;
+            document.documentElement.classList.add("oru-modal-open");
+            var s = smoother(); if (s) s.paused(true);
+            requestAnimationFrame(function () { modal.classList.add("on"); });
+            modal.querySelector(".oru-modal-close").focus();
+            if (history.replaceState) history.replaceState(null, "", "#" + id);
+            return true;
+          }
+          function close() {
+            if (modal.hidden) return;
+            modal.classList.remove("on");
+            document.documentElement.classList.remove("oru-modal-open");
+            var s = smoother(); if (s) s.paused(false);
+            setTimeout(function () { modal.hidden = true; body.innerHTML = ""; }, 260);
+            if (history.replaceState) history.replaceState(null, "", location.pathname);
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
+          }
+          // Capture phase, so the card click never reaches the page's
+          // in-page scroll handler.
+          document.addEventListener("click", function (e) {
+            var card = e.target.closest && e.target.closest(".oru-ini-card");
+            if (card) {
+              e.preventDefault(); e.stopPropagation();
+              open(card.getAttribute("href").slice(1));
+              return;
+            }
+            if (e.target.closest && e.target.closest("[data-close]")) { e.preventDefault(); close(); }
+          }, true);
+          document.addEventListener("keydown", function (e) {
+            if (modal.hidden) return;
+            if (e.key === "Escape") { e.preventDefault(); close(); return; }
+            if (e.key === "Tab") {
+              var f = modal.querySelectorAll("button, a[href]");
+              var first = f[0], last = f[f.length - 1];
+              if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+              else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
           });
-        });
+          // Arriving with #to-story-metering (from the homepage) or #story-metering.
+          window.addEventListener("load", function () {
+            var m = location.hash.match(/^#(?:to-)?(story-[a-z-]+)$/);
+            if (m) setTimeout(function () { open(m[1]); }, 500);
+          });
+        })();
 
         // The idea form is not connected to a system yet, so it never claims
         // a submission was received. It says so plainly instead.
