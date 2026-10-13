@@ -1683,6 +1683,9 @@ main.enter .kcard { animation: aiRise .5s var(--ease-out) both; animation-delay:
 /* The portal frame sits under the navbar. */
 .sn-logo .sn-mark { width: 30px; height: 30px; flex: none; display: block; }
 @media (max-width: 620px) { .sn-logo .sn-mark { width: 28px; height: 28px; } }
+/* Title Case, as on the homepage. */
+.sn-wm small, .sn-nav > ul > li > a, .sn-sub a, .sn-mob a, .sn-mob-h { text-transform: none; }
+.sn-wm small { letter-spacing: .3px; font-size: 11px; }
 /* The navbar carries the brand now, so the rail starts with its links. */
 .rail > .brand { display: none; }
 .rail { top: var(--sn-h); height: calc(100vh - var(--sn-h)); }
@@ -1718,7 +1721,7 @@ main.enter .kcard { animation: aiRise .5s var(--ease-out) both; animation-delay:
    the work below gets the height. */
 :root { --sn-h: 64px; }
 .sn-in { max-width: none; padding: 0 20px 0 0; gap: 0; }
-.sn-logo { width: var(--rail); flex: none; box-sizing: border-box; padding: 0 12px 0 22px; gap: 10px; border-right-color: var(--line); }
+.sn-logo { width: var(--rail); flex: none; box-sizing: border-box; padding: 0 12px; gap: 10px; justify-content: center; border-right-color: var(--line); }
 .sn-logo svg { width: 30px; height: 30px; }
 .sn-wm b { font-size: 16.5px; }
 .sn-wm small { font-size: 9.5px; letter-spacing: 1.4px; margin-top: 4px; }
@@ -2063,15 +2066,16 @@ main.report, main:has(.rp) { padding: 24px 32px 64px; }
       <ul>
         <li><a href="index.html">Home</a></li>
         <li><a href="initiatives.html">AI Initiatives</a></li>
-        <li><a href="index.html#to-share">Share an Idea</a></li>
-        <li data-v="intake"><a href="#intake">IT Requests</a></li>
+        <li><a href="training.html">AI Training</a></li>
+        <li><a href="share.html">Share an Idea</a></li>
+        <li data-v="intake"><a href="#intake">Intake Requests</a></li>
         <li class="sn-portal"><a href="#exec">Portal</a></li>
       </ul>
     </nav>
     <button class="sn-burger" id="sn-burger" type="button" aria-expanded="false" aria-controls="sn-mob" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
   <nav class="sn-mob" id="sn-mob" aria-label="Site" hidden>
-    <a href="index.html">Home</a><a href="initiatives.html">AI Initiatives</a><a href="index.html#to-share">Share an Idea</a><a data-v="intake" href="#intake">IT Requests</a>
+    <a href="index.html">Home</a><a href="initiatives.html">AI Initiatives</a><a href="training.html">AI Training</a><a href="share.html">Share an Idea</a><a data-v="intake" href="#intake">Intake Requests</a>
     <a class="sn-portal" href="#exec">Portal</a>
   </nav>
 </header>
@@ -5227,7 +5231,7 @@ function syncSiteNav(){
   Array.prototype.forEach.call(document.querySelectorAll('#sn [data-v]'), function(el){
     el.classList.toggle('active', el.getAttribute('data-v') === S.view);
   });
-  /* The Portal tab is the current one everywhere in the portal except IT Requests. */
+  /* The Portal tab is the current one everywhere in the portal except Intake Requests. */
   Array.prototype.forEach.call(document.querySelectorAll('#sn .sn-portal'), function(el){
     el.classList.toggle('active', S.view !== 'intake');
   });
