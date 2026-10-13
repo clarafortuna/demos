@@ -72718,6 +72718,82 @@ html.oru-modal-open { overflow: hidden; }
   .header .header-logo { display: flex; align-items: center; justify-content: center; line-height: normal; margin-left: -24px; padding: 0 32px; }
 }
 
+
+/*============================================================================================
+  AI Initiatives header: neural network banner, title centred.
+==============================================================================================*/
+.oru-neural-wrap { padding: 28px 0 10px; }
+.oru-neural-hero {
+  isolation: isolate; position: relative; display: grid; place-items: center;
+  height: clamp(390px, 30vw, 568px); overflow: hidden; border-radius: var(--oru-img-radius, 16px); background: #efeae7;
+}
+.oru-neural-hero::before {
+  content: ""; z-index: -1; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 36% 67% at 12% 44%, rgba(218,126,76,.055), transparent 76%),
+    radial-gradient(ellipse 38% 66% at 89% 61%, rgba(199,119,81,.050), transparent 78%),
+    radial-gradient(ellipse 30% 38% at 49% 2%, rgba(255,255,255,.20), transparent 85%);
+}
+#oru-neural { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.oru-neural-content { position: relative; z-index: 1; width: min(790px, calc(100% - 60px)); text-align: center; padding: 8px 0; }
+.oru-neural-content .oru-eyebrow { display: inline-block; margin-bottom: 14px; }
+.oru-neural-title { margin: 0; font-family: var(--font-family); font-size: clamp(45px, 4.4vw, 76px); font-weight: 600; line-height: 1.04; letter-spacing: -.02em; color: var(--title-color); }
+.oru-neural-sub { margin: 24px auto 0; max-width: 645px; font-size: 18px; line-height: 30px; color: var(--paragraph-color); }
+.oru-neural-crumbs { margin-top: 26px; text-align: center; }
+.oru-neural-crumbs li a, .oru-neural-crumbs li::before { color: var(--title-color); }
+.oru-neural-crumbs li.active a { color: var(--primary-color); }
+@media (max-width: 720px) {
+  .oru-neural-hero { height: 435px; border-radius: 12px; }
+  #oru-neural { opacity: .7; }
+  .oru-neural-content { width: calc(100% - 48px); }
+  .oru-neural-sub { font-size: 16px; line-height: 26px; }
+}
+.bredcrumb-menu.style2.oru-neural-crumbs li a, .bredcrumb-menu.style2.oru-neural-crumbs li::before { color: var(--title-color); }
+.bredcrumb-menu.style2.oru-neural-crumbs li.active a, .bredcrumb-menu.style2.oru-neural-crumbs li a:hover { color: var(--primary-color); }
+
+/* Initiative pop-up: value, effort and impacted users, as recorded in the portal. */
+.oru-story-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.oru-stat { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--white-color); }
+.oru-stat .k { font-size: 14px; line-height: 20px; color: var(--paragraph-color); }
+.oru-stat b { font-family: var(--font-family); font-size: 24px; line-height: 30px; font-weight: 600; color: var(--title-color); }
+.oru-stat .sub { font-size: 13px; line-height: 18px; color: var(--paragraph-color); opacity: .8; }
+.oru-modal-body .oru-story-body { margin-top: 16px; }
+@media (max-width: 575.98px) { .oru-story-stats { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+
+/*============================================================================================
+  AI Training: three link cards (Training, Information & FAQ, Pluralsight).
+==============================================================================================*/
+.oru-train-sec { padding: 10px 0 120px; }
+.oru-train-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.oru-train-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 320px;
+  padding: 36px 32px 32px; background: var(--white-color); border-radius: var(--oru-img-radius, 16px);
+  text-decoration: none; transition: transform .35s ease, box-shadow .35s ease;
+}
+.oru-train-card::before {
+  content: ""; position: absolute; left: 0; top: 0; height: 4px; width: 100%; background: var(--primary-color);
+  transform: scaleX(0); transform-origin: left; transition: transform .45s ease;
+}
+.oru-train-card:hover { transform: translateY(-6px); box-shadow: 0 30px 50px -30px rgba(126, 101, 84, .5); }
+.oru-train-card:hover::before { transform: scaleX(1); }
+.oru-train-card.is-ps::before { background: #ff1675; }
+.oru-train-icon {
+  display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 28px; border-radius: 16px;
+  background: #efeae7; color: var(--primary-color); font-size: 26px; line-height: 0; transition: background .35s ease, color .35s ease;
+}
+.oru-train-card:hover .oru-train-icon:not(.logo) { background: var(--primary-color); color: #fff; }
+.oru-train-icon.logo { background: none; overflow: hidden; }
+.oru-train-icon.logo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 16px; }
+.oru-train-card h3 { margin: 0 0 12px; font-family: var(--font-family); font-size: 28px; line-height: 34px; font-weight: 600; color: var(--title-color); }
+.oru-train-card p { margin: 0 0 28px; font-size: 16px; line-height: 26px; color: var(--paragraph-color); }
+.oru-train-go { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: var(--title-color); transition: color .3s ease, gap .3s ease; }
+.oru-train-go i { line-height: 0; }
+.oru-train-card:hover .oru-train-go { color: var(--primary-color); gap: 12px; }
+.oru-train-card.is-ps:hover .oru-train-go { color: #e0145f; }
+@media (max-width: 991.98px) { .oru-train-grid { grid-template-columns: minmax(0, 1fr); } .oru-train-card { min-height: 0; } }
+/* AI Training cards: the icons keep their hover colours all the time. */
+.oru-train-icon:not(.logo) { background: var(--primary-color); color: #fff; }
+
 </style>
   </head>
 
@@ -72773,7 +72849,7 @@ html.oru-modal-open { overflow: hidden; }
                 <li><a href="training.html">AI Training</a></li>
                 <li><a href="share.html">Share an Idea</a></li>
                 <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
-                <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
+                <li><a href="ORU_AI_Portal.html#exec">Admin Portal</a></li>
               </ul>
             </nav>
           </div>
@@ -72802,7 +72878,7 @@ html.oru-modal-open { overflow: hidden; }
               <li><a href="training.html">AI Training</a></li>
               <li><a href="share.html">Share an Idea</a></li>
               <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
-              <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
+              <li><a href="ORU_AI_Portal.html#exec">Admin Portal</a></li>
             </ul>
           </nav>
 
@@ -72835,9 +72911,8 @@ html.oru-modal-open { overflow: hidden; }
               data-delay="0.75"
             >
               <ul class="social-list">
-                <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
-                <li><a href="initiatives.html">Initiatives</a></li>
-                <li><a href="#share">AI Ideas</a></li>
+                <li><a href="ORU_AI_Portal.html#exec">Admin Portal</a></li>
+                <li><a href="initiatives.html">AI Initiatives</a></li>
               </ul>
             </div>
             <div class="container">

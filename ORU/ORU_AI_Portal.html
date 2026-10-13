@@ -2069,14 +2069,14 @@ main.report, main:has(.rp) { padding: 24px 32px 64px; }
         <li><a href="training.html">AI Training</a></li>
         <li><a href="share.html">Share an Idea</a></li>
         <li data-v="intake"><a href="#intake">Intake Requests</a></li>
-        <li class="sn-portal"><a href="#exec">Portal</a></li>
+        <li class="sn-portal"><a href="#exec">Admin Portal</a></li>
       </ul>
     </nav>
     <button class="sn-burger" id="sn-burger" type="button" aria-expanded="false" aria-controls="sn-mob" aria-label="Open menu"><span></span><span></span><span></span></button>
   </div>
   <nav class="sn-mob" id="sn-mob" aria-label="Site" hidden>
     <a href="index.html">Home</a><a href="initiatives.html">AI Initiatives</a><a href="training.html">AI Training</a><a href="share.html">Share an Idea</a><a data-v="intake" href="#intake">Intake Requests</a>
-    <a class="sn-portal" href="#exec">Portal</a>
+    <a class="sn-portal" href="#exec">Admin Portal</a>
   </nav>
 </header>
 <div class="app">
@@ -4739,7 +4739,7 @@ function viewDemand(){
    field the portal needs. Nothing is asked for that the tracker cannot store.
    =========================================================================== */
 function viewIntake(){
-  return '<div style="margin-bottom:16px"><h1>Raise a Request</h1>' +
+  return '<div style="margin-bottom:16px"><h1>Intake Requests</h1>' +
     '<p class="small muted">The same fields the reporting requests tracker holds. Anything raised here stays in this browser session.</p></div>' +
     '<div class="grid g32">' +
       '<section class="panel pad">' +
@@ -4940,7 +4940,7 @@ var NAV = [
   { group:'Reporting Desk' },
   { k:'board',     label:'Board',               icon:'board',  roles:['exec','admin','member'], count:function(){ return TICKETS.filter(function(t){ return !t.done; }).length; } },
   { k:'queue',     label:'Request Queue',       icon:'list',   roles:['admin','member'] },
-  { k:'intake',    label:'Raise a Request',     icon:'plus',   roles:['exec','admin','member'] },
+  { k:'intake',    label:'Intake Requests',     icon:'plus',   roles:['exec','admin','member'] },
   { group:'Evidence' },
   { k:'demand',    label:'Demand Signals',      icon:'pulse',  roles:['exec','admin'] },
   { k:'admin',     label:'How Numbers Are Built', icon:'doc',  roles:['exec','admin','member'] },
@@ -4952,7 +4952,7 @@ var TITLES = {
   portfolio:['Portfolio','The register in three views'],
   board:['Board','Reporting requests in flow'],
   queue:['Request Queue','The board as a list'],
-  intake:['Raise a Request','Where everything starts'],
+  intake:['Intake Requests','Where everything starts'],
   demand:['Demand Signals','Counted demand against AI spend'],
   admin:['How These Numbers Are Built','Definitions and known limits'],
   ds:['Design System','Ember Intelligence, the AI layer']
@@ -5260,7 +5260,7 @@ function decoratePageHead(main){
   var h1 = ds ? null : main.querySelector('.view > div:first-child h1');
   if (ds){
     var c = document.createElement('div');
-    c.innerHTML = '<nav class="ex-crumbs" aria-label="Breadcrumb" style="margin-bottom:0"><a data-go="' + (allowed('exec') ? 'exec' : 'board') + '">Portal</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg><span>Design</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg><span>Design System</span></nav>';
+    c.innerHTML = '<nav class="ex-crumbs" aria-label="Breadcrumb" style="margin-bottom:0"><a data-go="' + (allowed('exec') ? 'exec' : 'board') + '">Admin Portal</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg><span>Design</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg><span>Design System</span></nav>';
     ds.insertBefore(c.firstChild, ds.firstChild);
     return;
   }
@@ -5271,7 +5271,7 @@ function decoratePageHead(main){
   });
   var chev = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>';
   var head = document.createElement('div');
-  head.innerHTML = '<nav class="ex-crumbs" aria-label="Breadcrumb"><a data-go="' + (allowed('exec') ? 'exec' : 'board') + '">Portal</a>' + chev +
+  head.innerHTML = '<nav class="ex-crumbs" aria-label="Breadcrumb"><a data-go="' + (allowed('exec') ? 'exec' : 'board') + '">Admin Portal</a>' + chev +
     '<span>' + esc(group) + '</span>' + chev + '<span>' + esc(label) + '</span></nav>' +
     '<div class="ex-eyebrow">' + esc(group) + '</div>';
   var box = h1.parentElement;
