@@ -72718,6 +72718,82 @@ html.oru-modal-open { overflow: hidden; }
   .header .header-logo { display: flex; align-items: center; justify-content: center; line-height: normal; margin-left: -24px; padding: 0 32px; }
 }
 
+
+/*============================================================================================
+  AI Initiatives header: neural network banner, title centred.
+==============================================================================================*/
+.oru-neural-wrap { padding: 28px 0 10px; }
+.oru-neural-hero {
+  isolation: isolate; position: relative; display: grid; place-items: center;
+  height: clamp(390px, 30vw, 568px); overflow: hidden; border-radius: var(--oru-img-radius, 16px); background: #efeae7;
+}
+.oru-neural-hero::before {
+  content: ""; z-index: -1; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 36% 67% at 12% 44%, rgba(218,126,76,.055), transparent 76%),
+    radial-gradient(ellipse 38% 66% at 89% 61%, rgba(199,119,81,.050), transparent 78%),
+    radial-gradient(ellipse 30% 38% at 49% 2%, rgba(255,255,255,.20), transparent 85%);
+}
+#oru-neural { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.oru-neural-content { position: relative; z-index: 1; width: min(790px, calc(100% - 60px)); text-align: center; padding: 8px 0; }
+.oru-neural-content .oru-eyebrow { display: inline-block; margin-bottom: 14px; }
+.oru-neural-title { margin: 0; font-family: var(--font-family); font-size: clamp(45px, 4.4vw, 76px); font-weight: 600; line-height: 1.04; letter-spacing: -.02em; color: var(--title-color); }
+.oru-neural-sub { margin: 24px auto 0; max-width: 645px; font-size: 18px; line-height: 30px; color: var(--paragraph-color); }
+.oru-neural-crumbs { margin-top: 26px; text-align: center; }
+.oru-neural-crumbs li a, .oru-neural-crumbs li::before { color: var(--title-color); }
+.oru-neural-crumbs li.active a { color: var(--primary-color); }
+@media (max-width: 720px) {
+  .oru-neural-hero { height: 435px; border-radius: 12px; }
+  #oru-neural { opacity: .7; }
+  .oru-neural-content { width: calc(100% - 48px); }
+  .oru-neural-sub { font-size: 16px; line-height: 26px; }
+}
+.bredcrumb-menu.style2.oru-neural-crumbs li a, .bredcrumb-menu.style2.oru-neural-crumbs li::before { color: var(--title-color); }
+.bredcrumb-menu.style2.oru-neural-crumbs li.active a, .bredcrumb-menu.style2.oru-neural-crumbs li a:hover { color: var(--primary-color); }
+
+/* Initiative pop-up: value, effort and impacted users, as recorded in the portal. */
+.oru-story-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.oru-stat { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--white-color); }
+.oru-stat .k { font-size: 14px; line-height: 20px; color: var(--paragraph-color); }
+.oru-stat b { font-family: var(--font-family); font-size: 24px; line-height: 30px; font-weight: 600; color: var(--title-color); }
+.oru-stat .sub { font-size: 13px; line-height: 18px; color: var(--paragraph-color); opacity: .8; }
+.oru-modal-body .oru-story-body { margin-top: 16px; }
+@media (max-width: 575.98px) { .oru-story-stats { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+
+/*============================================================================================
+  AI Training: three link cards (Training, Information & FAQ, Pluralsight).
+==============================================================================================*/
+.oru-train-sec { padding: 10px 0 120px; }
+.oru-train-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.oru-train-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 320px;
+  padding: 36px 32px 32px; background: var(--white-color); border-radius: var(--oru-img-radius, 16px);
+  text-decoration: none; transition: transform .35s ease, box-shadow .35s ease;
+}
+.oru-train-card::before {
+  content: ""; position: absolute; left: 0; top: 0; height: 4px; width: 100%; background: var(--primary-color);
+  transform: scaleX(0); transform-origin: left; transition: transform .45s ease;
+}
+.oru-train-card:hover { transform: translateY(-6px); box-shadow: 0 30px 50px -30px rgba(126, 101, 84, .5); }
+.oru-train-card:hover::before { transform: scaleX(1); }
+.oru-train-card.is-ps::before { background: #ff1675; }
+.oru-train-icon {
+  display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 28px; border-radius: 16px;
+  background: #efeae7; color: var(--primary-color); font-size: 26px; line-height: 0; transition: background .35s ease, color .35s ease;
+}
+.oru-train-card:hover .oru-train-icon:not(.logo) { background: var(--primary-color); color: #fff; }
+.oru-train-icon.logo { background: none; overflow: hidden; }
+.oru-train-icon.logo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 16px; }
+.oru-train-card h3 { margin: 0 0 12px; font-family: var(--font-family); font-size: 28px; line-height: 34px; font-weight: 600; color: var(--title-color); }
+.oru-train-card p { margin: 0 0 28px; font-size: 16px; line-height: 26px; color: var(--paragraph-color); }
+.oru-train-go { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: var(--title-color); transition: color .3s ease, gap .3s ease; }
+.oru-train-go i { line-height: 0; }
+.oru-train-card:hover .oru-train-go { color: var(--primary-color); gap: 12px; }
+.oru-train-card.is-ps:hover .oru-train-go { color: #e0145f; }
+@media (max-width: 991.98px) { .oru-train-grid { grid-template-columns: minmax(0, 1fr); } .oru-train-card { min-height: 0; } }
+/* AI Training cards: the icons keep their hover colours all the time. */
+.oru-train-icon:not(.logo) { background: var(--primary-color); color: #fff; }
+
 </style>
   </head>
 
@@ -72773,7 +72849,7 @@ html.oru-modal-open { overflow: hidden; }
                 <li><a href="training.html">AI Training</a></li>
                 <li><a href="share.html">Share an Idea</a></li>
                 <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
-                <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
+                <li><a href="ORU_AI_Portal.html#exec">Admin Portal</a></li>
               </ul>
             </nav>
           </div>
@@ -72802,7 +72878,7 @@ html.oru-modal-open { overflow: hidden; }
               <li><a href="training.html">AI Training</a></li>
               <li><a href="share.html">Share an Idea</a></li>
               <li><a href="ORU_AI_Portal.html#intake">Intake Requests</a></li>
-              <li><a href="ORU_AI_Portal.html#exec">Portal</a></li>
+              <li><a href="ORU_AI_Portal.html#exec">Admin Portal</a></li>
             </ul>
           </nav>
 
@@ -72827,241 +72903,25 @@ html.oru-modal-open { overflow: hidden; }
     <div id="smooth-wrapper">
       <div id="smooth-content">
         <main class="mg-top-100">
-          <!-- Start Page Header: title on the left, the animated "AI at work"
-               illustration on the right (people first, AI as their tool) -->
-          <div class="bredcrumbs style2 oru-page-head">
+          <!-- Start Page Header: centred title over a slowly moving neural network -->
+          <div class="oru-neural-wrap">
             <div class="container">
-              <div class="oru-page-grid">
-                <div class="breadcrumb-content oru-page-text">
-                  <span class="oru-eyebrow left has_fade_anim" data-fade-from="bottom" data-delay="0.2">AI in Action</span>
-                  <h1 class="title has_word_anim" data-delay="0.3">AI Initiatives</h1>
-                  <p class="oru-page-sub has_fade_anim" data-fade-from="bottom" data-delay="0.5">
+              <section class="oru-neural-hero" aria-labelledby="oru-neural-title">
+                <canvas id="oru-neural" aria-hidden="true"></canvas>
+                <div class="oru-neural-content">
+                  <span class="oru-eyebrow has_fade_anim" data-fade-from="bottom" data-delay="0.2">AI in Action</span>
+                  <h1 class="oru-neural-title has_word_anim" id="oru-neural-title" data-delay="0.3">AI Initiatives</h1>
+                  <p class="oru-neural-sub has_fade_anim" data-fade-from="bottom" data-delay="0.5">
                     How teams across Orange &amp; Rockland are using AI to take
                     on everyday challenges, so people can focus on the work
                     that matters most.
                   </p>
-                  <ul class="bredcrumb-menu style2">
+                  <ul class="bredcrumb-menu style2 oru-neural-crumbs">
                     <li><a href="index.html">Home</a></li>
                     <li class="active"><a href="initiatives.html">AI Initiatives</a></li>
                   </ul>
                 </div>
-                <div class="oru-art wow fadeInUp" role="img" aria-label="Animated illustration of three colleagues working together around laptops, with gentle connecting lines, simple charts and an AI network display.">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 563" aria-hidden="true">
-<defs>
-  <linearGradient id="oruart-bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#F4EFEC"/><stop offset="1" stop-color="#EFEAE7"/></linearGradient>
-  <linearGradient id="oruart-halo" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".94"/><stop offset="1" stop-color="#FFFAF5" stop-opacity=".24"/></linearGradient>
-  <linearGradient id="oruart-sun" x1="0" x2="1"><stop stop-color="#FED9B7" stop-opacity=".35"/><stop offset="1" stop-color="#F4F0ED" stop-opacity="0"/></linearGradient>
-  <linearGradient id="oruart-panel" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".96"/><stop offset="1" stop-color="#FFF9F5" stop-opacity=".77"/></linearGradient>
-  <linearGradient id="oruart-orange" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FF9A55"/><stop offset="1" stop-color="#DF5A17"/></linearGradient>
-  <linearGradient id="oruart-jacket" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#51545B"/><stop offset="1" stop-color="#33363D"/></linearGradient>
-  <linearGradient id="oruart-window" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#FFFFFF" stop-opacity=".67"/><stop offset="1" stop-color="#F4DED0" stop-opacity=".18"/></linearGradient>
-  <radialGradient id="oruart-orb"><stop stop-color="#FFFDFC"/><stop offset=".5" stop-color="#FFE2CB" stop-opacity=".63"/><stop offset="1" stop-color="#FBE8DA" stop-opacity=".05"/></radialGradient>
-  <filter id="oruart-shadow" x="-40%" y="-60%" width="180%" height="240%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#7E6554" flood-opacity=".09"/></filter>
-  <filter id="oruart-softShadow" x="-40%" y="-60%" width="180%" height="240%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#6B5549" flood-opacity=".12"/></filter>
-  <filter id="oruart-glow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="4"/></filter>
-  <clipPath id="oruart-clip"><rect width="1000" height="563" rx="0"/></clipPath>
-</defs>
-<g clip-path="url(#oruart-clip)">
- <!-- Paper, ambient light and architectural geometry -->
- <rect width="1000" height="563" fill="url(#oruart-bg)"/>
- <circle cx="535" cy="290" r="310" fill="url(#oruart-halo)" class="ambient"/>
- <circle cx="855" cy="100" r="220" fill="url(#oruart-sun)"/>
- <path d="M0 443 Q248 395 440 439 T1000 420 V563 H0Z" fill="#E9E1DC" opacity=".6"/>
- <g opacity=".5" fill="none" stroke="#DED5D0" stroke-width="1">
-  <path d="M65 60 V420 M81 60 V420 M97 60 V420" opacity=".22"/>
-  <path d="M0 447 H1000 M0 473 H1000" opacity=".35"/>
- </g>
- <!-- Left window -->
- <g opacity=".95">
-   <rect x="64" y="69" width="332" height="273" rx="18" fill="url(#oruart-window)" stroke="#DFD4CE" stroke-opacity=".64"/>
-   <path d="M177 69V342 M285 69V342 M64 196H396" stroke="#E5DAD3" stroke-width="5" opacity=".56"/>
-   <circle cx="270" cy="146" r="63" fill="#FFDEC4" opacity=".16"/>
-   <path d="M72 318V247h30v71M115 318v-86h35v86M165 318V257h35v61M299 318v-77h23v77M333 318V271h35v47" fill="#D9D3CF" opacity=".27"/>
-   <path d="M74 320H389" stroke="#D6C6BA" stroke-width="2" opacity=".5"/>
- </g>
- <!-- Ambient dotted field -->
- <g fill="#CAADA0" opacity=".3">
-  <circle cx="115" cy="92" r="2"/><circle cx="129" cy="92" r="2"/><circle cx="143" cy="92" r="2"/>
-  <circle cx="865" cy="67" r="2"/><circle cx="878" cy="67" r="2"/><circle cx="891" cy="67" r="2"/>
-  <circle cx="865" cy="81" r="2"/><circle cx="878" cy="81" r="2"/><circle cx="891" cy="81" r="2"/>
- </g>
- <!-- Networking background paths -->
- <path class="link" d="M186 196C285 122 368 108 466 159S622 226 704 188S819 140 880 177"/>
- <path class="link" d="M120 338C258 291 365 318 455 281S610 154 704 188S844 250 906 324"/>
- <path class="signal" d="M186 196C285 122 368 108 466 159S622 226 704 188S819 140 880 177"/>
- <path class="signal alt" d="M120 338C258 291 365 318 455 281S610 154 704 188S844 250 906 324"/>
- <!-- AI screen, main conceptual backdrop -->
- <g filter="url(#oruart-shadow)">
-   <rect x="572" y="72" width="359" height="292" rx="23" fill="url(#oruart-panel)" stroke="#E8DCD5" stroke-width="1.6"/>
-   <rect x="592" y="92" width="320" height="250" rx="14" fill="#FAF7F5" stroke="#F1E6DF"/>
- </g>
- <circle cx="696" cy="193" r="116" fill="url(#oruart-orb)"/>
- <g opacity=".6" stroke="#E9B58E" fill="none">
-  <circle cx="696" cy="193" r="77" stroke-dasharray="3 8"/>
-  <circle cx="696" cy="193" r="55" stroke="#EBC4AA"/>
-  <ellipse cx="696" cy="193" rx="32" ry="77"/>
-  <ellipse cx="696" cy="193" rx="77" ry="30" transform="rotate(-24 696 193)"/>
- </g>
- <g class="orbit" stroke="#D88F64" opacity=".48" fill="none">
-  <ellipse cx="696" cy="193" rx="90" ry="40" transform="rotate(38 696 193)"/>
-  <ellipse cx="696" cy="193" rx="90" ry="40" transform="rotate(-41 696 193)"/>
- </g>
- <!-- Neuron connections -->
- <g stroke="#DDA77F" stroke-opacity=".66" stroke-width="1.8" stroke-linecap="round" fill="none">
-   <path d="M635 170L674 146L705 171L748 145L772 188L731 211L750 243L707 267L666 237L624 226L635 170Z"/>
-   <path d="M674 146L666 237L705 171L707 267M635 170L731 211L748 145M772 188L705 171M666 237L731 211L750 243"/>
- </g>
- <g class="pulse-core"><circle cx="700" cy="199" r="36" fill="#F6BA8F" opacity=".11"/></g>
- <g>
-  <circle cx="635" cy="170" r="5.4" fill="#E8884B" class="node-a"/>
-  <circle cx="674" cy="146" r="5.8" fill="#E8884B" class="node-b"/>
-  <circle cx="705" cy="171" r="7" fill="#EC6C29" class="node-c"/>
-  <circle cx="748" cy="145" r="5" fill="#E8884B" class="node-d"/>
-  <circle cx="772" cy="188" r="6.3" fill="#EF8F53" class="node-b"/>
-  <circle cx="731" cy="211" r="6" fill="#E66C2B" class="node-a"/>
-  <circle cx="750" cy="243" r="5.4" fill="#E8884B" class="node-d"/>
-  <circle cx="707" cy="267" r="5.4" fill="#E8884B" class="node-b"/>
-  <circle cx="666" cy="237" r="6" fill="#E8884B" class="node-c"/>
-  <circle cx="624" cy="226" r="5" fill="#E8884B" class="node-a"/>
- </g>
- <g stroke="#E3D8D1" stroke-width="3" stroke-linecap="round">
-  <path d="M815 143h65M815 158h41M813 267h70M813 280h47"/>
- </g>
- <g class="screen-bars" fill="#F3B383"><rect x="817" y="219" width="11" height="19" rx="3"/><rect x="836" y="208" width="11" height="30" rx="3"/><rect x="855" y="197" width="11" height="41" rx="3" fill="#E98342"/><rect x="874" y="183" width="11" height="55" rx="3" fill="#EE6B24"/></g>
- <rect x="611" y="308" width="283" height="3" rx="1.5" fill="#DCD4CF"/>
- <!-- floating icon: ideas spark -->
- <g class="float-a" filter="url(#oruart-softShadow)">
-  <rect x="100" y="102" width="112" height="93" rx="18" fill="#FFFCFA" fill-opacity=".94" stroke="#EEE1D9"/>
-  <g transform="translate(130 122)" fill="none" stroke="#E97632" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M27 2a21 21 0 0 0-12 39v7h24v-7A21 21 0 0 0 27 2Z"/>
-    <path d="M21 55h12M20 48h14M27-5v-4M1 13l-6-5M53 13l6-5"/>
-  </g>
- </g>
- <!-- floating icon: documents and automation -->
- <g class="float-b" filter="url(#oruart-softShadow)">
-  <rect x="812" y="282" width="112" height="89" rx="17" fill="#FFFDFB" fill-opacity=".95" stroke="#EEE1D9"/>
-  <g transform="translate(843 306)" fill="none" stroke="#D76C30" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-    <rect width="49" height="39" rx="8"/>
-    <path d="M11 14h28M11 24h18"/>
-    <path d="M44 43l9 0 -5 -5m5 5-5 5" stroke-width="2"/>
-  </g>
- </g>
- <!-- floating mini chart card -->
- <g class="float-c" filter="url(#oruart-softShadow)">
-  <rect x="86" y="296" width="137" height="86" rx="17" fill="#FFFDFB" fill-opacity=".91" stroke="#EEE1D9"/>
-  <g transform="translate(109 320)">
-   <path d="M2 43h91" stroke="#E4DAD3" stroke-width="2"/>
-   <rect x="8" y="20" width="13" height="23" rx="3" fill="#E9D9CE"/>
-   <rect x="32" y="27" width="13" height="16" rx="3" fill="#DEBAA2"/>
-   <rect x="56" y="10" width="13" height="33" rx="3" fill="#F4A875"/>
-   <rect x="80" y="2" width="13" height="41" rx="3" fill="#E77834"/>
-  </g>
- </g>
- <!-- glowing points on workflows -->
- <g><circle cx="225" cy="172" r="7" fill="#FBE2D1" filter="url(#oruart-glow)"/><circle cx="225" cy="172" r="3.5" fill="#E37C3C" class="node-a"/>
-  <circle cx="464" cy="159" r="4" fill="#E88D56" class="node-c"/><circle cx="880" cy="177" r="4" fill="#E88D56" class="node-d"/></g>
- <!-- Plant and book decor -->
- <g transform="translate(908 386)">
-  <path d="M0 43V11M0 24Q-35 8-32-16Q-3-18 0 24M0 22Q35 0 40-20Q7-22 0 22M0 28Q-24 26-37 12Q-13 0 0 28" fill="#91A48E" opacity=".65" stroke="#7E9784" stroke-width="2"/>
-  <path d="M-21 41h44l-6 43h-31Z" fill="#D9CBC2"/>
-  <path d="M-22 41h46" stroke="#C6AFA0" stroke-width="6" stroke-linecap="round"/>
- </g>
- <!-- Human figure 1, left collaborator -->
- <g>
-  <!-- Hair behind head -->
-  <path d="M269 231C250 218 237 223 230 236C219 256 219 289 229 310Q259 324 291 303C299 281 297 245 282 234Z" fill="#333137"/>
-  <g class="face-bob">
-   <path d="M249 287h26v32h-26z" fill="#C98B65"/>
-   <ellipse cx="261" cy="263" rx="26" ry="32" fill="#DDA178"/>
-   <path d="M235 257c-2-27 11-35 28-33 15 1 27 16 26 35-11-3-19-13-26-20-7 10-18 17-28 18" fill="#333137"/>
-   <circle cx="252" cy="266" r="1.9" fill="#393039"/><circle cx="272" cy="266" r="1.9" fill="#393039"/>
-   <path d="M257 279q6 6 12-1" stroke="#925B4E" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-  </g>
-  <!-- Jacket and sleeves -->
-  <path d="M241 308Q213 306 200 341L196 419h132l-13-80q-7-31-36-31l-18 13Z" fill="#D67948"/>
-  <path d="M243 309q15 14 36 1l-11 32h-13Z" fill="#F4B78E"/>
-  <path d="M208 338Q191 364 204 392l57 25 15-20-45-26 7-25" fill="#DB8857"/>
-  <path d="M313 339q9 24 7 43l-45 34-15-17 34-33" fill="#C66C3D"/>
-  <ellipse cx="273" cy="403" rx="13" ry="8" fill="#DDA178" transform="rotate(-22 273 403)"/>
- </g>
- <!-- Human figure 2, center facilitator -->
- <g>
-  <path d="M468 254c-31 4-53 22-60 59l-15 98h156l-17-102c-5-35-21-50-51-55Z" fill="url(#oruart-jacket)"/>
-  <path d="M465 254h31l4 35-21 19-19-18Z" fill="#C98C65"/>
-  <path d="M465 280l15 21 18-21-5 78h-23Z" fill="#F5EFE8"/>
-  <path d="M477 301l7 0 5 58h-18Z" fill="#E77834" opacity=".87"/>
-  <g class="face-bob">
-   <ellipse cx="477" cy="217" rx="30" ry="38" fill="#D0A079"/>
-   <path d="M446 214c-3-20 2-36 19-42 13-5 30-1 38 7 12 9 13 23 6 40-11-3-17-11-23-19-11 8-26 13-40 14Z" fill="#414148"/>
-   <path d="M452 235c4 20 13 32 27 33 17-1 26-15 30-33-10 8-18 10-29 10-11 0-18-2-28-10Z" fill="#B38163" opacity=".27"/>
-   <circle cx="465" cy="224" r="2.2" fill="#484047"/><circle cx="491" cy="224" r="2.2" fill="#484047"/>
-   <path d="M468 243q12 7 22-1" fill="none" stroke="#9F6657" stroke-width="2" stroke-linecap="round"/>
-  </g>
-  <!-- Left arm at work -->
-  <path d="M418 304q-13 28-25 65l-20 38 29 6 36-65" fill="#46494F"/>
-  <path d="M374 402q-9-3-15 4l-9 11q-3 5 1 9 9 4 18-1l22-14Z" fill="#D0A079"/>
-  <!-- Right arm, subtle talking gesture -->
-  <g class="gesture">
-   <path d="M527 306q16 24 25 44l29-29 16 14-38 46q-12 10-22-1l-30-34Z" fill="#3B3D45"/>
-   <path d="M577 322q-5-15 0-27l6-10q5-7 9-4l-2 19q7-14 13-14 6 0 2 8l-8 17q-8 14-18 24Z" fill="#D0A079"/>
-  </g>
- </g>
- <!-- Person 3, colleague with curls -->
- <g>
-  <!-- curls of hair -->
-  <g fill="#352E34"><circle cx="759" cy="231" r="27"/><circle cx="734" cy="236" r="20"/><circle cx="782" cy="246" r="22"/><circle cx="729" cy="258" r="19"/><circle cx="784" cy="272" r="22"/><circle cx="750" cy="210" r="16"/><circle cx="774" cy="220" r="19"/><circle cx="746" cy="282" r="25"/></g>
-  <g class="face-bob">
-   <ellipse cx="757" cy="258" rx="27" ry="33" fill="#A56C4D"/>
-   <path d="M731 250q-4-22 13-31c12-7 31-2 40 12l2 22q-6-4-11-13-21 7-44 10Z" fill="#352E34"/>
-   <circle cx="747" cy="258" r="2.1" fill="#342E35"/><circle cx="770" cy="258" r="2.1" fill="#342E35"/>
-   <path d="M752 271q7 5 15-2" stroke="#754337" stroke-width="2" stroke-linecap="round" fill="none"/>
-   <circle cx="781" cy="267" r="5.2" stroke="#DC9D6B" stroke-width="2" fill="none"/>
-  </g>
-  <path d="M746 284h24v29h-24Z" fill="#A56C4D"/>
-  <path d="M732 303Q697 308 688 343l-12 75h162l-13-78q-8-32-41-36l-26 15Z" fill="#E2D4CB"/>
-  <path d="M748 306l13 18 19-19-7 81h-36Z" fill="#FCF8F3"/>
-  <path d="M700 336q-17 28-13 55l-41 19 10 20 65-20q14-7 16-21l-5-42" fill="#D4C4B9"/>
-  <path d="M816 340q13 33 3 57l-57 19-11-19 44-25-6-27" fill="#D8C9C0"/>
-  <path d="M656 411q-16-7-27 0l-7 7q-6 9 6 11l32-1 9-11" fill="#A56C4D"/>
- </g>
- <!-- Work table and laptops, foreground -->
- <ellipse cx="506" cy="474" rx="398" ry="36" fill="#BEB0A9" opacity=".12"/>
- <path d="M103 426 892 423 921 460 92 462Z" fill="#D4B8A7"/>
- <path d="M92 462h829v18H92Z" fill="#BA9A85"/>
- <path d="M128 480h21l-10 83h-21ZM863 480h20l10 83h-20Z" fill="#B3A69C" opacity=".7"/>
- <!-- Left laptop -->
- <g filter="url(#oruart-softShadow)">
-  <path d="M281 353h147q9 0 7 9l-10 81H292l-17-81q-2-9 6-9Z" fill="#71777B"/>
-  <path d="M289 361h136l-9 76H300Z" fill="#5E6469"/>
-  <circle cx="358" cy="400" r="12" fill="#8E9599" opacity=".35"/>
-  <path d="M277 442h151l22 13q3 3-5 5H269q-9 0-5-5Z" fill="#A1A4A5"/>
-  <path d="M325 451h67" stroke="#727678" stroke-linecap="round" stroke-width="3"/>
- </g>
- <!-- Center tablet with AI assistance cue -->
- <g filter="url(#oruart-softShadow)">
-  <path d="M487 383h94a9 9 0 0 1 9 9v51H477v-51a9 9 0 0 1 10-9Z" fill="#565D62"/>
-  <path d="M484 390h99v48h-99Z" fill="#F8F5F2"/>
-  <g stroke="#EF8D4E" fill="none" stroke-width="2" opacity=".83"><path d="M516 417h15l7-13 10 21 7-12h12"/></g>
-  <circle cx="490" cy="395" r="2" fill="#D5CFC9"/>
- </g>
- <!-- Right laptop -->
- <g filter="url(#oruart-softShadow)">
-  <path d="M652 358h140a8 8 0 0 1 8 9l-13 79H662l-16-79a8 8 0 0 1 6-9Z" fill="#848A8D"/>
-  <path d="M657 367h134l-12 72H670Z" fill="#72797C"/>
-  <circle cx="723" cy="401" r="13" fill="#BCC1C2" opacity=".27"/>
-  <path d="M647 444h147l20 11q4 5-4 6H637q-8-1-4-6Z" fill="#ADB0B1"/>
- </g>
- <!-- Small coffee mug -->
- <g><ellipse cx="607" cy="452" rx="16" ry="5" fill="#EDE3DC"/><path d="M593 429h27v23q-13 6-27 0Z" fill="#FFFBF8" stroke="#E5D9D1" stroke-width="1.4"/><path d="M619 435q20-6 14 7-4 9-14 6" fill="none" stroke="#E5D9D1" stroke-width="4"/></g>
- <!-- Foreground soft glints -->
- <path d="M56 520H330" stroke="#FFF8F0" stroke-width="2" opacity=".6"/>
- <path d="M801 518H940" stroke="#FFF8F0" stroke-width="2" opacity=".55"/>
- <circle cx="177" cy="415" r="3" fill="#EC8446" class="node-b"/>
- <path d="M882 124q4-5 8 0-4 5-8 0" fill="#F7B68F" class="glint"/>
-</g>
-</svg>
-                </div>
-              </div>
+              </section>
             </div>
           </div>
           <!-- End Page Header -->
@@ -73072,7 +72932,7 @@ html.oru-modal-open { overflow: hidden; }
               <div class="oru-ini-head">
                 <div class="section-head m-0 has_word_anim">
                   <span class="sm-title">Every Initiative Starts with People</span>
-                  <h3 class="title">Six ways AI is helping our teams work smarter.</h3>
+                  <h3 class="title">How AI is helping our teams work smarter.</h3>
                   <p class="oru-intro">
                     Each initiative is about giving people better tools: less
                     time searching and repeating, more time for customers,
@@ -73137,6 +72997,11 @@ html.oru-modal-open { overflow: hidden; }
                   <h3>Clean Energy Genie</h3>
                   <div class="oru-story-meta"><span class="oru-status live">In Progress</span><span class="oru-ini-focus">Energy Programs</span></div>
                 </header>
+                <div class="oru-story-stats">
+                  <div class="oru-stat"><span class="k">Value</span><b>High</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Effort</span><b>Medium</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Impacted Users</span><b>25</b><span class="sub">Approximate in the source</span></div>
+                </div>
                 <div class="oru-story-body">
                   <div class="oru-story-block">
                     <h4>The Challenge</h4>
@@ -73158,6 +73023,11 @@ html.oru-modal-open { overflow: hidden; }
                   <h3>Metering Genie</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Metering</span></div>
                 </header>
+                <div class="oru-story-stats">
+                  <div class="oru-stat"><span class="k">Value</span><b>High</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Effort</span><b>Low</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Impacted Users</span><b>35</b><span class="sub">Approximate in the source</span></div>
+                </div>
                 <div class="oru-story-body">
                   <div class="oru-story-block">
                     <h4>The Challenge</h4>
@@ -73179,6 +73049,11 @@ html.oru-modal-open { overflow: hidden; }
                   <h3>Revenue Protection Model</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Revenue Protection</span></div>
                 </header>
+                <div class="oru-story-stats">
+                  <div class="oru-stat"><span class="k">Value</span><b>High</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Effort</span><b>High</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Impacted Users</span><b>4</b><span class="sub">Approximate in the source</span></div>
+                </div>
                 <div class="oru-story-body">
                   <div class="oru-story-block">
                     <h4>The Challenge</h4>
@@ -73200,6 +73075,11 @@ html.oru-modal-open { overflow: hidden; }
                   <h3>Customer Assistance Genie</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Customer Assistance</span></div>
                 </header>
+                <div class="oru-story-stats">
+                  <div class="oru-stat"><span class="k">Value</span><b>Medium</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Effort</span><b>Low</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Impacted Users</span><b>40</b><span class="sub">Approximate in the source</span></div>
+                </div>
                 <div class="oru-story-body">
                   <div class="oru-story-block">
                     <h4>The Challenge</h4>
@@ -73221,6 +73101,11 @@ html.oru-modal-open { overflow: hidden; }
                   <h3>Root Cause, Unbilled</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Billing</span></div>
                 </header>
+                <div class="oru-story-stats">
+                  <div class="oru-stat"><span class="k">Value</span><b>Low</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Effort</span><b>Medium</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Impacted Users</span><b>2</b><span class="sub">Approximate in the source</span></div>
+                </div>
                 <div class="oru-story-body">
                   <div class="oru-story-block">
                     <h4>The Challenge</h4>
@@ -73242,6 +73127,11 @@ html.oru-modal-open { overflow: hidden; }
                   <h3>Clean Heat Release 2.0</h3>
                   <div class="oru-story-meta"><span class="oru-status">Proposed</span><span class="oru-ini-focus">Clean Heat</span></div>
                 </header>
+                <div class="oru-story-stats">
+                  <div class="oru-stat"><span class="k">Value</span><b>Low</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Effort</span><b>Medium</b><span class="sub">As recorded</span></div>
+                  <div class="oru-stat"><span class="k">Impacted Users</span><b>4</b><span class="sub">Approximate in the source</span></div>
+                </div>
                 <div class="oru-story-body">
                   <div class="oru-story-block">
                     <h4>About</h4>
@@ -73333,7 +73223,7 @@ html.oru-modal-open { overflow: hidden; }
             <div class="oru-modal-foot">
               <p>Have an idea that builds on this? Your perspective could shape what comes next.</p>
               <div class="oru-modal-actions">
-                <a href="ORU_AI_Portal.html#portfolio" class="oru-modal-link">View in the Portal</a>
+                <a href="ORU_AI_Portal.html#portfolio" class="oru-modal-link">View in the Admin Portal</a>
                 <a href="share.html" class="theme-btn">Share an Idea<i class="fi fi-rr-arrow-small-right"></i></a>
               </div>
             </div>
@@ -79413,6 +79303,166 @@ if (fadeArray_items.length > 0) {
           window.addEventListener("scroll", check, { passive: true });
           var timer = setInterval(check, 250);
           check();
+        })();
+
+        // Header: the neural network banner.
+        (() => {
+          if (!document.querySelector('#oru-neural')) return;
+          'use strict';
+          const canvas = document.querySelector('#oru-neural');
+          const hero = canvas.closest('.oru-neural-hero');
+          const ctx = canvas.getContext('2d', {alpha: true});
+          if (!ctx) return;
+          const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          // Stable seeded layout: every page load retains the same neural geometry.
+          let seed = 284176;
+          const rand = () => ((seed = (Math.imul(1664525, seed) + 1013904223) >>> 0) / 4294967296);
+          const clusters = [
+            {x: .105, y: .28, rx: .155, ry: .31, count: 27},
+            {x: .165, y: .80, rx: .16, ry: .24, count: 18},
+            {x: .885, y: .27, rx: .15, ry: .30, count: 27},
+            {x: .832, y: .78, rx: .16, ry: .22, count: 19},
+            {x: .50, y: -.070, rx: .27, ry: .16, count: 10},
+            {x: .53, y: 1.055, rx: .26, ry: .14, count: 9}
+          ];
+          const nodes = [];
+          clusters.forEach((c, group) => {
+            for (let i = 0; i < c.count; i++) {
+              const a = rand() * Math.PI * 2;
+              const radius = Math.sqrt(rand());
+              nodes.push({
+                group,
+                x: Math.max(-.02, Math.min(1.02, c.x + Math.cos(a) * radius * c.rx)),
+                y: Math.max(-.07, Math.min(1.07, c.y + Math.sin(a) * radius * c.ry)),
+                phase: rand() * Math.PI * 2,
+                rate: .45 + rand() * .5,
+                size: 1.15 + rand() * 1.25,
+                warm: rand() < .24,
+                dx: 2.0 + rand() * 4.5,
+                dy: 2.0 + rand() * 4.0,
+              });
+            }
+          });
+        
+          const edges = [];
+          const seen = new Set();
+          nodes.forEach((n, i) => {
+            const nearest = nodes.map((m, j) => {
+              const dx = (m.x - n.x) * 1894;
+              const dy = (m.y - n.y) * 568;
+              return {j, d: Math.hypot(dx, dy)};
+            }).filter(q => q.j !== i && q.d < 174)
+              .sort((a, b) => a.d - b.d).slice(0, 3 + (i % 3 === 0 ? 1 : 0));
+            nearest.forEach(({j, d}) => {
+              const key = Math.min(i,j) + ':' + Math.max(i,j);
+              if (!seen.has(key) && (nodes[j].group === n.group || d < 92)) {
+                seen.add(key);
+                edges.push({a:i, b:j, phase:rand() * 7, warm:rand() < .18});
+              }
+            });
+          });
+        
+          const signalEdges = edges.filter((e, i) => i % 22 === 0 && nodes[e.a].group < 4);
+          let w = 1, h = 1, animationId = 0, lastFrame = -Infinity;
+          const twoPi = Math.PI * 2;
+          const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+          const smoothstep = (low, high, n) => {
+            const t = clamp((n - low)/(high - low), 0, 1);
+            return t*t*(3 - 2*t);
+          };
+          const visibility = (x, y) => {
+            // Reserve generous quiet space for the centered headline and description.
+            const distance = Math.hypot((x - .5)/.36, (y - .5)/.57);
+            return .10 + .90 * smoothstep(.42, 1.05, distance);
+          };
+          const point = (n, t) => ({
+            x: n.x * w + Math.sin(t * n.rate * .58 + n.phase) * n.dx,
+            y: n.y * h + Math.cos(t * n.rate * .47 + n.phase) * n.dy
+          });
+          const control = (a, b, phase) => {
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const curve = Math.sin(phase) * 7;
+            const len = Math.max(1, Math.hypot(dx,dy));
+            return {x:(a.x+b.x)/2 - dy/len*curve, y:(a.y+b.y)/2 + dx/len*curve};
+          };
+          function paint(timeSeconds) {
+            ctx.clearRect(0,0,w,h);
+            const positions = nodes.map(n => point(n,timeSeconds));
+            const softBreath = .89 + .11 * Math.sin(timeSeconds * .19);
+            // Hairline links: subtle, slow-moving, translucent neuron topology.
+            edges.forEach(e => {
+              const a = positions[e.a], b = positions[e.b];
+              const midX = (a.x+b.x)/(2*w), midY=(a.y+b.y)/(2*h);
+              const fade = visibility(midX,midY);
+              const opacity = (e.warm ? .23 : .20) * fade * softBreath;
+              const c = control(a,b,e.phase);
+              ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(c.x,c.y,b.x,b.y);
+              ctx.strokeStyle = e.warm ? `rgba(214,100,48,${opacity})` : `rgba(137,107,96,${opacity})`;
+              ctx.lineWidth = .82;
+              ctx.stroke();
+            });
+            // Sparse migrating signals. A point takes ~17 seconds to traverse a connection.
+            signalEdges.forEach((e,i) => {
+              const a = positions[e.a], b = positions[e.b], c = control(a,b,e.phase);
+              const progress = ((timeSeconds / (15.5 + i % 4 * 2.4)) + i * .31) % 1;
+              const fadeInOut = Math.sin(Math.PI*progress) ** 2;
+              const X = (1-progress)*(1-progress)*a.x + 2*(1-progress)*progress*c.x + progress*progress*b.x;
+              const Y = (1-progress)*(1-progress)*a.y + 2*(1-progress)*progress*c.y + progress*progress*b.y;
+              const intensity = fadeInOut * visibility(X/w,Y/h);
+              if (intensity < .01) return;
+              const glow = ctx.createRadialGradient(X,Y,0,X,Y,12);
+              glow.addColorStop(0,`rgba(218,100,42,${.24*intensity})`);
+              glow.addColorStop(.32,`rgba(218,100,42,${.09*intensity})`);
+              glow.addColorStop(1,'rgba(218,100,42,0)');
+              ctx.beginPath(); ctx.arc(X,Y,12,0,twoPi); ctx.fillStyle=glow; ctx.fill();
+              ctx.beginPath(); ctx.arc(X,Y,1.65,0,twoPi);
+              ctx.fillStyle=`rgba(205,91,42,${.42*intensity})`; ctx.fill();
+            });
+            // Nodes glow very softly and breathe out of phase from one another.
+            nodes.forEach((n,i) => {
+              const p = positions[i];
+              const fade = visibility(p.x/w,p.y/h);
+              const pulse = .80 + .20 * Math.sin(timeSeconds * .3 + n.phase);
+              const alpha = (n.warm ? .42 : .32) * fade * pulse;
+              if (n.warm && i % 3 === 0) {
+                const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,10);
+                g.addColorStop(0,`rgba(222,112,63,${alpha*.22})`);
+                g.addColorStop(1,'rgba(222,112,63,0)');
+                ctx.beginPath();ctx.arc(p.x,p.y,10,0,twoPi);ctx.fillStyle=g;ctx.fill();
+              }
+              ctx.beginPath(); ctx.arc(p.x,p.y,n.size,0,twoPi);
+              ctx.fillStyle = n.warm ? `rgba(204,100,55,${alpha})` : `rgba(130,100,90,${alpha})`;
+              ctx.fill();
+              if (i % 17 === 0) {
+                ctx.beginPath(); ctx.arc(p.x,p.y,n.size+3,0,twoPi);
+                ctx.strokeStyle=`rgba(197,115,79,${alpha*.20})`;
+                ctx.lineWidth=.7;ctx.stroke();
+              }
+            });
+          }
+          function tick(ms) {
+            animationId = requestAnimationFrame(tick);
+            if (ms-lastFrame < 32) return;
+            lastFrame = ms;
+            paint(ms/1000);
+          }
+          function resize() {
+            const b = hero.getBoundingClientRect();
+            w=b.width; h=b.height;
+            const dpr=Math.min(window.devicePixelRatio || 1,2);
+            canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+            ctx.setTransform(dpr,0,0,dpr,0,0);
+            paint(4.5);
+          }
+          const observer = new ResizeObserver(resize);
+          observer.observe(hero);
+          resize();
+          if (!reducedMotion) animationId=requestAnimationFrame(tick);
+          document.addEventListener('visibilitychange', () => {
+            if (reducedMotion) return;
+            cancelAnimationFrame(animationId);
+            if (!document.hidden) {lastFrame=-Infinity; animationId=requestAnimationFrame(tick);}
+          });
         })();
 
         // Initiative pop-up.
