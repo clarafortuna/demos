@@ -1,0 +1,88 @@
+/*================================================================================================
+    Start 404 CSS
+===================================================================================================*/
+.error-page {
+  z-index: 2;
+  overflow: hidden;
+}
+.error-content {
+  margin-top: 18px;
+}
+.error-content h3 {
+  font-weight: 600;
+  line-height: 110px;
+  letter-spacing: -3px;
+  font-size: 100px;
+  margin: 0;
+}
+.error-content p {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+  margin-top: 18px;
+  padding: 0px 100px;
+}
+.error-btn {
+  margin-top: 32px;
+}
+.error-big-text {
+  position: relative;
+  text-align: center;
+  z-index: -1;
+  margin-top: -260px;
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1600px) {
+  .error-big-text svg {
+    width: 100%;
+  }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 1199.99px) {
+  .error-inner.section-gap.pb-0 {
+    padding: 56px 0px !important;
+  }
+  .error-content h3 {
+    font-size: 72px;
+    line-height: 120%;
+  }
+  .error-big-text svg {
+    width: 100%;
+  }
+  .error-big-text {
+    position: absolute;
+    margin-top: 0;
+    bottom: -100px;
+    left: 0;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .error-inner.section-gap.pb-0 {
+    padding: 56px 0px !important;
+  }
+  .error-content h3 {
+    line-height: 120%;
+    letter-spacing: 0;
+    font-size: 40px;
+  }
+  .error-content p {
+    padding: 0;
+  }
+  .error-btn {
+    margin-top: 24px;
+  }
+  .error-big-text {
+    position: absolute;
+    margin-top: 0;
+    bottom: -180px;
+    left: 0;
+  }
+  .error-big-text svg {
+    width: 100%;
+  }
+}
+
+/*================================================================================================
+    End 404 CSS
+===================================================================================================*/

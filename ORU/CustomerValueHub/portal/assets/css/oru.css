@@ -1,0 +1,683 @@
+/*============================================================================================
+  O&R AI Portfolio: brand layer over the Expart template.
+  Loaded after style.css. It only re-colours and adds the few pieces the
+  template has no component for (the text logo, text partners, form notice).
+  The template's own layout, type and motion are left as they ship.
+==============================================================================================*/
+
+:root {
+  /* O&R orange, deepened so white text on it clears 4.5:1 (4.8:1). */
+  --primary-color: #c24e17;
+  --primary-hover: #a3410f;
+  /* O&R identity orange, for marks and accents, never under small text. */
+  --oru-orange: #f07f2d;
+  /* O&R navy, the secondary colour. */
+  --oru-navy: #1f3a7a;
+  --oru-navy-deep: #142852;
+}
+
+/* Hard coded template blues, re-pointed to the brand. */
+#offcanvas-menu .menu-arrow::before { background: rgba(194, 78, 23, 0.08); }
+.progress-wrap { box-shadow: inset 0 0 0 2px rgba(194, 78, 23, 0.25); }
+
+/* ---- logo: O&R mark plus wordmark, as live text ------------------------ */
+.oru-logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+.oru-logo svg { width: 40px; height: 40px; flex: none; }
+.oru-logo .wm { display: flex; flex-direction: column; line-height: 1; }
+.oru-logo .wm b { font-family: var(--font-family); font-size: 21px; font-weight: 700; color: var(--title-color); letter-spacing: -0.3px; }
+.oru-logo .wm small { font-family: var(--font-family); font-size: 11.5px; font-weight: 500; color: var(--primary-color); letter-spacing: 1.6px; text-transform: uppercase; margin-top: 5px; }
+.oru-logo.white .wm b { color: #fff; }
+.oru-logo.white .wm small { color: var(--oru-orange); }
+@media (max-width: 575px) { .oru-logo .wm b { font-size: 18px; } .oru-logo svg { width: 34px; height: 34px; } }
+
+/* ---- testimonial band in navy, so orange is not the only loud colour ---- */
+.testimonial.bg-primary-color { background: var(--oru-navy) !important; }
+.testimonial-item .number { color: var(--oru-orange); }
+.testimonial-item .content > i { color: var(--oru-orange); }
+
+/* ---- partners: the five business units, as text ------------------------ */
+.partner-item.oru-unit {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 96px; padding: 0 12px; text-decoration: none;
+  font-family: var(--font-family); font-size: 18px; font-weight: 600; letter-spacing: -0.2px; line-height: 1.25;
+  color: var(--title-color);
+}
+.partner-item.oru-unit small { display: block; font-size: 13px; font-weight: 500; color: var(--paragraph-color); letter-spacing: 0; margin-top: 4px; }
+
+/* ---- footer: plain text items where the template had links ------------- */
+.footer-widget .list-links li span { font-size: 16px; line-height: 20px; color: rgba(153, 153, 153, 1); }
+/* Longer O&R labels than the template demo copy, so the columns sit closer. */
+.footer.home-1 .footer-main { gap: 56px; }
+
+/* ---- contact form notice ----------------------------------------------- */
+.oru-form-note { display: none; margin-top: 18px; font-size: 15px; line-height: 1.5; color: var(--title-color); background: #fff; border-left: 3px solid var(--primary-color); padding: 12px 16px; border-radius: 6px; }
+.oru-form-note.on { display: block; }
+.oru-form-note a { color: var(--primary-color); font-weight: 600; }
+
+/*============================================================================================
+  Unified Innovation Portal: homepage copy (October 2026)
+  People first: AI is shown as a tool that amplifies employees' work. The
+  hero keeps the template footprint; the page is Hero, The Opportunity,
+  AI in Action and Share an Idea.
+==============================================================================================*/
+
+/* ---- hero ------------------------------------------------------------------
+   The eyebrow sits in the hero's existing top padding, so the hero keeps its
+   height: 120px of padding becomes 82px of padding plus the eyebrow line. */
+.oru-hero { padding-top: 82px; }
+.oru-eyebrow {
+  display: block; text-align: center; margin-bottom: 22px;
+  font-family: var(--font-family); font-size: 15px; font-weight: 600; line-height: 16px;
+  letter-spacing: 2.4px; text-transform: uppercase; color: var(--primary-color);
+}
+.oru-ingenuity { color: var(--primary-color); }
+/* AMPLIFIED BY AI is twice as long as the word it replaces; it is set
+   smaller than the other two lines so it stays on one line at every width. */
+.title-row-3 .oru-line3 { font-size: .66em; white-space: nowrap; letter-spacing: -0.5px; }
+.hero-content-wrapper .title-row-3 { gap: 40px; }
+.hero-content-wrapper .title-row-3 .description { max-width: 380px; }
+.hero-content-wrapper .h-text-arrow { max-width: 84px; }
+/* The orange metrics band is gone, so the photo shows whole. */
+.oru-hero-image .hero-img img { width: 100%; max-width: 1890px; aspect-ratio: 1890 / 900; object-fit: cover; object-position: center 35%; }
+
+/* ---- The Opportunity: three cards in place of the numeric highlight -------- */
+.oru-opps { list-style: none; margin: 28px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.oru-opps li {
+  display: flex; gap: 16px; align-items: flex-start; padding: 18px 20px;
+  background: var(--white-color); border: 1px solid var(--border-color); border-radius: 10px;
+  transition: border-color .3s ease, transform .3s ease;
+}
+.oru-opps li:hover { border-color: var(--primary-color); transform: translateX(4px); }
+.oru-opp-ico {
+  flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--primary-color); color: var(--white-color); font-size: 18px;
+}
+.oru-opp-ico i { transform: rotate(-44deg); line-height: 0; }
+.oru-opps h4 { margin: 0 0 4px; font-family: var(--font-family); font-size: 16px; font-weight: 600; line-height: 22px; text-transform: uppercase; letter-spacing: .4px; color: var(--title-color); }
+.oru-opps p { margin: 0; font-size: 15px; line-height: 23px; color: var(--paragraph-color); }
+
+/* ---- AI in Action ---------------------------------------------------------- */
+.oru-intro { margin: 16px 0 0; max-width: 560px; font-size: 17px; line-height: 27px; color: var(--paragraph-color); }
+.service-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; }
+.oru-status {
+  display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 999px;
+  font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: .3px;
+  background: #efeae7; color: var(--title-color);
+}
+.oru-status.live { background: rgba(194, 78, 23, 0.12); color: var(--primary-color); }
+
+/* ---- Share an Idea --------------------------------------------------------- */
+.contact-content .content-title { margin-bottom: 22px; }
+.oru-share-intro { margin: 0 0 48px; font-size: 17px; line-height: 28px; color: rgba(255, 255, 255, 0.78); max-width: 560px; }
+.oru-form-hint { margin: -30px 0 34px; font-size: 13px; line-height: 20px; color: rgba(255, 255, 255, 0.55); }
+.contact-img img { width: 100%; height: 100%; object-fit: cover; }
+.vertical-text.oru-vt-sm { font-size: 96px; line-height: 80px; }
+
+/* ---- footer: branding plus two link groups ---------------------------------- */
+.oru-footer .footer-main { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr); }
+/* Status sits on its own line under the description. */
+.oru-status { display: table; }
+/* The long vertical word fits inside its section. */
+.vertical-text.oru-vt-sm { font-size: 72px; line-height: 64px; }
+/* Keep the operator's face in frame when the photo is cropped tall. */
+.contact-img img { object-position: 30% 8%; }
+
+/* ---- photos: a slight fade and a very slow zoom as each one comes into view.
+   Gated on html.oru-zoom-ready, set by the page script, so the photos are
+   always visible if the script does not run. */
+.oru-zoom { overflow: hidden; }
+.hero-img.oru-zoom { border-radius: 16px; }
+.service-img.oru-zoom { border-radius: 10px; }
+html.oru-zoom-ready .oru-zoom img {
+  opacity: 0; transform: scale(1.0);
+  transition: opacity 1.4s ease, transform 10s cubic-bezier(.25,.46,.45,.94);
+  will-change: transform;
+}
+html.oru-zoom-ready .oru-zoom.in img { opacity: 1; transform: scale(1.08); }
+@media (prefers-reduced-motion: reduce) {
+  html.oru-zoom-ready .oru-zoom img { transition: opacity 1s ease; transform: none !important; }
+}
+
+/* The official O&R logo (orange square, white mark), in place of the drawn mark. */
+.oru-logo .oru-mark { width: 40px; height: 40px; flex: none; display: block; }
+@media (max-width: 575px) { .oru-logo .oru-mark { width: 34px; height: 34px; } }
+
+/* The portal is a regular tab now, with no separate button, so the menu
+   sits centred in the space beside the logo. */
+.header-main .header-nav { margin-left: auto; margin-right: auto; }
+
+/*============================================================================================
+  AI Initiatives page: the portfolio for everyone, in the landing's look.
+  The technical register stays in the portal for the people who run it;
+  this page tells each initiative's story.
+==============================================================================================*/
+
+/* ---- page header: template banner on the control room photo, slow zoom ---- */
+.oru-page-head { position: relative; overflow: hidden; background: #141414; isolation: isolate; }
+.oru-page-bg {
+  position: absolute; inset: 0; z-index: -1;
+  background: linear-gradient(180deg, rgba(10,10,10,.55), rgba(10,10,10,.78)), url('../images/oru/photo-grid-display.jpg') center / cover no-repeat;
+  transform: scale(1); animation: oruSlowZoom 11s cubic-bezier(.25,.46,.45,.94) forwards;
+}
+@keyframes oruSlowZoom { to { transform: scale(1.08); } }
+.oru-page-head .title { margin-top: 10px; }
+.oru-page-sub { max-width: 640px; margin: 0 auto 26px; font-size: 18px; line-height: 29px; color: rgba(255,255,255,.82); }
+.oru-eyebrow.light { color: #f6a165; }
+.oru-eyebrow.left { text-align: left; margin-bottom: 10px; }
+
+/* ---- the row of initiative cards ------------------------------------------ */
+.oru-ini-sec { position: relative; }
+.oru-ini-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 32px; margin-bottom: 40px; }
+.oru-row-nav { display: flex; gap: 10px; flex: none; }
+.oru-row-btn {
+  display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%;
+  border: 1px solid var(--title-color); background: transparent; color: var(--title-color); font-size: 22px;
+  transition: background .3s ease, color .3s ease, border-color .3s ease;
+}
+.oru-row-btn:hover { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.oru-row-btn[data-row="-1"] i { transform: rotate(180deg); }
+.oru-row-btn i { line-height: 0; }
+.oru-ini-row {
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(290px, 1fr); gap: 20px;
+  overflow-x: auto; scroll-snap-type: x mandatory; padding: 6px 2px 22px; scrollbar-width: thin;
+}
+.oru-ini-row::-webkit-scrollbar { height: 6px !important; }
+.oru-ini-card {
+  scroll-snap-align: start; position: relative; display: flex; flex-direction: column; gap: 12px;
+  min-height: 330px; padding: 28px 26px 24px; border-radius: 14px;
+  background: var(--white-color); border: 1px solid var(--border-color); color: var(--paragraph-color);
+  transition: transform .35s ease, border-color .35s ease, box-shadow .35s ease;
+}
+.oru-ini-card::before {
+  content: ''; position: absolute; left: 26px; right: 26px; top: 0; height: 3px; border-radius: 0 0 3px 3px;
+  background: var(--primary-color); transform: scaleX(0); transform-origin: left; transition: transform .45s ease;
+}
+.oru-ini-card:hover { transform: translateY(-6px); border-color: rgba(194,78,23,.35); box-shadow: 0 18px 40px -22px rgba(34,34,34,.35); color: var(--paragraph-color); }
+.oru-ini-card:hover::before { transform: scaleX(1); }
+.oru-ini-num { font-family: var(--font-family); font-size: 15px; font-weight: 500; color: var(--paragraph-color); }
+.oru-ini-focus { font-size: 12px; font-weight: 600; letter-spacing: 1.6px; text-transform: uppercase; color: var(--primary-color); }
+.oru-ini-card h4 { margin: 0; font-family: var(--font-family); font-size: 26px; font-weight: 600; line-height: 32px; color: var(--title-color); }
+.oru-ini-card p { margin: 0; font-size: 16px; line-height: 25px; }
+.oru-ini-foot { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 16px; border-top: 1px solid var(--border-color); }
+.oru-ini-foot .oru-status { margin-top: 0; }
+.oru-ini-more { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--title-color); }
+.oru-ini-more i { line-height: 0; font-size: 20px; transform: rotate(-44deg); transition: transform .3s ease; }
+.oru-ini-card:hover .oru-ini-more { color: var(--primary-color); }
+.oru-ini-card:hover .oru-ini-more i { transform: rotate(0); }
+
+/* ---- stories ---------------------------------------------------------------- */
+.oru-stories { padding-bottom: 40px; }
+.oru-story {
+  display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 48px;
+  padding: 56px 0; border-top: 1px solid var(--border-color);
+}
+.oru-story-head h3 { margin: 10px 0 16px; font-family: var(--font-family); font-size: 40px; font-weight: 600; line-height: 46px; color: var(--title-color); }
+.oru-story-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.oru-story-meta .oru-status { margin-top: 0; }
+.oru-story-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.oru-story-block { padding: 24px 22px; background: var(--white-color); border: 1px solid var(--border-color); border-radius: 12px; }
+.oru-story-block h4 { margin: 0 0 10px; font-family: var(--font-family); font-size: 15px; font-weight: 600; letter-spacing: 1.4px; text-transform: uppercase; color: var(--primary-color); }
+.oru-story-block p { margin: 0; font-size: 16px; line-height: 26px; color: var(--paragraph-color); }
+.oru-story:target .oru-story-head h3 { color: var(--primary-color); }
+
+/* ---- closing call to action ------------------------------------------------ */
+.oru-ini-cta-sec { padding-bottom: 110px; }
+.oru-ini-cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 32px; flex-wrap: wrap;
+  padding: 44px 48px; border-radius: 16px; background: #141414; color: rgba(255,255,255,.78);
+}
+.oru-ini-cta h3 { margin: 0 0 8px; font-family: var(--font-family); font-size: 34px; font-weight: 600; line-height: 42px; color: #fff; }
+.oru-ini-cta p { margin: 0; font-size: 16px; line-height: 26px; }
+
+@media (max-width: 991.98px) {
+  .oru-ini-head { flex-direction: column; align-items: flex-start; }
+  .oru-story { grid-template-columns: minmax(0, 1fr); gap: 22px; padding: 40px 0; }
+  .oru-story-body { grid-template-columns: minmax(0, 1fr); }
+  .oru-story-head h3 { font-size: 32px; line-height: 38px; }
+  .oru-ini-cta { padding: 32px 26px; }
+}
+@media (prefers-reduced-motion: reduce) { .oru-page-bg { animation: none; } .oru-ini-card, .oru-ini-card::before { transition: none; } }
+.oru-ini-cta p { color: rgba(255, 255, 255, 0.74); }
+
+/* Hero photo is the building again, with the orange band over its lower
+   right as in the template; keep the sign clear of the band. */
+.oru-hero-image .hero-img img { object-position: center 30%; }
+
+/*============================================================================================
+  Image coherence: every photo on the site has the same 16px corners, the
+  radius of the hero photo, and sits as a card rather than bleeding to an edge.
+==============================================================================================*/
+:root { --oru-img-radius: 16px; }
+.hero-img, .about-img-block, .about-content-img, .service-img, .contact-img { border-radius: var(--oru-img-radius); overflow: hidden; }
+.hero-img img, .about-img-block img, .about-content-img img, .service-img img, .contact-img img { border-radius: var(--oru-img-radius); display: block; }
+.hero-img.oru-zoom, .service-img.oru-zoom { border-radius: var(--oru-img-radius); }
+.about-img-block img, .about-content-img img { width: 100%; height: auto; }
+
+/* AI in Action: the photo was a small 424px thumbnail; it now takes about half
+   the row, in proportion with the other photos on the page. */
+.service-head { gap: 48px; align-items: center; }
+.service-head .section-head { flex: 1 1 0; min-width: 0; }
+.service-img { flex: 0 0 46%; max-width: 620px; }
+.service-img img { max-width: none; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: center 40%; }
+
+/* Share an Idea: the photo sits inside the dark band as a rounded card. */
+.contact-img { top: 28px; bottom: 28px; left: 28px; height: auto; width: calc(46% - 28px); }
+@media (max-width: 991.98px) {
+  .service-head { flex-direction: column; align-items: flex-start; }
+  .service-img { flex: none; width: 100%; max-width: none; }
+  .contact-img { position: relative; top: auto; bottom: auto; left: auto; width: auto; height: 360px; margin: 24px 16px 0; }
+}
+
+/* AI Initiatives page header: rounded with the same margin as the homepage hero photo. */
+.oru-page-head { margin: 0 8px; border-radius: var(--oru-img-radius); }
+.oru-page-head { margin: 8px 8px 0; }
+
+
+/*============================================================================================
+  Title Case instead of capitals everywhere except the hero headline.
+==============================================================================================*/
+.vertical-text, .section-head .sm-title, .header-nav-menu li a, .header-nav-menu li .sub-menu li a,
+.h-social-rotate .social-list li a, .oru-logo .wm small, .oru-eyebrow, .oru-opps h4,
+.oru-ini-focus, .oru-story-block h4 { text-transform: none; }
+.oru-logo .wm small { letter-spacing: .3px; font-size: 12.5px; }
+.oru-eyebrow { letter-spacing: .4px; font-size: 16px; }
+.oru-opps h4 { letter-spacing: 0; }
+.oru-ini-focus { letter-spacing: .2px; font-size: 13px; }
+.oru-story-block h4 { letter-spacing: .2px; font-size: 16px; }
+
+/* Share an Idea form: brighter hint text on the dark band, and typed text in
+   white so it is never dimmer than the hint it replaces. */
+.contact-form .form-group input::placeholder,
+.contact-form .form-group textarea::placeholder { color: rgba(255, 255, 255, 0.82); opacity: 1; }
+.contact-form .form-group input,
+.contact-form .form-group textarea { color: #ffffff; }
+
+
+/*============================================================================================
+  AI Initiatives page header: the animated "AI at work" illustration replaces
+  the photo. Light banner, dark text, illustration as a 16px rounded card.
+==============================================================================================*/
+.oru-page-head { background: transparent; padding: 90px 0 70px; margin: 0; border-radius: 0; overflow: visible; isolation: auto; }
+.oru-page-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; }
+.oru-page-text { text-align: left; }
+.oru-page-head .breadcrumb-content .title { color: var(--title-color); margin: 8px 0 16px; }
+.oru-page-head .oru-page-sub { margin: 0 0 26px; color: var(--paragraph-color); max-width: 520px; }
+.oru-page-head .bredcrumb-menu.style2 li a, .oru-page-head .bredcrumb-menu.style2 li::before { color: var(--title-color); }
+.oru-page-head .bredcrumb-menu.style2 li.active a { color: var(--primary-color); }
+.oru-art {
+  position: relative; overflow: hidden; isolation: isolate; aspect-ratio: 1000 / 563;
+  border-radius: var(--oru-img-radius, 16px); background: #efeae7;
+  box-shadow: 0 24px 50px -30px rgba(126, 101, 84, 0.45);
+}
+.oru-art svg { display: block; width: 100%; height: 100%; }
+@media (max-width: 991.98px) {
+  .oru-page-head { padding: 56px 0 40px; }
+  .oru-page-grid { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+}
+
+/* The illustration's own motion, scoped so no template class is touched. */
+.oru-art .float-a { animation: oruFloatA 12s ease-in-out infinite; }
+.oru-art .float-b { animation: oruFloatB 16s ease-in-out infinite; }
+.oru-art .float-c { animation: oruFloatC 14s ease-in-out infinite; }
+.oru-art .node-a { animation: oruBlinkNode 8s ease-in-out infinite; }
+.oru-art .node-b { animation: oruBlinkNode 9.5s ease-in-out -3s infinite; }
+.oru-art .node-c { animation: oruBlinkNode 11s ease-in-out -5s infinite; }
+.oru-art .node-d { animation: oruBlinkNode 13s ease-in-out -7s infinite; }
+.oru-art .signal { fill: none; stroke: #ee7c37; stroke-width: 1.8; stroke-linecap: round; stroke-dasharray: 3 20; opacity: .62; animation: oruSignalMove 28s linear infinite; }
+.oru-art .signal.alt { animation-duration: 37s; animation-direction: reverse; opacity: .4; }
+.oru-art .link { fill: none; stroke: #dfc8b6; stroke-width: 1.7; opacity: .65; }
+.oru-art .pulse-core { transform-box: fill-box; transform-origin: center; animation: oruCoreBreath 9s ease-in-out infinite; }
+.oru-art .orbit { transform-origin: 695px 194px; animation: oruOrbit 95s linear infinite; }
+.oru-art .screen-bars rect { transform-box: fill-box; transform-origin: bottom; animation: oruBarChange 12s ease-in-out infinite; }
+.oru-art .screen-bars rect:nth-child(2) { animation-delay: -2s; }
+.oru-art .screen-bars rect:nth-child(3) { animation-delay: -4s; }
+.oru-art .screen-bars rect:nth-child(4) { animation-delay: -7s; }
+.oru-art .gesture { transform-origin: 545px 345px; animation: oruGesture 9s ease-in-out infinite; }
+.oru-art .face-bob { animation: oruHeadBob 11s ease-in-out infinite; }
+.oru-art .glint { animation: oruGlint 14s ease-in-out infinite; }
+.oru-art .ambient { animation: oruAmbient 13s ease-in-out infinite; }
+@keyframes oruFloatA { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(0, -7px); } }
+@keyframes oruFloatB { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(3px, 6px); } }
+@keyframes oruFloatC { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(-4px, -5px); } }
+@keyframes oruBlinkNode { 0%, 25%, 100% { opacity: .24; } 45% { opacity: 1; } 65% { opacity: .42; } }
+@keyframes oruSignalMove { to { stroke-dashoffset: -368; } }
+@keyframes oruCoreBreath { 0%, 100% { transform: scale(.97); opacity: .75; } 50% { transform: scale(1.04); opacity: 1; } }
+@keyframes oruOrbit { to { transform: rotate(360deg); } }
+@keyframes oruBarChange { 0%, 100% { transform: scaleY(.95); } 50% { transform: scaleY(1.07); } }
+@keyframes oruGesture { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-2.5deg); } }
+@keyframes oruHeadBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+@keyframes oruGlint { 0%, 78%, 100% { opacity: 0; } 84% { opacity: .6; } 90% { opacity: 0; } }
+@keyframes oruAmbient { 0%, 100% { opacity: .7; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .oru-art * { animation: none !important; transition: none !important; } }
+
+/* Initiative cards in a grid, three by two, with no sideways scroll. */
+.oru-ini-row { grid-auto-flow: row; grid-auto-columns: auto; grid-template-columns: repeat(3, minmax(0, 1fr)); overflow: visible; scroll-snap-type: none; padding: 6px 0 0; gap: 24px; }
+.oru-ini-card { scroll-snap-align: none; min-height: 300px; }
+@media (max-width: 991.98px) { .oru-ini-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575.98px) { .oru-ini-row { grid-template-columns: minmax(0, 1fr); } }
+.oru-ini-sec.section-gap { padding-top: 40px; }
+.oru-page-head .bredcrumb-menu.style2 { text-align: left; }
+
+
+/*============================================================================================
+  Initiative pop-up, in the homepage design: white card, 16px corners, Outfit,
+  orange labels, story blocks on the paper colour.
+==============================================================================================*/
+html.oru-modal-open { overflow: hidden; }
+.oru-modal { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 24px; }
+.oru-modal[hidden] { display: none; }
+.oru-modal-scrim { position: absolute; inset: 0; background: rgba(20, 20, 20, 0.62); backdrop-filter: blur(4px); opacity: 0; transition: opacity .26s ease; }
+.oru-modal-card {
+  position: relative; width: min(920px, 100%); max-height: calc(100vh - 48px); overflow-y: auto;
+  background: var(--white-color); border-radius: var(--oru-img-radius, 16px);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.55);
+  opacity: 0; transform: translateY(18px) scale(.98); transition: opacity .3s ease, transform .4s cubic-bezier(.22, 1, .36, 1);
+}
+.oru-modal.on .oru-modal-scrim { opacity: 1; }
+.oru-modal.on .oru-modal-card { opacity: 1; transform: none; }
+.oru-modal-close {
+  position: absolute; top: 18px; right: 18px; z-index: 2; display: grid; place-items: center;
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border-color); background: var(--white-color);
+  color: var(--title-color); font-size: 14px; transition: background .3s ease, color .3s ease, border-color .3s ease;
+}
+.oru-modal-close:hover { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.oru-modal-close i { line-height: 0; }
+.oru-modal-body { padding: 40px 44px 8px; }
+.oru-modal-body .oru-story-head .oru-ini-num { display: block; margin-bottom: 4px; }
+.oru-modal-body .oru-story-head h3 { margin: 6px 64px 14px 0; font-family: var(--font-family); font-size: 40px; font-weight: 600; line-height: 46px; color: var(--title-color); }
+.oru-modal-body .oru-story-body { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 26px; }
+.oru-modal-body .oru-story-block { background: #efeae7; border: 0; border-radius: 12px; padding: 22px 20px; }
+.oru-modal-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  margin: 26px 44px 0; padding: 24px 0 34px; border-top: 1px solid var(--border-color);
+}
+.oru-modal-foot p { margin: 0; max-width: 380px; font-size: 15px; line-height: 23px; color: var(--paragraph-color); }
+.oru-modal-actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.oru-modal-link { font-size: 15px; font-weight: 600; color: var(--title-color); text-decoration: underline; text-underline-offset: 4px; }
+.oru-modal-link:hover { color: var(--primary-color); }
+.oru-modal .theme-btn { padding: 15px 24px; }
+@media (max-width: 767.98px) {
+  .oru-modal { padding: 12px; }
+  .oru-modal-body { padding: 30px 22px 4px; }
+  .oru-modal-body .oru-story-head h3 { font-size: 30px; line-height: 36px; }
+  .oru-modal-body .oru-story-body { grid-template-columns: minmax(0, 1fr); }
+  .oru-modal-foot { margin: 22px 22px 0; padding-bottom: 26px; }
+}
+@media (prefers-reduced-motion: reduce) { .oru-modal-card, .oru-modal-scrim { transition: none; } }
+
+
+/*============================================================================================
+  Share an Idea page.
+==============================================================================================*/
+.oru-page-actions { display: flex; align-items: center; gap: 26px; flex-wrap: wrap; margin: 0 0 30px; }
+.oru-share-photo { position: relative; overflow: hidden; aspect-ratio: 1000 / 600; border-radius: var(--oru-img-radius, 16px); box-shadow: 0 24px 50px -30px rgba(126, 101, 84, 0.45); }
+.oru-share-photo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: var(--oru-img-radius, 16px); }
+.oru-how-sec.section-gap { padding-top: 40px; padding-bottom: 90px; }
+.oru-step { cursor: default; min-height: 260px; }
+.oru-step p a { color: var(--primary-color); font-weight: 600; }
+
+.oru-kinds-sec { padding-bottom: 110px; }
+.oru-kinds { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: start; }
+.oru-kinds-text h3 { margin: 10px 0 18px; font-size: 40px; line-height: 48px; font-weight: 600; color: var(--title-color); }
+.oru-kinds-text p { font-size: 17px; line-height: 28px; color: var(--paragraph-color); margin: 0 0 18px; }
+.oru-kinds-note { border-left: 3px solid var(--primary-color); padding-left: 16px; color: var(--title-color) !important; }
+.oru-kinds-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.oru-kinds-list li { display: flex; gap: 16px; background: var(--white-color); border-radius: 14px; padding: 26px 24px; }
+.oru-kinds-list i { flex: 0 0 48px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 50%; background: #efeae7; color: var(--primary-color); font-size: 20px; line-height: 0; }
+.oru-kinds-list h4 { margin: 2px 0 8px; font-size: 19px; line-height: 26px; font-weight: 600; color: var(--title-color); }
+.oru-kinds-list p { margin: 0; font-size: 15px; line-height: 24px; color: var(--paragraph-color); }
+
+.oru-routes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-bottom: 100px; }
+.oru-route { background: var(--white-color); border-radius: var(--oru-img-radius, 16px); padding: 36px 34px; border-top: 4px solid #efeae7; }
+.oru-route.is-idea { border-top-color: var(--primary-color); }
+.oru-route h4 { margin: 8px 0 12px; font-size: 26px; line-height: 34px; font-weight: 600; color: var(--title-color); }
+.oru-route p { margin: 0 0 22px; font-size: 16px; line-height: 26px; color: var(--paragraph-color); }
+.oru-faq { max-width: 860px; margin: 0 auto; }
+.oru-faq .oru-ini-head { text-align: center; }
+.oru-faq .faq-accordion-item .accordion-button { text-transform: none; }
+
+@media (max-width: 991.98px) {
+  .oru-kinds { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .oru-kinds-text h3 { font-size: 32px; line-height: 40px; }
+  .oru-routes { grid-template-columns: minmax(0, 1fr); margin-bottom: 70px; }
+}
+@media (max-width: 575.98px) { .oru-kinds-list { grid-template-columns: minmax(0, 1fr); } }
+
+
+/*============================================================================================
+  Share an Idea form: the animated "spark of an idea" illustration replaces the photo.
+==============================================================================================*/
+.oru-idea-scene {
+  position: absolute; inset: 0; overflow: hidden; isolation: isolate; border-radius: var(--oru-img-radius, 16px);
+  background: radial-gradient(ellipse at 50% 48%, #2b211b 0%, #1d1c1a 35%, #151515 82%);
+}
+.oru-idea-scene::after {
+  content: ""; pointer-events: none; position: absolute; inset: 0; border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, .055); box-shadow: inset 0 0 110px rgba(0, 0, 0, .22);
+}
+.oru-idea-scene svg { display: block; width: 100%; height: 100%; }
+.oru-idea-scene svg * { transform-box: fill-box; }
+.oru-idea-scene .ois-breathe { animation:oruIdea_breathe 9s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-breathe-two { animation:oruIdea_breatheAlt 12s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-float { animation:oruIdea_float 10s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-float-reverse { animation:oruIdea_float-reverse 13s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-spark-group { animation:oruIdea_soft-float 9s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-ambient-halo { animation:oruIdea_halo 11s ease-in-out infinite; transform-origin:center; }
+.oru-idea-scene .ois-ambient-halo-2 { animation:oruIdea_halo 14s ease-in-out infinite -5s; transform-origin:center; }
+.oru-idea-scene .ois-filament { animation:oruIdea_filament 7s ease-in-out infinite; }
+.oru-idea-scene .ois-filament-delay { animation-delay:-3.5s; }
+.oru-idea-scene .ois-breathing-dot { animation:oruIdea_nodePulse 6s ease-in-out infinite; }
+.oru-idea-scene .ois-breathing-dot.ois-alt { animation-delay:-3s; }
+.oru-idea-scene .ois-breathing-dot.ois-alt2 { animation-delay:-1.8s; }
+.oru-idea-scene .ois-draw-line { stroke-dasharray:8 12; animation:oruIdea_flow 31s linear infinite; }
+.oru-idea-scene .ois-draw-line-reverse { stroke-dasharray:2 17; animation:oruIdea_flowReverse 44s linear infinite; }
+.oru-idea-scene .ois-reveal { animation:oruIdea_lineAppear 13s ease-in-out infinite; }
+.oru-idea-scene .ois-mist { animation:oruIdea_mist 14s ease-in-out infinite alternate; }
+.oru-idea-scene .ois-icon-pulse { animation:oruIdea_iconPulse 8s ease-in-out infinite; }
+.oru-idea-scene .ois-subtle-rotate { transform-origin:center; animation:oruIdea_rotateSlow 70s linear infinite; }
+.oru-idea-scene .ois-subtle-rotate-rev { transform-origin:center; animation:oruIdea_rotateSlowReverse 90s linear infinite; }
+@keyframes oruIdea_float {0%,100%{transform:translateY(0px)}50%{transform:translateY(-7px)}}
+@keyframes oruIdea_float-reverse {0%,100%{transform:translateY(0px)}50%{transform:translateY(6px)}}
+@keyframes oruIdea_soft-float {0%,100%{transform:translateY(0px)}50%{transform:translateY(-5px)}}
+@keyframes oruIdea_breathe {0%,100%{opacity:.6;transform:scale(.98)}50%{opacity:.97;transform:scale(1.035)}}
+@keyframes oruIdea_breatheAlt {0%,100%{opacity:.3;transform:scale(1.03)}50%{opacity:.65;transform:scale(.98)}}
+@keyframes oruIdea_halo {0%,100%{opacity:.35;transform:scale(.95)}50%{opacity:.74;transform:scale(1.05)}}
+@keyframes oruIdea_filament {0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes oruIdea_nodePulse {0%,100%{opacity:.35}52%{opacity:1}}
+@keyframes oruIdea_flow {to{stroke-dashoffset:-320}}
+@keyframes oruIdea_flowReverse {to{stroke-dashoffset:320}}
+@keyframes oruIdea_lineAppear {0%,100%{opacity:.2}45%,60%{opacity:.65}}
+@keyframes oruIdea_mist {from{opacity:.45}to{opacity:.9}}
+@keyframes oruIdea_iconPulse {0%,100%{opacity:.42}50%{opacity:.83}}
+@keyframes oruIdea_rotateSlow {to{transform:rotate(360deg)}}
+@keyframes oruIdea_rotateSlowReverse {to{transform:rotate(-360deg)}}
+@media (prefers-reduced-motion: reduce) { .oru-idea-scene * { animation: none !important; } }
+.oru-faq .oru-ini-head { justify-content: center; }
+.oru-faq .oru-ini-head .section-head { text-align: center; }
+
+/* AI in Action (homepage): the animated "AI at work" illustration in place of the photo. */
+.service-img.oru-art-wrap { overflow: visible; border-radius: 0; align-self: flex-end; }
+.service-img.oru-art-wrap .oru-art { width: 100%; }
+/* Share an Idea header: text only, no photo. */
+.oru-page-solo { grid-template-columns: minmax(0, 1fr); }
+.oru-page-solo .oru-page-sub { max-width: 640px; }
+.oru-page-head:has(.oru-page-solo) { padding: 80px 0 40px; }
+
+/*============================================================================================
+  AI Training placeholder page.
+==============================================================================================*/
+.oru-soon-sec { padding: 10px 0 120px; }
+.oru-soon {
+  max-width: 760px; margin: 0 auto; text-align: center; background: var(--white-color);
+  border: 2px dashed #e2d6cd; border-radius: var(--oru-img-radius, 16px); padding: 56px 40px;
+}
+.oru-soon-icon { display: grid; place-items: center; width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%; background: #efeae7; color: var(--primary-color); font-size: 30px; line-height: 0; }
+.oru-soon h3 { margin: 16px 0 12px; font-size: 34px; line-height: 42px; font-weight: 600; color: var(--title-color); }
+.oru-soon p { margin: 0 auto 24px; max-width: 520px; font-size: 17px; line-height: 28px; color: var(--paragraph-color); }
+.oru-soon .oru-status { display: table; margin: 0 auto; }
+
+/* Header logo centred in its cell, both ways: the cell reaches the page edge
+   and has the same space on each side of the logo. */
+@media (min-width: 1200px) {
+  .header .header-logo { display: flex; align-items: center; justify-content: center; line-height: normal; margin-left: -24px; padding: 0 32px; }
+}
+
+
+/*============================================================================================
+  AI Initiatives header: neural network banner, title centred.
+==============================================================================================*/
+.oru-neural-wrap { padding: 28px 0 10px; }
+.oru-neural-hero {
+  isolation: isolate; position: relative; display: grid; place-items: center;
+  height: clamp(390px, 30vw, 568px); overflow: hidden; border-radius: var(--oru-img-radius, 16px); background: #efeae7;
+}
+.oru-neural-hero::before {
+  content: ""; z-index: -1; position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(ellipse 36% 67% at 12% 44%, rgba(218,126,76,.055), transparent 76%),
+    radial-gradient(ellipse 38% 66% at 89% 61%, rgba(199,119,81,.050), transparent 78%),
+    radial-gradient(ellipse 30% 38% at 49% 2%, rgba(255,255,255,.20), transparent 85%);
+}
+#oru-neural { position: absolute; inset: 0; display: block; width: 100%; height: 100%; pointer-events: none; }
+.oru-neural-content { position: relative; z-index: 1; width: min(790px, calc(100% - 60px)); text-align: center; padding: 8px 0; }
+.oru-neural-content .oru-eyebrow { display: inline-block; margin-bottom: 14px; }
+.oru-neural-title { margin: 0; font-family: var(--font-family); font-size: clamp(45px, 4.4vw, 76px); font-weight: 600; line-height: 1.04; letter-spacing: -.02em; color: var(--title-color); }
+.oru-neural-sub { margin: 24px auto 0; max-width: 645px; font-size: 18px; line-height: 30px; color: var(--paragraph-color); }
+.oru-neural-crumbs { margin-top: 26px; text-align: center; }
+.oru-neural-crumbs li a, .oru-neural-crumbs li::before { color: var(--title-color); }
+.oru-neural-crumbs li.active a { color: var(--primary-color); }
+@media (max-width: 720px) {
+  .oru-neural-hero { height: 435px; border-radius: 12px; }
+  #oru-neural { opacity: .7; }
+  .oru-neural-content { width: calc(100% - 48px); }
+  .oru-neural-sub { font-size: 16px; line-height: 26px; }
+}
+.bredcrumb-menu.style2.oru-neural-crumbs li a, .bredcrumb-menu.style2.oru-neural-crumbs li::before { color: var(--title-color); }
+.bredcrumb-menu.style2.oru-neural-crumbs li.active a, .bredcrumb-menu.style2.oru-neural-crumbs li a:hover { color: var(--primary-color); }
+
+/* Initiative pop-up: value, effort and impacted users, as recorded in the portal. */
+.oru-story-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.oru-stat { display: flex; flex-direction: column; gap: 4px; padding: 18px 20px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--white-color); }
+.oru-stat .k { font-size: 14px; line-height: 20px; color: var(--paragraph-color); }
+.oru-stat b { font-family: var(--font-family); font-size: 24px; line-height: 30px; font-weight: 600; color: var(--title-color); }
+.oru-stat .sub { font-size: 13px; line-height: 18px; color: var(--paragraph-color); opacity: .8; }
+.oru-modal-body .oru-story-body { margin-top: 16px; }
+@media (max-width: 575.98px) { .oru-story-stats { grid-template-columns: minmax(0, 1fr); gap: 10px; } }
+
+/*============================================================================================
+  AI Training: three link cards (Training, Information & FAQ, Pluralsight).
+==============================================================================================*/
+.oru-train-sec { padding: 10px 0 120px; }
+.oru-train-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.oru-train-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 320px;
+  padding: 36px 32px 32px; background: var(--white-color); border-radius: var(--oru-img-radius, 16px);
+  text-decoration: none; transition: transform .35s ease, box-shadow .35s ease;
+}
+.oru-train-card::before {
+  content: ""; position: absolute; left: 0; top: 0; height: 4px; width: 100%; background: var(--primary-color);
+  transform: scaleX(0); transform-origin: left; transition: transform .45s ease;
+}
+.oru-train-card:hover { transform: translateY(-6px); box-shadow: 0 30px 50px -30px rgba(126, 101, 84, .5); }
+.oru-train-card:hover::before { transform: scaleX(1); }
+.oru-train-card.is-ps::before { background: #ff1675; }
+.oru-train-icon {
+  display: grid; place-items: center; width: 64px; height: 64px; margin-bottom: 28px; border-radius: 16px;
+  background: #efeae7; color: var(--primary-color); font-size: 26px; line-height: 0; transition: background .35s ease, color .35s ease;
+}
+.oru-train-card:hover .oru-train-icon:not(.logo) { background: var(--primary-color); color: #fff; }
+.oru-train-icon.logo { background: none; overflow: hidden; }
+.oru-train-icon.logo img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 16px; }
+.oru-train-card h3 { margin: 0 0 12px; font-family: var(--font-family); font-size: 28px; line-height: 34px; font-weight: 600; color: var(--title-color); }
+.oru-train-card p { margin: 0 0 28px; font-size: 16px; line-height: 26px; color: var(--paragraph-color); }
+.oru-train-go { margin-top: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 16px; font-weight: 600; color: var(--title-color); transition: color .3s ease, gap .3s ease; }
+.oru-train-go i { line-height: 0; }
+.oru-train-card:hover .oru-train-go { color: var(--primary-color); gap: 12px; }
+.oru-train-card.is-ps:hover .oru-train-go { color: #e0145f; }
+@media (min-width: 1200px) { .oru-train-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } .oru-train-card { padding: 32px 26px 28px; } .oru-train-card h3 { font-size: 24px; line-height: 30px; } }
+@media (min-width: 992px) and (max-width: 1199.98px) { .oru-train-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 991.98px) { .oru-train-grid { grid-template-columns: minmax(0, 1fr); } .oru-train-card { min-height: 0; } }
+/* AI Training cards: the icons keep their hover colours all the time. */
+.oru-train-icon:not(.logo) { background: var(--primary-color); color: #fff; }
+
+/* Training: upskilling intro, course cards, what comes next. */
+.oru-upskill { max-width: 760px; margin: 0 0 40px; }
+.oru-upskill h3 { margin: 10px 0 14px; font-size: 36px; line-height: 44px; font-weight: 600; color: var(--title-color); }
+.oru-upskill p { margin: 0; font-size: 17px; line-height: 28px; color: var(--paragraph-color); }
+.oru-train-kind { margin: -12px 0 8px; font-size: 13px; font-weight: 600; letter-spacing: .2px; color: var(--primary-color); }
+.oru-train-card.is-ps .oru-train-kind { color: #e0145f; }
+.oru-next { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-top: 28px; padding: 22px 28px; border: 2px dashed #e2d6cd; border-radius: var(--oru-img-radius, 16px); }
+.oru-next-label { font-size: 15px; font-weight: 600; color: var(--title-color); }
+.oru-next ul { display: flex; gap: 12px 28px; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; }
+.oru-next li { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--paragraph-color); }
+.oru-next li i { color: var(--primary-color); line-height: 0; }
+
+
+/*============================================================================================
+  Initiatives: grouped by how they help, media and contacts in the pop-up.
+==============================================================================================*/
+.oru-ini-filter { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 26px; }
+.oru-ini-filter button {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid #ddd2ca; background: transparent; color: var(--title-color); font-size: 15px; font-weight: 500;
+  transition: background .25s ease, color .25s ease, border-color .25s ease;
+}
+.oru-ini-filter button i { line-height: 0; color: var(--primary-color); transition: color .25s ease; }
+.oru-ini-filter button:hover { border-color: var(--primary-color); }
+.oru-ini-filter button.on { background: var(--primary-color); border-color: var(--primary-color); color: #fff; }
+.oru-ini-filter button.on i { color: #fff; }
+.oru-ini-card[hidden] { display: none !important; }
+.oru-ini-theme { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--paragraph-color); }
+.oru-ini-theme i { line-height: 0; color: var(--primary-color); }
+.oru-ini-card .oru-ini-theme { margin: -4px 0 10px; }
+.oru-story-meta .oru-ini-theme { margin-left: 4px; }
+
+.oru-story-extra { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 16px; margin-top: 16px; }
+.oru-media-slot {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px;
+  min-height: 190px; padding: 24px; border: 2px dashed #e2d6cd; border-radius: 12px; background: #faf8f7;
+}
+.oru-media-ico { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 6px; border-radius: 50%; background: var(--primary-color); color: #fff; font-size: 20px; line-height: 0; }
+.oru-media-slot b { font-size: 16px; color: var(--title-color); }
+.oru-media-slot span:last-child { max-width: 320px; font-size: 14px; line-height: 21px; color: var(--paragraph-color); }
+.oru-contacts { padding: 20px; border: 1px solid var(--border-color); border-radius: 12px; }
+.oru-contacts h4 { margin: 0 0 14px; font-size: 16px; font-weight: 600; color: var(--primary-color); }
+.oru-contact { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--border-color); }
+.oru-contact:first-of-type { border-top: 0; padding-top: 0; }
+.oru-contact-ico { display: grid; place-items: center; flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; background: #efeae7; color: var(--primary-color); font-size: 16px; line-height: 0; }
+.oru-contact b { display: block; font-size: 15px; color: var(--title-color); }
+.oru-contact small { font-size: 13px; color: var(--paragraph-color); }
+@media (max-width: 767.98px) { .oru-story-extra { grid-template-columns: minmax(0, 1fr); } }
+
+/* Welcome video, over the right side of the hero photo (the sign is on the
+   left), clear of the orange band. Below 992px it sits under the photo. The
+   frame's height is set from the video page, which reports it on load and
+   resize. */
+.oru-hero-video iframe { display: block; width: 100%; height: 420px; border: 0; background: transparent; }
+@media (min-width: 992px) {
+  .oru-hero-video { position: absolute; top: 3%; right: 2%; width: min(40%, 700px); z-index: 2; }
+}
+/* Here the band runs the full width of the photo, so the video is smaller. */
+@media (min-width: 1200px) and (max-width: 1400px) {
+  .oru-hero-video { top: 2%; width: min(32%, 460px); }
+}
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .oru-hero-video { right: 6%; }
+}
+@media (max-width: 991.98px) {
+  .oru-hero-video { max-width: 720px; margin: 16px auto 0; }
+}
+
+/* Interactive training module (training-request.html), embedded on Training.
+   The frame's height is set from the module, which reports it as it changes. */
+.oru-interactive { padding-top: 0; }
+.oru-module-frame { margin-top: 8px; }
+.oru-module-frame iframe { display: block; width: 100%; height: 640px; border: 0; background: transparent; }
+
+
+/* Initiatives: the way in to the new initiative intake (portal.html#usecase). */
+.oru-ini-submit { margin: 26px 0 6px; }
+.oru-ini-cta-btns { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Outline button, on the dark closing panel. */
+.theme-btn.oru-btn-ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255,255,255,.7); }
+.theme-btn.oru-btn-ghost:hover { background: #fff; color: var(--title-color); }

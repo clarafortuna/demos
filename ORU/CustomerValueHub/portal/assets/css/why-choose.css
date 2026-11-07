@@ -1,0 +1,183 @@
+/*================================================================================================
+    Start Why Choose CSS
+===================================================================================================*/
+.why-choose {
+  overflow: hidden;
+}
+.why-choose-right {
+  background: var(--primary-color);
+  position: absolute;
+  width: 46%;
+  height: 100%;
+  left: 0;
+  top: 0;
+}
+.why-choose-img {
+  width: 100%;
+  height: 582px;
+}
+.why-choose-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.why-choose-progress {
+  margin: 96px 136px;
+  background: var(--white-color);
+  border-radius: 8px;
+  padding: 36px;
+}
+.why-choose-progress .progress-item {
+  margin-bottom: 26px;
+}
+.why-choose-progress .progress-item:last-child {
+  margin: 0 !important;
+}
+.why-choose-progress .progress-item-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.why-choose-progress .progress-item-title,
+.why-choose-progress .progress-item-percentage {
+  margin: 0;
+  color: #050505;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+}
+.why-choose-progress .progress-container,
+.why-choose-progress .progress {
+  border-radius: 500px;
+  position: relative;
+  height: 6px;
+  width: 100%;
+  border-radius: 12px;
+  background: #e6e6e6;
+}
+.why-choose-progress .progress {
+  background-color: var(--primary-color);
+  width: 0;
+  transition: width 0.3s linear;
+  height: 6px;
+  top: -1px;
+  left: 0;
+}
+.why-choose-progress .percentage {
+  font-size: 0px;
+  position: absolute;
+  left: 0;
+  transition: left 0.3s linear;
+}
+.why-choose-inner {
+  margin-left: 32px;
+}
+.why-choose-content {
+  margin-top: 40px;
+}
+.why-choose-info {
+  padding: 24px 0px;
+  border-top: 1px solid #d0ccc9;
+}
+.why-choose-info:last-child {
+  border-bottom: 1px solid #d0ccc9;
+}
+.why-choose-info .category {
+  color: var(--title-color);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 30px;
+  display: block;
+  margin-bottom: 6px;
+  position: relative;
+  padding-left: 24px;
+}
+.why-choose-info .category::before {
+  position: absolute;
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: var(--title-color);
+  border-radius: 100%;
+  left: 0;
+  top: 12px;
+}
+.why-choose-info .title {
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 62px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.why-choose-info .text {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+}
+
+/* Why choose Style 2 */
+.why-choose-style2 .why-choose-progress {
+  margin: 0;
+  background: transparent;
+  padding: 0;
+  margin-top: 30px;
+}
+.why-choose-style2 .why-choose-progress .progress-item {
+  margin-bottom: 32px;
+}
+.why-choose-style2 .why-chooses-img {
+  height: 100%;
+  right: 0;
+  position: absolute;
+  top: 0;
+  width: 50%;
+}
+.why-choose-style2 .why-chooses-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1600px) {
+  .why-choose-progress {
+    margin: 32px;
+  }
+}
+
+@media only screen and (max-width: 991.99px) {
+  .why-choose-right {
+    position: initial;
+    width: 100%;
+    height: auto;
+    padding-bottom: 4px;
+  }
+  .why-choose-progress {
+    margin: 24px;
+  }
+  .why-choose-inner {
+    margin-left: 0;
+    margin-top: 40px;
+  }
+  .why-choose-info .title {
+    font-size: 40px;
+    line-height: 46px;
+  }
+  .why-choose-info .category {
+    font-size: 18px;
+  }
+  .why-choose-style2 .why-chooses-img {
+    height: 400px;
+    position: inherit;
+    width: 100%;
+    margin-top: 40px;
+    object-fit: cover;
+  }
+  .why-choose {
+    padding-bottom: 0;
+  }
+}
+
+/*================================================================================================
+    End Why Choose CSS
+===================================================================================================*/

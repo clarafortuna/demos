@@ -1,0 +1,130 @@
+/*================================================================================================
+    Start Partners CSS
+===================================================================================================*/
+.partners {
+  padding-left: 60px;
+  padding-right: 60px;
+}
+.owl-carousel.partner-slider {
+  margin-top: 60px;
+}
+
+.partners .section-head .title {
+  font-size: 20px;
+  line-height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+}
+.partners .section-head .b-line {
+  width: 427px;
+  height: 1px;
+  background: rgba(0, 0, 0, 1);
+  display: block;
+}
+.partners .owl-item {
+  background: rgba(239, 234, 231, 1);
+  text-align: center;
+  padding: 80px 40px;
+  border-radius: 15px;
+}
+.partner-item img {
+  min-width: 192px;
+  height: 48px;
+  object-fit: contain;
+}
+
+/* Partner Style 2 */
+.partners-style2 .owl-item {
+  background: var(--offwhite-color);
+}
+
+/* Partner Style 3 */
+.partners-style3 {
+  padding-top: 80px;
+  padding-left: 0;
+  padding-right: 0;
+}
+.partners-style3 .owl-carousel.partner-slider {
+  margin-top: 40px;
+}
+.partners-style3 .section-head .title {
+  display: block;
+  line-height: 30px;
+  font-weight: 400;
+}
+.partners-style3 .owl-item {
+  background: transparent;
+  text-align: center;
+  padding: 0 !important;
+  border-radius: 15px;
+}
+.partners-style3 .partner-item img {
+  min-width: 124px;
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1600px) {
+  .partners .owl-item {
+    padding: 40px 24px;
+  }
+  .partner-item img {
+    min-width: 140px;
+  }
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1400px) {
+  .partners {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .partners .section-head .title {
+    white-space: nowrap;
+  }
+  .partner-item img {
+    min-width: 124px;
+  }
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199.99px) {
+  .partners {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .partners .owl-item {
+    padding: 24px;
+  }
+  .partner-item img {
+    min-width: 180px;
+  }
+  .partners .section-head .title {
+    white-space: nowrap;
+  }
+}
+
+@media only screen and (max-width: 991.99px) {
+  .partners .section-head .b-line {
+    display: none;
+  }
+  .partners {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .partner-item img {
+    min-width: 100%;
+    height: 40px;
+  }
+  .partners .owl-item {
+    padding: 16px;
+  }
+  .owl-carousel.partner-slider {
+    margin-top: 40px;
+  }
+  .partners-style3 {
+    padding-top: 56px;
+  }
+}
+
+/*================================================================================================
+    End Partners CSS
+===================================================================================================*/

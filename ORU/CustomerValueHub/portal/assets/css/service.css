@@ -1,0 +1,661 @@
+/*================================================================================================
+    Start Service CSS
+===================================================================================================*/
+.service-head {
+  gap: 206px;
+  margin-bottom: 40px;
+}
+.service-img img {
+  max-width: 424px;
+}
+.service-wrapper {
+  margin-top: 80px;
+}
+
+.service-wrapper {
+  margin-top: 80px;
+}
+.service-item {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 212px;
+  border-bottom: 1px solid var(--border-color);
+  padding: 42px 0px;
+}
+.service-item:first-child {
+  border-top: 1px solid var(--border-color);
+}
+.service-info {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+}
+.service-info.right {
+  gap: 200px;
+}
+.service-info .number {
+  font-size: 18px;
+  line-height: 18px;
+  display: inline-block;
+}
+
+.service-info .title {
+  font-size: 42px;
+  line-height: 42px;
+  font-weight: 600;
+  margin: 0;
+  min-width: 360px;
+}
+.service-item:hover .service-info .title {
+  color: var(--primary-color);
+}
+.service-info .text {
+  font-size: 18px;
+  line-height: 28px;
+  min-width: 384px;
+}
+
+.service-info .service-btn {
+  display: block;
+  width: 60px;
+  height: 60px;
+  border: 1px solid var(--secondary-color);
+  color: var(--secondary-color);
+  text-align: center;
+  border-radius: 100%;
+  min-width: 60px;
+  line-height: 67px;
+  transform: rotate(-44deg);
+  font-size: 28px;
+  transition: all 0.3s ease;
+}
+.service-item:hover .service-info .service-btn {
+  background: var(--primary-color);
+  border: 1px solid transparent;
+  color: var(--white-color);
+  transform: rotate(0);
+}
+.service-section-btm {
+  text-align: center;
+  margin-top: 60px;
+}
+.service-section-btm p {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--title-color);
+}
+.service-section-btm p a {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+/* Service Style2  */
+.service-style2 .service-wrapper {
+  margin-top: 60px;
+}
+.service-style2 .service-item {
+  height: 140px;
+  position: relative;
+  z-index: 3;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(34, 34, 34, 0.15);
+  inset: initial;
+  pointer-events: auto;
+}
+.service-style2 .service-item:hover {
+  height: 230px;
+}
+.service-style2 .service-info-content {
+  min-width: 560px;
+}
+.service-style2 .service-info .number {
+  margin-top: 10px;
+}
+.service-style2 .service-info .title {
+  min-width: 100%;
+}
+.service-style2 .service-info .text {
+  min-width: 100%;
+  margin-top: 30px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-24px);
+  transition: all 0.2s ease;
+}
+.service-style2 .service-item:hover .service-info .text {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.service-style2 .service-info {
+  align-items: start;
+  width: 100%;
+}
+.service-style2 .service-info.right {
+  justify-content: right;
+}
+.service-style2 .service-info .service-btn {
+  margin-top: -3px;
+}
+.service-style2 .service-img {
+  position: absolute;
+  z-index: 33;
+  right: 185px;
+  top: 0px;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+.service-style2 .service-item:hover .service-img {
+  top: 48px;
+  opacity: 1;
+  visibility: visible;
+}
+.service-style2 .service-img img {
+  border-radius: 8px;
+  max-width: 394px;
+  min-width: 394px;
+}
+
+/* Service Style3  */
+.service-style3 .service-wrapper {
+  margin-top: 40px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+}
+.service-style3 .service-item {
+  display: block;
+  padding: 14px;
+  border: none !important;
+  background: #f5f5f5;
+  border-radius: 16px;
+}
+.service-style3 .service-img {
+  overflow: hidden;
+  border-radius: 16px;
+}
+.service-style3 .service-img img {
+  max-width: 100%;
+  border-radius: 16px;
+}
+.service-style3 .service-item:hover .service-img img {
+  transform: scale(1.06);
+}
+.service-style3 .service-content {
+  padding: 22px;
+}
+.service-style3 .service-content .title {
+  color: var(--title-color);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 34px;
+  margin: 0;
+  display: block;
+  margin-bottom: 12px;
+}
+.service-style3 .service-content .title:hover {
+  color: var(--primary-color);
+}
+.service-style3 .service-content .text {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+}
+.service-style3 .service-content a {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary-color);
+  margin-top: 40px;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+}
+.service-style3 .service-content a i {
+  position: relative;
+  top: 3px;
+}
+.service-style3 .service-content a:hover {
+  color: var(--title-color);
+}
+
+/* Service Style4  */
+.service-style4 .service-item {
+  border-bottom: 1px solid #c5c5c5;
+  padding: 40px 0px;
+}
+.service-style4 .service-info.right {
+  margin-top: 28px;
+}
+.service-style4 .service-info {
+  display: block;
+}
+.service-style4 .service-info .service-btn {
+  border: 1px solid transparent;
+  float: right;
+  background: #f5f5f5;
+}
+.service-style4 .service-item:first-child {
+  border-top: none;
+}
+.service-style4 .service-info .title {
+  font-size: 52px;
+  line-height: 62px;
+  min-width: auto;
+  margin-bottom: 16px;
+}
+.service-style4 .service-info .text {
+  min-width: auto;
+}
+
+/* Service Page Projects  */
+
+.service-projects .section-head.style2 .title {
+  font-size: 62px;
+  line-height: 72px;
+  font-weight: 700;
+}
+
+.service-projects .service-item {
+  height: auto;
+  align-items: center;
+  padding: 32px 0px;
+}
+.service-projects .service-wrapper {
+  margin-top: 80px;
+}
+.service-projects .service-info-content {
+  min-width: 800px;
+}
+.service-projects .service-item:hover {
+  height: auto;
+}
+.service-projects .service-info .category {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+  margin-top: 8px;
+}
+.service-projects .service-info .title {
+  line-height: 52px;
+  color: var(--title-color) !important;
+}
+.service-projects .service-info .service-btn {
+  border: 1px solid transparent;
+  background: #f5f5f5;
+}
+.service-projects .service-item:hover .service-img {
+  top: 98px;
+}
+.service-projects .service-img {
+  top: 32px;
+  right: 212px;
+}
+.service-projects .service-img img {
+  border-radius: 0px;
+  max-width: 380px;
+  min-width: 380px;
+  border-radius: 8px;
+}
+
+/* Service Details   */
+.sd-widget-img img {
+  width: 100%;
+}
+.sd-widget-content {
+  margin-top: 60px;
+}
+.sd-widget-content .title {
+  font-size: 62px;
+  font-weight: 700;
+  line-height: 72px;
+  text-transform: capitalize;
+  margin-bottom: 32px;
+}
+.sd-widget-content .text {
+  font-size: 18px;
+  line-height: 30px;
+}
+.sd-features {
+  margin: 80px 0px;
+}
+.sd-features-list {
+  display: flex;
+  gap: 80px;
+  padding: 40px 0px;
+  border-top: 1px solid rgba(34, 34, 34, 0.15);
+}
+.sd-features-list:last-child {
+  border-bottom: 1px solid rgba(34, 34, 34, 0.15);
+}
+.sd-features-list .sf-number span {
+  font-size: 42px;
+  font-weight: 500;
+  line-height: 30px;
+  color: var(--title-color);
+}
+.sd-features-list .sf-info h4 {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 30px;
+  margin-bottom: 24px;
+}
+.sd-features-list .sf-info p {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+}
+.video-widget .sd-widget-content {
+  margin-top: 0px;
+}
+.sub-service-widget .sd-widget-content {
+  margin-top: 38px;
+}
+.video-widget .title,
+.sub-service-widget .title {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 52px;
+  margin-bottom: 18px;
+}
+.video-widget .video.video-style2 {
+  height: 700px;
+  margin-top: 60px;
+}
+.sd-sub-sevice {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 42px;
+}
+.sub-sevice-card {
+  background: #f6f5f3;
+  padding: 35px;
+}
+.sub-sevice-card .title {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 34px;
+  margin-bottom: 12px;
+}
+.sub-sevice-card .text {
+  font-size: 18px;
+  line-height: 30px;
+}
+.sub-sevice-card .list {
+  margin-top: 32px;
+}
+.sub-sevice-card .list li {
+  display: flex;
+  margin-bottom: 16px;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+.sub-sevice-card .list li:last-child {
+  margin: 0;
+}
+.sub-sevice-card .list li i {
+  position: relative;
+  top: 2px;
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1400px) {
+  .service-item {
+    gap: 40px;
+  }
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199.99px) {
+  .service .service-head {
+    display: block;
+  }
+  .service .service-img img {
+    max-width: 100%;
+  }
+  .service .service-img {
+    margin-top: 40px;
+  }
+  .service-info.right {
+    gap: 80px;
+  }
+  .service-info .text {
+    min-width: auto;
+  }
+  .service-info .title {
+    font-size: 32px;
+  }
+  .service-info {
+    gap: 24px;
+  }
+  .service-item {
+    gap: 40px;
+  }
+  .service-style3 .service-img {
+    margin: 0;
+  }
+  .service-style3 .service-content {
+    padding: 16px;
+  }
+  .service-style3 .service-content .title {
+    font-size: 24px;
+  }
+  .service-projects .section-head.style2 .title {
+    font-size: 48px;
+    line-height: 120%;
+  }
+  .service-projects .service-wrapper {
+    margin-top: 50px;
+  }
+}
+
+@media only screen and (max-width: 991.99px) {
+  .service-head {
+    display: block;
+  }
+  .service-img img {
+    max-width: 100%;
+  }
+  .service-img {
+    margin-top: 24px;
+  }
+  .service-wrapper {
+    margin-top: 40px;
+  }
+  .service-item,
+  .service-info {
+    display: block;
+  }
+  .service-item {
+    padding: 24px 0px;
+  }
+  .service-info .title {
+    font-size: 24px;
+    line-height: 120%;
+    min-width: 100%;
+    margin-bottom: 12px;
+  }
+  .service-info .text {
+    line-height: 140%;
+    min-width: 100%;
+  }
+  .service-info .service-btn {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    line-height: 52px;
+    font-size: 20px;
+    margin-top: 24px;
+  }
+  .service-info .number {
+    margin-bottom: 12px;
+  }
+  .service-section-btm {
+    margin-top: 32px;
+  }
+  .service-style2 .service-wrapper {
+    margin-top: 40px;
+  }
+  .service-style2 .service-item {
+    height: auto !important;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 24px;
+  }
+
+  .service-style2 .service-img {
+    position: initial;
+    opacity: 1;
+    visibility: visible;
+    order: -1;
+    margin: 0;
+  }
+  .service-style2 .service-info .text {
+    margin-top: 16px;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .service-style2 .service-img img {
+    max-width: 300px;
+    min-width: 300px;
+  }
+  .service-style2 .service-info-content {
+    min-width: 100%;
+  }
+
+  .service-style3 .service-wrapper {
+    grid-template-columns: repeat(1, 1fr);
+    margin-top: 24px;
+  }
+  .service-style3 .service-content {
+    padding: 16px;
+  }
+  .service-style3 .service-content .title {
+    font-size: 24px;
+  }
+  .service-style3 .service-content .text {
+    line-height: 140%;
+  }
+  .service-style3 .service-content a {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+  .service-style3 .service-img {
+    text-align: center;
+    margin: 0;
+  }
+  .service-style3 .service-img img {
+    width: 100%;
+  }
+  .service-style4 .service-info .title {
+    font-size: 24px;
+    line-height: 120%;
+  }
+  .service-style4 .service-info .service-btn {
+    float: initial;
+  }
+  .service-style4 .service-info.right {
+    margin-top: 16px;
+  }
+  .service-projects .section-head.style2 .title {
+    font-size: 30px;
+    line-height: 140%;
+  }
+  .service-style2 .service-img img {
+    max-width: 100%;
+    min-width: 100%;
+  }
+  .service-projects .service-info .title {
+    line-height: 120%;
+  }
+  .service-style4 .service-item {
+    border-bottom: none;
+    padding: 0;
+  }
+
+  .sd-widget.pd-top-120 {
+    padding-top: 56px;
+  }
+
+  .sd-widget.sub-service-widget.pd-btm-120 {
+    padding-bottom: 56px;
+  }
+  .sd-widget-content .title {
+    font-size: 30px;
+    line-height: 120%;
+    margin-bottom: 16px;
+  }
+  .sd-widget-content {
+    margin-top: 40px;
+  }
+  .sd-features {
+    margin: 56px 0px;
+  }
+  .sd-features-list .sf-info h4 {
+    font-size: 30px;
+    line-height: 120%;
+    margin-bottom: 16px;
+  }
+  .sd-features-list .sf-number span {
+    font-size: 30px;
+  }
+  .sd-features-list {
+    padding: 24px 0px;
+    gap: 30px;
+  }
+
+  .video-widget .title,
+  .sub-service-widget .title {
+    font-size: 30px;
+    line-height: 120%;
+  }
+  .video-widget .video.video-style2 {
+    height: 400px;
+    margin-top: 40px;
+  }
+  .sd-sub-sevice {
+    grid-template-columns: repeat(1, 1fr);
+  }
+  .sub-sevice-card {
+    padding: 24px;
+  }
+
+  .sub-sevice-card .title {
+    font-size: 24px;
+    line-height: 120%;
+    margin-bottom: 6px;
+  }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991.99px) {
+  .service-wrapper {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+  }
+  .service-style2 .service-item {
+    padding: 0;
+  }
+  .service-style2 .service-img img {
+    height: 300px;
+    object-fit: cover;
+  }
+  .service-style2 .service-item {
+    border: none;
+  }
+  .service-style3 .service-wrapper,
+  .sd-sub-sevice {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/*================================================================================================
+    End Service CSS
+===================================================================================================*/

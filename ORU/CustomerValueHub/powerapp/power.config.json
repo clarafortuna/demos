@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "appId": "0a0c6fa7-a7ff-4976-b967-dbec9ad797b2",
+  "appDisplayName": "O&R Customer Value Hub",
+  "region": "prod",
+  "environmentId": "5c344ac0-7294-e6e9-8c4e-0ad374893c12",
+  "description": "O&R Unified Innovation Portal.",
+  "buildPath": "./dist",
+  "buildEntryPoint": "index.html",
+  "localAppUrl": "http://localhost:3000",
+  "logoPath": "Default",
+  "connectionReferences": {},
+  "databaseReferences": {
+    "default.cds": {
+      "dataSources": {
+        "requests": {
+          "entitySetName": "ptrl_requests",
+          "logicalName": "ptrl_request"
+        },
+        "ideas": {
+          "entitySetName": "ptrl_ideas",
+          "logicalName": "ptrl_idea"
+        },
+        "attachments": {
+          "entitySetName": "ptrl_attachments",
+          "logicalName": "ptrl_attachment"
+        },
+        "usecases": {
+          "entitySetName": "ptrl_usecases",
+          "logicalName": "ptrl_usecase"
+        }
+      },
+      "environmentVariableName": ""
+    }
+  }
+}

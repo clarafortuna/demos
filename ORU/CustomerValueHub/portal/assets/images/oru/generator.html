@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>O&R image generator</title>
+<style>html,body{margin:0;padding:0;overflow:hidden;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+/* Generative images for the O&R AI Portfolio homepage. Each image is drawn
+   at the exact size of the template placeholder it replaces; open with
+   ?id=<name> and screenshot. Seeded, so every run draws the same picture.
+   Where a picture can carry real data it does: the funfact spiral is the
+   78 tracker requests, the business area cards count their own requests. */
+var P = {
+  navy0: '#0a1530', navy1: '#12244b', navy2: '#1f3a7a', navy3: '#3a5aa8',
+  orange: '#f07f2d', burnt: '#c24e17', amber: '#ffb36b', ember: '#e2562a',
+  beige: '#efeae7', cream: '#f7f3ef', sand: '#e3d9d1', ink: '#1d2333'
+};
+var SIZES = {
+  hero: [1890, 900], about1: [560, 710], about2: [648, 366], service: [424, 186],
+  funfact: [878, 996], features: [878, 984], contact: [878, 786], video: [1890, 700],
+  testi1: [150, 290], testi2: [150, 290],
+  port1: [305, 395], port2: [305, 395], port3: [305, 395], port4: [305, 395], port5: [305, 395],
+  blog1: [375, 185], blog2: [375, 185], blog3: [375, 185],
+  client1: [64, 64], client2: [64, 64], client3: [64, 64]
+};
+
+/* ---- seeded random and smooth noise ------------------------------------ */
+var seed = 7;
+function rnd(){ seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+var PERM = [];
+function initNoise(s){ seed = s; PERM = []; for (var i = 0; i < 512; i++) PERM[i] = Math.floor(rnd() * 256); }
+function hash(x, y){ return PERM[(PERM[x & 255] + y) & 255] / 255; }
+function fade(t){ return t * t * (3 - 2 * t); }
+function vnoise(x, y){
+  var xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi;
+  var a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+  var u = fade(xf), v = fade(yf);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+}
+function fbm(x, y){ var t = 0, amp = .5, f = 1; for (var o = 0; o < 4; o++){ t += amp * vnoise(x * f, y * f); f *= 2; amp *= .5; } return t / .9375; }
+
+function lerpColor(a, b, t){
+  var pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  var r = (pa >> 16) + (((pb >> 16) - (pa >> 16)) * t), g = ((pa >> 8) & 255) + ((((pb >> 8) & 255) - ((pa >> 8) & 255)) * t),
+      bl = (pa & 255) + (((pb & 255) - (pa & 255)) * t);
+  return 'rgb(' + (r | 0) + ',' + (g | 0) + ',' + (bl | 0) + ')';
+}
+function rgba(hex, a){ var p = parseInt(hex.slice(1), 16); return 'rgba(' + (p >> 16) + ',' + ((p >> 8) & 255) + ',' + (p & 255) + ',' + a + ')'; }
+
+/* Film grain over everything, so vector work stops looking like vector work. */
+function grain(ctx, W, H, amt){
+  var img = ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height), d = img.data;
+  for (var i = 0; i < d.length; i += 4){ var n = (rnd() - .5) * amt; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
+  ctx.putImageData(img, 0, 0);
+}
+function glow(ctx, x, y, r, color, a){
+  var g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, rgba(color, a)); g.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+function bgLinear(ctx, W, H, c1, c2, ang){
+  var g = ctx.createLinearGradient(0, 0, W * Math.cos(ang || 0) + 0, H * Math.sin(ang || 1));
+  g.addColorStop(0, c1); g.addColorStop(1, c2); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+}
+
+/* ---- motifs ------------------------------------------------------------- */
+
+/* Flow field: thousands of fine strands following a noise field, like
+   current through a network. */
+function flowField(ctx, W, H, o){
+  initNoise(o.seed || 11);
+  var n = o.count || 2600, steps = o.steps || 90, sc = o.scale || .0016;
+  ctx.lineWidth = o.lw || .7; ctx.lineCap = 'round';
+  for (var i = 0; i < n; i++){
+    var x = rnd() * W * 1.1 - W * .05, y = rnd() * H, t = x / W;
+    ctx.strokeStyle = rgba(t < .5 ? o.c1 : o.c2, (o.alpha || .22) * (.4 + rnd() * .8));
+    ctx.beginPath(); ctx.moveTo(x, y);
+    for (var s = 0; s < steps; s++){
+      var a = fbm(x * sc, y * sc) * Math.PI * (o.turn || 3.2) + (o.bias || 0);
+      x += Math.cos(a) * 3; y += Math.sin(a) * 3;
+      ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+  }
+}
+
+/* Contours: isolines of a smooth terrain, read as the hills of Orange and
+   Rockland counties. Marching squares over a noise grid. */
+function contours(ctx, W, H, o){
+  initNoise(o.seed || 3);
+  var cs = 5, cols = Math.ceil(W / cs) + 1, rows = Math.ceil(H / cs) + 1, f = [];
+  for (var j = 0; j < rows; j++){ f[j] = []; for (var i = 0; i < cols; i++) f[j][i] = fbm(i * cs * (o.scale || .004), j * cs * (o.scale || .004) + 3); }
+  var levels = o.levels || 22;
+  for (var L = 1; L < levels; L++){
+    var lv = L / levels;
+    ctx.strokeStyle = typeof o.color === 'function' ? o.color(lv) : o.color;
+    ctx.lineWidth = (L % 5 === 0) ? (o.lwMajor || 1.6) : (o.lw || .8);
+    ctx.beginPath();
+    for (var j = 0; j < rows - 1; j++) for (var i = 0; i < cols - 1; i++){
+      var a = f[j][i], b = f[j][i + 1], c = f[j + 1][i + 1], d = f[j + 1][i];
+      var idx = (a > lv ? 8 : 0) | (b > lv ? 4 : 0) | (c > lv ? 2 : 0) | (d > lv ? 1 : 0);
+      if (idx === 0 || idx === 15) continue;
+      var x = i * cs, y = j * cs;
+      var top = [x + cs * (lv - a) / (b - a), y], right = [x + cs, y + cs * (lv - b) / (c - b)],
+          bot = [x + cs * (lv - d) / (c - d), y + cs], left = [x, y + cs * (lv - a) / (d - a)];
+      var segs = { 1: [left, bot], 2: [bot, right], 3: [left, right], 4: [top, right], 5: [left, top, bot, right], 6: [top, bot], 7: [left, top],
+                   8: [left, top], 9: [top, bot], 10: [left, bot, top, right], 11: [top, right], 12: [left, right], 13: [bot, right], 14: [left, bot] }[idx];
+      for (var k = 0; k < segs.length; k += 2){ ctx.moveTo(segs[k][0], segs[k][1]); ctx.lineTo(segs[k + 1][0], segs[k + 1][1]); }
+    }
+    ctx.stroke();
+  }
+}
+
+/* Network: nodes joined to their nearest neighbours, a few of them lit. */
+function network(ctx, W, H, o){
+  seed = o.seed || 21;
+  var nodes = [], n = o.count || 70;
+  for (var i = 0; i < n; i++) nodes.push({ x: 30 + rnd() * (W - 60), y: 24 + rnd() * (H - 48), r: 1.6 + rnd() * 3.2, lit: rnd() < (o.lit || .14) });
+  ctx.lineWidth = .9;
+  nodes.forEach(function(a){
+    var near = nodes.map(function(b){ return { b: b, d: Math.hypot(a.x - b.x, a.y - b.y) }; }).sort(function(p, q){ return p.d - q.d; }).slice(1, 4);
+    near.forEach(function(nb){
+      var hot = a.lit && nb.b.lit;
+      ctx.strokeStyle = hot ? rgba(o.hot, .85) : rgba(o.edge, o.edgeAlpha || .28);
+      ctx.lineWidth = hot ? 1.6 : .9;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(nb.b.x, nb.b.y); ctx.stroke();
+    });
+  });
+  nodes.forEach(function(a){
+    if (a.lit) glow(ctx, a.x, a.y, a.r * 7, o.hot, .35);
+    ctx.fillStyle = a.lit ? o.hot : o.node;
+    ctx.beginPath(); ctx.arc(a.x, a.y, a.lit ? a.r + 1.5 : a.r, 0, Math.PI * 2); ctx.fill();
+  });
+}
+
+/* Perspective grid toward a lit horizon. */
+function horizonGrid(ctx, W, H, o){
+  var hy = H * (o.horizon || .52), cx = W * .5;
+  ctx.strokeStyle = rgba(o.line, .32); ctx.lineWidth = 1.1;
+  for (var i = -40; i <= 40; i++){ ctx.beginPath(); ctx.moveTo(cx + i * 14, hy); ctx.lineTo(cx + i * W * .09, H + 20); ctx.stroke(); }
+  for (var k = 1; k < 26; k++){
+    var t = Math.pow(k / 26, 2.2), y = hy + (H - hy) * t;
+    ctx.strokeStyle = rgba(o.line, .1 + t * .35);
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+  }
+}
+
+function blobs(ctx, W, H, list){
+  ctx.save(); ctx.filter = 'blur(' + Math.round(Math.min(W, H) * .18) + 'px)';
+  list.forEach(function(b){ ctx.fillStyle = b[3]; ctx.beginPath(); ctx.ellipse(b[0] * W, b[1] * H, b[2] * W, b[2] * W * (b[4] || 1), b[5] || 0, 0, Math.PI * 2); ctx.fill(); });
+  ctx.restore();
+}
+
+/* ---- the images ----------------------------------------------------------- */
+var DRAW = {
+  hero: function(ctx, W, H){
+    bgLinear(ctx, W, H, P.navy0, P.navy1, .9);
+    glow(ctx, W * .72, H * .38, W * .42, P.burnt, .45);
+    glow(ctx, W * .2, H * .8, W * .3, P.navy2, .6);
+    ctx.globalCompositeOperation = 'lighter';
+    flowField(ctx, W, H, { seed: 5, count: 3400, steps: 110, scale: .0011, c1: P.amber, c2: P.orange, alpha: .2, turn: 2.6, bias: -.4, lw: .8 });
+    ctx.globalCompositeOperation = 'source-over';
+    // a faint dot lattice, the "grid"
+    ctx.fillStyle = 'rgba(255,255,255,.07)';
+    for (var y = 20; y < H; y += 30) for (var x = 20; x < W; x += 30) ctx.fillRect(x, y, 1.4, 1.4);
+    glow(ctx, W * .72, H * .38, 90, P.amber, .55);
+    grain(ctx, W, H, 14);
+  },
+  about1: function(ctx, W, H){
+    bgLinear(ctx, W, H, P.navy1, P.navy0, 1.2);
+    contours(ctx, W, H, { seed: 9, scale: .0042, levels: 24, lw: .8, lwMajor: 1.5,
+      color: function(lv){ return rgba(lv > .55 ? P.orange : P.amber, .25 + lv * .55); } });
+    glow(ctx, W * .62, H * .34, W * .55, P.burnt, .28);
+    grain(ctx, W, H, 12);
+  },
+  about2: function(ctx, W, H){
+    ctx.fillStyle = P.cream; ctx.fillRect(0, 0, W, H);
+    network(ctx, W, H, { seed: 31, count: 80, edge: P.navy2, edgeAlpha: .22, node: P.navy2, hot: P.burnt, lit: .16 });
+    grain(ctx, W, H, 8);
+  },
+  service: function(ctx, W, H){
+    bgLinear(ctx, W, H, P.navy1, P.navy0, .5);
+    initNoise(4);
+    var n = 70, bw = W / n;
+    for (var i = 0; i < n; i++){
+      var h = (fbm(i * .09, 1.3) * .8 + .1) * H * .78, x = i * bw;
+      ctx.fillStyle = rgba(i > n * .62 ? P.orange : P.amber, i > n * .62 ? .95 : .55);
+      ctx.fillRect(x + bw * .22, H - 18 - h, bw * .56, h);
+    }
+    ctx.fillStyle = rgba('#ffffff', .25); ctx.fillRect(0, H - 17, W, 1);
+    grain(ctx, W, H, 10);
+  },
+  /* The 78 tracker requests as a phyllotaxis spiral, ordered by date logged.
+     Open requests are lit orange (29), closed ones are navy (49). */
+  funfact: function(ctx, W, H){
+    ctx.fillStyle = P.beige; ctx.fillRect(0, 0, W, H);
+    seed = 41;
+    var total = 78, open = 29, cx = W * .5, cy = H * .5, c = Math.min(W, H) * .052;
+    var isOpen = []; for (var i = 0; i < total; i++) isOpen.push(i >= total - open || (rnd() < .0)); // most recent are the open ones
+    // Rings first, faint
+    ctx.strokeStyle = rgba(P.navy2, .1); ctx.lineWidth = 1;
+    for (var r = 1; r < 10; r++){ ctx.beginPath(); ctx.arc(cx, cy, c * Math.sqrt(r * 9), 0, Math.PI * 2); ctx.stroke(); }
+    for (var k = 0; k < total; k++){
+      var ang = k * 2.39996323, rad = c * Math.sqrt(k + .6), x = cx + Math.cos(ang) * rad, y = cy + Math.sin(ang) * rad;
+      var size = 9 + (k / total) * 9;
+      if (isOpen[k]){ glow(ctx, x, y, size * 3, P.orange, .3); ctx.fillStyle = P.burnt; }
+      else ctx.fillStyle = P.navy2;
+      ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+    }
+    grain(ctx, W, H, 9);
+  },
+  /* Request, evidence, decision: strands from the left gathering to one point. */
+  features: function(ctx, W, H){
+    bgLinear(ctx, W, H, P.navy0, P.navy1, 1);
+    seed = 51;
+    var tx = W * .8, ty = H * .5;
+    glow(ctx, tx, ty, W * .45, P.burnt, .4);
+    ctx.lineWidth = 1;
+    for (var i = 0; i < 260; i++){
+      var sy = rnd() * H * 1.2 - H * .1, band = i % 3;
+      ctx.strokeStyle = rgba(band === 0 ? P.amber : band === 1 ? P.orange : '#9fb4e6', .22 + rnd() * .25);
+      ctx.beginPath(); ctx.moveTo(-10, sy);
+      ctx.bezierCurveTo(W * .35, sy, W * .5, ty + (sy - ty) * .25, tx, ty + (rnd() - .5) * 6);
+      ctx.stroke();
+    }
+    glow(ctx, tx, ty, 70, P.amber, .9);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(tx, ty, 7, 0, Math.PI * 2); ctx.fill();
+    grain(ctx, W, H, 12);
+  },
+  /* Intake: concentric rings of an aperture, particles drawn into it. */
+  contact: function(ctx, W, H){
+    bgLinear(ctx, W, H, P.navy1, P.navy0, .8);
+    var cx = W * .52, cy = H * .5;
+    glow(ctx, cx, cy, W * .5, P.burnt, .35);
+    for (var r = 1; r <= 18; r++){
+      ctx.strokeStyle = rgba(r % 4 === 0 ? P.orange : '#ffffff', r % 4 === 0 ? .5 : .08);
+      ctx.lineWidth = r % 4 === 0 ? 1.4 : 1;
+      ctx.beginPath(); ctx.arc(cx, cy, r * 22, 0, Math.PI * 2); ctx.stroke();
+    }
+    seed = 61;
+    for (var i = 0; i < 900; i++){
+      var a = rnd() * Math.PI * 2, d = 40 + Math.pow(rnd(), .6) * W * .6;
+      var x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d, s = Math.max(.6, 2.6 - d / 260);
+      ctx.fillStyle = rgba(d < 200 ? P.amber : '#ffffff', d < 200 ? .8 : .35);
+      ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI * 2); ctx.fill();
+    }
+    glow(ctx, cx, cy, 60, P.amber, .9);
+    grain(ctx, W, H, 12);
+  },
+  video: function(ctx, W, H){
+    bgLinear(ctx, W, H, P.navy0, '#060d1f', 1.57);
+    glow(ctx, W * .5, H * .52, W * .45, P.burnt, .55);
+    horizonGrid(ctx, W, H, { horizon: .52, line: P.amber });
+    ctx.globalCompositeOperation = 'lighter';
+    flowField(ctx, W, H * .5, { seed: 17, count: 900, steps: 80, scale: .0015, c1: P.amber, c2: P.orange, alpha: .14, turn: 1.4, bias: 0 });
+    ctx.globalCompositeOperation = 'source-over';
+    var g = ctx.createLinearGradient(0, H * .5, 0, H * .54); g.addColorStop(0, rgba(P.amber, 0)); g.addColorStop(.5, rgba(P.amber, .7)); g.addColorStop(1, rgba(P.amber, 0));
+    ctx.fillStyle = g; ctx.fillRect(0, H * .5, W, H * .04);
+    grain(ctx, W, H, 12);
+  },
+  testi1: function(ctx, W, H){
+    ctx.fillStyle = P.navy1; ctx.fillRect(0, 0, W, H);
+    blobs(ctx, W, H, [[.3, .25, .6, P.burnt], [.8, .7, .55, P.orange], [.2, .9, .5, P.navy2]]);
+    seed = 71; grain(ctx, W, H, 16);
+  },
+  testi2: function(ctx, W, H){
+    ctx.fillStyle = P.burnt; ctx.fillRect(0, 0, W, H);
+    blobs(ctx, W, H, [[.7, .2, .6, P.amber], [.25, .6, .6, P.navy2], [.8, .95, .5, P.orange]]);
+    seed = 72; grain(ctx, W, H, 16);
+  },
+  /* The five decisions, one quiet emblem each. */
+  port1: function(ctx, W, H){ // start: a sun rising
+    ctx.fillStyle = P.beige; ctx.fillRect(0, 0, W, H);
+    var cx = W / 2, cy = H * .78;
+    for (var r = 16; r > 0; r--){ ctx.strokeStyle = rgba(P.burnt, .1 + (16 - r) * .02); ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(cx, cy, 40 + r * 14, Math.PI, 0); ctx.stroke(); }
+    var g = ctx.createLinearGradient(0, cy - 80, 0, cy); g.addColorStop(0, P.orange); g.addColorStop(1, P.burnt);
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 80, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = P.navy1; ctx.fillRect(0, cy, W, H - cy);
+    seed = 81; grain(ctx, W, H, 10);
+  },
+  port2: function(ctx, W, H){ // a big bet: large ring, small weight
+    ctx.fillStyle = P.navy1; ctx.fillRect(0, 0, W, H);
+    glow(ctx, W * .5, H * .45, W * .6, P.navy2, .8);
+    ctx.strokeStyle = rgba(P.amber, .85); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(W * .5, H * .45, 96, 0, Math.PI * 2); ctx.stroke();
+    ctx.strokeStyle = rgba('#ffffff', .15); ctx.lineWidth = 1;
+    for (var r = 1; r < 6; r++){ ctx.beginPath(); ctx.arc(W * .5, H * .45, 96 + r * 18, 0, Math.PI * 2); ctx.stroke(); }
+    glow(ctx, W * .5 + 68, H * .45 - 68, 40, P.orange, .7);
+    ctx.fillStyle = P.orange; ctx.beginPath(); ctx.arc(W * .5 + 68, H * .45 - 68, 13, 0, Math.PI * 2); ctx.fill();
+    seed = 82; grain(ctx, W, H, 12);
+  },
+  port3: function(ctx, W, H){ // revisit: the note and the demand overlap
+    ctx.fillStyle = P.cream; ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = rgba(P.orange, .85); ctx.beginPath(); ctx.arc(W * .4, H * .46, 88, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = rgba(P.navy3, .75); ctx.beginPath(); ctx.arc(W * .62, H * .56, 88, 0, Math.PI * 2); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    seed = 83; grain(ctx, W, H, 9);
+  },
+  port4: function(ctx, W, H){ // sequence: work queued, one waiting
+    ctx.fillStyle = P.sand; ctx.fillRect(0, 0, W, H);
+    var widths = [.72, .54, .8, .4, .64, .5, .76];
+    widths.forEach(function(w, i){
+      var y = 70 + i * 38;
+      ctx.fillStyle = i === 3 ? P.burnt : rgba(P.navy1, .82);
+      ctx.fillRect(36, y, (W - 72) * w, 18);
+      if (i === 3){ ctx.strokeStyle = P.burnt; ctx.setLineDash([4, 5]); ctx.strokeRect(36, y - 6, W - 72, 30); ctx.setLineDash([]); }
+    });
+    seed = 84; grain(ctx, W, H, 9);
+  },
+  port5: function(ctx, W, H){ // challenge: a field of lines with one broken
+    ctx.fillStyle = P.navy0; ctx.fillRect(0, 0, W, H);
+    var k = .32; // slope, so lines run across the card
+    for (var i = -12; i < 30; i++){
+      var x = i * 16;
+      var broken = i === 9;
+      ctx.lineWidth = broken ? 4 : 1.6;
+      ctx.strokeStyle = broken ? P.orange : rgba('#ffffff', .18);
+      ctx.beginPath();
+      if (broken){
+        ctx.moveTo(x, 0); ctx.lineTo(x + H * .44 * k, H * .44);
+        ctx.moveTo(x + H * .6 * k + 10, H * .6); ctx.lineTo(x + H * k + 10, H);
+      } else { ctx.moveTo(x, 0); ctx.lineTo(x + H * k, H); }
+      ctx.stroke();
+    }
+    glow(ctx, 9 * 16 + H * .52 * k + 5, H * .52, 60, P.orange, .35); // at the break
+    seed = 85; grain(ctx, W, H, 12);
+  },
+  /* Business areas: one dot per request logged, open ones in orange. */
+  blog1: function(ctx, W, H){ dotCount(ctx, W, H, 27, 15, P.cream); },
+  blog2: function(ctx, W, H){ dotCount(ctx, W, H, 7, 0, P.sand); },
+  blog3: function(ctx, W, H){ dotCount(ctx, W, H, 40, 13, P.beige); },
+  client1: function(ctx, W, H){ avatar(ctx, W, H, P.burnt, P.orange); },
+  client2: function(ctx, W, H){ avatar(ctx, W, H, P.navy1, P.navy3); },
+  client3: function(ctx, W, H){ avatar(ctx, W, H, '#b9a89a', P.sand); }
+};
+function dotCount(ctx, W, H, n, open, bg){
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  var cols = 10, gap = 26, r = 8, gw = (cols - 1) * gap, rows = Math.ceil(n / cols);
+  var x0 = (W - gw) / 2, y0 = (H - (rows - 1) * gap) / 2;
+  for (var i = 0; i < n; i++){
+    var x = x0 + (i % cols) * gap, y = y0 + Math.floor(i / cols) * gap;
+    ctx.fillStyle = i < open ? P.burnt : P.navy2;
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  seed = 90 + n; grain(ctx, W, H, 7);
+}
+function avatar(ctx, W, H, c1, c2){
+  var g = ctx.createLinearGradient(0, 0, W, H); g.addColorStop(0, c2); g.addColorStop(1, c1);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = 'rgba(255,255,255,.85)';
+  ctx.beginPath(); ctx.arc(W / 2, H * .4, W * .16, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(W / 2, H * .9, W * .3, H * .24, 0, Math.PI, 0); ctx.fill();
+}
+
+var id = new URLSearchParams(location.search).get('id') || 'hero';
+var size = SIZES[id], cv = document.getElementById('c'), dpr = window.devicePixelRatio || 1;
+cv.width = size[0] * dpr; cv.height = size[1] * dpr; cv.style.width = size[0] + 'px'; cv.style.height = size[1] + 'px';
+var ctx = cv.getContext('2d'); ctx.scale(dpr, dpr);
+DRAW[id](ctx, size[0], size[1]);
+document.title = 'done:' + id;
+</script>
+</body>
+</html>

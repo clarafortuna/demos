@@ -1,0 +1,634 @@
+/*================================================================================================
+    Start About CSS
+===================================================================================================*/
+.about::before {
+  position: absolute;
+  content: "";
+  width: 546px;
+  height: 666px;
+  background-image: url("../images/home-1/about/pattern.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  bottom: 0;
+  z-index: -1;
+  left: 0;
+}
+.about-inner {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 112px;
+  margin-top: 30px;
+}
+
+.about-img-block img {
+  max-width: 560px;
+}
+
+.about-content-main .text {
+  font-size: 18px;
+  line-height: 28px;
+}
+
+.about-rattings {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.about-rattings .icon {
+  width: 56px;
+  height: 56px;
+  text-align: center;
+  line-height: 54px;
+  background: var(--secondary-color);
+  color: var(--white-color);
+  border-radius: 4px;
+  font-size: 28px;
+}
+
+.about-rattings .title {
+  font-size: 24px;
+  line-height: 34px;
+  color: var(--title-color);
+  font-weight: 600;
+}
+
+.about-rattings {
+  border-top: 1px solid var(--border-color);
+  margin-top: 25px;
+  padding-top: 25px;
+  position: relative;
+}
+
+.about-rattings::before {
+  position: absolute;
+  content: "";
+  width: 72%;
+  height: 1px;
+  background: var(--secondary-color);
+  top: 0;
+}
+
+.about-content-img {
+  margin-top: 112px;
+}
+
+.about-content-img img {
+  max-width: 648px;
+}
+
+/* About Style 2 */
+.about-style2::before {
+  display: none;
+}
+.about-style2 .about-img-block {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 46%;
+  height: 100%;
+  padding: 120px 0px;
+}
+.about-style2 .about-img-block img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  max-width: 100%;
+}
+.about-style2 .about-content-img img {
+  min-width: 630px;
+  max-width: 630px;
+}
+.about-style2 .about-content-main .text {
+  margin-top: 40px;
+}
+.about-style2 .about-content-img {
+  margin-top: 56px;
+}
+
+/* About Style 3 */
+
+.about-style3::before {
+  display: none;
+}
+.about-style3 .about-inner {
+  border-radius: 16px;
+}
+.about-style3 .about-features {
+  margin-top: 30px;
+}
+.abt-features-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.abt-features-icon {
+  width: 92px;
+  height: 92px;
+  background: var(--primary-color);
+  border-radius: 100%;
+  text-align: center;
+  line-height: 92px;
+  min-width: 92px;
+}
+.abt-features-info .title {
+  color: var(--title-color);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 30px;
+  margin-bottom: 12px;
+}
+.abt-features-info .text {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+}
+.abt-features-item:last-child {
+  margin: 0;
+}
+.about-style3 .about-content-bottom {
+  margin-top: 50px;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+.about-style3 .about-content-bottom .theme-btn {
+  border-radius: 50px;
+  background: var(--secondary-color);
+  padding: 18px 40px;
+  line-height: 24px;
+}
+.about-style3 .about-content-bottom .theme-btn:hover {
+  background: var(--primary-color);
+}
+.about-style3 .about-content-profile {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.about-style3 .profile-img img {
+  width: 62px;
+  height: 62px;
+  border-radius: 100%;
+  object-fit: cover;
+}
+.about-style3 .profile-info p {
+  color: var(--title-color);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 140%;
+  letter-spacing: -1px;
+  margin-bottom: 4px;
+}
+.about-style3 .profile-info span {
+  display: block;
+  color: #475467;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 150%;
+  letter-spacing: -0.5px;
+}
+.about-style3 .about-image-blocks {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-left: 80px;
+}
+.about-style3 .about-widget-info {
+  border-radius: 16px;
+  background: var(--primary-color);
+  padding: 30px 24px;
+  height: 306px;
+  padding-top: 132px;
+  width: 224px;
+}
+.about-style3 .about-widget-info .text {
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: capitalize;
+  display: block;
+  margin-bottom: 16px;
+}
+.about-style3 .about-widget-info .title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 36px;
+}
+.about-style3 .about-img img {
+  max-width: 444px;
+  border-radius: 16px;
+}
+.about-style3 .about-img.img-2,
+.about-style3 .about-img.img-3 {
+  margin-top: 20px;
+}
+.about-style3 .about-img.img-3 img {
+  max-width: 224px;
+}
+
+/* About Page Hero  */
+.about-hero {
+  padding-top: 90px;
+}
+.about-hero-content {
+  display: flex;
+  align-items: baseline;
+  gap: 180px;
+}
+
+.about-hero-content .title {
+  font-size: 100px;
+  font-weight: 600;
+  line-height: 110px;
+  letter-spacing: -2px;
+  margin: 0;
+}
+.about-hero-widget {
+  min-width: 380px;
+  position: relative;
+  top: 50px;
+}
+.about-hero-widget .text {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 32px;
+}
+.about-hero-client {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid #c5c5c5;
+  padding-top: 20px;
+  margin-top: 28px;
+}
+.about-hero-client .client-list {
+  margin-left: 14px;
+}
+.about-hero-client .client-list li {
+  display: inline-block;
+  margin-left: -16px;
+}
+.about-hero-client .client-list li img {
+  border-radius: 100%;
+}
+.about-hero-client .client-info h5 {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  margin-bottom: 2px;
+}
+.about-hero-client .client-info p {
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 26px;
+}
+.about-hero-img img {
+  width: 100%;
+}
+.about-hero-img {
+  max-width: 1890px;
+  margin: auto;
+  margin-top: 100px;
+}
+.about.about-page::before {
+  display: none;
+}
+
+/* About Funfact  */
+.abt-funfact-inner {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-left: 50px;
+}
+.abt-funfact-card {
+  margin-right: 30px;
+  padding-right: 30px;
+  position: relative;
+  min-width: 312px;
+}
+.abt-funfact-card::before {
+  position: absolute;
+  content: "";
+  width: 1px;
+  height: 100%;
+  background: #c5c5c5;
+  right: 0;
+}
+.abt-funfact-card:last-child {
+  padding: 0;
+  margin: 0;
+}
+.abt-funfact-card:last-child::before {
+  display: none;
+}
+.abt-funfact-card .number {
+  font-size: 90px;
+  font-weight: 600;
+  font-family: var(--font-family);
+  display: flex;
+  align-items: center;
+  line-height: 74px;
+}
+.abt-funfact-card .number .odometer {
+  font-family: var(--font-family);
+  line-height: 74px;
+  letter-spacing: 6.5px;
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1400px) {
+  .about-inner {
+    gap: 80px;
+  }
+  .about-img-block img {
+    max-width: 100%;
+  }
+  .about-content-img img {
+    max-width: 100%;
+  }
+  .about-style2 .about-content-img img {
+    min-width: 550px;
+    max-width: 550px;
+  }
+  .about-style3 .about-img img {
+    max-width: 320px;
+  }
+  .about-hero-content .title {
+    font-size: 52px;
+    line-height: 140%;
+  }
+  .about-hero-content {
+    align-items: center;
+    gap: 8px;
+  }
+  .about-hero-widget {
+    top: 0;
+  }
+  .about-hero-img {
+    margin-top: 80px;
+  }
+  .abt-funfact-inner {
+    grid-template-columns: repeat(3, 1fr);
+    margin-left: 0px;
+    gap: 24px 0px;
+  }
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199.99px) {
+  .about-inner {
+    gap: 40px;
+  }
+  .about-img-block img,
+  .about-content-img img {
+    max-width: 100%;
+  }
+  .about-content-img {
+    margin-top: 40px;
+  }
+  .about-style2 .about-img-block {
+    position: initial;
+    width: 100%;
+    height: 600px;
+    padding: 0;
+    margin-top: 40px;
+  }
+  .about-style2 .about-content-img img {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .about-style3 .about-image-blocks {
+    margin-left: 0;
+    margin-top: 40px;
+  }
+  .about-hero-content .title {
+    font-size: 52px;
+    line-height: 140%;
+  }
+  .about-hero-content {
+    align-items: center;
+    gap: 8px;
+  }
+  .about-hero-widget {
+    top: 0;
+  }
+  .about-hero-img {
+    margin-top: 80px;
+  }
+  .abt-funfact-inner {
+    grid-template-columns: repeat(3, 1fr);
+    margin-left: 0px;
+    gap: 24px 0px;
+  }
+}
+
+@media only screen and (max-width: 991.99px) {
+  .about-img-block img {
+    max-width: 100%;
+  }
+  .about-inner {
+    display: block;
+  }
+  .about-content-main .text {
+    margin-top: 24px;
+  }
+  .about-content-img img {
+    max-width: 100%;
+  }
+  .about-content-img {
+    margin-top: 24px;
+  }
+  .about-rattings .title {
+    font-size: 16px;
+    line-height: 140%;
+  }
+  .about-rattings {
+    gap: 20px;
+  }
+  .about-rattings .icon {
+    width: 48px;
+    height: 48px;
+    line-height: 46px;
+    font-size: 24px;
+  }
+  .about-content-img {
+    margin-top: 24px;
+  }
+  .about-content-img img {
+    max-width: 100%;
+  }
+  .about-style2 .about-img-block {
+    position: initial;
+    width: 100%;
+    padding: 32px 0px 0px;
+  }
+  .about-style2 .about-content-img img {
+    min-width: 100%;
+    max-width: 100%;
+  }
+  .about-style2 .about-content-main .text {
+    margin-top: 24px;
+  }
+  .about-style3 .about-inner {
+    padding: 32px 16px;
+  }
+  .abt-features-icon {
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    min-width: 80px;
+  }
+  .abt-features-info .text {
+    line-height: 140%;
+  }
+  .abt-features-info .title {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .abt-features-item {
+    display: block;
+  }
+  .about-style3 .about-content-bottom {
+    margin-top: 30px;
+    display: block;
+  }
+  .about-style3 .about-content-bottom .theme-btn {
+    padding: 12px 24px;
+  }
+  .about-style3 .about-content-profile {
+    margin-top: 16px;
+  }
+  .abt-features-info {
+    margin-top: 24px;
+  }
+  .about-style3 .about-image-blocks {
+    margin-left: 0;
+    margin-top: 40px;
+  }
+  .about-style3 .about-img img {
+    max-width: 340px;
+  }
+  .about-hero-content {
+    display: block;
+  }
+  .about-hero-content .title {
+    font-size: 60px;
+    line-height: 120%;
+    margin-bottom: 16px;
+  }
+  .about-hero-widget {
+    top: 0;
+  }
+  .about-hero-img {
+    max-width: 100%;
+    margin-top: 40px;
+  }
+  .abt-funfact-inner {
+    grid-template-columns: repeat(2, 1fr);
+    margin-left: 0px;
+    gap: 40px;
+  }
+  .abt-funfact-card {
+    margin-right: 0px;
+    padding-right: 0px;
+    min-width: 100%;
+  }
+  .abt-funfact-card::before {
+    display: none;
+  }
+  .abt-funfact-card .number {
+    font-size: 62px;
+    line-height: 48px;
+  }
+  .abt-funfact-card .number .odometer {
+    line-height: 48px;
+  }
+  .about-hero {
+    padding-top: 56px;
+  }
+}
+
+@media only screen and (max-width: 767px) {
+  .about-style3 .about-image-blocks {
+    grid-template-columns: repeat(1, 1fr);
+    margin-left: 0;
+    margin-top: 40px;
+  }
+  .about-style3 .about-img.img-3 img {
+    max-width: 100%;
+    width: 100%;
+  }
+  .about-style3 .about-img img {
+    width: 100%;
+    max-width: 100%;
+    height: 220px;
+    object-fit: cover;
+  }
+  .about-style3 .about-widget-info {
+    padding: 24px;
+    height: auto;
+    padding-top: 24px;
+    width: 100%;
+  }
+  .about-style3 .about-widget-info .title {
+    font-size: 20px;
+    line-height: 120%;
+  }
+  .about-hero-content .title {
+    font-size: 30px;
+    line-height: 120%;
+    letter-spacing: 0;
+  }
+  .about-hero-content,
+  .about-hero-client {
+    display: block;
+  }
+
+  .about-hero-widget {
+    min-width: 100%;
+    top: 0;
+    margin-top: 16px;
+  }
+  .about-hero-widget .text {
+    line-height: 140%;
+  }
+  .about-hero-img {
+    max-width: 100%;
+    margin-top: 40px;
+  }
+  .about-hero {
+    padding-top: 56px;
+  }
+  .client-info {
+    margin-top: 12px;
+  }
+  .abt-funfact-inner {
+    grid-template-columns: repeat(2, 1fr);
+    margin-left: 0;
+    gap: 24px;
+  }
+  .abt-funfact-card::before {
+    display: none;
+  }
+  .abt-funfact-card {
+    margin-right: 0;
+    padding-right: 0;
+    min-width: 100%;
+  }
+  .abt-funfact-card .number {
+    font-size: 38px;
+    line-height: 30px;
+    margin-bottom: 12px;
+  }
+  .abt-funfact-card .number .odometer {
+    line-height: 40px;
+  }
+  .abt-funfact-card p {
+    line-height: 120%;
+  }
+}
+
+/*================================================================================================
+    End About CSS
+===================================================================================================*/

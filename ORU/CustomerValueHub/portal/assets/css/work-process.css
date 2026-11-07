@@ -1,0 +1,308 @@
+/*================================================================================================
+    Start Work Process Area
+===================================================================================================*/
+.work-process {
+  overflow: hidden;
+}
+.work-process-img {
+  height: 100%;
+  right: 0;
+  position: absolute;
+  top: 0;
+  width: 46%;
+}
+.work-process-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.work-process-inner {
+  padding-right: 40px;
+}
+.work-process-content {
+  margin-top: 44px;
+}
+.process-single {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  margin-bottom: 56px;
+  position: relative;
+  z-index: 2;
+}
+.process-single:last-child {
+  margin: 0;
+}
+.process-single::before {
+  position: absolute;
+  content: "";
+  width: 4px;
+  height: 100px;
+  background: var(--primary-color);
+  left: 52px;
+  bottom: -81px;
+  z-index: -1;
+}
+.process-single:last-child::before {
+  display: none;
+}
+.process-icon {
+  width: 104px;
+  min-width: 104px;
+  height: 104px;
+  line-height: 104px;
+  background: var(--title-color);
+  border-radius: 100%;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+.process-single:hover .process-icon {
+  background: var(--primary-color);
+}
+.process-icon img {
+  width: 48px;
+  height: 48px;
+}
+.process-info .title {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 30px;
+  margin-bottom: 16px;
+}
+.process-info p {
+  color: #404249;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 30px;
+}
+
+/* Work Process Style2 */
+.work-process-style2 .work-process-inner {
+  padding: 0;
+  display: flex;
+  gap: 52px;
+  margin-top: 40px;
+}
+.w-process-tab-menu {
+  min-width: 336px;
+}
+.w-process-tab-menu {
+  min-width: 336px;
+}
+.w-process-tab-menu .list-group {
+  background: #ebf3ff;
+  padding: 14px;
+}
+.w-process-tab-menu .list-group-item {
+  background-color: transparent;
+  border: none !important;
+  padding: 20px;
+  border-radius: 12px !important;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+}
+.w-process-tab-menu .list-group-item.active {
+  background: var(--primary-color);
+}
+.w-process-tab-content .tab-content-img img {
+  border-radius: 30px;
+  min-width: 932px;
+}
+.w-process-tab-content .tab-content-info {
+  margin-top: 40px;
+}
+.w-process-tab-content .tab-content-process {
+  margin-top: 64px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 24px;
+  position: relative;
+}
+.w-process-tab-content .tab-content-process::before {
+  position: absolute;
+  content: "";
+  width: 872px;
+  height: 2px;
+  background: var(--primary-color);
+  top: 40px;
+  left: 30px;
+  z-index: -1;
+}
+.w-process-tab-content .single-tab-process {
+  text-align: center;
+}
+.w-process-tab-content .tab-content-info h3 {
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 46px;
+  margin-bottom: 18px;
+}
+.w-process-tab-content .tab-content-info p {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 30px;
+}
+.w-process-tab-content .process-icon {
+  width: 80px;
+  min-width: 80px;
+  height: 80px;
+  line-height: 77px;
+  background: var(--white-color);
+  border: 2px solid var(--primary-color);
+  margin: auto;
+  transition: all 0.3s ease;
+}
+.w-process-tab-content .process-icon img {
+  width: 42px;
+  height: 42px;
+  transition: all 0.3s ease;
+}
+.w-process-tab-content .single-tab-process:hover .process-icon {
+  background: var(--primary-color);
+  border: 2px solid transparent;
+}
+.w-process-tab-content .single-tab-process:hover .process-icon img {
+  filter: brightness(0) invert(1);
+}
+.w-process-tab-content .tab-content-info .process-title {
+  margin-top: 14px;
+  color: var(--title-color);
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 26px;
+}
+
+@media only screen and (min-width: 1200px) and (max-width: 1400px) {
+  .w-process-tab-content .tab-content-process {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .w-process-tab-content .tab-content-process::before {
+    display: none;
+  }
+  .w-process-tab-content .tab-content-img img {
+    min-width: 100%;
+  }
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199.99px) {
+  .w-process-tab-content .tab-content-img img {
+    min-width: 100%;
+  }
+  .w-process-tab-menu {
+    min-width: 260px;
+  }
+  .work-process-style2 .work-process-inner {
+    gap: 32px;
+  }
+  .w-process-tab-content .tab-content-process {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .w-process-tab-content .tab-content-process::before {
+    display: none;
+  }
+}
+
+@media only screen and (max-width: 991.99px) {
+  .work-process-img {
+    position: inherit;
+    width: 100%;
+    margin-top: 40px;
+  }
+  .work-process-inner {
+    padding-right: 0px;
+  }
+  .process-icon {
+    width: 80px;
+    min-width: 80px;
+    height: 80px;
+    line-height: 80px;
+  }
+  .process-icon img {
+    width: 32px;
+    height: 32px;
+  }
+  .process-info .title {
+    margin-bottom: 8px;
+  }
+  .process-info p {
+    line-height: 140%;
+  }
+  .process-single {
+    margin-bottom: 40px;
+    display: block;
+  }
+  .process-single::before {
+    display: none;
+  }
+  .process-info {
+    margin-top: 16px;
+  }
+  .w-process-tab-menu .list-group {
+    gap: 12px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    text-align: center;
+  }
+  .w-process-tab-menu .list-group-item {
+    padding: 12px;
+    font-size: 14px;
+    line-height: 120%;
+    background: #006aff21;
+  }
+  .work-process-style2 .work-process-inner {
+    display: inline;
+  }
+  .w-process-tab-content .tab-content-img img {
+    min-width: 100%;
+  }
+  .w-process-tab-content .tab-content-info h3 {
+    font-size: 28px;
+    line-height: 120%;
+    margin-bottom: 12px;
+  }
+  .w-process-tab-content .tab-content-info p {
+    line-height: 160%;
+  }
+  .w-process-tab-content .tab-content-process {
+    margin-top: 40px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+
+  .w-process-tab-content .tab-content-process::before {
+    display: none;
+  }
+  .w-process-tab-content .process-icon {
+    width: 70px;
+    min-width: 70px;
+    height: 70px;
+    line-height: 68px;
+  }
+  .w-process-tab-content .process-icon img {
+    width: 32px;
+    height: 32px;
+  }
+  .w-process-tab-content {
+    margin-top: 40px;
+  }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 991.99px) {
+  .w-process-tab-content .tab-content-process {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .w-process-tab-menu .list-group {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .w-process-tab-menu .list-group-item {
+    padding: 16px;
+  }
+}
+
+/*================================================================================================
+    End Work Process Area
+===================================================================================================*/

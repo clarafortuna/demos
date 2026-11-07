@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="only light">
+<title>Raise a Request That Gets Answered</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="assets/js/site-config.js"></script>
+<!--
+  Interactive training: how to raise a request that reaches the right people
+  and gets answered fast. Embedded on training.html; also works on its own.
+
+  Five short exercises with instant feedback, led by Rocky, the guide. The
+  request types, response targets, systems and routing are the ones the
+  Intake form uses (portal.html); the examples are drawn from the reporting
+  requests tracker. Progress is kept in this browser.
+
+  When embedded, the page reports its height to the parent
+  ({type:'oru-frame-height'}) so the frame fits it without a scrollbar.
+-->
+<style>
+:root {
+  --brand: #c24e17; --brand-dark: #a3410f; --brand-tint: #fdf1ea; --brand-line: #f3cdb6;
+  --ink: #222222; --ink-2: #404249; --ink-3: #6b6f78;
+  --line: #e6dfda; --surface: #ffffff; --ground: #f6f2ef;
+  --ok: #047857; --ok-tint: #e7f6ee; --no: #b42318; --no-tint: #fdecec;
+  --radius: 16px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: transparent; color: var(--ink); font-family: Outfit, 'Segoe UI', Arial, sans-serif; }
+body { padding: 8px; }
+button { font: inherit; color: inherit; }
+button:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+
+.tm { max-width: 1040px; margin: 0 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 22px;
+  box-shadow: 0 24px 60px -30px rgba(60, 30, 10, .35); overflow: hidden; }
+
+/* Top bar: title, step dots, progress */
+.tm-top { display: flex; align-items: center; gap: 16px; padding: 18px 26px; border-bottom: 1px solid var(--line); background: var(--ground); flex-wrap: wrap; }
+.tm-title { font-weight: 700; font-size: 16px; }
+.tm-title small { display: block; font-weight: 500; font-size: 12px; color: var(--ink-3); letter-spacing: .08em; text-transform: uppercase; }
+.tm-steps { display: flex; gap: 6px; margin-left: auto; }
+.tm-steps button { width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; font-size: 12px; font-weight: 700; color: var(--ink-3); cursor: pointer; }
+.tm-steps button[aria-current="step"] { border-color: var(--brand); color: var(--brand); box-shadow: 0 0 0 3px var(--brand-tint); }
+.tm-steps button.done { background: var(--brand); border-color: var(--brand); color: #fff; }
+.tm-steps button:disabled { cursor: default; opacity: .55; }
+.tm-bar { height: 4px; background: var(--line); }
+.tm-bar i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .45s cubic-bezier(.2,.8,.2,1); }
+
+/* Body: guide on the left, the exercise on the right */
+.tm-body { display: grid; grid-template-columns: 250px 1fr; min-height: 470px; }
+.tm-guide { background: linear-gradient(180deg, var(--brand-tint), #fff 70%); border-right: 1px solid var(--line); padding: 26px 22px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.rocky { width: 150px; height: 150px; }
+.rocky .blink { animation: blink 4.5s infinite; transform-origin: center; transform-box: fill-box; }
+.rocky.cheer { animation: hop .6s ease; }
+.rocky.hmm { animation: tilt .6s ease; }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+@keyframes hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-14px); } }
+@keyframes tilt { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-7deg); } 70% { transform: rotate(5deg); } }
+.bubble { position: relative; background: #fff; border: 1.5px solid var(--brand-line); border-radius: 14px; padding: 14px 16px; font-size: 15px; line-height: 1.5; color: var(--ink-2); width: 100%; }
+.bubble::before { content: ''; position: absolute; top: -9px; left: 50%; width: 16px; height: 16px; background: #fff; border-left: 1.5px solid var(--brand-line); border-top: 1.5px solid var(--brand-line); transform: translateX(-50%) rotate(45deg); }
+.bubble b { color: var(--ink); }
+.guide-name { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--brand); }
+
+.tm-main { padding: 30px 34px 26px; display: flex; flex-direction: column; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--brand); }
+h2 { margin: 6px 0 8px; font-size: 26px; line-height: 1.2; font-weight: 700; }
+.lede { margin: 0 0 20px; font-size: 16px; line-height: 1.55; color: var(--ink-2); max-width: 60ch; }
+.scene { animation: rise .35s ease both; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Scenario card */
+.case { border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; background: var(--ground); margin-bottom: 16px; }
+.case .who { font-size: 12px; font-weight: 700; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+.case .what { margin-top: 6px; font-size: 18px; font-weight: 600; line-height: 1.4; }
+.count { font-size: 13px; color: var(--ink-3); font-weight: 600; margin-bottom: 8px; }
+
+/* Choices */
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.choice { text-align: left; border: 1.5px solid var(--line); background: #fff; border-radius: 12px; padding: 12px 14px; cursor: pointer; font-size: 15px; font-weight: 600; line-height: 1.3; transition: border-color .15s, background .15s, transform .1s; }
+.choice small { display: block; margin-top: 3px; font-size: 13px; font-weight: 500; color: var(--ink-3); }
+.choice:hover:not(:disabled) { border-color: var(--brand); background: var(--brand-tint); }
+.choice:active:not(:disabled) { transform: scale(.99); }
+.choice:disabled { cursor: default; }
+.choice.right { border-color: var(--ok); background: var(--ok-tint); }
+.choice.wrong { border-color: var(--no); background: var(--no-tint); }
+.choice.dim { opacity: .5; }
+.choices.one { grid-template-columns: minmax(0, 1fr); }
+
+.feedback { margin-top: 14px; border-radius: 12px; padding: 12px 16px; font-size: 15px; line-height: 1.5; display: none; }
+.feedback.on { display: block; animation: rise .25s ease both; }
+.feedback.ok { background: var(--ok-tint); color: #064e3b; border-left: 4px solid var(--ok); }
+.feedback.no { background: var(--no-tint); color: #7a1a12; border-left: 4px solid var(--no); }
+
+/* Matching: pick a need, then its system */
+.match { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.match h4 { margin: 0 0 8px; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.match .col { display: flex; flex-direction: column; gap: 8px; }
+.pill { text-align: left; border: 1.5px solid var(--line); background: #fff; border-radius: 12px; padding: 11px 14px; cursor: pointer; font-size: 15px; font-weight: 600; transition: border-color .15s, background .15s; }
+.pill small { display: block; font-weight: 500; font-size: 12.5px; color: var(--ink-3); }
+.pill:hover:not(:disabled) { border-color: var(--brand); }
+.pill.sel { border-color: var(--brand); background: var(--brand-tint); box-shadow: 0 0 0 3px var(--brand-tint); }
+.pill.paired { border-color: var(--ok); background: var(--ok-tint); cursor: default; }
+.pill.shake { animation: shake .35s; border-color: var(--no); }
+@keyframes shake { 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.pill .tagged { display: inline-block; margin-left: 6px; font-size: 12px; color: var(--ok); }
+
+/* Timeline */
+.steps { display: grid; gap: 10px; }
+.stp { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start; text-align: left; border: 1.5px solid var(--line); background: #fff; border-radius: 14px; padding: 12px 14px; cursor: pointer; }
+.stp .n { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-tint); color: var(--brand); font-weight: 800; }
+.stp b { display: block; font-size: 16px; }
+.stp span { font-size: 14px; color: var(--ink-3); }
+.stp .more { display: none; margin-top: 6px; font-size: 14.5px; line-height: 1.5; color: var(--ink-2); }
+.stp[aria-expanded="true"] { border-color: var(--brand); }
+.stp[aria-expanded="true"] .n { background: var(--brand); color: #fff; }
+.stp[aria-expanded="true"] .more { display: block; }
+
+/* Badge */
+.finish { text-align: center; padding-top: 10px; }
+.badge { width: 150px; height: 150px; margin: 0 auto 8px; }
+.badge .ring { animation: spin 14s linear infinite; transform-origin: 75px 75px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.score { font-size: 15px; color: var(--ink-2); margin: 0 0 18px; }
+.score b { color: var(--brand); font-size: 22px; }
+.recap { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; text-align: left; margin: 0 0 20px; }
+.recap div { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 14px; line-height: 1.45; color: var(--ink-2); background: var(--ground); }
+.recap b { display: block; color: var(--ink); font-size: 14.5px; margin-bottom: 2px; }
+
+/* Footer controls */
+.tm-foot { margin-top: auto; padding-top: 22px; display: flex; gap: 10px; align-items: center; }
+.btn { display: inline-flex; align-items: center; gap: 8px; border: 0; border-radius: 10px; padding: 12px 20px; font-size: 15px; font-weight: 700; cursor: pointer; text-decoration: none; }
+.btn-primary { background: var(--brand); color: #fff; }
+.btn-primary:hover { background: var(--brand-dark); }
+.btn-primary:disabled { background: #e4cfc4; cursor: default; }
+.btn-ghost { background: #fff; color: var(--ink); border: 1.5px solid var(--line); }
+.btn-ghost:hover { border-color: var(--ink-3); }
+.spacer { flex: 1; }
+.hint { font-size: 13px; color: var(--ink-3); }
+
+@media (max-width: 760px) {
+  .tm-body { grid-template-columns: minmax(0, 1fr); }
+  .tm-guide { border-right: 0; border-bottom: 1px solid var(--line); flex-direction: row; align-items: center; padding: 16px; }
+  .rocky { width: 84px; height: 84px; flex: none; }
+  .bubble::before { top: 50%; left: -9px; transform: translateY(-50%) rotate(-45deg); }
+  .guide-name { display: none; }
+  .tm-main { padding: 22px 18px; }
+  .choices, .match, .recap { grid-template-columns: minmax(0, 1fr); }
+  .tm-steps { margin-left: 0; }
+  h2 { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="tm" id="tm">
+  <div class="tm-top">
+    <div class="tm-title"><small>Interactive Training · 4 minutes</small>Raise a Request That Gets Answered</div>
+    <nav class="tm-steps" id="dots" aria-label="Steps"></nav>
+  </div>
+  <div class="tm-bar"><i id="bar"></i></div>
+  <div class="tm-body">
+    <aside class="tm-guide" aria-live="polite">
+      <svg class="rocky" id="rocky" viewBox="0 0 160 160" role="img" aria-label="Rocky, your guide">
+        <ellipse cx="80" cy="150" rx="42" ry="6" fill="#000" opacity=".08"/>
+        <!-- body -->
+        <rect x="38" y="62" width="84" height="84" rx="38" fill="#c24e17"/>
+        <rect x="52" y="104" width="56" height="30" rx="12" fill="#a3410f" opacity=".35"/>
+        <!-- O&R mark on the vest -->
+        <g transform="translate(66 108)" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9">
+          <path d="M28 4 H14 a10 10 0 0 0 0 20 H28"/><path d="M28 10 H15 a4 4 0 0 0 0 8 H28"/>
+        </g>
+        <!-- face -->
+        <circle cx="80" cy="74" r="32" fill="#f7d9c4"/>
+        <g class="blink"><circle cx="69" cy="74" r="4" fill="#222"/><circle cx="91" cy="74" r="4" fill="#222"/></g>
+        <circle cx="62" cy="83" r="4" fill="#f0a98a" opacity=".7"/><circle cx="98" cy="83" r="4" fill="#f0a98a" opacity=".7"/>
+        <path id="mouth" d="M71 87 Q80 95 89 87" fill="none" stroke="#222" stroke-width="3" stroke-linecap="round"/>
+        <!-- hard hat -->
+        <path d="M44 62 Q46 30 80 28 Q114 30 116 62 Z" fill="#f2a516"/>
+        <rect x="38" y="58" width="84" height="9" rx="4.5" fill="#e0920a"/>
+        <rect x="76" y="30" width="8" height="30" rx="4" fill="#ffc94a"/>
+      </svg>
+      <div class="guide-name">Rocky · Your Guide</div>
+      <div class="bubble" id="say"></div>
+    </aside>
+    <main class="tm-main" id="main"></main>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* ---- content: the portal's own vocabulary ---------------------------- */
+  var TYPES = {
+    regulatory: { label: 'Regulatory', target: 'Same business day', note: 'Highest priority' },
+    executive:  { label: 'Officer or Executive Request', target: 'Within 1 business day', note: 'Picked up first after regulatory' },
+    defect:     { label: 'Defect', target: '24 to 48 hours', note: 'Something that worked is broken' },
+    pcr:        { label: 'PCR (Project Change Request)', target: '24 to 48 hours', note: 'A change to a project in flight' },
+    report:     { label: 'Report or Dashboard', target: '24 to 48 hours', note: 'Something new to look at, again and again' },
+    data:       { label: 'Data Request', target: '24 to 48 hours', note: 'A one time extract or list' }
+  };
+  var TYPE_CASES = [
+    { who: 'From the Regulatory Affairs team', what: 'The PSC asked for monthly severance counts for ORU and RECO, due tomorrow.', answer: 'regulatory',
+      why: 'Anything owed to a regulator is <b>Regulatory</b>: it goes to the top of the queue, with a same business day first response.' },
+    { who: 'From the VP of Customer Service', what: 'Call volume by week for the last quarter, for Monday’s leadership meeting.', answer: 'executive',
+      why: 'An officer asked for it, so it is an <b>Officer or Executive Request</b>: picked up within one business day.' },
+    { who: 'From a Customer Assistance supervisor', what: 'The ECD dashboard shows empty cells where the counts should be zero.', answer: 'defect',
+      why: 'It used to work and now it does not: a <b>Defect</b>. Say what you see and since when.' },
+    { who: 'From an Energy Services analyst', what: 'A list of accounts with a pending severance but service already off, once.', answer: 'data',
+      why: 'A one time list is a <b>Data Request</b>. If you will need it every week, ask for a <b>Report or Dashboard</b> instead.' }
+  ];
+  var SYSTEMS = [
+    { k: 'CCB', full: 'Customer Care and Billing' },
+    { k: 'CIMS', full: 'Customer Information Management' },
+    { k: 'DBM', full: 'Dashboards and Business Metrics' },
+    { k: 'NYSERDA', full: 'NYSERDA Reporting' }
+  ];
+  var NEEDS = [
+    { id: 'n1', text: 'Payment arrangements and reconnects on an account', sys: 'CCB' },
+    { id: 'n2', text: 'EV time of use kWh history for a customer', sys: 'CIMS' },
+    { id: 'n3', text: 'A change to an existing operations dashboard', sys: 'DBM' },
+    { id: 'n4', text: 'Clean energy program figures for the state', sys: 'NYSERDA' }
+  ];
+  var SUMMARY_CASES = [
+    { a: 'Report broken, please fix', b: 'E-Bill dashboard shows a blank email for 312 accounts since Feb 24', good: 'b',
+      why: 'It names the report, what is wrong, how many and since when. Nobody has to write back to ask.' },
+    { a: 'Accounts with a pending severance and service off, ORU and RECO, needed by Friday', b: 'Need data ASAP!!', good: 'a',
+      why: 'What, for which companies and by when. “ASAP” tells the desk nothing it can plan around.' },
+    { a: 'Fix the CIMS thing Jeanette mentioned', b: 'CIMS: active users with role and last login, for the Q1 access review', good: 'b',
+      why: 'The system first, then exactly what you need and why. A hallway conversation does not travel with the request.' }
+  ];
+  var NEXT = [
+    { t: 'Acknowledgement', s: 'Straight away', more: 'You get a request number and the response target for its type, by email and in My Requests. Nothing disappears into an inbox.' },
+    { t: 'Routing', s: 'By request type', more: 'Regulatory and executive requests go to the reporting desk lead; defects to the development team; PCRs to the project team; reports and data to the reporting desk.' },
+    { t: 'Classification', s: 'By business area', more: 'The request is placed in one of the five Customer Service Operations units, so the demand it represents can be compared with the initiatives aimed at that unit.' },
+    { t: 'Updates', s: 'Each time it moves', more: 'Every time your request changes stage, from Intake to Done, you get an email with where it is now. My Requests always shows the latest.' }
+  ];
+
+  var STEPS = ['welcome', 'type', 'system', 'summary', 'next', 'finish'];
+  var KEY = 'oru.training.request';
+  var st = { step: 0, done: {}, score: { type: 0, summary: 0, system: 0 } };
+  try { var saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && saved.done) st = saved; } catch (e) {}
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var main = $('main'), say = $('say'), rocky = $('rocky'), mouth = $('mouth');
+
+  function speak(html, mood) {
+    say.innerHTML = html;
+    rocky.classList.remove('cheer', 'hmm');
+    void rocky.offsetWidth;
+    if (mood) rocky.classList.add(mood);
+    mouth.setAttribute('d', mood === 'hmm' ? 'M71 90 Q80 86 89 90' : 'M71 87 Q80 95 89 87');
+  }
+
+  function dots() {
+    $('dots').innerHTML = STEPS.map(function (s, i) {
+      var reach = i <= st.step || st.done[STEPS[i - 1]] || i === 0;
+      return '<button type="button" data-go="' + i + '"' + (i === st.step ? ' aria-current="step"' : '') +
+        (st.done[s] ? ' class="done"' : '') + (reach ? '' : ' disabled') +
+        ' aria-label="Step ' + (i + 1) + '">' + (st.done[s] ? '&#10003;' : i + 1) + '</button>';
+    }).join('');
+    var doneCount = STEPS.filter(function (s) { return st.done[s]; }).length;
+    $('bar').style.width = Math.round(doneCount / STEPS.length * 100) + '%';
+  }
+
+  function foot(nextLabel, enabled, back) {
+    return '<div class="tm-foot">' + (back !== false && st.step > 0 ? '<button class="btn btn-ghost" type="button" data-back>Back</button>' : '') +
+      '<span class="spacer"></span><span class="hint" id="hint"></span>' +
+      '<button class="btn btn-primary" type="button" data-next' + (enabled ? '' : ' disabled') + '>' + nextLabel + ' &rarr;</button></div>';
+  }
+  function enableNext(hint) {
+    var b = main.querySelector('[data-next]'); if (b) b.disabled = false;
+    if (hint !== undefined) $('hint').textContent = hint;
+  }
+
+  /* ---- scenes ----------------------------------------------------------- */
+  var scenes = {
+    welcome: function () {
+      var site = (window.ORU_SITE && window.ORU_SITE.name) || 'the Customer Value Hub';
+      speak('Hi, I’m <b>Rocky</b>. In four minutes you’ll know how to raise a request that reaches the right people and gets answered fast.', 'cheer');
+      return '<div class="scene"><span class="eyebrow">Welcome</span><h2>A good request saves everyone a week.</h2>' +
+        '<p class="lede">Most requests that stall are missing one thing: the right type, the right system, or a clear summary. ' +
+        'Practise all three with real examples from the reporting desk, then see what happens after you press Raise It in ' + site + '.</p>' +
+        '<div class="recap">' +
+          '<div><b>1. Pick the type</b>It sets the priority and who picks it up.</div>' +
+          '<div><b>2. Name the system</b>It sends the work to the right team.</div>' +
+          '<div><b>3. Write one clear line</b>So nobody has to write back and ask.</div>' +
+        '</div></div>' + foot('Start', true, false);
+    },
+
+    type: function () {
+      var i = st.typeI || 0, c = TYPE_CASES[i];
+      speak(i === 0 ? 'The <b>request type</b> decides how fast someone answers and who it goes to. Which type is this one?' : 'Next one. Read who is asking: it often tells you the type.');
+      return '<div class="scene"><span class="eyebrow">Exercise 1 · Request Type</span><h2>Which type is it?</h2>' +
+        '<div class="count">Example ' + (i + 1) + ' of ' + TYPE_CASES.length + '</div>' +
+        '<div class="case"><div class="who">' + c.who + '</div><div class="what">' + c.what + '</div></div>' +
+        '<div class="choices" id="opts">' + Object.keys(TYPES).map(function (k) {
+          return '<button class="choice" type="button" data-type="' + k + '">' + TYPES[k].label + '<small>' + TYPES[k].target + '</small></button>';
+        }).join('') + '</div><div class="feedback" id="fb" role="status"></div></div>' +
+        foot(i < TYPE_CASES.length - 1 ? 'Next example' : 'Continue', false);
+    },
+
+    system: function () {
+      speak('Now the <b>system</b>. Pick a need on the left, then the system it lives in on the right.');
+      st.pairs = st.pairs || {};
+      return '<div class="scene"><span class="eyebrow">Exercise 2 · System</span><h2>Where does the work happen?</h2>' +
+        '<p class="lede">Naming the system sends the request to the team that owns it. Match each need to its system.</p>' +
+        '<div class="match"><div class="col"><h4>The need</h4>' + NEEDS.map(function (n) {
+          var p = st.pairs[n.id];
+          return '<button class="pill' + (p ? ' paired' : '') + '" type="button" data-need="' + n.id + '"' + (p ? ' disabled' : '') + '>' + n.text +
+            (p ? '<span class="tagged">&#10003; ' + p + '</span>' : '') + '</button>';
+        }).join('') + '</div><div class="col"><h4>The system</h4>' + SYSTEMS.map(function (s) {
+          return '<button class="pill" type="button" data-sys="' + s.k + '">' + s.k + '<small>' + s.full + '</small></button>';
+        }).join('') + '</div></div><div class="feedback" id="fb" role="status"></div></div>' +
+        foot('Continue', Object.keys(st.pairs).length === NEEDS.length);
+    },
+
+    summary: function () {
+      var i = st.sumI || 0, c = SUMMARY_CASES[i];
+      speak('The <b>one line summary</b> is what the desk reads first. Which of these would you rather receive?');
+      return '<div class="scene"><span class="eyebrow">Exercise 3 · One Line Summary</span><h2>Which summary works?</h2>' +
+        '<div class="count">Pair ' + (i + 1) + ' of ' + SUMMARY_CASES.length + '</div>' +
+        '<div class="choices one" id="opts">' +
+          '<button class="choice" type="button" data-sum="a">“' + c.a + '”</button>' +
+          '<button class="choice" type="button" data-sum="b">“' + c.b + '”</button>' +
+        '</div><div class="feedback" id="fb" role="status"></div></div>' +
+        foot(i < SUMMARY_CASES.length - 1 ? 'Next pair' : 'Continue', false);
+    },
+
+    next: function () {
+      speak('You pressed <b>Raise It</b>. Here is what happens next. Open each step.');
+      st.opened = st.opened || {};
+      return '<div class="scene"><span class="eyebrow">Step 4 · After You Raise It</span><h2>What happens next</h2>' +
+        '<p class="lede">No black box: every request follows the same four steps, and you hear about each one.</p>' +
+        '<div class="steps">' + NEXT.map(function (n, i) {
+          return '<button class="stp" type="button" data-step="' + i + '" aria-expanded="' + !!st.opened[i] + '"><span class="n">' + (i + 1) + '</span>' +
+            '<span><b>' + n.t + '</b><span>' + n.s + '</span><span class="more">' + n.more + '</span></span></button>';
+        }).join('') + '</div></div>' +
+        foot('Finish', Object.keys(st.opened).length === NEXT.length);
+    },
+
+    finish: function () {
+      complete('finish');
+      var total = st.score.type + st.score.summary + st.score.system, max = TYPE_CASES.length + SUMMARY_CASES.length + NEEDS.length;
+      speak(total >= max - 1 ? 'Brilliant. You are <b>Request Ready</b>. The desk will love your next request.' :
+        'Done! You are <b>Request Ready</b>. Run it again any time to sharpen up.', 'cheer');
+      return '<div class="scene finish">' +
+        '<svg class="badge" viewBox="0 0 150 150" aria-hidden="true">' +
+          '<g class="ring"><circle cx="75" cy="75" r="68" fill="none" stroke="#f3cdb6" stroke-width="4" stroke-dasharray="6 7"/></g>' +
+          '<circle cx="75" cy="75" r="56" fill="#c24e17"/><circle cx="75" cy="75" r="47" fill="none" stroke="#fff" stroke-width="2" opacity=".5"/>' +
+          '<path d="M52 77 l15 15 l32 -34" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>' +
+        '</svg>' +
+        '<span class="eyebrow">Badge Earned</span><h2>Request Ready</h2>' +
+        '<p class="score">You got <b>' + total + ' of ' + max + '</b> right on the first try.</p>' +
+        '<div class="recap">' +
+          '<div><b>Type sets the pace</b>Regulatory: same day. Officer or executive: one day. Everything else: 24 to 48 hours.</div>' +
+          '<div><b>System sets the team</b>CCB, CIMS, DBM or NYSERDA. Not sure? Pick Ad Hoc and say so in the note.</div>' +
+          '<div><b>One line, no questions</b>What, where, how many, by when. Attach the screenshot or the Excel.</div>' +
+        '</div>' +
+        '<div class="tm-foot" style="justify-content:center">' +
+          '<button class="btn btn-ghost" type="button" data-restart>Try again</button>' +
+          '<a class="btn btn-primary" href="portal.html#intake" target="_parent">Raise a real request &rarr;</a>' +
+        '</div></div>';
+    }
+  };
+
+  function render() {
+    main.innerHTML = scenes[STEPS[st.step]]();
+    dots(); save(); report();
+  }
+  function go(i) { st.step = Math.max(0, Math.min(STEPS.length - 1, i)); render(); }
+  function complete(name) { st.done[name] = true; }
+
+  /* ---- interaction ------------------------------------------------------ */
+  main.addEventListener('click', function (e) {
+    var el;
+    if ((el = e.target.closest('[data-next]'))) {
+      var s = STEPS[st.step];
+      if (s === 'welcome') { complete('welcome'); return go(st.step + 1); }
+      if (s === 'type' && (st.typeI || 0) < TYPE_CASES.length - 1) { st.typeI = (st.typeI || 0) + 1; return render(); }
+      if (s === 'summary' && (st.sumI || 0) < SUMMARY_CASES.length - 1) { st.sumI = (st.sumI || 0) + 1; return render(); }
+      complete(s); return go(st.step + 1);
+    }
+    if (e.target.closest('[data-back]')) return go(st.step - 1);
+    if (e.target.closest('[data-restart]')) {
+      st = { step: 0, done: {}, score: { type: 0, summary: 0, system: 0 } }; return render();
+    }
+
+    if ((el = e.target.closest('[data-type]'))) {
+      var c = TYPE_CASES[st.typeI || 0], pick = el.getAttribute('data-type'), right = pick === c.answer;
+      var first = !main.querySelector('.choice.wrong');
+      if (right && first) st.score.type++;
+      el.classList.add(right ? 'right' : 'wrong');
+      var fb = $('fb');
+      fb.className = 'feedback on ' + (right ? 'ok' : 'no');
+      fb.innerHTML = right ? '<b>Right.</b> ' + c.why + ' First response: <b>' + TYPES[c.answer].target + '</b>.' :
+        '<b>Not quite.</b> ' + TYPES[pick].label + ' is for: ' + TYPES[pick].note.toLowerCase() + '. Try another.';
+      if (right) {
+        [].forEach.call(main.querySelectorAll('[data-type]'), function (b) { b.disabled = true; if (b !== el) b.classList.add('dim'); });
+        speak(first ? 'Spot on! ' + ['Regulators come first.', 'Officers get a one day turnaround.', 'Broken things are defects.', 'One time means data request.'][st.typeI || 0] : 'There you go. Read who is asking first.', 'cheer');
+        enableNext();
+      } else { el.disabled = true; speak('Hmm, close. Think about <b>who</b> is asking and <b>by when</b>.', 'hmm'); }
+      report(); return;
+    }
+
+    if ((el = e.target.closest('[data-need]'))) {
+      [].forEach.call(main.querySelectorAll('[data-need]'), function (b) { b.classList.remove('sel'); });
+      el.classList.add('sel'); st.selNeed = el.getAttribute('data-need');
+      speak('Good. Now pick the <b>system</b> on the right.');
+      return;
+    }
+    if ((el = e.target.closest('[data-sys]'))) {
+      if (!st.selNeed) { speak('Pick a <b>need</b> on the left first.', 'hmm'); return; }
+      var need = NEEDS.filter(function (n) { return n.id === st.selNeed; })[0], sys = el.getAttribute('data-sys');
+      st.tries = st.tries || {};
+      if (sys === need.sys) {
+        if (!st.tries[need.id]) st.score.system++;
+        st.pairs[need.id] = sys; st.selNeed = null;
+        var left = NEEDS.length - Object.keys(st.pairs).length;
+        main.innerHTML = scenes.system(); dots(); save();
+        speak(left ? 'Matched! ' + left + ' to go.' : 'All four matched. <b>Not sure</b> in real life? Choose Ad Hoc and explain in the note.', 'cheer');
+        if (!left) { var fbx = $('fb'); fbx.className = 'feedback on ok'; fbx.innerHTML = '<b>All matched.</b> The system decides which team owns the work, so the request skips a hand-off.'; }
+      } else {
+        st.tries[need.id] = true;
+        el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+        speak('Not that one. <b>' + sys + '</b> is ' + SYSTEMS.filter(function (s) { return s.k === sys; })[0].full + '. Try again.', 'hmm');
+      }
+      report(); return;
+    }
+
+    if ((el = e.target.closest('[data-sum]'))) {
+      var sc = SUMMARY_CASES[st.sumI || 0], ok = el.getAttribute('data-sum') === sc.good;
+      if (ok && !main.querySelector('.choice.wrong')) st.score.summary++;
+      el.classList.add(ok ? 'right' : 'wrong');
+      var f2 = $('fb'); f2.className = 'feedback on ' + (ok ? 'ok' : 'no');
+      f2.innerHTML = ok ? '<b>Exactly.</b> ' + sc.why : '<b>Look again.</b> Which one could the desk act on without asking you a question?';
+      if (ok) {
+        [].forEach.call(main.querySelectorAll('[data-sum]'), function (b) { b.disabled = true; if (b !== el) b.classList.add('dim'); });
+        speak('Yes! Clear beats short.', 'cheer'); enableNext();
+      } else { el.disabled = true; speak('Hmm. Picture the analyst reading it cold.', 'hmm'); }
+      report(); return;
+    }
+
+    if ((el = e.target.closest('[data-step]'))) {
+      var k = el.getAttribute('data-step'), open = el.getAttribute('aria-expanded') === 'true';
+      el.setAttribute('aria-expanded', String(!open));
+      st.opened[k] = true; save();
+      var seen = Object.keys(st.opened).length;
+      speak(seen < NEXT.length ? NEXT[k].t + ': ' + NEXT[k].s.toLowerCase() + '. ' + (NEXT.length - seen) + ' more to open.' : 'That’s the whole journey. Press <b>Finish</b> for your badge.', seen === NEXT.length ? 'cheer' : null);
+      if (seen === NEXT.length) enableNext();
+      report(); return;
+    }
+  });
+  $('dots').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-go]'); if (b && !b.disabled) go(+b.getAttribute('data-go'));
+  });
+
+  /* ---- embedding: fit the frame ----------------------------------------- */
+  var embedded = window.parent !== window;
+  function report() { if (embedded) window.parent.postMessage({ type: 'oru-frame-height', height: document.body.scrollHeight }, '*'); }
+  window.addEventListener('resize', report); window.addEventListener('load', report);
+  if (embedded && window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+
+  render();
+})();
+</script>
+</body>
+</html>

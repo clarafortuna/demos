@@ -1,0 +1,14 @@
+{
+  "name": "oru-portal-powerapp",
+  "private": true,
+  "description": "Publishes the O&R Customer Value Hub portal as a Power Apps code app.",
+  "scripts": {
+    "build": "node build/powerapp_build.js"
+  },
+  "dependencies": {
+    "@microsoft/power-apps": "^1.5.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

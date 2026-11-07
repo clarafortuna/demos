@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome | O&amp;R Customer Value Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Name and tagline come from the site config, like every other page. -->
+<script src="assets/js/site-config.js"></script>
+<style>
+/* ==========================================================================
+   Welcome video for the Home page: a ~25 second animated walkthrough that
+   plays like a video (play, pause, scrub, chapters, captions) and is clickable
+   (each scene links to its section; the end card lets people choose).
+
+   Everything is driven by one clock: render(t) sets each element from the
+   current time, so seeking to any second shows exactly that frame. Elements
+   carry data-in / data-out (seconds); a few draw by progress (bars, typing).
+
+   Embed on the Home page with:
+   <iframe src="welcome-video.html" title="Welcome" style="width:100%;aspect-ratio:16/9;border:0"></iframe>
+   ========================================================================== */
+:root {
+  --orange: #f07f2d;
+  --primary: #c24e17;
+  --primary-hover: #a3410f;
+  --navy: #1f3a7a;
+  --navy-deep: #142852;
+  --ink: #1b2230;
+  --muted: #5b6474;
+  --line: #e6e8ee;
+  --paper: #ffffff;
+  --cream: #fff6ef;
+  --green: #1f8a5b;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: transparent; font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif; color: var(--ink); }
+body { padding: 16px; }
+
+.player { max-width: 960px; margin: 0 auto; }
+.screen { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: var(--navy-deep); box-shadow: 0 20px 50px -20px rgba(20, 40, 82, .45); cursor: pointer; }
+/* The stage is drawn at 960x540 and scaled to fit, so the layout never reflows. */
+.stage { position: absolute; left: 0; top: 0; width: 960px; height: 540px; transform-origin: 0 0; overflow: hidden; }
+
+/* ── Timed elements ─────────────────────────────────────────────────────── */
+[data-in] { opacity: 0; transition: opacity .5s ease, transform .6s cubic-bezier(.2, .8, .2, 1); will-change: opacity, transform; }
+[data-in].on { opacity: 1; transform: none !important; }
+.up    { transform: translateY(26px); }
+.down  { transform: translateY(-26px); }
+.left  { transform: translateX(-40px); }
+.right { transform: translateX(40px); }
+.pop   { transform: scale(.85); }
+
+.scene { position: absolute; inset: 0; pointer-events: none; }
+.scene.on { pointer-events: auto; }
+
+/* Backgrounds per scene, cross-faded. */
+.bg { position: absolute; inset: 0; transition: opacity .8s ease; }
+.bg-navy   { background: radial-gradient(120% 90% at 85% 10%, #2b4f9e 0%, var(--navy) 38%, var(--navy-deep) 100%); }
+.bg-cream  { background: linear-gradient(160deg, #fffaf5 0%, var(--cream) 60%, #ffe9d8 100%); }
+.bg-orange { background: radial-gradient(110% 100% at 15% 90%, #ff9a4d 0%, var(--orange) 35%, var(--primary) 100%); }
+
+/* Soft moving circles behind everything. */
+.orb { position: absolute; border-radius: 50%; filter: blur(24px); opacity: .08; background: #fff; }
+
+/* ── Shared type ────────────────────────────────────────────────────────── */
+.eyebrow { font-size: 13px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; }
+.title { font-size: 46px; line-height: 1.08; font-weight: 800; letter-spacing: -.02em; margin: 10px 0 0; }
+.lede { font-size: 18px; line-height: 1.55; margin: 14px 0 0; max-width: 460px; }
+.on-dark { color: #fff; }
+.on-dark .lede { color: rgba(255, 255, 255, .82); }
+.on-light .eyebrow { color: var(--primary); }
+.on-light .lede { color: var(--muted); }
+
+.hotspot { position: absolute; display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border-radius: 999px; border: 0; font: inherit; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; }
+.hotspot.solid { background: var(--primary); color: #fff; box-shadow: 0 10px 24px -10px rgba(194, 78, 23, .8); }
+.hotspot.glass { background: rgba(255, 255, 255, .14); color: #fff; border: 1px solid rgba(255, 255, 255, .35); backdrop-filter: blur(6px); }
+.hotspot:hover { filter: brightness(1.08); }
+.hotspot .arrow { transition: transform .2s; }
+.hotspot:hover .arrow { transform: translateX(3px); }
+
+/* ── Scene 1: welcome ───────────────────────────────────────────────────── */
+.logo { position: absolute; left: 80px; top: 92px; width: 84px; height: 84px; border-radius: 20px; box-shadow: 0 16px 40px -12px rgba(0, 0, 0, .5); }
+.s1-text { position: absolute; left: 80px; top: 200px; width: 560px; }
+.s1-name { color: var(--orange); }
+.ring { position: absolute; border: 2px solid rgba(255, 255, 255, .16); border-radius: 50%; }
+
+/* ── Scene 2: initiatives ───────────────────────────────────────────────── */
+.s2-text { position: absolute; left: 64px; top: 86px; width: 360px; }
+.cards { position: absolute; right: 56px; top: 70px; width: 470px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.icard { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 18px; box-shadow: 0 14px 30px -18px rgba(20, 40, 82, .35); }
+.icard .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: #fff; }
+.icard h4 { margin: 14px 0 4px; font-size: 16px; }
+.icard p { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.icard .bar { margin-top: 12px; height: 6px; border-radius: 6px; background: #f0f1f5; overflow: hidden; }
+.icard .bar i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--orange); }
+
+/* ── Scene 3: training ──────────────────────────────────────────────────── */
+.s3-text { position: absolute; left: 64px; top: 92px; width: 380px; }
+.courses { position: absolute; right: 60px; top: 96px; width: 430px; display: flex; flex-direction: column; gap: 14px; }
+.course { display: flex; align-items: center; gap: 14px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); border-radius: 16px; padding: 16px 18px; color: #fff; }
+.course .ic { width: 44px; height: 44px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--orange); }
+.course b { display: block; font-size: 15px; }
+.course small { color: rgba(255, 255, 255, .7); font-size: 12px; }
+.course .track { margin-top: 8px; height: 6px; border-radius: 6px; background: rgba(255, 255, 255, .15); overflow: hidden; }
+.course .track i { display: block; height: 100%; width: 0; background: #fff; border-radius: 6px; }
+.course .pct { margin-left: auto; font-size: 13px; font-weight: 700; min-width: 40px; text-align: right; }
+
+/* ── Scene 4: share an idea ─────────────────────────────────────────────── */
+.s4-text { position: absolute; left: 64px; top: 100px; width: 360px; }
+.idea { position: absolute; right: 70px; top: 92px; width: 420px; background: #fff; border-radius: 20px; padding: 24px; box-shadow: 0 24px 50px -20px rgba(120, 40, 0, .55); }
+.idea .label { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.idea .field { margin-top: 8px; min-height: 92px; border: 1.5px solid var(--line); border-radius: 12px; padding: 12px 14px; font-size: 15px; line-height: 1.5; color: var(--ink); }
+.idea .caret { display: inline-block; width: 2px; height: 18px; vertical-align: -3px; background: var(--primary); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.idea .row { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+.idea .chip { font-size: 12px; font-weight: 600; color: var(--primary); background: var(--cream); border-radius: 999px; padding: 6px 12px; }
+.idea .send { background: var(--primary); color: #fff; font-weight: 700; font-size: 13px; border-radius: 10px; padding: 10px 16px; }
+.bulb { position: absolute; right: 40px; top: 40px; width: 70px; height: 70px; border-radius: 50%; background: #fff3c4; display: grid; place-items: center; box-shadow: 0 0 0 10px rgba(255, 243, 196, .35); }
+
+/* ── Scene 5: intake requests ───────────────────────────────────────────── */
+.s5-text { position: absolute; left: 64px; top: 96px; width: 360px; }
+.ticket { position: absolute; right: 64px; top: 104px; width: 430px; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 22px; box-shadow: 0 20px 44px -22px rgba(20, 40, 82, .45); }
+.ticket .num { font: 700 13px Consolas, monospace; color: var(--navy); background: #f3f5fa; border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+.ticket h4 { margin: 14px 0 6px; font-size: 18px; }
+.ticket p { margin: 0; font-size: 13px; color: var(--muted); }
+.steps { display: flex; margin-top: 20px; }
+.step { flex: 1; text-align: center; font-size: 11.5px; font-weight: 600; color: #a0a7b4; position: relative; }
+.step .dot { width: 26px; height: 26px; border-radius: 50%; margin: 0 auto 8px; background: #eef0f4; border: 2px solid #dfe3ea; display: grid; place-items: center; color: #fff; font-size: 13px; transition: all .35s; position: relative; z-index: 1; }
+.step::before { content: ""; position: absolute; top: 12px; left: -50%; width: 100%; height: 2px; background: #e3e6ec; }
+.step:first-child::before { display: none; }
+.step.done { color: var(--ink); }
+.step.done .dot { background: var(--green); border-color: var(--green); }
+.step.done::before { background: var(--green); }
+.step.now .dot { background: var(--primary); border-color: var(--primary); box-shadow: 0 0 0 6px rgba(194, 78, 23, .18); }
+.step.now { color: var(--primary); }
+.mail { position: absolute; right: 90px; top: 380px; display: flex; align-items: center; gap: 10px; background: var(--navy); color: #fff; border-radius: 12px; padding: 10px 14px; font-size: 13px; font-weight: 600; box-shadow: 0 14px 30px -14px rgba(20, 40, 82, .8); }
+
+/* ── Scene 6: end card ──────────────────────────────────────────────────── */
+.s6 { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: #fff; }
+.s6 .title { font-size: 44px; }
+.choices { display: grid; grid-template-columns: repeat(4, 180px); gap: 14px; margin-top: 30px; }
+.choice { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; text-align: left; padding: 18px; border-radius: 16px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .22); color: #fff; text-decoration: none; transition: transform .2s, background .2s; }
+.choice:hover { transform: translateY(-4px); background: rgba(255, 255, 255, .18); }
+.choice .ic { width: 38px; height: 38px; border-radius: 10px; background: var(--orange); display: grid; place-items: center; }
+.choice b { font-size: 15px; }
+.choice small { font-size: 12px; color: rgba(255, 255, 255, .75); line-height: 1.4; }
+.replay { margin-top: 22px; background: none; border: 0; color: rgba(255, 255, 255, .8); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+/* ── Overlays ───────────────────────────────────────────────────────────── */
+.caption { position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); max-width: 80%; padding: 8px 14px; border-radius: 8px; background: rgba(10, 18, 36, .72); color: #fff; font-size: 15px; font-weight: 500; text-align: center; transition: opacity .3s; pointer-events: none; }
+.caption:empty, .captions-off .caption { opacity: 0; }
+.bigplay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(10, 18, 36, .12); transition: opacity .3s; }
+.bigplay span { width: 84px; height: 84px; border-radius: 50%; background: var(--primary); display: grid; place-items: center; box-shadow: 0 16px 40px -10px rgba(0, 0, 0, .55); }
+.playing .bigplay, .ended .bigplay { opacity: 0; pointer-events: none; }
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+.controls { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
+.btn { width: 38px; height: 38px; flex: none; border-radius: 10px; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; cursor: pointer; color: var(--navy); }
+.btn:hover { border-color: var(--primary); color: var(--primary); }
+.btn[aria-pressed="false"] { opacity: .55; }
+.scrub { position: relative; flex: 1; height: 38px; cursor: pointer; }
+.scrub .rail { position: absolute; left: 0; right: 0; top: 17px; height: 4px; border-radius: 4px; background: #e6e8ee; }
+.scrub .fill { position: absolute; left: 0; top: 17px; height: 4px; border-radius: 4px; background: var(--primary); width: 0; }
+.scrub .knob { position: absolute; top: 12px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 0 4px rgba(194, 78, 23, .18); }
+.scrub .tick { position: absolute; top: 14px; width: 2px; height: 10px; background: #fff; }
+.time { font-size: 12.5px; font-weight: 600; color: var(--muted); min-width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
+.chapters { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.chapter { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--muted); cursor: pointer; }
+.chapter:hover { border-color: var(--primary); color: var(--primary); }
+.chapter.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn:focus-visible, .chapter:focus-visible, .hotspot:focus-visible, .choice:focus-visible, .scrub:focus-visible { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  [data-in] { transition: opacity .2s linear; transform: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="player" id="player">
+  <div class="screen" id="screen" role="region" aria-label="Welcome video">
+    <div class="stage" id="stage">
+
+      <div class="bg bg-navy"   data-bg="navy"></div>
+      <div class="bg bg-cream"  data-bg="cream"  style="opacity:0"></div>
+      <div class="bg bg-orange" data-bg="orange" style="opacity:0"></div>
+      <div class="orb" data-orb="0" style="width:340px;height:340px"></div>
+      <div class="orb" data-orb="1" style="width:180px;height:180px"></div>
+
+      <!-- 1 · Welcome -->
+      <section class="scene on-dark" data-scene="0">
+        <div class="ring" data-in="0.2" data-out="4.6" style="width:520px;height:520px;right:-120px;top:-110px"></div>
+        <div class="ring" data-in="0.5" data-out="4.6" style="width:340px;height:340px;right:-30px;top:-20px"></div>
+        <img class="logo pop" src="assets/images/oru/oru-logo.png" alt="" data-in="0.3" data-out="4.6">
+        <div class="s1-text">
+          <div class="eyebrow up" style="color:rgba(255,255,255,.7)" data-in="0.7" data-out="4.6" data-site="tagline">Unified Innovation Portal</div>
+          <h1 class="title up" data-in="1.0" data-out="4.6">Welcome to the<br><span class="s1-name" data-site="name">O&amp;R Customer Value Hub</span></h1>
+          <p class="lede up" data-in="1.6" data-out="4.6">One place to see what our teams are building, learn new skills and bring your ideas forward.</p>
+        </div>
+      </section>
+
+      <!-- 2 · Initiatives -->
+      <section class="scene on-light" data-scene="1">
+        <div class="s2-text">
+          <div class="eyebrow up" data-in="4.9" data-out="9.6">Initiatives</div>
+          <h2 class="title up" data-in="5.1" data-out="9.6">See what's<br>in motion.</h2>
+          <p class="lede up" data-in="5.5" data-out="9.6">Follow the projects that save our teams time and give customers better answers.</p>
+        </div>
+        <div class="cards">
+          <div class="icard right" data-in="5.4" data-out="9.6"><div class="ic" style="background:var(--navy)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div><h4>Find Answers Faster</h4><p>Information in reach, when it's needed.</p><div class="bar"><i data-fill="5.8,8.2,0.72"></i></div></div>
+          <div class="icard right" data-in="5.7" data-out="9.6"><div class="ic" style="background:var(--orange)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="9"/></svg></div><h4>Less Routine Work</h4><p>More time for the work that matters.</p><div class="bar"><i data-fill="6.1,8.5,0.55"></i></div></div>
+          <div class="icard right" data-in="6.0" data-out="9.6"><div class="ic" style="background:var(--primary)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></svg></div><h4>Fix Problems at the Source</h4><p>Catch issues before customers feel them.</p><div class="bar"><i data-fill="6.4,8.8,0.84"></i></div></div>
+          <div class="icard right" data-in="6.3" data-out="9.6"><div class="ic" style="background:var(--green)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg></div><h4>Plan What's Next</h4><p>Better forecasts for better decisions.</p><div class="bar"><i data-fill="6.7,9.1,0.38"></i></div></div>
+        </div>
+        <a class="hotspot solid up" href="initiatives.html" target="_parent" data-in="6.6" data-out="9.6" style="left:64px;top:372px">Explore initiatives <span class="arrow">&rarr;</span></a>
+      </section>
+
+      <!-- 3 · Training -->
+      <section class="scene on-dark" data-scene="2">
+        <div class="s3-text">
+          <div class="eyebrow up" style="color:var(--orange)" data-in="9.9" data-out="14.6">Training</div>
+          <h2 class="title up" data-in="10.1" data-out="14.6">Learn at<br>your pace.</h2>
+          <p class="lede up" data-in="10.5" data-out="14.6">Short courses built around how O&amp;R works, so know-how stays with the team.</p>
+        </div>
+        <div class="courses">
+          <div class="course right" data-in="10.3" data-out="14.6"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></div><div style="flex:1"><b>Getting Started</b><small>For everyone · 20 min</small><div class="track"><i data-fill="10.8,13.4,1"></i></div></div><span class="pct" data-pct="10.8,13.4,100">0%</span></div>
+          <div class="course right" data-in="10.6" data-out="14.6"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/></svg></div><div style="flex:1"><b>Practitioner Track</b><small>Hands-on, with real cases · 2 h</small><div class="track"><i data-fill="11.1,13.7,0.6"></i></div></div><span class="pct" data-pct="11.1,13.7,60">0%</span></div>
+          <div class="course right" data-in="10.9" data-out="14.6"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="m5 12 5 5L20 7"/></svg></div><div style="flex:1"><b>Our Processes, Explained</b><small>Coming next</small><div class="track"><i data-fill="11.4,14,0.25"></i></div></div><span class="pct" data-pct="11.4,14,25">0%</span></div>
+        </div>
+        <a class="hotspot glass up" href="training.html" target="_parent" data-in="11.6" data-out="14.6" style="left:64px;top:372px">Start learning <span class="arrow">&rarr;</span></a>
+      </section>
+
+      <!-- 4 · Share an idea -->
+      <section class="scene on-dark" data-scene="3">
+        <div class="s4-text">
+          <div class="eyebrow up" style="color:#fff3c4" data-in="14.9" data-out="19.1">Share an Idea</div>
+          <h2 class="title up" data-in="15.1" data-out="19.1">Your idea<br>could be next.</h2>
+          <p class="lede up" data-in="15.5" data-out="19.1">You know the work best. Tell us what could be easier, faster or better.</p>
+        </div>
+        <div class="idea pop" data-in="15.3" data-out="19.1">
+          <div class="label">What could work better?</div>
+          <div class="field"><span data-type="15.8,18.2">What if field crews got the meter history on their phone before they arrive?</span><span class="caret"></span></div>
+          <div class="row"><span class="chip">Customer Experience</span><span class="send">Submit idea</span></div>
+        </div>
+        <div class="bulb pop" data-in="15.6" data-out="19.1"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#c24e17" stroke-width="2.2" stroke-linecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></div>
+        <a class="hotspot glass up" href="share.html" target="_parent" data-in="16.4" data-out="19.1" style="left:64px;top:372px">Share your idea <span class="arrow">&rarr;</span></a>
+      </section>
+
+      <!-- 5 · Intake requests -->
+      <section class="scene on-light" data-scene="4">
+        <div class="s5-text">
+          <div class="eyebrow up" data-in="19.3" data-out="23.1">Intake Requests</div>
+          <h2 class="title up" data-in="19.5" data-out="23.1">Ask, and<br>follow along.</h2>
+          <p class="lede up" data-in="19.9" data-out="23.1">Send a request to the right team and see where it stands at every step.</p>
+        </div>
+        <div class="ticket right" data-in="19.6" data-out="23.1">
+          <span class="num">ORU-0042</span>
+          <h4>Quarterly program report</h4>
+          <p>Routed to the reporting team · Response within 1 business day</p>
+          <div class="steps" id="steps">
+            <div class="step"><div class="dot">&#10003;</div>Submitted</div>
+            <div class="step"><div class="dot">&#10003;</div>Assigned</div>
+            <div class="step"><div class="dot">&#10003;</div>In progress</div>
+            <div class="step"><div class="dot">&#10003;</div>Done</div>
+          </div>
+        </div>
+        <div class="mail up" data-in="21.6" data-out="23.1"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Update sent to your inbox</div>
+        <a class="hotspot solid up" href="portal.html#intake" target="_parent" data-in="20.6" data-out="23.1" style="left:64px;top:372px">Make a request <span class="arrow">&rarr;</span></a>
+      </section>
+
+      <!-- 6 · End card -->
+      <section class="scene" data-scene="5">
+        <div class="s6">
+          <div class="eyebrow up" style="color:rgba(255,255,255,.8)" data-in="23.4" data-out="99">Innovation starts with you</div>
+          <h2 class="title up" data-in="23.6" data-out="99">Where would you like to start?</h2>
+          <div class="choices">
+            <a class="choice up" href="initiatives.html" target="_parent" data-in="24.0" data-out="99"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/></svg></span><b>Initiatives</b><small>See what's in motion</small></a>
+            <a class="choice up" href="training.html" target="_parent" data-in="24.2" data-out="99"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span><b>Training</b><small>Learn at your pace</small></a>
+            <a class="choice up" href="share.html" target="_parent" data-in="24.4" data-out="99"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg></span><b>Share an Idea</b><small>Tell us what could be better</small></a>
+            <a class="choice up" href="portal.html#intake" target="_parent" data-in="24.6" data-out="99"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span><b>Intake Requests</b><small>Ask the right team</small></a>
+          </div>
+          <button class="replay up" data-in="25.0" data-out="99" data-action="replay">Watch again</button>
+        </div>
+      </section>
+
+      <div class="caption" id="caption" aria-live="polite"></div>
+    </div>
+    <div class="bigplay" id="bigplay"><span><svg width="34" height="34" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="play" aria-label="Play"><svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></button>
+    <div class="scrub" id="scrub" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="26" aria-valuenow="0">
+      <div class="rail"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div>
+    </div>
+    <span class="time" id="time">0:00 / 0:26</span>
+    <button class="btn" id="cc" aria-label="Captions" aria-pressed="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 10.5a2 2 0 1 0 0 3M17 10.5a2 2 0 1 0 0 3"/></svg></button>
+  </div>
+  <div class="chapters" id="chapters"></div>
+</div>
+
+<script>
+(function () {
+  var DURATION = 26;
+  // Chapters: start time, label, background, caption.
+  var SCENES = [
+    { at: 0,    label: 'Welcome',         bg: 'navy',   caption: 'Welcome. This is where O&R teams share what they are building.' },
+    { at: 4.6,  label: 'Initiatives',     bg: 'cream',  caption: 'Follow the initiatives that save time and serve customers better.' },
+    { at: 9.6,  label: 'Training',        bg: 'navy',   caption: 'Take short courses built around how we work.' },
+    { at: 14.6, label: 'Share an Idea',   bg: 'orange', caption: 'You know the work best. Share what could be better.' },
+    { at: 19.1, label: 'Intake Requests', bg: 'cream',  caption: 'Send a request to the right team and follow every step.' },
+    { at: 23.1, label: 'Get started',     bg: 'navy',   caption: '' }
+  ];
+
+  var site = window.ORU_SITE || {};
+  document.querySelectorAll('[data-site]').forEach(function (el) {
+    var v = site[el.getAttribute('data-site')];
+    if (v) el.textContent = v;
+  });
+
+  var $ = function (id) { return document.getElementById(id); };
+  var player = $('player'), screen = $('screen'), stage = $('stage');
+  var timed = [].slice.call(document.querySelectorAll('[data-in]'));
+  var scenes = [].slice.call(document.querySelectorAll('[data-scene]'));
+  var bgs = [].slice.call(document.querySelectorAll('[data-bg]'));
+  var fills = [].slice.call(document.querySelectorAll('[data-fill]'));
+  var pcts = [].slice.call(document.querySelectorAll('[data-pct]'));
+  var types = [].slice.call(document.querySelectorAll('[data-type]'));
+  var orbs = [].slice.call(document.querySelectorAll('[data-orb]'));
+  var steps = [].slice.call(document.querySelectorAll('#steps .step'));
+  types.forEach(function (el) { el.dataset.full = el.textContent; el.textContent = ''; });
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var t = 0, playing = false, last = 0;
+
+  var nums = function (s) { return s.split(',').map(Number); };
+  var prog = function (a, b) { return Math.max(0, Math.min(1, (t - a) / (b - a))); };
+  var ease = function (p) { return 1 - Math.pow(1 - p, 3); };
+  var sceneAt = function (time) { var i = 0; SCENES.forEach(function (s, k) { if (time >= s.at) i = k; }); return i; };
+  var fmt = function (s) { s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+
+  // Chapter chips and scrubber ticks.
+  var chapters = $('chapters'), scrub = $('scrub');
+  SCENES.forEach(function (s, i) {
+    var b = document.createElement('button');
+    b.className = 'chapter'; b.textContent = s.label;
+    b.onclick = function () { seek(s.at + 0.01); play(); };
+    chapters.appendChild(b);
+    if (i) { var k = document.createElement('div'); k.className = 'tick'; k.style.left = (s.at / DURATION * 100) + '%'; scrub.appendChild(k); }
+  });
+  var chips = [].slice.call(chapters.children);
+
+  function render() {
+    var cur = sceneAt(t);
+    timed.forEach(function (el) {
+      var on = t >= +el.dataset.in && t < +el.dataset.out;
+      if (el.classList.contains('on') !== on) el.classList.toggle('on', on);
+    });
+    scenes.forEach(function (el, i) { el.classList.toggle('on', i === cur); });
+    bgs.forEach(function (el) { el.style.opacity = el.dataset.bg === SCENES[cur].bg ? 1 : 0; });
+    fills.forEach(function (el) { var n = nums(el.dataset.fill); el.style.width = (ease(prog(n[0], n[1])) * n[2] * 100) + '%'; });
+    pcts.forEach(function (el) { var n = nums(el.dataset.pct); el.textContent = Math.round(ease(prog(n[0], n[1])) * n[2]) + '%'; });
+    types.forEach(function (el) { var n = nums(el.dataset.type), full = el.dataset.full; el.textContent = full.slice(0, Math.round(prog(n[0], n[1]) * full.length)); });
+    // The request moves through its steps while the scene plays.
+    var reached = t < 20.2 ? 0 : t < 20.9 ? 1 : t < 21.6 ? 2 : 3;
+    steps.forEach(function (el, i) { el.classList.toggle('done', i < reached || (i === 3 && reached === 3)); el.classList.toggle('now', i === reached && reached < 3); });
+    if (!reduced) {
+      orbs[0].style.transform = 'translate(' + (620 + Math.sin(t * .35) * 60) + 'px,' + (300 + Math.cos(t * .3) * 40) + 'px)';
+      orbs[1].style.transform = 'translate(' + (90 + Math.cos(t * .5) * 40) + 'px,' + (380 + Math.sin(t * .45) * 30) + 'px)';
+    }
+    $('caption').textContent = SCENES[cur].caption;
+    chips.forEach(function (c, i) { c.classList.toggle('active', i === cur); });
+    var pct = t / DURATION * 100;
+    $('fill').style.width = pct + '%'; $('knob').style.left = pct + '%';
+    $('time').textContent = fmt(t) + ' / ' + fmt(DURATION);
+    scrub.setAttribute('aria-valuenow', Math.round(t));
+    player.classList.toggle('ended', t >= DURATION);
+  }
+
+  function tick(now) {
+    if (!playing) return;
+    t = Math.min(DURATION, t + (now - last) / 1000); last = now;
+    render();
+    if (t >= DURATION) { pause(); return; }
+    requestAnimationFrame(tick);
+  }
+  var PLAY = '<path d="M8 5v14l11-7z"/>', PAUSE = '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>';
+  function play() {
+    if (t >= DURATION) t = 0;
+    playing = true; last = performance.now();
+    player.classList.add('playing'); $('playIcon').innerHTML = PAUSE; $('play').setAttribute('aria-label', 'Pause');
+    requestAnimationFrame(tick);
+  }
+  function pause() {
+    playing = false;
+    player.classList.remove('playing'); $('playIcon').innerHTML = PLAY; $('play').setAttribute('aria-label', 'Play');
+  }
+  function seek(s) { t = Math.max(0, Math.min(DURATION, s)); render(); }
+  var toggle = function () { playing ? pause() : play(); };
+
+  $('play').onclick = toggle;
+  screen.addEventListener('click', function (e) {
+    if (e.target.closest('a, button')) {
+      if (e.target.closest('[data-action="replay"]')) { seek(0); play(); }
+      return;
+    }
+    toggle();
+  });
+  $('cc').onclick = function () {
+    var on = player.classList.toggle('captions-off');
+    this.setAttribute('aria-pressed', String(!on));
+  };
+
+  function fromPointer(e) { var r = scrub.getBoundingClientRect(); seek((e.clientX - r.left) / r.width * DURATION); }
+  scrub.addEventListener('pointerdown', function (e) {
+    scrub.setPointerCapture(e.pointerId); fromPointer(e);
+    var move = function (ev) { fromPointer(ev); };
+    scrub.addEventListener('pointermove', move);
+    scrub.addEventListener('pointerup', function up() { scrub.removeEventListener('pointermove', move); scrub.removeEventListener('pointerup', up); }, { once: true });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.target.closest('a')) return;
+    if (e.code === 'Space' || e.key === 'k') { e.preventDefault(); toggle(); }
+    if (e.key === 'ArrowRight') seek(t + 2);
+    if (e.key === 'ArrowLeft') seek(t - 2);
+  });
+
+  function fit() { stage.style.transform = 'scale(' + (screen.clientWidth / 960) + ')'; }
+  window.addEventListener('resize', fit); fit();
+
+  // Embedded in the Home page: tell it our height so the frame fits, and start
+  // the first time the video is half on screen rather than on page load.
+  var embedded = window.parent !== window;
+  function report() { if (embedded) window.parent.postMessage({ type: 'oru-welcome-height', height: document.body.scrollHeight }, '*'); }
+  window.addEventListener('resize', report); window.addEventListener('load', report); report();
+  // Fonts arriving late or the controls wrapping change the height too.
+  if (embedded && window.ResizeObserver) new ResizeObserver(report).observe(document.body);
+
+  // ?t=12 opens at a given second (for review); ?paused keeps it still.
+  var q = new URLSearchParams(location.search);
+  seek(q.has('t') ? +q.get('t') : 0);
+  if (!q.has('t') && !q.has('paused')) {
+    if (embedded && 'IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) { io.disconnect(); if (t === 0) play(); }
+      }, { threshold: 0.5 });
+      io.observe(screen);
+    } else {
+      play();
+    }
+  }
+})();
+</script>
+</body>
+</html>

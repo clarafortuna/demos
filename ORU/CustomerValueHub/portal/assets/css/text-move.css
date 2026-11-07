@@ -1,0 +1,96 @@
+/*================================================================================================
+    Start Text Move CSS
+===================================================================================================*/
+.text-move-area .swiper-wrapper {
+  transition-timing-function: linear !important;
+}
+.text-move-area {
+  padding: 36px 0px;
+  background: var(--primary-color);
+}
+.text-move-slider .swiper-slide {
+  width: auto;
+}
+.text-slide-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+}
+.text-slide-item .text {
+  font-size: 42px;
+  line-height: 52px;
+  font-weight: 600;
+  color: var(--white-color);
+}
+.text-slide-item .brust-pucker {
+  max-width: 44px;
+}
+
+/* Style 2  */
+.text-move-area.style2 {
+  background-color: var(--primary-color);
+  padding: 120px 0px;
+}
+.text-move-area.style2 .text-slide-item {
+  position: relative;
+  padding-right: 60px;
+}
+.text-move-area.style2 .text-slide-item::before {
+  position: absolute;
+  content: "";
+  width: 25px;
+  height: 25px;
+  border: 2px solid var(--white-color);
+  right: 0;
+  border-radius: 100%;
+}
+.text-move-area.style2 .text-slide-item .text {
+  font-size: 72px;
+  line-height: 60px;
+  font-weight: 700;
+  color: var(--white-color);
+  text-transform: uppercase;
+}
+.text-move-area.style2 .text-slide-item .text.outline-text {
+  -webkit-text-fill-color: var(--primary-color);
+  -webkit-text-stroke-width: 1px;
+  -webkit-text-stroke-color: var(--white-color);
+}
+
+@media only screen and (min-width: 992px) and (max-width: 1199.99px) {
+  .text-move-area.style2 {
+    padding: 80px 0px;
+  }
+  .text-move-area.style2 .text-slide-item .text {
+    font-size: 60px;
+  }
+}
+
+@media only screen and (max-width: 991.99px) {
+  .text-move-area {
+    padding: 16px 0px;
+  }
+  .text-slide-item .text {
+    font-size: 24px;
+    line-height: 120%;
+  }
+  .text-move-area.style2 {
+    padding: 24px 0px;
+  }
+  .text-move-area.style2 .text-slide-item .text {
+    font-size: 28px;
+    line-height: 140%;
+  }
+  .text-move-area.style2 .text-slide-item::before {
+    width: 20px;
+    height: 20px;
+  }
+  .text-move-area.style2 .text-slide-item {
+    padding-right: 50px;
+  }
+}
+
+/*================================================================================================
+    End Text Move CSS
+===================================================================================================*/
