@@ -2176,7 +2176,8 @@ main.report, main:has(.rp) { padding: 24px 32px 64px; }
 /* Intake: response hint, attachments, prioritization placeholder, acknowledgement. */
 .nk-sla { margin-top: 10px; padding: 9px 12px; border-radius: 8px; background: var(--brand-tint); color: var(--ink-2); font-size: 12.5px; line-height: 1.6; }
 .nk-drop { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1.5px dashed var(--line-2); border-radius: 10px; cursor: pointer; background: var(--surface-2); transition: border-color .2s ease, background .2s ease; }
-.nk-drop:hover { border-color: var(--brand); background: var(--brand-tint); }
+.nk-drop:hover, .nk-drop.over { border-color: var(--brand); background: var(--brand-tint); }
+.nk-drop.over { border-style: solid; box-shadow: 0 0 0 3px var(--brand-tint); }
 .nk-drop svg { width: 22px; height: 22px; color: var(--brand); flex: none; }
 .nk-drop > span { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
 .nk-drop input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
@@ -4931,6 +4932,44 @@ function slaHint(k){
   return '<b>' + esc(t.target) + '</b> for a first response · ' + esc(t.route) +
     (t.k === 'regulatory' ? ' · <span class="chip highest">Highest priority</span>' : '');
 }
+/* Files chosen in the picker (several at once) or dropped on the drop zone.
+   Only the accepted types are kept, up to 32 MB each (the ptrl_file column),
+   and a file already in the list is not added twice. */
+var ATTACH_MAX = 32 * 1024 * 1024;
+function addIntakeFiles(list){
+  var okExt = ATTACH_ACCEPT.split(','), skipped = [];
+  Array.prototype.forEach.call(list || [], function(file){
+    var ext = (file.name.match(/.[^.]+$/) || [''])[0].toLowerCase();
+    if (okExt.indexOf(ext) < 0 || file.size > ATTACH_MAX){ skipped.push(file.name); return; }
+    if (nkFiles.some(function(x){ return x.name === file.name && x.size === file.size; })) return;
+    nkFiles.push(file);
+  });
+  var box = document.getElementById('nkFileList');
+  if (box) box.innerHTML = fileList();
+  if (skipped.length) toast(skipped.length === 1 ? skipped[0] + ' was not added: use an image, Excel, CSV, PDF or Word file up to 32 MB' :
+    skipped.length + ' files were not added: use images, Excel, CSV, PDF or Word files up to 32 MB');
+}
+function hasFiles(e){ return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], 'Files') >= 0; }
+document.addEventListener('dragover', function(e){
+  if (!hasFiles(e)) return;
+  e.preventDefault();   /* a file let go anywhere must not replace the page */
+  var zone = e.target.closest && e.target.closest('#nkDrop');
+  e.dataTransfer.dropEffect = zone ? 'copy' : 'none';
+  if (zone) zone.classList.add('over');
+});
+document.addEventListener('dragleave', function(e){
+  var zone = e.target.closest && e.target.closest('#nkDrop');
+  if (zone && !zone.contains(e.relatedTarget)) zone.classList.remove('over');
+});
+document.addEventListener('drop', function(e){
+  if (!hasFiles(e)) return;
+  e.preventDefault();
+  var zone = e.target.closest && e.target.closest('#nkDrop');
+  if (!zone) return;
+  zone.classList.remove('over');
+  addIntakeFiles(e.dataTransfer.files);
+});
+
 function fileList(){
   if (!nkFiles.length) return '';
   return '<ul class="nk-files">' + nkFiles.map(function(f, i){
@@ -4968,8 +5007,8 @@ function viewIntake(){
         '<div style="margin-top:12px"><label class="lbl">Status Note</label>' +
           '<textarea class="field" id="nkDesc" placeholder="What is happening now, what you need instead, and who it affects."></textarea></div>' +
         '<div style="margin-top:12px"><label class="lbl">Attachments (Optional)</label>' +
-          '<label class="nk-drop" for="nkFile">' + I.doc +
-            '<span><b>Add screenshots or files</b><span class="tiny faint">Images, Excel, CSV, PDF or Word</span></span>' +
+          '<label class="nk-drop" for="nkFile" id="nkDrop">' + I.doc +
+            '<span><b>Drag files here, or click to choose</b><span class="tiny faint">Several at once: images, Excel, CSV, PDF or Word, up to 32 MB each</span></span>' +
             '<input type="file" id="nkFile" multiple accept="' + ATTACH_ACCEPT + '"></label>' +
           '<div id="nkFileList">' + fileList() + '</div></div>' +
         (S.as === 'user' ? '' : '<div class="row gap-12 wrap" style="margin-top:12px">' +
@@ -6328,9 +6367,8 @@ document.addEventListener('change', function(e){
   var id = e.target.id, v = e.target.value, el;
   if (id === 'nkType'){ document.getElementById('nkSla').innerHTML = slaHint(v); return; }
   if (id === 'nkFile'){
-    Array.prototype.forEach.call(e.target.files || [], function(f){ nkFiles.push(f); });
-    e.target.value = '';
-    document.getElementById('nkFileList').innerHTML = fileList(); return;
+    addIntakeFiles(e.target.files);
+    e.target.value = ''; return;
   }
   if (id === 'pffn'){ S.pf.fn = v; render(); }
   else if (id === 'pfvalue'){ S.pf.value = v; render(); }
