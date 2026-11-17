@@ -4603,7 +4603,8 @@ function ticketDrawer(key){
             '<div class="frow"><span class="fk">Completed</span><span class="fv">' +
               (t.completedAt ? fmtDate(t.completedAt) : '<span class="faint">No completion date recorded</span>') + '</span></div>' +
             '<div class="frow"><span class="fk">Status Code</span><span class="fv">' +
-              (t.statusCode ? '<span class="pill ' + codeTone(t.statusCode) + '"><i class="dot"></i>' + esc(titleCase(t.statusCode)) + '</span>'
+              (S.as !== 'user' ? '<select class="field" id="tcode" style="width:auto">' + codeOptions(t.statusCode) + '</select>' :
+               t.statusCode ? '<span class="pill ' + codeTone(t.statusCode) + '"><i class="dot"></i>' + esc(titleCase(t.statusCode)) + '</span>'
                             : '<span class="faint">Blank in the tracker</span>') + '</span></div>' +
           '</div></details>' +
 
@@ -5017,8 +5018,6 @@ function viewIntake(){
             '<select class="field" id="nkWho"><option value="">Unassigned</option>' +
               PEOPLE.filter(function(p){ return p.role === 'analyst'; })
                 .map(function(p){ return '<option value="' + p.id + '">' + esc(p.name) + '</option>'; }).join('') + '</select></div>' +
-          '<div style="flex:1;min-width:170px"><label class="lbl">Status Code (Optional)</label>' +
-            '<input class="field" id="nkCode" placeholder="Left blank on most rows"></div>' +
         '</div>') +
         '<fieldset class="nk-prio" disabled>' +
           '<legend>Prioritization <span class="pill mute" style="margin-left:6px">Coming Later</span></legend>' +
@@ -6386,6 +6385,7 @@ document.addEventListener('change', function(e){
   else if (id === 'viewas'){ S.as = v; closeDrawer(); render(); toast('Viewing as ' + VIEWS_AS.filter(function(x){ return x.key === v; })[0].label); }
   else if (id === 'tstatus' && S.open && S.openKind === 't' && S.as !== 'user'){ moveTicket(S.open, v, true); }
   else if (id === 'tassignee' && S.open && S.openKind === 't' && S.as !== 'user'){ assignTicket(S.open, v || null); }
+  else if (id === 'tcode' && S.open && S.openKind === 't' && S.as !== 'user'){ codeTicket(S.open, v); }
 
 });
 
@@ -6477,6 +6477,28 @@ function assignTicket(key, who){
     function(err){ toast(key + ' could not be saved. Try again in a moment'); if (window.console) console.error(err); });
 }
 
+/* Status codes an analyst can pick. A list, so the same state is not typed
+   three ways; a code already on a tracker row stays selectable. */
+var CODE_PICK = ['WIP', 'analysis', 'waiting requirements', 'waiting approval', 'waiting promotion',
+                 'on hold', 'promoted', 'in prod', 'completed', 'cancelled'];
+function codeOptions(cur){
+  var list = CODE_PICK.slice();
+  if (cur && list.indexOf(cur) < 0) list.unshift(cur);
+  return '<option value=""' + (cur ? '' : ' selected') + '>Not set</option>' + list.map(function(c){
+    return '<option value="' + esc(c) + '"' + (c === cur ? ' selected' : '') + '>' + esc(titleCase(c)) + '</option>';
+  }).join('');
+}
+function codeTicket(key, code){
+  var t = TBY[key]; if (!t || (t.statusCode || '') === code) return;
+  t.statusCode = code;
+  hydrate(); indexAll();
+  render(); renderDrawer();
+  var said = code ? key + ' status code set to ' + titleCase(code) : key + ' status code cleared';
+  if (!PH){ toast(said + ', in this session only'); return; }
+  saveTicket(t).then(function(){ toast(said); },
+    function(err){ toast(key + ' could not be saved. Try again in a moment'); if (window.console) console.error(err); });
+}
+
 /* ---- intake -------------------------------------------------------------- */
 /* New rows continue the tracker's own numbering. */
 var nextNum = TICKETS.reduce(function(a,t){ return Math.max(a, t.n); }, 0) + 1;
@@ -6492,7 +6514,7 @@ function submitIntake(){
     who, ME,
     new Date().toISOString().slice(0,10), null,
     (document.getElementById('nkDesc')||{}).value.trim(),
-    ((document.getElementById('nkCode')||{}).value || '').trim(),
+    '',
     '', document.getElementById('nkFn').value || null, null, null, null, null);
   if (t.fn) AREA_STATED[t.key] = 'Stated: chosen by the requester on the intake form';
   t.reqType = type;
