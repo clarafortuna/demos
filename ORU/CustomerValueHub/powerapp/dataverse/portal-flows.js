@@ -1,4 +1,4 @@
-// Email notifications for the O&R Customer Value Hub: six Power Automate flows
+// Email notifications for the O&R Innovation Hub: six Power Automate flows
 // (Dataverse trigger + Office 365 Outlook "Send an email") on ptrl_request,
 // ptrl_idea and ptrl_usecase. Only @clarafortuna.com addresses get mail; anything else (the
 // tracker's O&R names, analysts without an address) goes to Gerald, so nothing
@@ -59,7 +59,7 @@ const template = (x, { eyebrow, intro, why }) => `<!doctype html><html><body sty
   <table role="presentation" cellpadding="0" cellspacing="0"><tr>
     <td style="width:36px;height:36px;background:${C.brand};border-radius:8px;text-align:center;vertical-align:middle;color:#fff;font-size:12px;font-weight:800;letter-spacing:-.02em">O&amp;R</td>
     <td style="padding-left:10px;line-height:1.2">
-      <div style="font-size:13px;font-weight:700;color:${C.navy}">O&amp;R Customer Value Hub</div>
+      <div style="font-size:13px;font-weight:700;color:${C.navy}">O&amp;R Innovation Hub</div>
       <div style="font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:${C.brand}">Unified Innovation Portal</div>
     </td>
   </tr></table>
@@ -100,7 +100,7 @@ const template = (x, { eyebrow, intro, why }) => `<!doctype html><html><body sty
 </td></tr>
 
 <tr><td style="padding:20px 8px;text-align:center;font-size:12px;line-height:1.6;color:${C.subtle}">
-  ${why}<br>O&amp;R Customer Value Hub &middot; This is an automatic notification, replies are not monitored.
+  ${why}<br>O&amp;R Innovation Hub &middot; This is an automatic notification, replies are not monitored.
 </td></tr>
 </table>
 </td></tr></table></body></html>`;
@@ -115,7 +115,7 @@ const ideaTemplate = (x, copy) => template(x, copy)
       </table>
     </td></tr>\n`)
   .replace('>Status note<', '>The idea<').replace(x.val('ptrl_statusnote', 'No note yet.'), x.val('ptrl_idea'))
-  .replace(/<a href="[^"]*"([^>]*)>View request [^<]*<\/a>/, `<a href="${APP_URL}"$1>Open the Customer Value Hub &rarr;</a>`)
+  .replace(/<a href="[^"]*"([^>]*)>View request [^<]*<\/a>/, `<a href="${APP_URL}"$1>Open the Innovation Hub &rarr;</a>`)
   .replace(/<div style="display:none[^>]*>[^<]*<\/div>/, `<div style="display:none;max-height:0;overflow:hidden">New idea · ${x.val('ptrl_name')}</div>`)
   .replace(/(<div style="margin-top:8px;font-size:22px[^>]*>)[^<]*(<\/div>)/, `$1${x.val('ptrl_name')}$2`);
 
@@ -134,7 +134,7 @@ const initiativeTemplate = (x, copy) => template(x, copy)
       </table>
     </td></tr>\n`)
   .replace('>Status note<', '>Problem statement<').replace(x.val('ptrl_statusnote', 'No note yet.'), x.ans('problem'))
-  .replace(/<a href="[^"]*"([^>]*)>View request [^<]*<\/a>/, `<a href="${APP_URL}"$1>Open the Customer Value Hub &rarr;</a>`)
+  .replace(/<a href="[^"]*"([^>]*)>View request [^<]*<\/a>/, `<a href="${APP_URL}"$1>Open the Innovation Hub &rarr;</a>`)
   .replace(/<div style="display:none[^>]*>[^<]*<\/div>/, `<div style="display:none;max-height:0;overflow:hidden">New initiative · ${x.val('ptrl_name')}</div>`)
   .replace(/(<div style="margin-top:8px;font-size:22px[^>]*>)[^<]*(<\/div>)/, `$1${x.val('ptrl_name')}$2`);
 
@@ -166,10 +166,10 @@ const after = first => ({ [first]: ['Succeeded', 'Failed'] });
 const b = s => `<strong style="color:${C.ink}">${s}</strong>`;
 const COPY = {
   received: x => ({ eyebrow: 'Request received',
-    intro: `Hi ${x.first('ptrl_requestername')}, thanks for reaching out. Your request is in the queue and the team will follow up. You can follow it in the Customer Value Hub at any time.`,
+    intro: `Hi ${x.first('ptrl_requestername')}, thanks for reaching out. Your request is in the queue and the team will follow up. You can follow it in the Innovation Hub at any time.`,
     why: 'You are receiving this because you raised this request.' }),
   newForTeam: x => ({ eyebrow: 'New request',
-    intro: `${b(x.val('ptrl_requestername'))} raised a new ${b(x.val('ptrl_requesttypelabel', 'request'))}. Review the details below and pick it up in the Customer Value Hub.`,
+    intro: `${b(x.val('ptrl_requestername'))} raised a new ${b(x.val('ptrl_requesttypelabel', 'request'))}. Review the details below and pick it up in the Innovation Hub.`,
     why: 'You are receiving this because you work the intake queue.' }),
   updated: x => ({ eyebrow: 'Status update',
     intro: `Hi ${x.first('ptrl_requestername')}, your request moved to ${b(x.val('ptrl_stagelabel'))}.`,

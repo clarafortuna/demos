@@ -1,7 +1,7 @@
 /* ============================================================================
    O&R portal: name and editable copy, in one place.
 
-   NAME: the working name is "O&R Customer Value Hub". The final name comes
+   NAME: the working name is "O&R Innovation Hub". The final name comes
    from the internal naming contest; change `name` below and every page
    (header, footer, browser tab, Admin Portal) picks it up.
 
@@ -10,7 +10,7 @@
    HTML keeps the same wording as a fallback. Plain text only.
    ============================================================================ */
 window.ORU_SITE = {
-  name: 'O&R Customer Value Hub',
+  name: 'O&R Innovation Hub',
   tagline: 'Unified Innovation Portal',
 
   copy: {
