@@ -11,7 +11,7 @@
    ============================================================================ */
 window.ORU_SITE = {
   name: 'O&R Innovation Hub',
-  tagline: 'Unified Innovation Portal',
+  tagline: 'Where Ideas Become Impact',
 
   copy: {
     /* Hero */

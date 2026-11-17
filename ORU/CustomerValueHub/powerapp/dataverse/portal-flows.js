@@ -60,7 +60,7 @@ const template = (x, { eyebrow, intro, why }) => `<!doctype html><html><body sty
     <td style="width:36px;height:36px;background:${C.brand};border-radius:8px;text-align:center;vertical-align:middle;color:#fff;font-size:12px;font-weight:800;letter-spacing:-.02em">O&amp;R</td>
     <td style="padding-left:10px;line-height:1.2">
       <div style="font-size:13px;font-weight:700;color:${C.navy}">O&amp;R Innovation Hub</div>
-      <div style="font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:${C.brand}">Unified Innovation Portal</div>
+      <div style="font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:${C.brand}">Where Ideas Become Impact</div>
     </td>
   </tr></table>
 </td></tr>
