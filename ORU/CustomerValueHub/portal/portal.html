@@ -4593,7 +4593,8 @@ function ticketDrawer(key){
 
         '<details class="detbox" open><summary><span class="caret">' + I.caret + '</span>From the tracker</summary>' +
           '<div class="dcontent">' +
-            '<div class="frow"><span class="fk">Analyst</span><span class="fv">' + personChip(t.assignee) + '</span></div>' +
+            '<div class="frow"><span class="fk">Analyst</span><span class="fv">' + (S.as === 'user' ? personChip(t.assignee) :
+              '<select class="field" id="tassignee" style="width:auto">' + analystOptions(t.assignee) + '</select>') + '</span></div>' +
             '<div class="frow"><span class="fk">Requester</span><span class="fv">' + personChip(t.reporter) + '</span></div>' +
             '<div class="frow"><span class="fk">Also Involved</span><span class="fv">' +
               (t.additional ? esc(t.additional) : '<span class="faint">Nobody recorded</span>') + '</span></div>' +
@@ -6327,7 +6328,7 @@ document.addEventListener('click', function(e){
   if ((el = e.target.closest('[data-comment]'))){
     var box = document.getElementById('cbody'), key = el.getAttribute('data-comment');
     if (box && box.value.trim()){
-      COMMENTS.push([key, ME, box.value.trim(), new Date().toISOString()]);
+      COMMENTS.push([key, ME, box.value.trim(), new Date().toISOString(), pname(ME)]);
       renderDrawer();
       if (!PH || !TBY[key]) toast('Note added to ' + key + ', in this session only');
       else saveTicket(TBY[key]).then(function(){ toast('Note added to ' + key); },
@@ -6384,6 +6385,7 @@ document.addEventListener('change', function(e){
   else if (id === 'qvfn'){ S.qv.fn = v; S.qv.page = 1; render(); }
   else if (id === 'viewas'){ S.as = v; closeDrawer(); render(); toast('Viewing as ' + VIEWS_AS.filter(function(x){ return x.key === v; })[0].label); }
   else if (id === 'tstatus' && S.open && S.openKind === 't' && S.as !== 'user'){ moveTicket(S.open, v, true); }
+  else if (id === 'tassignee' && S.open && S.openKind === 't' && S.as !== 'user'){ assignTicket(S.open, v || null); }
 
 });
 
@@ -6451,6 +6453,27 @@ function moveTicket(key, to, fromDrawer){
   if (fromDrawer) renderDrawer();
   if (!PH){ toast(key + ' moved to ' + COL[to].label + ', in this session only'); return; }
   saveTicket(t).then(function(){ toast(key + ' moved to ' + COL[to].label); },
+    function(err){ toast(key + ' could not be saved. Try again in a moment'); if (window.console) console.error(err); });
+}
+
+/* The analyst picker lists the analysts, plus whoever already holds the
+   request if the roster does not call them one. Saving the new analyst is
+   what sends them the assignment email. */
+function analystOptions(cur){
+  var ids = PEOPLE.filter(function(p){ return p.role === 'analyst'; }).map(function(p){ return p.id; });
+  if (cur && ids.indexOf(cur) < 0) ids.unshift(cur);
+  return '<option value=""' + (cur ? '' : ' selected') + '>Not assigned</option>' + ids.map(function(id){
+    return '<option value="' + esc(id) + '"' + (id === cur ? ' selected' : '') + '>' + esc(pname(id)) + '</option>';
+  }).join('');
+}
+function assignTicket(key, who){
+  var t = TBY[key]; if (!t || t.assignee === who) return;
+  t.assignee = who;
+  hydrate(); indexAll();
+  render(); renderDrawer();
+  var said = who ? key + ' assigned to ' + pname(who) : key + ' is now unassigned';
+  if (!PH){ toast(said + ', in this session only'); return; }
+  saveTicket(t).then(function(){ toast(said); },
     function(err){ toast(key + ' could not be saved. Try again in a moment'); if (window.console) console.error(err); });
 }
 

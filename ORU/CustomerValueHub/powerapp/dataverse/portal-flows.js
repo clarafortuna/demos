@@ -1,6 +1,6 @@
-// Email notifications for the O&R Customer Value Hub: three Power Automate flows
-// (Dataverse trigger + Office 365 Outlook "Send an email") on ptrl_request and
-// ptrl_idea. Only @clarafortuna.com addresses get mail; anything else (the
+// Email notifications for the O&R Customer Value Hub: six Power Automate flows
+// (Dataverse trigger + Office 365 Outlook "Send an email") on ptrl_request,
+// ptrl_idea and ptrl_usecase. Only @clarafortuna.com addresses get mail; anything else (the
 // tracker's O&R names, analysts without an address) goes to Gerald, so nothing
 // leaves the company while the portal is confidential.
 const fs = require('fs');
@@ -19,6 +19,8 @@ async function tok(scope) {
 
 const f = c => `triggerOutputs()?['body/${c}']`;
 const to = col => `@{if(endsWith(toLower(coalesce(${f(col)},'')),'@clarafortuna.com'),${f(col)},'${FALLBACK}')}`;
+const NOTES = `json(coalesce(${f('ptrl_notes')},'[]'))`;
+const noteAt = i => `first(skip(if(empty(${NOTES}),createArray('','','','',''),last(${NOTES})),${i}))`;
 const v = (c, d = '-') => `@{coalesce(${f(c)},'${d}')}`;
 
 // ─── Email template, in the app's theme ──────────────────────────────────────
@@ -35,6 +37,8 @@ const FLOW_VALUES = {
   // One answer from a use case's answers (JSON in ptrl_answers).
   ans: (k, d = '-') => `@{coalesce(json(coalesce(${f('ptrl_answers')},'{}'))?['${k}'],'${d}')}`,
   val: (c, d) => v(c, d),
+  // The newest note on a request (ptrl_notes holds [key, author id, text, when, author name] rows).
+  note: (i, d = '-') => `@{coalesce(${noteAt(i)},'${d}')}`,
   first: c => `@{first(split(coalesce(${f(c)},'there'),' '))}`,
   pick: (c, pairs, i, def) => `@{${pairs.reduceRight((acc, p) => `if(equals(${f(c)},'${p[0]}'),'${p[i]}',${acc})`, `'${def}'`)}}`,
 };
@@ -142,8 +146,9 @@ const mail = (toExpr, subject, body, runAfter = {}) => ({
     authentication: "@parameters('$authentication')",
   },
 });
-const trigger = (table, message, filtering) => ({
+const trigger = (table, message, filtering, condition) => ({
   type: 'OpenApiConnectionWebhook',
+  ...(condition ? { conditions: [{ expression: condition }] } : {}),
   inputs: {
     host: { connectionName: 'shared_commondataserviceforapps', operationId: 'SubscribeWebhookTrigger', apiId: '/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps' },
     parameters: { 'subscriptionRequest/message': message, 'subscriptionRequest/entityname': table, 'subscriptionRequest/scope': 4, ...(filtering ? { 'subscriptionRequest/filteringattributes': filtering } : {}) },
@@ -172,6 +177,12 @@ const COPY = {
   updatedForTeam: x => ({ eyebrow: 'Request moved',
     intro: `This request, with ${b(x.val('ptrl_analystname', 'no analyst yet'))}, is now ${b(x.val('ptrl_stagelabel'))}.`,
     why: 'You are receiving this because you work this request.' }),
+  assigned: x => ({ eyebrow: 'Assigned to you',
+    intro: `Hi ${x.first('ptrl_analystname')}, this request is now yours. It is at ${b(x.val('ptrl_stagelabel'))}; the details are below.`,
+    why: 'You are receiving this because this request was assigned to you.' }),
+  comment: x => ({ eyebrow: 'New comment',
+    intro: `${b(x.note(4, 'Someone'))} commented on a request assigned to you.`,
+    why: 'You are receiving this because this request is assigned to you.' }),
   ideaThanks: x => ({ eyebrow: 'Idea received',
     intro: `Hi ${x.first('ptrl_submittername')}, thank you for sharing your idea. The team reads every one, and will reach out if they need more detail.`,
     why: 'You are receiving this because you shared an idea.' }),
@@ -185,6 +196,10 @@ const COPY = {
     intro: `${b(x.val('ptrl_submittername'))} submitted a new initiative. Every answer is in Initiative Submissions, ready to export.`,
     why: 'You are receiving this because you review new initiatives.' }),
 };
+// The comment email: the request frame, with the new comment in place of the status note.
+const commentTemplate = (x, copy) => template(x, copy)
+  .replace('>Status note<', '>The comment<').replace(x.val('ptrl_statusnote', 'No note yet.'), x.note(2));
+const M = (copy, x = FLOW_VALUES) => commentTemplate(x, copy(x));
 const R = (copy, x = FLOW_VALUES) => template(x, copy(x));
 const I = (copy, x = FLOW_VALUES) => ideaTemplate(x, copy(x));
 const N = (copy, x = FLOW_VALUES) => initiativeTemplate(x, copy(x));
@@ -202,6 +217,20 @@ const FLOWS = [
     definition: definition(trigger('ptrl_request', 3, 'ptrl_stage'), {
       Email_requester: mail(to('ptrl_requesteremail'), `Update on @{${f('ptrl_requestkey')}}: ${v('ptrl_stagelabel')}`, R(COPY.updated)),
       Email_analyst: mail(to('ptrl_analystemail'), `Request @{${f('ptrl_requestkey')}} - ${v('ptrl_stagelabel')}: @{${f('ptrl_name')}}`, R(COPY.updatedForTeam), after('Email_requester')),
+    }),
+  },
+  {
+    // Only when there is an analyst, and the analyst did not write the comment.
+    displayName: 'Customer Value Hub - Request comment emails',
+    definition: definition(trigger('ptrl_request', 3, 'ptrl_notes',
+      `@and(not(empty(coalesce(${f('ptrl_analystid')},''))),not(equals(string(${noteAt(1)}),string(${f('ptrl_analystid')}))))`), {
+      Email_analyst: mail(to('ptrl_analystemail'), `New comment on @{${f('ptrl_requestkey')}}: @{${f('ptrl_name')}}`, M(COPY.comment)),
+    }),
+  },
+  {
+    displayName: 'Customer Value Hub - Request assignment emails',
+    definition: definition(trigger('ptrl_request', 3, 'ptrl_analystid', `@not(empty(coalesce(${f('ptrl_analystid')},'')))`), {
+      Email_analyst: mail(to('ptrl_analystemail'), `Assigned to you: @{${f('ptrl_requestkey')}} ${v('ptrl_name')}`, R(COPY.assigned)),
     }),
   },
   {
@@ -228,10 +257,10 @@ if (process.argv[2] === 'preview') {
     ptrl_submittername: 'Gerald Serra Torres', ptrl_submitteremail: 'gerald@clarafortuna.com', ptrl_idea: 'A short checklist on the intake form, so a request arrives with what the analyst needs.' };
   Object.assign(S, { ptrl_usecasekey: 'UC-001', ptrl_shortcode: 'SEVREV', ptrl_workgroup: 'O&R Customer Assistance', ptrl_businessowner: 'David Braunfotel',
     ptrl_criticality: 'Silver (important but not mission-critical)', ptrl_annualhours: 2400 });
-  const PV = { ans: k => ({ problem: 'Analysts read every severance notice by hand.' })[k] || '-', val: (c, d = '-') => S[c] ?? d, first: c => (S[c] || 'there').split(' ')[0], pick: (c, pairs, i, def) => (pairs.find(p => p[0] === S[c]) || [])[i] ?? def };
+  const PV = { note: (i, d = '-') => ['REQ-079', 'p_lesley', 'Can you split the extract by rate class too? Thanks.', '', 'Lesley'][i] || d, ans: k => ({ problem: 'Analysts read every severance notice by hand.' })[k] || '-', val: (c, d = '-') => S[c] ?? d, first: c => (S[c] || 'there').split(' ')[0], pick: (c, pairs, i, def) => (pairs.find(p => p[0] === S[c]) || [])[i] ?? def };
   const ideaS = { ...S, ptrl_name: 'Intake checklist' };
   const PVI = { ...PV, val: (c, d = '-') => ideaS[c] ?? d };
-  const out = Object.entries(COPY).map(([k, copy]) => `<h3 style="font-family:Arial;margin:24px">${k}</h3>` + (/^idea/.test(k) ? I(copy, PVI) : /^initiative/.test(k) ? N(copy, { ...PV, val: (c, d = '-') => ({ ...S, ptrl_name: 'Severance Notice Review Assist', ptrl_department: 'Other' })[c] ?? d }) : R(copy, PV))).join('');
+  const out = Object.entries(COPY).map(([k, copy]) => `<h3 style="font-family:Arial;margin:24px">${k}</h3>` + (/^idea/.test(k) ? I(copy, PVI) : /^comment/.test(k) ? M(copy, PV) : /^initiative/.test(k) ? N(copy, { ...PV, val: (c, d = '-') => ({ ...S, ptrl_name: 'Severance Notice Review Assist', ptrl_department: 'Other' })[c] ?? d }) : R(copy, PV))).join('');
   fs.writeFileSync(__dirname + '/email-preview.html', out);
   console.log('wrote', __dirname + '/email-preview.html');
   process.exit(0);
