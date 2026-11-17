@@ -702,3 +702,16 @@ html.oru-modal-open { overflow: hidden; }
   .header:hover .oru-logo .wm small { font-size: 12.5px; margin-top: 5px; }
   main.mg-top-100 { margin-top: 64px; }
 }
+
+/* ---- INTAKE REQUESTS LANDING (intake.html) ---------------------------------
+   The request types and the four steps, as the initiative cards but on a
+   wrapping grid rather than a scrolling row. */
+.oru-ik-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 6px 2px 0; }
+.oru-ik-grid .oru-ini-card { min-height: 0; }
+.oru-ik-grid .oru-ini-card h4 { font-size: 23px; line-height: 29px; }
+.oru-ik-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .oru-ik-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 575px) { .oru-ik-steps { grid-template-columns: 1fr; } }
+.oru-ik-steps-sec { padding-bottom: 80px; }
+.oru-ik-time { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; color: var(--title-color); }
+.oru-ik-time i { line-height: 0; color: var(--primary-color); }

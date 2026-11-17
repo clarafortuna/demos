@@ -87,7 +87,7 @@ window.ORU_SITE = {
   // Links into the admin side: the Admin Portal and its deep links, on the
   // site pages (portal.html#...) and in the portal's own header (#exec).
   // Intake and Propose a Use Case are for everyone.
-  var ADMIN_LINKS = 'a[href^="portal.html"]:not([href$="#intake"]):not([href$="#usecase"]), .sn-portal, a.sn-portal';
+  var ADMIN_LINKS = 'a[href^="portal.html"]:not([href$="#intake"]):not([href$="#usecase"]):not([href$="#mine"]), .sn-portal, a.sn-portal';
 
   function apply() {
     var role = get();
